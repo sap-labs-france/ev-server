@@ -473,8 +473,8 @@ class ChargingStation extends AbstractTenantEntity {
       this.getConnectors().forEach(async (connector) => {
         // Only other Occupied connectors
         if ((connector.status === Constants.CONN_STATUS_OCCUPIED ||
-             connector.status === Constants.CONN_STATUS_UNAVAILABLE) &&
-            connector.connectorId !== connectorId) {
+          connector.status === Constants.CONN_STATUS_UNAVAILABLE) &&
+          connector.connectorId !== connectorId) {
           // Set connector Available again
           connector.status = Constants.CONN_STATUS_AVAILABLE;
           // Save other updated connectors?
@@ -602,7 +602,7 @@ class ChargingStation extends AbstractTenantEntity {
 
   async hasAtLeastOneTransaction() {
     // Get the consumption
-    const transactions = await Transaction.getTransactions(this.getTenantID(), {'chargeBoxID': this.getID()}, 1);
+    const transactions = await Transaction.getTransactions(this.getTenantID(), { 'chargeBoxID': this.getID() }, 1);
     // Return
     return (transactions.count > 0);
   }

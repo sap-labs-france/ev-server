@@ -89,7 +89,7 @@ class ChargingStationClient {
 
   getDiagnostics(params) {
   }
-  
+
   updateFirmware(params) {
   }
 

@@ -448,7 +448,7 @@ class TransactionService {
           'TransactionService', 'handleGetTransactionsActive',
           req.user);
       }
-      const filter = {stop: {$exists: false}};
+      const filter = { stop: { $exists: false } };
       // Filter
       const filteredRequest = TransactionSecurity.filterTransactionsActiveRequest(req.query, req.user);
       if (filteredRequest.ChargeBoxID) {
@@ -465,7 +465,7 @@ class TransactionService {
       }
       // Get Transactions
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-        {...filter, 'withChargeBoxes': true},
+        { ...filter, 'withChargeBoxes': true },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
       transactions.result = TransactionSecurity.filterTransactionsResponse(
@@ -492,7 +492,7 @@ class TransactionService {
           'TransactionService', 'handleGetTransactionsCompleted',
           req.user);
       }
-      const filter = {stop: {$exists: true}};
+      const filter = { stop: { $exists: true } };
       // Filter
       const filteredRequest = TransactionSecurity.filterTransactionsCompletedRequest(req.query, req.user);
       if (filteredRequest.ChargeBoxID) {
@@ -518,7 +518,7 @@ class TransactionService {
         filter.siteAreaID = filteredRequest.SiteAreaID;
       }
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-        {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID},
+        { ...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
       transactions.result = TransactionSecurity.filterTransactionsResponse(
@@ -545,7 +545,7 @@ class TransactionService {
           'TransactionService', 'handleGetTransactionsExport',
           req.user);
       }
-      const filter = {stop: {$exists: true}};
+      const filter = { stop: { $exists: true } };
       // Filter
       const filteredRequest = TransactionSecurity.filterTransactionsCompletedRequest(req.query, req.user);
       if (filteredRequest.ChargeBoxID) {
@@ -568,7 +568,7 @@ class TransactionService {
         filter.siteAreaID = filteredRequest.SiteAreaID;
       }
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-        {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID},
+        { ...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
       transactions.result = TransactionSecurity.filterTransactionsResponse(
@@ -581,7 +581,7 @@ class TransactionService {
         }
         transaction.tagID = transaction.tagID ? this.hashString(transaction.tagID) : '';
       }
-          
+
       const filename = "transactions_export.csv";
       fs.writeFile(filename, this.convertToCSV(transactions.result), (err) => {
         if (err) {
@@ -617,7 +617,7 @@ class TransactionService {
           'TransactionService', 'handleGetTransactionsInError',
           req.user);
       }
-      const filter = {stop: {$exists: true}};
+      const filter = { stop: { $exists: true } };
       // Filter
       const filteredRequest = TransactionSecurity.filterTransactionsInErrorRequest(req.query, req.user);
       if (filteredRequest.ChargeBoxID) {
@@ -637,7 +637,7 @@ class TransactionService {
         filter.userId = filteredRequest.UserID;
       }
       const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
-        {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID},
+        { ...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
       transactions.result = TransactionSecurity.filterTransactionsResponse(
