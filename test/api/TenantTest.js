@@ -46,20 +46,6 @@ describe('Tenant tests', function () {
       expect(updatedTenant.name).to.equal(this.newTenant.name);
     });
 
-    it('Should be possible to verify an existing tenant', async () => {
-      // Exec
-      let response = await CentralServerService.tenantApi.verify(this.newTenant.subdomain);
-      // Check
-      expect(response.status).to.equal(HttpStatus.OK);
-    });
-
-    it('Should be possible to verify empty tenant', async () => {
-      // Exec
-      let response = await CentralServerService.tenantApi.verify('');
-      // Check
-      expect(response.status).to.equal(HttpStatus.OK);
-    });    
-
     it('Should delete the created tenant', async () => {
       // Delete the created entity
       await CentralServerService.deleteEntity(
@@ -94,20 +80,6 @@ describe('Tenant tests', function () {
       // Exec
       let response = await CentralServerService.getEntityById(
         CentralServerService.tenantApi, {id: '123456789012345678901234'}, false);
-      // Check
-      expect(response.status).to.equal(550);
-    });
-
-    it('Should not be possible to verify invalid tenant', async () => {
-      // Exec
-      let response = await CentralServerService.tenantApi.verify('invalid tenant');
-      // Check
-      expect(response.status).to.equal(550);
-    });
-
-    it('Should not be possible to verify an unknown tenant', async () => {
-      // Exec
-      let response = await CentralServerService.tenantApi.verify('youAreUnknown');
       // Check
       expect(response.status).to.equal(550);
     });

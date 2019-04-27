@@ -29,7 +29,9 @@ module.exports = {
       limit: bodyLimit
     }));
     app.use(hpp());
-    app.use(bodyParser.xml());
+    app.use(bodyParser.xml({
+      limit: bodyLimit
+    }));
     // Use
     app.use(locale(Configuration.getLocalesConfig().supported));
     // Check Cloud Foundry
@@ -103,4 +105,4 @@ module.exports = {
 
     return server;
   }
-}
+};

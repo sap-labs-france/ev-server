@@ -52,7 +52,7 @@ class StatisticsStorage {
       });
       // Single Record
       aggregation.push({
-        $unwind: {"path": "$chargeBox", "preserveNullAndEmptyArrays": true}
+        $unwind: { "path": "$chargeBox", "preserveNullAndEmptyArrays": true }
       });
       // Add Site Area
       aggregation.push({
@@ -65,11 +65,11 @@ class StatisticsStorage {
       });
       // Single Record
       aggregation.push({
-        $unwind: {"path": "$siteArea", "preserveNullAndEmptyArrays": true}
+        $unwind: { "path": "$siteArea", "preserveNullAndEmptyArrays": true }
       });
       // Filter
       aggregation.push({
-        $match: {"siteArea.siteID": Utils.convertToObjectID(siteID)}
+        $match: { "siteArea.siteID": Utils.convertToObjectID(siteID) }
       });
     }
     // Group
@@ -78,8 +78,8 @@ class StatisticsStorage {
       case Constants.STATS_GROUP_BY_CONSUMPTION:
         aggregation.push({
           $group: {
-            _id: {chargeBox: "$chargeBoxID", year: {$year: "$timestamp"}, month: {$month: "$timestamp"}},
-            total: {$sum: {$divide: ["$stop.totalConsumption", 1000]}}
+            _id: { chargeBox: "$chargeBoxID", year: { $year: "$timestamp" }, month: { $month: "$timestamp" } },
+            total: { $sum: { $divide: ["$stop.totalConsumption", 1000] } }
           }
         });
         break;
@@ -88,15 +88,15 @@ class StatisticsStorage {
       case Constants.STATS_GROUP_BY_USAGE:
         aggregation.push({
           $group: {
-            _id: {chargeBox: "$chargeBoxID", year: {$year: "$timestamp"}, month: {$month: "$timestamp"}},
-            total: {$sum: {$divide: [{$subtract: ["$stop.timestamp", "$timestamp"]}, 60 * 60 * 1000]}}
+            _id: { chargeBox: "$chargeBoxID", year: { $year: "$timestamp" }, month: { $month: "$timestamp" } },
+            total: { $sum: { $divide: [{ $subtract: ["$stop.timestamp", "$timestamp"] }, 60 * 60 * 1000] } }
           }
         });
         break;
     }
     // Sort
     aggregation.push({
-      $sort: {"_id.month": 1, "_id.chargeBox": 1}
+      $sort: { "_id.month": 1, "_id.chargeBox": 1 }
     });
     // Read DB
     const transactionStatsMDB = await global.database.getCollection(tenantID, 'transactions')
@@ -128,7 +128,7 @@ class StatisticsStorage {
       }
     }
     // Debug
-    Logging.traceEnd('StatisticsStorage', 'getChargingStationStats', uniqueTimerID, {filter, siteID, groupBy});
+    Logging.traceEnd('StatisticsStorage', 'getChargingStationStats', uniqueTimerID, { filter, siteID, groupBy });
     return transactions;
   }
 
@@ -178,7 +178,7 @@ class StatisticsStorage {
       });
       // Single Record
       aggregation.push({
-        $unwind: {"path": "$chargeBox", "preserveNullAndEmptyArrays": true}
+        $unwind: { "path": "$chargeBox", "preserveNullAndEmptyArrays": true }
       });
       // Add Site Area
       aggregation.push({
@@ -191,11 +191,11 @@ class StatisticsStorage {
       });
       // Single Record
       aggregation.push({
-        $unwind: {"path": "$siteArea", "preserveNullAndEmptyArrays": true}
+        $unwind: { "path": "$siteArea", "preserveNullAndEmptyArrays": true }
       });
       // Filter
       aggregation.push({
-        $match: {"siteArea.siteID": Utils.convertToObjectID(siteID)}
+        $match: { "siteArea.siteID": Utils.convertToObjectID(siteID) }
       });
     }
     // Group
@@ -204,8 +204,8 @@ class StatisticsStorage {
       case Constants.STATS_GROUP_BY_CONSUMPTION:
         aggregation.push({
           $group: {
-            _id: {userID: "$userID", year: {$year: "$timestamp"}, month: {$month: "$timestamp"}},
-            total: {$sum: {$divide: ["$stop.totalConsumption", 1000]}}
+            _id: { userID: "$userID", year: { $year: "$timestamp" }, month: { $month: "$timestamp" } },
+            total: { $sum: { $divide: ["$stop.totalConsumption", 1000] } }
           }
         });
         break;
@@ -214,8 +214,8 @@ class StatisticsStorage {
       case Constants.STATS_GROUP_BY_USAGE:
         aggregation.push({
           $group: {
-            _id: {userID: "$userID", year: {$year: "$timestamp"}, month: {$month: "$timestamp"}},
-            total: {$sum: {$divide: [{$subtract: ["$stop.timestamp", "$timestamp"]}, 60 * 60 * 1000]}}
+            _id: { userID: "$userID", year: { $year: "$timestamp" }, month: { $month: "$timestamp" } },
+            total: { $sum: { $divide: [{ $subtract: ["$stop.timestamp", "$timestamp"] }, 60 * 60 * 1000] } }
           }
         });
         break;
@@ -231,11 +231,11 @@ class StatisticsStorage {
     });
     // Single Record
     aggregation.push({
-      $unwind: {"path": "$user", "preserveNullAndEmptyArrays": true}
+      $unwind: { "path": "$user", "preserveNullAndEmptyArrays": true }
     });
     // Sort
     aggregation.push({
-      $sort: {"_id.month": 1, "_id.chargeBox": 1}
+      $sort: { "_id.month": 1, "_id.chargeBox": 1 }
     });
     // Read DB
     const transactionStatsMDB = await global.database.getCollection(tenantID, 'transactions')
@@ -266,7 +266,7 @@ class StatisticsStorage {
       }
     }
     // Debug
-    Logging.traceEnd('StatisticsStorage', 'getUserStats', uniqueTimerID, {filter, siteID, groupBy});
+    Logging.traceEnd('StatisticsStorage', 'getUserStats', uniqueTimerID, { filter, siteID, groupBy });
     return transactions;
   }
 
@@ -282,7 +282,7 @@ class StatisticsStorage {
     // Build filter
     const match = [
       {
-      // Get all site area
+        // Get all site area
         "$lookup": {
           from: DatabaseUtils.getCollectionName(tenantID, 'siteareas'),
           localField: '_id',
@@ -297,16 +297,21 @@ class StatisticsStorage {
       {
         "$lookup": {
           from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
-          let: {siteAreaID: "$siteArea._id"},
+          let: { siteAreaID: "$siteArea._id" },
           pipeline: [ // Exclude deleted chargers
-            { $match: {$or: [
-              { deleted: false},
-              {deleted: {$exists: false}} ] } },
-            { $match: { 
-              $expr: 
-                  { $eq: [ '$$siteAreaID', '$siteAreaID']}                            
-                            
-            }                
+            {
+              $match: {
+                $or: [
+                  { deleted: false },
+                  { deleted: { $exists: false } }]
+              }
+            },
+            {
+              $match: {
+                $expr:
+                  { $eq: ['$$siteAreaID', '$siteAreaID'] }
+
+              }
             },
           ],
           as: 'chargingStation'
@@ -444,16 +449,21 @@ class StatisticsStorage {
       {
         "$lookup": {
           from: DatabaseUtils.getCollectionName(tenantID, 'transactions'),
-          let: {chargingStationName: "$chargingStation._id"},
+          let: { chargingStationName: "$chargingStation._id" },
           pipeline: [
-            { $match: {$and: [
-              { timestamp: {$gte: beginningOfTheDay } },
-              {stop: {$exists: false}} ] } },
-            { $match: { 
-              $expr: 
-                        { $eq: [ '$$chargingStationName', '$chargeBoxID']}                            
-                    
-            }                
+            {
+              $match: {
+                $and: [
+                  { timestamp: { $gte: beginningOfTheDay } },
+                  { stop: { $exists: false } }]
+              }
+            },
+            {
+              $match: {
+                $expr:
+                  { $eq: ['$$chargingStationName', '$chargeBoxID'] }
+
+              }
             },
           ],
           as: 'activeTransactions'
@@ -463,16 +473,21 @@ class StatisticsStorage {
       {
         "$lookup": {
           from: DatabaseUtils.getCollectionName(tenantID, 'transactions'),
-          let: {chargingStationName: '$chargingStation._id'},
+          let: { chargingStationName: '$chargingStation._id' },
           pipeline: [
-            { $match: {$and: [
-              { timestamp: {$gte: beginningOfTheDay } },
-              {stop: {$exists: true}} ] } },
-            { $match: { 
-              $expr: 
-                        { $eq: [ '$$chargingStationName', '$chargeBoxID']}                            
-                    
-            }                
+            {
+              $match: {
+                $and: [
+                  { timestamp: { $gte: beginningOfTheDay } },
+                  { stop: { $exists: true } }]
+              }
+            },
+            {
+              $match: {
+                $expr:
+                  { $eq: ['$$chargingStationName', '$chargeBoxID'] }
+
+              }
             },
           ],
           as: 'finishedTransactions'
@@ -482,25 +497,30 @@ class StatisticsStorage {
       {
         "$lookup": {
           from: DatabaseUtils.getCollectionName(tenantID, 'transactions'),
-          let: { chargingStationName: "$chargingStation._id"},
+          let: { chargingStationName: "$chargingStation._id" },
           pipeline: [
-            { $match: {$and: 
+            {
+              $match: {
+                $and:
                   [
-                    { stop: {$exists: true }}, 
-                    { timestamp: {$gte: transactionDateFilter } }
-                  ] } },
-            { $match: { 
-              $expr: {
-                $and: [
-                  { $eq: [ { $dayOfWeek: new Date() },{ $dayOfWeek: "$timestamp" }]},  
-                  { $eq: [ '$$chargingStationName', '$chargeBoxID']} ,                            
-                ]
+                    { stop: { $exists: true } },
+                    { timestamp: { $gte: transactionDateFilter } }
+                  ]
               }
-            }
             },
-                  
+            {
+              $match: {
+                $expr: {
+                  $and: [
+                    { $eq: [{ $dayOfWeek: new Date() }, { $dayOfWeek: "$timestamp" }] },
+                    { $eq: ['$$chargingStationName', '$chargeBoxID'] },
+                  ]
+                }
+              }
+            },
+
             { $replaceRoot: { newRoot: "$stop" } }
-                
+
           ],
           as: 'transactionsTrends'
         }
@@ -514,13 +534,13 @@ class StatisticsStorage {
           address: 1,
           transactions: 1,
           currentConsumption: {
-            $sum: '$activeTransactions.currentConsumption'  
+            $sum: '$activeTransactions.currentConsumption'
           },
           activeCurrentTotalConsumption: {
             $sum: '$activeTransactions.currentTotalConsumption'
           },
           finishedCurrentTotalConsumption: {
-            $sum: '$finishedTransactions.stop.totalConsumption' 
+            $sum: '$finishedTransactions.stop.totalConsumption'
           },
           maximumPower: {
             "$sum": "$chargingStation.maximumPower"
@@ -537,10 +557,10 @@ class StatisticsStorage {
             //   if: '$chargingStation.cannotChargeInParallel',
             //   then: 1,
             //   else: { 
-            $size: '$chargingStation.connectors' 
+            $size: '$chargingStation.connectors'
             //   }
             // }
-            
+
           },
           occupiedChargingPoint: {
             $size: '$activeTransactions'
@@ -587,13 +607,13 @@ class StatisticsStorage {
             "$sum": "$currentConsumption"
           },
           siteTotalConsumption: {
-            "$sum": {$add: ["$activeCurrentTotalConsumption", "$finishedCurrentTotalConsumption"]}
+            "$sum": { $add: ["$activeCurrentTotalConsumption", "$finishedCurrentTotalConsumption"] }
           },
           siteMaximumPower: {
             "$sum": "$chargingStation.maximumPower"
           },
           siteCurrentTotalInactivitySecs: {
-            "$sum": {$add: ["$activeCurrentTotalInactivitySecs", "$finishedCurrentTotalInactivitySecs"]}
+            "$sum": { $add: ["$activeCurrentTotalInactivitySecs", "$finishedCurrentTotalInactivitySecs"] }
           },
           siteMaximumNumberOfChargingPoint: {
             "$sum": "$maximumNumberOfChargingPoint"
@@ -664,8 +684,8 @@ class StatisticsStorage {
         "$unwind": "$site.image"
       },
       // sort
-      { $sort:  { 'company.name' : 1, '_id.name': 1}}   
-      
+      { $sort: { 'company.name': 1, '_id.name': 1 } }
+
     ];
     // Create Aggregation
     const aggregation = [];
@@ -704,14 +724,14 @@ class StatisticsStorage {
             companyStat.maximumPower += transactionStatMDB.siteMaximumPower;
             companyStat.maximumNumberOfChargingPoint += transactionStatMDB.siteMaximumNumberOfChargingPoint;
             companyStat.occupiedChargingPoint += transactionStatMDB.siteOccupiedChargingPoint;
-            companyStat.trends.totalConsumption.min = ( transactionStatMDB.siteChargingTrendsMinConsumption < companyStat.trends.totalConsumption.min ? transactionStatMDB.siteChargingTrendsMinConsumption : companyStat.trends.totalConsumption.min);
-            companyStat.trends.totalConsumption.max = ( transactionStatMDB.siteChargingTrendsMaxConsumption > companyStat.trends.totalConsumption.max ? transactionStatMDB.siteChargingTrendsMaxConsumption : companyStat.trends.totalConsumption.max);
+            companyStat.trends.totalConsumption.min = (transactionStatMDB.siteChargingTrendsMinConsumption < companyStat.trends.totalConsumption.min ? transactionStatMDB.siteChargingTrendsMinConsumption : companyStat.trends.totalConsumption.min);
+            companyStat.trends.totalConsumption.max = (transactionStatMDB.siteChargingTrendsMaxConsumption > companyStat.trends.totalConsumption.max ? transactionStatMDB.siteChargingTrendsMaxConsumption : companyStat.trends.totalConsumption.max);
             companyStat.trends.totalConsumption.avg += transactionStatMDB.siteChargingTrendsAvgConsumption;
-            companyStat.trends.duration.min = ( transactionStatMDB.siteChargingTrendsMinDuration < companyStat.trends.duration.min ? transactionStatMDB.siteChargingTrendsMinDuration : companyStat.trends.duration.min);
-            companyStat.trends.duration.max = ( transactionStatMDB.siteChargingTrendsMaxDuration > companyStat.trends.duration.max ? transactionStatMDB.siteChargingTrendsMaxDuration : companyStat.trends.duration.max);
+            companyStat.trends.duration.min = (transactionStatMDB.siteChargingTrendsMinDuration < companyStat.trends.duration.min ? transactionStatMDB.siteChargingTrendsMinDuration : companyStat.trends.duration.min);
+            companyStat.trends.duration.max = (transactionStatMDB.siteChargingTrendsMaxDuration > companyStat.trends.duration.max ? transactionStatMDB.siteChargingTrendsMaxDuration : companyStat.trends.duration.max);
             companyStat.trends.duration.avg += transactionStatMDB.siteChargingTrendsAvgDuration;
-            companyStat.trends.inactivity.min = ( transactionStatMDB.siteChargingTrendsMinInactivity < companyStat.trends.inactivity.min ? transactionStatMDB.siteChargingTrendsMinInactivity : companyStat.trends.inactivity.min);
-            companyStat.trends.inactivity.max = ( transactionStatMDB.siteChargingTrendsMaxInactivity > companyStat.trends.inactivity.max ? transactionStatMDB.siteChargingTrendsMaxInactivity : companyStat.trends.inactivity.max);
+            companyStat.trends.inactivity.min = (transactionStatMDB.siteChargingTrendsMinInactivity < companyStat.trends.inactivity.min ? transactionStatMDB.siteChargingTrendsMinInactivity : companyStat.trends.inactivity.min);
+            companyStat.trends.inactivity.max = (transactionStatMDB.siteChargingTrendsMaxInactivity > companyStat.trends.inactivity.max ? transactionStatMDB.siteChargingTrendsMaxInactivity : companyStat.trends.inactivity.max);
             companyStat.trends.inactivity.avg += transactionStatMDB.siteChargingTrendsAvgInactivity;
             companyStat.address.push(transactionStatMDB._id.address);
           }
@@ -726,9 +746,9 @@ class StatisticsStorage {
       currentMetrics.push(companyStat);
       currentMetrics = [...currentMetrics, ...sites];
     }
-    
+
     // Debug
-    Logging.traceEnd('StatisticsStorage', 'getcurrentMetrics', uniqueTimerID, {filteredRequest});
+    Logging.traceEnd('StatisticsStorage', 'getcurrentMetrics', uniqueTimerID, { filteredRequest });
     return currentMetrics;
   }
 
@@ -749,7 +769,7 @@ class StatisticsStorage {
     if (Array.isArray(transactionStatMDB.company.logo) && transactionStatMDB.company.logo.length > 0) {
       companyStat.image = transactionStatMDB.company.logo[0].logo;
     }
-    companyStat.trends = { totalConsumption: {}, duration: {}, inactivity: {}};
+    companyStat.trends = { totalConsumption: {}, duration: {}, inactivity: {} };
     companyStat.trends.totalConsumption.min = transactionStatMDB.siteChargingTrendsMinConsumption;
     companyStat.trends.totalConsumption.max = transactionStatMDB.siteChargingTrendsMaxConsumption;
     companyStat.trends.totalConsumption.avg = transactionStatMDB.siteChargingTrendsAvgConsumption;
@@ -779,7 +799,7 @@ class StatisticsStorage {
     if (transactionStatMDB.site && transactionStatMDB.site.image) {
       siteStat.image = transactionStatMDB.site.image.image;
     }
-    siteStat.trends = { totalConsumption: {}, duration: {}, inactivity: {}};
+    siteStat.trends = { totalConsumption: {}, duration: {}, inactivity: {} };
     siteStat.trends.totalConsumption.min = transactionStatMDB.siteChargingTrendsMinConsumption;
     siteStat.trends.totalConsumption.max = transactionStatMDB.siteChargingTrendsMaxConsumption;
     siteStat.trends.totalConsumption.avg = transactionStatMDB.siteChargingTrendsAvgConsumption;

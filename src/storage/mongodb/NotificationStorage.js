@@ -48,7 +48,7 @@ class NotificationStorage {
     });
     // Count Records
     const notificationsCountMDB = await global.database.getCollection(tenantID, 'notifications')
-      .aggregate([...aggregation, {$count: "count"}])
+      .aggregate([...aggregation, { $count: "count" }])
       .toArray();
     // Add Charge Box
     aggregation.push({
@@ -61,7 +61,7 @@ class NotificationStorage {
     });
     // Single Record
     aggregation.push({
-      $unwind: {"path": "$chargeBox", "preserveNullAndEmptyArrays": true}
+      $unwind: { "path": "$chargeBox", "preserveNullAndEmptyArrays": true }
     });
     // Add User
     aggregation.push({
@@ -74,7 +74,7 @@ class NotificationStorage {
     });
     // Single Record
     aggregation.push({
-      $unwind: {"path": "$user", "preserveNullAndEmptyArrays": true}
+      $unwind: { "path": "$user", "preserveNullAndEmptyArrays": true }
     });
     // Sort
     if (sort) {
@@ -85,7 +85,7 @@ class NotificationStorage {
     } else {
       // Default
       aggregation.push({
-        $sort: {timestamp: -1}
+        $sort: { timestamp: -1 }
       });
     }
     // Skip
@@ -98,7 +98,7 @@ class NotificationStorage {
     });
     // Read DB
     const notificationsMDB = await global.database.getCollection(tenantID, 'notifications')
-      .aggregate(aggregation, {collation: {locale: Constants.DEFAULT_LOCALE, strength: 2}})
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
     const notifications = [];
     // Check
@@ -138,7 +138,7 @@ class NotificationStorage {
     await global.database.getCollection(tenantID, 'notifications')
       .insertOne(notification);
     // Debug
-    Logging.traceEnd('NotificationStorage', 'saveNotification', uniqueTimerID, {notificationToSave});
+    Logging.traceEnd('NotificationStorage', 'saveNotification', uniqueTimerID, { notificationToSave });
   }
 }
 

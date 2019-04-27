@@ -177,9 +177,21 @@ const config = convict({
       default: '127.0.0.1',
     },
     port: {
-      doc: 'The SERVER server port to bind.',
+      doc: 'The mail server port to bind.',
       format: 'port',
       default: 1080,
+    },
+  },
+  wsClient:{
+    autoReconnectMaxRetries: {
+      doc: 'Web Socket client re-connection max retries.',
+      format: 'int',
+      default: 10,
+    },
+    autoReconnectTimeout: {
+      doc: 'Web Socket client re-connection timeout.',
+      format: 'int',
+      default: 0,
     },
   }
 });

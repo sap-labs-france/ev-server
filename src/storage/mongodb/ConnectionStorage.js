@@ -17,8 +17,8 @@ class ConnectionStorage {
     };
     const result = await global.database.getCollection(tenantID, 'connections').findOneAndUpdate(
       connectionFilter,
-      {$set: connection},
-      {upsert: true, new: true, returnOriginal: false});
+      { $set: connection },
+      { upsert: true, new: true, returnOriginal: false });
     Logging.traceEnd('ConnectionStorage', 'saveConnection', uniqueTimerID);
     return new Connection(tenantID, result.value);
   }
@@ -29,7 +29,7 @@ class ConnectionStorage {
     const Connection = require('../../integration/Connection');
     const aggregation = [];
     aggregation.push({
-      $match: {connectorId: connectorId, userId: Utils.convertToObjectID(userId)}
+      $match: { connectorId: connectorId, userId: Utils.convertToObjectID(userId) }
     });
 
     const results = await global.database.getCollection(tenantID, 'connections')
@@ -50,7 +50,7 @@ class ConnectionStorage {
     const Connection = require('../../integration/Connection');
     const aggregation = [];
     aggregation.push({
-      $match: {userId: Utils.convertToObjectID(userId)}
+      $match: { userId: Utils.convertToObjectID(userId) }
     });
 
     // Count Records
@@ -88,7 +88,7 @@ class ConnectionStorage {
     const aggregation = [];
     // Filters
     aggregation.push({
-      $match: {_id: Utils.convertToObjectID(id)}
+      $match: { _id: Utils.convertToObjectID(id) }
     });
 
     const results = await global.database.getCollection(tenantID, 'connections')
@@ -110,9 +110,9 @@ class ConnectionStorage {
     await Utils.checkTenant(tenantID);
     // Delete
     await global.database.getCollection(tenantID, 'connections')
-      .findOneAndDelete({'_id': Utils.convertToObjectID(id)});
+      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd('ConnectionStorage', 'deleteConnection', uniqueTimerID, {id});
+    Logging.traceEnd('ConnectionStorage', 'deleteConnection', uniqueTimerID, { id });
   }
 
 }

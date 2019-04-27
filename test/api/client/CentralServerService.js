@@ -44,7 +44,6 @@ class CentralServerService {
   }
 
   async updatePriceSetting(priceKWH, priceUnit) {
-
     const settings = await this.settingApi.readAll();
     let newSetting = false;
     let setting = settings.data.result.find(s => s.identifier == 'pricing');

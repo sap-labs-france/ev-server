@@ -28,13 +28,13 @@ class ConsumptionStorage {
     Database.updateConsumption(consumptionToSave, consumption, false);
     // Modify
     const result = await global.database.getCollection(tenantID, 'consumptions').findOneAndUpdate(
-      {"_id": consumptionToSave.id},
+      { "_id": consumptionToSave.id },
       {
         $set: consumption
       },
-      {upsert: true, new: true, returnOriginal: false});
+      { upsert: true, new: true, returnOriginal: false });
     // Debug
-    Logging.traceEnd('ConsumptionStorage', 'saveConsumption', uniqueTimerID, {consumptionToSave: consumptionToSave});
+    Logging.traceEnd('ConsumptionStorage', 'saveConsumption', uniqueTimerID, { consumptionToSave: consumptionToSave });
     // Return
     return new Consumption(tenantID, result.value);
   }
@@ -46,9 +46,9 @@ class ConsumptionStorage {
     await Utils.checkTenant(tenantID);
     // Delete
     await global.database.getCollection(tenantID, 'consumptions')
-      .deleteMany({'transactionId': transactionId});
+      .deleteMany({ 'transactionId': transactionId });
     // Debug
-    Logging.traceEnd('ConsumptionStorage', 'deleteConsumptions', uniqueTimerID, {transactionId});
+    Logging.traceEnd('ConsumptionStorage', 'deleteConsumptions', uniqueTimerID, { transactionId });
   }
 
   /**
@@ -77,7 +77,7 @@ class ConsumptionStorage {
       .aggregate(aggregation)
       .toArray();
     // Debug
-    Logging.traceEnd('ConsumptionStorage', 'getConsumption', uniqueTimerID, {transactionId, endedAt});
+    Logging.traceEnd('ConsumptionStorage', 'getConsumption', uniqueTimerID, { transactionId, endedAt });
     // Found?
     if (consumptionsMDB && consumptionsMDB.length > 0) {
       return new Consumption(tenantID, consumptionsMDB[0]);
@@ -104,13 +104,13 @@ class ConsumptionStorage {
         transactionId: Utils.convertToInt(transactionId)
       }
     });
-    aggregation.push({$sort: {endedAt: 1}});
+    aggregation.push({ $sort: { endedAt: 1 } });
     // Read DB
     const consumptionsMDB = await global.database.getCollection(tenantID, 'consumptions')
       .aggregate(aggregation)
       .toArray();
     // Debug
-    Logging.traceEnd('ConsumptionStorage', 'getConsumption', uniqueTimerID, {transactionId});
+    Logging.traceEnd('ConsumptionStorage', 'getConsumption', uniqueTimerID, { transactionId });
     // Found?
     if (consumptionsMDB && consumptionsMDB.length > 0) {
       return consumptionsMDB.map(c => new Consumption(tenantID, c));

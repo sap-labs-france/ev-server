@@ -12,7 +12,7 @@
 			"type": "ocpp",
 			"implementation": "json",
 			"protocol": "ws",
-			"host": "192.168.0.152",
+			"host": "localhost",
 			"port": 8010,
 			"debug": false
 		}
@@ -41,7 +41,11 @@
 		"baseUrl": "https://localhost:8000"
 	},
 	"JsonEndpoint":{
-		"baseUrl": "ws://192.168.0.152:8010"
+		"baseUrl": "ws://localhost:8010"
+	},
+	"WSClient": {
+		"autoReconnectMaxRetries": 10,
+		"autoReconnectTimeout": 60
 	},
 	"Storage": {
 		"implementation": "mongodb",

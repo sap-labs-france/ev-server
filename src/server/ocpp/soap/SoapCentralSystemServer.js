@@ -19,14 +19,14 @@ class SoapCentralSystemServer extends CentralSystemServer {
     super(centralSystemConfig, chargingStationConfig);
 
     // Initialize express app
-    this._express = expressTools.expressCommonInit()
+    this._express = expressTools.expressCommonInit();
 
     // FIXME?: Should be useless now that helmet() is mounted at the beginning
     // Mount express-sanitizer middleware
     this._express.use(sanitize());
 
     // Enable debug?
-    if (centralSystemConfig.debug) {
+    if (this._centralSystemConfig.debug) {
       // Log
       this._express.use(
         morgan('combined', {
@@ -46,10 +46,10 @@ class SoapCentralSystemServer extends CentralSystemServer {
     }
   }
 
-  /*
-  	Start the server and listen to all SOAP OCCP versions
-  	Listen to external command to send request to charging stations
-  */
+  /**
+   * Start the server and listen to all SOAP OCCP versions
+   * Listen to external command to send request to charging stations
+   */
   start() {
     // Make it global for SOAP Services
     global.centralSystemSoap = this;

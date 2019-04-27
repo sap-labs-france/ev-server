@@ -21,6 +21,36 @@
     {
       "type": "node",
       "request": "launch",
+      "name": "Mocha Tests - Charging Station - OCPP 1.5 (Soap)",
+      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+      "args": [
+        "-u",
+        "tdd",
+        "--timeout",
+        "999999",
+        "--colors",
+        "${workspaceFolder}/test/**/OCPPSoap15Test.js"
+      ],
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Mocha Tests - Charging Station - OCPP 1.6 (Json)",
+      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
+      "args": [
+        "-u",
+        "tdd",
+        "--timeout",
+        "999999",
+        "--colors",
+        "${workspaceFolder}/test/**/OCPPJson16Test.js"
+      ],
+      "internalConsoleOptions": "openOnSessionStart"
+    },
+    {
+      "type": "node",
+      "request": "launch",
       "name": "Mocha Tests - Charging Station - Specifics",
       "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
       "args": [

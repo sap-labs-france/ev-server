@@ -1,5 +1,5 @@
 const morgan = require('morgan');
-const expressTools = require('../ExpressTools')
+const expressTools = require('../ExpressTools');
 // const compression = require('compression');
 const Configuration = require('../../utils/Configuration');
 const Logging = require('../../utils/Logging');
@@ -18,9 +18,9 @@ class ODataServer {
     // Keep params
     _oDataServerConfig = oDataServerConfig;
     // Initialize express app
-    this._express = expressTools.expressCommonInit()
+    this._express = expressTools.expressCommonInit();
     // log to console
-    if (oDataServerConfig.debug) {
+    if (_oDataServerConfig.debug) {
       // Log
       this._express.use(
         morgan('combined', {

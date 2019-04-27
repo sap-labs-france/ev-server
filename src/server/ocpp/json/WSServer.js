@@ -8,7 +8,16 @@ const Constants = require('../../../utils/Constants');
 const MODULE_NAME = "WSServer";
 
 class WSServer extends WebSocket.Server {
-  constructor(httpServer, serverName, serverConfig, verifyClientCb, handleProtocolsCb) {
+  /**
+   * Create a new `WSServer`.
+   *
+   * @param {Object} httpServer
+   * @param {String} serverName
+   * @param {Object} serverConfig
+   * @param {Function} verifyClientCb
+   * @param {Function} handleProtocolsCb
+   */
+  constructor(httpServer, serverName, serverConfig, verifyClientCb = () => { }, handleProtocolsCb = () => { }) {
     // Create the Web Socket Server
     super({
       server: httpServer,
@@ -18,6 +27,19 @@ class WSServer extends WebSocket.Server {
     this._httpServer = httpServer;
     this._serverName = serverName;
     this._serverConfig = serverConfig;
+    this._keepAliveIntervalValue = (this._serverConfig.hasOwnProperty('keepaliveinterval') ? this._serverConfig.keepaliveinterval : 30) * 1000; // ms
+    this.on('connection', (ws) => {
+      ws.isAlive = true;
+      ws.on('pong', () => { ws.isAlive = true; });
+    });
+    this._keepAliveInterval = setInterval(() => {
+      this.clients.forEach((ws) => {
+        if (ws.isAlive === false)
+          return ws.terminate();
+        ws.isAlive = false;
+        ws.ping(() => { });
+      });
+    }, this._keepAliveIntervalValue);
   }
 
   static createHttpServer(serverConfig) {
@@ -28,8 +50,8 @@ class WSServer extends WebSocket.Server {
       // Create the options
       const options = {};
       // Set the keys
-      options.key = fs.readFileSync(this._serverConfig["ssl-key"]);
-      options.cert = fs.readFileSync(this._serverConfig["ssl-cert"]);
+      options.key = fs.readFileSync(serverConfig["ssl-key"]);
+      options.cert = fs.readFileSync(serverConfig["ssl-cert"]);
       // Https server
       httpServer = https.createServer(options, (req, res) => {
         res.writeHead(200);
@@ -45,10 +67,18 @@ class WSServer extends WebSocket.Server {
     return httpServer;
   }
 
+  broadcastToClients(message) {
+    this.clients.forEach((client) => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(message);
+      }
+    });
+  }
+
   start() {
     // Log
     // eslint-disable-next-line no-console
-    console.log(`Starting ${this._serverName} JSon ${MODULE_NAME}...`);
+    console.log(`Starting ${this._serverName} Json ${MODULE_NAME}...`);
     // Start listening
     this._httpServer.listen(this._serverConfig.port, this._serverConfig.host, () => {
       // Log
@@ -62,7 +92,6 @@ class WSServer extends WebSocket.Server {
       console.log(`${this._serverName} Json ${MODULE_NAME} listening on '${this._serverConfig.protocol}://${this._httpServer.address().address}:${this._httpServer.address().port}'`);
     });
   }
-
 }
 
 module.exports = WSServer;

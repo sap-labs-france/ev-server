@@ -40,10 +40,10 @@ class PricingStorage {
     // Modify
     await global.database.getCollection(tenantID, 'pricings').findOneAndUpdate(
       {},
-      {$set: pricing},
-      {upsert: true, new: true, returnOriginal: false});
+      { $set: pricing },
+      { upsert: true, new: true, returnOriginal: false });
     // Debug
-    Logging.traceEnd('NotificationStorage', 'savePricing', uniqueTimerID, {pricingToSave});
+    Logging.traceEnd('NotificationStorage', 'savePricing', uniqueTimerID, { pricingToSave });
   }
 }
 

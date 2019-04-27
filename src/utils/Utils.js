@@ -248,34 +248,25 @@ class Utils {
       _centralSystemFrontEndConfig.port}`;
   }
 
-  static async buildEvseUserURL(user) {
+  static async buildEvseUserURL(user, hash = '') {
     const tenant = await user.getTenant();
     const _evseBaseURL = Utils.buildEvseURL(tenant.getSubdomain());
     // Add
-    return _evseBaseURL + "/#/pages/users/user/" + user.getID();
+    return _evseBaseURL + "/users?UserID=" + user.getID() + hash;
   }
 
-  static async buildEvseChargingStationURL(chargingStation, connectorId = null) {
+  static async buildEvseChargingStationURL(chargingStation, hash = '') {
     const tenant = await chargingStation.getTenant();
     const _evseBaseURL = Utils.buildEvseURL(tenant.getSubdomain());
 
-    // Connector provided?
-    if (connectorId > 0) {
-      // URL with connector
-      return _evseBaseURL + "/#/pages/chargers/charger/" + chargingStation.getID() +
-        "/connector/" + connectorId;
-    } else {
-      // URL with charger only
-      return _evseBaseURL + "/#/pages/chargers/charger/" + chargingStation.getID();
-    }
+    return _evseBaseURL + "/charging-stations?ChargingStationID=" + chargingStation.getID() + hash;
   }
 
-  static async buildEvseTransactionURL(chargingStation, connectorId, transactionId) {
+  static async buildEvseTransactionURL(chargingStation, transactionId, hash = '') {
     const tenant = await chargingStation.getTenant();
     const _evseBaseURL = Utils.buildEvseURL(tenant.getSubdomain());
     // Add
-    return _evseBaseURL + "/#/pages/chargers/charger/" + chargingStation.getID() +
-      "/connector/" + connectorId + "/transaction/" + transactionId;
+    return _evseBaseURL + "/transactions?TransactionID=" + transactionId + hash;
   }
 
   static isServerInProductionMode() {
@@ -303,6 +294,14 @@ class Utils {
       recordLimit = Constants.DEFAULT_DB_LIMIT;
     }
     return recordLimit;
+  }
+
+  static roundTo(number, scale) {
+    return parseFloat(number.toFixed(scale));
+  }
+
+  static firstLetterInUpperCase(value) {
+    return value[0].toUpperCase() + value.substring(1);
   }
 
   static checkRecordSkip(recordSkip) {

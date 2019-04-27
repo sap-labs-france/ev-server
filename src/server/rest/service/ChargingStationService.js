@@ -371,7 +371,8 @@ class ChargingStationService {
           req.user);
       }
       // Check no active transaction
-      if (chargingStation.getConnectors().findIndex((connector) => connector.activeTransactionID > 0) >= 0) {
+      const foundIndex = chargingStation.getConnectors().findIndex((connector) => (connector ? connector.activeTransactionID > 0 : false));
+      if (foundIndex >= 0) {
         // Can' t be deleted
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -671,7 +672,8 @@ class ChargingStationService {
         // Check if user is authorized
         await Authorizations.isTagIDsAuthorizedOnChargingStation(chargingStation, req.user.tagIDs[0], transaction.getTagID(), action);
         // Set the tag ID to handle the Stop Transaction afterwards
-        transaction.remoteStop(req.user.tagIDs[0], new Date().toISOString());
+        transaction.setRemoteStopDate(new Date().toISOString());
+        transaction.setRemoteStopTagID(req.user.tagIDs[0]);
         // Save Transaction
         await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
         // Ok: Execute it

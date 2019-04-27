@@ -17,10 +17,10 @@ class OCPIEndpointStorage {
     const aggregation = [];
     // Filters
     aggregation.push({
-      $match: {_id: Utils.convertToObjectID(id)}
+      $match: { _id: Utils.convertToObjectID(id) }
     });
     // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID,aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Read DB
     const ocpiEndpointsMDB = await global.database.getCollection(tenantID, 'ocpiendpoints')
       .aggregate(aggregation)
@@ -32,7 +32,7 @@ class OCPIEndpointStorage {
       ocpiEndpoint = new OCPIEndpoint(tenantID, ocpiEndpointsMDB[0]);
     }
     // Debug
-    Logging.traceEnd('OCPIEndpointStorage', 'getOcpiEndpoint', uniqueTimerID, {id});
+    Logging.traceEnd('OCPIEndpointStorage', 'getOcpiEndpoint', uniqueTimerID, { id });
     return ocpiEndpoint;
   }
 
@@ -46,10 +46,10 @@ class OCPIEndpointStorage {
     const aggregation = [];
     // Filters
     aggregation.push({
-      $match: {localToken: token}
+      $match: { localToken: token }
     });
     // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID,aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Read DB
     const ocpiEndpointsMDB = await global.database.getCollection(tenantID, 'ocpiendpoints')
       .aggregate(aggregation)
@@ -61,7 +61,7 @@ class OCPIEndpointStorage {
       ocpiEndpoint = new OCPIEndpoint(tenantID, ocpiEndpointsMDB[0]);
     }
     // Debug
-    Logging.traceEnd('OCPIEndpointStorage', 'getOcpiEndpointWithToken', uniqueTimerID, {token});
+    Logging.traceEnd('OCPIEndpointStorage', 'getOcpiEndpointWithToken', uniqueTimerID, { token });
     return ocpiEndpoint;
   }
 
@@ -95,10 +95,10 @@ class OCPIEndpointStorage {
     // Modify
     const result = await global.database.getCollection(tenantID, 'ocpiendpoints').findOneAndUpdate(
       ocpiEndpointFilter,
-      {$set: ocpiEndpoint},
-      {upsert: true, new: true, returnOriginal: false});
+      { $set: ocpiEndpoint },
+      { upsert: true, new: true, returnOriginal: false });
     // Debug
-    Logging.traceEnd('OCPIEndpointStorage', 'saveOcpiEndpoint', uniqueTimerID, {ocpiEndpointToSave});
+    Logging.traceEnd('OCPIEndpointStorage', 'saveOcpiEndpoint', uniqueTimerID, { ocpiEndpointToSave });
     // Create
     return new OCPIEndpoint(tenantID, result.value);
   }
@@ -108,7 +108,7 @@ class OCPIEndpointStorage {
   static async getDefaultOcpiEndpoint(tenantID) {
     const ocpiEndpoints = await this.getOcpiEndpoints(tenantID);
 
-    return (ocpiEndpoints.result && ocpiEndpoints.result.length > 0)?ocpiEndpoints.result[0]:undefined;
+    return (ocpiEndpoints.result && ocpiEndpoints.result.length > 0) ? ocpiEndpoints.result[0] : undefined;
   }
 
   // Delegate
@@ -128,7 +128,7 @@ class OCPIEndpointStorage {
     if (params.search) {
       // Build filter
       filters.$or = [
-        {"name": {$regex: params.search, $options: 'i'}}
+        { "name": { $regex: params.search, $options: 'i' } }
       ];
     }
 
@@ -142,10 +142,10 @@ class OCPIEndpointStorage {
     }
     // Count Records
     const ocpiEndpointsCountMDB = await global.database.getCollection(tenantID, 'ocpiendpoints')
-      .aggregate([...aggregation, {$count: "count"}])
+      .aggregate([...aggregation, { $count: "count" }])
       .toArray();
     // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID,aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
     if (sort) {
       // Sort
@@ -170,7 +170,7 @@ class OCPIEndpointStorage {
     });
     // Read DB
     const ocpiEndpointsMDB = await global.database.getCollection(tenantID, 'ocpiendpoints')
-      .aggregate(aggregation, {collation: {locale: Constants.DEFAULT_LOCALE, strength: 2}})
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
     const ocpiEndpoints = [];
     // Check
@@ -182,7 +182,7 @@ class OCPIEndpointStorage {
       }
     }
     // Debug
-    Logging.traceEnd('OCPIEndpointStorage', 'getOcpiEndpoints',uniqueTimerID, {params, limit, skip, sort});
+    Logging.traceEnd('OCPIEndpointStorage', 'getOcpiEndpoints', uniqueTimerID, { params, limit, skip, sort });
     // Ok
     return {
       count: (ocpiEndpointsCountMDB.length > 0 ? ocpiEndpointsCountMDB[0].count : 0),
@@ -197,9 +197,9 @@ class OCPIEndpointStorage {
     await Utils.checkTenant(tenantID);
     // Delete OcpiEndpoint
     await global.database.getCollection(tenantID, 'ocpiendpoints')
-      .findOneAndDelete({'_id': Utils.convertToObjectID(id)});
+      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd('OCPIEndpointStorage', 'deleteOcpiEndpoint', uniqueTimerID, {id});
+    Logging.traceEnd('OCPIEndpointStorage', 'deleteOcpiEndpoint', uniqueTimerID, { id });
   }
 }
 

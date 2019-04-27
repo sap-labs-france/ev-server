@@ -1,6 +1,6 @@
 const uuid = require('uuid/v4');
 const OCPPService = require('../OCPPService');
-const WebSocket = require('ws');
+const WSClient = require('../../../../src/client/WSClient');
 const config = require('../../../config');
 const { performance } = require('perf_hooks');
 const OCPP_JSON_CALL_MESSAGE = 2;
@@ -18,10 +18,16 @@ class OCPPJsonService16 extends OCPPService {
   }
 
   openConnection(chargeBoxIdentity) {
+    // eslint-disable-next-line no-undef
     return new Promise((resolve, reject) => {
       // Create WS
       const sentRequests = [];
-      const wsConnection = new WebSocket(`${this.serverUrl}/${chargeBoxIdentity}`, 'ocpp1.6');
+      const wsClientOptions = {
+        protocols: 'ocpp1.6',
+        autoReconnectTimeout: config.get('wsClient').autoReconnectTimeout,
+        autoReconnectMaxRetries: config.get('wsClient').autoReconnectMaxRetries
+      };
+      const wsConnection = new WSClient(`${this.serverUrl}/${chargeBoxIdentity}`, wsClientOptions, false);
       // Opened
       wsConnection.onopen = () => {
         // connection is opened and ready to use
@@ -149,7 +155,6 @@ class OCPPJsonService16 extends OCPPService {
   }
 
   async _send(chargeBoxIdentity, message) {
-
     // WS Opened?
     if (!this._wsSessions.get(chargeBoxIdentity)) {
       // Open WS
