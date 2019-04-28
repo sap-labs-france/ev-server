@@ -16,7 +16,7 @@ class ERPService extends AbstractSoapClient {
       new soap.ClientSSLSecurity(
         `${global.appRoot}/assets/convergent-charging/ssl/hybris-access.key`,
         `${global.appRoot}/assets/convergent-charging/ssl/hybris-access.crt`,
-        {rejectUnauthorized: false, strictSSL: false}
+        { rejectUnauthorized: false, strictSSL: false }
       )
     );
 
@@ -52,7 +52,7 @@ class ERPService extends AbstractSoapClient {
     const invoiceDocumentSelectRequest = new InvoiceDocumentSelectRequest(invoiceDocumentNumber);
     const result = await this.execute(invoiceDocumentSelectRequest);
     if (!result.data.FKKInvDoc_H) {
-      throw  new Error(result.data.error.message);
+      throw new Error(result.data.error.message);
     }
     return result.data.FKKInvDoc_H;
   }

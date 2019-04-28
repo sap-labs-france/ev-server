@@ -13,7 +13,7 @@ const EP_VERSION = "2.1.1";
  */
 class TestsEndpoint extends AbstractEndpoint {
   constructor(ocpiService) {
-    super(ocpiService,EP_IDENTIFIER, EP_VERSION);
+    super(ocpiService, EP_IDENTIFIER, EP_VERSION);
   }
 
   /**
@@ -51,7 +51,7 @@ class TestsEndpoint extends AbstractEndpoint {
 
 
     // test setting handling
-    let setting = await Setting.getSettingByIdentifier(tenant.getID(),Constants.COMPONENTS.OCPI);
+    let setting = await Setting.getSettingByIdentifier(tenant.getID(), Constants.COMPONENTS.OCPI);
 
     if (!setting) {
       setting = new Setting(tenant.getID(), {});
@@ -76,7 +76,7 @@ class TestsEndpoint extends AbstractEndpoint {
     });
     const settingSaved = await setting.save();
 
-    let testsetting = await Setting.getSettingByIdentifier(tenant.getID(),'test');
+    let testsetting = await Setting.getSettingByIdentifier(tenant.getID(), 'test');
 
     if (testsetting) {
       // delete
@@ -86,7 +86,7 @@ class TestsEndpoint extends AbstractEndpoint {
     // recreate it
     testsetting = new Setting(tenant.getID(), {});
     testsetting.setIdentifier('test');
-    testsetting.setContent({'test': true});
+    testsetting.setContent({ 'test': true });
     await testsetting.save();
 
     // test ocpiEndpoint entity

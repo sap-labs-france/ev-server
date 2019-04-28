@@ -30,7 +30,7 @@ module.exports = { /* Services */
           });
         }).catch((error) => {
           // Log
-          Logging.logException(error, "Authorize", headers.chargeBoxIdentity, 
+          Logging.logException(error, "Authorize", headers.chargeBoxIdentity,
             MODULE_NAME, "Authorize", (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
           callback({
             'authorizeResponse': {
@@ -67,7 +67,7 @@ module.exports = { /* Services */
           });
         }).catch((error) => {
           // Log
-          Logging.logException(error, "BootNotification", headers.chargeBoxIdentity, 
+          Logging.logException(error, "BootNotification", headers.chargeBoxIdentity,
             MODULE_NAME, "BootNotification", (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
           callback({
             'bootNotificationResponse': {
@@ -99,7 +99,7 @@ module.exports = { /* Services */
           });
         }).catch((error) => {
           // Log
-          Logging.logException(error, "DataTransfer", headers.chargeBoxIdentity, 
+          Logging.logException(error, "DataTransfer", headers.chargeBoxIdentity,
             MODULE_NAME, "DataTransfer", (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
           callback({
             'dataTransferResponse': {
@@ -127,7 +127,7 @@ module.exports = { /* Services */
           });
         }).catch((error) => {
           // Log
-          Logging.logException(error, "DiagnosticsStatusNotification", headers.chargeBoxIdentity, 
+          Logging.logException(error, "DiagnosticsStatusNotification", headers.chargeBoxIdentity,
             MODULE_NAME, "DiagnosticsStatusNotification", (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
           callback({
             'diagnosticsStatusNotificationResponse': {}
@@ -153,7 +153,7 @@ module.exports = { /* Services */
           });
         }).catch((error) => {
           // Log
-          Logging.logException(error, "FirmwareStatusNotification", headers.chargeBoxIdentity, 
+          Logging.logException(error, "FirmwareStatusNotification", headers.chargeBoxIdentity,
             MODULE_NAME, "FirmwareStatusNotification", (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
           callback({
             'firmwareStatusNotificationResponse': {}
@@ -181,7 +181,7 @@ module.exports = { /* Services */
           });
         }).catch((error) => {
           // Log
-          Logging.logException(error, "Heartbeat", headers.chargeBoxIdentity, 
+          Logging.logException(error, "Heartbeat", headers.chargeBoxIdentity,
             MODULE_NAME, "Heartbeat", (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
           callback({
             'heartbeatResponse': {
@@ -209,7 +209,7 @@ module.exports = { /* Services */
           });
         }).catch((error) => {
           // Log
-          Logging.logException(error, "MeterValues", headers.chargeBoxIdentity, 
+          Logging.logException(error, "MeterValues", headers.chargeBoxIdentity,
             MODULE_NAME, "MeterValues", (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
           callback({
             'meterValuesResponse': {}
@@ -240,7 +240,7 @@ module.exports = { /* Services */
           });
         }).catch((error) => {
           // Log
-          Logging.logException(error, "StartTransaction", headers.chargeBoxIdentity, 
+          Logging.logException(error, "StartTransaction", headers.chargeBoxIdentity,
             MODULE_NAME, "StartTransaction", (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
           callback({
             'startTransactionResponse': {
@@ -271,7 +271,7 @@ module.exports = { /* Services */
           });
         }).catch((error) => {
           // Log
-          Logging.logException(error, "StatusNotification", headers.chargeBoxIdentity, 
+          Logging.logException(error, "StatusNotification", headers.chargeBoxIdentity,
             MODULE_NAME, "StatusNotification", (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
           // Default
           callback({
@@ -279,7 +279,7 @@ module.exports = { /* Services */
           });
         });
       },
-      
+
       StopTransaction: function (args, callback, headers, req) {
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
@@ -302,7 +302,7 @@ module.exports = { /* Services */
           });
         }).catch((error) => {
           // Log
-          Logging.logException(error, "StopTransaction", headers.chargeBoxIdentity, 
+          Logging.logException(error, "StopTransaction", headers.chargeBoxIdentity,
             MODULE_NAME, "StopTransaction", (headers.tenantID ? headers.tenantID : Constants.DEFAULT_TENANT));
           callback({
             'stopTransactionResponse': {

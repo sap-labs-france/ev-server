@@ -111,7 +111,7 @@ class ConnectorService extends AbstractService {
         action: action
       });
       // Ok
-      res.status(HttpStatusCodes.OK).json(Object.assign({id: req.user.tenantID}, Constants.REST_RESPONSE_SUCCESS));
+      res.status(HttpStatusCodes.OK).json(Object.assign({ id: req.user.tenantID }, Constants.REST_RESPONSE_SUCCESS));
       next();
     } catch (error) {
       AbstractService._handleError(error, req, next, action, MODULE_NAME, 'handleCreateConnection');

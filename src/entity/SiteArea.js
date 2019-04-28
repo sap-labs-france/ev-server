@@ -216,7 +216,7 @@ class SiteArea extends AbstractTenantEntity {
   async getChargingStations() {
     // Get from DB
     const chargingStations = await ChargingStationStorage.getChargingStations(this.getTenantID(),
-      {siteAreaID: this.getID()}, Constants.NO_LIMIT);
+      { siteAreaID: this.getID() }, Constants.NO_LIMIT);
     // Keep it
     this.setChargingStations(chargingStations.result);
     return chargingStations.result;

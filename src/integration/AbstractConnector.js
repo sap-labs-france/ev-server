@@ -4,7 +4,7 @@ const AbstractTenantEntity = require('../entity/AbstractTenantEntity');
 const User = require('../entity/User');
 
 class AbstractConnector extends AbstractTenantEntity {
-  constructor(tenantID,connectorId, setting) {
+  constructor(tenantID, connectorId, setting) {
     super(tenantID);
     this._setting = setting;
     this._connectorId = connectorId;
