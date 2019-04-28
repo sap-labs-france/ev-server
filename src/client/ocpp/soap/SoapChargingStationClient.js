@@ -14,6 +14,7 @@ class SoapChargingStationClient extends ChargingStationClient {
     // Keep the charger
     this._chargingStation = chargingStation;
     // Get the Charging Station
+    // eslint-disable-next-line no-undef
     return new Promise((fulfill, reject) => {
       let chargingStationWdsl = null;
       // Read the WSDL client files
