@@ -696,7 +696,7 @@ class OCPPService {
           // Notify User?
           if (transaction.getUserJson()) {
             // Send Notification
-            this._notifyEndOfCharge(chargingStation, transaction);
+            this._notifyOptimalChargeReached(chargingStation, transaction);
           }
         }
       }
