@@ -3,6 +3,7 @@ const Constants = require('../../../utils/Constants');
 const BackendError = require('../../../exception/BackendError');
 const Logging = require('../../../utils/Logging');
 const SchemaValidator = require('../../rest/validation/SchemaValidator');
+const bootNotificationRequest = require('./boot-notification-request.json');
 const authorizeRequest = require('./authorize-request.json');
 
 require('source-map-support').install();
@@ -35,6 +36,7 @@ class OCPPValidation extends SchemaValidator {
   }
 
   validateBootNotification(bootNotification) {
+    this.validate(bootNotificationRequest, bootNotification);
   }
 
   validateDiagnosticsStatusNotification(chargingStation, diagnosticsStatusNotification) {
