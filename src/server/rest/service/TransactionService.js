@@ -229,16 +229,18 @@ class TransactionService {
         }
       }
       // Stop Transaction
-      const stopTransaction = {};
-      stopTransaction.chargeBoxIdentity = chargingStation.getID();
-      stopTransaction.tenantID = chargingStation.getTenantID();
-      stopTransaction.transactionId = transaction.getID();
-      stopTransaction.user = req.user.id;
-      stopTransaction.idTag = req.user.tagIDs[0];
-      stopTransaction.timestamp = new Date().toISOString();
-      stopTransaction.meterStop = 0;
-      // Save
-      const result = await new OCPPService().handleStopTransaction(stopTransaction, true);
+      const result = await new OCPPService().handleStopTransaction(
+        {
+          chargeBoxIdentity: chargingStation.getID(),
+          tenantID: chargingStation.getTenantID()
+        },
+        {
+          transactionId: transaction.getID(),
+          idTag: req.user.tagIDs[0],
+          timestamp: transaction.getLastMeterValue().timestamp,
+          meterStop: transaction.getLastMeterValue().value
+        },
+        true);
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID, source: chargingStation.getID(),
