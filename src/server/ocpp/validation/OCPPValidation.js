@@ -2,36 +2,50 @@ const Utils = require('../../../utils/Utils');
 const Constants = require('../../../utils/Constants');
 const BackendError = require('../../../exception/BackendError');
 const Logging = require('../../../utils/Logging');
+const SchemaValidator = require('../../rest/validation/SchemaValidator');
+const bootNotificationRequest = require('./boot-notification-request.json');
+const authorizeRequest = require('./authorize-request.json');
+const statusNotificationRequest = require('./status-notification-request.json');
 
 require('source-map-support').install();
 
-class OCPPValidation {
+class OCPPValidation extends SchemaValidator {
 
-  static validateHeartbeat(chargingStation, heartbeat) {
+  constructor() {
+    if (!OCPPValidation.instance) {
+      super("OCPPValidation");
+      OCPPValidation.instance = this;
+    }
+
+    return OCPPValidation.instance;
   }
 
-  static validateStatusNotification(chargingStation, statusNotification) {
+  validateHeartbeat(heartbeat) {
+  }
+
+  validateStatusNotification(statusNotification) {
     // Check non mandatory timestamp
     if (!statusNotification.timestamp) {
       statusNotification.timestamp = new Date().toISOString();
     }
-    // Always integer
-    statusNotification.connectorId = Utils.convertToInt(statusNotification.connectorId);
+    this.validate(statusNotificationRequest, statusNotification);
   }
 
-  static validateAuthorize(chargingStation, authorize) {
+  validateAuthorize(authorize) {
+    this.validate(authorizeRequest, authorize);
   }
 
-  static validateBootNotification(bootNotification) {
+  validateBootNotification(bootNotification) {
+    this.validate(bootNotificationRequest, bootNotification);
   }
 
-  static validateDiagnosticsStatusNotification(chargingStation, diagnosticsStatusNotification) {
+  validateDiagnosticsStatusNotification(chargingStation, diagnosticsStatusNotification) {
   }
 
-  static validateFirmwareStatusNotification(chargingStation, firmwareStatusNotification) {
+  validateFirmwareStatusNotification(chargingStation, firmwareStatusNotification) {
   }
 
-  static validateStartTransaction(chargingStation, startTransaction) {
+  validateStartTransaction(chargingStation, startTransaction) {
     // Check the timestamp
     if (!startTransaction.hasOwnProperty("timestamp")) {
       // BUG EBEE: Timestamp is mandatory according OCPP
@@ -62,13 +76,13 @@ class OCPPValidation {
     }
   }
 
-  static validateDataTransfer(chargingStation, dataTransfer) {
+  validateDataTransfer(chargingStation, dataTransfer) {
   }
 
-  static validateStopTransaction(chargingStation, stopTransaction) {
+  validateStopTransaction(chargingStation, stopTransaction) {
   }
 
-  static validateMeterValues(chargingStation, meterValues) {
+  validateMeterValues(chargingStation, meterValues) {
     // Always integer
     meterValues.connectorId = Utils.convertToInt(meterValues.connectorId);
     // Check Connector ID
@@ -81,7 +95,7 @@ class OCPPValidation {
       });
       // Set to 1 (KEBA has only one connector)
       meterValues.connectorId = 1;
-    }    
+    }
     // Check if the transaction ID matches
     const chargerTransactionId = Utils.convertToInt(chargingStation.getConnector(meterValues.connectorId).activeTransactionID);
     // Transaction is provided in MeterValue?
@@ -116,4 +130,7 @@ class OCPPValidation {
   }
 }
 
-module.exports = OCPPValidation;
+const instance = new OCPPValidation();
+Object.freeze(instance);
+
+module.exports = instance;

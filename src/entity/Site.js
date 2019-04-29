@@ -153,7 +153,7 @@ class Site extends AbstractTenantEntity {
 
   async getSiteAreas() {
     // Get from DB
-    const siteAreas = await SiteAreaStorage.getSiteAreas(this.getTenantID(), {'siteID': this.getID()});
+    const siteAreas = await SiteAreaStorage.getSiteAreas(this.getTenantID(), { 'siteID': this.getID() });
     // Keep it
     this.setSiteAreas(siteAreas.result);
     return siteAreas.result;
@@ -168,7 +168,7 @@ class Site extends AbstractTenantEntity {
       return this._model.users.map((user) => new User(this.getTenantID(), user));
     } else {
       // Get from DB
-      const users = await UserStorage.getUsers(this.getTenantID(), {'siteID': this.getID()});
+      const users = await UserStorage.getUsers(this.getTenantID(), { 'siteID': this.getID() });
       // Keep it
       this.setUsers(users.result);
       return users.result;
@@ -177,7 +177,7 @@ class Site extends AbstractTenantEntity {
 
   async getUser(userID) {
     // Get from DB
-    const users = await UserStorage.getUsers(this.getTenantID(), {'siteID': this.getID(), 'userID': userID});
+    const users = await UserStorage.getUsers(this.getTenantID(), { 'siteID': this.getID(), 'userID': userID });
     // Check
     if (users.count > 0) {
       return users.result[0];

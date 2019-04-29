@@ -5,6 +5,7 @@ const JsonChargingStationClient = require('../../../client/ocpp/json/JsonChargin
 const JsonChargingStationService = require('./services/JsonChargingStationService');
 const WSConnection = require('./WSConnection');
 const BackendError = require('../../../exception/BackendError');
+const Configuration = require('../../../utils/Configuration');
 
 const MODULE_NAME = "JsonWSConnection";
 
@@ -40,7 +41,7 @@ class JsonWSConnection extends WSConnection {
         chargeBoxIdentity: this.getChargingStationID(),
         ocppVersion: (this.getWSConnection().protocol.startsWith("ocpp") ? this.getWSConnection().protocol.replace("ocpp", "") : this.getWSConnection().protocol),
         ocppProtocol: Constants.OCPP_PROTOCOL_JSON,
-        chargingStationURL: this._serverURL,
+        chargingStationURL: Configuration.getJsonEndpointConfig().baseUrl,
         tenantID: this.getTenantID(),
         From: {
           Address: this.getIP()
@@ -88,7 +89,7 @@ class JsonWSConnection extends WSConnection {
     // Check if method exist in the service
     if (typeof this._chargingStationService["handle" + commandName] === 'function') {
       // Call it
-      const result = await this._chargingStationService["handle" + commandName](Object.assign({}, commandPayload, this._headers));
+      const result = await this._chargingStationService["handle" + commandName](this._headers, commandPayload);
       // Log
       Logging.logReturnedAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, result);
       // Send Response

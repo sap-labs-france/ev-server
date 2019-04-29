@@ -6,7 +6,7 @@ const CentralServerService = require('./client/CentralServerService');
 const config = require('../config');
 
 describe('OCPP 1.5 SOAP Tests', function () {
-  this.timeout(1000);
+  this.timeout(10000);
 
   before(async () => {
     // Get Tenant ID
@@ -43,7 +43,7 @@ describe('OCPP 1.5 SOAP Tests', function () {
 
     it('Charging Station should authorize both start and stop users', async () => {
       // Delegate
-      await this.ocppCommonTests.testAuhtorize();
+      await this.ocppCommonTests.testAuthorizeUsers();
     });
 
     it('Charging Station can change its connector status to Occupied', async () => {

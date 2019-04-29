@@ -98,7 +98,7 @@ class OCPIClient {
    * GET /ocpi/emsp/versions
    */
   async getVersions() {
-  
+
     const respOcpiVersions = await axios.get(this._ocpiEndpoint.getBaseUrl(), {
       headers: {
         'Authorization': `Token ${this._ocpiEndpoint.getToken()}`,
@@ -332,7 +332,7 @@ class OCPIClient {
             } catch (error) {
               sendResult.failure++;
               sendResult.chargeBoxIDsInFailure.push(evse.chargeBoxId);
-              sendResult.logs.push( 
+              sendResult.logs.push(
                 `failure updating status for locationID:${location.id} - evseID:${evse.id}:${error.message}`
               );
             }
@@ -384,7 +384,7 @@ class OCPIClient {
   // Get ChargeBoxIds with new status notifications
   async getChargeBoxIDsWithNewStatusNotifications(tenant) {
     // get last job
-    const lastPatchJobOn = this._ocpiEndpoint.getLastPatchJobOn()?this._ocpiEndpoint.getLastPatchJobOn():new Date();
+    const lastPatchJobOn = this._ocpiEndpoint.getLastPatchJobOn() ? this._ocpiEndpoint.getLastPatchJobOn() : new Date();
 
     // build params
     const params = { "dateFrom": lastPatchJobOn };
@@ -394,7 +394,7 @@ class OCPIClient {
 
     // loop through notifications
     if (statusNotificationsResult.count > 0) {
-      return statusNotificationsResult.result.map( statusNotification => { return statusNotification.chargeBoxID;} );
+      return statusNotificationsResult.result.map(statusNotification => { return statusNotification.chargeBoxID; });
     } else {
       return [];
     }

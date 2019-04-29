@@ -260,7 +260,7 @@ class TransactionApi extends CrudApi {
           firstName: user.firstName,
           name: user.name,
         }
-      })
+      });
     }
   }
 
@@ -316,7 +316,6 @@ class TransactionApi extends CrudApi {
         chargeBoxID: transaction.chargeBoxID,
         meterStart: transaction.meterStart,
         stateOfCharge: transaction.stateOfCharge,
-        stateOfCharge: transaction.stateOfCharge,
         user: {
           id: user.id,
           firstName: user.firstName,
@@ -331,8 +330,8 @@ class TransactionApi extends CrudApi {
     }
   }
 
-  async stopTransaction(ocpp, transaction, userStart, userStop, meterStop, stopTime, 
-      chargingStationConnector, totalConsumption, totalInactivity, totalPrice, stateOfCharge) {
+  async stopTransaction(ocpp, transaction, userStart, userStop, meterStop, stopTime,
+    chargingStationConnector, totalConsumption, totalInactivity, totalPrice, stateOfCharge) {
     // Stop the transaction
     let response = await ocpp.executeStopTransaction(transaction.chargeBoxID, {
       transactionId: transaction.id,
@@ -388,7 +387,7 @@ class TransactionApi extends CrudApi {
         name: userStart.name,
         firstName: userStart.firstName
       }
-    })
+    });
   }
 }
 
