@@ -668,13 +668,13 @@ class TransactionStorage {
           });
           // Simulate a Stop Transaction
           const OCPPService = require('../../server/ocpp/services/OCPPService');
-          const ocppService = new OCPPService();
-          await ocppService.handleStopTransaction({
+          await new OCPPService().handleStopTransaction({
             "tenantID": activeTransaction.getTenantID(),
-            "chargeBoxIdentity": activeTransaction.getChargeBoxID(),
+            "chargeBoxIdentity": activeTransaction.getChargeBoxID()
+          }, {
+            "transactionId": activeTransaction.getID(),
             "meterStop": activeTransaction.getLastMeterValue().value,
             "timestamp": activeTransaction.getLastMeterValue().timestamp,
-            "transactionId": activeTransaction.getID()
           });
         }
       }
