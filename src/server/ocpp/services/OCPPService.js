@@ -168,7 +168,7 @@ class OCPPService {
       // Get Charging Station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
       // Check props
-      OCPPValidation.validateHeartbeat(chargingStation, heartbeat);
+      OCPPValidation.validateHeartbeat(heartbeat);
       // Set Heartbeat
       chargingStation.setLastHeartBeat(new Date());
       // Save
@@ -201,7 +201,7 @@ class OCPPService {
       // Get charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
       // Check props
-      OCPPValidation.validateStatusNotification(chargingStation, statusNotification);
+      OCPPValidation.validateStatusNotification(statusNotification);
       // Set Header
       statusNotification.chargeBoxID = chargingStation.getID();
       statusNotification.timezone = chargingStation.getTimezone();

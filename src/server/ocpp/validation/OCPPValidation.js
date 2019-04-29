@@ -5,6 +5,7 @@ const Logging = require('../../../utils/Logging');
 const SchemaValidator = require('../../rest/validation/SchemaValidator');
 const bootNotificationRequest = require('./boot-notification-request.json');
 const authorizeRequest = require('./authorize-request.json');
+const statusNotificationRequest = require('./status-notification-request.json');
 
 require('source-map-support').install();
 
@@ -19,16 +20,15 @@ class OCPPValidation extends SchemaValidator {
     return OCPPValidation.instance;
   }
 
-  validateHeartbeat(chargingStation, heartbeat) {
+  validateHeartbeat(heartbeat) {
   }
 
-  validateStatusNotification(chargingStation, statusNotification) {
+  validateStatusNotification(statusNotification) {
     // Check non mandatory timestamp
     if (!statusNotification.timestamp) {
       statusNotification.timestamp = new Date().toISOString();
     }
-    // Always integer
-    statusNotification.connectorId = Utils.convertToInt(statusNotification.connectorId);
+    this.validate(statusNotificationRequest, statusNotification);
   }
 
   validateAuthorize(authorize) {

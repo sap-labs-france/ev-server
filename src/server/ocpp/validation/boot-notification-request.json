@@ -1,5 +1,5 @@
 {
-    "title": "authorize-request",
+    "title": "boot-notification-request",
     "description": "Defines the BootNotification.req PDU",
     "type": "object",
     "properties": {
