@@ -54,28 +54,27 @@ class OCPPService {
     return chargingStation;
   }
 
-  async handleBootNotification(bootNotification) {
+  async handleBootNotification(headers, bootNotification) {
     try {
       // Check props
       OCPPValidation.validateBootNotification(bootNotification);
       // Set the endpoint
-      if (bootNotification.From) {
-        bootNotification.endpoint = bootNotification.From.Address;
+      if (headers.From) {
+        bootNotification.endpoint = headers.From.Address;
       }
       // Set the ChargeBox ID
-      bootNotification.id = bootNotification.chargeBoxIdentity;
+      bootNotification.id = headers.chargeBoxIdentity;
       // Set the default Heart Beat
       bootNotification.lastReboot = new Date();
       bootNotification.lastHeartBeat = bootNotification.lastReboot;
       bootNotification.timestamp = bootNotification.lastReboot;
       // Get the charging station
-      let chargingStation = await ChargingStation.getChargingStation(bootNotification.tenantID, bootNotification.chargeBoxIdentity);
+      let chargingStation = await ChargingStation.getChargingStation(headers.tenantID, headers.chargeBoxIdentity);
       if (!chargingStation) {
         // New Charging Station: Create
-        chargingStation = new ChargingStation(bootNotification.tenantID, bootNotification);
+        chargingStation = new ChargingStation(headers.tenantID, bootNotification);
         // Update timestamp
         chargingStation.setCreatedOn(new Date());
-        chargingStation.setLastHeartBeat(new Date());
       } else {
         // Existing Charging Station: Update
         // Check if same vendor and model
@@ -83,25 +82,25 @@ class OCPPService {
             chargingStation.getChargePointModel() !== bootNotification.chargePointModel) {
           // Not the same charger!
           throw new BackendError(
-            chargingStation.getID(), 
-            `Registration rejected: the Vendor '${bootNotification.chargePointVendor}' / Model '${bootNotification.chargePointModel}' are different! Expected Vendor '${chargingStation.getChargePointVendor()}' / Model '${chargingStation.getChargePointModel()}'`, 
+            chargingStation.getID(),
+            `Registration rejected: the Vendor '${bootNotification.chargePointVendor}' / Model '${bootNotification.chargePointModel}' are different! Expected Vendor '${chargingStation.getChargePointVendor()}' / Model '${chargingStation.getChargePointModel()}'`,
             "OCPPService", "handleBootNotification", "BootNotification");
         }
-        chargingStation.setChargePointVendor(bootNotification.chargePointVendor);
-        chargingStation.setChargePointModel(bootNotification.chargePointModel);
         chargingStation.setChargePointSerialNumber(bootNotification.chargePointSerialNumber);
         chargingStation.setChargeBoxSerialNumber(bootNotification.chargeBoxSerialNumber);
         chargingStation.setFirmwareVersion(bootNotification.firmwareVersion);
-        chargingStation.setOcppVersion(bootNotification.ocppVersion);
-        chargingStation.setOcppProtocol(bootNotification.ocppProtocol);
-        chargingStation.setLastHeartBeat(new Date());
-        // Set the charger URL?
-        if (bootNotification.chargingStationURL) {
-          chargingStation.setChargingStationURL(bootNotification.chargingStationURL);
-        }
         // Back again
         chargingStation.setDeleted(false);
       }
+
+      chargingStation.setOcppVersion(headers.ocppVersion);
+      chargingStation.setOcppProtocol(headers.ocppProtocol);
+      chargingStation.setLastHeartBeat(new Date());
+      // Set the charger URL?
+      if (headers.chargingStationURL) {
+        chargingStation.setChargingStationURL(headers.chargingStationURL);
+      }
+
       // Save Charging Station
       const updatedChargingStation = await chargingStation.save();
 
@@ -135,7 +134,7 @@ class OCPPService {
       // Check if charger will be automatically assigned
       if (Configuration.getTestConfig() && Configuration.getTestConfig().automaticChargerAssignment) {
         // Get all the site areas
-        const siteAreas = await SiteArea.getSiteAreas(bootNotification.tenantID);
+        const siteAreas = await SiteArea.getSiteAreas(headers.tenantID);
         // Assign them
         if (Array.isArray(siteAreas.result) && siteAreas.result.length > 0) {
           // Set
@@ -152,9 +151,9 @@ class OCPPService {
       };
     } catch (error) {
       // Set the source
-      error.source = bootNotification.chargeBoxIdentity;
+      error.source = headers.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage(bootNotification.tenantID, 'BootNotification', error);
+      Logging.logActionExceptionMessage(headers.tenantID, 'BootNotification', error);
       // Reject
       return {
         'status': 'Rejected',
@@ -164,10 +163,10 @@ class OCPPService {
     }
   }
 
-  async handleHeartbeat(heartbeat) {
+  async handleHeartbeat(headers, heartbeat) {
     try {
       // Get Charging Station
-      const chargingStation = await OCPPUtils.checkAndGetChargingStation(heartbeat.chargeBoxIdentity, heartbeat.tenantID);
+      const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
       // Check props
       OCPPValidation.validateHeartbeat(chargingStation, heartbeat);
       // Set Heartbeat
@@ -180,16 +179,16 @@ class OCPPService {
         source: chargingStation.getID(),
         module: 'OCPPService', method: 'handleHeartbeat',
         action: 'Heartbeat', message: `Heartbeat saved`
-      }); 
+      });
       // Return
       return {
         'currentTime': chargingStation.getLastHeartBeat().toISOString()
       };
     } catch (error) {
       // Set the source
-      error.source = heartbeat.chargeBoxIdentity;
+      error.source = headers.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage(heartbeat.tenantID, 'HeartBeat', error);
+      Logging.logActionExceptionMessage(headers.tenantID, 'HeartBeat', error);
       // Send the response
       return {
         'currentTime': new Date().toISOString()
@@ -197,10 +196,10 @@ class OCPPService {
     }
   }
 
-  async handleStatusNotification(statusNotification) {
+  async handleStatusNotification(headers, statusNotification) {
     try {
       // Get charging station
-      const chargingStation = await OCPPUtils.checkAndGetChargingStation(statusNotification.chargeBoxIdentity, statusNotification.tenantID);
+      const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
       // Check props
       OCPPValidation.validateStatusNotification(chargingStation, statusNotification);
       // Set Header
@@ -243,9 +242,9 @@ class OCPPService {
       return {};
     } catch (error) {
       // Set the source
-      error.source = statusNotification.chargeBoxIdentity;
+      error.source = headers.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage(statusNotification.tenantID, 'StatusNotification', error);
+      Logging.logActionExceptionMessage(headers.tenantID, 'StatusNotification', error);
       // Return
       return {};
     }
@@ -335,10 +334,10 @@ class OCPPService {
     }
   }
 
-  async handleMeterValues(meterValues) {
+  async handleMeterValues(headers, meterValues) {
     try {
       // Get the charging station
-      const chargingStation = await OCPPUtils.checkAndGetChargingStation(meterValues.chargeBoxIdentity, meterValues.tenantID);
+      const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
       // Check props
       OCPPValidation.validateMeterValues(chargingStation, meterValues);
       // Normalize Meter Values
@@ -388,9 +387,9 @@ class OCPPService {
       return {};
     } catch (error) {
       // Set the source
-      error.source = meterValues.chargeBoxIdentity;
+      error.source = headers.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage(meterValues.tenantID, 'MeterValues', error);
+      Logging.logActionExceptionMessage(headers.tenantID, 'MeterValues', error);
       // Response
       return {};
     }
@@ -683,7 +682,7 @@ class OCPPService {
       // Has consumption?
       if (transaction.hasMultipleConsumptions()) {
         // End of charge?
-        if (_configChargingStation.notifEndOfChargeEnabled && 
+        if (_configChargingStation.notifEndOfChargeEnabled &&
            (transaction.getCurrentTotalInactivitySecs() > 60 || transaction.getCurrentStateOfCharge() === 100)) {
           // Notify User?
           if (transaction.getUserJson()) {
@@ -726,7 +725,7 @@ class OCPPService {
   _buildTransactionDuration(transaction) {
     return moment.duration(transaction.getTotalDurationSecs(), "s").format(`h[h]mm`, {trim: false});
   }
-  
+
   _filterMeterValuesOnCharger(chargingStation, meterValues) {
     // Clean up Sample.Clock meter value
     if (chargingStation.getChargePointVendor() !== Constants.CHARGER_VENDOR_ABB ||
@@ -821,12 +820,12 @@ class OCPPService {
     };
   }
 
-  async handleAuthorize(authorize) {
+  async handleAuthorize(headers, authorize) {
     try {
       // Get the charging station
-      const chargingStation = await OCPPUtils.checkAndGetChargingStation(authorize.chargeBoxIdentity, authorize.tenantID);
+      const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
       // Check props
-      OCPPValidation.validateAuthorize(chargingStation, authorize);
+      OCPPValidation.validateAuthorize(authorize);
       // Set header
       authorize.chargeBoxID = chargingStation.getID();
       authorize.timestamp = new Date();
@@ -848,19 +847,19 @@ class OCPPService {
       };
     } catch (error) {
       // Set the source
-      error.source = authorize.chargeBoxIdentity;
+      error.source = headers.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage(authorize.tenantID, 'Authorize', error);
+      Logging.logActionExceptionMessage(headers.tenantID, 'Authorize', error);
       return {
         'status': 'Invalid'
       };
     }
   }
 
-  async handleDiagnosticsStatusNotification(diagnosticsStatusNotification) {
+  async handleDiagnosticsStatusNotification(headers, diagnosticsStatusNotification) {
     try {
       // Get the charging station
-      const chargingStation = await OCPPUtils.checkAndGetChargingStation(diagnosticsStatusNotification.chargeBoxIdentity, diagnosticsStatusNotification.tenantID);
+      const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
       // Check props
       OCPPValidation.validateDiagnosticsStatusNotification(chargingStation, diagnosticsStatusNotification);
       // Set the charger ID
@@ -879,17 +878,17 @@ class OCPPService {
       return {};
     } catch (error) {
       // Set the source
-      error.source = diagnosticsStatusNotification.chargeBoxIdentity;
+      error.source = headers.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage(chargingStation.getTenantID(), 'DiagnosticsStatusNotification', error);
+      Logging.logActionExceptionMessage(headers.tenantID, 'DiagnosticsStatusNotification', error);
       return {};
     }
   }
 
-  async handleFirmwareStatusNotification(firmwareStatusNotification) {
+  async handleFirmwareStatusNotification(headers, firmwareStatusNotification) {
     try {
       // Get the charging station
-      const chargingStation = await OCPPUtils.checkAndGetChargingStation(firmwareStatusNotification.chargeBoxIdentity, firmwareStatusNotification.tenantID);
+      const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
       // Check props
       OCPPValidation.validateFirmwareStatusNotification(chargingStation, firmwareStatusNotification);
       // Set the charger ID
@@ -907,17 +906,19 @@ class OCPPService {
       // Return
       return {};
     } catch (error) {
+      // Set the source
+      error.source = headers.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage(firmwareStatusNotification.tenantID, 'FirmwareStatusNotification', error);
+      Logging.logActionExceptionMessage(headers.tenantID, 'FirmwareStatusNotification', error);
       return {};
     }
   }
 
-  async handleStartTransaction(startTransaction) {
+  async handleStartTransaction(headers, startTransaction) {
     try {
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(
-        startTransaction.chargeBoxIdentity, startTransaction.tenantID);
+        headers.chargeBoxIdentity, headers.tenantID);
       // Check props
       OCPPValidation.validateStartTransaction(chargingStation, startTransaction);
       // Set the header
@@ -939,7 +940,7 @@ class OCPPService {
         const site = await chargingStation.getSite();
         if (site) {
           startTransaction.siteID = site.getID();
-        }      
+        }
       }
       // Cleanup ongoing transactions
       await Transaction.stopOrDeleteActiveTransactions(
@@ -1011,9 +1012,9 @@ class OCPPService {
       };
     } catch (error) {
       // Set the source
-      error.source = startTransaction.chargeBoxIdentity;
+      error.source = headers.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage(startTransaction.tenantID, Constants.ACTION_START_TRANSACTION, error);
+      Logging.logActionExceptionMessage(headers.tenantID, Constants.ACTION_START_TRANSACTION, error);
       return {
         'transactionId': 0,
         'status': 'Invalid'
@@ -1043,12 +1044,12 @@ class OCPPService {
       }
     );
   }
- 
 
-  async handleDataTransfer(dataTransfer) {
+
+  async handleDataTransfer(headers, dataTransfer) {
     try {
       // Get the charging station
-      const chargingStation = await OCPPUtils.checkAndGetChargingStation(dataTransfer.chargeBoxIdentity, dataTransfer.tenantID);
+      const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
       // Check props
       OCPPValidation.validateDataTransfer(chargingStation, dataTransfer);
       // Set the charger ID
@@ -1069,19 +1070,19 @@ class OCPPService {
       };
     } catch (error) {
       // Set the source
-      error.source = dataTransfer.chargeBoxIdentity;
+      error.source = headers.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage(dataTransfer.tenantID, Constants.ACTION_DATA_TRANSFER, error);
+      Logging.logActionExceptionMessage(headers.tenantID, Constants.ACTION_DATA_TRANSFER, error);
       return {
         'status': 'Rejected'
       };
     }
   }
 
-  async handleStopTransaction(stopTransaction, isSoftStop=false) {
+  async handleStopTransaction(headers, stopTransaction, isSoftStop=false) {
     try {
       // Get the charging station
-      const chargingStation = await OCPPUtils.checkAndGetChargingStation(stopTransaction.chargeBoxIdentity, stopTransaction.tenantID);
+      const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
       // Check props
       OCPPValidation.validateStopTransaction(chargingStation, stopTransaction);
       // Set header
@@ -1150,7 +1151,7 @@ class OCPPService {
       Logging.logInfo({
         tenantID: chargingStation.getTenantID(),
         source: chargingStation.getID(), module: 'OCPPService', method: 'handleStopTransaction',
-        action: Constants.ACTION_STOP_TRANSACTION, 
+        action: Constants.ACTION_STOP_TRANSACTION,
         user: (alternateUser ? alternateUser.getID() : (user ? user.getID() : null)),
         actionOnUser: (alternateUser ? (user ? user.getID() : null) : null),
         message: `Transaction ID '${transaction.getID()}' has been stopped successfully`
@@ -1161,9 +1162,9 @@ class OCPPService {
       };
     } catch (error) {
       // Set the source
-      error.source = stopTransaction.chargeBoxIdentity;
+      error.source = headers.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage(stopTransaction.tenantID, Constants.ACTION_STOP_TRANSACTION, error);
+      Logging.logActionExceptionMessage(headers.tenantID, Constants.ACTION_STOP_TRANSACTION, error);
       // Error
       return {
         'status': 'Invalid'

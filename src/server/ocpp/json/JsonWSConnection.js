@@ -68,7 +68,7 @@ class JsonWSConnection extends WSConnection {
       message: error
     });
   }
-  
+
   onClose(code, reason) {
     // Log
     Logging.logInfo({
@@ -88,7 +88,7 @@ class JsonWSConnection extends WSConnection {
     // Check if method exist in the service
     if (typeof this._chargingStationService["handle" + commandName] === 'function') {
       // Call it
-      const result = await this._chargingStationService["handle" + commandName](Object.assign({}, commandPayload, this._headers));
+      const result = await this._chargingStationService["handle" + commandName](this._headers, commandPayload);
       // Log
       Logging.logReturnedAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, result);
       // Send Response

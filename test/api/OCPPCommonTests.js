@@ -62,7 +62,9 @@ class OCPPCommonTests {
 
   async after() {
     // Destroy context
-    await this.bootstrap.destroyContext(this.context);
+    if (this.context) {
+      await this.bootstrap.destroyContext(this.context);
+    }
   }
 
   async testConnectorStatus() {
@@ -134,22 +136,22 @@ class OCPPCommonTests {
     expect(response.data.status).to.equal('Accepted');
   }
 
-  async testAuhtorize() {
-    // Check
-    let response = await this.ocpp.executeAuthorize(this.context.newChargingStation.id, {
-      idTag: this.transactionStartUser.tagIDs[0]
-    });
-    // Check
-    expect(response.data).to.have.property('idTagInfo');
-    expect(response.data.idTagInfo.status).to.equal('Accepted');
+  async testAuthorizeUsers() {
+    // Asserts that the start user is authorized.
+    await this.testAuthorize(this.transactionStartUser.tagIDs[0], 'Accepted');
+    // Asserts that the stop user is authorized.
+    await this.testAuthorize(this.transactionStopUser.tagIDs[0], 'Accepted');
+    // Asserts that the user with a too long tag is not authorized.
+    await this.testAuthorize('ThisIsATooTooTooLongTag', 'Invalid');
+  }
 
-    // Check
-    response = await this.ocpp.executeAuthorize(this.context.newChargingStation.id, {
-      idTag: this.transactionStopUser.tagIDs[0]
+  async testAuthorize(tagId, expectedStatus) {
+    const response = await this.ocpp.executeAuthorize(this.context.newChargingStation.id, {
+      idTag: tagId
     });
     // Check
     expect(response.data).to.have.property('idTagInfo');
-    expect(response.data.idTagInfo.status).to.equal('Accepted');
+    expect(response.data.idTagInfo.status).to.equal(expectedStatus);
   }
 
   async testStartTransaction(withSoC = false) {
