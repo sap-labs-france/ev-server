@@ -208,10 +208,10 @@ class ConcurConnector extends AbstractConnector {
         const locationId = await this.getLocation(connection, await chargingStation.getSite());
         if (quickRefund) {
           const entryId = await this.createQuickExpense(connection, transaction, locationId);
-          transaction.setRefundData({refundId: entryId, type: 'quick', refundedAt: new Date()});
+          transaction.setRefundData({ refundId: entryId, type: 'quick', refundedAt: new Date() });
         } else {
           const entryId = await this.createExpenseReportEntry(connection, expenseReportId, transaction, locationId);
-          transaction.setRefundData({refundId: entryId, type: 'report', refundedAt: new Date()});
+          transaction.setRefundData({ refundId: entryId, type: 'report', refundedAt: new Date() });
         }
         await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
         refundedTransactions.push(transaction);
@@ -284,7 +284,7 @@ class ConcurConnector extends AbstractConnector {
   async createQuickExpense(connection, transaction, location) {
     try {
       const response = await axios.post(`${this.getAuthenticationUrl()}/quickexpense/v4/users/${jwt.decode(connection.getData().access_token).sub}/context/TRAVELER/quickexpenses`, {
-        'comment': `Session started the ${moment(transaction.getStartDate()).format("YYYY-MM-DDTHH:mm:ss")} during ${moment.duration(transaction.getTotalDurationSecs(), 'seconds').format(`h[h]mm`, {trim: false})}`,
+        'comment': `Session started the ${moment(transaction.getStartDate()).format("YYYY-MM-DDTHH:mm:ss")} during ${moment.duration(transaction.getTotalDurationSecs(), 'seconds').format(`h[h]mm`, { trim: false })}`,
         'vendor': this.getReportName(),
         'entryDetails': `Refund of transaction ${transaction.getID}`,
         'expenseTypecode': this.getExpenseTypeCode(),
@@ -320,7 +320,7 @@ class ConcurConnector extends AbstractConnector {
     try {
       const response = await axios.post(`${this.getApiUrl()}/api/v3.0/expense/entries`, {
         'Description': `Emobility reimbursement ${moment(transaction.getStartDate()).format("YYYY-MM-DD")}`,
-        'Comment': `Session started the ${moment(transaction.getStartDate()).format("YYYY-MM-DDTHH:mm:ss")} during ${moment.duration(transaction.getTotalDurationSecs(), 'seconds').format(`h[h]mm`, {trim: false})}`,
+        'Comment': `Session started the ${moment(transaction.getStartDate()).format("YYYY-MM-DDTHH:mm:ss")} during ${moment.duration(transaction.getTotalDurationSecs(), 'seconds').format(`h[h]mm`, { trim: false })}`,
         'VendorDescription': 'Charge At Home',
         'Custom1': `${transaction.getID}`,
         'ExpenseTypeCode': this.getExpenseTypeCode(),

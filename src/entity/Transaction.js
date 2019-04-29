@@ -37,10 +37,6 @@ class Transaction extends AbstractTenantEntity {
     this._model.currentStateOfCharge = currentStateOfCharge;
   }
 
-  getCurrentStateOfCharge() {
-    return this._model.currentStateOfCharge;
-  }
-
   getNumberOfMeterValues() {
     return this._model.numberOfMeterValues;
   }

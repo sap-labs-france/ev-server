@@ -79,7 +79,7 @@ class DatabaseUtils {
    *
    * @param tenantID the tenant identifier of the collection
    * @param collectionNameSuffix the collection name suffix
-   * @returns {string} the collection name prefixed by the tenant identifier if the collection is specific to a tenant. Returns the collection name suffix elsewhere.
+   * @returns {String} the collection name prefixed by the tenant identifier if the collection is specific to a tenant. Returns the collection name suffix elsewhere.
    */
   static getCollectionName(tenantID, collectionNameSuffix) {
     let prefix = Constants.DEFAULT_TENANT;

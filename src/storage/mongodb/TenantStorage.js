@@ -34,18 +34,18 @@ class TenantStorage {
       tenant = new Tenant(tenantsMDB[0]);
     }
     // Debug
-    Logging.traceEnd('TenantStorage', 'getTenant', uniqueTimerID, {id});
+    Logging.traceEnd('TenantStorage', 'getTenant', uniqueTimerID, { id });
     return tenant;
   }
 
   static async getTenantByName(name) {
     // Get
-    return await TenantStorage.getTenantByFilter({'name': name});
+    return await TenantStorage.getTenantByFilter({ 'name': name });
   }
 
   static async getTenantBySubdomain(subdomain) {
     // Get
-    return await TenantStorage.getTenantByFilter({'subdomain': subdomain});
+    return await TenantStorage.getTenantByFilter({ 'subdomain': subdomain });
   }
 
   static async getTenantByFilter(filter) {
@@ -64,7 +64,7 @@ class TenantStorage {
       tenant = new Tenant(tenantsMDB[0]);
     }
     // Debug
-    Logging.traceEnd('TenantStorage', 'getTenantByFilter', uniqueTimerID, {filter});
+    Logging.traceEnd('TenantStorage', 'getTenantByFilter', uniqueTimerID, { filter });
     return tenant;
   }
 
@@ -102,7 +102,7 @@ class TenantStorage {
         returnOriginal: false
       });
     // Debug
-    Logging.traceEnd('TenantStorage', 'saveTenant', uniqueTimerID, {tenantToSave});
+    Logging.traceEnd('TenantStorage', 'saveTenant', uniqueTimerID, { tenantToSave });
     // Create
     return new Tenant(result.value);
   }
@@ -113,7 +113,7 @@ class TenantStorage {
     // Create DB
     await global.database.checkAndCreateTenantDatabase(tenantID);
     // Debug
-    Logging.traceEnd('TenantStorage', 'createTenantDB', uniqueTimerID, {tenantID});
+    Logging.traceEnd('TenantStorage', 'createTenantDB', uniqueTimerID, { tenantID });
   }
 
   // Delegate
@@ -152,7 +152,7 @@ class TenantStorage {
       }])
       .toArray();
     // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation('',aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation('', aggregation);
     // Sort
     if (sort) {
       // Sort
@@ -192,7 +192,7 @@ class TenantStorage {
       tenants.push(new Tenant(tenantMDB));
     }
     // Debug
-    Logging.traceEnd('TenantStorage', 'getTenants', uniqueTimerID, {params, limit, skip, sort});
+    Logging.traceEnd('TenantStorage', 'getTenants', uniqueTimerID, { params, limit, skip, sort });
     // Ok
     return {
       count: (tenantsCountMDB.length > 0 ? tenantsCountMDB[0].count : 0),
@@ -209,7 +209,7 @@ class TenantStorage {
         '_id': Utils.convertToObjectID(id)
       });
     // Debug
-    Logging.traceEnd('TenantStorage', 'deleteTenant', uniqueTimerID, {id});
+    Logging.traceEnd('TenantStorage', 'deleteTenant', uniqueTimerID, { id });
   }
 
   static async deleteTenantDB(id) {
@@ -218,7 +218,7 @@ class TenantStorage {
     // Delete
     await global.database.deleteTenantDatabase(id);
     // Debug
-    Logging.traceEnd('TenantStorage', 'deleteTenantDB', uniqueTimerID, {id});
+    Logging.traceEnd('TenantStorage', 'deleteTenantDB', uniqueTimerID, { id });
   }
 }
 

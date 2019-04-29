@@ -23,7 +23,7 @@ class Authorizations {
     if (transaction.getUserJson()) {
       // Check
       return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION,
-        {"Action": Constants.ACTION_REFUND_TRANSACTION, "UserID": transaction.getUserJson().id.toString()});
+        { "Action": Constants.ACTION_REFUND_TRANSACTION, "UserID": transaction.getUserJson().id.toString() });
       // Admin?
     } else if (!Authorizations.isAdmin(loggedUser)) {
       return false;
@@ -124,7 +124,7 @@ class Authorizations {
 
   static async _checkAndGetUserTagIDOnChargingStation(chargingStation, tagID, isOrgCompActive, site, action) {
     // Get the user
-    let user = await User.getUserByTagId(chargingStation.getTenantID(),tagID);
+    let user = await User.getUserByTagId(chargingStation.getTenantID(), tagID);
     // Found?
     if (!user) {
       // Create an empty user
@@ -174,7 +174,7 @@ class Authorizations {
         user.setCostCenter("");
         // Log
         Logging.logSecurityInfo({
-          tenantID: user.getTenantID(),user: user,
+          tenantID: user.getTenantID(), user: user,
           module: "Authorizations", method: "_checkAndGetUserTagIDOnChargingStation",
           message: `User with ID '${user.getID()}' has been restored`,
           action: action
@@ -229,44 +229,45 @@ class Authorizations {
     const result = {
       'isStartAuthorized': Authorizations.canStartTransaction(user, chargingStation),
       'isStopAuthorized': Authorizations.canStopTransaction(user, chargingStation),
-      'isTransactionDisplayAuthorized': false};
+      'isTransactionDisplayAuthorized': false
+    };
     if (user.getRole() === Constants.ROLE_ADMIN) {
       // An admin has all authorizations except for site where he is not assigned and in case site management is not active
-      const defaultAuthorization = ( isOrgCompActive && isUserAssignedToSite ) || ( !isOrgCompActive );
+      const defaultAuthorization = (isOrgCompActive && isUserAssignedToSite) || (!isOrgCompActive);
       result.isStartAuthorized = result.isStartAuthorized && defaultAuthorization;
       result.isStopAuthorized = result.isStopAuthorized && defaultAuthorization;
       result.isTransactionDisplayAuthorized = defaultAuthorization;
     }
     if (user.getRole() === Constants.ROLE_DEMO) {
       // Demon user can never start nor stop transaction and can display details only for assigned site
-      const defaultAuthorization = ( isOrgCompActive && isUserAssignedToSite ) || ( !isOrgCompActive );
+      const defaultAuthorization = (isOrgCompActive && isUserAssignedToSite) || (!isOrgCompActive);
       result.isStartAuthorized = false;
       result.isStopAuthorized = false;
       result.isTransactionDisplayAuthorized = defaultAuthorization;
     }
     if (user.getRole() === Constants.ROLE_BASIC) {
       // Basic user can start a transaction if he is assigned to the site or site management is not active
-      result.isStartAuthorized =  result.isStartAuthorized &&
-        ( isOrgCompActive && isUserAssignedToSite ) || ( !isOrgCompActive );
+      result.isStartAuthorized = result.isStartAuthorized &&
+        (isOrgCompActive && isUserAssignedToSite) || (!isOrgCompActive);
       // Basic user can start a transaction if he is assigned to the site or site management is not active
       result.isStopAuthorized = result.isStopAuthorized &&
         // Site Management is active  and user assigned to site and anyone allowed to stop or same user as transaction
         // or access control disable
-        ( isOrgCompActive && isUserAssignedToSite &&
-          (userAllowedToStopAllTransactions || isSameUserAsTransaction || !accessControlEnable) ) ||
+        (isOrgCompActive && isUserAssignedToSite &&
+          (userAllowedToStopAllTransactions || isSameUserAsTransaction || !accessControlEnable)) ||
         // Site management inactive and badge access control and user identical to transaction
-        ( !isOrgCompActive && accessControlEnable && isSameUserAsTransaction) ||
+        (!isOrgCompActive && accessControlEnable && isSameUserAsTransaction) ||
         // Site management inactive and no badge access control
-        ( !isOrgCompActive && !accessControlEnable);
+        (!isOrgCompActive && !accessControlEnable);
       result.isTransactionDisplayAuthorized =
-      // Site Management is active  and user assigned to site and same user as transaction
-      // or access control disable
-      ( isOrgCompActive && isUserAssignedToSite &&
-        (isSameUserAsTransaction || !accessControlEnable) ) ||
-      // Site management inactive and badge access control and user identical to transaction
-      ( !isOrgCompActive && accessControlEnable && isSameUserAsTransaction) ||
-      // Site management inactive and no badge access control
-      ( !isOrgCompActive && !accessControlEnable);
+        // Site Management is active  and user assigned to site and same user as transaction
+        // or access control disable
+        (isOrgCompActive && isUserAssignedToSite &&
+          (isSameUserAsTransaction || !accessControlEnable)) ||
+        // Site management inactive and badge access control and user identical to transaction
+        (!isOrgCompActive && accessControlEnable && isSameUserAsTransaction) ||
+        // Site management inactive and no badge access control
+        (!isOrgCompActive && !accessControlEnable);
     }
     return result;
   }
@@ -337,7 +338,7 @@ class Authorizations {
           const site = await chargingStation.getSite();
           // Check if the site allows to stop the transaction of another user
           if (!Authorizations.isAdmin(alternateUser.getModel()) &&
-              !site.isAllowAllUsersToStopTransactionsEnabled()) {
+            !site.isAllowAllUsersToStopTransactionsEnabled()) {
             // Reject the User
             throw new BackendError(
               chargingStation.getID(),
@@ -362,7 +363,7 @@ class Authorizations {
       user = await Authorizations.isTagIDAuthorizedOnChargingStation(
         chargingStation, transactionTagId, action);
     }
-    return {user, alternateUser};
+    return { user, alternateUser };
   }
 
   static async _checkAndGetUserOnChargingStation(chargingStation, user, isOrgCompActive, site, action) {
@@ -408,25 +409,25 @@ class Authorizations {
   static canListLogging(loggedUser) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_LOGGINGS,
-      {"Action": Constants.ACTION_LIST});
+      { "Action": Constants.ACTION_LIST });
   }
 
   static canReadLogging(loggedUser, logging) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_LOGGING,
-      {"Action": Constants.ACTION_READ, "LogID": logging.id.toString()});
+      { "Action": Constants.ACTION_READ, "LogID": logging.id.toString() });
   }
 
   static canListTransactions(loggedUser) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTIONS,
-      {"Action": Constants.ACTION_LIST});
+      { "Action": Constants.ACTION_LIST });
   }
 
   static canListTransactionsInError(loggedUser) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTIONS,
-      {"Action": Constants.ACTION_LIST});
+      { "Action": Constants.ACTION_LIST });
   }
 
   static canReadTransaction(loggedUser, transaction) {
@@ -434,7 +435,7 @@ class Authorizations {
     if (transaction.getUserJson() && transaction.getUserJson().id) {
       // Check
       return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION,
-        {"Action": Constants.ACTION_READ, "UserID": transaction.getUserJson().id.toString()});
+        { "Action": Constants.ACTION_READ, "UserID": transaction.getUserJson().id.toString() });
       // Admin?
     } else if (!Authorizations.isAdmin(loggedUser)) {
       return false;
@@ -447,7 +448,7 @@ class Authorizations {
     if (transaction.getUserJson()) {
       // Check
       return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION,
-        {"Action": Constants.ACTION_UPDATE, "UserID": transaction.getUserJson().id.toString()});
+        { "Action": Constants.ACTION_UPDATE, "UserID": transaction.getUserJson().id.toString() });
       // Admin?
     } else if (!Authorizations.isAdmin(loggedUser)) {
       return false;
@@ -460,7 +461,7 @@ class Authorizations {
     if (transaction.getUserJson()) {
       // Check
       return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION,
-        {"Action": Constants.ACTION_DELETE, "UserID": transaction.getUserJson().id.toString()});
+        { "Action": Constants.ACTION_DELETE, "UserID": transaction.getUserJson().id.toString() });
       // Admin?
     } else if (!Authorizations.isAdmin(loggedUser)) {
       return false;
@@ -471,313 +472,313 @@ class Authorizations {
   static canListChargingStations(loggedUser) {
     // Check Charging Station
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATIONS,
-      {"Action": Constants.ACTION_LIST});
+      { "Action": Constants.ACTION_LIST });
   }
 
   static canPerformActionOnChargingStation(loggedUser, chargingStation, action) {
     // Check Charging Station
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
-      {"Action": action, "ChargingStationID": chargingStation.id});
+      { "Action": action, "ChargingStationID": chargingStation.id });
   }
 
   static canReadChargingStation(loggedUser, chargingStation) {
     // Check Charging Station
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
-      {"Action": Constants.ACTION_READ, "ChargingStationID": chargingStation.id});
+      { "Action": Constants.ACTION_READ, "ChargingStationID": chargingStation.id });
   }
 
   static canUpdateChargingStation(loggedUser, chargingStation) {
     // Check Charging Station
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
-      {"Action": Constants.ACTION_UPDATE, "ChargingStationID": chargingStation.id});
+      { "Action": Constants.ACTION_UPDATE, "ChargingStationID": chargingStation.id });
   }
 
   static canDeleteChargingStation(loggedUser, chargingStation) {
     // Check Charging Station
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION,
-      {"Action": Constants.ACTION_DELETE, "ChargingStationID": chargingStation.id});
+      { "Action": Constants.ACTION_DELETE, "ChargingStationID": chargingStation.id });
   }
 
   static canListUsers(loggedUser) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_USERS,
-      {"Action": Constants.ACTION_LIST});
+      { "Action": Constants.ACTION_LIST });
   }
 
   static canReadUser(loggedUser, user) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_USER,
-      {"Action": Constants.ACTION_READ, "UserID": user.id.toString()});
+      { "Action": Constants.ACTION_READ, "UserID": user.id.toString() });
   }
 
   static canLogoutUser(loggedUser, user) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_USER,
-      {"Action": Constants.ACTION_LOGOUT, "UserID": user.id.toString()});
+      { "Action": Constants.ACTION_LOGOUT, "UserID": user.id.toString() });
   }
 
   static canCreateUser(loggedUser) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_USER,
-      {"Action": Constants.ACTION_CREATE});
+      { "Action": Constants.ACTION_CREATE });
   }
 
   static canUpdateUser(loggedUser, user) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_USER,
-      {"Action": Constants.ACTION_UPDATE, "UserID": user.id.toString()});
+      { "Action": Constants.ACTION_UPDATE, "UserID": user.id.toString() });
   }
 
   static canDeleteUser(loggedUser, user) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_USER,
-      {"Action": Constants.ACTION_DELETE, "UserID": user.id.toString()});
+      { "Action": Constants.ACTION_DELETE, "UserID": user.id.toString() });
   }
 
   static canListSites(loggedUser) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITES,
-      {"Action": Constants.ACTION_LIST});
+      { "Action": Constants.ACTION_LIST });
   }
 
   static canReadSite(loggedUser, site) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE,
-      {"Action": Constants.ACTION_READ, "SiteID": site.id.toString()});
+      { "Action": Constants.ACTION_READ, "SiteID": site.id.toString() });
   }
 
   static canCreateSite(loggedUser) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE,
-      {"Action": Constants.ACTION_CREATE});
+      { "Action": Constants.ACTION_CREATE });
   }
 
   static canUpdateSite(loggedUser, site) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE,
-      {"Action": Constants.ACTION_UPDATE, "SiteID": site.id.toString()});
+      { "Action": Constants.ACTION_UPDATE, "SiteID": site.id.toString() });
   }
 
   static canDeleteSite(loggedUser, site) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE,
-      {"Action": Constants.ACTION_DELETE, "SiteID": site.id.toString()});
+      { "Action": Constants.ACTION_DELETE, "SiteID": site.id.toString() });
   }
 
   static canListSettings(loggedUser) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SETTINGS,
-      {"Action": Constants.ACTION_LIST});
+      { "Action": Constants.ACTION_LIST });
   }
 
   static canReadSetting(loggedUser, setting) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SETTING,
-      {"Action": Constants.ACTION_READ, "SettingID": setting.id.toString()});
+      { "Action": Constants.ACTION_READ, "SettingID": setting.id.toString() });
   }
 
   static canDeleteSetting(loggedUser, setting) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SETTING,
-      {"Action": Constants.ACTION_DELETE, "SettingID": setting.id.toString()});
+      { "Action": Constants.ACTION_DELETE, "SettingID": setting.id.toString() });
   }
 
   static canCreateSetting(loggedUser) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SETTING,
-      {"Action": Constants.ACTION_CREATE});
+      { "Action": Constants.ACTION_CREATE });
   }
 
   static canUpdateSetting(loggedUser, setting) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SETTING,
-      {"Action": Constants.ACTION_UPDATE, "SettingID": setting.id.toString()});
+      { "Action": Constants.ACTION_UPDATE, "SettingID": setting.id.toString() });
   }
 
   static canListOcpiendpoints(loggedUser) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINTS,
-      {"Action": Constants.ACTION_LIST});
+      { "Action": Constants.ACTION_LIST });
   }
 
   static canReadOcpiendpoint(loggedUser, ocpiendpoint) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
-      {"Action": Constants.ACTION_READ, "OcpiendpointID": ocpiendpoint.id.toString()});
+      { "Action": Constants.ACTION_READ, "OcpiendpointID": ocpiendpoint.id.toString() });
   }
 
   static canDeleteOcpiendpoint(loggedUser, ocpiendpoint) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
-      {"Action": Constants.ACTION_DELETE, "OcpiendpointID": ocpiendpoint.id.toString()});
+      { "Action": Constants.ACTION_DELETE, "OcpiendpointID": ocpiendpoint.id.toString() });
   }
 
   static canCreateOcpiendpoint(loggedUser) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
-      {"Action": Constants.ACTION_CREATE});
+      { "Action": Constants.ACTION_CREATE });
   }
 
   static canUpdateOcpiendpoint(loggedUser, ocpiendpoint) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
-      {"Action": Constants.ACTION_UPDATE, "OcpiendpointID": ocpiendpoint.id.toString()});
+      { "Action": Constants.ACTION_UPDATE, "OcpiendpointID": ocpiendpoint.id.toString() });
   }
 
   static canPingOcpiendpoint(loggedUser) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
-      {"Action": Constants.ACTION_PING});
+      { "Action": Constants.ACTION_PING });
   }
 
   static canSendEVSEStatusesOcpiendpoint(loggedUser) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
-      {"Action": Constants.ACTION_SEND_EVSE_STATUSES});
+      { "Action": Constants.ACTION_SEND_EVSE_STATUSES });
   }
 
   static canRegisterOcpiendpoint(loggedUser, ocpiendpoint) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
-      {"Action": Constants.ACTION_REGISTER, "OcpiendpointID": ocpiendpoint.id.toString()});
+      { "Action": Constants.ACTION_REGISTER, "OcpiendpointID": ocpiendpoint.id.toString() });
   }
 
   static canGenerateLocalTokenOcpiendpoint(loggedUser) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
-      {"Action": Constants.ACTION_GENERATE_LOCAL_TOKEN});
+      { "Action": Constants.ACTION_GENERATE_LOCAL_TOKEN });
   }
 
   static canListVehicles(loggedUser) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_VEHICLES,
-      {"Action": Constants.ACTION_LIST});
+      { "Action": Constants.ACTION_LIST });
   }
 
   static canReadVehicle(loggedUser, vehicle) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_VEHICLE,
-      {"Action": Constants.ACTION_READ, "VehicleID": vehicle.id.toString()});
+      { "Action": Constants.ACTION_READ, "VehicleID": vehicle.id.toString() });
   }
 
   static canCreateVehicle(loggedUser) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_VEHICLE,
-      {"Action": Constants.ACTION_CREATE});
+      { "Action": Constants.ACTION_CREATE });
   }
 
   static canUpdateVehicle(loggedUser, vehicle) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_VEHICLE,
-      {"Action": Constants.ACTION_UPDATE, "VehicleID": vehicle.id.toString()});
+      { "Action": Constants.ACTION_UPDATE, "VehicleID": vehicle.id.toString() });
   }
 
   static canDeleteVehicle(loggedUser, vehicle) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_VEHICLE,
-      {"Action": Constants.ACTION_DELETE, "VehicleID": vehicle.id.toString()});
+      { "Action": Constants.ACTION_DELETE, "VehicleID": vehicle.id.toString() });
   }
 
   static canListVehicleManufacturers(loggedUser) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_VEHICLE_MANUFACTURERS,
-      {"Action": Constants.ACTION_LIST});
+      { "Action": Constants.ACTION_LIST });
   }
 
   static canReadVehicleManufacturer(loggedUser, vehicleManufacturer) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_VEHICLE_MANUFACTURER,
-      {"Action": Constants.ACTION_READ, "VehicleManufacturerID": vehicleManufacturer.id.toString()});
+      { "Action": Constants.ACTION_READ, "VehicleManufacturerID": vehicleManufacturer.id.toString() });
   }
 
   static canCreateVehicleManufacturer(loggedUser) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_VEHICLE_MANUFACTURER,
-      {"Action": Constants.ACTION_CREATE});
+      { "Action": Constants.ACTION_CREATE });
   }
 
   static canUpdateVehicleManufacturer(loggedUser, vehicleManufacturer) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_VEHICLE_MANUFACTURER,
-      {"Action": Constants.ACTION_UPDATE, "VehicleManufacturerID": vehicleManufacturer.id.toString()});
+      { "Action": Constants.ACTION_UPDATE, "VehicleManufacturerID": vehicleManufacturer.id.toString() });
   }
 
   static canDeleteVehicleManufacturer(loggedUser, vehicleManufacturer) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_VEHICLE_MANUFACTURER,
-      {"Action": Constants.ACTION_DELETE, "VehicleManufacturerID": vehicleManufacturer.id.toString()});
+      { "Action": Constants.ACTION_DELETE, "VehicleManufacturerID": vehicleManufacturer.id.toString() });
   }
 
   static canListSiteAreas(loggedUser) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREAS,
-      {"Action": Constants.ACTION_LIST});
+      { "Action": Constants.ACTION_LIST });
   }
 
   static canReadSiteArea(loggedUser, siteArea) {
     // Check Site Area && Site
     return (
       Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA,
-        {"Action": Constants.ACTION_READ, "SiteAreaID": siteArea.id.toString()}) &&
+        { "Action": Constants.ACTION_READ, "SiteAreaID": siteArea.id.toString() }) &&
       Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE,
-        {"Action": Constants.ACTION_READ, "SiteID": siteArea.siteID}));
+        { "Action": Constants.ACTION_READ, "SiteID": siteArea.siteID }));
   }
 
   static canCreateSiteArea(loggedUser) {
     // Check Site Area && Site
     return (
       Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA,
-        {"Action": Constants.ACTION_CREATE}) &&
+        { "Action": Constants.ACTION_CREATE }) &&
       Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE,
-        {"Action": Constants.ACTION_CREATE}));
+        { "Action": Constants.ACTION_CREATE }));
   }
 
   static canUpdateSiteArea(loggedUser, siteArea) {
     // Check Site Area && Site
     return (
       Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA,
-        {"Action": Constants.ACTION_UPDATE, "SiteAreaID": siteArea.id.toString()}) &&
+        { "Action": Constants.ACTION_UPDATE, "SiteAreaID": siteArea.id.toString() }) &&
       Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE,
-        {"Action": Constants.ACTION_UPDATE, "SiteID": siteArea.siteID}));
+        { "Action": Constants.ACTION_UPDATE, "SiteID": siteArea.siteID }));
   }
 
   static canDeleteSiteArea(loggedUser, siteArea) {
     // Check Site Area && Site
     return (
       Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA,
-        {"Action": Constants.ACTION_DELETE, "SiteAreaID": siteArea.id.toString()}) &&
+        { "Action": Constants.ACTION_DELETE, "SiteAreaID": siteArea.id.toString() }) &&
       Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE,
-        {"Action": Constants.ACTION_DELETE, "SiteID": siteArea.siteID}));
+        { "Action": Constants.ACTION_DELETE, "SiteID": siteArea.siteID }));
   }
 
   static canListCompanies(loggedUser) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_COMPANIES,
-      {"Action": Constants.ACTION_LIST});
+      { "Action": Constants.ACTION_LIST });
   }
 
   static canReadCompany(loggedUser, company) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_COMPANY,
-      {"Action": Constants.ACTION_READ, "CompanyID": company.id.toString()});
+      { "Action": Constants.ACTION_READ, "CompanyID": company.id.toString() });
   }
 
   static canCreateCompany(loggedUser) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_COMPANY,
-      {"Action": Constants.ACTION_CREATE});
+      { "Action": Constants.ACTION_CREATE });
   }
 
   static canUpdateCompany(loggedUser, company) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_COMPANY,
-      {"Action": Constants.ACTION_UPDATE, "CompanyID": company.id.toString()});
+      { "Action": Constants.ACTION_UPDATE, "CompanyID": company.id.toString() });
   }
 
   static canDeleteCompany(loggedUser, company) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_COMPANY,
-      {"Action": Constants.ACTION_DELETE, "CompanyID": company.id.toString()});
+      { "Action": Constants.ACTION_DELETE, "CompanyID": company.id.toString() });
   }
 
   static canListTenants(loggedUser) {
@@ -835,25 +836,25 @@ class Authorizations {
   static canReadConnection(loggedUser) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CONNECTION,
-      {"Action": Constants.ACTION_READ});
+      { "Action": Constants.ACTION_READ });
   }
 
   static canListConnections(loggedUser) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CONNECTIONS,
-      {"Action": Constants.ACTION_LIST});
+      { "Action": Constants.ACTION_LIST });
   }
 
   static canReadPricing(loggedUser) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_PRICING,
-      {"Action": Constants.ACTION_READ});
+      { "Action": Constants.ACTION_READ });
   }
 
   static canUpdatePricing(loggedUser) {
     // Check
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_PRICING,
-      {"Action": Constants.ACTION_UPDATE});
+      { "Action": Constants.ACTION_UPDATE });
   }
 
   static isSuperAdmin(loggedUser) {

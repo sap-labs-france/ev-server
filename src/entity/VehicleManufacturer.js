@@ -77,7 +77,7 @@ class VehicleManufacturer extends AbstractTenantEntity {
       return this._model.vehicles.map((vehicle) => new Vehicle(this.getTenantID(), vehicle));
     } else {
       // Get from DB
-      const vehicles = await VehicleStorage.getVehicles(this.getTenantID(), {'vehicleManufacturerID': this.getID()});
+      const vehicles = await VehicleStorage.getVehicles(this.getTenantID(), { 'vehicleManufacturerID': this.getID() });
       // Keep it
       this.setVehicles(vehicles.result);
       // Return

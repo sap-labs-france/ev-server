@@ -13,7 +13,6 @@ require('source-map-support').install();
 // Email
 const _emailConfig = Configuration.getEmailConfig();
 
-// https://nodemailer.com/smtp/
 class EMailNotificationTask extends NotificationTask {
   constructor() {
     super();
@@ -194,11 +193,11 @@ class EMailNotificationTask extends NotificationTask {
       subject: email.subject,
       // text: email.text,
       attachment: [
-        {data: email.html, alternative: true}
+        { data: email.html, alternative: true }
       ]
     };
     // send the message and get a callback with an error or details of the message that was sent
-    return await this.server.send(messageToSend, function(err, messageSent) {
+    return await this.server.send(messageToSend, function (err, messageSent) {
       if (err) {
         // Error!
         try {
@@ -218,7 +217,7 @@ class EMailNotificationTask extends NotificationTask {
             }
           });
         } catch (error) {
-          // For Unit Tests only: Tenant is deleted and email is not know thus this Logging statement is always failing with an invalid Tenant
+          // For Unit Tests only: Tenant is deleted and email is not known thus this Logging statement is always failing with an invalid Tenant
         }
       } else {
         // Email sent successfully

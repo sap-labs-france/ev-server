@@ -434,7 +434,7 @@ class OCPPStorage {
     // Execute
     await global.database.getCollection(tenantID, 'metervalues').insertMany(meterValuesMDB);
     // Debug
-    Logging.traceEnd('TransactionStorage', 'saveMeterValues', uniqueTimerID, {meterValuesToSave});
+    Logging.traceEnd('TransactionStorage', 'saveMeterValues', uniqueTimerID, { meterValuesToSave });
   }
 
   static async getMeterValues(tenantID, transactionID) {
@@ -446,7 +446,7 @@ class OCPPStorage {
     const aggregation = [];
     // Filters
     aggregation.push({
-      $match: {transactionId: Utils.convertToInt(transactionID)}
+      $match: { transactionId: Utils.convertToInt(transactionID) }
     });
     // Read DB
     const meterValuesMDB = await global.database.getCollection(tenantID, 'metervalues')
@@ -468,7 +468,7 @@ class OCPPStorage {
       meterValues.push(meterValue);
     }
     // Debug
-    Logging.traceEnd('TransactionStorage', 'getMeterValues', uniqueTimerID, {transactionID});
+    Logging.traceEnd('TransactionStorage', 'getMeterValues', uniqueTimerID, { transactionID });
     return meterValues;
   }
 }
