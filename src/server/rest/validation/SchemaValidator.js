@@ -2,13 +2,14 @@ const Ajv = require('ajv');
 const BadRequestError = require('../../../exception/BadRequestError');
 
 class SchemaValidator {
-  constructor(moduleName) {
+  constructor(moduleName, config = {
+    allErrors: true,
+    removeAdditional: 'all',
+    useDefaults: true,
+    coerceTypes: true
+  }) {
     this.moduleName = moduleName;
-    this.ajv = new Ajv({
-      allErrors: true,
-      removeAdditional: 'all',
-      useDefaults: true
-    });
+    this.ajv = new Ajv(config);
   }
 
   validate(schema, content) {

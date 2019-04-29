@@ -703,7 +703,7 @@ class TransactionStorage {
           const ocppService = new OCPPService();
           await ocppService.handleStopTransaction({
             "tenantID": activeTransaction.getTenantID(),
-            "chargeBoxIdentity": activeTransaction.getChargeBoxID(), 
+            "chargeBoxIdentity": activeTransaction.getChargeBoxID(),
             "meterStop": activeTransaction.getLastMeterValue().value,
             "timestamp": activeTransaction.getLastMeterValue().timestamp,
             "transactionId": activeTransaction.getID()

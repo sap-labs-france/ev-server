@@ -67,7 +67,7 @@ class OCPIEndpoint extends AbstractTenantEntity {
   }
 
   isBackgroundPatchJobActive() {
-    return this._model.backgroundPatchJob?this._model.backgroundPatchJob:false;
+    return this._model.backgroundPatchJob ? this._model.backgroundPatchJob : false;
   }
 
   getLastPatchJobOn() {
@@ -79,7 +79,7 @@ class OCPIEndpoint extends AbstractTenantEntity {
   }
 
   setLastPatchJobResult(successNbr, failureNbr, totalNbr, chargeBoxIDsInFailure = [], chargeBoxIDsInSuccess = []) {
-    this._model.lastPatchJobResult = { "successNbr": successNbr, "failureNbr": failureNbr, "totalNbr": totalNbr, "chargeBoxIDsInFailure": chargeBoxIDsInFailure, "chargeBoxIDsInSuccess": chargeBoxIDsInSuccess};
+    this._model.lastPatchJobResult = { "successNbr": successNbr, "failureNbr": failureNbr, "totalNbr": totalNbr, "chargeBoxIDsInFailure": chargeBoxIDsInFailure, "chargeBoxIDsInSuccess": chargeBoxIDsInSuccess };
   }
 
   getLastPatchJobResult() {
@@ -249,7 +249,7 @@ class OCPIEndpoint extends AbstractTenantEntity {
   static getOcpiendpoint(tenantID, id) {
     return OCPIEndpointStorage.getOcpiEndpoint(tenantID, id);
   }
-  
+
   static getOcpiendpoints(tenantID, params, limit, skip, sort) {
     return OCPIEndpointStorage.getOcpiEndpoints(tenantID, params, limit, skip, sort);
   }

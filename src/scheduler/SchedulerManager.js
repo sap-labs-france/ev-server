@@ -16,7 +16,8 @@ class SchedulerManager {
         tenantID: Constants.DEFAULT_TENANT,
         module: "Scheduler",
         method: "init", action: "Initialization",
-        message: `The Scheduler is active` });
+        message: `The Scheduler is active`
+      });
       // Yes: init
       for (const task of _schedulerConfig.tasks) {
         // Active?
@@ -26,7 +27,8 @@ class SchedulerManager {
             tenantID: Constants.DEFAULT_TENANT,
             module: "Scheduler",
             method: "init", action: "Initialization",
-            message: `The task '${task.name}' is inactive` });
+            message: `The task '${task.name}' is inactive`
+          });
           // No
           return;
         }
@@ -40,7 +42,8 @@ class SchedulerManager {
               tenantID: Constants.DEFAULT_TENANT,
               module: "Scheduler",
               method: "init", action: "Initialization",
-              message: `The task '${task.name}' has been scheduled with periodicity ''${task.periodicity}'` });
+              message: `The task '${task.name}' has been scheduled with periodicity ''${task.periodicity}'`
+            });
             break;
           // Cleanup of logging table
           case "OCPIPatchLocationsTask":
@@ -50,7 +53,8 @@ class SchedulerManager {
               tenantID: Constants.DEFAULT_TENANT,
               module: "Scheduler",
               method: "init", action: "Initialization",
-              message: `The task '${task.name}' has been scheduled with periodicity ''${task.periodicity}'` });
+              message: `The task '${task.name}' has been scheduled with periodicity ''${task.periodicity}'`
+            });
             break;
           // Unknown task
           default:
@@ -59,7 +63,8 @@ class SchedulerManager {
               tenantID: Constants.DEFAULT_TENANT,
               module: "Scheduler",
               method: "init", action: "Initialization",
-              message: `The task '${task.name}' is unknown` });
+              message: `The task '${task.name}' is unknown`
+            });
         }
       }
     } else {
@@ -68,9 +73,10 @@ class SchedulerManager {
         tenantID: Constants.DEFAULT_TENANT,
         module: "Scheduler",
         method: "init", action: "Initialization",
-        message: `The Scheduler is inactive` });
+        message: `The Scheduler is inactive`
+      });
     }
   }
 }
 
-module.exports=SchedulerManager;
+module.exports = SchedulerManager;

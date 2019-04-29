@@ -6,6 +6,7 @@ class AuthorizationsDefinition {
   static getAuthorizations(role) {
     // Role
     switch (role) {
+      // Super Admin
       case Constants.ROLE_SUPER_ADMIN:
         return AuthorizationsDefinition.getSuperAdminAuthorizations();
       // Admin

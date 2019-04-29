@@ -46,7 +46,7 @@ class ConvergentChargingPricing extends Pricing {
     const sessionId = this.computeSessionId(consumptionData);
     const chargeableItemProperties = this.consumptionToChargeableItemProperties(consumptionData);
     chargeableItemProperties.push(new ChargeableItemProperty('status', Type.string, 'start'));
-    const reservationItem = new ReservationItem(this.setting.chargeableItemName,chargeableItemProperties);
+    const reservationItem = new ReservationItem(this.setting.chargeableItemName, chargeableItemProperties);
     const request = new StartRateRequest(reservationItem, sessionId, moment(consumptionData.startedAt).format('YYYY-MM-DDTHH:mm:ss'), consumptionData.chargeBoxID, consumptionData.userID, 'cancelled', 30000, 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING', null);
     const result = await this.statefulChargingService.execute(request);
     if (result.data.startRateResult) {

@@ -33,7 +33,7 @@ const obs = new PerformanceObserver((items) => {
     //start interval to display statistics
     if (_loggingConfig.traceStatisticInterval) {
       setInterval(() => {
-        const date=new Date();
+        const date = new Date();
         // eslint-disable-next-line no-console
         console.log(date.toISOString().substr(0, 19) + " STATISTICS START");
         // eslint-disable-next-line no-console
@@ -105,15 +105,15 @@ class Logging {
     if (currentStatistics) {
       // update current statistics timers
       currentStatistics.countTime = (currentStatistics.countTime ? currentStatistics.countTime + 1 : 1);
-      currentStatistics.minTime = (currentStatistics.minTime ? (currentStatistics.minTime > duration ? duration : currentStatistics.minTime) :  duration);
-      currentStatistics.maxTime = (currentStatistics.maxTime ? (currentStatistics.maxTime < duration ? duration : currentStatistics.maxTime) :  duration);
+      currentStatistics.minTime = (currentStatistics.minTime ? (currentStatistics.minTime > duration ? duration : currentStatistics.minTime) : duration);
+      currentStatistics.maxTime = (currentStatistics.maxTime ? (currentStatistics.maxTime < duration ? duration : currentStatistics.maxTime) : duration);
       currentStatistics.totalTime = (currentStatistics.totalTime ? currentStatistics.totalTime + duration : duration);
       currentStatistics.avgTime = currentStatistics.totalTime / currentStatistics.countTime;
     }
   }
 
   // Debug DB
-  static traceEnd(module, method, uniqueID, params={}) {
+  static traceEnd(module, method, uniqueID, params = {}) {
     // Check
     if (_loggingConfig.trace) {
       performance.mark(`End ${module}.${method}(${uniqueID})`);

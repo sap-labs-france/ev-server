@@ -1,5 +1,5 @@
 const soap = require('strong-soap').soap;
-const {performance} = require('perf_hooks');
+const { performance } = require('perf_hooks');
 
 class AbstractSoapClient {
 
@@ -39,7 +39,7 @@ class AbstractSoapClient {
       // Execute it
       t0 = performance.now();
       const functionToCall = this.service[request.name];
-      const {result, envelope, soapHeader} = await functionToCall(payload);
+      const { result, envelope, soapHeader } = await functionToCall(payload);
       t1 = performance.now();
       // Log
       // Respond

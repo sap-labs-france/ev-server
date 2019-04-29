@@ -448,7 +448,7 @@ class TransactionService {
           'TransactionService', 'handleGetTransactionsActive',
           req.user);
       }
-      const filter = {stop: {$exists: false}};
+      const filter = { stop: { $exists: false } };
       // Filter
       const filteredRequest = TransactionSecurity.filterTransactionsActiveRequest(req.query, req.user);
       if (filteredRequest.ChargeBoxID) {
@@ -492,7 +492,7 @@ class TransactionService {
           'TransactionService', 'handleGetTransactionsCompleted',
           req.user);
       }
-      const filter = {stop: {$exists: true}};
+      const filter = { stop: { $exists: true } };
       // Filter
       const filteredRequest = TransactionSecurity.filterTransactionsCompletedRequest(req.query, req.user);
       if (filteredRequest.ChargeBoxID) {
@@ -546,7 +546,7 @@ class TransactionService {
           'TransactionService', 'handleGetTransactionsExport',
           req.user);
       }
-      const filter = {stop: {$exists: true}};
+      const filter = { stop: { $exists: true } };
       // Filter
       const filteredRequest = TransactionSecurity.filterTransactionsCompletedRequest(req.query, req.user);
       if (filteredRequest.ChargeBoxID) {
@@ -583,7 +583,7 @@ class TransactionService {
         }
         transaction.tagID = transaction.tagID ? this.hashString(transaction.tagID) : '';
       }
-          
+
       const filename = "transactions_export.csv";
       fs.writeFile(filename, this.convertToCSV(transactions.result), (err) => {
         if (err) {
@@ -619,7 +619,7 @@ class TransactionService {
           'TransactionService', 'handleGetTransactionsInError',
           req.user);
       }
-      const filter = {stop: {$exists: true}};
+      const filter = { stop: { $exists: true } };
       // Filter
       const filteredRequest = TransactionSecurity.filterTransactionsInErrorRequest(req.query, req.user);
       if (filteredRequest.ChargeBoxID) {

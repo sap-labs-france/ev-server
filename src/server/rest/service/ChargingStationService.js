@@ -228,7 +228,7 @@ class ChargingStationService {
         }
       }
       // Update timestamp
-      chargingStation.setLastChangedBy(new User(req.user.tenantID, {'id': req.user.id}));
+      chargingStation.setLastChangedBy(new User(req.user.tenantID, { 'id': req.user.id }));
       chargingStation.setLastChangedOn(new Date());
       // Update
       const updatedChargingStation = await chargingStation.save();
@@ -583,7 +583,7 @@ class ChargingStationService {
       // Filter
       const filteredRequest = ChargingStationSecurity.filterStatusNotificationsRequest(req.query, req.user);
       // Get all Status Notifications
-      const statusNotifications = await OCPPStorage.getStatusNotifications(req.user.tenantID, { },
+      const statusNotifications = await OCPPStorage.getStatusNotifications(req.user.tenantID, {},
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
       statusNotifications.result = ChargingStationSecurity.filterStatusNotificationsResponse(statusNotifications.result, req.user);
@@ -611,7 +611,7 @@ class ChargingStationService {
       // Filter
       const filteredRequest = ChargingStationSecurity.filterBootNotificationsRequest(req.query, req.user);
       // Get all Status Notifications
-      const bootNotifications = await OCPPStorage.getBootNotifications(req.user.tenantID, { },
+      const bootNotifications = await OCPPStorage.getBootNotifications(req.user.tenantID, {},
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
       bootNotifications.result = ChargingStationSecurity.filterBootNotificationsResponse(bootNotifications.result, req.user);

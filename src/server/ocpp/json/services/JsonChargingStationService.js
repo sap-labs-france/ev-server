@@ -1,6 +1,5 @@
 const Logging = require('../../../../utils/Logging');
 const Constants = require('../../../../utils/Constants');
-const Configuration = require('../../../../utils/Configuration');
 
 const MODULE_NAME = "JsonChargingStationService";
 
@@ -11,25 +10,21 @@ class JsonChargingStationService {
     this.chargingStationService = global.centralSystemJson.getChargingStationService(Constants.OCPP_VERSION_16);
   }
 
-  async _handle(command, payload) {
+  async _handle(command, headers, payload) {
     try {
       // Handle
-      const result = await this.chargingStationService["handle" + command](payload);
-      // Return
-      return result;
+      return await this.chargingStationService["handle" + command](headers, payload);
     } catch (error) {
       // Log
-      Logging.logException(error, command, payload.tenantID, payload.chargeBoxIdentity, MODULE_NAME, command);
+      Logging.logException(error, command, headers.tenantID, headers.chargeBoxIdentity, MODULE_NAME, command);
       // Rethrow
       throw error;
     }
   }
 
-  async handleBootNotification(payload) {
-    // Override URL
-    payload.chargingStationURL = Configuration.getJsonEndpointConfig().baseUrl; 
+  async handleBootNotification(headers, payload) {
     // Forward
-    const result = await this._handle("BootNotification", payload);
+    const result = await this._handle("BootNotification", headers, payload);
     // Return the response
     return {
       'currentTime': result.currentTime,
@@ -38,32 +33,32 @@ class JsonChargingStationService {
     };
   }
 
-  async handleHeartbeat(payload) {
+  async handleHeartbeat(headers, payload) {
     // Forward
-    const result = await this._handle("Heartbeat", payload);
+    const result = await this._handle("Heartbeat", headers, payload);
     // Return the response
     return {
       'currentTime': result.currentTime
     };
   }
 
-  async handleStatusNotification(payload) {
+  async handleStatusNotification(headers, payload) {
     // Forward
-    await this._handle("StatusNotification", payload);
+    await this._handle("StatusNotification", headers, payload);
     // Return the response
     return {};
   }
 
-  async handleMeterValues(payload) {
+  async handleMeterValues(headers, payload) {
     // Forward
-    await this._handle("MeterValues", payload);
+    await this._handle("MeterValues", headers, payload);
     // Return the response
     return {};
   }
 
-  async handleAuthorize(payload) {
+  async handleAuthorize(headers, payload) {
     // Forward
-    const result = await this._handle("Authorize", payload);
+    const result = await this._handle("Authorize", headers, payload);
     // Return the response
     return {
       'idTagInfo': {
@@ -72,23 +67,23 @@ class JsonChargingStationService {
     };
   }
 
-  async handleDiagnosticsStatusNotification(payload) {
+  async handleDiagnosticsStatusNotification(headers, payload) {
     // Forward
-    await this._handle("DiagnosticsStatusNotification", payload);
+    await this._handle("DiagnosticsStatusNotification", headers, payload);
     // Return the response
     return {};
   }
 
-  async handleFirmwareStatusNotification(payload) {
+  async handleFirmwareStatusNotification(headers, payload) {
     // Forward
-    await this._handle("FirmwareStatusNotification", payload);
+    await this._handle("FirmwareStatusNotification", headers, payload);
     // Return the response
     return {};
   }
 
-  async handleStartTransaction(payload) {
+  async handleStartTransaction(headers, payload) {
     // Forward
-    const result = await this._handle("StartTransaction", payload);
+    const result = await this._handle("StartTransaction", headers, payload);
     // Return the response
     return {
       'transactionId': result.transactionId,
@@ -98,18 +93,18 @@ class JsonChargingStationService {
     };
   }
 
-  async handleDataTransfer(payload) {
+  async handleDataTransfer(headers, payload) {
     // Forward
-    const result = await this._handle("DataTransfer", payload);
+    const result = await this._handle("DataTransfer", headers, payload);
     // Return the response
     return {
       'status': result.status
     };
   }
 
-  async handleStopTransaction(payload) {
+  async handleStopTransaction(headers, payload) {
     // Forward
-    const result = await this._handle("StopTransaction", payload);
+    const result = await this._handle("StopTransaction", headers, payload);
     // Return the response
     return {
       'idTagInfo': {

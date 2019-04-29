@@ -16,7 +16,7 @@ class VehicleManufacturerStorage {
     await Utils.checkTenant(tenantID);
     // Read DB
     const vehicleManufacturerLogosMDB = await global.database.getCollection(tenantID, 'vehiclemanufacturerlogos')
-      .find({_id: Utils.convertToObjectID(id)})
+      .find({ _id: Utils.convertToObjectID(id) })
       .limit(1)
       .toArray();
     let vehicleManufacturerLogo = null;
@@ -28,7 +28,7 @@ class VehicleManufacturerStorage {
       };
     }
     // Debug
-    Logging.traceEnd('VehicleManufacturerStorage', 'getVehicleManufacturerLogo', uniqueTimerID, {id});
+    Logging.traceEnd('VehicleManufacturerStorage', 'getVehicleManufacturerLogo', uniqueTimerID, { id });
     return vehicleManufacturerLogo;
   }
 
@@ -72,9 +72,9 @@ class VehicleManufacturerStorage {
     }
     // Modify
     await global.database.getCollection(tenantID, 'vehiclemanufacturerlogos').findOneAndUpdate(
-      {'_id': Utils.convertToObjectID(vehicleManufacturerLogoToSave.id)},
-      {$set: {logo: vehicleManufacturerLogoToSave.logo}},
-      {upsert: true, new: true, returnOriginal: false});
+      { '_id': Utils.convertToObjectID(vehicleManufacturerLogoToSave.id) },
+      { $set: { logo: vehicleManufacturerLogoToSave.logo } },
+      { upsert: true, new: true, returnOriginal: false });
     // Debug
     Logging.traceEnd('VehicleManufacturerStorage', 'saveVehicleManufacturerLogo', uniqueTimerID);
   }
@@ -89,10 +89,10 @@ class VehicleManufacturerStorage {
     const aggregation = [];
     // Filters
     aggregation.push({
-      $match: {_id: Utils.convertToObjectID(id)}
+      $match: { _id: Utils.convertToObjectID(id) }
     });
     // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID,aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Read DB
     const vehicleManufacturersMDB = await global.database.getCollection(tenantID, 'vehiclemanufacturers')
       .aggregate(aggregation)
@@ -105,7 +105,7 @@ class VehicleManufacturerStorage {
       vehicleManufacturer = new VehicleManufacturer(tenantID, vehicleManufacturersMDB[0]);
     }
     // Debug
-    Logging.traceEnd('VehicleManufacturerStorage', 'getVehicleManufacturer', uniqueTimerID, {id});
+    Logging.traceEnd('VehicleManufacturerStorage', 'getVehicleManufacturer', uniqueTimerID, { id });
     return vehicleManufacturer;
   }
 
@@ -139,10 +139,10 @@ class VehicleManufacturerStorage {
     // Modify
     const result = await global.database.getCollection(tenantID, 'vehiclemanufacturers').findOneAndUpdate(
       vehicleManufacturerFilter,
-      {$set: vehicleManufacturer},
-      {upsert: true, new: true, returnOriginal: false});
+      { $set: vehicleManufacturer },
+      { upsert: true, new: true, returnOriginal: false });
     // Debug
-    Logging.traceEnd('VehicleManufacturerStorage', 'saveVehicleManufacturer', uniqueTimerID, {vehicleManufacturerToSave});
+    Logging.traceEnd('VehicleManufacturerStorage', 'saveVehicleManufacturer', uniqueTimerID, { vehicleManufacturerToSave });
     // Create
     return new VehicleManufacturer(tenantID, result.value);
   }
@@ -165,7 +165,7 @@ class VehicleManufacturerStorage {
     if (params.search) {
       // Build filter
       filters.$or = [
-        {"name": {$regex: params.search, $options: 'i'}}
+        { "name": { $regex: params.search, $options: 'i' } }
       ];
     }
     // Create Aggregation
@@ -191,7 +191,7 @@ class VehicleManufacturerStorage {
     // Type?
     if (params.vehicleType) {
       aggregation.push({
-        $match: {"vehicles.type": params.vehicleType}
+        $match: { "vehicles.type": params.vehicleType }
       });
     }
     // Limit records?
@@ -201,7 +201,7 @@ class VehicleManufacturerStorage {
     }
     // Count Records
     const vehiclemanufacturersCountMDB = await global.database.getCollection(tenantID, 'vehiclemanufacturers')
-      .aggregate([...aggregation, {$count: "count"}])
+      .aggregate([...aggregation, { $count: "count" }])
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {
@@ -214,7 +214,7 @@ class VehicleManufacturerStorage {
     // Remove the limit
     aggregation.pop();
     // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID,aggregation);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
     if (sort) {
       // Sort
@@ -239,7 +239,7 @@ class VehicleManufacturerStorage {
     });
     // Read DB
     const vehiclemanufacturersMDB = await global.database.getCollection(tenantID, 'vehiclemanufacturers')
-      .aggregate(aggregation, {collation: {locale: Constants.DEFAULT_LOCALE, strength: 2}})
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
     const vehicleManufacturers = [];
     // Check
@@ -260,7 +260,7 @@ class VehicleManufacturerStorage {
       }
     }
     // Debug
-    Logging.traceEnd('VehicleManufacturerStorage', 'getVehicleManufacturers', uniqueTimerID, {params, limit, skip, sort});
+    Logging.traceEnd('VehicleManufacturerStorage', 'getVehicleManufacturers', uniqueTimerID, { params, limit, skip, sort });
     // Ok
     return {
       count: (vehiclemanufacturersCountMDB.length > 0 ?
@@ -275,7 +275,7 @@ class VehicleManufacturerStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete Vehicles
-    const vehicles = await VehicleStorage.getVehicles(tenantID, {'vehicleManufacturerID': id});
+    const vehicles = await VehicleStorage.getVehicles(tenantID, { 'vehicleManufacturerID': id });
     // Delete
     for (const vehicle of vehicles.result) {
       //	Delete Vehicle
@@ -283,12 +283,12 @@ class VehicleManufacturerStorage {
     }
     // Delete the Vehicle Manufacturers
     await global.database.getCollection(tenantID, 'vehiclemanufacturers')
-      .findOneAndDelete({'_id': Utils.convertToObjectID(id)});
+      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Delete Vehicle Manufacturer Logo
     await global.database.getCollection(tenantID, 'vehiclemanufacturerlogos')
-      .findOneAndDelete({'_id': Utils.convertToObjectID(id)});
+      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd('VehicleManufacturerStorage', 'deleteVehicleManufacturer', uniqueTimerID, {id});
+    Logging.traceEnd('VehicleManufacturerStorage', 'deleteVehicleManufacturer', uniqueTimerID, { id });
   }
 }
 
