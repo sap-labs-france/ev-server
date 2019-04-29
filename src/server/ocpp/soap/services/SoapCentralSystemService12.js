@@ -10,12 +10,10 @@ module.exports = { /* Services */
       Authorize: function (args, callback, headers, req) {
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
-          // Payload
-          const payload = Object.assign({}, args, headers);
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "Authorize", payload);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "Authorize", args);
           // Handle
-          const result = await global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleAuthorize(payload);
+          const result = await global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleAuthorize(headers, args);
           // Log
           Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "Authorize", {
             "result": result
@@ -45,12 +43,10 @@ module.exports = { /* Services */
       StartTransaction: function (args, callback, headers, req) {
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
-          // Payload
-          const payload = Object.assign({}, args, headers);
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "StartTransaction", payload);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "StartTransaction", args);
           // Handle
-          const result = await global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleStartTransaction(payload);
+          const result = await global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleStartTransaction(headers, args);
           // Log
           Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "StartTransaction", {
             "result": result
@@ -81,12 +77,10 @@ module.exports = { /* Services */
       StopTransaction: function (args, callback, headers, req) {
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
-          // Payload
-          const payload = Object.assign({}, args, headers);
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "StopTransaction", payload);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "StopTransaction", args);
           // Handle
-          const result = await global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleStopTransaction(payload);
+          const result = await global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleStopTransaction(headers, args);
           // Log
           Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "StopTransaction", {
             "result": result
@@ -115,12 +109,10 @@ module.exports = { /* Services */
       Heartbeat: function (args, callback, headers, req) {
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
-          // Payload
-          const payload = headers;
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "Heartbeat", payload);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "Heartbeat", args);
           // Handle
-          const result = await global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleHeartbeat(payload);
+          const result = await global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleHeartbeat(headers, args);
           // Log
           Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "Heartbeat", {
             "result": result
@@ -145,12 +137,10 @@ module.exports = { /* Services */
       MeterValues: function (args, callback, headers, req) {
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
-          // Payload
-          const payload = Object.assign({}, args, headers);
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "MeterValues", payload);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "MeterValues", args);
           // Handle
-          const result = await global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleMeterValues(payload);
+          const result = await global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleMeterValues(headers, args);
           // Return the result async
           Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "MeterValues", {
             "result": result
@@ -174,12 +164,10 @@ module.exports = { /* Services */
           // Add OCPP Version
           headers.ocppVersion = Constants.OCPP_VERSION_12;
           headers.ocppProtocol = Constants.OCPP_PROTOCOL_SOAP;
-          // Payload
-          const payload = Object.assign({}, args, headers);
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "BootNotification", payload);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "BootNotification", args);
           // Handle
-          const result = await global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleBootNotification(payload);
+          const result = await global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleBootNotification(headers, args);
           // Log
           Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "BootNotification", {
             "result": result
@@ -208,12 +196,10 @@ module.exports = { /* Services */
       StatusNotification: function (args, callback, headers, req) {
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
-          // Payload
-          const payload = Object.assign({}, args, headers);
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "StatusNotification", payload);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "StatusNotification", args);
           // Handle
-          const result = await global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleStatusNotification(payload);
+          const result = await global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleStatusNotification(headers, args);
           // Log
           Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "StatusNotification", {
             "result": result
@@ -235,12 +221,10 @@ module.exports = { /* Services */
       FirmwareStatusNotification: function (args, callback, headers, req) {
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
-          // Payload
-          const payload = Object.assign({}, args, headers);
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "FirmwareStatusNotification", payload);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "FirmwareStatusNotification", args);
           // Handle
-          const result = await global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleFirmwareStatusNotification(payload);
+          const result = await global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleFirmwareStatusNotification(headers, args);
           // Log
           Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "FirmwareStatusNotification", {
             "result": result
@@ -261,12 +245,10 @@ module.exports = { /* Services */
       DiagnosticsStatusNotification: function (args, callback, headers, req) {
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
-          // Payload
-          const payload = Object.assign({}, args, headers);
           // Log
-          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "DiagnosticsStatusNotification", payload);
+          Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "DiagnosticsStatusNotification", args);
           // Handle
-          const result = await global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleDiagnosticsStatusNotification(payload);
+          const result = await global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_12).handleDiagnosticsStatusNotification(headers, args);
           // Log
           Logging.logReturnedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, "DiagnosticsStatusNotification", {
             "result": result

@@ -45,7 +45,7 @@ describe('OCPP 1.6 JSON Tests', function () {
 
     it('Charging Station should authorize both start and stop users', async () => {
       // Delegate
-      await this.ocppCommonTests.testAuhtorize();
+      await this.ocppCommonTests.testAuthorizeUsers();
     });
 
     it('Charging Station can change its connector status to Occupied', async () => {
