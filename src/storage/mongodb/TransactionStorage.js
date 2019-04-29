@@ -666,11 +666,16 @@ class TransactionStorage {
             action: 'StartTransaction', actionOnUser: activeTransaction.getUserID(),
             message: `Pending Transaction ID '${activeTransaction.getID()}' has been stopped on Connector '${activeTransaction.getConnectorId()}'`
           });
-          // Stop
-          await activeTransaction.stopTransaction(activeTransaction.getUserID(), activeTransaction.getTagID(),
-            activeTransaction.getLastMeterValue().value + 1, new Date(), activeTransaction.timezone);
-          // Save Transaction
-          await TransactionStorage.saveTransaction(activeTransaction.getTenantID(), activeTransaction.getModel());
+          // Simulate a Stop Transaction
+          const OCPPService = require('../../server/ocpp/services/OCPPService');
+          const ocppService = new OCPPService();
+          await ocppService.handleStopTransaction({
+            "tenantID": activeTransaction.getTenantID(),
+            "chargeBoxIdentity": activeTransaction.getChargeBoxID(),
+            "meterStop": activeTransaction.getLastMeterValue().value,
+            "timestamp": activeTransaction.getLastMeterValue().timestamp,
+            "transactionId": activeTransaction.getID()
+          });
         }
       }
     } while (activeTransaction);

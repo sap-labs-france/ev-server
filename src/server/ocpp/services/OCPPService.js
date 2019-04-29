@@ -79,7 +79,7 @@ class OCPPService {
         // Existing Charging Station: Update
         // Check if same vendor and model
         if (chargingStation.getChargePointVendor() !== bootNotification.chargePointVendor ||
-            chargingStation.getChargePointModel() !== bootNotification.chargePointModel) {
+          chargingStation.getChargePointModel() !== bootNotification.chargePointModel) {
           // Not the same charger!
           throw new BackendError(
             chargingStation.getID(),
@@ -255,13 +255,13 @@ class OCPPService {
     let connector = chargingStation.getConnector(statusNotification.connectorId);
     if (!connector) {
       // Does not exist: Create
-      connector = { connectorId: statusNotification.connectorId, currentConsumption: 0, status: 'Unknown', power: 0 };
+      connector = { connectorId: statusNotification.connectorId, currentConsumption: 0, status: 'Unknown', power: 0, type: Constants.CONNECTOR_TYPES.UNKNOWN };
       // Add
       chargingStation.getConnectors().push(connector);
     }
     // Check if status has changed
     if (connector.status === statusNotification.status &&
-        connector.errorCode === statusNotification.errorCode) {
+      connector.errorCode === statusNotification.errorCode) {
       // No Change: Do not save it
       Logging.logWarning({
         tenantID: chargingStation.getTenantID(), source: chargingStation.getID(),
@@ -295,8 +295,8 @@ class OCPPService {
   async _checkStatusNotificationOngoingTransaction(chargingStation, statusNotification, connector, bothConnectorsUpdated) {
     // Check the status
     if (!bothConnectorsUpdated &&
-        connector.activeTransactionID > 0 &&
-        (statusNotification.status === Constants.CONN_STATUS_AVAILABLE || statusNotification.status === Constants.CONN_STATUS_FINISHING)) {
+      connector.activeTransactionID > 0 &&
+      (statusNotification.status === Constants.CONN_STATUS_AVAILABLE || statusNotification.status === Constants.CONN_STATUS_FINISHING)) {
       // Cleanup ongoing transactions on the connector
       await Transaction.stopOrDeleteActiveTransactions(
         chargingStation.getTenantID(), chargingStation.getID(), statusNotification.connectorId);
@@ -441,7 +441,7 @@ class OCPPService {
   async _buildConsumptionFromTransactionAndMeterValue(transaction, startedAt, endedAt, meterValue) {
     // Only Consumption and SoC (No consumption for Transaction Begin/End: scenario already handled in Start/Stop Transaction)
     if (OCPPUtils.isSocMeterValue(meterValue) ||
-        OCPPUtils.isConsumptionMeterValue(meterValue)) {
+      OCPPUtils.isConsumptionMeterValue(meterValue)) {
       // Init
       const consumption = {
         transactionId: transaction.getID(),
@@ -493,7 +493,7 @@ class OCPPService {
       }
       // Only Consumption Meter Value
       if (OCPPUtils.isSocMeterValue(meterValue) ||
-          OCPPUtils.isConsumptionMeterValue(meterValue)) {
+        OCPPUtils.isConsumptionMeterValue(meterValue)) {
         // Build Consumption and Update Transaction with Meter Values
         const consumption = await this._buildConsumptionAndUpdateTransactionFromMeterValue(transaction, meterValue);
         if (consumption) {
@@ -636,7 +636,7 @@ class OCPPService {
         'connectorId': transaction.getConnectorId(),
         'totalConsumption': (transaction.getCurrentTotalConsumption() / 1000).toLocaleString(
           (transaction.getUserJson().locale ? transaction.getUserJson().locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
-          {minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2}),
+          { minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2 }),
         'stateOfCharge': transaction.getCurrentStateOfCharge(),
         'totalDuration': this._buildCurrentTransactionDuration(transaction),
         'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(chargingStation, transaction.getID(), '#inprogress'),
@@ -663,7 +663,7 @@ class OCPPService {
         'connectorId': transaction.getConnectorId(),
         'totalConsumption': (transaction.getCurrentTotalConsumption() / 1000).toLocaleString(
           (transaction.getUserJson().locale ? transaction.getUserJson().locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
-          {minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2}),
+          { minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2 }),
         'stateOfCharge': transaction.getCurrentStateOfCharge(),
         'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(chargingStation, transaction.getID(), '#inprogress'),
         'evseDashboardURL': Utils.buildEvseURL((await chargingStation.getTenant()).getSubdomain())
@@ -691,11 +691,11 @@ class OCPPService {
           }
         // Optimal Charge? (SoC)
         } else if (_configChargingStation.notifBeforeEndOfChargeEnabled &&
-            transaction.getCurrentStateOfCharge() >= _configChargingStation.notifBeforeEndOfChargePercent) {
+          transaction.getCurrentStateOfCharge() >= _configChargingStation.notifBeforeEndOfChargePercent) {
           // Notify User?
           if (transaction.getUserJson()) {
             // Send Notification
-            this._notifyEndOfCharge(chargingStation, transaction);
+            this._notifyOptimalChargeReached(chargingStation, transaction);
           }
         }
       }
@@ -713,23 +713,23 @@ class OCPPService {
     // Build the inactivity percentage
     const totalInactivityPercent = Math.round((totalInactivitySecs * 100) / transaction.getTotalDurationSecs());
     // Format
-    return moment.duration(totalInactivitySecs, "s").format(`h[${i18nHourShort}]mm`, {trim: false}) + ` (${totalInactivityPercent}%)`;
+    return moment.duration(totalInactivitySecs, "s").format(`h[${i18nHourShort}]mm`, { trim: false }) + ` (${totalInactivityPercent}%)`;
   }
 
   // Build duration
   _buildCurrentTransactionDuration(transaction) {
-    return moment.duration(transaction.getCurrentTotalDurationSecs(), "s").format(`h[h]mm`, {trim: false});
+    return moment.duration(transaction.getCurrentTotalDurationSecs(), "s").format(`h[h]mm`, { trim: false });
   }
 
   // Build duration
   _buildTransactionDuration(transaction) {
-    return moment.duration(transaction.getTotalDurationSecs(), "s").format(`h[h]mm`, {trim: false});
+    return moment.duration(transaction.getTotalDurationSecs(), "s").format(`h[h]mm`, { trim: false });
   }
 
   _filterMeterValuesOnCharger(chargingStation, meterValues) {
     // Clean up Sample.Clock meter value
     if (chargingStation.getChargePointVendor() !== Constants.CHARGER_VENDOR_ABB ||
-        chargingStation.getOcppVersion() !== Constants.OCPP_VERSION_15) {
+      chargingStation.getOcppVersion() !== Constants.OCPP_VERSION_15) {
       // Filter Sample.Clock meter value for all chargers except ABB using OCPP 1.5
       meterValues.values = meterValues.values.filter(meterValue => {
         // Remove Sample Clock
@@ -1045,7 +1045,6 @@ class OCPPService {
     );
   }
 
-
   async handleDataTransfer(headers, dataTransfer) {
     try {
       // Get the charging station
@@ -1251,7 +1250,7 @@ class OCPPService {
           'connectorId': transaction.getConnectorId(),
           'totalConsumption': (transaction.getTotalConsumption() / 1000).toLocaleString(
             (user.getLocale() ? user.getLocale().replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
-            {minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2}),
+            { minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2 }),
           'totalDuration': this._buildTransactionDuration(transaction),
           'totalInactivity': this._buildTransactionInactivity(transaction),
           'stateOfCharge': transaction.getEndStateOfCharge(),

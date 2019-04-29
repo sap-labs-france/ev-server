@@ -6,7 +6,7 @@ class OCPIClientError extends Error {
     this.action = action;
     this.source = 'OCPI Server';
     this.httpErrorCode = httpErrorCode;
-    this.ocpiError= (ocpiError)?ocpiError:Constants.OCPI_STATUS_CODE.CODE_2000_GENERIC_CLIENT_ERROR;
+    this.ocpiError = (ocpiError) ? ocpiError : Constants.OCPI_STATUS_CODE.CODE_2000_GENERIC_CLIENT_ERROR;
     this.module = module;
     this.method = method;
   }

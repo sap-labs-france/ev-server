@@ -44,13 +44,13 @@ class AuthService {
   }
 
   static authenticate() {
-    return passport.authenticate('jwt', {session: false});
+    return passport.authenticate('jwt', { session: false });
   }
 
   static async handleIsAuthorized(action, req, res, next) {
     try {
       // Default
-      let result = {'IsAuthorized': false};
+      let result = { 'IsAuthorized': false };
       // Filter
       const filteredRequest = AuthSecurity.filterIsAuthorizedRequest(req.query);
       // Check
@@ -88,7 +88,7 @@ class AuthService {
             // check authorization for each connectors
             for (let index = 0; index < chargingStation.getConnectors().length; index++) {
               const connector = chargingStation.getConnector(index + 1);
-              const tempResult = {'IsAuthorized': false};
+              const tempResult = { 'IsAuthorized': false };
               if (connector.activeTransactionID) {
                 tempResult.IsAuthorized = await AuthService.isStopTransactionAuthorized(filteredRequest, chargingStation, connector.activeTransactionID, req.user);
               }
@@ -100,7 +100,7 @@ class AuthService {
             result.IsAuthorized = await AuthService.isStopTransactionAuthorized(filteredRequest, chargingStation, filteredRequest.Arg2, req.user);
           }
           break;
-        // Action on conenctors of a charger
+        // Action on connectors of a charger
         case 'ConnectorsAction':
           // Arg1 contains the charger ID
           // Check
@@ -373,7 +373,7 @@ class AuthService {
       // Set BadgeID (eg.: 'SF20170131')
       newUser.setTagIDs([newUser.getName()[0] + newUser.getFirstName()[0] + Utils.getRandomInt()]);
       // Assign user to all sites
-      const sites = await Site.getSites(tenantID, {withAutoUserAssignment: true});
+      const sites = await Site.getSites(tenantID, { withAutoUserAssignment: true });
       // Set
       newUser.setSites(sites.result);
       // Get EULA
@@ -924,7 +924,7 @@ class AuthService {
       });
     }
     // Return it
-    res.json({token: token});
+    res.json({ token: token });
   }
 
   static async getTenantID(subdomain) {

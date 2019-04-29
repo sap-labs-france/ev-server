@@ -1,4 +1,4 @@
-const {expect} = require('chai');
+const { expect } = require('chai');
 const chai = require('chai');
 const chaiSubset = require('chai-subset');
 chai.use(chaiSubset);
@@ -9,8 +9,8 @@ const OCPPJsonService16 = require('./ocpp/json/OCPPJsonService16');
 const OCPPJsonService15 = require('./ocpp/soap/OCPPSoapService15');
 const config = require('../config');
 const Utils = require('../../src/utils/Utils');
-const {from} = require('rxjs');
-const {mergeMap} = require('rxjs/operators');
+const { from } = require('rxjs');
+const { mergeMap } = require('rxjs/operators');
 
 class DataHelper {
 
@@ -20,7 +20,7 @@ class DataHelper {
     } else if (ocppVersion === '1.5') {
       this.ocpp = new OCPPJsonService15(`${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP16/${tenantID}`);
     } else {
-      throw  new Error('unkown ocpp version');
+      throw new Error('unkown ocpp version');
     }
 
     this.context = {
@@ -62,7 +62,7 @@ class DataHelper {
     return createdSiteArea;
   }
 
-  async createChargingStation(chargingStation = Factory.chargingStation.build({id: faker.random.alphaNumeric(12)}), numberOfConnectors = 2) {
+  async createChargingStation(chargingStation = Factory.chargingStation.build({ id: faker.random.alphaNumeric(12) }), numberOfConnectors = 2) {
     const response = await this.ocpp.executeBootNotification(
       chargingStation.id, chargingStation);
     expect(response.data).to.not.be.null;

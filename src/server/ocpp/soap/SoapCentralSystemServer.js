@@ -26,7 +26,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
     this._express.use(sanitize());
 
     // Enable debug?
-    if (centralSystemConfig.debug) {
+    if (this._centralSystemConfig.debug) {
       // Log
       this._express.use(
         morgan('combined', {
@@ -46,10 +46,10 @@ class SoapCentralSystemServer extends CentralSystemServer {
     }
   }
 
-  /*
-  	Start the server and listen to all SOAP OCCP versions
-  	Listen to external command to send request to charging stations
-  */
+  /**
+   * Start the server and listen to all SOAP OCCP versions
+   * Listen to external command to send request to charging stations
+   */
   start() {
     // Make it global for SOAP Services
     global.centralSystemSoap = this;
