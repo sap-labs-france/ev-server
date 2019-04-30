@@ -500,7 +500,7 @@ class ChargingStationStorage {
               { "maximumPower": { $exists: false } }, { "maximumPower": { $lte: 0 } }, { "maximumPower": null },
               { "chargePointModel": { $exists: false } }, { "chargePointModel": { $eq: "" } },
               { "chargePointVendor": { $exists: false } }, { "chargePointVendor": { $eq: "" } },
-              { "numberOfConnectedPhase": { $exists: false } }, { "numberOfConnectedPhase": null }, { "numberOfConnectedPhase": { $nin: [1, 3] } },
+              { "numberOfConnectedPhase": { $exists: false } }, { "numberOfConnectedPhase": null }, { "numberOfConnectedPhase": { $nin: [0, 1, 3] } },
               { "powerLimitUnit": { $exists: false } }, { "powerLimitUnit": null }, { "powerLimitUnit": { $nin: ["A", "W"] } },
               { "chargingStationURL": { $exists: false } }, { "chargingStationURL": null }, { "chargingStationURL": { $eq: "" } },
               { "cannotChargeInParallel": { $exists: false } }, { "cannotChargeInParallel": null },
