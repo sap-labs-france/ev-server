@@ -2,7 +2,6 @@ const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
 const DatabaseUtils = require('./DatabaseUtils');
 const Utils = require('../../utils/Utils');
-const crypto = require('crypto');
 const Logging = require('../../utils/Logging');
 const PricingStorage = require('./PricingStorage');
 
@@ -634,56 +633,6 @@ class TransactionStorage {
     } while (existingTransaction);
     // Debug
     Logging.traceEnd('TransactionStorage', '_findAvailableID', uniqueTimerID);
-  }
-
-  static async stopOrDeleteActiveTransactions(tenantID, chargeBoxId, connectorId) {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'cleanupRemainingActiveTransactions');
-    // Check
-    await Utils.checkTenant(tenantID);
-    let activeTransaction;
-    do {
-      // Check if the charging station has already a transaction
-      activeTransaction = await TransactionStorage.getActiveTransaction(tenantID, chargeBoxId, connectorId);
-      // Exists already?
-      if (activeTransaction) {
-        // Has consumption?
-        if (activeTransaction.getCurrentTotalConsumption() <= 0) {
-          // No consumption: delete
-          Logging.logWarning({
-            tenantID: tenantID,
-            source: chargeBoxId, module: 'ChargingStation', method: 'cleanupRemainingActiveTransactions',
-            action: 'StartTransaction', actionOnUser: activeTransaction.getUserID(),
-            message: `Pending Transaction ID '${activeTransaction.getID()}' has been deleted on Connector '${activeTransaction.getConnectorId()}'`
-          });
-          // Delete
-          await this.deleteTransaction(tenantID, activeTransaction);
-        } else {
-          // Has consumption: close it!
-          Logging.logWarning({
-            tenantID: tenantID,
-            source: chargeBoxId, module: 'ChargingStation', method: 'cleanupRemainingActiveTransactions',
-            action: 'StartTransaction', actionOnUser: activeTransaction.getUserID(),
-            message: `Pending Transaction ID '${activeTransaction.getID()}' has been stopped on Connector '${activeTransaction.getConnectorId()}'`
-          });
-          // Simulate a Stop Transaction
-          const OCPPService = require('../../server/ocpp/services/OCPPService');
-          await new OCPPService().handleStopTransaction({
-            "tenantID": activeTransaction.getTenantID(),
-            "chargeBoxIdentity": activeTransaction.getChargeBoxID()
-          }, {
-            "transactionId": activeTransaction.getID(),
-            "meterStop": activeTransaction.getLastMeterValue().value,
-            "timestamp": activeTransaction.getLastMeterValue().timestamp,
-          });
-        }
-      }
-    } while (activeTransaction);
-    // Debug
-    Logging.traceEnd('TransactionStorage', 'cleanupRemainingActiveTransactions', uniqueTimerID, {
-      chargeBoxId,
-      connectorId
-    });
   }
 }
 
