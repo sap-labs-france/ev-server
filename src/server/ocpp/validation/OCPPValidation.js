@@ -6,6 +6,7 @@ const SchemaValidator = require('../../rest/validation/SchemaValidator');
 const bootNotificationRequest = require('./boot-notification-request.json');
 const authorizeRequest = require('./authorize-request.json');
 const statusNotificationRequest = require('./status-notification-request.json');
+const startTransactionRequest = require('./start-transaction-request.json');
 
 require('source-map-support').install();
 
@@ -46,28 +47,30 @@ class OCPPValidation extends SchemaValidator {
   }
 
   validateStartTransaction(chargingStation, startTransaction) {
-    // Check the timestamp
-    if (!startTransaction.hasOwnProperty("timestamp")) {
-      // BUG EBEE: Timestamp is mandatory according OCPP
-      throw new BackendError(chargingStation.getID(),
-        `The 'timestamp' property has not been provided`,
-        "OCPPValidation", "validateStartTransaction", Constants.ACTION_START_TRANSACTION);
-    }
-    // Check the meter start
-    if (!startTransaction.hasOwnProperty("meterStart")) {
-      // BUG EBEE: MeterStart is mandatory according OCPP
-      throw new BackendError(chargingStation.getID(),
-        `The 'meterStart' property has not been provided`,
-        "OCPPValidation", "validateStartTransaction", Constants.ACTION_START_TRANSACTION);
-    }
-    // Check Tag ID
-    if (!startTransaction.idTag) {
-      throw new BackendError(chargingStation.getID(),
-        `The 'idTag' property has not been provided`,
-        "OCPPValidation", "validateStartTransaction", Constants.ACTION_START_TRANSACTION);
-    }
-    // Always integer
-    startTransaction.connectorId = Utils.convertToInt(startTransaction.connectorId);
+    // // Check the timestamp
+    // if (!startTransaction.hasOwnProperty("timestamp")) {
+    //   // BUG EBEE: Timestamp is mandatory according OCPP
+    //   throw new BackendError(chargingStation.getID(),
+    //     `The 'timestamp' property has not been provided`,
+    //     "OCPPValidation", "validateStartTransaction", Constants.ACTION_START_TRANSACTION);
+    // }
+    // // Check the meter start
+    // if (!startTransaction.hasOwnProperty("meterStart")) {
+    //   // BUG EBEE: MeterStart is mandatory according OCPP
+    //   throw new BackendError(chargingStation.getID(),
+    //     `The 'meterStart' property has not been provided`,
+    //     "OCPPValidation", "validateStartTransaction", Constants.ACTION_START_TRANSACTION);
+    // }
+    // // Check Tag ID
+    // if (!startTransaction.idTag) {
+    //   throw new BackendError(chargingStation.getID(),
+    //     `The 'idTag' property has not been provided`,
+    //     "OCPPValidation", "validateStartTransaction", Constants.ACTION_START_TRANSACTION);
+    // }
+    // // Always integer
+    // startTransaction.connectorId = Utils.convertToInt(startTransaction.connectorId);
+
+    this.validate(startTransactionRequest, startTransaction);
     // Check Connector ID
     if (!chargingStation.getConnector(startTransaction.connectorId)) {
       throw new BackendError(chargingStation.getID(),
