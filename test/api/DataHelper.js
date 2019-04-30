@@ -112,17 +112,30 @@ class DataHelper {
     this.ocpp.closeConnection();
   }
 
-  async startTransaction(chargingStation, connectorId, tagId, meterStart, startDate) {
+  async authorize(chargingStation, tagId, expectedStatus = 'Accepted') {
+    const response = await this.ocpp.executeAuthorize(chargingStation.id, {
+      idTag: tagId
+    });
+    expect(response.data).to.have.property('idTagInfo');
+    expect(response.data.idTagInfo.status).to.equal(expectedStatus);
+    return response.data;
+  }
+
+  async startTransaction(chargingStation, connectorId, tagId, meterStart, startDate, expectedStatus = 'Accepted') {
     const response = await this.ocpp.executeStartTransaction(chargingStation.id, {
-      connectorId: chargingStation.connectors[connectorId - 1].connectorId,
+      connectorId: connectorId,
       idTag: tagId,
       meterStart: meterStart,
       timestamp: startDate.toISOString()
     });
     expect(response.data).to.have.property('idTagInfo');
-    expect(response.data.idTagInfo.status).to.equal('Accepted');
+    expect(response.data.idTagInfo.status).to.equal(expectedStatus);
     expect(response.data).to.have.property('transactionId');
-    expect(response.data.transactionId).to.not.equal(0);
+    if (expectedStatus === 'Accepted') {
+      expect(response.data.transactionId).to.not.equal(0);
+    } else {
+      expect(response.data.transactionId).to.equal(0);
+    }
     return response.data.transactionId;
   }
 
