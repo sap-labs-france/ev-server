@@ -563,10 +563,6 @@ class Transaction extends AbstractTenantEntity {
   static getActiveTransaction(tenantID, chargeBoxID, connectorId) {
     return TransactionStorage.getActiveTransaction(tenantID, chargeBoxID, connectorId);
   }
-
-  static stopOrDeleteActiveTransactions(tenantID, chargeBoxID, connectorId) {
-    return TransactionStorage.stopOrDeleteActiveTransactions(tenantID, chargeBoxID, connectorId);
-  }
 }
 
 module.exports = Transaction;

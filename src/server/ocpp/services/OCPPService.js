@@ -298,7 +298,7 @@ class OCPPService {
       connector.activeTransactionID > 0 &&
       (statusNotification.status === Constants.CONN_STATUS_AVAILABLE || statusNotification.status === Constants.CONN_STATUS_FINISHING)) {
       // Cleanup ongoing transactions on the connector
-      await Transaction.stopOrDeleteActiveTransactions(
+      await this._stopOrDeleteActiveTransactions(
         chargingStation.getTenantID(), chargingStation.getID(), statusNotification.connectorId);
       // Clean up connector
       await chargingStation.checkAndFreeConnector(statusNotification.connectorId, true);
@@ -943,7 +943,7 @@ class OCPPService {
         }
       }
       // Cleanup ongoing transactions
-      await Transaction.stopOrDeleteActiveTransactions(
+      await this._stopOrDeleteActiveTransactions(
         chargingStation.getTenantID(), chargingStation.getID(), startTransaction.connectorId);
       // Create
       let transaction = new Transaction(chargingStation.getTenantID(), startTransaction);
@@ -1020,6 +1020,45 @@ class OCPPService {
         'status': 'Invalid'
       };
     }
+  }
+
+  async _stopOrDeleteActiveTransactions(tenantID, chargeBoxID, connectorId) {
+    // Check
+    let activeTransaction;
+    do {
+      // Check if the charging station has already a transaction
+      activeTransaction = await Transaction.getActiveTransaction(tenantID, chargeBoxID, connectorId);
+      // Exists already?
+      if (activeTransaction) {
+        // Has consumption?
+        if (activeTransaction.getCurrentTotalConsumption() <= 0) {
+          // No consumption: delete
+          Logging.logWarning({
+            tenantID: tenantID, source: chargeBoxID, module: 'OCPPService', method: '_stopOrDeleteActiveTransactions',
+            action: 'CleanupTransaction', actionOnUser: activeTransaction.getUserID(),
+            message: `Pending Transaction ID '${activeTransaction.getID()}' with no consumption has been deleted on Connector '${activeTransaction.getConnectorId()}'`
+          });
+          // Delete
+          await activeTransaction.delete();
+        } else {
+          // Has consumption: close it!
+          Logging.logWarning({
+            tenantID: tenantID, source: chargeBoxID, module: 'OCPPService', method: '_stopOrDeleteActiveTransactions',
+            action: 'CleanupTransaction', actionOnUser: activeTransaction.getUserID(),
+            message: `Pending Transaction ID '${activeTransaction.getID()}' has been stopped on Connector '${activeTransaction.getConnectorId()}'`
+          });
+          // Simulate a Stop Transaction
+          await this.handleStopTransaction({
+            "tenantID": activeTransaction.getTenantID(),
+            "chargeBoxIdentity": activeTransaction.getChargeBoxID()
+          }, {
+            "transactionId": activeTransaction.getID(),
+            "meterStop": activeTransaction.getLastMeterValue().value,
+            "timestamp": activeTransaction.getLastMeterValue().timestamp,
+          });
+        }
+      }
+    } while (activeTransaction);
   }
 
   async _notifyStartTransaction(transaction, chargingStation, user) {
