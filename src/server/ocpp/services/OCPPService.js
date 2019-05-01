@@ -12,6 +12,7 @@ const BackendError = require('../../../exception/BackendError');
 const Configuration = require('../../../utils/Configuration');
 const OCPPStorage = require('../../../storage/mongodb/OCPPStorage');
 const SiteArea = require('../../../entity/SiteArea');
+const User = require('../../../entity/User');
 const moment = require('moment-timezone');
 const momentDurationFormatSetup = require("moment-duration-format");
 
@@ -1024,12 +1025,16 @@ class OCPPService {
 
   async _stopOrDeleteActiveTransactions(tenantID, chargeBoxID, connectorId) {
     // Check
-    let activeTransaction;
+    let activeTransaction, lastCheckedTransactionID;
     do {
       // Check if the charging station has already a transaction
       activeTransaction = await Transaction.getActiveTransaction(tenantID, chargeBoxID, connectorId);
       // Exists already?
       if (activeTransaction) {
+        // Avoid infinite Loop
+        if (lastCheckedTransactionID === activeTransaction.getID()) {
+          return;
+        }
         // Has consumption?
         if (activeTransaction.getCurrentTotalConsumption() <= 0) {
           // No consumption: delete
@@ -1041,22 +1046,34 @@ class OCPPService {
           // Delete
           await activeTransaction.delete();
         } else {
-          // Has consumption: close it!
-          Logging.logWarning({
-            tenantID: tenantID, source: chargeBoxID, module: 'OCPPService', method: '_stopOrDeleteActiveTransactions',
-            action: 'CleanupTransaction', actionOnUser: activeTransaction.getUserID(),
-            message: `Pending Transaction ID '${activeTransaction.getID()}' has been stopped on Connector '${activeTransaction.getConnectorId()}'`
-          });
           // Simulate a Stop Transaction
-          await this.handleStopTransaction({
+          const result = await this.handleStopTransaction({
             "tenantID": activeTransaction.getTenantID(),
             "chargeBoxIdentity": activeTransaction.getChargeBoxID()
           }, {
             "transactionId": activeTransaction.getID(),
             "meterStop": activeTransaction.getLastMeterValue().value,
             "timestamp": activeTransaction.getLastMeterValue().timestamp,
-          });
+          }, false, true);
+          // Check
+          if (result.status === 'Invalid') {
+            // No consumption: delete
+            Logging.logError({
+              tenantID: tenantID, source: chargeBoxID, module: 'OCPPService', method: '_stopOrDeleteActiveTransactions',
+              action: 'CleanupTransaction', actionOnUser: activeTransaction.getUserID(),
+              message: `Cannot delete pending Transaction ID '${activeTransaction.getID()}' with no consumption on Connector '${activeTransaction.getConnectorId()}'`
+            });
+          } else {
+            // Has consumption: close it!
+            Logging.logWarning({
+              tenantID: tenantID, source: chargeBoxID, module: 'OCPPService', method: '_stopOrDeleteActiveTransactions',
+              action: 'CleanupTransaction', actionOnUser: activeTransaction.getUserID(),
+              message: `Pending Transaction ID '${activeTransaction.getID()}' has been stopped on Connector '${activeTransaction.getConnectorId()}'`
+            });
+          }
         }
+        // Keep last Transaction ID
+        lastCheckedTransactionID = activeTransaction.getID();
       }
     } while (activeTransaction);
   }
@@ -1117,7 +1134,7 @@ class OCPPService {
     }
   }
 
-  async handleStopTransaction(headers, stopTransaction, isSoftStop=false) {
+  async handleStopTransaction(headers, stopTransaction, isSoftStop=false, stoppedByCentralSystem=false) {
     try {
       // Get the charging station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
@@ -1135,9 +1152,18 @@ class OCPPService {
       }
       // Get the TagID that stopped the transaction
       const tagId = this._getStopTransactionTagId(stopTransaction, transaction);
-      // Check and get users
-      const { user, alternateUser } = await Authorizations.isTagIDsAuthorizedOnChargingStation(
-        chargingStation, tagId, transaction.getTagID(), Constants.ACTION_STOP_TRANSACTION);
+      let user, alternateUser;
+      // Transaction is stopped by central system?
+      if (!stoppedByCentralSystem) {
+        // Check and get users
+        const users = await Authorizations.isTagIDsAuthorizedOnChargingStation(
+          chargingStation, tagId, transaction.getTagID(), Constants.ACTION_STOP_TRANSACTION);
+        user = users.user;
+        alternateUser = users.alternateUser;
+      } else {
+        // Get the user
+        user = await User.getUserByTagId(chargingStation.getTenantID(), tagId);
+      }
       // Check if the transaction has already been stopped
       if (!transaction.isActive()) {
         throw new BackendError(chargingStation.getID(),
@@ -1204,9 +1230,7 @@ class OCPPService {
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, Constants.ACTION_STOP_TRANSACTION, error);
       // Error
-      return {
-        'status': 'Invalid'
-      };
+      return { 'status': 'Invalid' };
     }
   }
 

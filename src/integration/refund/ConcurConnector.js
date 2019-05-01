@@ -287,7 +287,7 @@ class ConcurConnector extends AbstractConnector {
         'comment': `Session started the ${moment(transaction.getStartDate()).format("YYYY-MM-DDTHH:mm:ss")} during ${moment.duration(transaction.getTotalDurationSecs(), 'seconds').format(`h[h]mm`, { trim: false })}`,
         'vendor': this.getReportName(),
         'entryDetails': `Refund of transaction ${transaction.getID}`,
-        'expenseTypecode': this.getExpenseTypeCode(),
+        'expenseTypeID': this.getExpenseTypeCode(),
         'location': {
           'name': location.Name
         },
