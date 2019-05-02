@@ -75,5 +75,13 @@ describe('OCPP 1.5 SOAP Tests', function () {
       // Delegate
       await this.ocppCommonTests.testDeleteTransaction();
     });
+    it('Transaction must be stopped by StatusNotification', async () => {
+      // Delegate
+      await this.ocppCommonTests.testConnectorStatusToStopTransaction();
+    });
+    it('User should delete his transaction', async () => {
+      // Delegate
+      await this.ocppCommonTests.testDeleteTransaction();
+    });
   });
 });

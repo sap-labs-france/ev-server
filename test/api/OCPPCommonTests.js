@@ -338,6 +338,37 @@ class OCPPCommonTests {
     // Delete the created entity
     await CentralServerService.deleteEntity(
       CentralServerService.transactionApi, this.newTransaction);
+    this.newTransaction = null; 
+  }
+
+  async testConnectorStatusToStopTransaction() {
+    // Check on Transaction
+    expect(this.newTransaction).to.be.null;
+    expect(this.chargingStationConnector1.status).to.eql('Available');
+
+    // Start a new Transaction
+    this.newTransaction = await CentralServerService.transactionApi.startTransaction(
+      this.ocpp,
+      this.context.newChargingStation,
+      this.chargingStationConnector1,
+      this.transactionStartUser,
+      this.transactionStartMeterValue,
+      this.transactionStartTime,
+      false);
+    // Check on Transaction
+    expect(this.newTransaction).to.not.be.null;
+
+    this.chargingStationConnector1.status = 'Available';
+    this.chargingStationConnector1.errorCode = 'NoError';
+    this.chargingStationConnector1.timestamp = new Date().toISOString();
+    // Update Status of Connector 1
+    let response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, this.chargingStationConnector1);
+    // Check
+    expect(response.data).to.eql({});
+    // Check Connector 1
+    await CentralServerService.chargingStationApi.checkConnector(
+      this.context.newChargingStation, 1, this.chargingStationConnector1);
+
   }
 }
 
