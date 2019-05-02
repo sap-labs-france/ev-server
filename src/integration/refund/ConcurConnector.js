@@ -177,9 +177,10 @@ class ConcurConnector extends AbstractConnector {
    *
    * @param user {User}
    * @param transactions {Transaction}
+   * @param quickRefund
    * @returns {Promise<Transaction[]>}
    */
-  async refund(user, transactions, quickRefund = true) {
+  async refund(user, transactions, quickRefund = false) {
     const refundedTransactions = [];
     let connection = await this.getConnectionByUserId(user.getID());
     if (connection === undefined) {
@@ -194,13 +195,7 @@ class ConcurConnector extends AbstractConnector {
     }
     let expenseReportId;
     if (!quickRefund) {
-      const expenseReports = await this.getExpenseReports(connection);
-      const expenseReport = expenseReports.find(report => report.Name === this.getReportName());
-      if (expenseReport) {
-        expenseReportId = expenseReport.ID;
-      } else {
-        expenseReportId = await this.createExpenseReport(connection);
-      }
+      expenseReportId = await this.createExpenseReport(connection);
     }
     for (const transaction of transactions) {
       try {
@@ -222,7 +217,6 @@ class ConcurConnector extends AbstractConnector {
 
     return refundedTransactions;
   }
-
 
   async getExpenseReports(connection) {
     try {
@@ -355,7 +349,7 @@ class ConcurConnector extends AbstractConnector {
   async createExpenseReport(connection) {
     try {
       const response = await axios.post(`${this.getApiUrl()}/api/v3.0/expense/reports`, {
-        'Name': this.getReportName(),
+        'Name': `${this.getReportName()} - ${moment().format("DD/MM/YY HH:mm")}`,
         'PolicyID': this.getPolicyID()
       }, {
         headers: {
@@ -365,15 +359,7 @@ class ConcurConnector extends AbstractConnector {
       });
       return response.data.ID;
     } catch (e) {
-      Logging.logError({
-        tenantID: this.getTenantID(),
-        module: MODULE_NAME, method: 'createExpenseReport',
-        action: 'createExpenseReport', message: `Unable to create expense report:  ${JSON.stringify(e.response.data)}`
-      });
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Unable to create expense reports`, 554,
-        'ConcurConnector', 'createExpenseReport');
+      throw new InternalError("Unable to create expense report", e.response.data);
     }
   }
 
