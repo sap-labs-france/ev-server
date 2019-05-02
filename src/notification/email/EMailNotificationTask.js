@@ -158,7 +158,7 @@ class EMailNotificationTask extends NotificationTask {
     let adminEmails = null;
     if (data.adminUsers && data.adminUsers.length > 0) {
       // Add Admins
-      adminEmails = data.adminUsers.map((adminUser) => adminUser.email).join(',');
+      adminEmails = data.adminUsers.map((adminUser) => adminUser.email).join(';');
     }
     // Send the email
     const message = await this.sendEmail({
