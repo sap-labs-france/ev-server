@@ -286,7 +286,7 @@ class OCPPService {
       message: `Connector '${statusNotification.connectorId}' status '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}' has been saved`
     });
     // Handle connector is available but a transaction is ongoing (ABB bug)!!!
-    this._checkStatusNotificationOngoingTransaction(chargingStation, statusNotification, connector, bothConnectorsUpdated);
+    await this._checkStatusNotificationOngoingTransaction(chargingStation, statusNotification, connector, bothConnectorsUpdated);
     // Notify admins
     this._notifyStatusNotification(chargingStation, statusNotification);
     // Save Connector
