@@ -290,6 +290,7 @@ class Logging {
       action: action,
       message: exception.message,
       detailedMessages: [{
+        "details": exception.detailedMessages,
         "stack": exception.stack
       }]
     });
