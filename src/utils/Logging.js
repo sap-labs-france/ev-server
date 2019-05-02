@@ -242,7 +242,9 @@ class Logging {
     // Log Auth Error
     } else if (exception instanceof AppAuthError) {
       Logging._logActionAppAuthExceptionMessage(tenantID, action, exception);
-    // Log Unexpected
+    } else if (exception instanceof BadRequestError) {
+      Logging._logActionBadRequestExceptionMessage(tenantID, action, exception);
+      // Log Unexpected
     } else {
       Logging._logActionExceptionMessage(tenantID, action, exception);
     }
@@ -266,6 +268,8 @@ class Logging {
     // Log Auth Error
     } else if (exception instanceof AppAuthError) {
       Logging._logActionAppAuthExceptionMessage(tenantID, action, exception);
+    } else if (exception instanceof BadRequestError) {
+      Logging._logActionBadRequestExceptionMessage(tenantID, action, exception);
     // Log Generic Error
     } else {
       Logging._logActionExceptionMessage(tenantID, action, exception);
@@ -318,6 +322,23 @@ class Logging {
       user: exception.user,
       actionOnUser: exception.actionOnUser,
       detailedMessages: [{
+        "stack": exception.stack
+      }]
+    });
+  }
+
+  // Used to check URL params (not in catch)
+  static _logActionBadRequestExceptionMessage(tenantID, action, exception) {
+    Logging.logSecurityError({
+      tenantID: tenantID,
+      user: exception.user,
+      actionOnUser: exception.actionOnUser,
+      module: exception.module,
+      method: exception.method,
+      action: action,
+      message: exception.message,
+      detailedMessages: [{
+        "details": exception.details,
         "stack": exception.stack
       }]
     });
