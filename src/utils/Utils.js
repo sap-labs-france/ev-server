@@ -1,4 +1,4 @@
-const {ObjectId} = require('mongodb');
+const { ObjectId } = require('mongodb');
 const Configuration = require('./Configuration');
 const uuidV4 = require('uuid/v4');
 const ObjectID = require('mongodb').ObjectID;
@@ -113,7 +113,7 @@ class Utils {
     // Ok
     _tenants.push(tenantID);
   }
-  
+
   static convertToDate(date) {
     // Check
     if (!date) {
