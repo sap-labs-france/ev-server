@@ -425,7 +425,7 @@ class ChargingStationService {
       res.json(
         // Filter
         ChargingStationSecurity.filterChargingStationResponse(
-          chargingStation.getModel(), req.user)
+          chargingStation.getModel(), req.user, await chargingStation.isComponentActive(Constants.COMPONENTS.ORGANIZATION))
       );
       next();
     } catch (error) {
@@ -461,10 +461,15 @@ class ChargingStationService {
           'onlyRecordCount': filteredRequest.OnlyRecordCount
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+      // Get the organization component
+      let organizationIsActive;
+      if (chargingStations.result && chargingStations.result.length > 0) {
+        organizationIsActive = await chargingStations.result[0].isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+      }
       // Set
       chargingStations.result = chargingStations.result.map((chargingStation) => chargingStation.getModel());
       // Filter
-      chargingStations.result = ChargingStationSecurity.filterChargingStationsResponse(chargingStations.result, req.user);
+      chargingStations.result = ChargingStationSecurity.filterChargingStationsResponse(chargingStations.result, req.user, organizationIsActive);
       // Return
       res.json(chargingStations);
       next();
@@ -501,10 +506,15 @@ class ChargingStationService {
           'onlyRecordCount': filteredRequest.OnlyRecordCount
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+      // Get the organization component
+      let organizationIsActive;
+      if (chargingStations.result && chargingStations.result.length > 0) {
+        organizationIsActive = await chargingStations.result[0].isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+      }
       // Set
       chargingStations.result = chargingStations.result.map((chargingStation) => chargingStation.getModel());
       // Filter
-      chargingStations.result = ChargingStationSecurity.filterChargingStationsResponse(chargingStations.result, req.user);
+      chargingStations.result = ChargingStationSecurity.filterChargingStationsResponse(chargingStations.result, req.user, organizationIsActive);
 
       const filename = "chargingStations_export.csv";
       fs.writeFile(filename, this.convertToCSV(chargingStations.result), (err) => {
@@ -555,10 +565,15 @@ class ChargingStationService {
           'onlyRecordCount': filteredRequest.OnlyRecordCount
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+      // Get the organization component
+      let organizationIsActive;
+      if (chargingStations.result && chargingStations.result.length > 0) {
+        organizationIsActive = await chargingStations.result[0].isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+      }
       // Set
       chargingStations.result = chargingStations.result.map((chargingStation) => chargingStation.getModel());
       // Filter
-      chargingStations.result = ChargingStationSecurity.filterChargingStationsResponse(chargingStations.result, req.user);
+      chargingStations.result = ChargingStationSecurity.filterChargingStationsResponse(chargingStations.result, req.user, organizationIsActive);
       // Return
       res.json(chargingStations);
       next();

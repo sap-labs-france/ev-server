@@ -14,6 +14,8 @@ class SiteAreaApi extends CrudApi {
   }
 
   create(data) {
+    console.log(JSON.stringify(data, null, ' '));
+    
     return super.create('/client/api/SiteAreaCreate', data);
   }
 

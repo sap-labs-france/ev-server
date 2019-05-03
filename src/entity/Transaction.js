@@ -486,8 +486,11 @@ class Transaction extends AbstractTenantEntity {
   }
 
   getCurrentTotalDurationSecs() {
-    // Stopped already?
-    return moment.duration(moment(new Date()).diff(moment(this.getStartDate()))).asSeconds();
+    if (this.isActive()) {
+      return moment.duration(moment(this.getLastMeterValue().timestamp).diff(moment(this.getStartDate()))).asSeconds();
+    } else {
+      return moment.duration(moment(this.getEndDate()).diff(moment(this.getStartDate()))).asSeconds();
+    }
   }
 
   getTotalDurationSecs() {
