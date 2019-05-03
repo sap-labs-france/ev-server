@@ -3,8 +3,6 @@ config
 users.json
 users-imported.json
 src/assets/config.json
-yarn.lock
-package-lock.json
 manifest.yml
 
 # Logs
@@ -39,9 +37,6 @@ dist
 node_modules
 jspm_packages
 
-# conf files
-config/default.json
-
 # Optional npm cache directory
 .npm
 
@@ -70,7 +65,6 @@ tmp
 /outputs
 /docker/mongo
 build/config.gypi
-package.json
 
 # Clinic
 *.clinic-*
