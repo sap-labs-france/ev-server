@@ -746,7 +746,7 @@ describe('Transaction tests', function() {
       const startDate = moment();
       const transactionId = await this.dataHelper.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
       let response = await CentralServerService.transactionApi.delete(transactionId);
-      expect(response.status).to.equal(500);
+      expect(response.status).to.equal(200);
       response = await CentralServerService.transactionApi.readById(transactionId);
       expect(response.status).to.equal(200);
     });

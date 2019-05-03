@@ -118,7 +118,7 @@ class SiteAreaSecurity {
       }
       if (siteArea.chargeBoxes) {
         filteredSiteArea.chargeBoxes = SiteAreaSecurity.getChargingStationSecurity()
-          .filterChargingStationsResponse(siteArea.chargeBoxes, loggedUser );
+          .filterChargingStationsResponse(siteArea.chargeBoxes, loggedUser, true);
       }
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(

@@ -34,15 +34,18 @@ class ChargingStationSecurity {
   }
 
   // Charging Station
-  static filterChargingStationResponse(chargingStation, loggedUser) {
+  static filterChargingStationResponse(chargingStation, loggedUser, organizationIsActive) {
     let filteredChargingStation;
 
     if (!chargingStation) {
       return null;
     }
+    // Check organization
+    if (organizationIsActive && !Authorizations.isAdmin(loggedUser) && (!chargingStation.siteArea || !Authorizations.canReadSite(loggedUser, {id: chargingStation.siteArea.siteID}))) {
+      return null;
+    }
     // Check auth
-    if (Authorizations.canReadChargingStation(loggedUser, chargingStation) && 
-        Authorizations.canReadSite(loggedUser, {id: chargingStation.siteArea.siteID})) {
+    if (Authorizations.canReadChargingStation(loggedUser, chargingStation)) {
       // Admin?
       if (Authorizations.isAdmin(loggedUser)) {
         // Yes: set all params
@@ -85,7 +88,7 @@ class ChargingStationSecurity {
     return filteredChargingStation;
   }
 
-  static filterChargingStationsResponse(chargingStations, loggedUser) {
+  static filterChargingStationsResponse(chargingStations, loggedUser, organizationIsActive) {
     const filteredChargingStations = [];
 
     // Check
@@ -97,7 +100,7 @@ class ChargingStationSecurity {
     }
     for (const chargingStation of chargingStations) {
       // Filter
-      const filteredChargingStation = ChargingStationSecurity.filterChargingStationResponse(chargingStation, loggedUser);
+      const filteredChargingStation = ChargingStationSecurity.filterChargingStationResponse(chargingStation, loggedUser, organizationIsActive);
       // Ok?
       if (filteredChargingStation) {
         // Add
