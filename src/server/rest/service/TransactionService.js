@@ -640,6 +640,10 @@ class TransactionService {
       if (filteredRequest.UserID) {
         filter.userId = filteredRequest.UserID;
       }
+      // Site Area
+      if (filteredRequest.SiteAreaID) {
+        filter.siteAreaID = filteredRequest.SiteAreaID;
+      }
       const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
         {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID,
         'onlyRecordCount': filteredRequest.OnlyRecordCount},

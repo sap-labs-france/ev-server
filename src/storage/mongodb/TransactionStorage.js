@@ -345,7 +345,7 @@ class TransactionStorage {
       }
     });
     // Charger?
-    if (params.withChargeBoxes || params.siteID) {
+    if (params.withChargeBoxes || params.siteID || params.siteAreaID) {
       // Add Charge Box
       toSubRequests.push({
         $lookup: {
@@ -358,6 +358,11 @@ class TransactionStorage {
       // Single Record
       toSubRequests.push({
         $unwind: { "path": "$chargeBox", "preserveNullAndEmptyArrays": true }
+      });
+    }
+    if (params.siteAreaID) {
+      toSubRequests.push({
+        $match: { "chargeBox.siteAreaID": Utils.convertToObjectID(params.siteAreaID) }
       });
     }
     if (params.siteID) {
