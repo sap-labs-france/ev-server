@@ -30,7 +30,7 @@ const obs = new PerformanceObserver((items) => {
   // Add statistics
   if (_traceStatistics === null) {
     _traceStatistics = {};
-    //start interval to display statistics
+    // Start interval to display statistics
     if (_loggingConfig.traceStatisticInterval) {
       setInterval(() => {
         const date = new Date();
@@ -45,7 +45,7 @@ const obs = new PerformanceObserver((items) => {
   }
   Logging.addStatistic(items.getEntries()[0].name, items.getEntries()[0].duration);
   if (performance.hasOwnProperty('clearMeasures')) {
-    performance.clearMeasures(); // does not seem to exist in node 10. It's stragen because then we have no way to remove measures and we will reach the maximum quickly
+    performance.clearMeasures(); // Does not seem to exist in node 10. It's strange because then we have no way to remove measures and we will reach the maximum quickly
   }
   performance.clearMarks();
 });
@@ -87,7 +87,8 @@ class Logging {
     if (_loggingConfig.trace) {
       uniqueID = uuid();
       // Log
-      console.time(`${module}.${method}(${uniqueID})`); // eslint-disable-line
+      // eslint-disable-next-line no-console
+      console.time(`${module}.${method}(${uniqueID})`);
       performance.mark(`Start ${module}.${method}(${uniqueID})`);
     }
     return uniqueID;
@@ -537,19 +538,24 @@ class Logging {
     // Set the function to log
     switch (log.level) {
       case LogLevel.DEBUG:
-        logFn = console.debug; // eslint-disable-line
+        // eslint-disable-next-line no-console
+        logFn = console.debug;
         break;
       case LogLevel.ERROR:
-        logFn = console.error; // eslint-disable-line
+        // eslint-disable-next-line no-console
+        logFn = console.error;
         break;
       case LogLevel.WARNING:
-        logFn = console.warn; // eslint-disable-line
+        // eslint-disable-next-line no-console
+        logFn = console.warn;
         break;
       case LogLevel.INFO:
-        logFn = console.info; // eslint-disable-line
+        // eslint-disable-next-line no-console
+        logFn = console.info;
         break;
       default:
-        logFn = console.log; // eslint-disable-line
+        // eslint-disable-next-line no-console
+        logFn = console.log;
         break;
     }
     // Log
