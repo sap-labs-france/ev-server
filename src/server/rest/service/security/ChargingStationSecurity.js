@@ -41,7 +41,8 @@ class ChargingStationSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadChargingStation(loggedUser, chargingStation)) {
+    if (Authorizations.canReadChargingStation(loggedUser, chargingStation) && 
+        Authorizations.canReadSite(loggedUser, {id: chargingStation.siteArea.siteID})) {
       // Admin?
       if (Authorizations.isAdmin(loggedUser)) {
         // Yes: set all params
