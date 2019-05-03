@@ -4,7 +4,6 @@ users.json
 users-imported.json
 src/assets/config.json
 yarn.lock
-package-lock.json
 manifest.yml
 
 # Logs
