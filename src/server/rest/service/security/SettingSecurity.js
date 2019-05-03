@@ -43,7 +43,7 @@ class SettingSecurity {
   static _filterSettingRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.identifier = sanitize(request.identifier);
-    filteredRequest.content    = sanitize(request.content);
+    filteredRequest.content = sanitize(request.content);
     return filteredRequest;
   }
 
@@ -56,13 +56,13 @@ class SettingSecurity {
     // Check auth
     if (Authorizations.canReadSetting(loggedUser, setting)) {
       // Admin?
-      if (Authorizations.isAdmin(loggedUser)) {
-        // Yes: set all params
-        filteredSetting= setting;
-      } else {
-        // Set only necessary info
-        return null;
-      }
+      // if (Authorizations.isAdmin(loggedUser)) {
+      // Yes: set all params
+      filteredSetting = setting;
+      // } else {
+      //   // Set only necessary info
+      //   return null;
+      // }
 
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(

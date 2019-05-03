@@ -278,7 +278,7 @@ class ConcurConnector extends AbstractConnector {
   async createQuickExpense(connection, transaction, location) {
     try {
       const response = await axios.post(`${this.getAuthenticationUrl()}/quickexpense/v4/users/${jwt.decode(connection.getData().access_token).sub}/context/TRAVELER/quickexpenses`, {
-        'comment': `Session started the ${moment(transaction.getStartDate()).format("YYYY-MM-DDTHH:mm:ss")} during ${moment.duration(transaction.getTotalDurationSecs(), 'seconds').format(`h[h]mm`, { trim: false })}`,
+        'comment': `Session started the ${moment(transaction.getStartDate()).local().format("YYYY-MM-DDTHH:mm:ss")} during ${moment.duration(transaction.getTotalDurationSecs(), 'seconds').format(`h[h]mm`, { trim: false })}`,
         'vendor': this.getReportName(),
         'entryDetails': `Refund of transaction ${transaction.getID}`,
         'expenseTypeID': this.getExpenseTypeCode(),
@@ -313,8 +313,8 @@ class ConcurConnector extends AbstractConnector {
   async createExpenseReportEntry(connection, expenseReportId, transaction, location) {
     try {
       const response = await axios.post(`${this.getApiUrl()}/api/v3.0/expense/entries`, {
-        'Description': `Emobility reimbursement ${moment(transaction.getStartDate()).format("YYYY-MM-DD")}`,
-        'Comment': `Session started the ${moment(transaction.getStartDate()).format("YYYY-MM-DDTHH:mm:ss")} during ${moment.duration(transaction.getTotalDurationSecs(), 'seconds').format(`h[h]mm`, { trim: false })}`,
+        'Description': `Emobility reimbursement ${moment(transaction.getStartDate()).local().format("YYYY-MM-DD")}`,
+        'Comment': `Session started the ${moment(transaction.getStartDate()).local().format("YYYY-MM-DD HH:mm:ss")} during ${moment.duration(transaction.getTotalDurationSecs(), 'seconds').format(`h[h]mm`, { trim: false })}`,
         'VendorDescription': 'Charge At Home',
         'Custom1': `${transaction.getID}`,
         'ExpenseTypeCode': this.getExpenseTypeCode(),
@@ -325,7 +325,7 @@ class ConcurConnector extends AbstractConnector {
         'TaxReceiptType': 'N',
         'TransactionAmount': transaction.getPrice(),
         'TransactionCurrencyCode': transaction.getPriceUnit(),
-        'TransactionDate': transaction.getStartDate(),
+        'TransactionDate': moment(transaction.getStartDate()).local().format("YYYY-MM-DD"),
         'SpendCategoryCode': 'COCAR',
         'LocationID': location.ID
 
@@ -349,7 +349,7 @@ class ConcurConnector extends AbstractConnector {
   async createExpenseReport(connection) {
     try {
       const response = await axios.post(`${this.getApiUrl()}/api/v3.0/expense/reports`, {
-        'Name': `${this.getReportName()} - ${moment().format("DD/MM/YY HH:mm")}`,
+        'Name': `${this.getReportName()} - ${moment().local().format("DD/MM/YY HH:mm")}`,
         'PolicyID': this.getPolicyID()
       }, {
         headers: {
