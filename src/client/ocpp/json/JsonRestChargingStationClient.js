@@ -114,7 +114,12 @@ class JsonRestChargingStationClient extends ChargingStationClient {
           protocol: 'rest'
         };
       }
-      this._wsConnection = new WSClient(this._serverURL, '', WSOptions, Configuration.getWSClientConfig());
+      const wsClientOptions = {
+        WSOptions: WSOptions,
+        autoReconnectTimeout: Configuration.getWSClientConfig().autoReconnectTimeout,
+        autoReconnectMaxRetries: Configuration.getWSClientConfig().autoReconnectMaxRetries
+      };
+      this._wsConnection = new WSClient(this._serverURL, wsClientOptions);
       // Opened
       this._wsConnection.onopen = () => {
         // Log
@@ -203,6 +208,7 @@ class JsonRestChargingStationClient extends ChargingStationClient {
 
   async _sendMessage(request) {
     // Return a promise
+    // eslint-disable-next-line no-undef
     return new Promise(async (resolve, reject) => {
       // Open WS Connection
       await this._openConnection();

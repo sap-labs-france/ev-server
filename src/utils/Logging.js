@@ -30,10 +30,10 @@ const obs = new PerformanceObserver((items) => {
   // Add statistics
   if (_traceStatistics === null) {
     _traceStatistics = {};
-    //start interval to display statistics
+    // Start interval to display statistics
     if (_loggingConfig.traceStatisticInterval) {
       setInterval(() => {
-        const date=new Date();
+        const date = new Date();
         // eslint-disable-next-line no-console
         console.log(date.toISOString().substr(0, 19) + " STATISTICS START");
         // eslint-disable-next-line no-console
@@ -44,8 +44,8 @@ const obs = new PerformanceObserver((items) => {
     }
   }
   Logging.addStatistic(items.getEntries()[0].name, items.getEntries()[0].duration);
-  if (typeof performance.hasOwnProperty === 'function') {
-    performance.clearMeasures(); // does not seem to exist in node 10. It's stragen because then we have no way to remove measures and we will reach the maximum quickly
+  if (performance.hasOwnProperty('clearMeasures')) {
+    performance.clearMeasures(); // Does not seem to exist in node 10. It's strange because then we have no way to remove measures and we will reach the maximum quickly
   }
   performance.clearMarks();
 });
@@ -87,7 +87,8 @@ class Logging {
     if (_loggingConfig.trace) {
       uniqueID = uuid();
       // Log
-      console.time(`${module}.${method}(${uniqueID})`); // eslint-disable-line
+      // eslint-disable-next-line no-console
+      console.time(`${module}.${method}(${uniqueID})`);
       performance.mark(`Start ${module}.${method}(${uniqueID})`);
     }
     return uniqueID;
@@ -105,15 +106,15 @@ class Logging {
     if (currentStatistics) {
       // update current statistics timers
       currentStatistics.countTime = (currentStatistics.countTime ? currentStatistics.countTime + 1 : 1);
-      currentStatistics.minTime = (currentStatistics.minTime ? (currentStatistics.minTime > duration ? duration : currentStatistics.minTime) :  duration);
-      currentStatistics.maxTime = (currentStatistics.maxTime ? (currentStatistics.maxTime < duration ? duration : currentStatistics.maxTime) :  duration);
+      currentStatistics.minTime = (currentStatistics.minTime ? (currentStatistics.minTime > duration ? duration : currentStatistics.minTime) : duration);
+      currentStatistics.maxTime = (currentStatistics.maxTime ? (currentStatistics.maxTime < duration ? duration : currentStatistics.maxTime) : duration);
       currentStatistics.totalTime = (currentStatistics.totalTime ? currentStatistics.totalTime + duration : duration);
       currentStatistics.avgTime = currentStatistics.totalTime / currentStatistics.countTime;
     }
   }
 
   // Debug DB
-  static traceEnd(module, method, uniqueID, params={}) {
+  static traceEnd(module, method, uniqueID, params = {}) {
     // Check
     if (_loggingConfig.trace) {
       performance.mark(`End ${module}.${method}(${uniqueID})`);
@@ -242,7 +243,9 @@ class Logging {
     // Log Auth Error
     } else if (exception instanceof AppAuthError) {
       Logging._logActionAppAuthExceptionMessage(tenantID, action, exception);
-    // Log Unexpected
+    } else if (exception instanceof BadRequestError) {
+      Logging._logActionBadRequestExceptionMessage(tenantID, action, exception);
+      // Log Unexpected
     } else {
       Logging._logActionExceptionMessage(tenantID, action, exception);
     }
@@ -266,6 +269,8 @@ class Logging {
     // Log Auth Error
     } else if (exception instanceof AppAuthError) {
       Logging._logActionAppAuthExceptionMessage(tenantID, action, exception);
+    } else if (exception instanceof BadRequestError) {
+      Logging._logActionBadRequestExceptionMessage(tenantID, action, exception);
     // Log Generic Error
     } else {
       Logging._logActionExceptionMessage(tenantID, action, exception);
@@ -286,6 +291,7 @@ class Logging {
       action: action,
       message: exception.message,
       detailedMessages: [{
+        "details": exception.detailedMessages,
         "stack": exception.stack
       }]
     });
@@ -318,6 +324,23 @@ class Logging {
       user: exception.user,
       actionOnUser: exception.actionOnUser,
       detailedMessages: [{
+        "stack": exception.stack
+      }]
+    });
+  }
+
+  // Used to check URL params (not in catch)
+  static _logActionBadRequestExceptionMessage(tenantID, action, exception) {
+    Logging.logSecurityError({
+      tenantID: tenantID,
+      user: exception.user,
+      actionOnUser: exception.actionOnUser,
+      module: exception.module,
+      method: exception.method,
+      action: action,
+      message: exception.message,
+      detailedMessages: [{
+        "details": exception.details,
         "stack": exception.stack
       }]
     });
@@ -515,19 +538,24 @@ class Logging {
     // Set the function to log
     switch (log.level) {
       case LogLevel.DEBUG:
-        logFn = console.debug; // eslint-disable-line
+        // eslint-disable-next-line no-console
+        logFn = console.debug;
         break;
       case LogLevel.ERROR:
-        logFn = console.error; // eslint-disable-line
+        // eslint-disable-next-line no-console
+        logFn = console.error;
         break;
       case LogLevel.WARNING:
-        logFn = console.warn; // eslint-disable-line
+        // eslint-disable-next-line no-console
+        logFn = console.warn;
         break;
       case LogLevel.INFO:
-        logFn = console.info; // eslint-disable-line
+        // eslint-disable-next-line no-console
+        logFn = console.info;
         break;
       default:
-        logFn = console.log; // eslint-disable-line
+        // eslint-disable-next-line no-console
+        logFn = console.log;
         break;
     }
     // Log

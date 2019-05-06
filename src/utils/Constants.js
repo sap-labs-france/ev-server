@@ -3,7 +3,7 @@ require('source-map-support').install();
 module.exports = {
   DEFAULT_TENANT: 'default',
 
-  REST_RESPONSE_SUCCESS: {status: 'Success'},
+  REST_RESPONSE_SUCCESS: { status: 'Success' },
 
   CONN_STATUS_AVAILABLE: "Available",
   CONN_STATUS_OCCUPIED: "Occupied",
@@ -13,7 +13,7 @@ module.exports = {
   CONN_STATUS_FINISHING: "Finishing",
   CONN_STATUS_PREPARING: "Preparing",
   CONN_STATUS_SUSPENDED_EVSE: "SuspendedEVSE",
-  CONN_STATUS_SUSPENDED_EV:  "SuspendedEV",
+  CONN_STATUS_SUSPENDED_EV: "SuspendedEV",
   CONN_STATUS_UNAVAILABLE: "Unavailable",
 
   STATS_GROUP_BY_CONSUMPTION: "C",
@@ -217,13 +217,24 @@ module.exports = {
     "CCS": "IEC_62196_T2_COMBO"
   },
 
+  CONNECTOR_TYPES: {
+    "UNKNOWN": "U",
+    "CHADEMO": "C",
+    "IEC_62196_T2": "T2",
+    "IEC_62196_T2_COMBO": "CCS",
+    "DOMESTIC": "D",
+    "TYPE_1": "T1",
+    "TYPE_1_CCS": "T1CCS",
+    "TYPE_3C": "T3C",
+  },
+
   // Components
   COMPONENTS: {
     OCPI: "ocpi",
     REFUND: "refund",
     PRICING: "pricing",
     ORGANIZATION: "organization",
-    SAC:"sac"
+    SAC: "sac"
   },
 
   // Ocpi Registering status

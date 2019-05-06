@@ -109,13 +109,16 @@ class SiteAreaSecurity {
       if (siteArea.hasOwnProperty("totalConnectors")) {
         filteredSiteArea.totalConnectors = siteArea.totalConnectors;
       }
+      if (siteArea.hasOwnProperty("accessControl")) {
+        filteredSiteArea.accessControl = siteArea.accessControl;
+      }
       if (siteArea.site) {
         // Site
         filteredSiteArea.site = SiteAreaSecurity.getSiteSecurity().filterSiteResponse(siteArea.site, loggedUser);
       }
       if (siteArea.chargeBoxes) {
         filteredSiteArea.chargeBoxes = SiteAreaSecurity.getChargingStationSecurity()
-          .filterChargingStationsResponse(siteArea.chargeBoxes, loggedUser );
+          .filterChargingStationsResponse(siteArea.chargeBoxes, loggedUser, true);
       }
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(

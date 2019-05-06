@@ -145,11 +145,11 @@ class SettingService {
       const filteredRequest = SettingSecurity.filterSettingCreateRequest(req.body, req.user);
       // Check Mandatory fields
       Setting.checkIfSettingValid(filteredRequest, req);
-      
+
       // Create setting
       const setting = new Setting(req.user.tenantID, filteredRequest);
       // Update timestamp
-      setting.setCreatedBy(new User(req.user.tenantID, {'id': req.user.id}));
+      setting.setCreatedBy(new User(req.user.tenantID, { 'id': req.user.id }));
       setting.setCreatedOn(new Date());
       // Save Setting
       const newSetting = await setting.save();
@@ -197,7 +197,7 @@ class SettingService {
       // Update
       Database.updateSetting(filteredRequest, setting.getModel());
       // Update timestamp
-      setting.setLastChangedBy(new User(req.user.tenantID, {'id': req.user.id}));
+      setting.setLastChangedBy(new User(req.user.tenantID, { 'id': req.user.id }));
       setting.setLastChangedOn(new Date());
       // Update Setting
       const updatedSetting = await setting.save();

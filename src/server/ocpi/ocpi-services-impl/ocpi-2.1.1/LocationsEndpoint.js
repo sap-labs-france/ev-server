@@ -17,7 +17,7 @@ const RECORDS_LIMIT = 20;
 class LocationsEndpoint extends AbstractEndpoint {
   // Create OCPI Service
   constructor(ocpiService) {
-    super(ocpiService,EP_IDENTIFIER,EP_VERSION);
+    super(ocpiService, EP_IDENTIFIER, EP_VERSION);
   }
 
   /**
@@ -92,11 +92,11 @@ class LocationsEndpoint extends AbstractEndpoint {
       }
     } else {
       // get query parameters
-      const offset = (req.query.offset)?parseInt(req.query.offset):0;
-      const limit  = (req.query.limit && req.query.limit < RECORDS_LIMIT)?parseInt(req.query.limit):RECORDS_LIMIT;
+      const offset = (req.query.offset) ? parseInt(req.query.offset) : 0;
+      const limit = (req.query.limit && req.query.limit < RECORDS_LIMIT) ? parseInt(req.query.limit) : RECORDS_LIMIT;
 
       // get all locations
-      const result = await this.getAllLocations(tenant,limit,offset);
+      const result = await this.getAllLocations(tenant, limit, offset);
       payload = result.locations;
 
       // set header
@@ -122,9 +122,9 @@ class LocationsEndpoint extends AbstractEndpoint {
    * Get All OCPI Locations from given tenant TODO: move to OCPIMapping
    * @param {Tenant} tenant 
    */
-  async getAllLocations(tenant,limit,skip) {
+  async getAllLocations(tenant, limit, skip) {
     // result
-    const result = { count: 0, locations: []};
+    const result = { count: 0, locations: [] };
 
     // Get all sites
     const sites = await Site.getSites(

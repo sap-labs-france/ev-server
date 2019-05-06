@@ -2,7 +2,6 @@ const Constants = require('../../utils/Constants');
 const Database = require('../../utils/Database');
 const DatabaseUtils = require('./DatabaseUtils');
 const Utils = require('../../utils/Utils');
-const crypto = require('crypto');
 const Logging = require('../../utils/Logging');
 const PricingStorage = require('./PricingStorage');
 
@@ -330,7 +329,7 @@ class TransactionStorage {
       }
     });
     // Charger?
-    if (params.withChargeBoxes || params.siteID) {
+    if (params.withChargeBoxes || params.siteID || params.siteAreaID) {
       // Add Charge Box
       toSubRequests.push({
         $lookup: {
@@ -343,6 +342,11 @@ class TransactionStorage {
       // Single Record
       toSubRequests.push({
         $unwind: { "path": "$chargeBox", "preserveNullAndEmptyArrays": true }
+      });
+    }
+    if (params.siteAreaID) {
+      toSubRequests.push({
+        $match: { "chargeBox.siteAreaID": Utils.convertToObjectID(params.siteAreaID) }
       });
     }
     if (params.siteID) {
@@ -634,51 +638,6 @@ class TransactionStorage {
     } while (existingTransaction);
     // Debug
     Logging.traceEnd('TransactionStorage', '_findAvailableID', uniqueTimerID);
-  }
-
-  static async stopOrDeleteActiveTransactions(tenantID, chargeBoxId, connectorId) {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'cleanupRemainingActiveTransactions');
-    // Check
-    await Utils.checkTenant(tenantID);
-    let activeTransaction;
-    do {
-      // Check if the charging station has already a transaction
-      activeTransaction = await TransactionStorage.getActiveTransaction(tenantID, chargeBoxId, connectorId);
-      // Exists already?
-      if (activeTransaction) {
-        // Has consumption?
-        if (activeTransaction.getCurrentTotalConsumption() <= 0) {
-          // No consumption: delete
-          Logging.logWarning({
-            tenantID: tenantID,
-            source: chargeBoxId, module: 'ChargingStation', method: 'cleanupRemainingActiveTransactions',
-            action: 'StartTransaction', actionOnUser: activeTransaction.getUserID(),
-            message: `Pending Transaction ID '${activeTransaction.getID()}' has been deleted on Connector '${activeTransaction.getConnectorId()}'`
-          });
-          // Delete
-          await this.deleteTransaction(tenantID, activeTransaction);
-        } else {
-          // Has consumption: close it!
-          Logging.logWarning({
-            tenantID: tenantID,
-            source: chargeBoxId, module: 'ChargingStation', method: 'cleanupRemainingActiveTransactions',
-            action: 'StartTransaction', actionOnUser: activeTransaction.getUserID(),
-            message: `Pending Transaction ID '${activeTransaction.getID()}' has been stopped on Connector '${activeTransaction.getConnectorId()}'`
-          });
-          // Stop
-          await activeTransaction.stopTransaction(activeTransaction.getUserID(), activeTransaction.getTagID(),
-            activeTransaction.getLastMeterValue().value + 1, new Date(), activeTransaction.timezone);
-          // Save Transaction
-          await TransactionStorage.saveTransaction(activeTransaction.getTenantID(), activeTransaction.getModel());
-        }
-      }
-    } while (activeTransaction);
-    // Debug
-    Logging.traceEnd('TransactionStorage', 'cleanupRemainingActiveTransactions', uniqueTimerID, {
-      chargeBoxId,
-      connectorId
-    });
   }
 }
 

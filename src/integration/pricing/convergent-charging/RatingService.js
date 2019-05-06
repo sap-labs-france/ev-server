@@ -14,7 +14,7 @@ class RatingService extends AbstractSoapClient {
       new soap.ClientSSLSecurity(
         `${global.appRoot}/assets/convergent-charging/ssl/hybris-access.key`,
         `${global.appRoot}/assets/convergent-charging/ssl/hybris-access.crt`,
-        {rejectUnauthorized: false, strictSSL: false}
+        { rejectUnauthorized: false, strictSSL: false }
       )
     );
   }
@@ -25,6 +25,7 @@ class RatingService extends AbstractSoapClient {
   }
 
   timeout(delayms) {
+    // eslint-disable-next-line no-undef
     return new Promise(resolve => setTimeout(resolve, delayms));
   }
 }

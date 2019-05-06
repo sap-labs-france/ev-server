@@ -6,6 +6,7 @@ class AuthorizationsDefinition {
   static getAuthorizations(role) {
     // Role
     switch (role) {
+      // Super Admin
       case Constants.ROLE_SUPER_ADMIN:
         return AuthorizationsDefinition.getSuperAdminAuthorizations();
       // Admin
@@ -154,7 +155,7 @@ class AuthorizationsDefinition {
 									{{/userID}}
 								{{/trim}}
 							],
-							"Action": ["Read"]
+							"Action": ["Read","RefundTransaction"]
 						}
 					},
 					{
@@ -190,14 +191,14 @@ class AuthorizationsDefinition {
 					{
 						"AuthObject": "Settings",
 						"AuthFieldValue": {
-							"Action": []
+							"Action": ["List"]
 						}
 					},
 					{
 						"AuthObject": "Setting",
 						"AuthFieldValue": {
 							"SettingID": "*",
-							"Action": []
+							"Action": ["Read"]
 						}
 					},
 					{

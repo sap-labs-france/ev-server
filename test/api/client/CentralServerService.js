@@ -117,6 +117,7 @@ class CentralServerService {
       // All record retrieved
       expect(response.data.count).to.eql(response.data.result.length);
       // Check created company
+      delete entity.locale;
       expect(response.data.result).to.containSubset([entity]);
     } else {
       // Let the caller to handle response

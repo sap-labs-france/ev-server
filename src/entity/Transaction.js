@@ -37,10 +37,6 @@ class Transaction extends AbstractTenantEntity {
     this._model.currentStateOfCharge = currentStateOfCharge;
   }
 
-  getCurrentStateOfCharge() {
-    return this._model.currentStateOfCharge;
-  }
-
   getNumberOfMeterValues() {
     return this._model.numberOfMeterValues;
   }
@@ -490,8 +486,11 @@ class Transaction extends AbstractTenantEntity {
   }
 
   getCurrentTotalDurationSecs() {
-    // Stopped already?
-    return moment.duration(moment(new Date()).diff(moment(this.getStartDate()))).asSeconds();
+    if (this.isActive()) {
+      return moment.duration(moment(this.getLastMeterValue().timestamp).diff(moment(this.getStartDate()))).asSeconds();
+    } else {
+      return moment.duration(moment(this.getEndDate()).diff(moment(this.getStartDate()))).asSeconds();
+    }
   }
 
   getTotalDurationSecs() {
@@ -566,10 +565,6 @@ class Transaction extends AbstractTenantEntity {
 
   static getActiveTransaction(tenantID, chargeBoxID, connectorId) {
     return TransactionStorage.getActiveTransaction(tenantID, chargeBoxID, connectorId);
-  }
-
-  static stopOrDeleteActiveTransactions(tenantID, chargeBoxID, connectorId) {
-    return TransactionStorage.stopOrDeleteActiveTransactions(tenantID, chargeBoxID, connectorId);
   }
 }
 

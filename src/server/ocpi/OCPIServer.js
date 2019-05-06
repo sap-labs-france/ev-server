@@ -18,7 +18,7 @@ class OCPIServer {
     // Initialize express app
     this._express = expressTools.expressCommonInit();
     // log to console
-    if (ocpiRestConfig.debug) {
+    if (_ocpiRestConfig.debug) {
       // Log
       this._express.use(
         morgan('combined', {

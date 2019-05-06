@@ -198,10 +198,12 @@ class Configuration {
   // WSClient
   static getWSClientConfig() {
     // Read conf and set defaults values
+    if (!Configuration.getConfig().WSClient)
+      Configuration.getConfig().WSClient = {};
     if (!Configuration.getConfig().WSClient.hasOwnProperty('autoReconnectMaxRetries'))
       Configuration.getConfig().WSClient.autoReconnectMaxRetries = -1;
-    if (!Configuration.getConfig().WSClient.hasOwnProperty('autoReconnectInterval'))
-      Configuration.getConfig().WSClient.autoReconnectInterval = 30;
+    if (!Configuration.getConfig().WSClient.hasOwnProperty('autoReconnectTimeout'))
+      Configuration.getConfig().WSClient.autoReconnectTimeout = 30;
     return Configuration.getConfig().WSClient;
   }
 }
