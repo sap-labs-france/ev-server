@@ -27,7 +27,8 @@ class WSServer extends WebSocket.Server {
     this._httpServer = httpServer;
     this._serverName = serverName;
     this._serverConfig = serverConfig;
-    this._keepAliveIntervalValue = (this._serverConfig.hasOwnProperty('keepaliveinterval') ? this._serverConfig.keepaliveinterval : 30) * 1000; // ms
+    this._keepAliveIntervalValue = (this._serverConfig.hasOwnProperty('keepaliveinterval') ?
+      this._serverConfig.keepaliveinterval : Constants.WS_DEFAULT_KEEPALIVE) * 1000; // ms
     this.on('connection', (ws) => {
       ws.isAlive = true;
       ws.on('pong', () => { ws.isAlive = true; });
