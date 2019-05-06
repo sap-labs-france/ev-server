@@ -206,7 +206,7 @@ class ConcurConnector extends AbstractConnector {
             expenseReportId = await this.createExpenseReport(connection, transaction.getTimezone());
           }
           const entryId = await this.createExpenseReportEntry(connection, expenseReportId, transaction, locationId);
-          transaction.setRefundData({ refundId: entryId, type: 'report', refundedAt: new Date() });
+          transaction.setRefundData({ refundId: entryId, type: 'report', reportId: expenseReportId, refundedAt: new Date() });
         }
         await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
         refundedTransactions.push(transaction);
