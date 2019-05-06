@@ -18,6 +18,7 @@ const Authorizations = require('../../../authorization/Authorizations');
 const NotificationHandler = require('../../../notification/NotificationHandler');
 const AuthSecurity = require('./security/AuthSecurity');
 const TransactionStorage = require('../../../storage/mongodb/TransactionStorage');
+const SessionHashService  =require('./SessionHashService');
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
@@ -891,6 +892,20 @@ class AuthService {
     await user.save();
     // Build Authorization
     const auths = await Authorizations.buildAuthorizations(user);
+    // Build HashID based on important user fields
+    const userHashID = SessionHashService.buildUserHashID(user);
+    // Build HashID based on important tenant fields
+    let tenantHashID;
+    if (user.getTenantID() !== Constants.DEFAULT_TENANT) {
+      const tenant = await user.getTenant();
+      tenantHashID = SessionHashService.buildTenantHashID(tenant);
+    } else {
+      tenantHashID = Constants.DEFAULT_TENANT;
+    }
+
+    // store User/Tenant Hash IDs
+    SessionHashService.storeUserHashID(user.getTenantID(), user.getID(), userHashID);
+    SessionHashService.storeTenantHashID(user.getTenantID(), tenantHashID);
     // Yes: build payload
     const payload = {
       'id': user.getID(),
@@ -901,6 +916,8 @@ class AuthService {
       'locale': user.getLocale(),
       'language': user.getLanguage(),
       'tenantID': user.getTenantID(),
+      'userHashID': userHashID,
+      'tenantHashID': tenantHashID,
       'auths': auths
     };
     // Get active components from tenant if not default
@@ -940,6 +957,29 @@ class AuthService {
     // Return
     return (tenant ? tenant.getID() : null);
   }
+
+  // static buildHashID(user) {
+  //   // get te
+  //   // get all field that need to be hashed
+  //   const data = user.getLanguage();
+  //   return data;
+  //   // return crypto.createHash('sha256').update(data).digest("hex");
+  // }
+
+  // static async rebuildUserHashID(tenantID, userID) {
+  //   const user = await User.getUser(tenantID, userID);
+
+  //   const hashID = AuthService.buildHashID(user);
+  //   AuthService.storeHashID(tenantID, userID, hashID);
+  // }
+
+  // static storeHashID(tenantID, userID, hashID) {
+  //   // empty if not exist
+  //   global.userHashMapIDs = global.userHashMapIDs ? global.userHashMapIDs : {};
+
+  //   // store it
+  //   global.userHashMapIDs[`${tenantID}#${userID}`] = hashID;
+  // }
 
   static async checkUserLogin(action, user, filteredRequest, req, res, next) {
     // User Found?
