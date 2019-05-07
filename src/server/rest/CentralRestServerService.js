@@ -45,11 +45,9 @@ module.exports = {
   restServiceSecured(req, res, next) {
     // Parse the action
     let action = /^\/\w*/g.exec(req.url)[0].substring(1);
-    //
-    console.log(req.method + ' > ' + action);
+    // console.log(req.method + ' > ' + action);
     // Check if User has been updated and require new login
     if (SessionHashService.isSessionHashUpdated(req,res,next)) {
-      console.log("User has been changed");
       return;
     }
     // Check Context

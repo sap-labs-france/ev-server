@@ -24,12 +24,23 @@ class SessionHashService {
         global.tenantHashMapIDs = {};
       }
 
-      if (!global.userHashMapIDs[`${tenantID}#${userID}`] || global.userHashMapIDs[`${tenantID}#${userID}`] !== userHashID
-          || !global.tenantHashMapIDs[`${tenantID}`] || global.tenantHashMapIDs[`${tenantID}`] !== tenantHashID ) {
+      // check if ID do not exist - means server has been restarted - re-login necessary
+      if (!global.userHashMapIDs[`${tenantID}#${userID}`] 
+        || !global.tenantHashMapIDs[`${tenantID}`] ) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `User or Tenant has been updated changed`,
+          `User or Tenant Hash not found. Login necessary`,
           401, 'SessionHashService', 'isSessionHashUpdated'
+        );
+      }
+
+      // check if Hash on User or Tenant has been updated
+      if (global.userHashMapIDs[`${tenantID}#${userID}`] !== userHashID 
+          || global.tenantHashMapIDs[`${tenantID}`] !== tenantHashID ) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `User or Tenant has been updated`,
+          409, 'SessionHashService', 'isSessionHashUpdated'
         );
       }
     } catch (err) {
@@ -44,21 +55,17 @@ class SessionHashService {
   // Build User Hash ID
   static buildUserHashID(user) {
     // Get all field that need to be hashed
-    const data = user.getLanguage();
-    console.log("userHashID:" + data);
-    return data;
-    // TODO: only for test - uncomment below
-    // return crypto.createHash('sha256').update(data).digest("hex");
+    const data = user.getLanguage() + '/' + user.getRole() + '/' + user.getStatus();
+    //console.log("userHashID:" + data);
+    return crypto.createHash('sha256').update(data).digest("hex");
   }
 
   // Build Tenant Hash ID
   static buildTenantHashID(tenant) {
     // Get all field taht need to be hashed
     const data = tenant.getActiveComponents().toString();
-    console.log("tenantHashID:" + data);
-    return data;
-    // TODO: only for test - uncomment below
-    // return crypto.createHash('sha256').update(data).digest("hex");
+    //console.log("tenantHashID:" + data);
+    return crypto.createHash('sha256').update(data).digest("hex");
   }
 
 
