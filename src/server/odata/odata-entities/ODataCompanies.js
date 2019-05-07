@@ -26,6 +26,18 @@ class ODataCompanies extends AbstractODataEntities {
   // Move Address object to same level
   static convert(object, req) {
     const company = super.convert(object, req);
+
+    // shorten latitude and longitude
+    if (company.hasOwnProperty('address')) { 
+      if ( company.address.hasOwnProperty('longitude') ) {
+        company.address.longitude = company.address.longitude.toFixed(15);
+      }
+
+      if ( company.address.hasOwnProperty('latitude') ) {
+        company.address.latitude = company.address.latitude.toFixed(15);
+      }
+    }
+
     return company.address ? _.merge(company, company.address) : company;
   }
 }

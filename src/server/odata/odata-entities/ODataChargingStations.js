@@ -23,6 +23,23 @@ class ODataChargingStations extends AbstractODataEntities {
       cb(error);
     }
   }
+
+  // Custom convert to:
+  // Short Latitude and Longitude
+  static convert(object, req) {
+    const chargingStation = super.convert(object, req);
+
+    // shorten latitude and longitude
+    if ( chargingStation.hasOwnProperty('longitude') ) {
+      chargingStation.longitude = chargingStation.longitude.toFixed(15);
+    }
+
+    if ( chargingStation.hasOwnProperty('latitude') ) {
+      chargingStation.latitude = chargingStation.latitude.toFixed(15);
+    }
+
+    return chargingStation;
+  }
 }
 
 

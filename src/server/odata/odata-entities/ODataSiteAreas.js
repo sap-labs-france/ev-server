@@ -26,6 +26,18 @@ class ODataSiteAreas extends AbstractODataEntities {
   // Move Adress object to same level
   static convert(object, req) {
     const siteArea = super.convert(object, req);
+
+    // shorten latitude and longitude
+    if (siteArea.hasOwnProperty('address')) { 
+      if ( siteArea.address.hasOwnProperty('longitude') ) {
+        siteArea.address.longitude = siteArea.address.longitude.toFixed(15);
+      }
+
+      if ( siteArea.address.hasOwnProperty('latitude') ) {
+        siteArea.address.latitude = siteArea.address.latitude.toFixed(15);
+      }
+    }
+
     return siteArea.address ? _.merge(siteArea, siteArea.address):siteArea;
   }
 }
