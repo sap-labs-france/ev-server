@@ -485,10 +485,25 @@ class UserStorage {
         });
       }
     }
+    // Limit records?
+    if (!params.onlyRecordCount) {
+      // Always limit the nbr of record to avoid perfs issues
+      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+    }
     // Count Records
     const usersCountMDB = await global.database.getCollection(tenantID, 'users')
       .aggregate([...aggregation, { $count: "count" }])
       .toArray();
+    // Check if only the total count is requested
+    if (params.onlyRecordCount) {
+      // Return only the count
+      return {
+        count: (usersCountMDB.length > 0 ? usersCountMDB[0].count : 0),
+        result: []
+      };
+    }
+    // Remove the limit
+    aggregation.pop();
     // Project
     aggregation.push({
       "$project": {
@@ -548,7 +563,8 @@ class UserStorage {
     Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID, { params, limit, skip, sort });
     // Ok
     return {
-      count: (usersCountMDB.length > 0 ? usersCountMDB[0].count : 0),
+      count: (usersCountMDB.length > 0 ?
+        (usersCountMDB[0].count == Constants.MAX_DB_RECORD_COUNT ? -1 : usersCountMDB[0].count) : 0),
       result: users
     };
   }
@@ -639,10 +655,25 @@ class UserStorage {
         $match: { "siteusers.siteID": Utils.convertToObjectID(params.siteID) }
       });
     }
+    // Limit records?
+    if (!params.onlyRecordCount) {
+      // Always limit the nbr of record to avoid perfs issues
+      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+    }
     // Count Records
     const usersCountMDB = await global.database.getCollection(tenantID, 'users')
       .aggregate([...aggregation, { $count: "count" }])
       .toArray();
+    // Check if only the total count is requested
+    if (params.onlyRecordCount) {
+      // Return only the count
+      return {
+        count: (usersCountMDB.length > 0 ? usersCountMDB[0].count : 0),
+        result: []
+      };
+    }
+    // Remove the limit
+    aggregation.pop();
     // Project
     aggregation.push({
       "$project": {
@@ -701,7 +732,8 @@ class UserStorage {
     Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID, { params, limit, skip, sort });
     // Ok
     return {
-      count: (usersCountMDB.length > 0 ? usersCountMDB[0].count : 0),
+      count: (usersCountMDB.length > 0 ?
+        (usersCountMDB[0].count == Constants.MAX_DB_RECORD_COUNT ? -1 : usersCountMDB[0].count) : 0),
       result: users
     };
   }

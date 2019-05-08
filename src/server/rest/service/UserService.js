@@ -469,7 +469,8 @@ class UserService {
           'siteID': filteredRequest.SiteID,
           'role': filteredRequest.Role,
           'status': filteredRequest.Status,
-          'excludeSiteID': filteredRequest.ExcludeSiteID
+          'excludeSiteID': filteredRequest.ExcludeSiteID,
+          'onlyRecordCount': filteredRequest.OnlyRecordCount
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
@@ -506,7 +507,8 @@ class UserService {
         {
           'search': filteredRequest.Search,
           'siteID': filteredRequest.SiteID,
-          'role': filteredRequest.Role
+          'role': filteredRequest.Role,
+          'onlyRecordCount': filteredRequest.OnlyRecordCount
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
