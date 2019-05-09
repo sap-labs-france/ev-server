@@ -61,9 +61,7 @@ class OCPPStorage {
     }
     // Count Records
     const statusNotificationsCountMDB = await global.database.getCollection(tenantID, 'statusnotifications')
-      .aggregate([...aggregation, {
-        $count: "count"
-      }])
+      .aggregate([...aggregation, { $count: "count" }])
       .toArray();
     // Add Created By / Last Changed By
     // DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);

@@ -467,7 +467,7 @@ class TransactionService {
       }
       // Get Transactions
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-        { ...filter, 'withChargeBoxes': true },
+        {...filter, 'withChargeBoxes': true, 'onlyRecordCount': filteredRequest.OnlyRecordCount},
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
       transactions.result = TransactionSecurity.filterTransactionsResponse(
@@ -520,7 +520,8 @@ class TransactionService {
         filter.siteAreaID = filteredRequest.SiteAreaID;
       }
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-        { ...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID },
+        {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID,
+        'onlyRecordCount': filteredRequest.OnlyRecordCount},
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
       transactions.result = TransactionSecurity.filterTransactionsResponse(
@@ -562,6 +563,8 @@ class TransactionService {
       }
       if (filteredRequest.UserID) {
         filter.userId = filteredRequest.UserID;
+      } else if (Authorizations.isBasic(req.user)) {
+        filter.userId = req.user.id;
       }
       if (filteredRequest.Type) {
         filter.type = filteredRequest.Type;
@@ -570,7 +573,8 @@ class TransactionService {
         filter.siteAreaID = filteredRequest.SiteAreaID;
       }
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-        { ...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID },
+        {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID,
+        'onlyRecordCount': filteredRequest.OnlyRecordCount},
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
       transactions.result = TransactionSecurity.filterTransactionsResponse(
@@ -643,7 +647,8 @@ class TransactionService {
         filter.siteAreaID = filteredRequest.SiteAreaID;
       }
       const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
-        { ...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID },
+        {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID,
+        'onlyRecordCount': filteredRequest.OnlyRecordCount},
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
       transactions.result = TransactionSecurity.filterTransactionsResponse(

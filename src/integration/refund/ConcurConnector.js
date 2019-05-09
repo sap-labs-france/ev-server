@@ -2,7 +2,7 @@ const AbstractConnector = require('../AbstractConnector');
 const Logging = require('../../utils/Logging');
 const axios = require('axios');
 const querystring = require('querystring');
-const moment = require('moment');
+const moment = require('moment-timezone');
 const ConnectionStorage = require('../../storage/mongodb/ConnectionStorage');
 const TransactionStorage = require('../../storage/mongodb/TransactionStorage');
 const ChargingStation = require("../../entity/ChargingStation");
@@ -194,9 +194,6 @@ class ConcurConnector extends AbstractConnector {
       connection = await this.refreshToken(user.getID(), connection);
     }
     let expenseReportId;
-    if (!quickRefund) {
-      expenseReportId = await this.createExpenseReport(connection);
-    }
     for (const transaction of transactions) {
       try {
         const chargingStation = await ChargingStation.getChargingStation(transaction.getTenantID(), transaction.getChargeBoxID());
@@ -205,8 +202,11 @@ class ConcurConnector extends AbstractConnector {
           const entryId = await this.createQuickExpense(connection, transaction, locationId);
           transaction.setRefundData({ refundId: entryId, type: 'quick', refundedAt: new Date() });
         } else {
+          if (!expenseReportId) {
+            expenseReportId = await this.createExpenseReport(connection, transaction.getTimezone());
+          }
           const entryId = await this.createExpenseReportEntry(connection, expenseReportId, transaction, locationId);
-          transaction.setRefundData({ refundId: entryId, type: 'report', refundedAt: new Date() });
+          transaction.setRefundData({ refundId: entryId, type: 'report', reportId: expenseReportId, refundedAt: new Date() });
         }
         await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
         refundedTransactions.push(transaction);
@@ -216,6 +216,21 @@ class ConcurConnector extends AbstractConnector {
     }
 
     return refundedTransactions;
+  }
+
+  async getReportDetails(connection, reportId) {
+    try {
+
+      const response = await axios.get(`${this.getApiUrl()}/api/expense/expensereport/v2.0/report/${reportId}`, {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${connection.getData().access_token}`
+        }
+      });
+      return response.data;
+    } catch (e) {
+      throw new InternalError("Unable to get report details", e.response.data);
+    }
   }
 
   async getExpenseReports(connection) {
@@ -229,15 +244,7 @@ class ConcurConnector extends AbstractConnector {
       });
       return response.data.Items;
     } catch (e) {
-      Logging.logError({
-        tenantID: this.getTenantID(),
-        module: MODULE_NAME, method: 'getExpenseReports',
-        action: 'getExpenseReports', message: `Unable to get expense reports`
-      });
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Unable to get expense reports`, 500,
-        'ConcurConnector', 'getExpenseReports');
+      throw new InternalError("Unable to get expense reports", e.response.data);
     }
   }
 
@@ -278,7 +285,7 @@ class ConcurConnector extends AbstractConnector {
   async createQuickExpense(connection, transaction, location) {
     try {
       const response = await axios.post(`${this.getAuthenticationUrl()}/quickexpense/v4/users/${jwt.decode(connection.getData().access_token).sub}/context/TRAVELER/quickexpenses`, {
-        'comment': `Session started the ${moment(transaction.getStartDate()).local().format("YYYY-MM-DDTHH:mm:ss")} during ${moment.duration(transaction.getTotalDurationSecs(), 'seconds').format(`h[h]mm`, { trim: false })}`,
+        'comment': `Session started the ${moment.tz(transaction.getStartDate(), transaction.getTimezone()).format("YYYY-MM-DD HH:mm:ss")} during ${moment.duration(transaction.getTotalDurationSecs(), 'seconds').format(`h[h]mm`, { trim: false })}`,
         'vendor': this.getReportName(),
         'entryDetails': `Refund of transaction ${transaction.getID}`,
         'expenseTypeID': this.getExpenseTypeCode(),
@@ -289,7 +296,7 @@ class ConcurConnector extends AbstractConnector {
           'currencyCode': transaction.getPriceUnit(),
           'value': transaction.getPrice()
         },
-        'transactionDate': transaction.getStartDate()
+        'transactionDate': moment.tz(transaction.getStartDate(), transaction.getTimezone()).format("YYYY-MM-DD")
       }, {
         headers: {
           Accept: 'application/json',
@@ -313,9 +320,9 @@ class ConcurConnector extends AbstractConnector {
   async createExpenseReportEntry(connection, expenseReportId, transaction, location) {
     try {
       const response = await axios.post(`${this.getApiUrl()}/api/v3.0/expense/entries`, {
-        'Description': `Emobility reimbursement ${moment(transaction.getStartDate()).local().format("YYYY-MM-DD")}`,
-        'Comment': `Session started the ${moment(transaction.getStartDate()).local().format("YYYY-MM-DD HH:mm:ss")} during ${moment.duration(transaction.getTotalDurationSecs(), 'seconds').format(`h[h]mm`, { trim: false })}`,
-        'VendorDescription': 'Charge At Home',
+        'Description': `E-Mobility reimbursement ${moment.tz(transaction.getStartDate(), transaction.getTimezone()).format("YYYY-MM-DD")}`,
+        'Comment': `Session started the ${moment.tz(transaction.getStartDate(), transaction.getTimezone()).format("YYYY-MM-DD HH:mm:ss")} during ${moment.duration(transaction.getTotalDurationSecs(), 'seconds').format(`h[h]mm`, { trim: false })}`,
+        'VendorDescription': 'E-Mobility',
         'Custom1': `${transaction.getID}`,
         'ExpenseTypeCode': this.getExpenseTypeCode(),
         'IsBillable': true,
@@ -325,7 +332,7 @@ class ConcurConnector extends AbstractConnector {
         'TaxReceiptType': 'N',
         'TransactionAmount': transaction.getPrice(),
         'TransactionCurrencyCode': transaction.getPriceUnit(),
-        'TransactionDate': moment(transaction.getStartDate()).local().format("YYYY-MM-DD"),
+        'TransactionDate': moment.tz(transaction.getStartDate(), transaction.getTimezone()).format("YYYY-MM-DD"),
         'SpendCategoryCode': 'COCAR',
         'LocationID': location.ID
 
@@ -344,12 +351,13 @@ class ConcurConnector extends AbstractConnector {
   /**
    *
    * @param connection
+   * @param timezone
    * @returns {Promise<void>}
    */
-  async createExpenseReport(connection) {
+  async createExpenseReport(connection, timezone) {
     try {
       const response = await axios.post(`${this.getApiUrl()}/api/v3.0/expense/reports`, {
-        'Name': `${this.getReportName()} - ${moment().local().format("DD/MM/YY HH:mm")}`,
+        'Name': `${this.getReportName()} - ${moment.tz(timezone).format("DD/MM/YY HH:mm")}`,
         'PolicyID': this.getPolicyID()
       }, {
         headers: {
