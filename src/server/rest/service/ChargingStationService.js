@@ -458,6 +458,7 @@ class ChargingStationService {
           'chargeBoxId': filteredRequest.ChargeBoxID,
           'siteAreaID': filteredRequest.SiteAreaID,
           'includeDeleted': filteredRequest.IncludeDeleted,
+          'onlyRecordCount': filteredRequest.OnlyRecordCount
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Get the organization component
@@ -501,7 +502,8 @@ class ChargingStationService {
           'withSite': filteredRequest.WithSite,
           'siteID': filteredRequest.SiteID,
           'chargeBoxId': filteredRequest.ChargeBoxID,
-          'siteAreaID': filteredRequest.SiteAreaID
+          'siteAreaID': filteredRequest.SiteAreaID,
+          'onlyRecordCount': filteredRequest.OnlyRecordCount
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Get the organization component
@@ -560,6 +562,7 @@ class ChargingStationService {
           'chargeBoxId': filteredRequest.ChargeBoxID,
           'siteAreaID': filteredRequest.SiteAreaID,
           'errorType': filteredRequest.ErrorType,
+          'onlyRecordCount': filteredRequest.OnlyRecordCount
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Get the organization component

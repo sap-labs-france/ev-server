@@ -310,7 +310,8 @@ class SiteService {
           'withChargeBoxes': filteredRequest.WithChargeBoxes,
           'withUsers': filteredRequest.WithUsers,
           'excludeSitesOfUserID': filteredRequest.ExcludeSitesOfUserID,
-          'withAvailableChargers': filteredRequest.WithAvailableChargers
+          'withAvailableChargers': filteredRequest.WithAvailableChargers,
+          'onlyRecordCount': filteredRequest.OnlyRecordCount
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
