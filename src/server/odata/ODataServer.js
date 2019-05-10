@@ -48,6 +48,7 @@ class ODataServer {
     const oDataServerFactory = new ODataServerFactory();
     const oDataServer = oDataServerFactory.getODataServer();
     oDataServer.restServerUrl = restServerUrl;
+    ODataSchema.restServerUrl = restServerUrl;
     this._express.use('/odata',
       ODataSchema.getSchema,
       function (req, res) {

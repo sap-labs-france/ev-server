@@ -69,6 +69,13 @@ class CentralServiceApi extends AuthenticatedApi {
     });
   }
 
+  async securePing() {
+    return await this.send({  
+      method: 'GET',
+      url: '/client/api/Ping'
+    });
+  }
+
 }
 
 module.exports = CentralServiceApi;
