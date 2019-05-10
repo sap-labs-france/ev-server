@@ -218,6 +218,21 @@ class ConcurConnector extends AbstractConnector {
     return refundedTransactions;
   }
 
+  async getReportDetails(connection, reportId) {
+    try {
+
+      const response = await axios.get(`${this.getApiUrl()}/api/expense/expensereport/v2.0/report/${reportId}`, {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${connection.getData().access_token}`
+        }
+      });
+      return response.data;
+    } catch (e) {
+      throw new InternalError("Unable to get report details", e.response.data);
+    }
+  }
+
   async getExpenseReports(connection) {
     try {
 
@@ -229,15 +244,7 @@ class ConcurConnector extends AbstractConnector {
       });
       return response.data.Items;
     } catch (e) {
-      Logging.logError({
-        tenantID: this.getTenantID(),
-        module: MODULE_NAME, method: 'getExpenseReports',
-        action: 'getExpenseReports', message: `Unable to get expense reports`
-      });
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Unable to get expense reports`, 500,
-        'ConcurConnector', 'getExpenseReports');
+      throw new InternalError("Unable to get expense reports", e.response.data);
     }
   }
 
