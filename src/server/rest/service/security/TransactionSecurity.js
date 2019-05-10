@@ -116,7 +116,8 @@ class TransactionSecurity {
       filteredTransaction.meterStart = transaction.getMeterStart();
       filteredTransaction.timestamp = transaction.getStartDate();
       filteredTransaction.timezone = transaction.getTimezone();
-      if (Authorizations.isAdmin(loggedUser) && transaction.getModel().hasOwnProperty('price')) {
+      // if (Authorizations.isAdmin(loggedUser) && transaction.getModel().hasOwnProperty('price')) {
+      if (transaction.hasPrice()) {
         filteredTransaction.price = transaction.getStartPrice();
         filteredTransaction.roundedPrice = transaction.getStartRoundedPrice();
         filteredTransaction.priceUnit = transaction.getStartPriceUnit();
@@ -154,7 +155,8 @@ class TransactionSecurity {
         filteredTransaction.stop.totalInactivitySecs = transaction.getTotalInactivitySecs();
         filteredTransaction.stop.totalDurationSecs = transaction.getTotalDurationSecs();
         filteredTransaction.stop.stateOfCharge = transaction.getEndStateOfCharge();
-        if (Authorizations.isAdmin(loggedUser) && transaction.hasPrice()) {
+        // if (Authorizations.isAdmin(loggedUser) && transaction.hasPrice()) {
+        if (transaction.hasPrice()) {
           filteredTransaction.stop.price = transaction.getPrice();
           filteredTransaction.stop.roundedPrice = transaction.getRoundedPrice();
           filteredTransaction.stop.priceUnit = transaction.getPriceUnit();
