@@ -348,6 +348,13 @@ class AuthService {
           Constants.CENTRAL_SERVER,
           `The captcha is invalid`, 500,
           'AuthService', 'handleRegisterUser');
+      } else {
+        if (response.data.score < 0.5) {
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `The captcha score is too low`, 500,
+            'AuthService', 'handleRegisterUser');
+        }
       }
       // Check email
       const user = await User.getUserByEmail(tenantID, filteredRequest.email);
@@ -438,6 +445,13 @@ class AuthService {
           Constants.CENTRAL_SERVER,
           `The captcha is invalid`, 500,
           'AuthService', 'handleRegisterUser');
+      } else {
+        if (response.data.score < 0.5) {
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `The captcha score is too low`, 500,
+            'AuthService', 'handleRegisterUser');
+        }
       }
       // Yes: Generate new password
       const resetHash = Utils.generateGUID();
