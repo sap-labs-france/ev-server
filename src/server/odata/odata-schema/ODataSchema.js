@@ -10,14 +10,6 @@ class ODataSchema {
    * Specific implementation to return Atom Schema
    */
   static async getSchema(req, res, next) {
-    // Login info
-    Logging.logInfo({
-      tenantID: Constants.DEFAULT_TENANT,
-      module: "ODataServer",
-      method: "getSchema", action: "getSchema",
-      message: `Requested path: ${req.path} - Original URL: ${req.originalUrl}`
-    });
-
     // Set default header
     res.setHeader('Cache-Control', 'no-cache');
 
@@ -42,11 +34,22 @@ class ODataSchema {
 
         // Build AuthenticatedApi
         const centralServiceApi = new CentralServiceApi(ODataSchema.restServerUrl, authentication.name, authentication.pass, subdomain);
-        
+
         // Process with the secure Ping
         await centralServiceApi.securePing();
       }
     } catch (error) {
+      // Login info
+      // add logging
+      Logging.logError({
+        tenantID: Constants.DEFAULT_TENANT,
+        module: "ODataServer",
+        source: "ODataServer",
+        method: "securePing",
+        action: "securePing",
+        message: 'Unauthorized Access'
+      });
+
       res.send(401);
       return;
     }
