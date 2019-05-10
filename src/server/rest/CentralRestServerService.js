@@ -182,6 +182,10 @@ module.exports = {
       case "GET":
         // Check Action
         switch (action) {
+          // Ping
+          case "Ping":
+            res.sendStatus(200);
+            break;
           // Get Pricing
           case "Pricing":
             // Delegate
