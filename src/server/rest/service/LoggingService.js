@@ -24,7 +24,7 @@ class LoggingService {
       const loggings = await Logging.getLogs(req.user.tenantID, {
         'search': filteredRequest.Search, 'dateFrom': filteredRequest.DateFrom, 'dateUntil': filteredRequest.DateUntil, 'userID': filteredRequest.UserID,
         'level': filteredRequest.Level, 'type': filteredRequest.Type, 'source': filteredRequest.Source,
-        'action': filteredRequest.Action
+        'action': filteredRequest.Action, 'onlyRecordCount': filteredRequest.OnlyRecordCount
       }, filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
       loggings.result = LoggingSecurity.filterLoggingsResponse(
@@ -56,7 +56,7 @@ class LoggingService {
       const loggings = await Logging.getLogs(req.user.tenantID, {
         'search': filteredRequest.Search, 'dateFrom': filteredRequest.DateFrom, 'dateUntil': filteredRequest.DateUntil, 'userID': filteredRequest.UserID,
         'level': filteredRequest.Level, 'type': filteredRequest.Type, 'source': filteredRequest.Source,
-        'action': filteredRequest.Action
+        'action': filteredRequest.Action, 'onlyRecordCount': filteredRequest.OnlyRecordCount
       }, filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
       loggings.result = LoggingSecurity.filterLoggingsResponse(

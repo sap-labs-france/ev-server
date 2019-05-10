@@ -109,7 +109,8 @@ class VehicleService {
       // Get the vehicles
       const vehicles = await Vehicle.getVehicles(req.user.tenantID,
         { 'search': filteredRequest.Search, 'vehicleType': filteredRequest.Type,
-          'vehicleManufacturerID': filteredRequest.VehicleManufacturerID },
+          'vehicleManufacturerID': filteredRequest.VehicleManufacturerID,
+          'onlyRecordCount': filteredRequest.OnlyRecordCount },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
       vehicles.result = vehicles.result.map((vehicle) => vehicle.getModel());

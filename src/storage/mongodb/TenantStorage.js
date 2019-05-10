@@ -147,9 +147,7 @@ class TenantStorage {
     }
     // Count Records
     const tenantsCountMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
-      .aggregate([...aggregation, {
-        $count: "count"
-      }])
+      .aggregate([...aggregation, { $count: "count" }])
       .toArray();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation('', aggregation);

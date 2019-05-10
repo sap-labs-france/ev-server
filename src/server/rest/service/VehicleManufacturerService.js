@@ -109,7 +109,8 @@ class VehicleManufacturerService {
       const filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturersRequest(req.query, req.user);
       // Get the vehicle Manufacturers
       const vehicleManufacturers = await VehicleManufacturer.getVehicleManufacturers(req.user.tenantID,
-        { 'search': filteredRequest.Search, 'withVehicles': filteredRequest.WithVehicles, 'vehicleType': filteredRequest.VehicleType},
+        { 'search': filteredRequest.Search, 'withVehicles': filteredRequest.WithVehicles,
+          'vehicleType': filteredRequest.VehicleType, 'onlyRecordCount': filteredRequest.OnlyRecordCount },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
       vehicleManufacturers.result = vehicleManufacturers.result.map((vehicleManufacturer) => vehicleManufacturer.getModel());

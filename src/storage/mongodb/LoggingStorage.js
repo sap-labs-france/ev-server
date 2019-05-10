@@ -168,9 +168,24 @@ class LoggingStorage {
       });
     }
     // Count Records
+    // Limit records?
+    if (!params.onlyRecordCount) {
+      // Always limit the nbr of record to avoid perfs issues
+      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+    }
     const loggingsCountMDB = await global.database.getCollection(tenantID, 'logs')
       .aggregate([...aggregation, { $count: 'count' }], { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
+    // Check if only the total count is requested
+    if (params.onlyRecordCount) {
+      // Return only the count
+      return {
+        count: (loggingsCountMDB.length > 0 ? loggingsCountMDB[0].count : 0),
+        result: []
+      };
+    }
+    // Remove the limit
+    aggregation.pop();
     // Sort
     if (sort) {
       // Sort
@@ -231,8 +246,9 @@ class LoggingStorage {
     }
     // Ok
     return {
-      count: (loggingsCountMDB.length > 0 ? loggingsCountMDB[0].count : 0),
-      result: loggings
+      count: (loggingsCountMDB.length > 0 ?
+        (loggingsCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : loggingsCountMDB[0].count) : 0),
+    result: loggings
     };
   }
 }
