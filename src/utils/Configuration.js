@@ -1,3 +1,7 @@
+const {
+  WS_DEFAULT_RECONNECT_MAX_RETRIES,
+  WS_DEFAULT_RECONNECT_TIMEOUT
+} = require('./Constants');
 const cfenv = require('cfenv');
 const fs = require('fs');
 
@@ -201,9 +205,9 @@ class Configuration {
     if (!Configuration.getConfig().WSClient)
       Configuration.getConfig().WSClient = {};
     if (!Configuration.getConfig().WSClient.hasOwnProperty('autoReconnectMaxRetries'))
-      Configuration.getConfig().WSClient.autoReconnectMaxRetries = -1;
+      Configuration.getConfig().WSClient.autoReconnectMaxRetries = WS_DEFAULT_RECONNECT_MAX_RETRIES;
     if (!Configuration.getConfig().WSClient.hasOwnProperty('autoReconnectTimeout'))
-      Configuration.getConfig().WSClient.autoReconnectTimeout = 30;
+      Configuration.getConfig().WSClient.autoReconnectTimeout = WS_DEFAULT_RECONNECT_TIMEOUT;
     return Configuration.getConfig().WSClient;
   }
 }

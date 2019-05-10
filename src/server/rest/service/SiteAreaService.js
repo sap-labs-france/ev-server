@@ -115,7 +115,8 @@ class SiteAreaService {
           'withSite': filteredRequest.WithSite,
           'withChargeBoxes': filteredRequest.WithChargeBoxes,
           'withAvailableChargers': filteredRequest.WithAvailableChargers,
-          'siteID': filteredRequest.SiteID },
+          'siteID': filteredRequest.SiteID,
+          'onlyRecordCount': filteredRequest.OnlyRecordCount },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
       siteAreas.result = siteAreas.result.map((siteArea) => siteArea.getModel());

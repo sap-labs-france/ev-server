@@ -52,14 +52,10 @@ class ConnectionStorage {
     aggregation.push({
       $match: { userId: Utils.convertToObjectID(userId) }
     });
-
     // Count Records
     const connectionsCountMDB = await global.database.getCollection(tenantID, 'connections')
-      .aggregate([...aggregation, {
-        $count: "count"
-      }])
+      .aggregate([...aggregation, { $count: "count" }])
       .toArray();
-
     const connectionsMDB = await global.database.getCollection(tenantID, 'connections')
       .aggregate(aggregation, {
         collation: {

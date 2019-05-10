@@ -62,6 +62,10 @@ class UtilsSecurity {
     UtilsSecurity.filterLimit(request, filteredRequest);
     // Skip
     UtilsSecurity.filterSkip(request, filteredRequest);
+    // Count Only?
+    if (request.hasOwnProperty('OnlyRecordCount')) {
+      filteredRequest.OnlyRecordCount = sanitize(request.OnlyRecordCount);
+    }
   }
 
   static filterLimit(request, filteredRequest) {

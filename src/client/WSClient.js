@@ -102,6 +102,7 @@ class WSClient {
   onClose(error) {
     switch (error.code) {
       case 1000: // Normal close
+      case 1005:
         this._autoReconnectRetryCount = 0;
         break;
       default: // Abnormal close
@@ -147,8 +148,8 @@ class WSClient {
    * @public
    */
   reconnect(error) {
-    if (this._autoReconnectTimeout !== 0 &&
-      (this._autoReconnectRetryCount < this._autoReconnectMaxRetries || this._autoReconnectMaxRetries === -1)) {
+    if (this._autoReconnectTimeout !== Constants.WS_RECONNECT_DISABLED &&
+      (this._autoReconnectRetryCount < this._autoReconnectMaxRetries || this._autoReconnectMaxRetries === Constants.WS_RECONNECT_UNLIMITED)) {
       this._autoReconnectRetryCount++;
       setTimeout(() => {
         if (this._dbLogging) {
@@ -167,7 +168,7 @@ class WSClient {
         this.onreconnect(error);
         this.open();
       }, this._autoReconnectTimeout);
-    } else if (this._autoReconnectTimeout !== 0 || this._autoReconnectMaxRetries !== -1) {
+    } else if (this._autoReconnectTimeout !== Constants.WS_RECONNECT_DISABLED || this._autoReconnectMaxRetries !== Constants.WS_RECONNECT_UNLIMITED) {
       if (this._dbLogging) {
         // Informational message
         Logging.logInfo({
