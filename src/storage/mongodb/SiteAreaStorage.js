@@ -203,6 +203,15 @@ class SiteAreaStorage {
         $match: filters
       });
     }
+    // Limit on Site Area for Basic Users
+    if (params.siteIDs && params.siteIDs.length > 0) {
+      // Build filter
+      aggregation.push({
+        $match: {
+          siteID: { $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID)) }
+        }
+      });
+    }
     // Limit records?
     if (!params.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues

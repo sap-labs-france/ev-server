@@ -288,6 +288,7 @@ class SiteStorage {
     }
     // Create Aggregation
     const aggregation = [];
+    // Limit on Site for Basic Users
     if (params.siteIDs && params.siteIDs.length > 0) {
       // Build filter
       aggregation.push({

@@ -77,17 +77,11 @@ class ChargingStationStorage {
     // Set the filters
     const filters = {
       "$and": [{
-        "$or": [{
-          "deleted": {
-            $exists: false
-          }
-        },
-        {
-          "deleted": null
-        },
-        {
-          "deleted": false
-        }]
+        "$or": [
+          { "deleted": { $exists: false } },
+          { "deleted": null },
+          { "deleted": false }
+        ]
       }]
     };
     // include deleted charging stations if requested
