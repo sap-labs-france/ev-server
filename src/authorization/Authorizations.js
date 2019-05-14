@@ -7,6 +7,7 @@ const Mustache = require('mustache');
 const compileProfile = require('node-authorization').profileCompiler;
 const AppError = require('../exception/AppError');
 const AppAuthError = require('../exception/AppAuthError');
+const BackendError = require('../exception/BackendError');
 const Utils = require('../utils/Utils');
 const User = require('../entity/User');
 const Tenant = require('../entity/Tenant');
@@ -55,6 +56,29 @@ class Authorizations {
     }
     // Ok
     return true;
+  }
+
+  static getAuthorizedEntityIDsFromLoggedUser(entityName, loggedUser) {
+    // Check Admin
+    if (Authorizations.isAdmin(loggedUser)) {
+      // Authorize all objects
+      return null;
+    }
+    // Find the corresponding auth
+    const foundAuth = loggedUser.auths.find((auth) => auth.AuthObject === entityName);
+    if (foundAuth && foundAuth.length === 0) {
+      // Authorize all objects
+      return null;
+    }
+    // Check Entity
+    switch (entityName) {
+      // Site
+      case Constants.ENTITY_SITE:
+        // Not an array then no values
+        if (Array.isArray(foundAuth.AuthFieldValue.SiteID)) {
+          return foundAuth.AuthFieldValue.SiteID;
+        }
+    }
   }
 
   // Build Auth

@@ -87,8 +87,7 @@ class ChargingStationStorage {
         },
         {
           "deleted": false
-        }
-        ]
+        }]
       }]
     };
     // include deleted charging stations if requested
@@ -153,10 +152,12 @@ class ChargingStationStorage {
         }
       });
       // Check Site ID
-      if (params.siteID) {
+      if (params.siteIDs && params.siteIDs.length > 0) {
         // Build filter
         filters.$and.push({
-          "siteArea.siteID": Utils.convertToObjectID(params.siteID)
+          "siteArea.siteID": {
+            $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
+          }
         });
       }
       if (params.withSite) {
