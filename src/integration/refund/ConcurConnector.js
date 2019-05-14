@@ -100,7 +100,7 @@ class ConcurConnector extends AbstractConnector {
       Logging.logDebug({
         tenantID: this.getTenantID(),
         module: MODULE_NAME, method: 'createConnection',
-        action: 'getAccessToken', message: `request concur access token for ${userId}`
+        action: 'GetAccessToken', message: `request concur access token for ${userId}`
       });
       const result = await axios.post(`${this.getAuthenticationUrl()}/oauth2/v0/token`,
         querystring.stringify({
@@ -118,7 +118,7 @@ class ConcurConnector extends AbstractConnector {
       Logging.logDebug({
         tenantID: this.getTenantID(),
         module: MODULE_NAME, method: 'createConnection',
-        action: 'getAccessToken', message: `Concur access token granted for ${userId}`
+        action: 'GetAccessToken', message: `Concur access token granted for ${userId}`
       });
       const now = new Date();
       return ConnectionStorage.saveConnection(this.getTenantID(), {
@@ -134,14 +134,14 @@ class ConcurConnector extends AbstractConnector {
         tenantID: this.getTenantID(),
         module: MODULE_NAME,
         method: 'createConnection',
-        action: 'getAccessToken',
+        action: 'GetAccessToken',
         message: `Concur access token not granted for ${userId} ${JSON.stringify(e.response.data)}`,
         error: e
       });
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Concur access token not granted for ${userId}`, 500,
-        'ConcurConnector', 'getAccessToken', userId);
+        'ConcurConnector', 'GetAccessToken', userId);
     }
   }
 
