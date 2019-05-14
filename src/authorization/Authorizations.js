@@ -59,25 +59,31 @@ class Authorizations {
   }
 
   static getAuthorizedEntityIDsFromLoggedUser(entityName, loggedUser) {
-    // Check Admin
-    if (Authorizations.isAdmin(loggedUser)) {
-      // Authorize all objects
-      return null;
-    }
     // Find the corresponding auth
     const foundAuth = loggedUser.auths.find((auth) => auth.AuthObject === entityName);
-    if (foundAuth && foundAuth.length === 0) {
+    if (!foundAuth) {
       // Authorize all objects
       return null;
     }
+    let fieldName;
     // Check Entity
     switch (entityName) {
+      // Company
+      case Constants.ENTITY_COMPANY:
+        fieldName = 'CompanyID';
+        break;
       // Site
       case Constants.ENTITY_SITE:
-        // Not an array then no values
-        if (Array.isArray(foundAuth.AuthFieldValue.SiteID)) {
-          return foundAuth.AuthFieldValue.SiteID;
-        }
+        fieldName = 'SiteID';
+        break;
+    }
+    // Return the IDs
+    if (fieldName) {
+      // Not an array then authorize all objects
+      if (foundAuth.AuthFieldValue[fieldName] && 
+          Array.isArray(foundAuth.AuthFieldValue[fieldName])) {
+        return foundAuth.AuthFieldValue[fieldName];
+      }
     }
   }
 

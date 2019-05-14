@@ -10,6 +10,7 @@ const User = require('../../../entity/User');
 const SiteSecurity = require('./security/SiteSecurity');
 const UtilsService = require('./UtilsService');
 const OrganizationComponentInactiveError = require ('../../../exception/OrganizationComponentInactiveError');
+
 class SiteService {
   static async handleAddUsersToSite(action, req, res, next) {
     try {
@@ -305,6 +306,7 @@ class SiteService {
           'search': filteredRequest.Search,
           'userID': filteredRequest.UserID,
           'companyID': filteredRequest.CompanyID,
+          'siteIDs': Authorizations.getAuthorizedEntityIDsFromLoggedUser(Constants.ENTITY_SITE, req.user),
           'withCompany': filteredRequest.WithCompany,
           'withSiteAreas': filteredRequest.WithSiteAreas,
           'withChargeBoxes': filteredRequest.WithChargeBoxes,

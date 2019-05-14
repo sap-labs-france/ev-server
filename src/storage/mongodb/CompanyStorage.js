@@ -177,6 +177,14 @@ class CompanyStorage {
         $match: filters
       });
     }
+    if (params.companyIDs && params.companyIDs.length > 0) {
+      // Build filter
+      aggregation.push({
+        $match: {
+          _id: { $in: params.companyIDs.map((companyID) => Utils.convertToObjectID(companyID)) }
+        }
+      });
+    }
     if (params.withSites) {
       // Add Sites
       aggregation.push({
