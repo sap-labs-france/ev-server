@@ -346,7 +346,7 @@ class ConcurConnector extends AbstractConnector {
         'Description': `E-Mobility reimbursement ${moment.tz(transaction.getStartDate(), transaction.getTimezone()).format("YYYY-MM-DD")}`,
         'Comment': `Session started the ${moment.tz(transaction.getStartDate(), transaction.getTimezone()).format("YYYY-MM-DD HH:mm:ss")} during ${moment.duration(transaction.getTotalDurationSecs(), 'seconds').format(`h[h]mm`, {trim: false})}`,
         'VendorDescription': 'E-Mobility',
-        'Custom1': `${transaction.getID}`,
+        'Custom1': transaction.getID(),
         'ExpenseTypeCode': this.getExpenseTypeCode(),
         'IsBillable': true,
         'IsPersonal': false,
