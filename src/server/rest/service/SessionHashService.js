@@ -24,14 +24,13 @@ class SessionHashService {
         global.tenantHashMapIDs = {};
       }
 
-      // check if ID do not exist - means server has been restarted - re-login necessary
-      if (!global.userHashMapIDs[`${tenantID}#${userID}`] 
-        || !global.tenantHashMapIDs[`${tenantID}`] ) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `User or Tenant Hash not found. Login necessary`,
-          401, 'SessionHashService', 'isSessionHashUpdated'
-        );
+      // check if ID do not exist - means server has been restarted - instead of re-login necessary
+      // rebuild the ID for user and tenant
+      if (!global.userHashMapIDs[`${tenantID}#${userID}`]) {
+        SessionHashService.rebuildUserHashID(tenantID, userID);
+      }
+      if (!global.tenantHashMapIDs[`${tenantID}`]) {
+        SessionHashService.rebuildTenantHashID(tenantID);
       }
 
       // check if Hash on User or Tenant has been updated
