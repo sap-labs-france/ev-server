@@ -239,7 +239,7 @@ class Bootstrap {
       if (cluster.isMaster && this._isClusterEnable) {
         // Create the server
         this._centralRestServer = new CentralRestServer(this._centralSystemRestConfig, this._chargingStationConfig);
-        // FIXME: Attach the socket IO server to the master process for now.
+        // FIXME: Attach the socketIO server to the master process for now.
         //        Load balancing between workers needs to make the client session sticky.
         await this._centralRestServer.startSocketIO();
         await Bootstrap._startMaster();
