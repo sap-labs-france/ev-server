@@ -4,6 +4,7 @@ const AppError = require('../../../exception/AppError');
 const User = require('../../../entity/User');
 const Tenant = require('../../../entity/Tenant');
 const crypto = require('crypto');
+const HttpStatus = require('http-status-codes');
 
 class SessionHashService {
 
@@ -39,7 +40,7 @@ class SessionHashService {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `User or Tenant has been updated`,
-          409, 'SessionHashService', 'isSessionHashUpdated'
+          HttpStatus.FORBIDDEN, 'SessionHashService', 'isSessionHashUpdated'
         );
       }
     } catch (err) {
