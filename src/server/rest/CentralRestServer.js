@@ -1,4 +1,5 @@
 const morgan = require('morgan');
+const cluster = require('cluster');
 const expressTools = require('../ExpressTools');
 const path = require('path');
 const sanitize = require('express-sanitizer');
@@ -98,6 +99,9 @@ class CentralRestServer {
   }
 
   startSocketIO() {
+    // Log
+    // eslint-disable-next-line no-console
+    console.log(`Starting REST SocketIO Server ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
     // Init Socket IO
     _socketIO = require("socket.io")(this._httpServer);
     // Check and send notification once listening
@@ -126,7 +130,7 @@ class CentralRestServer {
   start(socketIO = true) {
     expressTools.startServer(_centralSystemRestConfig, this._httpServer, "REST", MODULE_NAME);
 
-    if (socketIO) {
+    if (socketIO && Configuration.getStorageConfig().monitorDBChange) {
       // Start Socket IO server
       this.startSocketIO();
     }

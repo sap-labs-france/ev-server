@@ -241,7 +241,8 @@ class Bootstrap {
         this._centralRestServer = new CentralRestServer(this._centralSystemRestConfig, this._chargingStationConfig);
         // FIXME: Attach the socketIO server to the master process for now.
         //        Load balancing between workers needs to make the client session sticky.
-        await this._centralRestServer.startSocketIO();
+        if (this._storageConfig.monitorDBChange)
+          await this._centralRestServer.startSocketIO();
         await Bootstrap._startMaster();
       } else {
         await Bootstrap._startServersListening();
