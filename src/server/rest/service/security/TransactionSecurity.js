@@ -117,7 +117,7 @@ class TransactionSecurity {
       filteredTransaction.timestamp = transaction.getStartDate();
       filteredTransaction.timezone = transaction.getTimezone();
       // if (Authorizations.isAdmin(loggedUser) && transaction.getModel().hasOwnProperty('price')) {
-      if (transaction.hasPrice()) {
+      if (transaction.hasStartPrice()) {
         filteredTransaction.price = transaction.getStartPrice();
         filteredTransaction.roundedPrice = transaction.getStartRoundedPrice();
         filteredTransaction.priceUnit = transaction.getStartPriceUnit();

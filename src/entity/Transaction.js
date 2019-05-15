@@ -363,6 +363,10 @@ class Transaction extends AbstractTenantEntity {
     this._model.stop.pricingSource = pricingSource;
   }
 
+  hasStartPrice() {
+    return this.getStartPrice() >= 0;
+  }
+
   hasPrice() {
     return this.isFinished() && this.getPrice() >= 0;
   }
