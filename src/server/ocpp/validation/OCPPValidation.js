@@ -7,6 +7,8 @@ const bootNotificationRequest = require('./boot-notification-request.json');
 const authorizeRequest = require('./authorize-request.json');
 const statusNotificationRequest = require('./status-notification-request.json');
 const startTransactionRequest = require('./start-transaction-request.json');
+const stopTransactionRequest16 = require('./stop-transaction-request-16.json');
+const stopTransactionRequest15 = require('./stop-transaction-request-15.json');
 
 require('source-map-support').install();
 
@@ -83,6 +85,11 @@ class OCPPValidation extends SchemaValidator {
   }
 
   validateStopTransaction(chargingStation, stopTransaction) {
+    if (chargingStation.getOcppVersion() === Constants.OCPP_VERSION_16) {
+      this.validate(stopTransactionRequest16, stopTransaction);
+    } else {
+      this.validate(stopTransactionRequest15, stopTransaction);
+    }
   }
 
   validateMeterValues(chargingStation, meterValues) {
