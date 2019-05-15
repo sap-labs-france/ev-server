@@ -9,7 +9,7 @@ const HttpStatus = require('http-status-codes');
 class SessionHashService {
 
   // Check if Session has been updated and require new login
-  static isSessionHashUpdated(req, res, next) {
+  static async isSessionHashUpdated(req, res, next) {
     // get tenant id, user id and hash ID
     const userID = req.user.id;
     const tenantID = req.user.tenantID;
@@ -28,10 +28,10 @@ class SessionHashService {
       // check if ID do not exist - means server has been restarted - instead of re-login necessary
       // rebuild the ID for user and tenant
       if (!global.userHashMapIDs[`${tenantID}#${userID}`]) {
-        SessionHashService.rebuildUserHashID(tenantID, userID);
+        await SessionHashService.rebuildUserHashID(tenantID, userID);
       }
       if (!global.tenantHashMapIDs[`${tenantID}`]) {
-        SessionHashService.rebuildTenantHashID(tenantID);
+        await SessionHashService.rebuildTenantHashID(tenantID);
       }
 
       // check if Hash on User or Tenant has been updated

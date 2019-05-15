@@ -42,12 +42,12 @@ module.exports = {
     }
   },
 
-  restServiceSecured(req, res, next) {
+  async restServiceSecured(req, res, next) {
     // Parse the action
     let action = /^\/\w*/g.exec(req.url)[0].substring(1);
     // console.log(req.method + ' > ' + action);
     // Check if User has been updated and require new login
-    if (SessionHashService.isSessionHashUpdated(req,res,next)) {
+    if (await SessionHashService.isSessionHashUpdated(req,res,next)) {
       return;
     }
     // Check Context
