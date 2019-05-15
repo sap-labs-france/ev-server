@@ -19,7 +19,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
     super(centralSystemConfig, chargingStationConfig);
 
     // Initialize express app
-    this._express = expressTools.expressCommonInit();
+    this._express = expressTools.init();
 
     // FIXME?: Should be useless now that helmet() is mounted at the beginning
     // Mount express-sanitizer middleware
@@ -54,11 +54,12 @@ class SoapCentralSystemServer extends CentralSystemServer {
     // Make it global for SOAP Services
     global.centralSystemSoap = this;
 
-    const server = expressTools.expressStartServer(this._centralSystemConfig, "OCPP Soap", MODULE_NAME, this._express);
+    const httpServer = expressTools.createHttpServer(this._centralSystemConfig, this._express);
+    expressTools.startServer(this._centralSystemConfig, httpServer, "OCPP Soap", MODULE_NAME);
 
     // Create Soap Servers
     // OCPP 1.2 -----------------------------------------
-    const soapServer12 = soap.listen(server, '/OCPP12', centralSystemService12, this.readWsdl('OCPPCentralSystemService12.wsdl'));
+    const soapServer12 = soap.listen(httpServer, '/OCPP12', centralSystemService12, this.readWsdl('OCPPCentralSystemService12.wsdl'));
     // Log
     if (this._centralSystemConfig.debug) {
       // Listen
@@ -67,7 +68,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
       soapServer12.on('request', (request, methodName) => { this._handleSoapServerMessage('1.2', request, methodName); });
     }
     // OCPP 1.5 -----------------------------------------
-    const soapServer15 = soap.listen(server, '/OCPP15', centralSystemService15, this.readWsdl('OCPPCentralSystemService15.wsdl'));
+    const soapServer15 = soap.listen(httpServer, '/OCPP15', centralSystemService15, this.readWsdl('OCPPCentralSystemService15.wsdl'));
     // Log
     if (this._centralSystemConfig.debug) {
       // Listen
@@ -76,7 +77,7 @@ class SoapCentralSystemServer extends CentralSystemServer {
       soapServer15.on('request', (request, methodName) => { this._handleSoapServerMessage('1.5', request, methodName); });
     }
     // OCPP 1.6 -----------------------------------------
-    const soapServer16 = soap.listen(server, '/OCPP16', centralSystemService16, this.readWsdl('OCPPCentralSystemService16.wsdl'));
+    const soapServer16 = soap.listen(httpServer, '/OCPP16', centralSystemService16, this.readWsdl('OCPPCentralSystemService16.wsdl'));
     // Log
     if (this._centralSystemConfig.debug) {
       // Listen

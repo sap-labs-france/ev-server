@@ -16,7 +16,7 @@ class OCPIServer {
     // Keep params
     _ocpiRestConfig = ocpiRestConfig;
     // Initialize express app
-    this._express = expressTools.expressCommonInit();
+    this._express = expressTools.init();
     // log to console
     if (_ocpiRestConfig.debug) {
       // Log
@@ -50,7 +50,7 @@ class OCPIServer {
 
   // Start the server
   start() {
-    expressTools.expressStartServer(_ocpiRestConfig, "OCPI", MODULE_NAME, this._express);
+    expressTools.startServer(_ocpiRestConfig, expressTools.createHttpServer(_ocpiRestConfig, this._express), "OCPI", MODULE_NAME);
   }
 }
 

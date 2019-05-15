@@ -2,6 +2,7 @@ const fs = require('fs');
 const WebSocket = require('ws');
 const https = require('https');
 const http = require('http');
+const cluster = require('cluster');
 const Logging = require('../../../utils/Logging');
 const Constants = require('../../../utils/Constants');
 
@@ -78,19 +79,30 @@ class WSServer extends WebSocket.Server {
 
   start() {
     // Log
+    let logMsg;
+    if (cluster.isWorker) {
+      logMsg = `Starting ${this._serverName} Json ${MODULE_NAME} in worker ${cluster.worker.id}...`;
+    } else {
+      logMsg = `Starting ${this._serverName} Json ${MODULE_NAME}...`;
+    }
     // eslint-disable-next-line no-console
-    console.log(`Starting ${this._serverName} Json ${MODULE_NAME}...`);
+    console.log(logMsg);
+    // Make server to listen
+    this._startListening();
+  }
+
+  _startListening() {
     // Start listening
     this._httpServer.listen(this._serverConfig.port, this._serverConfig.host, () => {
       // Log
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME,
-        method: "start", action: "Startup",
-        message: `${this._serverName} Json ${MODULE_NAME} listening on '${this._serverConfig.protocol}://${this._httpServer.address().address}:${this._httpServer.address().port}'`
+        method: "_startListening", action: "Startup",
+        message: `${this._serverName} Json ${MODULE_NAME} listening on '${this._serverConfig.protocol}://${this._httpServer.address().address}:${this._httpServer.address().port}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`
       });
       // eslint-disable-next-line no-console
-      console.log(`${this._serverName} Json ${MODULE_NAME} listening on '${this._serverConfig.protocol}://${this._httpServer.address().address}:${this._httpServer.address().port}'`);
+      console.log(`${this._serverName} Json ${MODULE_NAME} listening on '${this._serverConfig.protocol}://${this._httpServer.address().address}:${this._httpServer.address().port}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
     });
   }
 }
