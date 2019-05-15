@@ -83,7 +83,7 @@ class WSServer extends WebSocket.Server {
     if (cluster.isWorker) {
       logMsg = `Starting ${this._serverName} Json ${MODULE_NAME} in worker ${cluster.worker.id}...`;
     } else {
-      logMsg = `Starting ${this._serverName} Json ${MODULE_NAME}...`;
+      logMsg = `Starting ${this._serverName} Json ${MODULE_NAME} in master...`;
     }
     // eslint-disable-next-line no-console
     console.log(logMsg);

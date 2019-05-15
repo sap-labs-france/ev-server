@@ -103,7 +103,7 @@ module.exports = {
       logMsg = `Starting ${serverName} Server in worker ${cluster.worker.id}...`;
     } else {
       // eslint-disable-next-line no-console
-      logMsg = `Starting ${serverName} Server...`;
+      logMsg = `Starting ${serverName} Server in master...`;
     }
     // eslint-disable-next-line no-console
     console.log(logMsg);
