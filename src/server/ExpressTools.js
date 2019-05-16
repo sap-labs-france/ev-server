@@ -99,10 +99,8 @@ module.exports = {
     // Log
     let logMsg;
     if (cluster.isWorker) {
-      // eslint-disable-next-line no-console
       logMsg = `Starting ${serverName} Server in worker ${cluster.worker.id}...`;
     } else {
-      // eslint-disable-next-line no-console
       logMsg = `Starting ${serverName} Server in master...`;
     }
     // eslint-disable-next-line no-console
