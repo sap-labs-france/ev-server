@@ -1,4 +1,4 @@
-const { expect } = require('chai');
+const {expect} = require('chai');
 const chai = require('chai');
 const chaiSubset = require('chai-subset');
 chai.use(chaiSubset);
@@ -6,11 +6,11 @@ const Factory = require('../factories/Factory');
 const faker = require('faker');
 const CentralServerService = require('./client/CentralServerService');
 const OCPPJsonService16 = require('./ocpp/json/OCPPJsonService16');
-const OCPPJsonService15 = require('./ocpp/soap/OCPPSoapService15');
+const OCPPSoapService15 = require('./ocpp/soap/OCPPSoapService15');
 const config = require('../config');
 const Utils = require('../../src/utils/Utils');
-const { from } = require('rxjs');
-const { mergeMap } = require('rxjs/operators');
+const {from} = require('rxjs');
+const {mergeMap} = require('rxjs/operators');
 
 class DataHelper {
 
@@ -18,7 +18,7 @@ class DataHelper {
     if (ocppVersion === '1.6') {
       this.ocpp = new OCPPJsonService16(`${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP16/${tenantID}`, ocppRequestHandler);
     } else if (ocppVersion === '1.5') {
-      this.ocpp = new OCPPJsonService15(`${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP16/${tenantID}`);
+      this.ocpp = new OCPPSoapService15(`${config.get('ocpp.soap.scheme')}://${config.get('ocpp.soap.host')}:${config.get('ocpp.soap.port')}/OCPP15?TenantID=${tenantID}`);
     } else {
       throw new Error('unkown ocpp version');
     }
@@ -62,14 +62,13 @@ class DataHelper {
     return createdSiteArea;
   }
 
-  async createChargingStation(chargingStation = Factory.chargingStation.build({ id: faker.random.alphaNumeric(12) }), numberOfConnectors = 2) {
-    const response = await this.ocpp.executeBootNotification(
-      chargingStation.id, chargingStation);
-    expect(response.data).to.not.be.null;
-    expect(response.data.status).to.eql('Accepted');
-    expect(response.data).to.have.property('currentTime');
-    const createdChargingStation = await CentralServerService.getEntityById(
-      CentralServerService.chargingStationApi, chargingStation);
+  async getChargingStation(chargingStation, withCheck = true) {
+    return await CentralServerService.getEntityById(CentralServerService.chargingStationApi, chargingStation, withCheck);
+  }
+
+  async createChargingStation(chargingStation = Factory.chargingStation.build({id: faker.random.alphaNumeric(12)}), numberOfConnectors = 2) {
+    await this.sendBootNotification(chargingStation);
+    const createdChargingStation = await this.getChargingStation(chargingStation);
     chargingStation.connectors = [];
     for (let i = 0; i < numberOfConnectors; i++) {
       createdChargingStation.connectors[i] = {
@@ -80,9 +79,9 @@ class DataHelper {
       };
     }
     for (const connector of createdChargingStation.connectors) {
-      await this.ocpp.executeStatusNotification(createdChargingStation.id, connector);
+      const response = await this.ocpp.executeStatusNotification(createdChargingStation.id, connector);
       expect(response).to.not.be.null;
-      expect(response.data.status).to.equal('Accepted');
+      expect(response.data).to.be.empty;
     }
 
     this.context.chargingStations.push(createdChargingStation);
@@ -121,6 +120,22 @@ class DataHelper {
     return response.data;
   }
 
+  async sendBootNotification(chargingStation, expectedStatus = 'Accepted') {
+    const response = await this.ocpp.executeBootNotification(
+      chargingStation.id, {
+        chargeBoxSerialNumber: chargingStation.chargeBoxSerialNumber,
+        chargePointModel: chargingStation.chargePointModel,
+        chargePointSerialNumber: chargingStation.chargePointSerialNumber,
+        chargePointVendor: chargingStation.chargePointVendor,
+        firmwareVersion: chargingStation.firmwareVersion
+      });
+    expect(response.data).to.not.be.null;
+    expect(response.data.status).to.eql(expectedStatus);
+    expect(response.data).to.have.property('currentTime');
+
+    return response.data;
+  }
+
   async startTransaction(chargingStation, connectorId, tagId, meterStart, startDate, expectedStatus = 'Accepted') {
     const response = await this.ocpp.executeStartTransaction(chargingStation.id, {
       connectorId: connectorId,
@@ -139,15 +154,16 @@ class DataHelper {
     return response.data.transactionId;
   }
 
-  async stopTransaction(chargingStation, transactionId, tagId, meterStop, stopDate) {
+  async stopTransaction(chargingStation, transactionId, tagId, meterStop, stopDate, transactionData, expectedStatus = 'Accepted') {
     const response = await this.ocpp.executeStopTransaction(chargingStation.id, {
       transactionId: transactionId,
       idTag: tagId,
       meterStop: meterStop,
-      timestamp: stopDate.toISOString()
+      timestamp: stopDate.toISOString(),
+      transactionData: transactionData
     });
     expect(response.data).to.have.property('idTagInfo');
-    expect(response.data.idTagInfo.status).to.equal('Accepted');
+    expect(response.data.idTagInfo.status).to.equal(expectedStatus);
   }
 
 

@@ -203,10 +203,34 @@ class SiteAreaStorage {
         $match: filters
       });
     }
+    // Limit on Site Area for Basic Users
+    if (params.siteIDs && params.siteIDs.length > 0) {
+      // Build filter
+      aggregation.push({
+        $match: {
+          siteID: { $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID)) }
+        }
+      });
+    }
+    // Limit records?
+    if (!params.onlyRecordCount) {
+      // Always limit the nbr of record to avoid perfs issues
+      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+    }
     // Count Records
     const siteAreasCountMDB = await global.database.getCollection(tenantID, 'siteareas')
       .aggregate([...aggregation, { $count: "count" }])
       .toArray();
+    // Check if only the total count is requested
+    if (params.onlyRecordCount) {
+      // Return only the count
+      return {
+        count: (siteAreasCountMDB.length > 0 ? siteAreasCountMDB[0].count : 0),
+        result: []
+      };
+    }
+    // Remove the limit
+    aggregation.pop();
     // Sites
     if (params.withSite) {
       // Add Sites
@@ -323,7 +347,8 @@ class SiteAreaStorage {
     Logging.traceEnd('SiteAreaStorage', 'getSiteAreas', uniqueTimerID, { params, limit, skip, sort });
     // Ok
     return {
-      count: (siteAreasCountMDB.length > 0 ? siteAreasCountMDB[0].count : 0),
+      count: (siteAreasCountMDB.length > 0 ?
+        (siteAreasCountMDB[0].count == Constants.MAX_DB_RECORD_COUNT ? -1 : siteAreasCountMDB[0].count) : 0),
       result: siteAreas
     };
   }

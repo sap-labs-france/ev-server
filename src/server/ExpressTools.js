@@ -9,12 +9,13 @@ const http = require('http');
 const https = require('https');
 const fs = require('fs');
 const CFLog = require('cf-nodejs-logging-support');
+const cluster = require('cluster');
 const Configuration = require('../utils/Configuration');
 const Logging = require('../utils/Logging');
 const Constants = require('../utils/Constants');
 
 module.exports = {
-  expressCommonInit: function (bodyLimit = '1mb') {
+  init: function (bodyLimit = '1mb') {
     const app = express();
     // Secure the application
     app.use(helmet());
@@ -42,29 +43,8 @@ module.exports = {
     return app;
   },
 
-  expressStartServer: function (serverConfig, serverName, serverModuleName, expressApp, listenCb = null) {
-    // Default listen callback
-    function defaultListenCb() {
-      // Log
-      Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
-        module: serverModuleName,
-        method: "start", action: "Startup",
-        message: `${serverName} Server listening on '${serverConfig.protocol}://${server.address().address}:${server.address().port}'`
-      });
-      // eslint-disable-next-line no-console
-      console.log(`${serverName} Server listening on '${serverConfig.protocol}://${server.address().address}:${server.address().port}'`);
-    }
-    let cb;
-    if (listenCb !== null && typeof listenCb === 'function') {
-      cb = listenCb;
-    } else {
-      cb = defaultListenCb;
-    }
+  createHttpServer: function (serverConfig, expressApp) {
     let server;
-    // Log
-    // eslint-disable-next-line no-console
-    console.log(`Starting ${serverName} Server...`);
     // Create the HTTP server
     if (serverConfig.protocol == "https") {
       // Create the options
@@ -93,16 +73,49 @@ module.exports = {
       server = http.createServer(expressApp);
     }
 
+    return server;
+  },
+
+  startServer: function (serverConfig, httpServer, serverName, serverModuleName, listenCb = null) {
+    // Default listen callback
+    function defaultListenCb() {
+      // Log
+      const logMsg = `${serverName} Server listening on '${serverConfig.protocol}://${httpServer.address().address}:${httpServer.address().port}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`;
+      Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
+        module: serverModuleName,
+        method: "start", action: "Startup",
+        message: logMsg
+      });
+      // eslint-disable-next-line no-console
+      console.log(logMsg);
+    }
+    let cb;
+    if (listenCb !== null && typeof listenCb === 'function') {
+      cb = listenCb;
+    } else {
+      cb = defaultListenCb;
+    }
+    // Log
+    let logMsg;
+    if (cluster.isWorker) {
+      // eslint-disable-next-line no-console
+      logMsg = `Starting ${serverName} Server in worker ${cluster.worker.id}...`;
+    } else {
+      // eslint-disable-next-line no-console
+      logMsg = `Starting ${serverName} Server in master...`;
+    }
+    // eslint-disable-next-line no-console
+    console.log(logMsg);
+
     // Listen
     if (serverConfig.host && serverConfig.port) {
-      server.listen(serverConfig.port, serverConfig.host, cb);
+      httpServer.listen(serverConfig.port, serverConfig.host, cb);
     } else if (!serverConfig.host && serverConfig.port) {
-      server.listen(serverConfig.port, cb);
+      httpServer.listen(serverConfig.port, cb);
     } else {
       // eslint-disable-next-line no-console
       console.log(`Fail to start the ${serverName} Server, missing required port configuration`);
     }
-
-    return server;
   }
 };

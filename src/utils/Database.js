@@ -587,6 +587,8 @@ class Database {
       dest.refundData = {};
       dest.refundData.refundId = src.refundData.refundId;
       dest.refundData.refundedAt = Utils.convertToDate(src.refundData.refundedAt);
+      dest.refundData.type = src.refundData.type;
+      dest.refundData.reportId = src.refundData.reportId;
     }
     dest.timestamp = Utils.convertToDate(src.timestamp);
     dest.stateOfCharge = Utils.convertToInt(src.stateOfCharge);

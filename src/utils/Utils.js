@@ -212,7 +212,12 @@ class Utils {
     return userID;
   }
 
-
+  static isEmptyArray(array) {
+    if (array && array.length > 0) {
+      return false;
+    }
+    return true;
+  }
 
   static buildUserFullName(user, withID = true) {
     if (!user) {

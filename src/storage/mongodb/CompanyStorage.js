@@ -171,6 +171,15 @@ class CompanyStorage {
     }
     // Create Aggregation
     const aggregation = [];
+    // Limit on Company for Basic Users
+    if (params.companyIDs && params.companyIDs.length > 0) {
+      // Build filter
+      aggregation.push({
+        $match: {
+          _id: { $in: params.companyIDs.map((companyID) => Utils.convertToObjectID(companyID)) }
+        }
+      });
+    }
     // Filters
     if (filters) {
       aggregation.push({
@@ -199,10 +208,25 @@ class CompanyStorage {
         }
       });
     }
+    // Limit records?
+    if (!params.onlyRecordCount) {
+      // Always limit the nbr of record to avoid perfs issues
+      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+    }
     // Count Records
     const companiesCountMDB = await global.database.getCollection(tenantID, 'companies')
       .aggregate([...aggregation, { $count: "count" }])
       .toArray();
+    // Check if only the total count is requested
+    if (params.onlyRecordCount) {
+      // Return only the count
+      return {
+        count: (companiesCountMDB.length > 0 ? companiesCountMDB[0].count : 0),
+        result: []
+      };
+    }
+    // Remove the limit
+    aggregation.pop();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
@@ -253,7 +277,8 @@ class CompanyStorage {
     Logging.traceEnd('CompanyStorage', 'getCompanies', uniqueTimerID, { params, limit, skip, sort });
     // Ok
     return {
-      count: (companiesCountMDB.length > 0 ? companiesCountMDB[0].count : 0),
+      count: (companiesCountMDB.length > 0 ?
+        (companiesCountMDB[0].count == Constants.MAX_DB_RECORD_COUNT ? -1 : companiesCountMDB[0].count) : 0),
       result: companies
     };
   }

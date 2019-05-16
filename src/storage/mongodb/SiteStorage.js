@@ -288,6 +288,15 @@ class SiteStorage {
     }
     // Create Aggregation
     const aggregation = [];
+    // Limit on Site for Basic Users
+    if (params.siteIDs && params.siteIDs.length > 0) {
+      // Build filter
+      aggregation.push({
+        $match: {
+          _id: { $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID)) }
+        }
+      });
+    }
     // Set User?
     if (params.withUsers || params.userID || params.excludeSitesOfUserID) {
       // Add Users
@@ -347,10 +356,25 @@ class SiteStorage {
         $match: filters
       });
     }
+    // Limit records?
+    if (!params.onlyRecordCount) {
+      // Always limit the nbr of record to avoid perfs issues
+      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+    }
     // Count Records
     const sitesCountMDB = await global.database.getCollection(tenantID, 'sites')
       .aggregate([...aggregation, { $count: "count" }])
       .toArray();
+    // Check if only the total count is requested
+    if (params.onlyRecordCount) {
+      // Return only the count
+      return {
+        count: (sitesCountMDB.length > 0 ? sitesCountMDB[0].count : 0),
+        result: []
+      };
+    }
+    // Remove the limit
+    aggregation.pop();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Add Company?
@@ -484,7 +508,8 @@ class SiteStorage {
     Logging.traceEnd('SiteStorage', 'getSites', uniqueTimerID, { params, limit, skip, sort });
     // Ok
     return {
-      count: (sitesCountMDB.length > 0 ? sitesCountMDB[0].count : 0),
+      count: (sitesCountMDB.length > 0 ?
+        (sitesCountMDB[0].count == Constants.MAX_DB_RECORD_COUNT ? -1 : sitesCountMDB[0].count) : 0),
       result: sites
     };
   }

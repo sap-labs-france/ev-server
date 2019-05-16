@@ -454,21 +454,22 @@ class ChargingStationService {
           'search': filteredRequest.Search,
           'withNoSiteArea': filteredRequest.WithNoSiteArea,
           'withSite': filteredRequest.WithSite,
-          'siteID': filteredRequest.SiteID,
+          'siteIDs': (filteredRequest.SiteID ? [filteredRequest.SiteID] : Authorizations.getAuthorizedEntityIDsFromLoggedUser(Constants.ENTITY_SITE, req.user)),
           'chargeBoxId': filteredRequest.ChargeBoxID,
           'siteAreaID': filteredRequest.SiteAreaID,
           'includeDeleted': filteredRequest.IncludeDeleted,
+          'onlyRecordCount': filteredRequest.OnlyRecordCount
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Get the organization component
-      let organizationIsActive;
       if (chargingStations.result && chargingStations.result.length > 0) {
-        organizationIsActive = await chargingStations.result[0].isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+        // Get the org
+        const organizationIsActive = await chargingStations.result[0].isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+        // Set
+        chargingStations.result = chargingStations.result.map((chargingStation) => chargingStation.getModel());
+        // Filter
+        chargingStations.result = ChargingStationSecurity.filterChargingStationsResponse(chargingStations.result, req.user, organizationIsActive);
       }
-      // Set
-      chargingStations.result = chargingStations.result.map((chargingStation) => chargingStation.getModel());
-      // Filter
-      chargingStations.result = ChargingStationSecurity.filterChargingStationsResponse(chargingStations.result, req.user, organizationIsActive);
       // Return
       res.json(chargingStations);
       next();
@@ -501,7 +502,8 @@ class ChargingStationService {
           'withSite': filteredRequest.WithSite,
           'siteID': filteredRequest.SiteID,
           'chargeBoxId': filteredRequest.ChargeBoxID,
-          'siteAreaID': filteredRequest.SiteAreaID
+          'siteAreaID': filteredRequest.SiteAreaID,
+          'onlyRecordCount': filteredRequest.OnlyRecordCount
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Get the organization component
@@ -560,6 +562,7 @@ class ChargingStationService {
           'chargeBoxId': filteredRequest.ChargeBoxID,
           'siteAreaID': filteredRequest.SiteAreaID,
           'errorType': filteredRequest.ErrorType,
+          'onlyRecordCount': filteredRequest.OnlyRecordCount
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Get the organization component

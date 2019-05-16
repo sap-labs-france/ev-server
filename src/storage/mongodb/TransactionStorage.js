@@ -187,10 +187,25 @@ class TransactionStorage {
         $match: { "siteArea.siteID": Utils.convertToObjectID(params.siteID) }
       });
     }
+    // Limit records?
+    if (!params.onlyRecordCount) {
+      // Always limit the nbr of record to avoid perfs issues
+      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+    }
     // Count Records
     const transactionsCountMDB = await global.database.getCollection(tenantID, 'transactions')
       .aggregate([...aggregation, { $count: "count" }])
       .toArray();
+    // Check if only the total count is requested
+    if (params.onlyRecordCount) {
+      // Return only the count
+      return {
+        count: (transactionsCountMDB.length > 0 ? transactionsCountMDB[0].count : 0),
+        result: []
+      };
+    }
+    // Remove the limit
+    aggregation.pop();
     // Sort
     if (sort) {
       if (!sort.hasOwnProperty('timestamp')) {
@@ -260,7 +275,8 @@ class TransactionStorage {
     Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, { params, limit, skip, sort });
     // Ok
     return {
-      count: (transactionsCountMDB.length > 0 ? transactionsCountMDB[0].count : 0),
+      count: (transactionsCountMDB.length > 0 ?
+        (transactionsCountMDB[0].count == Constants.MAX_DB_RECORD_COUNT ? -1 : transactionsCountMDB[0].count) : 0),
       result: transactions
     };
   }
@@ -454,10 +470,25 @@ class TransactionStorage {
     aggregation.push({ $replaceRoot: { newRoot: "$allItems" } });
     // Add a unique identifier as we may have the same charger several time
     aggregation.push({ $addFields: { "uniqueId": { $concat: ["$idAsString", "#", "$errorCode"] } } });
+    // Limit records?
+    if (!params.onlyRecordCount) {
+      // Always limit the nbr of record to avoid perfs issues
+      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+    }
     // Count Records
     const transactionsCountMDB = await global.database.getCollection(tenantID, 'transactions')
       .aggregate([...aggregation, { $count: "count" }])
       .toArray();
+    // Check if only the total count is requested
+    if (params.onlyRecordCount) {
+      // Return only the count
+      return {
+        count: (transactionsCountMDB.length > 0 ? transactionsCountMDB[0].count : 0),
+        result: []
+      };
+    }
+    // Remove the limit
+    aggregation.pop();
     // Sort
     if (sort) {
       // Sort
@@ -498,7 +529,8 @@ class TransactionStorage {
     Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, { params, limit, skip, sort });
     // Ok
     return {
-      count: (transactionsCountMDB.length > 0 ? transactionsCountMDB[0].count : 0),
+      count: (transactionsCountMDB.length > 0 ?
+        (transactionsCountMDB[0].count == Constants.MAX_DB_RECORD_COUNT ? -1 : transactionsCountMDB[0].count) : 0),
       result: transactions
     };
   }
