@@ -39,7 +39,7 @@ class OCPIPatchLocationsTask extends SchedulerTask {
       });
 
       // get all available endpoints
-      const ocpiEndpoints = await OCPIEndpoint.getOcpiendpoints(tenant.getID());
+      const ocpiEndpoints = await OCPIEndpoint.getOcpiEndpoints(tenant.getID());
 
       for (const ocpiEndpoint of ocpiEndpoints.result) {
         await OCPIPatchLocationsTask.processOCPIEndpoint(ocpiEndpoint, config);

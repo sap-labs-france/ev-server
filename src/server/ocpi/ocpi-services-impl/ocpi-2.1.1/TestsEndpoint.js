@@ -93,10 +93,10 @@ class TestsEndpoint extends AbstractEndpoint {
     const ocpiEndpoint = await OCPIEndpoint.getDefaultOcpiEndpoint(tenant.getID());
 
     const localToken = 'eyJhayI6NDEsInRpZCI6InNsZiIsInprIjozOX0=';
-    const ocpiEndpoint2 = await OCPIEndpoint.getOcpiendpointWithToken(tenant.getID(), localToken);
+    const ocpiEndpoint2 = await OCPIEndpoint.getOcpiEndpointWithToken(tenant.getID(), localToken);
 
     let localToken3;
-    const ocpiEndpoint3 = await OCPIEndpoint.getOcpiendpointWithToken(tenant.getID(), localToken3);
+    const ocpiEndpoint3 = await OCPIEndpoint.getOcpiEndpointWithToken(tenant.getID(), localToken3);
     // if (ocpiEndpoint) {
     //   ocpiEndpoint.setName('Gireve');
     //   ocpiEndpoint.setBaseUrl('https://ocpi-pp-iop.gireve.com/ocpi/emsp/versions');

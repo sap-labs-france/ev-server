@@ -319,8 +319,7 @@ class SiteService {
       // Set
       sites.result = sites.result.map((site) => site.getModel());
       // Filter
-      sites.result = SiteSecurity.filterSitesResponse(
-        sites.result, req.user);
+      SiteSecurity.filterSitesResponse(sites, req.user);
       // Return
       res.json(sites);
       next();

@@ -199,10 +199,10 @@ class UserSecurity {
   static filterUsersResponse(users, loggedUser) {
     const filteredUsers = [];
 
-    if (!users) {
+    if (!users.result) {
       return null;
     }
-    for (const user of users) {
+    for (const user of users.result) {
       // Filter
       const filteredUser = UserSecurity.filterUserResponse(user, loggedUser);
       // Ok?
@@ -211,7 +211,7 @@ class UserSecurity {
         filteredUsers.push(filteredUser);
       }
     }
-    return filteredUsers;
+    users.result = filteredUsers;
   }
 }
 

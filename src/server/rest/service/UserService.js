@@ -476,8 +476,7 @@ class UserService {
       // Set
       users.result = users.result.map((user) => user.getModel());
       // Filter
-      users.result = UserSecurity.filterUsersResponse(
-        users.result, req.user);
+      UserSecurity.filterUsersResponse(users, req.user);
       // Return
       res.json(users);
       next();
@@ -514,8 +513,7 @@ class UserService {
       // Set
       users.result = users.result.map((user) => user.getModel());
       // Filter
-      users.result = UserSecurity.filterUsersResponse(
-        users.result, req.user);
+      UserSecurity.filterUsersResponse(users, req.user);
       // Return
       res.json(users);
       next();

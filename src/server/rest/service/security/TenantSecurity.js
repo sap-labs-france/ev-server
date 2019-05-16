@@ -80,13 +80,13 @@ class TenantSecurity {
   static filterTenantsResponse(tenants, loggedUser) {
     const filteredTenants = [];
 
-    if (!tenants) {
+    if (!tenants.result) {
       return null;
     }
     if (!Authorizations.canListTenants(loggedUser)) {
       return null;
     }
-    for (const tenant of tenants) {
+    for (const tenant of tenants.result) {
       // Filter
       const filteredTenant = TenantSecurity.filterTenantResponse(tenant, loggedUser);
       // Ok?
@@ -95,7 +95,7 @@ class TenantSecurity {
         filteredTenants.push(filteredTenant);
       }
     }
-    return filteredTenants;
+    tenants.result = filteredTenants;
   }
 }
 

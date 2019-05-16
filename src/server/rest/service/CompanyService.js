@@ -235,8 +235,7 @@ class CompanyService {
       // Set
       companies.result = companies.result.map((company) => company.getModel());
       // Filter
-      companies.result = CompanySecurity.filterCompaniesResponse(
-        companies.result, req.user);
+      CompanySecurity.filterCompaniesResponse(companies, req.user);
       // Return
       res.json(companies);
       next();
