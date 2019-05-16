@@ -181,23 +181,19 @@ class TransactionSecurity {
 
   static filterTransactionsResponse(transactions, loggedUser) {
     const filteredTransactions = [];
-
-    if (!transactions) {
+    if (!transactions.result) {
       return null;
     }
-    if (!Authorizations.canListTransactions(loggedUser)) {
-      return null;
-    }
-    for (const transaction of transactions) {
+    // Filter result
+    for (const transaction of transactions.result) {
       // Filter
       const filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser);
       // Ok?
       if (filteredTransaction) {
-        // Add
         filteredTransactions.push(filteredTransaction);
       }
     }
-    return filteredTransactions;
+    transactions.result = filteredTransactions;
   }
 
   static _filterUserInTransactionResponse(user, loggedUser) {

@@ -408,8 +408,7 @@ class TransactionService {
         filteredRequest.EndDateTime,
         true);
       // Filter
-      transactions.result = TransactionSecurity.filterTransactionsResponse(
-        transactions.result, req.user);
+      TransactionSecurity.filterTransactionsResponse(transactions, req.user);
       // Return
       res.json(transactions);
       next();
@@ -473,8 +472,7 @@ class TransactionService {
         {...filter, 'withChargeBoxes': true, 'onlyRecordCount': filteredRequest.OnlyRecordCount},
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
-      transactions.result = TransactionSecurity.filterTransactionsResponse(
-        transactions.result, req.user);
+      TransactionSecurity.filterTransactionsResponse(transactions, req.user);
       // Return
       res.json(transactions);
       next();
@@ -503,7 +501,6 @@ class TransactionService {
       if (filteredRequest.ChargeBoxID) {
         filter.chargeBoxID = filteredRequest.ChargeBoxID;
       }
-      // Date
       if (filteredRequest.StartDateTime) {
         filter.startDateTime = filteredRequest.StartDateTime;
       }
@@ -523,12 +520,15 @@ class TransactionService {
         filter.siteAreaID = filteredRequest.SiteAreaID;
       }
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-        {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID,
-        'onlyRecordCount': filteredRequest.OnlyRecordCount},
+        {
+          ...filter,
+          'search': filteredRequest.Search,
+          'siteID': filteredRequest.SiteID,
+          'onlyRecordCount': filteredRequest.OnlyRecordCount
+        },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
-      transactions.result = TransactionSecurity.filterTransactionsResponse(
-        transactions.result, req.user);
+      TransactionSecurity.filterTransactionsResponse(transactions, req.user);
       // Return
       res.json(transactions);
       next();
@@ -581,9 +581,7 @@ class TransactionService {
         'onlyRecordCount': filteredRequest.OnlyRecordCount},
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
-      transactions.result = TransactionSecurity.filterTransactionsResponse(
-        transactions.result, req.user);
-
+      TransactionSecurity.filterTransactionsResponse(transactions, req.user);
       // Hash userId and tagId for confidentiality purposes
       for (const transaction of transactions.result) {
         if (transaction.user) {
@@ -655,8 +653,7 @@ class TransactionService {
         'onlyRecordCount': filteredRequest.OnlyRecordCount},
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
-      transactions.result = TransactionSecurity.filterTransactionsResponse(
-        transactions.result, req.user);
+      TransactionSecurity.filterTransactionsResponse(transactions, req.user);
       // Return
       res.json(transactions);
       next();

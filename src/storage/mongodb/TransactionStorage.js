@@ -141,12 +141,6 @@ class TransactionStorage {
         $match: match
       });
     }
-    // Transaction Duration Secs
-    aggregation.push({
-      $addFields: {
-        "totalDurationSecs": { $divide: [{ $subtract: ["$stop.timestamp", "$timestamp"] }, 1000] }
-      }
-    });
     // Charger?
     if (params.withChargeBoxes || params.siteID || params.siteAreaID) {
       // Add Charge Box
@@ -192,20 +186,51 @@ class TransactionStorage {
       // Always limit the nbr of record to avoid perfs issues
       aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
     }
+    console.log(JSON.stringify(aggregation, null, ' '));
     // Count Records
     const transactionsCountMDB = await global.database.getCollection(tenantID, 'transactions')
-      .aggregate([...aggregation, { $count: "count" }])
+      .aggregate([...aggregation, {
+        $group: {
+          _id: null,
+          totalConsumptionWattHours: { $sum: "$stop.totalConsumption" },
+          totalInactivitySecs: { $sum: "$stop.totalInactivity" },
+          totalPrice: { $sum: "$stop.price" },
+          totalDurationSecs: { $sum: "$stop.totalDurationSecs" },
+          count: { $sum: 1 }
+        }
+      }])
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {
-      // Return only the count
-      return {
-        count: (transactionsCountMDB.length > 0 ? transactionsCountMDB[0].count : 0),
-        result: []
-      };
+      // Return aggregation
+      if (transactionsCountMDB.length > 0) {
+        return {
+          count: transactionsCountMDB[0].count,
+          totalConsumptionWattHours: Math.floor(transactionsCountMDB[0].totalConsumptionWattHours),
+          totalInactivitySecs: Math.floor(transactionsCountMDB[0].totalInactivitySecs),
+          totalPrice: parseFloat(transactionsCountMDB[0].totalPrice.toFixed(2)),
+          totalDurationSecs: Math.floor(transactionsCountMDB[0].totalDurationSecs),
+          result: []
+        };
+      } else {
+        return {
+          count: 0,
+          totalConsumptionWattHours: 0,
+          totalInactivitySecs: 0,
+          totalPrice: 0,
+          totalDurationSecs: 0,
+          result: []
+        };
+      }
     }
     // Remove the limit
     aggregation.pop();
+    // Transaction Duration Secs
+    aggregation.push({
+      $addFields: {
+        "totalDurationSecs": { $divide: [{ $subtract: ["$stop.timestamp", "$timestamp"] }, 1000] }
+      }
+    });
     // Sort
     if (sort) {
       if (!sort.hasOwnProperty('timestamp')) {
@@ -274,11 +299,25 @@ class TransactionStorage {
     // Debug
     Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, { params, limit, skip, sort });
     // Ok
-    return {
-      count: (transactionsCountMDB.length > 0 ?
-        (transactionsCountMDB[0].count == Constants.MAX_DB_RECORD_COUNT ? -1 : transactionsCountMDB[0].count) : 0),
-      result: transactions
-    };
+    if (transactionsCountMDB.length > 0) {
+      return {
+        count: transactionsCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : transactionsCountMDB[0].count,
+        totalConsumptionWattHours: Math.floor(transactionsCountMDB[0].totalConsumptionWattHours),
+        totalInactivitySecs: Math.floor(transactionsCountMDB[0].totalInactivitySecs),
+        totalPrice: parseFloat(transactionsCountMDB[0].totalPrice.toFixed(2)),
+        totalDurationSecs: Math.floor(transactionsCountMDB[0].totalDurationSecs),
+        result: transactions
+      };
+    } else {
+      return {
+        count: 0,
+        totalConsumptionWattHours: 0,
+        totalInactivitySecs: 0,
+        totalPrice: 0,
+        totalDurationSecs: 0,
+        result: transactions
+      };
+    }
   }
 
   static async getTransactionsInError(tenantID, params = {}, limit, skip, sort) {
