@@ -18,7 +18,7 @@ class ODataServer {
     // Keep params
     _oDataServerConfig = oDataServerConfig;
     // Initialize express app
-    this._express = expressTools.expressCommonInit();
+    this._express = expressTools.init();
     // log to console
     if (_oDataServerConfig.debug) {
       // Log
@@ -60,7 +60,7 @@ class ODataServer {
 
   // Start the server
   start() {
-    expressTools.expressStartServer(_oDataServerConfig, "OData", MODULE_NAME, this._express);
+    expressTools.startServer(_oDataServerConfig, expressTools.createHttpServer(_oDataServerConfig, this._express), "OData", MODULE_NAME);
   }
 }
 

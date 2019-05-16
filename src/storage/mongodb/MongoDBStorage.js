@@ -1,4 +1,5 @@
 const MongoClient = require('mongodb').MongoClient;
+const cluster = require('cluster');
 const mongoUriBuilder = require('mongo-uri-builder');
 const urlencode = require('urlencode');
 const DatabaseUtils = require('./DatabaseUtils');
@@ -172,7 +173,8 @@ class MongoDBStorage {
 
   async start() {
     // Log
-    console.log(`Connecting to '${this._dbConfig.implementation}'...`); // eslint-disable-line
+    // eslint-disable-next-line no-console
+    console.log(`Connecting to '${this._dbConfig.implementation}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`);
     // Build EVSE URL
     let mongoUrl;
     // URI provided?
@@ -210,7 +212,8 @@ class MongoDBStorage {
 
     // Check Database
     await this.checkDatabase();
-    console.log(`Connected to '${this._dbConfig.implementation}' successfully`); // eslint-disable-line
+    // eslint-disable-next-line no-console
+    console.log(`Connected to '${this._dbConfig.implementation}' successfully ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
   }
 }
 
