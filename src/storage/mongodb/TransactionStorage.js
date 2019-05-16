@@ -186,14 +186,13 @@ class TransactionStorage {
       // Always limit the nbr of record to avoid perfs issues
       aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
     }
-    console.log(JSON.stringify(aggregation, null, ' '));
     // Count Records
     const transactionsCountMDB = await global.database.getCollection(tenantID, 'transactions')
       .aggregate([...aggregation, {
         $group: {
           _id: null,
           totalConsumptionWattHours: { $sum: "$stop.totalConsumption" },
-          totalInactivitySecs: { $sum: "$stop.totalInactivity" },
+          totalInactivitySecs: { $sum: "$stop.totalInactivitySecs" },
           totalPrice: { $sum: "$stop.price" },
           totalDurationSecs: { $sum: "$stop.totalDurationSecs" },
           count: { $sum: 1 }
@@ -208,7 +207,7 @@ class TransactionStorage {
           count: transactionsCountMDB[0].count,
           totalConsumptionWattHours: Math.floor(transactionsCountMDB[0].totalConsumptionWattHours),
           totalInactivitySecs: Math.floor(transactionsCountMDB[0].totalInactivitySecs),
-          totalPrice: parseFloat(transactionsCountMDB[0].totalPrice.toFixed(2)),
+          totalPrice: Math.floor(transactionsCountMDB[0].totalPrice),
           totalDurationSecs: Math.floor(transactionsCountMDB[0].totalDurationSecs),
           result: []
         };
@@ -304,7 +303,7 @@ class TransactionStorage {
         count: transactionsCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : transactionsCountMDB[0].count,
         totalConsumptionWattHours: Math.floor(transactionsCountMDB[0].totalConsumptionWattHours),
         totalInactivitySecs: Math.floor(transactionsCountMDB[0].totalInactivitySecs),
-        totalPrice: parseFloat(transactionsCountMDB[0].totalPrice.toFixed(2)),
+        totalPrice: Math.floor(transactionsCountMDB[0].totalPrice),
         totalDurationSecs: Math.floor(transactionsCountMDB[0].totalDurationSecs),
         result: transactions
       };
