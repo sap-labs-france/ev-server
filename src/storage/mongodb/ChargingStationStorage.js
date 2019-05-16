@@ -77,17 +77,10 @@ class ChargingStationStorage {
     // Set the filters
     const filters = {
       "$and": [{
-        "$or": [{
-          "deleted": {
-            $exists: false
-          }
-        },
-        {
-          "deleted": null
-        },
-        {
-          "deleted": false
-        }
+        "$or": [
+          { "deleted": { $exists: false } },
+          { "deleted": null },
+          { "deleted": false }
         ]
       }]
     };
@@ -153,10 +146,12 @@ class ChargingStationStorage {
         }
       });
       // Check Site ID
-      if (params.siteID) {
+      if (params.siteIDs && params.siteIDs.length > 0) {
         // Build filter
         filters.$and.push({
-          "siteArea.siteID": Utils.convertToObjectID(params.siteID)
+          "siteArea.siteID": {
+            $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
+          }
         });
       }
       if (params.withSite) {

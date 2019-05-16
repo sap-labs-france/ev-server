@@ -288,6 +288,15 @@ class SiteStorage {
     }
     // Create Aggregation
     const aggregation = [];
+    // Limit on Site for Basic Users
+    if (params.siteIDs && params.siteIDs.length > 0) {
+      // Build filter
+      aggregation.push({
+        $match: {
+          _id: { $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID)) }
+        }
+      });
+    }
     // Set User?
     if (params.withUsers || params.userID || params.excludeSitesOfUserID) {
       // Add Users

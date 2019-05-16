@@ -171,6 +171,15 @@ class CompanyStorage {
     }
     // Create Aggregation
     const aggregation = [];
+    // Limit on Company for Basic Users
+    if (params.companyIDs && params.companyIDs.length > 0) {
+      // Build filter
+      aggregation.push({
+        $match: {
+          _id: { $in: params.companyIDs.map((companyID) => Utils.convertToObjectID(companyID)) }
+        }
+      });
+    }
     // Filters
     if (filters) {
       aggregation.push({

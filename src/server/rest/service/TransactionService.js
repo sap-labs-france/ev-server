@@ -461,6 +461,9 @@ class TransactionService {
       }
       if (filteredRequest.UserID) {
         filter.userId = filteredRequest.UserID;
+      } 
+      if (Authorizations.isBasic(req.user)) {
+        filter.userId = req.user.id;
       }
       if (filteredRequest.ConnectorId) {
         filter.connectorId = filteredRequest.ConnectorId;
@@ -509,8 +512,8 @@ class TransactionService {
       }
       if (filteredRequest.UserID) {
         filter.userId = filteredRequest.UserID;
-      // Basic?
-      } else if (Authorizations.isBasic(req.user)) {
+      }
+      if (Authorizations.isBasic(req.user)) {
         filter.userId = req.user.id;
       }
       if (filteredRequest.Type) {
@@ -563,7 +566,8 @@ class TransactionService {
       }
       if (filteredRequest.UserID) {
         filter.userId = filteredRequest.UserID;
-      } else if (Authorizations.isBasic(req.user)) {
+      }
+      if (Authorizations.isBasic(req.user)) {
         filter.userId = req.user.id;
       }
       if (filteredRequest.Type) {

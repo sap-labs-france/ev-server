@@ -62,6 +62,7 @@ class MongoDBStorage {
     // Logs
     await this.checkAndCreateCollection(collections, tenantID, 'logs', [
       { fields: { timestamp: 1 } },
+      { fields: { action: 1 } },
       { fields: { level: 1 } },
       { fields: { type: 1 } }
     ]);
