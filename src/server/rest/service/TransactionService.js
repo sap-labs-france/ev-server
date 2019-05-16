@@ -578,7 +578,7 @@ class TransactionService {
       }
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
         {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID,
-        'onlyRecordCount': filteredRequest.OnlyRecordCount},
+          'onlyRecordCount': filteredRequest.OnlyRecordCount},
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
       TransactionSecurity.filterTransactionsResponse(transactions, req.user);
@@ -650,7 +650,7 @@ class TransactionService {
       }
       const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
         {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID,
-        'onlyRecordCount': filteredRequest.OnlyRecordCount},
+          'onlyRecordCount': filteredRequest.OnlyRecordCount},
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
       TransactionSecurity.filterTransactionsResponse(transactions, req.user);
