@@ -424,6 +424,7 @@ class UserStorage {
         ]
       });
     }
+       
     // UserID: Used only with SiteID
     if (params.userID) {
       // Build filter
@@ -443,6 +444,14 @@ class UserStorage {
         'status': params.status
       });
     }
+
+    // notificationsActive used to extract users based on their notification flag
+    if (params.notificationsActive) {
+      filters.$and.push({
+        'notificationsActive': params.notificationsActive
+      });
+    }
+
     // Create Aggregation
     const aggregation = [];
     // Add TagIDs
@@ -520,7 +529,8 @@ class UserStorage {
         "eulaAcceptedOn": 1,
         "eulaAcceptedVersion": 1,
         "tags": 1,
-        "plateID": 1
+        "plateID": 1,
+        "notificationsActive":1
       }
     });
     // Sort
