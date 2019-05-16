@@ -531,7 +531,7 @@ class ChargingStation extends AbstractTenantEntity {
 
   async requestGenericOCPPCommand(commandName, params) {
     // Get the client
-    const chargingStationClient = await this.getChargingStationClient();
+    const chargingStationClient = this.getChargingStationClient();
     // Set Charging Profile
     const result = await chargingStationClient.genericOCPPCommand(commandName, params);
     // Log
@@ -577,7 +577,7 @@ class ChargingStation extends AbstractTenantEntity {
 
   async _requestExecuteCommand(method, params) {
     // Get the client
-    const chargingStationClient = await this.getChargingStationClient();
+    const chargingStationClient = this.getChargingStationClient();
     // Set Charging Profile
     const result = await chargingStationClient[method](params);
     // Log

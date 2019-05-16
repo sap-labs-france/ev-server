@@ -1,4 +1,6 @@
-const {expect} = require('chai');
+const {
+  expect
+} = require('chai');
 const BaseApi = require('./utils/BaseApi');
 const AuthenticatedBaseApi = require('./utils/AuthenticatedBaseApi');
 const config = require('../../config');
@@ -22,25 +24,40 @@ chai.use(chaiSubset);
 
 class CentralServerService {
 
-  constructor() {
+  constructor(tenantSubdomain = null, onlySuperAdmin = false) {
+    this.tenantSubdomain = tenantSubdomain;
     this.baseURL = `${config.get('server.scheme')}://${config.get('server.host')}:${config.get('server.port')}`;
     // Create the Base API
     this.baseApi = new BaseApi(this.baseURL);
-    // Create the Authenticated API
-    this.authenticatedApi = new AuthenticatedBaseApi(this.baseURL, config.get('admin.username'), config.get('admin.password'), config.get('admin.tenant'));
+    if (!onlySuperAdmin) {
+      // Create the Authenticated API
+      if (tenantSubdomain) {
+        this.authenticatedApi = new AuthenticatedBaseApi(this.baseURL, config.get('admin.username'), config.get('admin.password'), tenantSubdomain);
+      } else {
+        this.authenticatedApi = new AuthenticatedBaseApi(this.baseURL, config.get('admin.username'), config.get('admin.password'), config.get('admin.tenant'));
+      }
+      // Create the Company
+      this.companyApi = new CompanyApi(this.authenticatedApi);
+      this.siteApi = new SiteApi(this.authenticatedApi);
+      this.siteAreaApi = new SiteAreaApi(this.authenticatedApi);
+      this.userApi = new UserApi(this.authenticatedApi);
+      this.chargingStationApi = new ChargingStationApi(this.authenticatedApi, this.baseApi);
+      this.transactionApi = new TransactionApi(this.authenticatedApi);
+      this.settingApi = new SettingApi(this.authenticatedApi);
+      this.ocpiendpointApi = new OCPIEndpointApi(this.authenticatedApi);
+    }
     this.authenticatedSuperAdminApi = new AuthenticatedBaseApi(this.baseURL, config.get('superadmin.username'), config.get('superadmin.password'), "");
-    // Create the Company
-    this.companyApi = new CompanyApi(this.authenticatedApi);
-    this.siteApi = new SiteApi(this.authenticatedApi);
-    this.siteAreaApi = new SiteAreaApi(this.authenticatedApi);
-    this.userApi = new UserApi(this.authenticatedApi);
     this.authenticationApi = new AuthenticationApi(this.baseApi);
     this.tenantApi = new TenantApi(this.authenticatedSuperAdminApi, this.baseApi);
-    this.chargingStationApi = new ChargingStationApi(this.authenticatedApi, this.baseApi);
-    this.transactionApi = new TransactionApi(this.authenticatedApi);
-    this.settingApi = new SettingApi(this.authenticatedApi);
-    this.ocpiendpointApi = new OCPIEndpointApi(this.authenticatedApi);
     this.mailApi = new MailApi(new BaseApi(`http://${config.get('mailServer.host')}:${config.get('mailServer.port')}`));
+  }
+
+  setBasicUserAuthentication(username, password) {
+    this.authenticatedApiBasicUser = new AuthenticatedBaseApi(this.baseURL, username, password, this.tenantSubdomain);
+  }
+
+  setDemoUserAuthentication(username, password) {
+    this.authenticatedApiDemoUser = new AuthenticatedBaseApi(this.baseURL, username, password, this.tenantSubdomain);
   }
 
   async updatePriceSetting(priceKWH, priceUnit) {
@@ -106,7 +123,10 @@ class CentralServerService {
     // Check
     expect(entity).to.not.be.null;
     // Retrieve from the backend
-    let response = await entityApi.readAll({}, {limit: Constants.UNLIMITED, skip: 0});
+    let response = await entityApi.readAll({}, {
+      limit: Constants.UNLIMITED,
+      skip: 0
+    });
     // Check
     if (performCheck) {
       // Check
@@ -129,7 +149,10 @@ class CentralServerService {
     // Check
     expect(entity).to.not.be.null;
     // Retrieve from the backend
-    let response = await entityApi.readAll(params, {limit: Constants.UNLIMITED, skip: 0});
+    let response = await entityApi.readAll(params, {
+      limit: Constants.UNLIMITED,
+      skip: 0
+    });
     // Check
     if (performCheck) {
       // Check
@@ -195,4 +218,4 @@ class CentralServerService {
   }
 }
 
-module.exports = new CentralServerService();
+module.exports = CentralServerService;

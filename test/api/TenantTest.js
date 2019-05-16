@@ -14,7 +14,7 @@ describe('Tenant tests', function () {
   describe('Success cases', () => {
     it('Should be possible to create a valid tenant', async () => {
       // Create
-      this.newTenant = await CentralServerService.createEntity(
+      this.newTenant = await new CentralServerService().createEntity(
         CentralServerService.tenantApi, TenantFactory.buildTenantCreate());
     });
 

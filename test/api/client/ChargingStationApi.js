@@ -19,7 +19,7 @@ class ChargingStationApi  extends CrudApi {
   }
 
   update(data) {
-    return super.update('/client/api/ChargingStationUpdate', data);
+    return super.update('/client/api/ChargingStationUpdateParams', data);
   }
 
   delete(id) {

@@ -106,7 +106,7 @@ class MongoDBStorage {
   async deleteTenantDatabase(tenantID) {
     // Done only in Dev environment!
     // Delay the deletion: there are some collections remaining after Unit Test execution
-    setTimeout(async () => {
+    // setTimeout(async () => {
       // Not the Default tenant
       if (tenantID !== Constants.DEFAULT_TENANT) {
         // Get all the collections
@@ -120,7 +120,7 @@ class MongoDBStorage {
           }
         }
       }
-    }, 500);
+    // }, 500);
   }
 
   async migrateTenantDatabase(tenantID) {

@@ -80,7 +80,7 @@ class OCPPJsonService16 extends OCPPService {
     if (this.requestHandler && typeof this.requestHandler["handle" + commandName] === 'function') {
       result = await this.requestHandler["handle" + commandName](commandPayload);
     } else {
-      console.log(`${commandName} is not implemented`);
+      // console.log(`${commandName} is not implemented`);
     }
     await this._send(chargeBoxIdentity, this._buildResponse(messageId, result));
 
@@ -94,62 +94,62 @@ class OCPPJsonService16 extends OCPPService {
     }
   }
 
-  executeAuthorize(chargeBoxIdentity, payload) {
-    return this._send(chargeBoxIdentity,
+  async executeAuthorize(chargeBoxIdentity, payload) {
+    return await this._send(chargeBoxIdentity,
       this._buildRequest('Authorize', payload)
     );
   }
 
-  executeStartTransaction(chargeBoxIdentity, payload) {
-    return this._send(chargeBoxIdentity,
+  async executeStartTransaction(chargeBoxIdentity, payload) {
+    return await this._send(chargeBoxIdentity,
       this._buildRequest('StartTransaction', payload)
     );
   }
 
-  executeStopTransaction(chargeBoxIdentity, payload) {
-    return this._send(chargeBoxIdentity,
+  async executeStopTransaction(chargeBoxIdentity, payload) {
+    return await this._send(chargeBoxIdentity,
       this._buildRequest('StopTransaction', payload)
     );
   }
 
-  executeHeartbeat(chargeBoxIdentity, payload) {
-    return this._send(chargeBoxIdentity,
+  async executeHeartbeat(chargeBoxIdentity, payload) {
+    return await this._send(chargeBoxIdentity,
       this._buildRequest('Heartbeat', payload)
     );
   }
 
-  executeMeterValues(chargeBoxIdentity, payload) {
-    return this._send(chargeBoxIdentity,
+  async executeMeterValues(chargeBoxIdentity, payload) {
+    return await this._send(chargeBoxIdentity,
       this._buildRequest('MeterValues', payload)
     );
   }
 
-  executeBootNotification(chargeBoxIdentity, payload) {
-    return this._send(chargeBoxIdentity,
+  async executeBootNotification(chargeBoxIdentity, payload) {
+    return await this._send(chargeBoxIdentity,
       this._buildRequest('BootNotification', payload)
     );
   }
 
-  executeStatusNotification(chargeBoxIdentity, payload) {
-    return this._send(chargeBoxIdentity,
+  async executeStatusNotification(chargeBoxIdentity, payload) {
+    return await this._send(chargeBoxIdentity,
       this._buildRequest('StatusNotification', payload)
     );
   }
 
-  executeFirmwareStatusNotification(chargeBoxIdentity, payload) {
-    return this._send(chargeBoxIdentity,
+  async executeFirmwareStatusNotification(chargeBoxIdentity, payload) {
+    return await this._send(chargeBoxIdentity,
       this._buildRequest('FirmwareStatusNotification', payload)
     );
   }
 
-  executeDiagnosticsStatusNotification(chargeBoxIdentity, payload) {
-    return this._send(chargeBoxIdentity,
+  async executeDiagnosticsStatusNotification(chargeBoxIdentity, payload) {
+    return await this._send(chargeBoxIdentity,
       this._buildRequest('DiagnosticsStatusNotification', payload)
     );
   }
 
-  executeDataTransfer(chargeBoxIdentity, payload) {
-    return this._send(chargeBoxIdentity,
+  async executeDataTransfer(chargeBoxIdentity, payload) {
+    return await this._send(chargeBoxIdentity,
       this._buildRequest('DataTransfer', payload)
     );
   }

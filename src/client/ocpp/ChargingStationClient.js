@@ -15,7 +15,7 @@ class ChargingStationClient {
    * @returns the ChargingStationClient instance for the proper OCPP protocol
    * @memberof ChargingStationClient
    */
-  static async getChargingStationClient(chargingStation) {
+  static getChargingStationClient(chargingStation) {
     const JsonRestChargingStationClient = require('./json/JsonRestChargingStationClient');
     let chargingClient = null;
     // Check protocol
@@ -38,7 +38,7 @@ class ChargingStationClient {
         // Get the Soap one by default
         const SoapChargingStationClient = require('./soap/SoapChargingStationClient');
         // Init client
-        chargingClient = await new SoapChargingStationClient(chargingStation);
+        chargingClient = new SoapChargingStationClient(chargingStation);
         break;
     }
     // Check

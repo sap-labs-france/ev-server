@@ -19,6 +19,16 @@ class CrudApi {
   }
 
   /**
+   * Change the authenticated Api used for connection
+   *
+   * @param {*} authenticatedApi
+   * @memberof CrudApi
+   */
+  setAutheticatedApi(authenticatedApi) {
+    this.authenticatedApi = authenticatedApi;
+  }
+
+  /**
    * Request one object from the backend with its ID
    *
    * @param {*} path The URL path
