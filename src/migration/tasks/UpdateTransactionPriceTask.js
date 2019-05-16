@@ -28,7 +28,7 @@ class UpdateTransactionSimplePriceTask extends MigrationTask {
         const simplePricing = new SimplePricing(tenant.getID(), setting.getContent()['simple']);
         await this.updateTransactionPrice(tenant.getID(), simplePricing);
       } else {
-        Logging.logError({
+        Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT, module: 'UpdateTransactionSimplePriceTask',
           method: 'migrate', action: "Migration", source: 'UpdateTransactionSimplePriceTask',
           message: `Tenant with subdomain '${tenant.getSubdomain()}' is not configured to use Simple Pricing`
