@@ -199,6 +199,7 @@ class Authorizations {
         user.setEMail(tagID + "@chargeangels.fr");
         user.setPhone("");
         user.setMobile("");
+        user.setNotificationsActive(true);
         user.setImage("");
         user.setINumber("");
         user.setCostCenter("");
