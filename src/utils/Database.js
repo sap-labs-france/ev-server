@@ -245,6 +245,9 @@ class Database {
     if (src.hasOwnProperty("mobile")) {
       dest.mobile = src.mobile;
     }
+    if (src.hasOwnProperty("notificationsActive")) {
+      dest.notificationsActive = src.notificationsActive;
+    }
     if (src.hasOwnProperty("iNumber")) {
       dest.iNumber = src.iNumber;
     }
