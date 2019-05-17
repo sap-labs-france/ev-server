@@ -61,6 +61,7 @@ class TransactionSecurity {
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.Type = sanitize(request.Type);
+    filteredRequest.MinimalPrice = sanitize(request.MinimalPrice);
     if (request.UserID) {
       filteredRequest.UserID = sanitize(request.UserID);
     }

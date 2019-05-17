@@ -460,7 +460,7 @@ class TransactionService {
       }
       if (filteredRequest.UserID) {
         filter.userId = filteredRequest.UserID;
-      } 
+      }
       if (Authorizations.isBasic(req.user)) {
         filter.userId = req.user.id;
       }
@@ -518,6 +518,9 @@ class TransactionService {
       }
       if (filteredRequest.SiteAreaID) {
         filter.siteAreaID = filteredRequest.SiteAreaID;
+      }
+      if (filteredRequest.MinimalPrice) {
+        filter.minimalPrice = filteredRequest.MinimalPrice;
       }
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
         {

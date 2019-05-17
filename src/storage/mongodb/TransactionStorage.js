@@ -133,6 +133,9 @@ class TransactionStorage {
           break;
       }
     }
+    if (params.minimalPrice) {
+      match["stop.price"] = { $gt: 0 };
+    }
     // Create Aggregation
     const aggregation = [];
     // Filters
