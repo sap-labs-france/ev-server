@@ -21,23 +21,25 @@ class SessionHashService {
           global.userHashMapIDs[`${tenantID}#${userID}`] !== userHashID) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `User hash has been updated and user will be logged off`,
+          `User has been updated and will be logged off`,
           HttpStatus.FORBIDDEN,
-          'SessionHashService', 'isSessionHashUpdated', req.user
+          'SessionHashService', 'isSessionHashUpdated',
+          req.user
         );
       }
       if (global.tenantHashMapIDs[`${tenantID}`] &&
           global.tenantHashMapIDs[`${tenantID}`] !== tenantHashID) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Tenant hash has been updated and user will be logged off`,
+          `Tenant has been updated and all users will be logged off`,
           HttpStatus.FORBIDDEN,
-          'SessionHashService', 'isSessionHashUpdated', req.user
+          'SessionHashService', 'isSessionHashUpdated',
+          req.user
         );
       }
     } catch (err) {
       // Log
-      Logging.logActionExceptionMessageAndSendResponse('N/A', err, req, res, next);
+      Logging.logActionExceptionMessageAndSendResponse('SessionHashService', err, req, res, next);
       return true;
     }
     return false;
@@ -73,7 +75,7 @@ class SessionHashService {
       module: "SessionHashService",
       method: "rebuildUserHashID",
       action: "SessionHashHandling",
-      message: `User's profile has been changed or deleted and he will be logged off`,
+      message: `User has been changed or deleted`,
       user: userID
     });
   }
@@ -92,7 +94,7 @@ class SessionHashService {
       module: "SessionHashService",
       method: "rebuildTenantHashID",
       action: "SessionHashHandling",
-      message: `Tenant's settings have been changed and all users will be logged off`
+      message: `Tenant has been changed or deleted`
     });
   }
 }
