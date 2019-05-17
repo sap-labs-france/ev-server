@@ -10,6 +10,7 @@ const Configuration = require('../../utils/Configuration');
 const Logging = require('../../utils/Logging');
 const Constants = require('../../utils/Constants');
 const ErrorHandler = require('./ErrorHandler');
+const SessionHashService = require('../rest/service/SessionHashService');
 require('source-map-support').install();
 
 let _centralSystemRestConfig;
@@ -137,6 +138,10 @@ class CentralRestServer {
   }
 
   notifyUser(tenantID, action, data) {
+    // On User change rebuild userHashID
+    if (data && data.id) {
+      SessionHashService.rebuildUserHashID(tenantID, data.id);
+    }
     // Add in buffer
     this.addNotificationInBuffer({
       "tenantID": tenantID,
@@ -182,6 +187,10 @@ class CentralRestServer {
   }
 
   notifyTenant(tenantID, action, data) {
+    // On Tenant change rebuild tenantHashID
+    if (data && data.id) {
+      SessionHashService.rebuildTenantHashID(data.id);
+    }
     // Add in buffer
     this.addNotificationInBuffer({
       "tenantID": tenantID,
