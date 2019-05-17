@@ -5,6 +5,7 @@ const Constants = require('../../utils/Constants');
 const SettingStorage = require('../../storage/mongodb/SettingStorage');
 const SimplePricing = require('../../integration/pricing/simple-pricing/SimplePricing');
 const moment = require('moment');
+const Promise = require("bluebird");
 
 const SUB_DOMAINS = ['slfcah', 'slf'];
 
@@ -47,26 +48,29 @@ class UpdateTransactionSimplePriceTask extends MigrationTask {
   async updateTransactionPrice(tenantId, simplePricing) {
     const transactionsCollection = await global.database.getCollection(tenantId, 'transactions');
     const transactions = await transactionsCollection.find().toArray();
-    for (const transaction of transactions) {
-      if (transaction.stop && transaction.stop.totalConsumption) {
-        const updatedField = await simplePricing.computePrice({consumption: transaction.stop.totalConsumption});
-        await transactionsCollection.updateOne({_id: transaction._id}, {
-          $set: {
-            'stop.price': updatedField.amount,
-            'stop.roundedPrice': updatedField.roundedAmount,
-            'stop.priceUnit': updatedField.currencyCode,
-            'stop.pricingSource': updatedField.pricingSource,
-          }
-        });
-        await this.updateConsumptionPrice(tenantId, simplePricing, transaction._id);
-      } else {
-        Logging.logWarning({
-          tenantID: Constants.DEFAULT_TENANT, module: 'UpdateTransactionSimplePriceTask',
-          method: 'updateTransactionPrice', action: "Migration", source: 'UpdateTransactionSimplePriceTask',
-          message: `Ignoring transaction ${transaction._id} not finished`
-        });
-      }
-    }
+
+    await Promise.map(transactions,
+      async transaction => {
+        if (transaction.stop && transaction.stop.totalConsumption) {
+          const updatedField = await simplePricing.computePrice({consumption: transaction.stop.totalConsumption});
+          await transactionsCollection.updateOne({_id: transaction._id}, {
+            $set: {
+              'stop.price': updatedField.amount,
+              'stop.roundedPrice': updatedField.roundedAmount,
+              'stop.priceUnit': updatedField.currencyCode,
+              'stop.pricingSource': updatedField.pricingSource,
+            }
+          });
+          await this.updateConsumptionPrice(tenantId, simplePricing, transaction._id);
+        } else {
+          Logging.logWarning({
+            tenantID: Constants.DEFAULT_TENANT, module: 'UpdateTransactionSimplePriceTask',
+            method: 'updateTransactionPrice', action: "Migration", source: 'UpdateTransactionSimplePriceTask',
+            message: `Ignoring transaction ${transaction._id} not finished`
+          });
+        }
+      },
+      {concurrency: 10});
   }
 
   async updateConsumptionPrice(tenantId, simplePricing, transactionId) {
@@ -75,18 +79,20 @@ class UpdateTransactionSimplePriceTask extends MigrationTask {
       {$match: {transactionId: transactionId}},
       {$sort: {endedAt: 1}}
     ]).toArray();
-    for (const consumption of consumptions) {
-      const updatedField = await simplePricing.computePrice({consumption: consumption.consumption});
-      const cumulatedField = await simplePricing.computePrice({consumption: consumption.cumulatedConsumption});
+    await Promise.map(consumptions,
+      async consumption => {
+        const updatedField = await simplePricing.computePrice({consumption: consumption.consumption});
+        const cumulatedField = await simplePricing.computePrice({consumption: consumption.cumulatedConsumption});
 
-      await consumptionsCollection.updateOne({_id: consumption._id}, {
-        $set: {
-          amount: updatedField.amount,
-          roundedAmount: updatedField.roundedAmount,
-          cumulatedAmount: cumulatedField.amount,
-        }
-      });
-    }
+        await consumptionsCollection.updateOne({_id: consumption._id}, {
+          $set: {
+            amount: updatedField.amount,
+            roundedAmount: updatedField.roundedAmount,
+            cumulatedAmount: cumulatedField.amount,
+          }
+        });
+      },
+      {concurrency: 10});
   }
 
   isAsynchronous() {
@@ -94,7 +100,7 @@ class UpdateTransactionSimplePriceTask extends MigrationTask {
   }
 
   getVersion() {
-    return "1.0";
+    return "1.3";
   }
 
   getName() {
