@@ -186,6 +186,9 @@ class Bootstrap {
       this._ocpiConfig = Configuration.getOCPIServiceConfig();
       this._oDataServerConfig = Configuration.getODataServiceConfig();
       this._isClusterEnable = Configuration.getClusterConfig().enable;
+      // Init global vars
+      global.userHashMapIDs = {};
+      global.tenantHashMapIDs = {};
 
       // Start the connection to the Database
       if (!this._databaseDone) {
