@@ -74,8 +74,7 @@ class ConnectorService extends AbstractService {
       // Set
       connections.result = connections.result.map((connection) => connection.getModel());
       // Filter
-      connections.result = ConnectorSecurity.filterConnectionsResponse(
-        connections.result, req.user);
+      ConnectorSecurity.filterConnectionsResponse(connections, req.user);
       // Return
       res.json(connections);
       next();

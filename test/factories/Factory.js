@@ -18,7 +18,7 @@ class Factory {
     this.siteArea = SiteAreaFactory;
     this.tenant = TenantFactory;
     this.setting = SettingFactory;
-    this.ocpiendpoint = OCPIEndpointFactory;
+    this.ocpiEndpoint = OCPIEndpointFactory;
   }
 }
 

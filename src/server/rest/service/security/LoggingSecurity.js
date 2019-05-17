@@ -67,10 +67,10 @@ class LoggingSecurity {
   static filterLoggingsResponse(loggings, loggedUser) {
     const filteredLoggings = [];
 		
-    if (!loggings) {
+    if (!loggings.result) {
       return null;
     }
-    for (const logging of loggings) {
+    for (const logging of loggings.result) {
       // Filter
       const filteredLogging = LoggingSecurity.filterLoggingResponse(logging, loggedUser);
       // Ok?
@@ -79,7 +79,7 @@ class LoggingSecurity {
         filteredLoggings.push(filteredLogging);
       }
     }
-    return filteredLoggings;
+    loggings.result = filteredLoggings;
   }
 }
 

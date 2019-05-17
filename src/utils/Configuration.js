@@ -26,6 +26,21 @@ class Configuration {
     return Configuration.getConfig().Scheduler;
   }
 
+  // Cluster config
+  static getClusterConfig() {
+    // Read conf and set defaults values
+    if (!Configuration.getConfig().Cluster)
+      Configuration.getConfig().Cluster = {};
+    if (!Configuration.getConfig().Cluster.hasOwnProperty('enable'))
+      Configuration.getConfig().Cluster.enable = false;
+    // Running with cluster on one worker is meaningless, default to two workers
+    if (Configuration.getConfig().Cluster.hasOwnProperty('num_worker') && Configuration.getConfig().Cluster.num_worker < 2)
+      Configuration.getConfig().Cluster.num_worker = 2;
+    if (!Configuration.getConfig().Cluster.hasOwnProperty('num_worker'))
+      Configuration.getConfig().Cluster.num_worker = require("os").cpus().length;
+    return Configuration.getConfig().Cluster;
+  }
+
   // Central System config
   static getCentralSystemsConfig() {
     const centralSystems = Configuration.getConfig().CentralSystems;

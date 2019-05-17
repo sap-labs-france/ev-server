@@ -39,7 +39,7 @@ class CentralServerService {
     this.chargingStationApi = new ChargingStationApi(this.authenticatedApi, this.baseApi);
     this.transactionApi = new TransactionApi(this.authenticatedApi);
     this.settingApi = new SettingApi(this.authenticatedApi);
-    this.ocpiendpointApi = new OCPIEndpointApi(this.authenticatedApi);
+    this.ocpiEndpointApi = new OCPIEndpointApi(this.authenticatedApi);
     this.mailApi = new MailApi(new BaseApi(`http://${config.get('mailServer.host')}:${config.get('mailServer.port')}`));
   }
 

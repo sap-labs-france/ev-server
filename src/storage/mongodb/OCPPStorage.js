@@ -13,8 +13,9 @@ class OCPPStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set the ID
+    const timestamp = Utils.convertToDate(authorize.timestamp);
     authorize.id = crypto.createHash('sha256')
-      .update(`${authorize.chargeBoxID}~${authorize.timestamp.toISOString()}`)
+      .update(`${authorize.chargeBoxID}~${timestamp.toISOString()}`)
       .digest("hex");
     // Set the User
     if (authorize.user) {
@@ -27,7 +28,7 @@ class OCPPStorage {
         tagID: authorize.idTag,
         chargeBoxID: authorize.chargeBoxID,
         userID: authorize.userID,
-        timestamp: Utils.convertToDate(authorize.timestamp),
+        timestamp: timestamp,
         timezone: authorize.timezone
       });
     // Debug
@@ -120,8 +121,9 @@ class OCPPStorage {
     await Utils.checkTenant(tenantID);
     const statusNotification = {};
     // Set the ID
+    const timestamp = Utils.convertToDate(statusNotificationToSave.timestamp);
     statusNotification._id = crypto.createHash('sha256')
-      .update(`${statusNotificationToSave.chargeBoxID}~${statusNotificationToSave.connectorId}~${statusNotificationToSave.status}~${statusNotificationToSave.timestamp}`)
+      .update(`${statusNotificationToSave.chargeBoxID}~${statusNotificationToSave.connectorId}~${statusNotificationToSave.status}~${timestamp.toISOString()}`)
       .digest("hex");
     // Set
     Database.updateStatusNotification(statusNotificationToSave, statusNotification, false);
@@ -160,8 +162,9 @@ class OCPPStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set the ID
+    const timestamp = Utils.convertToDate(dataTransfer.timestamp);
     dataTransfer.id = crypto.createHash('sha256')
-      .update(`${dataTransfer.chargeBoxID}~${dataTransfer.data}~${dataTransfer.timestamp}`)
+      .update(`${dataTransfer.chargeBoxID}~${dataTransfer.data}~${timestamp.toISOString()}`)
       .digest("hex");
     // Insert
     await global.database.getCollection(tenantID, 'datatransfers')
@@ -171,7 +174,7 @@ class OCPPStorage {
         messageId: dataTransfer.messageId,
         data: dataTransfer.data,
         chargeBoxID: dataTransfer.chargeBoxID,
-        timestamp: Utils.convertToDate(dataTransfer.timestamp),
+        timestamp: timestamp,
         timezone: dataTransfer.timezone
       });
     // Debug
@@ -184,10 +187,11 @@ class OCPPStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Insert
+    const timestamp = Utils.convertToDate(bootNotification.timestamp);
     await global.database.getCollection(tenantID, 'bootnotifications')
       .insertOne({
         _id: crypto.createHash('sha256')
-          .update(`${bootNotification.chargeBoxID}~${bootNotification.timestamp}`)
+          .update(`${bootNotification.chargeBoxID}~${timestamp.toISOString()}`)
           .digest("hex"),
         chargeBoxID: bootNotification.chargeBoxID,
         chargePointVendor: bootNotification.chargePointVendor,
@@ -199,7 +203,7 @@ class OCPPStorage {
         ocppProtocol: bootNotification.ocppProtocol,
         endpoint: bootNotification.endpoint,
         chargeBoxIdentity: bootNotification.chargeBoxIdentity,
-        timestamp: Utils.convertToDate(bootNotification.timestamp)
+        timestamp: timestamp
       });
     // Debug
     Logging.traceEnd('OCPPStorage', 'saveBootNotification', uniqueTimerID);
@@ -297,8 +301,9 @@ class OCPPStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set the ID
+    const timestamp = Utils.convertToDate(diagnosticsStatusNotification.timestamp);
     diagnosticsStatusNotification.id = crypto.createHash('sha256')
-      .update(`${diagnosticsStatusNotification.chargeBoxID}~${diagnosticsStatusNotification.timestamp.toISOString()}`)
+      .update(`${diagnosticsStatusNotification.chargeBoxID}~${timestamp.toISOString()}`)
       .digest("hex");
     // Insert
     await global.database.getCollection(tenantID, 'diagnosticsstatusnotifications')
@@ -306,7 +311,7 @@ class OCPPStorage {
         _id: diagnosticsStatusNotification.id,
         chargeBoxID: diagnosticsStatusNotification.chargeBoxID,
         status: diagnosticsStatusNotification.status,
-        timestamp: Utils.convertToDate(diagnosticsStatusNotification.timestamp),
+        timestamp: timestamp,
         timezone: diagnosticsStatusNotification.timezone
       });
     // Debug
@@ -319,8 +324,9 @@ class OCPPStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set the ID
+    const timestamp = Utils.convertToDate(firmwareStatusNotification.timestamp);
     firmwareStatusNotification.id = crypto.createHash('sha256')
-      .update(`${firmwareStatusNotification.chargeBoxID}~${firmwareStatusNotification.timestamp.toISOString()}`)
+      .update(`${firmwareStatusNotification.chargeBoxID}~${timestamp.toISOString()}`)
       .digest("hex");
     // Insert
     await global.database.getCollection(tenantID, 'firmwarestatusnotifications')
@@ -328,7 +334,7 @@ class OCPPStorage {
         _id: firmwareStatusNotification.id,
         chargeBoxID: firmwareStatusNotification.chargeBoxID,
         status: firmwareStatusNotification.status,
-        timestamp: Utils.convertToDate(firmwareStatusNotification.timestamp),
+        timestamp: timestamp,
         timezone: firmwareStatusNotification.timezone
       });
     // Debug
@@ -421,8 +427,9 @@ class OCPPStorage {
     for (const meterValueToSave of meterValuesToSave.values) {
       const meterValue = {};
       // Id
+      const timestamp = Utils.convertToDate(meterValueToSave.timestamp);
       meterValue._id = crypto.createHash('sha256')
-        .update(`${meterValueToSave.chargeBoxID}~${meterValueToSave.connectorId}~${meterValueToSave.timestamp}~${meterValueToSave.value}~${JSON.stringify(meterValueToSave.attribute)}`)
+        .update(`${meterValueToSave.chargeBoxID}~${meterValueToSave.connectorId}~${timestamp.toISOString()}~${meterValueToSave.value}~${JSON.stringify(meterValueToSave.attribute)}`)
         .digest("hex");
       // Set
       Database.updateMeterValue(meterValueToSave, meterValue, false);
