@@ -70,7 +70,7 @@ class UpdateTransactionSimplePriceTask extends MigrationTask {
           });
         }
       },
-      {concurrency: 10});
+      {concurrency: 5});
   }
 
   async updateConsumptionPrice(tenantId, simplePricing, transactionId) {
@@ -92,7 +92,8 @@ class UpdateTransactionSimplePriceTask extends MigrationTask {
           }
         });
       },
-      {concurrency: 10});
+      {concurrency: 5}
+    );
   }
 
   isAsynchronous() {
@@ -100,7 +101,7 @@ class UpdateTransactionSimplePriceTask extends MigrationTask {
   }
 
   getVersion() {
-    return "1.3";
+    return "1.0";
   }
 
   getName() {
