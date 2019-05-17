@@ -1,10 +1,12 @@
 const morgan = require('morgan');
 const cluster = require('cluster');
 const expressTools = require('../ExpressTools');
+const path = require('path');
 const sanitize = require('express-sanitizer');
 const CentralRestServerAuthentication = require('./CentralRestServerAuthentication');
 const CentralRestServerService = require('./CentralRestServerService');
 const Database = require('../../utils/Database');
+const Configuration = require('../../utils/Configuration');
 const Logging = require('../../utils/Logging');
 const Constants = require('../../utils/Constants');
 const ErrorHandler = require('./ErrorHandler');
@@ -70,55 +72,69 @@ class CentralRestServer {
 
     // Register error handler
     this._express.use(ErrorHandler.errorHandler);
-  }
 
-  // Start the server
-  start() {
-    const server = expressTools.expressStartServer(_centralSystemRestConfig, "REST", MODULE_NAME, this._express,
-      this._listenCb);
+    // Create HTTP server for the express app
+    this._httpServer = expressTools.createHttpServer(_centralSystemRestConfig, this._express);
 
-    // SocketIO enabled?
-    if (_centralSystemRestConfig.socketIO) {
-      // Init Socket IO
-      _socketIO = require("socket.io")(server);
-      // Handle Socket IO connection
-      _socketIO.on("connection", (socket) => {
-        socket.join(socket.handshake.query.tenantID);
-        // Handle Socket IO connection
-        socket.on("disconnect", () => {
-          // Nothing to do
-        });
+    // Check if the front-end has to be served also
+    const centralSystemConfig = Configuration.getCentralSystemFrontEndConfig();
+    // Serve it?
+    // TODO: Remove distEnabled support
+    if (centralSystemConfig.distEnabled) {
+      // Serve all the static files of the front-end
+      // eslint-disable-next-line no-unused-vars
+      this._express.get(/^\/(?!client\/)(.+)$/, function (req, res, next) {
+        // Filter to not handle other server requests
+        if (!res.headersSent) {
+          // Not already processed: serve the file
+          res.sendFile(path.join(__dirname, centralSystemConfig.distPath, req.sanitize(req.params[0])));
+        }
+      });
+      // Default, serve the index.html
+      // eslint-disable-next-line no-unused-vars
+      this._express.get('/', function (req, res, next) {
+        // Return the index.html
+        res.sendFile(path.join(__dirname, centralSystemConfig.distPath, 'index.html'));
       });
     }
   }
 
-  // Listen callback
-  _listenCb() {
-    let host = _centralSystemRestConfig.host;
-    if (!host)
-      host = '::';
-    // Check and send notification
-    setInterval(() => {
-      // Send
-      for (let i = _currentNotifications.length - 1; i >= 0; i--) {
-        // Notify the front-ends
-        if (_socketIO) {
-          _socketIO.to(_currentNotifications[i].tenantID).emit(_currentNotifications[i].entity, _currentNotifications[i]);
-        }
-        // Remove
-        _currentNotifications.splice(i, 1);
-      }
-    }, _centralSystemRestConfig.webSocketNotificationIntervalSecs * 1000);
+  startSocketIO() {
     // Log
-    Logging.logInfo({
-      tenantID: Constants.DEFAULT_TENANT,
-      module: MODULE_NAME,
-      method: "start",
-      action: "Startup",
-      message: `REST Server listening on '${_centralSystemRestConfig.protocol}://${host}:${_centralSystemRestConfig.port}'`
-    });
     // eslint-disable-next-line no-console
-    console.log(`REST Server listening on '${_centralSystemRestConfig.protocol}://${host}:${_centralSystemRestConfig.port}'`);
+    console.log(`Starting REST SocketIO Server ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
+    // Init Socket IO
+    _socketIO = require("socket.io")(this._httpServer);
+    // Check and send notification once listening
+    _socketIO.httpServer.on('listening', () => {
+      setInterval(() => {
+        // Send
+        for (let i = _currentNotifications.length - 1; i >= 0; i--) {
+          // Notify all Web Sockets
+          _socketIO.to(_currentNotifications[i].tenantID).emit(_currentNotifications[i].entity, _currentNotifications[i]);
+          // Remove
+          _currentNotifications.splice(i, 1);
+        }
+      }, _centralSystemRestConfig.webSocketNotificationIntervalSecs * 1000);
+    });
+    // Handle Socket IO connection
+    _socketIO.on('connection', (socket) => {
+      socket.join(socket.handshake.query.tenantID);
+      // Handle Socket IO connection
+      socket.on('disconnect', () => {
+        // Nothing to do
+      });
+    });
+  }
+
+  // Start the server
+  start(socketIO = true) {
+    expressTools.startServer(_centralSystemRestConfig, this._httpServer, "REST", MODULE_NAME);
+
+    if (socketIO && Configuration.getStorageConfig().monitorDBChange) {
+      // Start Socket IO server
+      this.startSocketIO();
+    }
   }
 
   notifyUser(tenantID, action, data) {

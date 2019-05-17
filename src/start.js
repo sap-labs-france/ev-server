@@ -71,16 +71,22 @@ class Bootstrap {
     cluster.on('exit', exitCb);
   }
 
-      // Get all configs
-      const centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
-      const centralSystemsConfig = Configuration.getCentralSystemsConfig();
-      const chargingStationConfig = Configuration.getChargingStationConfig();
-      const ocpiConfig = Configuration.getOCPIServiceConfig();
-      const oDataServerConfig = Configuration.getODataServiceConfig();
-      
-      // Init global vars
-      global.userHashMapIDs = {};
-      global.tenantHashMapIDs = {};
+  static async _startMaster() {
+    try {
+      if (this._isClusterEnable && Utils.isEmptyArray(cluster.workers)) {
+        await Bootstrap._startServerWorkers("Main");
+      }
+    } catch (error) {
+      // Log
+      // eslint-disable-next-line no-console
+      console.error(error);
+      Logging.logError({
+        tenantID: Constants.DEFAULT_TENANT,
+        source: 'Bootstrap', module: MODULE_NAME, method: '_startMasters', action: 'Start',
+        message: `Unexpected exception ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}: ${error.toString()}`
+      });
+    }
+  }
 
   /**
    * Start the listening of all servers only
@@ -180,6 +186,9 @@ class Bootstrap {
       this._ocpiConfig = Configuration.getOCPIServiceConfig();
       this._oDataServerConfig = Configuration.getODataServiceConfig();
       this._isClusterEnable = Configuration.getClusterConfig().enable;
+      // Init global vars
+      global.userHashMapIDs = {};
+      global.tenantHashMapIDs = {};
 
       // Start the connection to the Database
       if (!this._databaseDone) {
