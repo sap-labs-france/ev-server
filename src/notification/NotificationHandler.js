@@ -89,7 +89,7 @@ class NotificationHandler {
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
-        if (_notificationConfig.Email.enabled) {
+        if (_notificationConfig.Email.enabled && user.notificationsActive) {
           // Save notif
           await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
             SOURCE_END_OF_CHARGE, user, chargingStation, data);
@@ -112,7 +112,7 @@ class NotificationHandler {
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
-        if (_notificationConfig.Email.enabled) {
+        if (_notificationConfig.Email.enabled && user.notificationsActive) {
           // Save notif
           await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
             SOURCE_OPTIMAL_CHARGE_REACHED, user, chargingStation, data);
@@ -135,7 +135,7 @@ class NotificationHandler {
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
-        if (_notificationConfig.Email.enabled) {
+        if (_notificationConfig.Email.enabled && user.notificationsActive) {
           // Save notif
           await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
             SOURCE_END_OF_SESSION, user, chargingStation, data);
@@ -307,7 +307,7 @@ class NotificationHandler {
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
-        if (_notificationConfig.Email.enabled) {
+        if (_notificationConfig.Email.enabled && user.notificationsActive) {
           // Save notif
           await NotificationHandler.saveNotification(tenantID,
             CHANNEL_EMAIL, sourceId, SOURCE_TRANSACTION_STARTED, user, chargingStation, data);

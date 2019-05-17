@@ -1,4 +1,7 @@
 {
+	"Cluster": {
+		"enable": false
+	},
 	"CentralSystems": [
 		{
 			"type": "ocpp",
@@ -29,14 +32,13 @@
 		"passwordWrongNumberOfTrial": 3,
 		"passwordBlockedWaitTimeMin": 5,
 		"captchaSecretKey": "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe",
+    "socketIO": false,
 		"debug": false
 	},
 	"CentralSystemFrontEnd": {
 		"protocol": "http",
 		"host": "localhost",
-		"port": 80,
-		"distEnabled": false,
-		"distPath": "../dist/front-end"
+		"port": 80
 	},
 	"OCPIService": {
 		"protocol": "http",

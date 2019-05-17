@@ -10,6 +10,7 @@ const Configuration = require('../../utils/Configuration');
 const Logging = require('../../utils/Logging');
 const Constants = require('../../utils/Constants');
 const ErrorHandler = require('./ErrorHandler');
+const SessionHashService = require('../rest/service/SessionHashService');
 require('source-map-support').install();
 
 let _centralSystemRestConfig;
@@ -72,7 +73,7 @@ class CentralRestServer {
     // Register error handler
     this._express.use(ErrorHandler.errorHandler);
 
-    // Create HTTP server for the express app
+    // Create HTTP to serve the express app
     this._httpServer = expressTools.createHttpServer(_centralSystemRestConfig, this._express);
 
     // Check if the front-end has to be served also
@@ -96,6 +97,10 @@ class CentralRestServer {
         res.sendFile(path.join(__dirname, centralSystemConfig.distPath, 'index.html'));
       });
     }
+  }
+
+  get httpServer() {
+    return this._httpServer;
   }
 
   startSocketIO() {
@@ -127,16 +132,20 @@ class CentralRestServer {
   }
 
   // Start the server
-  start(socketIO = true) {
+  start(socketIO = this._centralSystemRestConfig.socketIO) {
     expressTools.startServer(_centralSystemRestConfig, this._httpServer, "REST", MODULE_NAME);
 
-    if (socketIO && Configuration.getStorageConfig().monitorDBChange) {
+    if (socketIO) {
       // Start Socket IO server
       this.startSocketIO();
     }
   }
 
   notifyUser(tenantID, action, data) {
+    // On User change rebuild userHashID
+    if (data && data.id) {
+      SessionHashService.rebuildUserHashID(tenantID, data.id);
+    }
     // Add in buffer
     this.addNotificationInBuffer({
       "tenantID": tenantID,
@@ -182,6 +191,10 @@ class CentralRestServer {
   }
 
   notifyTenant(tenantID, action, data) {
+    // On Tenant change rebuild tenantHashID
+    if (data && data.id) {
+      SessionHashService.rebuildTenantHashID(data.id);
+    }
     // Add in buffer
     this.addNotificationInBuffer({
       "tenantID": tenantID,
