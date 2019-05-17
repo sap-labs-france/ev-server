@@ -73,7 +73,7 @@ class CentralRestServer {
     // Register error handler
     this._express.use(ErrorHandler.errorHandler);
 
-    // Create HTTP server for the express app
+    // Create HTTP to serve the express app
     this._httpServer = expressTools.createHttpServer(_centralSystemRestConfig, this._express);
 
     // Check if the front-end has to be served also
@@ -97,6 +97,10 @@ class CentralRestServer {
         res.sendFile(path.join(__dirname, centralSystemConfig.distPath, 'index.html'));
       });
     }
+  }
+
+  get httpServer() {
+    return this._httpServer;
   }
 
   startSocketIO() {
@@ -128,10 +132,10 @@ class CentralRestServer {
   }
 
   // Start the server
-  start(socketIO = true) {
+  start(socketIO = this._centralSystemRestConfig.socketIO) {
     expressTools.startServer(_centralSystemRestConfig, this._httpServer, "REST", MODULE_NAME);
 
-    if (socketIO && Configuration.getStorageConfig().monitorDBChange) {
+    if (socketIO) {
       // Start Socket IO server
       this.startSocketIO();
     }

@@ -1,4 +1,7 @@
 {
+	"Cluster": {
+		"enable": false
+	},
 	"CentralSystems": [
 		{
 			"type": "ocpp",
