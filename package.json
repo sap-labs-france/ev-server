@@ -58,6 +58,7 @@
 	"devDependencies": {
 		"@babel/core": "^7.4.4",
 		"@types/chai": "^4.1.7",
+		"@types/chai-datetime": "^0.0.32",
 		"@types/chai-subset": "^1.3.2",
 		"@types/faker": "^4.1.5",
 		"@types/mocha": "^5.2.6",
@@ -66,6 +67,7 @@
 		"babel-core": "^6.26.3",
 		"babel-loader": "^8.0.5",
 		"chai": "^4.2.0",
+		"chai-datetime": "^1.5.0",
 		"chai-subset": "^1.6.0",
 		"clean-webpack-plugin": "^2.0.1",
 		"clinic": "^4.0.3",
@@ -119,7 +121,9 @@
 		"test:parallel": "mocha-parallel-tests test/**/*Test.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
 		"test:chargers": "mocha test/**/OCPP*Test.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
 		"test:authentication": "mocha test/**/AuthenticationTest.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
+		"test:ocpi": "mocha test/**/OCPI*.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
 		"test:tenant": "mocha test/**/TenantTest.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
+		"test:transactions": "mocha test/**/TransactionTest.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
 		"clinic:clean": "clinic clean",
 		"npm-check": "npm-check"
 	},

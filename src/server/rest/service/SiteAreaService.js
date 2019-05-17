@@ -124,8 +124,7 @@ class SiteAreaService {
       // Set
       siteAreas.result = siteAreas.result.map((siteArea) => siteArea.getModel());
       // Filter
-      siteAreas.result = SiteAreaSecurity.filterSiteAreasResponse(
-        siteAreas.result, req.user);
+      SiteAreaSecurity.filterSiteAreasResponse(siteAreas, req.user);
       // Return
       res.json(siteAreas);
       next();

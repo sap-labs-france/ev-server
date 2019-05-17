@@ -626,57 +626,57 @@ class Authorizations {
       { "Action": Constants.ACTION_UPDATE, "SettingID": setting.id.toString() });
   }
 
-  static canListOcpiendpoints(loggedUser) {
+  static canListOcpiEndpoints(loggedUser) {
     // Check
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINTS,
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPI_ENDPOINTS,
       { "Action": Constants.ACTION_LIST });
   }
 
-  static canReadOcpiendpoint(loggedUser, ocpiendpoint) {
+  static canReadOcpiEndpoint(loggedUser, ocpiendpoint) {
     // Check
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
-      { "Action": Constants.ACTION_READ, "OcpiendpointID": ocpiendpoint.id.toString() });
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPI_ENDPOINT,
+      { "Action": Constants.ACTION_READ, "OcpiEndpointID": ocpiendpoint.id.toString() });
   }
 
-  static canDeleteOcpiendpoint(loggedUser, ocpiendpoint) {
+  static canDeleteOcpiEndpoint(loggedUser, ocpiendpoint) {
     // Check
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
-      { "Action": Constants.ACTION_DELETE, "OcpiendpointID": ocpiendpoint.id.toString() });
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPI_ENDPOINT,
+      { "Action": Constants.ACTION_DELETE, "OcpiEndpointID": ocpiendpoint.id.toString() });
   }
 
-  static canCreateOcpiendpoint(loggedUser) {
+  static canCreateOcpiEndpoint(loggedUser) {
     // Check
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPI_ENDPOINT,
       { "Action": Constants.ACTION_CREATE });
   }
 
-  static canUpdateOcpiendpoint(loggedUser, ocpiendpoint) {
+  static canUpdateOcpiEndpoint(loggedUser, ocpiendpoint) {
     // Check
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
-      { "Action": Constants.ACTION_UPDATE, "OcpiendpointID": ocpiendpoint.id.toString() });
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPI_ENDPOINT,
+      { "Action": Constants.ACTION_UPDATE, "OcpiEndpointID": ocpiendpoint.id.toString() });
   }
 
-  static canPingOcpiendpoint(loggedUser) {
+  static canPingOcpiEndpoint(loggedUser) {
     // Check
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPI_ENDPOINT,
       { "Action": Constants.ACTION_PING });
   }
 
-  static canSendEVSEStatusesOcpiendpoint(loggedUser) {
+  static canSendEVSEStatusesOcpiEndpoint(loggedUser) {
     // Check
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPI_ENDPOINT,
       { "Action": Constants.ACTION_SEND_EVSE_STATUSES });
   }
 
-  static canRegisterOcpiendpoint(loggedUser, ocpiendpoint) {
+  static canRegisterOcpiEndpoint(loggedUser, ocpiendpoint) {
     // Check
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
-      { "Action": Constants.ACTION_REGISTER, "OcpiendpointID": ocpiendpoint.id.toString() });
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPI_ENDPOINT,
+      { "Action": Constants.ACTION_REGISTER, "OcpiEndpointID": ocpiendpoint.id.toString() });
   }
 
-  static canGenerateLocalTokenOcpiendpoint(loggedUser) {
+  static canGenerateLocalTokenOcpiEndpoint(loggedUser) {
     // Check
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPI_ENDPOINT,
       { "Action": Constants.ACTION_GENERATE_LOCAL_TOKEN });
   }
 

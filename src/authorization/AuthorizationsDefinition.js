@@ -202,15 +202,15 @@ class AuthorizationsDefinition {
 						}
 					},
 					{
-						"AuthObject": "Ocpiendpoints",
+						"AuthObject": "OcpiEndpoints",
 						"AuthFieldValue": {
 							"Action": []
 						}
 					},
 					{
-						"AuthObject": "Ocpiendpoint",
+						"AuthObject": "OcpiEndpoint",
 						"AuthFieldValue": {
-							"OcpiendpointID": "*",
+							"OcpiEndpointID": "*",
 							"Action": []
 						}
 					},
@@ -392,15 +392,15 @@ class AuthorizationsDefinition {
 						}
 					},
 					{
-						"AuthObject": "Ocpiendpoints",
+						"AuthObject": "OcpiEndpoints",
 						"AuthFieldValue": {
 							"Action": []
 						}
 					},
 					{
-						"AuthObject": "Ocpiendpoint",
+						"AuthObject": "OcpiEndpoint",
 						"AuthFieldValue": {
-							"OcpiendpointID": "*",
+							"OcpiEndpointID": "*",
 							"Action": []
 						}
 					}
@@ -567,15 +567,15 @@ class AuthorizationsDefinition {
 						}
 					},
 					{
-						"AuthObject": "Ocpiendpoints",
+						"AuthObject": "OcpiEndpoints",
 						"AuthFieldValue": {
 							"Action": ["List"]
 						}
 					},
 					{
-						"AuthObject": "Ocpiendpoint",
+						"AuthObject": "OcpiEndpoint",
 						"AuthFieldValue": {
-							"OcpiendpointID": "*",
+							"OcpiEndpointID": "*",
 							"Action": ["Create", "Read", "Update", "Delete", "Ping", "GenerateLocalToken", "Register", "SendEVSEStatuses"]
 						}
 					},
@@ -750,15 +750,15 @@ class AuthorizationsDefinition {
 						}
 					},
 					{
-						"AuthObject": "Ocpiendpoints",
+						"AuthObject": "OcpiEndpoints",
 						"AuthFieldValue": {
 							"Action": ["List"]
 						}
 					},
 					{
-						"AuthObject": "Ocpiendpoint",
+						"AuthObject": "OcpiEndpoint",
 						"AuthFieldValue": {
-							"OcpiendpointID": "*",
+							"OcpiEndpointID": "*",
 							"Action": ["Create", "Read", "Update", "Delete", "Ping", "GenerateLocalToken"]
 						}
 					}

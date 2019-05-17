@@ -468,7 +468,7 @@ class ChargingStationService {
         // Set
         chargingStations.result = chargingStations.result.map((chargingStation) => chargingStation.getModel());
         // Filter
-        chargingStations.result = ChargingStationSecurity.filterChargingStationsResponse(chargingStations.result, req.user, organizationIsActive);
+        ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user, organizationIsActive);
       }
       // Return
       res.json(chargingStations);
@@ -514,7 +514,7 @@ class ChargingStationService {
       // Set
       chargingStations.result = chargingStations.result.map((chargingStation) => chargingStation.getModel());
       // Filter
-      chargingStations.result = ChargingStationSecurity.filterChargingStationsResponse(chargingStations.result, req.user, organizationIsActive);
+      ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user, organizationIsActive);
 
       const filename = "chargingStations_export.csv";
       fs.writeFile(filename, this.convertToCSV(chargingStations.result), (err) => {
@@ -573,7 +573,7 @@ class ChargingStationService {
       // Set
       chargingStations.result = chargingStations.result.map((chargingStation) => chargingStation.getModel());
       // Filter
-      chargingStations.result = ChargingStationSecurity.filterChargingStationsResponse(chargingStations.result, req.user, organizationIsActive);
+      ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user, organizationIsActive);
       // Return
       res.json(chargingStations);
       next();

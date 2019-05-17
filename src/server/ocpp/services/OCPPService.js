@@ -90,13 +90,14 @@ class OCPPService {
         chargingStation.setChargePointSerialNumber(bootNotification.chargePointSerialNumber);
         chargingStation.setChargeBoxSerialNumber(bootNotification.chargeBoxSerialNumber);
         chargingStation.setFirmwareVersion(bootNotification.firmwareVersion);
+        chargingStation.setLastReboot(bootNotification.lastReboot);
         // Back again
         chargingStation.setDeleted(false);
       }
 
       chargingStation.setOcppVersion(headers.ocppVersion);
       chargingStation.setOcppProtocol(headers.ocppProtocol);
-      chargingStation.setLastHeartBeat(new Date());
+      chargingStation.setLastHeartBeat(bootNotification.lastHeartBeat);
       // Set the charger URL?
       if (headers.chargingStationURL) {
         chargingStation.setChargingStationURL(headers.chargingStationURL);
@@ -146,7 +147,7 @@ class OCPPService {
       }
       // Return the result
       return {
-        'currentTime': new Date().toISOString(),
+        'currentTime': bootNotification.timestamp.toISOString(),
         'status': 'Accepted',
         'heartbeatInterval': this._chargingStationConfig.heartbeatIntervalSecs
       };
@@ -158,7 +159,7 @@ class OCPPService {
       // Reject
       return {
         'status': 'Rejected',
-        'currentTime': new Date().toISOString(),
+        'currentTime': bootNotification.timestamp.toISOString(),
         'heartbeatInterval': this._chargingStationConfig.heartbeatIntervalSecs
       };
     }

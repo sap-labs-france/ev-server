@@ -148,25 +148,25 @@ module.exports = {
             // Delegate
             SettingService.handleCreateSetting(action, req, res, next);
             break;
-          // Create Ocpiendpoint
-          case "OcpiendpointCreate":
+          // Create OcpiEndpoint
+          case "OcpiEndpointCreate":
             // Delegate
-            OCPIEndpointService.handleCreateOcpiendpoint(action, req, res, next);
+            OCPIEndpointService.handleCreateOcpiEndpoint(action, req, res, next);
             break;
-          // Ping Ocpiendpoint
-          case "OcpiendpointPing":
+          // Ping OcpiEndpoint
+          case "OcpiEndpointPing":
             // Delegate
-            OCPIEndpointService.handlePingOcpiendpoint(action, req, res, next);
+            OCPIEndpointService.handlePingOcpiEndpoint(action, req, res, next);
             break;
-          // SendEVSEStatuses to Ocpiendpoint
-          case "OcpiendpointSendEVSEStatuses":
+          // SendEVSEStatuses to OcpiEndpoint
+          case "OcpiEndpointSendEVSEStatuses":
             // Delegate
-            OCPIEndpointService.handleSendEVSEStatusesOcpiendpoint(action, req, res, next);
+            OCPIEndpointService.handleSendEVSEStatusesOcpiEndpoint(action, req, res, next);
             break;
-          // Generate Local Token Ocpiendpoint
-          case "OcpiendpointGenerateLocalToken":
+          // Generate Local Token OcpiEndpoint
+          case "OcpiEndpointGenerateLocalToken":
             // Delegate
-            OCPIEndpointService.handleGenerateLocalTokenOcpiendpoint(action, req, res, next);
+            OCPIEndpointService.handleGenerateLocalTokenOcpiEndpoint(action, req, res, next);
             break;
           case "IntegrationConnectionCreate":
             ConnectorService.handleCreateConnection(action, req, res, next);
@@ -458,14 +458,14 @@ module.exports = {
             SettingService.handleGetSetting(action, req, res, next);
             break;
           // Get all the ocpiendpoints
-          case "Ocpiendpoints":
+          case "OcpiEndpoints":
             // Delegate
-            OCPIEndpointService.handleGetOcpiendpoints(action, req, res, next);
+            OCPIEndpointService.handleGetOcpiEndpoints(action, req, res, next);
             break;
           // Get one ocpiendpoint
-          case "Ocpiendpoint":
+          case "OcpiEndpoint":
             // Delegate
-            OCPIEndpointService.handleGetOcpiendpoint(action, req, res, next);
+            OCPIEndpointService.handleGetOcpiEndpoint(action, req, res, next);
             break;
           case "IntegrationConnections":
             ConnectorService.handleGetConnections(action, req, res, next);
@@ -539,14 +539,14 @@ module.exports = {
             // Delegate
             SettingService.handleUpdateSetting(action, req, res, next);
             break;
-          // Ocpiendpoint
-          case "OcpiendpointUpdate":
+          // OcpiEndpoint
+          case "OcpiEndpointUpdate":
             // Delegate
-            OCPIEndpointService.handleUpdateOcpiendpoint(action, req, res, next);
+            OCPIEndpointService.handleUpdateOcpiEndpoint(action, req, res, next);
             break;
-          case "OcpiendpointRegister":
+          case "OcpiEndpointRegister":
             // Delegate
-            OCPIEndpointService.handleRegisterOcpiendpoint(action, req, res, next);
+            OCPIEndpointService.handleRegisterOcpiEndpoint(action, req, res, next);
             break;
           // Not found
           default:
@@ -612,10 +612,10 @@ module.exports = {
             // Delegate
             SettingService.handleDeleteSetting(action, req, res, next);
             break;
-          // Ocpiendpoint
-          case "OcpiendpointDelete":
+          // OcpiEndpoint
+          case "OcpiEndpointDelete":
             // Delegate
-            OCPIEndpointService.handleDeleteOcpiendpoint(action, req, res, next);
+            OCPIEndpointService.handleDeleteOcpiEndpoint(action, req, res, next);
             break;
           // Not found
           default:

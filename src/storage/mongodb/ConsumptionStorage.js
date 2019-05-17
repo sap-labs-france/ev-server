@@ -19,8 +19,9 @@ class ConsumptionStorage {
     // Set the ID
     if (!consumptionToSave.id) {
       // Set the ID
+      const timestamp = Utils.convertToDate(consumptionToSave.endedAt);
       consumptionToSave.id = crypto.createHash('sha256')
-        .update(`${consumptionToSave.transactionId}~${consumptionToSave.endedAt}`)
+        .update(`${consumptionToSave.transactionId}~${timestamp.toISOString()}`)
         .digest("hex");
     }
     // Transfer

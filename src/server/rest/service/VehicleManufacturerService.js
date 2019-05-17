@@ -115,8 +115,7 @@ class VehicleManufacturerService {
       // Set
       vehicleManufacturers.result = vehicleManufacturers.result.map((vehicleManufacturer) => vehicleManufacturer.getModel());
       // Filter
-      vehicleManufacturers.result = VehicleManufacturerSecurity.filterVehicleManufacturersResponse(
-        vehicleManufacturers.result, req.user);
+      VehicleManufacturerSecurity.filterVehicleManufacturersResponse(vehicleManufacturers, req.user);
       // Return
       res.json(vehicleManufacturers);
       next();

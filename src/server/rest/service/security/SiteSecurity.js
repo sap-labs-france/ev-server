@@ -177,13 +177,13 @@ class SiteSecurity {
   static filterSitesResponse(sites, loggedUser) {
     const filteredSites = [];
 
-    if (!sites) {
+    if (!sites.result) {
       return null;
     }
     if (!Authorizations.canListSites(loggedUser)) {
       return null;
     }
-    for (const site of sites) {
+    for (const site of sites.result) {
       // Filter
       const filteredSite = SiteSecurity.filterSiteResponse(site, loggedUser);
       // Ok?
@@ -192,7 +192,7 @@ class SiteSecurity {
         filteredSites.push(filteredSite);
       }
     }
-    return filteredSites;
+    sites.result = filteredSites;
   }
 }
 

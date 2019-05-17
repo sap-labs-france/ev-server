@@ -90,15 +90,14 @@ class ChargingStationSecurity {
 
   static filterChargingStationsResponse(chargingStations, loggedUser, organizationIsActive) {
     const filteredChargingStations = [];
-
     // Check
-    if (!chargingStations) {
+    if (!chargingStations.result) {
       return null;
     }
     if (!Authorizations.canListChargingStations(loggedUser)) {
       return null;
     }
-    for (const chargingStation of chargingStations) {
+    for (const chargingStation of chargingStations.result) {
       // Filter
       const filteredChargingStation = ChargingStationSecurity.filterChargingStationResponse(chargingStation, loggedUser, organizationIsActive);
       // Ok?
@@ -107,7 +106,7 @@ class ChargingStationSecurity {
         filteredChargingStations.push(filteredChargingStation);
       }
     }
-    return filteredChargingStations;
+    chargingStations.result = filteredChargingStations;
   }
 
   static filterStatusNotificationsResponse(statusNotifications, loggedUser) {
