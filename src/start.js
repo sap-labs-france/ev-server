@@ -69,6 +69,10 @@ class Bootstrap {
       const chargingStationConfig = Configuration.getChargingStationConfig();
       const ocpiConfig = Configuration.getOCPIServiceConfig();
       const oDataServerConfig = Configuration.getODataServiceConfig();
+      
+      // Init global vars
+      global.userHashMapIDs = {};
+      global.tenantHashMapIDs = {};
 
       // -------------------------------------------------------------------------
       // REST Server (Front-End)
