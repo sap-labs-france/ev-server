@@ -177,12 +177,12 @@ class User extends AbstractTenantEntity {
     this._model.mobile = mobile;
   }
 
-  getNotificationsActive() {
+  isNotificationsActive() {
     return this._model.notificationsActive;
   }
 
-  setNotificationsActive(flag) {
-    this._model.notificationsActive = flag;
+  setNotificationsActive(notificationsActive) {
+    this._model.notificationsActive = notificationsActive;
   }
 
   getINumber() {
@@ -393,7 +393,7 @@ class User extends AbstractTenantEntity {
     if (typeof filteredRequest.notificationsActive !== 'boolean') {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The email notification flag ${filteredRequest.notificationsActive} is not boolean`, 500,
+        `The notification flag ${filteredRequest.notificationsActive} is not boolean`, 500,
         'Users', 'checkIfUserValid');
     }
     if (filteredRequest.iNumber && !User.isINumberValid(filteredRequest.iNumber)) {

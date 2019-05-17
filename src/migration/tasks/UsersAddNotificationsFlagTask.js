@@ -12,18 +12,17 @@ class UsersAddNotificationsFlagTask extends MigrationTask {
   async migrateTenant(tenant) {
     // Read all Users
     const users = await global.database.getCollection(tenant.getID(), 'users')
-      .aggregate([])
+      .aggregate([
+        { $match: {"notificationsActive": { $exists: false }}}
+      ])
       .toArray();
     // Process each user
     for (const user of users) {
-      const notificationsActive = true;
-      // Save it
-      if (typeof user.notificationsActive !== 'boolean') {
-        await global.database.getCollection(tenant.getID(), 'users').findOneAndReplace(
-          { "_id": user._id },
-          { $set: { notificationsActive }}, 
-          { upsert: true, new: true, returnOriginal: false });
-      }
+      // Add
+      await global.database.getCollection(tenant.getID(), 'users').findOneAndReplace(
+        { "_id": user._id },
+        { $set: { notificationsActive: true }}, 
+        { upsert: true, new: true, returnOriginal: false });
     }
   }
 

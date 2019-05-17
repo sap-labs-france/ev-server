@@ -62,7 +62,7 @@ class NotificationHandler {
 
   static async getAdminUsers(tenantID) {
     // Get admin users
-    const adminUsers = await UserStorage.getUsers(tenantID, { role: Constants.ROLE_ADMIN, 'notificationsActive': true });
+    const adminUsers = await UserStorage.getUsers(tenantID, { role: Constants.ROLE_ADMIN });
     // Found
     if (adminUsers.count > 0) {
       // Convert to JSon
@@ -89,7 +89,7 @@ class NotificationHandler {
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
-        if (_notificationConfig.Email.enabled && user.notificationsActive === true) {
+        if (_notificationConfig.Email.enabled && user.notificationsActive) {
           // Save notif
           await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
             SOURCE_END_OF_CHARGE, user, chargingStation, data);
@@ -112,7 +112,7 @@ class NotificationHandler {
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
-        if (_notificationConfig.Email.enabled && user.notificationsActive === true) {
+        if (_notificationConfig.Email.enabled && user.notificationsActive) {
           // Save notif
           await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
             SOURCE_OPTIMAL_CHARGE_REACHED, user, chargingStation, data);
@@ -135,7 +135,7 @@ class NotificationHandler {
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
-        if (_notificationConfig.Email.enabled && user.notificationsActive === true) {
+        if (_notificationConfig.Email.enabled && user.notificationsActive) {
           // Save notif
           await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
             SOURCE_END_OF_SESSION, user, chargingStation, data);
@@ -307,7 +307,7 @@ class NotificationHandler {
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
-        if (_notificationConfig.Email.enabled && user.notificationsActive === true) {
+        if (_notificationConfig.Email.enabled && user.notificationsActive) {
           // Save notif
           await NotificationHandler.saveNotification(tenantID,
             CHANNEL_EMAIL, sourceId, SOURCE_TRANSACTION_STARTED, user, chargingStation, data);

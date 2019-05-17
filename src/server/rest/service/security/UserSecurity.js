@@ -83,9 +83,6 @@ class UserSecurity {
     if (request.hasOwnProperty("mobile")) {
       filteredRequest.mobile = sanitize(request.mobile);
     }
-    if (request.hasOwnProperty("notificationsActive")) {
-      filteredRequest.notificationsActive = sanitize(request.notificationsActive);
-    }
     if (request.hasOwnProperty("name")) {
       filteredRequest.name = sanitize(request.name);
     }
@@ -104,6 +101,9 @@ class UserSecurity {
     // Admin?
     if (Authorizations.isAdmin(loggedUser)) {
       // Ok to set the sensitive data
+      if (request.hasOwnProperty("notificationsActive")) {
+        filteredRequest.notificationsActive = sanitize(request.notificationsActive);
+      }
       if (request.hasOwnProperty("email")) {
         filteredRequest.email = sanitize(request.email);
       }

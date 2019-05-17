@@ -424,7 +424,6 @@ class UserStorage {
         ]
       });
     }
-       
     // UserID: Used only with SiteID
     if (params.userID) {
       // Build filter
@@ -432,26 +431,21 @@ class UserStorage {
         '_id': Utils.convertToObjectID(params.userID)
       });
     }
-
     if (params.role) {
       filters.$and.push({
         'role': params.role
       });
     }
-
     if (params.status) {
       filters.$and.push({
         'status': params.status
       });
     }
-
-    // notificationsActive used to extract users based on their notification flag
     if (params.notificationsActive) {
       filters.$and.push({
         'notificationsActive': params.notificationsActive
       });
     }
-
     // Create Aggregation
     const aggregation = [];
     // Add TagIDs
