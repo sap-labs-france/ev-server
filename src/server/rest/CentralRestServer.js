@@ -1,11 +1,9 @@
 const morgan = require('morgan');
 const expressTools = require('../ExpressTools');
-const path = require('path');
 const sanitize = require('express-sanitizer');
 const CentralRestServerAuthentication = require('./CentralRestServerAuthentication');
 const CentralRestServerService = require('./CentralRestServerService');
 const Database = require('../../utils/Database');
-const Configuration = require('../../utils/Configuration');
 const Logging = require('../../utils/Logging');
 const Constants = require('../../utils/Constants');
 const ErrorHandler = require('./ErrorHandler');
@@ -71,28 +69,6 @@ class CentralRestServer {
 
     // Register error handler
     this._express.use(ErrorHandler.errorHandler);
-
-    // Check if the front-end has to be served also
-    const centralSystemConfig = Configuration.getCentralSystemFrontEndConfig();
-    // Serve it?
-    // TODO: Remove distEnabled support
-    if (centralSystemConfig.distEnabled) {
-      // Serve all the static files of the front-end
-      // eslint-disable-next-line no-unused-vars
-      this._express.get(/^\/(?!client\/)(.+)$/, function (req, res, next) {
-        // Filter to not handle other server requests
-        if (!res.headersSent) {
-          // Not already processed: serve the file
-          res.sendFile(path.join(__dirname, centralSystemConfig.distPath, req.sanitize(req.params[0])));
-        }
-      });
-      // Default, serve the index.html
-      // eslint-disable-next-line no-unused-vars
-      this._express.get('/', function (req, res, next) {
-        // Return the index.html
-        res.sendFile(path.join(__dirname, centralSystemConfig.distPath, 'index.html'));
-      });
-    }
   }
 
   // Start the server
@@ -100,16 +76,19 @@ class CentralRestServer {
     const server = expressTools.expressStartServer(_centralSystemRestConfig, "REST", MODULE_NAME, this._express,
       this._listenCb);
 
-    // Init Socket IO
-    _socketIO = require("socket.io")(server);
-    // Handle Socket IO connection
-    _socketIO.on("connection", (socket) => {
-      socket.join(socket.handshake.query.tenantID);
+    // SocketIO enabled?
+    if (_centralSystemRestConfig.socketIO) {
+      // Init Socket IO
+      _socketIO = require("socket.io")(server);
       // Handle Socket IO connection
-      socket.on("disconnect", () => {
-        // Nothing to do
+      _socketIO.on("connection", (socket) => {
+        socket.join(socket.handshake.query.tenantID);
+        // Handle Socket IO connection
+        socket.on("disconnect", () => {
+          // Nothing to do
+        });
       });
-    });
+    }
   }
 
   // Listen callback
@@ -121,9 +100,10 @@ class CentralRestServer {
     setInterval(() => {
       // Send
       for (let i = _currentNotifications.length - 1; i >= 0; i--) {
-        // console.log(`****** Notify '${_currentNotifications[i].entity}', Action '${(_currentNotifications[i].action?_currentNotifications[i].action:'')}', Data '${(_currentNotifications[i].data ? JSON.stringify(_currentNotifications[i].data, null, ' ') : '')}'`);
-        // Notify all Web Sockets
-        _socketIO.to(_currentNotifications[i].tenantID).emit(_currentNotifications[i].entity, _currentNotifications[i]);
+        // Notify the front-ends
+        if (_socketIO) {
+          _socketIO.to(_currentNotifications[i].tenantID).emit(_currentNotifications[i].entity, _currentNotifications[i]);
+        }
         // Remove
         _currentNotifications.splice(i, 1);
       }
