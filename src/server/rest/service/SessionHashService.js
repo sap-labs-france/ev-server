@@ -66,6 +66,16 @@ class SessionHashService {
     const hashID = SessionHashService.buildUserHashID(user);
     // Store the hash
     global.userHashMapIDs[`${tenantID}#${userID}`] = hashID;
+    // Log
+    Logging.logInfo({
+      tenantID: tenantID,
+      source: Constants.CENTRAL_SERVER,
+      module: "SessionHashService",
+      method: "rebuildUserHashID",
+      action: "SessionHashHandling",
+      message: `User's profile has been changed or deleted and he will be logged off`,
+      user: userID
+    });
   }
 
   // Rebuild and store Tenant Hash ID
@@ -75,6 +85,15 @@ class SessionHashService {
     const hashID = SessionHashService.buildTenantHashID(tenant);
     // Store the hash
     global.tenantHashMapIDs[`${tenantID}`] = hashID;
+    // Log
+    Logging.logInfo({
+      tenantID: tenantID,
+      source: Constants.CENTRAL_SERVER,
+      module: "SessionHashService",
+      method: "rebuildTenantHashID",
+      action: "SessionHashHandling",
+      message: `Tenant's settings have been changed and all users will be logged off`
+    });
   }
 }
 

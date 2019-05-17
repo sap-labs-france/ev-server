@@ -902,10 +902,6 @@ class AuthService {
     } else {
       tenantHashID = Constants.DEFAULT_TENANT;
     }
-
-    // store User/Tenant Hash IDs
-    SessionHashService.storeUserHashID(user.getTenantID(), user.getID(), userHashID);
-    SessionHashService.storeTenantHashID(user.getTenantID(), tenantHashID);
     // Yes: build payload
     const payload = {
       'id': user.getID(),
@@ -957,29 +953,6 @@ class AuthService {
     // Return
     return (tenant ? tenant.getID() : null);
   }
-
-  // static buildHashID(user) {
-  //   // get te
-  //   // get all field that need to be hashed
-  //   const data = user.getLanguage();
-  //   return data;
-  //   // return crypto.createHash('sha256').update(data).digest("hex");
-  // }
-
-  // static async rebuildUserHashID(tenantID, userID) {
-  //   const user = await User.getUser(tenantID, userID);
-
-  //   const hashID = AuthService.buildHashID(user);
-  //   AuthService.storeHashID(tenantID, userID, hashID);
-  // }
-
-  // static storeHashID(tenantID, userID, hashID) {
-  //   // empty if not exist
-  //   global.userHashMapIDs = global.userHashMapIDs ? global.userHashMapIDs : {};
-
-  //   // store it
-  //   global.userHashMapIDs[`${tenantID}#${userID}`] = hashID;
-  // }
 
   static async checkUserLogin(action, user, filteredRequest, req, res, next) {
     // User Found?
