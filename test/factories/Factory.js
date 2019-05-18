@@ -6,7 +6,7 @@ const AddressFactory = require('./AddressFactory');
 const SiteAreaFactory = require('./SiteAreaFactory');
 const TenantFactory = require('./TenantFactory');
 const SettingFactory = require('./SettingFactory');
-const OCPIEndpointFactory = require('./OCPIEndpointFactory');
+const OcpiEndpointsFactory = require('./OcpiEndpointsFactory');
 
 class Factory {
   constructor() {
@@ -18,7 +18,7 @@ class Factory {
     this.siteArea = SiteAreaFactory;
     this.tenant = TenantFactory;
     this.setting = SettingFactory;
-    this.ocpiEndpoint = OCPIEndpointFactory;
+    this.ocpiEndpoint = OcpiEndpointsFactory;
   }
 }
 
