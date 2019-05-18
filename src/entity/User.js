@@ -390,7 +390,7 @@ class User extends AbstractTenantEntity {
         `The User Mobile ${filteredRequest.mobile} is not valid`, 500,
         'Users', 'checkIfUserValid');
     }
-    if (typeof filteredRequest.notificationsActive !== 'boolean') {
+    if (filteredRequest.notificationsActive && typeof filteredRequest.notificationsActive !== 'boolean') {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `The notification flag ${filteredRequest.notificationsActive} is not boolean`, 500,
