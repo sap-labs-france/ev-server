@@ -115,8 +115,7 @@ class VehicleService {
       // Set
       vehicles.result = vehicles.result.map((vehicle) => vehicle.getModel());
       // Filter
-      vehicles.result = VehicleSecurity.filterVehiclesResponse(
-        vehicles.result, req.user);
+      VehicleSecurity.filterVehiclesResponse(vehicles, req.user);
       // Return
       res.json(vehicles);
       next();

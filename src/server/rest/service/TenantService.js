@@ -144,8 +144,7 @@ class TenantService extends AbstractService {
       // Set
       tenants.result = tenants.result.map((tenant) => tenant.getModel());
       // Filter
-      tenants.result = TenantSecurity.filterTenantsResponse(
-        tenants.result, req.user);
+      TenantSecurity.filterTenantsResponse(tenants, req.user);
       // Return
       res.json(tenants);
       next();

@@ -66,7 +66,7 @@ class CredentialsEndpoint extends AbstractEndpoint {
     });
 
     // Get ocpiEndpoints based on the given token
-    const ocpiEndpoint = await OCPIEndpoint.getOcpiendpointWithToken(tenant.getID(), token);
+    const ocpiEndpoint = await OCPIEndpoint.getOcpiEndpointWithToken(tenant.getID(), token);
 
     // check if ocpiEndpoint available
     if (!ocpiEndpoint || ocpiEndpoint.getStatus() === Constants.OCPI_REGISTERING_STATUS.OCPI_UNREGISTERED) {
@@ -129,7 +129,7 @@ class CredentialsEndpoint extends AbstractEndpoint {
     });
 
     // Get ocpiEndpoints based on the given token
-    const ocpiEndpoint = await OCPIEndpoint.getOcpiendpointWithToken(tenant.getID(), token);
+    const ocpiEndpoint = await OCPIEndpoint.getOcpiEndpointWithToken(tenant.getID(), token);
 
     // check if ocpiEndpoint available
     if (!ocpiEndpoint) {

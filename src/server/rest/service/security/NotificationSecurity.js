@@ -25,10 +25,10 @@ class NotificationSecurity {
   static filterNotificationsResponse(notifications, loggedUser) {
     const filteredNotifications = [];
 
-    if (!notifications) {
+    if (!notifications.result) {
       return null;
     }
-    for (const notification of notifications) {
+    for (const notification of notifications.result) {
       // Filter
       const filteredNotification = NotificationSecurity.filterNotificationResponse(notification, loggedUser);
       // Ok?
@@ -37,7 +37,7 @@ class NotificationSecurity {
         filteredNotifications.push(filteredNotification);
       }
     }
-    return filteredNotifications;
+    notifications.result = filteredNotifications;
   }
 
   // Notification

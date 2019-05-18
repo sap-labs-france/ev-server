@@ -408,8 +408,7 @@ class TransactionService {
         filteredRequest.EndDateTime,
         true);
       // Filter
-      transactions.result = TransactionSecurity.filterTransactionsResponse(
-        transactions.result, req.user);
+      TransactionSecurity.filterTransactionsResponse(transactions, req.user);
       // Return
       res.json(transactions);
       next();
@@ -462,6 +461,9 @@ class TransactionService {
       if (filteredRequest.UserID) {
         filter.userId = filteredRequest.UserID;
       }
+      if (Authorizations.isBasic(req.user)) {
+        filter.userId = req.user.id;
+      }
       if (filteredRequest.ConnectorId) {
         filter.connectorId = filteredRequest.ConnectorId;
       }
@@ -470,8 +472,7 @@ class TransactionService {
         {...filter, 'withChargeBoxes': true, 'onlyRecordCount': filteredRequest.OnlyRecordCount},
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
-      transactions.result = TransactionSecurity.filterTransactionsResponse(
-        transactions.result, req.user);
+      TransactionSecurity.filterTransactionsResponse(transactions, req.user);
       // Return
       res.json(transactions);
       next();
@@ -500,7 +501,6 @@ class TransactionService {
       if (filteredRequest.ChargeBoxID) {
         filter.chargeBoxID = filteredRequest.ChargeBoxID;
       }
-      // Date
       if (filteredRequest.StartDateTime) {
         filter.startDateTime = filteredRequest.StartDateTime;
       }
@@ -509,8 +509,8 @@ class TransactionService {
       }
       if (filteredRequest.UserID) {
         filter.userId = filteredRequest.UserID;
-      // Basic?
-      } else if (Authorizations.isBasic(req.user)) {
+      }
+      if (Authorizations.isBasic(req.user)) {
         filter.userId = req.user.id;
       }
       if (filteredRequest.Type) {
@@ -519,13 +519,19 @@ class TransactionService {
       if (filteredRequest.SiteAreaID) {
         filter.siteAreaID = filteredRequest.SiteAreaID;
       }
+      if (filteredRequest.MinimalPrice) {
+        filter.minimalPrice = filteredRequest.MinimalPrice;
+      }
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-        {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID,
-        'onlyRecordCount': filteredRequest.OnlyRecordCount},
+        {
+          ...filter,
+          'search': filteredRequest.Search,
+          'siteID': filteredRequest.SiteID,
+          'onlyRecordCount': filteredRequest.OnlyRecordCount
+        },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
-      transactions.result = TransactionSecurity.filterTransactionsResponse(
-        transactions.result, req.user);
+      TransactionSecurity.filterTransactionsResponse(transactions, req.user);
       // Return
       res.json(transactions);
       next();
@@ -563,7 +569,8 @@ class TransactionService {
       }
       if (filteredRequest.UserID) {
         filter.userId = filteredRequest.UserID;
-      } else if (Authorizations.isBasic(req.user)) {
+      }
+      if (Authorizations.isBasic(req.user)) {
         filter.userId = req.user.id;
       }
       if (filteredRequest.Type) {
@@ -574,12 +581,10 @@ class TransactionService {
       }
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
         {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID,
-        'onlyRecordCount': filteredRequest.OnlyRecordCount},
+          'onlyRecordCount': filteredRequest.OnlyRecordCount},
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
-      transactions.result = TransactionSecurity.filterTransactionsResponse(
-        transactions.result, req.user);
-
+      TransactionSecurity.filterTransactionsResponse(transactions, req.user);
       // Hash userId and tagId for confidentiality purposes
       for (const transaction of transactions.result) {
         if (transaction.user) {
@@ -648,11 +653,10 @@ class TransactionService {
       }
       const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
         {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID,
-        'onlyRecordCount': filteredRequest.OnlyRecordCount},
+          'onlyRecordCount': filteredRequest.OnlyRecordCount},
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
-      transactions.result = TransactionSecurity.filterTransactionsResponse(
-        transactions.result, req.user);
+      TransactionSecurity.filterTransactionsResponse(transactions, req.user);
       // Return
       res.json(transactions);
       next();

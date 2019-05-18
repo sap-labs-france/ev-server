@@ -16,8 +16,7 @@ class NotificationService {
       // Set
       notifications.result = notifications.result.map((notification) => notification.getModel());
       // Filter
-      notifications.result = NotificationSecurity.filterNotificationsResponse(
-        notifications.result, req.user);
+      NotificationSecurity.filterNotificationsResponse(notifications, req.user);
       // Return
       res.json(notifications);
       next();

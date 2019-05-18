@@ -1,4 +1,5 @@
 const morgan = require('morgan');
+const cluster = require('cluster');
 const expressTools = require('../ExpressTools');
 const path = require('path');
 const sanitize = require('express-sanitizer');
@@ -9,6 +10,7 @@ const Configuration = require('../../utils/Configuration');
 const Logging = require('../../utils/Logging');
 const Constants = require('../../utils/Constants');
 const ErrorHandler = require('./ErrorHandler');
+const SessionHashService = require('../rest/service/SessionHashService');
 require('source-map-support').install();
 
 let _centralSystemRestConfig;
@@ -29,13 +31,13 @@ class CentralRestServer {
       _chargingStationConfig.heartbeatIntervalSecs);
 
     // Initialize express app
-    this._express = expressTools.expressCommonInit('2mb');
+    this._express = expressTools.init('2mb');
 
     // FIXME?: Should be useless now that helmet() is mounted at the beginning
     // Mount express-sanitizer middleware
     this._express.use(sanitize());
 
-    // log to console
+    // Log to console
     if (_centralSystemRestConfig.debug) {
       // Log
       this._express.use(
@@ -71,6 +73,9 @@ class CentralRestServer {
     // Register error handler
     this._express.use(ErrorHandler.errorHandler);
 
+    // Create HTTP to serve the express app
+    this._httpServer = expressTools.createHttpServer(_centralSystemRestConfig, this._express);
+
     // Check if the front-end has to be served also
     const centralSystemConfig = Configuration.getCentralSystemFrontEndConfig();
     // Serve it?
@@ -94,52 +99,53 @@ class CentralRestServer {
     }
   }
 
-  // Start the server
-  start() {
-    const server = expressTools.expressStartServer(_centralSystemRestConfig, "REST", MODULE_NAME, this._express,
-      this._listenCb);
+  get httpServer() {
+    return this._httpServer;
+  }
 
+  startSocketIO() {
+    // Log
+    // eslint-disable-next-line no-console
+    console.log(`Starting REST SocketIO Server ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
     // Init Socket IO
-    _socketIO = require("socket.io")(server);
+    _socketIO = require("socket.io")(this._httpServer);
+    // Check and send notification once listening
+    _socketIO.httpServer.on('listening', () => {
+      setInterval(() => {
+        // Send
+        for (let i = _currentNotifications.length - 1; i >= 0; i--) {
+          // Notify all Web Sockets
+          _socketIO.to(_currentNotifications[i].tenantID).emit(_currentNotifications[i].entity, _currentNotifications[i]);
+          // Remove
+          _currentNotifications.splice(i, 1);
+        }
+      }, _centralSystemRestConfig.webSocketNotificationIntervalSecs * 1000);
+    });
     // Handle Socket IO connection
-    _socketIO.on("connection", (socket) => {
+    _socketIO.on('connection', (socket) => {
       socket.join(socket.handshake.query.tenantID);
       // Handle Socket IO connection
-      socket.on("disconnect", () => {
+      socket.on('disconnect', () => {
         // Nothing to do
       });
     });
   }
 
-  // Listen callback
-  _listenCb() {
-    let host = _centralSystemRestConfig.host;
-    if (!host)
-      host = '::';
-    // Check and send notification
-    setInterval(() => {
-      // Send
-      for (let i = _currentNotifications.length - 1; i >= 0; i--) {
-        // console.log(`****** Notify '${_currentNotifications[i].entity}', Action '${(_currentNotifications[i].action?_currentNotifications[i].action:'')}', Data '${(_currentNotifications[i].data ? JSON.stringify(_currentNotifications[i].data, null, ' ') : '')}'`);
-        // Notify all Web Sockets
-        _socketIO.to(_currentNotifications[i].tenantID).emit(_currentNotifications[i].entity, _currentNotifications[i]);
-        // Remove
-        _currentNotifications.splice(i, 1);
-      }
-    }, _centralSystemRestConfig.webSocketNotificationIntervalSecs * 1000);
-    // Log
-    Logging.logInfo({
-      tenantID: Constants.DEFAULT_TENANT,
-      module: MODULE_NAME,
-      method: "start",
-      action: "Startup",
-      message: `REST Server listening on '${_centralSystemRestConfig.protocol}://${host}:${_centralSystemRestConfig.port}'`
-    });
-    // eslint-disable-next-line no-console
-    console.log(`REST Server listening on '${_centralSystemRestConfig.protocol}://${host}:${_centralSystemRestConfig.port}'`);
+  // Start the server
+  start(socketIO = this._centralSystemRestConfig.socketIO) {
+    expressTools.startServer(_centralSystemRestConfig, this._httpServer, "REST", MODULE_NAME);
+
+    if (socketIO) {
+      // Start Socket IO server
+      this.startSocketIO();
+    }
   }
 
   notifyUser(tenantID, action, data) {
+    // On User change rebuild userHashID
+    if (data && data.id) {
+      SessionHashService.rebuildUserHashID(tenantID, data.id);
+    }
     // Add in buffer
     this.addNotificationInBuffer({
       "tenantID": tenantID,
@@ -185,6 +191,10 @@ class CentralRestServer {
   }
 
   notifyTenant(tenantID, action, data) {
+    // On Tenant change rebuild tenantHashID
+    if (data && data.id) {
+      SessionHashService.rebuildTenantHashID(data.id);
+    }
     // Add in buffer
     this.addNotificationInBuffer({
       "tenantID": tenantID,

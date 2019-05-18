@@ -6,22 +6,27 @@ const JsonWSConnection = require('./JsonWSConnection');
 const JsonRestWSConnection = require('./JsonRestWSConnection');
 const CentralSystemServer = require('../CentralSystemServer');
 
-const MODULE_NAME = "JsonCentralSystemServer";
-
 class JsonCentralSystemServer extends CentralSystemServer {
 
   constructor(centralSystemConfig, chargingStationConfig) {
     // Call parent
     super(centralSystemConfig, chargingStationConfig);
     // Keep local
+    this._serverName = "OCPP";
+    this._MODULE_NAME = "JsonCentralSystemServer";
     this._jsonChargingStationClients = [];
     this._jsonRestClients = [];
   }
 
-  start() {
-    // Keep it global
-    global.centralSystemJson = this;
+  get MODULE_NAME() {
+    return this._MODULE_NAME;
+  }
 
+  get serverName() {
+    return this._serverName;
+  }
+
+  _createWSServer() {
     const verifyClient = (info) => {
       // Check the URI
       if (info.req.url.startsWith("/OCPP16")) {
@@ -32,7 +37,7 @@ class JsonCentralSystemServer extends CentralSystemServer {
       }
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        module: MODULE_NAME,
+        module: this._MODULE_NAME,
         method: "verifyClient",
         action: "WSVerifyClient",
         message: `Invalid connection URL ${info.req.url}`
@@ -62,7 +67,7 @@ class JsonCentralSystemServer extends CentralSystemServer {
     };
 
     // Create the WS server
-    this._wsServer = new WSServer(WSServer.createHttpServer(this._centralSystemConfig), "OCPP", this._centralSystemConfig, verifyClient, handleProtocols);
+    this._wsServer = new WSServer(WSServer.createHttpServer(this._centralSystemConfig), this._serverName, this._centralSystemConfig, verifyClient, handleProtocols);
     this._wsServer.on('connection', async (ws, req) => {
       try {
         // Set an ID
@@ -86,13 +91,25 @@ class JsonCentralSystemServer extends CentralSystemServer {
       } catch (error) {
         // Log
         Logging.logException(
-          error, "WSConnection", "", MODULE_NAME, "connection", Constants.DEFAULT_TENANT);
+          error, "WSConnection", "", this._MODULE_NAME, "connection", Constants.DEFAULT_TENANT);
         // Respond
         ws.close(Constants.WS_UNSUPPORTED_DATA, error.message);
       }
     });
-    // Start the WS server
-    this._wsServer.start();
+  }
+
+  start() {
+    // Keep it global
+    global.centralSystemJson = this;
+    // Make server to listen
+    this._startListening();
+  }
+
+  _startListening() {
+    // Create the WS server
+    this._createWSServer();
+    // Make server to listen
+    this._wsServer._startListening();
   }
 
   addJsonConnection(wsConnection) {

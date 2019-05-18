@@ -14,6 +14,7 @@ class DatabaseUtils {
       "email": 0,
       "phone": 0,
       "mobile": 0,
+      "notificationsActive": 0,
       "iNumber": 0,
       "costCenter": 0,
       "status": 0,

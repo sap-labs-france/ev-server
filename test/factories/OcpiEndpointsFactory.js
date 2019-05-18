@@ -1,7 +1,7 @@
 const Factory = require('rosie').Factory;
 const faker = require('faker');
 
-module.exports = Factory.define('ocpiendpoint')
+module.exports = Factory.define('ocpiEndpoint')
   .attr('name', () => faker.name.lastName())
   .attr('baseUrl', () => faker.internet.url())
   .attr('countryCode', 'FR')

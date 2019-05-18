@@ -476,8 +476,7 @@ class UserService {
       // Set
       users.result = users.result.map((user) => user.getModel());
       // Filter
-      users.result = UserSecurity.filterUsersResponse(
-        users.result, req.user);
+      UserSecurity.filterUsersResponse(users, req.user);
       // Return
       res.json(users);
       next();
@@ -514,8 +513,7 @@ class UserService {
       // Set
       users.result = users.result.map((user) => user.getModel());
       // Filter
-      users.result = UserSecurity.filterUsersResponse(
-        users.result, req.user);
+      UserSecurity.filterUsersResponse(users, req.user);
       // Return
       res.json(users);
       next();
@@ -564,8 +562,13 @@ class UserService {
         // Generate a hash
         user.setPassword(newPasswordHashed);
       }
-      // Update timestamp
+      // Set timestamp
       user.setCreatedBy(new User(req.user.tenantID, {'id': req.user.id}));
+      user.setCreatedOn(new Date());
+      // Set default
+      if (!filteredRequest.hasOwnProperty('notificationsActive')) {
+        user.setNotificationsActive(true);
+      }
       user.setCreatedOn(new Date());
       // Save User
       const newUser = await user.save();

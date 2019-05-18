@@ -8,57 +8,57 @@ describe('OCPI Endpoint tests', function () {
   this.timeout(30000);
 
   describe('Success cases', () => {
-    it('Should create a new ocpiendpoint', async () => {
+    it('Should create a new Ocpi Endpoint', async () => {
       // Check
-      expect(this.newOcpiendpoint).to.not.be.null;
+      expect(this.newOcpiEndpoint).to.not.be.null;
       // Create the entity
-      this.newOcpiendpoint = await CentralServerService.createEntity(
-        CentralServerService.ocpiendpointApi, Factory.ocpiendpoint.build( { }));
+      this.newOcpiEndpoint = await CentralServerService.createEntity(
+        CentralServerService.ocpiEndpointApi, Factory.ocpiEndpoint.build( { }));
     });
 
-    it('Should find the created ocpiendpoint by id', async () => {
+    it('Should find the created Ocpi Endpoint by id', async () => {
       // Check if the created entity can be retrieved with its id
       await CentralServerService.getEntityById(
-        CentralServerService.ocpiendpointApi, this.newOcpiendpoint);
+        CentralServerService.ocpiEndpointApi, this.newOcpiEndpoint);
     });
 
-    it('Should find the created ocpiendpoint in the ocpiendpoint list', async () => {
+    it('Should find the created Ocpi Endpoint in the Ocpi Endpoint list', async () => {
       // Check if the created entity is in the list
       await CentralServerService.checkEntityInList(
-        CentralServerService.ocpiendpointApi, this.newOcpiendpoint);
+        CentralServerService.ocpiEndpointApi, this.newOcpiEndpoint);
     });
 
-    it('Should update the ocpiendpoint', async () => {
+    it('Should update the Ocpi Endpoint', async () => {
       // Change entity
-      this.newOcpiendpoint.name = "NewName";
-      this.newOcpiendpoint.baseUrl = "http://new.url/versions";
-      this.newOcpiendpoint.countryCode = "AA";
-      this.newOcpiendpoint.partyId = "AA";
-      this.newOcpiendpoint.localToken = "newlocaltoken";
-      this.newOcpiendpoint.token = "newremotetoken";
+      this.newOcpiEndpoint.name = "NewName";
+      this.newOcpiEndpoint.baseUrl = "http://new.url/versions";
+      this.newOcpiEndpoint.countryCode = "AA";
+      this.newOcpiEndpoint.partyId = "AA";
+      this.newOcpiEndpoint.localToken = "newlocaltoken";
+      this.newOcpiEndpoint.token = "newremotetoken";
       // Update
       await CentralServerService.updateEntity(
-        CentralServerService.ocpiendpointApi, this.newOcpiendpoint);
+        CentralServerService.ocpiEndpointApi, this.newOcpiEndpoint);
     });
 
-    it('Should find the updated ocpiendpoint by id', async () => {
+    it('Should find the updated Ocpi Endpoint by id', async () => {
       // Check if the updated entity can be retrieved with its id
-      let updatedOcpiendpoint = await CentralServerService.getEntityById(
-        CentralServerService.ocpiendpointApi, this.newOcpiendpoint);
+      let updatedOcpiEndpoint = await CentralServerService.getEntityById(
+        CentralServerService.ocpiEndpointApi, this.newOcpiEndpoint);
       // Check
-      expect(updatedOcpiendpoint.name).to.equal(this.newOcpiendpoint.name);
+      expect(updatedOcpiEndpoint.name).to.equal(this.newOcpiEndpoint.name);
     });
 
-    it('Should delete the created ocpiendpoint', async () => {
+    it('Should delete the created Ocpi Endpoint', async () => {
       // Delete the created entity
       await CentralServerService.deleteEntity(
-        CentralServerService.ocpiendpointApi, this.newOcpiendpoint);
+        CentralServerService.ocpiEndpointApi, this.newOcpiEndpoint);
     });
 
-    it('Should not find the deleted ocpiendpoint with its id', async () => {
+    it('Should not find the deleted Ocpi Endpoint with its id', async () => {
       // Check if the deleted entity cannot be retrieved with its id
       await CentralServerService.checkDeletedEntityById(
-        CentralServerService.ocpiendpointApi, this.newOcpiendpoint);
+        CentralServerService.ocpiEndpointApi, this.newOcpiEndpoint);
     });
   });
 

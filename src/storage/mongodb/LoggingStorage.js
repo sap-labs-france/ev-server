@@ -248,7 +248,7 @@ class LoggingStorage {
     return {
       count: (loggingsCountMDB.length > 0 ?
         (loggingsCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : loggingsCountMDB[0].count) : 0),
-    result: loggings
+      result: loggings
     };
   }
 }

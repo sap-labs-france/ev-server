@@ -46,8 +46,8 @@ module.exports = {
   ENTITY_PRICING: "Pricing",
   ENTITY_SETTING: "Setting",
   ENTITY_SETTINGS: "Settings",
-  ENTITY_OCPIENDPOINT: "Ocpiendpoint",
-  ENTITY_OCPIENDPOINTS: "Ocpiendpoints",
+  ENTITY_OCPI_ENDPOINT: "OcpiEndpoint",
+  ENTITY_OCPI_ENDPOINTS: "OcpiEndpoints",
   ENTITY_CONNECTION: "Connection",
   ENTITY_CONNECTIONS: "Connections",
 

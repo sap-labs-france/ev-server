@@ -177,6 +177,14 @@ class User extends AbstractTenantEntity {
     this._model.mobile = mobile;
   }
 
+  isNotificationsActive() {
+    return this._model.notificationsActive;
+  }
+
+  setNotificationsActive(notificationsActive) {
+    this._model.notificationsActive = notificationsActive;
+  }
+
   getINumber() {
     return this._model.iNumber;
   }
@@ -324,6 +332,7 @@ class User extends AbstractTenantEntity {
       this.setPasswordResetHash(Constants.ANONIMIZED_VALUE);
       this.setPhone(Constants.ANONIMIZED_VALUE);
       this.setMobile(Constants.ANONIMIZED_VALUE);
+      this.setNotificationsActive(true);
       this.setINumber(Constants.ANONIMIZED_VALUE);
       this.setCostCenter(Constants.ANONIMIZED_VALUE);
       this.setImage(null);

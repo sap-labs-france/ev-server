@@ -68,13 +68,13 @@ class ConnectorSecurity {
   static filterConnectionsResponse(connections, loggedUser) {
     const filteredConnections = [];
 
-    if (!connections) {
+    if (!connections.result) {
       return null;
     }
     if (!Authorizations.canListConnections(loggedUser)) {
       return null;
     }
-    for (const connection of connections) {
+    for (const connection of connections.result) {
       // Filter
       const filteredConnection = ConnectorSecurity.filterConnectionResponse(connection, loggedUser);
       // Ok?
@@ -83,7 +83,7 @@ class ConnectorSecurity {
         filteredConnections.push(filteredConnection);
       }
     }
-    return filteredConnections;
+    connections.result = filteredConnections;
   }
 }
 

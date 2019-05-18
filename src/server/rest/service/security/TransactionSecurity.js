@@ -61,6 +61,7 @@ class TransactionSecurity {
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.Type = sanitize(request.Type);
+    filteredRequest.MinimalPrice = sanitize(request.MinimalPrice);
     if (request.UserID) {
       filteredRequest.UserID = sanitize(request.UserID);
     }
@@ -117,7 +118,7 @@ class TransactionSecurity {
       filteredTransaction.timestamp = transaction.getStartDate();
       filteredTransaction.timezone = transaction.getTimezone();
       // if (Authorizations.isAdmin(loggedUser) && transaction.getModel().hasOwnProperty('price')) {
-      if (transaction.hasPrice()) {
+      if (transaction.hasStartPrice()) {
         filteredTransaction.price = transaction.getStartPrice();
         filteredTransaction.roundedPrice = transaction.getStartRoundedPrice();
         filteredTransaction.priceUnit = transaction.getStartPriceUnit();
@@ -181,23 +182,19 @@ class TransactionSecurity {
 
   static filterTransactionsResponse(transactions, loggedUser) {
     const filteredTransactions = [];
-
-    if (!transactions) {
+    if (!transactions.result) {
       return null;
     }
-    if (!Authorizations.canListTransactions(loggedUser)) {
-      return null;
-    }
-    for (const transaction of transactions) {
+    // Filter result
+    for (const transaction of transactions.result) {
       // Filter
       const filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser);
       // Ok?
       if (filteredTransaction) {
-        // Add
         filteredTransactions.push(filteredTransaction);
       }
     }
-    return filteredTransactions;
+    transactions.result = filteredTransactions;
   }
 
   static _filterUserInTransactionResponse(user, loggedUser) {

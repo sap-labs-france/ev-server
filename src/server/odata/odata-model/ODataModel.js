@@ -75,6 +75,7 @@ module.exports = {
       "firstName" : { "type": "Edm.String" },
       "phone" : { "type": "Edm.String" },
       "mobile" : { "type": "Edm.String" },
+      "notificationsActive" : { "type": "Edm.Boolean" },
       "iNumber" : { "type": "Edm.String" },
       "costCenter" : { "type": "Edm.String" },
       "status" : { "type": "Edm.String" },
