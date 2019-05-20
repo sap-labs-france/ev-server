@@ -205,6 +205,7 @@ class TenantService extends AbstractService {
         status: Constants.USER_STATUS_PENDING,
         role: Constants.ROLE_ADMIN,
         email: newTenant.getEmail(),
+        tagIDs: [Utils.generateTagID(newTenant.getName(), "Admin")],
         createdOn: new Date().toISOString(),
         verificationToken: verificationToken
       });
