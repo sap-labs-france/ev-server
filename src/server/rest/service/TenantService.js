@@ -198,14 +198,20 @@ class TenantService extends AbstractService {
 
       const password = User.generatePassword();
       const verificationToken = Utils.generateToken(newTenant.getEmail());
+      // Extract the name, first name from email
+      const userFirstNameAndName = newTenant.getEmail().split('@')[0].split('.');
+      const userFirstName = (userFirstNameAndName.length > 0 && userFirstNameAndName[0].length > 0) ?
+        userFirstNameAndName[0].charAt(0).toUpperCase() + userFirstNameAndName[0].slice(1) : "Admin"; 
+      const userName = (userFirstNameAndName.length > 1 && userFirstNameAndName[1].length > 0) ?
+        userFirstNameAndName[1].toUpperCase() : "NEW"; 
       const tenantUser = new User(newTenant.getID(), {
-        name: newTenant.getName(),
-        firstName: "Admin",
+        name: userName,
+        firstName: userFirstName,
         password: await User.hashPasswordBcrypt(password),
         status: Constants.USER_STATUS_PENDING,
         role: Constants.ROLE_ADMIN,
         email: newTenant.getEmail(),
-        tagIDs: [Utils.generateTagID(newTenant.getName(), "Admin")],
+        tagIDs: [Utils.generateTagID(userName, userFirstName)],
         createdOn: new Date().toISOString(),
         verificationToken: verificationToken
       });
