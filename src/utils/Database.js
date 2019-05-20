@@ -471,10 +471,8 @@ class Database {
     if (forFrontEnd) {
       Database.updateID(src, dest);
     }
-
     dest.identifier = src.identifier;
     dest.content = src.content;
-
     Database.updateCreatedAndLastChanged(src, dest);
   }
 

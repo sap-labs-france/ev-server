@@ -6,6 +6,7 @@ const ConflictError = require('../../../exception/ConflictError');
 const Constants = require('../../../utils/Constants');
 const Tenant = require('../../../entity/Tenant');
 const User = require('../../../entity/User');
+const Setting = require('../../../entity/Setting');
 const Authorizations = require('../../../authorization/Authorizations');
 const TenantSecurity = require('./security/TenantSecurity');
 const HttpStatusCodes = require('http-status-codes');
@@ -294,6 +295,27 @@ class TenantService extends AbstractService {
       tenant.setLastChangedOn(new Date());
       // Update Tenant
       const updatedTenant = await tenant.save();
+      // Create settings
+      for (const activeComponent of tenant.getActiveComponents()) {
+        // Get the settings
+        const setting = await Setting.getSettingByIdentifier(tenant.getID(), activeComponent.name);
+        if (!setting) {
+          // Create
+          const settingContent = Setting.createDefaultSettings(activeComponent);
+          if (settingContent) {
+            // Create & Save
+            const newSetting = new Setting(tenant.getID(), {
+              identifier: activeComponent.name,
+              content: settingContent
+            });
+            // Update timestamp
+            newSetting.setCreatedOn(new Date());
+            // Save Setting
+            await newSetting.save();
+          }
+        }
+      }
+
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID, user: req.user,
