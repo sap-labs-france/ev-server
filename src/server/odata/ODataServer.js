@@ -10,17 +10,15 @@ require('source-map-support').install();
 
 const MODULE_NAME = "ODataServer";
 
-let _oDataServerConfig;
-
 class ODataServer {
   // Create the rest server
   constructor(oDataServerConfig) {
     // Keep params
-    _oDataServerConfig = oDataServerConfig;
+    this._oDataServerConfig = oDataServerConfig;
     // Initialize express app
     this._express = expressTools.init();
-    // log to console
-    if (_oDataServerConfig.debug) {
+    // Log to console
+    if (this._oDataServerConfig.debug) {
       // Log
       this._express.use(
         morgan('combined', {
@@ -60,7 +58,7 @@ class ODataServer {
 
   // Start the server
   start() {
-    expressTools.startServer(_oDataServerConfig, expressTools.createHttpServer(_oDataServerConfig, this._express), "OData", MODULE_NAME);
+    expressTools.startServer(this._oDataServerConfig, expressTools.createHttpServer(this._oDataServerConfig, this._express), "OData", MODULE_NAME);
   }
 }
 
