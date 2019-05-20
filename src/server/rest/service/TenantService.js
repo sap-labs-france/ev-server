@@ -300,7 +300,7 @@ class TenantService extends AbstractService {
         // Get the settings
         const currentSetting = await Setting.getSettingByIdentifier(tenant.getID(), activeComponent.name);
         // Create
-        const newSettingContent = Setting.createDefaultSettingContent(activeComponent, currentSetting.getModel());
+        const newSettingContent = Setting.createDefaultSettingContent(activeComponent, currentSetting.getContent());
         if (newSettingContent) {
           // Create & Save
           if (!currentSetting) {
