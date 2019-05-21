@@ -153,7 +153,7 @@ class ConcurConnector extends AbstractConnector {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Concur access token not granted for ${userId}`, 500,
-        'MODULE_NAME', 'GetAccessToken', userId);
+        MODULE_NAME, 'GetAccessToken', userId);
     }
   }
 
@@ -192,7 +192,7 @@ class ConcurConnector extends AbstractConnector {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Concur access token not refreshed for ${userId}`, 500,
-        'MODULE_NAME', 'refreshToken', userId);
+        MODULE_NAME, 'refreshToken', userId);
     }
   }
 
