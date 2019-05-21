@@ -51,6 +51,8 @@ module.exports = {
   ENTITY_CONNECTION: "Connection",
   ENTITY_CONNECTIONS: "Connections",
 
+  SETTING_PRICING_TYPE_SIMPLE: "simple",
+  SETTING_PRICING_TYPE_CONVERGENT_CHARGING: "convergentCharging",
 
   NOTIF_TYPE_CHARGING_STATION_CONFIGURATION: "Configuration",
 

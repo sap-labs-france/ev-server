@@ -271,7 +271,7 @@ class Database {
     }
     Database.updateCreatedAndLastChanged(src, dest);
     dest.deleted = src.deleted;
-    if (forFrontEnd && src.hasOwnProperty("tagIDs")) {
+    if (src.hasOwnProperty("tagIDs")) {
       dest.tagIDs = src.tagIDs;
     }
     if (src.hasOwnProperty("plateID")) {
@@ -471,10 +471,8 @@ class Database {
     if (forFrontEnd) {
       Database.updateID(src, dest);
     }
-
     dest.identifier = src.identifier;
     dest.content = src.content;
-
     Database.updateCreatedAndLastChanged(src, dest);
   }
 
