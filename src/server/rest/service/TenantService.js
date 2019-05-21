@@ -6,6 +6,7 @@ const ConflictError = require('../../../exception/ConflictError');
 const Constants = require('../../../utils/Constants');
 const Tenant = require('../../../entity/Tenant');
 const User = require('../../../entity/User');
+const Setting = require('../../../entity/Setting');
 const Authorizations = require('../../../authorization/Authorizations');
 const TenantSecurity = require('./security/TenantSecurity');
 const HttpStatusCodes = require('http-status-codes');
@@ -198,13 +199,20 @@ class TenantService extends AbstractService {
 
       const password = User.generatePassword();
       const verificationToken = Utils.generateToken(newTenant.getEmail());
+      // Extract the name, first name from email
+      const userFirstNameAndName = newTenant.getEmail().split('@')[0].split('.');
+      const userFirstName = (userFirstNameAndName.length > 0 && userFirstNameAndName[0].length > 0) ?
+        userFirstNameAndName[0].charAt(0).toUpperCase() + userFirstNameAndName[0].slice(1) : "Admin"; 
+      const userName = (userFirstNameAndName.length > 1 && userFirstNameAndName[1].length > 0) ?
+        userFirstNameAndName[1].toUpperCase() : "NEW"; 
       const tenantUser = new User(newTenant.getID(), {
-        name: newTenant.getName(),
-        firstName: "Admin",
+        name: userName,
+        firstName: userFirstName,
         password: await User.hashPasswordBcrypt(password),
         status: Constants.USER_STATUS_PENDING,
         role: Constants.ROLE_ADMIN,
         email: newTenant.getEmail(),
+        tagIDs: [Utils.generateTagID(userName, userFirstName)],
         createdOn: new Date().toISOString(),
         verificationToken: verificationToken
       });
@@ -287,6 +295,31 @@ class TenantService extends AbstractService {
       tenant.setLastChangedOn(new Date());
       // Update Tenant
       const updatedTenant = await tenant.save();
+      // Create settings
+      for (const activeComponent of tenant.getActiveComponents()) {
+        // Get the settings
+        const currentSetting = await Setting.getSettingByIdentifier(tenant.getID(), activeComponent.name);
+        // Create
+        const newSettingContent = Setting.createDefaultSettingContent(
+          activeComponent, (currentSetting ? currentSetting.getContent() : null));
+        if (newSettingContent) {
+          // Create & Save
+          if (!currentSetting) {
+            const newSetting = new Setting(tenant.getID(), {
+              identifier: activeComponent.name,
+              content: newSettingContent
+            });
+            newSetting.setCreatedOn(new Date());
+            // Save Setting
+            await newSetting.save();
+          } else {
+            currentSetting.setContent(newSettingContent);
+            currentSetting.setLastChangedOn(new Date());
+            // Save Setting
+            await currentSetting.save();
+          }
+        }
+      }
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID, user: req.user,
