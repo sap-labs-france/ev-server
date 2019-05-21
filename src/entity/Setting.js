@@ -85,12 +85,6 @@ class Setting extends AbstractTenantEntity {
   }
 
   static createDefaultSettingContent(activeComponent, currentSettingContent) {
-    const defaultSimpleSettingContent = {
-      "simple" : {}
-    };
-    const defaultConvergentChargingSettingContent = {
-      "convergentCharging" : {}
-    };
     switch (activeComponent.name) {
       // Pricing
       case Constants.COMPONENTS.PRICING:
@@ -98,18 +92,18 @@ class Setting extends AbstractTenantEntity {
         if (!currentSettingContent) {
           // Create default settings
           if (activeComponent.type === Constants.SETTING_PRICING_TYPE_SIMPLE) {
-            return defaultSimpleSettingContent;
+            return { "simple" : {} };
           } else if (activeComponent.type === Constants.SETTING_PRICING_TYPE_CONVERGENT_CHARGING) {
-            return defaultConvergentChargingSettingContent;
+            return { "convergentCharging" : {} };
           }
         } else {
           // Changed?
           if (!currentSettingContent.hasOwnProperty(activeComponent.type)) {
             // Create new settings
             if (activeComponent.type === Constants.SETTING_PRICING_TYPE_SIMPLE) {
-              return defaultSimpleSettingContent;
+              return { "simple" : {} };
             } else if (activeComponent.type === Constants.SETTING_PRICING_TYPE_CONVERGENT_CHARGING) {
-              return defaultConvergentChargingSettingContent;
+              return { "convergentCharging" : {} };
             }
           }
         }
