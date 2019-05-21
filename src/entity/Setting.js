@@ -92,21 +92,36 @@ class Setting extends AbstractTenantEntity {
         if (!currentSettingContent) {
           // Create default settings
           if (activeComponent.type === Constants.SETTING_PRICING_TYPE_SIMPLE) {
-            return { "simple" : {} };
+            return { "type": "simple", "simple": {} };
           } else if (activeComponent.type === Constants.SETTING_PRICING_TYPE_CONVERGENT_CHARGING) {
-            return { "convergentCharging" : {} };
+            return { "type": "convergentCharging", "convergentCharging": {} };
           }
         } else {
           // Changed?
           if (!currentSettingContent.hasOwnProperty(activeComponent.type)) {
             // Create new settings
             if (activeComponent.type === Constants.SETTING_PRICING_TYPE_SIMPLE) {
-              return { "simple" : {} };
+              return { "type": "simple", "simple": {} };
             } else if (activeComponent.type === Constants.SETTING_PRICING_TYPE_CONVERGENT_CHARGING) {
-              return { "convergentCharging" : {} };
+              return { "type": "convergentCharging", "convergentCharging": {} };
             }
           }
         }
+        break;
+
+      // Refund
+      case Constants.COMPONENTS.REFUND:
+        // Settings does not exists
+        if (!currentSettingContent) {
+          // Only Concur
+          return { "type": "concur", "concur": {} };
+        } else {
+          // Changed?
+          if (!currentSettingContent.hasOwnProperty(activeComponent.type)) {
+            return { "type": "concur", "concur": {} };
+          }
+        }
+        break;
     }
   }
 

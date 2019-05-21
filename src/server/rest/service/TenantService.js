@@ -265,10 +265,10 @@ class TenantService extends AbstractService {
 
   static async handleUpdateTenant(action, req, res, next) {
     try {
-      // Filter
+      // Check
       TenantValidator.validateTenantUpdate(req.body);
+      // Filter
       const filteredRequest = TenantSecurity.filterTenantUpdateRequest(req.body, req.user);
-
       // Check email
       const tenant = await Tenant.getTenant(filteredRequest.id);
       if (!tenant) {
