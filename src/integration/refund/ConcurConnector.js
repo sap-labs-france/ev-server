@@ -33,7 +33,19 @@ class ConcurConnector extends AbstractConnector {
           return error.response.status === 500;
         },
         retryDelay: (retryCount, error) => {
-          Logging.logException(new InternalError(`Unable to ${error.config.method} ${error.config.url}, response status ${error.response.status}, retry occurrence ${retryCount}`, error.response.data), "Refund", MODULE_NAME, MODULE_NAME, "AxiosRetry", tenantID);
+          if (error.config.method === 'post') {
+            if (error.config.url.endsWith('/token')) {
+              Logging.logException(new InternalError(`Unable to request token, response status ${error.response.status}, attempt ${retryCount}`, error.response.data), "Refund", MODULE_NAME, MODULE_NAME, "AxiosRetry", tenantID);
+            } else {
+              const payload = {
+                error: error.response.data,
+                payload: JSON.parse(error.config.data)
+              };
+              Logging.logException(new InternalError(`Unable to post data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`, payload), "Refund", MODULE_NAME, MODULE_NAME, "AxiosRetry", tenantID);
+            }
+          } else {
+            Logging.logException(new InternalError(`Unable to ${error.config.url} data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`, error.response.data), "Refund", MODULE_NAME, MODULE_NAME, "AxiosRetry", tenantID);
+          }
           return retryCount * 200;
         },
         shouldResetTimeout: true
@@ -343,7 +355,11 @@ class ConcurConnector extends AbstractConnector {
       });
       return response.data.quickExpenseIdUri;
     } catch (e) {
-      throw new InternalError(`Unable to create quickExpense, response status ${e.response.status}`, e.response.data);
+      if (e.response) {
+        throw new InternalError(`Unable to create quickExpense, response status ${e.response.status}`, e.response.data);
+      } else {
+        throw new InternalError(`Unable to create expense report`, e);
+      }
     }
   }
 
@@ -391,7 +407,11 @@ class ConcurConnector extends AbstractConnector {
       });
       return response.data.ID;
     } catch (e) {
-      throw new InternalError(`Unable to create expense entry, response status ${e.response.status}`, e.response.data);
+      if (e.response) {
+        throw new InternalError(`Unable to create expense entry, response status ${e.response.status}`, e.response.data);
+      } else {
+        throw new InternalError(`Unable to create expense entry`, e);
+      }
     }
   }
 
@@ -422,7 +442,11 @@ class ConcurConnector extends AbstractConnector {
       });
       return response.data.ID;
     } catch (e) {
-      throw new InternalError(`Unable to create expense report, response status ${e.response.status}`, e.response.data);
+      if (e.response) {
+        throw new InternalError(`Unable to create expense report, response status ${e.response.status}`, e.response.data);
+      } else {
+        throw new InternalError(`Unable to create expense report`, e);
+      }
     }
   }
 
