@@ -105,33 +105,33 @@ class CentralRestServer {
     return _restHttpServer;
   }
 
-  // _socketIOListenCb() {
-  //   // Log
-  //   const logMsg = `REST SocketIO Server listening on '${_centralSystemRestConfig.protocol}://${_restHttpServer.address().address}:${_restHttpServer.address().port}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`;
-  //   Logging.logInfo({
-  //     tenantID: Constants.DEFAULT_TENANT,
-  //     module: MODULE_NAME,
-  //     method: "start", action: "Startup",
-  //     message: logMsg
-  //   });
-  //   // eslint-disable-next-line no-console
-  //   console.log(logMsg);
+  static _socketIOListenCb() {
+    // Log
+    const logMsg = `REST SocketIO Server listening on '${_centralSystemRestConfig.protocol}://${_restHttpServer.address().address}:${_restHttpServer.address().port}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`;
+    Logging.logInfo({
+      tenantID: Constants.DEFAULT_TENANT,
+      module: MODULE_NAME,
+      method: "start", action: "Startup",
+      message: logMsg
+    });
+    // eslint-disable-next-line no-console
+    console.log(logMsg);
 
-  //   // Check and send notification
-  //   setInterval(() => {
-  //     // Send
-  //     for (let i = _currentNotifications.length - 1; i >= 0; i--) {
-  //       // Notify all Web Sockets
-  //       _socketIO.to(_currentNotifications[i].tenantID).emit(_currentNotifications[i].entity, _currentNotifications[i]);
-  //       // Remove
-  //       _currentNotifications.splice(i, 1);
-  //     }
-  //   }, _centralSystemRestConfig.webSocketNotificationIntervalSecs * 1000);
-  // }
+    // Check and send notification
+    setInterval(() => {
+      // Send
+      for (let i = _currentNotifications.length - 1; i >= 0; i--) {
+        // Notify all Web Sockets
+        _socketIO.to(_currentNotifications[i].tenantID).emit(_currentNotifications[i].entity, _currentNotifications[i]);
+        // Remove
+        _currentNotifications.splice(i, 1);
+      }
+    }, _centralSystemRestConfig.webSocketNotificationIntervalSecs * 1000);
+  }
 
   startSocketIO() {
     // Log
-    const logMsg = `Starting REST SocketIO Server ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`;
+    const logMsg = `Starting REST SocketIO Server ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`;
     Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
       module: MODULE_NAME,

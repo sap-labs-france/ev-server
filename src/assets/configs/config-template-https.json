@@ -1,6 +1,7 @@
 {
 	"Cluster": {
-		"enable": false
+		"enable": false,
+		"num_worker": 2
 	},
 	"CentralSystems": [
 		{
