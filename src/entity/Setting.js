@@ -134,11 +134,11 @@ class Setting extends AbstractTenantEntity {
         // Settings does not exists
         if (!currentSettingContent) {
           // Only Gireve
-          return { "type": "gireve", "gireve": {} };
+          return { "type": "gireve", "ocpi": {} };
         } else {
           // Changed?
           if (!currentSettingContent.hasOwnProperty(activeComponent.type)) {
-            return { "type": "gireve", "gireve": {} };
+            return { "type": "gireve", "ocpi": {} };
           }
         }
         break;
