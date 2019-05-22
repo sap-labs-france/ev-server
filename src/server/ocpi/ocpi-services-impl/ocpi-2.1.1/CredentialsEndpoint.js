@@ -25,7 +25,7 @@ class CredentialsEndpoint extends AbstractEndpoint {
   /**
    * Main Process Method for the endpoint
    */
-  async process(req, res, next, tenant) { // eslint-disable-line
+  async process(req, res, next, tenant) {
     try {
       switch (req.method) {
         case "POST":
@@ -42,7 +42,6 @@ class CredentialsEndpoint extends AbstractEndpoint {
       next(error);
     }
   }
-
 
   /**
    * Registration process initiated by IOP
@@ -76,7 +75,7 @@ class CredentialsEndpoint extends AbstractEndpoint {
         EP_IDENTIFIER, 'deleteCredentials', null);
     }
 
-    // save copi endpoint
+    // save ocpi endpoint
     ocpiEndpoint.setStatus(Constants.OCPI_REGISTERING_STATUS.OCPI_UNREGISTERED);
     ocpiEndpoint.setBackgroundPatchJobFlag(false);
     await ocpiEndpoint.save();
@@ -88,7 +87,7 @@ class CredentialsEndpoint extends AbstractEndpoint {
   /**
    * Registration process initiated by IOP
    */
-  async postCredentials(req, res, next, tenant) { // eslint-disable-line
+  async postCredentials(req, res, next, tenant) {
     // get payload
     const credential = req.body;
 
@@ -158,7 +157,7 @@ class CredentialsEndpoint extends AbstractEndpoint {
     });
 
     // try to access remote ocpi service versions
-    // any error here should result in a 3001 Ocpi result execption based on the specification
+    // any error here should result in a 3001 Ocpi result exception based on the specification
     try {
       // access versions API
       const ocpiVersions = await axios.get(ocpiEndpoint.getBaseUrl(), {
@@ -169,7 +168,7 @@ class CredentialsEndpoint extends AbstractEndpoint {
         timeout: 10000
       });
 
-      // log Avaialble OCPI Versions
+      // log available OCPI Versions
       Logging.logDebug({
         tenantID: tenant.getID(),
         action: 'POST credentials',
@@ -220,7 +219,7 @@ class CredentialsEndpoint extends AbstractEndpoint {
         }
       });
 
-      // log Available OCPI services
+      // log available OCPI services
       Logging.logDebug({
         tenantID: tenant.getID(),
         action: 'POST credentials',
@@ -248,7 +247,7 @@ class CredentialsEndpoint extends AbstractEndpoint {
     await ocpiEndpoint.generateLocalToken(tenant);
     ocpiEndpoint.setStatus(Constants.OCPI_REGISTERING_STATUS.OCPI_REGISTERED);
 
-    // save copi endpoint
+    // save ocpi endpoint
     await ocpiEndpoint.save();
 
     // get base url
@@ -257,7 +256,7 @@ class CredentialsEndpoint extends AbstractEndpoint {
     // build credential object
     const respCredential = await OCPIMapping.buildOCPICredentialObject(tenant, ocpiEndpoint.getLocalToken(), versionUrl);
 
-    // log Avaialble OCPI Versions
+    // log available OCPI Versions
     Logging.logDebug({
       tenantID: tenant.getID(),
       action: 'POST credentials',
