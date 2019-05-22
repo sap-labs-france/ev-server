@@ -273,7 +273,4 @@ class CredentialsEndpoint extends AbstractEndpoint {
   }
 }
 
-
-
-
 module.exports = CredentialsEndpoint;
