@@ -295,26 +295,38 @@ class TenantService extends AbstractService {
       tenant.setLastChangedOn(new Date());
       // Update Tenant
       const updatedTenant = await tenant.save();
+      // Get the user
+      const user = await User.getUser(req.user.tenantID, req.user.id);
       // Create settings
-      for (const activeComponent of tenant.getActiveComponents()) {
+      for (const component of tenant.getComponents()) {
         // Get the settings
-        const currentSetting = await Setting.getSettingByIdentifier(tenant.getID(), activeComponent.name);
+        const currentSetting = await Setting.getSettingByIdentifier(tenant.getID(), component.name);
+        // Check if Component is active
+        if (!component.active) {
+          // Delete settings
+          if (currentSetting) {
+            await currentSetting.delete();
+          }
+          continue;
+        }
         // Create
         const newSettingContent = Setting.createDefaultSettingContent(
-          activeComponent, (currentSetting ? currentSetting.getContent() : null));
+          component, (currentSetting ? currentSetting.getContent() : null));
         if (newSettingContent) {
           // Create & Save
           if (!currentSetting) {
             const newSetting = new Setting(tenant.getID(), {
-              identifier: activeComponent.name,
+              identifier: component.name,
               content: newSettingContent
             });
             newSetting.setCreatedOn(new Date());
+            newSetting.setCreatedBy(user);
             // Save Setting
             await newSetting.save();
           } else {
             currentSetting.setContent(newSettingContent);
             currentSetting.setLastChangedOn(new Date());
+            currentSetting.setLastChangedBy(user);
             // Save Setting
             await currentSetting.save();
           }

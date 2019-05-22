@@ -201,6 +201,17 @@ class OCPIEndpointStorage {
     // Debug
     Logging.traceEnd('OCPIEndpointStorage', 'deleteOcpiEndpoint', uniqueTimerID, { id });
   }
+
+  static async deleteOcpiEndpoints(tenantID) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('OCPIEndpointStorage', 'deleteOcpiEndpoints');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Delete OcpiEndpoint
+    await global.database.getCollection(tenantID, 'ocpiendpoints').deleteMany({});
+    // Debug
+    Logging.traceEnd('OCPIEndpointStorage', 'deleteOcpiEndpoints', uniqueTimerID);
+  }
 }
 
 module.exports = OCPIEndpointStorage;
