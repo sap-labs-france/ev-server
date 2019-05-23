@@ -84,6 +84,38 @@ class Setting extends AbstractTenantEntity {
     return SettingStorage.deleteSetting(this.getTenantID(), this.getID());
   }
 
+  static createDefaultSettingContent(activeComponent, currentSettingContent) {
+    const defaultSimpleSettingContent = {
+      "simple" : {}
+    };
+    const defaultConvergentChargingSettingContent = {
+      "convergentCharging" : {}
+    };
+    switch (activeComponent.name) {
+      // Pricing
+      case Constants.COMPONENTS.PRICING:
+        // Settings does not exists
+        if (!currentSettingContent) {
+          // Create default settings
+          if (activeComponent.type === Constants.SETTING_PRICING_TYPE_SIMPLE) {
+            return defaultSimpleSettingContent;
+          } else if (activeComponent.type === Constants.SETTING_PRICING_TYPE_CONVERGENT_CHARGING) {
+            return defaultConvergentChargingSettingContent;
+          }
+        } else {
+          // Changed?
+          if (!currentSettingContent.hasOwnProperty(activeComponent.type)) {
+            // Create new settings
+            if (activeComponent.type === Constants.SETTING_PRICING_TYPE_SIMPLE) {
+              return defaultSimpleSettingContent;
+            } else if (activeComponent.type === Constants.SETTING_PRICING_TYPE_CONVERGENT_CHARGING) {
+              return defaultConvergentChargingSettingContent;
+            }
+          }
+        }
+    }
+  }
+
   static checkIfSettingValid(request, httpRequest) {
     // Update model?
     if (httpRequest.method !== 'POST' && !request.id) {
