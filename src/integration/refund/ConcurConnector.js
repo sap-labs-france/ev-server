@@ -150,7 +150,7 @@ class ConcurConnector extends AbstractConnector {
       Logging.logDebug({
         tenantID: this.getTenantID(),
         module: MODULE_NAME, method: 'refreshToken',
-        action: 'RefreshAccessToken', message: `Request concur refresh token for ${userId}`
+        action: 'refreshAccessToken', message: `request concur refresh token for ${userId}`
       });
       const result = await axios.post(`${this.getAuthenticationUrl()}/oauth2/v0/token`,
         querystring.stringify({
@@ -168,7 +168,7 @@ class ConcurConnector extends AbstractConnector {
       Logging.logDebug({
         tenantID: this.getTenantID(),
         module: MODULE_NAME, method: 'refreshToken',
-        action: 'RefreshAccessToken', message: `Concur access token refreshed for ${userId}`
+        action: 'refreshAccessToken', message: `Concur access token refreshed for ${userId}`
       });
       const now = new Date();
       connection.updateData(result.data, now, ConcurConnector.computeValidUntilAt(result));
@@ -178,7 +178,7 @@ class ConcurConnector extends AbstractConnector {
       Logging.logError({
         tenantID: this.getTenantID(),
         module: MODULE_NAME, method: 'refreshToken',
-        action: 'RefreshAccessToken', message: `Concur access token not refreshed for ${userId}`
+        action: 'refreshAccessToken', message: `Concur access token not refreshed for ${userId}`
       });
       throw new AppError(
         Constants.CENTRAL_SERVER,

@@ -20,22 +20,6 @@ class Utils {
     return uuidV4();
   }
 
-  static generateTagID(name, firstName) {
-    let tagID = '';
-    if (name.length > 0) {
-      tagID = name[0];
-    } else {
-      tagID = 'U';
-    }
-    if (firstName.length > 0) {
-      tagID += firstName[0];
-    } else {
-      tagID += 'U';
-    }
-    tagID += Math.floor((Math.random() * 2147483648) + 1);
-    return tagID;
-  }
-
   // Temporary method for Revenue Cloud concept
   static async pushTransactionToRevenueCloud(action, transaction, user, actionOnUser) {
     const Logging = require('./Logging'); // Avoid fucking circular deps
