@@ -33,6 +33,9 @@ class MigrateTenantSettingsTask extends MigrationTask {
           }, { upsert: true, new: true, returnOriginal: false });          
         }
       }
+      // Delete unused settings
+      await global.database.getCollection(
+        tenantMDB._id, 'settings').remove({ identifier: 'chargeathome' });
       // Update Tenant's settings
       const tenantSettingsMDB = await global.database.getCollection(
         tenantMDB._id, 'settings').aggregate([]).toArray();
