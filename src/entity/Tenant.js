@@ -86,7 +86,6 @@ class Tenant {
 
   getActiveComponentNames() {
     const activeComponents = [];
-
     for (const componentName in this._model.components) {
       if (this._model.components.hasOwnProperty(componentName) && this._model.components[componentName].active) {
         activeComponents.push(componentName);
@@ -97,13 +96,20 @@ class Tenant {
 
   getActiveComponents() {
     const activeComponents = [];
-
     for (const componentName in this._model.components) {
       if (this._model.components.hasOwnProperty(componentName) && this._model.components[componentName].active) {
         activeComponents.push({name: componentName, ...this._model.components[componentName]});
       }
     }
     return activeComponents;
+  }
+
+  getComponents() {
+    const components = [];
+    for (const componentName in this._model.components) {
+      components.push({name: componentName, ...this._model.components[componentName]});
+    }
+    return components;
   }
 
   setComponentConfigTenantLevel(identifier, configuration) {
