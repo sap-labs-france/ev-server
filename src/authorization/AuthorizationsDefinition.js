@@ -31,12 +31,6 @@ class AuthorizationsDefinition {
 				"name": "Basic",
 				"auths": [
 					{
-						"AuthObject": "Users",
-						"AuthFieldValue": {
-							"Action": []
-						}
-					},
-					{
 						"AuthObject": "User",
 						"AuthFieldValue": {
 							"UserID": [
@@ -159,36 +153,6 @@ class AuthorizationsDefinition {
 						}
 					},
 					{
-						"AuthObject": "Loggings",
-						"AuthFieldValue": {
-							"Action": []
-						}
-					},
-					{
-						"AuthObject": "Logging",
-						"AuthFieldValue": {
-							"LogID": "*",
-							"Action": []
-						}
-					},
-					{
-						"AuthObject": "Pricing",
-						"AuthFieldValue": {
-							"Action": []
-						}
-					}, {
-						"AuthObject": "Tenants",
-						"AuthFieldValue": {
-							"Action": []
-						}
-					}, {
-						"AuthObject": "Tenant",
-						"AuthFieldValue": {
-							"TenantID": "*",
-							"Action": []
-						}
-					},
-					{
 						"AuthObject": "Settings",
 						"AuthFieldValue": {
 							"Action": ["List"]
@@ -199,19 +163,6 @@ class AuthorizationsDefinition {
 						"AuthFieldValue": {
 							"SettingID": "*",
 							"Action": ["Read"]
-						}
-					},
-					{
-						"AuthObject": "OcpiEndpoints",
-						"AuthFieldValue": {
-							"Action": []
-						}
-					},
-					{
-						"AuthObject": "OcpiEndpoint",
-						"AuthFieldValue": {
-							"OcpiEndpointID": "*",
-							"Action": []
 						}
 					},
 					{
@@ -244,12 +195,6 @@ class AuthorizationsDefinition {
 				"id": "D",
 				"name": "Demo",
 				"auths": [
-					{
-						"AuthObject": "Users",
-						"AuthFieldValue": {
-							"Action": []
-						}
-					},
 					{
 						"AuthObject": "User",
 						"AuthFieldValue": {
@@ -346,62 +291,6 @@ class AuthorizationsDefinition {
 						"AuthFieldValue": {
 							"UserID": "*",
 							"Action": ["Read"]
-						}
-					},
-					{
-						"AuthObject": "Loggings",
-						"AuthFieldValue": {
-							"Action": []
-						}
-					},
-					{
-						"AuthObject": "Logging",
-						"AuthFieldValue": {
-							"LogID": "*",
-							"Action": []
-						}
-					},
-					{
-						"AuthObject": "Pricing",
-						"AuthFieldValue": {
-							"Action": []
-						}
-					}, {
-						"AuthObject": "Tenants",
-						"AuthFieldValue": {
-							"Action": []
-						}
-					}, {
-						"AuthObject": "Tenant",
-						"AuthFieldValue": {
-							"TenantID": "*",
-							"Action": []
-						}
-					},
-					{
-						"AuthObject": "Settings",
-						"AuthFieldValue": {
-							"Action": []
-						}
-					},
-					{
-						"AuthObject": "Setting",
-						"AuthFieldValue": {
-							"SettingID": "*",
-							"Action": []
-						}
-					},
-					{
-						"AuthObject": "OcpiEndpoints",
-						"AuthFieldValue": {
-							"Action": []
-						}
-					},
-					{
-						"AuthObject": "OcpiEndpoint",
-						"AuthFieldValue": {
-							"OcpiEndpointID": "*",
-							"Action": []
 						}
 					}
 				]
@@ -541,17 +430,6 @@ class AuthorizationsDefinition {
 						"AuthFieldValue": {
 							"Action": ["Read", "Update"]
 						}
-					}, {
-						"AuthObject": "Tenants",
-						"AuthFieldValue": {
-							"Action": []
-						}
-					}, {
-						"AuthObject": "Tenant",
-						"AuthFieldValue": {
-							"TenantID": "*",
-							"Action": []
-						}
 					},
 					{
 						"AuthObject": "Settings",
@@ -616,32 +494,6 @@ class AuthorizationsDefinition {
 						}
 					},
 					{
-						"AuthObject": "Companies",
-						"AuthFieldValue": {
-							"Action": []
-						}
-					},
-					{
-						"AuthObject": "Company",
-						"AuthFieldValue": {
-							"CompanyID": "*",
-							"Action": []
-						}
-					},
-					{
-						"AuthObject": "Sites",
-						"AuthFieldValue": {
-							"Action": []
-						}
-					},
-					{
-						"AuthObject": "Site",
-						"AuthFieldValue": {
-							"SiteID": "*",
-							"Action": []
-						}
-					},
-					{
 						"AuthObject": "VehicleManufacturers",
 						"AuthFieldValue": {
 							"Action": ["List"]
@@ -665,45 +517,6 @@ class AuthorizationsDefinition {
 						"AuthFieldValue": {
 							"VehicleID": "*",
 							"Action": ["Create", "Read", "Update", "Delete"]
-						}
-					},
-					{
-						"AuthObject": "SiteAreas",
-						"AuthFieldValue": {
-							"Action": []
-						}
-					},
-					{
-						"AuthObject": "SiteArea",
-						"AuthFieldValue": {
-							"SiteAreaID": "*",
-							"Action": []
-						}
-					},
-					{
-						"AuthObject": "ChargingStations",
-						"AuthFieldValue": {
-							"Action": []
-						}
-					},
-					{
-						"AuthObject": "ChargingStation",
-						"AuthFieldValue": {
-							"ChargingStationID": "*",
-							"Action": []
-						}
-					},
-					{
-						"AuthObject": "Transactions",
-						"AuthFieldValue": {
-							"Action": []
-						}
-					},
-					{
-						"AuthObject": "Transaction",
-						"AuthFieldValue": {
-							"UserID": "*",
-							"Action": []
 						}
 					},
 					{
