@@ -52,15 +52,13 @@ class SessionHashService {
       user.getRole() + '/' +
       user.getStatus() + '/' +
       user.getTagIDs().join('-');
-    //console.log("userHashID:" + data);
     return crypto.createHash('sha256').update(data).digest("hex");
   }
 
   // Build Tenant Hash ID
   static buildTenantHashID(tenant) {
     // Get all field that need to be hashed
-    const data = tenant.getActiveComponentNames().toString();
-    //console.log("tenantHashID:" + data);
+    const data = JSON.stringify(tenant.getActiveComponents());
     return crypto.createHash('sha256').update(data).digest("hex");
   }
 
@@ -74,10 +72,8 @@ class SessionHashService {
       global.userHashMapIDs[`${tenantID}#${userID}`] = hashID;
       // Log
       Logging.logInfo({
-        tenantID: tenantID,
-        source: Constants.CENTRAL_SERVER,
-        module: "SessionHashService",
-        method: "rebuildUserHashID",
+        tenantID: tenantID, source: Constants.CENTRAL_SERVER,
+        module: "SessionHashService", method: "rebuildUserHashID",
         action: "SessionHashHandling",
         message: `User has been changed or deleted`,
         user: userID
@@ -94,10 +90,8 @@ class SessionHashService {
     global.tenantHashMapIDs[`${tenantID}`] = hashID;
     // Log
     Logging.logInfo({
-      tenantID: tenantID,
-      source: Constants.CENTRAL_SERVER,
-      module: "SessionHashService",
-      method: "rebuildTenantHashID",
+      tenantID: tenantID, source: Constants.CENTRAL_SERVER,
+      module: "SessionHashService", method: "rebuildTenantHashID",
       action: "SessionHashHandling",
       message: `Tenant has been changed or deleted`
     });

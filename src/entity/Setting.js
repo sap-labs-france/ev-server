@@ -3,6 +3,7 @@ const Database = require('../utils/Database');
 const Constants = require('../utils/Constants');
 const AppError = require('../exception/AppError');
 const SettingStorage = require('../storage/mongodb/SettingStorage');
+const OCPIEndpointStorage = require('../storage/mongodb/OCPIEndpointStorage');
 const User = require('./User');
 
 class Setting extends AbstractTenantEntity {
@@ -80,7 +81,12 @@ class Setting extends AbstractTenantEntity {
     return SettingStorage.saveSetting(this.getTenantID(), this.getModel());
   }
 
-  delete() {
+  async delete() {
+    // Cleanup OCPI
+    if (this.getIdentifier() === Constants.COMPONENTS.OCPI) {
+      // Delete OCPI End Points
+      await OCPIEndpointStorage.deleteOcpiEndpoints(this.getTenantID());
+    }
     return SettingStorage.deleteSetting(this.getTenantID(), this.getID());
   }
 
@@ -92,21 +98,64 @@ class Setting extends AbstractTenantEntity {
         if (!currentSettingContent) {
           // Create default settings
           if (activeComponent.type === Constants.SETTING_PRICING_TYPE_SIMPLE) {
-            return { "simple" : {} };
+            return { "type": "simple", "simple": {} };
           } else if (activeComponent.type === Constants.SETTING_PRICING_TYPE_CONVERGENT_CHARGING) {
-            return { "convergentCharging" : {} };
+            return { "type": "convergentCharging", "convergentCharging": {} };
           }
         } else {
           // Changed?
           if (!currentSettingContent.hasOwnProperty(activeComponent.type)) {
             // Create new settings
             if (activeComponent.type === Constants.SETTING_PRICING_TYPE_SIMPLE) {
-              return { "simple" : {} };
+              return { "type": "simple", "simple": {} };
             } else if (activeComponent.type === Constants.SETTING_PRICING_TYPE_CONVERGENT_CHARGING) {
-              return { "convergentCharging" : {} };
+              return { "type": "convergentCharging", "convergentCharging": {} };
             }
           }
         }
+        break;
+
+      // Refund
+      case Constants.COMPONENTS.REFUND:
+        // Settings does not exists
+        if (!currentSettingContent) {
+          // Only Concur
+          return { "type": "concur", "concur": {} };
+        } else {
+          // Changed?
+          if (!currentSettingContent.hasOwnProperty(activeComponent.type)) {
+            return { "type": "concur", "concur": {} };
+          }
+        }
+        break;
+
+      // Refund
+      case Constants.COMPONENTS.OCPI:
+        // Settings does not exists
+        if (!currentSettingContent) {
+          // Only Gireve
+          return { "type": "gireve", "ocpi": {} };
+        } else {
+          // Changed?
+          if (!currentSettingContent.hasOwnProperty(activeComponent.type)) {
+            return { "type": "gireve", "ocpi": {} };
+          }
+        }
+        break;
+
+      // SAC
+      case Constants.COMPONENTS.SAC:
+        // Settings does not exists
+        if (!currentSettingContent) {
+          // Only SAP Analytics
+          return { "type": "sac", "sac": {} };
+        } else {
+          // Changed?
+          if (!currentSettingContent.hasOwnProperty(activeComponent.type)) {
+            return { "type": "sac", "sac": {} };
+          }
+        }
+        break;
     }
   }
 

@@ -59,8 +59,8 @@ class ODataRestAdapter {
       if (sacSetting) {
         const configuration = sacSetting.getContent();
 
-        if (configuration && configuration.timezone) {
-          req.timezone = configuration.timezone;
+        if (configuration && configuration.sac && configuration.sac.timezone) {
+          req.timezone = configuration.sac.timezone;
         }
       }
 
