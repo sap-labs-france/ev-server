@@ -919,7 +919,7 @@ class AuthService {
     // Get active components from tenant if not default
     if (user.getTenantID() != Constants.DEFAULT_TENANT) {
       const tenant = await user.getTenant();
-      payload.activeComponents = tenant.getActiveComponentNames();
+      payload.activeComponents = tenant.getActiveComponents();
     }
 
     // Build token

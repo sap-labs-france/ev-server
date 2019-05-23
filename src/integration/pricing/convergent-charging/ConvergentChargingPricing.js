@@ -2,7 +2,6 @@ const StatefulChargingService = require('./StatefulChargingService');
 const moment = require('moment-timezone');
 const Logging = require('../../../utils/Logging');
 const Pricing = require('../Pricing');
-const SiteArea = require('../../../entity/SiteArea');
 
 
 class ConvergentChargingPricing extends Pricing {
@@ -44,14 +43,11 @@ class ConvergentChargingPricing extends Pricing {
   }
 
   async startSession(consumptionData) {
-    const siteArea =  await SiteArea.getSiteArea(this.tenantId, this.transaction.getSiteAreaID());
     const sessionId = this.computeSessionId(consumptionData);
     const chargeableItemProperties = this.consumptionToChargeableItemProperties(consumptionData);
     chargeableItemProperties.push(new ChargeableItemProperty('status', Type.string, 'start'));
     const reservationItem = new ReservationItem(this.setting.chargeableItemName, chargeableItemProperties);
-    const request = new StartRateRequest(reservationItem, sessionId, moment(consumptionData.startedAt).format('YYYY-MM-DDTHH:mm:ss'),
-      siteArea.getName(), consumptionData.userID, 'cancelled', 30000, 'ALL_TRANSACTION_AND_RECURRING',
-      false, 'ALL_TRANSACTION_AND_RECURRING', null);
+    const request = new StartRateRequest(reservationItem, sessionId, moment(consumptionData.startedAt).format('YYYY-MM-DDTHH:mm:ss'), consumptionData.chargeBoxID, consumptionData.userID, 'cancelled', 30000, 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING', null);
     const result = await this.statefulChargingService.execute(request);
     if (result.data.startRateResult) {
       const rateResult = new RateResult(result.data.startRateResult);
@@ -70,7 +66,7 @@ class ConvergentChargingPricing extends Pricing {
   }
 
   async updateSession(consumptionData) {
-    const siteArea =  await SiteArea.getSiteArea(this.tenantId, this.transaction.getSiteAreaID());
+
     const sessionId = this.computeSessionId(consumptionData);
 
     const chargeableItemProperties = this.consumptionToChargeableItemProperties(consumptionData);
@@ -78,8 +74,7 @@ class ConvergentChargingPricing extends Pricing {
     const confirmationItem = new ConfirmationItem(this.setting.chargeableItemName, chargeableItemProperties);
     const reservationItem = new ReservationItem(this.setting.chargeableItemName, chargeableItemProperties);
 
-    const request = new UpdateRateRequest(confirmationItem, reservationItem, sessionId, moment(consumptionData.endedAt).format('YYYY-MM-DDTHH:mm:ss'),
-      siteArea.getName(), consumptionData.userID, 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
+    const request = new UpdateRateRequest(confirmationItem, reservationItem, sessionId, moment(consumptionData.endedAt).format('YYYY-MM-DDTHH:mm:ss'), consumptionData.chargeBoxID, consumptionData.userID, 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
     const result = await this.statefulChargingService.execute(request);
     if (result.data.updateRateResult) {
       const rateResult = new RateResult(result.data.updateRateResult);
@@ -99,15 +94,13 @@ class ConvergentChargingPricing extends Pricing {
   }
 
   async stopSession(consumptionData) {
-    const siteArea =  await SiteArea.getSiteArea(this.tenantId, this.transaction.getSiteAreaID());
     const sessionId = this.computeSessionId(consumptionData);
     const chargeableItemProperties = this.consumptionToChargeableItemProperties(consumptionData);
     chargeableItemProperties.push(new ChargeableItemProperty('status', Type.string, 'stop'));
 
     const confirmationItem = new ConfirmationItem(this.setting.chargeableItemName, chargeableItemProperties);
 
-    const request = new StopRateRequest(confirmationItem, sessionId, siteArea.getName(), consumptionData.userID, 'confirmed',
-      'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
+    const request = new StopRateRequest(confirmationItem, sessionId, consumptionData.chargeBoxID, consumptionData.userID, 'confirmed', 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
     const result = await this.statefulChargingService.execute(request);
     if (result.data.stopRateResult) {
       const rateResult = new RateResult(result.data.stopRateResult);
