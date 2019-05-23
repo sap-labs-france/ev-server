@@ -18,7 +18,7 @@ class User extends AbstractTenantEntity {
     Database.updateUser(user, this._model);
   }
 
-  setAuthorisations(auths) {
+  setAuthorizations(auths) {
     this._model.auths = auths;
   }
 

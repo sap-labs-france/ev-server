@@ -254,8 +254,8 @@ class Authorizations {
       // Check if transaction user is the same as request user
       isSameUserAsTransaction = transaction.getUserID() === user.getID();
     }
-    // Add user authorisations
-    user.setAuthorisations(await Authorizations.buildAuthorizations(user));
+    // Add user authorizations
+    user.setAuthorizations(await Authorizations.buildAuthorizations(user));
     // Prepare default authorizations
     const result = {
       'isStartAuthorized': Authorizations.canStartTransaction(user, chargingStation),
@@ -410,7 +410,7 @@ class Authorizations {
     // Build Authorizations -----------------------------------------------------
     const auths = await Authorizations.buildAuthorizations(user);
     // Set
-    user.setAuthorisations(auths);
+    user.setAuthorizations(auths);
     // Check if User belongs to a Site ------------------------------------------
     // Org component enabled?
     if (isOrgCompActive) {
