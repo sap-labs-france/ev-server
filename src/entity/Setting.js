@@ -144,7 +144,7 @@ class Setting extends AbstractTenantEntity {
         break;
 
       // SAC
-      case Constants.COMPONENTS.SAC:
+      case Constants.COMPONENTS.ANALYTICS:
         // Settings does not exists
         if (!currentSettingContent) {
           // Only SAP Analytics
