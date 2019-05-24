@@ -56,7 +56,7 @@
                         "active": { "type": "boolean" }
                       }
                 },
-                "sac": {
+                "analytics": {
                     "type": "object",
                     "properties": {
                         "active": { "type": "boolean" },

@@ -1,4 +1,3 @@
-const Tenant = require('../../entity/Tenant');
 const MigrationTask = require('../MigrationTask');
 
 class MigrateTenantSettingsTask extends MigrationTask {
@@ -8,7 +7,7 @@ class MigrateTenantSettingsTask extends MigrationTask {
       'default', 'tenants').aggregate([]).toArray();
     for (const tenantMDB of tenantsMDB) {
       let changed = false;
-      // Check Components
+      // Update Components
       if (tenantMDB.components) {
         // Check
         if (tenantMDB.components.ocpi && tenantMDB.components.ocpi.active) {
@@ -21,6 +20,11 @@ class MigrateTenantSettingsTask extends MigrationTask {
         }
         if (tenantMDB.components.sac && tenantMDB.components.sac.active) {
           tenantMDB.components.sac.type = 'sac';
+          changed = true;
+        }
+        if (tenantMDB.components.sac) {
+          tenantMDB.components.analytics = tenantMDB.components.sac;
+          delete tenantMDB.components.sac;
           changed = true;
         }
         // Changed
@@ -91,11 +95,17 @@ class MigrateTenantSettingsTask extends MigrationTask {
           }, { upsert: true, new: true, returnOriginal: false });          
         }
       }
+      // Rename 'sac' to 'analytics'
+      // Delete unused settings
+      await global.database.getCollection(tenantMDB._id, 'settings').findOneAndUpdate(
+        { identifier: 'sac' },
+        { $set: { identifier: 'analytics' } }
+      );
     }
   }
 
   getVersion() {
-    return "1.0";
+    return "1.1";
   }
 
   getName() {
