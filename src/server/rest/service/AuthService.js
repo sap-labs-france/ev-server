@@ -49,6 +49,7 @@ class AuthService {
   }
 
   static async handleIsAuthorized(action, req, res, next) {
+    let user;
     try {
       // Default
       let result = { 'IsAuthorized': false };
@@ -121,7 +122,7 @@ class AuthService {
               `Charging Station with ID '${filteredRequest.Arg1}' does not exist`,
               550, 'AuthService', 'handleIsAuthorized');
           }
-          const user = await User.getUser(req.user.tenantID, req.user.id);
+          user = await User.getUser(req.user.tenantID, req.user.id);
           // Found?
           if (!user) {
             // Not Found!
