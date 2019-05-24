@@ -168,7 +168,7 @@ class TenantService extends AbstractService {
       TenantValidator.validateTenantCreation(req.body);
       // Filter
       const filteredRequest = TenantSecurity.filterTenantCreateRequest(req.body, req.user);
-
+      // Check the Tenant's name
       let foundTenant = await Tenant.getTenantByName(filteredRequest.name);
       if (foundTenant) {
         throw new ConflictError(`The tenant with name '${filteredRequest.name}' already exists`, 'tenants.name_already_used',
@@ -177,14 +177,13 @@ class TenantService extends AbstractService {
           },
           MODULE_NAME, 'handleCreateTenant', req.user, action);
       }
-
+      // Get the Tenant with ID (subdomain)
       foundTenant = await Tenant.getTenantBySubdomain(filteredRequest.subdomain);
       if (foundTenant) {
         throw new ConflictError(`The tenant with subdomain '${filteredRequest.subdomain}' already exists`, 'tenants.subdomain_already_used', {
           'subdomain': filteredRequest.subdomain
         });
       }
-
       // Create
       const tenant = new Tenant(filteredRequest);
       // Update timestamp
@@ -194,9 +193,11 @@ class TenantService extends AbstractService {
       tenant.setCreatedOn(new Date());
       // Save
       const newTenant = await tenant.save();
-
+      // Update with components
+      TenantService.updateSettingsWithComponents(newTenant, req);
+      // Create DB collections
       newTenant.createEnvironment();
-
+      // Create unser in tenant
       const password = User.generatePassword();
       const verificationToken = Utils.generateToken(newTenant.getEmail());
       // Extract the name, first name from email
@@ -216,7 +217,7 @@ class TenantService extends AbstractService {
         createdOn: new Date().toISOString(),
         verificationToken: verificationToken
       });
-
+      // Save
       const newUser = await tenantUser.save();
       // Send activation link
       const evseDashboardVerifyEmailURL = Utils.buildEvseURL(newTenant.getSubdomain()) +
@@ -246,7 +247,6 @@ class TenantService extends AbstractService {
         },
         newUser.getLocale()
       );
-
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID, user: req.user,
@@ -295,43 +295,8 @@ class TenantService extends AbstractService {
       tenant.setLastChangedOn(new Date());
       // Update Tenant
       const updatedTenant = await tenant.save();
-      // Get the user
-      const user = await User.getUser(req.user.tenantID, req.user.id);
-      // Create settings
-      for (const component of tenant.getComponents()) {
-        // Get the settings
-        const currentSetting = await Setting.getSettingByIdentifier(tenant.getID(), component.name);
-        // Check if Component is active
-        if (!component.active) {
-          // Delete settings
-          if (currentSetting) {
-            await currentSetting.delete();
-          }
-          continue;
-        }
-        // Create
-        const newSettingContent = Setting.createDefaultSettingContent(
-          component, (currentSetting ? currentSetting.getContent() : null));
-        if (newSettingContent) {
-          // Create & Save
-          if (!currentSetting) {
-            const newSetting = new Setting(tenant.getID(), {
-              identifier: component.name,
-              content: newSettingContent
-            });
-            newSetting.setCreatedOn(new Date());
-            newSetting.setCreatedBy(user);
-            // Save Setting
-            await newSetting.save();
-          } else {
-            currentSetting.setContent(newSettingContent);
-            currentSetting.setLastChangedOn(new Date());
-            currentSetting.setLastChangedBy(user);
-            // Save Setting
-            await currentSetting.save();
-          }
-        }
-      }
+      // Update with components
+      TenantService.updateSettingsWithComponents(tenant, req);
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID, user: req.user,
@@ -345,6 +310,46 @@ class TenantService extends AbstractService {
       next();
     } catch (error) {
       AbstractService._handleError(error, req, next, action, MODULE_NAME, 'handleUpdateTenant');
+    }
+  }
+
+  static async updateSettingsWithComponents(tenant, req) {
+    // Get the user
+    const user = await User.getUser(req.user.tenantID, req.user.id);
+    // Create settings
+    for (const component of tenant.getComponents()) {
+      // Get the settings
+      const currentSetting = await Setting.getSettingByIdentifier(tenant.getID(), component.name);
+      // Check if Component is active
+      if (!component.active) {
+        // Delete settings
+        if (currentSetting) {
+          await currentSetting.delete();
+        }
+        continue;
+      }
+      // Create
+      const newSettingContent = Setting.createDefaultSettingContent(
+        component, (currentSetting ? currentSetting.getContent() : null));
+      if (newSettingContent) {
+        // Create & Save
+        if (!currentSetting) {
+          const newSetting = new Setting(tenant.getID(), {
+            identifier: component.name,
+            content: newSettingContent
+          });
+          newSetting.setCreatedOn(new Date());
+          newSetting.setCreatedBy(user);
+          // Save Setting
+          await newSetting.save();
+        } else {
+          currentSetting.setContent(newSettingContent);
+          currentSetting.setLastChangedOn(new Date());
+          currentSetting.setLastChangedBy(user);
+          // Save Setting
+          await currentSetting.save();
+        }
+      }
     }
   }
 }
