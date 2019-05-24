@@ -538,11 +538,6 @@ class UserService {
       }
       // Filter
       const filteredRequest = UserSecurity.filterUserCreateRequest(req.body, req.user);
-      if (!filteredRequest.role) {
-        // Set to default role
-        filteredRequest.role = Constants.ROLE_BASIC;
-        filteredRequest.status = Constants.USER_STATUS_INACTIVE;
-      }
       // Check Mandatory fields
       User.checkIfUserValid(filteredRequest, req);
       // Get the email

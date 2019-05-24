@@ -893,7 +893,7 @@ class Authorizations {
   }
 
   static isAdmin(loggedUser) {
-    return this.isSuperAdmin(loggedUser) || loggedUser.role === Constants.ROLE_ADMIN;
+    return loggedUser.role === Constants.ROLE_ADMIN;
   }
 
   static isBasic(loggedUser) {

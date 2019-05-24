@@ -22,15 +22,15 @@ class Utils {
 
   static generateTagID(name, firstName) {
     let tagID = '';
-    if (name.length > 0) {
-      tagID = name[0];
+    if (name && name.length > 0) {
+      tagID = name[0].toUpperCase();
     } else {
-      tagID = 'U';
+      tagID = 'S';
     }
-    if (firstName.length > 0) {
-      tagID += firstName[0];
+    if (firstName && firstName.length > 0) {
+      tagID += firstName[0].toUpperCase();
     } else {
-      tagID += 'U';
+      tagID += 'F';
     }
     tagID += Math.floor((Math.random() * 2147483648) + 1);
     return tagID;
@@ -353,6 +353,21 @@ class Utils {
     }
     // Recreate all of it
     return JSON.parse(JSON.stringify(src));
+  }
+
+  static getRoleNameFromRoleID(roleID) {
+    switch (roleID) {
+      case Constants.ROLE_BASIC:
+        return 'Basic';
+      case Constants.ROLE_DEMO:
+        return 'Demo';
+      case Constants.ROLE_ADMIN:
+        return 'Admin';
+      case Constants.ROLE_SUPER_ADMIN:
+        return 'Super Admin';
+      default:
+        return 'Unknown';
+    }
   }
 }
 

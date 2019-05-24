@@ -312,12 +312,23 @@ class AuthService {
   static async handleRegisterUser(action, req, res, next) {
     // Filter
     const filteredRequest = AuthSecurity.filterRegisterUserRequest(req.body);
-
+    // Check
+    if (!filteredRequest.tenant) {
+      const error = new BadRequestError({
+        path: "tenant",
+        message: "The Tenant is mandatory"
+      });
+      // Log Error
+      Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleRegisterUser', Constants.DEFAULT_TENANT);
+      next(error);
+      return;
+    }
+    // Get the Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
       const error = new BadRequestError({
         path: "tenant",
-        message: "The Tenant is mandatory"
+        message: "The Tenant cannot be found"
       });
       // Log Error
       Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleRegisterUser', Constants.DEFAULT_TENANT);

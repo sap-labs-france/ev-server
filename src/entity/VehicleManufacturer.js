@@ -103,19 +103,21 @@ class VehicleManufacturer extends AbstractTenantEntity {
     return VehicleManufacturerStorage.deleteVehicleManufacturer(this.getTenantID(), this.getID());
   }
 
-  static checkIfVehicleManufacturerValid(filteredRequest, request) {
+  static checkIfVehicleManufacturerValid(filteredRequest, req) {
     // Update model?
-    if (request.method !== 'POST' && !filteredRequest.id) {
+    if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The Vehicle Manufacturer ID is mandatory`, 500,
-        'VehicleManufacturer', 'checkIfVehicleManufacturerValid');
+        `Vehicle Manufacturer ID is mandatory`, 500,
+        'VehicleManufacturer', 'checkIfVehicleManufacturerValid',
+        req.user.id);
     }
     if (!filteredRequest.name) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The Vehicle Manufacturer Name is mandatory`, 500,
-        'VehicleManufacturer', 'checkIfVehicleManufacturerValid');
+        `Vehicle Manufacturer Name is mandatory`, 500,
+        'VehicleManufacturer', 'checkIfVehicleManufacturerValid',
+        req.user.id, filteredRequest.id);
     }
   }
 

@@ -36,7 +36,7 @@ class LoggingSecurity {
     if (!logging) {
       return null;
     }
-    if (!Authorizations.isAdmin(loggedUser)) {
+    if (!Authorizations.isAdmin(loggedUser) && !Authorizations.isSuperAdmin(loggedUser)) {
       return null;
     }
     filteredLogging.id = logging.id;
