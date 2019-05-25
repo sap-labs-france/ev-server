@@ -48,13 +48,7 @@ class ChargingStation extends AbstractTenantEntity {
   }
 
   handleAction(action, params = {}) {
-    // Handle requests to charger
-    if (typeof this["request" + action] === 'function') {
-      // Call it
-      return this["request" + action](params);
-    } else {
-      throw new BackendError(this.getID(), `Action '${action}' is not implemented in the backend`, "ChargingStation", "handleAction");
-    }
+    return this["request" + action](params);
   }
 
   getID() {
@@ -576,20 +570,31 @@ class ChargingStation extends AbstractTenantEntity {
   }
 
   async _requestExecuteCommand(method, params) {
-    // Get the client
-    const chargingStationClient = await this.getChargingStationClient();
-    // Set Charging Profile
-    const result = await chargingStationClient[method](params);
-    // Log
-    Logging.logInfo({
-      tenantID: this.getTenantID(), source: this.getID(),
-      module: 'ChargingStation', method: '_requestExecuteCommand',
-      action: Utils.firstLetterInUpperCase(method),
-      message: `Command sent with success`,
-      detailedMessages: result
-    });
-    // Return
-    return result;
+    try {
+      // Get the client
+      const chargingStationClient = await this.getChargingStationClient();
+      // Set Charging Profile
+      const result = await chargingStationClient[method](params);
+      // Log
+      Logging.logInfo({
+        tenantID: this.getTenantID(), source: this.getID(),
+        module: 'ChargingStation', method: '_requestExecuteCommand',
+        action: Utils.firstLetterInUpperCase(method),
+        message: `Command sent with success`,
+        detailedMessages: result
+      });
+      // Return
+      return result;
+    } catch (error) {
+      // OCPP 1.6?
+      if (Array.isArray(error.error)) {
+        const response = error.error;
+        throw new BackendError(this.getID(), response[3], "ChargingStation",
+          "_requestExecuteCommand", Utils.firstLetterInUpperCase(method));
+      } else {
+        throw error;
+      }
+    }
   }
 
   getConfiguration() {
