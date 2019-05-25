@@ -381,37 +381,37 @@ class ChargingStation extends AbstractTenantEntity {
       configuration = {
         'configuration': configuration.configurationKey
       };
+      // Set default?
+      if (!configuration) {
+        // Check if there is an already existing config
+        const existingConfiguration = await this.getConfiguration();
+        if (!existingConfiguration) {
+          // No config at all: Set default OCCP configuration
+          configuration = OCPPConstants.DEFAULT_OCPP_CONFIGURATION;
+        } else {
+          // Set default
+          configuration = existingConfiguration;
+        }
+      }
+      // Set the charger ID
+      configuration.chargeBoxID = this.getID();
+      configuration.timestamp = new Date();
+      // Save config
+      await OCPPStorage.saveConfiguration(this.getTenantID(), configuration);
+      // Update connector power
+      await OCPPUtils.updateConnectorsPower(this);
+      // Ok
+      Logging.logInfo({
+        tenantID: this.getTenantID(), source: this.getID(), module: 'ChargingStation',
+        method: 'requestAndSaveConfiguration', action: 'RequestConfiguration',
+        message: `Configuration has been saved`
+      });
+      return { status: 'Accepted' };
     } catch (error) {
       // Log error
       Logging.logActionExceptionMessage(this.getTenantID(), 'RequestConfiguration', error);
+      return { status: 'Rejected' };
     }
-    // Set default?
-    if (!configuration) {
-      // Check if there is an already existing config
-      const existingConfiguration = await this.getConfiguration();
-      if (!existingConfiguration) {
-        // No config at all: Set default OCCP configuration
-        configuration = OCPPConstants.DEFAULT_OCPP_CONFIGURATION;
-      } else {
-        // Set default
-        configuration = existingConfiguration;
-      }
-    }
-    // Set the charger ID
-    configuration.chargeBoxID = this.getID();
-    configuration.timestamp = new Date();
-    // Save config
-    await OCPPStorage.saveConfiguration(this.getTenantID(), configuration);
-    // Update connector power
-    await OCPPUtils.updateConnectorsPower(this);
-    // Ok
-    Logging.logInfo({
-      tenantID: this.getTenantID(), source: this.getID(), module: 'ChargingStation',
-      method: 'requestAndSaveConfiguration', action: 'RequestConfiguration',
-      message: `Configuration has been saved`
-    });
-    // Ok
-    return { status: 'Accepted' };
   }
 
   setDeleted(deleted) {
