@@ -54,20 +54,20 @@ class OCPPValidation extends SchemaValidator {
     //   // BUG EBEE: Timestamp is mandatory according OCPP
     //   throw new BackendError(chargingStation.getID(),
     //     `The 'timestamp' property has not been provided`,
-    //     "OCPPValidation", "validateStartTransaction", Constants.ACTION_START_TRANSACTION);
+    //     "OCPPValidation", "validateStartTransaction", Constants.ACTION_REMOTE_START_TRANSACTION);
     // }
     // // Check the meter start
     // if (!startTransaction.hasOwnProperty("meterStart")) {
     //   // BUG EBEE: MeterStart is mandatory according OCPP
     //   throw new BackendError(chargingStation.getID(),
     //     `The 'meterStart' property has not been provided`,
-    //     "OCPPValidation", "validateStartTransaction", Constants.ACTION_START_TRANSACTION);
+    //     "OCPPValidation", "validateStartTransaction", Constants.ACTION_REMOTE_START_TRANSACTION);
     // }
     // // Check Tag ID
     // if (!startTransaction.idTag) {
     //   throw new BackendError(chargingStation.getID(),
     //     `The 'idTag' property has not been provided`,
-    //     "OCPPValidation", "validateStartTransaction", Constants.ACTION_START_TRANSACTION);
+    //     "OCPPValidation", "validateStartTransaction", Constants.ACTION_REMOTE_START_TRANSACTION);
     // }
     // // Always integer
     // startTransaction.connectorId = Utils.convertToInt(startTransaction.connectorId);
@@ -77,7 +77,7 @@ class OCPPValidation extends SchemaValidator {
     if (!chargingStation.getConnector(startTransaction.connectorId)) {
       throw new BackendError(chargingStation.getID(),
         `The Connector ID '${startTransaction.connectorId}' is invalid`,
-        'OCPPService', 'handleStartTransaction', Constants.ACTION_START_TRANSACTION);
+        'OCPPService', 'handleStartTransaction', Constants.ACTION_REMOTE_START_TRANSACTION);
     }
   }
 

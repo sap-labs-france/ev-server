@@ -501,12 +501,12 @@ class ChargingStation extends AbstractTenantEntity {
     return this._requestExecuteCommand('reset', params);
   }
 
-  requestStopTransaction(params) {
+  requestRemoteStopTransaction(params) {
     return this._requestExecuteCommand('remoteStopTransaction', params);
   }
 
-  requestStartTransaction(params) {
-    return this._requestExecuteCommand('startTransaction', params);
+  requestRemoteStartTransaction(params) {
+    return this._requestExecuteCommand('remoteStartTransaction', params);
   }
 
   requestSetChargingProfile(params) {
@@ -583,7 +583,7 @@ class ChargingStation extends AbstractTenantEntity {
     // Log
     Logging.logInfo({
       tenantID: this.getTenantID(), source: this.getID(),
-      module: 'ChargingStation', method: '_requestCommand',
+      module: 'ChargingStation', method: '_requestExecuteCommand',
       action: Utils.firstLetterInUpperCase(method),
       message: `Command sent with success`,
       detailedMessages: result
