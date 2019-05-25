@@ -1,5 +1,4 @@
-const soap = require('strong-soap').soap;
-const config = require('../../config');
+/* eslint-disable no-unused-vars */
 
 class OCPPService {
   constructor(serverUrl) {
