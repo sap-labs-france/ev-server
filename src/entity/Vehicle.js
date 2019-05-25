@@ -190,31 +190,35 @@ class Vehicle extends AbstractTenantEntity {
     return VehicleStorage.deleteVehicle(this.getTenantID(), this.getID());
   }
 
-  static checkIfVehicleValid(request, httpRequest) {
+  static checkIfVehicleValid(filteredRequest, req) {
     // Update model?
-    if (httpRequest.method !== 'POST' && !request.id) {
+    if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The Vehicle ID is mandatory`, 500,
-        'Vehicle', 'checkIfVehicleValid');
+        `Vehicle ID is mandatory`, 500,
+        'Vehicle', 'checkIfVehicleValid',
+        req.user.id);
     }
-    if (!request.type) {
+    if (!filteredRequest.type) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The Vehicle Type is mandatory`, 500,
-        'Vehicle', 'checkIfVehicleValid');
+        `Vehicle Type is mandatory`, 500,
+        'Vehicle', 'checkIfVehicleValid',
+        req.user.id, filteredRequest.id);
     }
-    if (!request.model) {
+    if (!filteredRequest.model) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The Vehicle Model is mandatory`, 500,
-        'Vehicle', 'checkIfVehicleValid');
+        `Vehicle Model is mandatory`, 500,
+        'Vehicle', 'checkIfVehicleValid',
+        req.user.id, filteredRequest.id);
     }
-    if (!request.vehicleManufacturerID) {
+    if (!filteredRequest.vehicleManufacturerID) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The Vehicle Manufacturer is mandatory`, 500,
-        'Vehicle', 'checkIfVehicleValid');
+        `Vehicle Manufacturer is mandatory`, 500,
+        'Vehicle', 'checkIfVehicleValid',
+        req.user.id, filteredRequest.id);
     }
   }
 

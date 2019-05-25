@@ -97,7 +97,6 @@ class Database {
     if (src.hasOwnProperty('longitude')) {
       dest.longitude = Utils.convertToFloat(src.longitude);
     }
-
     dest.connectors = [];
     if (src.connectors) {
       // Set

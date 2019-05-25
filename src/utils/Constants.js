@@ -241,7 +241,7 @@ module.exports = {
     REFUND: "refund",
     PRICING: "pricing",
     ORGANIZATION: "organization",
-    SAC: "sac"
+    ANALYTICS: "analytics"
   },
 
   // Ocpi Registering status

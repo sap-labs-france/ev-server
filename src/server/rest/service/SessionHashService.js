@@ -48,16 +48,17 @@ class SessionHashService {
   // Build User Hash ID
   static buildUserHashID(user) {
     // Get all field that need to be hashed
-    const data = user.getLanguage() + '/' + user.getRole() + '/' + user.getStatus();
-    //console.log("userHashID:" + data);
+    const data = user.getLanguage() + '/' +
+      user.getRole() + '/' +
+      user.getStatus() + '/' +
+      user.getTagIDs().join('-');
     return crypto.createHash('sha256').update(data).digest("hex");
   }
 
   // Build Tenant Hash ID
   static buildTenantHashID(tenant) {
     // Get all field that need to be hashed
-    const data = tenant.getActiveComponents().toString();
-    //console.log("tenantHashID:" + data);
+    const data = JSON.stringify(tenant.getActiveComponents());
     return crypto.createHash('sha256').update(data).digest("hex");
   }
 
@@ -65,37 +66,37 @@ class SessionHashService {
   static async rebuildUserHashID(tenantID, userID) {
     // Build User hash
     const user = await User.getUser(tenantID, userID);
-    const hashID = SessionHashService.buildUserHashID(user);
-    // Store the hash
-    global.userHashMapIDs[`${tenantID}#${userID}`] = hashID;
-    // Log
-    Logging.logInfo({
-      tenantID: tenantID,
-      source: Constants.CENTRAL_SERVER,
-      module: "SessionHashService",
-      method: "rebuildUserHashID",
-      action: "SessionHashHandling",
-      message: `User has been changed or deleted`,
-      user: userID
-    });
+    if (user) {
+      const hashID = SessionHashService.buildUserHashID(user);
+      // Store the hash
+      global.userHashMapIDs[`${tenantID}#${userID}`] = hashID;
+      // Log
+      Logging.logInfo({
+        tenantID: tenantID, source: Constants.CENTRAL_SERVER,
+        module: "SessionHashService", method: "rebuildUserHashID",
+        action: "SessionHashHandling",
+        message: `User has been changed or deleted`,
+        user: userID
+      });
+    }
   }
 
   // Rebuild and store Tenant Hash ID
   static async rebuildTenantHashID(tenantID) {
     // Build Tenant hash
     const tenant = await Tenant.getTenant(tenantID);
-    const hashID = SessionHashService.buildTenantHashID(tenant);
-    // Store the hash
-    global.tenantHashMapIDs[`${tenantID}`] = hashID;
-    // Log
-    Logging.logInfo({
-      tenantID: tenantID,
-      source: Constants.CENTRAL_SERVER,
-      module: "SessionHashService",
-      method: "rebuildTenantHashID",
-      action: "SessionHashHandling",
-      message: `Tenant has been changed or deleted`
-    });
+    if (tenant) {
+      const hashID = SessionHashService.buildTenantHashID(tenant);
+      // Store the hash
+      global.tenantHashMapIDs[`${tenantID}`] = hashID;
+      // Log
+      Logging.logInfo({
+        tenantID: tenantID, source: Constants.CENTRAL_SERVER,
+        module: "SessionHashService", method: "rebuildTenantHashID",
+        action: "SessionHashHandling",
+        message: `Tenant has been changed or deleted`
+      });
+    }
   }
 }
 
