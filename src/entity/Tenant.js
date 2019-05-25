@@ -98,7 +98,10 @@ class Tenant {
     const activeComponents = [];
     for (const componentName in this._model.components) {
       if (this._model.components.hasOwnProperty(componentName) && this._model.components[componentName].active) {
-        activeComponents.push({name: componentName, ...this._model.components[componentName]});
+        if (this._model.components[componentName].type) {
+          activeComponents.push(`${componentName}_${this._model.components[componentName].type}`);
+        }
+        activeComponents.push(componentName);
       }
     }
     return activeComponents;

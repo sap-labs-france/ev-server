@@ -152,7 +152,7 @@ class Authorizations {
     return compiledAuths;
   }
 
-  static async _checkAndGetUserTagIDOnChargingStation(chargingStation, tagID, action) {
+  static async _checkAndGetUserTagIDOnChargingStation(chargingStation, tagID, isOrgCompActive, site, action) {
     // Get the user
     let user = await User.getUserByTagId(chargingStation.getTenantID(), tagID);
     // Found?
@@ -339,7 +339,7 @@ class Authorizations {
     // Get the user
     if (tagID) {
       user = await Authorizations._checkAndGetUserTagIDOnChargingStation(
-        chargingStation, tagID, action);
+        chargingStation, tagID, isOrgCompActive, site, action);
     }
     // Found?
     if (user) {
