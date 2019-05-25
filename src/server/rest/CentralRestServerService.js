@@ -65,7 +65,9 @@ module.exports = {
           case "ChargingStationClearCache":
           case "ChargingStationGetConfiguration":
           case "ChargingStationChangeConfiguration":
+          case "ChargingStationRemoteStopTransaction":
           case "ChargingStationStopTransaction":
+          case "ChargingStationRemoteStartTransaction":
           case "ChargingStationStartTransaction":
           case "ChargingStationUnlockConnector":
           case "ChargingStationReset":
@@ -77,6 +79,13 @@ module.exports = {
           case "ChargingStationUpdateFirmware":
             // Keep the action (remove ChargingStation)
             action = action.slice(15);
+            // For mobile app (avoid regression)
+            if (action === "StartTransaction") {
+              action = "RemoteStartTransaction";              
+            }
+            if (action === "StopTransaction") {
+              action = "RemoteStopTransaction";              
+            }
             // Delegate
             ChargingStationService.handleAction(action, req, res, next);
             break;

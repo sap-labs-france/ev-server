@@ -132,7 +132,7 @@ class ConvergentChargingPricing extends Pricing {
       if (chargingResult.error.category === 'invalid' && chargingResult.error.message.startsWith('Not authorized')) {
         const chargingStation = await this.transaction.getChargingStation();
         if (chargingStation) {
-          chargingStation.requestStopTransaction({
+          chargingStation.requestRemoteStopTransaction({
             tagID: consumptionData.tagID,
             connectorID: consumptionData.connectorId
           });

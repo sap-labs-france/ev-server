@@ -11,7 +11,7 @@ class JsonChargingStationClient extends ChargingStationClient {
     return this._wsConnection.getChargeBoxId();
   }
 
-  startTransaction(params) {
+  remoteStartTransaction(params) {
     const { tagID, connectorID, chargingProfile = {} } = params;
     const payload = {
       connectorId: connectorID,

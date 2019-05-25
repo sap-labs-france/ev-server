@@ -80,12 +80,16 @@ class OCPPService {
         // Existing Charging Station: Update
         // Check if same vendor and model
         if (chargingStation.getChargePointVendor() !== bootNotification.chargePointVendor ||
-          chargingStation.getChargePointModel() !== bootNotification.chargePointModel) {
-          // Not the same charger!
-          throw new BackendError(
-            chargingStation.getID(),
-            `Registration rejected: the Vendor '${bootNotification.chargePointVendor}' / Model '${bootNotification.chargePointModel}' are different! Expected Vendor '${chargingStation.getChargePointVendor()}' / Model '${chargingStation.getChargePointModel()}'`,
-            "OCPPService", "handleBootNotification", "BootNotification");
+            chargingStation.getChargePointModel() !== bootNotification.chargePointModel) {
+          // Double check on Serial Number
+          if (!chargingStation.getChargePointSerialNumber() || !bootNotification.chargePointSerialNumber ||
+              chargingStation.getChargePointSerialNumber() !== bootNotification.chargePointSerialNumber) {
+            // Not the same charger!
+            throw new BackendError(
+              chargingStation.getID(),
+              `Registration rejected: Vendor, Model or Serial Number attribute is different: '${bootNotification.chargePointVendor}' / '${bootNotification.chargePointModel} / ${bootNotification.chargePointSerialNumber}'! Expected '${chargingStation.getChargePointVendor()}' / '${chargingStation.getChargePointModel()}' / '${chargingStation.getChargePointSerialNumber()}'`,
+              "OCPPService", "handleBootNotification", "BootNotification");
+          }
         }
         chargingStation.setChargePointSerialNumber(bootNotification.chargePointSerialNumber);
         chargingStation.setChargeBoxSerialNumber(bootNotification.chargeBoxSerialNumber);
@@ -929,7 +933,7 @@ class OCPPService {
       startTransaction.timezone = chargingStation.getTimezone();
       // Check Authorization with Tag ID
       const user = await Authorizations.isTagIDAuthorizedOnChargingStation(
-        chargingStation, startTransaction.tagID, Constants.ACTION_START_TRANSACTION);
+        chargingStation, startTransaction.tagID, Constants.ACTION_REMOTE_START_TRANSACTION);
       if (user) {
         startTransaction.user = user.getModel();
       }
@@ -996,14 +1000,14 @@ class OCPPService {
         Logging.logInfo({
           tenantID: chargingStation.getTenantID(),
           source: chargingStation.getID(), module: 'OCPPService', method: 'handleStartTransaction',
-          action: Constants.ACTION_START_TRANSACTION, user: user.getModel(),
+          action: Constants.ACTION_REMOTE_START_TRANSACTION, user: user.getModel(),
           message: `Transaction ID '${transaction.getID()}' has been started on Connector '${transaction.getConnectorId()}'`
         });
       } else {
         // Log
         Logging.logInfo({
           tenantID: chargingStation.getTenantID(), source: chargingStation.getID(),
-          module: 'OCPPService', method: 'handleStartTransaction', action: Constants.ACTION_START_TRANSACTION,
+          module: 'OCPPService', method: 'handleStartTransaction', action: Constants.ACTION_REMOTE_START_TRANSACTION,
           message: `Transaction ID '${transaction.getID()}' has been started on Connector '${transaction.getConnectorId()}'`
         });
       }
@@ -1016,7 +1020,7 @@ class OCPPService {
       // Set the source
       error.source = headers.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage(headers.tenantID, Constants.ACTION_START_TRANSACTION, error);
+      Logging.logActionExceptionMessage(headers.tenantID, Constants.ACTION_REMOTE_START_TRANSACTION, error);
       return {
         'transactionId': 0,
         'status': 'Invalid'
@@ -1149,7 +1153,7 @@ class OCPPService {
         // Wrong Transaction ID!
         throw new BackendError(chargingStation.getID(),
           `Transaction ID '${stopTransaction.transactionId}' does not exist`,
-          'OCPPService', 'handleStopTransaction', Constants.ACTION_STOP_TRANSACTION);
+          'OCPPService', 'handleStopTransaction', Constants.ACTION_REMOTE_STOP_TRANSACTION);
       }
       // Get the TagID that stopped the transaction
       const tagId = this._getStopTransactionTagId(stopTransaction, transaction);
@@ -1158,7 +1162,7 @@ class OCPPService {
       if (!stoppedByCentralSystem) {
         // Check and get users
         const users = await Authorizations.isTagIDsAuthorizedOnChargingStation(
-          chargingStation, tagId, transaction.getTagID(), Constants.ACTION_STOP_TRANSACTION);
+          chargingStation, tagId, transaction.getTagID(), Constants.ACTION_REMOTE_STOP_TRANSACTION);
         user = users.user;
         alternateUser = users.alternateUser;
       } else {
@@ -1169,7 +1173,7 @@ class OCPPService {
       if (!transaction.isActive()) {
         throw new BackendError(chargingStation.getID(),
           `Transaction ID '${stopTransaction.transactionId}' has already been stopped`,
-          'OCPPService', "handleStopTransaction", Constants.ACTION_STOP_TRANSACTION,
+          'OCPPService', "handleStopTransaction", Constants.ACTION_REMOTE_STOP_TRANSACTION,
           (alternateUser ? alternateUser.getID() : (user ? user.getID() : null)),
           (alternateUser ? (user ? user.getID() : null) : null));
       }
@@ -1216,7 +1220,7 @@ class OCPPService {
       Logging.logInfo({
         tenantID: chargingStation.getTenantID(),
         source: chargingStation.getID(), module: 'OCPPService', method: 'handleStopTransaction',
-        action: Constants.ACTION_STOP_TRANSACTION,
+        action: Constants.ACTION_REMOTE_STOP_TRANSACTION,
         user: (alternateUser ? alternateUser.getID() : (user ? user.getID() : null)),
         actionOnUser: (alternateUser ? (user ? user.getID() : null) : null),
         message: `Transaction ID '${transaction.getID()}' has been stopped successfully`
@@ -1229,7 +1233,7 @@ class OCPPService {
       // Set the source
       error.source = headers.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage(headers.tenantID, Constants.ACTION_STOP_TRANSACTION, error);
+      Logging.logActionExceptionMessage(headers.tenantID, Constants.ACTION_REMOTE_STOP_TRANSACTION, error);
       // Error
       return { 'status': 'Invalid' };
     }
