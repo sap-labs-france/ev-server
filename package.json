@@ -40,7 +40,7 @@
 		"mongodb": "^3.2.3",
 		"morgan": "^1.9.1",
 		"mustache": "^3.0.1",
-		"node-authorization": "^1.0.6",
+		"node-authorization": "^1.0.7",
 		"node-cron": "^2.0.3",
 		"p-limit": "^2.2.0",
 		"passport": "^0.4.0",

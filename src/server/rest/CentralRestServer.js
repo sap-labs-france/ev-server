@@ -13,22 +13,24 @@ const ErrorHandler = require('./ErrorHandler');
 const SessionHashService = require('../rest/service/SessionHashService');
 require('source-map-support').install();
 
+const MODULE_NAME = "CentralRestServer";
+
+// For use in callbacks
 let _centralSystemRestConfig;
-let _chargingStationConfig;
+let _restHttpServer;
 let _socketIO;
 const _currentNotifications = [];
-const MODULE_NAME = "CentralRestServer";
 
 class CentralRestServer {
   // Create the rest server
   constructor(centralSystemRestConfig, chargingStationConfig) {
     // Keep params
     _centralSystemRestConfig = centralSystemRestConfig;
-    _chargingStationConfig = chargingStationConfig;
+    this._chargingStationConfig = chargingStationConfig;
 
     // Set
     Database.setChargingStationHeartbeatIntervalSecs(
-      _chargingStationConfig.heartbeatIntervalSecs);
+      this._chargingStationConfig.heartbeatIntervalSecs);
 
     // Initialize express app
     this._express = expressTools.init('2mb');
@@ -73,8 +75,8 @@ class CentralRestServer {
     // Register error handler
     this._express.use(ErrorHandler.errorHandler);
 
-    // Create HTTP to serve the express app
-    this._httpServer = expressTools.createHttpServer(_centralSystemRestConfig, this._express);
+    // Create HTTP server to serve the express app
+    _restHttpServer = expressTools.createHttpServer(_centralSystemRestConfig, this._express);
 
     // Check if the front-end has to be served also
     const centralSystemConfig = Configuration.getCentralSystemFrontEndConfig();
@@ -100,27 +102,46 @@ class CentralRestServer {
   }
 
   get httpServer() {
-    return this._httpServer;
+    return _restHttpServer;
+  }
+
+  static _socketIOListenCb() {
+    // Log
+    const logMsg = `REST SocketIO Server listening on '${_centralSystemRestConfig.protocol}://${_restHttpServer.address().address}:${_restHttpServer.address().port}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`;
+    Logging.logInfo({
+      tenantID: Constants.DEFAULT_TENANT,
+      module: MODULE_NAME,
+      method: "start", action: "Startup",
+      message: logMsg
+    });
+    // eslint-disable-next-line no-console
+    console.log(logMsg);
+
+    // Check and send notification
+    setInterval(() => {
+      // Send
+      for (let i = _currentNotifications.length - 1; i >= 0; i--) {
+        // Notify all Web Sockets
+        _socketIO.to(_currentNotifications[i].tenantID).emit(_currentNotifications[i].entity, _currentNotifications[i]);
+        // Remove
+        _currentNotifications.splice(i, 1);
+      }
+    }, _centralSystemRestConfig.webSocketNotificationIntervalSecs * 1000);
   }
 
   startSocketIO() {
     // Log
-    // eslint-disable-next-line no-console
-    console.log(`Starting REST SocketIO Server ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
-    // Init Socket IO
-    _socketIO = require("socket.io")(this._httpServer);
-    // Check and send notification once listening
-    _socketIO.httpServer.on('listening', () => {
-      setInterval(() => {
-        // Send
-        for (let i = _currentNotifications.length - 1; i >= 0; i--) {
-          // Notify all Web Sockets
-          _socketIO.to(_currentNotifications[i].tenantID).emit(_currentNotifications[i].entity, _currentNotifications[i]);
-          // Remove
-          _currentNotifications.splice(i, 1);
-        }
-      }, _centralSystemRestConfig.webSocketNotificationIntervalSecs * 1000);
+    const logMsg = `Starting REST SocketIO Server ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`;
+    Logging.logInfo({
+      tenantID: Constants.DEFAULT_TENANT,
+      module: MODULE_NAME,
+      method: "start", action: "Startup",
+      message: logMsg
     });
+    // eslint-disable-next-line no-console
+    console.log(logMsg);
+    // Init Socket IO
+    _socketIO = require("socket.io")(_restHttpServer);
     // Handle Socket IO connection
     _socketIO.on('connection', (socket) => {
       socket.join(socket.handshake.query.tenantID);
@@ -129,16 +150,22 @@ class CentralRestServer {
         // Nothing to do
       });
     });
+
+    // Check and send notification
+    setInterval(() => {
+      // Send
+      for (let i = _currentNotifications.length - 1; i >= 0; i--) {
+        // Notify all Web Sockets
+        _socketIO.to(_currentNotifications[i].tenantID).emit(_currentNotifications[i].entity, _currentNotifications[i]);
+        // Remove
+        _currentNotifications.splice(i, 1);
+      }
+    }, _centralSystemRestConfig.webSocketNotificationIntervalSecs * 1000);
   }
 
   // Start the server
-  start(socketIO = this._centralSystemRestConfig.socketIO) {
-    expressTools.startServer(_centralSystemRestConfig, this._httpServer, "REST", MODULE_NAME);
-
-    if (socketIO) {
-      // Start Socket IO server
-      this.startSocketIO();
-    }
+  start() {
+    expressTools.startServer(_centralSystemRestConfig, _restHttpServer, "REST", MODULE_NAME);
   }
 
   notifyUser(tenantID, action, data) {

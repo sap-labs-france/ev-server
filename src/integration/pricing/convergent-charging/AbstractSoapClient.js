@@ -22,6 +22,11 @@ class AbstractSoapClient {
   async _execute(request) {
     // Init Client (Done only once)
     await this._initSOAPClient();
+    // Log
+    // eslint-disable-next-line no-console
+    console.log(JSON.stringify({
+      request
+    }, null, 2));
     // Init SOAP header
     this.client.clearSoapHeaders();
     this.client.addSoapHeader(request.headers);
@@ -35,6 +40,7 @@ class AbstractSoapClient {
       // Execute it
       t0 = performance.now();
       const functionToCall = this.service[request.name];
+      // eslint-disable-next-line no-unused-vars
       const { result, envelope, soapHeader } = await functionToCall(payload);
       t1 = performance.now();
       // Log
@@ -45,10 +51,12 @@ class AbstractSoapClient {
         data: result || {}
       };
       // Log Response
+      // eslint-disable-next-line no-console
       console.log(JSON.stringify(response, null, 2));
       // Return response
       return response;
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.log(error);
     }
   }

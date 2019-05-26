@@ -14,6 +14,7 @@ class SiteAreaApi extends CrudApi {
   }
 
   create(data) {
+    // eslint-disable-next-line no-console
     console.log(JSON.stringify(data, null, ' '));
     
     return super.create('/client/api/SiteAreaCreate', data);

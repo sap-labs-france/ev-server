@@ -108,7 +108,10 @@ class Bootstrap {
         // Start database Web Socket notifications
         this._storageNotification.start();
         // Start it
-        await this._centralRestServer.start(!this._isClusterEnable);
+        await this._centralRestServer.start();
+        // if (this._centralSystemRestConfig.socketIO) {
+        //   await this._centralRestServer.startSocketIO();
+        // }
       }
 
       // -------------------------------------------------------------------------
@@ -239,13 +242,21 @@ class Bootstrap {
         });
       });
 
-      if (cluster.isMaster && this._isClusterEnable) {
+      // FIXME: Attach the socketIO server to the master process for now.
+      //        Load balancing between workers needs to make the client session sticky.
+      if (this._centralSystemRestConfig && this._centralSystemRestConfig.socketIO && cluster.isMaster) {
+        // -------------------------------------------------------------------------
+        // REST Server (Front-End)
+        // -------------------------------------------------------------------------
         // Create the server
-        this._centralRestServer = new CentralRestServer(this._centralSystemRestConfig, this._chargingStationConfig);
-        // FIXME: Attach the socketIO server to the master process for now.
-        //        Load balancing between workers needs to make the client session sticky.
-        if (this._centralSystemRestConfig.socketIO)
-          await this._centralRestServer.startSocketIO();
+        if (!this._centralRestServer) {
+          this._centralRestServer = new CentralRestServer(this._centralSystemRestConfig, this._chargingStationConfig);
+        }
+        // Start Socket IO server
+        await this._centralRestServer.startSocketIO();
+      }
+
+      if (cluster.isMaster && this._isClusterEnable) {
         await Bootstrap._startMaster();
       } else {
         await Bootstrap._startServersListening();
