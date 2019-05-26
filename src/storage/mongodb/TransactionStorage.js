@@ -688,6 +688,36 @@ class TransactionStorage {
     return null;
   }
 
+  static async getLastTransaction(tenantID, chargeBoxID, connectorId) {
+    const Transaction = require('../../entity/Transaction');
+    // Debug
+    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getLastTransaction');
+    // Check
+    await Utils.checkTenant(tenantID);
+    const aggregation = [];
+    // Filters
+    aggregation.push({
+      $match: {
+        "chargeBoxID": chargeBoxID,
+        "connectorId": Utils.convertToInt(connectorId)
+      }
+    });
+    aggregation.push({ $sort: { timestamp: -1 } });
+    // The last one
+    aggregation.push({ $limit: 1 });
+    // Read DB
+    const transactionsMDB = await global.database.getCollection(tenantID, 'transactions')
+      .aggregate(aggregation)
+      .toArray();
+    // Debug
+    Logging.traceEnd('TransactionStorage', 'getLastTransaction', uniqueTimerID, { chargeBoxID, connectorId });
+    // Found?
+    if (transactionsMDB && transactionsMDB.length > 0) {
+      return new Transaction(tenantID, transactionsMDB[0]);
+    }
+    return null;
+  }
+
   static async _findAvailableID(tenantID) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', '_findAvailableID');

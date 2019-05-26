@@ -53,7 +53,7 @@ class Utils {
       'https://eu10.revenue.cloud.sap/api/usage-record/v1/usage-records',
       {
         'metricId': 'ChargeCurrent_Trial',
-        'quantity': transaction.getTotalConsumption() / 1000,
+        'quantity': transaction.getStopTotalConsumption() / 1000,
         'startedAt': transaction.getstartedAt(),
         'endedAt': transaction.getendedAt(),
         'userTechnicalId': transaction.getTagID()

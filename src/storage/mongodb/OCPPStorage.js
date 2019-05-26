@@ -48,9 +48,20 @@ class OCPPStorage {
     const filters = {};
     // Date from provided?
     if (params.dateFrom) {
-      // Yes, add in filter
       filters.timestamp = {};
       filters.timestamp.$gte = new Date(params.dateFrom);
+    }
+    // Charger
+    if (params.chargeBoxID) {
+      filters.chargeBoxID = params.chargeBoxID;
+    }
+    // Connector ID
+    if (params.connectorId) {
+      filters.connectorId = params.connectorId;
+    }
+    // Status
+    if (params.status) {
+      filters.status = params.status;
     }
     // Create Aggregation
     const aggregation = [];
@@ -64,8 +75,6 @@ class OCPPStorage {
     const statusNotificationsCountMDB = await global.database.getCollection(tenantID, 'statusnotifications')
       .aggregate([...aggregation, { $count: "count" }])
       .toArray();
-    // Add Created By / Last Changed By
-    // DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
     if (sort) {
       // Sort

@@ -610,6 +610,7 @@ class Database {
       dest.stop.stateOfCharge = Utils.convertToInt(src.stop.stateOfCharge);
       dest.stop.totalConsumption = Utils.convertToInt(src.stop.totalConsumption);
       dest.stop.totalInactivitySecs = Utils.convertToInt(src.stop.totalInactivitySecs);
+      dest.stop.extraInactivitySecs = Utils.convertToInt(src.stop.extraInactivitySecs);
       dest.stop.totalDurationSecs = Utils.convertToInt(src.stop.totalDurationSecs);
       if (src.stop.hasOwnProperty('price')) {
         dest.stop.price = Utils.convertToInt(src.stop.price);
