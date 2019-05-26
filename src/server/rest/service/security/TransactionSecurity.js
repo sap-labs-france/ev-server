@@ -150,30 +150,31 @@ class TransactionSecurity {
       // Transaction Stop
       if (transaction.isFinished()) {
         filteredTransaction.stop = {};
-        filteredTransaction.stop.meterStop = transaction.getMeterStop();
-        filteredTransaction.stop.timestamp = transaction.getEndDate();
-        filteredTransaction.stop.totalConsumption = transaction.getTotalConsumption();
-        filteredTransaction.stop.totalInactivitySecs = transaction.getTotalInactivitySecs();
-        filteredTransaction.stop.totalDurationSecs = transaction.getTotalDurationSecs();
-        filteredTransaction.stop.stateOfCharge = transaction.getEndStateOfCharge();
-        // if (Authorizations.isAdmin(loggedUser) && transaction.hasPrice()) {
-        if (transaction.hasPrice()) {
-          filteredTransaction.stop.price = transaction.getPrice();
-          filteredTransaction.stop.roundedPrice = transaction.getRoundedPrice();
-          filteredTransaction.stop.priceUnit = transaction.getPriceUnit();
-          filteredTransaction.stop.pricingSource = transaction.getPricingSource();
+        filteredTransaction.stop.meterStop = transaction.getStopMeter();
+        filteredTransaction.stop.timestamp = transaction.getStopDate();
+        filteredTransaction.stop.totalConsumption = transaction.getStopTotalConsumption();
+        filteredTransaction.stop.totalInactivitySecs = transaction.getStopTotalInactivitySecs();
+        filteredTransaction.stop.extraInactivitySecs = transaction.getStopExtraInactivitySecs();
+        filteredTransaction.stop.totalDurationSecs = transaction.getStopTotalDurationSecs();
+        filteredTransaction.stop.stateOfCharge = transaction.getStopStateOfCharge();
+        // if (Authorizations.isAdmin(loggedUser) && transaction.hasStopPrice()) {
+        if (transaction.hasStopPrice()) {
+          filteredTransaction.stop.price = transaction.getStopPrice();
+          filteredTransaction.stop.roundedPrice = transaction.getStopRoundedPrice();
+          filteredTransaction.stop.priceUnit = transaction.getStopPriceUnit();
+          filteredTransaction.stop.pricingSource = transaction.getStopPricingSource();
         }
         // Demo user?
         if (Authorizations.isDemo(loggedUser)) {
           filteredTransaction.stop.tagID = Constants.ANONIMIZED_VALUE;
         } else {
-          filteredTransaction.stop.tagID = transaction.getStoppedTagID();
+          filteredTransaction.stop.tagID = transaction.getStopTagID();
         }
         // Stop User
-        if (transaction.getStoppedUserJson()) {
+        if (transaction.getStopUserJson()) {
           // Filter user
           filteredTransaction.stop.user = TransactionSecurity._filterUserInTransactionResponse(
-            transaction.getStoppedUserJson(), loggedUser);
+            transaction.getStopUserJson(), loggedUser);
         }
       }
     }

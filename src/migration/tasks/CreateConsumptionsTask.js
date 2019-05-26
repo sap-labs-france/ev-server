@@ -213,8 +213,8 @@ class CreateConsumptionsTask extends MigrationTask {
         id: '6969',
         connectorId: transaction.getConnectorId(),
         transactionId: transaction.getID(),
-        timestamp: transaction.getEndDate(),
-        value: transaction.getMeterStop(),
+        timestamp: transaction.getStopDate(),
+        value: transaction.getStopMeter(),
         attribute: DEFAULT_CONSUMPTION_ATTRIBUTE
       });
     }
