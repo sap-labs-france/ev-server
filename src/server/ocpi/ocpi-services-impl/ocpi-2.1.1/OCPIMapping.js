@@ -295,11 +295,11 @@ class OCPIMapping {
 
     // check if available
     if (ocpiSetting && ocpiSetting.getContent()) {
-      const configuration = ocpiSetting.getContent();
+      const configuration = ocpiSetting.getContent().ocpi;
       credential.token = token;
-      credential.country_code = configuration.country_code;
-      credential.party_id = configuration.party_id;
-      credential.business_details = configuration.business_details;
+      credential.country_code = configuration.countryCode;
+      credential.party_id = configuration.partyID;
+      credential.business_details = configuration.businessDetails;
     } else {
       // TODO: remove this - temporary configuration to handle non existing service.
       credential.token = 'eyAiYSI6IDEgLCAidGVuYW50IjogInNsZiIgfQ==';

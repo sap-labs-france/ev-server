@@ -32,14 +32,16 @@
                 "ocpi": {
                     "type": "object",
                     "properties": {
-                        "active": { "type": "boolean" }
-                    }
+                        "active": { "type": "boolean" },
+                          "type": { "type": "string" }
+                      }
                 },
                 "refund": {
                     "type": "object",
                     "properties": {
-                        "active": { "type": "boolean" }
-                    }
+                        "active": { "type": "boolean" },
+                          "type": { "type": "string" }
+                      }
                 },
                 "pricing": {
                     "type": "object",
@@ -52,13 +54,14 @@
                     "type": "object",
                     "properties": {
                         "active": { "type": "boolean" }
-                    }
+                      }
                 },
-                "sac": {
+                "analytics": {
                     "type": "object",
                     "properties": {
-                        "active": { "type": "boolean" }
-                    }
+                        "active": { "type": "boolean" },
+                          "type": { "type": "string" }
+                      }
                 }
             }
         }

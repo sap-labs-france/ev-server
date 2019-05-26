@@ -84,9 +84,18 @@ class Tenant {
     this._model.components[identifier].active = false;
   }
 
+  getActiveComponentNames() {
+    const activeComponents = [];
+    for (const componentName in this._model.components) {
+      if (this._model.components.hasOwnProperty(componentName) && this._model.components[componentName].active) {
+        activeComponents.push(componentName);
+      }
+    }
+    return activeComponents;
+  }
+
   getActiveComponents() {
     const activeComponents = [];
-
     for (const componentName in this._model.components) {
       if (this._model.components.hasOwnProperty(componentName) && this._model.components[componentName].active) {
         if (this._model.components[componentName].type) {
@@ -96,6 +105,14 @@ class Tenant {
       }
     }
     return activeComponents;
+  }
+
+  getComponents() {
+    const components = [];
+    for (const componentName in this._model.components) {
+      components.push({name: componentName, ...this._model.components[componentName]});
+    }
+    return components;
   }
 
   setComponentConfigTenantLevel(identifier, configuration) {

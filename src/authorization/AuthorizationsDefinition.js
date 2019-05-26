@@ -136,7 +136,7 @@ class AuthorizationsDefinition {
 						"AuthObject": "ChargingStation",
 						"AuthFieldValue": {
 							"ChargingStationID": "*",
-							"Action": ["Read", "StartTransaction", "StopTransaction", "UnlockConnector", "Authorize"]
+							"Action": ["Read", "RemoteStartTransaction", "RemoteStopTransaction", "UnlockConnector", "Authorize"]
 						}
 					},
 					{
@@ -505,7 +505,7 @@ class AuthorizationsDefinition {
 							"ChargingStationID": "*",
 							"Action": ["Create", "Read", "Update", "Delete", 
 										"Reset", "ClearCache", "GetConfiguration", "ChangeConfiguration", 
-										"StartTransaction", "StopTransaction", "UnlockConnector", 
+										"RemoteStartTransaction", "RemoteStopTransaction", "UnlockConnector", 
 										"Authorize", "SetChargingProfile", "GetCompositeSchedule", "ClearChargingProfile",
 										"GetDiagnostics", "UpdateFirmware"]
 						}
@@ -722,7 +722,7 @@ class AuthorizationsDefinition {
 					{
 						"AuthObject": "Pricing",
 						"AuthFieldValue": {
-							"Action": ["Read", "Update"]
+							"Action": []
 						}
 					}, {
 						"AuthObject": "Tenants",
@@ -739,27 +739,27 @@ class AuthorizationsDefinition {
 					{
 						"AuthObject": "Settings",
 						"AuthFieldValue": {
-							"Action": ["List"]
+							"Action": []
 						}
 					},
 					{
 						"AuthObject": "Setting",
 						"AuthFieldValue": {
 							"SettingID": "*",
-							"Action": ["Create", "Read", "Update", "Delete"]
+							"Action": []
 						}
 					},
 					{
 						"AuthObject": "OcpiEndpoints",
 						"AuthFieldValue": {
-							"Action": ["List"]
+							"Action": []
 						}
 					},
 					{
 						"AuthObject": "OcpiEndpoint",
 						"AuthFieldValue": {
 							"OcpiEndpointID": "*",
-							"Action": ["Create", "Read", "Update", "Delete", "Ping", "GenerateLocalToken"]
+							"Action": []
 						}
 					}
 				]

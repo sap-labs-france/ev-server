@@ -37,7 +37,7 @@ class Authorizations {
     if (!Authorizations.canPerformActionOnChargingStation(
       user.getModel(),
       chargingStation.getModel(),
-      Constants.ACTION_START_TRANSACTION)) {
+      Constants.ACTION_REMOTE_START_TRANSACTION)) {
       // Ko
       return false;
     }
@@ -50,7 +50,7 @@ class Authorizations {
     if (!Authorizations.canPerformActionOnChargingStation(
       user.getModel(),
       chargingStation.getModel(),
-      Constants.ACTION_STOP_TRANSACTION)) {
+      Constants.ACTION_REMOTE_STOP_TRANSACTION)) {
       // Ko
       return false;
     }
@@ -893,7 +893,7 @@ class Authorizations {
   }
 
   static isAdmin(loggedUser) {
-    return this.isSuperAdmin(loggedUser) || loggedUser.role === Constants.ROLE_ADMIN;
+    return loggedUser.role === Constants.ROLE_ADMIN;
   }
 
   static isBasic(loggedUser) {

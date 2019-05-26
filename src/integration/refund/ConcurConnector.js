@@ -187,7 +187,7 @@ class ConcurConnector extends AbstractConnector {
       Logging.logError({
         tenantID: this.getTenantID(),
         module: MODULE_NAME, method: 'refreshToken',
-        action: 'RefreshAccessToken', message: `Concur access token not refreshed for ${userId}`
+        action: 'refreshAccessToken', message: `Concur access token not refreshed for ${userId}`
       });
       throw new AppError(
         Constants.CENTRAL_SERVER,

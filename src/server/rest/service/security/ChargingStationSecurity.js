@@ -1,6 +1,8 @@
 const sanitize = require('mongo-sanitize');
 const Authorizations = require('../../../../authorization/Authorizations');
+const Constants = require('../../../../utils/Constants');
 const UtilsSecurity = require('./UtilsSecurity');
+
 let SiteAreaSecurity; // Avoid circular deps
 
 class ChargingStationSecurity {
@@ -50,11 +52,15 @@ class ChargingStationSecurity {
       if (Authorizations.isAdmin(loggedUser)) {
         // Yes: set all params
         filteredChargingStation = chargingStation;
+        for (const connector of filteredChargingStation.connectors) {
+          connector.status = (filteredChargingStation.inactive ? Constants.CONN_STATUS_UNAVAILABLE : connector.status); 
+        }
       } else {
         // Set only necessary info
         filteredChargingStation = {};
         filteredChargingStation.id = chargingStation.id;
         filteredChargingStation.chargeBoxID = chargingStation.chargeBoxID;
+        filteredChargingStation.inactive = chargingStation.inactive;
         filteredChargingStation.connectors = chargingStation.connectors.map((connector) => {
           return {
             'activeTransactionID': connector.activeTransactionID,
@@ -66,12 +72,11 @@ class ChargingStationSecurity {
             'power': connector.power,
             'voltage': connector.voltage,
             'amperage': connector.amperage,
-            'status': connector.status,
+            'status': (filteredChargingStation.inactive ? Constants.CONN_STATUS_UNAVAILABLE : connector.status),
             'totalConsumption': connector.totalConsumption
           };
         });
         filteredChargingStation.lastHeartBeat = chargingStation.lastHeartBeat;
-        filteredChargingStation.inactive = chargingStation.inactive;
         filteredChargingStation.maximumPower = chargingStation.maximumPower;
         filteredChargingStation.chargePointVendor = chargingStation.chargePointVendor;
         filteredChargingStation.siteAreaID = chargingStation.siteAreaID;

@@ -12,7 +12,7 @@ const CleanupTransactionTask = require('./tasks/CleanupTransactionTask');
 const TransactionsAddTimezoneTask = require('./tasks/TransactionsAddTimezoneTask');
 const UsersAddNotificationsFlagTask = require('./tasks/UsersAddNotificationsFlagTask');
 const UpdateTransactionSimplePriceTask = require('./tasks/UpdateTransactionSimplePriceTask');
-// const CleanupMeterValuesTask = require('./tasks/CleanupMeterValuesTask');
+const MigrateTenantSettingsTask = require('./tasks/MigrateTenantSettingsTask');
 
 
 class MigrationHandler {
@@ -41,7 +41,7 @@ class MigrationHandler {
       currentMigrationTasks.push(new TransactionsAddTimezoneTask());
       currentMigrationTasks.push(new UpdateTransactionSimplePriceTask());
       currentMigrationTasks.push(new UsersAddNotificationsFlagTask());
-      // currentMigrationTasks.push(new CleanupMeterValuesTask()); // 02/2019: Takes too much time for only ~7000 meter values out of 2.2 millions
+      currentMigrationTasks.push(new MigrateTenantSettingsTask());
 
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();

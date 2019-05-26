@@ -22,10 +22,6 @@ class AbstractSoapClient {
   async _execute(request) {
     // Init Client (Done only once)
     await this._initSOAPClient();
-    // Log
-    console.log(JSON.stringify({
-      request
-    }, null, 2));
     // Init SOAP header
     this.client.clearSoapHeaders();
     this.client.addSoapHeader(request.headers);
