@@ -159,13 +159,14 @@ class Setting extends AbstractTenantEntity {
     }
   }
 
-  static checkIfSettingValid(request, httpRequest) {
+  static checkIfSettingValid(filteredRequest, req) {
     // Update model?
-    if (httpRequest.method !== 'POST' && !request.id) {
+    if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The Setting ID is mandatory`, 500,
-        'Setting', 'checkIfSettingValid');
+        `Setting ID is mandatory`, 500,
+        'Setting', 'checkIfSettingValid',
+        req.user.id);
     }
   }
 

@@ -30,10 +30,22 @@ class ConcurConnector extends AbstractConnector {
       {
         retries: 3,
         retryCondition: (error) => {
-          Logging.logException(new InternalError(`Unable to process request, response status ${error.response.status}`, error.response.data), "AxiosRetry", Constants.CENTRAL_SERVER, "ConcurConnector", "AxiosRetry", tenantID);
           return error.response.status === 500;
         },
-        retryDelay: (retryCount) => {
+        retryDelay: (retryCount, error) => {
+          if (error.config.method === 'post') {
+            if (error.config.url.endsWith('/token')) {
+              Logging.logException(new InternalError(`Unable to request token, response status ${error.response.status}, attempt ${retryCount}`, error.response.data), "Refund", MODULE_NAME, MODULE_NAME, "AxiosRetry", tenantID);
+            } else {
+              const payload = {
+                error: error.response.data,
+                payload: JSON.parse(error.config.data)
+              };
+              Logging.logException(new InternalError(`Unable to post data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`, payload), "Refund", MODULE_NAME, MODULE_NAME, "AxiosRetry", tenantID);
+            }
+          } else {
+            Logging.logException(new InternalError(`Unable to ${error.config.url} data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`, error.response.data), "Refund", MODULE_NAME, MODULE_NAME, "AxiosRetry", tenantID);
+          }
           return retryCount * 200;
         },
         shouldResetTimeout: true
@@ -141,18 +153,14 @@ class ConcurConnector extends AbstractConnector {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Concur access token not granted for ${userId}`, 500,
-        'ConcurConnector', 'GetAccessToken', userId);
+        MODULE_NAME, 'GetAccessToken', userId);
     }
   }
 
   async refreshToken(userId, connection) {
     try {
-      Logging.logDebug({
-        tenantID: this.getTenantID(),
-        module: MODULE_NAME, method: 'refreshToken',
-        action: 'RefreshAccessToken', message: `Request concur refresh token for ${userId}`
-      });
-      const result = await axios.post(`${this.getAuthenticationUrl()}/oauth2/v0/token`,
+      const startDate = moment();
+      const response = await axios.post(`${this.getAuthenticationUrl()}/oauth2/v0/token`,
         querystring.stringify({
           client_id: this.getClientId(),
           client_secret: this.getClientSecret(),
@@ -165,25 +173,26 @@ class ConcurConnector extends AbstractConnector {
             'Content-Type': 'application/x-www-form-urlencoded'
           }
         });
+
       Logging.logDebug({
         tenantID: this.getTenantID(),
-        module: MODULE_NAME, method: 'refreshToken',
-        action: 'RefreshAccessToken', message: `Concur access token refreshed for ${userId}`
+        user: userId,
+        source: MODULE_NAME, action: "Refund",
+        module: MODULE_NAME, method: "createQuickExpense",
+        message: `Concur access token has been successfully generated in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
       });
-      const now = new Date();
-      connection.updateData(result.data, now, ConcurConnector.computeValidUntilAt(result));
-
+      connection.updateData(response.data, new Date(), ConcurConnector.computeValidUntilAt(response));
       return ConnectionStorage.saveConnection(this.getTenantID(), connection.getModel());
     } catch (e) {
       Logging.logError({
         tenantID: this.getTenantID(),
         module: MODULE_NAME, method: 'refreshToken',
-        action: 'RefreshAccessToken', message: `Concur access token not refreshed for ${userId}`
+        action: 'refreshAccessToken', message: `Concur access token not refreshed for ${userId}`
       });
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Concur access token not refreshed for ${userId}`, 500,
-        'ConcurConnector', 'refreshToken', userId);
+        MODULE_NAME, 'refreshToken', userId);
     }
   }
 
@@ -195,6 +204,7 @@ class ConcurConnector extends AbstractConnector {
    * @returns {Promise<Transaction[]>}
    */
   async refund(user, transactions, quickRefund = false) {
+    const startDate = moment();
     const refundedTransactions = [];
     let connection = await this.getConnectionByUserId(user.getID());
     if (connection === undefined) {
@@ -210,7 +220,7 @@ class ConcurConnector extends AbstractConnector {
     let expenseReportId;
 
     if (!quickRefund) {
-      expenseReportId = await this.createExpenseReport(connection, transactions[0].getTimezone());
+      expenseReportId = await this.createExpenseReport(connection, transactions[0].getTimezone(), user);
     }
 
     await Promise.map(transactions,
@@ -219,10 +229,10 @@ class ConcurConnector extends AbstractConnector {
           const chargingStation = await ChargingStation.getChargingStation(transaction.getTenantID(), transaction.getChargeBoxID());
           const locationId = await this.getLocation(connection, await chargingStation.getSite());
           if (quickRefund) {
-            const entryId = await this.createQuickExpense(connection, transaction, locationId);
+            const entryId = await this.createQuickExpense(connection, transaction, locationId, user);
             transaction.setRefundData({refundId: entryId, type: 'quick', refundedAt: new Date()});
           } else {
-            const entryId = await this.createExpenseReportEntry(connection, expenseReportId, transaction, locationId);
+            const entryId = await this.createExpenseReportEntry(connection, expenseReportId, transaction, locationId, user);
             transaction.setRefundData({
               refundId: entryId,
               type: 'report',
@@ -233,10 +243,18 @@ class ConcurConnector extends AbstractConnector {
           await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
           refundedTransactions.push(transaction);
         } catch (exception) {
-          Logging.logException(exception, "Refund", Constants.CENTRAL_SERVER, "ConcurConnector", "refund", this.getTenantID(), user);
+          Logging.logException(exception, "Refund", MODULE_NAME, MODULE_NAME, "refund", this.getTenantID(), user);
         }
       },
       {concurrency: 10});
+
+    Logging.logInfo({
+      tenantID: this.getTenantID(),
+      user: user.getID(),
+      source: MODULE_NAME, action: "Refund",
+      module: MODULE_NAME, method: "Refund",
+      message: `${refundedTransactions.length} transactions have been transferred to Concur in ${moment().diff(startDate, 'milliseconds')} ms`
+    });
 
     return refundedTransactions;
   }
@@ -293,9 +311,9 @@ class ConcurConnector extends AbstractConnector {
       }
     }
     throw new AppError(
-      Constants.CENTRAL_SERVER,
+      MODULE_NAME,
       `The city '${site.getAddress().city}' of the station is unknown to Concur`, 553,
-      'ConcurConnector', 'getLocation');
+      MODULE_NAME, 'getLocation');
   }
 
   /**
@@ -303,10 +321,12 @@ class ConcurConnector extends AbstractConnector {
    * @param connection {Connection}
    * @param transaction {Transaction}
    * @param location
+   * @param user
    * @returns {Promise<string>}
    */
-  async createQuickExpense(connection, transaction, location) {
+  async createQuickExpense(connection, transaction, location, user) {
     try {
+      const startDate = moment();
       const response = await axios.post(`${this.getAuthenticationUrl()}/quickexpense/v4/users/${jwt.decode(connection.getData().access_token).sub}/context/TRAVELER/quickexpenses`, {
         'comment': `Session started the ${moment.tz(transaction.getStartDate(), transaction.getTimezone()).format("YYYY-MM-DD HH:mm:ss")} during ${moment.duration(transaction.getTotalDurationSecs(), 'seconds').format(`h[h]mm`, {trim: false})}`,
         'vendor': this.getReportName(),
@@ -326,9 +346,20 @@ class ConcurConnector extends AbstractConnector {
           Authorization: `Bearer ${connection.getData().access_token}`
         }
       });
+      Logging.logDebug({
+        tenantID: this.getTenantID(),
+        user: user.getID(),
+        source: MODULE_NAME, action: "Refund",
+        module: MODULE_NAME, method: "createQuickExpense",
+        message: `Transaction ${transaction.getID()} has been successfully transferred in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
+      });
       return response.data.quickExpenseIdUri;
     } catch (e) {
-      throw new InternalError(`Unable to create quickExpense, response status ${e.response.status}`, e.response.data);
+      if (e.response) {
+        throw new InternalError(`Unable to create quickExpense, response status ${e.response.status}`, e.response.data);
+      } else {
+        throw new InternalError(`Unable to create expense report`, e);
+      }
     }
   }
 
@@ -338,10 +369,12 @@ class ConcurConnector extends AbstractConnector {
    * @param expenseReportId {string}
    * @param transaction {Transaction}
    * @param location {Location}
+   * @param user
    * @returns {Promise<string>}
    */
-  async createExpenseReportEntry(connection, expenseReportId, transaction, location) {
+  async createExpenseReportEntry(connection, expenseReportId, transaction, location, user) {
     try {
+      const startDate = moment();
       const response = await axios.post(`${this.getApiUrl()}/api/v3.0/expense/entries`, {
         'Description': `E-Mobility reimbursement ${moment.tz(transaction.getStartDate(), transaction.getTimezone()).format("YYYY-MM-DD")}`,
         'Comment': `Session started the ${moment.tz(transaction.getStartDate(), transaction.getTimezone()).format("YYYY-MM-DD HH:mm:ss")} during ${moment.duration(transaction.getTotalDurationSecs(), 'seconds').format(`h[h]mm`, {trim: false})}`,
@@ -365,9 +398,20 @@ class ConcurConnector extends AbstractConnector {
           Authorization: `Bearer ${connection.getData().access_token}`
         }
       });
+      Logging.logDebug({
+        tenantID: this.getTenantID(),
+        user: user.getID(),
+        source: MODULE_NAME, action: "Refund",
+        module: MODULE_NAME, method: "createExpenseReportEntry",
+        message: `Transaction ${transaction.getID()} has been successfully transferred in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
+      });
       return response.data.ID;
     } catch (e) {
-      throw new InternalError(`Unable to create expense entry, response status ${e.response.status}`, e.response.data);
+      if (e.response) {
+        throw new InternalError(`Unable to create expense entry, response status ${e.response.status}`, e.response.data);
+      } else {
+        throw new InternalError(`Unable to create expense entry`, e);
+      }
     }
   }
 
@@ -377,8 +421,9 @@ class ConcurConnector extends AbstractConnector {
    * @param timezone
    * @returns {Promise<void>}
    */
-  async createExpenseReport(connection, timezone) {
+  async createExpenseReport(connection, timezone, user) {
     try {
+      const startDate = moment();
       const response = await axios.post(`${this.getApiUrl()}/api/v3.0/expense/reports`, {
         'Name': `${this.getReportName()} - ${moment.tz(timezone).format("DD/MM/YY HH:mm")}`,
         'PolicyID': this.getPolicyID()
@@ -388,10 +433,28 @@ class ConcurConnector extends AbstractConnector {
           Authorization: `Bearer ${connection.getData().access_token}`
         }
       });
+      Logging.logDebug({
+        tenantID: this.getTenantID(),
+        user: user.getID(),
+        source: MODULE_NAME, action: "Refund",
+        module: MODULE_NAME, method: "createExpenseReport",
+        message: `Report has been successfully created in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
+      });
       return response.data.ID;
     } catch (e) {
-      throw new InternalError(`Unable to create expense report, response status ${e.response.status}`, e.response.data);
+      if (e.response) {
+        throw new InternalError(`Unable to create expense report, response status ${e.response.status}`, e.response.data);
+      } else {
+        throw new InternalError(`Unable to create expense report`, e);
+      }
     }
+  }
+
+  getRetryCount(response) {
+    if (response && response.config) {
+      return response.config['axios-retry'].retryCount;
+    }
+    return 0;
   }
 
 }

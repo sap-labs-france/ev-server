@@ -37,7 +37,7 @@ class Authorizations {
     if (!Authorizations.canPerformActionOnChargingStation(
       user.getModel(),
       chargingStation.getModel(),
-      Constants.ACTION_START_TRANSACTION)) {
+      Constants.ACTION_REMOTE_START_TRANSACTION)) {
       // Ko
       return false;
     }
@@ -50,7 +50,7 @@ class Authorizations {
     if (!Authorizations.canPerformActionOnChargingStation(
       user.getModel(),
       chargingStation.getModel(),
-      Constants.ACTION_STOP_TRANSACTION)) {
+      Constants.ACTION_REMOTE_STOP_TRANSACTION)) {
       // Ko
       return false;
     }
@@ -152,7 +152,7 @@ class Authorizations {
     return compiledAuths;
   }
 
-  static async _checkAndGetUserTagIDOnChargingStation(chargingStation, tagID, action) {
+  static async _checkAndGetUserTagIDOnChargingStation(chargingStation, tagID, isOrgCompActive, site, action) {
     // Get the user
     let user = await User.getUserByTagId(chargingStation.getTenantID(), tagID);
     // Found?
@@ -339,7 +339,7 @@ class Authorizations {
     // Get the user
     if (tagID) {
       user = await Authorizations._checkAndGetUserTagIDOnChargingStation(
-        chargingStation, tagID, action);
+        chargingStation, tagID, isOrgCompActive, site, action);
     }
     // Found?
     if (user) {
@@ -893,7 +893,7 @@ class Authorizations {
   }
 
   static isAdmin(loggedUser) {
-    return this.isSuperAdmin(loggedUser) || loggedUser.role === Constants.ROLE_ADMIN;
+    return loggedUser.role === Constants.ROLE_ADMIN;
   }
 
   static isBasic(loggedUser) {

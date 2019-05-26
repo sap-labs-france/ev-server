@@ -51,8 +51,6 @@ module.exports = {
   ENTITY_CONNECTION: "Connection",
   ENTITY_CONNECTIONS: "Connections",
 
-  SETTING_PRICING_TYPE_SIMPLE: "simple",
-  SETTING_PRICING_TYPE_CONVERGENT_CHARGING: "convergentCharging",
 
   NOTIF_TYPE_CHARGING_STATION_CONFIGURATION: "Configuration",
 
@@ -91,8 +89,8 @@ module.exports = {
   ACTION_AUTHORIZE: "Authorize",
   ACTION_CLEAR_CACHE: "ClearCache",
   ACTION_DATA_TRANSFER: "DataTransfer",
-  ACTION_STOP_TRANSACTION: "StopTransaction",
-  ACTION_START_TRANSACTION: "StartTransaction",
+  ACTION_REMOTE_STOP_TRANSACTION: "RemoteStopTransaction",
+  ACTION_REMOTE_START_TRANSACTION: "RemoteStartTransaction",
   ACTION_REFUND_TRANSACTION: "RefundTransaction",
   ACTION_UNLOCK_CONNECTOR: "UnlockConnector",
   ACTION_GET_CONFIGURATION: "GetConfiguration",

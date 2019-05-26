@@ -346,63 +346,122 @@ class User extends AbstractTenantEntity {
     }
   }
 
-  static checkIfUserValid(filteredRequest, request) {
-    // Update model?
-    if (request.method !== 'POST' && !filteredRequest.id) {
+  static checkIfUserValid(filteredRequest, req) {
+    const Authorizations = require('../authorization/Authorizations');
+    // Check Tenant
+    let tenantID;
+    if (req.user) {
+      tenantID = req.user.tenantID;
+    } else {
+      tenantID = filteredRequest.tenant;
+    }
+    if (!tenantID) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The User ID is mandatory`, 500,
+        `Tenant is mandatory`, 500,
         'Users', 'checkIfUserValid');
+    }
+    // Update model?
+    if (req.method !== 'POST' && !filteredRequest.id) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `User ID is mandatory`, 500,
+        'Users', 'checkIfUserValid',
+        req.user.id);
+    }
+    // Creation?
+    if (!filteredRequest.role) {
+      filteredRequest.role = Constants.ROLE_BASIC;
+    }
+    if (!filteredRequest.status) {
+      filteredRequest.status = Constants.USER_STATUS_BLOCKED;
+    }
+    // Creation?
+    if ((filteredRequest.role !== Constants.ROLE_BASIC) && (filteredRequest.role !== Constants.ROLE_DEMO) &&
+        !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `Only Admins can assign the role '${Utils.getRoleNameFromRoleID(filteredRequest.role)}'`, 500,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+    }
+    // Only Admin user can change role
+    if (tenantID === 'default' && filteredRequest.role  && filteredRequest.role !== Constants.ROLE_SUPER_ADMIN) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `User cannot have the role '${Utils.getRoleNameFromRoleID(filteredRequest.role)}' in the Super Tenant`, 500,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+    }
+    // Only Super Admin user in Super Tenant (default)
+    if (tenantID === 'default' && filteredRequest.role  && filteredRequest.role !== Constants.ROLE_SUPER_ADMIN) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `User cannot have the role '${Utils.getRoleNameFromRoleID(filteredRequest.role)}' in the Super Tenant`, 500,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+    }
+    // Only Basic, Demo, Admin user other Tenants (!== default)
+    if (tenantID !== 'default' && filteredRequest.role  && filteredRequest.role === Constants.ROLE_SUPER_ADMIN) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `User cannot have the Super Admin role in this Tenant`, 500,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+    }
+    // Only Admin and Super Admin can use role different from Basic
+    if (filteredRequest.role === Constants.ROLE_ADMIN && filteredRequest.role === Constants.ROLE_SUPER_ADMIN && 
+        !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `User without role Admin or Super Admin tried to ${filteredRequest.id ? 'update' : 'create'} an User with the '${Utils.getRoleNameFromRoleID(filteredRequest.role)}' role`, 500,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
     }
     if (!filteredRequest.name) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The User Last Name is mandatory`, 500,
-        'Users', 'checkIfUserValid');
+        `User Last Name is mandatory`, 500,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
     }
-    if (request.method === 'POST' && !filteredRequest.email) {
+    if (req.method === 'POST' && !filteredRequest.email) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The User Email is mandatory`, 500,
-        'Users', 'checkIfUserValid');
+        `User Email is mandatory`, 500,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
     }
-    if (request.method === 'POST' && !User.isUserEmailValid(filteredRequest.email)) {
+    if (req.method === 'POST' && !User.isUserEmailValid(filteredRequest.email)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The User Email ${filteredRequest.email} is not valid`, 500,
-        'Users', 'checkIfUserValid');
+        `User Email ${filteredRequest.email} is not valid`, 500,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
     }
     if (filteredRequest.password && !User.isPasswordValid(filteredRequest.password)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The User Password is not valid`, 500,
-        'Users', 'checkIfUserValid');
+        `User Password is not valid`, 500,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
     }
     if (filteredRequest.phone && !User.isPhoneValid(filteredRequest.phone)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The User Phone ${filteredRequest.phone} is not valid`, 500,
-        'Users', 'checkIfUserValid');
+        `User Phone ${filteredRequest.phone} is not valid`, 500,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
     }
     if (filteredRequest.mobile && !User.isPhoneValid(filteredRequest.mobile)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The User Mobile ${filteredRequest.mobile} is not valid`, 500,
-        'Users', 'checkIfUserValid');
+        `User Mobile ${filteredRequest.mobile} is not valid`, 500,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
     }
     if (filteredRequest.iNumber && !User.isINumberValid(filteredRequest.iNumber)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The User I-Number ${filteredRequest.iNumber} is not valid`, 500,
-        'Users', 'checkIfUserValid');
+        `User I-Number ${filteredRequest.iNumber} is not valid`, 500,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
     }
     if (filteredRequest.hasOwnProperty("tagIDs")) {
       // Check
       if (!User.isTagIDValid(filteredRequest.tagIDs)) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The User Tags ${filteredRequest.tagIDs} is/are not valid`, 500,
-          'Users', 'checkIfUserValid');
+          `User Tags ${filteredRequest.tagIDs} is/are not valid`, 500,
+          'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
       }
       // Check
       if (!Array.isArray(filteredRequest.tagIDs)) {
@@ -414,11 +473,15 @@ class User extends AbstractTenantEntity {
         }
       }
     }
+    // At least one tag ID
+    if (!filteredRequest.tagIDs || filteredRequest.tagIDs.length === 0) {
+      filteredRequest.tagIDs = [Utils.generateTagID(filteredRequest.name, filteredRequest.firstName)];
+    }
     if (filteredRequest.plateID && !User.isPlateIDValid(filteredRequest.plateID)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The User Plate ${filteredRequest.plateID} is not valid`, 500,
-        'Users', 'checkIfUserValid');
+        `User Plate ID ${filteredRequest.plateID} is not valid`, 500,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
     }
   }
 

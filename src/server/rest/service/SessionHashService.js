@@ -85,16 +85,18 @@ class SessionHashService {
   static async rebuildTenantHashID(tenantID) {
     // Build Tenant hash
     const tenant = await Tenant.getTenant(tenantID);
-    const hashID = SessionHashService.buildTenantHashID(tenant);
-    // Store the hash
-    global.tenantHashMapIDs[`${tenantID}`] = hashID;
-    // Log
-    Logging.logInfo({
-      tenantID: tenantID, source: Constants.CENTRAL_SERVER,
-      module: "SessionHashService", method: "rebuildTenantHashID",
-      action: "SessionHashHandling",
-      message: `Tenant has been changed or deleted`
-    });
+    if (tenant) {
+      const hashID = SessionHashService.buildTenantHashID(tenant);
+      // Store the hash
+      global.tenantHashMapIDs[`${tenantID}`] = hashID;
+      // Log
+      Logging.logInfo({
+        tenantID: tenantID, source: Constants.CENTRAL_SERVER,
+        module: "SessionHashService", method: "rebuildTenantHashID",
+        action: "SessionHashHandling",
+        message: `Tenant has been changed or deleted`
+      });
+    }
   }
 }
 

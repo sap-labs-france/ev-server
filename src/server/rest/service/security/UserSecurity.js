@@ -107,9 +107,6 @@ class UserSecurity {
       if (request.hasOwnProperty("email")) {
         filteredRequest.email = sanitize(request.email);
       }
-      if (request.hasOwnProperty("role")) {
-        filteredRequest.role = sanitize(request.role);
-      }
       if (request.hasOwnProperty("status")) {
         filteredRequest.status = sanitize(request.status);
       }
@@ -118,6 +115,22 @@ class UserSecurity {
       }
       if (request.hasOwnProperty("plateID")) {
         filteredRequest.plateID = sanitize(request.plateID);
+      }
+      if (request.hasOwnProperty("role")) {
+        filteredRequest.role = sanitize(request.role);
+      }
+    }
+    // Admin?
+    if (Authorizations.isSuperAdmin(loggedUser)) {
+      // Ok to set the sensitive data
+      if (request.hasOwnProperty("email")) {
+        filteredRequest.email = sanitize(request.email);
+      }
+      if (request.hasOwnProperty("role")) {
+        filteredRequest.role = sanitize(request.role);
+      }
+      if (request.hasOwnProperty("status")) {
+        filteredRequest.status = sanitize(request.status);
       }
     }
     return filteredRequest;
@@ -133,7 +146,7 @@ class UserSecurity {
     // Check auth
     if (Authorizations.canReadUser(loggedUser, user)) {
       // Admin?
-      if (Authorizations.isAdmin(loggedUser)) {
+      if (Authorizations.isAdmin(loggedUser) || Authorizations.isSuperAdmin(loggedUser)) {
         filteredUser.id = user.id;
         filteredUser.name = user.name;
         filteredUser.firstName = user.firstName;
