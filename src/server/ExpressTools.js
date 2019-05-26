@@ -76,7 +76,7 @@ module.exports = {
     return server;
   },
 
-  startServer: function (serverConfig, httpServer, serverName, serverModuleName, listenCb = null) {
+  startServer: function (serverConfig, httpServer, serverName, serverModuleName, listenCb = null, listen = true) {
     // Default listen callback
     function defaultListenCb() {
       // Log
@@ -107,13 +107,13 @@ module.exports = {
     console.log(logMsg);
 
     // Listen
-    if (serverConfig.host && serverConfig.port) {
+    if (serverConfig.host && serverConfig.port && listen) {
       httpServer.listen(serverConfig.port, serverConfig.host, cb);
-    } else if (!serverConfig.host && serverConfig.port) {
+    } else if (!serverConfig.host && serverConfig.port && listen) {
       httpServer.listen(serverConfig.port, cb);
-    } else {
+    } else if (listen) {
       // eslint-disable-next-line no-console
-      console.log(`Fail to start the ${serverName} Server, missing required port configuration`);
+      console.log(`Fail to start ${serverName} Server listening, missing required port configuration`);
     }
   }
 };

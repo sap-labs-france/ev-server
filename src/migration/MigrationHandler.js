@@ -1,6 +1,7 @@
 const Logging = require('../utils/Logging');
 const Constants = require('../utils/Constants');
 const moment = require('moment');
+const cluster = require('cluster');
 const MigrationStorage = require('../storage/mongodb/MigrationStorage');
 const UpdateTransactionInactivityTask = require('./tasks/UpdateTransactionInactivityTask');
 const TenantMigrationTask = require('./tasks/TenantMigrationTask');
@@ -107,11 +108,11 @@ class MigrationHandler {
       tenantID: Constants.DEFAULT_TENANT,
       source: "Migration", action: "Migration",
       module: "MigrationHandler", method: "migrate",
-      message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running...`
+      message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`
     });
     // Log in the console also
     // eslint-disable-next-line no-console
-    console.log(`Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running...`);
+    console.log(`Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`);
 
     // Start time
     const startTaskTime = moment();
