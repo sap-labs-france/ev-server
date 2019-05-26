@@ -153,8 +153,7 @@ class TransactionSecurity {
         filteredTransaction.stop.meterStop = transaction.getStopMeter();
         filteredTransaction.stop.timestamp = transaction.getStopDate();
         filteredTransaction.stop.totalConsumption = transaction.getStopTotalConsumption();
-        filteredTransaction.stop.totalInactivitySecs = transaction.getStopTotalInactivitySecs();
-        filteredTransaction.stop.extraInactivitySecs = transaction.getStopExtraInactivitySecs();
+        filteredTransaction.stop.totalInactivitySecs = transaction.getStopTotalInactivitySecs() + transaction.getStopExtraInactivitySecs();
         filteredTransaction.stop.totalDurationSecs = transaction.getStopTotalDurationSecs();
         filteredTransaction.stop.stateOfCharge = transaction.getStopStateOfCharge();
         // if (Authorizations.isAdmin(loggedUser) && transaction.hasStopPrice()) {

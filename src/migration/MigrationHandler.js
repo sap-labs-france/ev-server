@@ -14,6 +14,7 @@ const TransactionsAddTimezoneTask = require('./tasks/TransactionsAddTimezoneTask
 const UsersAddNotificationsFlagTask = require('./tasks/UsersAddNotificationsFlagTask');
 const UpdateTransactionSimplePriceTask = require('./tasks/UpdateTransactionSimplePriceTask');
 const MigrateTenantSettingsTask = require('./tasks/MigrateTenantSettingsTask');
+const UpdateTransactionExtraInactivityTask = require('./tasks/UpdateTransactionExtraInactivityTask');
 
 
 class MigrationHandler {
@@ -43,6 +44,7 @@ class MigrationHandler {
       currentMigrationTasks.push(new UpdateTransactionSimplePriceTask());
       currentMigrationTasks.push(new UsersAddNotificationsFlagTask());
       currentMigrationTasks.push(new MigrateTenantSettingsTask());
+      currentMigrationTasks.push(new UpdateTransactionExtraInactivityTask());
 
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();
