@@ -499,7 +499,7 @@ class TransactionStorage {
     if (params.onlyRecordCount) {
       // Return only the count
       return {
-        count: (transactionCountMDB ? transactionCountMDB.count : 0),
+        count: (transactionsCountMDB ? transactionsCountMDB.count : 0),
         result: []
       };
     }
@@ -545,8 +545,7 @@ class TransactionStorage {
     Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, { params, limit, skip, sort });
     // Ok
     return {
-      count: (transactionCountMDB ?
-        (transactionCountMDB.count == Constants.MAX_DB_RECORD_COUNT ? -1 : transactionCountMDB.count) : 0),
+      count: (transactionsCountMDB ? (transactionsCountMDB.count === Constants.MAX_DB_RECORD_COUNT ? -1 : transactionsCountMDB.count) : 0),
       result: transactions
     };
   }
