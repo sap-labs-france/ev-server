@@ -10,9 +10,10 @@ class WSClient {
    *
    * @param {String|url.URL} url
    * @param {Object} options
+   * @param {String|String[]} options.protocols
    * @param {Number} options.autoReconnectTimeout must be an integer
    * @param {Number} options.autoReconnectMaxRetries must be an integer
-   * @param {String|String[]} options.protocols
+   * @param {String} options.logTenantID
    * @param {Object} options.WSOptions
    * @param {Boolean} dbLogging
    */
@@ -31,6 +32,7 @@ class WSClient {
     this._autoReconnectRetryCount = 0;
     this._autoReconnectMaxRetries = options.autoReconnectMaxRetries; // -1 for unlimited retries
     this._autoReconnectTimeout = options.autoReconnectTimeout * 1000; // ms, 0 to disable
+    this._logTenantID = options.logTenantID ? options.logTenantID : Constants.DEFAULT_TENANT;
     this.open();
   }
 
@@ -69,7 +71,7 @@ class WSClient {
         if (this._dbLogging) {
           // Error message
           Logging.logError({
-            tenantID: Constants.DEFAULT_TENANT,
+            tenantID: this._logTenantID,
             module: MODULE_NAME,
             method: "onError",
             action: "WSClientError",
@@ -85,7 +87,7 @@ class WSClient {
         if (this._dbLogging) {
           // Error message
           Logging.logError({
-            tenantID: Constants.DEFAULT_TENANT,
+            tenantID: this._logTenantID,
             module: MODULE_NAME,
             method: "onError",
             action: "WSClientError",
@@ -109,7 +111,7 @@ class WSClient {
         if (this._dbLogging) {
           // Error message
           Logging.logError({
-            tenantID: Constants.DEFAULT_TENANT,
+            tenantID: this._logTenantID,
             module: MODULE_NAME,
             method: "onClose",
             action: "WSClientError",
@@ -155,7 +157,7 @@ class WSClient {
         if (this._dbLogging) {
           // Informational message
           Logging.logInfo({
-            tenantID: Constants.DEFAULT_TENANT,
+            tenantID: this._logTenantID,
             module: MODULE_NAME,
             method: "reconnect",
             action: "WSClientInfo",
@@ -172,7 +174,7 @@ class WSClient {
       if (this._dbLogging) {
         // Informational message
         Logging.logInfo({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: this._logTenantID,
           module: MODULE_NAME,
           method: "reconnect",
           action: "WSClientInfo",
