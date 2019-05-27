@@ -19,6 +19,10 @@ class MongoDBStorage {
     return this._db.collection(DatabaseUtils.getCollectionName(tenantID, collectionName));
   }
 
+  watch(pipeline, options) {
+    return this._db.watch(pipeline, options);
+  }
+
   async checkAndCreateCollection(allCollections, tenantID, name, indexes) {
     // Check Logs
     const tenantCollectionName = DatabaseUtils.getCollectionName(tenantID, name);
