@@ -117,7 +117,8 @@ class JsonRestChargingStationClient extends ChargingStationClient {
       const wsClientOptions = {
         WSOptions: WSOptions,
         autoReconnectTimeout: Configuration.getWSClientConfig().autoReconnectTimeout,
-        autoReconnectMaxRetries: Configuration.getWSClientConfig().autoReconnectMaxRetries
+        autoReconnectMaxRetries: Configuration.getWSClientConfig().autoReconnectMaxRetries,
+        logTenantID: this._chargingStation.getTenantID()
       };
       this._wsConnection = new WSClient(this._serverURL, wsClientOptions);
       // Opened
