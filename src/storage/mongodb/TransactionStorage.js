@@ -207,10 +207,12 @@ class TransactionStorage {
     if (params.onlyRecordCount) {
       return {
         count: transactionCountMDB ? transactionCountMDB.count : 0,
-        totalConsumptionWattHours: transactionCountMDB ? Math.round(transactionCountMDB.totalConsumptionWattHours) : 0,
-        totalInactivitySecs: transactionCountMDB ? Math.round(transactionCountMDB.totalInactivitySecs) : 0,
-        totalPrice: transactionCountMDB ? Math.round(transactionCountMDB.totalPrice) : 0,
-        totalDurationSecs: transactionCountMDB ? Math.round(transactionCountMDB.totalDurationSecs) : 0,
+        stats: {
+          totalConsumptionWattHours: transactionCountMDB ? Math.round(transactionCountMDB.totalConsumptionWattHours) : 0,
+          totalInactivitySecs: transactionCountMDB ? Math.round(transactionCountMDB.totalInactivitySecs) : 0,
+          totalPrice: transactionCountMDB ? Math.round(transactionCountMDB.totalPrice) : 0,
+          totalDurationSecs: transactionCountMDB ? Math.round(transactionCountMDB.totalDurationSecs) : 0
+        },
         result: []
       };
     }
@@ -285,10 +287,12 @@ class TransactionStorage {
     Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, { params, limit, skip, sort });
     return {
       count: transactionCountMDB ? (transactionCountMDB.count === Constants.MAX_DB_RECORD_COUNT ? -1 : transactionCountMDB.count) : 0,
-      totalConsumptionWattHours: transactionCountMDB ? Math.round(transactionCountMDB.totalConsumptionWattHours) : 0,
-      totalInactivitySecs: transactionCountMDB ? Math.round(transactionCountMDB.totalInactivitySecs) : 0,
-      totalPrice: transactionCountMDB ? Math.round(transactionCountMDB.totalPrice) : 0,
-      totalDurationSecs: transactionCountMDB ? Math.round(transactionCountMDB.totalDurationSecs) : 0,
+      stats: {
+        totalConsumptionWattHours: transactionCountMDB ? Math.round(transactionCountMDB.totalConsumptionWattHours) : 0,
+        totalInactivitySecs: transactionCountMDB ? Math.round(transactionCountMDB.totalInactivitySecs) : 0,
+        totalPrice: transactionCountMDB ? Math.round(transactionCountMDB.totalPrice) : 0,
+        totalDurationSecs: transactionCountMDB ? Math.round(transactionCountMDB.totalDurationSecs) : 0
+      },
       result: transactions
     };
   }
