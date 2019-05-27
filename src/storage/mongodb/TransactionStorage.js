@@ -195,44 +195,27 @@ class TransactionStorage {
         $group: {
           _id: null,
           totalConsumptionWattHours: { $sum: "$stop.totalConsumption" },
-          totalInactivitySecs: { $sum: "$stop.totalInactivitySecs" },
-          totalPrice: { $sum: "$stop.price" },
           totalDurationSecs: { $sum: "$stop.totalDurationSecs" },
+          totalPrice: { $sum: "$stop.price" },
+          totalInactivitySecs: { "$sum": { $add: ["$stop.totalInactivitySecs", "$stop.extraInactivitySecs"] } },
           count: { $sum: 1 }
         }
       }])
       .toArray();
+    const transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ?  transactionsCountMDB[0] : null;
     // Check if only the total count is requested
     if (params.onlyRecordCount) {
-      // Return aggregation
-      if (transactionsCountMDB.length > 0) {
-        return {
-          count: transactionsCountMDB[0].count,
-          totalConsumptionWattHours: Math.floor(transactionsCountMDB[0].totalConsumptionWattHours),
-          totalInactivitySecs: Math.floor(transactionsCountMDB[0].totalInactivitySecs),
-          totalPrice: Math.floor(transactionsCountMDB[0].totalPrice),
-          totalDurationSecs: Math.floor(transactionsCountMDB[0].totalDurationSecs),
-          result: []
-        };
-      } else {
-        return {
-          count: 0,
-          totalConsumptionWattHours: 0,
-          totalInactivitySecs: 0,
-          totalPrice: 0,
-          totalDurationSecs: 0,
-          result: []
-        };
-      }
+      return {
+        count: transactionCountMDB ? transactionCountMDB.count : 0,
+        totalConsumptionWattHours: transactionCountMDB ? Math.round(transactionCountMDB.totalConsumptionWattHours) : 0,
+        totalInactivitySecs: transactionCountMDB ? Math.round(transactionCountMDB.totalInactivitySecs) : 0,
+        totalPrice: transactionCountMDB ? Math.round(transactionCountMDB.totalPrice) : 0,
+        totalDurationSecs: transactionCountMDB ? Math.round(transactionCountMDB.totalDurationSecs) : 0,
+        result: []
+      };
     }
     // Remove the limit
     aggregation.pop();
-    // Transaction Duration Secs
-    aggregation.push({
-      $addFields: {
-        "totalDurationSecs": { $divide: [{ $subtract: ["$stop.timestamp", "$timestamp"] }, 1000] }
-      }
-    });
     // Sort
     if (sort) {
       if (!sort.hasOwnProperty('timestamp')) {
@@ -300,26 +283,14 @@ class TransactionStorage {
     }
     // Debug
     Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, { params, limit, skip, sort });
-    // Ok
-    if (transactionsCountMDB.length > 0) {
-      return {
-        count: transactionsCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : transactionsCountMDB[0].count,
-        totalConsumptionWattHours: Math.floor(transactionsCountMDB[0].totalConsumptionWattHours),
-        totalInactivitySecs: Math.floor(transactionsCountMDB[0].totalInactivitySecs),
-        totalPrice: Math.floor(transactionsCountMDB[0].totalPrice),
-        totalDurationSecs: Math.floor(transactionsCountMDB[0].totalDurationSecs),
-        result: transactions
-      };
-    } else {
-      return {
-        count: 0,
-        totalConsumptionWattHours: 0,
-        totalInactivitySecs: 0,
-        totalPrice: 0,
-        totalDurationSecs: 0,
-        result: transactions
-      };
-    }
+    return {
+      count: transactionCountMDB ? (transactionCountMDB.count === Constants.MAX_DB_RECORD_COUNT ? -1 : transactionCountMDB.count) : 0,
+      totalConsumptionWattHours: transactionCountMDB ? Math.round(transactionCountMDB.totalConsumptionWattHours) : 0,
+      totalInactivitySecs: transactionCountMDB ? Math.round(transactionCountMDB.totalInactivitySecs) : 0,
+      totalPrice: transactionCountMDB ? Math.round(transactionCountMDB.totalPrice) : 0,
+      totalDurationSecs: transactionCountMDB ? Math.round(transactionCountMDB.totalDurationSecs) : 0,
+      result: transactions
+    };
   }
 
   static async getTransactionsInError(tenantID, params = {}, limit, skip, sort) {
@@ -524,7 +495,7 @@ class TransactionStorage {
     if (params.onlyRecordCount) {
       // Return only the count
       return {
-        count: (transactionsCountMDB.length > 0 ? transactionsCountMDB[0].count : 0),
+        count: (transactionCountMDB ? transactionCountMDB.count : 0),
         result: []
       };
     }
@@ -570,8 +541,8 @@ class TransactionStorage {
     Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, { params, limit, skip, sort });
     // Ok
     return {
-      count: (transactionsCountMDB.length > 0 ?
-        (transactionsCountMDB[0].count == Constants.MAX_DB_RECORD_COUNT ? -1 : transactionsCountMDB[0].count) : 0),
+      count: (transactionCountMDB ?
+        (transactionCountMDB.count == Constants.MAX_DB_RECORD_COUNT ? -1 : transactionCountMDB.count) : 0),
       result: transactions
     };
   }
