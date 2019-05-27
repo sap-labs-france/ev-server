@@ -18,6 +18,7 @@ const Authorizations = require('../../../authorization/Authorizations');
 const NotificationHandler = require('../../../notification/NotificationHandler');
 const AuthSecurity = require('./security/AuthSecurity');
 const TransactionStorage = require('../../../storage/mongodb/TransactionStorage');
+const SessionHashService  =require('./SessionHashService');
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
@@ -48,6 +49,7 @@ class AuthService {
   }
 
   static async handleIsAuthorized(action, req, res, next) {
+    let user;
     try {
       // Default
       let result = { 'IsAuthorized': false };
@@ -120,7 +122,7 @@ class AuthService {
               `Charging Station with ID '${filteredRequest.Arg1}' does not exist`,
               550, 'AuthService', 'handleIsAuthorized');
           }
-          const user = await User.getUser(req.user.tenantID, req.user.id);
+          user = await User.getUser(req.user.tenantID, req.user.id);
           // Found?
           if (!user) {
             // Not Found!
@@ -311,12 +313,23 @@ class AuthService {
   static async handleRegisterUser(action, req, res, next) {
     // Filter
     const filteredRequest = AuthSecurity.filterRegisterUserRequest(req.body);
-
+    // Check
+    if (!filteredRequest.tenant) {
+      const error = new BadRequestError({
+        path: "tenant",
+        message: "The Tenant is mandatory"
+      });
+      // Log Error
+      Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleRegisterUser', Constants.DEFAULT_TENANT);
+      next(error);
+      return;
+    }
+    // Get the Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
       const error = new BadRequestError({
         path: "tenant",
-        message: "The Tenant is mandatory"
+        message: "The Tenant cannot be found"
       });
       // Log Error
       Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleRegisterUser', Constants.DEFAULT_TENANT);
@@ -905,6 +918,16 @@ class AuthService {
     await user.save();
     // Build Authorization
     const auths = await Authorizations.buildAuthorizations(user);
+    // Build HashID based on important user fields
+    const userHashID = SessionHashService.buildUserHashID(user);
+    // Build HashID based on important tenant fields
+    let tenantHashID;
+    if (user.getTenantID() !== Constants.DEFAULT_TENANT) {
+      const tenant = await user.getTenant();
+      tenantHashID = SessionHashService.buildTenantHashID(tenant);
+    } else {
+      tenantHashID = Constants.DEFAULT_TENANT;
+    }
     // Yes: build payload
     const payload = {
       'id': user.getID(),
@@ -915,6 +938,8 @@ class AuthService {
       'locale': user.getLocale(),
       'language': user.getLanguage(),
       'tenantID': user.getTenantID(),
+      'userHashID': userHashID,
+      'tenantHashID': tenantHashID,
       'auths': auths
     };
     // Get active components from tenant if not default

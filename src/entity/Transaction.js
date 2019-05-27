@@ -223,29 +223,29 @@ class Transaction extends AbstractTenantEntity {
     }
   }
 
-  getStoppedTagID() {
+  getStopTagID() {
     if (this.isFinished()) {
       return this._model.stop.tagID;
     }
   }
 
-  setStoppedTagID(tagID) {
+  setStopTagID(tagID) {
     this._checkAndCreateStop();
     this._model.stop.tagID = tagID;
   }
 
-  getStoppedUserID() {
+  getStopUserID() {
     if (this.isFinished()) {
       return this._model.stop.userID;
     }
   }
 
-  setStoppedUserID(userID) {
+  setStopUserID(userID) {
     this._checkAndCreateStop();
     this._model.stop.userID = userID;
   }
 
-  setStoppedUser(user) {
+  setStopUser(user) {
     this._checkAndCreateStop();
     if (user) {
       this._model.stop.user = user.getModel();
@@ -255,13 +255,13 @@ class Transaction extends AbstractTenantEntity {
     }
   }
 
-  getStoppedUserJson() {
+  getStopUserJson() {
     if (this.isFinished()) {
       return this._model.stop.user;
     }
   }
 
-  async getStoppedUser() {
+  async getStopUser() {
     const User = require('./User');
     if (this.isFinished()) {
       if (this._model.stop.user) {
@@ -270,19 +270,19 @@ class Transaction extends AbstractTenantEntity {
         // Get from DB
         const user = await UserStorage.getUser(this.getTenantID(), this._model.stop.userID);
         // Keep it
-        this.setStoppedUser(user);
+        this.setStopUser(user);
         return user;
       }
     }
   }
 
-  getMeterStop() {
+  getStopMeter() {
     if (this.isFinished()) {
       return this._model.stop.meterStop;
     }
   }
 
-  setMeterStop(meterStop) {
+  setStopMeter(meterStop) {
     this._checkAndCreateStop();
     this._model.stop.meterStop = meterStop;
   }
@@ -319,52 +319,56 @@ class Transaction extends AbstractTenantEntity {
     }
   }
 
-  getPrice() {
+  getStopPrice() {
     if (this.isFinished()) {
       return this._model.stop.price;
     }
   }
 
-  setPrice(price) {
+  setStopPrice(price) {
     this._checkAndCreateStop();
     this._model.stop.price = price;
   }
 
-  getRoundedPrice() {
+  getStopRoundedPrice() {
     if (this.isFinished()) {
       return this._model.stop.roundedPrice;
     }
   }
 
-  setRoundedPrice(roundedPrice) {
+  setStopRoundedPrice(roundedPrice) {
     this._checkAndCreateStop();
     this._model.stop.roundedPrice = roundedPrice;
   }
 
-  getPriceUnit() {
+  getStopPriceUnit() {
     if (this.isFinished()) {
       return this._model.stop.priceUnit;
     }
   }
 
-  setPriceUnit(priceUnit) {
+  setStopPriceUnit(priceUnit) {
     this._checkAndCreateStop();
     this._model.stop.priceUnit = priceUnit;
   }
 
-  getPricingSource() {
+  getStopPricingSource() {
     if (this.isFinished()) {
       return this._model.stop.pricingSource;
     }
   }
 
-  setPricingSource(pricingSource) {
+  setStopPricingSource(pricingSource) {
     this._checkAndCreateStop();
     this._model.stop.pricingSource = pricingSource;
   }
 
-  hasPrice() {
-    return this.isFinished() && this.getPrice() >= 0;
+  hasStartPrice() {
+    return this.getStartPrice() >= 0;
+  }
+
+  hasStopPrice() {
+    return this.isFinished() && this.getStopPrice() >= 0;
   }
 
   getMeterValues() {
@@ -372,13 +376,13 @@ class Transaction extends AbstractTenantEntity {
     return OCPPStorage.getMeterValues(this.getTenantID(), this.getID());
   }
 
-  getEndStateOfCharge() {
+  getStopStateOfCharge() {
     if (this.isFinished()) {
       return this._model.stop.stateOfCharge;
     }
   }
 
-  setEndStateOfCharge(stateOfCharge) {
+  setStopStateOfCharge(stateOfCharge) {
     this._checkAndCreateStop();
     this._model.stop.stateOfCharge = stateOfCharge;
   }
@@ -462,25 +466,36 @@ class Transaction extends AbstractTenantEntity {
     return false;
   }
 
-  getTotalInactivitySecs() {
+  getStopTotalInactivitySecs() {
     if (this.isFinished()) {
       return this._model.stop.totalInactivitySecs;
     }
   }
 
-  setTotalInactivitySecs(totalInactivitySecs) {
+  setStopTotalInactivitySecs(totalInactivitySecs) {
     this._checkAndCreateStop();
     this._model.stop.totalInactivitySecs = totalInactivitySecs;
   }
 
-  getTotalConsumption() {
+  setStopExtraInactivitySecs(extraInactivitySecs) {
+    this._checkAndCreateStop();
+    this._model.stop.extraInactivitySecs = extraInactivitySecs;
+  }
+
+  getStopExtraInactivitySecs() {
+    if (this.isFinished()) {
+      return this._model.stop.extraInactivitySecs;
+    }
+  }
+
+  getStopTotalConsumption() {
     if (this.isFinished()) {
       return this._model.stop.totalConsumption;
     }
     return 0;
   }
 
-  setTotalConsumption(totalConsumption) {
+  setStopTotalConsumption(totalConsumption) {
     this._checkAndCreateStop();
     this._model.stop.totalConsumption = totalConsumption;
   }
@@ -489,11 +504,11 @@ class Transaction extends AbstractTenantEntity {
     if (this.isActive()) {
       return moment.duration(moment(this.getLastMeterValue().timestamp).diff(moment(this.getStartDate()))).asSeconds();
     } else {
-      return moment.duration(moment(this.getEndDate()).diff(moment(this.getStartDate()))).asSeconds();
+      return moment.duration(moment(this.getStopDate()).diff(moment(this.getStartDate()))).asSeconds();
     }
   }
 
-  getTotalDurationSecs() {
+  getStopTotalDurationSecs() {
     // Stopped already?
     if (this.isFinished()) {
       return this._model.stop.totalDurationSecs;
@@ -501,18 +516,18 @@ class Transaction extends AbstractTenantEntity {
     return 0;
   }
 
-  setTotalDurationSecs(totalDurationSecs) {
+  setStopTotalDurationSecs(totalDurationSecs) {
     this._checkAndCreateStop();
     this._model.stop.totalDurationSecs = totalDurationSecs;
   }
 
-  getEndDate() {
+  getStopDate() {
     if (this.isFinished()) {
       return this._model.stop.timestamp;
     }
   }
 
-  setEndDate(timestamp) {
+  setStopDate(timestamp) {
     this._checkAndCreateStop();
     this._model.stop.timestamp = timestamp;
   }
@@ -565,6 +580,10 @@ class Transaction extends AbstractTenantEntity {
 
   static getActiveTransaction(tenantID, chargeBoxID, connectorId) {
     return TransactionStorage.getActiveTransaction(tenantID, chargeBoxID, connectorId);
+  }
+
+  static getLastTransaction(tenantID, chargeBoxID, connectorId) {
+    return TransactionStorage.getLastTransaction(tenantID, chargeBoxID, connectorId);
   }
 }
 

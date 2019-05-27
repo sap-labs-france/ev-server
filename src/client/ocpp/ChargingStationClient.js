@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 const Constants = require('../../utils/Constants');
 const BackendError = require('../../exception/BackendError');
 
@@ -17,6 +18,7 @@ class ChargingStationClient {
    */
   static async getChargingStationClient(chargingStation) {
     const JsonRestChargingStationClient = require('./json/JsonRestChargingStationClient');
+    const SoapChargingStationClient = require('./soap/SoapChargingStationClient');
     let chargingClient = null;
     // Check protocol
     switch (chargingStation.getOcppProtocol()) {
@@ -35,8 +37,6 @@ class ChargingStationClient {
       // SOAP
       case Constants.OCPP_PROTOCOL_SOAP:
       default:
-        // Get the Soap one by default
-        const SoapChargingStationClient = require('./soap/SoapChargingStationClient');
         // Init client
         chargingClient = await new SoapChargingStationClient(chargingStation);
         break;
@@ -49,11 +49,6 @@ class ChargingStationClient {
     return chargingClient;
   }
 
-  /**
-   * Trigger a reset/reboot on a charging station
-   * @param {*} type
-   * @memberof ChargingStationClient
-   */
   reset(params) {
   }
 
@@ -66,7 +61,7 @@ class ChargingStationClient {
   changeConfiguration(params) {
   }
 
-  startTransaction(params) {
+  remoteStartTransaction(params) {
   }
 
   remoteStopTransaction(params) {
@@ -92,7 +87,6 @@ class ChargingStationClient {
 
   updateFirmware(params) {
   }
-
 
   /**
    * Default handling of OCPP command. It can be refine with some special methods in case of needs
@@ -123,11 +117,11 @@ class ChargingStationClient {
         case 'UnlockConnector':
           return this.unlockConnector(params);
         // Start Transaction
-        case 'StartTransaction':
-          return this.startTransaction(params);
+        case 'RemoteStartTransaction':
+          return this.remoteStartTransaction(params);
         // Stop Transaction
-        case 'StopTransaction':
-          return this.stopTransaction(params);
+        case 'RemoteStopTransaction':
+          return this.remoteStopTransaction(params);
         // Set Charging Profile
         case 'SetChargingProfile':
           return this.setChargingProfile(params);

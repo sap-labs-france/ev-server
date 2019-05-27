@@ -97,7 +97,6 @@ class Database {
     if (src.hasOwnProperty('longitude')) {
       dest.longitude = Utils.convertToFloat(src.longitude);
     }
-
     dest.connectors = [];
     if (src.connectors) {
       // Set
@@ -244,6 +243,9 @@ class Database {
     }
     if (src.hasOwnProperty("mobile")) {
       dest.mobile = src.mobile;
+    }
+    if (src.hasOwnProperty("notificationsActive")) {
+      dest.notificationsActive = src.notificationsActive;
     }
     if (src.hasOwnProperty("iNumber")) {
       dest.iNumber = src.iNumber;
@@ -587,6 +589,8 @@ class Database {
       dest.refundData = {};
       dest.refundData.refundId = src.refundData.refundId;
       dest.refundData.refundedAt = Utils.convertToDate(src.refundData.refundedAt);
+      dest.refundData.type = src.refundData.type;
+      dest.refundData.reportId = src.refundData.reportId;
     }
     dest.timestamp = Utils.convertToDate(src.timestamp);
     dest.stateOfCharge = Utils.convertToInt(src.stateOfCharge);
@@ -606,6 +610,7 @@ class Database {
       dest.stop.stateOfCharge = Utils.convertToInt(src.stop.stateOfCharge);
       dest.stop.totalConsumption = Utils.convertToInt(src.stop.totalConsumption);
       dest.stop.totalInactivitySecs = Utils.convertToInt(src.stop.totalInactivitySecs);
+      dest.stop.extraInactivitySecs = Utils.convertToInt(src.stop.extraInactivitySecs);
       dest.stop.totalDurationSecs = Utils.convertToInt(src.stop.totalDurationSecs);
       if (src.stop.hasOwnProperty('price')) {
         dest.stop.price = Utils.convertToInt(src.stop.price);

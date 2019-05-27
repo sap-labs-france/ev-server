@@ -20,6 +20,22 @@ class Utils {
     return uuidV4();
   }
 
+  static generateTagID(name, firstName) {
+    let tagID = '';
+    if (name && name.length > 0) {
+      tagID = name[0].toUpperCase();
+    } else {
+      tagID = 'S';
+    }
+    if (firstName && firstName.length > 0) {
+      tagID += firstName[0].toUpperCase();
+    } else {
+      tagID += 'F';
+    }
+    tagID += Math.floor((Math.random() * 2147483648) + 1);
+    return tagID;
+  }
+
   // Temporary method for Revenue Cloud concept
   static async pushTransactionToRevenueCloud(action, transaction, user, actionOnUser) {
     const Logging = require('./Logging'); // Avoid fucking circular deps
@@ -37,7 +53,7 @@ class Utils {
       'https://eu10.revenue.cloud.sap/api/usage-record/v1/usage-records',
       {
         'metricId': 'ChargeCurrent_Trial',
-        'quantity': transaction.getTotalConsumption() / 1000,
+        'quantity': transaction.getStopTotalConsumption() / 1000,
         'startedAt': transaction.getstartedAt(),
         'endedAt': transaction.getendedAt(),
         'userTechnicalId': transaction.getTagID()
@@ -212,7 +228,12 @@ class Utils {
     return userID;
   }
 
-
+  static isEmptyArray(array) {
+    if (array && array.length > 0) {
+      return false;
+    }
+    return true;
+  }
 
   static buildUserFullName(user, withID = true) {
     if (!user) {
@@ -332,6 +353,21 @@ class Utils {
     }
     // Recreate all of it
     return JSON.parse(JSON.stringify(src));
+  }
+
+  static getRoleNameFromRoleID(roleID) {
+    switch (roleID) {
+      case Constants.ROLE_BASIC:
+        return 'Basic';
+      case Constants.ROLE_DEMO:
+        return 'Demo';
+      case Constants.ROLE_ADMIN:
+        return 'Admin';
+      case Constants.ROLE_SUPER_ADMIN:
+        return 'Super Admin';
+      default:
+        return 'Unknown';
+    }
   }
 }
 

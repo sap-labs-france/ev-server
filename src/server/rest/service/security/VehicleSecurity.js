@@ -90,13 +90,13 @@ class VehicleSecurity {
   static filterVehiclesResponse(vehicles, loggedUser) {
     const filteredVehicles = [];
 
-    if (!vehicles) {
+    if (!vehicles.result) {
       return null;
     }
     if (!Authorizations.canListVehicles(loggedUser)) {
       return null;
     }
-    for (const vehicle of vehicles) {
+    for (const vehicle of vehicles.result) {
       // Filter
       const filteredVehicle = VehicleSecurity.filterVehicleResponse(vehicle, loggedUser);
       // Ok?
@@ -105,7 +105,7 @@ class VehicleSecurity {
         filteredVehicles.push(filteredVehicle);
       }
     }
-    return filteredVehicles;
+    vehicles.result = filteredVehicles;
   }
 }
 

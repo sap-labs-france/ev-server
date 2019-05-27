@@ -45,7 +45,7 @@ class ODataRestAdapter {
       }
 
       // check if sac setting is active
-      if (!tenant.isComponentActive(Constants.COMPONENTS.SAC)) {
+      if (!tenant.isComponentActive(Constants.COMPONENTS.ANALYTICS)) {
         cb(Error("SAP Analytics Clound Interface not enabled"));
         return;
       }
@@ -54,13 +54,13 @@ class ODataRestAdapter {
       req.timezone = 'UTC';
 
       // get settings
-      const sacSetting = await tenant.getSetting(Constants.COMPONENTS.SAC);
+      const sacSetting = await tenant.getSetting(Constants.COMPONENTS.ANALYTICS);
 
       if (sacSetting) {
         const configuration = sacSetting.getContent();
 
-        if (configuration && configuration.timezone) {
-          req.timezone = configuration.timezone;
+        if (configuration && configuration.sac && configuration.sac.timezone) {
+          req.timezone = configuration.sac.timezone;
         }
       }
 

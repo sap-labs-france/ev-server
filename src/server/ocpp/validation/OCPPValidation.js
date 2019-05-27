@@ -7,6 +7,8 @@ const bootNotificationRequest = require('./boot-notification-request.json');
 const authorizeRequest = require('./authorize-request.json');
 const statusNotificationRequest = require('./status-notification-request.json');
 const startTransactionRequest = require('./start-transaction-request.json');
+const stopTransactionRequest16 = require('./stop-transaction-request-16.json');
+const stopTransactionRequest15 = require('./stop-transaction-request-15.json');
 
 require('source-map-support').install();
 
@@ -52,20 +54,20 @@ class OCPPValidation extends SchemaValidator {
     //   // BUG EBEE: Timestamp is mandatory according OCPP
     //   throw new BackendError(chargingStation.getID(),
     //     `The 'timestamp' property has not been provided`,
-    //     "OCPPValidation", "validateStartTransaction", Constants.ACTION_START_TRANSACTION);
+    //     "OCPPValidation", "validateStartTransaction", Constants.ACTION_REMOTE_START_TRANSACTION);
     // }
     // // Check the meter start
     // if (!startTransaction.hasOwnProperty("meterStart")) {
     //   // BUG EBEE: MeterStart is mandatory according OCPP
     //   throw new BackendError(chargingStation.getID(),
     //     `The 'meterStart' property has not been provided`,
-    //     "OCPPValidation", "validateStartTransaction", Constants.ACTION_START_TRANSACTION);
+    //     "OCPPValidation", "validateStartTransaction", Constants.ACTION_REMOTE_START_TRANSACTION);
     // }
     // // Check Tag ID
     // if (!startTransaction.idTag) {
     //   throw new BackendError(chargingStation.getID(),
     //     `The 'idTag' property has not been provided`,
-    //     "OCPPValidation", "validateStartTransaction", Constants.ACTION_START_TRANSACTION);
+    //     "OCPPValidation", "validateStartTransaction", Constants.ACTION_REMOTE_START_TRANSACTION);
     // }
     // // Always integer
     // startTransaction.connectorId = Utils.convertToInt(startTransaction.connectorId);
@@ -75,7 +77,7 @@ class OCPPValidation extends SchemaValidator {
     if (!chargingStation.getConnector(startTransaction.connectorId)) {
       throw new BackendError(chargingStation.getID(),
         `The Connector ID '${startTransaction.connectorId}' is invalid`,
-        'OCPPService', 'handleStartTransaction', Constants.ACTION_START_TRANSACTION);
+        'OCPPService', 'handleStartTransaction', Constants.ACTION_REMOTE_START_TRANSACTION);
     }
   }
 
@@ -83,6 +85,11 @@ class OCPPValidation extends SchemaValidator {
   }
 
   validateStopTransaction(chargingStation, stopTransaction) {
+    if (chargingStation.getOcppVersion() === Constants.OCPP_VERSION_16) {
+      this.validate(stopTransactionRequest16, stopTransaction);
+    } else {
+      this.validate(stopTransactionRequest15, stopTransaction);
+    }
   }
 
   validateMeterValues(chargingStation, meterValues) {

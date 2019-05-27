@@ -110,14 +110,16 @@ class Company extends AbstractTenantEntity {
     if(req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The Company ID is mandatory`, 500,
-        'Company', 'checkIfCompanyValid');
+        `Company ID is mandatory`, 500,
+        'Company', 'checkIfCompanyValid',
+        req.user.id);
     }
     if(!filteredRequest.name) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The Company Name is mandatory`, 500,
-        'Company', 'checkIfCompanyValid');
+        `Company Name is mandatory`, 500,
+        'Company', 'checkIfCompanyValid',
+        req.user.id, filteredRequest.id);
     }
   }
 

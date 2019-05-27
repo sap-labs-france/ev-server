@@ -1,6 +1,7 @@
 const Logging = require('../utils/Logging');
 const Constants = require('../utils/Constants');
 const moment = require('moment');
+const cluster = require('cluster');
 const MigrationStorage = require('../storage/mongodb/MigrationStorage');
 const UpdateTransactionInactivityTask = require('./tasks/UpdateTransactionInactivityTask');
 const TenantMigrationTask = require('./tasks/TenantMigrationTask');
@@ -10,7 +11,10 @@ const NormalizeTransactionsTask = require('./tasks/NormalizeTransactionsTask');
 const CreateConsumptionsTask = require('./tasks/CreateConsumptionsTask');
 const CleanupTransactionTask = require('./tasks/CleanupTransactionTask');
 const TransactionsAddTimezoneTask = require('./tasks/TransactionsAddTimezoneTask');
-// const CleanupMeterValuesTask = require('./tasks/CleanupMeterValuesTask');
+const UsersAddNotificationsFlagTask = require('./tasks/UsersAddNotificationsFlagTask');
+const UpdateTransactionSimplePriceTask = require('./tasks/UpdateTransactionSimplePriceTask');
+const MigrateTenantSettingsTask = require('./tasks/MigrateTenantSettingsTask');
+const UpdateTransactionExtraInactivityTask = require('./tasks/UpdateTransactionExtraInactivityTask');
 
 
 class MigrationHandler {
@@ -37,7 +41,10 @@ class MigrationHandler {
       currentMigrationTasks.push(new CleanupTransactionTask());
       currentMigrationTasks.push(new CreateConsumptionsTask());
       currentMigrationTasks.push(new TransactionsAddTimezoneTask());
-      // currentMigrationTasks.push(new CleanupMeterValuesTask()); // 02/2019: Takes too much time for only ~7000 meter values out of 2.2 millions
+      currentMigrationTasks.push(new UpdateTransactionSimplePriceTask());
+      currentMigrationTasks.push(new UsersAddNotificationsFlagTask());
+      currentMigrationTasks.push(new MigrateTenantSettingsTask());
+      currentMigrationTasks.push(new UpdateTransactionExtraInactivityTask());
 
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();
@@ -103,11 +110,11 @@ class MigrationHandler {
       tenantID: Constants.DEFAULT_TENANT,
       source: "Migration", action: "Migration",
       module: "MigrationHandler", method: "migrate",
-      message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running...`
+      message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`
     });
     // Log in the console also
     // eslint-disable-next-line no-console
-    console.log(`Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running...`);
+    console.log(`Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`);
 
     // Start time
     const startTaskTime = moment();

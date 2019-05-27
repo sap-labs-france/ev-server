@@ -1,7 +1,7 @@
 const soap = require('strong-soap').soap;
 const OCPPService = require('../OCPPService');
 const config = require('../../../config');
-const {performance} = require('perf_hooks');
+const { performance } = require('perf_hooks');
 
 class OCPPSoapService15 extends OCPPService {
   constructor(serverUrl) {
@@ -79,6 +79,7 @@ class OCPPSoapService15 extends OCPPService {
     await this._initSOAPClient();
     // Log
     if (config.get('ocpp.soap.logs') === 'json') {
+      // eslint-disable-next-line no-console
       console.log(JSON.stringify({
         request
       }, null, 2));
@@ -98,14 +99,21 @@ class OCPPSoapService15 extends OCPPService {
       t1 = performance.now();
       // Log
       if (config.get('ocpp.soap.logs') === 'xml') {
+        // eslint-disable-next-line no-console
         console.log('<!-- Request -->');
+        // eslint-disable-next-line no-console
         console.log(this.client.lastRequest);
         if (soapHeader) {
+          // eslint-disable-next-line no-console
           console.log('<!-- Response Header -->');
-          console.log(soapHeader)
+          // eslint-disable-next-line no-console
+          console.log(soapHeader);
         }
+        // eslint-disable-next-line no-console
         console.log('<!-- Response Envelope -->');
+        // eslint-disable-next-line no-console
         console.log(envelope);
+        // eslint-disable-next-line no-console
         console.log('\n');
       }
       // Respond
@@ -116,11 +124,13 @@ class OCPPSoapService15 extends OCPPService {
       };
       // Log Response
       if (config.get('ocpp.soap.logs') === 'json') {
+        // eslint-disable-next-line no-console
         console.log(JSON.stringify(response, null, 2));
       }
       // Return response
       return response;
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.log(error);
     }
   }

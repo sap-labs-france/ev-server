@@ -6,19 +6,17 @@ const OCPIServices = require('./OCPIServices');
 const OCPIErrorHandler = require('./OCPIErrorHandler');
 require('source-map-support').install();
 
-let _ocpiRestConfig;
-
 const MODULE_NAME = "OCPIServer";
 
 class OCPIServer {
   // Create the rest server
   constructor(ocpiRestConfig) {
     // Keep params
-    _ocpiRestConfig = ocpiRestConfig;
+    this._ocpiRestConfig = ocpiRestConfig;
     // Initialize express app
-    this._express = expressTools.expressCommonInit();
-    // log to console
-    if (_ocpiRestConfig.debug) {
+    this._express = expressTools.init();
+    // Log to console
+    if (this._ocpiRestConfig.debug) {
       // Log
       this._express.use(
         morgan('combined', {
@@ -37,7 +35,7 @@ class OCPIServer {
       );
     }
     // new OCPI Services Instances
-    const ocpiServices = new OCPIServices(_ocpiRestConfig);
+    const ocpiServices = new OCPIServices(this._ocpiRestConfig);
     // OCPI versions
     this._express.use(Constants.OCPI_SERVER_BASE_PATH, ocpiServices.getVersions);
     // Register all services in express
@@ -50,7 +48,7 @@ class OCPIServer {
 
   // Start the server
   start() {
-    expressTools.expressStartServer(_ocpiRestConfig, "OCPI", MODULE_NAME, this._express);
+    expressTools.startServer(this._ocpiRestConfig, expressTools.createHttpServer(this._ocpiRestConfig, this._express), "OCPI", MODULE_NAME);
   }
 }
 

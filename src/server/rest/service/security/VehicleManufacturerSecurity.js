@@ -75,13 +75,13 @@ class VehicleManufacturerSecurity {
   static filterVehicleManufacturersResponse(vehicleManufacturers, loggedUser) {
     const filteredVehicleManufacturers = [];
 
-    if (!vehicleManufacturers) {
+    if (!vehicleManufacturers.result) {
       return null;
     }
     if (!Authorizations.canListVehicleManufacturers(loggedUser)) {
       return null;
     }
-    for (const vehicleManufacturer of vehicleManufacturers) {
+    for (const vehicleManufacturer of vehicleManufacturers.result) {
       // Filter
       const filteredVehicleManufacturer = VehicleManufacturerSecurity.filterVehicleManufacturerResponse(vehicleManufacturer, loggedUser);
       // Ok?
@@ -90,7 +90,7 @@ class VehicleManufacturerSecurity {
         filteredVehicleManufacturers.push(filteredVehicleManufacturer);
       }
     }
-    return filteredVehicleManufacturers;
+    vehicleManufacturers.result = filteredVehicleManufacturers;
   }
 }
 

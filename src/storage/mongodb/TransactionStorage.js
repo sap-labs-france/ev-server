@@ -133,6 +133,9 @@ class TransactionStorage {
           break;
       }
     }
+    if (params.minimalPrice) {
+      match["stop.price"] = { $gt: 0 };
+    }
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -141,12 +144,6 @@ class TransactionStorage {
         $match: match
       });
     }
-    // Transaction Duration Secs
-    aggregation.push({
-      $addFields: {
-        "totalDurationSecs": { $divide: [{ $subtract: ["$stop.timestamp", "$timestamp"] }, 1000] }
-      }
-    });
     // Charger?
     if (params.withChargeBoxes || params.siteID || params.siteAreaID) {
       // Add Charge Box
@@ -194,18 +191,48 @@ class TransactionStorage {
     }
     // Count Records
     const transactionsCountMDB = await global.database.getCollection(tenantID, 'transactions')
-      .aggregate([...aggregation, { $count: "count" }])
+      .aggregate([...aggregation, {
+        $group: {
+          _id: null,
+          totalConsumptionWattHours: { $sum: "$stop.totalConsumption" },
+          totalInactivitySecs: { $sum: "$stop.totalInactivitySecs" },
+          totalPrice: { $sum: "$stop.price" },
+          totalDurationSecs: { $sum: "$stop.totalDurationSecs" },
+          count: { $sum: 1 }
+        }
+      }])
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {
-      // Return only the count
-      return {
-        count: (transactionsCountMDB.length > 0 ? transactionsCountMDB[0].count : 0),
-        result: []
-      };
+      // Return aggregation
+      if (transactionsCountMDB.length > 0) {
+        return {
+          count: transactionsCountMDB[0].count,
+          totalConsumptionWattHours: Math.floor(transactionsCountMDB[0].totalConsumptionWattHours),
+          totalInactivitySecs: Math.floor(transactionsCountMDB[0].totalInactivitySecs),
+          totalPrice: Math.floor(transactionsCountMDB[0].totalPrice),
+          totalDurationSecs: Math.floor(transactionsCountMDB[0].totalDurationSecs),
+          result: []
+        };
+      } else {
+        return {
+          count: 0,
+          totalConsumptionWattHours: 0,
+          totalInactivitySecs: 0,
+          totalPrice: 0,
+          totalDurationSecs: 0,
+          result: []
+        };
+      }
     }
     // Remove the limit
     aggregation.pop();
+    // Transaction Duration Secs
+    aggregation.push({
+      $addFields: {
+        "totalDurationSecs": { $divide: [{ $subtract: ["$stop.timestamp", "$timestamp"] }, 1000] }
+      }
+    });
     // Sort
     if (sort) {
       if (!sort.hasOwnProperty('timestamp')) {
@@ -274,11 +301,25 @@ class TransactionStorage {
     // Debug
     Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, { params, limit, skip, sort });
     // Ok
-    return {
-      count: (transactionsCountMDB.length > 0 ?
-        (transactionsCountMDB[0].count == Constants.MAX_DB_RECORD_COUNT ? -1 : transactionsCountMDB[0].count) : 0),
-      result: transactions
-    };
+    if (transactionsCountMDB.length > 0) {
+      return {
+        count: transactionsCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : transactionsCountMDB[0].count,
+        totalConsumptionWattHours: Math.floor(transactionsCountMDB[0].totalConsumptionWattHours),
+        totalInactivitySecs: Math.floor(transactionsCountMDB[0].totalInactivitySecs),
+        totalPrice: Math.floor(transactionsCountMDB[0].totalPrice),
+        totalDurationSecs: Math.floor(transactionsCountMDB[0].totalDurationSecs),
+        result: transactions
+      };
+    } else {
+      return {
+        count: 0,
+        totalConsumptionWattHours: 0,
+        totalInactivitySecs: 0,
+        totalPrice: 0,
+        totalDurationSecs: 0,
+        result: transactions
+      };
+    }
   }
 
   static async getTransactionsInError(tenantID, params = {}, limit, skip, sort) {
@@ -640,6 +681,36 @@ class TransactionStorage {
       .toArray();
     // Debug
     Logging.traceEnd('TransactionStorage', 'getActiveTransaction', uniqueTimerID, { chargeBoxID, connectorId });
+    // Found?
+    if (transactionsMDB && transactionsMDB.length > 0) {
+      return new Transaction(tenantID, transactionsMDB[0]);
+    }
+    return null;
+  }
+
+  static async getLastTransaction(tenantID, chargeBoxID, connectorId) {
+    const Transaction = require('../../entity/Transaction');
+    // Debug
+    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getLastTransaction');
+    // Check
+    await Utils.checkTenant(tenantID);
+    const aggregation = [];
+    // Filters
+    aggregation.push({
+      $match: {
+        "chargeBoxID": chargeBoxID,
+        "connectorId": Utils.convertToInt(connectorId)
+      }
+    });
+    aggregation.push({ $sort: { timestamp: -1 } });
+    // The last one
+    aggregation.push({ $limit: 1 });
+    // Read DB
+    const transactionsMDB = await global.database.getCollection(tenantID, 'transactions')
+      .aggregate(aggregation)
+      .toArray();
+    // Debug
+    Logging.traceEnd('TransactionStorage', 'getLastTransaction', uniqueTimerID, { chargeBoxID, connectorId });
     // Found?
     if (transactionsMDB && transactionsMDB.length > 0) {
       return new Transaction(tenantID, transactionsMDB[0]);

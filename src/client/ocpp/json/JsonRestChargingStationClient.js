@@ -23,9 +23,9 @@ class JsonRestChargingStationClient extends ChargingStationClient {
     this._requests = {};
   }
 
-  startTransaction(params) {
+  remoteStartTransaction(params) {
     return this._sendMessage(
-      this._buildRequest('StartTransaction', params)
+      this._buildRequest('RemoteStartTransaction', params)
     );
   }
 

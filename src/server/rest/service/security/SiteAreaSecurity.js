@@ -129,14 +129,13 @@ class SiteAreaSecurity {
 
   static filterSiteAreasResponse(siteAreas, loggedUser) {
     const filteredSiteAreas = [];
-
-    if (!siteAreas) {
+    if (!siteAreas.result) {
       return null;
     }
     if (!Authorizations.canListSiteAreas(loggedUser)) {
       return null;
     }
-    for (const siteArea of siteAreas) {
+    for (const siteArea of siteAreas.result) {
       // Filter
       const filteredSiteArea = SiteAreaSecurity.filterSiteAreaResponse(siteArea, loggedUser);
       // Ok?
@@ -145,7 +144,7 @@ class SiteAreaSecurity {
         filteredSiteAreas.push(filteredSiteArea);
       }
     }
-    return filteredSiteAreas;
+    siteAreas.result = filteredSiteAreas;
   }
 }
 

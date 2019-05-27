@@ -1,4 +1,8 @@
 {
+	"Cluster": {
+		"enable": false,
+		"num_worker": 2
+	},
 	"CentralSystems": [
 		{
 			"type": "ocpp",
@@ -32,6 +36,7 @@
 		"passwordWrongNumberOfTrial": 3,
 		"passwordBlockedWaitTimeMin": 5,
 		"captchaSecretKey": "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe",
+    "socketIO": false,
 		"debug": false
 	},
 	"CentralSystemFrontEnd": {

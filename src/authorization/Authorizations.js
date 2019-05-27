@@ -7,6 +7,7 @@ const Mustache = require('mustache');
 const compileProfile = require('node-authorization').profileCompiler;
 const AppError = require('../exception/AppError');
 const AppAuthError = require('../exception/AppAuthError');
+const BackendError = require('../exception/BackendError');
 const Utils = require('../utils/Utils');
 const User = require('../entity/User');
 const Tenant = require('../entity/Tenant');
@@ -36,7 +37,7 @@ class Authorizations {
     if (!Authorizations.canPerformActionOnChargingStation(
       user.getModel(),
       chargingStation.getModel(),
-      Constants.ACTION_START_TRANSACTION)) {
+      Constants.ACTION_REMOTE_START_TRANSACTION)) {
       // Ko
       return false;
     }
@@ -49,12 +50,41 @@ class Authorizations {
     if (!Authorizations.canPerformActionOnChargingStation(
       user.getModel(),
       chargingStation.getModel(),
-      Constants.ACTION_STOP_TRANSACTION)) {
+      Constants.ACTION_REMOTE_STOP_TRANSACTION)) {
       // Ko
       return false;
     }
     // Ok
     return true;
+  }
+
+  static getAuthorizedEntityIDsFromLoggedUser(entityName, loggedUser) {
+    // Find the corresponding auth
+    const foundAuth = loggedUser.auths.find((auth) => auth.AuthObject === entityName);
+    if (!foundAuth) {
+      // Authorize all objects
+      return null;
+    }
+    let fieldName;
+    // Check Entity
+    switch (entityName) {
+      // Company
+      case Constants.ENTITY_COMPANY:
+        fieldName = 'CompanyID';
+        break;
+      // Site
+      case Constants.ENTITY_SITE:
+        fieldName = 'SiteID';
+        break;
+    }
+    // Return the IDs
+    if (fieldName) {
+      // Not an array then authorize all objects
+      if (foundAuth.AuthFieldValue[fieldName] && 
+          Array.isArray(foundAuth.AuthFieldValue[fieldName])) {
+        return foundAuth.AuthFieldValue[fieldName];
+      }
+    }
   }
 
   // Build Auth
@@ -169,6 +199,7 @@ class Authorizations {
         user.setEMail(tagID + "@chargeangels.fr");
         user.setPhone("");
         user.setMobile("");
+        user.setNotificationsActive(true);
         user.setImage("");
         user.setINumber("");
         user.setCostCenter("");
@@ -223,8 +254,8 @@ class Authorizations {
       // Check if transaction user is the same as request user
       isSameUserAsTransaction = transaction.getUserID() === user.getID();
     }
-    // Add user authorisations
-    user.setAuthorisations(await Authorizations.buildAuthorizations(user));
+    // Add user authorizations
+    user.setAuthorizations(await Authorizations.buildAuthorizations(user));
     // Prepare default authorizations
     const result = {
       'isStartAuthorized': Authorizations.canStartTransaction(user, chargingStation),
@@ -379,7 +410,7 @@ class Authorizations {
     // Build Authorizations -----------------------------------------------------
     const auths = await Authorizations.buildAuthorizations(user);
     // Set
-    user.setAuthorisations(auths);
+    user.setAuthorizations(auths);
     // Check if User belongs to a Site ------------------------------------------
     // Org component enabled?
     if (isOrgCompActive) {
@@ -595,57 +626,57 @@ class Authorizations {
       { "Action": Constants.ACTION_UPDATE, "SettingID": setting.id.toString() });
   }
 
-  static canListOcpiendpoints(loggedUser) {
+  static canListOcpiEndpoints(loggedUser) {
     // Check
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINTS,
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPI_ENDPOINTS,
       { "Action": Constants.ACTION_LIST });
   }
 
-  static canReadOcpiendpoint(loggedUser, ocpiendpoint) {
+  static canReadOcpiEndpoint(loggedUser, ocpiendpoint) {
     // Check
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
-      { "Action": Constants.ACTION_READ, "OcpiendpointID": ocpiendpoint.id.toString() });
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPI_ENDPOINT,
+      { "Action": Constants.ACTION_READ, "OcpiEndpointID": ocpiendpoint.id.toString() });
   }
 
-  static canDeleteOcpiendpoint(loggedUser, ocpiendpoint) {
+  static canDeleteOcpiEndpoint(loggedUser, ocpiendpoint) {
     // Check
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
-      { "Action": Constants.ACTION_DELETE, "OcpiendpointID": ocpiendpoint.id.toString() });
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPI_ENDPOINT,
+      { "Action": Constants.ACTION_DELETE, "OcpiEndpointID": ocpiendpoint.id.toString() });
   }
 
-  static canCreateOcpiendpoint(loggedUser) {
+  static canCreateOcpiEndpoint(loggedUser) {
     // Check
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPI_ENDPOINT,
       { "Action": Constants.ACTION_CREATE });
   }
 
-  static canUpdateOcpiendpoint(loggedUser, ocpiendpoint) {
+  static canUpdateOcpiEndpoint(loggedUser, ocpiendpoint) {
     // Check
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
-      { "Action": Constants.ACTION_UPDATE, "OcpiendpointID": ocpiendpoint.id.toString() });
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPI_ENDPOINT,
+      { "Action": Constants.ACTION_UPDATE, "OcpiEndpointID": ocpiendpoint.id.toString() });
   }
 
-  static canPingOcpiendpoint(loggedUser) {
+  static canPingOcpiEndpoint(loggedUser) {
     // Check
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPI_ENDPOINT,
       { "Action": Constants.ACTION_PING });
   }
 
-  static canSendEVSEStatusesOcpiendpoint(loggedUser) {
+  static canSendEVSEStatusesOcpiEndpoint(loggedUser) {
     // Check
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPI_ENDPOINT,
       { "Action": Constants.ACTION_SEND_EVSE_STATUSES });
   }
 
-  static canRegisterOcpiendpoint(loggedUser, ocpiendpoint) {
+  static canRegisterOcpiEndpoint(loggedUser, ocpiendpoint) {
     // Check
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
-      { "Action": Constants.ACTION_REGISTER, "OcpiendpointID": ocpiendpoint.id.toString() });
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPI_ENDPOINT,
+      { "Action": Constants.ACTION_REGISTER, "OcpiEndpointID": ocpiendpoint.id.toString() });
   }
 
-  static canGenerateLocalTokenOcpiendpoint(loggedUser) {
+  static canGenerateLocalTokenOcpiEndpoint(loggedUser) {
     // Check
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPIENDPOINT,
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPI_ENDPOINT,
       { "Action": Constants.ACTION_GENERATE_LOCAL_TOKEN });
   }
 
@@ -862,7 +893,7 @@ class Authorizations {
   }
 
   static isAdmin(loggedUser) {
-    return this.isSuperAdmin(loggedUser) || loggedUser.role === Constants.ROLE_ADMIN;
+    return loggedUser.role === Constants.ROLE_ADMIN;
   }
 
   static isBasic(loggedUser) {

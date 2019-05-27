@@ -111,18 +111,20 @@ class SiteAreaService {
       const filteredRequest = SiteAreaSecurity.filterSiteAreasRequest(req.query, req.user);
       // Get the sites
       const siteAreas = await SiteArea.getSiteAreas(req.user.tenantID,
-        { 'search': filteredRequest.Search,
+        {
+          'search': filteredRequest.Search,
+          'siteIDs': Authorizations.getAuthorizedEntityIDsFromLoggedUser(Constants.ENTITY_SITE, req.user),
           'withSite': filteredRequest.WithSite,
           'withChargeBoxes': filteredRequest.WithChargeBoxes,
           'withAvailableChargers': filteredRequest.WithAvailableChargers,
           'siteID': filteredRequest.SiteID,
-          'onlyRecordCount': filteredRequest.OnlyRecordCount },
+          'onlyRecordCount': filteredRequest.OnlyRecordCount
+        },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
       siteAreas.result = siteAreas.result.map((siteArea) => siteArea.getModel());
       // Filter
-      siteAreas.result = SiteAreaSecurity.filterSiteAreasResponse(
-        siteAreas.result, req.user);
+      SiteAreaSecurity.filterSiteAreasResponse(siteAreas, req.user);
       // Return
       res.json(siteAreas);
       next();

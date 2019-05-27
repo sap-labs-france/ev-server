@@ -12,7 +12,7 @@ class UtilsService {
     } else {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(
-        "N/A", new Error(`The Action '${action}' does not exist`), req, res, next);
+        action, new Error(`The Action '${action}' does not exist`), req, res, next);
     }
   }
 

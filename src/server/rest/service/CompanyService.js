@@ -224,14 +224,18 @@ class CompanyService {
       const filteredRequest = CompanySecurity.filterCompaniesRequest(req.query, req.user);
       // Get the companies
       const companies = await Company.getCompanies(req.user.tenantID,
-        { search: filteredRequest.Search, withSites: filteredRequest.WithSites,
-          withLogo: filteredRequest.WithLogo, 'onlyRecordCount': filteredRequest.OnlyRecordCount },
+        {
+          search: filteredRequest.Search,
+          companyIDs: Authorizations.getAuthorizedEntityIDsFromLoggedUser(Constants.ENTITY_COMPANY, req.user),
+          withSites: filteredRequest.WithSites,
+          withLogo: filteredRequest.WithLogo,
+          'onlyRecordCount': filteredRequest.OnlyRecordCount
+        },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
       companies.result = companies.result.map((company) => company.getModel());
       // Filter
-      companies.result = CompanySecurity.filterCompaniesResponse(
-        companies.result, req.user);
+      CompanySecurity.filterCompaniesResponse(companies, req.user);
       // Return
       res.json(companies);
       next();
