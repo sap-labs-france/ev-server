@@ -85,7 +85,7 @@ class JsonWSConnection extends WSConnection {
 
   async handleRequest(messageId, commandName, commandPayload) {
     // Log
-    Logging.logReceivedAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
+    Logging.logSendAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
     // Check if method exist in the service
     if (typeof this._chargingStationService["handle" + commandName] === 'function') {
       // Call it
