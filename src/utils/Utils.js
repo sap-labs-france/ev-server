@@ -235,21 +235,37 @@ class Utils {
     return true;
   }
 
-  static buildUserFullName(user, withID = true) {
+  static buildUserFullName(user, withID = true, withEmail = false, inversedName = false) {
+    let fullName;
+  
     if (!user) {
       return "Unknown";
     }
-    // First name?
-    if (!user.firstName) {
-      return user.name;
-    }
-    // Set the ID?
-    if (withID) {
-      return `${user.firstName} ${user.name} (${user.id})`;
+  
+    if (inversedName) {
+      if (user.firstName) {
+        fullName = `${user.name}, ${user.firstName}`;
+      } else {
+        fullName = user.name;
+      }
     } else {
-      return `${user.firstName} ${user.name}`;
+      if (user.firstName) {
+        fullName = `${user.firstName} ${user.name}`;
+      } else {
+        fullName = user.name;
+      }
     }
-  }
+  
+    if (withID && user.iNumber) {
+      fullName += ` (${user.iNumber})`;
+    }
+  
+    if (withEmail && user.email) {
+      fullName += `; ${user.email}`;
+    }
+  
+    return fullName;
+  }    
 
   // Save the users in file
   static saveFile(filename, content) {

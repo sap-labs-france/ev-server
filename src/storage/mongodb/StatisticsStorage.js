@@ -222,14 +222,14 @@ class StatisticsStorage {
           }
         }
         // Set consumption
-        transaction[Utils.buildUserFullName(transactionStatMDB.user)] = transactionStatMDB.total;
+        transaction[Utils.buildUserFullName(transactionStatMDB.user, false, false, true)] = transactionStatMDB.total;
       }
     }
     // Debug
     Logging.traceEnd('StatisticsStorage', 'getUserStats', uniqueTimerID, { filter, groupBy });
     return transactions;
   }
-
+  
   static async getCurrentMetrics(tenantID, filteredRequest) {
     // Debug
     const uniqueTimerID = Logging.traceStart('StatisticsStorage', 'getCurrentMetrics');
