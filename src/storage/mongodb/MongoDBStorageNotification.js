@@ -209,7 +209,7 @@ class MongoDBStorageNotification {
       method: "handleInvalidChange",
       action: `Watch`,
       message: `Invalid change received on collection ${tenantID}.${collection}`,
-      detailedMessages: JSON.stringify(change)
+      detailedMessages: change
     });
   }
 
