@@ -110,7 +110,7 @@ class MigrationHandler {
       tenantID: Constants.DEFAULT_TENANT,
       source: "Migration", action: "Migration",
       module: "MigrationHandler", method: "migrate",
-      message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`
+      message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running...`
     });
     // Log in the console also
     // eslint-disable-next-line no-console
@@ -134,7 +134,7 @@ class MigrationHandler {
     });
     // Log in the console also
     // eslint-disable-next-line no-console
-    console.log(`Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs`);
+    console.log(`Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
 
     // Save to the DB
     await MigrationStorage.saveMigration({

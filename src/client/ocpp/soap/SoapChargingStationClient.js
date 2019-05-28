@@ -144,9 +144,9 @@ class SoapChargingStationClient extends ChargingStationClient {
     // Log
     Logging.logReturnedAction(_moduleName, this._chargingStation.getTenantID(),
       this._chargingStation.getID(), "RemoteStartTransaction", [
-      { result },
-      { envelope }
-    ]);
+        { result },
+        { envelope }
+      ]);
     return result;
   }
 

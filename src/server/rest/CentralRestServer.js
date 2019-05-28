@@ -107,7 +107,7 @@ class CentralRestServer {
 
   static _socketIOListenCb() {
     // Log
-    const logMsg = `REST SocketIO Server listening on '${_centralSystemRestConfig.protocol}://${_restHttpServer.address().address}:${_restHttpServer.address().port}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`;
+    const logMsg = `REST SocketIO Server listening on '${_centralSystemRestConfig.protocol}://${_restHttpServer.address().address}:${_restHttpServer.address().port}'`;
     Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
       module: MODULE_NAME,
@@ -115,7 +115,7 @@ class CentralRestServer {
       message: logMsg
     });
     // eslint-disable-next-line no-console
-    console.log(logMsg);
+    console.log(logMsg + ` ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
 
     // Check and send notification
     setInterval(() => {
@@ -131,7 +131,7 @@ class CentralRestServer {
 
   startSocketIO() {
     // Log
-    const logMsg = `Starting REST SocketIO Server ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`;
+    const logMsg = `Starting REST SocketIO Server...`;
     Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
       module: MODULE_NAME,
@@ -139,7 +139,7 @@ class CentralRestServer {
       message: logMsg
     });
     // eslint-disable-next-line no-console
-    console.log(logMsg);
+    console.log(logMsg.replace('...', '') + ` ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`);
     // Init Socket IO
     _socketIO = require("socket.io")(_restHttpServer);
     // Handle Socket IO connection
