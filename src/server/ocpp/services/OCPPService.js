@@ -632,6 +632,7 @@ class OCPPService {
       // Set consumption
       connector.currentConsumption = transaction.getCurrentConsumption();
       connector.totalConsumption = transaction.getCurrentTotalConsumption();
+      connector.totalInactivitySecs = transaction.getCurrentTotalInactivitySecs();
       connector.currentStateOfCharge = transaction.getCurrentStateOfCharge();
       // Set Transaction ID
       connector.activeTransactionID = transaction.getID();

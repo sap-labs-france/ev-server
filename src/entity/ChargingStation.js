@@ -486,6 +486,7 @@ class ChargingStation extends AbstractTenantEntity {
     if (connector) {
       connector.currentConsumption = 0;
       connector.totalConsumption = 0;
+      connector.totalInactivitySecs = 0;
       connector.currentStateOfCharge = 0;
       connector.activeTransactionID = 0;
     }

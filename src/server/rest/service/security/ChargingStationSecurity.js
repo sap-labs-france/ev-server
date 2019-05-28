@@ -57,6 +57,7 @@ class ChargingStationSecurity {
             connector.status = Constants.CONN_STATUS_UNAVAILABLE;
             connector.currentConsumption = 0;
             connector.totalConsumption = 0;
+            connector.totalInactivitySecs = 0;
             connector.currentStateOfCharge = 0;
           }
         }
@@ -72,6 +73,7 @@ class ChargingStationSecurity {
             'status': (filteredChargingStation.inactive ? Constants.CONN_STATUS_UNAVAILABLE : connector.status),
             'currentConsumption': (filteredChargingStation.inactive ? 0 : connector.currentConsumption),
             'currentStateOfCharge': (filteredChargingStation.inactive ? 0 : connector.currentStateOfCharge),
+            'totalInactivitySecs': (filteredChargingStation.inactive ? 0 : connector.totalInactivitySecs),
             'totalConsumption': (filteredChargingStation.inactive ? 0 : connector.totalConsumption),
             'activeTransactionID': connector.activeTransactionID,
             'errorCode': connector.errorCode,
