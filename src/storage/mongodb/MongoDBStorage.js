@@ -185,7 +185,7 @@ class MongoDBStorage {
       }
     }
     // Running migrations
-    await this.checkAndCreateCollection(collections, Constants.DEFAULT_TENANT, 'runningmigrations', [
+    await this.handleIndexesInCollection(collections, Constants.DEFAULT_TENANT, 'runningmigrations', [
       { fields: { timestamp: 1 } },
       { fields: { name: 1 } },
       { fields: { version: 1 } }
