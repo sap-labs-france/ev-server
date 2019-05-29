@@ -46,7 +46,7 @@ module.exports = {
   createHttpServer: function (serverConfig, expressApp) {
     let server;
     // Create the HTTP server
-    if (serverConfig.protocol == "https") {
+    if (serverConfig.protocol === "https") {
       // Create the options
       const options = {};
       // Set the keys

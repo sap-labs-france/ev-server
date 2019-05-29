@@ -220,7 +220,7 @@ class Bootstrap {
       global.database = this._database;
 
       if (cluster.isMaster && !this._migrationDone && this._centralSystemRestConfig) {
-        // Check and trigger migration (only master process can run the migration)
+        // Check and trigger migration (only master process on the REST server can run the migration)
         await MigrationHandler.migrate();
         this._migrationDone = true;
       }
