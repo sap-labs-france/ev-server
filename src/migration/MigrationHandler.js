@@ -21,8 +21,15 @@ class MigrationHandler {
   // Migrate method
   static async migrate() {
     try {
+      if (!cluster.isMaster) {
+        return;
+      }
+
       const startMigrationTime = moment();
       const currentMigrationTasks = [];
+
+      // Clean previously running migrations belonging to the current host at startup
+      await MigrationStorage.cleanRunningMigrations();
 
       // Log
       Logging.logInfo({
@@ -49,6 +56,9 @@ class MigrationHandler {
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();
 
+      // Get the already running migrations from the DB
+      const migrationTasksRunning = await MigrationStorage.getRunningMigrations();
+
       // Check
       for (const currentMigrationTask of currentMigrationTasks) {
         // Check if not already done
@@ -69,16 +79,34 @@ class MigrationHandler {
           // Continue
           continue;
         }
+        // Check if not already running
+        const migrationTaskRunning = migrationTasksRunning.find((migrationTaskRunning) => {
+          // Same name and version
+          return ((currentMigrationTask.getName() === migrationTaskRunning.name) &&
+            (currentMigrationTask.getVersion() === migrationTaskRunning.version));
+        });
+        // Already running?
+        if (migrationTaskRunning) {
+          // Yes
+          Logging.logInfo({
+            tenantID: Constants.DEFAULT_TENANT,
+            source: "Migration", action: "Migration",
+            module: "MigrationHandler", method: "migrate",
+            message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is already running`
+          });
+          // Continue
+          continue;
+        }
         // Check if async
         if (currentMigrationTask.isAsynchronous()) {
           // Execute async
           setTimeout(() => {
             // Execute Migration Task sync
-            MigrationHandler.executeTask(currentMigrationTask);
+            MigrationHandler._executeTask(currentMigrationTask);
           }, 1000);
         } else {
           // Execute Migration Task sync
-          await MigrationHandler.executeTask(currentMigrationTask);
+          await MigrationHandler._executeTask(currentMigrationTask);
         }
       }
       // Log Total Processing Time
@@ -104,7 +132,7 @@ class MigrationHandler {
     }
   }
 
-  static async executeTask(currentMigrationTask) {
+  static async _executeTask(currentMigrationTask) {
     // Log Start Task
     Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
@@ -116,16 +144,37 @@ class MigrationHandler {
     // eslint-disable-next-line no-console
     console.log(`Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`);
 
-    // Start time
+    // Start time and date
     const startTaskTime = moment();
+    const startDate = new Date();
+
+    const currentMigration = {
+      name: currentMigrationTask.getName(),
+      version: currentMigrationTask.getVersion(),
+      timestamp: startDate
+    };
+
+    // Flag the migration as running
+    await MigrationStorage.saveRunningMigration(currentMigration);
 
     // Execute Migration
     await currentMigrationTask.migrate();
+
+    // Remove the migration from the running ones
+    await MigrationStorage.deleteRunningMigration(currentMigration);
 
     // End time
     const totalTaskTimeSecs = moment.duration(moment().diff(startTaskTime)).asSeconds();
 
     // End
+    // Save to the DB
+    await MigrationStorage.saveMigration({
+      name: currentMigrationTask.getName(),
+      version: currentMigrationTask.getVersion(),
+      timestamp: startDate,
+      durationSecs: totalTaskTimeSecs
+    });
+
     Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
       source: "Migration", action: "Migration",
@@ -135,14 +184,6 @@ class MigrationHandler {
     // Log in the console also
     // eslint-disable-next-line no-console
     console.log(`Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs`);
-
-    // Save to the DB
-    await MigrationStorage.saveMigration({
-      name: currentMigrationTask.getName(),
-      version: currentMigrationTask.getVersion(),
-      timestamp: new Date(),
-      durationSecs: totalTaskTimeSecs
-    });
   }
 }
 
