@@ -28,7 +28,7 @@ class MigrationHandler {
       const startMigrationTime = moment();
       const currentMigrationTasks = [];
 
-      // Clean previously running migration belonging to the current host at startup
+      // Clean previously running migrations belonging to the current host at startup
       await MigrationStorage.cleanRunningMigrations();
 
       // Log
