@@ -46,7 +46,7 @@ class ODataSchema {
         module: "ODataServer",
         source: "ODataServer",
         method: "securePing",
-        action: "securePing",
+        action: "SecurePing",
         message: 'Unauthorized Access'
       });
 

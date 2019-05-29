@@ -809,14 +809,14 @@ class OCPPService {
             // Add Attributes
             const newLocalMeterValue = JSON.parse(JSON.stringify(newMeterValue));
             newLocalMeterValue.attribute = this._buildMeterValueAttributes(sampledValue);
-            newLocalMeterValue.value = parseInt(sampledValue.value);
+            newLocalMeterValue.value = parseFloat(sampledValue.value);
             // Add
             newMeterValues.values.push(newLocalMeterValue);
           }
         } else {
           // Add Attributes
           const newLocalMeterValue = JSON.parse(JSON.stringify(newMeterValue));
-          newLocalMeterValue.attribute = this._buildMeterValueAttributes(sampledValue);
+          newLocalMeterValue.attribute = this._buildMeterValueAttributes(value.sampledValue);
           // Add
           newMeterValues.values.push(newLocalMeterValue);
         }
@@ -829,7 +829,7 @@ class OCPPService {
           newMeterValue.attribute = value.value.attributes;
           // OCPP 1.5
         } else {
-          newMeterValue.value = parseInt(value.value);
+          newMeterValue.value = parseFloat(value.value);
         }
         // Add
         newMeterValues.values.push(newMeterValue);
