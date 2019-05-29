@@ -51,7 +51,7 @@ class UserStorage {
 
     // Search for language
     for (const supportLanguage of supportLanguages) {
-      if (language == supportLanguage.substring(0, 2)) {
+      if (language === supportLanguage.substring(0, 2)) {
         languageFound = true;
       }
     }

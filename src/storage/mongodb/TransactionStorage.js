@@ -60,7 +60,7 @@ class TransactionStorage {
       .limit(1)
       .toArray();
     // Found?
-    if (!firstTransactionsMDB || firstTransactionsMDB.length == 0) {
+    if (!firstTransactionsMDB || firstTransactionsMDB.length === 0) {
       return null;
     }
     const transactionYears = [];

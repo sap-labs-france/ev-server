@@ -95,7 +95,7 @@ class OCPPUtils {
         // Compute it
         if (voltageRerefence && current && nbPhase) {
           // One Phase?
-          if (nbPhase == 1) {
+          if (nbPhase === 1) {
             power = Math.floor(230 * current);
           } else {
             power = Math.floor(400 * current * Math.sqrt(nbPhase));

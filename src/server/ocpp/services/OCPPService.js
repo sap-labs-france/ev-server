@@ -374,7 +374,7 @@ class OCPPService {
       // Handle charger's specificities
       this._filterMeterValuesOnCharger(chargingStation, newMeterValues);
       // No Values?
-      if (newMeterValues.values.length == 0) {
+      if (newMeterValues.values.length === 0) {
         Logging.logDebug({
           tenantID: chargingStation.getTenantID(),
           source: chargingStation.getID(), module: 'OCPPService', method: 'handleMeterValues',

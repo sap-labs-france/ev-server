@@ -891,7 +891,7 @@ class AuthService {
     // Get EULA
     const endUserLicenseAgreement = await User.getEndUserLicenseAgreement(user.getTenantID(), user.getLanguage());
     // Set Eula Info on Login Only
-    if (action == 'Login') {
+    if (action === 'Login') {
       user.setEulaAcceptedOn(new Date());
       user.setEulaAcceptedVersion(endUserLicenseAgreement.version);
       user.setEulaAcceptedHash(endUserLicenseAgreement.hash);

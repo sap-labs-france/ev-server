@@ -189,7 +189,7 @@ class Authorizations {
       );
     } else {
       // USer Exists: Check User Deleted?
-      if (user.getStatus() == Constants.USER_STATUS_DELETED) {
+      if (user.getStatus() === Constants.USER_STATUS_DELETED) {
         // Yes: Restore it!
         user.setDeleted(false);
         // Set default user's value

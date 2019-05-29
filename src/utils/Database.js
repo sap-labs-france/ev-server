@@ -20,7 +20,7 @@ class Database {
   static validateId(id) {
     let changedID = id;
     // Object?
-    if (changedID && (typeof changedID == "object")) {
+    if (changedID && (typeof changedID === "object")) {
       // Mongo DB?
       if (changedID instanceof Buffer) {
         changedID = changedID.toString('hex');
@@ -326,7 +326,7 @@ class Database {
       // Set
       dest.createdBy = src.createdBy;
       // User model?
-      if (typeof dest.createdBy == "object" &&
+      if (typeof dest.createdBy === "object" &&
         dest.createdBy.constructor.name != "ObjectID") {
         // Yes
         dest.createdBy = {};
@@ -348,7 +348,7 @@ class Database {
       // Set
       dest.lastChangedBy = src.lastChangedBy;
       // User model?
-      if (typeof dest.lastChangedBy == "object" &&
+      if (typeof dest.lastChangedBy === "object" &&
         dest.lastChangedBy.constructor.name != "ObjectID") {
         // Yes
         dest.lastChangedBy = {};
