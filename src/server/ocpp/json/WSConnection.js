@@ -14,7 +14,7 @@ class WSConnection {
 
   constructor(wsConnection, req, wsServer) {
     // Init
-    this._url = req.url.replace(/(\?|&)*/, '');  // Filter trailing URL parameters
+    this._url = req.url.trim().replace(/\b(\?|&).*/, '');  // Filter trailing URL parameters
     this._ip = req && ((req.connection && req.connection.remoteAddress) || req.headers['x-forwarded-for']);
     this._wsConnection = wsConnection;
     this._req = req;
