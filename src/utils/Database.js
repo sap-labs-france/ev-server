@@ -1,3 +1,5 @@
+const cfenv = require('cfenv');
+const Configuration = require('./Configuration');
 const Utils = require('./Utils');
 const Constants = require('./Constants');
 
@@ -158,6 +160,16 @@ class Database {
     dest.name = src.name;
     dest.version = src.version;
     dest.durationSecs = Utils.convertToFloat(src.durationSecs);
+  }
+
+  static updateRunningMigration(src, dest, forFrontEnd = true) {
+    if (forFrontEnd) {
+      Database.updateID(src, dest);
+    }
+    dest.timestamp = Utils.convertToDate(src.timestamp);
+    dest.name = src.name;
+    dest.version = src.version;
+    dest.hostname = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname();
   }
 
   static updateConfiguration(src, dest, forFrontEnd = true) {

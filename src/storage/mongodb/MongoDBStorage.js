@@ -161,6 +161,12 @@ class MongoDBStorage {
         await this._db.collection(collection.name).rename(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, collection.name), { dropTarget: true });
       }
     }
+    // Running migrations
+    await this.checkAndCreateCollection(collections, Constants.DEFAULT_TENANT, 'runningmigrations', [
+      { fields: { timestamp: 1 } },
+      { fields: { name: 1 } },
+      { fields: { version: 1 } }
+    ]);
 
     const tenantsMDB = await this._db.collection(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, 'tenants'))
       .find({})
