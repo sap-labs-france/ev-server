@@ -83,7 +83,7 @@ class Bootstrap {
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         source: 'Bootstrap', module: MODULE_NAME, method: '_startMasters', action: 'Start',
-        message: `Unexpected exception ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}: ${error.toString()}`
+        message: `Unexpected exception: ${error.toString()}`
       });
     }
   }
@@ -169,7 +169,7 @@ class Bootstrap {
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         source: 'Bootstrap', module: MODULE_NAME, method: '_startServersListening', action: 'Start',
-        message: `Unexpected exception ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}: ${error.toString()}`
+        message: `Unexpected exception: ${error.toString()}`
       });
     }
   }
@@ -208,12 +208,7 @@ class Bootstrap {
         }
         // Connect to the Database
         await this._database.start();
-        let logMsg;
-        if (cluster.isMaster) {
-          logMsg = `Database connected to '${this._storageConfig.implementation}' successfully in master`;
-        } else {
-          logMsg = `Database connected to '${this._storageConfig.implementation}' successfully in worker ${cluster.worker.id}`;
-        }
+        let logMsg = `Database connected to '${this._storageConfig.implementation}' successfully`;
         // Log
         Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
@@ -276,7 +271,7 @@ class Bootstrap {
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         source: 'Bootstrap', module: MODULE_NAME, method: 'start', action: 'Start',
-        message: `Unexpected exception ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}: ${error.toString()}`
+        message: `Unexpected exception: ${error.toString()}`
       });
     }
   }
