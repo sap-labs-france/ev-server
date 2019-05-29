@@ -242,7 +242,7 @@ class VehicleStorage {
     // Ok
     return {
       count: (vehiclesCountMDB.length > 0 ?
-        (vehiclesCountMDB[0].count == Constants.MAX_DB_RECORD_COUNT ? -1 : vehiclesCountMDB[0].count) : 0),
+        (vehiclesCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : vehiclesCountMDB[0].count) : 0),
       result: vehicles
     };
   }

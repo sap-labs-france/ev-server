@@ -53,11 +53,11 @@ class LoggingSecurity {
     if (withDetailedMessage) {
       filteredLogging.detailedMessages = logging.detailedMessages;
     }
-    if (logging.user && typeof logging.user == "object") {
+    if (logging.user && typeof logging.user === "object") {
       // Build user
       filteredLogging.user = Utils.buildUserFullName(logging.user, false);
     }
-    if (logging.actionOnUser && typeof logging.actionOnUser == "object") {
+    if (logging.actionOnUser && typeof logging.actionOnUser === "object") {
       // Build user
       filteredLogging.actionOnUser = Utils.buildUserFullName(logging.actionOnUser, false);
     }

@@ -258,7 +258,7 @@ class ChargingStationStorage {
     // Ok
     return {
       count: (chargingStationsCountMDB.length > 0 ?
-        (chargingStationsCountMDB[0].count == Constants.MAX_DB_RECORD_COUNT ? -1 : chargingStationsCountMDB[0].count) : 0),
+        (chargingStationsCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : chargingStationsCountMDB[0].count) : 0),
       result: chargingStations
     };
   }
@@ -508,7 +508,7 @@ class ChargingStationStorage {
     // Ok
     return {
       count: (chargingStationsCountMDB.length > 0 ?
-        (chargingStationsCountMDB[0].count == Constants.MAX_DB_RECORD_COUNT ? -1 : chargingStationsCountMDB[0].count) : 0),
+        (chargingStationsCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : chargingStationsCountMDB[0].count) : 0),
       result: chargingStations
     };
   }
@@ -644,7 +644,7 @@ class ChargingStationStorage {
     const updatedFields = {};
     updatedFields["siteAreaID"] = (chargingStation.siteArea ? Utils.convertToObjectID(chargingStation.siteArea.id) : null);
     // Check Last Changed By
-    if (chargingStation.lastChangedBy && typeof chargingStation.lastChangedBy == "object") {
+    if (chargingStation.lastChangedBy && typeof chargingStation.lastChangedBy === "object") {
       // This is the User Model
       updatedFields["lastChangedBy"] = Utils.convertToObjectID(chargingStation.lastChangedBy.id);
       updatedFields["lastChangedOn"] = Utils.convertToDate(chargingStation.lastChangedOn);

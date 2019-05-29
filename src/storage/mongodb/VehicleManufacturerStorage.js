@@ -264,7 +264,7 @@ class VehicleManufacturerStorage {
     // Ok
     return {
       count: (vehiclemanufacturersCountMDB.length > 0 ?
-        (vehiclemanufacturersCountMDB[0].count == Constants.MAX_DB_RECORD_COUNT ? -1 : vehiclemanufacturersCountMDB[0].count) : 0),
+        (vehiclemanufacturersCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : vehiclemanufacturersCountMDB[0].count) : 0),
       result: vehicleManufacturers
     };
   }

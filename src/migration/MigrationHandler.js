@@ -54,8 +54,8 @@ class MigrationHandler {
         // Check if not already done
         const migrationTaskDone = migrationTasksDone.find((migrationTaskDone) => {
           // Same name and version
-          return ((currentMigrationTask.getName() == migrationTaskDone.name) &&
-            (currentMigrationTask.getVersion() == migrationTaskDone.version));
+          return ((currentMigrationTask.getName() === migrationTaskDone.name) &&
+            (currentMigrationTask.getVersion() === migrationTaskDone.version));
         });
         // Already processed?
         if (migrationTaskDone) {

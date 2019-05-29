@@ -53,7 +53,12 @@ class ChargingStationSecurity {
         // Yes: set all params
         filteredChargingStation = chargingStation;
         for (const connector of filteredChargingStation.connectors) {
-          connector.status = (filteredChargingStation.inactive ? Constants.CONN_STATUS_UNAVAILABLE : connector.status); 
+          if (filteredChargingStation.inactive) {
+            connector.status = Constants.CONN_STATUS_UNAVAILABLE;
+            connector.currentConsumption = 0;
+            connector.totalConsumption = 0;
+            connector.currentStateOfCharge = 0;
+          }
         }
       } else {
         // Set only necessary info
@@ -63,17 +68,17 @@ class ChargingStationSecurity {
         filteredChargingStation.inactive = chargingStation.inactive;
         filteredChargingStation.connectors = chargingStation.connectors.map((connector) => {
           return {
-            'activeTransactionID': connector.activeTransactionID,
             'connectorId': connector.connectorId,
-            'currentConsumption': connector.currentConsumption,
-            'currentStateOfCharge': connector.currentStateOfCharge,
+            'status': (filteredChargingStation.inactive ? Constants.CONN_STATUS_UNAVAILABLE : connector.status),
+            'currentConsumption': (filteredChargingStation.inactive ? 0 : connector.currentConsumption),
+            'currentStateOfCharge': (filteredChargingStation.inactive ? 0 : connector.currentStateOfCharge),
+            'totalConsumption': (filteredChargingStation.inactive ? 0 : connector.totalConsumption),
+            'activeTransactionID': connector.activeTransactionID,
             'errorCode': connector.errorCode,
             'type': connector.type,
             'power': connector.power,
             'voltage': connector.voltage,
-            'amperage': connector.amperage,
-            'status': (filteredChargingStation.inactive ? Constants.CONN_STATUS_UNAVAILABLE : connector.status),
-            'totalConsumption': connector.totalConsumption
+            'amperage': connector.amperage
           };
         });
         filteredChargingStation.lastHeartBeat = chargingStation.lastHeartBeat;
