@@ -183,7 +183,6 @@ class MigrationHandler {
     });
     // Log in the console also
     // eslint-disable-next-line no-console
-
     console.log(`Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
 
     // Save to the DB
