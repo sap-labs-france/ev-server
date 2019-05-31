@@ -46,3 +46,5 @@ Added PricingSettings classes and PricedConsumption
 consider moving PricedConsumption to Entity as Consumption is there already TODO
 Added file Consumption.ts under Entity to have a full type for Consumption data
 - need to migrate Transaction.js to make Pricing work
+- need to migrate Consumption.js to make Pricing work
+SimplePricing ported
