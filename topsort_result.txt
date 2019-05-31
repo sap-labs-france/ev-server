@@ -11,10 +11,10 @@ Depends on:
 Dependency of: [ ] LoggingDatabaseTableCleanupTask, [ ] OCPIPatchLocationsTask, 
 
 Depends on: 
-		[ ] ./EV-SERVER/SRC/EXCEPTION\INTERNALERROR.JS
+		[X] ./EV-SERVER/SRC/EXCEPTION\INTERNALERROR.JS
 Dependency of: [ ] ERPService, [ ] ConcurConnector, 
 
-Depends on: [ ] mongo-sanitize, 
+Depends on: [X] mongo-sanitize, 
 		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\SECURITY\STATISTICSECURITY.JS
 Dependency of: [ ] StatisticService, 
 

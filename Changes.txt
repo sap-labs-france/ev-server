@@ -40,3 +40,9 @@ StatisticSecurity.ts
  Made unused parameter optional and any (since unused)
  Added type StatisticsRequest
  Added TODO s, please check.
+
+Pricing.ts
+Added PricingSettings classes and PricedConsumption
+consider moving PricedConsumption to Entity as Consumption is there already TODO
+Added file Consumption.ts under Entity to have a full type for Consumption data
+- need to migrate Transaction.js to make Pricing work
