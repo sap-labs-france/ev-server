@@ -52,3 +52,11 @@ SimplePricing ported
 
 AppError.ts
 Ported, please see TODO and modify accordingly.
+Requires User entity to be ported as well
+TODO "module" bad name as is keyword in js
+
+NotFoundError.ts
+Ported
+
+UnauthorizedError.ts
+Ported, requires User to be ported as well

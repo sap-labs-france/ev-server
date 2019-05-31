@@ -1,3 +1,5 @@
+import User from '../entity/User';
+
 export default class AppError extends Error {
   constructor(
     readonly source: string,
@@ -5,7 +7,7 @@ export default class AppError extends Error {
     readonly errorCode: number = 500,
     readonly module: string = "N/A",
     readonly method: string = "N/A",
-    readonly user?: any,
+    readonly user?: User,
     readonly actionOnUser?: any,
     readonly action?: any) {
     super(message);

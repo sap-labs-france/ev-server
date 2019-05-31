@@ -115,7 +115,7 @@ Depends on:
 Dependency of: [ ] ErrorHandler, [ ] Logging, 
 
 Depends on: 
-		[ ] ./EV-SERVER/SRC/EXCEPTION\APPERROR.JS
+		[X] ./EV-SERVER/SRC/EXCEPTION\APPERROR.JS
 Dependency of: [ ] Authorizations, [ ] Company, [ ] OCPIEndpoint, [ ] Setting, [ ] Site, [ ] SiteArea, [ ] User, [ ] Vehicle, [ ] VehicleManufacturer, [ ] ConcurConnector, [ ] ErrorHandler, [ ] AuthService, [ ] ChargingStationService, [ ] CompanyService, [ ] ConnectorService, [ ] OCPIEndpointService, [ ] PricingService, [ ] SessionHashService, [ ] SettingService, [ ] SiteAreaService, [ ] SiteService, [ ] TenantService, [ ] TransactionService, [ ] UserService, [ ] VehicleManufacturerService, [ ] VehicleService, [ ] Logging, 
 
 Depends on: [X] Pricing, 
