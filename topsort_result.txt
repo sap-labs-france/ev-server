@@ -1,0 +1,736 @@
+Depends on: 
+		[X] ./EV-SERVER/SRC/EXCEPTION\OCPPERROR.JS
+Dependency of: [ ] JsonWSConnection, [ ] WSConnection, 
+
+Depends on: [X] source-map-support, 
+		[X] ./EV-SERVER/SRC/SERVER\OCPP\UTILS\OCPPCONSTANTS.JS
+Dependency of: [ ] ChargingStation, 
+
+Depends on: 
+		[X] ./EV-SERVER/SRC/SCHEDULER\SCHEDULERTASK.JS
+Dependency of: [ ] LoggingDatabaseTableCleanupTask, [ ] OCPIPatchLocationsTask, 
+
+Depends on: 
+		[ ] ./EV-SERVER/SRC/EXCEPTION\INTERNALERROR.JS
+Dependency of: [ ] ERPService, [ ] ConcurConnector, 
+
+Depends on: [ ] mongo-sanitize, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\SECURITY\STATISTICSECURITY.JS
+Dependency of: [ ] StatisticService, 
+
+Depends on: 
+		[ ] ./EV-SERVER/SRC/INTEGRATION\PRICING\PRICING.JS
+Dependency of: [ ] ConvergentChargingPricing, [ ] SimplePricing, 
+
+Depends on: [ ] strong-soap, [ ] perf_hooks, 
+		[ ] ./EV-SERVER/SRC/INTEGRATION\PRICING\CONVERGENT-CHARGING\ABSTRACTSOAPCLIENT.JS
+Dependency of: [ ] ERPService, [ ] RatingService, [ ] StatefulChargingService, 
+
+Depends on: [ ] strong-soap, [ ] AbstractSoapClient, 
+		[ ] ./EV-SERVER/SRC/INTEGRATION\PRICING\CONVERGENT-CHARGING\RATINGSERVICE.JS
+Dependency of: [ ] UserService, 
+
+Depends on: 
+		[ ] ./EV-SERVER/SRC/NOTIFICATION\NOTIFICATIONTASK.JS
+Dependency of: [ ] EMailNotificationTask, 
+
+Depends on: [ ] strong-soap, [ ] AbstractSoapClient, [ ] perf_hooks, 
+		[ ] ./EV-SERVER/SRC/INTEGRATION\PRICING\CONVERGENT-CHARGING\STATEFULCHARGINGSERVICE.JS
+Dependency of: [ ] ConvergentChargingPricing, 
+
+Depends on: [ ] moment, [ ] moment-timezone, [ ] lodash, 
+		[ ] ./EV-SERVER/SRC/SERVER\ODATA\ODATA-ENTITIES\ABSTRACTODATAENTITIES.JS
+Dependency of: [ ] ODataBootNotifications, [ ] ODataChargingStations, [ ] ODataCompanies, [ ] ODataConnectors, [ ] ODataSiteAreas, [ ] ODataSites, [ ] ODataStatusNotifications, [ ] ODataTransactions, [ ] ODataUsers, 
+
+Depends on: [ ] AbstractODataEntities, 
+		[ ] ./EV-SERVER/SRC/SERVER\ODATA\ODATA-ENTITIES\ODATAUSERS.JS
+Dependency of: [ ] ODataRestAdapter, 
+
+Depends on: [ ] AbstractODataEntities, 
+		[ ] ./EV-SERVER/SRC/SERVER\ODATA\ODATA-ENTITIES\ODATATRANSACTIONS.JS
+Dependency of: [ ] ODataRestAdapter, 
+
+Depends on: [ ] AbstractODataEntities, 
+		[ ] ./EV-SERVER/SRC/SERVER\ODATA\ODATA-ENTITIES\ODATASTATUSNOTIFICATIONS.JS
+Dependency of: [ ] ODataRestAdapter, 
+
+Depends on: [ ] AbstractODataEntities, [ ] lodash, 
+		[ ] ./EV-SERVER/SRC/SERVER\ODATA\ODATA-ENTITIES\ODATASITES.JS
+Dependency of: [ ] ODataRestAdapter, 
+
+Depends on: [ ] AbstractODataEntities, [ ] lodash, 
+		[ ] ./EV-SERVER/SRC/SERVER\ODATA\ODATA-ENTITIES\ODATACOMPANIES.JS
+Dependency of: [ ] ODataRestAdapter, 
+
+Depends on: [ ] AbstractODataEntities, 
+		[ ] ./EV-SERVER/SRC/SERVER\ODATA\ODATA-ENTITIES\ODATACHARGINGSTATIONS.JS
+Dependency of: [ ] ODataRestAdapter, 
+
+Depends on: [ ] AbstractODataEntities, 
+		[ ] ./EV-SERVER/SRC/SERVER\ODATA\ODATA-ENTITIES\ODATABOOTNOTIFICATIONS.JS
+Dependency of: [ ] ODataRestAdapter, 
+
+Depends on: 
+		[ ] ./EV-SERVER/SRC/EXCEPTION\CONFLICTERROR.JS
+Dependency of: [ ] ErrorHandler, [ ] TenantService, [ ] Logging, 
+
+Depends on: 
+		[ ] ./EV-SERVER/SRC/EXCEPTION\BACKENDERROR.JS
+Dependency of: [ ] Authorizations, [ ] ChargingStationClient, [ ] ChargingStation, [ ] EMailNotificationTask, [ ] JsonRestWSConnection, [ ] JsonWSConnection, [ ] WSConnection, [ ] OCPPService, [ ] OCPPUtils, [ ] OCPPValidation, [ ] ChargingStationStorage, [ ] CompanyStorage, [ ] OCPIEndpointStorage, [ ] SettingStorage, [ ] SiteAreaStorage, [ ] SiteStorage, [ ] TenantStorage, [ ] UserStorage, [ ] VehicleManufacturerStorage, [ ] VehicleStorage, [ ] Logging, [ ] Utils, 
+
+Depends on: 
+		[ ] ./EV-SERVER/SRC/MIGRATION\MIGRATIONTASK.JS
+Dependency of: [ ] CleanupMeterValuesTask, [ ] CleanupTransactionTask, [ ] CreateConsumptionsTask, [ ] MigrateTenantSettingsTask, [ ] NormalizeTransactionsTask, [ ] TenantMigrationTask, [ ] TransactionsAddTimezoneTask, [ ] UpdateKebaMeterValuesTask, [ ] UpdateTransactionExtraInactivityTask, [ ] UpdateTransactionInactivityTask, [ ] UpdateTransactionSimplePriceTask, [ ] UpdateTransactionSoCTask, [ ] UsersAddNotificationsFlagTask, 
+
+Depends on: [ ] MigrationTask, 
+		[ ] ./EV-SERVER/SRC/MIGRATION\TASKS\MIGRATETENANTSETTINGSTASK.JS
+Dependency of: [ ] MigrationHandler, 
+
+Depends on: 
+		[ ] ./EV-SERVER/SRC/EXCEPTION\BADREQUESTERROR.JS
+Dependency of: [ ] ErrorHandler, [ ] AuthService, [ ] SchemaValidator, [ ] Logging, 
+
+Depends on: [ ] AbstractODataEntities, [ ] lodash, 
+		[ ] ./EV-SERVER/SRC/SERVER\ODATA\ODATA-ENTITIES\ODATASITEAREAS.JS
+Dependency of: [ ] ODataRestAdapter, 
+
+Depends on: [ ] AbstractODataEntities, 
+		[ ] ./EV-SERVER/SRC/SERVER\ODATA\ODATA-ENTITIES\ODATACONNECTORS.JS
+Dependency of: 
+
+Depends on: [ ] ajv, [ ] BadRequestError, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\VALIDATION\SCHEMAVALIDATOR.JS
+Dependency of: [ ] OCPPValidation, [ ] ConnectionValidator, [ ] TenantValidation, 
+
+Depends on: [ ] SchemaValidator, [ ] tenant-creation.json, [ ] tenant-update.json, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\VALIDATION\TENANTVALIDATION.JS
+Dependency of: [ ] TenantService, 
+
+Depends on: 
+		[ ] ./EV-SERVER/SRC/EXCEPTION\UNAUTHORIZEDERROR.JS
+Dependency of: [ ] ErrorHandler, [ ] ConnectorService, [ ] TenantService, 
+
+Depends on: 
+		[ ] ./EV-SERVER/SRC/EXCEPTION\NOTFOUNDERROR.JS
+Dependency of: [ ] ErrorHandler, [ ] Logging, 
+
+Depends on: 
+		[ ] ./EV-SERVER/SRC/EXCEPTION\APPERROR.JS
+Dependency of: [ ] Authorizations, [ ] Company, [ ] OCPIEndpoint, [ ] Setting, [ ] Site, [ ] SiteArea, [ ] User, [ ] Vehicle, [ ] VehicleManufacturer, [ ] ConcurConnector, [ ] ErrorHandler, [ ] AuthService, [ ] ChargingStationService, [ ] CompanyService, [ ] ConnectorService, [ ] OCPIEndpointService, [ ] PricingService, [ ] SessionHashService, [ ] SettingService, [ ] SiteAreaService, [ ] SiteService, [ ] TenantService, [ ] TransactionService, [ ] UserService, [ ] VehicleManufacturerService, [ ] VehicleService, [ ] Logging, 
+
+Depends on: [ ] Pricing, 
+		[ ] ./EV-SERVER/SRC/INTEGRATION\PRICING\SIMPLE-PRICING\SIMPLEPRICING.JS
+Dependency of: [ ] PricingFactory, [ ] UpdateTransactionSimplePriceTask, 
+
+Depends on: 
+		[ ] ./EV-SERVER/SRC/EXCEPTION\ORGANIZATIONCOMPONENTINACTIVEERROR.JS
+Dependency of: [ ] CompanyService, 
+
+Depends on: [ ] source-map-support, 
+		[ ] ./EV-SERVER/SRC/UTILS\CONSTANTS.JS
+Dependency of: [ ] start, [ ] Authorizations, [ ] AuthorizationsDefinition, [ ] WSClient, [ ] OCPIClient, [ ] ChargingStationClient, [ ] JsonRestChargingStationClient, [ ] ChargingStation, [ ] Company, [ ] OCPIEndpoint, [ ] Setting, [ ] Site, [ ] SiteArea, [ ] User, [ ] Vehicle, [ ] VehicleManufacturer, [ ] OCPIClientError, [ ] OCPIServerError, [ ] PricingFactory, [ ] ConcurConnector, [ ] MigrationHandler, [ ] CleanupMeterValuesTask, [ ] CleanupTransactionTask, [ ] CreateConsumptionsTask, [ ] NormalizeTransactionsTask, [ ] TenantMigrationTask, [ ] UpdateTransactionExtraInactivityTask, [ ] UpdateTransactionSimplePriceTask, [ ] NotificationHandler, [ ] EMailNotificationTask, [ ] SchedulerManager, [ ] OCPIPatchLocationsTask, [ ] ExpressTools, [ ] AbstractOCPIService, [ ] OCPIErrorHandler, [ ] OCPIServer, [ ] OCPIUtils, [ ] CredentialsEndpoint, [ ] OCPIMapping, [ ] CentralSystemServer, [ ] JsonCentralSystemServer, [ ] JsonRestWSConnection, [ ] JsonWSConnection, [ ] WSConnection, [ ] WSServer, [ ] JsonChargingStationService, [ ] OCPPService, [ ] SoapCentralSystemServer, [ ] SoapCentralSystemService12, [ ] SoapCentralSystemService15, [ ] SoapCentralSystemService16, [ ] OCPPUtils, [ ] OCPPValidation, [ ] ODataRestAdapter, [ ] ODataSchema, [ ] CentralRestServer, [ ] AbstractService, [ ] AuthService, [ ] ChargingStationService, [ ] CompanyService, [ ] ConnectorService, [ ] LoggingService, [ ] OCPIEndpointService, [ ] PricingService, [ ] SessionHashService, [ ] SettingService, [ ] SiteAreaService, [ ] SiteService, [ ] StatisticService, [ ] TenantService, [ ] TransactionService, [ ] UserService, [ ] UtilsService, [ ] VehicleManufacturerService, [ ] VehicleService, [ ] AuthSecurity, [ ] ChargingStationSecurity, [ ] TransactionSecurity, [ ] UtilsSecurity, [ ] ChargingStationStorage, [ ] CompanyStorage, [ ] ConnectionStorage, [ ] DatabaseUtils, [ ] LoggingStorage, [ ] MigrationStorage, [ ] MongoDBStorage, [ ] MongoDBStorageNotification, [ ] NotificationStorage, [ ] OCPIEndpointStorage, [ ] OCPPStorage, [ ] SettingStorage, [ ] SiteAreaStorage, [ ] SiteStorage, [ ] StatisticsStorage, [ ] TenantStorage, [ ] TransactionStorage, [ ] UserStorage, [ ] VehicleManufacturerStorage, [ ] VehicleStorage, [ ] Configuration, [ ] Database, [ ] Logging, [ ] Utils, 
+
+Depends on: [ ] Constants, [ ] mongodb, 
+		[ ] ./EV-SERVER/SRC/STORAGE\MONGODB\DATABASEUTILS.JS
+Dependency of: [ ] CleanupMeterValuesTask, [ ] CleanupTransactionTask, [ ] CreateConsumptionsTask, [ ] NormalizeTransactionsTask, [ ] UpdateKebaMeterValuesTask, [ ] UpdateTransactionInactivityTask, [ ] UpdateTransactionSoCTask, [ ] ChargingStationStorage, [ ] CompanyStorage, [ ] LoggingStorage, [ ] MongoDBStorage, [ ] NotificationStorage, [ ] OCPIEndpointStorage, [ ] OCPPStorage, [ ] SettingStorage, [ ] SiteAreaStorage, [ ] SiteStorage, [ ] StatisticsStorage, [ ] TenantStorage, [ ] TransactionStorage, [ ] UserStorage, [ ] VehicleManufacturerStorage, [ ] VehicleStorage, 
+
+Depends on: [ ] mongodb, [ ] cluster, [ ] mongo-uri-builder, [ ] urlencode, [ ] DatabaseUtils, [ ] Constants, [ ] source-map-support, 
+		[ ] ./EV-SERVER/SRC/STORAGE\MONGODB\MONGODBSTORAGE.JS
+Dependency of: [ ] start, [ ] MongoDBStorageNotification, 
+
+Depends on: [ ] Constants, 
+		[ ] ./EV-SERVER/SRC/EXCEPTION\OCPISERVERERROR.JS
+Dependency of: [ ] AbstractOCPIService, [ ] OCPIErrorHandler, [ ] OCPIUtils, [ ] CredentialsEndpoint, [ ] LocationsEndpoint, 
+
+Depends on: [ ] Constants, 
+		[ ] ./EV-SERVER/SRC/EXCEPTION\OCPICLIENTERROR.JS
+Dependency of: [ ] OCPIErrorHandler, [ ] OCPIUtils, [ ] CredentialsEndpoint, 
+
+Depends on: [ ] Constants, [ ] OCPIClientError, [ ] OCPIServerError, [ ] source-map-support, 
+		[ ] ./EV-SERVER/SRC/SERVER\OCPI\OCPIUTILS.JS
+Dependency of: [ ] OCPIEndpoint, [ ] AbstractOCPIService, [ ] OCPIErrorHandler, [ ] OCPIServices, [ ] AbstractEndpoint, [ ] CredentialsEndpoint, [ ] LocationsEndpoint, 
+
+Depends on: [ ] OCPIUtils, [ ] source-map-support, 
+		[ ] ./EV-SERVER/SRC/SERVER\OCPI\OCPI-SERVICES-IMPL\ABSTRACTENDPOINT.JS
+Dependency of: [ ] CredentialsEndpoint, [ ] LocationsEndpoint, 
+
+Depends on: [ ] OCPIService.js, [ ] OCPIService.js, [ ] OCPIUtils, [ ] source-map-support, 
+		[ ] ./EV-SERVER/SRC/SERVER\OCPI\OCPISERVICES.JS
+Dependency of: [ ] OCPIServer, 
+
+Depends on: [ ] Constants, [ ] source-map-support, 
+		[ ] ./EV-SERVER/SRC/AUTHORIZATION\AUTHORIZATIONSDEFINITION.JS
+Dependency of: [ ] Authorizations, 
+
+Depends on: [ ] Constants, [ ] cfenv, [ ] fs, [ ] source-map-support, [ ] os, 
+		[ ] ./EV-SERVER/SRC/UTILS\CONFIGURATION.JS
+Dependency of: [ ] start, [ ] Authorizations, [ ] JsonRestChargingStationClient, [ ] SoapChargingStationClient, [ ] NotificationHandler, [ ] EMailNotificationTask, [ ] SchedulerManager, [ ] ExpressTools, [ ] JsonWSConnection, [ ] WSConnection, [ ] OCPPService, [ ] ODataServer, [ ] CentralRestServer, [ ] AuthService, [ ] UserStorage, [ ] Logging, [ ] Utils, 
+
+Depends on: [ ] SchemaValidator, [ ] connection-creation, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\VALIDATION\CONNECTIONVALIDATOR.JS
+Dependency of: [ ] ConnectorService, 
+
+Depends on: [ ] axios, [ ] querystring, 
+		[ ] ./EV-SERVER/SRC/SERVER\ODATA\CLIENT\BASEAPI.JS
+Dependency of: [ ] AuthenticatedApi, 
+
+Depends on: [ ] BaseApi, [ ] jsonwebtoken, 
+		[ ] ./EV-SERVER/SRC/SERVER\ODATA\CLIENT\AUTHENTICATEDAPI.JS
+Dependency of: [ ] CentralServiceApi, 
+
+Depends on: [ ] AuthenticatedApi, 
+		[ ] ./EV-SERVER/SRC/SERVER\ODATA\CLIENT\CENTRALSERVICEAPI.JS
+Dependency of: [ ] ODataRestAdapter, [ ] ODataSchema, 
+
+Depends on: 
+		[ ] ./EV-SERVER/SRC/SERVER\ODATA\ODATA-MODEL\ODATAMODEL.JS
+Dependency of: [ ] ODataRestAdapter, 
+
+Depends on: [ ] Database, [ ] AbstractTenantEntity, 
+		[ ] ./EV-SERVER/SRC/ENTITY\CONSUMPTION.JS
+Dependency of: [ ] ConsumptionStorage, 
+
+Depends on: [ ] Database, [ ] Utils, [ ] Logging, [ ] Consumption, [ ] crypto, 
+		[ ] ./EV-SERVER/SRC/STORAGE\MONGODB\CONSUMPTIONSTORAGE.JS
+Dependency of: [ ] Transaction, 
+
+Depends on: [ ] moment, [ ] Database, [ ] AbstractTenantEntity, [ ] UserStorage, [ ] ConsumptionStorage, [ ] TransactionStorage, [ ] OCPPStorage, [ ] ChargingStationStorage, [ ] User, [ ] User, [ ] ChargingStation, 
+		[ ] ./EV-SERVER/SRC/ENTITY\TRANSACTION.JS
+Dependency of: [ ] Authorizations, [ ] ChargingStation, [ ] CleanupTransactionTask, [ ] CreateConsumptionsTask, [ ] OCPPService, [ ] TransactionStorage, [ ] TransactionStorage, [ ] TransactionStorage, [ ] TransactionStorage, [ ] TransactionStorage, [ ] TransactionStorage, 
+
+Depends on: [ ] Logging, [ ] Constants, [ ] Configuration, [ ] node-authorization, [ ] NotificationHandler, [ ] mustache, [ ] node-authorization, [ ] AppError, [ ] AppAuthError, [ ] BackendError, [ ] Utils, [ ] User, [ ] Tenant, [ ] Transaction, [ ] Company, [ ] AuthorizationsDefinition, [ ] source-map-support, 
+		[ ] ./EV-SERVER/SRC/AUTHORIZATION\AUTHORIZATIONS.JS
+Dependency of: [ ] User, [ ] OCPPService, [ ] AuthService, [ ] ChargingStationService, [ ] CompanyService, [ ] ConnectorService, [ ] LoggingService, [ ] OCPIEndpointService, [ ] PricingService, [ ] SettingService, [ ] SiteAreaService, [ ] SiteService, [ ] StatisticService, [ ] TenantService, [ ] TransactionService, [ ] UserService, [ ] VehicleManufacturerService, [ ] VehicleService, [ ] ChargingStationSecurity, [ ] CompanySecurity, [ ] ConnectorSecurity, [ ] LoggingSecurity, [ ] NotificationSecurity, [ ] OCPIEndpointSecurity, [ ] PricingSecurity, [ ] SettingSecurity, [ ] SiteAreaSecurity, [ ] SiteSecurity, [ ] TenantSecurity, [ ] TransactionSecurity, [ ] UserSecurity, [ ] UtilsSecurity, [ ] VehicleManufacturerSecurity, [ ] VehicleSecurity, 
+
+Depends on: [ ] mongo-sanitize, [ ] Authorizations, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\SECURITY\PRICINGSECURITY.JS
+Dependency of: [ ] PricingService, 
+
+Depends on: [ ] AbstractTenantEntity, [ ] crypto, [ ] password-generator, [ ] bcrypt, [ ] Database, [ ] Constants, [ ] AppError, [ ] Utils, [ ] UserStorage, [ ] TransactionStorage, [ ] SiteStorage, [ ] Authorizations, 
+		[ ] ./EV-SERVER/SRC/ENTITY\USER.JS
+Dependency of: [ ] Authorizations, [ ] ChargingStation, [ ] Company, [ ] OCPIEndpoint, [ ] Setting, [ ] Site, [ ] SiteArea, [ ] Tenant, [ ] Transaction, [ ] Transaction, [ ] Vehicle, [ ] VehicleManufacturer, [ ] AbstractConnector, [ ] TenantMigrationTask, [ ] OCPPService, [ ] AuthService, [ ] ChargingStationService, [ ] CompanyService, [ ] ConnectorService, [ ] OCPIEndpointService, [ ] SessionHashService, [ ] SettingService, [ ] SiteAreaService, [ ] SiteService, [ ] TenantService, [ ] TransactionService, [ ] UserService, [ ] VehicleManufacturerService, [ ] VehicleService, [ ] SiteStorage, [ ] SiteStorage, [ ] UserStorage, [ ] UserStorage, [ ] UserStorage, [ ] UserStorage, 
+
+Depends on: [ ] AbstractTenantEntity, [ ] Database, [ ] Constants, [ ] AppError, [ ] OCPIEndpointStorage, [ ] OCPIUtils, [ ] User, 
+		[ ] ./EV-SERVER/SRC/ENTITY\OCPIENDPOINT.JS
+Dependency of: [ ] OCPIPatchLocationsTask, [ ] CredentialsEndpoint, [ ] OCPIEndpointService, [ ] OCPIEndpointStorage, [ ] OCPIEndpointStorage, [ ] OCPIEndpointStorage, [ ] OCPIEndpointStorage, 
+
+Depends on: [ ] mongodb, [ ] Constants, [ ] Database, [ ] Utils, [ ] BackendError, [ ] DatabaseUtils, [ ] Logging, [ ] OCPIEndpoint, [ ] OCPIEndpoint, [ ] OCPIEndpoint, [ ] OCPIEndpoint, 
+		[ ] ./EV-SERVER/SRC/STORAGE\MONGODB\OCPIENDPOINTSTORAGE.JS
+Dependency of: [ ] OCPIEndpoint, [ ] Setting, 
+
+Depends on: [ ] AbstractTenantEntity, [ ] Database, [ ] Constants, [ ] AppError, [ ] SettingStorage, [ ] OCPIEndpointStorage, [ ] User, 
+		[ ] ./EV-SERVER/SRC/ENTITY\SETTING.JS
+Dependency of: [ ] Tenant, [ ] SettingService, [ ] TenantService, [ ] SettingStorage, [ ] SettingStorage, [ ] SettingStorage, [ ] SettingStorage, 
+
+Depends on: [ ] Database, [ ] TenantStorage, [ ] User, [ ] Setting, 
+		[ ] ./EV-SERVER/SRC/ENTITY\TENANT.JS
+Dependency of: [ ] Authorizations, [ ] CleanupMeterValuesTask, [ ] CleanupTransactionTask, [ ] CreateConsumptionsTask, [ ] NormalizeTransactionsTask, [ ] TenantMigrationTask, [ ] TransactionsAddTimezoneTask, [ ] UpdateKebaMeterValuesTask, [ ] UpdateTransactionExtraInactivityTask, [ ] UpdateTransactionInactivityTask, [ ] UpdateTransactionSimplePriceTask, [ ] UpdateTransactionSoCTask, [ ] UsersAddNotificationsFlagTask, [ ] LoggingDatabaseTableCleanupTask, [ ] OCPIPatchLocationsTask, [ ] AbstractOCPIService, [ ] ODataRestAdapter, [ ] AuthService, [ ] SessionHashService, [ ] TenantService, [ ] UtilsService, [ ] ChargingStationStorage, [ ] TenantStorage, [ ] TenantStorage, [ ] TenantStorage, [ ] TenantStorage, [ ] Utils, 
+
+Depends on: [ ] mongodb, [ ] Configuration, [ ] v4, [ ] mongodb, [ ] Constants, [ ] BackendError, [ ] crypto, [ ] client-oauth2, [ ] axios, [ ] url, [ ] fs, [ ] path, [ ] source-map-support, [ ] Logging, [ ] Tenant, 
+		[ ] ./EV-SERVER/SRC/UTILS\UTILS.JS
+Dependency of: [ ] start, [ ] Authorizations, [ ] ChargingStation, [ ] User, [ ] AppAuthError, [ ] EMailNotificationTask, [ ] WSConnection, [ ] OCPPService, [ ] SoapCentralSystemService12, [ ] SoapCentralSystemService15, [ ] SoapCentralSystemService16, [ ] OCPPValidation, [ ] ErrorHandler, [ ] AuthService, [ ] ConnectorService, [ ] TenantService, [ ] UserService, [ ] LoggingSecurity, [ ] UtilsSecurity, [ ] ChargingStationStorage, [ ] CompanyStorage, [ ] ConnectionStorage, [ ] ConsumptionStorage, [ ] LoggingStorage, [ ] MigrationStorage, [ ] NotificationStorage, [ ] OCPIEndpointStorage, [ ] OCPPStorage, [ ] PricingStorage, [ ] SettingStorage, [ ] SiteAreaStorage, [ ] SiteStorage, [ ] StatisticsStorage, [ ] TenantStorage, [ ] TransactionStorage, [ ] UserStorage, [ ] VehicleManufacturerStorage, [ ] VehicleStorage, [ ] Database, [ ] Logging, 
+
+Depends on: [ ] Utils, [ ] Constants, [ ] source-map-support, 
+		[ ] ./EV-SERVER/SRC/UTILS\DATABASE.JS
+Dependency of: [ ] ChargingStation, [ ] Company, [ ] Consumption, [ ] Notification, [ ] OCPIEndpoint, [ ] Setting, [ ] Site, [ ] SiteArea, [ ] Tenant, [ ] Transaction, [ ] User, [ ] Vehicle, [ ] VehicleManufacturer, [ ] Connection, [ ] CreateConsumptionsTask, [ ] UpdateTransactionInactivityTask, [ ] UpdateTransactionSoCTask, [ ] CentralRestServer, [ ] CompanyService, [ ] ConnectorService, [ ] OCPIEndpointService, [ ] PricingService, [ ] SettingService, [ ] SiteAreaService, [ ] SiteService, [ ] TenantService, [ ] UserService, [ ] VehicleManufacturerService, [ ] VehicleService, [ ] ChargingStationStorage, [ ] CompanyStorage, [ ] ConnectionStorage, [ ] ConsumptionStorage, [ ] LoggingStorage, [ ] MigrationStorage, [ ] NotificationStorage, [ ] OCPIEndpointStorage, [ ] OCPPStorage, [ ] PricingStorage, [ ] SettingStorage, [ ] SiteAreaStorage, [ ] SiteStorage, [ ] TenantStorage, [ ] TransactionStorage, [ ] UserStorage, [ ] VehicleManufacturerStorage, [ ] VehicleStorage, 
+
+Depends on: [ ] Utils, [ ] Database, [ ] Constants, [ ] DatabaseUtils, 
+		[ ] ./EV-SERVER/SRC/STORAGE\MONGODB\LOGGINGSTORAGE.JS
+Dependency of: [ ] LoggingDatabaseTableCleanupTask, [ ] Logging, 
+
+Depends on: [ ] mongo-sanitize, [ ] Authorizations, [ ] Utils, [ ] Constants, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\SECURITY\UTILSSECURITY.JS
+Dependency of: [ ] AuthSecurity, [ ] ChargingStationSecurity, [ ] CompanySecurity, [ ] ConnectorSecurity, [ ] LoggingSecurity, [ ] NotificationSecurity, [ ] OCPIEndpointSecurity, [ ] SettingSecurity, [ ] SiteAreaSecurity, [ ] SiteSecurity, [ ] TenantSecurity, [ ] TransactionSecurity, [ ] UserSecurity, [ ] VehicleManufacturerSecurity, [ ] VehicleSecurity, 
+
+Depends on: [ ] mongo-sanitize, [ ] Authorizations, [ ] UtilsSecurity, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\SECURITY\VEHICLESECURITY.JS
+Dependency of: [ ] VehicleService, 
+
+Depends on: [ ] mongo-sanitize, [ ] Authorizations, [ ] UtilsSecurity, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\SECURITY\VEHICLEMANUFACTURERSECURITY.JS
+Dependency of: [ ] VehicleManufacturerService, 
+
+Depends on: [ ] mongo-sanitize, [ ] Authorizations, [ ] UtilsSecurity, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\SECURITY\USERSECURITY.JS
+Dependency of: [ ] UserService, [ ] NotificationSecurity, [ ] SiteSecurity, 
+
+Depends on: [ ] mongo-sanitize, [ ] Authorizations, [ ] Constants, [ ] UtilsSecurity, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\SECURITY\TRANSACTIONSECURITY.JS
+Dependency of: [ ] TransactionService, 
+
+Depends on: [ ] mongo-sanitize, [ ] Authorizations, [ ] UtilsSecurity, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\SECURITY\TENANTSECURITY.JS
+Dependency of: [ ] TenantService, 
+
+Depends on: [ ] mongo-sanitize, [ ] Authorizations, [ ] UtilsSecurity, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\SECURITY\SETTINGSECURITY.JS
+Dependency of: [ ] SettingService, 
+
+Depends on: [ ] mongo-sanitize, [ ] Authorizations, [ ] UtilsSecurity, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\SECURITY\OCPIENDPOINTSECURITY.JS
+Dependency of: [ ] OCPIEndpointService, 
+
+Depends on: [ ] mongo-sanitize, [ ] Authorizations, [ ] UtilsSecurity, [ ] UserSecurity, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\SECURITY\NOTIFICATIONSECURITY.JS
+Dependency of: [ ] NotificationService, 
+
+Depends on: [ ] mongo-sanitize, [ ] Authorizations, [ ] UtilsSecurity, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\SECURITY\CONNECTORSECURITY.JS
+Dependency of: [ ] ConnectorService, 
+
+Depends on: [ ] mongo-sanitize, [ ] Authorizations, [ ] Constants, [ ] UtilsSecurity, [ ] SiteAreaSecurity, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\SECURITY\CHARGINGSTATIONSECURITY.JS
+Dependency of: [ ] ChargingStationService, [ ] SiteAreaSecurity, 
+
+Depends on: [ ] mongo-sanitize, [ ] Authorizations, [ ] UtilsSecurity, [ ] SiteSecurity, [ ] ChargingStationSecurity, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\SECURITY\SITEAREASECURITY.JS
+Dependency of: [ ] SiteAreaService, [ ] ChargingStationSecurity, [ ] SiteSecurity, 
+
+Depends on: [ ] mongo-sanitize, [ ] Authorizations, [ ] UtilsSecurity, [ ] CompanySecurity, [ ] SiteAreaSecurity, [ ] UserSecurity, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\SECURITY\SITESECURITY.JS
+Dependency of: [ ] SiteService, [ ] CompanySecurity, [ ] SiteAreaSecurity, 
+
+Depends on: [ ] mongo-sanitize, [ ] Authorizations, [ ] UtilsSecurity, [ ] SiteSecurity, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\SECURITY\COMPANYSECURITY.JS
+Dependency of: [ ] CompanyService, [ ] SiteSecurity, 
+
+Depends on: [ ] mongo-sanitize, [ ] Constants, [ ] UtilsSecurity, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\SECURITY\AUTHSECURITY.JS
+Dependency of: [ ] AuthService, 
+
+Depends on: [ ] mongo-sanitize, [ ] Authorizations, [ ] Utils, [ ] UtilsSecurity, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\SECURITY\LOGGINGSECURITY.JS
+Dependency of: [ ] LoggingService, 
+
+Depends on: [ ] Utils, 
+		[ ] ./EV-SERVER/SRC/EXCEPTION\APPAUTHERROR.JS
+Dependency of: [ ] Authorizations, [ ] ErrorHandler, [ ] ChargingStationService, [ ] CompanyService, [ ] LoggingService, [ ] OCPIEndpointService, [ ] PricingService, [ ] SettingService, [ ] SiteAreaService, [ ] SiteService, [ ] TransactionService, [ ] UserService, [ ] VehicleManufacturerService, [ ] VehicleService, [ ] Logging, 
+
+Depends on: [ ] Utils, [ ] Constants, [ ] AppError, [ ] BackendError, [ ] AppAuthError, [ ] BadRequestError, [ ] ConflictError, [ ] NotFoundError, [ ] cf-nodejs-logging-support, [ ] Configuration, [ ] LoggingStorage, [ ] v4, [ ] source-map-support, [ ] perf_hooks, 
+		[ ] ./EV-SERVER/SRC/UTILS\LOGGING.JS
+Dependency of: [ ] start, [ ] Authorizations, [ ] WSClient, [ ] OCPIClient, [ ] JsonRestChargingStationClient, [ ] SoapChargingStationClient, [ ] ChargingStation, [ ] ConvergentChargingPricing, [ ] ConcurConnector, [ ] MigrationHandler, [ ] CleanupMeterValuesTask, [ ] CleanupTransactionTask, [ ] CreateConsumptionsTask, [ ] NormalizeTransactionsTask, [ ] TenantMigrationTask, [ ] UpdateTransactionSimplePriceTask, [ ] NotificationHandler, [ ] EMailNotificationTask, [ ] SchedulerManager, [ ] LoggingDatabaseTableCleanupTask, [ ] OCPIPatchLocationsTask, [ ] ExpressTools, [ ] AbstractOCPIService, [ ] OCPIErrorHandler, [ ] OCPIServer, [ ] CredentialsEndpoint, [ ] JsonCentralSystemServer, [ ] JsonRestWSConnection, [ ] JsonWSConnection, [ ] WSConnection, [ ] WSServer, [ ] JsonChargingStationService, [ ] OCPPService, [ ] SoapCentralSystemServer, [ ] SoapCentralSystemService12, [ ] SoapCentralSystemService15, [ ] SoapCentralSystemService16, [ ] OCPPValidation, [ ] ODataRestAdapter, [ ] ODataServer, [ ] ODataSchema, [ ] CentralRestServer, [ ] CentralRestServerService, [ ] AbstractService, [ ] AuthService, [ ] ChargingStationService, [ ] CompanyService, [ ] ConnectorService, [ ] LoggingService, [ ] NotificationService, [ ] OCPIEndpointService, [ ] PricingService, [ ] SessionHashService, [ ] SettingService, [ ] SiteAreaService, [ ] SiteService, [ ] StatisticService, [ ] TenantService, [ ] TransactionService, [ ] UserService, [ ] UtilsService, [ ] VehicleManufacturerService, [ ] VehicleService, [ ] ChargingStationStorage, [ ] CompanyStorage, [ ] ConnectionStorage, [ ] ConsumptionStorage, [ ] MigrationStorage, [ ] MongoDBStorageNotification, [ ] NotificationStorage, [ ] OCPIEndpointStorage, [ ] OCPPStorage, [ ] PricingStorage, [ ] SettingStorage, [ ] SiteAreaStorage, [ ] SiteStorage, [ ] StatisticsStorage, [ ] TenantStorage, [ ] TransactionStorage, [ ] UserStorage, [ ] VehicleManufacturerStorage, [ ] VehicleStorage, [ ] Utils, 
+
+Depends on: [ ] crypto, [ ] mustache, [ ] Constants, [ ] Database, [ ] Configuration, [ ] Utils, [ ] BackendError, [ ] DatabaseUtils, [ ] Logging, [ ] fs, [ ] User, [ ] User, [ ] User, [ ] User, 
+		[ ] ./EV-SERVER/SRC/STORAGE\MONGODB\USERSTORAGE.JS
+Dependency of: [ ] Notification, [ ] Site, [ ] Transaction, [ ] User, [ ] NotificationHandler, 
+
+Depends on: [ ] Utils, [ ] Constants, [ ] DatabaseUtils, [ ] Logging, [ ] moment, 
+		[ ] ./EV-SERVER/SRC/STORAGE\MONGODB\STATISTICSSTORAGE.JS
+Dependency of: [ ] StatisticService, 
+
+Depends on: [ ] mongodb, [ ] Constants, [ ] Database, [ ] Utils, [ ] BackendError, [ ] DatabaseUtils, [ ] Logging, [ ] Setting, [ ] Setting, [ ] Setting, [ ] Setting, 
+		[ ] ./EV-SERVER/SRC/STORAGE\MONGODB\SETTINGSTORAGE.JS
+Dependency of: [ ] Setting, [ ] AbstractConnector, [ ] PricingFactory, [ ] UpdateTransactionSimplePriceTask, [ ] TransactionService, [ ] UserService, 
+
+Depends on: [ ] Database, [ ] Utils, [ ] Logging, 
+		[ ] ./EV-SERVER/SRC/STORAGE\MONGODB\PRICINGSTORAGE.JS
+Dependency of: [ ] CreateConsumptionsTask, [ ] NormalizeTransactionsTask, [ ] PricingService, [ ] TransactionStorage, 
+
+Depends on: [ ] Constants, [ ] Database, [ ] DatabaseUtils, [ ] Utils, [ ] Logging, [ ] PricingStorage, [ ] Transaction, [ ] Transaction, [ ] Transaction, [ ] Transaction, [ ] Transaction, [ ] Transaction, 
+		[ ] ./EV-SERVER/SRC/STORAGE\MONGODB\TRANSACTIONSTORAGE.JS
+Dependency of: [ ] Transaction, [ ] User, [ ] ConcurConnector, [ ] AuthService, [ ] ChargingStationService, [ ] TransactionService, 
+
+Depends on: [ ] Database, [ ] Utils, [ ] Constants, [ ] Logging, 
+		[ ] ./EV-SERVER/SRC/STORAGE\MONGODB\MIGRATIONSTORAGE.JS
+Dependency of: [ ] MigrationHandler, 
+
+Depends on: [ ] Logging, [ ] moment, [ ] Constants, [ ] Authorizations, [ ] StatisticSecurity, [ ] StatisticsStorage, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\STATISTICSERVICE.JS
+Dependency of: [ ] CentralRestServerService, 
+
+Depends on: [ ] Constants, [ ] Logging, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\ABSTRACTSERVICE.JS
+Dependency of: [ ] ConnectorService, [ ] TenantService, 
+
+Depends on: [ ] ODataSchema.xml, [ ] basic-auth, [ ] Constants, [ ] Logging, [ ] CentralServiceApi, [ ] source-map-support, 
+		[ ] ./EV-SERVER/SRC/SERVER\ODATA\ODATA-SCHEMA\ODATASCHEMA.JS
+Dependency of: [ ] ODataServer, 
+
+Depends on: [ ] Utils, [ ] Constants, [ ] BackendError, [ ] Logging, [ ] SchemaValidator, [ ] boot-notification-request.json, [ ] authorize-request.json, [ ] status-notification-request.json, [ ] start-transaction-request.json, [ ] stop-transaction-request-16.json, [ ] stop-transaction-request-15.json, [ ] source-map-support, 
+		[ ] ./EV-SERVER/SRC/SERVER\OCPP\VALIDATION\OCPPVALIDATION.JS
+Dependency of: [ ] OCPPService, 
+
+Depends on: [ ] Logging, [ ] Utils, [ ] Constants, 
+		[ ] ./EV-SERVER/SRC/SERVER\OCPP\SOAP\SERVICES\SOAPCENTRALSYSTEMSERVICE16.JS
+Dependency of: [ ] SoapCentralSystemServer, 
+
+Depends on: [ ] Logging, [ ] Constants, [ ] Utils, 
+		[ ] ./EV-SERVER/SRC/SERVER\OCPP\SOAP\SERVICES\SOAPCENTRALSYSTEMSERVICE15.JS
+Dependency of: [ ] SoapCentralSystemServer, 
+
+Depends on: [ ] Logging, [ ] Utils, [ ] Constants, 
+		[ ] ./EV-SERVER/SRC/SERVER\OCPP\SOAP\SERVICES\SOAPCENTRALSYSTEMSERVICE12.JS
+Dependency of: [ ] SoapCentralSystemServer, 
+
+Depends on: [ ] Logging, [ ] Constants, 
+		[ ] ./EV-SERVER/SRC/SERVER\OCPP\JSON\SERVICES\JSONCHARGINGSTATIONSERVICE.JS
+Dependency of: [ ] JsonWSConnection, 
+
+Depends on: [ ] fs, [ ] ws, [ ] https, [ ] http, [ ] cluster, [ ] Logging, [ ] Constants, 
+		[ ] ./EV-SERVER/SRC/SERVER\OCPP\JSON\WSSERVER.JS
+Dependency of: [ ] JsonCentralSystemServer, 
+
+Depends on: [ ] OCPIUtils, [ ] Logging, [ ] OCPIClientError, [ ] OCPIServerError, [ ] Constants, 
+		[ ] ./EV-SERVER/SRC/SERVER\OCPI\OCPIERRORHANDLER.JS
+Dependency of: [ ] OCPIServer, 
+
+Depends on: [ ] express, [ ] cors, [ ] helmet, [ ] hpp, [ ] body-parser, [ ] body-parser-xml, [ ] locale, [ ] http, [ ] https, [ ] fs, [ ] cf-nodejs-logging-support, [ ] cluster, [ ] Configuration, [ ] Logging, [ ] Constants, 
+		[ ] ./EV-SERVER/SRC/SERVER\EXPRESSTOOLS.JS
+Dependency of: [ ] OCPIServer, [ ] SoapCentralSystemServer, [ ] ODataServer, [ ] CentralRestServer, 
+
+Depends on: [ ] morgan, [ ] ExpressTools, [ ] Logging, [ ] Constants, [ ] OCPIServices, [ ] OCPIErrorHandler, [ ] source-map-support, 
+		[ ] ./EV-SERVER/SRC/SERVER\OCPI\OCPISERVER.JS
+Dependency of: [ ] start, 
+
+Depends on: [ ] emailjs, [ ] ejs, [ ] fs, [ ] BackendError, [ ] Configuration, [ ] Logging, [ ] Utils, [ ] Constants, [ ] NotificationTask, [ ] source-map-support, 
+		[ ] ./EV-SERVER/SRC/NOTIFICATION\EMAIL\EMAILNOTIFICATIONTASK.JS
+Dependency of: [ ] NotificationHandler, 
+
+Depends on: [ ] ws, [ ] Constants, [ ] Logging, 
+		[ ] ./EV-SERVER/SRC/CLIENT\WSCLIENT.JS
+Dependency of: [ ] JsonRestChargingStationClient, 
+
+Depends on: [ ] v4, [ ] WSClient, [ ] ChargingStationClient, [ ] Logging, [ ] Constants, [ ] Configuration, 
+		[ ] ./EV-SERVER/SRC/CLIENT\OCPP\JSON\JSONRESTCHARGINGSTATIONCLIENT.JS
+Dependency of: [ ] ChargingStationClient, 
+
+Depends on: [ ] Constants, [ ] BackendError, [ ] JsonRestChargingStationClient, [ ] SoapChargingStationClient, 
+		[ ] ./EV-SERVER/SRC/CLIENT\OCPP\CHARGINGSTATIONCLIENT.JS
+Dependency of: [ ] JsonChargingStationClient, [ ] JsonRestChargingStationClient, [ ] SoapChargingStationClient, [ ] ChargingStation, 
+
+Depends on: [ ] ChargingStationClient, [ ] strong-soap, [ ] Logging, [ ] Configuration, 
+		[ ] ./EV-SERVER/SRC/CLIENT\OCPP\SOAP\SOAPCHARGINGSTATIONCLIENT.JS
+Dependency of: [ ] ChargingStationClient, 
+
+Depends on: [ ] v4, [ ] ChargingStationClient, 
+		[ ] ./EV-SERVER/SRC/CLIENT\OCPP\JSON\JSONCHARGINGSTATIONCLIENT.JS
+Dependency of: [ ] JsonWSConnection, 
+
+Depends on: [ ] Logging, [ ] Database, [ ] AppError, [ ] AppAuthError, [ ] Authorizations, [ ] Constants, [ ] Setting, [ ] User, [ ] SettingSecurity, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\SETTINGSERVICE.JS
+Dependency of: [ ] CentralRestServerService, 
+
+Depends on: [ ] Authorizations, [ ] Logging, [ ] Database, [ ] PricingSecurity, [ ] PricingStorage, [ ] Constants, [ ] AppAuthError, [ ] AppError, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\PRICINGSERVICE.JS
+Dependency of: [ ] CentralRestServerService, 
+
+Depends on: [ ] Authorizations, [ ] Logging, [ ] Constants, [ ] LoggingSecurity, [ ] AppAuthError, [ ] fs, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\LOGGINGSERVICE.JS
+Dependency of: [ ] CentralRestServerService, 
+
+Depends on: [ ] AppError, [ ] AppAuthError, [ ] BadRequestError, [ ] ConflictError, [ ] NotFoundError, [ ] UnauthorizedError, [ ] Utils, [ ] http-status-codes, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\ERRORHANDLER.JS
+Dependency of: [ ] CentralRestServer, 
+
+Depends on: [ ] Constants, [ ] Database, [ ] Utils, [ ] mongodb, [ ] BackendError, [ ] DatabaseUtils, [ ] Logging, [ ] Tenant, [ ] Tenant, [ ] Tenant, [ ] Tenant, 
+		[ ] ./EV-SERVER/SRC/STORAGE\MONGODB\TENANTSTORAGE.JS
+Dependency of: [ ] AbstractTenantEntity, [ ] Tenant, [ ] MongoDBStorageNotification, 
+
+Depends on: [ ] Logging, [ ] Constants, [ ] TenantStorage, [ ] MongoDBStorage, [ ] source-map-support, 
+		[ ] ./EV-SERVER/SRC/STORAGE\MONGODB\MONGODBSTORAGENOTIFICATION.JS
+Dependency of: [ ] start, 
+
+Depends on: [ ] TenantStorage, 
+		[ ] ./EV-SERVER/SRC/ENTITY\ABSTRACTTENANTENTITY.TS
+Dependency of: [ ] ChargingStation, [ ] Company, [ ] Consumption, [ ] Notification, [ ] OCPIEndpoint, [ ] Setting, [ ] Site, [ ] SiteArea, [ ] Transaction, [ ] User, [ ] Vehicle, [ ] VehicleManufacturer, [ ] AbstractConnector, [ ] Connection, 
+
+Depends on: [ ] Database, [ ] AbstractTenantEntity, 
+		[ ] ./EV-SERVER/SRC/INTEGRATION\CONNECTION.JS
+Dependency of: [ ] ConnectionStorage, [ ] ConnectionStorage, [ ] ConnectionStorage, [ ] ConnectionStorage, 
+
+Depends on: [ ] Database, [ ] Utils, [ ] Logging, [ ] Constants, [ ] Connection, [ ] Connection, [ ] Connection, [ ] Connection, 
+		[ ] ./EV-SERVER/SRC/STORAGE\MONGODB\CONNECTIONSTORAGE.JS
+Dependency of: [ ] AbstractConnector, [ ] ERPService, [ ] ConcurConnector, 
+
+Depends on: [ ] strong-soap, [ ] ConnectionStorage, [ ] AbstractSoapClient, [ ] InternalError, 
+		[ ] ./EV-SERVER/SRC/INTEGRATION\PRICING\CONVERGENT-CHARGING\ERPSERVICE.JS
+Dependency of: [ ] UserService, 
+
+Depends on: [ ] ConnectionStorage, [ ] SettingStorage, [ ] AbstractTenantEntity, [ ] User, 
+		[ ] ./EV-SERVER/SRC/INTEGRATION\ABSTRACTCONNECTOR.JS
+Dependency of: [ ] ConcurConnector, [ ] ConnectorService, 
+
+Depends on: [ ] AbstractTenantEntity, [ ] Database, [ ] Constants, [ ] AppError, [ ] VehicleStorage, [ ] User, 
+		[ ] ./EV-SERVER/SRC/ENTITY\VEHICLE.JS
+Dependency of: [ ] VehicleManufacturer, [ ] VehicleService, [ ] VehicleManufacturerStorage, [ ] VehicleStorage, [ ] VehicleStorage, [ ] VehicleStorage, 
+
+Depends on: [ ] mongodb, [ ] Constants, [ ] Database, [ ] Utils, [ ] BackendError, [ ] DatabaseUtils, [ ] Logging, [ ] Vehicle, [ ] Vehicle, [ ] Vehicle, 
+		[ ] ./EV-SERVER/SRC/STORAGE\MONGODB\VEHICLESTORAGE.JS
+Dependency of: [ ] Vehicle, [ ] VehicleManufacturer, [ ] VehicleManufacturerStorage, 
+
+Depends on: [ ] User, [ ] Logging, [ ] Database, [ ] AppError, [ ] AppAuthError, [ ] Authorizations, [ ] Constants, [ ] Vehicle, [ ] VehicleSecurity, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\VEHICLESERVICE.JS
+Dependency of: [ ] CentralRestServerService, 
+
+Depends on: [ ] AbstractTenantEntity, [ ] Database, [ ] User, [ ] Vehicle, [ ] Constants, [ ] AppError, [ ] VehicleManufacturerStorage, [ ] VehicleStorage, 
+		[ ] ./EV-SERVER/SRC/ENTITY\VEHICLEMANUFACTURER.JS
+Dependency of: [ ] VehicleManufacturerService, [ ] VehicleManufacturerStorage, [ ] VehicleManufacturerStorage, [ ] VehicleManufacturerStorage, 
+
+Depends on: [ ] Constants, [ ] Database, [ ] Utils, [ ] VehicleStorage, [ ] BackendError, [ ] mongodb, [ ] DatabaseUtils, [ ] Logging, [ ] VehicleManufacturer, [ ] VehicleManufacturer, [ ] VehicleManufacturer, [ ] Vehicle, 
+		[ ] ./EV-SERVER/SRC/STORAGE\MONGODB\VEHICLEMANUFACTURERSTORAGE.JS
+Dependency of: [ ] VehicleManufacturer, 
+
+Depends on: [ ] User, [ ] Logging, [ ] Database, [ ] AppError, [ ] AppAuthError, [ ] Authorizations, [ ] Constants, [ ] VehicleManufacturer, [ ] VehicleManufacturerSecurity, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\VEHICLEMANUFACTURERSERVICE.JS
+Dependency of: [ ] CentralRestServerService, 
+
+Depends on: [ ] Logging, [ ] Tenant, [ ] Constants, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\UTILSSERVICE.JS
+Dependency of: [ ] CentralRestServerAuthentication, [ ] CentralRestServerService, [ ] CompanyService, [ ] SiteAreaService, [ ] SiteService, 
+
+Depends on: [ ] Logging, [ ] Constants, [ ] AppError, [ ] User, [ ] Tenant, [ ] crypto, [ ] http-status-codes, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\SESSIONHASHSERVICE.JS
+Dependency of: [ ] CentralRestServer, [ ] CentralRestServerService, [ ] AuthService, 
+
+Depends on: [ ] ODataTransactions, [ ] ODataCompanies, [ ] ODataSites, [ ] ODataSiteAreas, [ ] ODataChargingStations, [ ] ODataStatusNotifications, [ ] ODataBootNotifications, [ ] ODataUsers, [ ] ODataModel, [ ] basic-auth, [ ] Constants, [ ] CentralServiceApi, [ ] Tenant, [ ] Logging, 
+		[ ] ./EV-SERVER/SRC/SERVER\ODATA\ODATARESTADAPTER.JS
+Dependency of: [ ] ODataServerFactory, 
+
+Depends on: [ ] simple-odata-server, [ ] ODataRestAdapter, [ ] source-map-support, 
+		[ ] ./EV-SERVER/SRC/SERVER\ODATA\ODATASERVERFACTORY.JS
+Dependency of: [ ] ODataServer, 
+
+Depends on: [ ] Tenant, [ ] OCPIServerError, [ ] OCPIUtils, [ ] Constants, [ ] Logging, [ ] source-map-support, 
+		[ ] ./EV-SERVER/SRC/SERVER\OCPI\ABSTRACTOCPISERVICE.JS
+Dependency of: [ ] OCPIService, [ ] OCPIService, 
+
+Depends on: [ ] Logging, [ ] moment, [ ] SchedulerTask, [ ] LoggingStorage, [ ] Tenant, 
+		[ ] ./EV-SERVER/SRC/SCHEDULER\TASKS\LOGGINGDATABASETABLECLEANUPTASK.JS
+Dependency of: [ ] SchedulerManager, 
+
+Depends on: [ ] Tenant, [ ] MigrationTask, 
+		[ ] ./EV-SERVER/SRC/MIGRATION\TASKS\USERSADDNOTIFICATIONSFLAGTASK.JS
+Dependency of: [ ] MigrationHandler, 
+
+Depends on: [ ] Database, [ ] Tenant, [ ] DatabaseUtils, [ ] MigrationTask, 
+		[ ] ./EV-SERVER/SRC/MIGRATION\TASKS\UPDATETRANSACTIONSOCTASK.JS
+Dependency of: [ ] MigrationHandler, 
+
+Depends on: [ ] MigrationTask, [ ] Tenant, [ ] Logging, [ ] Constants, [ ] SettingStorage, [ ] SimplePricing, [ ] moment, [ ] bluebird, 
+		[ ] ./EV-SERVER/SRC/MIGRATION\TASKS\UPDATETRANSACTIONSIMPLEPRICETASK.JS
+Dependency of: [ ] MigrationHandler, 
+
+Depends on: [ ] Tenant, [ ] DatabaseUtils, [ ] MigrationTask, 
+		[ ] ./EV-SERVER/SRC/MIGRATION\TASKS\UPDATEKEBAMETERVALUESTASK.JS
+Dependency of: [ ] MigrationHandler, 
+
+Depends on: [ ] Tenant, [ ] MigrationTask, [ ] tz-lookup, 
+		[ ] ./EV-SERVER/SRC/MIGRATION\TASKS\TRANSACTIONSADDTIMEZONETASK.JS
+Dependency of: [ ] MigrationHandler, 
+
+Depends on: [ ] MigrationTask, [ ] User, [ ] Tenant, [ ] Logging, [ ] Constants, 
+		[ ] ./EV-SERVER/SRC/MIGRATION\TASKS\TENANTMIGRATIONTASK.JS
+Dependency of: [ ] MigrationHandler, 
+
+Depends on: [ ] Tenant, [ ] PricingStorage, [ ] DatabaseUtils, [ ] moment, [ ] Logging, [ ] Constants, [ ] MigrationTask, 
+		[ ] ./EV-SERVER/SRC/MIGRATION\TASKS\NORMALIZETRANSACTIONSTASK.JS
+Dependency of: [ ] MigrationHandler, 
+
+Depends on: [ ] Tenant, [ ] PricingStorage, [ ] DatabaseUtils, [ ] moment, [ ] Transaction, [ ] Logging, [ ] Constants, [ ] Database, [ ] p-limit, [ ] MigrationTask, 
+		[ ] ./EV-SERVER/SRC/MIGRATION\TASKS\CREATECONSUMPTIONSTASK.JS
+Dependency of: [ ] MigrationHandler, 
+
+Depends on: [ ] Tenant, [ ] DatabaseUtils, [ ] moment, [ ] Transaction, [ ] Logging, [ ] Constants, [ ] MigrationTask, 
+		[ ] ./EV-SERVER/SRC/MIGRATION\TASKS\CLEANUPTRANSACTIONTASK.JS
+Dependency of: [ ] MigrationHandler, 
+
+Depends on: [ ] Tenant, [ ] DatabaseUtils, [ ] moment, [ ] Logging, [ ] Constants, [ ] MigrationTask, 
+		[ ] ./EV-SERVER/SRC/MIGRATION\TASKS\CLEANUPMETERVALUESTASK.JS
+Dependency of: 
+
+Depends on: [ ] AbstractTenantEntity, [ ] ChargingStationClient, [ ] Logging, [ ] Utils, [ ] User, [ ] Transaction, [ ] SiteArea, [ ] Constants, [ ] Database, [ ] BackendError, [ ] ChargingStationStorage, [ ] OCPPStorage, [ ] OCPPUtils, [ ] OCPPConstants, [ ] SiteAreaStorage, [ ] moment-timezone, [ ] moment-duration-format, [ ] tz-lookup, [ ] source-map-support, 
+		[ ] ./EV-SERVER/SRC/ENTITY\CHARGINGSTATION.JS
+Dependency of: [ ] Transaction, [ ] ConcurConnector, [ ] UpdateTransactionInactivityTask, [ ] JsonRestWSConnection, [ ] WSConnection, [ ] OCPPService, [ ] OCPPUtils, [ ] AuthService, [ ] ChargingStationService, [ ] SiteAreaService, [ ] TransactionService, [ ] ChargingStationStorage, [ ] ChargingStationStorage, [ ] ChargingStationStorage, [ ] ChargingStationStorage, [ ] ChargingStationStorage, [ ] ChargingStationStorage, [ ] ChargingStationStorage, [ ] OCPPStorage, [ ] SiteAreaStorage, [ ] SiteAreaStorage, [ ] SiteStorage, 
+
+Depends on: [ ] Constants, [ ] Utils, [ ] Database, [ ] crypto, [ ] DatabaseUtils, [ ] Logging, [ ] ChargingStation, 
+		[ ] ./EV-SERVER/SRC/STORAGE\MONGODB\OCPPSTORAGE.JS
+Dependency of: [ ] OCPIClient, [ ] ChargingStation, [ ] Transaction, [ ] UpdateTransactionExtraInactivityTask, [ ] OCPPService, [ ] ChargingStationService, 
+
+Depends on: [ ] Tenant, [ ] OCPPStorage, [ ] MigrationTask, [ ] Constants, [ ] bluebird, 
+		[ ] ./EV-SERVER/SRC/MIGRATION\TASKS\UPDATETRANSACTIONEXTRAINACTIVITYTASK.JS
+Dependency of: [ ] MigrationHandler, 
+
+Depends on: [ ] Constants, [ ] Utils, [ ] Database, [ ] DatabaseUtils, [ ] Logging, [ ] BackendError, [ ] ChargingStation, [ ] SiteArea, [ ] ChargingStation, [ ] SiteArea, [ ] Site, [ ] ChargingStation, [ ] SiteArea, [ ] Site, [ ] Tenant, [ ] ChargingStation, [ ] ChargingStation, [ ] ChargingStation, [ ] ChargingStation, 
+		[ ] ./EV-SERVER/SRC/STORAGE\MONGODB\CHARGINGSTATIONSTORAGE.JS
+Dependency of: [ ] ChargingStation, [ ] Notification, [ ] SiteArea, [ ] Transaction, 
+
+Depends on: [ ] AbstractTenantEntity, [ ] Database, [ ] Constants, [ ] AppError, [ ] SiteStorage, [ ] SiteAreaStorage, [ ] ChargingStationStorage, [ ] User, 
+		[ ] ./EV-SERVER/SRC/ENTITY\SITEAREA.JS
+Dependency of: [ ] ChargingStation, [ ] ConvergentChargingPricing, [ ] OCPPService, [ ] ChargingStationService, [ ] SiteAreaService, [ ] ChargingStationStorage, [ ] ChargingStationStorage, [ ] ChargingStationStorage, [ ] SiteAreaStorage, [ ] SiteAreaStorage, [ ] SiteAreaStorage, [ ] SiteStorage, [ ] SiteStorage, 
+
+Depends on: [ ] Constants, [ ] Database, [ ] Utils, [ ] BackendError, [ ] mongodb, [ ] DatabaseUtils, [ ] Logging, [ ] Site, [ ] SiteArea, [ ] ChargingStation, [ ] SiteArea, [ ] Site, [ ] SiteArea, [ ] ChargingStation, 
+		[ ] ./EV-SERVER/SRC/STORAGE\MONGODB\SITEAREASTORAGE.JS
+Dependency of: [ ] ChargingStation, [ ] Site, [ ] SiteArea, [ ] SiteStorage, 
+
+Depends on: [ ] AbstractTenantEntity, [ ] Database, [ ] AppError, [ ] Constants, [ ] CompanyStorage, [ ] SiteStorage, [ ] SiteAreaStorage, [ ] UserStorage, [ ] User, 
+		[ ] ./EV-SERVER/SRC/ENTITY\SITE.JS
+Dependency of: [ ] LocationsEndpoint, [ ] OCPIMapping, [ ] AuthService, [ ] SiteAreaService, [ ] SiteService, [ ] UserService, [ ] ChargingStationStorage, [ ] ChargingStationStorage, [ ] CompanyStorage, [ ] SiteAreaStorage, [ ] SiteAreaStorage, [ ] SiteStorage, [ ] SiteStorage, [ ] SiteStorage, 
+
+Depends on: [ ] mongodb, [ ] Constants, [ ] Database, [ ] Utils, [ ] SiteStorage, [ ] BackendError, [ ] DatabaseUtils, [ ] Logging, [ ] Company, [ ] Company, [ ] Company, [ ] Site, 
+		[ ] ./EV-SERVER/SRC/STORAGE\MONGODB\COMPANYSTORAGE.JS
+Dependency of: [ ] Company, [ ] Site, 
+
+Depends on: [ ] AbstractTenantEntity, [ ] Database, [ ] AppError, [ ] Constants, [ ] CompanyStorage, [ ] SiteStorage, [ ] User, 
+		[ ] ./EV-SERVER/SRC/ENTITY\COMPANY.JS
+Dependency of: [ ] Authorizations, [ ] CompanyService, [ ] SiteService, [ ] CompanyStorage, [ ] CompanyStorage, [ ] CompanyStorage, [ ] SiteStorage, [ ] SiteStorage, 
+
+Depends on: [ ] Constants, [ ] Database, [ ] Utils, [ ] SiteAreaStorage, [ ] BackendError, [ ] mongodb, [ ] DatabaseUtils, [ ] Logging, [ ] Site, [ ] Company, [ ] SiteArea, [ ] User, [ ] Site, [ ] ChargingStation, [ ] Company, [ ] Site, [ ] SiteArea, [ ] User, 
+		[ ] ./EV-SERVER/SRC/STORAGE\MONGODB\SITESTORAGE.JS
+Dependency of: [ ] Company, [ ] Site, [ ] SiteArea, [ ] User, [ ] CompanyStorage, 
+
+Depends on: [ ] Logging, [ ] Database, [ ] AppError, [ ] AppAuthError, [ ] Constants, [ ] Company, [ ] User, [ ] Authorizations, [ ] CompanySecurity, [ ] UtilsService, [ ] OrganizationComponentInactiveError, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\COMPANYSERVICE.JS
+Dependency of: [ ] CentralRestServerService, 
+
+Depends on: [ ] Logging, [ ] Database, [ ] AppError, [ ] AppAuthError, [ ] Authorizations, [ ] Constants, [ ] Site, [ ] Company, [ ] User, [ ] SiteSecurity, [ ] UtilsService, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\SITESERVICE.JS
+Dependency of: [ ] CentralRestServerService, 
+
+Depends on: [ ] Constants, [ ] Site, [ ] source-map-support, 
+		[ ] ./EV-SERVER/SRC/SERVER\OCPI\OCPI-SERVICES-IMPL\OCPI-2.1.1\OCPIMAPPING.JS
+Dependency of: [ ] OCPIClient, [ ] CredentialsEndpoint, [ ] LocationsEndpoint, 
+
+Depends on: [ ] AbstractEndpoint, [ ] OCPIUtils, [ ] OCPIMapping, [ ] OCPIClientError, [ ] OCPIServerError, [ ] OCPIEndpoint, [ ] Logging, [ ] Constants, [ ] axios, [ ] source-map-support, 
+		[ ] ./EV-SERVER/SRC/SERVER\OCPI\OCPI-SERVICES-IMPL\OCPI-2.1.1\CREDENTIALSENDPOINT.JS
+Dependency of: [ ] OCPIService, 
+
+Depends on: [ ] axios, [ ] OCPIMapping, [ ] OCPPStorage, [ ] Constants, [ ] Logging, [ ] lodash, 
+		[ ] ./EV-SERVER/SRC/CLIENT\OCPI\OCPICLIENT.JS
+Dependency of: [ ] OCPIPatchLocationsTask, [ ] OCPIEndpointService, 
+
+Depends on: [ ] Logging, [ ] Database, [ ] AppError, [ ] AppAuthError, [ ] Authorizations, [ ] Constants, [ ] OCPIEndpoint, [ ] User, [ ] OCPIEndpointSecurity, [ ] OCPIClient, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\OCPIENDPOINTSERVICE.JS
+Dependency of: [ ] CentralRestServerService, 
+
+Depends on: [ ] Logging, [ ] SchedulerTask, [ ] Tenant, [ ] OCPIEndpoint, [ ] Constants, [ ] OCPIClient, 
+		[ ] ./EV-SERVER/SRC/SCHEDULER\TASKS\OCPIPATCHLOCATIONSTASK.JS
+Dependency of: [ ] SchedulerManager, 
+
+Depends on: [ ] Configuration, [ ] node-cron, [ ] Logging, [ ] Constants, [ ] LoggingDatabaseTableCleanupTask, [ ] OCPIPatchLocationsTask, 
+		[ ] ./EV-SERVER/SRC/SCHEDULER\SCHEDULERMANAGER.JS
+Dependency of: [ ] start, 
+
+Depends on: [ ] AbstractEndpoint, [ ] Site, [ ] OCPIMapping, [ ] OCPIUtils, [ ] OCPIServerError, [ ] source-map-support, 
+		[ ] ./EV-SERVER/SRC/SERVER\OCPI\OCPI-SERVICES-IMPL\OCPI-2.1.1\LOCATIONSENDPOINT.JS
+Dependency of: [ ] OCPIService, 
+
+Depends on: [ ] AbstractOCPIService, [ ] source-map-support, [ ] AbstractOCPIService, [ ] CredentialsEndpoint, [ ] LocationsEndpoint, [ ] source-map-support, 
+		[ ] ./EV-SERVER/SRC/SERVER\OCPI\OCPI-SERVICES-IMPL\OCPI-2.1.1\OCPISERVICE.JS
+Dependency of: 
+
+Depends on: [ ] StatefulChargingService, [ ] moment-timezone, [ ] Logging, [ ] Pricing, [ ] SiteArea, 
+		[ ] ./EV-SERVER/SRC/INTEGRATION\PRICING\CONVERGENT-CHARGING\CONVERGENTCHARGINGPRICING.JS
+Dependency of: [ ] PricingFactory, 
+
+Depends on: [ ] Constants, [ ] SettingStorage, [ ] ConvergentChargingPricing, [ ] SimplePricing, 
+		[ ] ./EV-SERVER/SRC/INTEGRATION\PRICING\PRICINGFACTORY.JS
+Dependency of: [ ] OCPPService, 
+
+Depends on: [ ] AbstractTenantEntity, [ ] Database, [ ] UserStorage, [ ] ChargingStationStorage, [ ] NotificationStorage, 
+		[ ] ./EV-SERVER/SRC/ENTITY\NOTIFICATION.TS
+Dependency of: [ ] NotificationHandler, [ ] NotificationService, [ ] NotificationStorage, 
+
+Depends on: [ ] Database, [ ] Utils, [ ] crypto, [ ] Logging, [ ] Constants, [ ] DatabaseUtils, [ ] Notification, 
+		[ ] ./EV-SERVER/SRC/STORAGE\MONGODB\NOTIFICATIONSTORAGE.JS
+Dependency of: [ ] Notification, [ ] NotificationHandler, 
+
+Depends on: [ ] Logging, [ ] Notification, [ ] NotificationSecurity, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\NOTIFICATIONSERVICE.JS
+Dependency of: [ ] CentralRestServerService, 
+
+Depends on: [ ] Configuration, [ ] EMailNotificationTask, [ ] Logging, [ ] Constants, [ ] NotificationStorage, [ ] UserStorage, [ ] source-map-support, [ ] Notification, 
+		[ ] ./EV-SERVER/SRC/NOTIFICATION\NOTIFICATIONHANDLER.JS
+Dependency of: [ ] Authorizations, [ ] OCPPService, [ ] AuthService, [ ] TenantService, [ ] UserService, 
+
+Depends on: [ ] Authorizations, [ ] NotificationHandler, [ ] Logging, [ ] Constants, [ ] AppError, [ ] AppAuthError, [ ] User, [ ] Site, [ ] Utils, [ ] Database, [ ] UserSecurity, [ ] SettingStorage, [ ] ERPService, [ ] RatingService, [ ] fs, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\USERSERVICE.JS
+Dependency of: [ ] CentralRestServerService, 
+
+Depends on: [ ] Logging, [ ] Database, [ ] AppError, [ ] UnauthorizedError, [ ] ConflictError, [ ] Constants, [ ] Tenant, [ ] User, [ ] Setting, [ ] Authorizations, [ ] TenantSecurity, [ ] http-status-codes, [ ] TenantValidation, [ ] AbstractService, [ ] NotificationHandler, [ ] Utils, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\TENANTSERVICE.JS
+Dependency of: [ ] CentralRestServerService, 
+
+Depends on: [ ] Logging, [ ] Database, [ ] AppError, [ ] AppAuthError, [ ] Constants, [ ] SiteAreaSecurity, [ ] Authorizations, [ ] User, [ ] ChargingStation, [ ] Site, [ ] SiteArea, [ ] UtilsService, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\SITEAREASERVICE.JS
+Dependency of: [ ] CentralRestServerService, 
+
+Depends on: [ ] User, [ ] Logging, [ ] Constants, [ ] AppError, [ ] AppAuthError, [ ] Authorizations, [ ] ChargingStationSecurity, [ ] TransactionStorage, [ ] OCPPStorage, [ ] ChargingStation, [ ] SiteArea, [ ] fs, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\CHARGINGSTATIONSERVICE.JS
+Dependency of: [ ] CentralRestServerService, 
+
+Depends on: [ ] passport, [ ] passport-jwt, [ ] passport-jwt, [ ] jsonwebtoken, [ ] moment, [ ] axios, [ ] Logging, [ ] Constants, [ ] AppError, [ ] BadRequestError, [ ] User, [ ] Tenant, [ ] ChargingStation, [ ] Site, [ ] Utils, [ ] Configuration, [ ] Authorizations, [ ] NotificationHandler, [ ] AuthSecurity, [ ] TransactionStorage, [ ] SessionHashService, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\AUTHSERVICE.JS
+Dependency of: [ ] CentralRestServerAuthentication, [ ] CentralRestServerService, 
+
+Depends on: [ ] AuthService, [ ] UtilsService, [ ] source-map-support, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\CENTRALRESTSERVERAUTHENTICATION.JS
+Dependency of: [ ] CentralRestServer, 
+
+Depends on: [ ] BackendError, [ ] Constants, [ ] source-map-support, [ ] ChargingStation, 
+		[ ] ./EV-SERVER/SRC/SERVER\OCPP\UTILS\OCPPUTILS.JS
+Dependency of: [ ] ChargingStation, [ ] OCPPService, 
+
+Depends on: [ ] NotificationHandler, [ ] ChargingStation, [ ] Authorizations, [ ] Transaction, [ ] PricingFactory, [ ] Logging, [ ] Constants, [ ] Utils, [ ] OCPPUtils, [ ] OCPPValidation, [ ] BackendError, [ ] Configuration, [ ] OCPPStorage, [ ] SiteArea, [ ] User, [ ] moment-timezone, [ ] moment-duration-format, [ ] source-map-support, 
+		[ ] ./EV-SERVER/SRC/SERVER\OCPP\SERVICES\OCPPSERVICE.JS
+Dependency of: [ ] CentralSystemServer, [ ] TransactionService, 
+
+Depends on: [ ] source-map-support, [ ] OCPPService, [ ] Constants, 
+		[ ] ./EV-SERVER/SRC/SERVER\OCPP\CENTRALSYSTEMSERVER.JS
+Dependency of: [ ] JsonCentralSystemServer, [ ] SoapCentralSystemServer, 
+
+Depends on: [ ] fs, [ ] strong-soap, [ ] morgan, [ ] ExpressTools, [ ] CentralSystemServer, [ ] Logging, [ ] Constants, [ ] SoapCentralSystemService12, [ ] SoapCentralSystemService15, [ ] SoapCentralSystemService16, [ ] express-sanitizer, [ ] source-map-support, 
+		[ ] ./EV-SERVER/SRC/SERVER\OCPP\SOAP\SOAPCENTRALSYSTEMSERVER.JS
+Dependency of: [ ] start, 
+
+Depends on: [ ] v4, [ ] Logging, [ ] Utils, [ ] ws, [ ] Constants, [ ] OcppError, [ ] BackendError, [ ] Configuration, [ ] ChargingStation, 
+		[ ] ./EV-SERVER/SRC/SERVER\OCPP\JSON\WSCONNECTION.JS
+Dependency of: [ ] JsonRestWSConnection, [ ] JsonWSConnection, 
+
+Depends on: [ ] Logging, [ ] Constants, [ ] OcppError, [ ] JsonChargingStationClient, [ ] JsonChargingStationService, [ ] WSConnection, [ ] BackendError, [ ] Configuration, 
+		[ ] ./EV-SERVER/SRC/SERVER\OCPP\JSON\JSONWSCONNECTION.JS
+Dependency of: [ ] JsonCentralSystemServer, 
+
+Depends on: [ ] Logging, [ ] ChargingStation, [ ] Constants, [ ] BackendError, [ ] WSConnection, 
+		[ ] ./EV-SERVER/SRC/SERVER\OCPP\JSON\JSONRESTWSCONNECTION.JS
+Dependency of: [ ] JsonCentralSystemServer, 
+
+Depends on: [ ] moment, [ ] Database, [ ] ChargingStation, [ ] Tenant, [ ] DatabaseUtils, [ ] MigrationTask, 
+		[ ] ./EV-SERVER/SRC/MIGRATION\TASKS\UPDATETRANSACTIONINACTIVITYTASK.JS
+Dependency of: [ ] MigrationHandler, 
+
+Depends on: [ ] Logging, [ ] Constants, [ ] moment, [ ] cluster, [ ] MigrationStorage, [ ] UpdateTransactionInactivityTask, [ ] TenantMigrationTask, [ ] UpdateTransactionSoCTask, [ ] UpdateKebaMeterValuesTask, [ ] NormalizeTransactionsTask, [ ] CreateConsumptionsTask, [ ] CleanupTransactionTask, [ ] TransactionsAddTimezoneTask, [ ] UsersAddNotificationsFlagTask, [ ] UpdateTransactionSimplePriceTask, [ ] MigrateTenantSettingsTask, [ ] UpdateTransactionExtraInactivityTask, 
+		[ ] ./EV-SERVER/SRC/MIGRATION\MIGRATIONHANDLER.JS
+Dependency of: [ ] start, 
+
+Depends on: [ ] AbstractConnector, [ ] Logging, [ ] axios, [ ] axios-retry, [ ] querystring, [ ] moment-timezone, [ ] ConnectionStorage, [ ] TransactionStorage, [ ] ChargingStation, [ ] Constants, [ ] AppError, [ ] InternalError, [ ] jsonwebtoken, [ ] bluebird, 
+		[ ] ./EV-SERVER/SRC/INTEGRATION\REFUND\CONCURCONNECTOR.JS
+Dependency of: [ ] ConnectorService, [ ] TransactionService, 
+
+Depends on: [ ] Logging, [ ] AppError, [ ] AppAuthError, [ ] Authorizations, [ ] Constants, [ ] moment, [ ] TransactionSecurity, [ ] TransactionStorage, [ ] ChargingStation, [ ] User, [ ] SettingStorage, [ ] ConcurConnector, [ ] OCPPService, [ ] fs, [ ] crypto, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\TRANSACTIONSERVICE.JS
+Dependency of: [ ] CentralRestServerService, 
+
+Depends on: [ ] Logging, [ ] Database, [ ] AppError, [ ] UnauthorizedError, [ ] Constants, [ ] AbstractConnector, [ ] ConcurConnector, [ ] User, [ ] Authorizations, [ ] ConnectorSecurity, [ ] http-status-codes, [ ] ConnectionValidator, [ ] AbstractService, [ ] Utils, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\CONNECTORSERVICE.JS
+Dependency of: [ ] CentralRestServerService, 
+
+Depends on: [ ] Logging, [ ] ChargingStationService, [ ] VehicleManufacturerService, [ ] AuthService, [ ] UserService, [ ] CompanyService, [ ] SiteService, [ ] SiteAreaService, [ ] PricingService, [ ] VehicleService, [ ] UtilsService, [ ] LoggingService, [ ] TransactionService, [ ] StatisticService, [ ] TenantService, [ ] SettingService, [ ] OCPIEndpointService, [ ] NotificationService, [ ] ConnectorService, [ ] SessionHashService, [ ] source-map-support, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\CENTRALRESTSERVERSERVICE.JS
+Dependency of: [ ] CentralRestServer, 
+
+Depends on: [ ] morgan, [ ] cluster, [ ] ExpressTools, [ ] path, [ ] express-sanitizer, [ ] CentralRestServerAuthentication, [ ] CentralRestServerService, [ ] Database, [ ] Configuration, [ ] Logging, [ ] Constants, [ ] ErrorHandler, [ ] SessionHashService, [ ] source-map-support, [ ] socket.io, 
+		[ ] ./EV-SERVER/SRC/SERVER\REST\CENTRALRESTSERVER.JS
+Dependency of: [ ] start, 
+
+Depends on: [ ] morgan, [ ] ExpressTools, [ ] compression, [ ] Configuration, [ ] Logging, [ ] ODataServerFactory, [ ] ODataSchema, [ ] source-map-support, 
+		[ ] ./EV-SERVER/SRC/SERVER\ODATA\ODATASERVER.JS
+Dependency of: [ ] start, 
+
+Depends on: [ ] v4, [ ] Logging, [ ] Constants, [ ] WSServer, [ ] JsonWSConnection, [ ] JsonRestWSConnection, [ ] CentralSystemServer, 
+		[ ] ./EV-SERVER/SRC/SERVER\OCPP\JSON\JSONCENTRALSYSTEMSERVER.JS
+Dependency of: [ ] start, 
+
+Depends on: [ ] path, [ ] bluebird, [ ] cluster, [ ] MongoDBStorage, [ ] MongoDBStorageNotification, [ ] Configuration, [ ] SoapCentralSystemServer, [ ] JsonCentralSystemServer, [ ] CentralRestServer, [ ] OCPIServer, [ ] ODataServer, [ ] SchedulerManager, [ ] MigrationHandler, [ ] Logging, [ ] Constants, [ ] Utils, [ ] source-map-support, 
+		[ ] ./EV-SERVER/SRC/START.JS
+Dependency of: 
+

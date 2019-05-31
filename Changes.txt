@@ -1,0 +1,42 @@
+# TypeScript Conversion Changes Running Log
+## Format
+__**FileName.ts:**__
+>$Class: *Modifier1 modifier2*
+> #constructor
+>> param: *type* fsfsf
+> #method
+>> param: type
+> .variable: type, modifier1 modifier2
+//Comment
+
+OccpError.ts:
+#constructor
+	code: string
+	message: string
+	details: string
+.code: string, public readonly
+.message: string, public readonly
+.details: string, public readonly
+//Object.prototype hack might not be needed using typescript?
+
+OCCPConstants.ts:
+//exported dict using typescript syntax
+
+SchedularTask.ts
+//Exported as interface, added custom type TaskConfig
+
+TaskConfig.ts
+//Added config type matching two properties specified in config.json within Scheduler -> Task -> Config
+
+InternalError.ts
+//Added public readonly class member, made into class, exported. Type safety string, string array
+
+StatisticSecurity.ts
+//npm install @types/mongo-sanitize
+//^done to convert require to ts import
+ Added type UserStatisticsRequest
+  contains Year:string, SiteID:string for lack of better knowledge
+ Changed method to return interface
+ Made unused parameter optional and any (since unused)
+ Added type StatisticsRequest
+ Added TODO s, please check.

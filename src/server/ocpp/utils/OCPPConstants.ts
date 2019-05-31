@@ -1,6 +1,6 @@
 require('source-map-support').install();
 
-module.exports = {
+let OCPPConstants = {
   DEFAULT_OCPP_CONFIGURATION: {
     'configuration': [
       {'key': 'AllowOfflineTxForUnknownId', 'readonly': false, 'value': null},
@@ -49,3 +49,5 @@ module.exports = {
     ]
   }
 };
+
+export default OCPPConstants;

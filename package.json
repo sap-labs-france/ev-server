@@ -9,6 +9,7 @@
 	"homepage": "https://github.com/LucasBrazi06/ev-server",
 	"main": "dist/start.js",
 	"dependencies": {
+		"@types/mongo-sanitize": "^1.0.1",
 		"ajv": "^6.10.0",
 		"axios": "^0.18.0",
 		"axios-retry": "^3.1.2",
