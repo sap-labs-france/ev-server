@@ -10,9 +10,15 @@ const addons = (addonsArg) => {
 };
 
 module.exports = (env) => {
+	
   const envConfig = require(`./build/webpack.${env.env}`);
   // Merge configs
   let config = webpackMerge(commonConfig, envConfig, addons(env.addons));
+  
+  ////Add typescript transpiling settings
+ // config.entry = './src/XXXXXX.ts';
+  
+  
   // Return it
   return config;
 };

@@ -1,11 +1,12 @@
-const AbstractTenantEntity = require('./AbstractTenantEntity');
-const Database = require('../utils/Database');
-const UserStorage = require('../storage/mongodb/UserStorage');
-const ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage');
-const NotificationStorage = require('../storage/mongodb/NotificationStorage');
+import TenantEntity = require('./AbstractTenantEntity');
+import Database = require('../utils/Database');
+import UserStorage = require('../storage/mongodb/UserStorage');
+import ChargingStationStorage = require('../storage/mongodb/ChargingStationStorage');
+import NotificationStorage = require('../storage/mongodb/NotificationStorage');
 
-class Notification extends AbstractTenantEntity {
-  constructor(tenantID, notification) {
+export class Notification extends TenantEntity {
+  //TODO: maybe convert tenantID from string to ObjectId at the earliest possible point instead of doing it in TenantStorage
+  public constructor(tenantID: string, notification: string) {
     super(tenantID);
     // Set it
     Database.updateNotification(notification, this._model);
@@ -15,11 +16,11 @@ class Notification extends AbstractTenantEntity {
     return this._model.id;
   }
 
-  setSourceDescr(sourceDescr) {
+  setSourceDescr(sourceDescr: string): void { //TODO: verify string type
     this._model.sourceDescr = sourceDescr;
   }
 
-  getSourceDescr() {
+  getSourceDescr(): string {
     return this._model.sourceDescr;
   }
 
@@ -96,5 +97,3 @@ class Notification extends AbstractTenantEntity {
     return NotificationStorage.getNotifications(tenantID, params, limit, skip, sort);
   }
 }
-
-module.exports = Notification;
