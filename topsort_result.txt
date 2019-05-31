@@ -15,11 +15,11 @@ Depends on:
 Dependency of: [ ] ERPService, [ ] ConcurConnector, 
 
 Depends on: [X] mongo-sanitize, 
-		[ ] ./EV-SERVER/SRC/SERVER\REST\SERVICE\SECURITY\STATISTICSECURITY.JS
+		[X] ./EV-SERVER/SRC/SERVER\REST\SERVICE\SECURITY\STATISTICSECURITY.JS
 Dependency of: [ ] StatisticService, 
 
 Depends on: 
-		[ ] ./EV-SERVER/SRC/INTEGRATION\PRICING\PRICING.JS
+		[X] ./EV-SERVER/SRC/INTEGRATION\PRICING\PRICING.JS
 Dependency of: [ ] ConvergentChargingPricing, [ ] SimplePricing, 
 
 Depends on: [ ] strong-soap, [ ] perf_hooks, 
@@ -118,8 +118,8 @@ Depends on:
 		[ ] ./EV-SERVER/SRC/EXCEPTION\APPERROR.JS
 Dependency of: [ ] Authorizations, [ ] Company, [ ] OCPIEndpoint, [ ] Setting, [ ] Site, [ ] SiteArea, [ ] User, [ ] Vehicle, [ ] VehicleManufacturer, [ ] ConcurConnector, [ ] ErrorHandler, [ ] AuthService, [ ] ChargingStationService, [ ] CompanyService, [ ] ConnectorService, [ ] OCPIEndpointService, [ ] PricingService, [ ] SessionHashService, [ ] SettingService, [ ] SiteAreaService, [ ] SiteService, [ ] TenantService, [ ] TransactionService, [ ] UserService, [ ] VehicleManufacturerService, [ ] VehicleService, [ ] Logging, 
 
-Depends on: [ ] Pricing, 
-		[ ] ./EV-SERVER/SRC/INTEGRATION\PRICING\SIMPLE-PRICING\SIMPLEPRICING.JS
+Depends on: [X] Pricing, 
+		[X] ./EV-SERVER/SRC/INTEGRATION\PRICING\SIMPLE-PRICING\SIMPLEPRICING.JS
 Dependency of: [ ] PricingFactory, [ ] UpdateTransactionSimplePriceTask, 
 
 Depends on: 

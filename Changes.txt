@@ -48,3 +48,7 @@ Added file Consumption.ts under Entity to have a full type for Consumption data
 - need to migrate Transaction.js to make Pricing work
 - need to migrate Consumption.js to make Pricing work
 SimplePricing ported
+
+
+AppError.ts
+Ported, please see TODO and modify accordingly.
