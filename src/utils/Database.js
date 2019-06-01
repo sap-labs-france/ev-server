@@ -108,6 +108,7 @@ class Database {
             "connectorId": Utils.convertToInt(connector.connectorId),
             "currentConsumption": Utils.convertToFloat(connector.currentConsumption),
             "currentStateOfCharge": Utils.convertToInt(connector.currentStateOfCharge),
+            "totalInactivitySecs": Utils.convertToInt(connector.totalInactivitySecs),
             "totalConsumption": Utils.convertToFloat(connector.totalConsumption),
             "status": connector.status,
             "errorCode": connector.errorCode,
@@ -583,6 +584,9 @@ class Database {
     }
     if (src.hasOwnProperty('currentTotalConsumption')) {
       dest.currentTotalConsumption = src.currentTotalConsumption;
+    }
+    if (src.hasOwnProperty('currentTotalInactivitySecs')) {
+      dest.currentTotalInactivitySecs = src.currentTotalInactivitySecs;
     }
     if (src.hasOwnProperty('timezone')) {
       dest.timezone = src.timezone;
