@@ -14,7 +14,7 @@ class StatisticService {
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
-      const transactions = await StatisticsStorage.getUserStats(req.user.tenantID, filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_USAGE);
+      const transactions = await StatisticsStorage.getUserStats(req.user.tenantID, filter, Constants.STATS_GROUP_BY_USAGE);
       // Return
       res.json(transactions);
       next();
@@ -31,7 +31,7 @@ class StatisticService {
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
-      const transactions = await StatisticsStorage.getUserStats(req.user.tenantID, filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_CONSUMPTION);
+      const transactions = await StatisticsStorage.getUserStats(req.user.tenantID, filter, Constants.STATS_GROUP_BY_CONSUMPTION);
       // Return
       res.json(transactions);
       next();
@@ -48,7 +48,7 @@ class StatisticService {
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
-      const transactions = await StatisticsStorage.getChargingStationStats(req.user.tenantID, filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_USAGE);
+      const transactions = await StatisticsStorage.getChargingStationStats(req.user.tenantID, filter, Constants.STATS_GROUP_BY_USAGE);
       // Return
       res.json(transactions);
       next();
@@ -80,7 +80,7 @@ class StatisticService {
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
-      const transactions = await StatisticsStorage.getChargingStationStats(req.user.tenantID, filter, filteredRequest.SiteID, Constants.STATS_GROUP_BY_CONSUMPTION);
+      const transactions = await StatisticsStorage.getChargingStationStats(req.user.tenantID, filter, Constants.STATS_GROUP_BY_CONSUMPTION);
       // Return
       res.json(transactions);
       next();
@@ -101,10 +101,26 @@ class StatisticService {
       filter.startDateTime = moment().startOf('year').toDate().toISOString();
       filter.endDateTime = moment().endOf('year').toDate().toISOString();
     }
-    // Check
+    // Site
+    if (filteredRequest.SiteID) {
+      filter.siteID = filteredRequest.SiteID;
+    }
+    // Site Area
+    if (filteredRequest.SiteAreaID) {
+      filter.siteAreaID = filteredRequest.SiteAreaID;
+    }
+    // Charge Box
+    if (filteredRequest.ChargeBoxID) {
+      filter.chargeBoxID = filteredRequest.ChargeBoxID;
+    }
+    // User
     if (Authorizations.isBasic(loggedUser)) {
       // Only for current user
       filter.userID = loggedUser.id;
+    } else {
+      if (filteredRequest.UserID) {
+        filter.userID = filteredRequest.UserID;
+      }
     }
     return filter;
   } 
