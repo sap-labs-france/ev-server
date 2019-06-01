@@ -21,7 +21,7 @@ class OCPIClient {
       const endpoints = await this.getVersions();
 
       // check response
-      if (!endpoints.data || !(endpoints.data.status_code == 1000) || !endpoints.data.data) {
+      if (!endpoints.data || !(endpoints.data.status_code === 1000) || !endpoints.data.data) {
         pingResult.statusCode = 412;
         pingResult.statusText = `Invalid response from GET ${this._ocpiEndpoint.getBaseUrl()}`;
       } else {

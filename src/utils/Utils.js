@@ -152,19 +152,19 @@ class Utils {
       return true;
     }
     // Check
-    return Object.keys(document).length == 0;
+    return Object.keys(document).length === 0;
   }
 
   static removeExtraEmptyLines(tab) {
     // Start from the end
     for (let i = tab.length - 1; i > 0; i--) {
       // Two consecutive empty lines?
-      if (tab[i].length == 0 && tab[i - 1].length == 0) {
+      if (tab[i].length === 0 && tab[i - 1].length === 0) {
         // Remove the last one
         tab.splice(i, 1);
       }
       // Check last line
-      if (i == 1 && tab[i - 1].length == 0) {
+      if (i === 1 && tab[i - 1].length === 0) {
         // Remove the first one
         tab.splice(i - 1, 1);
       }
@@ -174,7 +174,7 @@ class Utils {
   static convertToObjectID(id) {
     let changedID = id;
     // Check
-    if (typeof id == "string") {
+    if (typeof id === "string") {
       // Create Object
       changedID = new ObjectID(id);
     }
@@ -187,7 +187,7 @@ class Utils {
       return 0;
     }
     // Check
-    if (typeof id == "string") {
+    if (typeof id === "string") {
       // Create Object
       changedID = parseInt(id);
     }
@@ -200,7 +200,7 @@ class Utils {
       return 0;
     }
     // Check
-    if (typeof id == "string") {
+    if (typeof id === "string") {
       // Create Object
       changedID = parseFloat(id);
     }
@@ -214,13 +214,13 @@ class Utils {
       // Set
       userID = user;
       // Check User Model
-      if (typeof user == "object" &&
+      if (typeof user === "object" &&
         user.constructor.name != "ObjectID") {
         // This is the User Model
         userID = Utils.convertToObjectID(user.id);
       }
       // Check String
-      if (typeof user == "string") {
+      if (typeof user === "string") {
         // This is a String
         userID = Utils.convertToObjectID(user);
       }
@@ -235,21 +235,37 @@ class Utils {
     return true;
   }
 
-  static buildUserFullName(user, withID = true) {
+  static buildUserFullName(user, withID = true, withEmail = false, inversedName = false) {
+    let fullName;
+  
     if (!user) {
       return "Unknown";
     }
-    // First name?
-    if (!user.firstName) {
-      return user.name;
-    }
-    // Set the ID?
-    if (withID) {
-      return `${user.firstName} ${user.name} (${user.id})`;
+  
+    if (inversedName) {
+      if (user.firstName) {
+        fullName = `${user.name}, ${user.firstName}`;
+      } else {
+        fullName = user.name;
+      }
     } else {
-      return `${user.firstName} ${user.name}`;
+      if (user.firstName) {
+        fullName = `${user.firstName} ${user.name}`;
+      } else {
+        fullName = user.name;
+      }
     }
-  }
+  
+    if (withID && user.iNumber) {
+      fullName += ` (${user.iNumber})`;
+    }
+  
+    if (withEmail && user.email) {
+      fullName += `; ${user.email}`;
+    }
+  
+    return fullName;
+  }    
 
   // Save the users in file
   static saveFile(filename, content) {
@@ -306,7 +322,7 @@ class Utils {
 
   static checkRecordLimit(recordLimit) {
     // String?
-    if (typeof recordLimit == "string") {
+    if (typeof recordLimit === "string") {
       recordLimit = parseInt(recordLimit);
     }
     // Not provided?
@@ -327,7 +343,7 @@ class Utils {
 
   static checkRecordSkip(recordSkip) {
     // String?
-    if (typeof recordSkip == "string") {
+    if (typeof recordSkip === "string") {
       recordSkip = parseInt(recordSkip);
     }
     // Not provided?

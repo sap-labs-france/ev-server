@@ -374,7 +374,7 @@ class OCPPService {
       // Handle charger's specificities
       this._filterMeterValuesOnCharger(chargingStation, newMeterValues);
       // No Values?
-      if (newMeterValues.values.length == 0) {
+      if (newMeterValues.values.length === 0) {
         Logging.logDebug({
           tenantID: chargingStation.getTenantID(),
           source: chargingStation.getID(), module: 'OCPPService', method: 'handleMeterValues',
@@ -490,7 +490,7 @@ class OCPPService {
       } else {
         // Set Consumption
         consumption.consumption = transaction.getCurrentConsumptionWh();
-        consumption.instantPower = transaction.getCurrentConsumption();
+        consumption.instantPower = Math.round(transaction.getCurrentConsumption());
         consumption.cumulatedConsumption = transaction.getCurrentTotalConsumption();
         consumption.totalInactivitySecs = transaction.getCurrentTotalInactivitySecs();
         consumption.totalDurationSecs = transaction.getCurrentTotalDurationSecs();
@@ -632,6 +632,7 @@ class OCPPService {
       // Set consumption
       connector.currentConsumption = transaction.getCurrentConsumption();
       connector.totalConsumption = transaction.getCurrentTotalConsumption();
+      connector.totalInactivitySecs = transaction.getCurrentTotalInactivitySecs();
       connector.currentStateOfCharge = transaction.getCurrentStateOfCharge();
       // Set Transaction ID
       connector.activeTransactionID = transaction.getID();

@@ -105,6 +105,34 @@ class ConsumptionStorage {
         transactionId: Utils.convertToInt(transactionId)
       }
     });
+    // Triming excess values
+    aggregation.push({
+      $group: {
+        _id: {
+          cumulatedConsumption: "$cumulatedConsumption",
+          consumption: "$consumption"
+        },
+        userID: { $last: "$userID" },
+        chargeBoxID: { $last: "$chargeBoxID" },
+        siteID: { $last: "$siteID" },
+        siteAreaID: { $last: "$siteAreaID" },
+        connectorId: { $last: "$connectorId" },
+        transactionId: { $last: "$transactionId" },
+        endedAt: { $max: "$endedAt" },
+        startedAt: { $min: "$startedAt" },
+        cumulatedConsumption: { $last: "$cumulatedConsumption" },
+        consumption: { $last: "$consumption" },
+        stateOfCharge: { $last: "$stateOfCharge" },
+        instantPower: { $max: "$instantPower" },
+        totalInactivitySecs: { $max: "$totalInactivitySecs" },
+        pricingSource: {$last: "$pricingSource" },
+        amount: { $last: "$amount" },
+        cumulatedAmount: { $last: "$cumulatedAmount" },
+        roundedAmount: { $last: "$roundedAmount" },
+        currencyCode: { $last: "$currencyCode" }
+      }
+    });
+    // Sort values
     aggregation.push({ $sort: { endedAt: 1 } });
     // Read DB
     const consumptionsMDB = await global.database.getCollection(tenantID, 'consumptions')

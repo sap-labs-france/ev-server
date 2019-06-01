@@ -370,6 +370,13 @@ class AuthService {
           Constants.CENTRAL_SERVER,
           `The captcha is invalid`, 500,
           'AuthService', 'handleRegisterUser');
+      } else {
+        if (response.data.score < 0.5) {
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `The captcha score is too low`, 500,
+            'AuthService', 'handleRegisterUser');
+        }
       }
       // Check email
       const user = await User.getUserByEmail(tenantID, filteredRequest.email);
@@ -460,6 +467,13 @@ class AuthService {
           Constants.CENTRAL_SERVER,
           `The captcha is invalid`, 500,
           'AuthService', 'handleRegisterUser');
+      } else {
+        if (response.data.score < 0.5) {
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `The captcha score is too low`, 500,
+            'AuthService', 'handleRegisterUser');
+        }
       }
       // Yes: Generate new password
       const resetHash = Utils.generateGUID();
@@ -655,7 +669,7 @@ class AuthService {
   static async handleVerifyEmail(action, req, res, next) {
     // Filter
     const filteredRequest = AuthSecurity.filterVerifyEmailRequest(req.query);
-
+    // Get the tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
       const error = new BadRequestError({
@@ -667,7 +681,6 @@ class AuthService {
       next(error);
       return;
     }
-
     try {
       // Check email
       if (!filteredRequest.Email) {
@@ -741,7 +754,7 @@ class AuthService {
   static async handleResendVerificationEmail(action, req, res, next) {
     // Filter
     const filteredRequest = AuthSecurity.filterResendVerificationEmail(req.body);
-
+    // Get the Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
       const error = new BadRequestError({
@@ -768,15 +781,22 @@ class AuthService {
           `The captcha is mandatory`, 500,
           'AuthService', 'handleResendVerificationEmail');
       }
-
-      // Is valid captcha?
+      // Check captcha
       const response = await axios.get(
         `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`);
+      // Check
       if (!response.data.success) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The captcha is invalid`, 500,
           'AuthService', 'handleResendVerificationEmail');
+      } else {
+        if (response.data.score < 0.5) {
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `The captcha score is too low`, 500,
+            'AuthService', 'handleResendVerificationEmail');
+        }
       }
       // Is valid email?
       let user = await User.getUserByEmail(tenantID, filteredRequest.email);
@@ -851,11 +871,13 @@ class AuthService {
 
   }
 
+  // eslint-disable-next-line no-unused-vars
   static handleUserLogOut(action, req, res, next) {
     req.logout();
     res.status(200).send({});
   }
 
+  // eslint-disable-next-line no-unused-vars
   static async userLoginWrongPassword(action, user, req, res, next) {
     // Add wrong trial + 1
     user.setPasswordWrongNbrTrials(user.getPasswordWrongNbrTrials() + 1);
@@ -889,6 +911,7 @@ class AuthService {
     }
   }
 
+  // eslint-disable-next-line no-unused-vars
   static async userLoginSucceeded(action, user, req, res, next) {
     // Password / Login OK
     Logging.logSecurityInfo({
@@ -900,7 +923,7 @@ class AuthService {
     // Get EULA
     const endUserLicenseAgreement = await User.getEndUserLicenseAgreement(user.getTenantID(), user.getLanguage());
     // Set Eula Info on Login Only
-    if (action == 'Login') {
+    if (action === 'Login') {
       user.setEulaAcceptedOn(new Date());
       user.setEulaAcceptedVersion(endUserLicenseAgreement.version);
       user.setEulaAcceptedHash(endUserLicenseAgreement.hash);
