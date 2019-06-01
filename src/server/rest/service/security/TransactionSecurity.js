@@ -285,6 +285,15 @@ class TransactionSecurity {
         cumulated: consumption.cumulatedConsumption
       }));
     }
+    for(let i = 1; i < filteredTransaction.values.length; i++) {
+      if(filteredTransaction.values[i].instantPower == 0) {
+        let addedValue = JSON.parse(JSON.stringify(filteredTransaction.values[i]));
+        addedValue.endedAt = filteredTransaction.values[i-1].endedAt;
+        addedValue.date = filteredTransaction.values[i-1].endedAt;
+        filteredTransaction.values.splice(i, 0, addedValue);
+        i++;
+      }
+    }
     return filteredTransaction;
   }
 }
