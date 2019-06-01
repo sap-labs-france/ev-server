@@ -79,7 +79,8 @@ module.exports = {
           case "ChargingStationUpdateFirmware":
             // Keep the action (remove ChargingStation)
             action = action.slice(15);
-            // For mobile app (avoid regression)
+            // TODO: To Remove
+            // Hack for mobile app not sending the RemoteStopTransaction yet
             if (action === "StartTransaction") {
               action = "RemoteStartTransaction";              
             }
