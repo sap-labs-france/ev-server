@@ -1023,14 +1023,14 @@ class OCPPService {
         Logging.logInfo({
           tenantID: chargingStation.getTenantID(),
           source: chargingStation.getID(), module: 'OCPPService', method: 'handleStartTransaction',
-          action: Constants.ACTION_REMOTE_START_TRANSACTION, user: user.getModel(),
+          action: 'StartTransaction', user: user.getModel(),
           message: `Transaction ID '${transaction.getID()}' has been started on Connector '${transaction.getConnectorId()}'`
         });
       } else {
         // Log
         Logging.logInfo({
           tenantID: chargingStation.getTenantID(), source: chargingStation.getID(),
-          module: 'OCPPService', method: 'handleStartTransaction', action: Constants.ACTION_REMOTE_START_TRANSACTION,
+          module: 'OCPPService', method: 'handleStartTransaction', action: 'StartTransaction',
           message: `Transaction ID '${transaction.getID()}' has been started on Connector '${transaction.getConnectorId()}'`
         });
       }

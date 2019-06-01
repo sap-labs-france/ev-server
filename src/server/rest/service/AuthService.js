@@ -65,8 +65,10 @@ class AuthService {
       let chargingStation = null;
       // Action
       switch (filteredRequest.Action) {
-        // Action on charger
+        // TODO: To Remove
+        // Hack for mobile app not sending the RemoteStopTransaction yet
         case 'StopTransaction':
+        case 'RemoteStopTransaction':
           // Check
           if (!filteredRequest.Arg1) {
             throw new AppError(
@@ -204,6 +206,13 @@ class AuthService {
         Constants.CENTRAL_SERVER,
         `Transaction ID '${filteredRequest.Arg2}' does not exist`,
         560, 'AuthService', 'isStopTransactionAuthorized');
+    }
+    // Check Charging Station
+    if (transaction.getChargeBoxID() !== chargingStation.getID()) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `Transaction ID '${filteredRequest.Arg2}' has a Charging Station '${transaction.getChargeBoxID()}' that differs from '${chargingStation.getID()}'`,
+        565, 'AuthService', 'isStopTransactionAuthorized');
     }
     try {
       // Check

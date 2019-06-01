@@ -8,6 +8,11 @@ class AuthSecurity {
     const filteredRequest = {};
     // Set
     filteredRequest.Action = sanitize(request.Action);
+    // TODO: To Remove
+    // Hack for mobile app not sending the RemoteStopTransaction yet
+    if (filteredRequest.Action === 'StopTransaction') {
+      filteredRequest.Action = 'RemoteStopTransaction';
+    }
     filteredRequest.Arg1 = sanitize(request.Arg1);
     filteredRequest.Arg2 = sanitize(request.Arg2);
     filteredRequest.Arg3 = sanitize(request.Arg3);
