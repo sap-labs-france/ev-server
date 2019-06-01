@@ -374,7 +374,7 @@ class OCPPService {
       // Handle charger's specificities
       this._filterMeterValuesOnCharger(chargingStation, newMeterValues);
       // No Values?
-      if (newMeterValues.values.length == 0) {
+      if (newMeterValues.values.length === 0) {
         Logging.logDebug({
           tenantID: chargingStation.getTenantID(),
           source: chargingStation.getID(), module: 'OCPPService', method: 'handleMeterValues',
@@ -490,7 +490,7 @@ class OCPPService {
       } else {
         // Set Consumption
         consumption.consumption = transaction.getCurrentConsumptionWh();
-        consumption.instantPower = transaction.getCurrentConsumption();
+        consumption.instantPower = Math.round(transaction.getCurrentConsumption());
         consumption.cumulatedConsumption = transaction.getCurrentTotalConsumption();
         consumption.totalInactivitySecs = transaction.getCurrentTotalInactivitySecs();
         consumption.totalDurationSecs = transaction.getCurrentTotalDurationSecs();
@@ -809,14 +809,14 @@ class OCPPService {
             // Add Attributes
             const newLocalMeterValue = JSON.parse(JSON.stringify(newMeterValue));
             newLocalMeterValue.attribute = this._buildMeterValueAttributes(sampledValue);
-            newLocalMeterValue.value = parseInt(sampledValue.value);
+            newLocalMeterValue.value = parseFloat(sampledValue.value);
             // Add
             newMeterValues.values.push(newLocalMeterValue);
           }
         } else {
           // Add Attributes
           const newLocalMeterValue = JSON.parse(JSON.stringify(newMeterValue));
-          newLocalMeterValue.attribute = this._buildMeterValueAttributes(sampledValue);
+          newLocalMeterValue.attribute = this._buildMeterValueAttributes(value.sampledValue);
           // Add
           newMeterValues.values.push(newLocalMeterValue);
         }
@@ -829,7 +829,7 @@ class OCPPService {
           newMeterValue.attribute = value.value.attributes;
           // OCPP 1.5
         } else {
-          newMeterValue.value = parseInt(value.value);
+          newMeterValue.value = parseFloat(value.value);
         }
         // Add
         newMeterValues.values.push(newMeterValue);

@@ -13,4 +13,5 @@ class MigrationTask {
     return false;
   }
 }
+
 module.exports = MigrationTask;

@@ -477,7 +477,7 @@ class SiteStorage {
             if (siteMDB.chargeBoxes) {
               // Filter with Site Area`
               const chargeBoxesPerSiteArea = siteMDB.chargeBoxes.filter((chargeBox) => {
-                return !chargeBox.deleted && chargeBox.siteAreaID.toString() == siteArea._id;
+                return !chargeBox.deleted && chargeBox.siteAreaID.toString() === siteArea._id;
               });
               // Sort Charging Stations
               chargeBoxesPerSiteArea.sort((cb1, cb2) => {
@@ -509,7 +509,7 @@ class SiteStorage {
     // Ok
     return {
       count: (sitesCountMDB.length > 0 ?
-        (sitesCountMDB[0].count == Constants.MAX_DB_RECORD_COUNT ? -1 : sitesCountMDB[0].count) : 0),
+        (sitesCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : sitesCountMDB[0].count) : 0),
       result: sites
     };
   }

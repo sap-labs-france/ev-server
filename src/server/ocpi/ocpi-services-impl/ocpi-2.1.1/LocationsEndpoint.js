@@ -195,7 +195,7 @@ class LocationsEndpoint extends AbstractEndpoint {
     // loop through Connector
     if (evse) {
       for (const connector of evse.connectors) {
-        if (connector.id == connectorId) return connector;
+        if (connector.id === connectorId) return connector;
       }
     }
   }

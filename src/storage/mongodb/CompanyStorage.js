@@ -278,7 +278,7 @@ class CompanyStorage {
     // Ok
     return {
       count: (companiesCountMDB.length > 0 ?
-        (companiesCountMDB[0].count == Constants.MAX_DB_RECORD_COUNT ? -1 : companiesCountMDB[0].count) : 0),
+        (companiesCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : companiesCountMDB[0].count) : 0),
       result: companies
     };
   }

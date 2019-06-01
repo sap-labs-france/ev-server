@@ -60,7 +60,7 @@ class TransactionStorage {
       .limit(1)
       .toArray();
     // Found?
-    if (!firstTransactionsMDB || firstTransactionsMDB.length == 0) {
+    if (!firstTransactionsMDB || firstTransactionsMDB.length === 0) {
       return null;
     }
     const transactionYears = [];
@@ -207,10 +207,12 @@ class TransactionStorage {
     if (params.onlyRecordCount) {
       return {
         count: transactionCountMDB ? transactionCountMDB.count : 0,
-        totalConsumptionWattHours: transactionCountMDB ? Math.round(transactionCountMDB.totalConsumptionWattHours) : 0,
-        totalInactivitySecs: transactionCountMDB ? Math.round(transactionCountMDB.totalInactivitySecs) : 0,
-        totalPrice: transactionCountMDB ? Math.round(transactionCountMDB.totalPrice) : 0,
-        totalDurationSecs: transactionCountMDB ? Math.round(transactionCountMDB.totalDurationSecs) : 0,
+        stats: {
+          totalConsumptionWattHours: transactionCountMDB ? Math.round(transactionCountMDB.totalConsumptionWattHours) : 0,
+          totalInactivitySecs: transactionCountMDB ? Math.round(transactionCountMDB.totalInactivitySecs) : 0,
+          totalPrice: transactionCountMDB ? Math.round(transactionCountMDB.totalPrice) : 0,
+          totalDurationSecs: transactionCountMDB ? Math.round(transactionCountMDB.totalDurationSecs) : 0
+        },
         result: []
       };
     }
@@ -285,10 +287,12 @@ class TransactionStorage {
     Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, { params, limit, skip, sort });
     return {
       count: transactionCountMDB ? (transactionCountMDB.count === Constants.MAX_DB_RECORD_COUNT ? -1 : transactionCountMDB.count) : 0,
-      totalConsumptionWattHours: transactionCountMDB ? Math.round(transactionCountMDB.totalConsumptionWattHours) : 0,
-      totalInactivitySecs: transactionCountMDB ? Math.round(transactionCountMDB.totalInactivitySecs) : 0,
-      totalPrice: transactionCountMDB ? Math.round(transactionCountMDB.totalPrice) : 0,
-      totalDurationSecs: transactionCountMDB ? Math.round(transactionCountMDB.totalDurationSecs) : 0,
+      stats: {
+        totalConsumptionWattHours: transactionCountMDB ? Math.round(transactionCountMDB.totalConsumptionWattHours) : 0,
+        totalInactivitySecs: transactionCountMDB ? Math.round(transactionCountMDB.totalInactivitySecs) : 0,
+        totalPrice: transactionCountMDB ? Math.round(transactionCountMDB.totalPrice) : 0,
+        totalDurationSecs: transactionCountMDB ? Math.round(transactionCountMDB.totalDurationSecs) : 0
+      },
       result: transactions
     };
   }
@@ -296,7 +300,7 @@ class TransactionStorage {
   static async getTransactionsInError(tenantID, params = {}, limit, skip, sort) {
     const Transaction = require('../../entity/Transaction');
     // Debug
-    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactions');
+    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactionsInError');
     // Check
     await Utils.checkTenant(tenantID);
     const pricing = await PricingStorage.getPricing(tenantID);
@@ -492,6 +496,7 @@ class TransactionStorage {
       .aggregate([...aggregation, { $count: "count" }])
       .toArray();
     // Check if only the total count is requested
+    const transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ?  transactionsCountMDB[0] : null;
     if (params.onlyRecordCount) {
       // Return only the count
       return {
@@ -538,11 +543,10 @@ class TransactionStorage {
       }
     }
     // Debug
-    Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, { params, limit, skip, sort });
+    Logging.traceEnd('TransactionStorage', 'getTransactionsInError', uniqueTimerID, { params, limit, skip, sort });
     // Ok
     return {
-      count: (transactionCountMDB ?
-        (transactionCountMDB.count == Constants.MAX_DB_RECORD_COUNT ? -1 : transactionCountMDB.count) : 0),
+      count: (transactionCountMDB ? (transactionCountMDB.count === Constants.MAX_DB_RECORD_COUNT ? -1 : transactionCountMDB.count) : 0),
       result: transactions
     };
   }

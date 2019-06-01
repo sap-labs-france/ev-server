@@ -1,3 +1,5 @@
+const cfenv = require('cfenv');
+const Configuration = require('./Configuration');
 const Utils = require('./Utils');
 const Constants = require('./Constants');
 
@@ -20,7 +22,7 @@ class Database {
   static validateId(id) {
     let changedID = id;
     // Object?
-    if (changedID && (typeof changedID == "object")) {
+    if (changedID && (typeof changedID === "object")) {
       // Mongo DB?
       if (changedID instanceof Buffer) {
         changedID = changedID.toString('hex');
@@ -158,6 +160,16 @@ class Database {
     dest.name = src.name;
     dest.version = src.version;
     dest.durationSecs = Utils.convertToFloat(src.durationSecs);
+  }
+
+  static updateRunningMigration(src, dest, forFrontEnd = true) {
+    if (forFrontEnd) {
+      Database.updateID(src, dest);
+    }
+    dest.timestamp = Utils.convertToDate(src.timestamp);
+    dest.name = src.name;
+    dest.version = src.version;
+    dest.hostname = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname();
   }
 
   static updateConfiguration(src, dest, forFrontEnd = true) {
@@ -326,7 +338,7 @@ class Database {
       // Set
       dest.createdBy = src.createdBy;
       // User model?
-      if (typeof dest.createdBy == "object" &&
+      if (typeof dest.createdBy === "object" &&
         dest.createdBy.constructor.name != "ObjectID") {
         // Yes
         dest.createdBy = {};
@@ -348,7 +360,7 @@ class Database {
       // Set
       dest.lastChangedBy = src.lastChangedBy;
       // User model?
-      if (typeof dest.lastChangedBy == "object" &&
+      if (typeof dest.lastChangedBy === "object" &&
         dest.lastChangedBy.constructor.name != "ObjectID") {
         // Yes
         dest.lastChangedBy = {};

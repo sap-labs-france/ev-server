@@ -10,7 +10,6 @@ build
 .vscode
 .clinic
 Procfile
-package-lock.json
 postman
 archi
 cloud-infos.md

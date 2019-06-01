@@ -69,7 +69,7 @@ class UpdateTransactionInactivityTask extends MigrationTask {
         // Don't check the first
         if (index > 0) {
           // Check value + Check Previous value
-          if (value.value == 0 && consumption.values[index - 1].value == 0) {
+          if (value.value === 0 && consumption.values[index - 1].value === 0) {
             // Add the inactivity in secs
             transaction.stop.totalInactivitySecs += moment.duration(
               moment(value.date).diff(moment(consumption.values[index - 1].date))
