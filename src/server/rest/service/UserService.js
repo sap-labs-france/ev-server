@@ -244,7 +244,13 @@ class UserService {
       // Filter
       const filteredRequest = UserSecurity.filterUserUpdateRequest(req.body, req.user);
       // Check Mandatory fields
-      User.checkIfUserValid(filteredRequest, req);
+      if (!filteredRequest.id) {
+        // Not Found!
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `User's ID must be provided`, 500,
+          'UserService', 'handleDeleteUser', req.user);
+      }
       // Check email
       const user = await User.getUser(req.user.tenantID, filteredRequest.id);
       if (!user) {
@@ -260,6 +266,8 @@ class UserService {
           `User with ID '${filteredRequest.id}' is logically deleted`, 550,
           'UserService', 'handleUpdateUser', req.user);
       }
+      // Check Mandatory fields
+      User.checkIfUserValid(filteredRequest, user, req);
       // Check email
       const userWithEmail = await User.getUserByEmail(req.user.tenantID, filteredRequest.email);
       // Check if EMail is already taken
@@ -547,7 +555,7 @@ class UserService {
       // Filter
       const filteredRequest = UserSecurity.filterUserCreateRequest(req.body, req.user);
       // Check Mandatory fields
-      User.checkIfUserValid(filteredRequest, req);
+      User.checkIfUserValid(filteredRequest, null, req);
       // Get the email
       const foundUser = await User.getUserByEmail(req.user.tenantID, filteredRequest.email);
       if (foundUser) {

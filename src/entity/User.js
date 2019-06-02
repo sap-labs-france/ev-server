@@ -346,7 +346,7 @@ class User extends AbstractTenantEntity {
     }
   }
 
-  static checkIfUserValid(filteredRequest, req) {
+  static checkIfUserValid(filteredRequest, user, req) {
     const Authorizations = require('../authorization/Authorizations');
     // Check Tenant
     let tenantID;
@@ -370,10 +370,15 @@ class User extends AbstractTenantEntity {
         req.user.id);
     }
     // Creation?
-    if (!filteredRequest.role) {
-      filteredRequest.role = Constants.ROLE_BASIC;
+    if (req.method === 'POST') {
+      if (!filteredRequest.role) {
+        filteredRequest.role = Constants.ROLE_BASIC;
+      }
+    } else {
+      // Update
+      filteredRequest.role = user.getRole();
     }
-    if (!filteredRequest.status) {
+    if (req.method === 'POST' && !filteredRequest.status) {
       filteredRequest.status = Constants.USER_STATUS_BLOCKED;
     }
     // Creation?
