@@ -103,9 +103,9 @@ class LoggingStorage {
 
     // Log level
     switch (params.level) {
+      // Build filter
       // Error
       case 'E':
-        // Build filter
         filters.level = 'E';
         break;
       // Warning

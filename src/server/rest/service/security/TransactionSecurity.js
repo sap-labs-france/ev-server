@@ -287,8 +287,8 @@ class TransactionSecurity {
     }
     for(let i = 1; i < filteredTransaction.values.length; i++) {
       if(filteredTransaction.values[i].instantPower == 0 && filteredTransaction.values[i-1] != 0) {
-        let addedValue = JSON.parse(JSON.stringify(filteredTransaction.values[i]));
-        let newDate = new Date(filteredTransaction.values[i-1].endedAt.getTime() + 60000)
+        const addedValue = JSON.parse(JSON.stringify(filteredTransaction.values[i]));
+        const newDate = new Date(filteredTransaction.values[i-1].endedAt.getTime() + 60000);
         addedValue.endedAt = newDate;
         addedValue.date = newDate;
         filteredTransaction.values.splice(i, 0, addedValue);
