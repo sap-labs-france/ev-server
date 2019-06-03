@@ -80,3 +80,24 @@ Ported. TODO Type messageParams properly.
 
 BackendError.ts
 Ported but requires User to be ported as well
+
+BadRequestError.ts
+Ported
+
+MigrationTask.ts
+ported
+
+DatabaseUtils.ts
+Ported, re=check type of "aggregation"
+
+MongoDBStorage.ts
+Ported. Check TODOs.
+
+SchemaValidator.ts
+
+TenantValidator.ts
+Changed from JS hacked singleton to proper typescript singleton
+
+Organization...Error.ts
+
+OCPIError.ts

@@ -1,6 +1,6 @@
 require('source-map-support').install();
 
-module.exports = {
+export default {
   MAX_DB_RECORD_COUNT: 2000,
 
   DEFAULT_TENANT: 'default',
@@ -156,7 +156,7 @@ module.exports = {
   OCPP_ERROR_PROPERTY_RAINT_VIOLATION: 'PropertyraintViolation',
   // Payload for Action is syntactically correct but at least one of the fields violates occurence raints
   OCPP_ERROR_OCCURENCE_RAINT_VIOLATION: 'OccurenceraintViolation',
-  // Payload for Action is syntactically correct but at least one of the fields violates data type raints (e.g. “somestring”: 12)
+  // Payload for Action is syntactically correct but at least one of the fields violates data type raints (e.g. "somestring": 12)
   OCPP_ERROR_TYPERAINT_VIOLATION: 'TyperaintViolation',
   // Any other error not covered by the previous ones
   OCPP_ERROR_GENERIC_ERROR: 'GenericError',

@@ -1,4 +1,4 @@
-export class InternalError extends Error {
+export default class InternalError extends Error {
 
   public readonly detailedMessages: Array<string>;
 

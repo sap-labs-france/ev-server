@@ -1,25 +1,34 @@
-const MongoClient = require('mongodb').MongoClient;
-const cluster = require('cluster');
-const mongoUriBuilder = require('mongo-uri-builder');
-const urlencode = require('urlencode');
-const DatabaseUtils = require('./DatabaseUtils');
-const Constants = require('../../utils/Constants');
-
+import { MongoClient } from 'mongodb';
+import cluster from 'cluster';
+import mongoUriBuilder from 'mongo-uri-builder';
+import urlencode from 'urlencode';
+import DatabaseUtils from './DatabaseUtils';
+import StorageCfg from './../../utils/ConfigurationClasses/StorageConfiguration';
+import Constants from '../../utils/Constants';
+import { Db, Collection } from 'mongodb';
 require('source-map-support').install();
+import InternalError from '../../exception/InternalError';
 
-class MongoDBStorage {
+export default class MongoDBStorage {
+
+  private db : Db|null = null;
 
   // Create database access
-  constructor(dbConfig) {
-    // Keep local
-    this._dbConfig = dbConfig;
+  constructor(private readonly dbConfig: StorageCfg) {}
+
+  public getCollection(tenantID: string, collectionName: string): Collection {
+    if(!this.db) {
+      throw new InternalError('Not supposed to call getCollection before start', []);
+    }
+    return this.db.collection(DatabaseUtils.getCollectionName(tenantID, collectionName));
   }
 
-  getCollection(tenantID, collectionName) {
-    return this._db.collection(DatabaseUtils.getCollectionName(tenantID, collectionName));
-  }
+  public async checkAndCreateCollection(allCollections: Array<{name: string}>, tenantID: string, name: string, indexes?: Array<{fields: any, options?: any}>): Promise<boolean> {
+    //Safety check
+    if(!this.db) {
+      throw new InternalError('Not supposed to call checkAndCreateCollection before start', []);
+    }
 
-  async checkAndCreateCollection(allCollections, tenantID, name, indexes) {
     // Check Logs
     const tenantCollectionName = DatabaseUtils.getCollectionName(tenantID, name);
     const foundCollection = allCollections.find((collection) => {
@@ -28,12 +37,12 @@ class MongoDBStorage {
     // Check if it exists
     if (!foundCollection) {
       // Create
-      await this._db.createCollection(tenantCollectionName);
+      await this.db.createCollection(tenantCollectionName);
     }
     // Indexes?
     if (indexes) {
       // Get current indexes
-      const existingIndexes = await this._db.collection(tenantCollectionName).listIndexes().toArray();
+      const existingIndexes = await this.db.collection(tenantCollectionName).listIndexes().toArray();
       // Check each index
       for (const index of indexes) {
         // Create
@@ -44,17 +53,22 @@ class MongoDBStorage {
         // Found?
         if (!foundIndex) {
           // No: Create Index
-          await this._db.collection(tenantCollectionName).createIndex(index.fields, index.options);
+          await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
         }
       }
     }
+    return await false; //TODO: Is this wanted behavior? Previously, sometimes returned bool sometimes nothing.
   }
 
-  async checkAndCreateTenantDatabase(tenantID) {
-    const filter = {};
-    filter.name = new RegExp(`^${tenantID}.`);
+  public async checkAndCreateTenantDatabase(tenantID: string): Promise<void> {
+    //Safety check
+    if(!this.db) {
+      throw new InternalError('Not supposed to call checkAndCreateTenantDatabase before start', []);
+    }
+
+    let name = new RegExp(`^${tenantID}.`);
     // Get all the tenant collections
-    const collections = await this._db.listCollections(filter).toArray();
+    const collections = await this.db.listCollections({name: name}).toArray();
     // Users
     await this.checkAndCreateCollection(collections, tenantID, 'users', [
       { fields: { email: 1 }, options: { unique: true } }
@@ -105,40 +119,53 @@ class MongoDBStorage {
 
   }
 
-  async deleteTenantDatabase(tenantID) {
+  public async deleteTenantDatabase(tenantID: string): Promise<void> {
     // Done only in Dev environment!
     // Delay the deletion: there are some collections remaining after Unit Test execution
     setTimeout(async () => {
       // Not the Default tenant
       if (tenantID !== Constants.DEFAULT_TENANT) {
+        //Safety check
+        if(!this.db) {
+          throw new InternalError('Not supposed to call deleteTenantDatabase before start', []);
+        }
+
         // Get all the collections
-        const collections = await this._db.listCollections().toArray();
+        const collections = await this.db.listCollections().toArray();
         // Check and Delete
         for (const collection of collections) {
           // Check
           if (collection.name.startsWith(`${tenantID}.`)) {
             // Delete
-            await this._db.collection(collection.name).drop();
+            await this.db.collection(collection.name).drop();
           }
         }
       }
     }, 500);
   }
 
-  async migrateTenantDatabase(tenantID) {
+  public async migrateTenantDatabase(tenantID: string): Promise<void> {
+    //Safety check
+    if(!this.db) {
+      throw new InternalError('Not supposed to call migrateTenantDatabase before start', []);
+    }
     // Migrate not prefixed collections
-    const collections = await this._db.listCollections().toArray();
+    const collections = await this.db.listCollections().toArray();
 
     for (const collection of collections) {
       if (!DatabaseUtils.getFixedCollections().includes(collection.name) && !collection.name.includes('.')) {
-        await this._db.collection(collection.name).rename(DatabaseUtils.getCollectionName(tenantID, collection.name));
+        await this.db.collection(collection.name).rename(DatabaseUtils.getCollectionName(tenantID, collection.name));
       }
     }
   }
 
-  async checkDatabase() {
+  public async checkDatabase(): Promise<void> {
+    //Safety check
+    if(!this.db) {
+      throw new InternalError('Not supposed to call checkDatabase before start', []);
+    }
     // Get all the collections
-    const collections = await this._db.listCollections().toArray();
+    const collections = await this.db.listCollections().toArray();
     // Check only collections with indexes
     // Tenants
     await this.checkAndCreateCollection(collections, Constants.DEFAULT_TENANT, 'tenants', [
@@ -158,11 +185,12 @@ class MongoDBStorage {
 
     for (const collection of collections) {
       if (collection.name === 'migrations') {
-        await this._db.collection(collection.name).rename(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, collection.name), { dropTarget: true });
+        await this.db.collection(collection.name).rename(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, collection.name), { dropTarget: true });
       }
     }
 
-    const tenantsMDB = await this._db.collection(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, 'tenants'))
+    //TODO: could create class representing tenant collection for great typechecking
+    const tenantsMDB = await this.db.collection(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, 'tenants'))
       .find({})
       .toArray();
     const tenantIds = tenantsMDB.map(t => t._id.toString());
@@ -174,47 +202,45 @@ class MongoDBStorage {
   async start() {
     // Log
     // eslint-disable-next-line no-console
-    console.log(`Connecting to '${this._dbConfig.implementation}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`);
+    console.log(`Connecting to '${this.dbConfig.implementation}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`);
     // Build EVSE URL
-    let mongoUrl;
+    let mongoUrl: string;
     // URI provided?
-    if (this._dbConfig.uri) {
+    if (this.dbConfig.uri) {
       // Yes: use it
-      mongoUrl = this._dbConfig.uri;
+      mongoUrl = this.dbConfig.uri;
     } else {
       // No: Build it
       mongoUrl = mongoUriBuilder({
-        host: urlencode(this._dbConfig.host),
-        port: urlencode(this._dbConfig.port),
-        username: urlencode(this._dbConfig.user),
-        password: urlencode(this._dbConfig.password),
-        database: urlencode(this._dbConfig.database),
+        host: urlencode(this.dbConfig.host),
+        port: Number.parseInt(urlencode(this.dbConfig.port+'')),
+        username: urlencode(this.dbConfig.user),
+        password: urlencode(this.dbConfig.password),
+        database: urlencode(this.dbConfig.database),
         options: {
-          replicaSet: this._dbConfig.replicaSet
+          replicaSet: this.dbConfig.replicaSet
         }
       });
     }
     // Connect to EVSE
-    this._mongoDBClient = await MongoClient.connect(
+    let mongoDBClient = await MongoClient.connect(
       mongoUrl,
       {
         useNewUrlParser: true,
-        poolSize: this._dbConfig.poolSize,
-        replicaSet: this._dbConfig.replicaSet,
-        loggerLevel: (this._dbConfig.debug ? 'debug' : null),
+        poolSize: this.dbConfig.poolSize,
+        replicaSet: this.dbConfig.replicaSet,
+        loggerLevel: (this.dbConfig.debug ? 'debug' : undefined),
         reconnectTries: Number.MAX_VALUE,
         reconnectInterval: 1000,
         autoReconnect: true
       }
     );
     // Get the EVSE DB
-    this._db = this._mongoDBClient.db(this._dbConfig.schema);
+    this.db = mongoDBClient.db(this.dbConfig.schema);
 
     // Check Database
     await this.checkDatabase();
     // eslint-disable-next-line no-console
-    console.log(`Connected to '${this._dbConfig.implementation}' successfully ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
+    console.log(`Connected to '${this.dbConfig.implementation}' successfully ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
   }
 }
-
-module.exports = MongoDBStorage;

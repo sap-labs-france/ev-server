@@ -1,8 +1,14 @@
-const MigrationTask = require('../MigrationTask');
+import MigrationTask from '../MigrationTask';
+import Global from '../../types/GlobalType';
 
-class MigrateTenantSettingsTask extends MigrationTask {
-  async migrate() {
+declare var global: Global;
+
+export default class MigrateTenantSettingsTask extends MigrationTask {
+
+  public async migrate(): Promise<void> {
     // Migrate Default Tenant's components
+
+    //TODO add types to specific mongo collections to get rid of all any types
     const tenantsMDB = await global.database.getCollection(
       'default', 'tenants').aggregate([]).toArray();
     for (const tenantMDB of tenantsMDB) {
@@ -34,7 +40,7 @@ class MigrateTenantSettingsTask extends MigrationTask {
             "_id": tenantMDB._id
           }, {
             $set: tenantMDB
-          }, { upsert: true, new: true, returnOriginal: false });          
+          }, { upsert: true, /*new: true,*/ returnOriginal: false });//TODO Typescript complains about new parameter. Please check.
         }
       }
       // Delete unused settings
@@ -58,7 +64,7 @@ class MigrateTenantSettingsTask extends MigrationTask {
             delete tenantSettingMDB.content.business_details;
             // Set the new content
             tenantSettingMDB.content = {
-              "type" : "gireve", 
+              "type" : "gireve",
               "ocpi" : tenantSettingMDB.content
             };
             settingsChanged = true;
@@ -67,7 +73,7 @@ class MigrateTenantSettingsTask extends MigrationTask {
         if (tenantSettingMDB.identifier === "sac" && !tenantSettingMDB.content.type) {
           // Set the new content
           tenantSettingMDB.content = {
-            "type" : "sac", 
+            "type" : "sac",
             "sac" : tenantSettingMDB.content
           };
           settingsChanged = true;
@@ -92,7 +98,7 @@ class MigrateTenantSettingsTask extends MigrationTask {
             "_id": tenantSettingMDB._id
           }, {
             $set: tenantSettingMDB
-          }, { upsert: true, new: true, returnOriginal: false });          
+          }, { upsert: true, /*new: true,TODO check why typescript complains*/ returnOriginal: false });
         }
       }
       // Rename 'sac' to 'analytics'
@@ -104,13 +110,11 @@ class MigrateTenantSettingsTask extends MigrationTask {
     }
   }
 
-  getVersion() {
+  public getVersion(): string {
     return "1.1";
   }
 
-  getName() {
+  public getName(): string {
     return "MigrateTenantSettingsTask";
   }
-}
-
-module.exports = MigrateTenantSettingsTask;
+};

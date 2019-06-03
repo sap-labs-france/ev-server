@@ -1,14 +1,16 @@
-const Constants = require('../../utils/Constants');
-const ObjectID = require('mongodb').ObjectID;
+import Constants from '../../utils/Constants';
+import { ObjectID } from 'mongodb';
 
-const FIXED_COLLECTIONS = ['tenants', 'migrations'];
+const FIXED_COLLECTIONS: Array<string> = ['tenants', 'migrations'];
 
-class DatabaseUtils {
-  static getFixedCollections() {
+export default class DatabaseUtils {
+
+  public static getFixedCollections(): Array<string> {
     return FIXED_COLLECTIONS;
   }
 
-  static pushCreatedLastChangedInAggregation(tenantID, aggregation) {
+  //TODO determine type of aggregation
+  public static pushCreatedLastChangedInAggregation(tenantID: string, aggregation: Array<any>): void {
     // Filter
     const filterUserFields = {
       "email": 0,
@@ -82,13 +84,11 @@ class DatabaseUtils {
    * @param collectionNameSuffix the collection name suffix
    * @returns {String} the collection name prefixed by the tenant identifier if the collection is specific to a tenant. Returns the collection name suffix elsewhere.
    */
-  static getCollectionName(tenantID, collectionNameSuffix) {
+  public static getCollectionName(tenantID: string, collectionNameSuffix: string): string {
     let prefix = Constants.DEFAULT_TENANT;
     if (!FIXED_COLLECTIONS.includes(collectionNameSuffix) && ObjectID.isValid(tenantID)) {
       prefix = tenantID;
     }
     return `${prefix}.${collectionNameSuffix}`;
   }
-}
-
-module.exports = DatabaseUtils;
+};
