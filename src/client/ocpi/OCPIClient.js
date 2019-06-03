@@ -21,7 +21,7 @@ class OCPIClient {
       const endpoints = await this.getVersions();
 
       // check response
-      if (!endpoints.data || !(endpoints.data.status_code == 1000) || !endpoints.data.data) {
+      if (!endpoints.data || !(endpoints.data.status_code === 1000) || !endpoints.data.data) {
         pingResult.statusCode = 412;
         pingResult.statusText = `Invalid response from GET ${this._ocpiEndpoint.getBaseUrl()}`;
       } else {
@@ -205,7 +205,7 @@ class OCPIClient {
       throw new Error('Locations endpoint URL undefined');
     }
 
-    // read configuration to retrieve country_code and party_id
+    // read configuration to retrieve
     const tenant = await this._ocpiEndpoint.getTenant();
     const ocpiSetting = await tenant.getSetting(Constants.COMPONENTS.OCPI);
 
@@ -213,16 +213,16 @@ class OCPIClient {
       throw new Error('OCPI Settings not found');
     }
 
-    const ocpiContent = ocpiSetting.getContent();
-    if (!ocpiContent.country_code || !ocpiContent.party_id) {
+    const ocpiContent = ocpiSetting.getContent().ocpi;
+    if (!ocpiContent.countryCode || !ocpiContent.partyID) {
       throw new Error('OCPI Country Code and/or Party ID undefined');
     }
 
-    const country_code = ocpiContent.country_code;
-    const party_id = ocpiContent.party_id;
+    const countryCode = ocpiContent.countryCode;
+    const partyID = ocpiContent.partyID;
 
     // build url to EVSE
-    const fullUrl = locationsUrl + `/${country_code}/${party_id}/${locationId}/${evseId}`;
+    const fullUrl = locationsUrl + `/${countryCode}/${partyID}/${locationId}/${evseId}`;
 
     // build payload
     const payload = { "status": newStatus };
@@ -262,7 +262,7 @@ class OCPIClient {
     // result
     const sendResult = { success: 0, failure: 0, total: 0, logs: [], chargeBoxIDsInFailure: [], chargeBoxIDsInSuccess: [] };
 
-    // read configuration to retrieve country_code and party_id
+    // read configuration to retrieve
     const tenant = await this._ocpiEndpoint.getTenant();
     // get ocpi service configuration
     const ocpiSetting = await tenant.getSetting(Constants.COMPONENTS.OCPI);
@@ -270,9 +270,9 @@ class OCPIClient {
     tenant._eMI3 = {};
 
     if (ocpiSetting && ocpiSetting.getContent()) {
-      const configuration = ocpiSetting.getContent();
-      tenant._eMI3.country_id = configuration.country_code;
-      tenant._eMI3.party_id = configuration.party_id;
+      const configuration = ocpiSetting.getContent().ocpi;
+      tenant._eMI3.country_id = configuration.countryCode;
+      tenant._eMI3.party_id = configuration.partyID;
     } else {
       // log error if failure
       Logging.logError({

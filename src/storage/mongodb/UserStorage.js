@@ -51,7 +51,7 @@ class UserStorage {
 
     // Search for language
     for (const supportLanguage of supportLanguages) {
-      if (language == supportLanguage.substring(0, 2)) {
+      if (language === supportLanguage.substring(0, 2)) {
         languageFound = true;
       }
     }
@@ -431,16 +431,19 @@ class UserStorage {
         '_id': Utils.convertToObjectID(params.userID)
       });
     }
-
     if (params.role) {
       filters.$and.push({
         'role': params.role
       });
     }
-
     if (params.status) {
       filters.$and.push({
         'status': params.status
+      });
+    }
+    if (params.notificationsActive) {
+      filters.$and.push({
+        'notificationsActive': params.notificationsActive
       });
     }
     // Create Aggregation
@@ -520,7 +523,8 @@ class UserStorage {
         "eulaAcceptedOn": 1,
         "eulaAcceptedVersion": 1,
         "tags": 1,
-        "plateID": 1
+        "plateID": 1,
+        "notificationsActive":1
       }
     });
     // Sort
@@ -564,7 +568,7 @@ class UserStorage {
     // Ok
     return {
       count: (usersCountMDB.length > 0 ?
-        (usersCountMDB[0].count == Constants.MAX_DB_RECORD_COUNT ? -1 : usersCountMDB[0].count) : 0),
+        (usersCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : usersCountMDB[0].count) : 0),
       result: users
     };
   }
@@ -733,7 +737,7 @@ class UserStorage {
     // Ok
     return {
       count: (usersCountMDB.length > 0 ?
-        (usersCountMDB[0].count == Constants.MAX_DB_RECORD_COUNT ? -1 : usersCountMDB[0].count) : 0),
+        (usersCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : usersCountMDB[0].count) : 0),
       result: users
     };
   }

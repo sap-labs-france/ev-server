@@ -1,3 +1,5 @@
+const cfenv = require('cfenv');
+const Configuration = require('./Configuration');
 const Utils = require('./Utils');
 const Constants = require('./Constants');
 
@@ -20,7 +22,7 @@ class Database {
   static validateId(id) {
     let changedID = id;
     // Object?
-    if (changedID && (typeof changedID == "object")) {
+    if (changedID && (typeof changedID === "object")) {
       // Mongo DB?
       if (changedID instanceof Buffer) {
         changedID = changedID.toString('hex');
@@ -97,7 +99,6 @@ class Database {
     if (src.hasOwnProperty('longitude')) {
       dest.longitude = Utils.convertToFloat(src.longitude);
     }
-
     dest.connectors = [];
     if (src.connectors) {
       // Set
@@ -107,6 +108,7 @@ class Database {
             "connectorId": Utils.convertToInt(connector.connectorId),
             "currentConsumption": Utils.convertToFloat(connector.currentConsumption),
             "currentStateOfCharge": Utils.convertToInt(connector.currentStateOfCharge),
+            "totalInactivitySecs": Utils.convertToInt(connector.totalInactivitySecs),
             "totalConsumption": Utils.convertToFloat(connector.totalConsumption),
             "status": connector.status,
             "errorCode": connector.errorCode,
@@ -159,6 +161,16 @@ class Database {
     dest.name = src.name;
     dest.version = src.version;
     dest.durationSecs = Utils.convertToFloat(src.durationSecs);
+  }
+
+  static updateRunningMigration(src, dest, forFrontEnd = true) {
+    if (forFrontEnd) {
+      Database.updateID(src, dest);
+    }
+    dest.timestamp = Utils.convertToDate(src.timestamp);
+    dest.name = src.name;
+    dest.version = src.version;
+    dest.hostname = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname();
   }
 
   static updateConfiguration(src, dest, forFrontEnd = true) {
@@ -245,6 +257,9 @@ class Database {
     if (src.hasOwnProperty("mobile")) {
       dest.mobile = src.mobile;
     }
+    if (src.hasOwnProperty("notificationsActive")) {
+      dest.notificationsActive = src.notificationsActive;
+    }
     if (src.hasOwnProperty("iNumber")) {
       dest.iNumber = src.iNumber;
     }
@@ -324,7 +339,7 @@ class Database {
       // Set
       dest.createdBy = src.createdBy;
       // User model?
-      if (typeof dest.createdBy == "object" &&
+      if (typeof dest.createdBy === "object" &&
         dest.createdBy.constructor.name != "ObjectID") {
         // Yes
         dest.createdBy = {};
@@ -346,7 +361,7 @@ class Database {
       // Set
       dest.lastChangedBy = src.lastChangedBy;
       // User model?
-      if (typeof dest.lastChangedBy == "object" &&
+      if (typeof dest.lastChangedBy === "object" &&
         dest.lastChangedBy.constructor.name != "ObjectID") {
         // Yes
         dest.lastChangedBy = {};
@@ -570,6 +585,9 @@ class Database {
     if (src.hasOwnProperty('currentTotalConsumption')) {
       dest.currentTotalConsumption = src.currentTotalConsumption;
     }
+    if (src.hasOwnProperty('currentTotalInactivitySecs')) {
+      dest.currentTotalInactivitySecs = src.currentTotalInactivitySecs;
+    }
     if (src.hasOwnProperty('timezone')) {
       dest.timezone = src.timezone;
     }
@@ -608,6 +626,7 @@ class Database {
       dest.stop.stateOfCharge = Utils.convertToInt(src.stop.stateOfCharge);
       dest.stop.totalConsumption = Utils.convertToInt(src.stop.totalConsumption);
       dest.stop.totalInactivitySecs = Utils.convertToInt(src.stop.totalInactivitySecs);
+      dest.stop.extraInactivitySecs = Utils.convertToInt(src.stop.extraInactivitySecs);
       dest.stop.totalDurationSecs = Utils.convertToInt(src.stop.totalDurationSecs);
       if (src.stop.hasOwnProperty('price')) {
         dest.stop.price = Utils.convertToInt(src.stop.price);

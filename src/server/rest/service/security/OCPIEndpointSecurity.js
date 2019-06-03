@@ -4,7 +4,7 @@ const UtilsSecurity = require('./UtilsSecurity');
 
 class OCPIEndpointSecurity {
   // eslint-disable-next-line no-unused-vars
-  static filterOcpiendpointDeleteRequest(request, loggedUser) {
+  static filterOcpiEndpointDeleteRequest(request, loggedUser) {
     const filteredRequest = {};
     // Set
     filteredRequest.ID = sanitize(request.ID);
@@ -12,14 +12,14 @@ class OCPIEndpointSecurity {
   }
 
   // eslint-disable-next-line no-unused-vars
-  static filterOcpiendpointRequest(request, loggedUser) {
+  static filterOcpiEndpointRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
   }
 
   // eslint-disable-next-line no-unused-vars
-  static filterOcpiendpointsRequest(request, loggedUser) {
+  static filterOcpiEndpointsRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.Search = sanitize(request.Search);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
@@ -27,41 +27,41 @@ class OCPIEndpointSecurity {
     return filteredRequest;
   }
 
-  static filterOcpiendpointUpdateRequest(request, loggedUser) {
-    // Set Ocpiendpoint
-    const filteredRequest = OCPIEndpointSecurity._filterOcpiendpointRequest(request, loggedUser);
+  static filterOcpiEndpointUpdateRequest(request, loggedUser) {
+    // Set OcpiEndpoint
+    const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request, loggedUser);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  static filterOcpiendpointCreateRequest(request, loggedUser) {
-    return OCPIEndpointSecurity._filterOcpiendpointRequest(request, loggedUser);
+  static filterOcpiEndpointCreateRequest(request, loggedUser) {
+    return OCPIEndpointSecurity._filterOcpiEndpointRequest(request, loggedUser);
   }
 
-  static filterOcpiendpointPingRequest(request, loggedUser) {
-    return OCPIEndpointSecurity._filterOcpiendpointRequest(request, loggedUser);
+  static filterOcpiEndpointPingRequest(request, loggedUser) {
+    return OCPIEndpointSecurity._filterOcpiEndpointRequest(request, loggedUser);
   }
 
-  static filterOcpiendpointSendEVSEStatusesRequest(request, loggedUser) {
+  static filterOcpiEndpointSendEVSEStatusesRequest(request, loggedUser) {
     // set ocpiendpoint
-    const filteredRequest = OCPIEndpointSecurity._filterOcpiendpointRequest(request, loggedUser);
+    const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request, loggedUser);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
   
-  static filterOcpiendpointRegisterRequest(request, loggedUser) {
-    // Set Ocpiendpoint
-    const filteredRequest = OCPIEndpointSecurity._filterOcpiendpointRequest(request, loggedUser);
+  static filterOcpiEndpointRegisterRequest(request, loggedUser) {
+    // Set OcpiEndpoint
+    const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request, loggedUser);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  static filterOcpiendpointGenerateLocalTokenRequest(request, loggedUser) {
-    return OCPIEndpointSecurity._filterOcpiendpointRequest(request, loggedUser);
+  static filterOcpiEndpointGenerateLocalTokenRequest(request, loggedUser) {
+    return OCPIEndpointSecurity._filterOcpiEndpointRequest(request, loggedUser);
   }
 
   // eslint-disable-next-line no-unused-vars
-  static _filterOcpiendpointRequest(request, loggedUser) {
+  static _filterOcpiEndpointRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.name = sanitize(request.name);
     filteredRequest.baseUrl = sanitize(request.baseUrl);
@@ -73,18 +73,18 @@ class OCPIEndpointSecurity {
     return filteredRequest;
   }
 
-  static filterOcpiendpointResponse(ocpiendpoint, loggedUser) {
-    let filteredOcpiendpoint;
+  static filterOcpiEndpointResponse(ocpiendpoint, loggedUser) {
+    let filteredOcpiEndpoint;
 
     if (!ocpiendpoint) {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadOcpiendpoint(loggedUser, ocpiendpoint)) {
+    if (Authorizations.canReadOcpiEndpoint(loggedUser, ocpiendpoint)) {
       // Admin?
       if (Authorizations.isAdmin(loggedUser)) {
         // Yes: set all params
-        filteredOcpiendpoint = ocpiendpoint;
+        filteredOcpiEndpoint = ocpiendpoint;
       } else {
         // Set only necessary info
         return null;
@@ -92,30 +92,30 @@ class OCPIEndpointSecurity {
 
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(
-        filteredOcpiendpoint, ocpiendpoint, loggedUser);
+        filteredOcpiEndpoint, ocpiendpoint, loggedUser);
     }
-    return filteredOcpiendpoint;
+    return filteredOcpiEndpoint;
   }
 
-  static filterOcpiendpointsResponse(ocpiendpoints, loggedUser) {
-    const filteredOcpiendpoints = [];
+  static filterOcpiEndpointsResponse(ocpiendpoints, loggedUser) {
+    const filteredOcpiEndpoints = [];
 
     if (!ocpiendpoints) {
       return null;
     }
-    if (!Authorizations.canListOcpiendpoints(loggedUser)) {
+    if (!Authorizations.canListOcpiEndpoints(loggedUser)) {
       return null;
     }
     for (const ocpiendpoint of ocpiendpoints) {
       // Filter
-      const filteredOcpiendpoint = OCPIEndpointSecurity.filterOcpiendpointResponse(ocpiendpoint, loggedUser);
+      const filteredOcpiEndpoint = OCPIEndpointSecurity.filterOcpiEndpointResponse(ocpiendpoint, loggedUser);
       // Ok?
-      if (filteredOcpiendpoint) {
+      if (filteredOcpiEndpoint) {
         // Add
-        filteredOcpiendpoints.push(filteredOcpiendpoint);
+        filteredOcpiEndpoints.push(filteredOcpiEndpoint);
       }
     }
-    return filteredOcpiendpoints;
+    return filteredOcpiEndpoints;
   }
 }
 

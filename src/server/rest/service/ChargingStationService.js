@@ -468,7 +468,7 @@ class ChargingStationService {
         // Set
         chargingStations.result = chargingStations.result.map((chargingStation) => chargingStation.getModel());
         // Filter
-        chargingStations.result = ChargingStationSecurity.filterChargingStationsResponse(chargingStations.result, req.user, organizationIsActive);
+        ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user, organizationIsActive);
       }
       // Return
       res.json(chargingStations);
@@ -514,7 +514,7 @@ class ChargingStationService {
       // Set
       chargingStations.result = chargingStations.result.map((chargingStation) => chargingStation.getModel());
       // Filter
-      chargingStations.result = ChargingStationSecurity.filterChargingStationsResponse(chargingStations.result, req.user, organizationIsActive);
+      ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user, organizationIsActive);
 
       const filename = "chargingStations_export.csv";
       fs.writeFile(filename, this.convertToCSV(chargingStations.result), (err) => {
@@ -573,7 +573,7 @@ class ChargingStationService {
       // Set
       chargingStations.result = chargingStations.result.map((chargingStation) => chargingStation.getModel());
       // Filter
-      chargingStations.result = ChargingStationSecurity.filterChargingStationsResponse(chargingStations.result, req.user, organizationIsActive);
+      ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user, organizationIsActive);
       // Return
       res.json(chargingStations);
       next();
@@ -661,8 +661,7 @@ class ChargingStationService {
           'ChargingStationService', 'handleAction', req.user);
       }
       let result;
-      if (action === 'StopTransaction' ||
-        action === 'UnlockConnector') {
+      if (action === 'RemoteStopTransaction' || action === 'UnlockConnector') {
         // Check Transaction ID
         if (!filteredRequest.args || !filteredRequest.args.transactionId) {
           throw new AppError(
@@ -696,7 +695,7 @@ class ChargingStationService {
         await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
         // Ok: Execute it
         result = await chargingStation.handleAction(action, filteredRequest.args);
-      } else if (action === 'StartTransaction') {
+      } else if (action === 'RemoteStartTransaction') {
         // Check Tag ID
         if (!filteredRequest.args || !filteredRequest.args.tagID || filteredRequest.args.tagID === "undefined") {
           throw new AppError(

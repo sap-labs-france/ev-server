@@ -18,6 +18,7 @@ const Authorizations = require('../../../authorization/Authorizations');
 const NotificationHandler = require('../../../notification/NotificationHandler');
 const AuthSecurity = require('./security/AuthSecurity');
 const TransactionStorage = require('../../../storage/mongodb/TransactionStorage');
+const SessionHashService  =require('./SessionHashService');
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
@@ -48,6 +49,7 @@ class AuthService {
   }
 
   static async handleIsAuthorized(action, req, res, next) {
+    let user;
     try {
       // Default
       let result = { 'IsAuthorized': false };
@@ -63,8 +65,10 @@ class AuthService {
       let chargingStation = null;
       // Action
       switch (filteredRequest.Action) {
-        // Action on charger
+        // TODO: To Remove
+        // Hack for mobile app not sending the RemoteStopTransaction yet
         case 'StopTransaction':
+        case 'RemoteStopTransaction':
           // Check
           if (!filteredRequest.Arg1) {
             throw new AppError(
@@ -120,7 +124,7 @@ class AuthService {
               `Charging Station with ID '${filteredRequest.Arg1}' does not exist`,
               550, 'AuthService', 'handleIsAuthorized');
           }
-          const user = await User.getUser(req.user.tenantID, req.user.id);
+          user = await User.getUser(req.user.tenantID, req.user.id);
           // Found?
           if (!user) {
             // Not Found!
@@ -202,6 +206,13 @@ class AuthService {
         Constants.CENTRAL_SERVER,
         `Transaction ID '${filteredRequest.Arg2}' does not exist`,
         560, 'AuthService', 'isStopTransactionAuthorized');
+    }
+    // Check Charging Station
+    if (transaction.getChargeBoxID() !== chargingStation.getID()) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `Transaction ID '${filteredRequest.Arg2}' has a Charging Station '${transaction.getChargeBoxID()}' that differs from '${chargingStation.getID()}'`,
+        565, 'AuthService', 'isStopTransactionAuthorized');
     }
     try {
       // Check
@@ -311,12 +322,23 @@ class AuthService {
   static async handleRegisterUser(action, req, res, next) {
     // Filter
     const filteredRequest = AuthSecurity.filterRegisterUserRequest(req.body);
-
+    // Check
+    if (!filteredRequest.tenant) {
+      const error = new BadRequestError({
+        path: "tenant",
+        message: "The Tenant is mandatory"
+      });
+      // Log Error
+      Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleRegisterUser', Constants.DEFAULT_TENANT);
+      next(error);
+      return;
+    }
+    // Get the Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
       const error = new BadRequestError({
         path: "tenant",
-        message: "The Tenant is mandatory"
+        message: "The Tenant cannot be found"
       });
       // Log Error
       Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleRegisterUser', Constants.DEFAULT_TENANT);
@@ -348,11 +370,18 @@ class AuthService {
           Constants.CENTRAL_SERVER,
           `The captcha is invalid`, 500,
           'AuthService', 'handleRegisterUser');
+      } else {
+        if (response.data.score < 0.5) {
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `The captcha score is too low`, 500,
+            'AuthService', 'handleRegisterUser');
+        }
       }
       // Check email
       const user = await User.getUserByEmail(tenantID, filteredRequest.email);
       // Check Mandatory fields
-      User.checkIfUserValid(filteredRequest, req);
+      User.checkIfUserValid(filteredRequest, null, req);
       if (user) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -438,6 +467,13 @@ class AuthService {
           Constants.CENTRAL_SERVER,
           `The captcha is invalid`, 500,
           'AuthService', 'handleRegisterUser');
+      } else {
+        if (response.data.score < 0.5) {
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `The captcha score is too low`, 500,
+            'AuthService', 'handleRegisterUser');
+        }
       }
       // Yes: Generate new password
       const resetHash = Utils.generateGUID();
@@ -633,7 +669,7 @@ class AuthService {
   static async handleVerifyEmail(action, req, res, next) {
     // Filter
     const filteredRequest = AuthSecurity.filterVerifyEmailRequest(req.query);
-
+    // Get the tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
       const error = new BadRequestError({
@@ -645,7 +681,6 @@ class AuthService {
       next(error);
       return;
     }
-
     try {
       // Check email
       if (!filteredRequest.Email) {
@@ -719,7 +754,7 @@ class AuthService {
   static async handleResendVerificationEmail(action, req, res, next) {
     // Filter
     const filteredRequest = AuthSecurity.filterResendVerificationEmail(req.body);
-
+    // Get the Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
       const error = new BadRequestError({
@@ -746,15 +781,22 @@ class AuthService {
           `The captcha is mandatory`, 500,
           'AuthService', 'handleResendVerificationEmail');
       }
-
-      // Is valid captcha?
+      // Check captcha
       const response = await axios.get(
         `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`);
+      // Check
       if (!response.data.success) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The captcha is invalid`, 500,
           'AuthService', 'handleResendVerificationEmail');
+      } else {
+        if (response.data.score < 0.5) {
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `The captcha score is too low`, 500,
+            'AuthService', 'handleResendVerificationEmail');
+        }
       }
       // Is valid email?
       let user = await User.getUserByEmail(tenantID, filteredRequest.email);
@@ -829,11 +871,13 @@ class AuthService {
 
   }
 
+  // eslint-disable-next-line no-unused-vars
   static handleUserLogOut(action, req, res, next) {
     req.logout();
     res.status(200).send({});
   }
 
+  // eslint-disable-next-line no-unused-vars
   static async userLoginWrongPassword(action, user, req, res, next) {
     // Add wrong trial + 1
     user.setPasswordWrongNbrTrials(user.getPasswordWrongNbrTrials() + 1);
@@ -867,6 +911,7 @@ class AuthService {
     }
   }
 
+  // eslint-disable-next-line no-unused-vars
   static async userLoginSucceeded(action, user, req, res, next) {
     // Password / Login OK
     Logging.logSecurityInfo({
@@ -878,7 +923,7 @@ class AuthService {
     // Get EULA
     const endUserLicenseAgreement = await User.getEndUserLicenseAgreement(user.getTenantID(), user.getLanguage());
     // Set Eula Info on Login Only
-    if (action == 'Login') {
+    if (action === 'Login') {
       user.setEulaAcceptedOn(new Date());
       user.setEulaAcceptedVersion(endUserLicenseAgreement.version);
       user.setEulaAcceptedHash(endUserLicenseAgreement.hash);
@@ -891,6 +936,16 @@ class AuthService {
     await user.save();
     // Build Authorization
     const auths = await Authorizations.buildAuthorizations(user);
+    // Build HashID based on important user fields
+    const userHashID = SessionHashService.buildUserHashID(user);
+    // Build HashID based on important tenant fields
+    let tenantHashID;
+    if (user.getTenantID() !== Constants.DEFAULT_TENANT) {
+      const tenant = await user.getTenant();
+      tenantHashID = SessionHashService.buildTenantHashID(tenant);
+    } else {
+      tenantHashID = Constants.DEFAULT_TENANT;
+    }
     // Yes: build payload
     const payload = {
       'id': user.getID(),
@@ -901,6 +956,8 @@ class AuthService {
       'locale': user.getLocale(),
       'language': user.getLanguage(),
       'tenantID': user.getTenantID(),
+      'userHashID': userHashID,
+      'tenantHashID': tenantHashID,
       'auths': auths
     };
     // Get active components from tenant if not default

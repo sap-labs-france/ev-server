@@ -92,7 +92,7 @@ class SoapChargingStationClient extends ChargingStationClient {
       // Log
       Logging.logError({
         tenantID: this._chargingStation.getTenantID(),
-        source: this._chargingStation.getID(), module: "SoapChargingStationClient", method: "stopTransaction",
+        source: this._chargingStation.getID(), module: "SoapChargingStationClient", method: "remoteStopTransaction",
         message: `Error when trying to stop the transaction ID ${transactionId}: ${error.toString()}`,
         detailedMessages: [
           { 'stack': error.stack },
@@ -110,7 +110,7 @@ class SoapChargingStationClient extends ChargingStationClient {
     return result;
   }
 
-  async startTransaction(params) {
+  async remoteStartTransaction(params) {
     const { tagID, connectorID } = params;
     // Init SOAP Headers with the action
     this.initSoapHeaders("RemoteStartTransaction");
@@ -131,8 +131,8 @@ class SoapChargingStationClient extends ChargingStationClient {
       // Log
       Logging.logError({
         tenantID: this._chargingStation.getTenantID(),
-        source: this._chargingStation.getID(), module: "SoapChargingStationClient", method: "startTransaction",
-        message: `Error when trying to start a transaction: ${error.toString()}`,
+        source: this._chargingStation.getID(), module: "SoapChargingStationClient", method: "remoteStartTransaction",
+        message: `Error when trying to start a transaction: ${error.toString()}`, action: 'RemoteStartTransaction',
         detailedMessages: [
           { 'stack': error.stack },
           { result },
@@ -142,10 +142,11 @@ class SoapChargingStationClient extends ChargingStationClient {
       throw error;
     }
     // Log
-    Logging.logReturnedAction(_moduleName, this._chargingStation.getTenantID(), this._chargingStation.getID(), "RemoteStartTransaction", [
-      { result },
-      { envelope }
-    ]);
+    Logging.logReturnedAction(_moduleName, this._chargingStation.getTenantID(),
+      this._chargingStation.getID(), "RemoteStartTransaction", [
+        { result },
+        { envelope }
+      ]);
     return result;
   }
 

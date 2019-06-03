@@ -56,6 +56,7 @@ class OCPPJsonService16 extends OCPPService {
             response.executionTime = t1 - sentRequests[messageJson[1]].t0;
             response.data = messageJson[2];
             if (config.get('ocpp.json.logs') === 'json') {
+              // eslint-disable-next-line no-console
               console.log(JSON.stringify(response, null, 2));
             }
             // Respond to the request
@@ -66,7 +67,9 @@ class OCPPJsonService16 extends OCPPService {
 
           }
         } catch (error) {
+          // eslint-disable-next-line no-console
           console.log(`Error occurred when receiving the message ${message.data}`);
+          // eslint-disable-next-line no-console
           console.error(error);
           reject(error);
         }
@@ -80,6 +83,7 @@ class OCPPJsonService16 extends OCPPService {
     if (this.requestHandler && typeof this.requestHandler["handle" + commandName] === 'function') {
       result = await this.requestHandler["handle" + commandName](commandPayload);
     } else {
+      // eslint-disable-next-line no-console
       console.log(`${commandName} is not implemented`);
     }
     await this._send(chargeBoxIdentity, this._buildResponse(messageId, result));
@@ -162,6 +166,7 @@ class OCPPJsonService16 extends OCPPService {
     }
     // Log
     if (config.get('ocpp.json.logs') === 'json') {
+      // eslint-disable-next-line no-console
       console.log(JSON.stringify({
         url: this.serverUrl,
         requestMessageId: message[1],

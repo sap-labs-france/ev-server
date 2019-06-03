@@ -7,6 +7,9 @@ class StatisticSecurity {
     // Set
     filteredRequest.Year = sanitize(request.Year);
     filteredRequest.SiteID = sanitize(request.SiteID);
+    filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
+    filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
+    filteredRequest.UserID = sanitize(request.UserID);
     return filteredRequest;
   }
 
@@ -16,6 +19,9 @@ class StatisticSecurity {
     // Set
     filteredRequest.Year = sanitize(request.Year);
     filteredRequest.SiteID = sanitize(request.SiteID);
+    filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
+    filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
+    filteredRequest.UserID = sanitize(request.UserID);
     return filteredRequest;
   }
 

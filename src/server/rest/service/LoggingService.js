@@ -27,8 +27,7 @@ class LoggingService {
         'action': filteredRequest.Action, 'onlyRecordCount': filteredRequest.OnlyRecordCount
       }, filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
-      loggings.result = LoggingSecurity.filterLoggingsResponse(
-        loggings.result, req.user);
+      LoggingSecurity.filterLoggingsResponse(loggings, req.user);
       // Return
       res.json(loggings);
       next();
@@ -59,9 +58,7 @@ class LoggingService {
         'action': filteredRequest.Action, 'onlyRecordCount': filteredRequest.OnlyRecordCount
       }, filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
-      loggings.result = LoggingSecurity.filterLoggingsResponse(
-        loggings.result, req.user);
-
+      LoggingSecurity.filterLoggingsResponse(loggings, req.user);
       const filename = "loggings_export.csv";
       fs.writeFile(filename, this.convertToCSV(loggings.result), (err) => {
         if (err) {

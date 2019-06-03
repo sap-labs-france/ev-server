@@ -23,9 +23,9 @@ class JsonRestChargingStationClient extends ChargingStationClient {
     this._requests = {};
   }
 
-  startTransaction(params) {
+  remoteStartTransaction(params) {
     return this._sendMessage(
-      this._buildRequest('StartTransaction', params)
+      this._buildRequest('RemoteStartTransaction', params)
     );
   }
 
@@ -117,7 +117,8 @@ class JsonRestChargingStationClient extends ChargingStationClient {
       const wsClientOptions = {
         WSOptions: WSOptions,
         autoReconnectTimeout: Configuration.getWSClientConfig().autoReconnectTimeout,
-        autoReconnectMaxRetries: Configuration.getWSClientConfig().autoReconnectMaxRetries
+        autoReconnectMaxRetries: Configuration.getWSClientConfig().autoReconnectMaxRetries,
+        logTenantID: this._chargingStation.getTenantID()
       };
       this._wsConnection = new WSClient(this._serverURL, wsClientOptions);
       // Opened

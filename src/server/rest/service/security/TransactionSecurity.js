@@ -61,6 +61,7 @@ class TransactionSecurity {
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.Type = sanitize(request.Type);
+    filteredRequest.MinimalPrice = sanitize(request.MinimalPrice);
     if (request.UserID) {
       filteredRequest.UserID = sanitize(request.UserID);
     }
@@ -149,30 +150,30 @@ class TransactionSecurity {
       // Transaction Stop
       if (transaction.isFinished()) {
         filteredTransaction.stop = {};
-        filteredTransaction.stop.meterStop = transaction.getMeterStop();
-        filteredTransaction.stop.timestamp = transaction.getEndDate();
-        filteredTransaction.stop.totalConsumption = transaction.getTotalConsumption();
-        filteredTransaction.stop.totalInactivitySecs = transaction.getTotalInactivitySecs();
-        filteredTransaction.stop.totalDurationSecs = transaction.getTotalDurationSecs();
-        filteredTransaction.stop.stateOfCharge = transaction.getEndStateOfCharge();
-        // if (Authorizations.isAdmin(loggedUser) && transaction.hasPrice()) {
-        if (transaction.hasPrice()) {
-          filteredTransaction.stop.price = transaction.getPrice();
-          filteredTransaction.stop.roundedPrice = transaction.getRoundedPrice();
-          filteredTransaction.stop.priceUnit = transaction.getPriceUnit();
-          filteredTransaction.stop.pricingSource = transaction.getPricingSource();
+        filteredTransaction.stop.meterStop = transaction.getStopMeter();
+        filteredTransaction.stop.timestamp = transaction.getStopDate();
+        filteredTransaction.stop.totalConsumption = transaction.getStopTotalConsumption();
+        filteredTransaction.stop.totalInactivitySecs = transaction.getStopTotalInactivitySecs() + transaction.getStopExtraInactivitySecs();
+        filteredTransaction.stop.totalDurationSecs = transaction.getStopTotalDurationSecs();
+        filteredTransaction.stop.stateOfCharge = transaction.getStopStateOfCharge();
+        // if (Authorizations.isAdmin(loggedUser) && transaction.hasStopPrice()) {
+        if (transaction.hasStopPrice()) {
+          filteredTransaction.stop.price = transaction.getStopPrice();
+          filteredTransaction.stop.roundedPrice = transaction.getStopRoundedPrice();
+          filteredTransaction.stop.priceUnit = transaction.getStopPriceUnit();
+          filteredTransaction.stop.pricingSource = transaction.getStopPricingSource();
         }
         // Demo user?
         if (Authorizations.isDemo(loggedUser)) {
           filteredTransaction.stop.tagID = Constants.ANONIMIZED_VALUE;
         } else {
-          filteredTransaction.stop.tagID = transaction.getStoppedTagID();
+          filteredTransaction.stop.tagID = transaction.getStopTagID();
         }
         // Stop User
-        if (transaction.getStoppedUserJson()) {
+        if (transaction.getStopUserJson()) {
           // Filter user
           filteredTransaction.stop.user = TransactionSecurity._filterUserInTransactionResponse(
-            transaction.getStoppedUserJson(), loggedUser);
+            transaction.getStopUserJson(), loggedUser);
         }
       }
     }
@@ -181,23 +182,19 @@ class TransactionSecurity {
 
   static filterTransactionsResponse(transactions, loggedUser) {
     const filteredTransactions = [];
-
-    if (!transactions) {
+    if (!transactions.result) {
       return null;
     }
-    if (!Authorizations.canListTransactions(loggedUser)) {
-      return null;
-    }
-    for (const transaction of transactions) {
+    // Filter result
+    for (const transaction of transactions.result) {
       // Filter
       const filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser);
       // Ok?
       if (filteredTransaction) {
-        // Add
         filteredTransactions.push(filteredTransaction);
       }
     }
-    return filteredTransactions;
+    transactions.result = filteredTransactions;
   }
 
   static _filterUserInTransactionResponse(user, loggedUser) {
@@ -287,6 +284,15 @@ class TransactionSecurity {
         value: consumption.instantPower,
         cumulated: consumption.cumulatedConsumption
       }));
+    }
+    for(let i = 1; i < filteredTransaction.values.length; i++) {
+      if(filteredTransaction.values[i].instantPower == 0) {
+        let addedValue = JSON.parse(JSON.stringify(filteredTransaction.values[i]));
+        addedValue.endedAt = filteredTransaction.values[i-1].endedAt;
+        addedValue.date = filteredTransaction.values[i-1].endedAt;
+        filteredTransaction.values.splice(i, 0, addedValue);
+        i++;
+      }
     }
     return filteredTransaction;
   }

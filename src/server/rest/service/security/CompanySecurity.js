@@ -94,13 +94,13 @@ class CompanySecurity {
   static filterCompaniesResponse(companies, loggedUser) {
     const filteredCompanies = [];
 
-    if (!companies) {
+    if (!companies.result) {
       return null;
     }
     if (!Authorizations.canListCompanies(loggedUser)) {
       return null;
     }
-    for (const company of companies) {
+    for (const company of companies.result) {
       // Filter
       const filteredCompany = CompanySecurity.filterCompanyResponse(company, loggedUser);
       // Ok?
@@ -109,7 +109,7 @@ class CompanySecurity {
         filteredCompanies.push(filteredCompany);
       }
     }
-    return filteredCompanies;
+    companies.result = filteredCompanies;
   }
 }
 

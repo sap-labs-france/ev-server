@@ -10,36 +10,36 @@ const OCPIEndpointSecurity = require('./security/OCPIEndpointSecurity');
 const OCPIClient = require('../../../client/ocpi/OCPIClient');
 
 class OCPIEndpointService {
-  static async handleDeleteOcpiendpoint(action, req, res, next) {
+  static async handleDeleteOcpiEndpoint(action, req, res, next) {
     try {
       // Filter
-      const filteredRequest = OCPIEndpointSecurity.filterOcpiendpointDeleteRequest(req.query, req.user);
+      const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointDeleteRequest(req.query, req.user);
       // Check Mandatory fields
       if (!filteredRequest.ID) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Ocpiendpoint's ID must be provided`, 500,
-          'OCPIEndpointService', 'handleDeleteOcpiendpoint', req.user);
+          `The Ocpi Endpoint's ID must be provided`, 500,
+          'OCPIEndpointService', 'handleDeleteOcpiEndpoint', req.user);
       }
       // Get
-      const ocpiendpoint = await OCPIEndpoint.getOcpiendpoint(req.user.tenantID, filteredRequest.ID);
+      const ocpiendpoint = await OCPIEndpoint.getOcpiEndpoint(req.user.tenantID, filteredRequest.ID);
       if (!ocpiendpoint) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Ocpiendpoint with ID '${filteredRequest.ID}' does not exist`, 550,
-          'OCPIEndpointService', 'handleDeleteOcpiendpoint', req.user);
+          `Ocpi Endpoint with ID '${filteredRequest.ID}' does not exist`, 550,
+          'OCPIEndpointService', 'handleDeleteOcpiEndpoint', req.user);
       }
       // Check auth
-      if (!Authorizations.canDeleteOcpiendpoint(req.user, ocpiendpoint.getModel())) {
+      if (!Authorizations.canDeleteOcpiEndpoint(req.user, ocpiendpoint.getModel())) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_DELETE,
-          Constants.ENTITY_OCPIENDPOINT,
+          Constants.ENTITY_OCPI_ENDPOINT,
           ocpiendpoint.getID(),
           560,
-          'OCPIEndpointService', 'handleDeleteOcpiendpoint',
+          'OCPIEndpointService', 'handleDeleteOcpiEndpoint',
           req.user);
       }
       // Delete
@@ -47,8 +47,8 @@ class OCPIEndpointService {
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
-        user: req.user, module: 'OCPIEndpointService', method: 'handleDeleteOcpiendpoint',
-        message: `Ocpiendpoint '${ocpiendpoint.getName()}' has been deleted successfully`,
+        user: req.user, module: 'OCPIEndpointService', method: 'handleDeleteOcpiEndpoint',
+        message: `Ocpi Endpoint '${ocpiendpoint.getName()}' has been deleted successfully`,
         action: action, detailedMessages: ocpiendpoint
       });
       // Ok
@@ -60,30 +60,30 @@ class OCPIEndpointService {
     }
   }
 
-  static async handleGetOcpiendpoint(action, req, res, next) {
+  static async handleGetOcpiEndpoint(action, req, res, next) {
     try {
       // Filter
-      const filteredRequest = OCPIEndpointSecurity.filterOcpiendpointRequest(req.query, req.user);
+      const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointRequest(req.query, req.user);
       // ID is mandatory
       if (!filteredRequest.ID) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Ocpiendpoint's ID must be provided`, 500,
-          'OCPIEndpointService', 'handleGetOcpiendpoint', req.user);
+          `The Ocpi Endpoint's ID must be provided`, 500,
+          'OCPIEndpointService', 'handleGetOcpiEndpoint', req.user);
       }
       // Get it
-      const ocpiendpoint = await OCPIEndpoint.getOcpiendpoint(req.user.tenantID, filteredRequest.ID);
+      const ocpiendpoint = await OCPIEndpoint.getOcpiEndpoint(req.user.tenantID, filteredRequest.ID);
       if (!ocpiendpoint) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Ocpiendpoint with ID '${filteredRequest.ID}' does not exist anymore`, 550,
-          'OCPIEndpointService', 'handleGetOcpiendpoint', req.user);
+          `The Ocpi Endpoint with ID '${filteredRequest.ID}' does not exist anymore`, 550,
+          'OCPIEndpointService', 'handleGetOcpiEndpoint', req.user);
       }
       // Return
       res.json(
         // Filter
-        OCPIEndpointSecurity.filterOcpiendpointResponse(
+        OCPIEndpointSecurity.filterOcpiEndpointResponse(
           ocpiendpoint.getModel(), req.user)
       );
       next();
@@ -93,23 +93,23 @@ class OCPIEndpointService {
     }
   }
 
-  static async handleGetOcpiendpoints(action, req, res, next) {
+  static async handleGetOcpiEndpoints(action, req, res, next) {
     try {
       // Check auth
-      if (!Authorizations.canListOcpiendpoints(req.user)) {
+      if (!Authorizations.canListOcpiEndpoints(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_LIST,
-          Constants.ENTITY_OCPIENDPOINTS,
+          Constants.ENTITY_OCPI_ENDPOINTS,
           null,
           560,
-          'OCPIEndpointService', 'handleGetOcpiendpoints',
+          'OCPIEndpointService', 'handleGetOcpiEndpoints',
           req.user);
       }
       // Filter
-      const filteredRequest = OCPIEndpointSecurity.filterOcpiendpointsRequest(req.query, req.user);
+      const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointsRequest(req.query, req.user);
       // Get all ocpiendpoints
-      const ocpiendpoints = await OCPIEndpoint.getOcpiendpoints(req.user.tenantID,
+      const ocpiendpoints = await OCPIEndpoint.getOcpiEndpoints(req.user.tenantID,
         {
           'search': filteredRequest.Search
         },
@@ -117,7 +117,7 @@ class OCPIEndpointService {
       // Set
       ocpiendpoints.result = ocpiendpoints.result.map((ocpiendpoint) => ocpiendpoint.getModel());
       // Filter
-      ocpiendpoints.result = OCPIEndpointSecurity.filterOcpiendpointsResponse(
+      ocpiendpoints.result = OCPIEndpointSecurity.filterOcpiEndpointsResponse(
         ocpiendpoints.result, req.user);
       // Return
       res.json(ocpiendpoints);
@@ -128,23 +128,23 @@ class OCPIEndpointService {
     }
   }
 
-  static async handleCreateOcpiendpoint(action, req, res, next) {
+  static async handleCreateOcpiEndpoint(action, req, res, next) {
     try {
       // Check auth
-      if (!Authorizations.canCreateOcpiendpoint(req.user)) {
+      if (!Authorizations.canCreateOcpiEndpoint(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_CREATE,
-          Constants.ENTITY_OCPIENDPOINT,
+          Constants.ENTITY_OCPI_ENDPOINT,
           null,
           560,
-          'OCPIEndpointService', 'handleCreateOcpiendpoint',
+          'OCPIEndpointService', 'handleCreateOcpiEndpoint',
           req.user);
       }
       // Filter
-      const filteredRequest = OCPIEndpointSecurity.filterOcpiendpointCreateRequest(req.body, req.user);
+      const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointCreateRequest(req.body, req.user);
       // Check Mandatory fields
-      OCPIEndpoint.checkIfOcpiendpointValid(filteredRequest, req);
+      OCPIEndpoint.checkIfOcpiEndpointValid(filteredRequest, req);
 
       // Create ocpiendpoint
       const ocpiendpoint = new OCPIEndpoint(req.user.tenantID, filteredRequest);
@@ -153,17 +153,17 @@ class OCPIEndpointService {
       // Update timestamp
       ocpiendpoint.setCreatedBy(new User(req.user.tenantID, { 'id': req.user.id }));
       ocpiendpoint.setCreatedOn(new Date());
-      // Save Ocpiendpoint
-      const newOcpiendpoint = await ocpiendpoint.save();
+      // Save OcpiEndpoint
+      const newOcpiEndpoint = await ocpiendpoint.save();
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
-        user: req.user, module: 'OCPIEndpointService', method: 'handleCreateOcpiendpoint',
-        message: `Ocpiendpoint '${newOcpiendpoint.getName()}' has been created successfully`,
-        action: action, detailedMessages: newOcpiendpoint
+        user: req.user, module: 'OCPIEndpointService', method: 'handleCreateOcpiEndpoint',
+        message: `Ocpi Endpoint '${newOcpiEndpoint.getName()}' has been created successfully`,
+        action: action, detailedMessages: newOcpiEndpoint
       });
       // Ok
-      res.json(Object.assign({ id: newOcpiendpoint.getID() }, Constants.REST_RESPONSE_SUCCESS));
+      res.json(Object.assign({ id: newOcpiEndpoint.getID() }, Constants.REST_RESPONSE_SUCCESS));
       next();
     } catch (error) {
       // Log
@@ -171,29 +171,29 @@ class OCPIEndpointService {
     }
   }
 
-  static async handleUpdateOcpiendpoint(action, req, res, next) {
+  static async handleUpdateOcpiEndpoint(action, req, res, next) {
     try {
       // Filter
-      const filteredRequest = OCPIEndpointSecurity.filterOcpiendpointUpdateRequest(req.body, req.user);
-      // Get Ocpiendpoint
-      const ocpiendpoint = await OCPIEndpoint.getOcpiendpoint(req.user.tenantID, filteredRequest.id);
+      const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointUpdateRequest(req.body, req.user);
+      // Get OcpiEndpoint
+      const ocpiendpoint = await OCPIEndpoint.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
       if (!ocpiendpoint) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Ocpiendpoint with ID '${filteredRequest.id}' does not exist anymore`, 550,
-          'OCPIEndpointService', 'handleUpdateOcpiendpoint', req.user);
+          `The Ocpi Endpoint with ID '${filteredRequest.id}' does not exist anymore`, 550,
+          'OCPIEndpointService', 'handleUpdateOcpiEndpoint', req.user);
       }
       // Check Mandatory fields
-      OCPIEndpoint.checkIfOcpiendpointValid(filteredRequest, req);
+      OCPIEndpoint.checkIfOcpiEndpointValid(filteredRequest, req);
       // Check auth
-      if (!Authorizations.canUpdateOcpiendpoint(req.user, ocpiendpoint.getModel())) {
+      if (!Authorizations.canUpdateOcpiEndpoint(req.user, ocpiendpoint.getModel())) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
-          Constants.ENTITY_OCPIENDPOINT,
+          Constants.ENTITY_OCPI_ENDPOINT,
           ocpiendpoint.getID(),
           560,
-          'OCPIEndpointService', 'handleUpdateOcpiendpoint',
+          'OCPIEndpointService', 'handleUpdateOcpiEndpoint',
           req.user);
       }
       // Update
@@ -201,14 +201,14 @@ class OCPIEndpointService {
       // Update timestamp
       ocpiendpoint.setLastChangedBy(new User(req.user.tenantID, { 'id': req.user.id }));
       ocpiendpoint.setLastChangedOn(new Date());
-      // Update Ocpiendpoint
-      const updatedOcpiendpoint = await ocpiendpoint.save();
+      // Update OcpiEndpoint
+      const updatedOcpiEndpoint = await ocpiendpoint.save();
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
-        user: req.user, module: 'OCPIEndpointService', method: 'handleUpdateOcpiendpoint',
-        message: `Ocpiendpoint '${updatedOcpiendpoint.getName()}' has been updated successfully`,
-        action: action, detailedMessages: updatedOcpiendpoint
+        user: req.user, module: 'OCPIEndpointService', method: 'handleUpdateOcpiEndpoint',
+        message: `Ocpi Endpoint '${updatedOcpiEndpoint.getName()}' has been updated successfully`,
+        action: action, detailedMessages: updatedOcpiEndpoint
       });
       // Ok
       res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -219,23 +219,23 @@ class OCPIEndpointService {
     }
   }
 
-  static async handlePingOcpiendpoint(action, req, res, next) {
+  static async handlePingOcpiEndpoint(action, req, res, next) {
     try {
       // Check auth
-      if (!Authorizations.canPingOcpiendpoint(req.user)) {
+      if (!Authorizations.canPingOcpiEndpoint(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_PING,
-          Constants.ENTITY_OCPIENDPOINT,
+          Constants.ENTITY_OCPI_ENDPOINT,
           null,
           560,
-          'OCPIEndpointService', 'handlePingOcpiendpoint',
+          'OCPIEndpointService', 'handlePingOcpiEndpoint',
           req.user);
       }
       // Filter
-      const filteredRequest = OCPIEndpointSecurity.filterOcpiendpointPingRequest(req.body, req.user);
+      const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointPingRequest(req.body, req.user);
       // Check Mandatory fields
-      OCPIEndpoint.checkIfOcpiendpointValid(filteredRequest, req);
+      OCPIEndpoint.checkIfOcpiEndpointValid(filteredRequest, req);
       // Create temporary ocpiendpoint
       const ocpiendpoint = new OCPIEndpoint(req.user.tenantID, filteredRequest);
       // build OCPI Client
@@ -247,8 +247,8 @@ class OCPIEndpointService {
         // Log
         Logging.logSecurityInfo({
           tenantID: req.user.tenantID,
-          user: req.user, module: 'OCPIEndpointService', method: 'handlePingOcpiendpoint',
-          message: `Ocpiendpoint '${ocpiendpoint.getName()}' can be reached successfully`,
+          user: req.user, module: 'OCPIEndpointService', method: 'handlePingOcpiEndpoint',
+          message: `Ocpi Endpoint '${ocpiendpoint.getName()}' can be reached successfully`,
           action: action, detailedMessages: pingResult
         });
         res.json(Object.assign(pingResult, Constants.REST_RESPONSE_SUCCESS));
@@ -256,8 +256,8 @@ class OCPIEndpointService {
         // Log
         Logging.logSecurityError({
           tenantID: req.user.tenantID,
-          user: req.user, module: 'OCPIEndpointService', method: 'handlePingOcpiendpoint',
-          message: `Ocpiendpoint '${ocpiendpoint.getName()}' cannot be reached`,
+          user: req.user, module: 'OCPIEndpointService', method: 'handlePingOcpiEndpoint',
+          message: `Ocpi Endpoint '${ocpiendpoint.getName()}' cannot be reached`,
           action: action, detailedMessages: pingResult
         });
         res.json(pingResult);
@@ -269,25 +269,25 @@ class OCPIEndpointService {
     }
   }
 
-  static async handleSendEVSEStatusesOcpiendpoint(action, req, res, next) {
+  static async handleSendEVSEStatusesOcpiEndpoint(action, req, res, next) {
     try {
       // Check auth
-      if (!Authorizations.canSendEVSEStatusesOcpiendpoint(req.user)) {
+      if (!Authorizations.canSendEVSEStatusesOcpiEndpoint(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_SEND_EVSE_STATUSES,
-          Constants.ENTITY_OCPIENDPOINT,
+          Constants.ENTITY_OCPI_ENDPOINT,
           null,
           560,
-          'OCPIEndpointService', 'handleSendEVSEStatusesOcpiendpoint',
+          'OCPIEndpointService', 'handleSendEVSEStatusesOcpiEndpoint',
           req.user);
       }
       // Filter
-      const filteredRequest = OCPIEndpointSecurity.filterOcpiendpointSendEVSEStatusesRequest(req.body, req.user);
+      const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointSendEVSEStatusesRequest(req.body, req.user);
       // Check Mandatory fields
-      OCPIEndpoint.checkIfOcpiendpointValid(filteredRequest, req);
+      OCPIEndpoint.checkIfOcpiEndpointValid(filteredRequest, req);
       // get ocpiendpoint
-      const ocpiendpoint = await OCPIEndpoint.getOcpiendpoint(req.user.tenantID, filteredRequest.id);
+      const ocpiendpoint = await OCPIEndpoint.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
       // build OCPI Client
       const ocpiClient = new OCPIClient(ocpiendpoint);
       // send EVSE statuses
@@ -302,29 +302,29 @@ class OCPIEndpointService {
     }
   }
 
-  static async handleRegisterOcpiendpoint(action, req, res, next) {
+  static async handleRegisterOcpiEndpoint(action, req, res, next) {
     try {
       // Filter
-      const filteredRequest = OCPIEndpointSecurity.filterOcpiendpointRegisterRequest(req.body, req.user);
-      // Get Ocpiendpoint
-      const ocpiendpoint = await OCPIEndpoint.getOcpiendpoint(req.user.tenantID, filteredRequest.id);
+      const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointRegisterRequest(req.body, req.user);
+      // Get OcpiEndpoint
+      const ocpiendpoint = await OCPIEndpoint.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
       if (!ocpiendpoint) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Ocpiendpoint with ID '${filteredRequest.id}' does not exist anymore`, 550,
-          'OCPIEndpointService', 'handleRegisterOcpiendpoint', req.user);
+          `The Ocpi Endpoint with ID '${filteredRequest.id}' does not exist anymore`, 550,
+          'OCPIEndpointService', 'handleRegisterOcpiEndpoint', req.user);
       }
       // Check Mandatory fields
-      OCPIEndpoint.checkIfOcpiendpointValid(filteredRequest, req);
+      OCPIEndpoint.checkIfOcpiEndpointValid(filteredRequest, req);
       // Check auth
-      if (!Authorizations.canRegisterOcpiendpoint(req.user, ocpiendpoint.getModel())) {
+      if (!Authorizations.canRegisterOcpiEndpoint(req.user, ocpiendpoint.getModel())) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_REGISTER,
-          Constants.ENTITY_OCPIENDPOINT,
+          Constants.ENTITY_OCPI_ENDPOINT,
           null,
           560,
-          'OCPIEndpointService', 'handleRegisterOcpiendpoint',
+          'OCPIEndpointService', 'handleRegisterOcpiEndpoint',
           req.user);
       }
       // build OCPI Client
@@ -337,8 +337,8 @@ class OCPIEndpointService {
         // Log
         Logging.logSecurityInfo({
           tenantID: req.user.tenantID,
-          user: req.user, module: 'OCPIEndpointService', method: 'handleRegisterOcpiendpoint',
-          message: `Ocpiendpoint '${ocpiendpoint.getName()}' can be reached successfully`,
+          user: req.user, module: 'OCPIEndpointService', method: 'handleRegisterOcpiEndpoint',
+          message: `Ocpi Endpoint '${ocpiendpoint.getName()}' can be reached successfully`,
           action: action, detailedMessages: pingResult
         });
         res.json(Object.assign(pingResult, Constants.REST_RESPONSE_SUCCESS));
@@ -346,8 +346,8 @@ class OCPIEndpointService {
         // Log
         Logging.logSecurityError({
           tenantID: req.user.tenantID,
-          user: req.user, module: 'OCPIEndpointService', method: 'handleRegisterOcpiendpoint',
-          message: `Ocpiendpoint '${ocpiendpoint.getName()}' cannot be reached`,
+          user: req.user, module: 'OCPIEndpointService', method: 'handleRegisterOcpiEndpoint',
+          message: `Ocpi Endpoint '${ocpiendpoint.getName()}' cannot be reached`,
           action: action, detailedMessages: pingResult
         });
         res.json(pingResult);
@@ -359,23 +359,23 @@ class OCPIEndpointService {
     }
   }
 
-  static async handleGenerateLocalTokenOcpiendpoint(action, req, res, next) {
+  static async handleGenerateLocalTokenOcpiEndpoint(action, req, res, next) {
     try {
       // Check auth
-      if (!Authorizations.canGenerateLocalTokenOcpiendpoint(req.user)) {
+      if (!Authorizations.canGenerateLocalTokenOcpiEndpoint(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_GENERATE_LOCAL_TOKEN,
-          Constants.ENTITY_OCPIENDPOINT,
+          Constants.ENTITY_OCPI_ENDPOINT,
           null,
           560,
-          'OCPIEndpointService', 'handleGenerateLocalTokenOcpiendpoint',
+          'OCPIEndpointService', 'handleGenerateLocalTokenOcpiEndpoint',
           req.user);
       }
       // Filter
-      const filteredRequest = OCPIEndpointSecurity.filterOcpiendpointGenerateLocalTokenRequest(req.body, req.user);
+      const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointGenerateLocalTokenRequest(req.body, req.user);
       // Check Mandatory fields
-      OCPIEndpoint.checkIfOcpiendpointValid(filteredRequest, req);
+      OCPIEndpoint.checkIfOcpiEndpointValid(filteredRequest, req);
       // Create ocpiendpoint
       const ocpiendpoint = new OCPIEndpoint(req.user.tenantID, filteredRequest);
       // Generate new local token
@@ -383,8 +383,8 @@ class OCPIEndpointService {
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
-        user: req.user, module: 'OCPIEndpointService', method: 'handleGenerateLocalTokenOcpiendpoint',
-        message: `Local Token for Ocpiendpoint '${ocpiendpoint.getName()}' has been generatd successfully`,
+        user: req.user, module: 'OCPIEndpointService', method: 'handleGenerateLocalTokenOcpiEndpoint',
+        message: `Local Token for Ocpi Endpoint '${ocpiendpoint.getName()}' has been generatd successfully`,
         action: action, detailedMessages: ocpiendpoint
       });
       // Ok

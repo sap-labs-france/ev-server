@@ -24,14 +24,14 @@ class UserService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The User's ID must be provided`, 500,
+          `User's ID must be provided`, 500,
           'UserService', 'handleAddSitesToUser', req.user);
       }
       if (!filteredRequest.siteIDs || (filteredRequest.siteIDs && filteredRequest.siteIDs.length <= 0)) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Site's IDs must be provided`, 500,
+          `Site's IDs must be provided`, 500,
           'UserService', 'handleAddSitesToUser', req.user);
       }
       // Get the User
@@ -39,7 +39,7 @@ class UserService {
       if (!user) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The User with ID '${filteredRequest.userID}' does not exist anymore`, 550,
+          `User with ID '${filteredRequest.userID}' does not exist anymore`, 550,
           'UserService', 'handleAddSitesToUser', req.user);
       }
       // Check auth
@@ -59,7 +59,7 @@ class UserService {
         if (!site) {
           throw new AppError(
             Constants.CENTRAL_SERVER,
-            `The Site with ID '${siteID}' does not exist anymore`, 550,
+            `Site with ID '${siteID}' does not exist anymore`, 550,
             'UserService', 'handleAddSitesToUser', req.user);
         }
         // Check auth
@@ -99,14 +99,14 @@ class UserService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The User's ID must be provided`, 500,
+          `User's ID must be provided`, 500,
           'UserService', 'handleAddSitesToUser', req.user);
       }
       if (!filteredRequest.siteIDs || (filteredRequest.siteIDs && filteredRequest.siteIDs.length <= 0)) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Site's IDs must be provided`, 500,
+          `Site's IDs must be provided`, 500,
           'UserService', 'handleAddSitesToUser', req.user);
       }
       // Get the User
@@ -114,7 +114,7 @@ class UserService {
       if (!user) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The User with ID '${filteredRequest.userID}' does not exist anymore`, 550,
+          `User with ID '${filteredRequest.userID}' does not exist anymore`, 550,
           'UserService', 'handleAddSitesToUser', req.user);
       }
       // Check auth
@@ -134,7 +134,7 @@ class UserService {
         if (!site) {
           throw new AppError(
             Constants.CENTRAL_SERVER,
-            `The Site with ID '${siteID}' does not exist anymore`, 550,
+            `Site with ID '${siteID}' does not exist anymore`, 550,
             'UserService', 'handleAddSitesToUser', req.user);
         }
         // Check auth
@@ -174,7 +174,15 @@ class UserService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The User's ID must be provided`, 500,
+          `User's ID must be provided`, 500,
+          'UserService', 'handleDeleteUser', req.user);
+      }
+      // Check Mandatory fields
+      if (filteredRequest.ID === req.user.id) {
+        // Not Found!
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `User cannot delete himself`, 500,
           'UserService', 'handleDeleteUser', req.user);
       }
       // Check email
@@ -182,14 +190,14 @@ class UserService {
       if (!user) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The user with ID '${filteredRequest.id}' does not exist anymore`, 550,
+          `User with ID '${filteredRequest.id}' does not exist anymore`, 550,
           'UserService', 'handleDeleteUser', req.user);
       }
       // Deleted
       if (user.deleted) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The user with ID '${filteredRequest.id}' is already deleted`, 550,
+          `User with ID '${filteredRequest.id}' is already deleted`, 550,
           'UserService', 'handleDeleteUser', req.user);
       }
       // Check auth
@@ -236,22 +244,30 @@ class UserService {
       // Filter
       const filteredRequest = UserSecurity.filterUserUpdateRequest(req.body, req.user);
       // Check Mandatory fields
-      User.checkIfUserValid(filteredRequest, req);
+      if (!filteredRequest.id) {
+        // Not Found!
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `User's ID must be provided`, 500,
+          'UserService', 'handleDeleteUser', req.user);
+      }
       // Check email
       const user = await User.getUser(req.user.tenantID, filteredRequest.id);
       if (!user) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The user with ID '${filteredRequest.id}' does not exist anymore`, 550,
+          `User with ID '${filteredRequest.id}' does not exist anymore`, 550,
           'UserService', 'handleUpdateUser', req.user);
       }
       // Deleted?
       if (user.deleted) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The user with ID '${filteredRequest.id}' is logically deleted`, 550,
+          `User with ID '${filteredRequest.id}' is logically deleted`, 550,
           'UserService', 'handleUpdateUser', req.user);
       }
+      // Check Mandatory fields
+      User.checkIfUserValid(filteredRequest, user, req);
       // Check email
       const userWithEmail = await User.getUserByEmail(req.user.tenantID, filteredRequest.email);
       // Check if EMail is already taken
@@ -259,7 +275,7 @@ class UserService {
         // Yes!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The email '${filteredRequest.email}' already exists`, 510,
+          `Email '${filteredRequest.email}' already exists`, 510,
           'UserService', 'handleUpdateUser', req.user);
       }
       // Check auth
@@ -334,7 +350,7 @@ class UserService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The User's ID must be provided`, 500,
+          `User's ID must be provided`, 500,
           'UserService', 'handleGetUser', req.user);
       }
       // Get the user
@@ -342,14 +358,14 @@ class UserService {
       if (!user) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The user with ID '${filteredRequest.ID}' does not exist anymore`, 550,
+          `User with ID '${filteredRequest.ID}' does not exist anymore`, 550,
           'UserService', 'handleGetUser', req.user);
       }
       // Deleted?
       if (user.deleted) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The user with ID '${filteredRequest.ID}' is logically deleted`, 550,
+          `User with ID '${filteredRequest.ID}' is logically deleted`, 550,
           'UserService', 'handleGetUser', req.user);
       }
       // Check auth
@@ -384,7 +400,7 @@ class UserService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The User's ID must be provided`, 500,
+          `User's ID must be provided`, 500,
           'UserService', 'handleGetUser', req.user);
       }
       // Get the logged user
@@ -392,14 +408,14 @@ class UserService {
       if (!user) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The user with ID '${filteredRequest.ID}' does not exist anymore`, 550,
+          `User with ID '${filteredRequest.ID}' does not exist anymore`, 550,
           'UserService', 'handleGetUserImage', req.user);
       }
       // Deleted?
       if (user.deleted) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The user with ID '${filteredRequest.ID}' is logically deleted`, 550,
+          `User with ID '${filteredRequest.ID}' is logically deleted`, 550,
           'UserService', 'handleGetUserImage', req.user);
       }
       // Check auth
@@ -476,8 +492,7 @@ class UserService {
       // Set
       users.result = users.result.map((user) => user.getModel());
       // Filter
-      users.result = UserSecurity.filterUsersResponse(
-        users.result, req.user);
+      UserSecurity.filterUsersResponse(users, req.user);
       // Return
       res.json(users);
       next();
@@ -514,8 +529,7 @@ class UserService {
       // Set
       users.result = users.result.map((user) => user.getModel());
       // Filter
-      users.result = UserSecurity.filterUsersResponse(
-        users.result, req.user);
+      UserSecurity.filterUsersResponse(users, req.user);
       // Return
       res.json(users);
       next();
@@ -540,19 +554,14 @@ class UserService {
       }
       // Filter
       const filteredRequest = UserSecurity.filterUserCreateRequest(req.body, req.user);
-      if (!filteredRequest.role) {
-        // Set to default role
-        filteredRequest.role = Constants.ROLE_BASIC;
-        filteredRequest.status = Constants.USER_STATUS_INACTIVE;
-      }
       // Check Mandatory fields
-      User.checkIfUserValid(filteredRequest, req);
+      User.checkIfUserValid(filteredRequest, null, req);
       // Get the email
       const foundUser = await User.getUserByEmail(req.user.tenantID, filteredRequest.email);
       if (foundUser) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The email '${filteredRequest.email}' already exists`, 510,
+          `Email '${filteredRequest.email}' already exists`, 510,
           'UserService', 'handleCreateUser', req.user);
       }
       // Create user
@@ -564,8 +573,13 @@ class UserService {
         // Generate a hash
         user.setPassword(newPasswordHashed);
       }
-      // Update timestamp
+      // Set timestamp
       user.setCreatedBy(new User(req.user.tenantID, {'id': req.user.id}));
+      user.setCreatedOn(new Date());
+      // Set default
+      if (!filteredRequest.hasOwnProperty('notificationsActive')) {
+        user.setNotificationsActive(true);
+      }
       user.setCreatedOn(new Date());
       // Save User
       const newUser = await user.save();
@@ -599,7 +613,7 @@ class UserService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The User's ID must be provided`, 500,
+          `User's ID must be provided`, 500,
           'UserService', 'handleGetUserInvoice', req.user);
       }
       // Get the user
@@ -607,14 +621,14 @@ class UserService {
       if (!user) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The user with ID '${filteredRequest.ID}' does not exist anymore`, 550,
+          `User with ID '${filteredRequest.ID}' does not exist anymore`, 550,
           'UserService', 'handleGetUserInvoice', req.user);
       }
       // Deleted?
       if (user.deleted) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The user with ID '${filteredRequest.ID}' is logically deleted`, 550,
+          `User with ID '${filteredRequest.ID}' is logically deleted`, 550,
           'UserService', 'handleGetUserInvoice', req.user);
       }
       // Check auth

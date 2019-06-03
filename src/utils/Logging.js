@@ -1,3 +1,5 @@
+const cfenv = require('cfenv');
+const cluster = require('cluster');
 const Utils = require('./Utils');
 const Constants = require('./Constants');
 const AppError = require('../exception/AppError');
@@ -66,6 +68,10 @@ const LoggingType = {
 };
 
 class Logging {
+
+  // static _getSourceSuffix() {
+  //   return `~${Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname()}~${cluster.isWorker ? 'worker' + cluster.worker.id : 'master'}`;
+  // }
 
   // Log Debug
   static logDebug(log) {
@@ -498,12 +504,12 @@ class Logging {
       default:
         break;
     }
-    // Log
+    // Timestamp
     log.timestamp = new Date();
 
     // Source
     if (!log.source) {
-      log.source = Constants.CENTRAL_SERVER;
+      log.source = `${Constants.CENTRAL_SERVER}`;
     }
 
     // Check
@@ -532,7 +538,7 @@ class Logging {
     }
   }
 
-  //console Log
+  // console Log
   static _consoleLog(log) {
     let logFn;
     // Set the function to log

@@ -20,7 +20,46 @@
             "pattern": "^[a-z0-9]+$",
             "minLength": 1,
             "maxLength": 20
-        }
-    },
-    "required": ["name", "email", "subdomain"]
+        },
+        "components": {
+          "type": "object",
+          "properties": {
+              "ocpi": {
+                  "type": "object",
+                  "properties": {
+                      "active": { "type": "boolean" },
+                        "type": { "type": "string" }
+                    }
+              },
+              "refund": {
+                  "type": "object",
+                  "properties": {
+                      "active": { "type": "boolean" },
+                        "type": { "type": "string" }
+                    }
+              },
+              "pricing": {
+                  "type": "object",
+                  "properties": {
+                      "active": { "type": "boolean" },
+                        "type": { "type": "string" }
+                  }
+              },
+              "organization": {
+                  "type": "object",
+                  "properties": {
+                      "active": { "type": "boolean" }
+                    }
+              },
+              "analytics": {
+                  "type": "object",
+                  "properties": {
+                      "active": { "type": "boolean" },
+                        "type": { "type": "string" }
+                    }
+              }
+          }
+      }
+  },
+  "required": ["name", "email", "subdomain"]
 }

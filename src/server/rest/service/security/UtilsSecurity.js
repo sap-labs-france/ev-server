@@ -11,7 +11,7 @@ class UtilsSecurity {
       // Sanitize
       value = sanitize(value);
       // Check the type
-      if (typeof value == "boolean") {
+      if (typeof value === "boolean") {
         // Already a boolean
         result = value;
       } else {
@@ -120,12 +120,12 @@ class UtilsSecurity {
   }
 
   static filterCreatedAndLastChanged(filteredEntity, entity, loggedUser) {
-    if (entity.createdBy && typeof entity.createdBy == "object" &&
+    if (entity.createdBy && typeof entity.createdBy === "object" &&
 				Authorizations.canReadUser(loggedUser, entity.createdBy)) {
       // Build user
       filteredEntity.createdBy = Utils.buildUserFullName(entity.createdBy, false);
     }
-    if (entity.lastChangedBy && typeof entity.lastChangedBy == "object" &&
+    if (entity.lastChangedBy && typeof entity.lastChangedBy === "object" &&
 				Authorizations.canReadUser(loggedUser, entity.lastChangedBy)) {
       // Build user
       filteredEntity.lastChangedBy = Utils.buildUserFullName(entity.lastChangedBy, false);

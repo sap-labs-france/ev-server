@@ -15,25 +15,28 @@ class SiteArea extends AbstractTenantEntity {
     Database.updateSiteArea(siteArea, this._model);
   }
 
-  static checkIfSiteAreaValid(filteredRequest, request) {
+  static checkIfSiteAreaValid(filteredRequest, req) {
     // Update model?
-    if (request.method !== 'POST' && !filteredRequest.id) {
+    if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The Site Area ID is mandatory`, 500,
-        'SiteArea', 'checkIfSiteAreaValid');
+        `Site Area ID is mandatory`, 500,
+        'SiteArea', 'checkIfSiteAreaValid',
+        req.user.id, filteredRequest.id);
     }
     if (!filteredRequest.name) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The Site Area Name is mandatory`, 500,
-        'SiteArea', 'checkIfSiteAreaValid');
+        `Site Area Name is mandatory`, 500,
+        'SiteArea', 'checkIfSiteAreaValid',
+        req.user.id, filteredRequest.id);
     }
     if (!filteredRequest.siteID) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The Site ID is mandatory`, 500,
-        'SiteArea', 'checkIfSiteAreaValid');
+        `Site ID is mandatory`, 500,
+        'SiteArea', 'checkIfSiteAreaValid',
+        req.user.id, filteredRequest.id);
     }
     if (!filteredRequest.chargeBoxIDs) {
       filteredRequest.chargeBoxIDs = [];

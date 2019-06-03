@@ -28,6 +28,7 @@ class Configuration {
 
   // Cluster config
   static getClusterConfig() {
+    const nb_cpus = require("os").cpus().length;
     // Read conf and set defaults values
     if (!Configuration.getConfig().Cluster)
       Configuration.getConfig().Cluster = {};
@@ -36,8 +37,10 @@ class Configuration {
     // Running with cluster on one worker is meaningless, default to two workers
     if (Configuration.getConfig().Cluster.hasOwnProperty('num_worker') && Configuration.getConfig().Cluster.num_worker < 2)
       Configuration.getConfig().Cluster.num_worker = 2;
+    if (Configuration.getConfig().Cluster.hasOwnProperty('num_worker') && Configuration.getConfig().Cluster.num_worker > nb_cpus)
+      Configuration.getConfig().Cluster.num_worker = nb_cpus;
     if (!Configuration.getConfig().Cluster.hasOwnProperty('num_worker'))
-      Configuration.getConfig().Cluster.num_worker = require("os").cpus().length;
+      Configuration.getConfig().Cluster.num_worker = nb_cpus;
     return Configuration.getConfig().Cluster;
   }
 

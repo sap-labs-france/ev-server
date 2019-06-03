@@ -36,7 +36,7 @@ class LoggingSecurity {
     if (!logging) {
       return null;
     }
-    if (!Authorizations.isAdmin(loggedUser)) {
+    if (!Authorizations.isAdmin(loggedUser) && !Authorizations.isSuperAdmin(loggedUser)) {
       return null;
     }
     filteredLogging.id = logging.id;
@@ -53,11 +53,11 @@ class LoggingSecurity {
     if (withDetailedMessage) {
       filteredLogging.detailedMessages = logging.detailedMessages;
     }
-    if (logging.user && typeof logging.user == "object") {
+    if (logging.user && typeof logging.user === "object") {
       // Build user
       filteredLogging.user = Utils.buildUserFullName(logging.user, false);
     }
-    if (logging.actionOnUser && typeof logging.actionOnUser == "object") {
+    if (logging.actionOnUser && typeof logging.actionOnUser === "object") {
       // Build user
       filteredLogging.actionOnUser = Utils.buildUserFullName(logging.actionOnUser, false);
     }
@@ -67,10 +67,10 @@ class LoggingSecurity {
   static filterLoggingsResponse(loggings, loggedUser) {
     const filteredLoggings = [];
 		
-    if (!loggings) {
+    if (!loggings.result) {
       return null;
     }
-    for (const logging of loggings) {
+    for (const logging of loggings.result) {
       // Filter
       const filteredLogging = LoggingSecurity.filterLoggingResponse(logging, loggedUser);
       // Ok?
@@ -79,7 +79,7 @@ class LoggingSecurity {
         filteredLoggings.push(filteredLogging);
       }
     }
-    return filteredLoggings;
+    loggings.result = filteredLoggings;
   }
 }
 

@@ -46,7 +46,7 @@ module.exports = {
   createHttpServer: function (serverConfig, expressApp) {
     let server;
     // Create the HTTP server
-    if (serverConfig.protocol == "https") {
+    if (serverConfig.protocol === "https") {
       // Create the options
       const options = {};
       // Set the keys
@@ -76,11 +76,11 @@ module.exports = {
     return server;
   },
 
-  startServer: function (serverConfig, httpServer, serverName, serverModuleName, listenCb = null) {
+  startServer: function (serverConfig, httpServer, serverName, serverModuleName, listenCb = null, listen = true) {
     // Default listen callback
     function defaultListenCb() {
       // Log
-      const logMsg = `${serverName} Server listening on '${serverConfig.protocol}://${httpServer.address().address}:${httpServer.address().port}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`;
+      const logMsg = `${serverName} Server listening on '${serverConfig.protocol}://${httpServer.address().address}:${httpServer.address().port}'`;
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: serverModuleName,
@@ -88,7 +88,7 @@ module.exports = {
         message: logMsg
       });
       // eslint-disable-next-line no-console
-      console.log(logMsg);
+      console.log(logMsg + ` ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
     }
     let cb;
     if (listenCb !== null && typeof listenCb === 'function') {
@@ -97,25 +97,18 @@ module.exports = {
       cb = defaultListenCb;
     }
     // Log
-    let logMsg;
-    if (cluster.isWorker) {
-      // eslint-disable-next-line no-console
-      logMsg = `Starting ${serverName} Server in worker ${cluster.worker.id}...`;
-    } else {
-      // eslint-disable-next-line no-console
-      logMsg = `Starting ${serverName} Server in master...`;
-    }
+    const logMsg = `Starting ${serverName} Server ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`;
     // eslint-disable-next-line no-console
     console.log(logMsg);
 
     // Listen
-    if (serverConfig.host && serverConfig.port) {
+    if (serverConfig.host && serverConfig.port && listen) {
       httpServer.listen(serverConfig.port, serverConfig.host, cb);
-    } else if (!serverConfig.host && serverConfig.port) {
+    } else if (!serverConfig.host && serverConfig.port && listen) {
       httpServer.listen(serverConfig.port, cb);
-    } else {
+    } else if (listen) {
       // eslint-disable-next-line no-console
-      console.log(`Fail to start the ${serverName} Server, missing required port configuration`);
+      console.log(`Fail to start ${serverName} Server listening ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}, missing required port configuration`);
     }
   }
 };

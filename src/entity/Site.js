@@ -190,7 +190,7 @@ class Site extends AbstractTenantEntity {
     if (this._model.users) {
       // Search
       for (let i = 0; i < this._model.users.length; i++) {
-        if (this._model.users[i].id == user.getID()) {
+        if (this._model.users[i].id === user.getID()) {
           // Remove
           this._model.users.splice(i, 1);
           break;
@@ -215,25 +215,28 @@ class Site extends AbstractTenantEntity {
     return SiteStorage.deleteSite(this.getTenantID(), this.getID());
   }
 
-  static checkIfSiteValid(filteredRequest, request) {
+  static checkIfSiteValid(filteredRequest, req) {
     // Update model?
-    if (request.method !== 'POST' && !filteredRequest.id) {
+    if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The Site ID is mandatory`, 500,
-        'Site', 'checkIfSiteValid');
+        `Site ID is mandatory`, 500,
+        'Site', 'checkIfSiteValid',
+        req.user.id);
     }
     if (!filteredRequest.name) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The Site Name is mandatory`, 500,
-        'Site', 'checkIfSiteValid');
+        `Site Name is mandatory`, 500,
+        'Site', 'checkIfSiteValid',
+        req.user.id, filteredRequest.id);
     }
     if (!filteredRequest.companyID) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The Company ID is mandatory for the Site`, 500,
-        'Sites', 'checkIfSiteValid');
+        `Company ID is mandatory for the Site`, 500,
+        'Sites', 'checkIfSiteValid',
+        req.user.id, filteredRequest.id);
     }
   }
 

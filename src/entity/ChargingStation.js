@@ -48,13 +48,7 @@ class ChargingStation extends AbstractTenantEntity {
   }
 
   handleAction(action, params = {}) {
-    // Handle requests to charger
-    if (typeof this["request" + action] === 'function') {
-      // Call it
-      return this["request" + action](params);
-    } else {
-      throw new BackendError(this.getID(), `Action '${action}' is not implemented in the backend`, "ChargingStation", "handleAction");
-    }
+    return this["request" + action](params);
   }
 
   getID() {
@@ -381,37 +375,37 @@ class ChargingStation extends AbstractTenantEntity {
       configuration = {
         'configuration': configuration.configurationKey
       };
+      // Set default?
+      if (!configuration) {
+        // Check if there is an already existing config
+        const existingConfiguration = await this.getConfiguration();
+        if (!existingConfiguration) {
+          // No config at all: Set default OCCP configuration
+          configuration = OCPPConstants.DEFAULT_OCPP_CONFIGURATION;
+        } else {
+          // Set default
+          configuration = existingConfiguration;
+        }
+      }
+      // Set the charger ID
+      configuration.chargeBoxID = this.getID();
+      configuration.timestamp = new Date();
+      // Save config
+      await OCPPStorage.saveConfiguration(this.getTenantID(), configuration);
+      // Update connector power
+      await OCPPUtils.updateConnectorsPower(this);
+      // Ok
+      Logging.logInfo({
+        tenantID: this.getTenantID(), source: this.getID(), module: 'ChargingStation',
+        method: 'requestAndSaveConfiguration', action: 'RequestConfiguration',
+        message: `Configuration has been saved`
+      });
+      return { status: 'Accepted' };
     } catch (error) {
       // Log error
       Logging.logActionExceptionMessage(this.getTenantID(), 'RequestConfiguration', error);
+      return { status: 'Rejected' };
     }
-    // Set default?
-    if (!configuration) {
-      // Check if there is an already existing config
-      const existingConfiguration = await this.getConfiguration();
-      if (!existingConfiguration) {
-        // No config at all: Set default OCCP configuration
-        configuration = OCPPConstants.DEFAULT_OCPP_CONFIGURATION;
-      } else {
-        // Set default
-        configuration = existingConfiguration;
-      }
-    }
-    // Set the charger ID
-    configuration.chargeBoxID = this.getID();
-    configuration.timestamp = new Date();
-    // Save config
-    await OCPPStorage.saveConfiguration(this.getTenantID(), configuration);
-    // Update connector power
-    await OCPPUtils.updateConnectorsPower(this);
-    // Ok
-    Logging.logInfo({
-      tenantID: this.getTenantID(), source: this.getID(), module: 'ChargingStation',
-      method: 'requestAndSaveConfiguration', action: 'RequestConfiguration',
-      message: `Configuration has been saved`
-    });
-    // Ok
-    return { status: 'Accepted' };
   }
 
   setDeleted(deleted) {
@@ -492,6 +486,7 @@ class ChargingStation extends AbstractTenantEntity {
     if (connector) {
       connector.currentConsumption = 0;
       connector.totalConsumption = 0;
+      connector.totalInactivitySecs = 0;
       connector.currentStateOfCharge = 0;
       connector.activeTransactionID = 0;
     }
@@ -501,12 +496,12 @@ class ChargingStation extends AbstractTenantEntity {
     return this._requestExecuteCommand('reset', params);
   }
 
-  requestStopTransaction(params) {
+  requestRemoteStopTransaction(params) {
     return this._requestExecuteCommand('remoteStopTransaction', params);
   }
 
-  requestStartTransaction(params) {
-    return this._requestExecuteCommand('startTransaction', params);
+  requestRemoteStartTransaction(params) {
+    return this._requestExecuteCommand('remoteStartTransaction', params);
   }
 
   requestSetChargingProfile(params) {
@@ -576,20 +571,31 @@ class ChargingStation extends AbstractTenantEntity {
   }
 
   async _requestExecuteCommand(method, params) {
-    // Get the client
-    const chargingStationClient = await this.getChargingStationClient();
-    // Set Charging Profile
-    const result = await chargingStationClient[method](params);
-    // Log
-    Logging.logInfo({
-      tenantID: this.getTenantID(), source: this.getID(),
-      module: 'ChargingStation', method: '_requestCommand',
-      action: Utils.firstLetterInUpperCase(method),
-      message: `Command sent with success`,
-      detailedMessages: result
-    });
-    // Return
-    return result;
+    try {
+      // Get the client
+      const chargingStationClient = await this.getChargingStationClient();
+      // Set Charging Profile
+      const result = await chargingStationClient[method](params);
+      // Log
+      Logging.logInfo({
+        tenantID: this.getTenantID(), source: this.getID(),
+        module: 'ChargingStation', method: '_requestExecuteCommand',
+        action: Utils.firstLetterInUpperCase(method),
+        message: `Command sent with success`,
+        detailedMessages: result
+      });
+      // Return
+      return result;
+    } catch (error) {
+      // OCPP 1.6?
+      if (Array.isArray(error.error)) {
+        const response = error.error;
+        throw new BackendError(this.getID(), response[3], "ChargingStation",
+          "_requestExecuteCommand", Utils.firstLetterInUpperCase(method));
+      } else {
+        throw error;
+      }
+    }
   }
 
   getConfiguration() {

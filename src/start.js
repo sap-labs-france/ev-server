@@ -83,7 +83,7 @@ class Bootstrap {
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         source: 'Bootstrap', module: MODULE_NAME, method: '_startMasters', action: 'Start',
-        message: `Unexpected exception ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}: ${error.toString()}`
+        message: `Unexpected exception: ${error.toString()}`
       });
     }
   }
@@ -108,7 +108,10 @@ class Bootstrap {
         // Start database Web Socket notifications
         this._storageNotification.start();
         // Start it
-        await this._centralRestServer.start(!this._isClusterEnable);
+        await this._centralRestServer.start();
+        // if (this._centralSystemRestConfig.socketIO) {
+        //   await this._centralRestServer.startSocketIO();
+        // }
       }
 
       // -------------------------------------------------------------------------
@@ -166,7 +169,7 @@ class Bootstrap {
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         source: 'Bootstrap', module: MODULE_NAME, method: '_startServersListening', action: 'Start',
-        message: `Unexpected exception ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}: ${error.toString()}`
+        message: `Unexpected exception: ${error.toString()}`
       });
     }
   }
@@ -186,6 +189,9 @@ class Bootstrap {
       this._ocpiConfig = Configuration.getOCPIServiceConfig();
       this._oDataServerConfig = Configuration.getODataServiceConfig();
       this._isClusterEnable = Configuration.getClusterConfig().enable;
+      // Init global vars
+      global.userHashMapIDs = {};
+      global.tenantHashMapIDs = {};
 
       // Start the connection to the Database
       if (!this._databaseDone) {
@@ -202,12 +208,7 @@ class Bootstrap {
         }
         // Connect to the Database
         await this._database.start();
-        let logMsg;
-        if (cluster.isMaster) {
-          logMsg = `Database connected to '${this._storageConfig.implementation}' successfully in master`;
-        } else {
-          logMsg = `Database connected to '${this._storageConfig.implementation}' successfully in worker ${cluster.worker.id}`;
-        }
+        let logMsg = `Database connected to '${this._storageConfig.implementation}' successfully`;
         // Log
         Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
@@ -218,8 +219,8 @@ class Bootstrap {
       }
       global.database = this._database;
 
-      if (cluster.isMaster && !this._migrationDone) {
-        // Check and trigger migration (only master process can run the migration)
+      if (cluster.isMaster && !this._migrationDone && this._centralSystemRestConfig) {
+        // Check and trigger migration (only master process on the REST server can run the migration)
         await MigrationHandler.migrate();
         this._migrationDone = true;
       }
@@ -236,13 +237,21 @@ class Bootstrap {
         });
       });
 
-      if (cluster.isMaster && this._isClusterEnable) {
+      // FIXME: Attach the socketIO server to the master process for now.
+      //        Load balancing between workers needs to make the client session sticky.
+      if (this._centralSystemRestConfig && this._centralSystemRestConfig.socketIO && cluster.isMaster) {
+        // -------------------------------------------------------------------------
+        // REST Server (Front-End)
+        // -------------------------------------------------------------------------
         // Create the server
-        this._centralRestServer = new CentralRestServer(this._centralSystemRestConfig, this._chargingStationConfig);
-        // FIXME: Attach the socketIO server to the master process for now.
-        //        Load balancing between workers needs to make the client session sticky.
-        if (this._storageConfig.monitorDBChange)
-          await this._centralRestServer.startSocketIO();
+        if (!this._centralRestServer) {
+          this._centralRestServer = new CentralRestServer(this._centralSystemRestConfig, this._chargingStationConfig);
+        }
+        // Start Socket IO server
+        await this._centralRestServer.startSocketIO();
+      }
+
+      if (cluster.isMaster && this._isClusterEnable) {
         await Bootstrap._startMaster();
       } else {
         await Bootstrap._startServersListening();
@@ -262,7 +271,7 @@ class Bootstrap {
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         source: 'Bootstrap', module: MODULE_NAME, method: 'start', action: 'Start',
-        message: `Unexpected exception ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}: ${error.toString()}`
+        message: `Unexpected exception: ${error.toString()}`
       });
     }
   }
