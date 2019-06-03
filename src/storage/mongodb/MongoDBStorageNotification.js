@@ -90,10 +90,10 @@ class MongoDBStorageNotification {
     switch (collection) {
       case 'users':
       case 'userimages':
-        this.centralRestServer.notifyUser(Constants.DEFAULT_TENANT, action, {id: documentID});
+        this.centralRestServer.notifyUser(Constants.DEFAULT_TENANT, action, { id: documentID });
         break;
       case 'tenant':
-        this.centralRestServer.notifyTenant(Constants.DEFAULT_TENANT, action, {id: documentID});
+        this.centralRestServer.notifyTenant(Constants.DEFAULT_TENANT, action, { id: documentID });
         break;
       case 'logs':
         this.centralRestServer.notifyLogging(Constants.DEFAULT_TENANT, action);
@@ -105,30 +105,30 @@ class MongoDBStorageNotification {
     switch (collection) {
       case 'users':
       case 'userimages':
-        this.centralRestServer.notifyUser(tenantID, action, {id: documentID});
+        this.centralRestServer.notifyUser(tenantID, action, { id: documentID });
         break;
       case 'chargingstations':
-        this.centralRestServer.notifyChargingStation(tenantID, action, {id: documentID});
+        this.centralRestServer.notifyChargingStation(tenantID, action, { id: documentID });
         break;
       case 'vehiclemanufacturers':
       case 'vehiclemanufacturerlogos':
-        this.centralRestServer.notifyVehicleManufacturer(tenantID, action, {id: documentID});
+        this.centralRestServer.notifyVehicleManufacturer(tenantID, action, { id: documentID });
         break;
       case 'vehicles':
       case 'vehicleimages':
-        this.centralRestServer.notifyVehicle(tenantID, action, {id: documentID});
+        this.centralRestServer.notifyVehicle(tenantID, action, { id: documentID });
         break;
       case 'companies':
       case 'companylogos':
-        this.centralRestServer.notifyCompany(tenantID, action, {id: documentID});
+        this.centralRestServer.notifyCompany(tenantID, action, { id: documentID });
         break;
       case 'siteareas':
       case 'siteareaimages':
-        this.centralRestServer.notifySiteArea(tenantID, action, {id: documentID});
+        this.centralRestServer.notifySiteArea(tenantID, action, { id: documentID });
         break;
       case 'sites':
       case 'siteimages':
-        this.centralRestServer.notifySite(tenantID, action, {id: documentID});
+        this.centralRestServer.notifySite(tenantID, action, { id: documentID });
         break;
       case 'transactions':
         this.handleTransactionChange(tenantID, documentID, action, changeEvent);

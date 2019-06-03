@@ -524,7 +524,7 @@ class UserStorage {
         "eulaAcceptedVersion": 1,
         "tags": 1,
         "plateID": 1,
-        "notificationsActive":1
+        "notificationsActive": 1
       }
     });
     // Sort
