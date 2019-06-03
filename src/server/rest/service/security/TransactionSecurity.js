@@ -287,7 +287,7 @@ class TransactionSecurity {
       }));
     }
     for(let i = 1; i < filteredTransaction.values.length; i++) {
-      if(filteredTransaction.values[i].instantPower == 0) {
+      if(filteredTransaction.values[i].instantPower == 0 && filteredTransaction.values[i-1] != 0) {
         let addedValue = JSON.parse(JSON.stringify(filteredTransaction.values[i]));
         addedValue.endedAt = moment(filteredTransaction.values[i-1].endedAt).add(60, 's').toDate();
         addedValue.date = moment(filteredTransaction.values[i-1].endedAt).add(60, 's').toDate();
