@@ -1,25 +1,35 @@
 const soap = require('strong-soap').soap;
-const { performance } = require('perf_hooks');
+import { performance } from 'perf_hooks';
+import SoapRequest from './SoapRequest';
 
-class AbstractSoapClient {
+export default abstract class AbstractSoapClient {
 
-  constructor(endpointUrl, wsdlPath, service, port, user, password, clientSSLSecurity) {
-    this.endpointUrl = endpointUrl;
-    this.wsdlPath = wsdlPath;
+  private service: any;
+  private client: any;
+
+  //TODO: type service, clientSSLSecurity, client. for the latter two need
+  // to reverse-engineer strong-soap (Package @types/strong-soap doesnt exist)...
+  public constructor(
+      readonly endpointUrl: string,
+      readonly wsdlPath: string,
+      service: any,
+      readonly port: string,
+      readonly user: string,
+      readonly password: string,
+      readonly clientSSLSecurity: any)
+  {
     this.service = service;
-    this.port = port;
-    this.user = user;
-    this.password = password;
-    this.clientSSLSecurity = clientSSLSecurity;
   }
 
-  execute(request) {
+  //TODO: type incoming request.
+  public execute(request: any): Promise<{executionTime: number, headers: any, data: any}> {
     return this._execute(
       this._buildSOAPRequest(request.getName(), request)
     );
   }
 
-  async _execute(request) {
+  //TODO: soap headers and data has to be typed.
+  private async _execute(request: SoapRequest): Promise<{executionTime: number, headers: any, data: any}> {
     // Init Client (Done only once)
     await this._initSOAPClient();
     // Log
@@ -31,7 +41,7 @@ class AbstractSoapClient {
     this.client.clearSoapHeaders();
     this.client.addSoapHeader(request.headers);
     // Build the SOAP Request
-    const payload = {};
+    let payload: any = {};
     payload[request.requestName] = request.data;
     // payload[this._getRequestNameFromAction(request.name)] = request.data;
     let t0 = 0;
@@ -40,6 +50,7 @@ class AbstractSoapClient {
       // Execute it
       t0 = performance.now();
       const functionToCall = this.service[request.name];
+      //TODO: type this
       // eslint-disable-next-line no-unused-vars
       const { result, envelope, soapHeader } = await functionToCall(payload);
       t1 = performance.now();
@@ -58,10 +69,15 @@ class AbstractSoapClient {
     } catch (error) {
       // eslint-disable-next-line no-console
       console.log(error);
+      return {
+        executionTime: -1,
+        headers: false,
+        data: false
+      };//TODO check if this is wanted behavior. Why not throw an error?
     }
   }
 
-  _buildSOAPRequest(action, payload) {
+  private _buildSOAPRequest(action: string, payload: any): SoapRequest {
     return {
       name: action,
       requestName: action + 'Request',
@@ -76,7 +92,7 @@ class AbstractSoapClient {
     };
   }
 
-  async _initSOAPClient() {
+  private async _initSOAPClient(): Promise<void> {
     // Client options
     const options = {};
     // Check
@@ -84,7 +100,7 @@ class AbstractSoapClient {
       // Create the Promise
       this.client = await new Promise((resolve, reject) => {
         // Create the client
-        soap.createClient(this.wsdlPath, options, (err, client) => {
+        soap.createClient(this.wsdlPath, options, (err: any, client: any) => {
           if (err) {
             reject(err);
           } else {
@@ -99,5 +115,3 @@ class AbstractSoapClient {
     }
   }
 }
-
-module.exports = AbstractSoapClient;

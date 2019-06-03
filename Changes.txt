@@ -60,3 +60,23 @@ Ported
 
 UnauthorizedError.ts
 Ported, requires User to be ported as well
+
+NotificationTask.ts
+Ported. requires NotificationResult.ts to be filled in.
+
+AbstractSoapClient.ts
+Ported, but requires a LOT of typing to fully utilize typescript capabilities.
+Need to reverse engineering strong-soap in order to find out types.
+Package @types/strong-soap non existent.
+
+RatingService.ts
+Ported. Todo: Remove global as any typecasting.
+
+StatefulChargingService.ts
+Ported, but remove global as any typecast
+
+ConflictError.ts
+Ported. TODO Type messageParams properly.
+
+BackendError.ts
+Ported but requires User to be ported as well
