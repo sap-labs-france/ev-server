@@ -2,6 +2,7 @@ const sanitize = require('mongo-sanitize');
 const Authorizations = require('../../../../authorization/Authorizations');
 const Constants = require('../../../../utils/Constants');
 const UtilsSecurity = require('./UtilsSecurity');
+const moment = require('moment');
 
 class TransactionSecurity {
   // eslint-disable-next-line no-unused-vars
@@ -288,8 +289,8 @@ class TransactionSecurity {
     for(let i = 1; i < filteredTransaction.values.length; i++) {
       if(filteredTransaction.values[i].instantPower == 0) {
         let addedValue = JSON.parse(JSON.stringify(filteredTransaction.values[i]));
-        addedValue.endedAt = filteredTransaction.values[i-1].endedAt;
-        addedValue.date = filteredTransaction.values[i-1].endedAt;
+        addedValue.endedAt = moment(filteredTransaction.values[i-1].endedAt).add(60, 's').toDate();
+        addedValue.date = moment(filteredTransaction.values[i-1].endedAt).add(60, 's').toDate();
         filteredTransaction.values.splice(i, 0, addedValue);
         i++;
       }
