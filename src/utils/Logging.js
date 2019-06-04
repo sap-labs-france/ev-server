@@ -69,9 +69,9 @@ const LoggingType = {
 
 class Logging {
 
-  static _getSourceSuffix() {
-    return `~${Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname()}~${cluster.isWorker ? 'worker' + cluster.worker.id : 'master'}`;
-  }
+  // static _getSourceSuffix() {
+  //   return `~${Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname()}~${cluster.isWorker ? 'worker' + cluster.worker.id : 'master'}`;
+  // }
 
   // Log Debug
   static logDebug(log) {
@@ -509,9 +509,7 @@ class Logging {
 
     // Source
     if (!log.source) {
-      log.source = `${Constants.CENTRAL_SERVER}${Logging._getSourceSuffix()}`;
-    } else {
-      log.source = `${log.source}${Logging._getSourceSuffix()}`;
+      log.source = `${Constants.CENTRAL_SERVER}`;
     }
 
     // Check
@@ -540,7 +538,7 @@ class Logging {
     }
   }
 
-  //console Log
+  // console Log
   static _consoleLog(log) {
     let logFn;
     // Set the function to log

@@ -208,7 +208,7 @@ class Bootstrap {
         }
         // Connect to the Database
         await this._database.start();
-        let logMsg = `Database connected to '${this._storageConfig.implementation}' successfully`;
+        const logMsg = `Database connected to '${this._storageConfig.implementation}' successfully`;
         // Log
         Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,

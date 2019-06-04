@@ -330,13 +330,13 @@ class UserStorage {
       // At least one tag
       if (userToSave.tagIDs.length > 0) {
         // Create the list
-        for (const tag of userToSave.tagIDs) {
-          if (tag === "") {
+        for (const tagID of userToSave.tagIDs) {
+          if (!tagID || tagID === "") {
             continue;
           }
           // Modify
           await global.database.getCollection(tenantID, 'tags').findOneAndUpdate(
-            { '_id': tag },
+            { '_id': tagID },
             { $set: { 'userID': Utils.convertToObjectID(updatedUser.getID()) } },
             { upsert: true, new: true, returnOriginal: false });
         }
@@ -524,7 +524,7 @@ class UserStorage {
         "eulaAcceptedVersion": 1,
         "tags": 1,
         "plateID": 1,
-        "notificationsActive":1
+        "notificationsActive": 1
       }
     });
     // Sort

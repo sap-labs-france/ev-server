@@ -48,10 +48,10 @@ class SessionHashService {
   // Build User Hash ID
   static buildUserHashID(user) {
     // Get all field that need to be hashed
-    const data = user.getLanguage() + '/' +
+    const data =
+      user.getLanguage() + '/' +
       user.getRole() + '/' +
-      user.getStatus() + '/' +
-      user.getTagIDs().join('-');
+      user.getStatus();
     return crypto.createHash('sha256').update(data).digest("hex");
   }
 
