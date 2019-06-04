@@ -723,15 +723,18 @@ class UserStorage {
     const uniqueTimerID = Logging.traceStart('UserStorage', 'deleteUser');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Delete User
-    await global.database.getCollection(tenantID, 'users')
-      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
+    // Delete User from Sites
+    await global.database.getCollection(tenantID, 'siteusers')
+      .findOneAndDelete({ 'userID': Utils.convertToObjectID(id) });
     // Delete Image
     await global.database.getCollection(tenantID, 'userimages')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Delete Tags
     await global.database.getCollection(tenantID, 'tags')
       .deleteMany({ 'userID': Utils.convertToObjectID(id) });
+    // Delete User
+    await global.database.getCollection(tenantID, 'users')
+      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd('UserStorage', 'deleteUser', uniqueTimerID, { id });
   }
