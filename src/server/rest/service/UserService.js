@@ -212,7 +212,7 @@ class UserService {
           req.user);
       }
       // Delete from site
-      const sites = await user.getSites(false, false, false, true);
+      const sites = await user.getSites();
       for (const site of sites) {
         site.removeUser(user);
         await site.save();

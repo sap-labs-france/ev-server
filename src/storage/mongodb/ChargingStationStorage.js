@@ -11,8 +11,8 @@ class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStation');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
-    const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
+    const ChargingStation = require('../../entity/ChargingStation');
+    const SiteArea = require('../../entity/SiteArea');
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -65,9 +65,9 @@ class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
-    const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
-    const Site = require('../../entity/Site'); // Avoid fucking circular deps!!!
+    const ChargingStation = require('../../entity/ChargingStation');
+    const SiteArea = require('../../entity/SiteArea');
+    const Site = require('../../entity/Site');
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
     // Check Skip
@@ -268,10 +268,10 @@ class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
-    const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
-    const Site = require('../../entity/Site'); // Avoid fucking circular deps!!!
-    const Tenant = require('../../entity/Tenant'); // Avoid fucking circular deps!!!
+    const ChargingStation = require('../../entity/ChargingStation');
+    const SiteArea = require('../../entity/SiteArea');
+    const Site = require('../../entity/Site');
+    const Tenant = require('../../entity/Tenant');
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
     // Check Skip
@@ -561,7 +561,7 @@ class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStation');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
+    const ChargingStation = require('../../entity/ChargingStation');
     // Check Site Area
     chargingStationToSave.siteAreaID = null;
     if (chargingStationToSave.siteArea && chargingStationToSave.siteArea.id) {
@@ -594,7 +594,7 @@ class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStationConnector');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
+    const ChargingStation = require('../../entity/ChargingStation');
     const updatedFields = {};
     updatedFields["connectors." + (connector.connectorId - 1)] = connector;
     // Modify and return the modified document
@@ -617,7 +617,7 @@ class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStationHeartBeat');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
+    const ChargingStation = require('../../entity/ChargingStation');
     const updatedFields = {};
     updatedFields["lastHeartBeat"] = Utils.convertToDate(chargingStation.lastHeartBeat);
     // Modify and return the modified document
@@ -640,7 +640,7 @@ class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStationSiteArea');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
+    const ChargingStation = require('../../entity/ChargingStation');
     const updatedFields = {};
     updatedFields["siteAreaID"] = (chargingStation.siteArea ? Utils.convertToObjectID(chargingStation.siteArea.id) : null);
     // Check Last Changed By

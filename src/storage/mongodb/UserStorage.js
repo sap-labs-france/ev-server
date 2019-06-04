@@ -293,7 +293,7 @@ class UserStorage {
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUser');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const User = require('../../entity/User'); // Avoid fucking circular deps!!!
+    const User = require('../../entity/User');
     // Check if ID or email is provided
     if (!userToSave.id && !userToSave.email) {
       // ID must be provided!
@@ -374,7 +374,7 @@ class UserStorage {
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const User = require('../../entity/User'); // Avoid fucking circular deps!!!
+    const User = require('../../entity/User');
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
     // Check Skip
@@ -557,7 +557,7 @@ class UserStorage {
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const User = require('../../entity/User'); // Avoid fucking circular deps!!!
+    const User = require('../../entity/User');
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
     // Check Skip
@@ -740,7 +740,7 @@ class UserStorage {
   }
 
   static async _createUser(tenantID, userMDB) {
-    const User = require('../../entity/User'); // Avoid fucking circular deps!!!
+    const User = require('../../entity/User');
     let user = null;
     // Check
     if (userMDB) {

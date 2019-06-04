@@ -36,9 +36,9 @@ class SiteAreaStorage {
     const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'getSiteArea');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const Site = require('../../entity/Site');  // Avoid fucking circular deps!!!
-    const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
-    const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
+    const Site = require('../../entity/Site'); 
+    const SiteArea = require('../../entity/SiteArea');
+    const ChargingStation = require('../../entity/ChargingStation');
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -115,7 +115,7 @@ class SiteAreaStorage {
     const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'saveSiteArea');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
+    const SiteArea = require('../../entity/SiteArea');
     // Check if ID/Name is provided
     if (!siteAreaToSave.id && !siteAreaToSave.name) {
       // ID must be provided!
@@ -171,9 +171,9 @@ class SiteAreaStorage {
   }
 
   static async getSiteAreas(tenantID, params = {}, limit, skip, sort) {
-    const Site = require('../../entity/Site');  // Avoid fucking circular deps!!!
-    const SiteArea = require('../../entity/SiteArea'); // Avoid fucking circular deps!!!
-    const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
+    const Site = require('../../entity/Site'); 
+    const SiteArea = require('../../entity/SiteArea');
+    const ChargingStation = require('../../entity/ChargingStation');
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'getSiteAreas');
     // Check Tenant

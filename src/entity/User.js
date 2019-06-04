@@ -295,13 +295,10 @@ class User extends AbstractTenantEntity {
     this._model.sites = sites.map((site) => site.getModel());
   }
 
-  async getSites(withCompany = false, withSiteAreas = false,
-    withChargeBoxes = false, withUsers = false) {
+  async getSites() {
     // Get Sites
     const sites = await SiteStorage.getSites(this.getTenantID(), {
-      'userID': this.getID(),
-      withCompany, withSiteAreas, withChargeBoxes, withUsers
-    });
+      'userID': this.getID()});
     // Return the array
     return sites.result;
   }

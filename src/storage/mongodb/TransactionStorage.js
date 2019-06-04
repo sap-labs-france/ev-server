@@ -436,15 +436,13 @@ class TransactionStorage {
     // merge in each facet the join for sitearea and siteareaid
     const facetNames = [];
     for (const facet in facets.$facet) {
-      // for(const subRequest of toSubRequests){
       facets.$facet[facet] = [...facets.$facet[facet], ...toSubRequests];
-      // }
       facetNames.push(`$${facet}`);
     }
     aggregation.push(facets);
     // Manipulate the results to convert it to an array of document on root level
     aggregation.push({ $project: { "allItems": { $concatArrays: facetNames } } });
-    aggregation.push({ "$unwind": { "path": "$allItems" } });
+    aggregation.push({ $unwind: { "path": "$allItems" } });
     aggregation.push({ $replaceRoot: { newRoot: "$allItems" } });
     // Add a unique identifier as we may have the same charger several time
     aggregation.push({ $addFields: { "uniqueId": { $concat: ["$idAsString", "#", "$errorCode"] } } });
