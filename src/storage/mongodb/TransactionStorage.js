@@ -119,9 +119,15 @@ class TransactionStorage {
     if (params.endDateTime) {
       match.timestamp.$lte = Utils.convertToDate(params.endDateTime);
     }
-    // Check stop tr
+    // Check stop transaction
     if (params.stop) {
       match.stop = params.stop;
+    }
+    if (params.siteAreaID) {
+      match.siteAreaID = Utils.convertToObjectID(params.siteAreaID);
+    }
+    if (params.siteID) {
+      match.siteID = Utils.convertToObjectID(params.siteID);
     }
     if (params.type) {
       switch (params.type) {
@@ -145,7 +151,7 @@ class TransactionStorage {
       });
     }
     // Charger?
-    if (params.withChargeBoxes || params.siteID || params.siteAreaID) {
+    if (params.withChargeBoxes) {
       // Add Charge Box
       aggregation.push({
         $lookup: {
@@ -158,30 +164,6 @@ class TransactionStorage {
       // Single Record
       aggregation.push({
         $unwind: { "path": "$chargeBox", "preserveNullAndEmptyArrays": true }
-      });
-    }
-    if (params.siteAreaID) {
-      aggregation.push({
-        $match: { "chargeBox.siteAreaID": Utils.convertToObjectID(params.siteAreaID) }
-      });
-    }
-    if (params.siteID) {
-      // Add Site Area
-      aggregation.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, 'siteareas'),
-          localField: 'chargeBox.siteAreaID',
-          foreignField: '_id',
-          as: 'siteArea'
-        }
-      });
-      // Single Record
-      aggregation.push({
-        $unwind: { "path": "$siteArea", "preserveNullAndEmptyArrays": true }
-      });
-      // Filter
-      aggregation.push({
-        $match: { "siteArea.siteID": Utils.convertToObjectID(params.siteID) }
       });
     }
     // Limit records?
@@ -347,6 +329,12 @@ class TransactionStorage {
     if (params.endDateTime) {
       match.timestamp.$lte = Utils.convertToDate(params.endDateTime);
     }
+    if (params.siteAreaID) {
+      match.siteAreaID = Utils.convertToObjectID(params.siteAreaID);
+    }
+    if (params.siteID) {
+      match.siteID = Utils.convertToObjectID(params.siteID);
+    }
     // Filters
     if (match) {
       aggregation.push({
@@ -361,7 +349,7 @@ class TransactionStorage {
       }
     });
     // Charger?
-    if (params.withChargeBoxes || params.siteID || params.siteAreaID) {
+    if (params.withChargeBoxes) {
       // Add Charge Box
       toSubRequests.push({
         $lookup: {
@@ -376,31 +364,6 @@ class TransactionStorage {
         $unwind: { "path": "$chargeBox", "preserveNullAndEmptyArrays": true }
       });
     }
-    if (params.siteAreaID) {
-      toSubRequests.push({
-        $match: { "chargeBox.siteAreaID": Utils.convertToObjectID(params.siteAreaID) }
-      });
-    }
-    if (params.siteID) {
-      // Add Site Area
-      toSubRequests.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, 'siteareas'),
-          localField: 'chargeBox.siteAreaID',
-          foreignField: '_id',
-          as: 'siteArea'
-        }
-      });
-      // Single Record
-      toSubRequests.push({
-        $unwind: { "path": "$siteArea", "preserveNullAndEmptyArrays": true }
-      });
-      // Filter
-      toSubRequests.push({
-        $match: { "siteArea.siteID": Utils.convertToObjectID(params.siteID) }
-      });
-    }
-
     // Add User that started the transaction
     toSubRequests.push({
       $lookup: {
@@ -427,7 +390,6 @@ class TransactionStorage {
     toSubRequests.push({
       $unwind: { "path": "$stop.user", "preserveNullAndEmptyArrays": true }
     });
-
     const facets = {
       "$facet":
       {
@@ -551,13 +513,6 @@ class TransactionStorage {
     };
   }
 
-  /**
-   *
-   * @param tenantID
-   * @param id
-   * @param withMeterValues
-   * @returns {Promise<Transaction>}
-   */
   static async getTransaction(tenantID, id) {
     const Transaction = require('../../entity/Transaction');
     // Debug
