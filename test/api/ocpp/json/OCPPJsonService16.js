@@ -51,10 +51,6 @@ class OCPPJsonService16 extends OCPPService {
             response.responseMessageId = messageJson[1];
             response.executionTime = t1 - sentRequests[messageJson[1]].t0;
             response.data = messageJson[2];
-            if (config.get('ocpp.json.logs') === 'json') {
-              // eslint-disable-next-line no-console
-              console.log(JSON.stringify(response, null, 2));
-            }
             // Respond to the request
             sentRequests[messageJson[1]].resolve(response);
           } else if (messageJson[0] === OCPP_JSON_CALL_MESSAGE) {
@@ -64,9 +60,6 @@ class OCPPJsonService16 extends OCPPService {
           }
         } catch (error) {
           // eslint-disable-next-line no-console
-          console.log(`Error occurred when receiving the message ${message.data}`);
-          // eslint-disable-next-line no-console
-          console.error(error);
           reject(error);
         }
       };
@@ -78,9 +71,6 @@ class OCPPJsonService16 extends OCPPService {
 
     if (this.requestHandler && typeof this.requestHandler["handle" + commandName] === 'function') {
       result = await this.requestHandler["handle" + commandName](commandPayload);
-    } else {
-      // eslint-disable-next-line no-console
-      console.log(`${commandName} is not implemented`);
     }
     await this._send(chargeBoxIdentity, this._buildResponse(messageId, result));
 
@@ -159,16 +149,6 @@ class OCPPJsonService16 extends OCPPService {
     if (!this._wsSessions.get(chargeBoxIdentity)) {
       // Open WS
       this._wsSessions.set(chargeBoxIdentity, await this.openConnection(chargeBoxIdentity));
-    }
-    // Log
-    if (config.get('ocpp.json.logs') === 'json') {
-      // eslint-disable-next-line no-console
-      console.log(JSON.stringify({
-        url: this.serverUrl,
-        requestMessageId: message[1],
-        action: message[2],
-        data: message[3]
-      }, null, 2));
     }
     // Send
     const t0 = performance.now();
