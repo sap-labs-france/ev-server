@@ -211,12 +211,10 @@ class UserService {
           'UserService', 'handleDeleteUser',
           req.user);
       }
-      // Delete
+      // Delete from site
       const sites = await user.getSites(false, false, false, true);
       for (const site of sites) {
-        // Remove User
         site.removeUser(user);
-        // Save
         await site.save();
       }
       // Delete User
