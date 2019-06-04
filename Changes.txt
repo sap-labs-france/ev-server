@@ -100,4 +100,9 @@ Changed from JS hacked singleton to proper typescript singleton
 
 Organization...Error.ts
 
-OCPIError.ts
+OCPI(Server/Client)Error.ts
+
+OCPIUtils.ts
+
+AbstractEndpoint.ts
+Requires Tenant and OCPIServices to be Ported

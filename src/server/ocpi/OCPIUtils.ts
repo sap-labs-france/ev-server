@@ -1,18 +1,19 @@
-const Constants = require("../../utils/Constants");
-const OCPIClientError = require("../../exception/OCPIClientError");
-const OCPIServerError = require("../../exception/OCPIServerError");
+import Constants from "../../utils/Constants";
+import OCPIClientError from "../../exception/OCPIClientError";
+import OCPIServerError from "../../exception/OCPIServerError";
 require('source-map-support').install();
+import { Request } from 'express';
 
 /**
  * OCPI Utils
  */
-class OCPIUtils {
+export default class OCPIUtils {
 
   /**
    * Return OCPI Success Body Response
-   * @param {*} data 
+   * @param {*} data
    */
-  static success(data) {
+  public static success(data: any): {data: any, status_code: number, status_message: string, timestamp: string} {//TODO restrict any
     return {
       "data": data,
       "status_code": Constants.OCPI_STATUS_CODE.CODE_1000_SUCCESS.status_code,
@@ -23,12 +24,13 @@ class OCPIUtils {
 
   /**
    * Return OCPI Error Body Response
-   * @param {*} error 
+   * @param {*} error
    */
-  static error(error) {
-    const errorBody = {
-      "status_message": error.message,
-      "timestamp": new Date().toISOString()
+  public static error(error: any): {status_code: number, status_message: string, timestamp: string} {
+    const errorBody: {status_code: number, status_message: string, timestamp: string} = {
+      status_message: error.message,
+      timestamp: new Date().toISOString(),
+      status_code: -1
     };
 
     // check type of OCPI error Client vs Server
@@ -49,7 +51,7 @@ class OCPIUtils {
    * @param {*} limit limit of query
    * @param {*} total total number of records
    */
-  static buildNextUrl(req, offset, limit, total) {
+  public static buildNextUrl(req: Request, offset: number, limit: number, total: number): string|undefined {
     // check if next link should be generated
     if (offset + limit < total) {
       // build url
@@ -61,7 +63,7 @@ class OCPIUtils {
    * Convert from base64 back to String.
    * @param {*} string encoded base64
    */
-  static atob(base64) {
+  public static atob(base64: string): string {
     return Buffer.from(base64, 'base64').toString('binary');
   }
 
@@ -69,10 +71,8 @@ class OCPIUtils {
    * Convert to base64 from String.
    * @param {*} string encoded base64
    */
-  static btoa(string) {
+  public static btoa(string: string): string {
     return Buffer.from(string).toString('base64');
   }
 
-}
-
-module.exports = OCPIUtils;
+};

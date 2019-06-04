@@ -143,15 +143,15 @@ Depends on: [X] Constants,
 Dependency of: [ ] AbstractOCPIService, [ ] OCPIErrorHandler, [ ] OCPIUtils, [ ] CredentialsEndpoint, [ ] LocationsEndpoint, 
 
 Depends on: [ ] Constants, 
-		[ ] ./EV-SERVER/SRC/EXCEPTION\OCPICLIENTERROR.JS
+		[X] ./EV-SERVER/SRC/EXCEPTION\OCPICLIENTERROR.JS
 Dependency of: [ ] OCPIErrorHandler, [ ] OCPIUtils, [ ] CredentialsEndpoint, 
 
 Depends on: [ ] Constants, [ ] OCPIClientError, [ ] OCPIServerError, [ ] source-map-support, 
-		[ ] ./EV-SERVER/SRC/SERVER\OCPI\OCPIUTILS.JS
+		[X] ./EV-SERVER/SRC/SERVER\OCPI\OCPIUTILS.JS
 Dependency of: [ ] OCPIEndpoint, [ ] AbstractOCPIService, [ ] OCPIErrorHandler, [ ] OCPIServices, [ ] AbstractEndpoint, [ ] CredentialsEndpoint, [ ] LocationsEndpoint, 
 
 Depends on: [ ] OCPIUtils, [ ] source-map-support, 
-		[ ] ./EV-SERVER/SRC/SERVER\OCPI\OCPI-SERVICES-IMPL\ABSTRACTENDPOINT.JS
+		[X] ./EV-SERVER/SRC/SERVER\OCPI\OCPI-SERVICES-IMPL\ABSTRACTENDPOINT.JS
 Dependency of: [ ] CredentialsEndpoint, [ ] LocationsEndpoint, 
 
 Depends on: [ ] OCPIService.js, [ ] OCPIService.js, [ ] OCPIUtils, [ ] source-map-support, 
