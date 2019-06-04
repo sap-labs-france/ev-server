@@ -63,7 +63,7 @@ class TenantService extends AbstractService {
           module: 'MongoDBStorage', method: 'deleteTenantDatabase',
           message: `Deleting collections for tenant ${tenant.getID()}`
         });
-        tenant.deleteEnvironment();
+        await tenant.deleteEnvironment();
       }
       // Log
       Logging.logSecurityInfo({

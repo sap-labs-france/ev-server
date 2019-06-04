@@ -120,6 +120,7 @@
 		"test:authentication": "mocha test/**/AuthenticationTest.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
 		"test:tenant": "mocha test/**/TenantTest.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
 		"test:transactionTest": "mocha test/**/TemplateUnitTest.js --exit --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
+		"test:createContext": "mocha test/**/ContextBuilderRunner.js --exit --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
 		"clinic:clean": "clinic clean",
 		"npm-check": "npm-check"
 	},

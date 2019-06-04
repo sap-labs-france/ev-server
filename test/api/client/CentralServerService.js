@@ -24,17 +24,25 @@ chai.use(chaiSubset);
 
 class CentralServerService {
 
-  constructor(tenantSubdomain = null, onlySuperAdmin = false) {
+  constructor(tenantSubdomain = null, onlySuperAdmin = false, user = null) {
     this.tenantSubdomain = tenantSubdomain;
     this.baseURL = `${config.get('server.scheme')}://${config.get('server.host')}:${config.get('server.port')}`;
     // Create the Base API
     this.baseApi = new BaseApi(this.baseURL);
+    if (user) {
+      this.authenticatedUser = user;
+    } else {
+      this.authenticatedUser = {
+        email: config.get('admin.username'),
+        password: config.get('admin.password')
+      };
+    }
     if (!onlySuperAdmin) {
       // Create the Authenticated API
       if (tenantSubdomain) {
-        this.authenticatedApi = new AuthenticatedBaseApi(this.baseURL, config.get('admin.username'), config.get('admin.password'), tenantSubdomain);
+        this.authenticatedApi = new AuthenticatedBaseApi(this.baseURL, this.authenticatedUser.email, this.authenticatedUser.password, tenantSubdomain);
       } else {
-        this.authenticatedApi = new AuthenticatedBaseApi(this.baseURL, config.get('admin.username'), config.get('admin.password'), config.get('admin.tenant'));
+        this.authenticatedApi = new AuthenticatedBaseApi(this.baseURL, this.authenticatedUser.email, this.authenticatedUser.password, config.get('admin.tenant'));
       }
       // Create the Company
       this.companyApi = new CompanyApi(this.authenticatedApi);
@@ -50,14 +58,6 @@ class CentralServerService {
     this.authenticationApi = new AuthenticationApi(this.baseApi);
     this.tenantApi = new TenantApi(this.authenticatedSuperAdminApi, this.baseApi);
     this.mailApi = new MailApi(new BaseApi(`http://${config.get('mailServer.host')}:${config.get('mailServer.port')}`));
-  }
-
-  setBasicUserAuthentication(username, password) {
-    this.authenticatedApiBasicUser = new AuthenticatedBaseApi(this.baseURL, username, password, this.tenantSubdomain);
-  }
-
-  setDemoUserAuthentication(username, password) {
-    this.authenticatedApiDemoUser = new AuthenticatedBaseApi(this.baseURL, username, password, this.tenantSubdomain);
   }
 
   async updatePriceSetting(priceKWH, priceUnit) {
@@ -180,6 +180,7 @@ class CentralServerService {
       // Check
       expect(response.status).to.equal(200);
       expect(response.data.status).to.eql('Success');
+      return response;
     } else {
       // Let the caller to handle response
       return response;
@@ -196,6 +197,7 @@ class CentralServerService {
       // Check
       expect(response.status).to.equal(200);
       expect(response.data.status).to.eql('Success');
+      return response;
     } else {
       // Let the caller to handle response
       return response;

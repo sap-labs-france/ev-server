@@ -6,42 +6,44 @@ const chaiSubset = require('chai-subset');
 chai.use(chaiSubset);
 const moment = require('moment');
 const faker = require('faker');
-const {TENANT_CONTEXTS, ORGANIZATION_CONTEXTS} = require('./contextProvider/ContextConstants');
+const {TENANT_CONTEXTS, SITE_CONTEXTS, SITE_AREA_CONTEXTS} = require('./contextProvider/ContextConstants');
 const ContextProvider = require('./contextProvider/ContextProvider');
+const config = require('../config');
 
 describe('Transaction tests FOR TEST CONTEXT', function() {
   this.timeout(500000);
   before(async () => {
-    this.tenantContext = await ContextProvider.getTenantContext(TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS, ORGANIZATION_CONTEXTS.SITE_WITH_ACL);
+    this.tenantContext = await ContextProvider.getTenantContext(TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
   });
 
-  after(async () => {
-    await ContextProvider.destroy();
+  afterEach(async () => {
+    // await ContextProvider.destroy();
+    await this.tenantContext.cleanUpCreatedData();
   });
 
   describe('readById', () => {
     it('read a not existing transaction', async () => {
-      const response = await this.tenantContext.getCentralServerService().transactionApi.readById(faker.random.number(100000));
+      const response = await this.tenantContext.getAdminCentralServerService().transactionApi.readById(faker.random.number(100000));
       expect(response.status).to.equal(550);
     });
     it('read with invalid id', async () => {
-      const response = await this.tenantContext.getCentralServerService().transactionApi.readById(`&é"'(§è!çà)`);
+      const response = await this.tenantContext.getAdminCentralServerService().transactionApi.readById(`&é"'(§è!çà)`);
       expect(response.status).to.equal(550);
     });
     it('read without providing id', async () => {
-      const response = await this.tenantContext.getCentralServerService().transactionApi.readById();
+      const response = await this.tenantContext.getAdminCentralServerService().transactionApi.readById();
       expect(response.status).to.equal(500);
     });
     it('read a started transaction', async () => {
-      const user = this.tenantContext.getContext().users[0];
-      const chargingStation = this.tenantContext.getContext().chargingStations[0];
+      const user = this.tenantContext.getContextUser({email: `${config.get('admin.username')}`});
+      const chargingStation = this.tenantContext.getSiteContext(SITE_CONTEXTS.SITE_BASIC).getChargingStationOfSite(SITE_AREA_CONTEXTS.WITH_ACL);
       const connectorId = 1;
       const tagId = user.tagIDs[0];
       const meterStart = faker.random.number({min: 0, max: 1000});
       const startDate = moment();
 
       const transactionId = await this.tenantContext.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
-      const response = await this.tenantContext.getCentralServerService().transactionApi.readById(transactionId);
+      const response = await this.tenantContext.getAdminCentralServerService().transactionApi.readById(transactionId);
       expect(response.status).to.equal(200);
       expect(response.data).to.containSubset({
         id: transactionId,
@@ -62,8 +64,8 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
       await this.tenantContext.stopTransaction(chargingStation, transactionId, tagId, 50, startDate.add(1, 'hour'));
     });
     it('read a started transaction with one meter value', async () => {
-      const user = this.tenantContext.getContext().users[0];
-      const chargingStation = this.tenantContext.getContext().chargingStations[0];
+      const user = this.tenantContext.getContextUser({email: `${config.get('admin.username')}`});
+      const chargingStation = this.tenantContext.getSiteContext(SITE_CONTEXTS.SITE_BASIC).getChargingStationOfSite(SITE_AREA_CONTEXTS.WITH_ACL);
       const connectorId = 1;
       const tagId = user.tagIDs[0];
       const meterStart = 180;
@@ -74,7 +76,7 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
       const currentTime = startDate.clone().add(1, 'hour');
       await this.tenantContext.sendConsumptionMeterValue(chargingStation, connectorId, transactionId, meterStart + load, currentTime);
 
-      const response = await this.tenantContext.getCentralServerService().transactionApi.readById(transactionId);
+      const response = await this.tenantContext.getAdminCentralServerService().transactionApi.readById(transactionId);
       expect(response.status).to.equal(200);
       expect(response.data).to.containSubset({
         id: transactionId,
@@ -95,8 +97,8 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
       await this.tenantContext.stopTransaction(chargingStation, transactionId, tagId, 50, currentTime.add(1, 'hour'));
 
     });    it('read a started transaction with multiple meter values', async () => {
-      const user = this.tenantContext.getContext().users[0];
-      const chargingStation = this.tenantContext.getContext().chargingStations[0];
+      const user = this.tenantContext.getContextUser({email: `${config.get('admin.username')}`});
+      const chargingStation = this.tenantContext.getSiteContext(SITE_CONTEXTS.SITE_BASIC).getChargingStationOfSite(SITE_AREA_CONTEXTS.WITH_ACL);
       const connectorId = 1;
       const tagId = user.tagIDs[0];
       const meterStart = 180;
@@ -116,7 +118,7 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
       currentTime.add(1, 'hour');
       await this.tenantContext.sendConsumptionMeterValue(chargingStation, connectorId, transactionId, cumulated, currentTime);
 
-      const response = await this.tenantContext.getCentralServerService().transactionApi.readById(transactionId);
+      const response = await this.tenantContext.getAdminCentralServerService().transactionApi.readById(transactionId);
       expect(response.status).to.equal(200);
       expect(response.data).to.containSubset({
         id: transactionId,
@@ -128,8 +130,8 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
       await this.tenantContext.stopTransaction(chargingStation, transactionId, tagId, 50, currentTime.add(1, 'hour'));
     });
     it('read a closed transaction without meter values and no meterStart', async () => {
-      const user = this.tenantContext.getContext().users[0];
-      const chargingStation = this.tenantContext.getContext().chargingStations[0];
+      const user = this.tenantContext.getContextUser({email: `${config.get('admin.username')}`});
+      const chargingStation = this.tenantContext.getSiteContext(SITE_CONTEXTS.SITE_BASIC).getChargingStationOfSite(SITE_AREA_CONTEXTS.WITH_ACL);
       const connectorId = 1;
       const tagId = user.tagIDs[0];
       const meterStart = 0;
@@ -139,7 +141,7 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
       const transactionId = await this.tenantContext.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
       await this.tenantContext.stopTransaction(chargingStation, transactionId, tagId, meterStop, stopDate);
 
-      const response = await this.tenantContext.getCentralServerService().transactionApi.readById(transactionId);
+      const response = await this.tenantContext.getAdminCentralServerService().transactionApi.readById(transactionId);
       expect(response.status).to.equal(200);
       expect(response.data).to.containSubset({
         id: transactionId,
@@ -154,8 +156,8 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
 
     });
     it('read a closed transaction without meter values and a meterStart different from meterStop', async () => {
-      const user = this.tenantContext.getContext().users[0];
-      const chargingStation = this.tenantContext.getContext().chargingStations[0];
+      const user = this.tenantContext.getContextUser({email: `${config.get('admin.username')}`});
+      const chargingStation = this.tenantContext.getSiteContext(SITE_CONTEXTS.SITE_BASIC).getChargingStationOfSite(SITE_AREA_CONTEXTS.WITH_ACL);
       const connectorId = 1;
       const tagId = user.tagIDs[0];
       const meterStart = 0;
@@ -165,7 +167,7 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
       const transactionId = await this.tenantContext.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
       await this.tenantContext.stopTransaction(chargingStation, transactionId, tagId, meterStop, stopDate);
 
-      const response = await this.tenantContext.getCentralServerService().transactionApi.readById(transactionId);
+      const response = await this.tenantContext.getAdminCentralServerService().transactionApi.readById(transactionId);
       expect(response.status).to.equal(200);
       expect(response.data).to.containSubset({
         id: transactionId,
@@ -184,24 +186,24 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
 
   describe('readAllCompleted', () => {
     it('no transactions completed', async () => {
-      const user = this.tenantContext.getContext().users[0];
-      const chargingStation = await this.tenantContext.createChargingStation('1.6');
-      await this.tenantContext.assignChargingStation(chargingStation, this.tenantContext.getContext().siteAreas[0]);
+      const user = this.tenantContext.getContextUser({email: `${config.get('admin.username')}`});
+      const chargingStation = this.tenantContext.getSiteContext(SITE_CONTEXTS.SITE_BASIC).getChargingStationOfSite(SITE_AREA_CONTEXTS.WITH_ACL);
+      // await this.tenantContext.assignChargingStation(chargingStation, this.tenantContext.getContext().siteAreas[0]);
       const connectorId = 1;
       const tagId = user.tagIDs[0];
       const meterStart = 0;
       const startDate = moment();
       const transactionId = await this.tenantContext.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
 
-      const response = await this.tenantContext.getCentralServerService().transactionApi.readAllCompleted({ChargeBoxID: chargingStation.id});
+      const response = await this.tenantContext.getAdminCentralServerService().transactionApi.readAllCompleted({ChargeBoxID: chargingStation.id});
       expect(response.status).to.equal(200);
       expect(response.data.count).to.equal(0);
       await this.tenantContext.stopTransaction(chargingStation, transactionId, tagId, 50, startDate.add(1, 'hour'));
     });
     it('some transactions completed', async () => {
-      const user = this.tenantContext.getContext().users[0];
-      const chargingStation = await this.tenantContext.createChargingStation('1.6');
-      await this.tenantContext.assignChargingStation(chargingStation, this.tenantContext.getContext().siteAreas[0]);
+      const user = this.tenantContext.getContextUser({email: `${config.get('admin.username')}`});
+      const chargingStation = this.tenantContext.getSiteContext(SITE_CONTEXTS.SITE_BASIC).getChargingStationOfSite(SITE_AREA_CONTEXTS.WITH_ACL);
+      // await this.tenantContext.assignChargingStation(chargingStation, this.tenantContext.getContext().siteAreas[0]);
       const connectorId = 1;
       const tagId = user.tagIDs[0];
       const meterStart = 0;
@@ -213,7 +215,7 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
       const transactionId2 = await this.tenantContext.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
       await this.tenantContext.stopTransaction(chargingStation, transactionId2, tagId, meterStop, stopDate);
 
-      const response = await this.tenantContext.getCentralServerService().transactionApi.readAllCompleted({ChargeBoxID: chargingStation.id});
+      const response = await this.tenantContext.getAdminCentralServerService().transactionApi.readAllCompleted({ChargeBoxID: chargingStation.id});
       expect(response.status).to.equal(200);
       expect(response.data.count).to.equal(2);
       expect(response.data.result).to.containSubset([{
@@ -242,23 +244,23 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
 
   describe('readAllInError', () => {
     it('no transactions in error', async () => {
-      const user = this.tenantContext.getContext().users[0];
-      const chargingStation = await this.tenantContext.createChargingStation('1.6');
-      await this.tenantContext.assignChargingStation(chargingStation, this.tenantContext.getContext().siteAreas[0]);
+      const user = this.tenantContext.getContextUser({email: `${config.get('admin.username')}`});
+      const chargingStation = this.tenantContext.getSiteContext(SITE_CONTEXTS.SITE_BASIC).getChargingStationOfSite(SITE_AREA_CONTEXTS.WITH_ACL);
+      // await this.tenantContext.assignChargingStation(chargingStation, this.tenantContext.getContext().siteAreas[0]);
       const connectorId = 1;
       const tagId = user.tagIDs[0];
       const meterStart = 0;
       const startDate = moment();
       const transactionId = await this.tenantContext.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
-      const response = await this.tenantContext.getCentralServerService().transactionApi.readAllInError({ChargeBoxID: chargingStation.id});
+      const response = await this.tenantContext.getAdminCentralServerService().transactionApi.readAllInError({ChargeBoxID: chargingStation.id});
       expect(response.status).to.equal(200);
       expect(response.data.count).to.equal(0);
       await this.tenantContext.stopTransaction(chargingStation, transactionId, tagId, 50, startDate.add(1, 'hour'));
     });
     it('some transactions in error', async () => {
-      const user = this.tenantContext.getContext().users[0];
-      const chargingStation = await this.tenantContext.createChargingStation('1.6');
-      await this.tenantContext.assignChargingStation(chargingStation, this.tenantContext.getContext().siteAreas[0]);
+      const user = this.tenantContext.getContextUser({email: `${config.get('admin.username')}`});
+      const chargingStation = this.tenantContext.getSiteContext(SITE_CONTEXTS.SITE_BASIC).getChargingStationOfSite(SITE_AREA_CONTEXTS.WITH_ACL);
+      // await this.tenantContext.assignChargingStation(chargingStation, this.tenantContext.getContext().siteAreas[0]);
       const connectorId = 1;
       const tagId = user.tagIDs[0];
       const meterStart = 0;
@@ -270,7 +272,7 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
       const transactionId2 = await this.tenantContext.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
       await this.tenantContext.stopTransaction(chargingStation, transactionId2, tagId, meterStop, stopDate);
 
-      const response = await this.tenantContext.getCentralServerService().transactionApi.readAllInError({ChargeBoxID: chargingStation.id});
+      const response = await this.tenantContext.getAdminCentralServerService().transactionApi.readAllInError({ChargeBoxID: chargingStation.id});
       expect(response.status).to.equal(200);
       expect(response.data.count).to.equal(2);
       expect(response.data.result).to.containSubset([{
@@ -289,9 +291,8 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
 
   describe('readAllConsumption', () => {
     it('read consumption of a started transaction without meter values', async () => {
-      const user = this.tenantContext.getContext().users[0];
-      const chargingStation = await this.tenantContext.createChargingStation('1.6');
-      await this.tenantContext.assignChargingStation(chargingStation, this.tenantContext.getContext().siteAreas[0]);
+      const user = this.tenantContext.getContextUser({email: `${config.get('admin.username')}`});
+      const chargingStation = this.tenantContext.getSiteContext(SITE_CONTEXTS.SITE_BASIC).getChargingStationOfSite(SITE_AREA_CONTEXTS.WITH_ACL);
       const connectorId = 1;
       const tagId = user.tagIDs[0];
       const meterStart = 0;
@@ -299,7 +300,7 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
       const transactionId = await this.tenantContext.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
       // await this.tenantContext.stopTransaction(chargingStation, transactionId, tagId, meterStop, stopDate);
 
-      const response = await this.tenantContext.getCentralServerService().transactionApi.readAllConsumption({TransactionId: transactionId});
+      const response = await this.tenantContext.getAdminCentralServerService().transactionApi.readAllConsumption({TransactionId: transactionId});
       expect(response.status).to.equal(200);
       expect(response.data).to.containSubset({
         id: transactionId,
@@ -308,9 +309,9 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
       await this.tenantContext.stopTransaction(chargingStation, transactionId, tagId, 50, startDate.add(1, 'hour'));
     });
     it('read consumption of a started transaction with multiple meter values', async () => {
-      const user = this.tenantContext.getContext().users[0];
-      const chargingStation = await this.tenantContext.createChargingStation('1.6');
-      await this.tenantContext.assignChargingStation(chargingStation, this.tenantContext.getContext().siteAreas[0]);
+      const user = this.tenantContext.getContextUser({email: `${config.get('admin.username')}`});
+      const chargingStation = this.tenantContext.getSiteContext(SITE_CONTEXTS.SITE_BASIC).getChargingStationOfSite(SITE_AREA_CONTEXTS.WITH_ACL);
+      // await this.tenantContext.assignChargingStation(chargingStation, this.tenantContext.getContext().siteAreas[0]);
       const connectorId = 1;
       const tagId = user.tagIDs[0];
       const meterStart = 180;
@@ -335,7 +336,7 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
         await this.tenantContext.sendConsumptionMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.timestamp);
       }
 
-      const response = await this.tenantContext.getCentralServerService().transactionApi.readAllConsumption({TransactionId: transactionId});
+      const response = await this.tenantContext.getAdminCentralServerService().transactionApi.readAllConsumption({TransactionId: transactionId});
       expect(response.status).to.equal(200);
       expect(response.data).to.containSubset({
         id: transactionId,
@@ -356,9 +357,9 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
     });
 
     it('read consumption of a started transaction with multiple meter values and different date parameters', async () => {
-      const user = this.tenantContext.getContext().users[0];
-      const chargingStation = await this.tenantContext.createChargingStation('1.6');
-      await this.tenantContext.assignChargingStation(chargingStation, this.tenantContext.getContext().siteAreas[0]);
+      const user = this.tenantContext.getContextUser({email: `${config.get('admin.username')}`});
+      const chargingStation = this.tenantContext.getSiteContext(SITE_CONTEXTS.SITE_BASIC).getChargingStationOfSite(SITE_AREA_CONTEXTS.WITH_ACL);
+      // await this.tenantContext.assignChargingStation(chargingStation, this.tenantContext.getContext().siteAreas[0]);
       const connectorId = 1;
       const tagId = user.tagIDs[0];
       const meterStart = 180;
@@ -382,7 +383,7 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
         await this.tenantContext.sendConsumptionMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.timestamp);
       }
 
-      let response = await this.tenantContext.getCentralServerService().transactionApi.readAllConsumption({
+      let response = await this.tenantContext.getAdminCentralServerService().transactionApi.readAllConsumption({
         TransactionId: transactionId,
         StartDateTime: startDate.clone().subtract(1, "hour").toISOString()
       });
@@ -403,7 +404,7 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
         ]
       });
 
-      response = await this.tenantContext.getCentralServerService().transactionApi.readAllConsumption({
+      response = await this.tenantContext.getAdminCentralServerService().transactionApi.readAllConsumption({
         TransactionId: transactionId,
         StartDateTime: startDate.clone().subtract(2, "hour").toISOString(),
         EndDateTime: startDate.clone().subtract(1, "hour").toISOString()
@@ -414,7 +415,7 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
         values: []
       });
 
-      response = await this.tenantContext.getCentralServerService().transactionApi.readAllConsumption({
+      response = await this.tenantContext.getAdminCentralServerService().transactionApi.readAllConsumption({
         TransactionId: transactionId,
         StartDateTime: startDate.clone().subtract(1, "hour").toISOString(),
         EndDateTime: startDate.clone().subtract(0, "hour").toISOString()
@@ -426,7 +427,7 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
       });
 
 
-      response = await this.tenantContext.getCentralServerService().transactionApi.readAllConsumption({
+      response = await this.tenantContext.getAdminCentralServerService().transactionApi.readAllConsumption({
         TransactionId: transactionId,
         StartDateTime: startDate.clone().subtract(1, "hour").toISOString(),
         EndDateTime: startDate.clone().add(30, "minutes").toISOString()
@@ -436,7 +437,7 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
         id: transactionId,
         values: []
       });
-      response = await this.tenantContext.getCentralServerService().transactionApi.readAllConsumption({
+      response = await this.tenantContext.getAdminCentralServerService().transactionApi.readAllConsumption({
         TransactionId: transactionId,
         StartDateTime: startDate.clone().subtract(1, "hour").toISOString(),
         EndDateTime: startDate.clone().add(1, "hour").toISOString()
@@ -453,7 +454,7 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
         ]
       });
 
-      response = await this.tenantContext.getCentralServerService().transactionApi.readAllConsumption({
+      response = await this.tenantContext.getAdminCentralServerService().transactionApi.readAllConsumption({
         TransactionId: transactionId,
         StartDateTime: startDate.clone().subtract(1, "hour").toISOString(),
         EndDateTime: startDate.clone().add(1.5, "hour").toISOString()
@@ -470,7 +471,7 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
         ]
       });
 
-      response = await this.tenantContext.getCentralServerService().transactionApi.readAllConsumption({
+      response = await this.tenantContext.getAdminCentralServerService().transactionApi.readAllConsumption({
         TransactionId: transactionId,
         StartDateTime: startDate.clone().subtract(1, "hour").toISOString(),
         EndDateTime: startDate.clone().add(3, "hour").toISOString()
@@ -492,7 +493,7 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
         ]
       });
 
-      response = await this.tenantContext.getCentralServerService().transactionApi.readAllConsumption({
+      response = await this.tenantContext.getAdminCentralServerService().transactionApi.readAllConsumption({
         TransactionId: transactionId,
         StartDateTime: startDate.clone().add(1, "hour").toISOString(),
         EndDateTime: startDate.clone().add(2, "hour").toISOString()
@@ -514,7 +515,7 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
         ]
       });
 
-      response = await this.tenantContext.getCentralServerService().transactionApi.readAllConsumption({
+      response = await this.tenantContext.getAdminCentralServerService().transactionApi.readAllConsumption({
         TransactionId: transactionId,
         StartDateTime: startDate.clone().add(1.5, "hour").toISOString(),
         EndDateTime: startDate.clone().add(2, "hour").toISOString()
@@ -531,7 +532,7 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
         ]
       });
 
-      response = await this.tenantContext.getCentralServerService().transactionApi.readAllConsumption({
+      response = await this.tenantContext.getAdminCentralServerService().transactionApi.readAllConsumption({
         TransactionId: transactionId,
         StartDateTime: startDate.clone().add(2, "hour").toISOString(),
         EndDateTime: startDate.clone().add(3, "hour").toISOString()
@@ -548,7 +549,7 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
         ]
       });
 
-      response = await this.tenantContext.getCentralServerService().transactionApi.readAllConsumption({
+      response = await this.tenantContext.getAdminCentralServerService().transactionApi.readAllConsumption({
         TransactionId: transactionId,
         StartDateTime: startDate.clone().add(2.5, "hour").toISOString(),
         EndDateTime: startDate.clone().add(3, "hour").toISOString()
@@ -559,7 +560,7 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
         values: []
       });
 
-      response = await this.tenantContext.getCentralServerService().transactionApi.readAllConsumption({
+      response = await this.tenantContext.getAdminCentralServerService().transactionApi.readAllConsumption({
         TransactionId: transactionId,
         EndDateTime: startDate.clone().toISOString()
       });
@@ -569,7 +570,7 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
         values: []
       });
 
-      response = await this.tenantContext.getCentralServerService().transactionApi.readAllConsumption({
+      response = await this.tenantContext.getAdminCentralServerService().transactionApi.readAllConsumption({
         TransactionId: transactionId,
         EndDateTime: startDate.clone().add(1, "hour").toISOString()
       });
@@ -584,7 +585,7 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
           }
         ]
       });
-      response = await this.tenantContext.getCentralServerService().transactionApi.readAllConsumption({
+      response = await this.tenantContext.getAdminCentralServerService().transactionApi.readAllConsumption({
         TransactionId: transactionId,
         EndDateTime: startDate.clone().add(2.5, "hour").toISOString()
       });
@@ -604,7 +605,7 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
           }
         ]
       });
-      response = await this.tenantContext.getCentralServerService().transactionApi.readAllConsumption({
+      response = await this.tenantContext.getAdminCentralServerService().transactionApi.readAllConsumption({
         TransactionId: transactionId,
         EndDateTime: startDate.clone().add(4, "hour").toISOString()
       });
@@ -627,9 +628,8 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
       await this.tenantContext.stopTransaction(chargingStation, transactionId, tagId, 50, startDate.add(1, 'hour'));
     });
     it('read consumption of a stopped transaction without meter values', async () => {
-      const user = this.tenantContext.getContext().users[0];
-      const chargingStation = await this.tenantContext.createChargingStation('1.6');
-      await this.tenantContext.assignChargingStation(chargingStation, this.tenantContext.getContext().siteAreas[0]);
+      const user = this.tenantContext.getContextUser({email: `${config.get('admin.username')}`});
+      const chargingStation = this.tenantContext.getSiteContext(SITE_CONTEXTS.SITE_BASIC).getChargingStationOfSite(SITE_AREA_CONTEXTS.WITH_ACL);
       const connectorId = 1;
       const tagId = user.tagIDs[0];
       const meterStart = 0;
@@ -639,7 +639,7 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
       const transactionId = await this.tenantContext.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
       await this.tenantContext.stopTransaction(chargingStation, transactionId, tagId, meterStop, stopDate);
 
-      const response = await this.tenantContext.getCentralServerService().transactionApi.readAllConsumption({TransactionId: transactionId});
+      const response = await this.tenantContext.getAdminCentralServerService().transactionApi.readAllConsumption({TransactionId: transactionId});
       expect(response.status).to.equal(200);
       expect(response.data).to.containSubset({
         id: transactionId,
@@ -656,16 +656,15 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
 
   describe('getTransactionsActive', () => {
     it('read on a charger without active transactions', async () => {
-      const chargingStation = await this.tenantContext.createChargingStation('1.6');
-      await this.tenantContext.assignChargingStation(chargingStation, this.tenantContext.getContext().siteAreas[0]);
-      const response = await this.tenantContext.getCentralServerService().transactionApi.readAllActive({ChargeBoxID: chargingStation.id});
+      // const user = this.tenantContext.getContextUser({email: `${config.get('admin.username')}`});
+      const chargingStation = this.tenantContext.getSiteContext(SITE_CONTEXTS.SITE_BASIC).getChargingStationOfSite(SITE_AREA_CONTEXTS.WITH_ACL);
+      const response = await this.tenantContext.getAdminCentralServerService().transactionApi.readAllActive({ChargeBoxID: chargingStation.id});
       expect(response.status).to.equal(200);
       expect(response.data.count).to.equal(0);
     });
     it('read on a charger with multiple active transactions', async () => {
-      const user = this.tenantContext.getContext().users[0];
-      const chargingStation = await this.tenantContext.createChargingStation('1.6');
-      await this.tenantContext.assignChargingStation(chargingStation, this.tenantContext.getContext().siteAreas[0]);
+      const user = this.tenantContext.getContextUser({email: `${config.get('admin.username')}`});
+      const chargingStation = this.tenantContext.getSiteContext(SITE_CONTEXTS.SITE_BASIC).getChargingStationOfSite(SITE_AREA_CONTEXTS.WITH_ACL);
       const connectorId1 = 1;
       const connectorId2 = 2;
       const tagId = user.tagIDs[0];
@@ -677,7 +676,7 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
       await this.tenantContext.stopTransaction(chargingStation, transactionId1, tagId, meterStop, stopDate);
       const transactionId2 = await this.tenantContext.startTransaction(chargingStation, connectorId1, tagId, meterStart, startDate);
       const transactionId3 = await this.tenantContext.startTransaction(chargingStation, connectorId2, tagId, meterStart, startDate);
-      const response = await this.tenantContext.getCentralServerService().transactionApi.readAllActive({ChargeBoxID: chargingStation.id});
+      const response = await this.tenantContext.getAdminCentralServerService().transactionApi.readAllActive({ChargeBoxID: chargingStation.id});
       expect(response.status).to.equal(200);
       expect(response.data.count).to.equal(2);
       expect(response.data.result).to.containSubset([
@@ -694,34 +693,34 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
   });
   describe('delete', () => {
     it('delete a not existing transaction', async () => {
-      const response = await this.tenantContext.getCentralServerService().transactionApi.delete(faker.random.number(100000));
+      const response = await this.tenantContext.getAdminCentralServerService().transactionApi.delete(faker.random.number(100000));
       expect(response.status).to.equal(550);
     });
     it('delete with invalid id', async () => {
-      const response = await this.tenantContext.getCentralServerService().transactionApi.delete(`&é"'(§è!çà)`);
+      const response = await this.tenantContext.getAdminCentralServerService().transactionApi.delete(`&é"'(§è!çà)`);
       expect(response.status).to.equal(550);
     });
     it('delete without providing id', async () => {
-      const response = await this.tenantContext.getCentralServerService().transactionApi.delete();
+      const response = await this.tenantContext.getAdminCentralServerService().transactionApi.delete();
       expect(response.status).to.equal(500);
     });
     it('delete a started transaction', async () => {
-      const user = this.tenantContext.getContext().users[0];
-      const chargingStation = this.tenantContext.getContext().chargingStations[0];
+      const user = this.tenantContext.getContextUser({email: `${config.get('admin.username')}`});
+      const chargingStation = this.tenantContext.getSiteContext(SITE_CONTEXTS.SITE_BASIC).getChargingStationOfSite(SITE_AREA_CONTEXTS.WITH_ACL);
       const connectorId = 1;
       const tagId = user.tagIDs[0];
       const meterStart = 0;
       const startDate = moment();
       const transactionId = await this.tenantContext.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
-      let response = await this.tenantContext.getCentralServerService().transactionApi.delete(transactionId);
+      let response = await this.tenantContext.getAdminCentralServerService().transactionApi.delete(transactionId);
       expect(response.status).to.equal(500);
-      response = await this.tenantContext.getCentralServerService().transactionApi.readById(transactionId);
+      response = await this.tenantContext.getAdminCentralServerService().transactionApi.readById(transactionId);
       expect(response.status).to.equal(200);
       await this.tenantContext.stopTransaction(chargingStation, transactionId, tagId, 50, startDate.add(1, 'hour'));
     });
     it('delete a closed transaction', async () => {
-      const user = this.tenantContext.getContext().users[0];
-      const chargingStation = this.tenantContext.getContext().chargingStations[0];
+      const user = this.tenantContext.getContextUser({email: `${config.get('admin.username')}`});
+      const chargingStation = this.tenantContext.getSiteContext(SITE_CONTEXTS.SITE_BASIC).getChargingStationOfSite(SITE_AREA_CONTEXTS.WITH_ACL);
       const connectorId = 1;
       const tagId = user.tagIDs[0];
       const meterStart = 0;
@@ -730,15 +729,15 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
       const stopDate = startDate.clone().add(1, 'hour');
       const transactionId = await this.tenantContext.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
       await this.tenantContext.stopTransaction(chargingStation, transactionId, tagId, meterStop, stopDate);
-      let response = await this.tenantContext.getCentralServerService().transactionApi.delete(transactionId);
+      let response = await this.tenantContext.getAdminCentralServerService().transactionApi.delete(transactionId);
       expect(response.status).to.equal(200);
-      response = await this.tenantContext.getCentralServerService().transactionApi.readById(transactionId);
+      response = await this.tenantContext.getAdminCentralServerService().transactionApi.readById(transactionId);
       expect(response.status).to.equal(550);
     });
   });
   xit('a mail notification should be received when starting a transaction', async () => {
-    const user = this.tenantContext.getContext().users[0];
-    const chargingStation = this.tenantContext.getContext().chargingStations[0];
+    const user = this.tenantContext.getContextUser({email: `${config.get('admin.username')}`});
+    const chargingStation = this.tenantContext.getSiteContext(SITE_CONTEXTS.SITE_BASIC).getChargingStationOfSite(SITE_AREA_CONTEXTS.WITH_ACL);
     const connectorId = 1;
     const tagId = user.tagIDs[0];
     const meterStart = 180;
@@ -771,16 +770,16 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
       await this.tenantContext.sendConsumptionMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.timestamp);
     }
     await timeout(2000);
-    expect(await this.tenantContext.getCentralServerService().mailApi.isMailReceived(user.email, 'transaction-started')).is.equal(true, "transaction-started mail");
-    expect(await this.tenantContext.getCentralServerService().mailApi.isMailReceived(user.email, 'end-of-charge')).is.equal(true, "end-of-charge mail");
+    expect(await this.tenantContext.getAdminCentralServerService().mailApi.isMailReceived(user.email, 'transaction-started')).is.equal(true, "transaction-started mail");
+    expect(await this.tenantContext.getAdminCentralServerService().mailApi.isMailReceived(user.email, 'end-of-charge')).is.equal(true, "end-of-charge mail");
 
     await this.tenantContext.stopTransaction(chargingStation, transactionId, tagId, cumulated + 50, currentDate.add(1, 'hour'));
 
   });
 
   it('inactivity should be computed', async () => {
-    const user = this.tenantContext.getContext().users[0];
-    const chargingStation = this.tenantContext.getContext().chargingStations[0];
+    const user = this.tenantContext.getContextUser({email: `${config.get('admin.username')}`});
+    const chargingStation = this.tenantContext.getSiteContext(SITE_CONTEXTS.SITE_BASIC).getChargingStationOfSite(SITE_AREA_CONTEXTS.WITH_ACL);
     const connectorId = 1;
     const tagId = user.tagIDs[0];
     const meterStart = 180;
@@ -822,7 +821,7 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
     }
 
     await this.tenantContext.stopTransaction(chargingStation, transactionId, tagId, cumulated, currentDate.add(1, 'hour'));
-    const response = await this.tenantContext.getCentralServerService().transactionApi.readById(transactionId);
+    const response = await this.tenantContext.getAdminCentralServerService().transactionApi.readById(transactionId);
     expect(response.status).to.equal(200);
     expect(response.data).to.containSubset({
       id: transactionId,
@@ -834,14 +833,14 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
   });
   describe('pricing', () => {
     it('total price', async () => {
-      const user = this.tenantContext.getContext().users[0];
-      const chargingStation = this.tenantContext.getContext().chargingStations[0];
+      const user = this.tenantContext.getContextUser({email: `${config.get('admin.username')}`});
+      const chargingStation = this.tenantContext.getSiteContext(SITE_CONTEXTS.SITE_BASIC).getChargingStationOfSite(SITE_AREA_CONTEXTS.WITH_ACL);
       const connectorId = 1;
       const tagId = user.tagIDs[0];
       const meterStart = 180;
       const startDate = moment();
       const transactionId = await this.tenantContext.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
-      await this.tenantContext.getCentralServerService().updatePriceSetting(1.5,'EUR');
+      await this.tenantContext.getAdminCentralServerService().updatePriceSetting(1.5,'EUR');
 
       const currentDate = startDate.clone();
 
@@ -879,7 +878,7 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
       }
 
       await this.tenantContext.stopTransaction(chargingStation, transactionId, tagId, cumulated, currentDate.add(1, 'hour'));
-      const response = await this.tenantContext.getCentralServerService().transactionApi.readById(transactionId);
+      const response = await this.tenantContext.getAdminCentralServerService().transactionApi.readById(transactionId);
       expect(response.status).to.equal(200);
       expect(response.data).to.containSubset({
         id: transactionId,
