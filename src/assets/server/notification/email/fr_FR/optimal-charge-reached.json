@@ -1,5 +1,6 @@
 {
   "subject": "Charge optimale atteinte",
+  "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
