@@ -146,7 +146,6 @@ class CompanyStorage {
     Logging.traceEnd('CompanyStorage', 'saveCompanyLogo', uniqueTimerID, {});
   }
 
-  // Delegate
   static async getCompanies(tenantID, params = {}, limit, skip, sort) {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompanies');
@@ -266,7 +265,7 @@ class CompanyStorage {
           }));
         }
         // Set logo
-        if (true && companyMDB.companylogos && companyMDB.companylogos[0]) {
+        if (companyMDB.companylogos && companyMDB.companylogos[0]) {
           company.setLogo(companyMDB.companylogos[0].logo);
         }
         // Add

@@ -305,7 +305,6 @@ class SiteAreaStorage {
           for (const chargeBox of siteAreaMDB.chargeBoxes) {
             // Check not deleted
             if (chargeBox.deleted) {
-              // Forget
               continue;
             }
             totalChargers++;
@@ -314,7 +313,6 @@ class SiteAreaStorage {
               totalConnectors++;
               // Check if Available
               if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
-                // Add
                 availableConnectors++;
               }
             }
@@ -322,7 +320,6 @@ class SiteAreaStorage {
             for (const connector of chargeBox.connectors) {
               // Check if Available
               if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
-                // Add
                 availableChargers++;
                 break;
               }
@@ -336,7 +333,6 @@ class SiteAreaStorage {
         }
         // Set Site
         if (params.withSite && siteAreaMDB.site) {
-          // Set
           siteArea.setSite(new Site(tenantID, siteAreaMDB.site));
         }
         // Add

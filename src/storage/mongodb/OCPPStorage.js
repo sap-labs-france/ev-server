@@ -248,11 +248,11 @@ class OCPPStorage {
         ]
       }]
     };
-
-    if (params.chargeBoxId) {
+    // Charger ID
+    if (params.chargeBoxID) {
       // Build filter
       filters.$and.push({
-        "_id": params.chargeBoxId
+        "_id": params.chargeBoxID
       });
     }
     // Filters

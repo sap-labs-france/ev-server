@@ -7,12 +7,6 @@ const DatabaseUtils = require('./DatabaseUtils');
 const Logging = require('../../utils/Logging');
 
 class SettingStorage {
-  /**
-   *
-   * @param tenantID
-   * @param id
-   * @returns {Promise<Setting>}
-   */
   static async getSetting(tenantID, id) {
     // Debug
     const uniqueTimerID = Logging.traceStart('SettingStorage', 'getSetting');
@@ -42,12 +36,6 @@ class SettingStorage {
     return setting;
   }
 
-  /**
-   *
-   * @param tenantID
-   * @param identifier
-   * @returns {Promise<Setting>}
-   */
   static async getSettingByIdentifier(tenantID, identifier) {
     const Setting = require('../../entity/Setting'); // Avoid circular deps!!!
     let setting = null;
@@ -108,7 +96,6 @@ class SettingStorage {
     return new Setting(tenantID, result.value);
   }
 
-  // Delegate
   static async getSettings(tenantID, params = {}, limit, skip, sort) {
     // Debug
     const uniqueTimerID = Logging.traceStart('SettingStorage', 'getSettings');
@@ -123,7 +110,7 @@ class SettingStorage {
     const filters = {};
     // Source?
     if (params.search) {
-      //Build filter
+      // Build filter
       filters.$or = [
         { "identifier": { $regex: params.search, $options: 'i' } }
       ];
@@ -184,7 +171,6 @@ class SettingStorage {
     if (settingsMDB && settingsMDB.length > 0) {
       // Create
       for (const settingMDB of settingsMDB) {
-        // Add
         settings.push(new Setting(tenantID, settingMDB));
       }
     }
