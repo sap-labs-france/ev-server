@@ -36,10 +36,6 @@ class OCPPJsonService16 extends OCPPService {
       // Handle Error Message
       wsConnection.onerror = (error) => {
         // An error occurred when sending/receiving data
-        // eslint-disable-next-line no-console
-        console.log("WSError");
-        // eslint-disable-next-line no-console
-        console.log(error);
         reject(error);
       };
       // Handle Server Message

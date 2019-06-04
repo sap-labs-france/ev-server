@@ -14,8 +14,17 @@ class SiteApi extends CrudApi {
     return super.readAll('/client/api/Sites', params, paging, ordering);
   }
 
-  create(data) {
-    return super.create('/client/api/SiteCreate', data);
+  async create(data) {
+    const site = await super.create('/client/api/SiteCreate', data);
+    // Check User IDs
+    if (data.userIDs) {
+      // Assign User IDs to Site
+      await super.create('/client/api/AddUsersToSite', {
+        siteID: site.data.id,
+        userIDs: data.userIDs
+      });
+    }
+    return site;
   }
 
   update(data) {

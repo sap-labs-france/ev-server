@@ -33,12 +33,8 @@ class BaseApi {
       if (error.response) {
         httpResponse = error.response;
       } else if (error.request) {
-        // eslint-disable-next-line no-console
-        console.log(error.request);
         throw error;
       } else {
-        // eslint-disable-next-line no-console
-        console.log('Error', error.message);
         throw error;
       }
     }
