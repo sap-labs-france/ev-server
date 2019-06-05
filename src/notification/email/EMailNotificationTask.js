@@ -7,6 +7,7 @@ const Logging = require('../../utils/Logging');
 const Utils = require('../../utils/Utils');
 const Constants = require('../../utils/Constants');
 const NotificationTask = require('../NotificationTask');
+const Tenant = require('../../entity/Tenant');
 
 require('source-map-support').install();
 
@@ -111,6 +112,8 @@ class EMailNotificationTask extends NotificationTask {
     // Render the localized template ---------------------------------------
     // Render the subject
     emailTemplate.subject = ejs.render(emailTemplate.subject, data);
+    // Render the tenant name
+    emailTemplate.tenant = (await Tenant.getTenant(tenantID)).getName();
     // Render Base URL
     emailTemplate.baseURL = ejs.render(emailTemplate.baseURL, data);
     emailTemplate.body.template = templateName;
