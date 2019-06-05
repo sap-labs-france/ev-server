@@ -1,5 +1,6 @@
 {
   "subject": "<%- chargeBoxID %> s'est enregistrée",
+  "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {

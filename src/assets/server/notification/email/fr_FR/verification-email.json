@@ -1,5 +1,6 @@
 {
   "subject": "Activation de votre compte",
+  "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
