@@ -167,7 +167,7 @@ class AuthService {
         }
 
         // Site -----------------------------------------------------
-        site = await siteArea.getSite(null, true);
+        site = await siteArea.getSite();
         if (!site) {
           // Reject Site Not Found
           throw new AppError(

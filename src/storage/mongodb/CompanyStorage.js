@@ -14,7 +14,7 @@ class CompanyStorage {
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompany');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const Company = require('../../entity/Company'); // Avoid fucking circular deps!!!
+    const Company = require('../../entity/Company');
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -92,7 +92,7 @@ class CompanyStorage {
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'saveCompany');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const Company = require('../../entity/Company'); // Avoid fucking circular deps!!!
+    const Company = require('../../entity/Company');
     // Check if ID/Name is provided
     if (!companyToSave.id && !companyToSave.name) {
       // ID must be provided!
@@ -146,14 +146,13 @@ class CompanyStorage {
     Logging.traceEnd('CompanyStorage', 'saveCompanyLogo', uniqueTimerID, {});
   }
 
-  // Delegate
   static async getCompanies(tenantID, params = {}, limit, skip, sort) {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompanies');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const Company = require('../../entity/Company'); // Avoid fucking circular deps!!!
-    const Site = require('../../entity/Site');  // Avoid fucking circular deps!!!
+    const Company = require('../../entity/Company');
+    const Site = require('../../entity/Site'); 
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
     // Check Skip
@@ -266,7 +265,7 @@ class CompanyStorage {
           }));
         }
         // Set logo
-        if (true && companyMDB.companylogos && companyMDB.companylogos[0]) {
+        if (companyMDB.companylogos && companyMDB.companylogos[0]) {
           company.setLogo(companyMDB.companylogos[0].logo);
         }
         // Add

@@ -8,7 +8,7 @@ const DatabaseUtils = require('./DatabaseUtils');
 
 class NotificationStorage {
   static async getNotifications(tenantID, params = {}, limit, skip, sort) {
-    const Notification = require('../../entity/Notification'); // Avoid fucking circular deps!!!
+    const Notification = require('../../entity/Notification');
     // Debug
     const uniqueTimerID = Logging.traceStart('NotificationStorage', 'getNotifications');
     // Check Tenant

@@ -117,7 +117,7 @@ class OCPIEndpointStorage {
     const uniqueTimerID = Logging.traceStart('OCPIEndpointStorage', 'getOcpiEndpoints');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const OCPIEndpoint = require('../../entity/OCPIEndpoint'); // Avoid fucking circular deps!!!
+    const OCPIEndpoint = require('../../entity/OCPIEndpoint');
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
     // Check Skip
