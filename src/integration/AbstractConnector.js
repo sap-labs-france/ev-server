@@ -22,10 +22,10 @@ class AbstractConnector extends AbstractTenantEntity {
     return ConnectionStorage.getConnectionByUserId(tenantId, connectorId, userId);
   }
 
-  static getConnectionById(tenantId, id) {
-    return ConnectionStorage.getConnectionById(tenantId, id);
+  static getConnection(tenantId, id) {
+    return ConnectionStorage.getConnection(tenantId, id);
   }
-
+  
   static deleteConnectionById(tenantId, id) {
     return ConnectionStorage.deleteConnectionById(tenantId, id);
   }
