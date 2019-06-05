@@ -113,7 +113,7 @@ class EMailNotificationTask extends NotificationTask {
     // Render the subject
     emailTemplate.subject = ejs.render(emailTemplate.subject, data);
     // Render the tenant name
-    emailTemplate.tenant = Tenant.getTenant(tenantID).getName();
+    emailTemplate.tenant = (await Tenant.getTenant(tenantID)).getName();
     // Render Base URL
     emailTemplate.baseURL = ejs.render(emailTemplate.baseURL, data);
     emailTemplate.body.template = templateName;
