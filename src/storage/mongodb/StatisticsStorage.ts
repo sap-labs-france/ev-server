@@ -7,7 +7,7 @@ import TSGlobal from '../../types/GlobalType';
 declare var global: TSGlobal;
 
 export default class StatisticsStorage {
-  static async getChargingStationStats(tenantID, filter, siteID, groupBy) {
+  static async getChargingStationStats(tenantID, filter, groupBy) {
     // Debug
     const uniqueTimerID = Logging.traceStart('StatisticsStorage', 'getChargingStationStats');
     // Check Tenant
@@ -30,7 +30,20 @@ export default class StatisticsStorage {
     if (filter.stop) {
       match.stop = filter.stop;
     }
-    // Check User
+    // Filter on Site?
+    if (filter.siteID) {
+      match.siteID = Utils.convertToObjectID(filter.siteID);
+    }
+    // Filter on Site Area?
+    if (filter.siteAreaID) 
+    {
+      match.siteAreaID = Utils.convertToObjectID(filter.siteAreaID);
+    }
+    // Filter on Charge Box?
+    if (filter.chargeBoxID) {
+      match.chargeBoxID = filter.chargeBoxID;
+    }
+    // Filter on User?
     if (filter.userID) {
       match.userID = Utils.convertToObjectID(filter.userID);
     }
@@ -40,39 +53,7 @@ export default class StatisticsStorage {
     aggregation.push({
       $match: match
     });
-    // Filter on Site?
-    if (siteID) {
-      // Add Charge Box
-      aggregation.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
-          localField: 'chargeBoxID',
-          foreignField: '_id',
-          as: 'chargeBox'
-        }
-      });
-      // Single Record
-      aggregation.push({
-        $unwind: { "path": "$chargeBox", "preserveNullAndEmptyArrays": true }
-      });
-      // Add Site Area
-      aggregation.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, 'siteareas'),
-          localField: 'chargeBox.siteAreaID',
-          foreignField: '_id',
-          as: 'siteArea'
-        }
-      });
-      // Single Record
-      aggregation.push({
-        $unwind: { "path": "$siteArea", "preserveNullAndEmptyArrays": true }
-      });
-      // Filter
-      aggregation.push({
-        $match: { "siteArea.siteID": Utils.convertToObjectID(siteID) }
-      });
-    }
+    
     // Group
     switch (groupBy) {
       // By Consumption
@@ -129,11 +110,11 @@ export default class StatisticsStorage {
       }
     }
     // Debug
-    Logging.traceEnd('StatisticsStorage', 'getChargingStationStats', uniqueTimerID, { filter, siteID, groupBy });
+    Logging.traceEnd('StatisticsStorage', 'getChargingStationStats', uniqueTimerID, { filter, groupBy });
     return transactions;
   }
 
-  static async getUserStats(tenantID, filter, siteID, groupBy) {
+  static async getUserStats(tenantID, filter, groupBy) {
     // Debug
     const uniqueTimerID = Logging.traceStart('StatisticsStorage', 'getUserStats');
     // Check Tenant
@@ -156,7 +137,20 @@ export default class StatisticsStorage {
     if (filter.stop) {
       match.stop = filter.stop;
     }
-    // Check User
+    // Filter on Site?
+    if (filter.siteID) {
+      match.siteID = Utils.convertToObjectID(filter.siteID);
+    }    
+    // Filter on Site Area?
+    if (filter.siteAreaID) 
+    {
+      match.siteAreaID = Utils.convertToObjectID(filter.siteAreaID);
+    }
+    // Filter on Charge Box?
+    if (filter.chargeBoxID) {
+      match.chargeBoxID = filter.chargeBoxID;
+    }
+    // Filter on User?
     if (filter.userID) {
       match.userID = Utils.convertToObjectID(filter.userID);
     }
@@ -166,39 +160,7 @@ export default class StatisticsStorage {
     aggregation.push({
       $match: match
     });
-    // Filter on Site?
-    if (siteID) {
-      // Add Charge Box
-      aggregation.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
-          localField: 'chargeBoxID',
-          foreignField: '_id',
-          as: 'chargeBox'
-        }
-      });
-      // Single Record
-      aggregation.push({
-        $unwind: { "path": "$chargeBox", "preserveNullAndEmptyArrays": true }
-      });
-      // Add Site Area
-      aggregation.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, 'siteareas'),
-          localField: 'chargeBox.siteAreaID',
-          foreignField: '_id',
-          as: 'siteArea'
-        }
-      });
-      // Single Record
-      aggregation.push({
-        $unwind: { "path": "$siteArea", "preserveNullAndEmptyArrays": true }
-      });
-      // Filter
-      aggregation.push({
-        $match: { "siteArea.siteID": Utils.convertToObjectID(siteID) }
-      });
-    }
+    
     // Group
     switch (groupBy) {
       // By Consumption
@@ -263,11 +225,11 @@ export default class StatisticsStorage {
           }
         }
         // Set consumption
-        transaction[Utils.buildUserFullName(transactionStatMDB.user)] = transactionStatMDB.total;
+        transaction[Utils.buildUserFullName(transactionStatMDB.user, false, false, true)] = transactionStatMDB.total;
       }
     }
     // Debug
-    Logging.traceEnd('StatisticsStorage', 'getUserStats', uniqueTimerID, { filter, siteID, groupBy });
+    Logging.traceEnd('StatisticsStorage', 'getUserStats', uniqueTimerID, { filter, groupBy });
     return transactions;
   }
 

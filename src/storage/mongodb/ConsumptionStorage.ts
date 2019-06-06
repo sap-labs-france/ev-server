@@ -124,6 +124,7 @@ export default class ConsumptionStorage {
         startedAt: { $min: "$startedAt" },
         cumulatedConsumption: { $last: "$cumulatedConsumption" },
         consumption: { $last: "$consumption" },
+        stateOfCharge: { $last: "$stateOfCharge" },
         instantPower: { $max: "$instantPower" },
         totalInactivitySecs: { $max: "$totalInactivitySecs" },
         pricingSource: {$last: "$pricingSource" },
@@ -132,7 +133,7 @@ export default class ConsumptionStorage {
         roundedAmount: { $last: "$roundedAmount" },
         currencyCode: { $last: "$currencyCode" }
       }
-    })
+    });
     // Sort values
     aggregation.push({ $sort: { endedAt: 1 } });
     // Read DB

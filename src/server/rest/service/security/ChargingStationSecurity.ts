@@ -56,6 +56,7 @@ export default class ChargingStationSecurity {
             connector.status = Constants.CONN_STATUS_UNAVAILABLE;
             connector.currentConsumption = 0;
             connector.totalConsumption = 0;
+            connector.totalInactivitySecs = 0;
             connector.currentStateOfCharge = 0;
           }
         }
@@ -72,6 +73,7 @@ export default class ChargingStationSecurity {
             'currentConsumption': (filteredChargingStation.inactive ? 0 : connector.currentConsumption),
             'currentStateOfCharge': (filteredChargingStation.inactive ? 0 : connector.currentStateOfCharge),
             'totalConsumption': (filteredChargingStation.inactive ? 0 : connector.totalConsumption),
+            'totalInactivitySecs': (filteredChargingStation.inactive ? 0 : connector.totalInactivitySecs),
             'activeTransactionID': connector.activeTransactionID,
             'errorCode': connector.errorCode,
             'type': connector.type,

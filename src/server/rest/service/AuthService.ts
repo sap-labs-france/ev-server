@@ -66,8 +66,10 @@ export default class AuthService {
       let chargingStation = null;
       // Action
       switch (filteredRequest.Action) {
-        // Action on charger
+        // TODO: To Remove
+        // Hack for mobile app not sending the RemoteStopTransaction yet
         case 'StopTransaction':
+        case 'RemoteStopTransaction':
           // Check
           if (!filteredRequest.Arg1) {
             throw new AppError(
@@ -205,6 +207,13 @@ export default class AuthService {
         Constants.CENTRAL_SERVER,
         `Transaction ID '${filteredRequest.Arg2}' does not exist`,
         560, 'AuthService', 'isStopTransactionAuthorized');
+    }
+    // Check Charging Station
+    if (transaction.getChargeBoxID() !== chargingStation.getID()) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `Transaction ID '${filteredRequest.Arg2}' has a Charging Station '${transaction.getChargeBoxID()}' that differs from '${chargingStation.getID()}'`,
+        565, 'AuthService', 'isStopTransactionAuthorized');
     }
     try {
       // Check
@@ -362,6 +371,13 @@ export default class AuthService {
           Constants.CENTRAL_SERVER,
           `The captcha is invalid`, 500,
           'AuthService', 'handleRegisterUser');
+      } else {
+        if (response.data.score < 0.5) {
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `The captcha score is too low`, 500,
+            'AuthService', 'handleRegisterUser');
+        }
       }
       // Check email
       const user = await User.getUserByEmail(tenantID, filteredRequest.email);
@@ -452,6 +468,13 @@ export default class AuthService {
           Constants.CENTRAL_SERVER,
           `The captcha is invalid`, 500,
           'AuthService', 'handleRegisterUser');
+      } else {
+        if (response.data.score < 0.5) {
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `The captcha score is too low`, 500,
+            'AuthService', 'handleRegisterUser');
+        }
       }
       // Yes: Generate new password
       const resetHash = Utils.generateGUID();
@@ -648,6 +671,7 @@ export default class AuthService {
     // Filter
     const filteredRequest = AuthSecurity.filterVerifyEmailRequest(req.query);
 
+    //Get the tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
       const error = new BadRequestError({
@@ -734,6 +758,7 @@ export default class AuthService {
     // Filter
     const filteredRequest = AuthSecurity.filterResendVerificationEmail(req.body);
 
+    // Get the tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
       const error = new BadRequestError({
@@ -769,6 +794,20 @@ export default class AuthService {
           Constants.CENTRAL_SERVER,
           `The captcha is invalid`, 500,
           'AuthService', 'handleResendVerificationEmail');
+      } else {
+        if (response.data.score < 0.5) {
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `The captcha score is too low`, 500,
+            'AuthService', 'handleResendVerificationEmail');
+        } else {
+          if (response.data.score < 0.5) {
+            throw new AppError(
+              Constants.CENTRAL_SERVER,
+              `The captcha score is too low`, 500,
+              'AuthService', 'handleResendVerificationEmail');
+          }
+        }
       }
       // Is valid email?
       let user = await User.getUserByEmail(tenantID, filteredRequest.email);

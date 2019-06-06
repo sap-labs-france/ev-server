@@ -4,6 +4,9 @@ export interface StatisticsRequest {
   Year?: string|number;
   SiteID?: string|number;
   PeriodInMonth?: string|number;
+  SiteAreaID?: string|number;
+  ChargeBoxID?: string|number;
+  UserID?: string|number;
   //TODO: Choose single type
 }
 
@@ -15,6 +18,9 @@ export default class StatisticSecurity {
     }
     return {
       Year: sanitize(request.Year),
+      SiteAreaID: sanitize(request.SiteAreaID),
+      ChargeBoxID: sanitize(request.ChargeBoxID),
+      UserID: sanitize(request.UserID),
       SiteID: sanitize(request.SiteID)
     };
   }
@@ -26,6 +32,9 @@ export default class StatisticSecurity {
     }
     return {
       Year: sanitize(request.Year),
+      SiteAreaID: sanitize(request.SiteAreaID),
+      ChargeBoxID: sanitize(request.ChargeBoxID),
+      UserID: sanitize(request.UserID),
       SiteID: sanitize(request.SiteID)
     };
     //TODO: Why are both methods exactly the same?
