@@ -60,6 +60,12 @@ class Configuration {
     return centralSystems;
   }
 
+  // Crypto config
+  static getCryptoConfig() {
+    // Read conf
+    return Configuration.getConfig().Crypto;
+  }
+
   // Notification config
   static getNotificationConfig() {
     // Read conf

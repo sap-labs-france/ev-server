@@ -3,12 +3,14 @@ const moment = require('moment-timezone');
 const Logging = require('../../../utils/Logging');
 const Pricing = require('../Pricing');
 const SiteArea = require('../../../entity/SiteArea');
+const Safe = require('../../../utils/Safe');
 
 
 class ConvergentChargingPricing extends Pricing {
   constructor(tenantId, setting, transaction) {
     super(tenantId, setting, transaction);
-    this.statefulChargingService = new StatefulChargingService(this.setting.url, this.setting.user, this.setting.password);
+    var passwordUnhashed = Safe.decrypt(this.setting.password);
+    this.statefulChargingService = new StatefulChargingService(this.setting.url, this.setting.user, passwordUnhashed);
   }
 
   consumptionToChargeableItemProperties(consumptionData) {

@@ -12,6 +12,7 @@ const AppError = require('../../exception/AppError');
 const InternalError = require('../../exception/InternalError');
 const jwt = require('jsonwebtoken');
 const Promise = require("bluebird");
+const Safe = require('../../utils/Safe');
 
 const MODULE_NAME = 'ConcurConnector';
 const CONNECTOR_ID = 'concur';
@@ -85,6 +86,10 @@ class ConcurConnector extends AbstractConnector {
     return this.getSetting().clientSecret;
   }
 
+  getClientSecretUnhashed() {
+      return Safe.decrypt(this.getSetting().clientSecret);
+  }
+
   getExpenseTypeCode() {
     return this.getSetting().expenseTypeCode;
   }
@@ -118,7 +123,7 @@ class ConcurConnector extends AbstractConnector {
         querystring.stringify({
           code: data.code,
           client_id: this.getClientId(),
-          client_secret: this.getClientSecret(),
+          client_secret: this.getClientSecretUnhashed(),
           redirect_uri: data.redirectUri,
           grant_type: 'authorization_code'
         }),
@@ -163,7 +168,7 @@ class ConcurConnector extends AbstractConnector {
       const response = await axios.post(`${this.getAuthenticationUrl()}/oauth2/v0/token`,
         querystring.stringify({
           client_id: this.getClientId(),
-          client_secret: this.getClientSecret(),
+          client_secret: this.getClientSecretUnhashed(),
           refresh_token: connection.getData().refresh_token,
           scope: connection.getData().scope,
           grant_type: 'refresh_token'
