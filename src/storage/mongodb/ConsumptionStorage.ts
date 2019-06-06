@@ -112,7 +112,8 @@ export default class ConsumptionStorage {
       $group: {
         _id: {
           cumulatedConsumption: "$cumulatedConsumption",
-          consumption: "$consumption"
+          consumption: "$consumption",
+          cumulatedAmount: "$cumulatedAmount"
         },
         userID: { $last: "$userID" },
         chargeBoxID: { $last: "$chargeBoxID" },

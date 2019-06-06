@@ -63,9 +63,9 @@ const LoggingType = {
 };
 export default class Logging {
 
-  private static getSourceSuffix() {
-    return `~${Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname()}~${cluster.isWorker ? 'worker' + cluster.worker.id : 'master'}`;
-  }
+  //private static getSourceSuffix() {
+  //  return `~${Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname()}~${cluster.isWorker ? 'worker' + cluster.worker.id : 'master'}`;
+  //}
 
   // Log Debug
   static logDebug(log) {
@@ -503,9 +503,7 @@ export default class Logging {
 
     // Source
     if (!log.source) {
-      log.source = `${Constants.CENTRAL_SERVER}${Logging.getSourceSuffix()}`;
-    } else {
-      log.source = `${log.source}${Logging.getSourceSuffix()}`;
+      log.source = `${Constants.CENTRAL_SERVER}`;
     }
 
     // Check

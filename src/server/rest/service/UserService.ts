@@ -250,8 +250,6 @@ export default class UserService {
           `User's ID must be provided`, 500,
           'UserService', 'handleDeleteUser', req.user);
       }
-      // Check Mandatory fields
-      User.checkIfUserValid(filteredRequest, user, req);
       // Check email
       const user = await User.getUser(req.user.tenantID, filteredRequest.id);
       if (!user) {
@@ -260,6 +258,8 @@ export default class UserService {
           `User with ID '${filteredRequest.id}' does not exist anymore`, 550,
           'UserService', 'handleUpdateUser', req.user);
       }
+      // Check Mandatory fields
+      User.checkIfUserValid(filteredRequest, user, req);
       // Deleted?
       if (user.deleted) {
         throw new AppError(

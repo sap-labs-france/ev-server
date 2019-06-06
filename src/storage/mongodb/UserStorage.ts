@@ -331,13 +331,13 @@ export default class UserStorage {
       // At least one tag
       if (userToSave.tagIDs.length > 0) {
         // Create the list
-        for (const tag of userToSave.tagIDs) {
-          if (tag === "") {
+        for (const tagID of userToSave.tagIDs) {
+          if (!tagID || tagID === "") {
             continue;
           }
           // Modify
           await global.database.getCollection(tenantID, 'tags').findOneAndUpdate(
-            { '_id': tag },
+            { '_id': tagID },
             { $set: { 'userID': Utils.convertToObjectID(updatedUser.getID()) } },
             { upsert: true, returnOriginal: false });
         }

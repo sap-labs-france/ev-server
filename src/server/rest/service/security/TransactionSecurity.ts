@@ -2,6 +2,7 @@ import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import UtilsSecurity from './UtilsSecurity';
+
 export default class TransactionSecurity {
   // eslint-disable-next-line no-unused-vars
   static filterTransactionsRefund(request, loggedUser) {
@@ -285,10 +286,11 @@ export default class TransactionSecurity {
       }));
     }
     for(let i = 1; i < filteredTransaction.values.length; i++) {
-      if(filteredTransaction.values[i].instantPower == 0) {
-        let addedValue = JSON.parse(JSON.stringify(filteredTransaction.values[i]));
-        addedValue.endedAt = filteredTransaction.values[i-1].endedAt;
-        addedValue.date = filteredTransaction.values[i-1].endedAt;
+      if(filteredTransaction.values[i].instantPower == 0 && filteredTransaction.values[i-1] != 0) {
+        const addedValue = JSON.parse(JSON.stringify(filteredTransaction.values[i]));
+        const newDate = new Date(filteredTransaction.values[i-1].endedAt.getTime() + 60000);
+        addedValue.endedAt = newDate;
+        addedValue.date = newDate;
         filteredTransaction.values.splice(i, 0, addedValue);
         i++;
       }
