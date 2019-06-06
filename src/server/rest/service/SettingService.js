@@ -147,19 +147,17 @@ class SettingService {
       // Check Mandatory fields
       Setting.checkIfSettingValid(filteredRequest, req);
       // Hash/Crypt sensitive data
-      switch(filteredRequest.content.type) {
+      switch (filteredRequest.content.type) {
         case 'concur':
-        // Case 1 : Concur : secretKey
-          if (filteredRequest.content.concur.clientSecret && filteredRequest.content.concur.clientSecret.length > 0 ) {
-            var clientSecretHashed = Safe.encrypt(filteredRequest.content.concur.clientSecret);
-            filteredRequest.content.concur.clientSecret = clientSecretHashed;         
+          // Case 1 : Concur : secretKey
+          if (filteredRequest.content.concur.clientSecret && filteredRequest.content.concur.clientSecret.length > 0) {
+            filteredRequest.content.concur.clientSecret = Safe.encrypt(filteredRequest.content.concur.clientSecret);
           }
           break;
         case 'convergentCharging':
           // Case 2 : Convergent charging : password
-          if (filteredRequest.content.convergentCharging.password && filteredRequest.content.convergentCharging.password.length > 0 ) {
-            var passwordHashed = Safe.encrypt(filteredRequest.content.convergentCharging.password);
-            filteredRequest.content.convergentCharging.password = passwordHashed;         
+          if (filteredRequest.content.convergentCharging.password && filteredRequest.content.convergentCharging.password.length > 0) {
+            filteredRequest.content.convergentCharging.password = Safe.encrypt(filteredRequest.content.convergentCharging.password);
           }
           break;
         default:
@@ -167,7 +165,7 @@ class SettingService {
       // Create setting
       const setting = new Setting(req.user.tenantID, filteredRequest);
       // Update timestamp
-      setting.setCreatedBy(new User(req.user.tenantID, { 'id': req.user.id }));
+      setting.setCreatedBy(new User(req.user.tenantID, {'id': req.user.id}));
       setting.setCreatedOn(new Date());
       // Save Setting
       const newSetting = await setting.save();
@@ -179,7 +177,7 @@ class SettingService {
         action: action, detailedMessages: newSetting
       });
       // Ok
-      res.json(Object.assign({ id: newSetting.getID() }, Constants.REST_RESPONSE_SUCCESS));
+      res.json(Object.assign({id: newSetting.getID()}, Constants.REST_RESPONSE_SUCCESS));
       next();
     } catch (error) {
       // Log
@@ -213,23 +211,21 @@ class SettingService {
           req.user);
       }
       // Hash/Crypt sensitive data
-      switch(filteredRequest.content.type) {
+      switch (filteredRequest.content.type) {
         case 'concur':
-        // Case 1 : Concur : secretKey
-        if (filteredRequest.content.concur.clientSecret 
-          && filteredRequest.content.concur.clientSecret.length > 0
-          && filteredRequest.content.concur.clientSecret != setting.getContent().concur.clientSecret) {
-            var clientSecretHashed = Safe.encrypt(filteredRequest.content.concur.clientSecret);
-            filteredRequest.content.concur.clientSecret = clientSecretHashed;         
+          // Case 1 : Concur : secretKey
+          if (filteredRequest.content.concur.clientSecret
+            && filteredRequest.content.concur.clientSecret.length > 0
+            && filteredRequest.content.concur.clientSecret !== setting.getContent().concur.clientSecret) {
+            filteredRequest.content.concur.clientSecret = Safe.encrypt(filteredRequest.content.concur.clientSecret);
           }
           break;
         case 'convergentCharging':
           // Case 2 : Convergent charging : password
-          if (filteredRequest.content.convergentCharging.password 
+          if (filteredRequest.content.convergentCharging.password
             && filteredRequest.content.convergentCharging.password.length > 0
-            && filteredRequest.content.convergentCharging.password != setting.getContent().convergentCharging.password) {
-            var passwordHashed = Safe.encrypt(filteredRequest.content.convergentCharging.password);
-            filteredRequest.content.convergentCharging.password = passwordHashed;         
+            && filteredRequest.content.convergentCharging.password !== setting.getContent().convergentCharging.password) {
+            filteredRequest.content.convergentCharging.password = Safe.encrypt(filteredRequest.content.convergentCharging.password);
           }
           break;
         default:
@@ -237,7 +233,7 @@ class SettingService {
       // Update
       Database.updateSetting(filteredRequest, setting.getModel());
       // Update timestamp
-      setting.setLastChangedBy(new User(req.user.tenantID, { 'id': req.user.id }));
+      setting.setLastChangedBy(new User(req.user.tenantID, {'id': req.user.id}));
       setting.setLastChangedOn(new Date());
       // Update Setting
       const updatedSetting = await setting.save();

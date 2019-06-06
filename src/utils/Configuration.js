@@ -74,7 +74,9 @@ class Configuration {
 
   // Authorization config
   static getAuthorizationConfig() {
-    // Read conf
+    if (!Configuration.getConfig().Authorization) {
+      Configuration.getConfig().Authorization = {};
+    }
     return Configuration.getConfig().Authorization;
   }
 

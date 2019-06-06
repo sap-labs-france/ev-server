@@ -16,28 +16,26 @@ class EncryptClientSecretKeysInSettingsTask extends MigrationTask {
     // Process each setting
     for (const setting of settings) {
       // Encrypt clientSecret (Concur) if found
-      if (setting.content.type === "concur" 
+      if (setting.content.type === "concur"
         && setting.content.concur.clientSecret
         && setting.content.concur.clientSecret.length > 0) {
-          var clientSecretHashed = Safe.encrypt(setting.content.concur.clientSecret);
-          setting.content.concur.clientSecret = clientSecretHashed;         
-          await global.database.getCollection(tenant.getID(), 'settings').findOneAndUpdate({
-            "_id": setting._id
-          }, {
-            $set: setting
-          }, { upsert: true, new: true, returnOriginal: false });          
-      // Encrypt password (Convergent Charing) if found  
+        setting.content.concur.clientSecret = Safe.encrypt(setting.content.concur.clientSecret);
+        await global.database.getCollection(tenant.getID(), 'settings').findOneAndUpdate({
+          "_id": setting._id
+        }, {
+          $set: setting
+        }, {upsert: true, new: true, returnOriginal: false});
+        // Encrypt password (Convergent Charing) if found
       } else if (setting.content.type === "convergentCharging"
-          && setting.content.convergentCharging.password
-          && setting.content.convergentCharging.password.length > 0 ) {
-            var passwordHashed = Safe.encrypt(setting.content.convergentCharging.password);
-            setting.content.convergentCharging.password = passwordHashed;         
-            await global.database.getCollection(tenant.getID(), 'settings').findOneAndUpdate({
-              "_id": setting._id
-            }, {
-              $set: setting
-            }, { upsert: true, new: true, returnOriginal: false });          
-       }
+        && setting.content.convergentCharging.password
+        && setting.content.convergentCharging.password.length > 0) {
+        setting.content.convergentCharging.password = Safe.encrypt(setting.content.convergentCharging.password);
+        await global.database.getCollection(tenant.getID(), 'settings').findOneAndUpdate({
+          "_id": setting._id
+        }, {
+          $set: setting
+        }, {upsert: true, new: true, returnOriginal: false});
+      }
     }
   }
 

@@ -9,8 +9,8 @@ const Safe = require('../../../utils/Safe');
 class ConvergentChargingPricing extends Pricing {
   constructor(tenantId, setting, transaction) {
     super(tenantId, setting, transaction);
-    var passwordUnhashed = Safe.decrypt(this.setting.password);
-    this.statefulChargingService = new StatefulChargingService(this.setting.url, this.setting.user, passwordUnhashed);
+    const passwordDecrypted = Safe.decrypt(this.setting.password);
+    this.statefulChargingService = new StatefulChargingService(this.setting.url, this.setting.user, passwordDecrypted);
   }
 
   consumptionToChargeableItemProperties(consumptionData) {

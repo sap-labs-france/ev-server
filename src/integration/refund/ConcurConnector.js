@@ -86,8 +86,8 @@ class ConcurConnector extends AbstractConnector {
     return this.getSetting().clientSecret;
   }
 
-  getClientSecretUnhashed() {
-      return Safe.decrypt(this.getSetting().clientSecret);
+  getClientSecretDecrypted() {
+    return Safe.decrypt(this.getSetting().clientSecret);
   }
 
   getExpenseTypeCode() {
@@ -123,7 +123,7 @@ class ConcurConnector extends AbstractConnector {
         querystring.stringify({
           code: data.code,
           client_id: this.getClientId(),
-          client_secret: this.getClientSecretUnhashed(),
+          client_secret: this.getClientSecretDecrypted(),
           redirect_uri: data.redirectUri,
           grant_type: 'authorization_code'
         }),
@@ -168,7 +168,7 @@ class ConcurConnector extends AbstractConnector {
       const response = await axios.post(`${this.getAuthenticationUrl()}/oauth2/v0/token`,
         querystring.stringify({
           client_id: this.getClientId(),
-          client_secret: this.getClientSecretUnhashed(),
+          client_secret: this.getClientSecretDecrypted(),
           refresh_token: connection.getData().refresh_token,
           scope: connection.getData().scope,
           grant_type: 'refresh_token'
