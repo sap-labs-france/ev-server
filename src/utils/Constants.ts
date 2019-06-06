@@ -118,6 +118,9 @@ export default {
 
   DEFAULT_DB_LIMIT: 100,
 
+  SETTING_PRICING_TYPE_SIMPLE: 'Simple',
+  SETTING_PRICING_TYPE_CONVERGENT_CHARGING: 'ConvergentCharging', //TODO: Added this to get rid of error, check if correct
+
   METER_VALUE_CTX_SAMPLE_PERIODIC: 'Sample.Periodic',
   METER_VALUE_CTX_SAMPLE_CLOCK: 'Sample.Clock',
   METER_VALUE_FORMAT_RAW: 'Raw',

@@ -106,3 +106,7 @@ OCPIUtils.ts
 
 AbstractEndpoint.ts
 Requires Tenant and OCPIServices to be Ported
+
+
+CONVERTED TO ANY's (ie please convert):
+AbstractOCPIService.ts

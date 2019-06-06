@@ -155,7 +155,7 @@ Depends on: [ ] OCPIUtils, [ ] source-map-support,
 Dependency of: [ ] CredentialsEndpoint, [ ] LocationsEndpoint, 
 
 Depends on: [ ] OCPIService.js, [ ] OCPIService.js, [ ] OCPIUtils, [ ] source-map-support, 
-		[ ] ./EV-SERVER/SRC/SERVER\OCPI\OCPISERVICES.JS
+		[X] ./EV-SERVER/SRC/SERVER\OCPI\OCPISERVICES.JS
 Dependency of: [ ] OCPIServer, 
 
 Depends on: [ ] Constants, [ ] source-map-support, 

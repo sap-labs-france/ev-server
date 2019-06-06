@@ -19,4 +19,4 @@ export default abstract class NotificationTask {
 
 }
 
-module.exports = NotificationTask;
+

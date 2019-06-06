@@ -1,5 +1,5 @@
 import { TaskConfig } from './TaskConfig';
 
-export interface SchedulerTask {
+export default interface SchedulerTask {
   run(config: TaskConfig): void;
 }

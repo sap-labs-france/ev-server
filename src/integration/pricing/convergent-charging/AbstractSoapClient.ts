@@ -3,7 +3,9 @@ import { performance } from 'perf_hooks';
 import SoapRequest from './SoapRequest';
 
 export default abstract class AbstractSoapClient {
-
+	public result: any;
+	public envelope: any;
+	public soapHeader: any;
   private service: any;
   private client: any;
 
@@ -94,7 +96,7 @@ export default abstract class AbstractSoapClient {
 
   private async _initSOAPClient(): Promise<void> {
     // Client options
-    const options = {};
+    const options:any = {};
     // Check
     if (!this.client) {
       // Create the Promise

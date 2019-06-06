@@ -8,8 +8,8 @@ export default class BackendError extends Error {
     readonly module: string = "N/A",
     readonly method: string = "N/A",
     readonly action: string = "N/A",
-    readonly user: User,
-    readonly actionOnUser: string)
+    readonly user?: User,
+    readonly actionOnUser?: string)
   {
     super(message);
   }

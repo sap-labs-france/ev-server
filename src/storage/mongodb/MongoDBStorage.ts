@@ -23,10 +23,10 @@ export default class MongoDBStorage {
     return this.db.collection(DatabaseUtils.getCollectionName(tenantID, collectionName));
   }
 
-  public async checkAndCreateCollection(allCollections: Array<{name: string}>, tenantID: string, name: string, indexes?: Array<{fields: any, options?: any}>): Promise<boolean> {
+  public async handleIndexesInCollection(allCollections: Array<{name: string}>, tenantID: string, name: string, indexes?: Array<{fields: any, options?: any}>): Promise<boolean> {
     //Safety check
     if(!this.db) {
-      throw new InternalError('Not supposed to call checkAndCreateCollection before start', []);
+      throw new InternalError('Not supposed to call handleIndexesInCollection before start', []);
     }
 
     // Check Logs
@@ -42,18 +42,34 @@ export default class MongoDBStorage {
     // Indexes?
     if (indexes) {
       // Get current indexes
-      const existingIndexes = await this.db.collection(tenantCollectionName).listIndexes().toArray();
-      // Check each index
+      const databaseIndexes = await this.db.collection(tenantCollectionName).listIndexes().toArray();
+      // Check each index that should be created
       for (const index of indexes) {
         // Create
         // Check if it exists
-        const foundIndex = existingIndexes.find((existingIndex) => {
+        const foundIndex = databaseIndexes.find((existingIndex) => {
           return (JSON.stringify(existingIndex.key) === JSON.stringify(index.fields));
         });
         // Found?
         if (!foundIndex) {
           // No: Create Index
           await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
+        }
+      }
+      // Check each index that should be dropped
+      for (const databaseIndex of databaseIndexes) {
+        // Bypass ID
+        if (databaseIndex.key.hasOwnProperty('_id')) {
+          continue;
+        }
+        // Exists?
+        const foundIndex = indexes.find((index) => {
+          return (JSON.stringify(index.fields) === JSON.stringify(databaseIndex.key));
+        });
+        // Found?
+        if (!foundIndex) {
+          // Drop Index
+          await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
         }
       }
     }
@@ -70,45 +86,49 @@ export default class MongoDBStorage {
     // Get all the tenant collections
     const collections = await this.db.listCollections({name: name}).toArray();
     // Users
-    await this.checkAndCreateCollection(collections, tenantID, 'users', [
+    await this.handleIndexesInCollection(collections, tenantID, 'users', [
       { fields: { email: 1 }, options: { unique: true } }
     ]);
-    await this.checkAndCreateCollection(collections, tenantID, 'eulas');
+    await this.handleIndexesInCollection(collections, tenantID, 'eulas');
     // Logs
-    await this.checkAndCreateCollection(collections, tenantID, 'logs', [
+    await this.handleIndexesInCollection(collections, tenantID, 'logs', [
       { fields: { timestamp: 1 } },
-      { fields: { action: 1 } },
-      { fields: { level: 1 } },
-      { fields: { type: 1 } }
+      { fields: { timestamp: -1 } },
+      { fields: { action: 1, timestamp: 1 } },
+      { fields: { action: 1, timestamp: -1 } },
+      { fields: { level: 1, timestamp: 1 } },
+      { fields: { level: 1, timestamp: -1 } },
+      { fields: { source: 1, timestamp: 1 } },
+      { fields: { source: 1, timestamp: -1 } }
     ]);
     // MeterValues
-    await this.checkAndCreateCollection(collections, tenantID, 'metervalues', [
+    await this.handleIndexesInCollection(collections, tenantID, 'metervalues', [
       { fields: { timestamp: 1 } },
       { fields: { transactionId: 1 } }
     ]);
     // Tags
-    await this.checkAndCreateCollection(collections, tenantID, 'tags', [
+    await this.handleIndexesInCollection(collections, tenantID, 'tags', [
       { fields: { userID: 1 } }
     ]);
     // Sites/Users
-    await this.checkAndCreateCollection(collections, tenantID, 'siteusers', [
+    await this.handleIndexesInCollection(collections, tenantID, 'siteusers', [
       { fields: { siteID: 1 } },
       { fields: { userID: 1 } }
     ]);
     // Transactions
-    await this.checkAndCreateCollection(collections, tenantID, 'transactions', [
+    await this.handleIndexesInCollection(collections, tenantID, 'transactions', [
       { fields: { timestamp: 1 } },
       { fields: { chargeBoxID: 1 } },
       { fields: { userID: 1 } }
     ]);
     // Settings
-    await this.checkAndCreateCollection(collections, tenantID, 'settings', [
+    await this.handleIndexesInCollection(collections, tenantID, 'settings', [
       { fields: { identifier: 1 }, options: { unique: true } }
     ]);
-    await this.checkAndCreateCollection(collections, tenantID, 'connections', [
+    await this.handleIndexesInCollection(collections, tenantID, 'connections', [
       { fields: { connectorId: 1, userId: 1 }, options: { unique: true } }
     ]);
-    await this.checkAndCreateCollection(collections, tenantID, 'consumptions', [
+    await this.handleIndexesInCollection(collections, tenantID, 'consumptions', [
       { fields: { siteID: 1 } },
       { fields: { transactionId: 1, endedAt: 1 } },
       { fields: { siteAreaID: 1 } },
@@ -168,16 +188,16 @@ export default class MongoDBStorage {
     const collections = await this.db.listCollections().toArray();
     // Check only collections with indexes
     // Tenants
-    await this.checkAndCreateCollection(collections, Constants.DEFAULT_TENANT, 'tenants', [
+    await this.handleIndexesInCollection(collections, Constants.DEFAULT_TENANT, 'tenants', [
       { fields: { subdomain: 1 }, options: { unique: true } },
       { fields: { name: 1 }, options: { unique: true } }
     ]);
     // Users
-    await this.checkAndCreateCollection(collections, Constants.DEFAULT_TENANT, 'users', [
+    await this.handleIndexesInCollection(collections, Constants.DEFAULT_TENANT, 'users', [
       { fields: { email: 1 }, options: { unique: true } }
     ]);
     // Logs
-    await this.checkAndCreateCollection(collections, Constants.DEFAULT_TENANT, 'logs', [
+    await this.handleIndexesInCollection(collections, Constants.DEFAULT_TENANT, 'logs', [
       { fields: { timestamp: 1 } },
       { fields: { level: 1 } },
       { fields: { type: 1 } }
@@ -188,6 +208,13 @@ export default class MongoDBStorage {
         await this.db.collection(collection.name).rename(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, collection.name), { dropTarget: true });
       }
     }
+
+    // Running migrations
+    await this.handleIndexesInCollection(collections, Constants.DEFAULT_TENANT, 'runningmigrations', [
+      { fields: { timestamp: 1 } },
+      { fields: { name: 1 } },
+      { fields: { version: 1 } }
+    ]);
 
     //TODO: could create class representing tenant collection for great typechecking
     const tenantsMDB = await this.db.collection(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, 'tenants'))

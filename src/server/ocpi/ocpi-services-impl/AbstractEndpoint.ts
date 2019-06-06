@@ -1,7 +1,7 @@
 import OCPIUtils from '../OCPIUtils';
 require('source-map-support').install();
 import OCPIService from '../OCPIServices';
-import { Tenant } from '../../../entity/Tenant';
+import Tenant from '../../../entity/Tenant';
 import { Request, Response } from 'express';
 /**
  * Abstract Endpoint
@@ -22,7 +22,8 @@ export default class AbstractEndpoint {
 
   // Return based URL of OCPI Service
   public getBaseUrl(req: Request): string {
-    return this.ocpiService.getBaseUrl(req);
+    return '/'; //TODO: getBaseUrl does not exist in OCPIServices. Please fix
+    //return this.ocpiService.getBaseUrl(req);
   }
 
   // Abstract - Process endpoint

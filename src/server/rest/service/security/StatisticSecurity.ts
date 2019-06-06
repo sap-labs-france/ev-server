@@ -7,7 +7,7 @@ export interface StatisticsRequest {
   //TODO: Choose single type
 }
 
-export class StatisticSecurity {
+export default class StatisticSecurity {
   // eslint-disable-next-line no-unused-vars
   static filterUserStatisticsRequest(request: StatisticsRequest, loggedUser?: any): StatisticsRequest {
     if(!request.Year || !request.SiteID){
