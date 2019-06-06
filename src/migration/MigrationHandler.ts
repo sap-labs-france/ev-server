@@ -186,13 +186,6 @@ export default class MigrationHandler {
     // eslint-disable-next-line no-console
     console.log(`Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
 
-    // Save to the DB
-    await MigrationStorage.saveMigration({
-      name: currentMigrationTask.getName(),
-      version: currentMigrationTask.getVersion(),
-      timestamp: new Date(),
-      durationSecs: totalTaskTimeSecs
-    });
   }
 }
 

@@ -91,13 +91,7 @@ require('source-map-support').install();
     const result: any = { count: 0, locations: [] };
 
     // Get all sites
-    const sites = await Site.getSites(
-      tenant.getID(),
-      {
-        'withChargeBoxes': true,
-        "withSiteAreas": true
-      },
-      limit, skip, null);
+    const sites = await Site.getSites(tenant.getID(), {}, limit, skip, null);
 
     // convert Sites to Locations
     for (const site of sites.result) {

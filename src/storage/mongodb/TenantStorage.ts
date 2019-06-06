@@ -5,7 +5,7 @@ const ObjectID = require('mongodb').ObjectID;
 import BackendError from '../../exception/BackendError';
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
-import Tenant from '../../entity/Tenant'; // Avoid fucking circular deps!!!
+import Tenant from '../../entity/Tenant';
 import TSGlobal from '../../types/GlobalType';
 declare var global: TSGlobal;
 

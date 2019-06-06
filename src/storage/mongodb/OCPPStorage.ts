@@ -1,4 +1,4 @@
-    // import ChargingStation from '../../entity/ChargingStation'; // Avoid fucking circular deps!!!
+    // import ChargingStation from '../../entity/ChargingStation';
 import Constants from '../../utils/Constants';
 import Utils from '../../utils/Utils';
 import Database from '../../utils/Database';
@@ -250,10 +250,10 @@ export default class OCPPStorage {
       }]
     };
 
-    if (params.chargeBoxId) {
-      // Build filter
+    // Charger ID
+    if (params.chargeBoxID) {
       filters.$and.push({
-        "_id": params.chargeBoxId
+        "_id": params.chargeBoxID
       });
     }
     // Filters

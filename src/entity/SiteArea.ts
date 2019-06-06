@@ -189,9 +189,9 @@ export default class SiteArea extends TenantHolder {
    * @param withUser
    * @returns {Promise<Site>}
    */
-  async getSite(withCompany = false, withUser = false) {
+  async getSite() {
     // Get from DB
-    const site = await SiteStorage.getSite(this.getTenantID(), this.model.siteID, withCompany, withUser);
+    const site = await SiteStorage.getSite(this.getTenantID(), this.model.siteID);
     // Keep it
     this.setSite(site);
     return site;

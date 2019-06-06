@@ -154,7 +154,7 @@ export default class Authorizations {
     return compiledAuths;
   }
 
-  static async _checkAndGetUserTagIDOnChargingStation(chargingStation: any, tagID: any, isOrgCompActive: any, site: any, action: any) {
+  private static async checkAndGetUserTagIDOnChargingStation(chargingStation: any, tagID: any, action: any) {
     // Get the user
     let user: any = await User.getUserByTagId(chargingStation.getTenantID(), tagID);
     // Found?
@@ -330,21 +330,21 @@ export default class Authorizations {
         return;
       }
       // Site -----------------------------------------------------
-      site = await siteArea.getSite(null, true);
+      site = await siteArea.getSite();
       if (!site) {
         // Reject Site Not Found
         throw new AppError(
           chargingStation.getID(),
           `Site Area '${siteArea.getName()}' is not assigned to a Site!`, 525,
-          "Authorizations", "_checkAndGetUserOnChargingStation");
+          "Authorizations", "checkAndGetUserOnChargingStation");
       }
     }
     // Get user
     let user = null;
     // Get the user
     if (tagID) {
-      user = await Authorizations._checkAndGetUserTagIDOnChargingStation(
-        chargingStation, tagID, isOrgCompActive, site, action);
+      user = await Authorizations.checkAndGetUserTagIDOnChargingStation(
+        chargingStation, tagID, action);
     }
     // Found?
     if (user) {

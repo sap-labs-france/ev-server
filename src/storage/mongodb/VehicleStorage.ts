@@ -1,4 +1,4 @@
-import Vehicle from '../../entity/Vehicle'; // Avoid fucking circular deps!!!
+import Vehicle from '../../entity/Vehicle';
 const ObjectID = require('mongodb').ObjectID;
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';

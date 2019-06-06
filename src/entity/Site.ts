@@ -245,8 +245,8 @@ export default class Site extends TenantHolder {
     }
   }
 
-  static getSite(tenantID, id, withCompany?, withUser?) {
-    return SiteStorage.getSite(tenantID, id, withCompany, withUser);
+  static getSite(tenantID, id) {
+    return SiteStorage.getSite(tenantID, id);
   }
 
   static getSites(tenantID, params, limit?, skip?, sort?) {

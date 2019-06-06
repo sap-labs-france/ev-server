@@ -454,7 +454,7 @@ export default class ChargingStationService {
           'withNoSiteArea': filteredRequest.WithNoSiteArea,
           'withSite': filteredRequest.WithSite,
           'siteIDs': (filteredRequest.SiteID ? [filteredRequest.SiteID] : Authorizations.getAuthorizedEntityIDsFromLoggedUser(Constants.ENTITY_SITE, req.user)),
-          'chargeBoxId': filteredRequest.ChargeBoxID,
+          'chargeBoxID': filteredRequest.ChargeBoxID,
           'siteAreaID': filteredRequest.SiteAreaID,
           'includeDeleted': filteredRequest.IncludeDeleted,
           'onlyRecordCount': filteredRequest.OnlyRecordCount
@@ -500,7 +500,7 @@ export default class ChargingStationService {
           'withNoSiteArea': filteredRequest.WithNoSiteArea,
           'withSite': filteredRequest.WithSite,
           'siteID': filteredRequest.SiteID,
-          'chargeBoxId': filteredRequest.ChargeBoxID,
+          'chargeBoxID': filteredRequest.ChargeBoxID,
           'siteAreaID': filteredRequest.SiteAreaID,
           'onlyRecordCount': filteredRequest.OnlyRecordCount
         },
@@ -558,7 +558,7 @@ export default class ChargingStationService {
           'withNoSiteArea': filteredRequest.WithNoSiteArea,
           'withSite': filteredRequest.WithSite,
           'siteID': filteredRequest.SiteID,
-          'chargeBoxId': filteredRequest.ChargeBoxID,
+          'chargeBoxID': filteredRequest.ChargeBoxID,
           'siteAreaID': filteredRequest.SiteAreaID,
           'errorType': filteredRequest.ErrorType,
           'onlyRecordCount': filteredRequest.OnlyRecordCount

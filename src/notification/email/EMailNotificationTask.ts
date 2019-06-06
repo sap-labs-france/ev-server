@@ -7,6 +7,7 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import Constants from '../../utils/Constants';
 import NotificationTask from '../NotificationTask';
+import Tenant from '../../entity/Tenant';
 import TSGlobal from '../../types/GlobalType';
 declare var global: TSGlobal;
 
@@ -114,6 +115,9 @@ export default class EMailNotificationTask extends NotificationTask {
     // Render the localized template ---------------------------------------
     // Render the subject
     emailTemplate.subject = ejs.render(emailTemplate.subject, data);
+    // Render the tenant name
+    const tenant = await Tenant.getTenant(tenantID);
+    emailTemplate.tenant = tenant.getName();
     // Render Base URL
     emailTemplate.baseURL = ejs.render(emailTemplate.baseURL, data);
     emailTemplate.body.template = templateName;

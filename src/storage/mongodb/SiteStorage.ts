@@ -6,16 +6,16 @@ import BackendError from '../../exception/BackendError';
 const ObjectID = require('mongodb').ObjectID;
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
-import Site from '../../entity/Site'; // Avoid fucking circular deps!!!
-import Company from '../../entity/Company'; // Avoid fucking circular deps!!!
-import SiteArea from '../../entity/SiteArea'; // Avoid fucking circular deps!!!
-import User from '../../entity/User'; // Avoid fucking circular deps!!!
+import Site from '../../entity/Site';
+import Company from '../../entity/Company';
+import SiteArea from '../../entity/SiteArea';
+import User from '../../entity/User';
 import TSGlobal from '../../types/GlobalType';
-import ChargingStation from '../../entity/ChargingStation'; // Avoid fucking circular deps!!!
+import ChargingStation from '../../entity/ChargingStation';
 declare var global: TSGlobal;
 
 export default class SiteStorage {
-  static async getSite(tenantID, id, withCompany, withUsers) {
+  static async getSite(tenantID, id) {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getSite');
     // Check Tenant
@@ -28,27 +28,7 @@ export default class SiteStorage {
     });
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
-    // User
-    if (withUsers) {
-      // Add
-      aggregation.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, "siteusers"),
-          localField: "_id",
-          foreignField: "siteID",
-          as: "siteusers"
-        }
-      });
-      // Add
-      aggregation.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, "users"),
-          localField: "siteusers.userID",
-          foreignField: "_id",
-          as: "users"
-        }
-      });
-    }
+    
     // Add SiteAreas
     aggregation.push({
       $lookup: {
@@ -58,21 +38,7 @@ export default class SiteStorage {
         as: "siteAreas"
       }
     });
-    if (withCompany) {
-      // Add Company
-      aggregation.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, "companies"),
-          localField: "companyID",
-          foreignField: "_id",
-          as: "company"
-        }
-      });
-      // Single Record
-      aggregation.push({
-        $unwind: { "path": "$company", "preserveNullAndEmptyArrays": true }
-      });
-    }
+    
     // Read DB
     const sitesMDB = await global.database.getCollection(tenantID, 'sites')
       .aggregate(aggregation)
@@ -86,21 +52,9 @@ export default class SiteStorage {
       site.setSiteAreas(sitesMDB[0].siteAreas.map((siteArea) => {
         return new SiteArea(tenantID, siteArea);
       }));
-      // Set Company
-      if (withCompany) {
-        site.setCompany(new Company(tenantID, sitesMDB[0].company));
-      }
-      // Set users
-      if (withUsers && sitesMDB[0].users) {
-        // Create Users
-        sitesMDB[0].users = sitesMDB[0].users.map((user) => {
-          return new User(tenantID, user);
-        });
-        site.setUsers(sitesMDB[0].users);
-      }
     }
     // Debug
-    Logging.traceEnd('SiteStorage', 'getSite', uniqueTimerID, { id, withCompany, withUsers });
+    Logging.traceEnd('SiteStorage', 'getSite', uniqueTimerID, { id });
     return site;
   }
 
@@ -209,26 +163,7 @@ export default class SiteStorage {
       { upsert: true, returnOriginal: false });
     // Create
     const updatedSite = new Site(tenantID, result.value);
-    // Update Users?`
-    if (siteToSave.users) {
-      // Delete first
-      await global.database.getCollection(tenantID, 'siteusers')
-        .deleteMany({ 'siteID': Utils.convertToObjectID(updatedSite.getID()) });
-      // At least one?
-      if (siteToSave.users.length > 0) {
-        const siteUsersMDB = [];
-        // Create the list
-        for (const user of siteToSave.users) {
-          // Add
-          siteUsersMDB.push({
-            "siteID": Utils.convertToObjectID(updatedSite.getID()),
-            "userID": Utils.convertToObjectID(user.id)
-          });
-        }
-        // Execute
-        await global.database.getCollection(tenantID, 'siteusers').insertMany(siteUsersMDB);
-      }
-    }
+
     // Debug
     Logging.traceEnd('SiteStorage', 'saveSite', uniqueTimerID, { siteToSave });
     return updatedSite;
@@ -269,7 +204,6 @@ export default class SiteStorage {
     const filters:any = {};
     // Source?
     if (params.search) {
-      // Build filter
       filters.$or = [
         { "name": { $regex: params.search, $options: 'i' } }
       ];
@@ -294,7 +228,7 @@ export default class SiteStorage {
       });
     }
     // Set User?
-    if (params.withUsers || params.userID || params.excludeSitesOfUserID) {
+    if (params.userID || params.excludeSitesOfUserID) {
       // Add Users
       aggregation.push({
         $lookup: {
@@ -312,39 +246,7 @@ export default class SiteStorage {
       if (params.excludeSitesOfUserID) {
         filters["siteusers.userID"] = { $ne: Utils.convertToObjectID(params.excludeSitesOfUserID) };
       }
-      if (params.withUsers) {
-        // Add
-        aggregation.push({
-          $lookup: {
-            from: DatabaseUtils.getCollectionName(tenantID, "users"),
-            localField: "siteusers.userID",
-            foreignField: "_id",
-            as: "users"
-          }
-        });
-      }
-    }
-    if (params.withSiteAreas || params.withChargeBoxes || params.withAvailableChargers) {
-      // Add SiteAreas
-      aggregation.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, "siteareas"),
-          localField: "_id",
-          foreignField: "siteID",
-          as: "siteAreas"
-        }
-      });
-    }
-    // With Chargers?
-    if (params.withChargeBoxes || params.withAvailableChargers) {
-      aggregation.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, "chargingstations"),
-          localField: "siteAreas._id",
-          foreignField: "siteAreaID",
-          as: "chargeBoxes"
-        }
-      });
+      
     }
     // Filters
     if (filters) {
@@ -371,6 +273,29 @@ export default class SiteStorage {
     }
     // Remove the limit
     aggregation.pop();
+
+    if (params.withAvailableChargers) {
+      aggregation.push({
+        $lookup: {
+          from: DatabaseUtils.getCollectionName(tenantID, "siteareas"),
+          localField: "_id",
+          foreignField: "siteID",
+          as: "siteAreas"
+        }
+      });
+    }
+    // Add Chargers
+    if (params.withAvailableChargers) {
+      aggregation.push({
+        $lookup: {
+          from: DatabaseUtils.getCollectionName(tenantID, "chargingstations"),
+          localField: "siteAreas._id",
+          foreignField: "siteAreaID",
+          as: "chargeBoxes"
+        }
+      });
+    }
+
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Add Company?
@@ -420,7 +345,7 @@ export default class SiteStorage {
         // Create
         const site = new Site(tenantID, siteMDB);
         // Set Users
-        if ((params.userID || params.withUsers) && siteMDB.users) {
+        if (params.userID && siteMDB.users) {
           // Set Users
           site.setUsers(siteMDB.users.map((user) => new User(tenantID, user)));
         }
@@ -460,38 +385,7 @@ export default class SiteStorage {
           site.setAvailableConnectors(availableConnectors);
           site.setTotalConnectors(totalConnectors);
         }
-        // Set Site Areas
-        if ((params.withChargeBoxes || params.withSiteAreas) && siteMDB.siteAreas) {
-          // Sort Site Areas
-          siteMDB.siteAreas.sort((cb1, cb2) => {
-            return cb1.name.localeCompare(cb2.name);
-          });
-          // Set
-          site.setSiteAreas(siteMDB.siteAreas.map((siteArea) => {
-            const siteAreaObj = new SiteArea(tenantID, siteArea);
-            // Set Site Areas
-            if (siteMDB.chargeBoxes) {
-              // Filter with Site Area`
-              const chargeBoxesPerSiteArea = siteMDB.chargeBoxes.filter((chargeBox) => {
-                return !chargeBox.deleted && chargeBox.siteAreaID.toString() === siteArea._id;
-              });
-              // Sort Charging Stations
-              chargeBoxesPerSiteArea.sort((cb1, cb2) => {
-                return cb1._id.localeCompare(cb2._id);
-              });
-              // Set Charger to Site Area
-              siteAreaObj.setChargingStations(chargeBoxesPerSiteArea.map((chargeBoxPerSiteArea) => {
-                // Create the Charger
-                const chargingStation = new ChargingStation(tenantID, chargeBoxPerSiteArea);
-                // Set Site Area to Charger
-                chargingStation.setSiteArea(new SiteArea(tenantID, siteAreaObj.getModel())); // To avoid circular deps Charger -> Site Area -> Charger
-                // Return
-                return chargingStation;
-              }));
-            }
-            return siteAreaObj;
-          }));
-        }
+        
         // Set Company?
         if (siteMDB.company) {
           site.setCompany(new Company(tenantID, siteMDB.company));

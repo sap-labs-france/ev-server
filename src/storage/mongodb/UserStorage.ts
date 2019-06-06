@@ -10,7 +10,7 @@ import Logging from '../../utils/Logging';
 import fs from 'fs';
 import TSGlobal from '../../types/GlobalType';
 declare var global: TSGlobal;
-import User from '../../entity/User'; // Avoid fucking circular deps!!!
+import User from '../../entity/User';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 export default class UserStorage {
@@ -343,26 +343,7 @@ export default class UserStorage {
         }
       }
     }
-    // Update Sites?`
-    if (userToSave.sites) {
-      // Delete first
-      await global.database.getCollection(tenantID, 'siteusers')
-        .deleteMany({ 'userID': Utils.convertToObjectID(updatedUser.getID()) });
-      // At least one?
-      if (userToSave.sites.length > 0) {
-        const siteUsersMDB = [];
-        // Create the list
-        for (const site of userToSave.sites) {
-          // Add
-          siteUsersMDB.push({
-            "siteID": Utils.convertToObjectID(site.id),
-            "userID": Utils.convertToObjectID(updatedUser.getID())
-          });
-        }
-        // Execute
-        await global.database.getCollection(tenantID, 'siteusers').insertMany(siteUsersMDB);
-      }
-    }
+    
     // Debug
     Logging.traceEnd('UserStorage', 'saveUser', uniqueTimerID, { userToSave });
     return updatedUser;
@@ -404,8 +385,8 @@ export default class UserStorage {
         {
           "$or": [
             { "deleted": { $exists: false } },
-            { deleted: false },
-            { deleted: null }
+            { "deleted": false },
+            { "deleted": null }
           ]
         }
       ]
@@ -587,8 +568,8 @@ export default class UserStorage {
         {
           "$or": [
             { "deleted": { $exists: false } },
-            { deleted: false },
-            { deleted: null }
+            { "deleted": false },
+            { "deleted": null }
           ]
         }
       ]
@@ -746,15 +727,18 @@ export default class UserStorage {
     const uniqueTimerID = Logging.traceStart('UserStorage', 'deleteUser');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Delete User
-    await global.database.getCollection(tenantID, 'users')
-      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
+    // Delete User from sites
+    await global.database.getCollection(tenantID, 'siteusers')
+      .findOneAndDelete({ 'userID': Utils.convertToObjectID(id) });
     // Delete Image
     await global.database.getCollection(tenantID, 'userimages')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Delete Tags
     await global.database.getCollection(tenantID, 'tags')
       .deleteMany({ 'userID': Utils.convertToObjectID(id) });
+    // Delete User
+    await global.database.getCollection(tenantID, 'users')
+    .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd('UserStorage', 'deleteUser', uniqueTimerID, { id });
   }

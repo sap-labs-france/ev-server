@@ -211,7 +211,7 @@ export default class UserService {
           req.user);
       }
       // Delete
-      const sites = await user.getSites(false, false, false, true);
+      const sites = await user.getSites();
       for (const site of sites) {
         // Remove User
         site.removeUser(user);

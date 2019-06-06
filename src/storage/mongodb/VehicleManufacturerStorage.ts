@@ -1,5 +1,5 @@
-import Vehicle from '../../entity/Vehicle'; // Avoid fucking circular deps!!!
-import VehicleManufacturer from '../../entity/VehicleManufacturer'; // Avoid fucking circular deps!!!
+import Vehicle from '../../entity/Vehicle';
+import VehicleManufacturer from '../../entity/VehicleManufacturer';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import Utils from '../../utils/Utils';

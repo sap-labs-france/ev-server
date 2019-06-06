@@ -1,5 +1,5 @@
-import Site from '../../entity/Site';  // Avoid fucking circular deps!!!
-import Company from '../../entity/Company'; // Avoid fucking circular deps!!!
+import Site from '../../entity/Site';  
+import Company from '../../entity/Company';
 const ObjectID = require('mongodb').ObjectID;
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
@@ -265,7 +265,7 @@ export default class CompanyStorage {
           }));
         }
         // Set logo
-        if (true && companyMDB.companylogos && companyMDB.companylogos[0]) {
+        if (companyMDB.companylogos && companyMDB.companylogos[0]) {
           company.setLogo(companyMDB.companylogos[0].logo);
         }
         // Add

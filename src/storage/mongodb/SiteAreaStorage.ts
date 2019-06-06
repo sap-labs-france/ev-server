@@ -5,9 +5,9 @@ import BackendError from '../../exception/BackendError';
 const ObjectID = require('mongodb').ObjectID;
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
-import Site from '../../entity/Site';  // Avoid fucking circular deps!!!
-import SiteArea from '../../entity/SiteArea'; // Avoid fucking circular deps!!!
-import ChargingStation from '../../entity/ChargingStation'; // Avoid fucking circular deps!!!
+import Site from '../../entity/Site';
+import SiteArea from '../../entity/SiteArea';
+import ChargingStation from '../../entity/ChargingStation';
 import TSGlobal from '../../types/GlobalType';
 declare var global: TSGlobal;
 

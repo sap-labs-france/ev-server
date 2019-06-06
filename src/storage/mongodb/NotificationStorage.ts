@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import Logging from '../../utils/Logging';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
-import Notification from '../../entity/Notification'; // Avoid fucking circular deps!!!
+import Notification from '../../entity/Notification';
 import TSGlobal from '../../types/GlobalType';
 declare var global: TSGlobal;
 

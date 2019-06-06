@@ -4,10 +4,10 @@ import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import BackendError from '../../exception/BackendError';
-import ChargingStation from '../../entity/ChargingStation'; // Avoid fucking circular deps!!!
-import SiteArea from '../../entity/SiteArea'; // Avoid fucking circular deps!!!
-import Site from '../../entity/Site'; // Avoid fucking circular deps!!!
-import Tenant from '../../entity/Tenant'; // Avoid fucking circular deps!!!
+import ChargingStation from '../../entity/ChargingStation'; 
+import SiteArea from '../../entity/SiteArea'; 
+import Site from '../../entity/Site'; 
+import Tenant from '../../entity/Tenant';
 import TSGlobal from '../../types/GlobalType';
 declare var global: TSGlobal;
 
@@ -98,42 +98,27 @@ export default class ChargingStationStorage {
     if (params.search) {
       // Build filter
       filters.$and.push({
-        "$or": [{
-          "_id": {
-            $regex: params.search,
-            $options: 'i'
-          }
-        },
-        {
-          "chargePointModel": {
-            $regex: params.search,
-            $options: 'i'
-          }
-        },
-        {
-          "chargePointVendor": {
-            $regex: params.search,
-            $options: 'i'
-          }
-        }
+        "$or": [
+          { "_id": { $regex: params.search, $options: 'i' } },
+          { "chargePointModel": { $regex: params.search, $options: 'i' } },
+          { "chargePointVendor": { $regex: params.search, $options: 'i' } }
         ]
       });
     }
-    // Source?
+    // Site Area
     if (params.siteAreaID) {
-      // Build filter
       filters.$and.push({
         "siteAreaID": Utils.convertToObjectID(params.siteAreaID)
       });
     }
-    // With no Site Area
+    // No Site Area
     if (params.withNoSiteArea) {
       // Build filter
       filters.$and.push({
         "siteAreaID": null
       });
     } else {
-      // Always get the Site Area
+      // With Site Area
       aggregation.push({
         $lookup: {
           from: DatabaseUtils.getCollectionName(tenantID, "siteareas"),
@@ -149,7 +134,7 @@ export default class ChargingStationStorage {
           "preserveNullAndEmptyArrays": true
         }
       });
-      // Check Site ID
+      // With sites
       if (params.siteIDs && params.siteIDs.length > 0) {
         // Build filter
         filters.$and.push({
@@ -177,10 +162,10 @@ export default class ChargingStationStorage {
         });
       }
     }
-    if (params.chargeBoxId) {
+    if (params.chargeBoxID) {
       // Build filter
       filters.$and.push({
-        "_id": params.chargeBoxId
+        "_id": params.chargeBoxID
       });
     }
     // Filters
@@ -283,17 +268,10 @@ export default class ChargingStationStorage {
     // Set the filters
     const basicFilters: any = {
       $and: [{
-        $or: [{
-          "deleted": {
-            $exists: false
-          }
-        },
-        {
-          "deleted": null
-        },
-        {
-          "deleted": false
-        }
+        $or: [
+          { "deleted": { $exists: false } },
+          { "deleted": null },
+          { "deleted": false }
         ]
       }]
     };
@@ -301,24 +279,10 @@ export default class ChargingStationStorage {
     if (params.search) {
       // Build filter
       basicFilters.$and.push({
-        "$or": [{
-          "_id": {
-            $regex: params.search,
-            $options: 'i'
-          }
-        },
-        {
-          "chargePointModel": {
-            $regex: params.search,
-            $options: 'i'
-          }
-        },
-        {
-          "chargePointVendor": {
-            $regex: params.search,
-            $options: 'i'
-          }
-        }
+        "$or": [
+          { "_id": { $regex: params.search, $options: 'i' } },
+          { "chargePointModel": { $regex: params.search, $options: 'i' } },
+          { "chargePointVendor": { $regex: params.search, $options: 'i' } }
         ]
       });
     }
@@ -376,8 +340,8 @@ export default class ChargingStationStorage {
       }
       ];
     }
-    if (params.chargeBoxId) {
-      // Build filter
+    // Charger
+    if (params.chargeBoxID) {
       basicFilters.$and.push({
         "_id": params.chargeBoxId
       });
@@ -425,7 +389,7 @@ export default class ChargingStationStorage {
     aggregation.push(facets);
     // Manipulate the results to convert it to an array of document on root level
     aggregation.push({ $project: { "allItems": { $concatArrays: project } } });
-    aggregation.push({ "$unwind": { "path": "$allItems" } });
+    aggregation.push({ $unwind: { "path": "$allItems" } });
     aggregation.push({ $replaceRoot: { newRoot: "$allItems" } });
     // Add a unique identifier as we may have the same charger several time
     aggregation.push({ $addFields: { "uniqueId": { $concat: ["$_id", "#", "$errorCode"] } } });
@@ -664,14 +628,10 @@ export default class ChargingStationStorage {
     await Utils.checkTenant(tenantID);
     // Delete Configuration
     await global.database.getCollection(tenantID, 'configurations')
-      .findOneAndDelete({
-        '_id': id
-      });
+    .findOneAndDelete({ '_id': id });
     // Delete Charger
     await global.database.getCollection(tenantID, 'chargingstations')
-      .findOneAndDelete({
-        '_id': id
-      });
+    .findOneAndDelete({ '_id': id });
     // Keep the rest (bootnotif, authorize...)
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'deleteChargingStation', uniqueTimerID);
@@ -740,19 +700,12 @@ export default class ChargingStationStorage {
       if (chargingStationIDs && chargingStationIDs.length > 0) {
         // update all chargers
         await global.database.getCollection(tenantID, 'chargingstations').updateMany({
-          $and: [{
-            "_id": {
-              $in: chargingStationIDs
-            }
-          },
-          {
-            "siteAreaID": Utils.convertToObjectID(siteAreaID)
-          }
+          $and: [
+            { "_id": { $in: chargingStationIDs } },
+            { "siteAreaID": Utils.convertToObjectID(siteAreaID) }
           ]
         }, {
-          $set: {
-            siteAreaID: null
-          }
+          $set: { siteAreaID: null }
         }, {
           upsert: false
         });
@@ -776,19 +729,12 @@ export default class ChargingStationStorage {
       if (chargingStationIDs && chargingStationIDs.length > 0) {
         // update all chargers
         await global.database.getCollection(tenantID, 'chargingstations').updateMany({
-          $and: [{
-            "_id": {
-              $in: chargingStationIDs
-            }
-          },
-          {
-            "siteAreaID": null
-          }
+          $and: [
+            { "_id": { $in: chargingStationIDs } },
+            { "siteAreaID": null }
           ]
         }, {
-          $set: {
-            siteAreaID: Utils.convertToObjectID(siteAreaID)
-          }
+          $set: { siteAreaID: Utils.convertToObjectID(siteAreaID) }
         }, {
           upsert: false
         });
