@@ -125,8 +125,6 @@ class NotificationStorage {
     const uniqueTimerID = Logging.traceStart('NotificationStorage', 'saveNotification');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Ensure Date
-    notificationToSave.timestamp = Utils.convertToDate(notificationToSave.timestamp);
     // Transfer
     const notification = {};
     Database.updateNotification(notificationToSave, notification, false);
@@ -138,7 +136,7 @@ class NotificationStorage {
     await global.database.getCollection(tenantID, 'notifications')
       .insertOne(notification);
     // Debug
-    Logging.traceEnd('NotificationStorage', 'saveNotification', uniqueTimerID, { notificationToSave });
+    Logging.traceEnd('NotificationStorage', 'saveNotification', uniqueTimerID, { notification });
   }
 }
 

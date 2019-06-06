@@ -5,10 +5,17 @@ installation
 build
 .git
 .gitignore
+.gitattributes
 .jshintrc
 .eslintrc.json
 .vscode
 .clinic
+# vim
+# Persistent undo
+[._]*.un~
+# Temporary
+.netrwhist
+*~
 Procfile
 postman
 archi
@@ -19,6 +26,5 @@ users-template.json
 user-test-case.txt
 security-scan-source-clear.txt
 webpack.config.js
-yarn.lock
 yarn-error.log
 manifest-cf-template.yml

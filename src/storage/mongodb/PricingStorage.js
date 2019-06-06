@@ -19,7 +19,7 @@ class PricingStorage {
     if (pricingsMDB && pricingsMDB.length > 0) {
       // Set
       pricing = {};
-      Database.updatePricing(pricingsMDB[0], pricing);
+      Database.updatePricing(pricingsMDB[0], pricing, false);
     }
     // Debug
     Logging.traceEnd('PricingStorage', 'getPricing', uniqueTimerID);
@@ -32,8 +32,6 @@ class PricingStorage {
     const uniqueTimerID = Logging.traceStart('PricingStorage', 'savePricing');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Check date
-    pricingToSave.timestamp = Utils.convertToDate(pricingToSave.timestamp);
     // Transfer
     const pricing = {};
     Database.updatePricing(pricingToSave, pricing, false);
@@ -43,7 +41,7 @@ class PricingStorage {
       { $set: pricing },
       { upsert: true, new: true, returnOriginal: false });
     // Debug
-    Logging.traceEnd('PricingStorage', 'savePricing', uniqueTimerID, { pricingToSave });
+    Logging.traceEnd('PricingStorage', 'savePricing', uniqueTimerID, { pricing });
   }
 }
 

@@ -2,6 +2,7 @@ const path = require('path');
 global.appRoot = path.resolve(__dirname);
 global.Promise = require('bluebird');
 const cluster = require('cluster');
+const LockingStorage = require('./storage/mongodb/LockingStorage');
 const MongoDBStorage = require('./storage/mongodb/MongoDBStorage');
 const MongoDBStorageNotification = require('./storage/mongodb/MongoDBStorageNotification');
 const Configuration = require('./utils/Configuration');
@@ -218,6 +219,9 @@ class Bootstrap {
         this._databaseDone = true;
       }
       global.database = this._database;
+      // Clean the locks in DB belonging to the current app/host
+      if (cluster.isMaster && this._databaseDone)
+        await LockingStorage.cleanLocks();
 
       if (cluster.isMaster && !this._migrationDone && this._centralSystemRestConfig) {
         // Check and trigger migration (only master process on the REST server can run the migration)

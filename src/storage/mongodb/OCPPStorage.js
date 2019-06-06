@@ -223,7 +223,6 @@ class OCPPStorage {
     const uniqueTimerID = Logging.traceStart('OCPPStorage', 'getBootNotifications');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // const ChargingStation = require('../../entity/ChargingStation');
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
     // Check Skip
