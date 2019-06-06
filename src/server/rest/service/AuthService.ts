@@ -943,7 +943,8 @@ export default class AuthService {
     // Save
     await user.save();
     // Build Authorization
-    const auths = await Authorizations.buildAuthorizations(user);
+    const scopes = Authorizations.getUserScopes(user.getRole());
+    const authorizedEntities = await Authorizations.getAuthorizedEntities(user);
     const userHashID = SessionHashService.buildUserHashID(user);
     let tenantHashID;
     if (user.getTenantID() !== Constants.DEFAULT_TENANT) {
@@ -964,11 +965,13 @@ export default class AuthService {
       'tenantID': user.getTenantID(),
       'userHashID': userHashID,
       'tenantHashID': tenantHashID,
-      'auths': auths,
+      'scopes': scopes,
+      'companies': authorizedEntities.companies,
+      'sites': authorizedEntities.sites,
       'activeComponents': []
     };
     // Get active components from tenant if not default
-    if (user.getTenantID() != Constants.DEFAULT_TENANT) {
+    if (user.getTenantID() !== Constants.DEFAULT_TENANT) {
       const tenant = await user.getTenant();
       payload.activeComponents = tenant.getActiveComponents();
     }

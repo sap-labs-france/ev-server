@@ -51,7 +51,7 @@ export default class ConnectorSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadConnection(loggedUser/*, connection TODO ?*/)) {
+    if (Authorizations.canReadConnection(loggedUser, connection)) {
       // Set only necessary info
       filteredConnection = {};
       filteredConnection.connectorId = connection.connectorId;

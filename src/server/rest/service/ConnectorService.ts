@@ -1,17 +1,14 @@
 import Logging from '../../../utils/Logging';
-import Database from '../../../utils/Database';
 import AppError from '../../../exception/AppError';
 import UnauthorizedError from '../../../exception/UnauthorizedError';
 import Constants from '../../../utils/Constants';
 import AbstractConnector from '../../../integration/AbstractConnector';
 import ConcurConnector from '../../../integration/refund/ConcurConnector';
-import User from '../../../entity/User';
 import Authorizations from '../../../authorization/Authorizations';
 import ConnectorSecurity from './security/ConnectorSecurity';
 import HttpStatusCodes from 'http-status-codes';
 import ConnectionValidator from '../validation/ConnectionValidator';
 import AbstractService from './AbstractService';
-import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'ConnectorService';
 export default class ConnectorService extends AbstractService {
@@ -28,7 +25,7 @@ export default class ConnectorService extends AbstractService {
           MODULE_NAME, 'handleGetConnection', req.user);
       }
       // Get it
-      const connection = await AbstractConnector.getConnectionById(req.user.tenantID, filteredRequest.ID);
+      const connection = await AbstractConnector.getConnection(req.user.tenantID, filteredRequest.ID);
       if (!connection) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -36,7 +33,7 @@ export default class ConnectorService extends AbstractService {
           MODULE_NAME, 'handleGetConnection', req.user);
       }
       // Check auth
-      if (!Authorizations.canReadConnection(req.user/*, connection.getModel() TODO ?*/)) {
+      if (!Authorizations.canReadConnection(req.user, connection.getModel())) {
         // Not Authorized!
         throw new UnauthorizedError(
           Constants.ACTION_READ,
@@ -84,8 +81,13 @@ export default class ConnectorService extends AbstractService {
 
   static async handleCreateConnection(action, req, res, next) {
     try {
+       // Filter
+       const filteredRequest = ConnectorSecurity.filterConnectionCreateRequest(req.body, req.user);
+       const setting = await AbstractConnector.getConnectorSetting(req.user.tenantID, filteredRequest.settingId);
+       const connector = this.instantiateConnector(req.user.tenantID, filteredRequest.connectorId, setting.getContent()[filteredRequest.connectorId]);
+       const connection = await connector.createConnection(filteredRequest.userId, filteredRequest.data);
       // Check auth
-      if (!Authorizations.canCreateConnection(req.user)) {
+      if (!Authorizations.canCreateConnection(req.user, connection.getModel())) {
         // Not Authorized!
         throw new UnauthorizedError(
           Constants.ACTION_CREATE,
@@ -94,12 +96,6 @@ export default class ConnectorService extends AbstractService {
           req.user);
       }
       ConnectionValidator.getInstance().validateConnectionCreation(req.body);
-      // Filter
-      const filteredRequest = ConnectorSecurity.filterConnectionCreateRequest(req.body, req.user);
-      const setting = await AbstractConnector.getConnectorSetting(req.user.tenantID, filteredRequest.settingId);
-
-      const connector = this.instantiateConnector(req.user.tenantID, filteredRequest.connectorId, setting.getContent()[filteredRequest.connectorId]);
-      const connection = await connector.createConnection(filteredRequest.userId, filteredRequest.data);
 
       // Log
       Logging.logSecurityInfo({
@@ -118,15 +114,6 @@ export default class ConnectorService extends AbstractService {
 
   static async handleDeleteConnection(action, req, res, next) {
     try {
-      // Check auth
-      if (!Authorizations.canDeleteConnection(req.user)) {
-        // Not Authorized!
-        throw new UnauthorizedError(
-          Constants.ACTION_DELETE,
-          Constants.ENTITY_CONNECTION,
-          null,
-          req.user);
-      }
       // Filter
       const filteredRequest = ConnectorSecurity.filterConnectionDeleteRequest(req.query, req.user);
 
@@ -154,6 +141,15 @@ export default class ConnectorService extends AbstractService {
           Constants.CENTRAL_SERVER,
           `Connection [${filteredRequest.connectorId},${filteredRequest.userId}] does not exist`, 550,
           MODULE_NAME, 'handleDeleteConnection', req.user);
+      }
+      // Check auth
+      if (!Authorizations.canDeleteConnection(req.user, connection.getModel())) {
+        // Not Authorized!
+        throw new UnauthorizedError(
+          Constants.ACTION_DELETE,
+          Constants.ENTITY_CONNECTION,
+          null,
+          req.user);
       }
 
       await AbstractConnector.deleteConnectionById(connection.getTenantID(), connection.getId());

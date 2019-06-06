@@ -295,6 +295,22 @@ export default class TransactionSecurity {
         i++;
       }
     }
+    const initialValue = JSON.parse(JSON.stringify(filteredTransaction.values[0]));
+    const initialDate = new Date(filteredTransaction.values[0].endedAt.getTime() - 60000);
+    initialValue.endedAt = initialDate;
+    initialValue.date = initialDate;
+    initialValue.value = 0;
+    initialValue.cumulated = 0;
+    initialValue.instantPower = 0;
+    initialValue.cumulatedConsumption = 0;
+    if (Authorizations.isAdmin(loggedUser)) {
+      initialValue.startedAt = new Date(initialDate.getTime() - 60000);
+      initialValue.consumption = 0;
+      initialValue.amount = 0;
+      initialValue.cumulatedAmount = 0;
+      initialValue.roundedAmount = 0;
+    }
+    filteredTransaction.values.splice(0, 0, initialValue);
     return filteredTransaction;
   }
 }

@@ -4,7 +4,7 @@ export default class AppError extends Error {
   constructor(
     readonly source: string,
     readonly message: string,
-    readonly errorCode: number = 500,
+    readonly errorCode: string|number = 500,
     readonly module: string = "N/A",
     readonly method: string = "N/A",
     readonly user?: User,

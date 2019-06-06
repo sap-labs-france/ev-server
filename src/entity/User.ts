@@ -24,10 +24,6 @@ export default class User extends TenantHolder {
     Database.updateUser(user, this.model);
   }
 
-  setAuthorizations(auths) {
-    this.model.auths = auths;
-  }
-
   setEulaAcceptedHash(eulaAcceptedHash) {
     this.model.eulaAcceptedHash = eulaAcceptedHash;
   }
