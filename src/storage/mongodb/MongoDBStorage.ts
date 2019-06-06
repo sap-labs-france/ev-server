@@ -1,13 +1,13 @@
-import { MongoClient } from 'mongodb';
 import cluster from 'cluster';
 import mongoUriBuilder from 'mongo-uri-builder';
 import urlencode from 'urlencode';
 import DatabaseUtils from './DatabaseUtils';
 import StorageCfg from './../../utils/ConfigurationClasses/StorageConfiguration';
 import Constants from '../../utils/Constants';
-import { Db, Collection } from 'mongodb';
+import { Db, MongoClient, Collection, ChangeStream } from 'mongodb';
 require('source-map-support').install();
 import InternalError from '../../exception/InternalError';
+
 
 export default class MongoDBStorage {
 
@@ -21,6 +21,10 @@ export default class MongoDBStorage {
       throw new InternalError('Not supposed to call getCollection before start', []);
     }
     return this.db.collection(DatabaseUtils.getCollectionName(tenantID, collectionName));
+  }
+
+  watch(pipeline, options) {
+    return this.db.watch(pipeline, options);
   }
 
   public async handleIndexesInCollection(allCollections: Array<{name: string}>, tenantID: string, name: string, indexes?: Array<{fields: any, options?: any}>): Promise<boolean> {

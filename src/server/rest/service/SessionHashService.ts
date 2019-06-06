@@ -73,7 +73,7 @@ export default class SessionHashService {
       // Store the hash
       global.userHashMapIDs[`${tenantID}#${userID}`] = hashID;
       // Log
-      Logging.logInfo({
+      Logging.logDebug({
         tenantID: tenantID, source: Constants.CENTRAL_SERVER,
         module: "SessionHashService", method: "rebuildUserHashID",
         action: "SessionHashHandling",
@@ -92,7 +92,7 @@ export default class SessionHashService {
       // Store the hash
       global.tenantHashMapIDs[`${tenantID}`] = hashID;
       // Log
-      Logging.logInfo({
+      Logging.logDebug({
         tenantID: tenantID, source: Constants.CENTRAL_SERVER,
         module: "SessionHashService", method: "rebuildTenantHashID",
         action: "SessionHashHandling",

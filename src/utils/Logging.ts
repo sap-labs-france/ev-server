@@ -13,6 +13,8 @@ import uuid from 'uuid/v4';
 require('source-map-support').install();
 import { performance, PerformanceObserver } from 'perf_hooks';
 const _loggingConfig = Configuration.getLoggingConfig();
+import cfenv from 'cfenv';
+import cluster from 'cluster';
 
 let _traceStatistics = null;
 
@@ -60,6 +62,11 @@ const LoggingType = {
   "REGULAR": 'R'
 };
 export default class Logging {
+
+  private static getSourceSuffix() {
+    const sourceSuffix = `on ${Configuration.isCloudFoundry() ? cfenv.getAppEnv().name + ' ' : ''}${cluster.isWorker ? 'worker ' + cluster.worker.id : 'master'}`;
+    return sourceSuffix ? ' ' + sourceSuffix : '';
+  }
 
   // Log Debug
   static logDebug(log) {
@@ -497,7 +504,9 @@ export default class Logging {
 
     // Source
     if (!log.source) {
-      log.source = Constants.CENTRAL_SERVER;
+      log.source = `${Constants.CENTRAL_SERVER}${Logging.getSourceSuffix()}`;
+    } else {
+      log.source = `${log.source}${Logging.getSourceSuffix()}`;
     }
 
     // Check

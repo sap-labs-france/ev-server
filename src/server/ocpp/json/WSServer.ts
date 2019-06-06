@@ -106,7 +106,7 @@ export default class WSServer extends WebSocket.Server {
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME,
         method: "_startListening", action: "Startup",
-        message: `${this.serverName} Json ${MODULE_NAME} listening on '${this.serverConfig.protocol}://${this.httpServer.address().address}:${this.httpServer.address().port}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`
+        message: `${this.serverName} Json ${MODULE_NAME} listening on '${this.serverConfig.protocol}://${this.httpServer.address().address}:${this.httpServer.address().port}'`
       });
       // eslint-disable-next-line no-console
       console.log(`${this.serverName} Json ${MODULE_NAME} listening on '${this.serverConfig.protocol}://${this.httpServer.address().address}:${this.httpServer.address().port}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);

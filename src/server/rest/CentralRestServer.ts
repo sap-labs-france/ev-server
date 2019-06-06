@@ -111,7 +111,7 @@ export default class CentralRestServer {
 
   private static socketIOListenCb() {
     // Log
-    const logMsg = `REST SocketIO Server listening on '${CentralRestServer.centralSystemRestConfig.protocol}://${CentralRestServer.restHttpServer.address().address}:${CentralRestServer.restHttpServer.address().port}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`;
+    const logMsg = `REST SocketIO Server listening on '${CentralRestServer.centralSystemRestConfig.protocol}://${CentralRestServer.restHttpServer.address().address}:${CentralRestServer.restHttpServer.address().port}'`;
     Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
       module: MODULE_NAME,
@@ -119,7 +119,7 @@ export default class CentralRestServer {
       message: logMsg
     });
     // eslint-disable-next-line no-console
-    console.log(logMsg);
+    console.log(logMsg + `${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
 
     // Check and send notification
     setInterval(() => {
