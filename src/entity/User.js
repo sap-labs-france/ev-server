@@ -18,10 +18,6 @@ class User extends AbstractTenantEntity {
     Database.updateUser(user, this._model);
   }
 
-  setAuthorizations(auths) {
-    this._model.auths = auths;
-  }
-
   setEulaAcceptedHash(eulaAcceptedHash) {
     this._model.eulaAcceptedHash = eulaAcceptedHash;
   }
@@ -408,7 +404,7 @@ class User extends AbstractTenantEntity {
         'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
     }
     // Only Admin and Super Admin can use role different from Basic
-    if (filteredRequest.role === Constants.ROLE_ADMIN && filteredRequest.role === Constants.ROLE_SUPER_ADMIN && 
+    if (filteredRequest.role === Constants.ROLE_ADMIN && filteredRequest.role === Constants.ROLE_SUPER_ADMIN &&
         !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,

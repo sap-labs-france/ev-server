@@ -1,583 +1,117 @@
-const Constants = require('../utils/Constants');
-require('source-map-support').install();
-
 class AuthorizationsDefinition {
-
-  static getAuthorizations(role) {
-    // Role
-    switch (role) {
-      // Super Admin
-      case Constants.ROLE_SUPER_ADMIN:
-        return AuthorizationsDefinition.getSuperAdminAuthorizations();
-      // Admin
-      case Constants.ROLE_ADMIN:
-        return AuthorizationsDefinition.getAdminAuthorizations();
-      // Basic
-      case Constants.ROLE_BASIC:
-        return AuthorizationsDefinition.getBasicAuthorizations();
-      // Demo
-      case Constants.ROLE_DEMO:
-        return AuthorizationsDefinition.getDemoAuthorizations();
-      // Default
-      default:
-        throw new Error(`Unknown Role '${role}'`);
-    }
-  }
-
-  static getBasicAuthorizations() {
-    return `
-			{
-				"id": "B",
-				"name": "Basic",
-				"auths": [
-					{
-						"AuthObject": "User",
-						"AuthFieldValue": {
-							"UserID": [
-								{{#trim}}
-									{{#userID}}
-										"{{.}}",
-									{{/userID}}
-								{{/trim}}
-							],
-							"Action": ["Update","Read","Logout"]
-						}
-					},
-					{
-						"AuthObject": "Companies",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "Company",
-						"AuthFieldValue": {
-							"CompanyID": [
-								{{#trim}}
-									{{#companyID}}
-										"{{.}}",
-									{{/companyID}}
-								{{/trim}}
-							],
-							"Action": ["Read"]
-						}
-					},
-					{
-						"AuthObject": "Sites",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "Site",
-						"AuthFieldValue": {
-							"SiteID": [
-								{{#trim}}
-									{{#siteID}}
-										"{{.}}",
-									{{/siteID}}
-								{{/trim}}
-							],
-							"Action": ["Read"]
-						}
-					},
-					{
-						"AuthObject": "VehicleManufacturers",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "VehicleManufacturer",
-						"AuthFieldValue": {
-							"VehicleManufacturerID": "*",
-							"Action": ["Read"]
-						}
-					},
-					{
-						"AuthObject": "Vehicles",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "Vehicle",
-						"AuthFieldValue": {
-							"VehicleID": "*",
-							"Action": ["Read"]
-						}
-					},
-					{
-						"AuthObject": "SiteAreas",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "SiteArea",
-						"AuthFieldValue": {
-							"SiteAreaID": "*",
-							"Action": ["Read"]
-						}
-					},
-					{
-						"AuthObject": "ChargingStations",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "ChargingStation",
-						"AuthFieldValue": {
-							"ChargingStationID": "*",
-							"Action": ["Read", "RemoteStartTransaction", "RemoteStopTransaction", "UnlockConnector", "Authorize"]
-						}
-					},
-					{
-						"AuthObject": "Transactions",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "Transaction",
-						"AuthFieldValue": {
-							"UserID": [
-								{{#trim}}
-									{{#userID}}
-										"{{.}}",
-									{{/userID}}
-								{{/trim}}
-							],
-							"Action": ["Read","RefundTransaction"]
-						}
-					},
-					{
-						"AuthObject": "Settings",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "Setting",
-						"AuthFieldValue": {
-							"SettingID": "*",
-							"Action": ["Read"]
-						}
-					},
-					{
-						"AuthObject": "Connections",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "Connection",
-						"AuthFieldValue": {
-							"UserID": [
-								{{#trim}}
-									{{#userID}}
-										"{{.}}",
-									{{/userID}}
-								{{/trim}}
-							],
-							"Action": ["Create", "Read", "Update", "Delete"]
-						}
-					}
-				]
-			}
-		`;
-  }
-
-  static getDemoAuthorizations() {
-    return `
-			{
-				"id": "D",
-				"name": "Demo",
-				"auths": [
-					{
-						"AuthObject": "User",
-						"AuthFieldValue": {
-							"UserID": "*",
-							"Action": ["Read", "Logout"]
-						}
-					},
-					{
-						"AuthObject": "Companies",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "Company",
-						"AuthFieldValue": {
-							"CompanyID": "*",
-							"Action": ["Read"]
-						}
-					},
-					{
-						"AuthObject": "Sites",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "Site",
-						"AuthFieldValue": {
-							"SiteID": "*",
-							"Action": ["Read"]
-						}
-					},
-					{
-						"AuthObject": "VehicleManufacturers",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "VehicleManufacturer",
-						"AuthFieldValue": {
-							"VehicleManufacturerID": "*",
-							"Action": ["Read"]
-						}
-					},
-					{
-						"AuthObject": "Vehicles",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "Vehicle",
-						"AuthFieldValue": {
-							"SiteID": "*",
-							"Action": ["Read"]
-						}
-					},
-					{
-						"AuthObject": "SiteAreas",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "SiteArea",
-						"AuthFieldValue": {
-							"SiteAreaID": "*",
-							"Action": ["Read"]
-						}
-					},
-					{
-						"AuthObject": "ChargingStations",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "ChargingStation",
-						"AuthFieldValue": {
-							"ChargingStationID": "*",
-							"Action": ["Read"]
-						}
-					},
-					{
-						"AuthObject": "Transactions",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "Transaction",
-						"AuthFieldValue": {
-							"UserID": "*",
-							"Action": ["Read"]
-						}
-					}
-				]
-			}
-		`;
-  }
-
-  static getAdminAuthorizations() {
-    return `
-			{
-				"id": "A",
-				"name": "Admin",
-				"auths": [
-					{
-						"AuthObject": "Users",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "User",
-						"AuthFieldValue": {
-							"UserID": "*",
-							"Action": ["Create", "Read", "Update", "Delete", "Logout", "UnlockConnector"]
-						}
-					},
-					{
-						"AuthObject": "Companies",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "Company",
-						"AuthFieldValue": {
-							"CompanyID": "*",
-							"Action": ["Create", "Read", "Update", "Delete"]
-						}
-					},
-					{
-						"AuthObject": "Sites",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "Site",
-						"AuthFieldValue": {
-							"SiteID": "*",
-							"Action": ["Create", "Read", "Update", "Delete"]
-						}
-					},
-					{
-						"AuthObject": "VehicleManufacturers",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "VehicleManufacturer",
-						"AuthFieldValue": {
-							"VehicleManufacturerID": "*",
-							"Action": ["Create", "Read", "Update", "Delete"]
-						}
-					},
-					{
-						"AuthObject": "Vehicles",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "Vehicle",
-						"AuthFieldValue": {
-							"VehicleID": "*",
-							"Action": ["Create", "Read", "Update", "Delete"]
-						}
-					},
-					{
-						"AuthObject": "SiteAreas",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "SiteArea",
-						"AuthFieldValue": {
-							"SiteAreaID": "*",
-							"Action": ["Create", "Read", "Update", "Delete"]
-						}
-					},
-					{
-						"AuthObject": "ChargingStations",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "ChargingStation",
-						"AuthFieldValue": {
-							"ChargingStationID": "*",
-							"Action": ["Create", "Read", "Update", "Delete", 
-										"Reset", "ClearCache", "GetConfiguration", "ChangeConfiguration", 
-										"RemoteStartTransaction", "RemoteStopTransaction", "UnlockConnector", 
-										"Authorize", "SetChargingProfile", "GetCompositeSchedule", "ClearChargingProfile",
-										"GetDiagnostics", "UpdateFirmware"]
-						}
-					},
-					{
-						"AuthObject": "Transactions",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "Transaction",
-						"AuthFieldValue": {
-							"UserID": "*",
-							"Action": ["Read", "Update", "Delete", "RefundTransaction"]
-						}
-					},
-					{
-						"AuthObject": "Loggings",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "Logging",
-						"AuthFieldValue": {
-							"LogID": "*",
-							"Action": ["Read"]
-						}
-					},
-					{
-						"AuthObject": "Pricing",
-						"AuthFieldValue": {
-							"Action": ["Read", "Update"]
-						}
-					},
-					{
-						"AuthObject": "Settings",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "Setting",
-						"AuthFieldValue": {
-							"SettingID": "*",
-							"Action": ["Create", "Read", "Update", "Delete"]
-						}
-					},
-					{
-						"AuthObject": "OcpiEndpoints",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "OcpiEndpoint",
-						"AuthFieldValue": {
-							"OcpiEndpointID": "*",
-							"Action": ["Create", "Read", "Update", "Delete", "Ping", "GenerateLocalToken", "Register", "SendEVSEStatuses"]
-						}
-					},
-					{
-						"AuthObject": "Connections",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "Connection",
-						"AuthFieldValue": {
-							"Action": ["Create", "Read", "Update", "Delete"]
-						}
-					}
-				]
-			}
-		`;
-  }
-
-  static getSuperAdminAuthorizations() {
-    return `
-			{
-				"id": "S",
-				"name": "SuperAdmin",
-				"auths": [
-					{
-						"AuthObject": "Users",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "User",
-						"AuthFieldValue": {
-							"UserID": "*",
-							"Action": ["Create", "Read", "Update", "Delete", "Logout", "UnlockConnector"]
-						}
-					},
-					{
-						"AuthObject": "VehicleManufacturers",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "VehicleManufacturer",
-						"AuthFieldValue": {
-							"VehicleManufacturerID": "*",
-							"Action": ["Create", "Read", "Update", "Delete"]
-						}
-					},
-					{
-						"AuthObject": "Vehicles",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "Vehicle",
-						"AuthFieldValue": {
-							"VehicleID": "*",
-							"Action": ["Create", "Read", "Update", "Delete"]
-						}
-					},
-					{
-						"AuthObject": "Loggings",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					},
-					{
-						"AuthObject": "Logging",
-						"AuthFieldValue": {
-							"LogID": "*",
-							"Action": ["Read"]
-						}
-					},
-					{
-						"AuthObject": "Pricing",
-						"AuthFieldValue": {
-							"Action": []
-						}
-					}, {
-						"AuthObject": "Tenants",
-						"AuthFieldValue": {
-							"Action": ["List"]
-						}
-					}, {
-						"AuthObject": "Tenant",
-						"AuthFieldValue": {
-							"TenantID": "*",
-							"Action": ["Create", "Read", "Update", "Delete"]
-						}
-					},
-					{
-						"AuthObject": "Settings",
-						"AuthFieldValue": {
-							"Action": []
-						}
-					},
-					{
-						"AuthObject": "Setting",
-						"AuthFieldValue": {
-							"SettingID": "*",
-							"Action": []
-						}
-					},
-					{
-						"AuthObject": "OcpiEndpoints",
-						"AuthFieldValue": {
-							"Action": []
-						}
-					},
-					{
-						"AuthObject": "OcpiEndpoint",
-						"AuthFieldValue": {
-							"OcpiEndpointID": "*",
-							"Action": []
-						}
-					}
-				]
-			}
-		`;
+  static getGrants() {
+    return {
+      S: {
+        grants: [
+          {resource: 'Users', action: 'List', attributes: ['*']},
+          {resource: 'User', action: ['Create', 'Read', 'Update'], attributes: ['*']},
+          {
+            resource: 'User',
+            action: 'Delete',
+            attributes: ['*'],
+            condition: {Fn: 'NOT_EQUALS', args: {'user': '$.owner'}}
+          },
+          {resource: 'Loggings', action: 'List', attributes: ['*']},
+          {resource: 'Logging', action: 'Read', attributes: ['*']},
+          {resource: 'Tenants', action: 'List', attributes: ['*']},
+          {resource: 'Tenant', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*']}
+        ]
+      },
+      A: {
+        grants: [
+          {resource: 'Users', action: 'List', attributes: ['*']},
+          {resource: 'User', action: ['Create', 'Read', 'Update'], attributes: ['*']},
+          {
+            resource: 'User',
+            action: 'Delete',
+            attributes: ['*'],
+            condition: {Fn: 'NOT_EQUALS', args: {'user': '$.owner'}}
+          },
+          {resource: 'Companies', action: 'List', attributes: ['*']},
+          {resource: 'Company', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*']},
+          {resource: 'Sites', action: 'List', attributes: ['*']},
+          {resource: 'Site', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*']},
+          {resource: 'SiteAreas', action: 'List', attributes: ['*']},
+          {resource: 'SiteArea', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*']},
+          {resource: 'ChargingStations', action: 'List', attributes: ['*']},
+          {
+            resource: 'ChargingStation', action: ["Create", "Read", "Update", "Delete",
+              "Reset", "ClearCache", "GetConfiguration", "ChangeConfiguration",
+              "RemoteStartTransaction", "RemoteStopTransaction", "UnlockConnector",
+              "Authorize", "SetChargingProfile", "GetCompositeSchedule", "ClearChargingProfile",
+              "GetDiagnostics", "UpdateFirmware"], attributes: ['*']
+          },
+          {resource: 'Transactions', action: 'List', attributes: ['*']},
+          {resource: 'Transaction', action: ["Read", "Update", "Delete", "RefundTransaction"], attributes: ['*']},
+          {resource: 'Loggings', action: 'List', attributes: ['*']},
+          {resource: 'Logging', action: 'Read', attributes: ['*']},
+          {resource: 'Pricing', action: ["Read", "Update"], attributes: ['*']},
+          {resource: 'Settings', action: 'List', attributes: ['*']},
+          {resource: 'Setting', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*']},
+          {resource: 'OcpiEndpoints', action: 'List', attributes: ['*']},
+          {
+            resource: 'OcpiEndpoint',
+            action: ["Create", "Read", "Update", "Delete", "Ping", "GenerateLocalToken", "Register", "SendEVSEStatuses"],
+            attributes: ['*']
+          },
+          {resource: 'Connections', action: 'List', attributes: ['*']},
+          {resource: 'Connection', action: ['Create', 'Read', 'Delete'], attributes: ['*']}
+        ]
+      },
+      B: {
+        grants: [
+          {
+            resource: 'User', action: ['Read', 'Update'], attributes: ['*'],
+            condition: {Fn: 'EQUALS', args: {'user': '$.owner'}}
+          },
+          {resource: 'Companies', action: 'List', attributes: ['*']},
+          {
+            resource: 'Company', action: ['Read'], attributes: ['*'],
+            condition: {Fn: 'LIST_CONTAINS', args: {'companies': '$.company'}}
+          },
+          {resource: 'Sites', action: 'List', attributes: ['*']},
+          {
+            resource: 'Site', action: ['Read'], attributes: ['*'],
+            condition: {Fn: 'LIST_CONTAINS', args: {'sites': '$.site'}}
+          },
+          {resource: 'SiteAreas', action: 'List', attributes: ['*']},
+          {resource: 'SiteArea', action: ['Read'], attributes: ['*']},
+          {resource: 'ChargingStations', action: 'List', attributes: ['*']},
+          {
+            resource: 'ChargingStation',
+            action: ["Read", "RemoteStartTransaction", "RemoteStopTransaction", "UnlockConnector", "Authorize"],
+            attributes: ['*']
+          },
+          {resource: 'Transactions', action: 'List', attributes: ['*']},
+          {
+            resource: 'Transaction', action: ['Read', 'RefundTransaction'], attributes: ['*'],
+            condition: {Fn: 'EQUALS', args: {'user': '$.owner'}}
+          },
+          {resource: 'Settings', action: 'List', attributes: ['*']},
+          {resource: 'Setting', action: 'Read', attributes: ['*']},
+          {resource: 'Connections', action: 'List', attributes: ['*']},
+          {
+            resource: 'Connection', action: ["Create", "Read", "Delete"], attributes: ['*'],
+            condition: {Fn: 'EQUALS', args: {'user': '$.owner'}}
+          },
+        ]
+      },
+      D: {
+        grants: [
+          {resource: 'User', action: ['Read'], attributes: ['*']},
+          {resource: 'Companies', action: 'List', attributes: ['*']},
+          {resource: 'Company', action: 'Read', attributes: ['*']},
+          {resource: 'Sites', action: 'List', attributes: ['*']},
+          {resource: 'Site', action: 'Read', attributes: ['*']},
+          {resource: 'SiteAreas', action: 'List', attributes: ['*']},
+          {resource: 'SiteArea', action: 'Read', attributes: ['*']},
+          {resource: 'ChargingStations', action: 'List', attributes: ['*']},
+          {resource: 'ChargingStation', action: 'Read', attributes: ['*']},
+          {resource: 'Transactions', action: 'List', attributes: ['*']},
+          {resource: 'Transaction', action: 'Read', attributes: ['*']},
+        ]
+      }
+    };
   }
 }
 
