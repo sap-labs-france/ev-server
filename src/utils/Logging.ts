@@ -64,8 +64,7 @@ const LoggingType = {
 export default class Logging {
 
   private static getSourceSuffix() {
-    const sourceSuffix = `on ${Configuration.isCloudFoundry() ? cfenv.getAppEnv().name + ' ' : ''}${cluster.isWorker ? 'worker ' + cluster.worker.id : 'master'}`;
-    return sourceSuffix ? ' ' + sourceSuffix : '';
+    return `~${Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname()}~${cluster.isWorker ? 'worker' + cluster.worker.id : 'master'}`;
   }
 
   // Log Debug
