@@ -152,7 +152,7 @@ class CompanyStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const Company = require('../../entity/Company');
-    const Site = require('../../entity/Site'); 
+    const Site = require('../../entity/Site');
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
     // Check Skip

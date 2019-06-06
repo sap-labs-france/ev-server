@@ -4,6 +4,7 @@ const mongoUriBuilder = require('mongo-uri-builder');
 const urlencode = require('urlencode');
 const DatabaseUtils = require('./DatabaseUtils');
 const Constants = require('../../utils/Constants');
+const LockingStorage = require('./LockingStorage');
 
 require('source-map-support').install();
 
@@ -125,11 +126,9 @@ class MongoDBStorage {
       { fields: { chargeBoxID: 1, connectorId: 1 } },
       { fields: { userID: 1 } }
     ]);
-
   }
 
   async deleteTenantDatabase(tenantID) {
-    // Done only in Dev environment!
     // Delay the deletion: there are some collections remaining after Unit Test execution
     setTimeout(async () => {
       // Not the Default tenant
@@ -178,18 +177,19 @@ class MongoDBStorage {
       { fields: { level: 1 } },
       { fields: { type: 1 } }
     ]);
+    // Locks
+    await this.handleIndexesInCollection(collections, Constants.DEFAULT_TENANT, 'locks', [
+      { fields: { type: 1, name: 1 }, options: { unique: true } }
+    ]);
 
     for (const collection of collections) {
       if (collection.name === 'migrations') {
         await this._db.collection(collection.name).rename(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, collection.name), { dropTarget: true });
       }
+      if (collection.name === 'runningmigrations') {
+        await this._db.collection(collection.name).drop();
+      }
     }
-    // Running migrations
-    await this.handleIndexesInCollection(collections, Constants.DEFAULT_TENANT, 'runningmigrations', [
-      { fields: { timestamp: 1 } },
-      { fields: { name: 1 } },
-      { fields: { version: 1 } }
-    ]);
 
     const tenantsMDB = await this._db.collection(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, 'tenants'))
       .find({})

@@ -163,14 +163,30 @@ class Database {
     dest.durationSecs = Utils.convertToFloat(src.durationSecs);
   }
 
-  static updateRunningMigration(src, dest, forFrontEnd = true) {
+  static updateLock(src, dest, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);
     }
     dest.timestamp = Utils.convertToDate(src.timestamp);
+    dest.type = src.type;
     dest.name = src.name;
-    dest.version = src.version;
-    dest.hostname = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname();
+    if (!src.hasOwnProperty('hostname'))
+      dest.hostname = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname();
+    else
+      dest.hostname= src.hostname;
+  }
+
+  static updateRunLock(src, dest, forFrontEnd = true) {
+    if (forFrontEnd) {
+      Database.updateID(src, dest);
+    }
+    dest.timestamp = Utils.convertToDate(src.timestamp);
+    dest.type = 'runLock';
+    dest.name = src.name;
+    if (!src.hasOwnProperty('hostname'))
+      dest.hostname = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname();
+    else
+      dest.hostname = src.hostname;
   }
 
   static updateConfiguration(src, dest, forFrontEnd = true) {
