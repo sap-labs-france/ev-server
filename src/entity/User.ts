@@ -352,7 +352,7 @@ export default class User extends TenantHolder {
     }
   }
 
-  static checkIfUserValid(filteredRequest, req) {
+  static checkIfUserValid(filteredRequest, user, req) {
     // Check Tenant
     let tenantID;
     if (req.user) {
@@ -375,10 +375,15 @@ export default class User extends TenantHolder {
         req.user.id);
     }
     // Creation?
-    if (!filteredRequest.role) {
-      filteredRequest.role = Constants.ROLE_BASIC;
+    if (req.method === 'POST') {
+      if (!filteredRequest.role) {
+        filteredRequest.role = Constants.ROLE_BASIC;
+      }
+    } else {
+      // Update
+      filteredRequest.role = user.getRole();
     }
-    if (!filteredRequest.status) {
+    if (req.method === 'POST' && !filteredRequest.status) {
       filteredRequest.status = Constants.USER_STATUS_BLOCKED;
     }
     // Creation?

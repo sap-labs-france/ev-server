@@ -243,7 +243,15 @@ export default class UserService {
       // Filter
       const filteredRequest = UserSecurity.filterUserUpdateRequest(req.body, req.user);
       // Check Mandatory fields
-      User.checkIfUserValid(filteredRequest, req);
+      if (!filteredRequest.id) {
+        // Not Found!
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `User's ID must be provided`, 500,
+          'UserService', 'handleDeleteUser', req.user);
+      }
+      // Check Mandatory fields
+      User.checkIfUserValid(filteredRequest, user, req);
       // Check email
       const user = await User.getUser(req.user.tenantID, filteredRequest.id);
       if (!user) {
@@ -546,7 +554,7 @@ export default class UserService {
       // Filter
       const filteredRequest = UserSecurity.filterUserCreateRequest(req.body, req.user);
       // Check Mandatory fields
-      User.checkIfUserValid(filteredRequest, req);
+      User.checkIfUserValid(filteredRequest, null, req);
       // Get the email
       const foundUser = await User.getUserByEmail(req.user.tenantID, filteredRequest.email);
       if (foundUser) {
