@@ -13,13 +13,12 @@ export default class Tenant {
 	private model: any = {};
 
   constructor(/*name: string, subdomain: string, email: string, comps: Array<TenantComponents>*/ tenant: any) {
-		this.model = tenant;
 		//this.name = name;
 		//this.subdomain = subdomain;
 		//this.email = email;
 		//this.components = comps;
 
-    // Set it TODO wtf is this
+    // Set it TODO change this
     Database.updateTenant(tenant, this.model);
   }
 

@@ -297,6 +297,7 @@ export default class TransactionService {
       }
       // Get the consumption
       let consumptions = await transaction.getConsumptions();
+
       // Dates provided?
       const startDateTime = filteredRequest.StartDateTime ? filteredRequest.StartDateTime : Constants.MIN_DATE;
       const endDateTime = filteredRequest.EndDateTime ? filteredRequest.EndDateTime : Constants.MAX_DATE;
@@ -346,6 +347,7 @@ export default class TransactionService {
           'TransactionService', 'handleGetTransaction',
           req.user);
       }
+
       // Return
       res.json(
         // Filter

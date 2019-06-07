@@ -10,15 +10,17 @@ import User from './User';
 
 export default class Site extends TenantHolder {
 
-	public getTenantID: any;
-  public getModel: any;
-  private model: any;
+  private model: any = {};
 
   constructor(tenantID, site) {
     super(tenantID);
 
     // Set it
     Database.updateSite(site, this.model);
+  }
+
+  public getModel(): any {
+    return this.model;
   }
 
   getID() {

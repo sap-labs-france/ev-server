@@ -1,7 +1,8 @@
 import Constants from '../../utils/Constants';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
-const ConvergentChargingPricing = require("../pricing/convergent-charging/ConvergentChargingPricing");
-const SimplePricing = require("../pricing/simple-pricing/SimplePricing");
+import ConvergentChargingPricing from "../pricing/convergent-charging/ConvergentChargingPricing";
+import SimplePricing from "../pricing/simple-pricing/SimplePricing";
+
 export default class PricingFactory {
   static async getPricingImpl(transaction) {
     // Get the tenant

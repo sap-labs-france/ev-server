@@ -2,6 +2,7 @@ import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Utils from '../../../../utils/Utils';
 import Constants from '../../../../utils/Constants';
+
 export default class UtilsSecurity {
   static filterBoolean(value) {
     let result = false;

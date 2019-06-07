@@ -59,6 +59,7 @@ class OCPPJsonService16 extends OCPPService {
 
           }
         } catch (error) {
+          // eslint-disable-next-line no-console
           reject(error);
         }
       };
@@ -148,16 +149,6 @@ class OCPPJsonService16 extends OCPPService {
     if (!this._wsSessions.get(chargeBoxIdentity)) {
       // Open WS
       this._wsSessions.set(chargeBoxIdentity, await this.openConnection(chargeBoxIdentity));
-    }
-    // Log
-    if (config.get('ocpp.json.logs') === 'json') {
-      // eslint-disable-next-line no-console
-      console.log(JSON.stringify({
-        url: this.serverUrl,
-        requestMessageId: message[1],
-        action: message[2],
-        data: message[3]
-      }, null, 2));
     }
     // Send
     const t0 = performance.now();

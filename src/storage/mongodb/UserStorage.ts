@@ -149,13 +149,16 @@ export default class UserStorage {
     let user;
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserByEmail');
+
     // Check Tenant
     await Utils.checkTenant(tenantID);
+
     // Read DB
     const usersMDB = await global.database.getCollection(tenantID, 'users')
       .find({ 'email': email })
       .limit(1)
       .toArray();
+
     // Check deleted
     if (usersMDB && usersMDB.length > 0) {
       // Ok
@@ -749,10 +752,12 @@ export default class UserStorage {
     if (userMDB) {
       // Create
       user = new User(tenantID, userMDB);
+
       // Get the Tags
       const tagsMDB = await global.database.getCollection(tenantID, 'tags')
         .find({ "userID": Utils.convertToObjectID(user.getID()) })
         .toArray();
+
       // Check
       if (tagsMDB) {
         // Get the Tags

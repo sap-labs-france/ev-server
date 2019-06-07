@@ -11,6 +11,8 @@ import Tenant from '../entity/Tenant';
 import Transaction from '../entity/Transaction';
 import AccessControl from 'role-acl';
 import AuthorizationsDefinition from './AuthorizationsDefinition';
+import ChargingStation from '../entity/ChargingStation';
+import TenantStorage from '../storage/mongodb/TenantStorage';
 require('source-map-support').install();
 
 export default class Authorizations {
@@ -241,10 +243,11 @@ export default class Authorizations {
     return result;
   }
 
-  static async isTagIDAuthorizedOnChargingStation(chargingStation: any, tagID: any, action: any) {
+  static async isTagIDAuthorizedOnChargingStation(chargingStation: ChargingStation, tagID: any, action: any) {
     let site, siteArea;
     // Get the Organization component
-    const isOrgCompActive = await chargingStation.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+    const tenant = await TenantStorage.getTenant(chargingStation.getTenantID());
+    const isOrgCompActive = await tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
     // Org component enabled?
     if (isOrgCompActive) {
       // Site Area -----------------------------------------------
@@ -288,7 +291,7 @@ export default class Authorizations {
     return user;
   }
 
-  static async isTagIDsAuthorizedOnChargingStation(chargingStation: any, tagId: any, transactionTagId: any, action: any) {
+  static async isTagIDsAuthorizedOnChargingStation(chargingStation: ChargingStation, tagId: any, transactionTagId: any, action: any) {
     let user: any, alternateUser: any;
     // Check if same user
     if (tagId !== transactionTagId) {
@@ -301,7 +304,8 @@ export default class Authorizations {
         user = await User.getUserByTagId(chargingStation.getTenantID(), transactionTagId);
         // Not Check if Alternate User belongs to a Site --------------------------------
         // Organization component active?
-        const isOrgCompActive = await chargingStation.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+        const tenant = await TenantStorage.getTenant(chargingStation.getTenantID());
+        const isOrgCompActive = await tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
         if (isOrgCompActive) {
           // Get the site (site existence is already checked by isTagIDAuthorizedOnChargingStation())
           const site = await chargingStation.getSite();

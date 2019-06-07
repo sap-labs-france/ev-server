@@ -23,22 +23,20 @@ require('source-map-support').install();
 momentDurationFormatSetup(moment);
 
 export default class ChargingStation extends TenantHolder {
-	public getTenantID: any;
-	public getModel: any;
 	public site: any;
   public company: any;
-  private model: any;
+  private model: any = {};
 
   constructor(tenantID, chargingStation) {
     super(tenantID);
     Database.updateChargingStation(chargingStation, this.model);
   }
 
-  static getChargingStation(tenantID, id) {
+  static async getChargingStation(tenantID, id): Promise<ChargingStation> {
     return ChargingStationStorage.getChargingStation(tenantID, id);
   }
 
-  static getChargingStations(tenantID, params, limit, skip, sort) {
+  static async getChargingStations(tenantID, params, limit, skip, sort): Promise<{count: number, result: ChargingStation[]}> {
     return ChargingStationStorage.getChargingStations(tenantID, params, limit, skip, sort);
   }
 
@@ -52,6 +50,10 @@ export default class ChargingStation extends TenantHolder {
 
   static removeChargingStationsFromSiteArea(tenantID, siteAreaID, chargingStationIDs) {
     return ChargingStationStorage.removeChargingStationsFromSiteArea(tenantID, siteAreaID, chargingStationIDs);
+  }
+
+  public getModel(): any {
+    return this.model;
   }
 
   handleAction(action, params = {}) {

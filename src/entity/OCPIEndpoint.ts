@@ -8,15 +8,16 @@ import User from './User';
 
 export default class OCPIEndpoint extends TenantHolder {
 
-	public getTenant: any;
-	public getTenantID: any;
-	public getModel: any;
-  private model: any;
+  private model: any = {};
 
   constructor(tenantID, ocpiEndpoint) {
     super(tenantID);
     // Set it
     Database.updateOcpiEndpoint(ocpiEndpoint, this.model);
+  }
+
+  public getModel(): any {
+    return this.model;
   }
 
   getID() {

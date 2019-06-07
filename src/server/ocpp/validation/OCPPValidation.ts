@@ -9,7 +9,6 @@ import statusNotificationRequest from './status-notification-request.json';
 import startTransactionRequest from './start-transaction-request.json';
 import stopTransactionRequest16 from './stop-transaction-request-16.json';
 import stopTransactionRequest15 from './stop-transaction-request-15.json';
-
 require('source-map-support').install();
 export default class OCPPValidation extends SchemaValidator {
 	public validate: any;

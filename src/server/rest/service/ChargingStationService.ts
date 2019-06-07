@@ -9,6 +9,7 @@ import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import ChargingStation from '../../../entity/ChargingStation';
 import SiteArea from '../../../entity/SiteArea';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
 const fs = require("fs");
 export default class ChargingStationService {
   static async handleAddChargingStationsToSiteArea(action, req, res, next) {
@@ -421,10 +422,12 @@ export default class ChargingStationService {
           'ChargingStationService', 'handleGetChargingStation', req.user);
       }
       // Return
+      const tenant = await TenantStorage.getTenant(chargingStation.getTenantID());
       res.json(
         // Filter
+        
         ChargingStationSecurity.filterChargingStationResponse(
-          chargingStation.getModel(), req.user, await chargingStation.isComponentActive(Constants.COMPONENTS.ORGANIZATION))
+          chargingStation.getModel(), req.user, await tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION))
       );
       next();
     } catch (error) {
@@ -463,7 +466,8 @@ export default class ChargingStationService {
       // Get the organization component
       if (chargingStations.result && chargingStations.result.length > 0) {
         // Get the org
-        const organizationIsActive = await chargingStations.result[0].isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+        const tenant = await TenantStorage.getTenant(chargingStations.result[0].getTenantID());
+        const organizationIsActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
         // Set
         chargingStations.result = chargingStations.result.map((chargingStation) => chargingStation.getModel());
         // Filter
@@ -508,7 +512,8 @@ export default class ChargingStationService {
       // Get the organization component
       let organizationIsActive;
       if (chargingStations.result && chargingStations.result.length > 0) {
-        organizationIsActive = await chargingStations.result[0].isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+        const tenant = await TenantStorage.getTenant(chargingStations.result[0].getTenantID());
+        organizationIsActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
       }
       // Set
       chargingStations.result = chargingStations.result.map((chargingStation) => chargingStation.getModel());
@@ -567,7 +572,8 @@ export default class ChargingStationService {
       // Get the organization component
       let organizationIsActive;
       if (chargingStations.result && chargingStations.result.length > 0) {
-        organizationIsActive = await chargingStations.result[0].isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+        const tenant = await TenantStorage.getTenant(chargingStations.result[0].getTenantID());
+        organizationIsActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
       }
       // Set
       chargingStations.result = chargingStations.result.map((chargingStation) => chargingStation.getModel());

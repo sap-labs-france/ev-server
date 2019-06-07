@@ -13,15 +13,18 @@ import SiteStorage from '../storage/mongodb/SiteStorage';
 
 export default class User extends TenantHolder {
 
-	public getModel: any;
   public getTenantID: any;
-  private model: any;
+  private model: any = {};
 
   constructor(tenantID, user) {
     super(tenantID);
 
     // Set it
     Database.updateUser(user, this.model);
+  }
+
+  public getModel(): any {
+    return this.model;
   }
 
   setEulaAcceptedHash(eulaAcceptedHash) {

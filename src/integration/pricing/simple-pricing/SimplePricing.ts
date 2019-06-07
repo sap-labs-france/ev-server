@@ -18,28 +18,28 @@ export default class SimplePricing extends Pricing {
     return this.settings;
   }
 
-  async startSession(consumptionData: Consumption): Promise<PricedConsumption> {
+  async startSession(consumptionData: {consumption: any}): Promise<PricedConsumption> {
     return this.computePrice(consumptionData);
   }
 
-  async updateSession(consumptionData: Consumption): Promise<PricedConsumption> {
+  async updateSession(consumptionData: {consumption: any}): Promise<PricedConsumption> {
     return this.computePrice(consumptionData);
   }
 
-  async stopSession(consumptionData: Consumption): Promise<PricedConsumption> {
+  async stopSession(consumptionData: {consumption: any}): Promise<PricedConsumption> {
     return this.computePrice(consumptionData);
   }
 
-  async computePrice(consumptionData: Consumption): Promise<PricedConsumption> {
+  async computePrice(consumptionData: {consumption: any}): Promise<PricedConsumption> {
     //Shorthand
     const s = this.getSettings();
-
+    
     return {
       pricingSource: 'simple',
-      amount: parseFloat((s.price * (consumptionData.getConsumption() / 1000)).toFixed(6)),
-      roundedAmount: parseFloat((s.price * (consumptionData.getConsumption() / 1000)).toFixed(2)),
+      amount: parseFloat((s.price * (consumptionData.consumption / 1000)).toFixed(6)),
+      roundedAmount: parseFloat((s.price * (consumptionData.consumption / 1000)).toFixed(2)),
       currencyCode: s.currency,
-      cumulatedAmount: -1 //TODO: handle this using NULLs instead?
+      cumulatedAmount: 0 //TODO: handle this using NULLs instead?
     };
   }
 }

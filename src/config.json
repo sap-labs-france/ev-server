@@ -52,7 +52,7 @@
 		"baseUrl": "http://localhost:8000"
 	},
 	"JsonEndpoint": {
-		"baseUrl": "wss://sap-charge-angels-charger-json-server.cfapps.eu10.hana.ondemand.com"
+		"baseUrl": "wss://localhost:8010"
 	},
 	"Storage": {
 		"implementation": "mongodb",
@@ -103,7 +103,7 @@
   },
   "Notification": {
 		"Email": {
-			"enabled": true
+			"enabled": false
 		}
 	},
 	"Authorization": {
@@ -138,17 +138,17 @@
 		]
   },
   "Logging": {
-    "logLevel": "D",
+    "logLevel": "E",
     "consoleLogLevel": "NONE",
     "trace": false,
     "moduleDetails": {
       "ChargingStation": {
-        "logLevel": "DEFAULT",
-        "consoleLogLevel": "DEFAULT"
+        "logLevel": "E",
+        "consoleLogLevel": "NONE"
       },
       "Authorizations": {
-        "logLevel": "DEFAULT",
-        "consoleLogLevel": "DEFAULT"
+        "logLevel": "E",
+        "consoleLogLevel": "NONE"
       }
     }
   }  

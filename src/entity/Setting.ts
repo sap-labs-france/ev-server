@@ -8,14 +8,16 @@ import User from './User';
 
 export default class Setting extends TenantHolder {
 
-	public getTenantID: any;
-	public getModel: any;
-  private model: any;
+  private model: any = {};
 
   constructor(tenantID, setting) {
     super(tenantID);
     // Set it
     Database.updateSetting(setting, this.model);
+  }
+
+  public getModel(): any {
+    return this.model;
   }
 
   getID() {

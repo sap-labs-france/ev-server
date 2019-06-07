@@ -6,8 +6,6 @@ import NotificationStorage from '../storage/mongodb/NotificationStorage';
 
 export default class Notification extends TenantHolder {
 
-	public getTenantID: any;
-  public getModel: any;
   private model: any = {};
 
   //TODO: maybe convert tenantID from string to ObjectId at the earliest possible point instead of doing it in TenantStorage
@@ -17,6 +15,10 @@ export default class Notification extends TenantHolder {
     Database.updateNotification(notification, this.model);
   }
 
+  public getModel(): any {
+    return this.model;
+  }
+  
   getID() {
     return this.model.id;
   }

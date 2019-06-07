@@ -14,6 +14,7 @@ import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import SiteArea from '../../../entity/SiteArea';
 import User from '../../../entity/User';
 import moment from 'moment-timezone';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
 const momentDurationFormatSetup = require("moment-duration-format");
 
 require('source-map-support').install();
@@ -948,7 +949,7 @@ export default class OCPPService {
   async handleStartTransaction(headers, startTransaction) {
     try {
       // Get the charging station
-      const chargingStation = await OCPPUtils.checkAndGetChargingStation(
+      const chargingStation: ChargingStation = await OCPPUtils.checkAndGetChargingStation(
         headers.chargeBoxIdentity, headers.tenantID);
       // Check props
       OCPPValidation.getInstance().validateStartTransaction(chargingStation, startTransaction);
@@ -963,7 +964,8 @@ export default class OCPPService {
         startTransaction.user = user.getModel();
       }
       // Check Org
-      const isOrgCompActive = await chargingStation.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+      const tenant = await TenantStorage.getTenant(chargingStation.getTenantID());
+      const isOrgCompActive = await tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
       if (isOrgCompActive) {
         // Set the Site Area ID
         startTransaction.siteAreaID = chargingStation.getSiteAreaID();

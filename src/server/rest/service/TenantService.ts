@@ -86,6 +86,7 @@ export default class TenantService extends AbstractService {
     try {
       // Filter
       const filteredRequest = TenantSecurity.filterTenantRequest(req.query, req.user);
+
       // Charge Box is mandatory
       if (!filteredRequest.ID) {
         // Not Found!
@@ -111,6 +112,7 @@ export default class TenantService extends AbstractService {
           tenant.getID(),
           req.user);
       }
+
       // Return
       res.json(
         // Filter
@@ -195,7 +197,7 @@ export default class TenantService extends AbstractService {
       }));
       tenant.setCreatedOn(new Date());
       // Save
-      const newTenant = await TenantStorage.saveTenant(tenant.getID());
+      const newTenant = await TenantStorage.saveTenant(tenant.getModel());
       // Update with components
       TenantService.updateSettingsWithComponents(newTenant, req);
       // Create DB collections
@@ -290,7 +292,7 @@ export default class TenantService extends AbstractService {
       }));
       tenant.setLastChangedOn(new Date());
       // Update Tenant
-      const updatedTenant = await TenantStorage.saveTenant(tenant.getID());
+      const updatedTenant = await TenantStorage.saveTenant(tenant.getModel());
       // Update with components
       TenantService.updateSettingsWithComponents(tenant, req);
       // Log

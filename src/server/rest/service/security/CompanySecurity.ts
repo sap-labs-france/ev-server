@@ -1,15 +1,9 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import UtilsSecurity from './UtilsSecurity';
+import SiteSecurity from './SiteSecurity';
 
-let SiteSecurity; // Avoid circular deps
 export default class CompanySecurity {
-  static getSiteSecurity() {
-    if (!SiteSecurity) {
-      SiteSecurity = require('./SiteSecurity');
-    }
-    return SiteSecurity;
-  }
 
   // eslint-disable-next-line no-unused-vars
   static filterCompanyDeleteRequest(request, loggedUser) {
@@ -80,7 +74,7 @@ export default class CompanySecurity {
       }
       if (company.sites) {
         filteredCompany.sites = company.sites.map((site) => {
-          return CompanySecurity.getSiteSecurity().filterSiteResponse(site, loggedUser);
+          return SiteSecurity.filterSiteResponse(site, loggedUser);
         });
       }
       // Created By / Last Changed By

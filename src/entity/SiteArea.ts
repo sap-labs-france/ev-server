@@ -9,9 +9,7 @@ import User from './User';
 
 export default class SiteArea extends TenantHolder {
 
-	public getTenantID: any;
-	public getModel: any;
-  private model: any;
+  private model: any = {};
 
 
   constructor(tenantID, siteArea) {
@@ -19,6 +17,10 @@ export default class SiteArea extends TenantHolder {
 
     // Set it
     Database.updateSiteArea(siteArea, this.model);
+  }
+
+  public getModel(): any {
+    return this.model;
   }
 
   static checkIfSiteAreaValid(filteredRequest, req) {

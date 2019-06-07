@@ -1,6 +1,7 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import UtilsSecurity from './UtilsSecurity';
+
 export default class UserSecurity {
   // eslint-disable-next-line no-unused-vars
   static filterAddSitesToUserRequest(request, loggedUser) {

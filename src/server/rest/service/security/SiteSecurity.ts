@@ -1,31 +1,11 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import UtilsSecurity from './UtilsSecurity';
+import CompanySecurity from './CompanySecurity';
+import SiteAreaSecurity from './SiteAreaSecurity';
+import UserSecurity from './UserSecurity';
 
-let CompanySecurity; // Avoid circular deps
-let SiteAreaSecurity; // Avoid circular deps
-let UserSecurity; // Avoid circular deps
 export default class SiteSecurity {
-  static getCompanySecurity() {
-    if (!CompanySecurity) {
-      CompanySecurity = require('./CompanySecurity');
-    }
-    return CompanySecurity;
-  }
-
-  static getSiteAreaSecurity() {
-    if (!SiteAreaSecurity) {
-      SiteAreaSecurity = require('./SiteAreaSecurity');
-    }
-    return SiteAreaSecurity;
-  }
-
-  static getUserSecurity() {
-    if (!UserSecurity) {
-      UserSecurity = require('./UserSecurity');
-    }
-    return UserSecurity;
-  }
 
   // eslint-disable-next-line no-unused-vars
   static filterAddUsersToSiteRequest(request, loggedUser) {
@@ -140,14 +120,14 @@ export default class SiteSecurity {
         filteredSite.address = UtilsSecurity.filterAddressRequest(site.address, loggedUser);
       }
       if (site.company) {
-        filteredSite.company = SiteSecurity.getCompanySecurity().filterCompanyResponse(site.company, loggedUser);
+        filteredSite.company = CompanySecurity.filterCompanyResponse(site.company, loggedUser);
       }
       if (site.siteAreas) {
-        filteredSite.siteAreas = SiteSecurity.getSiteAreaSecurity().filterSiteAreasResponse(site.siteAreas, loggedUser);
+        filteredSite.siteAreas = SiteAreaSecurity.filterSiteAreasResponse(site.siteAreas, loggedUser);
       }
       if (site.users) {
         filteredSite.users = site.users.map((user) => {
-          return SiteSecurity.getUserSecurity().filterMinimalUserResponse(user, loggedUser);
+          return UserSecurity.filterMinimalUserResponse(user, loggedUser);
         });
       }
       if (site.hasOwnProperty("availableChargers")) {

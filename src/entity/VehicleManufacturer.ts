@@ -9,14 +9,16 @@ import VehicleStorage from '../storage/mongodb/VehicleStorage';
 
 export default class VehicleManufacturer extends TenantHolder {
 
-	public getTenantID: any;
-  public getModel: any;
-  private model: any;
+  private model: any = {};
 
   constructor(tenantID, vehicleManufacturer) {
     super(tenantID);
     // Set it
     Database.updateVehicleManufacturer(vehicleManufacturer, this.model);
+  }
+
+  public getModel(): any {
+    return this.model;
   }
 
   getID() {

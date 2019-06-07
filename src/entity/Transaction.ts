@@ -11,8 +11,7 @@ import ChargingStation from './ChargingStation';
 
 export default class Transaction extends TenantHolder {
 
-	public getTenantID: any;
-  private model: any;
+  private model: any = {};
 
   constructor(tenantID, transaction) {
     super(tenantID);
