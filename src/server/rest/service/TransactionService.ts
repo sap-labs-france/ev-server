@@ -13,6 +13,8 @@ import ConcurConnector from "../../../integration/refund/ConcurConnector";
 import OCPPService from"../../../server/ocpp/services/OCPPService";
 import fs from "fs";
 import crypto from 'crypto';
+import TSGlobal from '../../../types/GlobalType';
+declare var global: TSGlobal;
 
 export default class TransactionService {
   static async handleRefundTransactions(action, req, res, next) {
@@ -229,6 +231,7 @@ export default class TransactionService {
         }
       }
       // Stop Transaction
+      //const result = global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_16).handleStopTransaction( //IMPORTANT TODO: line235 looked weird/threw a compile time error, so I added this dirty fix that most likely isn't wanted behavior. Please fix.
       const result = await new OCPPService().handleStopTransaction(
         {
           chargeBoxIdentity: chargingStation.getID(),
