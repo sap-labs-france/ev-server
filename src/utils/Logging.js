@@ -251,7 +251,7 @@ class Logging {
       Logging._logActionAppAuthExceptionMessage(tenantID, action, exception);
     } else if (exception instanceof BadRequestError) {
       Logging._logActionBadRequestExceptionMessage(tenantID, action, exception);
-      // Log Unexpected
+    // Log Unexpected
     } else {
       Logging._logActionExceptionMessage(tenantID, action, exception);
     }
@@ -511,6 +511,12 @@ class Logging {
     if (!log.source) {
       log.source = `${Constants.CENTRAL_SERVER}`;
     }
+
+    // Host
+    log.host = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname();
+
+    // Process
+    log.process = cluster.isWorker ? 'worker ' + cluster.worker.id : 'master';
 
     // Check
     if (log.detailedMessages) {
