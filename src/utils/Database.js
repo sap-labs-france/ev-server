@@ -1,4 +1,5 @@
 const cfenv = require('cfenv');
+const cluster = require('cluster');
 const Configuration = require('./Configuration');
 const Utils = require('./Utils');
 const Constants = require('./Constants');
@@ -547,6 +548,14 @@ class Database {
     }
     dest.level = src.level;
     dest.source = src.source;
+    if (src.hasOwnProperty('host'))
+      dest.host = src.host;
+    else
+      dest.host =  Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname();
+    if (src.hasOwnProperty('process')) 
+      dest.process = src.process;
+    else
+      dest.process = cluster.isWorker ? 'worker ' + cluster.worker.id : 'master';
     dest.type = src.type;
     dest.module = src.module;
     dest.method = src.method;

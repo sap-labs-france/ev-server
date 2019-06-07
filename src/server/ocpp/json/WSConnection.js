@@ -105,6 +105,7 @@ class WSConnection {
         // Outcome Message
         case Constants.OCPP_JSON_CALL_RESULT_MESSAGE:
           // Respond
+          // FIXME: One must check that this._requests[messageId] is iterable
           const [responseCallback] = this._requests[messageId];
           if (!responseCallback) {
             // Error
@@ -132,6 +133,7 @@ class WSConnection {
             throw new BackendError(this.getChargingStationID(), `Error for unknown message ${messageId}`,
               "WSConnection", "onMessage", commandName);
           }
+          // FIXME: One must check that this._requests[messageId] is iterable
           const [, rejectCallback] = this._requests[messageId];
           delete this._requests[messageId];
           rejectCallback(new OCPPError(commandName, commandPayload, errorDetails));
@@ -240,7 +242,7 @@ class WSConnection {
       // Function that will receive the request's rejection
       function rejectCallback(reason) {
         // Build Exception
-        self._requests[messageId] = () => { };
+        self._requests[messageId] = [() => { }, () => { }];
         const error = reason instanceof OCPPError ? reason : new Error(reason);
         // Send error
         reject(error);
