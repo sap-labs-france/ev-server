@@ -6,7 +6,7 @@ import querystring from 'querystring';
 import moment from 'moment-timezone';
 import ConnectionStorage from '../../storage/mongodb/ConnectionStorage';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
-const ChargingStation = require("../../entity/ChargingStation");
+import ChargingStation from "../../entity/ChargingStation";
 import Constants from '../../utils/Constants';
 import AppError from '../../exception/AppError';
 import InternalError from '../../exception/InternalError';

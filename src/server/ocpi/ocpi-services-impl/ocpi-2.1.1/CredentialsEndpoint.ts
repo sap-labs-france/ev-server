@@ -5,7 +5,7 @@ import OCPIClientError from '../../../../exception/OCPIClientError';
 import OCPIServerError from '../../../../exception/OCPIServerError';
 import OCPIEndpoint from '../../../../entity/OCPIEndpoint';
 import Logging from '../../../../utils/Logging';
-const Constants = require("../../../../utils/Constants");
+import Constants from "../../../../utils/Constants";
 import axios from 'axios';
 
 require('source-map-support').install();

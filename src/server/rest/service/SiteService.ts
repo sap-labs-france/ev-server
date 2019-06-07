@@ -9,7 +9,8 @@ import Company from '../../../entity/Company';
 import User from '../../../entity/User';
 import SiteSecurity from './security/SiteSecurity';
 import UtilsService from './UtilsService';
-const OrganizationComponentInactiveError = require ('../../../exception/OrganizationComponentInactiveError');
+import OrganizationComponentInactiveError from '../../../exception/OrganizationComponentInactiveError';
+
 export default class SiteService {
   static async handleAddUsersToSite(action, req, res, next) {
     try {

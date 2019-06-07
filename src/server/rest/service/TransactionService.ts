@@ -8,11 +8,12 @@ import TransactionSecurity from './security/TransactionSecurity';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import ChargingStation from '../../../entity/ChargingStation';
 import User from '../../../entity/User';
-const SettingStorage = require("../../../storage/mongodb/SettingStorage");
-const ConcurConnector = require("../../../integration/refund/ConcurConnector");
-const OCPPService = require("../../../server/ocpp/services/OCPPService");
-const fs = require("fs");
+import SettingStorage from "../../../storage/mongodb/SettingStorage";
+import ConcurConnector from "../../../integration/refund/ConcurConnector";
+import OCPPService from"../../../server/ocpp/services/OCPPService";
+import fs from "fs";
 import crypto from 'crypto';
+
 export default class TransactionService {
   static async handleRefundTransactions(action, req, res, next) {
     try {

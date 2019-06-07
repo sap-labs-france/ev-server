@@ -1,5 +1,5 @@
 const soap = require('strong-soap').soap;
-const ConnectionStorage = require("../../../storage/mongodb/ConnectionStorage");
+import ConnectionStorage from "../../../storage/mongodb/ConnectionStorage";
 import AbstractSoapClient from './AbstractSoapClient';
 import InternalError from '../../../exception/InternalError';
 import TSGlobal from '../../../types/GlobalType';
