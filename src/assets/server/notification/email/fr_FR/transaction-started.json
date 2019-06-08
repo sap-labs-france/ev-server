@@ -1,5 +1,6 @@
 {
   "subject": "Connecté avec succès",
+  "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {

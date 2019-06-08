@@ -1,4 +1,5 @@
 const cfenv = require('cfenv');
+const cluster = require('cluster');
 const Configuration = require('./Configuration');
 const Utils = require('./Utils');
 const Constants = require('./Constants');
@@ -163,14 +164,30 @@ class Database {
     dest.durationSecs = Utils.convertToFloat(src.durationSecs);
   }
 
-  static updateRunningMigration(src, dest, forFrontEnd = true) {
+  static updateLock(src, dest, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);
     }
     dest.timestamp = Utils.convertToDate(src.timestamp);
+    dest.type = src.type;
     dest.name = src.name;
-    dest.version = src.version;
-    dest.hostname = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname();
+    if (!src.hasOwnProperty('hostname'))
+      dest.hostname = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname();
+    else
+      dest.hostname= src.hostname;
+  }
+
+  static updateRunLock(src, dest, forFrontEnd = true) {
+    if (forFrontEnd) {
+      Database.updateID(src, dest);
+    }
+    dest.timestamp = Utils.convertToDate(src.timestamp);
+    dest.type = 'runLock';
+    dest.name = src.name;
+    if (!src.hasOwnProperty('hostname'))
+      dest.hostname = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname();
+    else
+      dest.hostname = src.hostname;
   }
 
   static updateConfiguration(src, dest, forFrontEnd = true) {
@@ -531,6 +548,16 @@ class Database {
     }
     dest.level = src.level;
     dest.source = src.source;
+    if (src.hasOwnProperty('host')) {
+      dest.host = src.host;
+    } else {
+      dest.host =  Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname();
+    }
+    if (src.hasOwnProperty('process')) { 
+      dest.process = src.process;
+    } else {
+      dest.process = cluster.isWorker ? 'worker ' + cluster.worker.id : 'master';
+    }
     dest.type = src.type;
     dest.module = src.module;
     dest.method = src.method;

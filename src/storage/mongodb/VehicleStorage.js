@@ -61,7 +61,7 @@ class VehicleStorage {
     const uniqueTimerID = Logging.traceStart('VehicleStorage', 'getVehicle');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const Vehicle = require('../../entity/Vehicle'); // Avoid fucking circular deps!!!
+    const Vehicle = require('../../entity/Vehicle');
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -90,7 +90,7 @@ class VehicleStorage {
     const uniqueTimerID = Logging.traceStart('VehicleStorage', 'saveVehicle');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const Vehicle = require('../../entity/Vehicle'); // Avoid fucking circular deps!!!
+    const Vehicle = require('../../entity/Vehicle');
     // Check if ID/Model is provided
     if (!vehicleToSave.id && !vehicleToSave.model) {
       // ID must be provided!
@@ -151,7 +151,7 @@ class VehicleStorage {
     const uniqueTimerID = Logging.traceStart('VehicleStorage', 'getVehicles');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const Vehicle = require('../../entity/Vehicle'); // Avoid fucking circular deps!!!
+    const Vehicle = require('../../entity/Vehicle');
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
     // Check Skip

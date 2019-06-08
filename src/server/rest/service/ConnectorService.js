@@ -1,17 +1,14 @@
 const Logging = require('../../../utils/Logging');
-const Database = require('../../../utils/Database');
 const AppError = require('../../../exception/AppError');
 const UnauthorizedError = require('../../../exception/UnauthorizedError');
 const Constants = require('../../../utils/Constants');
 const AbstractConnector = require('../../../integration/AbstractConnector');
 const ConcurConnector = require('../../../integration/refund/ConcurConnector');
-const User = require('../../../entity/User');
 const Authorizations = require('../../../authorization/Authorizations');
 const ConnectorSecurity = require('./security/ConnectorSecurity');
 const HttpStatusCodes = require('http-status-codes');
 const ConnectionValidator = require('../validation/ConnectionValidator');
 const AbstractService = require('./AbstractService');
-const Utils = require('../../../utils/Utils');
 
 const MODULE_NAME = 'ConnectorService';
 

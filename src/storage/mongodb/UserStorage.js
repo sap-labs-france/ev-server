@@ -293,7 +293,7 @@ class UserStorage {
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUser');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const User = require('../../entity/User'); // Avoid fucking circular deps!!!
+    const User = require('../../entity/User');
     // Check if ID or email is provided
     if (!userToSave.id && !userToSave.email) {
       // ID must be provided!
@@ -342,26 +342,6 @@ class UserStorage {
         }
       }
     }
-    // Update Sites?`
-    if (userToSave.sites) {
-      // Delete first
-      await global.database.getCollection(tenantID, 'siteusers')
-        .deleteMany({ 'userID': Utils.convertToObjectID(updatedUser.getID()) });
-      // At least one?
-      if (userToSave.sites.length > 0) {
-        const siteUsersMDB = [];
-        // Create the list
-        for (const site of userToSave.sites) {
-          // Add
-          siteUsersMDB.push({
-            "siteID": Utils.convertToObjectID(site.id),
-            "userID": Utils.convertToObjectID(updatedUser.getID())
-          });
-        }
-        // Execute
-        await global.database.getCollection(tenantID, 'siteusers').insertMany(siteUsersMDB);
-      }
-    }
     // Debug
     Logging.traceEnd('UserStorage', 'saveUser', uniqueTimerID, { userToSave });
     return updatedUser;
@@ -394,7 +374,7 @@ class UserStorage {
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const User = require('../../entity/User'); // Avoid fucking circular deps!!!
+    const User = require('../../entity/User');
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
     // Check Skip
@@ -404,8 +384,8 @@ class UserStorage {
         {
           "$or": [
             { "deleted": { $exists: false } },
-            { deleted: false },
-            { deleted: null }
+            { "deleted": false },
+            { "deleted": null }
           ]
         }
       ]
@@ -476,7 +456,6 @@ class UserStorage {
           as: "siteusers"
         }
       });
-
       // check which filter to use
       if (params.siteID) {
         aggregation.push({
@@ -578,7 +557,7 @@ class UserStorage {
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const User = require('../../entity/User'); // Avoid fucking circular deps!!!
+    const User = require('../../entity/User');
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
     // Check Skip
@@ -588,8 +567,8 @@ class UserStorage {
         {
           "$or": [
             { "deleted": { $exists: false } },
-            { deleted: false },
-            { deleted: null }
+            { "deleted": false },
+            { "deleted": null }
           ]
         }
       ]
@@ -614,17 +593,14 @@ class UserStorage {
         '_id': Utils.convertToObjectID(params.userID)
       });
     }
-
     if (params.role) {
       filters.$and.push({
         'role': params.role
       });
     }
-
     filters.$and.push({
       'status': { $in: [Constants.USER_STATUS_BLOCKED, Constants.USER_STATUS_INACTIVE, Constants.USER_STATUS_LOCKED, Constants.USER_STATUS_PENDING] }
     });
-
     // Create Aggregation
     const aggregation = [];
     // Add TagIDs
@@ -747,21 +723,24 @@ class UserStorage {
     const uniqueTimerID = Logging.traceStart('UserStorage', 'deleteUser');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Delete User
-    await global.database.getCollection(tenantID, 'users')
-      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
+    // Delete User from Sites
+    await global.database.getCollection(tenantID, 'siteusers')
+      .findOneAndDelete({ 'userID': Utils.convertToObjectID(id) });
     // Delete Image
     await global.database.getCollection(tenantID, 'userimages')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Delete Tags
     await global.database.getCollection(tenantID, 'tags')
       .deleteMany({ 'userID': Utils.convertToObjectID(id) });
+    // Delete User
+    await global.database.getCollection(tenantID, 'users')
+      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd('UserStorage', 'deleteUser', uniqueTimerID, { id });
   }
 
   static async _createUser(tenantID, userMDB) {
-    const User = require('../../entity/User'); // Avoid fucking circular deps!!!
+    const User = require('../../entity/User');
     let user = null;
     // Check
     if (userMDB) {

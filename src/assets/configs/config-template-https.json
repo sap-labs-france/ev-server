@@ -3,6 +3,9 @@
 		"enable": false,
 		"num_worker": 2
 	},
+  "WSClient": {
+    "autoReconnectTimeout": 0
+  },
 	"CentralSystems": [
 		{
 			"type": "ocpp",

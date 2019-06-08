@@ -18,10 +18,6 @@ class User extends AbstractTenantEntity {
     Database.updateUser(user, this._model);
   }
 
-  setAuthorizations(auths) {
-    this._model.auths = auths;
-  }
-
   setEulaAcceptedHash(eulaAcceptedHash) {
     this._model.eulaAcceptedHash = eulaAcceptedHash;
   }
@@ -295,13 +291,10 @@ class User extends AbstractTenantEntity {
     this._model.sites = sites.map((site) => site.getModel());
   }
 
-  async getSites(withCompany = false, withSiteAreas = false,
-    withChargeBoxes = false, withUsers = false) {
+  async getSites() {
     // Get Sites
     const sites = await SiteStorage.getSites(this.getTenantID(), {
-      'userID': this.getID(),
-      withCompany, withSiteAreas, withChargeBoxes, withUsers
-    });
+      'userID': this.getID()});
     // Return the array
     return sites.result;
   }
@@ -411,7 +404,7 @@ class User extends AbstractTenantEntity {
         'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
     }
     // Only Admin and Super Admin can use role different from Basic
-    if (filteredRequest.role === Constants.ROLE_ADMIN && filteredRequest.role === Constants.ROLE_SUPER_ADMIN && 
+    if (filteredRequest.role === Constants.ROLE_ADMIN && filteredRequest.role === Constants.ROLE_SUPER_ADMIN &&
         !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,

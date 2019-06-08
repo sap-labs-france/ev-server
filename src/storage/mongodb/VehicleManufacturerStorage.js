@@ -84,7 +84,7 @@ class VehicleManufacturerStorage {
     const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturer');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const VehicleManufacturer = require('../../entity/VehicleManufacturer'); // Avoid fucking circular deps!!!
+    const VehicleManufacturer = require('../../entity/VehicleManufacturer');
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -114,7 +114,7 @@ class VehicleManufacturerStorage {
     const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'saveVehicleManufacturer');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const VehicleManufacturer = require('../../entity/VehicleManufacturer'); // Avoid fucking circular deps!!!
+    const VehicleManufacturer = require('../../entity/VehicleManufacturer');
     // Check if ID/Model is provided
     if (!vehicleManufacturerToSave.id && !vehicleManufacturerToSave.name) {
       // ID must be provided!
@@ -153,8 +153,8 @@ class VehicleManufacturerStorage {
     const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturers');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const VehicleManufacturer = require('../../entity/VehicleManufacturer'); // Avoid fucking circular deps!!!
-    const Vehicle = require('../../entity/Vehicle'); // Avoid fucking circular deps!!!
+    const VehicleManufacturer = require('../../entity/VehicleManufacturer');
+    const Vehicle = require('../../entity/Vehicle');
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
     // Check Skip

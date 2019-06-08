@@ -62,7 +62,6 @@ class SiteSecurity {
   static filterSiteRequest(request, loggedUser) {
     const filteredRequest = {};
     filteredRequest.ID = sanitize(request.ID);
-    filteredRequest.WithUsers = UtilsSecurity.filterBoolean(request.WithUsers);
     return filteredRequest;
   }
 
@@ -73,10 +72,7 @@ class SiteSecurity {
     filteredRequest.UserID = sanitize(request.UserID);
     filteredRequest.CompanyID = sanitize(request.CompanyID);
     filteredRequest.ExcludeSitesOfUserID = sanitize(request.ExcludeSitesOfUserID);
-    filteredRequest.WithSiteAreas = UtilsSecurity.filterBoolean(request.WithSiteAreas);
-    filteredRequest.WithChargeBoxes = UtilsSecurity.filterBoolean(request.WithChargeBoxes);
     filteredRequest.WithCompany = UtilsSecurity.filterBoolean(request.WithCompany);
-    filteredRequest.WithUsers = UtilsSecurity.filterBoolean(request.WithUsers);
     filteredRequest.WithAvailableChargers = UtilsSecurity.filterBoolean(request.WithAvailableChargers);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);

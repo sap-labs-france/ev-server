@@ -148,7 +148,7 @@ class Utils {
       return true;
     }
     // Check type
-    if (typeof document != "object") {
+    if (typeof document !== 'object') {
       return true;
     }
     // Check
@@ -228,8 +228,15 @@ class Utils {
     return userID;
   }
 
+  static isIterable(obj) {
+    if (obj) {
+      return typeof obj[Symbol.iterator] === 'function';
+    }
+    return false;
+  }
+
   static isEmptyArray(array) {
-    if (array && array.length > 0) {
+    if (Array.isArray(array) && array.length > 0) {
       return false;
     }
     return true;
@@ -322,7 +329,7 @@ class Utils {
 
   static checkRecordLimit(recordLimit) {
     // String?
-    if (typeof recordLimit === "string") {
+    if (typeof recordLimit === 'string') {
       recordLimit = parseInt(recordLimit);
     }
     // Not provided?

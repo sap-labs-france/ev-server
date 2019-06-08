@@ -1,5 +1,6 @@
 {
   "subject": "Charge terminée",
+  "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {

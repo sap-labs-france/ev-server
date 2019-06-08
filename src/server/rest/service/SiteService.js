@@ -257,7 +257,7 @@ class SiteService {
           'SiteService', 'handleGetSite', req.user);
       }
       // Get it
-      const site = await Site.getSite(req.user.tenantID, filteredRequest.ID, null, filteredRequest.WithUsers);
+      const site = await Site.getSite(req.user.tenantID, filteredRequest.ID);
       if (!site) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -308,9 +308,6 @@ class SiteService {
           'companyID': filteredRequest.CompanyID,
           'siteIDs': Authorizations.getAuthorizedEntityIDsFromLoggedUser(Constants.ENTITY_SITE, req.user),
           'withCompany': filteredRequest.WithCompany,
-          'withSiteAreas': filteredRequest.WithSiteAreas,
-          'withChargeBoxes': filteredRequest.WithChargeBoxes,
-          'withUsers': filteredRequest.WithUsers,
           'excludeSitesOfUserID': filteredRequest.ExcludeSitesOfUserID,
           'withAvailableChargers': filteredRequest.WithAvailableChargers,
           'onlyRecordCount': filteredRequest.OnlyRecordCount

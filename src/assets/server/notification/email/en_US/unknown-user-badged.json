@@ -1,5 +1,6 @@
 {
   "subject": "Unknown user",
+  "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {

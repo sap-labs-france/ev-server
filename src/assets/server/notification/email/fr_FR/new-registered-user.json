@@ -1,5 +1,6 @@
 {
   "subject": "Compte créé",
+  "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {

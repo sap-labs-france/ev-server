@@ -223,7 +223,6 @@ class OCPPStorage {
     const uniqueTimerID = Logging.traceStart('OCPPStorage', 'getBootNotifications');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // const ChargingStation = require('../../entity/ChargingStation'); // Avoid fucking circular deps!!!
     // Check Limit
     limit = Utils.checkRecordLimit(limit);
     // Check Skip
@@ -248,11 +247,11 @@ class OCPPStorage {
         ]
       }]
     };
-
-    if (params.chargeBoxId) {
+    // Charger ID
+    if (params.chargeBoxID) {
       // Build filter
       filters.$and.push({
-        "_id": params.chargeBoxId
+        "_id": params.chargeBoxID
       });
     }
     // Filters

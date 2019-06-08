@@ -9,7 +9,7 @@ const Logging = require('../../utils/Logging');
 
 class TenantStorage {
   static async getTenant(id) {
-    const Tenant = require('../../entity/Tenant'); // Avoid fucking circular deps!!!
+    const Tenant = require('../../entity/Tenant');
     // Debug
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'getTenant');
     // Create Aggregation
@@ -49,7 +49,7 @@ class TenantStorage {
   }
 
   static async getTenantByFilter(filter) {
-    const Tenant = require('../../entity/Tenant'); // Avoid fucking circular deps!!!
+    const Tenant = require('../../entity/Tenant');
     // Debug
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'getTenantByFilter');
     // Read DB
@@ -69,7 +69,7 @@ class TenantStorage {
   }
 
   static async saveTenant(tenantToSave) {
-    const Tenant = require('../../entity/Tenant'); // Avoid fucking circular deps!!!
+    const Tenant = require('../../entity/Tenant');
     // Debug
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'saveTenant');
     // Check
@@ -118,7 +118,7 @@ class TenantStorage {
 
   // Delegate
   static async getTenants(params = {}, limit, skip, sort) {
-    const Tenant = require('../../entity/Tenant'); // Avoid fucking circular deps!!!
+    const Tenant = require('../../entity/Tenant');
     // Debug
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'getTenants');
     // Check Limit

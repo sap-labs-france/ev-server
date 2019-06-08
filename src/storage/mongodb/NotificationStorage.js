@@ -8,7 +8,7 @@ const DatabaseUtils = require('./DatabaseUtils');
 
 class NotificationStorage {
   static async getNotifications(tenantID, params = {}, limit, skip, sort) {
-    const Notification = require('../../entity/Notification'); // Avoid fucking circular deps!!!
+    const Notification = require('../../entity/Notification');
     // Debug
     const uniqueTimerID = Logging.traceStart('NotificationStorage', 'getNotifications');
     // Check Tenant
@@ -125,8 +125,6 @@ class NotificationStorage {
     const uniqueTimerID = Logging.traceStart('NotificationStorage', 'saveNotification');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Ensure Date
-    notificationToSave.timestamp = Utils.convertToDate(notificationToSave.timestamp);
     // Transfer
     const notification = {};
     Database.updateNotification(notificationToSave, notification, false);
@@ -138,7 +136,7 @@ class NotificationStorage {
     await global.database.getCollection(tenantID, 'notifications')
       .insertOne(notification);
     // Debug
-    Logging.traceEnd('NotificationStorage', 'saveNotification', uniqueTimerID, { notificationToSave });
+    Logging.traceEnd('NotificationStorage', 'saveNotification', uniqueTimerID, { notification });
   }
 }
 

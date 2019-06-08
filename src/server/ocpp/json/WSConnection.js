@@ -105,10 +105,17 @@ class WSConnection {
         // Outcome Message
         case Constants.OCPP_JSON_CALL_RESULT_MESSAGE:
           // Respond
-          const [responseCallback] = this._requests[messageId];
+          // eslint-disable-next-line no-case-declarations
+          let responseCallback;
+          if (Utils.isIterable(this._requests[messageId])) {
+            [responseCallback] = this._requests[messageId];
+          } else {
+            throw new BackendError(this.getChargingStationID(), `Response request for unknown message id ${messageId} is not iterable`,
+              "WSConnection", "onMessage", commandName);
+          }
           if (!responseCallback) {
             // Error
-            throw new BackendError(this.getChargingStationID(), `Response for unknown message ${messageId}`,
+            throw new BackendError(this.getChargingStationID(), `Response for unknown message id ${messageId}`,
               "WSConnection", "onMessage", commandName);
           }
           delete this._requests[messageId];
@@ -129,10 +136,17 @@ class WSConnection {
           });
           if (!this._requests[messageId]) {
             // Error
-            throw new BackendError(this.getChargingStationID(), `Error for unknown message ${messageId}`,
+            throw new BackendError(this.getChargingStationID(), `Error for unknown message id ${messageId}`,
               "WSConnection", "onMessage", commandName);
           }
-          const [, rejectCallback] = this._requests[messageId];
+          // eslint-disable-next-line no-case-declarations
+          let rejectCallback;
+          if (Utils.isIterable(this._requests[messageId])) {
+            [, rejectCallback] = this._requests[messageId];
+          } else {
+            throw new BackendError(this.getChargingStationID(), `Error request for unknown message id ${messageId} is not iterable`,
+              "WSConnection", "onMessage", commandName);
+          }
           delete this._requests[messageId];
           rejectCallback(new OCPPError(commandName, commandPayload, errorDetails));
           break;
@@ -240,7 +254,7 @@ class WSConnection {
       // Function that will receive the request's rejection
       function rejectCallback(reason) {
         // Build Exception
-        self._requests[messageId] = () => { };
+        self._requests[messageId] = [() => { }, () => { }];
         const error = reason instanceof OCPPError ? reason : new Error(reason);
         // Send error
         reject(error);

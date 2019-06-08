@@ -108,7 +108,9 @@ class DataHelper {
   }
 
   async close() {
-    this.ocpp.closeConnection();
+    if (this.ocpp && this.ocpp.closeConnection) {
+      this.ocpp.closeConnection();
+    }
   }
 
   async authorize(chargingStation, tagId, expectedStatus = 'Accepted') {
