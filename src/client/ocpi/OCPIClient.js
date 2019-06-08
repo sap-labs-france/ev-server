@@ -357,18 +357,18 @@ class OCPIClient {
       Logging.logError({
         tenantID: tenant.getID(),
         action: 'OCPISendEVSEStatuses',
-        message: `Patching EVSE had errors (see details)`,
+        message: `Patching of ${sendResult.logs.length} EVSE statuses has been done with errors (see details)`,
         detailedMessages: sendResult.logs,
         source: 'OCPI Client',
         module: 'OCPIClient',
         method: `sendEVSEStatuses`
       });
-    } else {
+    } else if (sendResult.success > 0) {
       // log info
       Logging.logInfo({
         tenantID: tenant.getID(),
         action: 'OCPISendEVSEStatuses',
-        message: `Patching EVSE successfully (see details)`,
+        message: `Patching of ${sendResult.logs.length} EVSE statuses has been done successfully (see details)`,
         detailedMessages: sendResult.logs,
         source: 'OCPI Client',
         module: 'OCPIClient',
