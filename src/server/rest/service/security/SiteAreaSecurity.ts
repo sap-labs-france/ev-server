@@ -1,24 +1,10 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import UtilsSecurity from './UtilsSecurity';
+import ChargingStationSecurity from './ChargingStationSecurity';
+import SiteSecurity from './SiteSecurity';
 
-let SiteSecurity; // Avoid circular deps
-let ChargingStationSecurity; // Avoid circular deps
 export default class SiteAreaSecurity {
-  static getSiteSecurity() {
-    if (!SiteSecurity) {
-      SiteSecurity = require('./SiteSecurity');
-    }
-    return SiteSecurity;
-  }
-
-  static getChargingStationSecurity() {
-    if (!ChargingStationSecurity) {
-      ChargingStationSecurity = require('./ChargingStationSecurity');
-    }
-    return ChargingStationSecurity;
-  }
-
   // eslint-disable-next-line no-unused-vars
   static filterSiteAreaDeleteRequest(request, loggedUser) {
     const filteredRequest:any = {};
@@ -113,10 +99,10 @@ export default class SiteAreaSecurity {
       }
       if (siteArea.site) {
         // Site
-        filteredSiteArea.site = SiteAreaSecurity.getSiteSecurity().filterSiteResponse(siteArea.site, loggedUser);
+        filteredSiteArea.site = SiteSecurity.filterSiteResponse(siteArea.site, loggedUser);
       }
       if (siteArea.chargeBoxes) {
-        filteredSiteArea.chargeBoxes = SiteAreaSecurity.getChargingStationSecurity()
+        filteredSiteArea.chargeBoxes = ChargingStationSecurity
           .filterChargingStationsResponse(siteArea.chargeBoxes, loggedUser, true);
       }
       // Created By / Last Changed By

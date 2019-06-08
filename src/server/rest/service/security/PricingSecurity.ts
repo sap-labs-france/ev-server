@@ -1,5 +1,6 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
+
 export default class PricingSecurity {
   // Pricing
   static filterPricingResponse(pricing, loggedUser) {

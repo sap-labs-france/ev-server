@@ -2,6 +2,7 @@ import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
+
 export default class LoggingSecurity {
   // eslint-disable-next-line no-unused-vars
   static filterLoggingsRequest(request, loggedUser) {

@@ -1,6 +1,7 @@
 import sanitize from 'mongo-sanitize';
 import Constants from '../../../../utils/Constants';
 import UtilsSecurity from './UtilsSecurity';
+
 export default class AuthSecurity {
   // eslint-disable-next-line no-unused-vars
   static filterIsAuthorizedRequest(request, loggedUser?) {

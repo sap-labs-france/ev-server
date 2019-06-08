@@ -1,15 +1,9 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import UtilsSecurity from './UtilsSecurity';
-let UserSecurity; // Avoid circular deps
-export default class NotificationSecurity {
-  static getUserSecurity() {
-    if (!UserSecurity) {
-      UserSecurity = require('./UserSecurity');
-    }
-    return UserSecurity;
-  }
+import UserSecurity from './UserSecurity';
 
+export default class NotificationSecurity {
   // eslint-disable-next-line no-unused-vars
   static filterNotificationsRequest(request, loggedUser) {
     const filteredRequest:any = {};
@@ -65,7 +59,7 @@ export default class NotificationSecurity {
       filteredNotification.data = notification.data;
       // Handle users
       if (notification.user) {
-        filteredNotification.user = NotificationSecurity.getUserSecurity().filterMinimalUserResponse(notification.user, loggedUser);
+        filteredNotification.user = UserSecurity.filterMinimalUserResponse(notification.user, loggedUser);
       }
     }
     return filteredNotification;
