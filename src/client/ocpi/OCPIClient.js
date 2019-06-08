@@ -337,7 +337,7 @@ class OCPIClient {
               sendResult.success++;
               sendResult.chargeBoxIDsInSuccess.push(evse.chargeBoxId);
               sendResult.logs.push(
-                `Updated successfully status for locationID:${location.id} - evseID:${evse.id}:${error.message}`
+                `Updated successfully status for locationID:${location.id} - evseID:${evse.id}`
               );
             } catch (error) {
               sendResult.failure++;
