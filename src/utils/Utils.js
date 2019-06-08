@@ -228,6 +228,13 @@ class Utils {
     return userID;
   }
 
+  static isIterable(obj) {
+    if (obj) {
+      return typeof obj[Symbol.iterator] === 'function';
+    }
+    return false;
+  }
+
   static isEmptyArray(array) {
     if (array && array.length > 0) {
       return false;
