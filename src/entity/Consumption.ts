@@ -2,78 +2,77 @@ import Database from '../utils/Database';
 import TenantHolder from './TenantHolder';
 
 export default class Consumption extends TenantHolder {
-  
-  private model: any = {};
+  private _model: any = {};
 
   constructor(tenantID, consumptionModel) {
     super(tenantID);
     if (consumptionModel) {
-      Database.updateConsumption(consumptionModel, this.model);
+      Database.updateConsumption(consumptionModel, this._model);
     }
   }
 
-  getID() {
-    return this.model.id;
+  public getModel(): any {
+    return this._model;
   }
 
-  getModel() {
-    return this.model;
+  getID() {
+    return this._model.id;
   }
 
   getUserID() {
-    return this.model.userID;
+    return this._model.userID;
   }
 
   getChargeBoxID() {
-    return this.model.chargeBoxID;
+    return this._model.chargeBoxID;
   }
 
   getSiteID() {
-    return this.model.siteID;
+    return this._model.siteID;
   }
 
   getSiteAreaID() {
-    return this.model.siteAreaID;
+    return this._model.siteAreaID;
   }
 
   getConnectorId() {
-    return this.model.connectorId;
+    return this._model.connectorId;
   }
 
   getTransactionId() {
-    return this.model.transactionId;
+    return this._model.transactionId;
   }
 
   getStartedAt() {
-    return this.model.startedAt;
+    return this._model.startedAt;
   }
 
   getEndedAt() {
-    return this.model.endedAt;
+    return this._model.endedAt;
   }
 
   getStateOfCharge() {
-    return this.model.stateOfCharge;
+    return this._model.stateOfCharge;
   }
 
   getCumulatedConsumption() {
-    return this.model.cumulatedConsumption;
+    return this._model.cumulatedConsumption;
   }
 
   getConsumption() {
-    return this.model.consumption;
+    return this._model.consumption;
   }
 
   getAmount() {
-    return this.model.amount;
+    return this._model.amount;
   }
 
   getCumulatedAmount() {
-    return this.model.cumulatedAmount;
+    return this._model.cumulatedAmount;
   }
 
   getCurrency() {
-    return this.model.currencyCode;
+    return this._model.currencyCode;
   }
 
 }

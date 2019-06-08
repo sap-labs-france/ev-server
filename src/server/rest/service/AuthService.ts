@@ -20,7 +20,7 @@ import Authorizations from '../../../authorization/Authorizations';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import AuthSecurity from './security/AuthSecurity';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-const SessionHashService  =require('./SessionHashService');
+import SessionHashService  from './SessionHashService';
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;

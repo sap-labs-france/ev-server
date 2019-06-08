@@ -8,78 +8,78 @@ import VehicleManufacturerStorage from '../storage/mongodb/VehicleManufacturerSt
 import VehicleStorage from '../storage/mongodb/VehicleStorage';
 
 export default class VehicleManufacturer extends TenantHolder {
-
-	public getTenantID: any;
-  public getModel: any;
-  private model: any;
+  private _model: any = {};
 
   constructor(tenantID, vehicleManufacturer) {
     super(tenantID);
-    // Set it
-    Database.updateVehicleManufacturer(vehicleManufacturer, this.model);
+    Database.updateVehicleManufacturer(vehicleManufacturer, this._model);
+  }
+
+  public getModel(): any {
+    return this._model;
   }
 
   getID() {
-    return this.model.id;
+    return this._model.id;
   }
 
   setName(name) {
-    this.model.name = name;
+    this._model.name = name;
   }
 
   getName() {
-    return this.model.name;
+    return this._model.name;
   }
 
   getLogo() {
-    return this.model.logo;
+    return this._model.logo;
   }
 
   setLogo(logo) {
-    this.model.logo = logo;
+    this._model.logo = logo;
   }
 
   getCreatedBy() {
-    if (this.model.createdBy) {
-      return new User(this.getTenantID(), this.model.createdBy);
+    if (this._model.createdBy) {
+      return new User(this.getTenantID(), this._model.createdBy);
     }
     return null;
   }
 
   setCreatedBy(user) {
-    this.model.createdBy = user.getModel();
+    this._model.createdBy = user.getModel();
   }
 
   getCreatedOn() {
-    return this.model.createdOn;
+    return this._model.createdOn;
   }
 
   setCreatedOn(createdOn) {
-    this.model.createdOn = createdOn;
+    this._model.createdOn = createdOn;
   }
 
   getLastChangedBy() {
-    if (this.model.lastChangedBy) {
-      return new User(this.getTenantID(), this.model.lastChangedBy);
+    if (this._model.lastChangedBy) {
+      return new User(this.getTenantID(), this._model.lastChangedBy);
     }
     return null;
   }
 
   setLastChangedBy(user) {
-    this.model.lastChangedBy = user.getModel();
+    this._model.lastChangedBy = user.getModel();
   }
 
   getLastChangedOn() {
-    return this.model.lastChangedOn;
+    return this._model.lastChangedOn;
   }
 
   setLastChangedOn(lastChangedOn) {
-    this.model.lastChangedOn = lastChangedOn;
+    this._model.lastChangedOn = lastChangedOn;
   }
 
   async getVehicles() {
-    if (this.model.vehicles) {
-      return this.model.vehicles.map((vehicle) => new Vehicle(this.getTenantID(), vehicle));
+    if (this._model.vehicles) {
+      return this._model.vehicles.map((vehicle) => new Vehicle(this.getTenantID(), vehicle));
     } else {
       // Get from DB
       const vehicles = await VehicleStorage.getVehicles(this.getTenantID(), { 'vehicleManufacturerID': this.getID() });
@@ -91,7 +91,7 @@ export default class VehicleManufacturer extends TenantHolder {
   }
 
   setVehicles(vehicles) {
-    this.model.vehicles = vehicles.map((vehicle) => {
+    this._model.vehicles = vehicles.map((vehicle) => {
       return vehicle.getModel();
     });
   }

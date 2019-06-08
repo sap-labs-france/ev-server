@@ -1,5 +1,4 @@
 import TenantHolder from './TenantHolder';
-import ChargingStationClient from '../client/ocpp/ChargingStationClient';
 import Logging from '../utils/Logging';
 import Utils from '../utils/Utils';
 import User from './User';
@@ -23,15 +22,17 @@ require('source-map-support').install();
 momentDurationFormatSetup(moment);
 
 export default class ChargingStation extends TenantHolder {
-	public getTenantID: any;
-	public getModel: any;
 	public site: any;
   public company: any;
-  private model: any;
+  private _model: any = {};
 
   constructor(tenantID, chargingStation) {
     super(tenantID);
-    Database.updateChargingStation(chargingStation, this.model);
+    Database.updateChargingStation(chargingStation, this._model);
+  }
+
+  public getModel(): any {
+    return this._model;
   }
 
   static getChargingStation(tenantID, id) {
@@ -59,24 +60,24 @@ export default class ChargingStation extends TenantHolder {
   }
 
   getID() {
-    return this.model.id;
+    return this._model.id;
   }
 
   setSiteArea(siteArea) {
     if (siteArea) {
-      this.model.siteArea = siteArea.getModel();
-      this.model.siteAreaID = siteArea.getID();
+      this._model.siteArea = siteArea.getModel();
+      this._model.siteAreaID = siteArea.getID();
     } else {
-      this.model.siteArea = null;
+      this._model.siteArea = null;
     }
   }
 
   async getSiteArea(withSite = false) {
-    if (this.model.siteArea) {
-      return new SiteArea(this.getTenantID(), this.model.siteArea);
-    } else if (this.model.siteAreaID) {
+    if (this._model.siteArea) {
+      return new SiteArea(this.getTenantID(), this._model.siteArea);
+    } else if (this._model.siteAreaID) {
       // Get from DB
-      const siteArea = await SiteAreaStorage.getSiteArea(this.getTenantID(), this.model.siteAreaID, false, withSite);
+      const siteArea = await SiteAreaStorage.getSiteArea(this.getTenantID(), this._model.siteAreaID, false, withSite);
       // Set it
       this.setSiteArea(siteArea);
       // Return
@@ -85,223 +86,223 @@ export default class ChargingStation extends TenantHolder {
   }
 
   getSiteAreaID() {
-    return this.model.siteAreaID;
+    return this._model.siteAreaID;
   }
 
   setSiteAreaID(siteAreaID) {
-    this.model.siteAreaID = siteAreaID;
+    this._model.siteAreaID = siteAreaID;
   }
 
   getChargePointVendor() {
-    return this.model.chargePointVendor;
+    return this._model.chargePointVendor;
   }
 
   setChargePointVendor(chargePointVendor) {
-    this.model.chargePointVendor = chargePointVendor;
+    this._model.chargePointVendor = chargePointVendor;
   }
 
   getChargePointModel() {
-    return this.model.chargePointModel;
+    return this._model.chargePointModel;
   }
 
   setChargePointModel(chargePointModel) {
-    this.model.chargePointModel = chargePointModel;
+    this._model.chargePointModel = chargePointModel;
   }
 
   getCFApplicationIDAndInstanceIndex() {
-    return this.model.cfApplicationIDAndInstanceIndex;
+    return this._model.cfApplicationIDAndInstanceIndex;
   }
 
   setCFApplicationIDAndInstanceIndex(cfApplicationIDAndInstanceIndex) {
-    this.model.cfApplicationIDAndInstanceIndex = cfApplicationIDAndInstanceIndex;
+    this._model.cfApplicationIDAndInstanceIndex = cfApplicationIDAndInstanceIndex;
   }
 
   getChargePointSerialNumber() {
-    return this.model.chargePointSerialNumber;
+    return this._model.chargePointSerialNumber;
   }
 
   setChargePointSerialNumber(chargePointSerialNumber) {
-    this.model.chargePointSerialNumber = chargePointSerialNumber;
+    this._model.chargePointSerialNumber = chargePointSerialNumber;
   }
 
   getChargeBoxSerialNumber() {
-    return this.model.chargeBoxSerialNumber;
+    return this._model.chargeBoxSerialNumber;
   }
 
   setChargeBoxSerialNumber(chargeBoxSerialNumber) {
-    this.model.chargeBoxSerialNumber = chargeBoxSerialNumber;
+    this._model.chargeBoxSerialNumber = chargeBoxSerialNumber;
   }
 
   setInactive(inactive) {
-    this.model.inactive = inactive;
+    this._model.inactive = inactive;
   }
 
   isInactive() {
-    return this.model.inactive;
+    return this._model.inactive;
   }
 
   getNumberOfConnectedPhase() {
-    return this.model.numberOfConnectedPhase;
+    return this._model.numberOfConnectedPhase;
   }
 
   setNumberOfConnectedPhase(numberOfConnectedPhase) {
-    this.model.numberOfConnectedPhase = numberOfConnectedPhase;
+    this._model.numberOfConnectedPhase = numberOfConnectedPhase;
   }
 
   getMaximumPower() {
-    return this.model.maximumPower;
+    return this._model.maximumPower;
   }
 
   setMaximumPower(maximumPower) {
-    this.model.maximumPower = maximumPower;
+    this._model.maximumPower = maximumPower;
   }
 
   setCannotChargeInParallel(cannotChargeInParallel) {
-    this.model.cannotChargeInParallel = cannotChargeInParallel;
+    this._model.cannotChargeInParallel = cannotChargeInParallel;
   }
 
   setPowerLimitUnit(powerLimitUnit) {
-    this.model.powerLimitUnit = powerLimitUnit;
+    this._model.powerLimitUnit = powerLimitUnit;
   }
 
   getPowerLimitUnit() {
-    return this.model.powerLimitUnit;
+    return this._model.powerLimitUnit;
   }
 
   setLatitude(latitude) {
-    this.model.latitude = latitude;
+    this._model.latitude = latitude;
   }
 
   getLatitude() {
-    return this.model.latitude;
+    return this._model.latitude;
   }
 
   setLongitude(longitude) {
-    this.model.longitude = longitude;
+    this._model.longitude = longitude;
   }
 
   getLongitude() {
-    return this.model.longitude;
+    return this._model.longitude;
   }
 
   getTimezone() {
-    if (this.model.latitude && this.model.longitude) {
-      return tzlookup(this.model.latitude, this.model.longitude);
+    if (this._model.latitude && this._model.longitude) {
+      return tzlookup(this._model.latitude, this._model.longitude);
     }
   }
 
   canChargeInParallel() {
-    return !this.model.cannotChargeInParallel;
+    return !this._model.cannotChargeInParallel;
   }
 
   getFirmwareVersion() {
-    return this.model.firmwareVersion;
+    return this._model.firmwareVersion;
   }
 
   setFirmwareVersion(firmwareVersion) {
-    this.model.firmwareVersion = firmwareVersion;
+    this._model.firmwareVersion = firmwareVersion;
   }
 
   getIccid() {
-    return this.model.iccid;
+    return this._model.iccid;
   }
 
   setIccid(iccid) {
-    this.model.iccid = iccid;
+    this._model.iccid = iccid;
   }
 
   getImsi() {
-    return this.model.imsi;
+    return this._model.imsi;
   }
 
   setImsi(imsi) {
-    this.model.imsi = imsi;
+    this._model.imsi = imsi;
   }
 
   getMeterType() {
-    return this.model.meterType;
+    return this._model.meterType;
   }
 
   setMeterType(meterType) {
-    this.model.meterType = meterType;
+    this._model.meterType = meterType;
   }
 
   getMeterSerialNumber() {
-    return this.model.meterSerialNumber;
+    return this._model.meterSerialNumber;
   }
 
   setMeterSerialNumber(meterSerialNumber) {
-    this.model.meterSerialNumber = meterSerialNumber;
+    this._model.meterSerialNumber = meterSerialNumber;
   }
 
   getCreatedBy() {
-    if (this.model.createdBy) {
-      return new User(this.getTenantID(), this.model.createdBy);
+    if (this._model.createdBy) {
+      return new User(this.getTenantID(), this._model.createdBy);
     }
     return null;
   }
 
   setCreatedBy(user) {
-    this.model.createdBy = user.getModel();
+    this._model.createdBy = user.getModel();
   }
 
   getCreatedOn() {
-    return this.model.createdOn;
+    return this._model.createdOn;
   }
 
   setCreatedOn(createdOn) {
-    this.model.createdOn = createdOn;
+    this._model.createdOn = createdOn;
   }
 
   getLastChangedBy() {
-    if (this.model.lastChangedBy) {
-      return new User(this.getTenantID(), this.model.lastChangedBy);
+    if (this._model.lastChangedBy) {
+      return new User(this.getTenantID(), this._model.lastChangedBy);
     }
     return null;
   }
 
   setLastChangedBy(user) {
-    this.model.lastChangedBy = user.getModel();
+    this._model.lastChangedBy = user.getModel();
   }
 
   getLastChangedOn() {
-    return this.model.lastChangedOn;
+    return this._model.lastChangedOn;
   }
 
   setLastChangedOn(lastChangedOn) {
-    this.model.lastChangedOn = lastChangedOn;
+    this._model.lastChangedOn = lastChangedOn;
   }
 
   getEndPoint() {
-    return this.model.endpoint;
+    return this._model.endpoint;
   }
 
   setEndPoint(endpoint) {
-    this.model.endpoint = endpoint;
+    this._model.endpoint = endpoint;
   }
 
   getChargingStationURL() {
-    return this.model.chargingStationURL;
+    return this._model.chargingStationURL;
   }
 
   setChargingStationURL(chargingStationURL) {
-    this.model.chargingStationURL = chargingStationURL;
+    this._model.chargingStationURL = chargingStationURL;
   }
 
   getOcppVersion() {
-    return this.model.ocppVersion;
+    return this._model.ocppVersion;
   }
 
   setOcppVersion(ocppVersion) {
-    this.model.ocppVersion = ocppVersion;
+    this._model.ocppVersion = ocppVersion;
   }
 
   getOcppProtocol() {
-    return this.model.ocppProtocol;
+    return this._model.ocppProtocol;
   }
 
   setOcppProtocol(ocppProtocol) {
-    this.model.ocppProtocol = ocppProtocol;
+    this._model.ocppProtocol = ocppProtocol;
   }
 
   getChargingStationClient() {
@@ -310,20 +311,20 @@ export default class ChargingStation extends TenantHolder {
   }
 
   getLastHeartBeat() {
-    return this.model.lastHeartBeat;
+    return this._model.lastHeartBeat;
   }
 
   setLastHeartBeat(lastHeartBeat) {
-    this.model.lastHeartBeat = lastHeartBeat;
+    this._model.lastHeartBeat = lastHeartBeat;
   }
 
   getConnectors() {
-    return this.model.connectors;
+    return this._model.connectors;
   }
 
   getConnector(identifier) {
-    if (identifier !== undefined && this.model.connectors) {
-      for (const connector of this.model.connectors) {
+    if (identifier !== undefined && this._model.connectors) {
+      for (const connector of this._model.connectors) {
         if (connector && connector.connectorId === identifier) {
           return connector;
         }
@@ -333,15 +334,15 @@ export default class ChargingStation extends TenantHolder {
   }
 
   setConnectors(connectors) {
-    this.model.connectors = connectors;
+    this._model.connectors = connectors;
   }
 
   getLastReboot() {
-    return this.model.lastReboot;
+    return this._model.lastReboot;
   }
 
   setLastReboot(lastReboot) {
-    this.model.lastReboot = lastReboot;
+    this._model.lastReboot = lastReboot;
   }
 
   save() {
@@ -416,11 +417,11 @@ export default class ChargingStation extends TenantHolder {
   }
 
   setDeleted(deleted) {
-    this.model.deleted = deleted;
+    this._model.deleted = deleted;
   }
 
   isDeleted() {
-    return this.model.deleted;
+    return this._model.deleted;
   }
 
   async delete() {

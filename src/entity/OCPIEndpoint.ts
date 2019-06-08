@@ -7,100 +7,100 @@ import OCPIUtils from '../server/ocpi/OCPIUtils';
 import User from './User';
 
 export default class OCPIEndpoint extends TenantHolder {
-
-	public getTenant: any;
-	public getTenantID: any;
-	public getModel: any;
-  private model: any;
+  private _model: any = {};
 
   constructor(tenantID, ocpiEndpoint) {
     super(tenantID);
     // Set it
-    Database.updateOcpiEndpoint(ocpiEndpoint, this.model);
+    Database.updateOcpiEndpoint(ocpiEndpoint, this._model);
+  }
+
+  public getModel(): any {
+    return this._model;
   }
 
   getID() {
-    return this.model.id;
+    return this._model.id;
   }
 
   /**
    * Name of eMSP/IOP - could be provided by credential object from OCPI
    */
   getName() {
-    return this.model.name;
+    return this._model.name;
   }
 
   setName(name) {
-    this.model.name = name;
+    this._model.name = name;
   }
 
   /**
    * Base Url - should point to the eMSP/IOP versions OCPI endpoint - eg: /ocpi/emsp/versions
    */
   getBaseUrl() {
-    return this.model.baseUrl;
+    return this._model.baseUrl;
   }
 
   setBaseUrl(url) {
-    this.model.baseUrl = url;
+    this._model.baseUrl = url;
   }
 
   /**
    * verion Url - should point to the eMSP/IOP version in use - eg: /ocpi/emsp/2.1.1
    */
   getVersionUrl() {
-    return this.model.versionUrl;
+    return this._model.versionUrl;
   }
 
   setVersionUrl(url) {
-    this.model.versionUrl = url;
+    this._model.versionUrl = url;
   }
 
   /**
    * Set Ocpi version
    */
   getVersion() {
-    return this.model.version;
+    return this._model.version;
   }
 
   setVersion(version) {
-    this.model.version = version;
+    this._model.version = version;
   }
 
   // background job flag
   setBackgroundPatchJobFlag(active) {
-    this.model.backgroundPatchJob = active;
+    this._model.backgroundPatchJob = active;
   }
 
   isBackgroundPatchJobActive() {
-    return this.model.backgroundPatchJob ? this.model.backgroundPatchJob : false;
+    return this._model.backgroundPatchJob ? this._model.backgroundPatchJob : false;
   }
 
   getLastPatchJobOn() {
-    return this.model.lastPatchJobOn;
+    return this._model.lastPatchJobOn;
   }
 
   setLastPatchJobOn(lastPatchJobOn) {
-    this.model.lastPatchJobOn = lastPatchJobOn;
+    this._model.lastPatchJobOn = lastPatchJobOn;
   }
 
   setLastPatchJobResult(successNbr, failureNbr, totalNbr, chargeBoxIDsInFailure = [], chargeBoxIDsInSuccess = []) {
-    this.model.lastPatchJobResult = { "successNbr": successNbr, "failureNbr": failureNbr, "totalNbr": totalNbr, "chargeBoxIDsInFailure": chargeBoxIDsInFailure, "chargeBoxIDsInSuccess": chargeBoxIDsInSuccess };
+    this._model.lastPatchJobResult = { "successNbr": successNbr, "failureNbr": failureNbr, "totalNbr": totalNbr, "chargeBoxIDsInFailure": chargeBoxIDsInFailure, "chargeBoxIDsInSuccess": chargeBoxIDsInSuccess };
   }
 
   getLastPatchJobResult() {
-    return this.model.lastPatchJobResult;
+    return this._model.lastPatchJobResult;
   }
 
   /**
    * manage endpoint status
    */
   getStatus() {
-    return this.model.status;
+    return this._model.status;
   }
 
   setStatus(status) {
-    this.model.status = status;
+    this._model.status = status;
   }
 
   /**
@@ -108,16 +108,16 @@ export default class OCPIEndpoint extends TenantHolder {
    * The payload should be converted using OCPIMapping.convertEndpoints
    */
   setAvailableEndpoints(availableEndpoints) {
-    this.model.availableEndpoints = availableEndpoints;
+    this._model.availableEndpoints = availableEndpoints;
   }
 
   getAvailableEndpoints() {
-    return this.model.availableEndpoints;
+    return this._model.availableEndpoints;
   }
 
   getEndpointUrl(service) {
-    if (this.model.availableEndpoints && this.model.availableEndpoints.hasOwnProperty(service)) {
-      return this.model.availableEndpoints[service];
+    if (this._model.availableEndpoints && this._model.availableEndpoints.hasOwnProperty(service)) {
+      return this._model.availableEndpoints[service];
     }
   }
 
@@ -125,11 +125,11 @@ export default class OCPIEndpoint extends TenantHolder {
    * localToken - token sent to eMSP/IOP to access this system
    */
   getLocalToken() {
-    return this.model.localToken;
+    return this._model.localToken;
   }
 
   setLocalToken(token) {
-    this.model.localToken = token;
+    this._model.localToken = token;
   }
 
   // generate token based on tenant information.
@@ -162,76 +162,76 @@ export default class OCPIEndpoint extends TenantHolder {
    * Business Details as provided by credential object
    */
   getBusinessDetails() {
-    return this.model.businessDetails;
+    return this._model.businessDetails;
   }
 
   setBusinessDetails(businessDetails) {
-    return this.model.businessDetails = businessDetails;
+    return this._model.businessDetails = businessDetails;
   }
 
   /**
    * token - token use to access remote system eMSP/IOP
    */
   getToken() {
-    return this.model.token;
+    return this._model.token;
   }
 
   setToken(token) {
-    this.model.token = token;
+    this._model.token = token;
   }
 
   getCountryCode() {
-    return this.model.countryCode;
+    return this._model.countryCode;
   }
 
   setCountryCode(countryCode) {
-    this.model.countryCode = countryCode;
+    this._model.countryCode = countryCode;
   }
 
   getPartyId() {
-    return this.model.partyId;
+    return this._model.partyId;
   }
 
   setPartyId(partyId) {
-    this.model.partyId = partyId;
+    this._model.partyId = partyId;
   }
 
   getCreatedBy() {
-    if (this.model.createdBy) {
-      return new User(this.getTenantID(), this.model.createdBy);
+    if (this._model.createdBy) {
+      return new User(this.getTenantID(), this._model.createdBy);
     }
     return null;
   }
 
   setCreatedBy(user) {
-    this.model.createdBy = user.getModel();
+    this._model.createdBy = user.getModel();
   }
 
   getCreatedOn() {
-    return this.model.createdOn;
+    return this._model.createdOn;
   }
 
   setCreatedOn(createdOn) {
-    this.model.createdOn = createdOn;
+    this._model.createdOn = createdOn;
   }
 
   getLastChangedBy() {
-    if (this.model.lastChangedBy) {
-      return new User(this.getTenantID(), this.model.lastChangedBy);
+    if (this._model.lastChangedBy) {
+      return new User(this.getTenantID(), this._model.lastChangedBy);
     }
     return null;
   }
 
   setLastChangedBy(user) {
-    this.model.lastChangedBy = user.getModel();
+    this._model.lastChangedBy = user.getModel();
   }
 
   getLastChangedOn() {
-    return this.model.lastChangedOn;
+    return this._model.lastChangedOn;
   }
 
   setLastChangedOn(lastChangedOn) {
-    this.model.lastChangedOn = lastChangedOn;
+    this._model.lastChangedOn = lastChangedOn;
   }
 
   save() {

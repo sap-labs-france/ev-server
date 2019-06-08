@@ -7,82 +7,83 @@ import SiteStorage from '../storage/mongodb/SiteStorage';
 import User from './User';
 
 export default class Company extends TenantHolder {
-
-	public getTenantID: any;
-  public getModel: any;
-  private model: any;
+  private _model: any = {};
 
   constructor(tenantID: any, company: any) {
     super(tenantID);
 
     // Set it
-    Database.updateCompany(company, this.model);
+    Database.updateCompany(company, this._model);
+  }
+
+  public getModel(): any {
+    return this._model;
   }
 
   getID() {
-    return this.model.id;
+    return this._model.id;
   }
 
   setName(name: any) {
-    this.model.name = name;
+    this._model.name = name;
   }
 
   getName() {
-    return this.model.name;
+    return this._model.name;
   }
 
   setAddress(address: any) {
-    this.model.address = address;
+    this._model.address = address;
   }
 
   getAddress() {
-    return this.model.address;
+    return this._model.address;
   }
 
   getLogo() {
-    return this.model.logo;
+    return this._model.logo;
   }
 
   setLogo(logo: any) {
-    this.model.logo = logo;
+    this._model.logo = logo;
   }
 
   getCreatedBy() {
-    if (this.model.createdBy) {
-      return new User(this.getTenantID(), this.model.createdBy);
+    if (this._model.createdBy) {
+      return new User(this.getTenantID(), this._model.createdBy);
     }
     return null;
   }
 
   setCreatedBy(user: any) {
-    this.model.createdBy = user.getModel();
+    this._model.createdBy = user.getModel();
   }
 
   getCreatedOn() {
-    return this.model.createdOn;
+    return this._model.createdOn;
   }
 
   setCreatedOn(createdOn: any) {
-    this.model.createdOn = createdOn;
+    this._model.createdOn = createdOn;
   }
 
   getLastChangedBy() {
-    if (this.model.lastChangedBy) {
-      return new User(this.getTenantID(), this.model.lastChangedBy);
+    if (this._model.lastChangedBy) {
+      return new User(this.getTenantID(), this._model.lastChangedBy);
     }
     return null;
   }
 
   setLastChangedBy(user: any) {
-    this.model.lastChangedBy = user.getModel();
+    this._model.lastChangedBy = user.getModel();
   }
 
   getLastChangedOn() {
-    return this.model.lastChangedOn;
+    return this._model.lastChangedOn;
   }
 
   setLastChangedOn(lastChangedOn: any) {
-    this.model.lastChangedOn = lastChangedOn;
+    this._model.lastChangedOn = lastChangedOn;
   }
 
   async getSites() {
@@ -95,7 +96,7 @@ export default class Company extends TenantHolder {
   }
 
   setSites(sites: any) {
-    this.model.sites = sites.map((site) => site.getModel());
+    this._model.sites = sites.map((site) => site.getModel());
   }
 
   save() {

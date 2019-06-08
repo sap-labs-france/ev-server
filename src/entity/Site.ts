@@ -9,150 +9,149 @@ import UserStorage from '../storage/mongodb/UserStorage';
 import User from './User';
 
 export default class Site extends TenantHolder {
-
-	public getTenantID: any;
-  public getModel: any;
-  private model: any;
+  private _model: any = {};
 
   constructor(tenantID, site) {
     super(tenantID);
+    Database.updateSite(site, this._model);
+  }
 
-    // Set it
-    Database.updateSite(site, this.model);
+  public getModel(): any {
+    return this._model;
   }
 
   getID() {
-    return this.model.id;
+    return this._model.id;
   }
 
   setName(name) {
-    this.model.name = name;
+    this._model.name = name;
   }
 
   getName() {
-    return this.model.name;
+    return this._model.name;
   }
 
   setAvailableChargers(availableChargers) {
-    this.model.availableChargers = availableChargers;
+    this._model.availableChargers = availableChargers;
   }
 
   getAvailableChargers() {
-    return this.model.availableChargers;
+    return this._model.availableChargers;
   }
 
   setTotalChargers(totalChargers) {
-    this.model.totalChargers = totalChargers;
+    this._model.totalChargers = totalChargers;
   }
 
   getTotalChargers() {
-    return this.model.totalChargers;
+    return this._model.totalChargers;
   }
 
   setAvailableConnectors(availableConnectors) {
-    this.model.availableConnectors = availableConnectors;
+    this._model.availableConnectors = availableConnectors;
   }
 
   getAvailableConnectors() {
-    return this.model.availableConnectors;
+    return this._model.availableConnectors;
   }
 
   setTotalConnectors(totalConnectors) {
-    this.model.totalConnectors = totalConnectors;
+    this._model.totalConnectors = totalConnectors;
   }
 
   getTotalConnectors() {
-    return this.model.totalConnectors;
+    return this._model.totalConnectors;
   }
 
   setAddress(address) {
-    this.model.address = address;
+    this._model.address = address;
   }
 
   getAddress() {
-    return this.model.address;
+    return this._model.address;
   }
 
   setAllowAllUsersToStopTransactionsEnabled(allowAllUsersToStopTransactions) {
-    this.model.allowAllUsersToStopTransactions = allowAllUsersToStopTransactions;
+    this._model.allowAllUsersToStopTransactions = allowAllUsersToStopTransactions;
   }
 
   isAllowAllUsersToStopTransactionsEnabled() {
-    return this.model.allowAllUsersToStopTransactions;
+    return this._model.allowAllUsersToStopTransactions;
   }
 
   setAutoUserSiteAssignment(active) {
-    this.model.autoUserSiteAssignment = active;
+    this._model.autoUserSiteAssignment = active;
   }
 
   isAutoUserSiteAssignmentEnabled() {
-    return this.model.autoUserSiteAssignment;
+    return this._model.autoUserSiteAssignment;
   }
 
   setImage(image) {
-    this.model.image = image;
+    this._model.image = image;
   }
 
   getImage() {
-    return this.model.image;
+    return this._model.image;
   }
 
   getCreatedBy() {
-    if (this.model.createdBy) {
-      return new User(this.getTenantID(), this.model.createdBy);
+    if (this._model.createdBy) {
+      return new User(this.getTenantID(), this._model.createdBy);
     }
     return null;
   }
 
   setCreatedBy(user) {
-    this.model.createdBy = user.getModel();
+    this._model.createdBy = user.getModel();
   }
 
   getCreatedOn() {
-    return this.model.createdOn;
+    return this._model.createdOn;
   }
 
   setCreatedOn(createdOn) {
-    this.model.createdOn = createdOn;
+    this._model.createdOn = createdOn;
   }
 
   getLastChangedBy() {
-    if (this.model.lastChangedBy) {
-      return new User(this.getTenantID(), this.model.lastChangedBy);
+    if (this._model.lastChangedBy) {
+      return new User(this.getTenantID(), this._model.lastChangedBy);
     }
     return null;
   }
 
   setLastChangedBy(user) {
-    this.model.lastChangedBy = user.getModel();
+    this._model.lastChangedBy = user.getModel();
   }
 
   getLastChangedOn() {
-    return this.model.lastChangedOn;
+    return this._model.lastChangedOn;
   }
 
   setLastChangedOn(lastChangedOn) {
-    this.model.lastChangedOn = lastChangedOn;
+    this._model.lastChangedOn = lastChangedOn;
   }
 
   async getCompany() {
     // Get from DB
-    const company = await CompanyStorage.getCompany(this.getTenantID(), this.model.companyID);
+    const company = await CompanyStorage.getCompany(this.getTenantID(), this._model.companyID);
     // Keep it
     this.setCompany(company);
     return company;
   }
 
   getCompanyID() {
-    return this.model.companyID;
+    return this._model.companyID;
   }
 
   setCompany(company) {
     if (company) {
-      this.model.company = company.getModel();
-      this.model.companyID = company.getID();
+      this._model.company = company.getModel();
+      this._model.companyID = company.getID();
     } else {
-      this.model.company = null;
+      this._model.company = null;
     }
   }
 
@@ -165,12 +164,12 @@ export default class Site extends TenantHolder {
   }
 
   setSiteAreas(siteAreas) {
-    this.model.siteAreas = siteAreas.map((siteArea) => siteArea.getModel());
+    this._model.siteAreas = siteAreas.map((siteArea) => siteArea.getModel());
   }
 
   async getUsers() {
-    if (this.model.users) {
-      return this.model.users.map((user) => new User(this.getTenantID(), user));
+    if (this._model.users) {
+      return this._model.users.map((user) => new User(this.getTenantID(), user));
     } else {
       // Get from DB
       const users = await UserStorage.getUsers(this.getTenantID(), { 'siteID': this.getID() });
@@ -192,12 +191,12 @@ export default class Site extends TenantHolder {
   }
 
   removeUser(user) {
-    if (this.model.users) {
+    if (this._model.users) {
       // Search
-      for (let i = 0; i < this.model.users.length; i++) {
-        if (this.model.users[i].id === user.getID()) {
+      for (let i = 0; i < this._model.users.length; i++) {
+        if (this._model.users[i].id === user.getID()) {
           // Remove
-          this.model.users.splice(i, 1);
+          this._model.users.splice(i, 1);
           break;
         }
       }
@@ -205,7 +204,7 @@ export default class Site extends TenantHolder {
   }
 
   setUsers(users) {
-    this.model.users = users.map((user) => user.getModel());
+    this._model.users = users.map((user) => user.getModel());
   }
 
   save() {

@@ -26,5 +26,4 @@ export default abstract class TenantHolder { //TODO: Renamed from AbstractTenant
     }
     return this.tenant;
   }
-
 }
