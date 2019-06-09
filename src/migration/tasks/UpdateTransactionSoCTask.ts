@@ -3,7 +3,7 @@ import Tenant from '../../entity/Tenant';
 import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
 import MigrationTask from '../MigrationTask';
 import TSGlobal from '../../types/GlobalType';
-declare var global: TSGlobal;
+let var global: TSGlobal;
 
 export default class UpdateTransactionSoCTask extends MigrationTask {
   async migrate() {
@@ -88,7 +88,7 @@ export default class UpdateTransactionSoCTask extends MigrationTask {
         // Set the End SoC
         foundTransaction.stop.stateOfCharge = meterValueMDB.value;
       }
-      const transaction:any = {};
+      const transaction: any = {};
       // Update
       Database.updateTransaction(foundTransaction, transaction, false);
       // Save it

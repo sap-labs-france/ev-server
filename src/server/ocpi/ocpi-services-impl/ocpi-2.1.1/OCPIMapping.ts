@@ -7,7 +7,7 @@ require('source-map-support').install();
  * OCPI Mapping 2.1.1 - Mapping class
  * Mainly contains helper functions to convert internal entity to OCPI 2.1.1 Entity
  */
- export default class OCPIMapping {
+export default class OCPIMapping {
   /**
    * Convert Site to OCPI Location
    * @param {Tenant} tenant
@@ -279,7 +279,7 @@ require('source-map-support').install();
    */
   static async buildOCPICredentialObject(tenant, token, versionUrl?) {
     // credentail
-    const credential:any = {};
+    const credential: any = {};
 
     // get ocpi service configuration
     const ocpiSetting = await tenant.getSetting(Constants.COMPONENTS.OCPI);
@@ -309,7 +309,7 @@ require('source-map-support').install();
    * convert OCPI Endpoints
    */
   static convertEndpoints(endpointsEntity) {
-    const endpoints:any = {};
+    const endpoints: any = {};
 
     if (endpointsEntity && endpointsEntity.endpoints) {
       for (const endpoint of endpointsEntity.endpoints) {

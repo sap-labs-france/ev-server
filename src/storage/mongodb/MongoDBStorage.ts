@@ -11,7 +11,7 @@ import InternalError from '../../exception/InternalError';
 
 export default class MongoDBStorage {
 
-  private db : Db|null = null;
+  private db: Db|null = null;
 
   // Create database access
   constructor(private readonly dbConfig: StorageCfg) {}
@@ -27,7 +27,7 @@ export default class MongoDBStorage {
     return this.db.watch(pipeline, options);
   }
 
-  public async handleIndexesInCollection(allCollections: Array<{name: string}>, tenantID: string, name: string, indexes?: Array<{fields: any, options?: any}>): Promise<boolean> {
+  public async handleIndexesInCollection(allCollections: {name: string}[], tenantID: string, name: string, indexes?: {fields: any; options?: any}[]): Promise<boolean> {
     //Safety check
     if(!this.db) {
       throw new InternalError('Not supposed to call handleIndexesInCollection before start', []);
@@ -86,7 +86,7 @@ export default class MongoDBStorage {
       throw new InternalError('Not supposed to call checkAndCreateTenantDatabase before start', []);
     }
 
-    let name = new RegExp(`^${tenantID}.`);
+    const name = new RegExp(`^${tenantID}.`);
     // Get all the tenant collections
     const collections = await this.db.listCollections({name: name}).toArray();
     // Users
@@ -254,7 +254,7 @@ export default class MongoDBStorage {
       });
     }
     // Connect to EVSE
-    let mongoDBClient = await MongoClient.connect(
+    const mongoDBClient = await MongoClient.connect(
       mongoUrl,
       {
         useNewUrlParser: true,

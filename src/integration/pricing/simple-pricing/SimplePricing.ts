@@ -3,10 +3,10 @@ import Consumption from '../../../entity/Consumption';
 import Transaction from '../../../entity/Transaction';
 
 export class SimplePricingSettings extends PricingSettings {
-  constructor(readonly price: number, readonly currency: string){
+  constructor(readonly price: number, readonly currency: string) {
     super();
   }
-};
+}
 
 export default class SimplePricing extends Pricing {
 

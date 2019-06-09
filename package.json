@@ -3,7 +3,7 @@
 	"engines": {
 		"node": "10.x.x"
 	},
-	"version": "2.0.17",
+	"version": "2.0.18",
 	"description": "Backend for Electric Vehicule charging station",
 	"author": "LucasBrazi06 <sergefabiano@free.fr>",
 	"homepage": "https://github.com/LucasBrazi06/ev-server",
@@ -81,6 +81,8 @@
 		"@types/mocha": "^5.2.6",
 		"@types/mongodb": "^3.1.28",
 		"@types/socket.io": "^2.1.2",
+		"@typescript-eslint/eslint-plugin": "^1.9.0",
+		"@typescript-eslint/parser": "^1.9.0",
 		"babel-core": "^6.26.3",
 		"babel-loader": "^8.0.5",
 		"chai": "^4.2.0",
@@ -132,8 +134,8 @@
 		"build:prod": "webpack --env.env=prod",
 		"clean-install-win": "rmdir node_modules /S /Q && del package-lock.json && npm cache clear --force && npm install",
 		"clean-install-lin": "rm -rf ./node_modules && rm -f ./package-lock.json && npm cache clear --force && npm install",
-		"lint": "eslint src",
-		"lint-fix": "eslint src --fix",
+		"lint": "eslint --ext .js,.ts src",
+		"lint-fix": "eslint --ext .js,.ts src --fix",
 		"jshint": "jshint src",
 		"test": "mocha test/**/*Test.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
 		"test:parallel": "mocha-parallel-tests test/**/*Test.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import querystring from 'querystring';
 export default class BaseApi {
-	public baseURL: any;
+  public baseURL: any;
 
   constructor(baseURL) {
     this.baseURL = baseURL;

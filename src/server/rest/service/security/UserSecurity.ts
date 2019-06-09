@@ -5,7 +5,7 @@ import UtilsSecurity from './UtilsSecurity';
 export default class UserSecurity {
   // eslint-disable-next-line no-unused-vars
   static filterAddSitesToUserRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.userID = sanitize(request.userID);
     if (request.siteIDs) {
@@ -16,7 +16,7 @@ export default class UserSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterRemoveSitesFromUserRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.userID = sanitize(request.userID);
     if (request.siteIDs) {
@@ -27,7 +27,7 @@ export default class UserSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterUserDeleteRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
@@ -35,7 +35,7 @@ export default class UserSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterUserRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
@@ -43,7 +43,7 @@ export default class UserSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterUsersRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Handle picture
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.SiteID = sanitize(request.SiteID);
@@ -67,7 +67,7 @@ export default class UserSecurity {
   }
 
   static _filterUserRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     if (request.hasOwnProperty("costCenter")) {
       filteredRequest.costCenter = sanitize(request.costCenter);
     }

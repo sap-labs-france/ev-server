@@ -7,7 +7,7 @@ export default class AbstractODataEntities {
     // check limit parameter
     const limit = query.$limit ? query.$limit : 0;
 
-    const params:any = {};
+    const params: any = {};
     params.Skip = query.$skip;
     params.Limit = limit;
 

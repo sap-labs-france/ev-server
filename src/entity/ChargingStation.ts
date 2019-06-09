@@ -22,7 +22,7 @@ require('source-map-support').install();
 momentDurationFormatSetup(moment);
 
 export default class ChargingStation extends TenantHolder {
-	public site: any;
+  public site: any;
   public company: any;
   private _model: any = {};
 

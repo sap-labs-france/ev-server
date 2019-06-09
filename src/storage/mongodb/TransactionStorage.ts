@@ -5,7 +5,7 @@ import Utils from '../../utils/Utils';
 import Logging from '../../utils/Logging';
 import PricingStorage from './PricingStorage';
 import TSGlobal from './../../types/GlobalType';
-declare var global: TSGlobal;
+let var global: TSGlobal;
 import Transaction from '../../entity/Transaction';
 
 export default class TransactionStorage {
@@ -39,7 +39,7 @@ export default class TransactionStorage {
       transactionToSave.id = await TransactionStorage._findAvailableID(tenantID);
     }
     // Transfer
-    const transactionMDB:any = {};
+    const transactionMDB: any = {};
     Database.updateTransaction(transactionToSave, transactionMDB, false);
     // Modify
     const result = await global.database.getCollection(tenantID, 'transactions').findOneAndReplace(
@@ -87,7 +87,7 @@ export default class TransactionStorage {
     // Check Skip
     skip = Utils.checkRecordSkip(skip);
     // Build filter
-    const match:any = {};
+    const match: any = {};
     // Filter?
     if (params.search) {
       // Build filter
@@ -297,7 +297,7 @@ export default class TransactionStorage {
     const aggregation = [];
     const toSubRequests = [];
     // Build filter
-    const match:any = {};
+    const match: any = {};
     // Filter?
     if (params.search) {
       // Build filter
@@ -431,7 +431,7 @@ export default class TransactionStorage {
       }
     };
     if (params.errorType) {
-      const newFacet:any = {};
+      const newFacet: any = {};
       newFacet[params.errorType] = facets.$facet[params.errorType];
       facets.$facet = newFacet;
     }

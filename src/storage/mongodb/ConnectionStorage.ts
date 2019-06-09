@@ -4,14 +4,14 @@ import Utils from '../../utils/Utils';
 import Logging from '../../utils/Logging';
 import Constants from '../../utils/Constants';
 import TSGlobal from '../../types/GlobalType';
-declare var global: TSGlobal;
+let var global: TSGlobal;
 
 export default class ConnectionStorage {
 
   static async saveConnection(tenantID, connectionToSave) {
     const uniqueTimerID = Logging.traceStart('ConnectionStorage', 'saveConnection');
     await Utils.checkTenant(tenantID);
-    const connection:any = {};
+    const connection: any = {};
     Database.updateConnection(connectionToSave, connection, false);
     const connectionFilter = {
       connectorId: connectionToSave.connectorId,

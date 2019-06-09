@@ -13,7 +13,7 @@ export default class OCPIUtils {
    * Return OCPI Success Body Response
    * @param {*} data
    */
-  public static success(data?: any): {data: any, status_code: number, status_message: string, timestamp: string} {//TODO restrict any
+  public static success(data?: any): {data: any; status_code: number; status_message: string; timestamp: string} {//TODO restrict any
     return {
       "data": data,
       "status_code": Constants.OCPI_STATUS_CODE.CODE_1000_SUCCESS.status_code,
@@ -26,8 +26,8 @@ export default class OCPIUtils {
    * Return OCPI Error Body Response
    * @param {*} error
    */
-  public static error(error: any): {status_code: number, status_message: string, timestamp: string} {
-    const errorBody: {status_code: number, status_message: string, timestamp: string} = {
+  public static error(error: any): {status_code: number; status_message: string; timestamp: string} {
+    const errorBody: {status_code: number; status_message: string; timestamp: string} = {
       status_message: error.message,
       timestamp: new Date().toISOString(),
       status_code: -1
@@ -75,4 +75,4 @@ export default class OCPIUtils {
     return Buffer.from(string).toString('base64');
   }
 
-};
+}

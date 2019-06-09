@@ -1,5 +1,5 @@
-    // Build HashID based on important tenant fields
-    // Build HashID based on important user fields
+// Build HashID based on important tenant fields
+// Build HashID based on important user fields
 import passport from 'passport';
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;

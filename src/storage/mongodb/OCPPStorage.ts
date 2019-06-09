@@ -1,4 +1,4 @@
-    // import ChargingStation from '../../entity/ChargingStation';
+// import ChargingStation from '../../entity/ChargingStation';
 import Constants from '../../utils/Constants';
 import Utils from '../../utils/Utils';
 import Database from '../../utils/Database';
@@ -6,7 +6,7 @@ import crypto from 'crypto';
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import TSGlobal from '../../types/GlobalType';
-declare var global: TSGlobal;
+let var global: TSGlobal;
 
 export default class OCPPStorage {
 
@@ -48,7 +48,7 @@ export default class OCPPStorage {
     // Check Skip
     skip = Utils.checkRecordSkip(skip);
     // Set the filters
-    const filters:any = {};
+    const filters: any = {};
     // Date from provided?
     if (params.dateFrom) {
       filters.timestamp = {};
@@ -131,7 +131,7 @@ export default class OCPPStorage {
     const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveStatusNotification');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const statusNotification:any = {};
+    const statusNotification: any = {};
     // Set the ID
     const timestamp = Utils.convertToDate(statusNotificationToSave.timestamp);
     statusNotification._id = crypto.createHash('sha256')
@@ -431,7 +431,7 @@ export default class OCPPStorage {
     const meterValuesMDB = [];
     // Save all
     for (const meterValueToSave of meterValuesToSave.values) {
-      const meterValue:any = {};
+      const meterValue: any = {};
       // Id
       const timestamp = Utils.convertToDate(meterValueToSave.timestamp);
       meterValue._id = crypto.createHash('sha256')
@@ -472,7 +472,7 @@ export default class OCPPStorage {
     // Create
     const meterValues = [];
     for (const meterValueMDB of meterValuesMDB) {
-      const meterValue:any = {};
+      const meterValue: any = {};
       // Copy
       Database.updateMeterValue(meterValueMDB, meterValue);
       // Add

@@ -6,13 +6,13 @@ export default class SchemaValidator {
   private readonly ajv: Ajv.Ajv;
 
   constructor(readonly moduleName: string,
-    config: {allErrors: boolean, removeAdditional: boolean|"all"|"failing"|undefined,
-      useDefaults: boolean, coerceTypes: boolean} = {
-    allErrors: true,
-    removeAdditional: 'all',
-    useDefaults: true,
-    coerceTypes: true
-  }) {
+    config: {allErrors: boolean; removeAdditional: boolean|"all"|"failing"|undefined;
+      useDefaults: boolean; coerceTypes: boolean;} = {
+      allErrors: true,
+      removeAdditional: 'all',
+      useDefaults: true,
+      coerceTypes: true
+    }) {
     this.ajv = new Ajv(config);
   }
 

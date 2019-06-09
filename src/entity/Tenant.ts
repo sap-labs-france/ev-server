@@ -6,18 +6,18 @@ import Setting from '../entity/Setting';
 
 export default class Tenant {
 
-	/*private name: string;
+  /*private name: string;
 	private subdomain: string;
 	private email: string;
 	private components: TenantComponents[];*/
-	private _model: any = {};
+  private _model: any = {};
 
   constructor(/*name: string, subdomain: string, email: string, comps: Array<TenantComponents>*/ tenant: any) {
-		this._model = tenant;
-		//this.name = name;
-		//this.subdomain = subdomain;
-		//this.email = email;
-		//this.components = comps;
+    this._model = tenant;
+    //this.name = name;
+    //this.subdomain = subdomain;
+    //this.email = email;
+    //this.components = comps;
 
     // Set it TODO wtf is this
     Database.updateTenant(tenant, this._model);
@@ -38,7 +38,7 @@ export default class Tenant {
     return TenantStorage.getTenantBySubdomain(subdomain);
   }
 
-  static getTenants(params = {}, limit?: number, skip?: number, sort?: boolean): Promise<{count: number, result: Tenant[]}> {
+  static getTenants(params = {}, limit?: number, skip?: number, sort?: boolean): Promise<{count: number; result: Tenant[]}> {
     // Get Tenants
     return TenantStorage.getTenants(params, limit, skip, sort);
   }

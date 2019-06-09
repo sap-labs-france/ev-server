@@ -3,14 +3,14 @@ import Database from '../../utils/Database';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import Global from './../../types/GlobalType';
-declare var global: Global;
+let var global: Global;
 
 export default class LoggingStorage {
   static async deleteLogs(tenantID, deleteUpToDate) {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build filter
-    const filters:any = {};
+    const filters: any = {};
     // Do Not Delete Security Logs
     filters.type = {};
     filters.type.$ne = 'S';
@@ -32,7 +32,7 @@ export default class LoggingStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build filter
-    const filters:any = {};
+    const filters: any = {};
     // Delete Only Security Logs
     filters.type = {};
     filters.type.$eq = 'S';
@@ -57,7 +57,7 @@ export default class LoggingStorage {
     logToSave.userID = Utils.convertUserToObjectID(logToSave.user);
     logToSave.actionOnUserID = Utils.convertUserToObjectID(logToSave.actionOnUser);
     // Transfer
-    const log:any = {};
+    const log: any = {};
     Database.updateLogging(logToSave, log, false);
     // Insert
     await global.database.getCollection(tenantID, 'logs').insertOne(log);
@@ -89,7 +89,7 @@ export default class LoggingStorage {
     // Check Skip
     skip = Utils.checkRecordSkip(skip);
     // Set the filters
-    const filters:any = {};
+    const filters: any = {};
     // Date provided?
     if (params.dateFrom || params.dateUntil) {
       filters.timestamp = {};
@@ -240,7 +240,7 @@ export default class LoggingStorage {
       .toArray();
     const loggings = [];
     for (const loggingMDB of loggingsMDB) {
-      const logging:any = {};
+      const logging: any = {};
       // Set
       Database.updateLogging(loggingMDB, logging);
       // Set the model

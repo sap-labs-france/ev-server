@@ -16,8 +16,7 @@ module.exports = (env) => {
   let config = webpackMerge(commonConfig, envConfig, addons(env.addons));
   
   ////Add typescript transpiling settings
- // config.entry = './src/XXXXXX.ts';
-  
+  // config.entry = './src/XXXXXX.ts';
   
   // Return it
   return config;

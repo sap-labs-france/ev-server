@@ -5,7 +5,7 @@ import UtilsSecurity from './UtilsSecurity';
 export default class AuthSecurity {
   // eslint-disable-next-line no-unused-vars
   static filterIsAuthorizedRequest(request, loggedUser?) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.Action = sanitize(request.Action);
     // TODO: To Remove
@@ -21,7 +21,7 @@ export default class AuthSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterResetPasswordRequest(request, loggedUser?) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.email = sanitize(request.email);
     filteredRequest.tenant = sanitize(request.tenant);
@@ -32,7 +32,7 @@ export default class AuthSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterRegisterUserRequest(request, loggedUser?) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.name = sanitize(request.name);
     filteredRequest.tenant = sanitize(request.tenant);
@@ -46,7 +46,7 @@ export default class AuthSecurity {
   }
 
   static filterLoginRequest(request) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.email = sanitize(request.email);
     filteredRequest.password = sanitize(request.password);
@@ -56,7 +56,7 @@ export default class AuthSecurity {
   }
 
   static filterVerifyEmailRequest(request) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.Email = sanitize(request.Email);
     filteredRequest.tenant = sanitize(request.tenant);
@@ -65,7 +65,7 @@ export default class AuthSecurity {
   }
 
   static filterResendVerificationEmail(request) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.email = sanitize(request.email);
     filteredRequest.tenant = sanitize(request.tenant);
@@ -74,7 +74,7 @@ export default class AuthSecurity {
   }
 
   static filterEndUserLicenseAgreementRequest(request) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     if (request.query) {
       filteredRequest.Language = sanitize(request.query.Language);
@@ -86,7 +86,7 @@ export default class AuthSecurity {
   }
 
   static filterEndUserLicenseAgreementResponse(endUserLicenseAgreement) {
-    const filteredEndUserLicenseAgreement:any = {};
+    const filteredEndUserLicenseAgreement: any = {};
 
     if (!endUserLicenseAgreement) {
       return null;

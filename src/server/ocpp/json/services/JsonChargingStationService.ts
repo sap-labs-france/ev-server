@@ -1,12 +1,12 @@
 import Logging from '../../../../utils/Logging';
 import Constants from '../../../../utils/Constants';
 import TSGlobal from '../../../../types/GlobalType';
-declare var global: TSGlobal;
+let var global: TSGlobal;
 
 const MODULE_NAME = "JsonChargingStationService";
 export default class JsonChargingStationService {
-	private chargingStationConfig: any;
-	public chargingStationService: any;
+  private chargingStationConfig: any;
+  public chargingStationService: any;
 
   constructor(chargingStationConfig) {
     this.chargingStationConfig = chargingStationConfig;

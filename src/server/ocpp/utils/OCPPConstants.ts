@@ -1,6 +1,6 @@
 require('source-map-support').install();
 
-let OCPPConstants = {
+const OCPPConstants = {
   DEFAULT_OCPP_CONFIGURATION: {
     'configuration': [
       {'key': 'AllowOfflineTxForUnknownId', 'readonly': false, 'value': null},

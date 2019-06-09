@@ -6,15 +6,15 @@ import JsonWSConnection from './JsonWSConnection';
 import JsonRestWSConnection from './JsonRestWSConnection';
 import CentralSystemServer from '../CentralSystemServer';
 import TSGlobal from '../../../types/GlobalType';
-declare var global: TSGlobal;
+let var global: TSGlobal;
 
 export default class JsonCentralSystemServer extends CentralSystemServer {
 
-	private _serverName: any;
-	private _MODULE_NAME: any;
-	private jsonChargingStationClients: any;
-	private jsonRestClients: any;
-	private wsServer: any;
+  private _serverName: any;
+  private _MODULE_NAME: any;
+  private jsonChargingStationClients: any;
+  private jsonRestClients: any;
+  private wsServer: any;
 
   constructor(centralSystemConfig, chargingStationConfig) {
     // Call parent

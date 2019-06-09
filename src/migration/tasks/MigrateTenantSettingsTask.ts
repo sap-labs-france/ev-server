@@ -1,6 +1,6 @@
 import MigrationTask from '../MigrationTask';
 import Global from '../../types/GlobalType';
-declare var global: Global;
+let var global: Global;
 
 export default class MigrateTenantSettingsTask extends MigrationTask {
 
@@ -116,4 +116,4 @@ export default class MigrateTenantSettingsTask extends MigrationTask {
   public getName(): string {
     return "MigrateTenantSettingsTask";
   }
-};
+}

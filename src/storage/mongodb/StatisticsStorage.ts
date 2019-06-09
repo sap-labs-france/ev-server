@@ -4,7 +4,7 @@ import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import moment from 'moment';
 import TSGlobal from '../../types/GlobalType';
-declare var global: TSGlobal;
+let var global: TSGlobal;
 
 export default class StatisticsStorage {
   static async getChargingStationStats(tenantID, filter, groupBy) {
@@ -13,7 +13,7 @@ export default class StatisticsStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build filter
-    const match:any = {};
+    const match: any = {};
     // Date provided?
     if (filter.startDateTime || filter.endDateTime) {
       match.timestamp = {};
@@ -120,7 +120,7 @@ export default class StatisticsStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build filter
-    const match:any = {};
+    const match: any = {};
     // Date provided?
     if (filter.startDateTime || filter.endDateTime) {
       match.timestamp = {};
@@ -716,7 +716,7 @@ export default class StatisticsStorage {
   }
 
   static convertDBMetricsToCompanyMetrics(transactionStatMDB) {
-    const companyStat:any = {};
+    const companyStat: any = {};
     companyStat.company = transactionStatMDB.company;
     // fill in with current consumption and dummy site
     companyStat.currentConsumption = transactionStatMDB.siteCurrentConsumption;
@@ -746,7 +746,7 @@ export default class StatisticsStorage {
   }
 
   static convertDBMetricsToSiteMetrics(transactionStatMDB) {
-    const siteStat:any = {};
+    const siteStat: any = {};
     siteStat.company = transactionStatMDB.company;
     // fill in with current consumption and dummy site
     siteStat.currentConsumption = transactionStatMDB.siteCurrentConsumption;

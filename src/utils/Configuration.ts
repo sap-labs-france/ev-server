@@ -1,6 +1,6 @@
 import Constants from './Constants';
 import TSGlobal from './../types/GlobalType';
-declare var global: TSGlobal;
+let var global: TSGlobal;
 
 const {
   WS_DEFAULT_RECONNECT_MAX_RETRIES = Constants.WS_DEFAULT_RECONNECT_MAX_RETRIES,

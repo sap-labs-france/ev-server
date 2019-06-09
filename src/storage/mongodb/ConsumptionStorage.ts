@@ -4,7 +4,7 @@ import Logging from '../../utils/Logging';
 import Consumption from '../../entity/Consumption';
 import crypto from 'crypto';
 import TSGlobal from '../../types/GlobalType';
-declare var global: TSGlobal;
+let var global: TSGlobal;
 
 export default class ConsumptionStorage {
   /**
@@ -27,7 +27,7 @@ export default class ConsumptionStorage {
         .digest("hex");
     }
     // Transfer
-    const consumption:any = {};
+    const consumption: any = {};
     Database.updateConsumption(consumptionToSave, consumption, false);
     // Modify
     const result = await global.database.getCollection(tenantID, 'consumptions').findOneAndUpdate(

@@ -7,7 +7,7 @@ import BackendError from '../../exception/BackendError';
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import TSGlobal from '../../types/GlobalType';
-declare var global: TSGlobal;
+let var global: TSGlobal;
 
 export default class VehicleStorage {
 
@@ -100,7 +100,7 @@ export default class VehicleStorage {
         `Vehicle has no ID and no Model`,
         "VehicleStorage", "saveVehicle");
     }
-    const vehicleFilter:any = {};
+    const vehicleFilter: any = {};
     // Build Request
     if (vehicleToSave.id) {
       vehicleFilter._id = Utils.convertUserToObjectID(vehicleToSave.id);
@@ -111,7 +111,7 @@ export default class VehicleStorage {
     vehicleToSave.createdBy = Utils.convertUserToObjectID(vehicleToSave.createdBy);
     vehicleToSave.lastChangedBy = Utils.convertUserToObjectID(vehicleToSave.lastChangedBy);
     // Transfer
-    const vehicle:any = {};
+    const vehicle: any = {};
     Database.updateVehicle(vehicleToSave, vehicle, false);
     // Modify
     const result = await global.database.getCollection(tenantID, 'vehicles').findOneAndUpdate(
@@ -157,7 +157,7 @@ export default class VehicleStorage {
     // Check Skip
     skip = Utils.checkRecordSkip(skip);
     // Set the filters
-    const filters:any = {};
+    const filters: any = {};
     // Source?
     if (params.search) {
       // Build filter

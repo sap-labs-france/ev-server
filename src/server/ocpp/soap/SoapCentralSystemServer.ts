@@ -11,7 +11,7 @@ import centralSystemService16 from './services/SoapCentralSystemService16';
 import sanitize from 'express-sanitizer';
 require('source-map-support').install();
 import TSGlobal from '../../../types/GlobalType';
-declare var global: TSGlobal;
+let var global: TSGlobal;
 
 const MODULE_NAME = "SoapCentralSystemServer";
 export default class SoapCentralSystemServer extends CentralSystemServer {

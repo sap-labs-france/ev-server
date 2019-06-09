@@ -58,9 +58,9 @@ export default class Authorizations {
   }
 
   static getAuthorizedEntityIDsFromLoggedUser(entityName: any, loggedUser: any) {
-        switch (entityName) {
+    switch (entityName) {
       case Constants.ENTITY_COMPANY:
-          return loggedUser.companies;
+        return loggedUser.companies;
       case Constants.ENTITY_SITE:
         return loggedUser.sites;
     }

@@ -46,8 +46,10 @@ jspm_packages
 # temporary file
 tmp
 
+# Visual Studio 2015/2017 cache/options directory
+.vs/
+
 # vscode
-.vs
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json

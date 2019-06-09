@@ -8,4 +8,4 @@ export default class OrganizationComponentInactiveError extends Error {
   {
     super(`Component Organization inactive - not allowed to perform '${action}' on '${entity}'`);
   }
-};
+}

@@ -421,7 +421,7 @@ export default class TransactionService {
     try {
       // Get Transactions
       const transactionsYears = await TransactionStorage.getTransactionYears(req.user.tenantID);
-      const result:any = {};
+      const result: any = {};
       if (transactionsYears) {
         result.years = [];
         result.years.push(new Date().getFullYear());

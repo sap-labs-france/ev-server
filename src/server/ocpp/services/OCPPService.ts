@@ -29,8 +29,8 @@ const DEFAULT_CONSUMPTION_ATTRIBUTE = {
   context: 'Sample.Periodic'
 };
 export default class OCPPService {
-	private centralSystemConfig: any;
-	private chargingStationConfig: any;
+  private centralSystemConfig: any;
+  private chargingStationConfig: any;
   // Common constructor for Central System Service
   constructor(centralSystemConfig, chargingStationConfig) {
     // Keep params
@@ -782,7 +782,7 @@ export default class OCPPService {
 
   _normalizeMeterValues(chargingStation, meterValues) {
     // Create the model
-    const newMeterValues:any = {};
+    const newMeterValues: any = {};
     newMeterValues.values = [];
     newMeterValues.chargeBoxID = chargingStation.getID();
     // OCPP 1.6
@@ -796,7 +796,7 @@ export default class OCPPService {
     }
     // Process the Meter Values
     for (const value of meterValues.values) {
-      const newMeterValue:any = {};
+      const newMeterValue: any = {};
       // Set the Meter Value header
       newMeterValue.chargeBoxID = newMeterValues.chargeBoxID;
       newMeterValue.connectorId = meterValues.connectorId;

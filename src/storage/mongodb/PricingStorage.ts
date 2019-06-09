@@ -2,7 +2,7 @@ import Database from '../../utils/Database';
 import Utils from '../../utils/Utils';
 import Logging from '../../utils/Logging';
 import TSGlobal from '../../types/GlobalType';
-declare var global: TSGlobal;
+let var global: TSGlobal;
 
 export default class PricingStorage {
 
@@ -37,7 +37,7 @@ export default class PricingStorage {
     // Check date
     pricingToSave.timestamp = Utils.convertToDate(pricingToSave.timestamp);
     // Transfer
-    const pricing:any = {};
+    const pricing: any = {};
     Database.updatePricing(pricingToSave, pricing, false);
     // Modify
     await global.database.getCollection(tenantID, 'pricings').findOneAndUpdate(

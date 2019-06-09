@@ -6,7 +6,7 @@ import Logging from '../../utils/Logging';
 import _ from 'lodash';
 
 export default class OCPIClient {
-	private ocpiEndpoint: any;
+  private ocpiEndpoint: any;
 
   constructor(ocpiEndpoint: any) {
     this.ocpiEndpoint = ocpiEndpoint;

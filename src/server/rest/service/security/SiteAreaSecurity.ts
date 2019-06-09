@@ -7,7 +7,7 @@ import SiteSecurity from './SiteSecurity';
 export default class SiteAreaSecurity {
   // eslint-disable-next-line no-unused-vars
   static filterSiteAreaDeleteRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
@@ -15,7 +15,7 @@ export default class SiteAreaSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterSiteAreaRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.ID = sanitize(request.ID);
     filteredRequest.WithChargeBoxes = sanitize(request.WithChargeBoxes);
     filteredRequest.WithSite = sanitize(request.WithSite);
@@ -24,7 +24,7 @@ export default class SiteAreaSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterSiteAreasRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.WithSite = UtilsSecurity.filterBoolean(request.WithSite);
     filteredRequest.WithChargeBoxes = UtilsSecurity.filterBoolean(request.WithChargeBoxes);
@@ -48,7 +48,7 @@ export default class SiteAreaSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static _filterSiteAreaRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.name = sanitize(request.name);
     filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address, loggedUser);
     filteredRequest.image = sanitize(request.image);

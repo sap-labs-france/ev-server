@@ -9,7 +9,7 @@ require('source-map-support').install();
 
 export default class OCPIServices {
 
-  private ocpiServices: Array<AbstractOCPIService> = [];
+  private ocpiServices: AbstractOCPIService[] = [];
 
   // Create OCPI Service
   constructor(ocpiRestConfig: Config['OCPIService']) {
@@ -32,7 +32,7 @@ export default class OCPIServices {
   }
 
   // Return all OCPI Service Implementation
-  public getOCPIServiceImplementations(): Array<AbstractOCPIService> {
+  public getOCPIServiceImplementations(): AbstractOCPIService[] {
     return this.ocpiServices;
   }
-};
+}

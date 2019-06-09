@@ -9,7 +9,7 @@ const ObjectID = require('mongodb').ObjectID;
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import TSGlobal from '../../types/GlobalType';
-declare var global: TSGlobal;
+let var global: TSGlobal;
 
 export default class VehicleManufacturerStorage {
 
@@ -125,7 +125,7 @@ export default class VehicleManufacturerStorage {
         `Vehicle Manufacturer has no ID and no Name`,
         "VehicleManufacturerStorage", "saveVehicleManufacturer");
     }
-    const vehicleManufacturerFilter:any = {};
+    const vehicleManufacturerFilter: any = {};
     // Build Request
     if (vehicleManufacturerToSave.id) {
       vehicleManufacturerFilter._id = Utils.convertToObjectID(vehicleManufacturerToSave.id);
@@ -136,7 +136,7 @@ export default class VehicleManufacturerStorage {
     vehicleManufacturerToSave.createdBy = Utils.convertUserToObjectID(vehicleManufacturerToSave.createdBy);
     vehicleManufacturerToSave.lastChangedBy = Utils.convertUserToObjectID(vehicleManufacturerToSave.lastChangedBy);
     // Transfer
-    const vehicleManufacturer:any = {};
+    const vehicleManufacturer: any = {};
     Database.updateVehicleManufacturer(vehicleManufacturerToSave, vehicleManufacturer, false);
     // Modify
     const result = await global.database.getCollection(tenantID, 'vehiclemanufacturers').findOneAndUpdate(
@@ -160,7 +160,7 @@ export default class VehicleManufacturerStorage {
     // Check Skip
     skip = Utils.checkRecordSkip(skip);
     // Set the filters
-    const filters:any = {};
+    const filters: any = {};
     // Source?
     if (params.search) {
       // Build filter

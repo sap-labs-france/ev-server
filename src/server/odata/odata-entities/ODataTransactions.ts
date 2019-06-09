@@ -1,9 +1,9 @@
 import AbstractODataEntities from './AbstractODataEntities';
 export default class ODataTransactions extends AbstractODataEntities {
-	public buildParams: any;
-	public returnResponse: any;
-	public convertTimestamp: any;
-	public buildDateObject: any;
+  public buildParams: any;
+  public returnResponse: any;
+  public convertTimestamp: any;
+  public buildDateObject: any;
 
   static getObjectKey(transaction) {
     return transaction.id;

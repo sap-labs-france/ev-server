@@ -13,15 +13,15 @@ export interface Config {
     host: string;
     port: string;
   };
-  CentralSystems: Array<{
+  CentralSystems: {
     type: string;
     implementation: string;
     protocol: string;
     host: string;
     port: number;
     debug: boolean;
-  }>;
-	CentralSystemRestService: {
+  }[];
+  CentralSystemRestService: {
     protocol: string;
     host: string;
     port: number;
@@ -35,18 +35,18 @@ export interface Config {
     socketIO: boolean;
     debug: boolean;
   };
-	CentralSystemFrontEnd: {
-		protocol: string;
-		host: string;
-		port: number;
-	};
+  CentralSystemFrontEnd: {
+    protocol: string;
+    host: string;
+    port: number;
+  };
   WSDLEndpoint: {
-		baseUrl: string
-	};
-	JsonEndpoint: {
-		baseUrl: string;
-	};
-	Storage: {
+    baseUrl: string;
+  };
+  JsonEndpoint: {
+    baseUrl: string;
+  };
+  Storage: {
     implementation: string;
     uri: string;
     host: string;
@@ -64,7 +64,7 @@ export interface Config {
     host: string;
     port: number;
     debug: boolean;
-    tenantEnabled: Array<string>;
+    tenantEnabled: string[];
     eMI3id: any;
   };/*
   "Notification": {

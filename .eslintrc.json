@@ -1,24 +1,31 @@
 {
-    "extends": "eslint:recommended",
-    "env": {
-        "node": true,
-        "mocha": true
-    },
+    "parser": "@typescript-eslint/parser",
     "parserOptions": {
-        "ecmaVersion": 9
+        "project": "./tsconfig.json"
+    },
+    "plugins": [
+        "@typescript-eslint"
+    ],
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended"
+    ],
+    "env": {
+        "mocha": true
     },
     "rules": {
         "no-var": "warn",
         "prefer-const": "warn",
         "no-mixed-spaces-and-tabs": "warn",
-        "indent": [
+        "@typescript-eslint/indent": [
             "warn",
             2,
             {
                 "SwitchCase": 1
             }
         ],
-        "semi": [
+        "@typescript-eslint/semi": [
             "error",
             "always"
         ],

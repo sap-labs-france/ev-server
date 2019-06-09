@@ -3,10 +3,10 @@ const ConnectionStorage = require("../../../storage/mongodb/ConnectionStorage");
 import AbstractSoapClient from './AbstractSoapClient';
 import InternalError from '../../../exception/InternalError';
 import TSGlobal from '../../../types/GlobalType';
-declare var global: TSGlobal;
+let var global: TSGlobal;
 
 export default class ERPService extends AbstractSoapClient {
-	public execute: any;
+  public execute: any;
 
   constructor(serverUrl, user, password) {
     super(
@@ -74,11 +74,11 @@ export default class ERPService extends AbstractSoapClient {
 
 
 export class InvoiceCreateRequest {
-	public I_GPART: any;
-	public I_VKONT: any;
-	public I_MAX_PROBCL: any;
-	public I_BILLING_PROCESS: any;
-	public I_INVOICE_PROCESS: any;
+  public I_GPART: any;
+  public I_VKONT: any;
+  public I_MAX_PROBCL: any;
+  public I_BILLING_PROCESS: any;
+  public I_INVOICE_PROCESS: any;
 
   constructor(I_GPART, I_VKONT, I_MAX_PROBCL, I_BILLING_PROCESS, I_INVOICE_PROCESS, I_PROCESS?, I_BILLING_DATE?, I_INVOICE_DATE?,
     I_INVOICE_BLDAT?, I_INVOICE_BUDAT?, I_INVOICE_FIKEY?) {
@@ -101,7 +101,7 @@ export class InvoiceCreateRequest {
 }
 
 export class InvoiceDocumentSelectRequest {
-	public InvoiceDocumentNumber: any;
+  public InvoiceDocumentNumber: any;
 
   constructor(invoiceDocumentNumber) {
     this.InvoiceDocumentNumber = invoiceDocumentNumber;
@@ -113,8 +113,8 @@ export class InvoiceDocumentSelectRequest {
 }
 
 export class InvoiceDocumentPrintRequest {
-	public INVDOCHEADER: any;
-	public X_GETPDF: any;
+  public INVDOCHEADER: any;
+  public X_GETPDF: any;
 
   constructor(invoiceDocumentHeader, invoiceDocumentNumber) {
 

@@ -6,7 +6,7 @@ import TSGlobal from '../../types/GlobalType';
 import Configuration from '../../utils/Configuration';
 import cfenv from 'cfenv';
 
-declare var global: TSGlobal;
+let var global: TSGlobal;
 
 export default class MigrationStorage {
   static async getMigrations() {
@@ -20,7 +20,7 @@ export default class MigrationStorage {
     // Check
     if (migrationsMDB && migrationsMDB.length > 0) {
       for (const migrationMDB of migrationsMDB) {
-        const migration:any = {};
+        const migration: any = {};
         // Set values
         Database.updateMigration(migrationMDB, migration);
         // Add
@@ -38,7 +38,7 @@ export default class MigrationStorage {
     const uniqueTimerID = Logging.traceStart('MigrationStorage', 'saveMigration');
     
     // Transfer
-    const migration:any = {};
+    const migration: any = {};
     Database.updateMigration(migrationToSave, migration, false);
     // Set the ID
     migration._id = migration.name + "~" + migration.version;

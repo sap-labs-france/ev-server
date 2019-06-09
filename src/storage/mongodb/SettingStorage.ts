@@ -7,7 +7,7 @@ import BackendError from '../../exception/BackendError';
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import TSGlobal from '../../types/GlobalType';
-declare var global: TSGlobal;
+let var global: TSGlobal;
 
 export default class SettingStorage {
   /**
@@ -84,7 +84,7 @@ export default class SettingStorage {
         "Setting has no ID and no Identifier",
         "SettingStorage", "saveSetting");
     }
-    const settingFilter:any = {};
+    const settingFilter: any = {};
     // Build Request
     if (settingToSave.id) {
       settingFilter._id = Utils.convertUserToObjectID(settingToSave.id);
@@ -95,7 +95,7 @@ export default class SettingStorage {
     settingToSave.createdBy = Utils.convertUserToObjectID(settingToSave.createdBy);
     settingToSave.lastChangedBy = Utils.convertUserToObjectID(settingToSave.lastChangedBy);
     // Transfer
-    const setting:any = {};
+    const setting: any = {};
     Database.updateSetting(settingToSave, setting, false);
     // Modify
     const result = await global.database.getCollection(tenantID, 'settings').findOneAndUpdate(
@@ -119,7 +119,7 @@ export default class SettingStorage {
     // Check Skip
     skip = Utils.checkRecordSkip(skip);
     // Set the filters
-    const filters:any = {};
+    const filters: any = {};
     // Source?
     if (params.search) {
       //Build filter

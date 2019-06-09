@@ -3,26 +3,26 @@ const soap = require('strong-soap').soap;
 import Logging from '../../../utils/Logging';
 import Configuration from '../../../utils/Configuration';
 import TSGlobal from '../../../types/GlobalType';
-declare var global: TSGlobal;
+let var global: TSGlobal;
 
 // Default Module name
 const _moduleName = "SoapChargingStationClient";
 // Get the config
 const _wsdlEndpointConfig = Configuration.getWSDLEndpointConfig();
 export default class SoapChargingStationClient extends ChargingStationClient {
-	private chargingStation: any;
-	private client: any;
-	public transactionId: any;
-	public error: any;
-	public result: any;
-	public envelope: any;
-	public tagID: any;
-	public connectorID: any;
-	public connectorId: any;
-	public type: any;
-	public keys: any;
-	public key: any;
-	public value: any;
+  private chargingStation: any;
+  private client: any;
+  public transactionId: any;
+  public error: any;
+  public result: any;
+  public envelope: any;
+  public tagID: any;
+  public connectorID: any;
+  public connectorId: any;
+  public type: any;
+  public keys: any;
+  public key: any;
+  public value: any;
 
   private constructor(chargingStation) {
     super();
@@ -33,7 +33,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
   }
 
   static build(chargingStation): Promise<SoapChargingStationClient> {
-    let scsc = new SoapChargingStationClient(chargingStation);
+    const scsc = new SoapChargingStationClient(chargingStation);
     return new Promise((fulfill, reject) => {
       let chargingStationWdsl = null;
       // Read the WSDL client files
@@ -58,7 +58,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
           reject(`OCPP version ${scsc.chargingStation.getOcppVersion()} not supported`);
       }
       // Client options
-      const options:any = {};
+      const options: any = {};
       // Create client
       soap.createClient(chargingStationWdsl, options, (error, client) => {
         if (error) {
@@ -163,9 +163,9 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Log
     Logging.logReturnedAction(_moduleName, this.chargingStation.getTenantID(),
       this.chargingStation.getID(), "RemoteStartTransaction", [
-      { result },
-      { envelope }
-    ]);
+        { result },
+        { envelope }
+      ]);
     return result;
   }
 

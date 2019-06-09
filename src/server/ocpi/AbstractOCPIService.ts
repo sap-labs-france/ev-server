@@ -12,7 +12,7 @@ const MODULE_NAME = "AbstractOCPIService";
 require('source-map-support').install();
 
 export interface TenantIdHoldingRequest extends Request {
-		tenantID: string;
+  tenantID: string;
 }
 
 export default abstract class AbstractOCPIService {
@@ -71,10 +71,10 @@ export default abstract class AbstractOCPIService {
   // Rest Service Implementation
   public restService(req: TenantIdHoldingRequest, res: Response, next: Function): void { // eslint-disable-line
     // Parse the action
-		const regexResult =  /^\/\w*/g.exec(req.url);
-		if(regexResult == null) {
-			throw new BackendError("AbstractOCPIService.ts#restService", "Regex did not match.");
-		}
+    const regexResult =  /^\/\w*/g.exec(req.url);
+    if(regexResult == null) {
+      throw new BackendError("AbstractOCPIService.ts#restService", "Regex did not match.");
+    }
     const action = regexResult[0].substring(1);
 
     // set default tenant in case of exception
@@ -136,7 +136,7 @@ export default abstract class AbstractOCPIService {
       });
 
       // get token
-      let decodedToken: {tenant: string, tid: string};
+      let decodedToken: {tenant: string; tid: string};
       try {
         const token = req.headers.authorization.split(" ")[1];
 
@@ -201,7 +201,7 @@ export default abstract class AbstractOCPIService {
       }
 
       // handle request action (endpoint)
-			let endpoint = registeredEndpoints.get(action);
+      const endpoint = registeredEndpoints.get(action);
       if (endpoint) {
         endpoint.process(req, res, next, tenant);
       } else {
@@ -215,4 +215,4 @@ export default abstract class AbstractOCPIService {
       next(error);
     }
   }
-};
+}

@@ -6,7 +6,7 @@ import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import Notification from '../../entity/Notification';
 import TSGlobal from '../../types/GlobalType';
-declare var global: TSGlobal;
+let var global: TSGlobal;
 
 export default class NotificationStorage {
   
@@ -20,7 +20,7 @@ export default class NotificationStorage {
     // Check Skip
     skip = Utils.checkRecordSkip(skip);
     // Set the filters
-    const filters:any = {};
+    const filters: any = {};
     // Set Site?
     if (params.userID) {
       // Set User ID
@@ -130,7 +130,7 @@ export default class NotificationStorage {
     // Ensure Date
     notificationToSave.timestamp = Utils.convertToDate(notificationToSave.timestamp);
     // Transfer
-    const notification:any = {};
+    const notification: any = {};
     Database.updateNotification(notificationToSave, notification, false);
     // Set the ID
     notification._id = crypto.createHash('sha256')

@@ -9,16 +9,16 @@ import Configuration from '../../../utils/Configuration';
 
 const MODULE_NAME = "JsonWSConnection";
 export default class JsonWSConnection extends WSConnection {
-	private chargingStationClient: any;
-	private chargingStationService: any;
-	private headers: any;
-	public getChargingStationID: any;
-	public getWSConnection: any;
-	public getTenantID: any;
-	public getIP: any;
-	public getURL: any;
-	public sendMessage: any;
-	public isWSConnectionOpen: any;
+  private chargingStationClient: any;
+  private chargingStationService: any;
+  private headers: any;
+  public getChargingStationID: any;
+  public getWSConnection: any;
+  public getTenantID: any;
+  public getIP: any;
+  public getURL: any;
+  public sendMessage: any;
+  public isWSConnectionOpen: any;
 
   constructor(wsConnection, req, chargingStationConfig, wsServer) {
     // Call super

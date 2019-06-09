@@ -9,14 +9,14 @@ import Constants from '../../utils/Constants';
 import NotificationTask from '../NotificationTask';
 import Tenant from '../../entity/Tenant';
 import TSGlobal from '../../types/GlobalType';
-declare var global: TSGlobal;
+let var global: TSGlobal;
 
 require('source-map-support').install();
 
 // Email
 const _emailConfig = Configuration.getEmailConfig();
 export default class EMailNotificationTask extends NotificationTask {
-	public server: any;
+  public server: any;
 
   constructor() {
     super();

@@ -2,8 +2,8 @@
 import AbstractODataEntities from './AbstractODataEntities';
 import _ from 'lodash';
 export default class ODataSiteAreas extends AbstractODataEntities {
-	public buildParams: any;
-	public returnResponse: any;
+  public buildParams: any;
+  public returnResponse: any;
 
   static getObjectKey(siteArea) {
     return siteArea.id;

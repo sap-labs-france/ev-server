@@ -134,7 +134,7 @@ export default class OCPIEndpoint extends TenantHolder {
 
   // generate token based on tenant information.
   async generateLocalToken() {
-    const newToken:any = {};
+    const newToken: any = {};
 
     // get tenant
     const tenant = await this.getTenant();

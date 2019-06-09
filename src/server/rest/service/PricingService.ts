@@ -59,7 +59,7 @@ export default class PricingService {
           'PricingService', 'handleUpdatePricing', req.user);
       }
       // Update
-      const pricing:any = {};
+      const pricing: any = {};
       Database.updatePricing(filteredRequest, pricing);
       // Set timestamp
       pricing.timestamp = new Date();

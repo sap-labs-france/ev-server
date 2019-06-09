@@ -6,7 +6,7 @@ import UtilsSecurity from './UtilsSecurity';
 export default class TransactionSecurity {
   // eslint-disable-next-line no-unused-vars
   static filterTransactionsRefund(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.transactionIds = request.transactionIds.map(id => sanitize(id));
     return filteredRequest;
@@ -14,7 +14,7 @@ export default class TransactionSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterTransactionDelete(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
@@ -22,7 +22,7 @@ export default class TransactionSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterTransactionSoftStop(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.transactionId = sanitize(request.transactionId);
     return filteredRequest;
@@ -30,7 +30,7 @@ export default class TransactionSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterTransactionRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
@@ -38,7 +38,7 @@ export default class TransactionSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterTransactionsActiveRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
     filteredRequest.ConnectorId = sanitize(request.ConnectorId);
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
@@ -52,7 +52,7 @@ export default class TransactionSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterTransactionsCompletedRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Handle picture
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
     filteredRequest.StartDateTime = sanitize(request.StartDateTime);
@@ -71,7 +71,7 @@ export default class TransactionSecurity {
   }
 
   static filterTransactionsInErrorRequest(request) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Handle picture
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
     filteredRequest.StartDateTime = sanitize(request.StartDateTime);
@@ -198,7 +198,7 @@ export default class TransactionSecurity {
   }
 
   static _filterUserInTransactionResponse(user, loggedUser) {
-    const userID:any = {};
+    const userID: any = {};
 
     if (!user) {
       return null;
@@ -221,7 +221,7 @@ export default class TransactionSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterChargingStationConsumptionFromTransactionRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.TransactionId = sanitize(request.TransactionId);
     filteredRequest.StartDateTime = sanitize(request.StartDateTime);
@@ -231,7 +231,7 @@ export default class TransactionSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterChargingStationTransactionsRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
     filteredRequest.ConnectorId = sanitize(request.ConnectorId);

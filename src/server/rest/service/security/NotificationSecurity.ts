@@ -6,7 +6,7 @@ import UserSecurity from './UserSecurity';
 export default class NotificationSecurity {
   // eslint-disable-next-line no-unused-vars
   static filterNotificationsRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.UserID = sanitize(request.UserID);
     filteredRequest.DateFrom = sanitize(request.DateFrom);
     filteredRequest.Channel = sanitize(request.Channel);

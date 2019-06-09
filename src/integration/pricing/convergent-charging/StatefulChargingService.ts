@@ -18,4 +18,4 @@ export default class StatefulChargingService extends AbstractSoapClient {
       )
     );
   }
-};
+}

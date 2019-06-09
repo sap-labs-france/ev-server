@@ -1,16 +1,16 @@
 import Constants from '../../utils/Constants';
 import { ObjectID } from 'mongodb';
 
-const FIXED_COLLECTIONS: Array<string> = ['tenants', 'migrations'];
+const FIXED_COLLECTIONS: string[] = ['tenants', 'migrations'];
 
 export default class DatabaseUtils {
 
-  public static getFixedCollections(): Array<string> {
+  public static getFixedCollections(): string[] {
     return FIXED_COLLECTIONS;
   }
 
   //TODO determine type of aggregation
-  public static pushCreatedLastChangedInAggregation(tenantID: string, aggregation: Array<any>): void {
+  public static pushCreatedLastChangedInAggregation(tenantID: string, aggregation: any[]): void {
     // Filter
     const filterUserFields = {
       "email": 0,
@@ -91,4 +91,4 @@ export default class DatabaseUtils {
     }
     return `${prefix}.${collectionNameSuffix}`;
   }
-};
+}

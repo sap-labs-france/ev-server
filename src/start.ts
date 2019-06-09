@@ -1,6 +1,6 @@
 import path from 'path';
 import TSGlobal from './types/GlobalType';
-declare var global: TSGlobal;
+let var global: TSGlobal;
 global.appRoot = path.resolve(__dirname);
 global.Promise = require('bluebird');
 import cluster from 'cluster';
@@ -23,23 +23,23 @@ require('source-map-support').install();
 const MODULE_NAME = 'Bootstrap';
 
 export default class Bootstrap {
-	private static num_workers: any;
-	private static isClusterEnable: any;
-	private static centralSystemRestConfig: any;
-	private static centralRestServer: any;
-	private static chargingStationConfig: any;
-	private static storageNotification: any;
-	private static storageConfig: any;
-	private static centralSystemsConfig: any;
-	private static SoapCentralSystemServer: any;
-	private static JsonCentralSystemServer: any;
-	private static ocpiConfig: any;
-	private static ocpiServer: any;
-	private static oDataServerConfig: any;
-	private static oDataServer: any;
-	private static databaseDone: any;
-	private static database: any;
-	private static migrationDone: any;
+  private static num_workers: any;
+  private static isClusterEnable: any;
+  private static centralSystemRestConfig: any;
+  private static centralRestServer: any;
+  private static chargingStationConfig: any;
+  private static storageNotification: any;
+  private static storageConfig: any;
+  private static centralSystemsConfig: any;
+  private static SoapCentralSystemServer: any;
+  private static JsonCentralSystemServer: any;
+  private static ocpiConfig: any;
+  private static ocpiServer: any;
+  private static oDataServerConfig: any;
+  private static oDataServer: any;
+  private static databaseDone: any;
+  private static database: any;
+  private static migrationDone: any;
 
   private static startServerWorkers(serverName) {
     this.num_workers = Configuration.getClusterConfig().num_worker;

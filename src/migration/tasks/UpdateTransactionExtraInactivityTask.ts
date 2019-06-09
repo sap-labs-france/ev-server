@@ -4,7 +4,7 @@ import MigrationTask from '../MigrationTask';
 import Constants from '../../utils/Constants';
 import BBPromise from "bluebird";
 import TSGlobal from '../../types/GlobalType';
-declare var global: TSGlobal;
+let var global: TSGlobal;
 
 export default class UpdateTransactionExtraInactivityTask extends MigrationTask {
   async migrate() {

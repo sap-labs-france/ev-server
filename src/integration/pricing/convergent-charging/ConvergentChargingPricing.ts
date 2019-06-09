@@ -5,10 +5,10 @@ import Pricing, { PricedConsumption } from '../Pricing';
 import SiteArea from '../../../entity/SiteArea';
 
 export default class ConvergentChargingPricing extends Pricing {
-	public statefulChargingService: any;
-	public setting: any;
-	public transaction: any;
-	public tenantId: any;
+  public statefulChargingService: any;
+  public setting: any;
+  public transaction: any;
+  public tenantId: any;
 
   constructor(tenantId, setting, transaction) {
     super(tenantId, setting, transaction);
@@ -190,9 +190,9 @@ export default class ConvergentChargingPricing extends Pricing {
 
 }
 export class ChargingRequest {
-	public chargeableItem: any;
-	public transactionSelection: any;
-	public filterTransaction: any;
+  public chargeableItem: any;
+  public transactionSelection: any;
+  public filterTransaction: any;
 
   /**
    *
@@ -207,17 +207,17 @@ export class ChargingRequest {
   }
 }
 export class StartRateRequest {
-	public reservationItem: any;
-	public sessionID: any;
-	public consumptionDate: any;
-	public serviceId: any;
-	public userTechnicalId: any;
-	public defaultResolution: any;
-	public timeToLive: any;
-	public resultType: any;
-	public filterTransaction: any;
-	public cleanupResultType: any;
-	public propertyToInverse: any;
+  public reservationItem: any;
+  public sessionID: any;
+  public consumptionDate: any;
+  public serviceId: any;
+  public userTechnicalId: any;
+  public defaultResolution: any;
+  public timeToLive: any;
+  public resultType: any;
+  public filterTransaction: any;
+  public cleanupResultType: any;
+  public propertyToInverse: any;
 
   /**
    *
@@ -252,14 +252,14 @@ export class StartRateRequest {
   }
 }
 export class RateResult {
-	public amountToConfirm: any;
-	public amountToReserve: any;
-	public amountToCancel: any;
-	public accumulatedAmount: any;
-	public transactionSetID: any;
-	public transactionsToReserve: any;
-	public transactionsToConfirm: any;
-	public transactionsToCleanup: any;
+  public amountToConfirm: any;
+  public amountToReserve: any;
+  public amountToCancel: any;
+  public accumulatedAmount: any;
+  public transactionSetID: any;
+  public transactionsToReserve: any;
+  public transactionsToConfirm: any;
+  public transactionsToCleanup: any;
 
   constructor(model) {
     if (model.$attributes.amountToConfirm) {
@@ -304,15 +304,15 @@ export class RateResult {
   }
 }
 export class UpdateRateRequest {
-	public confirmationItem: any;
-	public reservationItem: any;
-	public sessionID: any;
-	public consumptionDate: any;
-	public serviceId: any;
-	public userTechnicalId: any;
-	public resultType: any;
-	public filterTransaction: any;
-	public cleanupResultType: any;
+  public confirmationItem: any;
+  public reservationItem: any;
+  public sessionID: any;
+  public consumptionDate: any;
+  public serviceId: any;
+  public userTechnicalId: any;
+  public resultType: any;
+  public filterTransaction: any;
+  public cleanupResultType: any;
 
   /**
    *
@@ -343,14 +343,14 @@ export class UpdateRateRequest {
   }
 }
 export class StopRateRequest {
-	public confirmationItem: any;
-	public sessionID: any;
-	public serviceId: any;
-	public userTechnicalId: any;
-	public resolution: any;
-	public resultType: any;
-	public filterTransaction: any;
-	public cleanupResultType: any;
+  public confirmationItem: any;
+  public sessionID: any;
+  public serviceId: any;
+  public userTechnicalId: any;
+  public resolution: any;
+  public resultType: any;
+  public filterTransaction: any;
+  public cleanupResultType: any;
 
   /**
    *
@@ -380,8 +380,8 @@ export class StopRateRequest {
 }
 
 export class ReservationItem {
-	public name: any;
-	public property: any;
+  public name: any;
+  public property: any;
 
   /**
    *
@@ -394,8 +394,8 @@ export class ReservationItem {
   }
 }
 export class ConfirmationItem {
-	public name: any;
-	public property: any;
+  public name: any;
+  public property: any;
 
   /**
    *
@@ -408,11 +408,11 @@ export class ConfirmationItem {
   }
 }
 export class ChargeableItem {
-	public name: any;
-	public userTechnicalId: any;
-	public serviceId: any;
-	public consumptionDate: any;
-	public property: any;
+  public name: any;
+  public userTechnicalId: any;
+  public serviceId: any;
+  public consumptionDate: any;
+  public property: any;
 
   /**
    *
@@ -431,7 +431,7 @@ export class ChargeableItem {
   }
 }
 export class ChargeableItemProperty {
-	public name: any;
+  public name: any;
 
   /**
    *
@@ -451,7 +451,7 @@ const Type = {
   date: 'date',
 };
 export class TransactionSet {
-	public ccTransactions: any;
+  public ccTransactions: any;
 
   constructor(model) {
     if (Array.isArray(model)) {
@@ -471,13 +471,13 @@ export class TransactionSet {
   }
 }
 export class Notification {
-	public instanceId: any;
-	public timestamp: any;
-	public descUid: any;
-	public name: any;
-	public prettyName: any;
-	public severityLevel: any;
-	public properties: any;
+  public instanceId: any;
+  public timestamp: any;
+  public descUid: any;
+  public name: any;
+  public prettyName: any;
+  public severityLevel: any;
+  public properties: any;
 
   constructor(model) {
     this.instanceId = model['$attributes'].instanceId;
@@ -489,7 +489,7 @@ export class Notification {
 
     model.arg.map(detail => detail['$attributes']).forEach(detail => this[detail.name] = detail.value);
     if (this.properties) {
-      const props:any = {};
+      const props: any = {};
       this.properties.split('\n').filter(s => s.length > 0)
         .forEach(propString => {
           const array = propString.split(' = ');
@@ -500,18 +500,18 @@ export class Notification {
   }
 }
 export class CCTransaction {
-	public details: any;
-	public notifications: any;
-	public amount: any;
-	public chargePlanId: any;
-	public chargingContractId: any;
-	public chargeCode: any;
-	public origin: any;
-	public date: any;
-	public label: any;
-	public relationshipType: any;
-	public operationType: any;
-	public sessionID: any;
+  public details: any;
+  public notifications: any;
+  public amount: any;
+  public chargePlanId: any;
+  public chargingContractId: any;
+  public chargeCode: any;
+  public origin: any;
+  public date: any;
+  public label: any;
+  public relationshipType: any;
+  public operationType: any;
+  public sessionID: any;
 
   constructor(model) {
     for (const key of Object.keys(model['$attributes'])) {

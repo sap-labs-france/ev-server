@@ -4,17 +4,17 @@ import Logging from '../utils/Logging';
 
 const MODULE_NAME = "WSClient";
 export default class WSClient {
-	private url: any;
-	private options: any;
-	private callbacks: any;
-	private dbLogging: any;
-	private autoReconnectRetryCount: any;
-	private autoReconnectMaxRetries: any;
-	private autoReconnectTimeout: any;
-	private logTenantID: any;
-	private ws: any;
-	public onreconnect: any;
-	public onmaximum: any;
+  private url: any;
+  private options: any;
+  private callbacks: any;
+  private dbLogging: any;
+  private autoReconnectRetryCount: any;
+  private autoReconnectMaxRetries: any;
+  private autoReconnectTimeout: any;
+  private logTenantID: any;
+  private ws: any;
+  public onreconnect: any;
+  public onmaximum: any;
 
   /**
    * Create a new `WSClient`.

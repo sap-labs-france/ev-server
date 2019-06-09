@@ -2,7 +2,7 @@ import SchemaValidator from './SchemaValidator';
 import connectionCreation from '../schemas/connectors/connections/connection-creation.json';
 
 export default class ConnectionValidator extends SchemaValidator {
-	public validate: any;
+  public validate: any;
 
   private constructor() {
     super("TenantValidator");

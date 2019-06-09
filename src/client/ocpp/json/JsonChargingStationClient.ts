@@ -3,16 +3,16 @@ import ChargingStationClient from '../../ocpp/ChargingStationClient';
 
 export default class JsonChargingStationClient extends ChargingStationClient {
 	
-	private wsConnection: any;
-	public tagID: any;
-	public connectorID: any;
-	public chargingProfile: any;
-	public type: any;
-	public keys: any;
-	public key: any;
-	public value: any;
-	public transactionId: any;
-	public connectorId: any;
+  private wsConnection: any;
+  public tagID: any;
+  public connectorID: any;
+  public chargingProfile: any;
+  public type: any;
+  public keys: any;
+  public key: any;
+  public value: any;
+  public transactionId: any;
+  public connectorId: any;
 
   constructor(wsConnection) {
     super();

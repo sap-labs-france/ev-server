@@ -40,4 +40,4 @@ export default class AbstractEndpoint {
     // return response with error
     res.status(error.errorCode).json(OCPIUtils.error(error));
   }
-};
+}

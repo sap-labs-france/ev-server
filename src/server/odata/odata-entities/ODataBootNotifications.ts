@@ -1,10 +1,10 @@
 
 import AbstractODataEntities from './AbstractODataEntities';
 export default class ODataBootNotifications extends AbstractODataEntities {
-	public buildParams: any;
-	public returnResponse: any;
-	public convertTimestamp: any;
-	public buildDateObject: any;
+  public buildParams: any;
+  public returnResponse: any;
+  public convertTimestamp: any;
+  public buildDateObject: any;
 
   static getObjectKey(bootNotification) {
     return bootNotification._id;
