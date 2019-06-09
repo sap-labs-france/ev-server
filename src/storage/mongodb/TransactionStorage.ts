@@ -5,7 +5,7 @@ import Utils from '../../utils/Utils';
 import Logging from '../../utils/Logging';
 import PricingStorage from './PricingStorage';
 import TSGlobal from './../../types/GlobalType';
-let var global: TSGlobal;
+declare var global: TSGlobal;
 import Transaction from '../../entity/Transaction';
 
 export default class TransactionStorage {

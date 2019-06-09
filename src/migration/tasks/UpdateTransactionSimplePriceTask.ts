@@ -7,7 +7,7 @@ import SimplePricing from '../../integration/pricing/simple-pricing/SimplePricin
 import moment from 'moment';
 import BBPromise from "bluebird";
 import TSGlobal from '../../types/GlobalType';
-let var global: TSGlobal;
+declare var global: TSGlobal;
 
 const SUB_DOMAINS = ['slfcah', 'slf'];
 export default class UpdateTransactionSimplePriceTask extends MigrationTask {

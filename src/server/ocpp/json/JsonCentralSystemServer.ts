@@ -6,7 +6,7 @@ import JsonWSConnection from './JsonWSConnection';
 import JsonRestWSConnection from './JsonRestWSConnection';
 import CentralSystemServer from '../CentralSystemServer';
 import TSGlobal from '../../../types/GlobalType';
-let var global: TSGlobal;
+declare var global: TSGlobal;
 
 export default class JsonCentralSystemServer extends CentralSystemServer {
 

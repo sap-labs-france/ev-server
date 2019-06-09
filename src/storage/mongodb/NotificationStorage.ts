@@ -6,7 +6,7 @@ import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import Notification from '../../entity/Notification';
 import TSGlobal from '../../types/GlobalType';
-let var global: TSGlobal;
+declare var global: TSGlobal;
 
 export default class NotificationStorage {
   

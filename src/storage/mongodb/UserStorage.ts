@@ -9,7 +9,7 @@ import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import fs from 'fs';
 import TSGlobal from '../../types/GlobalType';
-let var global: TSGlobal;
+declare var global: TSGlobal;
 import User from '../../entity/User';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();

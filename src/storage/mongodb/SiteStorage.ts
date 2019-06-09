@@ -12,7 +12,7 @@ import SiteArea from '../../entity/SiteArea';
 import User from '../../entity/User';
 import TSGlobal from '../../types/GlobalType';
 import ChargingStation from '../../entity/ChargingStation';
-let var global: TSGlobal;
+declare var global: TSGlobal;
 
 export default class SiteStorage {
   static async getSite(tenantID, id) {

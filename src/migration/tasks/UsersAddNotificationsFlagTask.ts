@@ -1,7 +1,7 @@
 import Tenant from '../../entity/Tenant';
 import MigrationTask from '../MigrationTask';
 import TSGlobal from '../../types/GlobalType';
-let var global: TSGlobal;
+declare var global: TSGlobal;
 
 export default class UsersAddNotificationsFlagTask extends MigrationTask {
   async migrate() {

@@ -1,6 +1,6 @@
 import path from 'path';
 import TSGlobal from './types/GlobalType';
-let var global: TSGlobal;
+declare var global: TSGlobal;
 global.appRoot = path.resolve(__dirname);
 global.Promise = require('bluebird');
 import cluster from 'cluster';

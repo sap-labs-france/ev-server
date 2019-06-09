@@ -4,7 +4,7 @@ import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import moment from 'moment';
 import TSGlobal from '../../types/GlobalType';
-let var global: TSGlobal;
+declare var global: TSGlobal;
 
 export default class StatisticsStorage {
   static async getChargingStationStats(tenantID, filter, groupBy) {

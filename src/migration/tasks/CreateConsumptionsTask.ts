@@ -9,7 +9,7 @@ import Database from '../../utils/Database';
 import pLimit from 'p-limit';
 import MigrationTask from '../MigrationTask';
 import TSGlobal from '../../types/GlobalType';
-let var global: TSGlobal;
+declare var global: TSGlobal;
 
 
 const DEFAULT_CONSUMPTION_ATTRIBUTE = {

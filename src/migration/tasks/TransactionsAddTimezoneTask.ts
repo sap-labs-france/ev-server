@@ -2,7 +2,7 @@ import Tenant from '../../entity/Tenant';
 import MigrationTask from '../MigrationTask';
 const tzlookup = require("tz-lookup");
 import TSGlobal from '../../types/GlobalType';
-let var global: TSGlobal;
+declare var global: TSGlobal;
 
 export default class TransactionsAddTimezoneTask extends MigrationTask {
   async migrate() {

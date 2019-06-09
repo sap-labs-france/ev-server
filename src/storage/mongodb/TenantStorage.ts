@@ -7,7 +7,7 @@ import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import Tenant from '../../entity/Tenant';
 import TSGlobal from '../../types/GlobalType';
-let var global: TSGlobal;
+declare var global: TSGlobal;
 
 export default class TenantStorage {
   static async getTenant(id: string): Promise<Tenant|null> {

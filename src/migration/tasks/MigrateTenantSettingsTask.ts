@@ -1,6 +1,6 @@
 import MigrationTask from '../MigrationTask';
 import Global from '../../types/GlobalType';
-let var global: Global;
+declare var global: Global;
 
 export default class MigrateTenantSettingsTask extends MigrationTask {
 

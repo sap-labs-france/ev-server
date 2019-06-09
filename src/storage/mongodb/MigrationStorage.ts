@@ -6,7 +6,7 @@ import TSGlobal from '../../types/GlobalType';
 import Configuration from '../../utils/Configuration';
 import cfenv from 'cfenv';
 
-let var global: TSGlobal;
+declare var global: TSGlobal;
 
 export default class MigrationStorage {
   static async getMigrations() {

@@ -7,7 +7,7 @@ import MigrationTask from '../MigrationTask';
 import TSGlobal from '../../types/GlobalType';
 import Transaction from '../../entity/Transaction';
 import { deprecate } from 'util';
-let var global: TSGlobal;
+declare var global: TSGlobal;
 
 export default class UpdateTransactionInactivityTask extends MigrationTask {
   async migrate() {

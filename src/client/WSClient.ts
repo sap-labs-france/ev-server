@@ -28,7 +28,7 @@ export default class WSClient {
    * @param {Object} options.WSOptions
    * @param {Boolean} dbLogging
    */
-  constructor(url, options, dbLogging = true) {
+  public constructor(url, options, dbLogging = true) {
     this.url = url;
     this.options = options || {};
     this.callbacks = {
@@ -47,20 +47,20 @@ export default class WSClient {
     this.open();
   }
 
-  get CONNECTING() {
+  public get CONNECTING() {
     return WebSocket.CONNECTING;
   }
-  get CLOSING() {
+  public get CLOSING() {
     return WebSocket.CLOSING;
   }
-  get CLOSED() {
+  public get CLOSED() {
     return WebSocket.CLOSED;
   }
-  get OPEN() {
+  public get OPEN() {
     return WebSocket.OPEN;
   }
 
-  onOpen() {
+  private onOpen() {
     this.autoReconnectRetryCount = 0;
   }
 
@@ -69,14 +69,14 @@ export default class WSClient {
    *
    * @private
    */
-  _reinstantiateCbs() {
+  private reinstantiateCbs() {
     ['onopen', 'onerror', 'onclose', 'onmessage'].forEach((method) => {
       if ('' + this.callbacks[method] !== '' + (() => { }))
         this.ws[method] = this.callbacks[method];
     });
   }
 
-  onError(error) {
+  private onError(error) {
     switch (error.code) {
       case 'ECONNREFUSED':
         if (this.dbLogging) {
@@ -112,7 +112,7 @@ export default class WSClient {
     }
   }
 
-  onClose(error) {
+  private onClose(error) {
     switch (error.code) {
       case 1000: // Normal close
       case 1005:
@@ -142,7 +142,7 @@ export default class WSClient {
    *
    * @public
    */
-  open() {
+  public open() {
     this.ws = new WebSocket(this.url, this.options.protocols || [], this.options.WSOptions || {});
     // Handle Socket open
     this.ws.on('open', this.onOpen.bind(this));
@@ -151,7 +151,7 @@ export default class WSClient {
     // Handle Socket close
     this.ws.on('close', this.onClose.bind(this));
     // A new WS have just been created, reinstantiate the saved callbacks on it
-    this._reinstantiateCbs();
+    this.reinstantiateCbs();
   }
 
   /**
@@ -160,7 +160,7 @@ export default class WSClient {
    * @param {Error} error
    * @public
    */
-  reconnect(error?) {
+  public reconnect(error?) {
     if (this.autoReconnectTimeout !== Constants.WS_RECONNECT_DISABLED &&
       (this.autoReconnectRetryCount < this.autoReconnectMaxRetries || this.autoReconnectMaxRetries === Constants.WS_RECONNECT_UNLIMITED)) {
       this.autoReconnectRetryCount++;
@@ -211,7 +211,7 @@ export default class WSClient {
    * @param {Function} cb Callback which is executed when data is written out
    * @public
    */
-  send(data, options, callback) {
+  public send(data, options, callback) {
     this.ws.send(data, options, callback);
   }
 
@@ -234,7 +234,7 @@ export default class WSClient {
    * @param {String} data A string explaining why the connection is closing
    * @public
    */
-  close(code, reason) {
+  public close(code, reason) {
     return this.ws.close(code, reason);
   }
 
@@ -246,7 +246,7 @@ export default class WSClient {
    * @param {Function} cb Callback which is executed when the ping is sent
    * @public
    */
-  ping(data, mask, callback) {
+  public ping(data, mask, callback) {
     this.ws.ping(data, mask, callback);
   }
 
@@ -258,7 +258,7 @@ export default class WSClient {
    * @param {Function} cb Callback which is executed when the pong is sent
    * @public
    */
-  pong(data, mask, callback) {
+  public pong(data, mask, callback) {
     this.ws.pong(data, mask, callback);
   }
 
@@ -267,11 +267,11 @@ export default class WSClient {
    *
    * @public
    */
-  terminate() {
+  public terminate() {
     return this.ws.terminate();
   }
 
-  isConnectionOpen() {
+  public isConnectionOpen() {
     return this.ws.readyState === WebSocket.OPEN;
   }
 }

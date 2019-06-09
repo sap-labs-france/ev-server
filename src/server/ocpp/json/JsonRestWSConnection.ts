@@ -4,7 +4,7 @@ import Constants from '../../../utils/Constants';
 import BackendError from '../../../exception/BackendError';
 import WSConnection from './WSConnection';
 import TSGlobal from '../../../types/GlobalType';
-let var global: TSGlobal;
+declare var global: TSGlobal;
 
 const MODULE_NAME = "JsonRestWSConnection";
 export default class JsonRestWSConnection extends WSConnection {

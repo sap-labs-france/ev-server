@@ -15,9 +15,8 @@
         "mocha": true
     },
     "rules": {
-        "no-var": "warn",
-        "prefer-const": "warn",
         "no-mixed-spaces-and-tabs": "warn",
+        "indent": "off",
         "@typescript-eslint/indent": [
             "warn",
             2,
@@ -25,6 +24,7 @@
                 "SwitchCase": 1
             }
         ],
+        "semi": "off",
         "@typescript-eslint/semi": [
             "error",
             "always"

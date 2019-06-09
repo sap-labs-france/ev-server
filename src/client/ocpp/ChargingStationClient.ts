@@ -1,6 +1,6 @@
 import BackendError from '../../exception/BackendError';
 import TSGlobal from '../../types/GlobalType';
-let var global: TSGlobal;
+declare var global: TSGlobal;
 
 export default abstract class ChargingStationClient {
 

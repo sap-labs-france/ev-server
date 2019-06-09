@@ -6,7 +6,7 @@ import Tenant from '../../../entity/Tenant';
 import crypto from 'crypto';
 import HttpStatus from 'http-status-codes';
 import TSGlobal from '../../../types/GlobalType';
-let var global: TSGlobal;
+declare var global: TSGlobal;
 
 export default class SessionHashService {
   // Check if Session has been updated and require new login

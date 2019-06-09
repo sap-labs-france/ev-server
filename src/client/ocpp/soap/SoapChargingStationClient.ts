@@ -3,7 +3,7 @@ const soap = require('strong-soap').soap;
 import Logging from '../../../utils/Logging';
 import Configuration from '../../../utils/Configuration';
 import TSGlobal from '../../../types/GlobalType';
-let var global: TSGlobal;
+declare var global: TSGlobal;
 
 // Default Module name
 const _moduleName = "SoapChargingStationClient";

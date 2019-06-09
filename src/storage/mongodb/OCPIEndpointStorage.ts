@@ -7,7 +7,7 @@ import BackendError from '../../exception/BackendError';
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import TSGlobal from '../../types/GlobalType';
-let var global: TSGlobal;
+declare var global: TSGlobal;
 
 export default class OCPIEndpointStorage {
 

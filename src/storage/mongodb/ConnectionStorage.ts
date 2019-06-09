@@ -4,7 +4,7 @@ import Utils from '../../utils/Utils';
 import Logging from '../../utils/Logging';
 import Constants from '../../utils/Constants';
 import TSGlobal from '../../types/GlobalType';
-let var global: TSGlobal;
+declare var global: TSGlobal;
 
 export default class ConnectionStorage {
 

@@ -9,7 +9,7 @@ import Constants from '../../utils/Constants';
 import NotificationTask from '../NotificationTask';
 import Tenant from '../../entity/Tenant';
 import TSGlobal from '../../types/GlobalType';
-let var global: TSGlobal;
+declare var global: TSGlobal;
 
 require('source-map-support').install();
 

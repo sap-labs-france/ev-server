@@ -9,7 +9,7 @@ import SiteArea from '../../entity/SiteArea';
 import Site from '../../entity/Site'; 
 import Tenant from '../../entity/Tenant';
 import TSGlobal from '../../types/GlobalType';
-let var global: TSGlobal;
+declare var global: TSGlobal;
 
 export default class ChargingStationStorage {
 
