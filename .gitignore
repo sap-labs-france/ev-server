@@ -47,7 +47,7 @@ jspm_packages
 tmp
 
 # vscode
-
+.vs
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
