@@ -11,7 +11,9 @@ import Logging from '../../utils/Logging';
 import Constants from '../../utils/Constants';
 import ErrorHandler from './ErrorHandler';
 import SessionHashService from '../rest/service/SessionHashService';
-require('source-map-support').install();
+import SourceMap from 'source-map-support';
+SourceMap.install();
+import socketio from 'socket.io';
 
 const MODULE_NAME = "CentralRestServer";
 
@@ -146,7 +148,7 @@ export default class CentralRestServer {
     // eslint-disable-next-line no-console
     console.log(logMsg);
     // Init Socket IO
-    CentralRestServer.socketIO = require("socket.io")(CentralRestServer.restHttpServer);
+    CentralRestServer.socketIO = socketio(CentralRestServer.restHttpServer);
     // Handle Socket IO connection
     CentralRestServer.socketIO.on('connection', (socket) => {
       socket.join(socket.handshake.query.tenantID);

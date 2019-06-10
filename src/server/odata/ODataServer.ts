@@ -5,7 +5,8 @@ import Logging from '../../utils/Logging';
 import ODataServerFactory from '../odata/ODataServerFactory';
 import ODataSchema from './odata-schema/ODataSchema';
 
-require('source-map-support').install();
+import SourceMap from 'source-map-support';
+SourceMap.install();
 
 const MODULE_NAME = "ODataServer";
 export default class ODataServer {

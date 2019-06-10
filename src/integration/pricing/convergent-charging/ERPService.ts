@@ -1,4 +1,4 @@
-const soap = require('strong-soap').soap;
+import { soap } from 'strong-soap';
 import ConnectionStorage from "../../../storage/mongodb/ConnectionStorage";
 import AbstractSoapClient from './AbstractSoapClient';
 import InternalError from '../../../exception/InternalError';

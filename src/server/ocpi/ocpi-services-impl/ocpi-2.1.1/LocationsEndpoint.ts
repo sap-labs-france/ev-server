@@ -4,7 +4,8 @@ import OCPIMapping from './OCPIMapping';
 import OCPIUtils from '../../OCPIUtils';
 import OCPIServerError from '../../../../exception/OCPIServerError';
 
-require('source-map-support').install();
+import SourceMap from 'source-map-support';
+SourceMap.install();
 
 const EP_IDENTIFIER = "locations";
 const EP_VERSION = "2.1.1";

@@ -1,5 +1,5 @@
 import fs from 'fs';
-const soap = require('strong-soap').soap;
+import { soap } from 'strong-soap';
 import morgan from 'morgan';
 import expressTools from '../../ExpressTools';
 import CentralSystemServer from '../CentralSystemServer';
@@ -9,7 +9,8 @@ import centralSystemService12 from './services/SoapCentralSystemService12';
 import centralSystemService15 from './services/SoapCentralSystemService15';
 import centralSystemService16 from './services/SoapCentralSystemService16';
 import sanitize from 'express-sanitizer';
-require('source-map-support').install();
+import SourceMap from 'source-map-support';
+SourceMap.install();
 import TSGlobal from '../../../types/GlobalType';
 declare var global: TSGlobal;
 

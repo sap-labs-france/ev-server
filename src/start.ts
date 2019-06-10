@@ -2,7 +2,8 @@ import path from 'path';
 import TSGlobal from './types/GlobalType';
 declare var global: TSGlobal;
 global.appRoot = path.resolve(__dirname);
-global.Promise = require('bluebird');
+import BBPromise from 'bluebird';
+global.Promise = BBPromise;
 import cluster from 'cluster';
 import MongoDBStorage from './storage/mongodb/MongoDBStorage';
 import MongoDBStorageNotification from './storage/mongodb/MongoDBStorageNotification';
@@ -18,7 +19,8 @@ import Logging from './utils/Logging';
 import Constants from './utils/Constants';
 import Utils from './utils/Utils';
 
-require('source-map-support').install();
+import SourceMap from 'source-map-support';
+SourceMap.install();
 
 const MODULE_NAME = 'Bootstrap';
 

@@ -2,7 +2,8 @@ import AbstractOCPIService from '../../AbstractOCPIService';
 
 const VERSION = "2.0";
 
-require('source-map-support').install();
+import SourceMap from 'source-map-support';
+SourceMap.install();
 
 /**
  * OCPI Service 2.0 - Not Implemented - Only used for testing multiple Services declaration

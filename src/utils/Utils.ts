@@ -1,7 +1,7 @@
 import { ObjectId } from 'mongodb';
 import Configuration from './Configuration';
 import uuidV4 from 'uuid/v4';
-const ObjectID = require('mongodb').ObjectID;
+import { ObjectID } from 'mongodb';
 import Constants from './Constants';
 import BackendError from '../exception/BackendError';
 import crypto from 'crypto';
@@ -14,7 +14,8 @@ import path from 'path';
 import Logging from './Logging'; // Avoid fucking circular deps
 import Tenant from '../entity/Tenant'; // Avoid fucking circular deps
 
-require('source-map-support').install();
+import SourceMap from 'source-map-support';
+SourceMap.install();
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];

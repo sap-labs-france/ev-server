@@ -1,4 +1,5 @@
-require('source-map-support').install();
+import SourceMap from 'source-map-support';
+SourceMap.install();
 
 export default {
   MAX_DB_RECORD_COUNT: 2000,

@@ -1,8 +1,7 @@
 // Build HashID based on important tenant fields
 // Build HashID based on important user fields
 import passport from 'passport';
-const JwtStrategy = require('passport-jwt').Strategy;
-const ExtractJwt = require('passport-jwt').ExtractJwt;
+import { Strategy, ExtractJwt } from 'passport-jwt';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import axios from 'axios';
@@ -35,7 +34,7 @@ if (_centralSystemRestConfig) {
     // audience: 'evse-dashboard'
   };
   // Use
-  passport.use(new JwtStrategy(jwtOptions, (jwtPayload, done) => {
+  passport.use(new Strategy(jwtOptions, (jwtPayload, done) => {
     // Return the token decoded right away
     return done(null, jwtPayload);
   }));

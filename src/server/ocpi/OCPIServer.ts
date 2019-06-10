@@ -4,7 +4,8 @@ import Logging from '../../utils/Logging';
 import Constants from '../../utils/Constants';
 import OCPIServices from './OCPIServices';
 import OCPIErrorHandler from './OCPIErrorHandler';
-require('source-map-support').install();
+import SourceMap from 'source-map-support';
+SourceMap.install();
 
 const MODULE_NAME = "OCPIServer";
 export default class OCPIServer {

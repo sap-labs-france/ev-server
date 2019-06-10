@@ -8,8 +8,10 @@ const {
 } = {};
 import cfenv from 'cfenv';
 import fs from 'fs';
+import os from 'os';
 
-require('source-map-support').install();
+import SourceMap from 'source-map-support';
+SourceMap.install();
 
 // Cloud Foundry App Env
 const _appEnv = cfenv.getAppEnv();
@@ -31,7 +33,7 @@ export default class Configuration {
 
   // Cluster config
   static getClusterConfig() {
-    const nb_cpus = require("os").cpus().length;
+    const nb_cpus = os.cpus().length;
     // Read conf and set defaults values
     if (!Configuration.getConfig().Cluster)
       Configuration.getConfig().Cluster = {};

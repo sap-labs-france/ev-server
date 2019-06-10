@@ -8,4 +8,5 @@ export default interface TSGlobal extends Global {
   centralSystemSoap: any;
   userHashMapIDs: any;
   tenantHashMapIDs: any;
+  Promise: any;
 }

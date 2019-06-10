@@ -1,5 +1,5 @@
 import Setting from '../../entity/Setting'; // Avoid circular deps!!!
-const ObjectID = require('mongodb').ObjectID;
+import { ObjectID } from 'mongodb';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import Utils from '../../utils/Utils';

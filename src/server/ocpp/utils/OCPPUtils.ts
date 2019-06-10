@@ -1,7 +1,8 @@
 import ChargingStation from '../../../entity/ChargingStation';
 import BackendError from '../../../exception/BackendError';
 import Constants from '../../../utils/Constants';
-require('source-map-support').install();
+import SourceMap from 'source-map-support';
+SourceMap.install();
 
 export default class OCPPUtils {
   

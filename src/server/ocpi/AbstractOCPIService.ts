@@ -9,7 +9,8 @@ import BackendError from '../../exception/BackendError';
 
 const MODULE_NAME = "AbstractOCPIService";
 
-require('source-map-support').install();
+import SourceMap from 'source-map-support';
+SourceMap.install();
 
 export interface TenantIdHoldingRequest extends Request {
   tenantID: string;

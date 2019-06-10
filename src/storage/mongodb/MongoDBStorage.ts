@@ -5,7 +5,8 @@ import DatabaseUtils from './DatabaseUtils';
 import StorageCfg from './../../utils/ConfigurationClasses/StorageConfiguration';
 import Constants from '../../utils/Constants';
 import { Db, MongoClient, Collection, ChangeStream } from 'mongodb';
-require('source-map-support').install();
+import SourceMap from 'source-map-support';
+SourceMap.install();
 import InternalError from '../../exception/InternalError';
 
 

@@ -10,7 +10,7 @@ import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import ChargingStation from '../../../entity/ChargingStation';
 import SiteArea from '../../../entity/SiteArea';
 import Tenant from '../../../entity/Tenant';
-const fs = require("fs");
+import fs from 'fs';
 export default class ChargingStationService {
   static async handleAddChargingStationsToSiteArea(action, req, res, next) {
     try {

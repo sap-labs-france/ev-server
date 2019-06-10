@@ -1,6 +1,6 @@
 import Tenant from '../../entity/Tenant';
 import MigrationTask from '../MigrationTask';
-const tzlookup = require("tz-lookup");
+import tzlookup from 'tz-lookup';
 import TSGlobal from '../../types/GlobalType';
 declare var global: TSGlobal;
 
