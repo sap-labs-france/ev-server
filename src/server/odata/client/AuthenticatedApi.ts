@@ -30,7 +30,7 @@ export default class AuthenticatedApi extends BaseApi {
       const response = await this.login(this.user, this.password, true, this.tenant);
       // Keep the token
       this.token = response.data.token;
-      this.tenantID = jwt.decode(this.token).tenantID;
+      this.tenantID = (jwt.decode(this.token) as any).tenantID;
     }
   }
 

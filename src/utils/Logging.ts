@@ -16,6 +16,7 @@ import { performance, PerformanceObserver } from 'perf_hooks';
 const _loggingConfig = Configuration.getLoggingConfig();
 import cfenv from 'cfenv';
 import cluster from 'cluster';
+import os from 'os';
 
 let _traceStatistics = null;
 
@@ -506,6 +507,12 @@ export default class Logging {
     if (!log.source) {
       log.source = `${Constants.CENTRAL_SERVER}`;
     }
+
+    // Host
+    log.host = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
+
+    // Process
+    log.process = cluster.isWorker ? 'worker ' + cluster.worker.id : 'master';
 
     // Check
     if (log.detailedMessages) {

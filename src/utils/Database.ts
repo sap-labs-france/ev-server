@@ -3,7 +3,7 @@ import Constants from './Constants';
 import Configuration from './Configuration';
 import cfenv from 'cfenv';
 import os from 'os';
-
+import cluster from 'cluster';
 import SourceMap from 'source-map-support';
 SourceMap.install();
 
@@ -11,7 +11,7 @@ export default class Database {
 
   private static heartbeatIntervalSecs: number = -1;
 
-  static updateID(src, dest) {
+  public static updateID(src, dest): void {
     // Set it
     if (src.id) {
       dest.id = src.id;
@@ -22,7 +22,7 @@ export default class Database {
     dest.id = Database.validateId(dest.id);
   }
 
-  static validateId(id) {
+  public static validateId(id): string {
     let changedID = id;
     // Object?
     if (changedID && (typeof changedID === "object")) {
@@ -36,7 +36,7 @@ export default class Database {
     return changedID;
   }
 
-  static setChargingStationHeartbeatIntervalSecs(heartbeatIntervalSecs: number) {
+  public static setChargingStationHeartbeatIntervalSecs(heartbeatIntervalSecs: number): void {
     Database.heartbeatIntervalSecs = heartbeatIntervalSecs;
   }
 
@@ -523,7 +523,7 @@ export default class Database {
     Database.updateCreatedAndLastChanged(src, dest);
   }
 
-  static updateLogging(src, dest, forFrontEnd = true) {
+  public static updateLogging(src, dest, forFrontEnd = true): void {
     if (forFrontEnd) {
       Database.updateID(src, dest);
       dest.userID = Database.validateId(src.userID);
@@ -534,6 +534,16 @@ export default class Database {
     }
     dest.level = src.level;
     dest.source = src.source;
+    if (src.hasOwnProperty('host')) {
+      dest.host = src.host;
+    } else {
+      dest.host =  Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
+    }
+    if (src.hasOwnProperty('process')) { 
+      dest.process = src.process;
+    } else {
+      dest.process = cluster.isWorker ? 'worker ' + cluster.worker.id : 'master';
+    }
     dest.type = src.type;
     dest.module = src.module;
     dest.method = src.method;

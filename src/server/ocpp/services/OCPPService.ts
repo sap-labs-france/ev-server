@@ -15,9 +15,11 @@ import SiteArea from '../../../entity/SiteArea';
 import User from '../../../entity/User';
 import moment from 'moment-timezone';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
-const momentDurationFormatSetup = require("moment-duration-format");
+import momentDurationFormatSetup from 'moment-duration-format';// TODO what
+//const momentDurationFormatSetup = require("moment-duration-format");
 
-require('source-map-support').install();
+import SourceMap from 'source-map-support';
+SourceMap.install();
 
 momentDurationFormatSetup(moment);
 const _configChargingStation = Configuration.getChargingStationConfig();
@@ -32,11 +34,11 @@ const DEFAULT_CONSUMPTION_ATTRIBUTE = {
 export default class OCPPService {
   private chargingStationConfig: any;
 
-  constructor(chargingStationConfig=null) {
+  public constructor(chargingStationConfig=null) {
     this.chargingStationConfig = chargingStationConfig;
   }
 
-  async _checkAndGetChargingStation(chargeBoxIdentity, tenantID) {
+  private async _checkAndGetChargingStation(chargeBoxIdentity, tenantID): Promise<ChargingStation> {
     // Get the charging station
     const chargingStation = await ChargingStation.getChargingStation(tenantID, chargeBoxIdentity);
     // Found?

@@ -25,7 +25,7 @@ export default class WSServer extends WebSocket.Server {
    * @param {Function} verifyClientCb
    * @param {Function} handleProtocolsCb
    */
-  constructor(httpServer, serverName, serverConfig, verifyClientCb: any = () => { }, handleProtocolsCb: any = () => { }) {
+  public constructor(httpServer, serverName, serverConfig, verifyClientCb: any = () => { }, handleProtocolsCb: any = () => { }) {
     // Create the Web Socket Server
     super({
       server: httpServer,
