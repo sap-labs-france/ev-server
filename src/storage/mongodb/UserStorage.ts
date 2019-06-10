@@ -9,8 +9,9 @@ import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import fs from 'fs';
 import TSGlobal from '../../types/GlobalType';
-declare var global: TSGlobal;
 import User from '../../entity/User';
+
+declare var global: TSGlobal;
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 export default class UserStorage {

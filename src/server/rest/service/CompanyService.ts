@@ -9,6 +9,7 @@ import Authorizations from '../../../authorization/Authorizations';
 import CompanySecurity from './security/CompanySecurity';
 import UtilsService from './UtilsService';
 import OrganizationComponentInactiveError from '../../../exception/OrganizationComponentInactiveError';
+
 export default class CompanyService {
   static async handleDeleteCompany(action, req, res, next) {
     try {

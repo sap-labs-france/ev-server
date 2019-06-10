@@ -4,6 +4,7 @@ import Constants from '../../../utils/Constants';
 import LoggingSecurity from './security/LoggingSecurity';
 import AppAuthError from '../../../exception/AppAuthError';
 import fs from "fs";
+
 export default class LoggingService {
   static async handleGetLoggings(action, req, res, next) {
     try {
@@ -125,5 +126,4 @@ export default class LoggingService {
     return csv;
   }
 }
-
 

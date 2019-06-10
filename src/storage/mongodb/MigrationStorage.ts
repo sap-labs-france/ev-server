@@ -113,5 +113,3 @@ export default class MigrationStorage {
     Logging.traceEnd('MigrationStorage', 'cleanRunningMigrations', uniqueTimerID);
   }
 }
-
-

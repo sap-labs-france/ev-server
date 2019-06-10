@@ -4,8 +4,8 @@ import Constants from '../../../utils/Constants';
 import Authorizations from '../../../authorization/Authorizations';
 import StatisticSecurity from './security/StatisticSecurity';
 import StatisticsStorage from '../../../storage/mongodb/StatisticsStorage';
+
 export default class StatisticService {
-	
   static async handleUserUsageStatistics(action, req, res, next) {
     try {
       // Filter
@@ -124,5 +124,3 @@ export default class StatisticService {
     return filter;
   } 
 }
-
-

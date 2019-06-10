@@ -2,10 +2,10 @@ import Database from '../../utils/Database';
 import Utils from '../../utils/Utils';
 import Logging from '../../utils/Logging';
 import TSGlobal from '../../types/GlobalType';
+
 declare var global: TSGlobal;
 
 export default class PricingStorage {
-
   static async getPricing(tenantID) {
     // Debug
     const uniqueTimerID = Logging.traceStart('PricingStorage', 'getPricing');

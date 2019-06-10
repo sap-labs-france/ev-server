@@ -10,10 +10,8 @@ import axios from 'axios';
 import url from 'url';
 import fs from 'fs';
 import path from 'path';
-
 import Logging from './Logging'; // Avoid fucking circular deps
 import Tenant from '../entity/Tenant'; // Avoid fucking circular deps
-
 import SourceMap from 'source-map-support';
 SourceMap.install();
 

@@ -11,6 +11,7 @@ import ConnectionValidator from '../validation/ConnectionValidator';
 import AbstractService from './AbstractService';
 
 const MODULE_NAME = 'ConnectorService';
+
 export default class ConnectorService extends AbstractService {
   static async handleGetConnection(action, req, res, next) {
     try {
@@ -169,13 +170,6 @@ export default class ConnectorService extends AbstractService {
     }
   }
 
-  /**
-   *
-   * @param tenantId
-   * @param connectorId
-   * @param setting
-   * @returns {AbstractConnector}
-   */
   static instantiateConnector(tenantId, connectorId, setting) {
     switch (connectorId) {
       case 'concur':

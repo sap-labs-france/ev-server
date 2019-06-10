@@ -1,7 +1,6 @@
 import Logging from '../../utils/Logging';
 import Constants from '../../utils/Constants';
 import MongoDBStorage from './MongoDBStorage';
-
 import SourceMap from 'source-map-support';
 SourceMap.install();
 

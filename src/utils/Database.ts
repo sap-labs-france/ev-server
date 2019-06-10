@@ -8,7 +8,6 @@ import SourceMap from 'source-map-support';
 SourceMap.install();
 
 export default class Database {
-
   private static heartbeatIntervalSecs: number = -1;
 
   public static updateID(src, dest): void {

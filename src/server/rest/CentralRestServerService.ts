@@ -18,7 +18,6 @@ import OCPIEndpointService from './service/OCPIEndpointService';
 import NotificationService from './service/NotificationService';
 import ConnectorService from './service/ConnectorService';
 import SessionHashService from './service/SessionHashService';
-
 import SourceMap from 'source-map-support';
 SourceMap.install();
 

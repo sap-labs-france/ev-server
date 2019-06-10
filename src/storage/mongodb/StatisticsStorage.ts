@@ -4,6 +4,7 @@ import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import moment from 'moment';
 import TSGlobal from '../../types/GlobalType';
+
 declare var global: TSGlobal;
 
 export default class StatisticsStorage {
@@ -283,131 +284,6 @@ export default class StatisticsStorage {
       {
         $unwind: '$chargingStation'
       },
-      /* // Get All transactions 
-      {
-        "$lookup": {
-          from: '5be7fb271014d90008992f06.transactions',
-          localField: 'chargingStation._id',
-          foreignField: 'chargeBoxID',
-          as: 'allTransactions'
-        }
-      },
-      // Filter tables
-      {
-        "$project": {
-          _id: 1,
-          companyID: 1,
-          name: 1,
-          address: 1,
-          transactions: 1,
-          'chargingStation.maximumPower': 1,
-          'chargingStation.cannotChargeInParallel': 1,
-          'chargingStation.connectors': 1,
-          activeTransactions: {
-            $filter: {
-              input: '$allTransactions',
-              as: 'transaction',
-              cond: {
-                $and: [
-                  { $gte: ["$$transaction.timestamp", beginningOfTheDay] } ,
-                  { $ne: [ { $type: '$$transaction.stop' }, "object" ] }
-                ]
-              }
-            }
-          },
-          finishedTransactions: {
-            $filter: {
-              input: '$allTransactions',
-              as: 'transaction',
-              cond: {
-                $and: [
-                  { $gte: ["$$transaction.timestamp", beginningOfTheDay] } ,
-                  { $eq: [ { $type: '$$transaction.stop' }, "object" ] }
-                ]
-              }
-            }
-          },
-          transactionsTrends: {
-            $filter: {
-              input: '$allTransactions',
-              as: 'transaction',
-              cond: {
-                $and: [
-                  { $gte: ["$$transaction.timestamp", transactionDateFilter] } ,
-                  { $eq: [ { $type: '$$transaction.stop' }, "object" ] },
-                  { $eq: [ { $dayOfWeek: new Date() },{ $dayOfWeek: "$$transaction.timestamp" }]}
-                ]
-              }
-            }
-          }
-        }
-      },
-      // Reduce to necessary fields: site info, transactions and charging station power
-      {
-        "$project": {
-          _id: 1,
-          companyID: 1,
-          name: 1,
-          address: 1,
-          transactions: 1,
-          currentConsumption: {
-            $sum: '$activeTransactions.currentConsumption'
-          },
-          activeCurrentTotalConsumption: {
-            $sum: '$activeTransactions.currentTotalConsumption'
-          },
-          finishedCurrentTotalConsumption: {
-            $sum: '$finishedTransactions.stop.totalConsumption' 
-          },
-          maximumPower: {
-            "$sum": "$chargingStation.maximumPower"
-          },
-          activeCurrentTotalInactivitySecs: {
-            "$sum": "$activeTransactions.currentTotalInactivitySecs"
-          },
-          finishedCurrentTotalInactivitySecs: {
-            "$sum": "$activeTransactions.stop.totalInactivitySecs"
-          },
-          'chargingStation.maximumPower': 1,
-          maximumNumberOfChargingPoint: {
-            $cond: {
-              if: '$chargingStation.cannotChargeInParallel',
-              then: 1,
-              else: { $size: '$chargingStation.connectors' }
-            }
-          },
-          occupiedChargingPoint: {
-            $size: '$activeTransactions'
-          },
-          'chargingTrendsMinConsumption': {
-            $min: "$transactionsTrends.stop.totalConsumption"
-          },
-          'chargingTrendsMaxConsumption': {
-            $max: "$transactionsTrends.stop.totalConsumption"
-          },
-          'chargingTrendsAvgConsumption': {
-            $avg: "$transactionsTrends.stop.totalConsumption"
-          },
-          'chargingTrendsMinDuration': {
-            $min: "$transactionsTrends.stop.totalDurationSecs"
-          },
-          'chargingTrendsMaxDuration': {
-            $max: "$transactionsTrends.stop.totalDurationSecs"
-          },
-          'chargingTrendsAvgDuration': {
-            $avg: "$transactionsTrends.stop.totalDurationSecs"
-          },
-          'chargingTrendsMinInactivity': {
-            $min: "$transactionsTrends.stop.totalInactivitySecs"
-          },
-          'chargingTrendsMaxInactivity': {
-            $max: "$transactionsTrends.stop.totalInactivitySecs"
-          },
-          'chargingTrendsAvgInactivity': {
-            $avg: "$transactionsTrends.stop.totalInactivitySecs"
-          },
-        }
-      }, */
       // Get today active transactions 
       {
         "$lookup": {
@@ -776,5 +652,3 @@ export default class StatisticsStorage {
   }
 
 }
-
-

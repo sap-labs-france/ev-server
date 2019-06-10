@@ -1,6 +1,7 @@
 import Logging from '../../../utils/Logging';
 import Notification from '../../../entity/Notification';
 import NotificationSecurity from './security/NotificationSecurity';
+
 export default class NotificationService {
   static async handleGetNotifications(action, req, res, next) {
     try {

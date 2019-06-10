@@ -11,13 +11,11 @@ import Logging from '../../utils/Logging';
 import Constants from '../../utils/Constants';
 import ErrorHandler from './ErrorHandler';
 import SessionHashService from '../rest/service/SessionHashService';
+import socketio from 'socket.io';
 import SourceMap from 'source-map-support';
 SourceMap.install();
-import socketio from 'socket.io';
 
 const MODULE_NAME = "CentralRestServer";
-
-
 
 export default class CentralRestServer {
   
@@ -354,5 +352,3 @@ export default class CentralRestServer {
     }
   }
 }
-
-

@@ -9,7 +9,6 @@ export default class DatabaseUtils {
     return FIXED_COLLECTIONS;
   }
 
-  //TODO determine type of aggregation
   public static pushCreatedLastChangedInAggregation(tenantID: string, aggregation: any[]): void {
     // Filter
     const filterUserFields = {

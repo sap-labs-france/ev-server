@@ -10,14 +10,14 @@ import CFLog from 'cf-nodejs-logging-support';
 import Configuration from '../utils/Configuration';
 import LoggingStorage from '../storage/mongodb/LoggingStorage';
 import uuid from 'uuid/v4';
+import { performance, PerformanceObserver } from 'perf_hooks';
 import SourceMap from 'source-map-support';
 SourceMap.install();
-import { performance, PerformanceObserver } from 'perf_hooks';
-const _loggingConfig = Configuration.getLoggingConfig();
 import cfenv from 'cfenv';
 import cluster from 'cluster';
 import os from 'os';
 
+const _loggingConfig = Configuration.getLoggingConfig();
 let _traceStatistics = null;
 
 const obs = new PerformanceObserver((items) => {

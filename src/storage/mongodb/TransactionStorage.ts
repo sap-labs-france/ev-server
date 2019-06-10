@@ -5,11 +5,11 @@ import Utils from '../../utils/Utils';
 import Logging from '../../utils/Logging';
 import PricingStorage from './PricingStorage';
 import TSGlobal from './../../types/GlobalType';
-declare var global: TSGlobal;
 import Transaction from '../../entity/Transaction';
 
-export default class TransactionStorage {
+declare var global: TSGlobal;
 
+export default class TransactionStorage {
   static async deleteTransaction(tenantID, transaction) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'deleteTransaction');

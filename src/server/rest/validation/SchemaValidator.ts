@@ -2,7 +2,6 @@ import Ajv from 'ajv';
 import BadRequestError from '../../../exception/BadRequestError';
 
 export default class SchemaValidator {
-
   private readonly ajv: Ajv.Ajv;
 
   constructor(readonly moduleName: string,
@@ -33,5 +32,3 @@ export default class SchemaValidator {
     }//TODO check the error handling here, there's some kind of mistake.
   }
 }
-
-

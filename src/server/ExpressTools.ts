@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import hpp from 'hpp';
-import bodyParser from "body-parser";
+import bodyParser from 'body-parser';
 import bodyparserxml from 'body-parser-xml';
 bodyparserxml(bodyParser);
 import locale from 'locale';
@@ -16,7 +16,7 @@ import Logging from '../utils/Logging';
 import Constants from '../utils/Constants';
 
 export default {
-  init: function (bodyLimit = '1mb') {
+  init: function (bodyLimit: string = '1mb') {
     const app = express();
     // Secure the application
     app.use(helmet());
@@ -31,9 +31,6 @@ export default {
       limit: bodyLimit
     }));
     app.use(hpp());
-    /*app.use(bodyParser.xml({
-      limit: bodyLimit
-    }));*/ // TODO: bodyParser.xml does not exist
     // Use
     app.use(locale(Configuration.getLocalesConfig().supported));
     // Check Cloud Foundry
@@ -77,9 +74,9 @@ export default {
     return server;
   },
 
-  startServer: function (serverConfig: any, httpServer: any, serverName: any, serverModuleName: any, listenCb: any = null, listen: any = true) {
+  startServer: function (serverConfig: any, httpServer: any, serverName: any, serverModuleName: any, listenCb: any = null, listen: any = true): void {
     // Default listen callback
-    function defaultListenCb() {
+    function defaultListenCb(): void {
       // Log
       const logMsg = `${serverName} Server listening on '${serverConfig.protocol}://${httpServer.address().address}:${httpServer.address().port}'`;
       Logging.logInfo({

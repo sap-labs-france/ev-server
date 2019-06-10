@@ -17,6 +17,7 @@ import Utils from '../../../utils/Utils';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 
 const MODULE_NAME = 'TenantService';
+
 export default class TenantService extends AbstractService {
   static async handleDeleteTenant(action, req, res, next) {
     try {
@@ -351,5 +352,3 @@ export default class TenantService extends AbstractService {
     }
   }
 }
-
-

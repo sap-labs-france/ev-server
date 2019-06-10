@@ -1,6 +1,5 @@
 import AuthService from './service/AuthService';
 import UtilsService from './service/UtilsService';
-
 import SourceMap from 'source-map-support';
 SourceMap.install();
 

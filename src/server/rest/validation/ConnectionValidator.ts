@@ -23,6 +23,5 @@ export default class ConnectionValidator extends SchemaValidator {
   validateConnectionCreation(content) {
     this.validate(this.connectionCreation, content);
   }
-
 }
 

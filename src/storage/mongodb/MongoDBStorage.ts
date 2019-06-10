@@ -11,8 +11,7 @@ import InternalError from '../../exception/InternalError';
 
 
 export default class MongoDBStorage {
-
-  private db: Db|null = null;
+  private db: Db;
 
   // Create database access
   public constructor(private readonly dbConfig: StorageCfg) {}

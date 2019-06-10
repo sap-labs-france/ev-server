@@ -712,5 +712,3 @@ export default class UserService {
     }
   }
 }
-
-

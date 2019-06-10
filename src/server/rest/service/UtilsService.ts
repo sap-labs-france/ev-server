@@ -1,6 +1,7 @@
 import Logging from '../../../utils/Logging';
 import Tenant from '../../../entity/Tenant';
 import Constants from '../../../utils/Constants';
+
 export default class UtilsService {
   static handleUnknownAction(action, req, res, next) {
     // Action provided
@@ -20,5 +21,3 @@ export default class UtilsService {
     return tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
   }
 }
-
-
