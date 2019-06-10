@@ -675,7 +675,7 @@ export default class UserService {
         const invoiceHeader = await erpService.getInvoiceDocumentHeader(invoiceNumber);
         let invoice = await erpService.getInvoiceDocument(invoiceHeader, invoiceNumber);
         if (!invoice) {
-          //retry to get invoice
+          // retry to get invoice
           invoice = await erpService.getInvoiceDocument(invoiceHeader, invoiceNumber);
         }
         if (!invoice) {

@@ -120,7 +120,7 @@ export default {
   DEFAULT_DB_LIMIT: 100,
 
   SETTING_PRICING_TYPE_SIMPLE: 'Simple',
-  SETTING_PRICING_TYPE_CONVERGENT_CHARGING: 'ConvergentCharging', //TODO: Added this to get rid of error, check if correct
+  SETTING_PRICING_TYPE_CONVERGENT_CHARGING: 'ConvergentCharging', // TODO: Added this to get rid of error, check if correct
 
   METER_VALUE_CTX_SAMPLE_PERIODIC: 'Sample.Periodic',
   METER_VALUE_CTX_SAMPLE_CLOCK: 'Sample.Clock',
@@ -133,7 +133,7 @@ export default {
   CHARGER_VENDOR_SCHNEIDER: 'Schneider Electric',
   CHARGER_VENDOR_ABB: 'ABB',
 
-  WS_DEFAULT_KEEPALIVE: 30, //seconds
+  WS_DEFAULT_KEEPALIVE: 30, // seconds
   WS_RECONNECT_DISABLED: 0,
   WS_RECONNECT_UNLIMITED: -1,
   WS_DEFAULT_RECONNECT_MAX_RETRIES: -1,

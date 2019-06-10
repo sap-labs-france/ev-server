@@ -423,7 +423,7 @@ export default class ChargingStationService {
           'ChargingStationService', 'handleGetChargingStation', req.user);
       }
       // Return
-      const tenant = await chargingStation.getTenant();//await TenantStorage.getTenant(chargingStation.getTenantID());
+      const tenant = await chargingStation.getTenant(); // await TenantStorage.getTenant(chargingStation.getTenantID());
       res.json(
         // Filter
         

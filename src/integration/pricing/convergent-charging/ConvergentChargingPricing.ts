@@ -16,7 +16,7 @@ export default class ConvergentChargingPricing extends Pricing {
   }
 
   getSettings() {
-    return this.setting; //TODO: added this check if correct
+    return this.setting; // TODO: added this check if correct
   }
 
   consumptionToChargeableItemProperties(consumptionData) {

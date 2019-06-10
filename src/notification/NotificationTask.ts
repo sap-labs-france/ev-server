@@ -2,7 +2,7 @@ import NotificationResult from './NotificationResult';
 
 export default abstract class NotificationTask {
 
-  //TODO: Since data param varies heavily by impl
+  // TODO: Since data param varies heavily by impl
   // I cannot create a robust class for it without knowing more about the code
   // Therefore, type: any for now. Please change
 

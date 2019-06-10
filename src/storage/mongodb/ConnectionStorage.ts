@@ -55,16 +55,10 @@ export default class ConnectionStorage {
     });
     // Count Records
     const connectionsCountMDB = await global.database.getCollection(tenantID, 'connections')
-      .aggregate([...aggregation, { $count: "count", allowDiskUse: true }])
+      .aggregate([...aggregation, { $count: "count"}], { allowDiskUse: true })
       .toArray();
     const connectionsMDB = await global.database.getCollection(tenantID, 'connections')
-      .aggregate(aggregation, {
-        collation: {
-          locale: Constants.DEFAULT_LOCALE,
-          strength: 2
-        },
-        allowDiskUse: true
-      })
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
 
     const connections = [];

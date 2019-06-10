@@ -179,7 +179,7 @@ export default class ChargingStationStorage {
     }
     // Count Records
     const chargingStationsCountMDB = await global.database.getCollection(tenantID, 'chargingstations')
-      .aggregate([...aggregation, {$count: "count", allowDiskUse: true}])
+      .aggregate([...aggregation, {$count: "count"}], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {
@@ -217,13 +217,7 @@ export default class ChargingStationStorage {
     });
     // Read DB
     const chargingStationsMDB = await global.database.getCollection(tenantID, 'chargingstations')
-      .aggregate(aggregation, {
-        collation: {
-          locale: Constants.DEFAULT_LOCALE,
-          strength: 2
-        },
-        allowDiskUse: true
-      })
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     const chargingStations = [];
     // Create
@@ -452,7 +446,7 @@ export default class ChargingStationStorage {
     for (const chargingStationMDB of chargingStationsFacetMDB) {
       // Create the Charger
       const chargingStation = new ChargingStation(tenantID, chargingStationMDB);
-      //enhance model with error info
+      // Enhance model with error info
       chargingStation.getModel().errorCode = chargingStationMDB.errorCode;
       chargingStation.getModel().uniqueId = chargingStationMDB.uniqueId;
       // Add the Site Area?

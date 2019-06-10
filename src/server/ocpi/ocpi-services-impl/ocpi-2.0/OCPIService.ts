@@ -15,7 +15,7 @@ SourceMap.install();
 
   // Rest Service Implementation
   restService(req, res, next) { // eslint-disable-line
-    // not implementated 
+    // not implemented 
     res.sendStatus(501);
   }
 }

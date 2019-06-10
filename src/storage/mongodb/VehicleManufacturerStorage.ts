@@ -202,7 +202,7 @@ export default class VehicleManufacturerStorage {
     }
     // Count Records
     const vehiclemanufacturersCountMDB = await global.database.getCollection(tenantID, 'vehiclemanufacturers')
-      .aggregate([...aggregation, { $count: "count", allowDiskUse: true }])
+      .aggregate([...aggregation, { $count: "count"}], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {
@@ -240,7 +240,7 @@ export default class VehicleManufacturerStorage {
     });
     // Read DB
     const vehiclemanufacturersMDB = await global.database.getCollection(tenantID, 'vehiclemanufacturers')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation,{ collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     const vehicleManufacturers = [];
     // Check
