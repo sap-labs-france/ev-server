@@ -4,6 +4,7 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import CentralServiceApi from '../client/CentralServiceApi';
 import SourceMap from 'source-map-support';
+import TSGlobal from '../../../types/GlobalType';
 SourceMap.install();
 
 declare var global: TSGlobal;
