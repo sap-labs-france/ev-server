@@ -67,7 +67,6 @@ export default class ChargingStationSecurity {
             'currentStateOfCharge': (filteredChargingStation.inactive ? 0 : connector.currentStateOfCharge),
             'totalInactivitySecs': (filteredChargingStation.inactive ? 0 : connector.totalInactivitySecs),
             'totalConsumption': (filteredChargingStation.inactive ? 0 : connector.totalConsumption),
-            'totalInactivitySecs': (filteredChargingStation.inactive ? 0 : connector.totalInactivitySecs),
             'activeTransactionID': connector.activeTransactionID,
             'errorCode': connector.errorCode,
             'type': connector.type,
