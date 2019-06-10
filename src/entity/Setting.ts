@@ -9,9 +9,8 @@ import User from './User';
 export default class Setting extends TenantHolder {
   private _model: any = {};
 
-  constructor(tenantID, setting) {
+  constructor(tenantID: any, setting: any) {
     super(tenantID);
-    // Set it
     Database.updateSetting(setting, this._model);
   }
 
@@ -23,9 +22,6 @@ export default class Setting extends TenantHolder {
     return this._model.id;
   }
 
-  /**
-   * Identifier of the setting
-   */
   getIdentifier() {
     return this._model.identifier;
   }
@@ -34,9 +30,6 @@ export default class Setting extends TenantHolder {
     this._model.identifier = identifier;
   }
 
-  /**
-   * get content
-   */
   getContent() {
     return this._model.content;
   }

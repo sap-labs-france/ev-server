@@ -9,9 +9,8 @@ import User from './User';
 export default class OCPIEndpoint extends TenantHolder {
   private _model: any = {};
 
-  constructor(tenantID, ocpiEndpoint) {
+  constructor(tenantID: any, ocpiEndpoint: any) {
     super(tenantID);
-    // Set it
     Database.updateOcpiEndpoint(ocpiEndpoint, this._model);
   }
 
@@ -23,9 +22,6 @@ export default class OCPIEndpoint extends TenantHolder {
     return this._model.id;
   }
 
-  /**
-   * Name of eMSP/IOP - could be provided by credential object from OCPI
-   */
   getName() {
     return this._model.name;
   }
@@ -34,9 +30,6 @@ export default class OCPIEndpoint extends TenantHolder {
     this._model.name = name;
   }
 
-  /**
-   * Base Url - should point to the eMSP/IOP versions OCPI endpoint - eg: /ocpi/emsp/versions
-   */
   getBaseUrl() {
     return this._model.baseUrl;
   }
@@ -45,9 +38,6 @@ export default class OCPIEndpoint extends TenantHolder {
     this._model.baseUrl = url;
   }
 
-  /**
-   * verion Url - should point to the eMSP/IOP version in use - eg: /ocpi/emsp/2.1.1
-   */
   getVersionUrl() {
     return this._model.versionUrl;
   }
@@ -56,9 +46,6 @@ export default class OCPIEndpoint extends TenantHolder {
     this._model.versionUrl = url;
   }
 
-  /**
-   * Set Ocpi version
-   */
   getVersion() {
     return this._model.version;
   }
@@ -67,7 +54,6 @@ export default class OCPIEndpoint extends TenantHolder {
     this._model.version = version;
   }
 
-  // background job flag
   setBackgroundPatchJobFlag(active) {
     this._model.backgroundPatchJob = active;
   }
@@ -92,9 +78,6 @@ export default class OCPIEndpoint extends TenantHolder {
     return this._model.lastPatchJobResult;
   }
 
-  /**
-   * manage endpoint status
-   */
   getStatus() {
     return this._model.status;
   }
@@ -103,10 +86,6 @@ export default class OCPIEndpoint extends TenantHolder {
     this._model.status = status;
   }
 
-  /**
-   * available endpoints - store payload information as return by version url: eg: /ocpi/emsp/2.1.1
-   * The payload should be converted using OCPIMapping.convertEndpoints
-   */
   setAvailableEndpoints(availableEndpoints) {
     this._model.availableEndpoints = availableEndpoints;
   }
@@ -121,9 +100,6 @@ export default class OCPIEndpoint extends TenantHolder {
     }
   }
 
-  /**
-   * localToken - token sent to eMSP/IOP to access this system
-   */
   getLocalToken() {
     return this._model.localToken;
   }
@@ -132,35 +108,24 @@ export default class OCPIEndpoint extends TenantHolder {
     this._model.localToken = token;
   }
 
-  // generate token based on tenant information.
   async generateLocalToken() {
     const newToken: any = {};
-
-    // get tenant
+    // Get tenant
     const tenant = await this.getTenant();
-
-    // generate random
+    // Generate random
     newToken.ak = Math.floor(Math.random() * 100);
-
-    // fill new Token with tenant subdmain
+    // Fill new Token with tenant subdmain
     newToken.tid = tenant.getSubdomain();
-
-    // generate random
+    // Generate random
     newToken.zk = Math.floor(Math.random() * 100);
-
     // Base64 encoding
     const localToken = OCPIUtils.btoa(JSON.stringify(newToken));
-
-    // set local token
+    // Set local token
     this.setLocalToken(localToken);
-
     // return
     return localToken;
   }
 
-  /**
-   * Business Details as provided by credential object
-   */
   getBusinessDetails() {
     return this._model.businessDetails;
   }
@@ -169,9 +134,6 @@ export default class OCPIEndpoint extends TenantHolder {
     return this._model.businessDetails = businessDetails;
   }
 
-  /**
-   * token - token use to access remote system eMSP/IOP
-   */
   getToken() {
     return this._model.token;
   }
@@ -261,13 +223,10 @@ export default class OCPIEndpoint extends TenantHolder {
     return OCPIEndpointStorage.getOcpiEndpoints(tenantID, params, limit, skip, sort);
   }
 
-  // Get ocpiendpoints with token
   static async getOcpiEndpointWithToken(tenantID, token) {
     return OCPIEndpointStorage.getOcpiEndpointWithToken(tenantID, token);
   }
 
-  // get Default Ocpi Endpoint
-  // currently only one endpoint could be defined by tenant - but the scope may change keep it open
   static async getDefaultOcpiEndpoint(tenantID) {
     // check if default endpoint exist
     let ocpiendpoint = await OCPIEndpointStorage.getDefaultOcpiEndpoint(tenantID);

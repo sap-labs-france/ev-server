@@ -7,7 +7,7 @@ import User from './User';
 export default class Vehicle extends TenantHolder {
   private _model: any = {};
 
-  constructor(tenantID, vehicle) {
+  constructor(tenantID: any, vehicle: any) {
     super(tenantID);
     Database.updateVehicle(vehicle, this._model);
   }

@@ -14,7 +14,7 @@ import SiteStorage from '../storage/mongodb/SiteStorage';
 export default class User extends TenantHolder {
   private _model: any = {};
 
-  constructor(tenantID, user) {
+  constructor(tenantID: any, user: any) {
     super(tenantID);
     Database.updateUser(user, this._model);
   }
@@ -297,11 +297,9 @@ export default class User extends TenantHolder {
   }
 
   async getSites() {
-    // Get Sites
     const sites = await SiteStorage.getSites(this.getTenantID(), {
       'userID': this.getID()
     });
-    // Return the array
     return sites.result;
   }
 
@@ -314,14 +312,9 @@ export default class User extends TenantHolder {
   }
 
   async delete() {
-    // Check if the user has a transaction
     const transactions = await this.getTransactions();
-    // Check
     if (transactions.count > 0) {
-      // Delete logically
-      // Set deleted
       this.setDeleted(true);
-      // Anonymize user
       this.setStatus(Constants.USER_STATUS_DELETED);
       this.setName(Constants.ANONIMIZED_VALUE);
       this.setFirstName(Constants.ANONIMIZED_VALUE);
@@ -488,9 +481,7 @@ export default class User extends TenantHolder {
     }
   }
 
-  // Check email
   static isUserEmailValid(email) {
-    // eslint-disable-next-line no-useless-escape
     return /^(([^<>()\[\]\\.,;:\s@']+(\.[^<>()\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email);
   }
 
@@ -584,14 +575,11 @@ export default class User extends TenantHolder {
     return password;
   }
 
-  // Check password
   static isPasswordValid(password) {
-    // Check
     // eslint-disable-next-line no-useless-escape
     return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
   }
 
-  // Hash password (old version kept for compatibility reason)
   static hashPassword(password) {
     return crypto.createHash('sha256').update(password).digest('hex');
   }

@@ -3,8 +3,8 @@ import JsonRestChargingStationClient from "./json/JsonRestChargingStationClient"
 import SoapChargingStationClient from "./soap/SoapChargingStationClient";
 import BackendError from "../../exception/BackendError";
 import TSGlobal from '../../types/GlobalType';
-declare var global: TSGlobal;
 
+declare var global: TSGlobal;
 
 const buildChargingStationClient = async function (chargingStation) {
   let chargingClient = null;

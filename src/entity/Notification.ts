@@ -7,8 +7,7 @@ import NotificationStorage from '../storage/mongodb/NotificationStorage';
 export default class Notification extends TenantHolder {
   private _model: any = {};
 
-  //TODO: maybe convert tenantID from string to ObjectId at the earliest possible point instead of doing it in TenantStorage
-  public constructor(tenantID: string, notification: any) {
+  public constructor(tenantID: any, notification: any) {
     super(tenantID);
     Database.updateNotification(notification, this._model);
   }

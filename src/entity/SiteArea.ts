@@ -10,7 +10,7 @@ import User from './User';
 export default class SiteArea extends TenantHolder {
   private _model: any = {};
 
-  constructor(tenantID, siteArea) {
+  constructor(tenantID: any, siteArea: any) {
     super(tenantID);
     Database.updateSiteArea(siteArea, this._model);
   }
@@ -181,16 +181,8 @@ export default class SiteArea extends TenantHolder {
     return this._model.image;
   }
 
-  /**
-   *
-   * @param withCompany
-   * @param withUser
-   * @returns {Promise<Site>}
-   */
   async getSite() {
-    // Get from DB
     const site = await SiteStorage.getSite(this.getTenantID(), this._model.siteID);
-    // Keep it
     this.setSite(site);
     return site;
   }
@@ -221,10 +213,8 @@ export default class SiteArea extends TenantHolder {
   }
 
   async getChargingStations() {
-    // Get from DB
     const chargingStations = await ChargingStationStorage.getChargingStations(this.getTenantID(),
       { siteAreaID: this.getID() }, Constants.NO_LIMIT);
-    // Keep it
     this.setChargingStations(chargingStations.result);
     return chargingStations.result;
   }

@@ -12,7 +12,7 @@ import ChargingStation from './ChargingStation';
 export default class Transaction extends TenantHolder {
   private _model: any = {};
 
-  constructor(tenantID, transaction) {
+  constructor(tenantID: any, transaction: any) {
     super(tenantID);
     Database.updateTransaction(transaction, this._model);
   }
@@ -209,9 +209,7 @@ export default class Transaction extends TenantHolder {
     if (this._model.user) {
       return new User(this.getTenantID(), this._model.user);
     } else if (this._model.userID) {
-      // Get from DB
       const user = await UserStorage.getUser(this.getTenantID(), this._model.userID);
-      // Keep it
       this.setUser(user);
       return user;
     }
@@ -269,9 +267,7 @@ export default class Transaction extends TenantHolder {
       if (this._model.stop.user) {
         return new User(this.getTenantID(), this._model.stop.user);
       } else if (this._model.stop.userID) {
-        // Get from DB
         const user = await UserStorage.getUser(this.getTenantID(), this._model.stop.userID);
-        // Keep it
         this.setStopUser(user);
         return user;
       }
@@ -301,11 +297,8 @@ export default class Transaction extends TenantHolder {
     if (this._model.chargeBox) {
       return new ChargingStation(this.getTenantID(), this._model.chargeBox);
     } else if (this._model.chargeBoxID) {
-      // Get from DB
       const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenantID(), this._model.chargeBoxID);
-      // Keep it
       this.setChargingStation(chargingStation);
-      // Return
       return chargingStation;
     }
   }
@@ -373,7 +366,6 @@ export default class Transaction extends TenantHolder {
   }
 
   getMeterValues() {
-    // Get Meter Values
     return OCPPStorage.getMeterValues(this.getTenantID(), this.getID());
   }
 

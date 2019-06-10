@@ -4,7 +4,7 @@ import TenantHolder from './TenantHolder';
 export default class Consumption extends TenantHolder {
   private _model: any = {};
 
-  constructor(tenantID, consumptionModel) {
+  constructor(tenantID: any, consumptionModel: any) {
     super(tenantID);
     if (consumptionModel) {
       Database.updateConsumption(consumptionModel, this._model);

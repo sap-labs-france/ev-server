@@ -2,44 +2,28 @@ import Database from '../utils/Database';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import User from './User';
 import Setting from '../entity/Setting';
-//import TenantComponents from './TenantComponents';
 
 export default class Tenant {
-
-  /*private name: string;
-	private subdomain: string;
-	private email: string;
-	private components: TenantComponents[];*/
   private _model: any = {};
 
-  constructor(/*name: string, subdomain: string, email: string, comps: Array<TenantComponents>*/ tenant: any) {
+  constructor(tenant: any) {
     this._model = tenant;
-    //this.name = name;
-    //this.subdomain = subdomain;
-    //this.email = email;
-    //this.components = comps;
-
-    // Set it TODO wtf is this
     Database.updateTenant(tenant, this._model);
   }
 
   public static getTenant(id: any): Promise<Tenant|null> {
-    // Get Tenant
     return TenantStorage.getTenant(id);
   }
 
   public static getTenantByName(name: string): Promise<Tenant|null> {
-    // Get Tenant
     return TenantStorage.getTenantByName(name);
   }
 
   static getTenantBySubdomain(subdomain: string): Promise<Tenant|null> {
-    // Get Tenant
     return TenantStorage.getTenantBySubdomain(subdomain);
   }
 
   static getTenants(params = {}, limit?: number, skip?: number, sort?: boolean): Promise<{count: number; result: Tenant[]}> {
-    // Get Tenants
     return TenantStorage.getTenants(params, limit, skip, sort);
   }
 
@@ -83,7 +67,6 @@ export default class Tenant {
     if (!this._model.components[identifier]) {
       this._model.components[identifier] = {};
     }
-
     this._model.components[identifier].active = true;
   }
 
@@ -91,7 +74,6 @@ export default class Tenant {
     if (!this._model.components[identifier]) {
       this._model.components[identifier] = {};
     }
-
     this._model.components[identifier].active = false;
   }
 

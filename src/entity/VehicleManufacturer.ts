@@ -10,7 +10,7 @@ import VehicleStorage from '../storage/mongodb/VehicleStorage';
 export default class VehicleManufacturer extends TenantHolder {
   private _model: any = {};
 
-  constructor(tenantID, vehicleManufacturer) {
+  constructor(tenantID: any, vehicleManufacturer: any) {
     super(tenantID);
     Database.updateVehicleManufacturer(vehicleManufacturer, this._model);
   }
@@ -81,11 +81,8 @@ export default class VehicleManufacturer extends TenantHolder {
     if (this._model.vehicles) {
       return this._model.vehicles.map((vehicle) => new Vehicle(this.getTenantID(), vehicle));
     } else {
-      // Get from DB
       const vehicles = await VehicleStorage.getVehicles(this.getTenantID(), { 'vehicleManufacturerID': this.getID() });
-      // Keep it
       this.setVehicles(vehicles.result);
-      // Return
       return vehicles.result;
     }
   }

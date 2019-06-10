@@ -3,6 +3,7 @@ import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 
 const MODULE_NAME = "WSClient";
+
 export default class WSClient {
   private url: any;
   private options: any;
@@ -16,18 +17,6 @@ export default class WSClient {
   public onreconnect: any;
   public onmaximum: any;
 
-  /**
-   * Create a new `WSClient`.
-   *
-   * @param {String|url.URL} url
-   * @param {Object} options
-   * @param {String|String[]} options.protocols
-   * @param {Number} options.autoReconnectTimeout must be an integer
-   * @param {Number} options.autoReconnectMaxRetries must be an integer
-   * @param {String} options.logTenantID
-   * @param {Object} options.WSOptions
-   * @param {Boolean} dbLogging
-   */
   public constructor(url, options, dbLogging = true) {
     this.url = url;
     this.options = options || {};
@@ -64,11 +53,6 @@ export default class WSClient {
     this.autoReconnectRetryCount = 0;
   }
 
-  /**
-   * Reinstantiate callbacks.
-   *
-   * @private
-   */
   private reinstantiateCbs() {
     ['onopen', 'onerror', 'onclose', 'onmessage'].forEach((method) => {
       if ('' + this.callbacks[method] !== '' + (() => { }))
@@ -137,11 +121,6 @@ export default class WSClient {
     }
   }
 
-  /**
-   * Open the web socket.
-   *
-   * @public
-   */
   public open() {
     this.ws = new WebSocket(this.url, this.options.protocols || [], this.options.WSOptions || {});
     // Handle Socket open
@@ -154,12 +133,6 @@ export default class WSClient {
     this.reinstantiateCbs();
   }
 
-  /**
-   * Reconnect the web socket.
-   *
-   * @param {Error} error
-   * @public
-   */
   public reconnect(error?) {
     if (this.autoReconnectTimeout !== Constants.WS_RECONNECT_DISABLED &&
       (this.autoReconnectRetryCount < this.autoReconnectMaxRetries || this.autoReconnectMaxRetries === Constants.WS_RECONNECT_UNLIMITED)) {

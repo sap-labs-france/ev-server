@@ -135,9 +135,7 @@ export default class Site extends TenantHolder {
   }
 
   async getCompany() {
-    // Get from DB
     const company = await CompanyStorage.getCompany(this.getTenantID(), this._model.companyID);
-    // Keep it
     this.setCompany(company);
     return company;
   }
@@ -156,9 +154,7 @@ export default class Site extends TenantHolder {
   }
 
   async getSiteAreas() {
-    // Get from DB
     const siteAreas = await SiteAreaStorage.getSiteAreas(this.getTenantID(), { 'siteID': this.getID() });
-    // Keep it
     this.setSiteAreas(siteAreas.result);
     return siteAreas.result;
   }
@@ -171,31 +167,24 @@ export default class Site extends TenantHolder {
     if (this._model.users) {
       return this._model.users.map((user) => new User(this.getTenantID(), user));
     } else {
-      // Get from DB
       const users = await UserStorage.getUsers(this.getTenantID(), { 'siteID': this.getID() });
-      // Keep it
       this.setUsers(users.result);
       return users.result;
     }
   }
 
   async getUser(userID) {
-    // Get from DB
     const users = await UserStorage.getUsers(this.getTenantID(), { 'siteID': this.getID(), 'userID': userID });
-    // Check
     if (users.count > 0) {
       return users.result[0];
     }
-    // None
     return null;
   }
 
   removeUser(user) {
     if (this._model.users) {
-      // Search
       for (let i = 0; i < this._model.users.length; i++) {
         if (this._model.users[i].id === user.getID()) {
-          // Remove
           this._model.users.splice(i, 1);
           break;
         }
