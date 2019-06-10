@@ -3,8 +3,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import hpp from 'hpp';
 import bodyParser from "body-parser";
-import bodyparserxml from 'body-parser-xml';
-bodyparserxml(bodyParser);
+import bodyParserXml from 'body-parser-xml';
+bodyParserXml(bodyParser);
 import locale from 'locale';
 import http from 'http';
 import https from 'https';
@@ -31,6 +31,9 @@ export default {
       limit: bodyLimit
     }));
     app.use(hpp());
+    app.use(bodyParser['xml']({
+      limit: bodyLimit
+    }));
     // Use
     app.use(locale(Configuration.getLocalesConfig().supported));
     // Check Cloud Foundry
