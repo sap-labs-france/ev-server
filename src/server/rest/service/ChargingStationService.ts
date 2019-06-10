@@ -9,8 +9,8 @@ import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import ChargingStation from '../../../entity/ChargingStation';
 import SiteArea from '../../../entity/SiteArea';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import fs from "fs";
+import Tenant from '../../../entity/Tenant';
+const fs = require("fs");
 export default class ChargingStationService {
   static async handleAddChargingStationsToSiteArea(action, req, res, next) {
     try {
@@ -422,7 +422,7 @@ export default class ChargingStationService {
           'ChargingStationService', 'handleGetChargingStation', req.user);
       }
       // Return
-      const tenant = await TenantStorage.getTenant(chargingStation.getTenantID());
+      const tenant = await chargingStation.getTenant();//await TenantStorage.getTenant(chargingStation.getTenantID());
       res.json(
         // Filter
         
@@ -462,13 +462,14 @@ export default class ChargingStationService {
           'includeDeleted': filteredRequest.IncludeDeleted,
           'onlyRecordCount': filteredRequest.OnlyRecordCount
         },
-        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
-      // Get the organization component
+        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort
+      );
+      // Build the result
       if (chargingStations.result && chargingStations.result.length > 0) {
-        // Get the org
-        const tenant = await TenantStorage.getTenant(chargingStations.result[0].getTenantID());
+        // Get the Tenant
+        const tenant: Tenant = await chargingStations.result[0].getTenant();
         const organizationIsActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
-        // Set
+        // Convert to JSon
         chargingStations.result = chargingStations.result.map((chargingStation) => chargingStation.getModel());
         // Filter
         ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user, organizationIsActive);
@@ -508,17 +509,18 @@ export default class ChargingStationService {
           'siteAreaID': filteredRequest.SiteAreaID,
           'onlyRecordCount': filteredRequest.OnlyRecordCount
         },
-        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
-      // Get the organization component
-      let organizationIsActive;
+        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort
+      );
+      // Build the result
       if (chargingStations.result && chargingStations.result.length > 0) {
-        const tenant = await TenantStorage.getTenant(chargingStations.result[0].getTenantID());
-        organizationIsActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+        // Get the Tenant
+        const tenant: Tenant = await chargingStations.result[0].getTenant();
+        const organizationIsActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+        // Set
+        chargingStations.result = chargingStations.result.map((chargingStation) => chargingStation.getModel());
+        // Filter
+        ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user, organizationIsActive);
       }
-      // Set
-      chargingStations.result = chargingStations.result.map((chargingStation) => chargingStation.getModel());
-      // Filter
-      ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user, organizationIsActive);
 
       const filename = "chargingStations_export.csv";
       fs.writeFile(filename, this.convertToCSV(chargingStations.result), (err) => {
@@ -568,17 +570,18 @@ export default class ChargingStationService {
           'errorType': filteredRequest.ErrorType,
           'onlyRecordCount': filteredRequest.OnlyRecordCount
         },
-        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
-      // Get the organization component
-      let organizationIsActive;
+        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort
+      );
+      // Build the result
       if (chargingStations.result && chargingStations.result.length > 0) {
-        const tenant = await TenantStorage.getTenant(chargingStations.result[0].getTenantID());
-        organizationIsActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+        // Get the Tenant
+        const tenant: Tenant = await chargingStations.result[0].getTenant();
+        const organizationIsActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+        // Set
+        chargingStations.result = chargingStations.result.map((chargingStation) => chargingStation.getModel());
+        // Filter
+        ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user, organizationIsActive);
       }
-      // Set
-      chargingStations.result = chargingStations.result.map((chargingStation) => chargingStation.getModel());
-      // Filter
-      ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user, organizationIsActive);
       // Return
       res.json(chargingStations);
       next();

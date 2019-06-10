@@ -10,11 +10,11 @@ declare var global: TSGlobal;
 
 export default class JsonCentralSystemServer extends CentralSystemServer {
 
-	private _serverName: any;
-	private _MODULE_NAME: any;
-	private jsonChargingStationClients: any;
-	private jsonRestClients: any;
-	private wsServer: any;
+  private _serverName: any;
+  private _MODULE_NAME: any;
+  private jsonChargingStationClients: any;
+  private jsonRestClients: any;
+  private wsServer: any;
 
   constructor(centralSystemConfig, chargingStationConfig) {
     // Call parent

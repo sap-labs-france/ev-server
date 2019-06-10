@@ -3,9 +3,8 @@ import Authorizations from '../../../../authorization/Authorizations';
 import UtilsSecurity from './UtilsSecurity';
 
 export default class ConnectorSecurity {
-
   static filterConnectionDeleteRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.userId = sanitize(request.userId);
     filteredRequest.connectorId = sanitize(request.connectorId);
@@ -13,13 +12,13 @@ export default class ConnectorSecurity {
   }
 
   static filterConnectionRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
   }
 
   static filterConnectionsRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.userId = sanitize(request.userId);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
@@ -37,7 +36,7 @@ export default class ConnectorSecurity {
   }
 
   static _filterConnectionRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.connectorId = sanitize(request.connectorId);
     filteredRequest.settingId = sanitize(request.settingId);
     filteredRequest.userId = sanitize(request.userId);

@@ -20,9 +20,9 @@ const DEFAULT_CONSUMPTION_ATTRIBUTE = {
   context: 'Sample.Periodic'
 };
 export default class CreateConsumptionsTask extends MigrationTask {
-	public totalCount: any;
-	public done: any;
-	public startTime: any;
+  public totalCount: any;
+  public done: any;
+  public startTime: any;
 
   async migrate() {
     const tenants = await Tenant.getTenants();
@@ -186,7 +186,7 @@ export default class CreateConsumptionsTask extends MigrationTask {
   async insertMany(tenantID, consumptions) {
     // Transfer
     const consumptionsMDB = consumptions.map(consumption => {
-      const consumptionMDB:any = {};
+      const consumptionMDB: any = {};
       // Update
       Database.updateConsumption(consumption, consumptionMDB, false);
       // Return

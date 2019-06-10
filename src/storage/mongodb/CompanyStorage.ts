@@ -102,7 +102,7 @@ export default class CompanyStorage {
         `Company has no ID and no Name`,
         "CompanyStorage", "saveCompany");
     }
-    const companyFilter:any = {};
+    const companyFilter: any = {};
     // Build Request
     if (companyToSave.id) {
       companyFilter._id = Utils.convertToObjectID(companyToSave.id);
@@ -113,7 +113,7 @@ export default class CompanyStorage {
     companyToSave.createdBy = Utils.convertUserToObjectID(companyToSave.createdBy);
     companyToSave.lastChangedBy = Utils.convertUserToObjectID(companyToSave.lastChangedBy);
     // Transfer
-    const company:any = {};
+    const company: any = {};
     Database.updateCompany(companyToSave, company, false);
     // Modify
     const result = await global.database.getCollection(tenantID, 'companies').findOneAndUpdate(
@@ -158,7 +158,7 @@ export default class CompanyStorage {
     // Check Skip
     skip = Utils.checkRecordSkip(skip);
     // Set the filters
-    const filters:any = {};
+    const filters: any = {};
     // Source?
     if (params.search) {
       // Build filter

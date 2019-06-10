@@ -7,4 +7,4 @@ export default class ConflictError extends Error {
   {
     super(message);
   }
-};
+}

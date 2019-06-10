@@ -43,14 +43,6 @@ export default abstract class ChargingStationClient {
   updateFirmware(params) {
   }
 
-  /**
-   * Default handling of OCPP command. It can be refine with some special methods in case of needs
-   *
-   * @param {*} commandName: OCPP command name
-   * @param {*} params: OCPP parameters for the command
-   * @returns
-   * @memberof ChargingStationClient
-   */
   sendCommand(commandName, params) {
     try {
       // Handle Requests

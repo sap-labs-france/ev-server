@@ -13,7 +13,7 @@ export interface StatisticsRequest {
 export default class StatisticSecurity {
   // eslint-disable-next-line no-unused-vars
   static filterUserStatisticsRequest(request: StatisticsRequest, loggedUser?: any): StatisticsRequest {
-    if(!request.Year || !request.SiteID){
+    if(!request.Year || !request.SiteID) {
       //TODO: Potentially throw error or return specific result
     }
     return {
@@ -27,7 +27,7 @@ export default class StatisticSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterChargingStationStatisticsRequest(request: StatisticsRequest, loggedUser?: any): StatisticsRequest {
-    if(!request.Year || !request.SiteID){
+    if(!request.Year || !request.SiteID) {
       //TODO: Potentially throw error or return specific result
     }
     return {

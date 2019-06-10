@@ -1,7 +1,7 @@
 import Database from '../utils/Database';
 import TenantHolder from '../entity/TenantHolder';
 export default class Connection extends TenantHolder {
-	private model: any;
+  private model: any;
 
   constructor(tenantID, connection) {
     super(tenantID);

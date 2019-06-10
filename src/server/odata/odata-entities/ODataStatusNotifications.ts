@@ -1,10 +1,10 @@
 
 import AbstractODataEntities from './AbstractODataEntities';
 export default class ODataStatusNotifications extends AbstractODataEntities {
-	public buildParams: any;
-	public returnResponse: any;
-	public convertTimestamp: any;
-	public buildDateObject: any;
+  public buildParams: any;
+  public returnResponse: any;
+  public convertTimestamp: any;
+  public buildDateObject: any;
 
   static getObjectKey(statusNotification) {
     return statusNotification._id;

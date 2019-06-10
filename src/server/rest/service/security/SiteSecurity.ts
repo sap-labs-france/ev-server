@@ -6,10 +6,9 @@ import SiteAreaSecurity from './SiteAreaSecurity';
 import UserSecurity from './UserSecurity';
 
 export default class SiteSecurity {
-
   // eslint-disable-next-line no-unused-vars
   static filterAddUsersToSiteRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.siteID = sanitize(request.siteID);
     if (request.userIDs) {
@@ -20,7 +19,7 @@ export default class SiteSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterRemoveUsersFromSiteRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.siteID = sanitize(request.siteID);
     if (request.userIDs) {
@@ -31,7 +30,7 @@ export default class SiteSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterSiteDeleteRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
@@ -39,14 +38,14 @@ export default class SiteSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterSiteRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
   }
 
   // eslint-disable-next-line no-unused-vars
   static filterSitesRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.UserID = sanitize(request.UserID);
     filteredRequest.CompanyID = sanitize(request.CompanyID);
@@ -70,7 +69,7 @@ export default class SiteSecurity {
   }
 
   static _filterSiteRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.name = sanitize(request.name);
     filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address, loggedUser);
     filteredRequest.image = sanitize(request.image);

@@ -88,7 +88,7 @@ export default class UpdateTransactionSoCTask extends MigrationTask {
         // Set the End SoC
         foundTransaction.stop.stateOfCharge = meterValueMDB.value;
       }
-      const transaction:any = {};
+      const transaction: any = {};
       // Update
       Database.updateTransaction(foundTransaction, transaction, false);
       // Save it

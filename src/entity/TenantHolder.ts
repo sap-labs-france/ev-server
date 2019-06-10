@@ -2,12 +2,10 @@ import TenantStorage from '../storage/mongodb/TenantStorage';
 import Tenant from './Tenant';
 import BackendError from '../exception/BackendError';
 
-export default abstract class TenantHolder { //TODO: Renamed from AbstractTenantEntity to TenantEntity, see where affected
-
-  private tenant: Tenant|null;
+export default abstract class TenantHolder {
+  private tenant: Tenant;
 
   public constructor(readonly tenantID: string, lazyLoadTenant: boolean = true) {
-    this.tenant = null;
     if(! lazyLoadTenant) {
       this.getTenant();
     }
@@ -26,5 +24,4 @@ export default abstract class TenantHolder { //TODO: Renamed from AbstractTenant
     }
     return this.tenant;
   }
-
 }

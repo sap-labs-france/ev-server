@@ -11,7 +11,7 @@ export default abstract class NotificationTask {
   abstract sendRequestPassword(data: any, locale: string, tenantID: string): NotificationResult;
   abstract sendNewPassword(data: any, locale: string, tenantID: string): NotificationResult;
   abstract sendEndOfCharge(data: any, locale: string, tenantID: string): NotificationResult;
-  abstract sendEndOfSession(data: any, locale: string, tenantID: string): NotificationResult
+  abstract sendEndOfSession(data: any, locale: string, tenantID: string): NotificationResult;
   abstract sendChargingStationStatusError(data: any, locale: string, tenantID: string): NotificationResult;
   abstract sendUnknownUserBadged(data: any, locale: string, tenantID: string): NotificationResult;
   abstract sendTransactionStarted(data: any, locale: string, tenantID: string): NotificationResult;

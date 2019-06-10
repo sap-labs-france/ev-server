@@ -8,13 +8,13 @@ import Constants from '../../../utils/Constants';
 
 const MODULE_NAME = "WSServer";
 export default class WSServer extends WebSocket.Server {
-	private httpServer: any;
-	private serverName: any;
-	private serverConfig: any;
-	private keepAliveIntervalValue: any;
-	public on: any;
-	private keepAliveInterval: any;
-	public clients: any;
+  private httpServer: any;
+  private serverName: any;
+  private serverConfig: any;
+  private keepAliveIntervalValue: any;
+  public on: any;
+  private keepAliveInterval: any;
+  public clients: any;
 
   /**
    * Create a new `WSServer`.
@@ -57,7 +57,7 @@ export default class WSServer extends WebSocket.Server {
     // Secured protocol?
     if (serverConfig.protocol === "wss") {
       // Create the options
-      const options:any = {};
+      const options: any = {};
       // Set the keys
       options.key = fs.readFileSync(serverConfig["ssl-key"]);
       options.cert = fs.readFileSync(serverConfig["ssl-cert"]);

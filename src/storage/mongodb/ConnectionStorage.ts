@@ -11,7 +11,7 @@ export default class ConnectionStorage {
   static async saveConnection(tenantID, connectionToSave) {
     const uniqueTimerID = Logging.traceStart('ConnectionStorage', 'saveConnection');
     await Utils.checkTenant(tenantID);
-    const connection:any = {};
+    const connection: any = {};
     Database.updateConnection(connectionToSave, connection, false);
     const connectionFilter = {
       connectorId: connectionToSave.connectorId,

@@ -5,17 +5,15 @@ import AppError from '../exception/AppError';
 import VehicleStorage from '../storage/mongodb/VehicleStorage';
 import User from './User';
 export default class Vehicle extends TenantHolder {
+  private _model: any = {};
 
-  private model: any = {};
-
-  constructor(tenantID, vehicle) {
+  constructor(tenantID: any, vehicle: any) {
     super(tenantID);
-    // Set it
-    Database.updateVehicle(vehicle, this.model);
+    Database.updateVehicle(vehicle, this._model);
   }
 
   public getModel(): any {
-    return this.model;
+    return this._model;
   }
 
   getName() {
@@ -23,165 +21,165 @@ export default class Vehicle extends TenantHolder {
   }
 
   getID() {
-    return this.model.id;
+    return this._model.id;
   }
 
   getType() {
-    return this.model.type;
+    return this._model.type;
   }
 
   setType(type) {
-    this.model.type = type;
+    this._model.type = type;
   }
 
   getManufacturer() {
-    return this.model.manufacturer;
+    return this._model.manufacturer;
   }
 
   setManufacturer(manufacturer) {
-    this.model.manufacturer = manufacturer;
+    this._model.manufacturer = manufacturer;
   }
 
   getBatteryKW() {
-    return this.model.batteryKW;
+    return this._model.batteryKW;
   }
 
   setBatteryKW(batteryKW) {
-    this.model.batteryKW = batteryKW;
+    this._model.batteryKW = batteryKW;
   }
 
   getAutonomyKmWLTP() {
-    return this.model.autonomyKmWLTP;
+    return this._model.autonomyKmWLTP;
   }
 
   setAutonomyKmWLTP(autonomyKmWLTP) {
-    this.model.autonomyKmWLTP = autonomyKmWLTP;
+    this._model.autonomyKmWLTP = autonomyKmWLTP;
   }
 
   setAutonomyKmReal(autonomyKmReal) {
-    this.model.autonomyKmReal = autonomyKmReal;
+    this._model.autonomyKmReal = autonomyKmReal;
   }
 
   getAutonomyKmReal() {
-    return this.model.autonomyKmReal;
+    return this._model.autonomyKmReal;
   }
 
   setHorsePower(horsePower) {
-    this.model.horsePower = horsePower;
+    this._model.horsePower = horsePower;
   }
 
   getHorsePower() {
-    return this.model.horsePower;
+    return this._model.horsePower;
   }
 
   setTorqueNm(torqueNm) {
-    this.model.torqueNm = torqueNm;
+    this._model.torqueNm = torqueNm;
   }
 
   getTorqueNm() {
-    return this.model.torqueNm;
+    return this._model.torqueNm;
   }
 
   setPerformance0To100kmh(performance0To100kmh) {
-    this.model.performance0To100kmh = performance0To100kmh;
+    this._model.performance0To100kmh = performance0To100kmh;
   }
 
   getPerformance0To100kmh() {
-    return this.model.performance0To100kmh;
+    return this._model.performance0To100kmh;
   }
 
   setWeightKg(weightKg) {
-    this.model.weightKg = weightKg;
+    this._model.weightKg = weightKg;
   }
 
   getWeightKg() {
-    return this.model.weightKg;
+    return this._model.weightKg;
   }
 
   setLengthMeter(lengthMeter) {
-    this.model.lengthMeter = lengthMeter;
+    this._model.lengthMeter = lengthMeter;
   }
 
   getLengthMeter() {
-    return this.model.lengthMeter;
+    return this._model.lengthMeter;
   }
 
   setWidthMeter(widthMeter) {
-    this.model.widthMeter = widthMeter;
+    this._model.widthMeter = widthMeter;
   }
 
   getWidthMeter() {
-    return this.model.widthMeter;
+    return this._model.widthMeter;
   }
 
   setHeightMeter(heightMeter) {
-    this.model.heightMeter = heightMeter;
+    this._model.heightMeter = heightMeter;
   }
 
   getHeightMeter() {
-    return this.model.heightMeter;
+    return this._model.heightMeter;
   }
 
   setVehicleModel(model) {
-    this.model.model = model;
+    this._model.model = model;
   }
 
   getVehicleModel() {
-    return this.model.model;
+    return this._model.model;
   }
 
   setImages(images) {
-    this.model.images = images;
+    this._model.images = images;
   }
 
   getImages() {
-    return this.model.images;
+    return this._model.images;
   }
 
   getLogo() {
-    return this.model.logo;
+    return this._model.logo;
   }
 
   setLogo(logo) {
-    this.model.logo = logo;
+    this._model.logo = logo;
   }
 
   getCreatedBy() {
-    if (this.model.createdBy) {
-      return new User(this.getTenantID(), this.model.createdBy);
+    if (this._model.createdBy) {
+      return new User(this.getTenantID(), this._model.createdBy);
     }
     return null;
   }
 
   setCreatedBy(user) {
-    this.model.createdBy = user.getModel();
+    this._model.createdBy = user.getModel();
   }
 
   getCreatedOn() {
-    return this.model.createdOn;
+    return this._model.createdOn;
   }
 
   setCreatedOn(createdOn) {
-    this.model.createdOn = createdOn;
+    this._model.createdOn = createdOn;
   }
 
   getLastChangedBy() {
-    if (this.model.lastChangedBy) {
-      return new User(this.getTenantID(), this.model.lastChangedBy);
+    if (this._model.lastChangedBy) {
+      return new User(this.getTenantID(), this._model.lastChangedBy);
     }
     return null;
   }
 
   setLastChangedBy(user) {
-    this.model.lastChangedBy = user.getModel();
+    this._model.lastChangedBy = user.getModel();
   }
 
   getLastChangedOn() {
-    return this.model.lastChangedOn;
+    return this._model.lastChangedOn;
   }
 
   setLastChangedOn(lastChangedOn) {
-    this.model.lastChangedOn = lastChangedOn;
+    this._model.lastChangedOn = lastChangedOn;
   }
 
   save() {

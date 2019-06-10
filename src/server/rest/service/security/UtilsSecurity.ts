@@ -104,7 +104,7 @@ export default class UtilsSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterAddressRequest(address, loggedUser) {
-    const filteredAddress:any = {};
+    const filteredAddress: any = {};
     if (address) {
       filteredAddress.address1 = sanitize(address.address1);
       filteredAddress.address2 = sanitize(address.address2);

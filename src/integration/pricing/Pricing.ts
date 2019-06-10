@@ -1,12 +1,12 @@
 import Transaction from '../../entity/Transaction';
 import Consumption from '../../entity/Consumption';
 
-export abstract class PricingSettings {};
+export abstract class PricingSettings {}
 
 export class ConvergentChargingPricingSettings {
-  constructor(readonly url: string, readonly chargeableItemName: string, readonly user: string, readonly password: string){
+  constructor(readonly url: string, readonly chargeableItemName: string, readonly user: string, readonly password: string) {
   }
-};
+}
 
 export class PricedConsumption {
   constructor(
@@ -14,9 +14,9 @@ export class PricedConsumption {
     readonly cumulatedAmount: number,
     readonly roundedAmount: number,
     readonly currencyCode: string,
-    readonly pricingSource: string){}
+    readonly pricingSource: string) {}
 
-};
+}
 
 export default abstract class Pricing {
 

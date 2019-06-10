@@ -7,7 +7,7 @@ export default class ChargingStationSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterAddChargingStationsToSiteAreaRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.siteAreaID = sanitize(request.siteAreaID);
     if (request.chargingStationIDs) {
@@ -18,7 +18,7 @@ export default class ChargingStationSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterRemoveChargingStationsFromSiteAreaRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.siteAreaID = sanitize(request.siteAreaID);
     if (request.chargingStationIDs) {
@@ -131,7 +131,7 @@ export default class ChargingStationSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterChargingStationDeleteRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
@@ -139,7 +139,7 @@ export default class ChargingStationSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterChargingStationConfigurationRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
     return filteredRequest;
@@ -147,14 +147,14 @@ export default class ChargingStationSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterChargingStationRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
   }
 
   // eslint-disable-next-line no-unused-vars
   static filterChargingStationsRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.WithNoSiteArea = UtilsSecurity.filterBoolean(request.WithNoSiteArea);
     filteredRequest.SiteID = sanitize(request.SiteID);
@@ -169,7 +169,7 @@ export default class ChargingStationSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterChargingStationsInErrorRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.WithNoSiteArea = UtilsSecurity.filterBoolean(request.WithNoSiteArea);
     filteredRequest.SiteID = sanitize(request.SiteID);
@@ -184,7 +184,7 @@ export default class ChargingStationSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterStatusNotificationsRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
@@ -192,7 +192,7 @@ export default class ChargingStationSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterBootNotificationsRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
@@ -201,7 +201,7 @@ export default class ChargingStationSecurity {
   // eslint-disable-next-line no-unused-vars
   static filterChargingStationParamsUpdateRequest(request, loggedUser) {
     // Set
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.id = sanitize(request.id);
     if (request.hasOwnProperty('chargingStationURL')) {
       filteredRequest.chargingStationURL = sanitize(request.chargingStationURL);
@@ -244,7 +244,7 @@ export default class ChargingStationSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterChargingStationActionRequest(request, action, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Check
     filteredRequest.chargeBoxID = sanitize(request.chargeBoxID);
     // Do not check action?
@@ -254,7 +254,7 @@ export default class ChargingStationSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterChargingStationSetMaxIntensitySocketRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Check
     filteredRequest.chargeBoxID = sanitize(request.chargeBoxID);
     filteredRequest.maxIntensity =  sanitize(request.args.maxIntensity);

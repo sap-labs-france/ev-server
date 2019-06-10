@@ -16,7 +16,7 @@ require('source-map-support').install();
 // Email
 const _emailConfig = Configuration.getEmailConfig();
 export default class EMailNotificationTask extends NotificationTask {
-	public server: any;
+  public server: any;
 
   constructor() {
     super();

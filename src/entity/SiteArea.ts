@@ -8,19 +8,15 @@ import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
 import User from './User';
 
 export default class SiteArea extends TenantHolder {
+  private _model: any = {};
 
-  private model: any = {};
-
-
-  constructor(tenantID, siteArea) {
+  constructor(tenantID: any, siteArea: any) {
     super(tenantID);
-
-    // Set it
-    Database.updateSiteArea(siteArea, this.model);
+    Database.updateSiteArea(siteArea, this._model);
   }
 
   public getModel(): any {
-    return this.model;
+    return this._model;
   }
 
   static checkIfSiteAreaValid(filteredRequest, req) {
@@ -64,151 +60,143 @@ export default class SiteArea extends TenantHolder {
   }
 
   getID() {
-    return this.model.id;
+    return this._model.id;
   }
 
   setName(name) {
-    this.model.name = name;
+    this._model.name = name;
   }
 
   getName() {
-    return this.model.name;
+    return this._model.name;
   }
 
   setAvailableChargers(availableChargers) {
-    this.model.availableChargers = availableChargers;
+    this._model.availableChargers = availableChargers;
   }
 
   getAvailableChargers() {
-    return this.model.availableChargers;
+    return this._model.availableChargers;
   }
 
   setTotalChargers(totalChargers) {
-    this.model.totalChargers = totalChargers;
+    this._model.totalChargers = totalChargers;
   }
 
   getTotalChargers() {
-    return this.model.totalChargers;
+    return this._model.totalChargers;
   }
 
   setAvailableConnectors(availableConnectors) {
-    this.model.availableConnectors = availableConnectors;
+    this._model.availableConnectors = availableConnectors;
   }
 
   getAvailableConnectors() {
-    return this.model.availableConnectors;
+    return this._model.availableConnectors;
   }
 
   setTotalConnectors(totalConnectors) {
-    this.model.totalConnectors = totalConnectors;
+    this._model.totalConnectors = totalConnectors;
   }
 
   setMaximumPower(maximumPower) {
-    this.model.maximumPower = maximumPower;
+    this._model.maximumPower = maximumPower;
   }
 
   getMaximumPower() {
-    return this.model.maximumPower;
+    return this._model.maximumPower;
   }
 
   getTotalConnectors() {
-    return this.model.totalConnectors;
+    return this._model.totalConnectors;
   }
 
   setAddress(address) {
-    this.model.address = address;
+    this._model.address = address;
   }
 
   getAddress() {
-    return this.model.address;
+    return this._model.address;
   }
 
   setLatitude(latitude) {
-    this.model.latitude = latitude;
+    this._model.latitude = latitude;
   }
 
   getLatitude() {
-    return this.model.latitude;
+    return this._model.latitude;
   }
 
   setAccessControlEnabled(accessControl) {
-    this.model.accessControl = accessControl;
+    this._model.accessControl = accessControl;
   }
 
   isAccessControlEnabled() {
-    return this.model.accessControl;
+    return this._model.accessControl;
   }
 
   getCreatedBy() {
-    if (this.model.createdBy) {
-      return new User(this.getTenantID(), this.model.createdBy);
+    if (this._model.createdBy) {
+      return new User(this.getTenantID(), this._model.createdBy);
     }
     return null;
   }
 
   setCreatedBy(user) {
-    this.model.createdBy = user.getModel();
+    this._model.createdBy = user.getModel();
   }
 
   getCreatedOn() {
-    return this.model.createdOn;
+    return this._model.createdOn;
   }
 
   setCreatedOn(createdOn) {
-    this.model.createdOn = createdOn;
+    this._model.createdOn = createdOn;
   }
 
   getLastChangedBy() {
-    if (this.model.lastChangedBy) {
-      return new User(this.getTenantID(), this.model.lastChangedBy);
+    if (this._model.lastChangedBy) {
+      return new User(this.getTenantID(), this._model.lastChangedBy);
     }
     return null;
   }
 
   setLastChangedBy(user) {
-    this.model.lastChangedBy = user.getModel();
+    this._model.lastChangedBy = user.getModel();
   }
 
   getLastChangedOn() {
-    return this.model.lastChangedOn;
+    return this._model.lastChangedOn;
   }
 
   setLastChangedOn(lastChangedOn) {
-    this.model.lastChangedOn = lastChangedOn;
+    this._model.lastChangedOn = lastChangedOn;
   }
 
   setImage(image) {
-    this.model.image = image;
+    this._model.image = image;
   }
 
   getImage() {
-    return this.model.image;
+    return this._model.image;
   }
 
-  /**
-   *
-   * @param withCompany
-   * @param withUser
-   * @returns {Promise<Site>}
-   */
   async getSite() {
-    // Get from DB
-    const site = await SiteStorage.getSite(this.getTenantID(), this.model.siteID);
-    // Keep it
+    const site = await SiteStorage.getSite(this.getTenantID(), this._model.siteID);
     this.setSite(site);
     return site;
   }
 
   getSiteID() {
-    return this.model.siteID;
+    return this._model.siteID;
   }
 
   setSite(site) {
     if (site) {
-      this.model.site = site.getModel();
-      this.model.siteID = site.getID();
+      this._model.site = site.getModel();
+      this._model.siteID = site.getID();
     } else {
-      this.model.site = null;
+      this._model.site = null;
     }
   }
 
@@ -225,15 +213,13 @@ export default class SiteArea extends TenantHolder {
   }
 
   async getChargingStations() {
-    // Get from DB
     const chargingStations = await ChargingStationStorage.getChargingStations(this.getTenantID(),
       { siteAreaID: this.getID() }, Constants.NO_LIMIT);
-    // Keep it
     this.setChargingStations(chargingStations.result);
     return chargingStations.result;
   }
 
   setChargingStations(chargeBoxes) {
-    this.model.chargeBoxes = chargeBoxes.map((chargeBox) => chargeBox.getModel());
+    this._model.chargeBoxes = chargeBoxes.map((chargeBox) => chargeBox.getModel());
   }
 }

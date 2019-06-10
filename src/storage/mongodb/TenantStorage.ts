@@ -78,7 +78,7 @@ export default class TenantStorage {
         `Tenant has no ID and no Name`,
         "TenantStorage", "saveTenant");
     }
-    const tenantFilter:any = {};
+    const tenantFilter: any = {};
     // Build Request
     if (tenantToSave.id) {
       tenantFilter._id = Utils.convertToObjectID(tenantToSave.id);
@@ -89,7 +89,7 @@ export default class TenantStorage {
     tenantToSave.createdBy = Utils.convertUserToObjectID(tenantToSave.createdBy);
     tenantToSave.lastChangedBy = Utils.convertUserToObjectID(tenantToSave.lastChangedBy);
     // Transfer
-    const tenant:any = {};
+    const tenant: any = {};
     Database.updateTenant(tenantToSave, tenant, false);
     // Modify
     const result = await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants').findOneAndUpdate(
@@ -123,7 +123,7 @@ export default class TenantStorage {
     // Check Skip
     skip = Utils.checkRecordSkip(skip);
     // Set the filters
-    const filters:any = {};
+    const filters: any = {};
     // Source?
     if (params.search) {
       // Build filter

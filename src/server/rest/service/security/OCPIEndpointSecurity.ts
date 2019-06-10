@@ -5,7 +5,7 @@ import UtilsSecurity from './UtilsSecurity';
 export default class OCPIEndpointSecurity {
   // eslint-disable-next-line no-unused-vars
   static filterOcpiEndpointDeleteRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
@@ -13,14 +13,14 @@ export default class OCPIEndpointSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterOcpiEndpointRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
   }
 
   // eslint-disable-next-line no-unused-vars
   static filterOcpiEndpointsRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.Search = sanitize(request.Search);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
@@ -62,7 +62,7 @@ export default class OCPIEndpointSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static _filterOcpiEndpointRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.name = sanitize(request.name);
     filteredRequest.baseUrl = sanitize(request.baseUrl);
     filteredRequest.countryCode = sanitize(request.countryCode);

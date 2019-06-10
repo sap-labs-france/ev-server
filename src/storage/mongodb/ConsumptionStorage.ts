@@ -27,7 +27,7 @@ export default class ConsumptionStorage {
         .digest("hex");
     }
     // Transfer
-    const consumption:any = {};
+    const consumption: any = {};
     Database.updateConsumption(consumptionToSave, consumption, false);
     // Modify
     const result = await global.database.getCollection(tenantID, 'consumptions').findOneAndUpdate(

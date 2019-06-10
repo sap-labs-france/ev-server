@@ -1,10 +1,11 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import UtilsSecurity from './UtilsSecurity';
+
 export default class SettingSecurity {
   // eslint-disable-next-line no-unused-vars
   static filterSettingDeleteRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
@@ -12,14 +13,14 @@ export default class SettingSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterSettingRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
   }
 
   // eslint-disable-next-line no-unused-vars
   static filterSettingsRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.Identifier = sanitize(request.Identifier);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
@@ -40,7 +41,7 @@ export default class SettingSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static _filterSettingRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.identifier = sanitize(request.identifier);
     filteredRequest.content = sanitize(request.content);
     return filteredRequest;

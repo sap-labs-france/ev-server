@@ -1,11 +1,11 @@
 import BaseApi from './BaseApi';
 import jwt from 'jsonwebtoken';
 export default class AuthenticatedApi extends BaseApi {
-	public user: any;
-	public password: any;
-	public tenant: any;
-	public token: any;
-	public tenantID: any;
+  public user: any;
+  public password: any;
+  public tenant: any;
+  public token: any;
+  public tenantID: any;
 
   constructor(baseURL, user, password, tenant) {
     super(baseURL);
@@ -35,7 +35,7 @@ export default class AuthenticatedApi extends BaseApi {
   }
 
   async login(email, password, acceptEula = true, tenant = '') {
-    const data:any = {};
+    const data: any = {};
     // Allow caller to not pass param for the tests
     if (email) {
       data.email = email;

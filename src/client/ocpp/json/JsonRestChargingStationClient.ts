@@ -7,10 +7,10 @@ import Configuration from '../../../utils/Configuration';
 
 const MODULE_NAME = "JsonRestChargingStationClient";
 export default class JsonRestChargingStationClient extends ChargingStationClient {
-	private serverURL: any;
-	private chargingStation: any;
-	private requests: any;
-	private wsConnection: any;
+  private serverURL: any;
+  private chargingStation: any;
+  private requests: any;
+  private wsConnection: any;
 
   constructor(chargingStation) {
     super();

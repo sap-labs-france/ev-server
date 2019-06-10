@@ -1,10 +1,11 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import UtilsSecurity from './UtilsSecurity';
+
 export default class TenantSecurity {
   // eslint-disable-next-line no-unused-vars
   static filterTenantDeleteRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.ID = sanitize(request.ID);
     filteredRequest.forced = sanitize(request.forced);
@@ -13,20 +14,20 @@ export default class TenantSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterTenantRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
   }
 
   static filterVerifyTenantRequest(request) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.tenant = sanitize(request.tenant);
     return filteredRequest;
   }
 
   // eslint-disable-next-line no-unused-vars
   static filterTenantsRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.Search = sanitize(request.Search);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
@@ -45,7 +46,7 @@ export default class TenantSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static _filterTenantRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.name = sanitize(request.name);
     filteredRequest.subdomain = sanitize(request.subdomain);
     filteredRequest.email = sanitize(request.email);

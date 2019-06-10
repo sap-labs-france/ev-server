@@ -8,9 +8,9 @@ import TSGlobal from '../../types/GlobalType';
 declare var global: TSGlobal;
 
 export default class CleanupMeterValuesTask extends MigrationTask {
-	public totalCount: any;
-	public done: any;
-	public startTime: any;
+  public totalCount: any;
+  public done: any;
+  public startTime: any;
 
   async migrate() {
     const tenants = await Tenant.getTenants();

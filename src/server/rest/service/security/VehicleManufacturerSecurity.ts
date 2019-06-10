@@ -1,10 +1,11 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import UtilsSecurity from './UtilsSecurity';
+
 export default class VehicleManufacturerSecurity {
   // eslint-disable-next-line no-unused-vars
   static filterVehicleManufacturerDeleteRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
@@ -12,14 +13,14 @@ export default class VehicleManufacturerSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterVehicleManufacturerRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
   }
 
   // eslint-disable-next-line no-unused-vars
   static filterVehicleManufacturersRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.WithVehicles = UtilsSecurity.filterBoolean(request.WithVehicles);
     filteredRequest.VehicleType = sanitize(request.VehicleType);
@@ -42,7 +43,7 @@ export default class VehicleManufacturerSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static _filterVehicleManufacturerRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.name = sanitize(request.name);
     filteredRequest.logo = sanitize(request.logo);
     return filteredRequest;

@@ -11,7 +11,7 @@ import stopTransactionRequest16 from './stop-transaction-request-16.json';
 import stopTransactionRequest15 from './stop-transaction-request-15.json';
 require('source-map-support').install();
 export default class OCPPValidation extends SchemaValidator {
-	public validate: any;
+  public validate: any;
 
   constructor() {
     super('OCPPValidation');

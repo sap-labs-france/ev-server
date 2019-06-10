@@ -10,19 +10,19 @@ import ChargingStation from '../../../entity/ChargingStation';
 
 const MODULE_NAME = "WSConnection";
 export default class WSConnection {
-	private url: any;
-	private ip: any;
-	private wsConnection: any;
-	private req: any;
-	private requests: any;
-	private chargingStationID: any;
-	private tenantID: any;
-	protected initialized: any;
-	protected wsServer: any;
-	public tenantIsValid: any;
-	public code: any;
-	public message: any;
-	public details: any;
+  private url: any;
+  private ip: any;
+  private wsConnection: any;
+  private req: any;
+  private requests: any;
+  private chargingStationID: any;
+  private tenantID: any;
+  protected initialized: any;
+  protected wsServer: any;
+  public tenantIsValid: any;
+  public code: any;
+  public message: any;
+  public details: any;
 
   constructor(wsConnection, req, wsServer) {
     // Init

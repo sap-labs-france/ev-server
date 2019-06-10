@@ -307,7 +307,7 @@ export default class UserStorage {
         "UserStorage", "saveUser");
     }
     // Build Request
-    const userFilter:any = {};
+    const userFilter: any = {};
     if (userToSave.id) {
       userFilter._id = Utils.convertToObjectID(userToSave.id);
     } else {
@@ -317,7 +317,7 @@ export default class UserStorage {
     userToSave.createdBy = Utils.convertUserToObjectID(userToSave.createdBy);
     userToSave.lastChangedBy = Utils.convertUserToObjectID(userToSave.lastChangedBy);
     // Transfer
-    const user:any = {};
+    const user: any = {};
     Database.updateUser(userToSave, user, false);
     // Modify and return the modified document
     const result = await global.database.getCollection(tenantID, 'users').findOneAndUpdate(
@@ -741,7 +741,7 @@ export default class UserStorage {
       .deleteMany({ 'userID': Utils.convertToObjectID(id) });
     // Delete User
     await global.database.getCollection(tenantID, 'users')
-    .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
+      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd('UserStorage', 'deleteUser', uniqueTimerID, { id });
   }

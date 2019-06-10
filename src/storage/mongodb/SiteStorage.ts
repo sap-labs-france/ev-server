@@ -143,7 +143,7 @@ export default class SiteStorage {
         `Site has no ID and no Name`,
         "SiteStorage", "saveSite");
     }
-    const siteFilter:any = {};
+    const siteFilter: any = {};
     // Build Request
     if (siteToSave.id) {
       siteFilter._id = Utils.convertUserToObjectID(siteToSave.id);
@@ -154,7 +154,7 @@ export default class SiteStorage {
     siteToSave.createdBy = Utils.convertUserToObjectID(siteToSave.createdBy);
     siteToSave.lastChangedBy = Utils.convertUserToObjectID(siteToSave.lastChangedBy);
     // Transfer
-    const site:any = {};
+    const site: any = {};
     Database.updateSite(siteToSave, site, false);
     // Modify
     const result = await global.database.getCollection(tenantID, 'sites').findOneAndUpdate(
@@ -201,7 +201,7 @@ export default class SiteStorage {
     // Check Skip
     skip = Utils.checkRecordSkip(skip);
     // Set the filters
-    const filters:any = {};
+    const filters: any = {};
     // Source?
     if (params.search) {
       filters.$or = [

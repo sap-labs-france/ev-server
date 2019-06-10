@@ -3,35 +3,35 @@ import { performance } from 'perf_hooks';
 import SoapRequest from './SoapRequest';
 
 export default abstract class AbstractSoapClient {
-	public result: any;
-	public envelope: any;
-	public soapHeader: any;
+  public result: any;
+  public envelope: any;
+  public soapHeader: any;
   private service: any;
   private client: any;
 
   //TODO: type service, clientSSLSecurity, client. for the latter two need
   // to reverse-engineer strong-soap (Package @types/strong-soap doesnt exist)...
   public constructor(
-      readonly endpointUrl: string,
-      readonly wsdlPath: string,
-      service: any,
-      readonly port: string,
-      readonly user: string,
-      readonly password: string,
-      readonly clientSSLSecurity: any)
+    readonly endpointUrl: string,
+    readonly wsdlPath: string,
+    service: any,
+    readonly port: string,
+    readonly user: string,
+    readonly password: string,
+    readonly clientSSLSecurity: any)
   {
     this.service = service;
   }
 
   //TODO: type incoming request.
-  public execute(request: any): Promise<{executionTime: number, headers: any, data: any}> {
+  public execute(request: any): Promise<{executionTime: number; headers: any; data: any}> {
     return this._execute(
       this._buildSOAPRequest(request.getName(), request)
     );
   }
 
   //TODO: soap headers and data has to be typed.
-  private async _execute(request: SoapRequest): Promise<{executionTime: number, headers: any, data: any}> {
+  private async _execute(request: SoapRequest): Promise<{executionTime: number; headers: any; data: any}> {
     // Init Client (Done only once)
     await this._initSOAPClient();
     // Log
@@ -43,7 +43,7 @@ export default abstract class AbstractSoapClient {
     this.client.clearSoapHeaders();
     this.client.addSoapHeader(request.headers);
     // Build the SOAP Request
-    let payload: any = {};
+    const payload: any = {};
     payload[request.requestName] = request.data;
     // payload[this._getRequestNameFromAction(request.name)] = request.data;
     let t0 = 0;
@@ -96,7 +96,7 @@ export default abstract class AbstractSoapClient {
 
   private async _initSOAPClient(): Promise<void> {
     // Client options
-    const options:any = {};
+    const options: any = {};
     // Check
     if (!this.client) {
       // Create the Promise

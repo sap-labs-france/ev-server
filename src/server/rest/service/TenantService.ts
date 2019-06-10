@@ -64,7 +64,7 @@ export default class TenantService extends AbstractService {
           module: 'MongoDBStorage', method: 'deleteTenantDatabase',
           message: `Deleting collections for tenant ${tenant.getID()}`
         });
-        TenantStorage.deleteTenantDB(tenant.getID())
+        TenantStorage.deleteTenantDB(tenant.getID());
       }
       // Log
       Logging.logSecurityInfo({

@@ -80,7 +80,7 @@ export default class OCPIEndpointStorage {
         "OCPIEndpoint has no ID and no Name",
         "OCPIEndpointStorage", "saveOcpiEndpoint");
     }
-    const ocpiEndpointFilter:any = {};
+    const ocpiEndpointFilter: any = {};
     // Build Request
     if (ocpiEndpointToSave.id) {
       ocpiEndpointFilter._id = Utils.convertUserToObjectID(ocpiEndpointToSave.id);
@@ -91,7 +91,7 @@ export default class OCPIEndpointStorage {
     ocpiEndpointToSave.createdBy = Utils.convertUserToObjectID(ocpiEndpointToSave.createdBy);
     ocpiEndpointToSave.lastChangedBy = Utils.convertUserToObjectID(ocpiEndpointToSave.lastChangedBy);
     // Transfer
-    const ocpiEndpoint:any = {};
+    const ocpiEndpoint: any = {};
     Database.updateOcpiEndpoint(ocpiEndpointToSave, ocpiEndpoint, false);
     // Modify
     const result = await global.database.getCollection(tenantID, 'ocpiendpoints').findOneAndUpdate(
@@ -123,7 +123,7 @@ export default class OCPIEndpointStorage {
     // Check Skip
     skip = Utils.checkRecordSkip(skip);
     // Set the filters
-    const filters:any = {};
+    const filters: any = {};
     // Source?
     if (params.search) {
       // Build filter

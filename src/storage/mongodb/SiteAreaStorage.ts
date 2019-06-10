@@ -125,7 +125,7 @@ export default class SiteAreaStorage {
         `Site Area has no ID and no Name`,
         "SiteAreaStorage", "saveSiteArea");
     }
-    const siteAreaFilter:any = {};
+    const siteAreaFilter: any = {};
     // Build Request
     if (siteAreaToSave.id) {
       siteAreaFilter._id = Utils.convertToObjectID(siteAreaToSave.id);
@@ -136,7 +136,7 @@ export default class SiteAreaStorage {
     siteAreaToSave.createdBy = Utils.convertUserToObjectID(siteAreaToSave.createdBy);
     siteAreaToSave.lastChangedBy = Utils.convertUserToObjectID(siteAreaToSave.lastChangedBy);
     // Transfer
-    const siteArea:any = {};
+    const siteArea: any = {};
     Database.updateSiteArea(siteAreaToSave, siteArea, false);
     // Modify
     const result = await global.database.getCollection(tenantID, 'siteareas').findOneAndUpdate(
@@ -181,7 +181,7 @@ export default class SiteAreaStorage {
     // Check Skip
     skip = Utils.checkRecordSkip(skip);
     // Set the filters
-    const filters:any = {};
+    const filters: any = {};
     // Source?
     if (params.search) {
       // Build filter

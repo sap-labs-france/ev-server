@@ -29,10 +29,10 @@ export default class RatingService extends AbstractSoapClient {
   public timeout(delayms: number): Promise<number> {
     return new Promise(resolve => setTimeout(resolve, delayms));
   }
-};
+}
 
 export class ChargedItemLoadRequest {
   public getName(): string {
     return 'chargedItemLoad';
   }
-};
+}

@@ -7,81 +7,73 @@ import OCPIEndpointStorage from '../storage/mongodb/OCPIEndpointStorage';
 import User from './User';
 
 export default class Setting extends TenantHolder {
+  private _model: any = {};
 
-  private model: any = {};
-
-  constructor(tenantID, setting) {
+  constructor(tenantID: any, setting: any) {
     super(tenantID);
-    // Set it
-    Database.updateSetting(setting, this.model);
+    Database.updateSetting(setting, this._model);
   }
 
   public getModel(): any {
-    return this.model;
+    return this._model;
   }
 
   getID() {
-    return this.model.id;
+    return this._model.id;
   }
 
-  /**
-   * Identifier of the setting
-   */
   getIdentifier() {
-    return this.model.identifier;
+    return this._model.identifier;
   }
 
   setIdentifier(identifier) {
-    this.model.identifier = identifier;
+    this._model.identifier = identifier;
   }
 
-  /**
-   * get content
-   */
   getContent() {
-    return this.model.content;
+    return this._model.content;
   }
 
   setContent(content) {
-    this.model.content = content;
+    this._model.content = content;
   }
 
   getCreatedBy() {
-    if (this.model.createdBy) {
-      return new User(this.getTenantID(), this.model.createdBy);
+    if (this._model.createdBy) {
+      return new User(this.getTenantID(), this._model.createdBy);
     }
     return null;
   }
 
   setCreatedBy(user) {
-    this.model.createdBy = user.getModel();
+    this._model.createdBy = user.getModel();
   }
 
   getCreatedOn() {
-    return this.model.createdOn;
+    return this._model.createdOn;
   }
 
   setCreatedOn(createdOn) {
-    this.model.createdOn = createdOn;
+    this._model.createdOn = createdOn;
   }
 
   getLastChangedBy() {
-    if (this.model.lastChangedBy) {
-      return new User(this.getTenantID(), this.model.lastChangedBy);
+    if (this._model.lastChangedBy) {
+      return new User(this.getTenantID(), this._model.lastChangedBy);
     }
     return null;
   }
 
   setLastChangedBy(user) {
-    this.model.lastChangedBy = user.getModel();
+    this._model.lastChangedBy = user.getModel();
   }
 
   getLastChangedOn() {
-    return this.model.lastChangedOn;
+    return this._model.lastChangedOn;
   }
 
   setLastChangedOn(lastChangedOn) {
-    this.model.lastChangedOn = lastChangedOn;
+    this._model.lastChangedOn = lastChangedOn;
   }
 
   save() {

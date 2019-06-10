@@ -66,7 +66,7 @@ export default class NormalizeTransactionsTask extends MigrationTask {
       .toArray();
     // Process each transaction
     for (const transactionMDB of transactionsMDB) {
-      const transaction:any = {};
+      const transaction: any = {};
       // Update field
       transaction.chargeBoxID = transactionMDB.chargeBoxID;
       transaction.connectorId = transactionMDB.connectorId;

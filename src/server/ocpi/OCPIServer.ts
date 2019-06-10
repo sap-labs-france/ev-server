@@ -8,8 +8,8 @@ require('source-map-support').install();
 
 const MODULE_NAME = "OCPIServer";
 export default class OCPIServer {
-	private ocpiRestConfig: any;
-	private express: any;
+  private ocpiRestConfig: any;
+  private express: any;
   // Create the rest server
   constructor(ocpiRestConfig) {
     // Keep params

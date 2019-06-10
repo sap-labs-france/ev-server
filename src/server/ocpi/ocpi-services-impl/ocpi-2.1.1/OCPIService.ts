@@ -9,7 +9,7 @@ require('source-map-support').install();
 /**
  * OCPI Service 2.1.1  - Implementation
  */export default class OCPIServices extends AbstractOCPIService {
-	public registerEndpoint: any;
+  public registerEndpoint: any;
   // Create OCPI Service
   constructor(ocpiRestConfig) {
     super(ocpiRestConfig, VERSION);

@@ -9,4 +9,4 @@ export default class UnauthorizedError extends Error {
   {
     super(`Not authorized to perform '${action}' on '${entity}' ${(value ? "'" + value + "' " : " ")}(Role='${user.getRole()}')`);
   }
-};
+}

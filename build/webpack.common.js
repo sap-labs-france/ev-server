@@ -23,11 +23,11 @@ const config = {
     path: commonPaths.outputPath
   },
   resolve: {
-	extensions: [".ts", ".tsx", ".js", ".json"]
+    extensions: [".ts", ".tsx", ".js", ".json"]
   },
   module: {
     rules: [
-		{ test: /\.(t|j)sx?$/, use: ["ts-loader"], exclude: /node_modules/ }
+      { test: /\.(t|j)sx?$/, use: ["ts-loader"], exclude: /node_modules/ }
     ]
   },
   plugins: [

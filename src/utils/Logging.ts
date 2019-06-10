@@ -82,7 +82,7 @@ export default class Logging {
 
   // Debug DB
   static traceStart(module, method) {
-    let uniqueID: string = '0';
+    let uniqueID = '0';
     // Check
     if (_loggingConfig.trace) {
       uniqueID = uuid();

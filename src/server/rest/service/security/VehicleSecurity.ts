@@ -1,10 +1,11 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import UtilsSecurity from './UtilsSecurity';
+
 export default class VehicleSecurity {
   // eslint-disable-next-line no-unused-vars
   static filterVehicleDeleteRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
@@ -12,14 +13,14 @@ export default class VehicleSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterVehicleRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
   }
 
   // eslint-disable-next-line no-unused-vars
   static filterVehiclesRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.Type = sanitize(request.Type);
     filteredRequest.VehicleManufacturerID = sanitize(request.VehicleManufacturerID);
@@ -43,7 +44,7 @@ export default class VehicleSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static _filterVehicleRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.type = sanitize(request.type);
     filteredRequest.model = sanitize(request.model);
     filteredRequest.batteryKW = sanitize(request.batteryKW);

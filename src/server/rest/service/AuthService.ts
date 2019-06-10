@@ -1,5 +1,5 @@
-    // Build HashID based on important tenant fields
-    // Build HashID based on important user fields
+// Build HashID based on important tenant fields
+// Build HashID based on important user fields
 import passport from 'passport';
 const JwtStrategy = require('passport-jwt').Strategy;
 const ExtractJwt = require('passport-jwt').ExtractJwt;
@@ -20,7 +20,7 @@ import Authorizations from '../../../authorization/Authorizations';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import AuthSecurity from './security/AuthSecurity';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import SessionHashService from'./SessionHashService';
+import SessionHashService  from './SessionHashService';
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;

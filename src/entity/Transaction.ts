@@ -10,209 +10,206 @@ import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
 import ChargingStation from './ChargingStation';
 
 export default class Transaction extends TenantHolder {
+  private _model: any = {};
 
-  private model: any = {};
-
-  constructor(tenantID, transaction) {
+  constructor(tenantID: any, transaction: any) {
     super(tenantID);
-    Database.updateTransaction(transaction, this.model);
+    Database.updateTransaction(transaction, this._model);
+  }
+
+  public getModel(): any {
+    return this._model;
   }
 
   getCurrentTotalInactivitySecs() {
-    return this.model.currentTotalInactivitySecs;
+    return this._model.currentTotalInactivitySecs;
   }
 
   setCurrentTotalInactivitySecs(currentTotalInactivitySecs) {
-    this.model.currentTotalInactivitySecs = currentTotalInactivitySecs;
+    this._model.currentTotalInactivitySecs = currentTotalInactivitySecs;
   }
 
   getLastMeterValue() {
-    return this.model.lastMeterValue;
+    return this._model.lastMeterValue;
   }
 
   setLastConsumptionMeterValue(lastMeterValue) {
-    this.model.lastMeterValue = lastMeterValue;
+    this._model.lastMeterValue = lastMeterValue;
   }
 
   getCurrentStateOfCharge() {
-    return this.model.currentStateOfCharge;
+    return this._model.currentStateOfCharge;
   }
 
   setCurrentStateOfCharge(currentStateOfCharge) {
-    this.model.currentStateOfCharge = currentStateOfCharge;
+    this._model.currentStateOfCharge = currentStateOfCharge;
   }
 
   getNumberOfMeterValues() {
-    return this.model.numberOfMeterValues;
+    return this._model.numberOfMeterValues;
   }
 
   setNumberOfConsumptionMeterValues(numberOfMeterValues) {
-    this.model.numberOfMeterValues = numberOfMeterValues;
+    this._model.numberOfMeterValues = numberOfMeterValues;
   }
 
   getCurrentConsumption() {
-    return this.model.currentConsumption;
+    return this._model.currentConsumption;
   }
 
   setCurrentConsumption(currentConsumption) {
-    this.model.currentConsumption = currentConsumption;
+    this._model.currentConsumption = currentConsumption;
   }
 
   setCurrentConsumptionWh(currentConsumptionWh) {
-    this.model.currentConsumptionWh = currentConsumptionWh;
+    this._model.currentConsumptionWh = currentConsumptionWh;
   }
 
   getCurrentConsumptionWh() {
-    return this.model.currentConsumptionWh ? this.model.currentConsumptionWh : 0;
+    return this._model.currentConsumptionWh ? this._model.currentConsumptionWh : 0;
   }
 
   getCurrentCumulatedPrice() {
-    return this.model.currentCumulatedPrice ? this.model.currentCumulatedPrice : 0;
+    return this._model.currentCumulatedPrice ? this._model.currentCumulatedPrice : 0;
   }
 
   setCurrentCumulatedPrice(currentCumulatedPrice) {
-    this.model.currentCumulatedPrice = currentCumulatedPrice;
+    this._model.currentCumulatedPrice = currentCumulatedPrice;
   }
 
   getCurrentTotalConsumption() {
-    return this.model.currentTotalConsumption;
+    return this._model.currentTotalConsumption;
   }
 
   setCurrentTotalConsumption(currentTotalConsumption) {
-    this.model.currentTotalConsumption = currentTotalConsumption;
-  }
-
-  getModel() {
-    return this.model;
+    this._model.currentTotalConsumption = currentTotalConsumption;
   }
 
   getID() {
-    return this.model.id;
+    return this._model.id;
   }
 
   getSiteID() {
-    return this.model.siteID;
+    return this._model.siteID;
   }
 
   setSiteID(siteID) {
-    this.model.siteID = siteID;
+    this._model.siteID = siteID;
   }
 
   getSiteAreaID() {
-    return this.model.siteAreaID;
+    return this._model.siteAreaID;
   }
 
   setSiteAreaID(siteAreaID) {
-    this.model.siteAreaID = siteAreaID;
+    this._model.siteAreaID = siteAreaID;
   }
 
   getConnectorId() {
-    return this.model.connectorId;
+    return this._model.connectorId;
   }
 
   setConnectorId(connectorId) {
-    this.model.connectorId = connectorId;
+    this._model.connectorId = connectorId;
   }
 
   getMeterStart() {
-    return this.model.meterStart;
+    return this._model.meterStart;
   }
 
   setMeterStart(meterStart) {
-    this.model.meterStart = meterStart;
+    this._model.meterStart = meterStart;
   }
 
   getStartDate() {
-    return this.model.timestamp;
+    return this._model.timestamp;
   }
 
   setStartDate(timestamp) {
-    this.model.timestamp = timestamp;
+    this._model.timestamp = timestamp;
   }
 
   getLastUpdateDate() {
-    return this.model.lastUpdate;
+    return this._model.lastUpdate;
   }
 
   setLastUpdateDate(lastUpdate) {
-    this.model.lastUpdate = lastUpdate;
+    this._model.lastUpdate = lastUpdate;
   }
 
   getStartPrice() {
-    return this.model.price;
+    return this._model.price;
   }
 
   setStartPrice(price) {
-    this.model.price = price;
+    this._model.price = price;
   }
 
   getStartRoundedPrice() {
-    return this.model.roundedPrice;
+    return this._model.roundedPrice;
   }
 
   setStartRoundedPrice(roundedPrice) {
-    this.model.roundedPrice = roundedPrice;
+    this._model.roundedPrice = roundedPrice;
   }
 
   getStartPriceUnit() {
-    return this.model.priceUnit;
+    return this._model.priceUnit;
   }
 
   setStartPriceUnit(priceUnit) {
-    this.model.priceUnit = priceUnit;
+    this._model.priceUnit = priceUnit;
   }
 
   getStartPricingSource() {
-    return this.model.pricingSource;
+    return this._model.pricingSource;
   }
 
   setStartPricingSource(pricingSource) {
-    this.model.pricingSource = pricingSource;
+    this._model.pricingSource = pricingSource;
   }
 
   getStateOfCharge() {
-    return this.model.stateOfCharge;
+    return this._model.stateOfCharge;
   }
 
   setStateOfCharge(stateOfCharge) {
-    this.model.stateOfCharge = stateOfCharge;
+    this._model.stateOfCharge = stateOfCharge;
   }
 
   getTimezone() {
-    return this.model.timezone;
+    return this._model.timezone;
   }
 
   setTimezone(timezone) {
-    this.model.timezone = timezone;
+    this._model.timezone = timezone;
   }
 
   getTagID() {
-    return this.model.tagID;
+    return this._model.tagID;
   }
 
   setTagID(tagID) {
-    this.model.tagID = tagID;
+    this._model.tagID = tagID;
   }
 
   getUserID() {
-    return this.model.userID;
+    return this._model.userID;
   }
 
   setUserID(userID) {
-    this.model.userID = userID;
+    this._model.userID = userID;
   }
 
   getUserJson() {
-    return this.model.user;
+    return this._model.user;
   }
 
   async getUser() {
-    if (this.model.user) {
-      return new User(this.getTenantID(), this.model.user);
-    } else if (this.model.userID) {
-      // Get from DB
-      const user = await UserStorage.getUser(this.getTenantID(), this.model.userID);
-      // Keep it
+    if (this._model.user) {
+      return new User(this.getTenantID(), this._model.user);
+    } else if (this._model.userID) {
+      const user = await UserStorage.getUser(this.getTenantID(), this._model.userID);
       this.setUser(user);
       return user;
     }
@@ -220,59 +217,57 @@ export default class Transaction extends TenantHolder {
 
   setUser(user) {
     if (user) {
-      this.model.user = user.getModel();
-      this.model.userID = user.getID();
+      this._model.user = user.getModel();
+      this._model.userID = user.getID();
     } else {
-      this.model.user = null;
+      this._model.user = null;
     }
   }
 
   getStopTagID() {
     if (this.isFinished()) {
-      return this.model.stop.tagID;
+      return this._model.stop.tagID;
     }
   }
 
   setStopTagID(tagID) {
     this._checkAndCreateStop();
-    this.model.stop.tagID = tagID;
+    this._model.stop.tagID = tagID;
   }
 
   getStopUserID() {
     if (this.isFinished()) {
-      return this.model.stop.userID;
+      return this._model.stop.userID;
     }
   }
 
   setStopUserID(userID) {
     this._checkAndCreateStop();
-    this.model.stop.userID = userID;
+    this._model.stop.userID = userID;
   }
 
   setStopUser(user) {
     this._checkAndCreateStop();
     if (user) {
-      this.model.stop.user = user.getModel();
-      this.model.stop.userID = user.getID();
+      this._model.stop.user = user.getModel();
+      this._model.stop.userID = user.getID();
     } else {
-      this.model.stop.user = null;
+      this._model.stop.user = null;
     }
   }
 
   getStopUserJson() {
     if (this.isFinished()) {
-      return this.model.stop.user;
+      return this._model.stop.user;
     }
   }
 
   async getStopUser() {
     if (this.isFinished()) {
-      if (this.model.stop.user) {
-        return new User(this.getTenantID(), this.model.stop.user);
-      } else if (this.model.stop.userID) {
-        // Get from DB
-        const user = await UserStorage.getUser(this.getTenantID(), this.model.stop.userID);
-        // Keep it
+      if (this._model.stop.user) {
+        return new User(this.getTenantID(), this._model.stop.user);
+      } else if (this._model.stop.userID) {
+        const user = await UserStorage.getUser(this.getTenantID(), this._model.stop.userID);
         this.setStopUser(user);
         return user;
       }
@@ -281,88 +276,85 @@ export default class Transaction extends TenantHolder {
 
   getStopMeter() {
     if (this.isFinished()) {
-      return this.model.stop.meterStop;
+      return this._model.stop.meterStop;
     }
   }
 
   setStopMeter(meterStop) {
     this._checkAndCreateStop();
-    this.model.stop.meterStop = meterStop;
+    this._model.stop.meterStop = meterStop;
   }
 
   getChargeBoxID() {
-    return this.model.chargeBoxID;
+    return this._model.chargeBoxID;
   }
 
   setChargeBoxID(chargeBoxID) {
-    this.model.chargeBoxID = chargeBoxID;
+    this._model.chargeBoxID = chargeBoxID;
   }
 
   async getChargingStation() {
-    if (this.model.chargeBox) {
-      return new ChargingStation(this.getTenantID(), this.model.chargeBox);
-    } else if (this.model.chargeBoxID) {
-      // Get from DB
-      const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenantID(), this.model.chargeBoxID);
-      // Keep it
+    if (this._model.chargeBox) {
+      return new ChargingStation(this.getTenantID(), this._model.chargeBox);
+    } else if (this._model.chargeBoxID) {
+      const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenantID(), this._model.chargeBoxID);
       this.setChargingStation(chargingStation);
-      // Return
       return chargingStation;
     }
   }
 
   setChargingStation(chargingStation) {
     if (chargingStation) {
-      this.model.chargeBox = chargingStation.getModel();
-      this.model.chargeBoxID = chargingStation.getID();
+      this._model.chargeBox = chargingStation.getModel();
+      this._model.chargeBoxID = chargingStation.getID();
     } else {
-      this.model.chargeBox = null;
-      this.model.chargeBoxID = null;
+      this._model.chargeBox = null;
+      this._model.chargeBoxID = null;
     }
   }
 
   getStopPrice() {
     if (this.isFinished()) {
-      return this.model.stop.price;
+      return this._model.stop.price;
     }
   }
 
   setStopPrice(price) {
     this._checkAndCreateStop();
-    this.model.stop.price = price;
+    this._model.stop.price = price;
   }
 
   getStopRoundedPrice() {
     if (this.isFinished()) {
-      return this.model.stop.roundedPrice;
+      return this._model.stop.roundedPrice;
     }
   }
 
   setStopRoundedPrice(roundedPrice) {
     this._checkAndCreateStop();
-    this.model.stop.roundedPrice = roundedPrice;
+    this._model.stop.roundedPrice = roundedPrice;
   }
 
   getStopPriceUnit() {
     if (this.isFinished()) {
-      return this.model.stop.priceUnit;
+      return this._model.stop.priceUnit;
     }
   }
 
   setStopPriceUnit(priceUnit) {
     this._checkAndCreateStop();
-    this.model.stop.priceUnit = priceUnit;
+    this._model.stop.priceUnit = priceUnit;
   }
 
   getStopPricingSource() {
     if (this.isFinished()) {
-      return this.model.stop.pricingSource;
+      return this._model.stop.pricingSource;
     }
   }
 
   setStopPricingSource(pricingSource) {
     this._checkAndCreateStop();
-    this.model.stop.pricingSource = pricingSource;
+    this._model.stop.pricingSource = pricingSource;
   }
 
   hasStartPrice() {
@@ -374,19 +366,18 @@ export default class Transaction extends TenantHolder {
   }
 
   getMeterValues() {
-    // Get Meter Values
     return OCPPStorage.getMeterValues(this.getTenantID(), this.getID());
   }
 
   getStopStateOfCharge() {
     if (this.isFinished()) {
-      return this.model.stop.stateOfCharge;
+      return this._model.stop.stateOfCharge;
     }
   }
 
   setStopStateOfCharge(stateOfCharge) {
     this._checkAndCreateStop();
-    this.model.stop.stateOfCharge = stateOfCharge;
+    this._model.stop.stateOfCharge = stateOfCharge;
   }
 
   hasMultipleConsumptions() {
@@ -394,57 +385,57 @@ export default class Transaction extends TenantHolder {
   }
 
   isActive() {
-    return !this.model.hasOwnProperty('stop');
+    return !this._model.hasOwnProperty('stop');
   }
 
   isFinished() {
-    return this.model.hasOwnProperty('stop');
+    return this._model.hasOwnProperty('stop');
   }
 
   isRemotelyStopped() {
-    return this.model.hasOwnProperty('remotestop');
+    return this._model.hasOwnProperty('remotestop');
   }
 
   getRemoteStop() {
-    return this.model.remotestop;
+    return this._model.remotestop;
   }
 
   setRemoteStop(remotestop) {
-    this.model.remotestop = remotestop;
+    this._model.remotestop = remotestop;
   }
 
   setRemoteStopTagID(tagID) {
     this._checkAndCreateRemoteStop();
-    this.model.remotestop.tagID = tagID;
+    this._model.remotestop.tagID = tagID;
   }
 
   getRemoteStopTagID() {
     if (this.isRemotelyStopped()) {
-      return this.model.remotestop.tagID;
+      return this._model.remotestop.tagID;
     }
   }
 
   setRemoteStopDate(timestamp) {
     this._checkAndCreateRemoteStop();
-    this.model.remotestop.timestamp = timestamp;
+    this._model.remotestop.timestamp = timestamp;
   }
 
   getRemoteStopDate() {
     if (this.isRemotelyStopped()) {
-      return this.model.remotestop.timestamp;
+      return this._model.remotestop.timestamp;
     }
   }
 
   getRefundData() {
-    return this.model.refundData;
+    return this._model.refundData;
   }
 
   setRefundData(refundData) {
-    this.model.refundData = refundData;
+    this._model.refundData = refundData;
   }
 
   isRefunded() {
-    return this.model.refundData && !!this.model.refundData.refundId;
+    return this._model.refundData && !!this._model.refundData.refundId;
   }
 
   hasStateOfCharges() {
@@ -452,8 +443,8 @@ export default class Transaction extends TenantHolder {
   }
 
   getChargerStatus() {
-    if (this.isActive() && this.model.chargeBox && this.model.chargeBox.connectors) {
-      for (const connector of this.model.chargeBox.connectors) {
+    if (this.isActive() && this._model.chargeBox && this._model.chargeBox.connectors) {
+      for (const connector of this._model.chargeBox.connectors) {
         if (connector.connectorId === this.getConnectorId()) {
           return connector.status;
         }
@@ -470,36 +461,36 @@ export default class Transaction extends TenantHolder {
 
   getStopTotalInactivitySecs() {
     if (this.isFinished()) {
-      return this.model.stop.totalInactivitySecs;
+      return this._model.stop.totalInactivitySecs;
     }
   }
 
   setStopTotalInactivitySecs(totalInactivitySecs) {
     this._checkAndCreateStop();
-    this.model.stop.totalInactivitySecs = totalInactivitySecs;
+    this._model.stop.totalInactivitySecs = totalInactivitySecs;
   }
 
   setStopExtraInactivitySecs(extraInactivitySecs) {
     this._checkAndCreateStop();
-    this.model.stop.extraInactivitySecs = extraInactivitySecs;
+    this._model.stop.extraInactivitySecs = extraInactivitySecs;
   }
 
   getStopExtraInactivitySecs() {
     if (this.isFinished()) {
-      return this.model.stop.extraInactivitySecs;
+      return this._model.stop.extraInactivitySecs;
     }
   }
 
   getStopTotalConsumption() {
     if (this.isFinished()) {
-      return this.model.stop.totalConsumption;
+      return this._model.stop.totalConsumption;
     }
     return 0;
   }
 
   setStopTotalConsumption(totalConsumption) {
     this._checkAndCreateStop();
-    this.model.stop.totalConsumption = totalConsumption;
+    this._model.stop.totalConsumption = totalConsumption;
   }
 
   getCurrentTotalDurationSecs() {
@@ -513,46 +504,46 @@ export default class Transaction extends TenantHolder {
   getStopTotalDurationSecs() {
     // Stopped already?
     if (this.isFinished()) {
-      return this.model.stop.totalDurationSecs;
+      return this._model.stop.totalDurationSecs;
     }
     return 0;
   }
 
   setStopTotalDurationSecs(totalDurationSecs) {
     this._checkAndCreateStop();
-    this.model.stop.totalDurationSecs = totalDurationSecs;
+    this._model.stop.totalDurationSecs = totalDurationSecs;
   }
 
   getStopDate() {
     if (this.isFinished()) {
-      return this.model.stop.timestamp;
+      return this._model.stop.timestamp;
     }
   }
 
   setStopDate(timestamp) {
     this._checkAndCreateStop();
-    this.model.stop.timestamp = timestamp;
+    this._model.stop.timestamp = timestamp;
   }
 
   clearRuntimeData() {
-    delete this.model.currentConsumption;
-    delete this.model.currentStateOfCharge;
-    delete this.model.currentTotalConsumption;
-    delete this.model.currentTotalInactivitySecs;
-    delete this.model.currentCumulatedPrice;
-    delete this.model.lastMeterValue;
-    delete this.model.numberOfMeterValues;
+    delete this._model.currentConsumption;
+    delete this._model.currentStateOfCharge;
+    delete this._model.currentTotalConsumption;
+    delete this._model.currentTotalInactivitySecs;
+    delete this._model.currentCumulatedPrice;
+    delete this._model.lastMeterValue;
+    delete this._model.numberOfMeterValues;
   }
 
   _checkAndCreateStop() {
-    if (!this.model.stop) {
-      this.model.stop = {};
+    if (!this._model.stop) {
+      this._model.stop = {};
     }
   }
 
   _checkAndCreateRemoteStop() {
-    if (!this.model.remotestop) {
-      this.model.remotestop = {};
+    if (!this._model.remotestop) {
+      this._model.remotestop = {};
     }
   }
 

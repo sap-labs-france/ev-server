@@ -24,9 +24,9 @@ const CONNECTOR_ID = 'concur';
  * Expiration_Date  string  -  The Universal Coordinated Time (UTC) date and time when the access token expires.
  * Refresh_Token  string  -  Token with a new expiration date of a year from the refresh date. You should securely store the refresh token for a user and use it for all subsequent API requests.
  */export default class ConcurConnector extends AbstractConnector {
-	public getSetting: any;
-	public getTenantID: any;
-	public getConnectionByUserId: any;
+  public getSetting: any;
+  public getTenantID: any;
+  public getConnectionByUserId: any;
 
   constructor(tenantID, setting) {
     super(tenantID, 'concur', setting);

@@ -10,9 +10,9 @@ const _options = {
 };
 
 export default class MongoDBStorageNotification {
-	public dbConfig: any;
-	public centralRestServer: any;
-	public database: any;
+  public dbConfig: any;
+  public centralRestServer: any;
+  public database: any;
 
   constructor(dbConfig, centralRestServer) {
     this.dbConfig = dbConfig;

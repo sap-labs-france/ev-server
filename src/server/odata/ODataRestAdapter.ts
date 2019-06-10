@@ -15,7 +15,7 @@ import Logging from '../../utils/Logging';
 
 const MODULE_NAME = "ODataServer";
 export default class ODataRestAdapter {
-	public static restServerUrl: any;
+  public static restServerUrl: any;
 
   static async query(collection, query?, req?, cb?) {
     // get tenant from url

@@ -25,7 +25,7 @@ export default class CentralRestServer {
   private static currentNotifications = [];
   
   private chargingStationConfig: any;
-	private express: any;
+  private express: any;
   // Create the rest server
   constructor(centralSystemRestConfig, chargingStationConfig) {
     // Keep params

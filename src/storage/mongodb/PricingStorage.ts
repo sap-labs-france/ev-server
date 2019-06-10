@@ -37,7 +37,7 @@ export default class PricingStorage {
     // Check date
     pricingToSave.timestamp = Utils.convertToDate(pricingToSave.timestamp);
     // Transfer
-    const pricing:any = {};
+    const pricing: any = {};
     Database.updatePricing(pricingToSave, pricing, false);
     // Modify
     await global.database.getCollection(tenantID, 'pricings').findOneAndUpdate(

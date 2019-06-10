@@ -12,91 +12,87 @@ import TransactionStorage from '../storage/mongodb/TransactionStorage';
 import SiteStorage from '../storage/mongodb/SiteStorage';
 
 export default class User extends TenantHolder {
+  private _model: any = {};
 
-  public getTenantID: any;
-  private model: any = {};
-
-  constructor(tenantID, user) {
+  constructor(tenantID: any, user: any) {
     super(tenantID);
-
-    // Set it
-    Database.updateUser(user, this.model);
+    Database.updateUser(user, this._model);
   }
 
   public getModel(): any {
-    return this.model;
+    return this._model;
   }
 
   setEulaAcceptedHash(eulaAcceptedHash) {
-    this.model.eulaAcceptedHash = eulaAcceptedHash;
+    this._model.eulaAcceptedHash = eulaAcceptedHash;
   }
 
   getEulaAcceptedHash() {
-    return this.model.eulaAcceptedHash;
+    return this._model.eulaAcceptedHash;
   }
 
   setEulaAcceptedVersion(eulaAcceptedVersion) {
-    this.model.eulaAcceptedVersion = eulaAcceptedVersion;
+    this._model.eulaAcceptedVersion = eulaAcceptedVersion;
   }
 
   getEulaAcceptedVersion() {
-    return this.model.eulaAcceptedVersion;
+    return this._model.eulaAcceptedVersion;
   }
 
   setEulaAcceptedOn(eulaAcceptedOn) {
-    this.model.eulaAcceptedOn = eulaAcceptedOn;
+    this._model.eulaAcceptedOn = eulaAcceptedOn;
   }
 
   getEulaAcceptedOn() {
-    return this.model.eulaAcceptedOn;
+    return this._model.eulaAcceptedOn;
   }
 
   getID() {
-    return this.model.id;
+    return this._model.id;
   }
 
   getName() {
-    return this.model.name;
+    return this._model.name;
   }
 
   setName(name) {
-    this.model.name = name;
+    this._model.name = name;
   }
 
   getPassword() {
-    return this.model.password;
+    return this._model.password;
   }
 
   setPassword(password) {
-    this.model.password = password;
+    this._model.password = password;
   }
 
   getPasswordResetHash() {
-    return this.model.passwordResetHash;
+    return this._model.passwordResetHash;
   }
 
   setPasswordResetHash(passwordResetHash) {
-    this.model.passwordResetHash = passwordResetHash;
+    this._model.passwordResetHash = passwordResetHash;
   }
 
   getPasswordWrongNbrTrials() {
-    return this.model.passwordWrongNbrTrials;
+    return this._model.passwordWrongNbrTrials;
   }
 
   setPasswordWrongNbrTrials(passwordWrongNbrTrials) {
-    this.model.passwordWrongNbrTrials = passwordWrongNbrTrials;
+    this._model.passwordWrongNbrTrials = passwordWrongNbrTrials;
   }
 
   getPasswordBlockedUntil() {
-    return this.model.passwordBlockedUntil;
+    return this._model.passwordBlockedUntil;
   }
 
   setPasswordBlockedUntil(passwordBlockedUntil) {
-    this.model.passwordBlockedUntil = passwordBlockedUntil;
+    this._model.passwordBlockedUntil = passwordBlockedUntil;
   }
 
   getLocale() {
-    return (this.model.locale ? this.model.locale : Constants.DEFAULT_LOCALE);
+    return (this._model.locale ? this._model.locale : Constants.DEFAULT_LOCALE);
   }
 
   getLanguage() {
@@ -104,23 +100,23 @@ export default class User extends TenantHolder {
   }
 
   setLocale(locale) {
-    this.model.locale = locale;
+    this._model.locale = locale;
   }
 
   getRole() {
-    return this.model.role;
+    return this._model.role;
   }
 
   setRole(role) {
-    this.model.role = role;
+    this._model.role = role;
   }
 
   getFirstName() {
-    return this.model.firstName;
+    return this._model.firstName;
   }
 
   setFirstName(firstName) {
-    this.model.firstName = firstName;
+    this._model.firstName = firstName;
   }
 
   getFullName(withID = false) {
@@ -128,160 +124,160 @@ export default class User extends TenantHolder {
   }
 
   getTagIDs() {
-    return this.model.tagIDs;
+    return this._model.tagIDs;
   }
 
   setTagIDs(tagIDs) {
-    this.model.tagIDs = tagIDs;
+    this._model.tagIDs = tagIDs;
   }
 
   getPlateID() {
-    return this.model.plateID;
+    return this._model.plateID;
   }
 
   setPlateID(plateID) {
-    this.model.plateID = plateID;
+    this._model.plateID = plateID;
   }
 
   addTagID(tagID) {
-    if (!this.model.tagIDs) {
-      this.model.tagIDs = [];
+    if (!this._model.tagIDs) {
+      this._model.tagIDs = [];
     }
-    this.model.tagIDs.push(tagID);
+    this._model.tagIDs.push(tagID);
   }
 
   getImage() {
-    return this.model.image;
+    return this._model.image;
   }
 
   setImage(image) {
-    this.model.image = image;
+    this._model.image = image;
   }
 
   getEMail() {
-    return this.model.email;
+    return this._model.email;
   }
 
   setEMail(email) {
-    this.model.email = email;
+    this._model.email = email;
   }
 
   getPhone() {
-    return this.model.phone;
+    return this._model.phone;
   }
 
   setPhone(phone) {
-    this.model.phone = phone;
+    this._model.phone = phone;
   }
 
   getMobile() {
-    return this.model.mobile;
+    return this._model.mobile;
   }
 
   setMobile(mobile) {
-    this.model.mobile = mobile;
+    this._model.mobile = mobile;
   }
 
   isNotificationsActive() {
-    return this.model.notificationsActive;
+    return this._model.notificationsActive;
   }
 
   setNotificationsActive(notificationsActive) {
-    this.model.notificationsActive = notificationsActive;
+    this._model.notificationsActive = notificationsActive;
   }
 
   getINumber() {
-    return this.model.iNumber;
+    return this._model.iNumber;
   }
 
   setINumber(iNumber) {
-    this.model.iNumber = iNumber;
+    this._model.iNumber = iNumber;
   }
 
   getCostCenter() {
-    return this.model.costCenter;
+    return this._model.costCenter;
   }
 
   setCostCenter(costCenter) {
-    this.model.costCenter = costCenter;
+    this._model.costCenter = costCenter;
   }
 
   getStatus() {
-    return this.model.status;
+    return this._model.status;
   }
 
   setStatus(status) {
-    this.model.status = status;
+    this._model.status = status;
   }
 
   getCreatedBy() {
-    if (this.model.createdBy) {
-      return new User(this.getTenantID(), this.model.createdBy);
+    if (this._model.createdBy) {
+      return new User(this.getTenantID(), this._model.createdBy);
     }
     return null;
   }
 
   setCreatedBy(user) {
-    this.model.createdBy = user.getModel();
+    this._model.createdBy = user.getModel();
   }
 
   getCreatedOn() {
-    return this.model.createdOn;
+    return this._model.createdOn;
   }
 
   setCreatedOn(createdOn) {
-    this.model.createdOn = createdOn;
+    this._model.createdOn = createdOn;
   }
 
   getAddress() {
-    return this.model.address;
+    return this._model.address;
   }
 
   setAddress(address) {
-    this.model.address = address;
+    this._model.address = address;
   }
 
   getLastChangedBy() {
-    if (this.model.lastChangedBy) {
-      return new User(this.getTenantID(), this.model.lastChangedBy);
+    if (this._model.lastChangedBy) {
+      return new User(this.getTenantID(), this._model.lastChangedBy);
     }
     return null;
   }
 
   setLastChangedBy(user) {
-    this.model.lastChangedBy = user.getModel();
+    this._model.lastChangedBy = user.getModel();
   }
 
   getLastChangedOn() {
-    return this.model.lastChangedOn;
+    return this._model.lastChangedOn;
   }
 
   setLastChangedOn(lastChangedOn) {
-    this.model.lastChangedOn = lastChangedOn;
+    this._model.lastChangedOn = lastChangedOn;
   }
 
   setDeleted(deleted) {
-    this.model.deleted = deleted;
+    this._model.deleted = deleted;
   }
 
   isDeleted() {
-    return this.model.deleted;
+    return this._model.deleted;
   }
 
   getVerificationToken() {
-    return this.model.verificationToken;
+    return this._model.verificationToken;
   }
 
   setVerificationToken(verificationToken) {
-    this.model.verificationToken = verificationToken;
+    this._model.verificationToken = verificationToken;
   }
 
   getVerifiedAt() {
-    return this.model.verifiedAt;
+    return this._model.verifiedAt;
   }
 
   setVerifiedAt(verifiedAt) {
-    this.model.verifiedAt = verifiedAt;
+    this._model.verifiedAt = verifiedAt;
   }
 
   async getTransactions(filter?) {
@@ -297,15 +293,13 @@ export default class User extends TenantHolder {
   }
 
   setSites(sites) {
-    this.model.sites = sites.map((site) => site.getModel());
+    this._model.sites = sites.map((site) => site.getModel());
   }
 
   async getSites() {
-    // Get Sites
     const sites = await SiteStorage.getSites(this.getTenantID(), {
       'userID': this.getID()
     });
-    // Return the array
     return sites.result;
   }
 
@@ -318,14 +312,9 @@ export default class User extends TenantHolder {
   }
 
   async delete() {
-    // Check if the user has a transaction
     const transactions = await this.getTransactions();
-    // Check
     if (transactions.count > 0) {
-      // Delete logically
-      // Set deleted
       this.setDeleted(true);
-      // Anonymize user
       this.setStatus(Constants.USER_STATUS_DELETED);
       this.setName(Constants.ANONIMIZED_VALUE);
       this.setFirstName(Constants.ANONIMIZED_VALUE);
@@ -492,9 +481,7 @@ export default class User extends TenantHolder {
     }
   }
 
-  // Check email
   static isUserEmailValid(email) {
-    // eslint-disable-next-line no-useless-escape
     return /^(([^<>()\[\]\\.,;:\s@']+(\.[^<>()\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email);
   }
 
@@ -588,14 +575,11 @@ export default class User extends TenantHolder {
     return password;
   }
 
-  // Check password
   static isPasswordValid(password) {
-    // Check
     // eslint-disable-next-line no-useless-escape
     return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
   }
 
-  // Hash password (old version kept for compatibility reason)
   static hashPassword(password) {
     return crypto.createHash('sha256').update(password).digest('hex');
   }

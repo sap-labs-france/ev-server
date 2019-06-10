@@ -4,10 +4,9 @@ import UtilsSecurity from './UtilsSecurity';
 import SiteSecurity from './SiteSecurity';
 
 export default class CompanySecurity {
-
   // eslint-disable-next-line no-unused-vars
   static filterCompanyDeleteRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
@@ -15,14 +14,14 @@ export default class CompanySecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterCompanyRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
   }
 
   // eslint-disable-next-line no-unused-vars
   static filterCompaniesRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.WithSites = UtilsSecurity.filterBoolean(request.WithSites);
     filteredRequest.WithLogo = UtilsSecurity.filterBoolean(request.WithLogo);
@@ -43,7 +42,7 @@ export default class CompanySecurity {
   }
 
   static _filterCompanyRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     filteredRequest.name = sanitize(request.name);
     filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address, loggedUser);
     filteredRequest.logo = sanitize(request.logo);

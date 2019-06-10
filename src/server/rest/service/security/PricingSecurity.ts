@@ -1,9 +1,10 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
+
 export default class PricingSecurity {
   // Pricing
   static filterPricingResponse(pricing, loggedUser) {
-    const filteredPricing:any = {};
+    const filteredPricing: any = {};
     if (!pricing) {
       return null;
     }
@@ -20,7 +21,7 @@ export default class PricingSecurity {
 
   // eslint-disable-next-line no-unused-vars
   static filterPricingUpdateRequest(request, loggedUser) {
-    const filteredRequest:any = {};
+    const filteredRequest: any = {};
     // Set
     filteredRequest.priceKWH = sanitize(request.priceKWH);
     filteredRequest.priceUnit = sanitize(request.priceUnit);

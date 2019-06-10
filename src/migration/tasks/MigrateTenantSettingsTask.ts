@@ -116,4 +116,4 @@ export default class MigrateTenantSettingsTask extends MigrationTask {
   public getName(): string {
     return "MigrateTenantSettingsTask";
   }
-};
+}

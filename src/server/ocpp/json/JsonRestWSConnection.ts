@@ -9,12 +9,12 @@ declare var global: TSGlobal;
 const MODULE_NAME = "JsonRestWSConnection";
 export default class JsonRestWSConnection extends WSConnection {
 
-	public getTenantID: any;
-	public getChargingStationID: any;
-	public getIP: any;
-	public getWSConnection: any;
-	public getURL: any;
-	public sendMessage: any;
+  public getTenantID: any;
+  public getChargingStationID: any;
+  public getIP: any;
+  public getWSConnection: any;
+  public getURL: any;
+  public sendMessage: any;
 
   constructor(wsConnection, req, wsServer) {
     // Call super

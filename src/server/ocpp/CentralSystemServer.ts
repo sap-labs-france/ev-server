@@ -7,9 +7,9 @@ import Constants from '../../utils/Constants';
  *
  * @class CentralSystemServer
  */export default class CentralSystemServer {
-	protected centralSystemConfig: any;
-	protected chargingStationConfig: any;
-	private chargingStationService: any;
+  protected centralSystemConfig: any;
+  protected chargingStationConfig: any;
+  private chargingStationService: any;
   // Common constructor for Central System Server
   constructor(centralSystemConfig, chargingStationConfig) {
     // Check

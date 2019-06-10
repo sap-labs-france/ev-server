@@ -535,7 +535,7 @@ export default class ChargingStationStorage {
     chargingStationToSave.createdBy = Utils.convertUserToObjectID(chargingStationToSave.createdBy);
     chargingStationToSave.lastChangedBy = Utils.convertUserToObjectID(chargingStationToSave.lastChangedBy);
     // Transfer
-    const chargingStation:any = {};
+    const chargingStation: any = {};
     Database.updateChargingStation(chargingStationToSave, chargingStation, false);
     // Modify and return the modified document
     const result = await global.database.getCollection(tenantID, 'chargingstations').findOneAndUpdate({
@@ -556,7 +556,7 @@ export default class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStationConnector');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const updatedFields:any = {};
+    const updatedFields: any = {};
     updatedFields["connectors." + (connector.connectorId - 1)] = connector;
     // Modify and return the modified document
     const result = await global.database.getCollection(tenantID, 'chargingstations').findOneAndUpdate({
@@ -577,7 +577,7 @@ export default class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStationHeartBeat');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const updatedFields:any = {};
+    const updatedFields: any = {};
     updatedFields["lastHeartBeat"] = Utils.convertToDate(chargingStation.lastHeartBeat);
     // Modify and return the modified document
     const result = await global.database.getCollection(tenantID, 'chargingstations').findOneAndUpdate({
@@ -598,7 +598,7 @@ export default class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStationSiteArea');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    const updatedFields:any = {};
+    const updatedFields: any = {};
     updatedFields["siteAreaID"] = (chargingStation.siteArea ? Utils.convertToObjectID(chargingStation.siteArea.id) : null);
     // Check Last Changed By
     if (chargingStation.lastChangedBy && typeof chargingStation.lastChangedBy === "object") {
@@ -628,10 +628,10 @@ export default class ChargingStationStorage {
     await Utils.checkTenant(tenantID);
     // Delete Configuration
     await global.database.getCollection(tenantID, 'configurations')
-    .findOneAndDelete({ '_id': id });
+      .findOneAndDelete({ '_id': id });
     // Delete Charger
     await global.database.getCollection(tenantID, 'chargingstations')
-    .findOneAndDelete({ '_id': id });
+      .findOneAndDelete({ '_id': id });
     // Keep the rest (bootnotif, authorize...)
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'deleteChargingStation', uniqueTimerID);
