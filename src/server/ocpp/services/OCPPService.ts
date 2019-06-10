@@ -30,12 +30,9 @@ const DEFAULT_CONSUMPTION_ATTRIBUTE = {
   context: 'Sample.Periodic'
 };
 export default class OCPPService {
-  private centralSystemConfig: any;
   private chargingStationConfig: any;
-  // Common constructor for Central System Service
-  constructor(centralSystemConfig, chargingStationConfig) {
-    // Keep params
-    this.centralSystemConfig = centralSystemConfig;
+
+  constructor(chargingStationConfig=null) {
     this.chargingStationConfig = chargingStationConfig;
   }
 
