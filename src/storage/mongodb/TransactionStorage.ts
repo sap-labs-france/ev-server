@@ -184,9 +184,11 @@ export default class TransactionStorage {
           totalPrice: { $sum: "$stop.price" },
           totalInactivitySecs: { "$sum": { $add: ["$stop.totalInactivitySecs", "$stop.extraInactivitySecs"] } },
           count: { $sum: 1 }
-        },
+        }
+      }],
+      {
         allowDiskUse: true
-      }])
+      })
       .toArray();
     const transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ?  transactionsCountMDB[0] : null;
     // Check if only the total count is requested
@@ -457,7 +459,7 @@ export default class TransactionStorage {
     }
     // Count Records
     const transactionsCountMDB = await global.database.getCollection(tenantID, 'transactions')
-      .aggregate([...aggregation, { $count: "count", allowDiskUse: true }])
+      .aggregate([...aggregation, { $count: "count"}], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
     const transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ?  transactionsCountMDB[0] : null;

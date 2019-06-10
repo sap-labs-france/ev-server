@@ -8,12 +8,6 @@ import TSGlobal from '../../types/GlobalType';
 declare var global: TSGlobal;
 
 export default class ConsumptionStorage {
-  /**
-   *
-   * @param tenantID
-   * @param consumptionToSave
-   * @returns {Promise<Consumption>}
-   */
   static async saveConsumption(tenantID, consumptionToSave) {
     // Debug
     const uniqueTimerID = Logging.traceStart('ConsumptionStorage', 'saveConsumption');
@@ -55,13 +49,6 @@ export default class ConsumptionStorage {
     Logging.traceEnd('ConsumptionStorage', 'deleteConsumptions', uniqueTimerID, { transactionId });
   }
 
-  /**
-   * Get the unique consumption of a transaction at a given point of time
-   * @param tenantID {string}
-   * @param transactionId {number}
-   * @param timestamp{Date}
-   * @returns {Promise<Consumption>}
-   */
   static async getConsumption(tenantID, transactionId, endedAt) {
     // Debug
     const uniqueTimerID = Logging.traceStart('ConsumptionStorage', 'getConsumption');
@@ -89,12 +76,6 @@ export default class ConsumptionStorage {
     return null;
   }
 
-  /**
-   *
-   * @param tenantID
-   * @param transactionId
-   * @returns {Promise<Consumption[]>}
-   */
   static async getConsumptions(tenantID, transactionId) {
     // Debug
     const uniqueTimerID = Logging.traceStart('ConsumptionStorage', 'getConsumption');
