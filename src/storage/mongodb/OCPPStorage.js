@@ -103,7 +103,8 @@ class OCPPStorage {
         collation: {
           locale: Constants.DEFAULT_LOCALE,
           strength: 2
-        }
+        },
+        allowDiskUse: true
       })
       .toArray();
     const statusNotifications = [];
