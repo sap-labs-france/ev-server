@@ -6,7 +6,8 @@ const JavaScriptObfuscator = require('webpack-obfuscator');
 const CopyPlugin = require('copy-webpack-plugin');
 
 const config = {
-  entry: commonPaths.srcPath + "/start.js",
+  entry: commonPaths.srcPath + "/start.ts",
+  devtool: 'inline-source-map',
   target: 'node',
   node: {
     console: false,
@@ -18,11 +19,15 @@ const config = {
   },
   externals: [nodeExternals()],
   output: {
-    filename: "start.js",
+    filename: "./start.js",
     path: commonPaths.outputPath
+  },
+  resolve: {
+    extensions: [".ts", ".tsx", ".js", ".json"]
   },
   module: {
     rules: [
+      { test: /\.(t|j)sx?$/, use: ["ts-loader"], exclude: /node_modules/ }
     ]
   },
   plugins: [
@@ -42,7 +47,7 @@ const config = {
         cache: true,
       }),
     ],
-  },
+  }
 };
 
 module.exports = config;

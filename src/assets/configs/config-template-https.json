@@ -3,9 +3,6 @@
 		"enable": false,
 		"num_worker": 2
 	},
-  "WSClient": {
-    "autoReconnectTimeout": 0
-  },
 	"CentralSystems": [
 		{
 			"type": "ocpp",
@@ -39,7 +36,7 @@
 		"passwordWrongNumberOfTrial": 3,
 		"passwordBlockedWaitTimeMin": 5,
 		"captchaSecretKey": "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe",
-    "socketIO": false,
+		"socketIO": false,
 		"debug": false
 	},
 	"CentralSystemFrontEnd": {
@@ -58,9 +55,14 @@
 		"ssl-ca": [],
 		"debug": false,
 		"externalProtocol": "https",
-		"tenantEnabled": [ "slf"],
-		"eMI3id": { 
-			"slf": { "country_id": "FR", "party_id": "SLF" }
+		"tenantEnabled": [
+			"slf"
+		],
+		"eMI3id": {
+			"slf": {
+				"country_id": "FR",
+				"party_id": "SLF"
+			}
 		}
 	},
 	"CentralSystemServer": {
@@ -84,10 +86,6 @@
 	"JsonEndpoint": {
 		"baseUrl": ""
 	},
-	"WSClient": {
-		"autoReconnectMaxRetries": 10,
-		"autoReconnectTimeout": 60
-	},
 	"Storage": {
 		"implementation": "mongodb",
 		"uri": null,
@@ -102,42 +100,45 @@
 		"debug": false
 	},
 	"Email": {
-		 "from": "admin.noreply@evse.com",
-		 "admins": [],
-		 "bcc": "",
-		 "smtp" : {
-			 "host": "smtp.gmail.com",
-			 "port": 465,
-			 "secure": true,
-			 "requireTLS": false,
-			 "user": "",
-			 "password": ""
-		 }
+		"from": "admin.noreply@evse.com",
+		"admins": [],
+		"bcc": "",
+		"smtp": {
+			"host": "smtp.gmail.com",
+			"port": 465,
+			"secure": true,
+			"requireTLS": false,
+			"user": "",
+			"password": ""
+		}
 	},
 	"Notification": {
-		 "Email": {
-			 "enabled": true
-		 }
+		"Email": {
+			"enabled": true
+		}
 	},
 	"Authorization": {
 		"debug": false
 	},
-	"ChargingStation" : {
+	"ChargingStation": {
 		"heartbeatIntervalSecs": 60,
 		"notifBeforeEndOfChargeEnabled": true,
 		"notifBeforeEndOfChargePercent": 85,
 		"notifEndOfChargeEnabled": true,
 		"notifStopTransactionAndUnlockConnector": false
 	},
-	"Locales" : {
+	"Locales": {
 		"default": "en_US",
-		"supported": ["en_US", "fr_FR"]
+		"supported": [
+			"en_US",
+			"fr_FR"
+		]
 	},
-	"Advanced" : {
+	"Advanced": {
 		"chargeCurveTimeFrameSecsPoint": 60
 	},
-	"Scheduler" : {
-		"active" : true,
+	"Scheduler": {
+		"active": true,
 		"tasks": [
 			{
 				"name": "loggingDatabaseTableCleanup",
@@ -152,24 +153,23 @@
 				"name": "OCPIPatchLocationsTask",
 				"active": true,
 				"periodicity": "0-59/5 * * * *",
-				"config": {
-				}
+				"config": {}
 			}
 		]
-  },
-  "Logging": {
-    "logLevel": "D",
-    "consoleLogLevel": "NONE",
-    "trace": false,
-    "moduleDetails": {
-      "ChargingStation": {
-        "logLevel": "DEFAULT",
-        "consoleLogLevel": "DEFAULT"
-      },
-      "Authorizations": {
-        "logLevel": "DEFAULT",
-        "consoleLogLevel": "DEFAULT"
-      }
-    }
+	},
+	"Logging": {
+		"logLevel": "D",
+		"consoleLogLevel": "NONE",
+		"trace": false,
+		"moduleDetails": {
+			"ChargingStation": {
+				"logLevel": "DEFAULT",
+				"consoleLogLevel": "DEFAULT"
+			},
+			"Authorizations": {
+				"logLevel": "DEFAULT",
+				"consoleLogLevel": "DEFAULT"
+			}
+		}
 	}
 }
