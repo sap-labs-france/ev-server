@@ -6,6 +6,7 @@ import Tenant from '../../../entity/Tenant';
 import crypto from 'crypto';
 import HttpStatus from 'http-status-codes';
 import TSGlobal from '../../../types/GlobalType';
+
 declare var global: TSGlobal;
 
 export default class SessionHashService {
@@ -86,4 +87,3 @@ export default class SessionHashService {
     }
   }
 }
-

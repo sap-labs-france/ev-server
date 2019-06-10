@@ -6,6 +6,7 @@ import PricingStorage from '../../../storage/mongodb/PricingStorage';
 import Constants from '../../../utils/Constants';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
+
 export default class PricingService {
   static async handleGetPricing(action, req, res, next) {
     try {
@@ -83,5 +84,3 @@ export default class PricingService {
     }
   }
 }
-
-

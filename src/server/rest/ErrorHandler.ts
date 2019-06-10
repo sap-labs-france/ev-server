@@ -6,6 +6,7 @@ import NotFoundError from '../../exception/NotFoundError';
 import UnauthorizedError from '../../exception/UnauthorizedError';
 import Utils from '../../utils/Utils';
 import HttpStatus from 'http-status-codes';
+
 export default class ErrorHandler {
   static async errorHandler(err, req, res, next) {
     if (err instanceof AppAuthError || err instanceof UnauthorizedError) {

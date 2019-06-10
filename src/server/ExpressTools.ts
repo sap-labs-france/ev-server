@@ -31,9 +31,6 @@ export default {
       limit: bodyLimit
     }));
     app.use(hpp());
-    /*app.use(bodyParser.xml({
-      limit: bodyLimit
-    }));*/ // TODO: bodyParser.xml does not exist
     // Use
     app.use(locale(Configuration.getLocalesConfig().supported));
     // Check Cloud Foundry

@@ -8,6 +8,7 @@ import OCPIEndpoint from '../../../entity/OCPIEndpoint';
 import User from '../../../entity/User';
 import OCPIEndpointSecurity from './security/OCPIEndpointSecurity';
 import OCPIClient from '../../../client/ocpi/OCPIClient';
+
 export default class OCPIEndpointService {
   static async handleDeleteOcpiEndpoint(action, req, res, next) {
     try {

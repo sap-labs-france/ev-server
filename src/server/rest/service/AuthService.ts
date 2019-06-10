@@ -1,5 +1,3 @@
-// Build HashID based on important tenant fields
-// Build HashID based on important user fields
 import passport from 'passport';
 import { Strategy, ExtractJwt } from 'passport-jwt';
 import jwt from 'jsonwebtoken';
@@ -39,6 +37,7 @@ if (_centralSystemRestConfig) {
     return done(null, jwtPayload);
   }));
 }
+
 export default class AuthService {
   static initialize() {
     return passport.initialize();

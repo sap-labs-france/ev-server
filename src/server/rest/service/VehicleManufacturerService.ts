@@ -7,6 +7,7 @@ import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import VehicleManufacturer from '../../../entity/VehicleManufacturer';
 import VehicleManufacturerSecurity from './security/VehicleManufacturerSecurity';
+
 export default class VehicleManufacturerService {
   static async handleDeleteVehicleManufacturer(action, req, res, next) {
     try {
@@ -282,5 +283,3 @@ export default class VehicleManufacturerService {
     }
   }
 }
-
-

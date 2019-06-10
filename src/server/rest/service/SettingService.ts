@@ -7,6 +7,7 @@ import Constants from '../../../utils/Constants';
 import Setting from '../../../entity/Setting';
 import User from '../../../entity/User';
 import SettingSecurity from './security/SettingSecurity';
+
 export default class SettingService {
   static async handleDeleteSetting(action, req, res, next) {
     try {
@@ -216,5 +217,3 @@ export default class SettingService {
     }
   }
 }
-
-

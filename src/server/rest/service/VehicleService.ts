@@ -7,6 +7,7 @@ import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import Vehicle from '../../../entity/Vehicle';
 import VehicleSecurity from './security/VehicleSecurity';
+
 export default class VehicleService {
   static async handleDeleteVehicle(action, req, res, next) {
     try {
@@ -288,5 +289,3 @@ export default class VehicleService {
     }
   }
 }
-
-
