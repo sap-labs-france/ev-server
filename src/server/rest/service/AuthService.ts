@@ -125,6 +125,7 @@ export default class AuthService {
               `Charging Station with ID '${filteredRequest.Arg1}' does not exist`,
               550, 'AuthService', 'handleIsAuthorized');
           }
+
           user = await User.getUser(req.user.tenantID, req.user.id);
           // Found?
           if (!user) {
@@ -228,10 +229,12 @@ export default class AuthService {
   }
 
   static async handleLogIn(action, req, res, next) {
+
     // Filter
     const filteredRequest = AuthSecurity.filterLoginRequest(req.body);
 
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
+
     if (!tenantID) {
       Logging.logSecurityError({
         tenantID: Constants.DEFAULT_TENANT, module: 'AuthService', method: 'handleLogIn',
@@ -263,6 +266,7 @@ export default class AuthService {
       }
 
       const user = await User.getUserByEmail(tenantID, filteredRequest.email);
+
       if (!user) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -316,6 +320,7 @@ export default class AuthService {
       }
     } catch (err) {
       // Log
+
       Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next, tenantID);
     }
   }
@@ -920,7 +925,7 @@ export default class AuthService {
     }
   }
 
-  static async userLoginSucceeded(action, user, req, res, next) {
+  static async userLoginSucceeded(action, user: User, req, res, next) {
     // Password / Login OK
     Logging.logSecurityInfo({
       tenantID: user.getTenantID(),
@@ -953,6 +958,7 @@ export default class AuthService {
     } else {
       tenantHashID = Constants.DEFAULT_TENANT;
     }
+
     // Yes: build payload
     const payload = {
       'id': user.getID(),
@@ -970,6 +976,7 @@ export default class AuthService {
       'sites': authorizedEntities.sites,
       'activeComponents': []
     };
+
     // Get active components from tenant if not default
     if (user.getTenantID() !== Constants.DEFAULT_TENANT) {
       const tenant = await user.getTenant();
@@ -1017,6 +1024,7 @@ export default class AuthService {
         550, 'AuthService', 'checkUserLogin',
         user.getModel());
     }
+
     // Check password
     const match = await User.checkPasswordBCrypt(filteredRequest.password, user.getPassword());
     // Check new and old version of hashing the password

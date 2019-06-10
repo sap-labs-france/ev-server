@@ -558,6 +558,11 @@ export default class Logging {
         logFn = console.log;
         break;
     }
+    
+    //if(log.level != LogLevel.ERROR || log.module == 'WSClient' || log.action.startsWith('WS')) {
+    //  return;//TODO REMOVE THIS IF STATEMENT!!!!!
+    //}
+    
     // Log
     log.timestamp = new Date();
     if (log.hasOwnProperty('simpleMessage')) {

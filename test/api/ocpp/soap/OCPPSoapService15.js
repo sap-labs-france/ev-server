@@ -96,7 +96,6 @@ class OCPPSoapService15 extends OCPPService {
         headers: soapHeader || {},
         data: result || {}
       };
-      
       // Return response
       return response;
     } catch (error) {

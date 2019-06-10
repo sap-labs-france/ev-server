@@ -3,7 +3,7 @@ import Logging from '../../../utils/Logging';
 import Constants from '../../../utils/Constants';
 import LoggingSecurity from './security/LoggingSecurity';
 import AppAuthError from '../../../exception/AppAuthError';
-const fs = require("fs");
+import fs from "fs";
 export default class LoggingService {
   static async handleGetLoggings(action, req, res, next) {
     try {

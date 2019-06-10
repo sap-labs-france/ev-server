@@ -422,10 +422,12 @@ export default class ChargingStationService {
           'ChargingStationService', 'handleGetChargingStation', req.user);
       }
       // Return
+      const tenant = await chargingStation.getTenant();//await TenantStorage.getTenant(chargingStation.getTenantID());
       res.json(
         // Filter
+        
         ChargingStationSecurity.filterChargingStationResponse(
-          chargingStation.getModel(), req.user, await chargingStation.isComponentActive(Constants.COMPONENTS.ORGANIZATION))
+          chargingStation.getModel(), req.user, await tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION))
       );
       next();
     } catch (error) {

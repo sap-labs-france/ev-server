@@ -9,10 +9,11 @@ import Site from '../../../entity/Site';
 import Utils from '../../../utils/Utils';
 import Database from '../../../utils/Database';
 import UserSecurity from './security/UserSecurity';
-const SettingStorage = require("../../../storage/mongodb/SettingStorage");
-const ERPService = require("../../../integration/pricing/convergent-charging/ERPService");
-const RatingService = require("../../../integration/pricing/convergent-charging/RatingService");
-const fs = require("fs");
+import SettingStorage from "../../../storage/mongodb/SettingStorage";
+import ERPService from "../../../integration/pricing/convergent-charging/ERPService";
+import RatingService from "../../../integration/pricing/convergent-charging/RatingService";
+import fs from "fs";
+
 export default class UserService {
   static async handleAddSitesToUser(action, req, res, next) {
     try {
@@ -497,6 +498,7 @@ export default class UserService {
       next();
     } catch (error) {
       // Log
+      console.log(error);
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
   }

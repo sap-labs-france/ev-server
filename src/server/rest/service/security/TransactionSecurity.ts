@@ -264,6 +264,11 @@ export default class TransactionSecurity {
       }
     }
     const filteredTransaction = this.filterTransactionResponse(transaction, loggedUser);
+    if(consumptions.length == 0) {
+      filteredTransaction.values = [];
+      return filteredTransaction;
+    }
+
     // Admin?
     if (Authorizations.isAdmin(loggedUser)) {
       // Set them all

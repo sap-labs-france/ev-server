@@ -817,6 +817,7 @@ describe('Transaction tests', function() {
 
   it('inactivity should be computed', async () => {
     const user = await this.dataHelper.createUser();
+    
     const company = await this.dataHelper.createCompany();
     const site = await this.dataHelper.createSite(company, [user]);
     const chargingStation = await this.dataHelper.createChargingStation();

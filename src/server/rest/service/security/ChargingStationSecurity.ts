@@ -3,14 +3,7 @@ import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import UtilsSecurity from './UtilsSecurity';
 
-let SiteAreaSecurity; // Avoid circular deps
 export default class ChargingStationSecurity {
-  static getSiteAreaSecurity() {
-    if (!SiteAreaSecurity) {
-      SiteAreaSecurity = require('./SiteAreaSecurity');
-    }
-    return SiteAreaSecurity;
-  }
 
   // eslint-disable-next-line no-unused-vars
   static filterAddChargingStationsToSiteAreaRequest(request, loggedUser) {

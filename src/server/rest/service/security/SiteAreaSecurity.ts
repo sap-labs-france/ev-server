@@ -5,6 +5,8 @@ import ChargingStationSecurity from './ChargingStationSecurity';
 import SiteSecurity from './SiteSecurity';
 
 export default class SiteAreaSecurity {
+
+
   // eslint-disable-next-line no-unused-vars
   static filterSiteAreaDeleteRequest(request, loggedUser) {
     const filteredRequest: any = {};

@@ -9,7 +9,8 @@ import Company from '../../../entity/Company';
 import User from '../../../entity/User';
 import SiteSecurity from './security/SiteSecurity';
 import UtilsService from './UtilsService';
-const OrganizationComponentInactiveError = require ('../../../exception/OrganizationComponentInactiveError');
+import OrganizationComponentInactiveError from '../../../exception/OrganizationComponentInactiveError';
+
 export default class SiteService {
   static async handleAddUsersToSite(action, req, res, next) {
     try {
@@ -263,6 +264,7 @@ export default class SiteService {
           `The Site with ID '${filteredRequest.ID}' does not exist anymore`, 550,
           'SiteService', 'handleGetSite', req.user);
       }
+      console.log(site);
       // Return
       res.json(
         // Filter

@@ -1,7 +1,7 @@
 const soap = require('strong-soap').soap;
 import AbstractSoapClient from './AbstractSoapClient';
 
-export class RatingService extends AbstractSoapClient {
+export default class RatingService extends AbstractSoapClient {
 
   //TODO Absolutely remove the global as any typecase; instead, define the global properly.
   //https://stackoverflow.com/questions/40743131/how-to-prevent-property-does-not-exist-on-type-global-with-jsdom-and-t

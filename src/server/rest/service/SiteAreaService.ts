@@ -10,7 +10,8 @@ import ChargingStation from '../../../entity/ChargingStation';
 import Site from '../../../entity/Site';
 import SiteArea from '../../../entity/SiteArea';
 import UtilsService from './UtilsService';
-const OrganizationComponentInactiveError = require ('../../../exception/OrganizationComponentInactiveError');
+import OrganizationComponentInactiveError from '../../../exception/OrganizationComponentInactiveError';
+
 export default class SiteAreaService {
   static async handleCreateSiteArea(action, req, res, next) {
     try {

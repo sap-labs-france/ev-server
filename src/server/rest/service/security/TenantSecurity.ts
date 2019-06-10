@@ -55,7 +55,7 @@ export default class TenantSecurity {
   }
 
   static filterTenantResponse(tenant, loggedUser) {
-    let filteredTenant;
+    let filteredTenant: any;
 
     if (!tenant) {
       return null;

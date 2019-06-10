@@ -13,7 +13,7 @@ declare var global: TSGlobal;
 
 export default class ChargingStationStorage {
 
-  static async getChargingStation(tenantID, id) {
+  static async getChargingStation(tenantID, id): Promise<ChargingStation> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStation');
     // Check Tenant
@@ -66,7 +66,7 @@ export default class ChargingStationStorage {
     return chargingStation;
   }
 
-  static async getChargingStations(tenantID, params: any = {}, limit?, skip?, sort?) {
+  static async getChargingStations(tenantID, params: any = {}, limit?, skip?, sort?): Promise<{count: number, result: ChargingStation[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
     // Check Tenant

@@ -8,11 +8,13 @@ import TransactionSecurity from './security/TransactionSecurity';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import ChargingStation from '../../../entity/ChargingStation';
 import User from '../../../entity/User';
-const SettingStorage = require("../../../storage/mongodb/SettingStorage");
-const ConcurConnector = require("../../../integration/refund/ConcurConnector");
-const OCPPService = require("../../../server/ocpp/services/OCPPService");
-const fs = require("fs");
+import SettingStorage from "../../../storage/mongodb/SettingStorage";
+import ConcurConnector from "../../../integration/refund/ConcurConnector";
+import OCPPService from"../../../server/ocpp/services/OCPPService";
+import fs from "fs";
 import crypto from 'crypto';
+import TSGlobal from '../../../types/GlobalType';
+declare var global: TSGlobal;
 
 export default class TransactionService {
   static async handleRefundTransactions(action, req, res, next) {
@@ -229,6 +231,7 @@ export default class TransactionService {
         }
       }
       // Stop Transaction
+      //const result = global.centralSystemSoap.getChargingStationService(Constants.OCPP_VERSION_16).handleStopTransaction( //IMPORTANT TODO: line235 looked weird/threw a compile time error, so I added this dirty fix that most likely isn't wanted behavior. Please fix.
       const result = await new OCPPService().handleStopTransaction(
         {
           chargeBoxIdentity: chargingStation.getID(),
@@ -298,6 +301,7 @@ export default class TransactionService {
       }
       // Get the consumption
       let consumptions = await transaction.getConsumptions();
+
       // Dates provided?
       const startDateTime = filteredRequest.StartDateTime ? filteredRequest.StartDateTime : Constants.MIN_DATE;
       const endDateTime = filteredRequest.EndDateTime ? filteredRequest.EndDateTime : Constants.MAX_DATE;
@@ -347,6 +351,7 @@ export default class TransactionService {
           'TransactionService', 'handleGetTransaction',
           req.user);
       }
+
       // Return
       res.json(
         // Filter

@@ -48,7 +48,7 @@ export default class TenantMigrationTask extends MigrationTask {
     let tenant = await Tenant.getTenantBySubdomain(SLF_TENANT.subdomain);
     if (!tenant) {
       tenant = new Tenant(SLF_TENANT);
-      tenant = await TenantStorage.saveTenant(tenant);
+      tenant = await TenantStorage.saveTenant(tenant.getModel());
 
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT, module: 'TenantMigrationTask',
