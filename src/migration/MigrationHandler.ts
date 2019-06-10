@@ -30,6 +30,9 @@ export default class MigrationHandler {
       // Clean previously running migration belonging to the current host at startup
       await MigrationStorage.cleanRunningMigrations();
 
+      // Clean previously running migrations belonging to the current host at startup
+      await MigrationStorage.cleanRunningMigrations();
+
       // Log
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
@@ -78,7 +81,6 @@ export default class MigrationHandler {
           // Continue
           continue;
         }
-
         // Check if not already running
         const migrationTaskRunning = migrationTasksRunning.find((migrationTaskRunning) => {
           // Same name and version
@@ -97,17 +99,16 @@ export default class MigrationHandler {
           // Continue
           continue;
         }
-
         // Check if async
         if (currentMigrationTask.isAsynchronous()) {
           // Execute async
           setTimeout(() => {
             // Execute Migration Task sync
-            MigrationHandler.executeTask(currentMigrationTask);
+            MigrationHandler._executeTask(currentMigrationTask);
           }, 1000);
         } else {
           // Execute Migration Task sync
-          await MigrationHandler.executeTask(currentMigrationTask);
+          await MigrationHandler._executeTask(currentMigrationTask);
         }
       }
       // Log Total Processing Time
@@ -133,7 +134,7 @@ export default class MigrationHandler {
     }
   }
 
-  static async executeTask(currentMigrationTask) {
+  static async _executeTask(currentMigrationTask) {
     // Log Start Task
     Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,

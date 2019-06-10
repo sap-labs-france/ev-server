@@ -292,7 +292,7 @@ export default class Bootstrap {
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         source: 'Bootstrap', module: MODULE_NAME, method: 'start', action: 'Start',
-        message: `Unexpected exception ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}: ${error.toString()}`
+        message: `Unexpected exception: ${error.toString()}`
       });
     }
   }

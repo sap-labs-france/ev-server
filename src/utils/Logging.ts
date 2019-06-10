@@ -495,7 +495,7 @@ export default class Logging {
       default:
         break;
     }
-    // Log
+    // Timestamp
     log.timestamp = new Date();
 
     // Source
