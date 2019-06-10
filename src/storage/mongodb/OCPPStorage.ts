@@ -6,10 +6,10 @@ import crypto from 'crypto';
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import TSGlobal from '../../types/GlobalType';
+
 declare var global: TSGlobal;
 
 export default class OCPPStorage {
-
   static async saveAuthorize(tenantID, authorize) {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveAuthorize');

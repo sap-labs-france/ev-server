@@ -4,6 +4,7 @@ import Logging from '../../utils/Logging';
 import Consumption from '../../entity/Consumption';
 import crypto from 'crypto';
 import TSGlobal from '../../types/GlobalType';
+
 declare var global: TSGlobal;
 
 export default class ConsumptionStorage {

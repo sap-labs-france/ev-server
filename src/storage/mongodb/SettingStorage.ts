@@ -7,15 +7,10 @@ import BackendError from '../../exception/BackendError';
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import TSGlobal from '../../types/GlobalType';
+
 declare var global: TSGlobal;
 
 export default class SettingStorage {
-  /**
-   *
-   * @param tenantID
-   * @param id
-   * @returns {Promise<Setting>}
-   */
   static async getSetting(tenantID, id) {
     // Debug
     const uniqueTimerID = Logging.traceStart('SettingStorage', 'getSetting');
@@ -44,12 +39,6 @@ export default class SettingStorage {
     return setting;
   }
 
-  /**
-   *
-   * @param tenantID
-   * @param identifier
-   * @returns {Promise<Setting>}
-   */
   static async getSettingByIdentifier(tenantID, identifier) {
     let setting = null;
     // Debug
@@ -108,7 +97,6 @@ export default class SettingStorage {
     return new Setting(tenantID, result.value);
   }
 
-  // Delegate
   static async getSettings(tenantID, params: any = {}, limit?, skip?, sort?) {
     // Debug
     const uniqueTimerID = Logging.traceStart('SettingStorage', 'getSettings');

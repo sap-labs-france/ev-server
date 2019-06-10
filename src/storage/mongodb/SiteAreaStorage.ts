@@ -9,10 +9,10 @@ import Site from '../../entity/Site';
 import SiteArea from '../../entity/SiteArea';
 import ChargingStation from '../../entity/ChargingStation';
 import TSGlobal from '../../types/GlobalType';
+
 declare var global: TSGlobal;
 
 export default class SiteAreaStorage {
-
   static async getSiteAreaImage(tenantID, id) {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'getSiteAreaImage');

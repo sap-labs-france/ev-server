@@ -11,7 +11,7 @@ import Company from '../../entity/Company';
 import SiteArea from '../../entity/SiteArea';
 import User from '../../entity/User';
 import TSGlobal from '../../types/GlobalType';
-import ChargingStation from '../../entity/ChargingStation';
+
 declare var global: TSGlobal;
 
 export default class SiteStorage {
