@@ -4,7 +4,8 @@ import LocationsEndpoint from './LocationsEndpoint';
 
 const VERSION = "2.1.1";
 
-require('source-map-support').install();
+import SourceMap from 'source-map-support';
+SourceMap.install();
 
 /**
  * OCPI Service 2.1.1  - Implementation

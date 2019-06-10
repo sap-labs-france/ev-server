@@ -1,5 +1,6 @@
 import OCPIUtils from '../OCPIUtils';
-require('source-map-support').install();
+import SourceMap from 'source-map-support';
+SourceMap.install();
 import OCPIService from '../OCPIServices';
 import Tenant from '../../../entity/Tenant';
 import { Request, Response } from 'express';

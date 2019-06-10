@@ -1,4 +1,4 @@
-const soap = require('strong-soap').soap;
+import { soap } from 'strong-soap';
 import { performance } from 'perf_hooks';
 import SoapRequest from './SoapRequest';
 

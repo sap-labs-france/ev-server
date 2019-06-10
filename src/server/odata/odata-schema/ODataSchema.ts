@@ -3,9 +3,8 @@ import auth from 'basic-auth';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import CentralServiceApi from '../client/CentralServiceApi';
-import TSGlobal from '../../../types/GlobalType';
-
-require('source-map-support').install();
+import SourceMap from 'source-map-support';
+SourceMap.install();
 
 declare var global: TSGlobal;
 

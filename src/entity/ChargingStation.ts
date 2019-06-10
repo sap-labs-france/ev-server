@@ -17,7 +17,8 @@ import momentDurationFormatSetup from "moment-duration-format";
 import tzlookup from "tz-lookup";
 import buildChargingStationClient from '../client/ocpp/ChargingStationClientFactory';
 
-require('source-map-support').install();
+import SourceMap from 'source-map-support';
+SourceMap.install();
 
 momentDurationFormatSetup(moment);
 

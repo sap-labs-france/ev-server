@@ -1,4 +1,4 @@
-const soap = require('strong-soap').soap;
+import { soap } from 'strong-soap';
 import AbstractSoapClient from './AbstractSoapClient';
 
 export default class StatefulChargingService extends AbstractSoapClient {

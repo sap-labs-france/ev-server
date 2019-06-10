@@ -2,7 +2,8 @@ import Logging from '../../utils/Logging';
 import Constants from '../../utils/Constants';
 import MongoDBStorage from './MongoDBStorage';
 
-require('source-map-support').install();
+import SourceMap from 'source-map-support';
+SourceMap.install();
 
 const _pipeline = [];
 const _options = {

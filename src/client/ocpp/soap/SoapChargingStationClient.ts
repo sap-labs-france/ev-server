@@ -1,5 +1,5 @@
 import ChargingStationClient from '../ChargingStationClient';
-const soap = require('strong-soap').soap;
+import { soap } from 'strong-soap';
 import Logging from '../../../utils/Logging';
 import Configuration from '../../../utils/Configuration';
 import TSGlobal from '../../../types/GlobalType';

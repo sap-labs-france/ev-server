@@ -5,7 +5,7 @@ import Database from '../../utils/Database';
 import Utils from '../../utils/Utils';
 import VehicleStorage from './VehicleStorage';
 import BackendError from '../../exception/BackendError';
-const ObjectID = require('mongodb').ObjectID;
+import { ObjectID } from 'mongodb';
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import TSGlobal from '../../types/GlobalType';

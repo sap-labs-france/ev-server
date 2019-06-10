@@ -1,7 +1,8 @@
 import Constants from "../../../../utils/Constants";
 import Site from "../../../../entity/Site";
 
-require('source-map-support').install();
+import SourceMap from 'source-map-support';
+SourceMap.install();
 
 /**
  * OCPI Mapping 2.1.1 - Mapping class

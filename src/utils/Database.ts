@@ -2,8 +2,10 @@ import Utils from './Utils';
 import Constants from './Constants';
 import Configuration from './Configuration';
 import cfenv from 'cfenv';
+import os from 'os';
 
-require('source-map-support').install();
+import SourceMap from 'source-map-support';
+SourceMap.install();
 
 export default class Database {
 
@@ -171,7 +173,7 @@ export default class Database {
     dest.timestamp = Utils.convertToDate(src.timestamp);
     dest.name = src.name;
     dest.version = src.version;
-    dest.hostname = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname();
+    dest.hostname = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
   }
 
   static updateConfiguration(src, dest, forFrontEnd = true) {

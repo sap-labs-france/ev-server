@@ -2,7 +2,7 @@ import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import Utils from '../../utils/Utils';
 import BackendError from '../../exception/BackendError';
-const ObjectID = require('mongodb').ObjectID;
+import { ObjectID } from 'mongodb';
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import Site from '../../entity/Site';

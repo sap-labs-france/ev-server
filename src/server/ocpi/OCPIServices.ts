@@ -5,7 +5,8 @@ import AbstractOCPIService from './AbstractOCPIService';
 import {Request, Response} from 'express';
 import { Config } from '../../utils/ConfigurationClasses/Config';
 
-require('source-map-support').install();
+import SourceMap from 'source-map-support';
+SourceMap.install();
 
 export default class OCPIServices {
 

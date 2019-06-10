@@ -13,7 +13,8 @@ import AccessControl from 'role-acl';
 import AuthorizationsDefinition from './AuthorizationsDefinition';
 import ChargingStation from '../entity/ChargingStation';
 import TenantStorage from '../storage/mongodb/TenantStorage';
-require('source-map-support').install();
+import SourceMap from 'source-map-support';
+SourceMap.install();
 
 export default class Authorizations {
 

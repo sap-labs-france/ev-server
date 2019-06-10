@@ -19,7 +19,8 @@ import NotificationService from './service/NotificationService';
 import ConnectorService from './service/ConnectorService';
 import SessionHashService from './service/SessionHashService';
 
-require('source-map-support').install();
+import SourceMap from 'source-map-support';
+SourceMap.install();
 
 export default {
   // Util Service

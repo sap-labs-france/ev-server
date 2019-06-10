@@ -8,7 +8,8 @@ import Logging from '../../../../utils/Logging';
 import Constants from "../../../../utils/Constants";
 import axios from 'axios';
 
-require('source-map-support').install();
+import SourceMap from 'source-map-support';
+SourceMap.install();
 
 const EP_IDENTIFIER = "credentials";
 const EP_VERSION = "2.1.1";

@@ -12,7 +12,8 @@ import TSGlobal from '../../types/GlobalType';
 
 declare var global: TSGlobal;
 
-require('source-map-support').install();
+import SourceMap from 'source-map-support';
+SourceMap.install();
 
 // Email
 const _emailConfig = Configuration.getEmailConfig();

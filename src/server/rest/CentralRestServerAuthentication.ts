@@ -1,7 +1,8 @@
 import AuthService from './service/AuthService';
 import UtilsService from './service/UtilsService';
 
-require('source-map-support').install();
+import SourceMap from 'source-map-support';
+SourceMap.install();
 
 export default {
   // Init Passport

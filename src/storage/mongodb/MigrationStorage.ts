@@ -1,10 +1,10 @@
 import Database from '../../utils/Database';
-import Utils from '../../utils/Utils';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import TSGlobal from '../../types/GlobalType';
 import Configuration from '../../utils/Configuration';
 import cfenv from 'cfenv';
+import os from 'os';
 
 declare var global: TSGlobal;
 
@@ -103,7 +103,7 @@ export default class MigrationStorage {
     Logging.traceEnd('MigrationStorage', 'deleteRunningMigration', uniqueTimerID, { migration });
   }
 
-  static async cleanRunningMigrations(hostname = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname()) {
+  static async cleanRunningMigrations(hostname = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname()) {
     // Debug
     const uniqueTimerID = Logging.traceStart('MigrationStorage', 'cleanRunningMigrations');
     // Delete

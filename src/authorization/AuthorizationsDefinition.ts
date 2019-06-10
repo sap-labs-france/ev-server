@@ -1,5 +1,7 @@
 import Constants from '../utils/Constants';
-require('source-map-support').install();
+import SourceMap from 'source-map-support';
+SourceMap.install();
+
 
 export default class AuthorizationsDefinition {
 
