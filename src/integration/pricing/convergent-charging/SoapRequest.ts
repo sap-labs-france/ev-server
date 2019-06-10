@@ -7,5 +7,5 @@ export default class SoapRequest {
   ) {}
 }
 
-//TODO: type of data (Payload)
+// TODO: type of data (Payload)
 // since it is variable maybe leave as any (justified)

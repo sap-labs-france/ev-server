@@ -13,6 +13,6 @@ export default class AppError extends Error {
     super(message);
   }
 }
-//TODO: As user, actionOnUser and action are not used in any instantiation of
+// TODO: As user, actionOnUser and action are not used in any instantiation of
 // AppError anywhere in the app, I cannot infer their types. Therefore, they will
 // be left any until someone using them will modify the types.

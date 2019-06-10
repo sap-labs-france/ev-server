@@ -14,7 +14,7 @@ export default class OCPIUtils {
    * Return OCPI Success Body Response
    * @param {*} data
    */
-  public static success(data?: any): {data: any; status_code: number; status_message: string; timestamp: string} {//TODO restrict any
+  public static success(data?: any): {data: any; status_code: number; status_message: string; timestamp: string} { // TODO: restrict any
     return {
       "data": data,
       "status_code": Constants.OCPI_STATUS_CODE.CODE_1000_SUCCESS.status_code,

@@ -674,7 +674,7 @@ export default class AuthService {
     // Filter
     const filteredRequest = AuthSecurity.filterVerifyEmailRequest(req.query);
 
-    //Get the tenant
+    // Get the tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
       const error = new BadRequestError({

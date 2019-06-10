@@ -490,7 +490,7 @@ export default class Logging {
           return;
         }
         break;
-      //Keep ALL
+      // Keep ALL
       case LogLevel.DEBUG:
       default:
         break;
@@ -535,7 +535,7 @@ export default class Logging {
     }
   }
 
-  //console Log
+  // console Log
   static _consoleLog(log) {
     let logFn;
     // Set the function to log

@@ -16,7 +16,7 @@ import User from '../../../entity/User';
 const moment = require('moment-timezone');
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import momentDurationFormatSetup from 'moment-duration-format';// TODO what
-//const momentDurationFormatSetup = require("moment-duration-format");
+// const momentDurationFormatSetup = require("moment-duration-format");
 
 import SourceMap from 'source-map-support';
 SourceMap.install();

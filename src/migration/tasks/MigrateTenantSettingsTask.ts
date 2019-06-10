@@ -7,7 +7,7 @@ export default class MigrateTenantSettingsTask extends MigrationTask {
   public async migrate(): Promise<void> {
     // Migrate Default Tenant's components
 
-    //TODO add types to specific mongo collections to get rid of all any types
+    // TODO: add types to specific mongo collections to get rid of all any types
     const tenantsMDB = await global.database.getCollection(
       'default', 'tenants').aggregate([]).toArray();
     for (const tenantMDB of tenantsMDB) {
@@ -39,7 +39,7 @@ export default class MigrateTenantSettingsTask extends MigrationTask {
             "_id": tenantMDB._id
           }, {
             $set: tenantMDB
-          }, { upsert: true, /*new: true,*/ returnOriginal: false });//TODO Typescript complains about new parameter. Please check.
+          }, { upsert: true, /*new: true,*/ returnOriginal: false }); // TODO: Typescript complains about new parameter. Please check.
         }
       }
       // Delete unused settings

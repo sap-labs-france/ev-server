@@ -28,7 +28,7 @@ export default class MongoDBStorage {
   }
 
   public async handleIndexesInCollection(allCollections: { name: string }[], tenantID: string, name: string, indexes?: { fields: any; options?: any }[]): Promise<boolean> {
-    //Safety check
+    // Safety check
     if (!this.db) {
       throw new InternalError('Not supposed to call handleIndexesInCollection before start', []);
     }
@@ -77,7 +77,7 @@ export default class MongoDBStorage {
         }
       }
     }
-    return await false; //TODO: Is this wanted behavior? Previously, sometimes returned bool sometimes nothing.
+    return await false; // TODO: Is this wanted behavior? Previously, sometimes returned bool sometimes nothing.
   }
 
   public async checkAndCreateTenantDatabase(tenantID: string): Promise<void> {

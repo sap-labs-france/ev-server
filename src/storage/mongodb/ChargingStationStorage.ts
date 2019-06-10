@@ -446,7 +446,7 @@ export default class ChargingStationStorage {
     for (const chargingStationMDB of chargingStationsFacetMDB) {
       // Create the Charger
       const chargingStation = new ChargingStation(tenantID, chargingStationMDB);
-      //enhance model with error info
+      // Enhance model with error info
       chargingStation.getModel().errorCode = chargingStationMDB.errorCode;
       chargingStation.getModel().uniqueId = chargingStationMDB.uniqueId;
       // Add the Site Area?

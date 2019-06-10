@@ -110,7 +110,7 @@ export default class SettingStorage {
     const filters: any = {};
     // Source?
     if (params.search) {
-      //Build filter
+      // Build filter
       filters.$or = [
         { "identifier": { $regex: params.search, $options: 'i' } }
       ];

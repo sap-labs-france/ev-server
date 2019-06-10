@@ -20,7 +20,7 @@ export default class Notification extends TenantHolder {
     return this._model.id;
   }
 
-  setSourceDescr(sourceDescr: string): void { //TODO: verify string type
+  setSourceDescr(sourceDescr: string): void { // TODO: verify string type
     this._model.sourceDescr = sourceDescr;
   }
 
