@@ -1,21 +1,19 @@
 import Constants from './Constants';
 import TSGlobal from './../types/GlobalType';
-declare var global: TSGlobal;
+import cfenv from 'cfenv';
+import fs from 'fs';
+import os from 'os';
+import SourceMap from 'source-map-support';
+SourceMap.install();
 
+declare var global: TSGlobal;
 const {
   WS_DEFAULT_RECONNECT_MAX_RETRIES = Constants.WS_DEFAULT_RECONNECT_MAX_RETRIES,
   WS_DEFAULT_RECONNECT_TIMEOUT = Constants.WS_DEFAULT_RECONNECT_TIMEOUT
 } = {};
-import cfenv from 'cfenv';
-import fs from 'fs';
-import os from 'os';
-
-import SourceMap from 'source-map-support';
-SourceMap.install();
-
-// Cloud Foundry App Env
 const _appEnv = cfenv.getAppEnv();
 let config = null;
+
 export default class Configuration {
   // Read the config file
   static getConfig() {

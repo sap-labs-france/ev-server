@@ -1,7 +1,6 @@
 import path from 'path';
-import TSGlobal from './types/GlobalType';
-declare var global: TSGlobal;
 global.appRoot = path.resolve(__dirname);
+import TSGlobal from './types/GlobalType';
 import BBPromise from 'bluebird';
 global.Promise = BBPromise;
 import cluster from 'cluster';
@@ -18,10 +17,10 @@ import MigrationHandler from './migration/MigrationHandler';
 import Logging from './utils/Logging';
 import Constants from './utils/Constants';
 import Utils from './utils/Utils';
-
 import SourceMap from 'source-map-support';
 SourceMap.install();
 
+declare var global: TSGlobal;
 const MODULE_NAME = 'Bootstrap';
 
 export default class Bootstrap {
@@ -110,11 +109,6 @@ export default class Bootstrap {
     }
   }
 
-  /**
-   * Start the listening of all servers only
-   *
-   * @private
-   */
   static async startServersListening() {
     try {
       // -------------------------------------------------------------------------

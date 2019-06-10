@@ -3,12 +3,10 @@ import Constants from './Constants';
 import Configuration from './Configuration';
 import cfenv from 'cfenv';
 import os from 'os';
-
 import SourceMap from 'source-map-support';
 SourceMap.install();
 
 export default class Database {
-
   private static heartbeatIntervalSecs: number = -1;
 
   static updateID(src, dest) {
