@@ -222,7 +222,7 @@ export default class Utils {
       userID = user;
       // Check User Model
       if (typeof user === "object" &&
-        user.constructor.name != "ObjectID") {
+        user.constructor.name !== "ObjectID") {
         // This is the User Model
         userID = Utils.convertToObjectID(user.id);
       }
