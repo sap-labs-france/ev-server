@@ -4,7 +4,6 @@ import Configuration from './Configuration';
 import cfenv from 'cfenv';
 import cluster from 'cluster';
 import os from 'os';
-import cluster from 'cluster';
 import SourceMap from 'source-map-support';
 SourceMap.install();
 

@@ -13,7 +13,7 @@ import Configuration from '../../../utils/Configuration';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import SiteArea from '../../../entity/SiteArea';
 import User from '../../../entity/User';
-import moment from 'moment-timezone';
+const moment = require('moment-timezone');
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import momentDurationFormatSetup from 'moment-duration-format';// TODO what
 //const momentDurationFormatSetup = require("moment-duration-format");
