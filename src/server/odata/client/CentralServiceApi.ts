@@ -76,6 +76,5 @@ export default class CentralServiceApi extends AuthenticatedApi {
       url: '/client/api/Ping'
     });
   }
-
 }
 

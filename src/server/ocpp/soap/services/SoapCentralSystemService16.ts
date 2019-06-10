@@ -2,6 +2,7 @@ import Logging from '../../../../utils/Logging';
 import Utils from '../../../../utils/Utils';
 import Constants from '../../../../utils/Constants';
 import TSGlobal from '../../../../types/GlobalType';
+
 declare var global: TSGlobal;
 
 const MODULE_NAME = "SoapCentralSystemService16";

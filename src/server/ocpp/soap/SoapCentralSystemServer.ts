@@ -25,7 +25,6 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     // Initialize express app
     this.express = expressTools.init();
 
-    // FIXME?: Should be useless now that helmet() is mounted at the beginning
     // Mount express-sanitizer middleware
     this.express.use(sanitize());
 
@@ -51,7 +50,7 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
   }
 
   /**
-   * Start the server and listen to all SOAP OCCP versions
+   * Start the server and listen to all SOAP OCPP versions
    * Listen to external command to send request to charging stations
    */
   start() {

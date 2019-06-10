@@ -73,6 +73,5 @@ export default class AuthenticatedApi extends BaseApi {
     // Exec the request
     return super.send(data);
   }
-
 }
 

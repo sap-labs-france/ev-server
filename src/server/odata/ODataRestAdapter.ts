@@ -18,60 +18,48 @@ export default class ODataRestAdapter {
   public static restServerUrl: any;
 
   static async query(collection, query?, req?, cb?) {
-    // get tenant from url
+    // Get tenant from url
     const requestedHost = req.host;
-
-    // split 
+    // Split 
     const split = requestedHost.split('.');
-
-    // get tenant at first place
+    // Get tenant at first place
     let subdomain = split[0];
-
-    // get user/password
+    // Get user/password
     const authentication = auth(req);
-
-    // TODO: for testing at home
+    // For testing at home
     if (subdomain === '109') {
       subdomain = 'slf';
     }
-    // handle error
+    // Handle error
     try {
-      // get tenant
+      // Get tenant
       const tenant = await Tenant.getTenantBySubdomain(subdomain);
-
-      // check if tenant available
+      // Check if tenant available
       if (!tenant) {
         cb(Error("Invalid tenant"));
         return;
       }
-
-      // check if sac setting is active
+      // Check if sac setting is active
       if (!tenant.isComponentActive(Constants.COMPONENTS.ANALYTICS)) {
         cb(Error("SAP Analytics Clound Interface not enabled"));
         return;
       }
-
-      // default timezone
+      // Default timezone
       req.timezone = 'UTC';
-
-      // get settings
+      // Get settings
       const sacSetting = await tenant.getSetting(Constants.COMPONENTS.ANALYTICS);
-
       if (sacSetting) {
         const configuration = sacSetting.getContent();
-
         if (configuration && configuration.sac && configuration.sac.timezone) {
           req.timezone = configuration.sac.timezone;
         }
       }
 
-      // build AuthenticatedApi
+      // Build AuthenticatedApi
       const centralServiceApi = new CentralServiceApi(this.restServerUrl, authentication.name, authentication.pass, subdomain);
-
-      // set tenant
+      // Set tenant
       req.tenant = subdomain;
       req.tenantID = tenant.getID();
-
       switch (collection) {
         case 'Transactions':
           ODataTransactions.getTransactionsCompleted(centralServiceApi, query, req, cb);
@@ -118,7 +106,6 @@ export default class ODataRestAdapter {
     }
   }
 
-  // register adapter on ODataServer
   static registerAdapter(oDataServer) {
     if (!oDataServer) { return; }
     oDataServer.model(oDataModel).query(ODataRestAdapter.query);

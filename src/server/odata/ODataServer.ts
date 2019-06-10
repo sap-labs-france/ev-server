@@ -1,6 +1,5 @@
 import morgan from 'morgan';
 import expressTools from '../ExpressTools';
-// import compression from 'compression';
 import Configuration from '../../utils/Configuration';
 import Logging from '../../utils/Logging';
 import ODataServerFactory from '../odata/ODataServerFactory';
@@ -37,8 +36,6 @@ export default class ODataServer {
         })
       );
     }
-    // Use Compression
-    // this.express.use(compression());
     // Get URL of the CentralSystemRestServer
     const restConf = Configuration.getCentralSystemRestServer();
     const restServerUrl = `${restConf.protocol}://${restConf.host}:${restConf.port}/`;
@@ -52,9 +49,8 @@ export default class ODataServer {
       ODataSchema.getSchema,
       function (req, res) {
         oDataServer.handle(req, res);
-      });
-    // Register Error Handler
-    // this.express.use(OCPIErrorHandler.errorHandler);
+      }
+    );
   }
 
   // Start the server
