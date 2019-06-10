@@ -186,7 +186,7 @@ export default class UserStorage {
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Read DB
     const usersMDB = await global.database.getCollection(tenantID, 'users')
-      .aggregate(aggregation)
+      .aggregate(aggregation, { allowDiskUse: true })
       .limit(1)
       .toArray();
     // Check deleted
@@ -480,7 +480,7 @@ export default class UserStorage {
     }
     // Count Records
     const usersCountMDB = await global.database.getCollection(tenantID, 'users')
-      .aggregate([...aggregation, { $count: "count" }])
+      .aggregate([...aggregation, { $count: "count", allowDiskUse: true }])
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {
@@ -534,7 +534,7 @@ export default class UserStorage {
     });
     // Read DB
     const usersMDB = await global.database.getCollection(tenantID, 'users')
-      .aggregate(aggregation, { collation: { locale: "en_US", strength: 2 } })
+      .aggregate(aggregation, { collation: { locale: "en_US", strength: 2 }, allowDiskUse: true })
       .toArray();
     const users = [];
     // Create
@@ -650,7 +650,7 @@ export default class UserStorage {
     }
     // Count Records
     const usersCountMDB = await global.database.getCollection(tenantID, 'users')
-      .aggregate([...aggregation, { $count: "count" }])
+      .aggregate([...aggregation, { $count: "count", allowDiskUse: true }])
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {
@@ -702,7 +702,7 @@ export default class UserStorage {
     });
     // Read DB
     const usersMDB = await global.database.getCollection(tenantID, 'users')
-      .aggregate(aggregation, { collation: { locale: "en_US", strength: 2 } })
+      .aggregate(aggregation, { collation: { locale: "en_US", strength: 2 }, allowDiskUse: true })
       .toArray();
     const users = [];
     // Create

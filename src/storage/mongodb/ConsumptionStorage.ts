@@ -78,7 +78,7 @@ export default class ConsumptionStorage {
     });
     // Read DB
     const consumptionsMDB = await global.database.getCollection(tenantID, 'consumptions')
-      .aggregate(aggregation)
+      .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
     Logging.traceEnd('ConsumptionStorage', 'getConsumption', uniqueTimerID, { transactionId, endedAt });
@@ -140,7 +140,7 @@ export default class ConsumptionStorage {
     aggregation.push({ $sort: { endedAt: 1 } });
     // Read DB
     const consumptionsMDB = await global.database.getCollection(tenantID, 'consumptions')
-      .aggregate(aggregation)
+      .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
     Logging.traceEnd('ConsumptionStorage', 'getConsumption', uniqueTimerID, { transactionId });

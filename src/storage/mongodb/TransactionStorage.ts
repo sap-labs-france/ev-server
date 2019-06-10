@@ -184,7 +184,8 @@ export default class TransactionStorage {
           totalPrice: { $sum: "$stop.price" },
           totalInactivitySecs: { "$sum": { $add: ["$stop.totalInactivitySecs", "$stop.extraInactivitySecs"] } },
           count: { $sum: 1 }
-        }
+        },
+        allowDiskUse: true
       }])
       .toArray();
     const transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ?  transactionsCountMDB[0] : null;
@@ -257,7 +258,7 @@ export default class TransactionStorage {
     });
     // Read DB
     const transactionsMDB = await global.database.getCollection(tenantID, 'transactions')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Set
     const transactions = [];
@@ -456,7 +457,7 @@ export default class TransactionStorage {
     }
     // Count Records
     const transactionsCountMDB = await global.database.getCollection(tenantID, 'transactions')
-      .aggregate([...aggregation, { $count: "count" }])
+      .aggregate([...aggregation, { $count: "count", allowDiskUse: true }])
       .toArray();
     // Check if only the total count is requested
     const transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ?  transactionsCountMDB[0] : null;
@@ -491,7 +492,7 @@ export default class TransactionStorage {
     });
     // Read DB
     const transactionsMDB = await global.database.getCollection(tenantID, 'transactions')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Set
     const transactions = [];
@@ -566,7 +567,7 @@ export default class TransactionStorage {
     });
     // Read DB
     const transactionsMDB = await global.database.getCollection(tenantID, 'transactions')
-      .aggregate(aggregation)
+      .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
     Logging.traceEnd('TransactionStorage', 'getTransaction', uniqueTimerID, { id });
@@ -606,7 +607,7 @@ export default class TransactionStorage {
     });
     // Read DB
     const transactionsMDB = await global.database.getCollection(tenantID, 'transactions')
-      .aggregate(aggregation)
+      .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
     Logging.traceEnd('TransactionStorage', 'getActiveTransaction', uniqueTimerID, { chargeBoxID, connectorId });
@@ -635,7 +636,7 @@ export default class TransactionStorage {
     aggregation.push({ $limit: 1 });
     // Read DB
     const transactionsMDB = await global.database.getCollection(tenantID, 'transactions')
-      .aggregate(aggregation)
+      .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
     Logging.traceEnd('TransactionStorage', 'getLastTransaction', uniqueTimerID, { chargeBoxID, connectorId });

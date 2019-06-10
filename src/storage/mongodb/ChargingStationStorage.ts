@@ -179,7 +179,7 @@ export default class ChargingStationStorage {
     }
     // Count Records
     const chargingStationsCountMDB = await global.database.getCollection(tenantID, 'chargingstations')
-      .aggregate([...aggregation, {$count: "count"}])
+      .aggregate([...aggregation, {$count: "count", allowDiskUse: true}])
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {

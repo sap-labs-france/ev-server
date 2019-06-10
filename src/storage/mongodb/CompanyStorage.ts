@@ -215,7 +215,7 @@ export default class CompanyStorage {
     }
     // Count Records
     const companiesCountMDB = await global.database.getCollection(tenantID, 'companies')
-      .aggregate([...aggregation, { $count: "count" }])
+      .aggregate([...aggregation, { $count: "count", allowDiskUse: true }])
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {
@@ -251,7 +251,7 @@ export default class CompanyStorage {
     });
     // Read DB
     const companiesMDB = await global.database.getCollection(tenantID, 'companies')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     const companies = [];
     // Check

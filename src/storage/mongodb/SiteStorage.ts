@@ -41,7 +41,7 @@ export default class SiteStorage {
     
     // Read DB
     const sitesMDB = await global.database.getCollection(tenantID, 'sites')
-      .aggregate(aggregation)
+      .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     let site = null;
     // Create
@@ -261,7 +261,7 @@ export default class SiteStorage {
     }
     // Count Records
     const sitesCountMDB = await global.database.getCollection(tenantID, 'sites')
-      .aggregate([...aggregation, { $count: "count" }])
+      .aggregate([...aggregation, { $count: "count", allowDiskUse: true }])
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {
@@ -335,7 +335,7 @@ export default class SiteStorage {
     });
     // Read DB
     const sitesMDB = await global.database.getCollection(tenantID, 'sites')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     const sites = [];
     // Check

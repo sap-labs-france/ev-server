@@ -99,7 +99,7 @@ export default class VehicleManufacturerStorage {
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Read DB
     const vehicleManufacturersMDB = await global.database.getCollection(tenantID, 'vehiclemanufacturers')
-      .aggregate(aggregation)
+      .aggregate(aggregation, { allowDiskUse: true })
       .limit(1)
       .toArray();
     let vehicleManufacturer = null;
@@ -202,7 +202,7 @@ export default class VehicleManufacturerStorage {
     }
     // Count Records
     const vehiclemanufacturersCountMDB = await global.database.getCollection(tenantID, 'vehiclemanufacturers')
-      .aggregate([...aggregation, { $count: "count" }])
+      .aggregate([...aggregation, { $count: "count", allowDiskUse: true }])
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {
@@ -240,7 +240,7 @@ export default class VehicleManufacturerStorage {
     });
     // Read DB
     const vehiclemanufacturersMDB = await global.database.getCollection(tenantID, 'vehiclemanufacturers')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     const vehicleManufacturers = [];
     // Check

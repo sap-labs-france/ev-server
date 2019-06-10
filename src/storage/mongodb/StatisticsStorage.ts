@@ -83,7 +83,7 @@ export default class StatisticsStorage {
     });
     // Read DB
     const transactionStatsMDB = await global.database.getCollection(tenantID, 'transactions')
-      .aggregate(aggregation)
+      .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Set
     const transactions = [];
@@ -203,7 +203,7 @@ export default class StatisticsStorage {
     });
     // Read DB
     const transactionStatsMDB = await global.database.getCollection(tenantID, 'transactions')
-      .aggregate(aggregation)
+      .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Set
     const transactions = [];
@@ -532,7 +532,7 @@ export default class StatisticsStorage {
     aggregation.push(match);
     // Read DB
     const transactionStatsMDB = await global.database.getCollection(tenantID, 'sites')
-      .aggregate(match)
+      .aggregate(match, { allowDiskUse: true })
       .toArray();
     // Set
     let currentMetrics = [];

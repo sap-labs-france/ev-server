@@ -145,7 +145,7 @@ export default class TenantStorage {
     }
     // Count Records
     const tenantsCountMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
-      .aggregate([...aggregation, { $count: "count" }])
+      .aggregate([...aggregation, { $count: "count" , allowDiskUse: true}])
       .toArray();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation('', aggregation);
@@ -177,7 +177,8 @@ export default class TenantStorage {
         collation: {
           locale: Constants.DEFAULT_LOCALE,
           strength: 2
-        }
+        },
+        allowDiskUse: true
       })
       .toArray();
 

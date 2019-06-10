@@ -237,7 +237,7 @@ export default class LoggingStorage {
     });
     // Read DB
     const loggingsMDB = await global.database.getCollection(tenantID, 'logs')
-      .aggregate(aggregation)
+      .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     const loggings = [];
     for (const loggingMDB of loggingsMDB) {
