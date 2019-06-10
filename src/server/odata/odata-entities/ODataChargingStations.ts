@@ -1,5 +1,6 @@
 
 import AbstractODataEntities from './AbstractODataEntities';
+
 export default class ODataChargingStations extends AbstractODataEntities {
   public buildParams: any;
   public returnResponse: any;
@@ -10,16 +11,13 @@ export default class ODataChargingStations extends AbstractODataEntities {
 
   static async getChargingStations(centralServiceApi, query, req, cb) {
     try {
-      // check limit parameter
+      // Check limit parameter
       const params = this.buildParams(query);
-
-      // include deleted charging stations
+      // Include deleted charging stations
       params.IncludeDeleted = true;
-
-      // perform rest call
+      // Perform rest call
       const response = await centralServiceApi.getChargingStations(params);
-
-      // return response
+      // Return response
       this.returnResponse(response, query, req, cb);
     } catch (error) {
       cb(error);

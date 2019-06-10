@@ -9,35 +9,26 @@ export default class ODataSchema {
   
   public static restServerUrl: string = '';
 
-  /**
-   * Specific implementation to return Atom Schema
-   */
   static async getSchema(req, res, next) {
     // Set default header
     res.setHeader('Cache-Control', 'no-cache');
-
     // Check authentication
     const authentication = auth(req);
-
     if (!authentication) {
       res.setHeader('WWW-Authenticate', 'Basic');
       res.send(401);
       return;
     }
-
     // Perform a Secure Ping only if root or metadata is requested - otherwise the authentication is checked in the proper REST method call
     try {
       if (req.path === '/' || req.path === '//' || req.path === '/$metadata') {
         // Get tenant from url
         const requestedHost = req.host;
         const split = requestedHost.split('.');
-
         // Get tenant at first place
         const subdomain = split[0];
-
         // Build AuthenticatedApi
         const centralServiceApi = new CentralServiceApi(ODataSchema.restServerUrl, authentication.name, authentication.pass, subdomain);
-
         // Process with the secure Ping
         await centralServiceApi.securePing();
       }
@@ -67,4 +58,3 @@ export default class ODataSchema {
     }
   }
 }
-
