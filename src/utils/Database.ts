@@ -2,6 +2,7 @@ import Utils from './Utils';
 import Constants from './Constants';
 import Configuration from './Configuration';
 import cfenv from 'cfenv';
+import cluster from 'cluster';
 import os from 'os';
 import SourceMap from 'source-map-support';
 SourceMap.install();
@@ -532,6 +533,16 @@ export default class Database {
     }
     dest.level = src.level;
     dest.source = src.source;
+    if (src.hasOwnProperty('host')) {
+      dest.host = src.host;
+    } else {
+      dest.host = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname();
+    }
+    if (src.hasOwnProperty('process')) {
+      dest.process = src.process;
+    } else {
+      dest.process = cluster.isWorker ? 'worker ' + cluster.worker.id : 'master';
+    }
     dest.type = src.type;
     dest.module = src.module;
     dest.method = src.method;

@@ -252,7 +252,7 @@ export default class WSConnection {
       // Function that will receive the request's rejection
       function rejectCallback(reason) {
         // Build Exception
-        self.requests[messageId] = () => { };
+        self.requests[messageId] = [() => { }, () => { }];
         const error = reason instanceof OCPPError ? reason : new Error(reason);
         // Send error
         reject(error);

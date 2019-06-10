@@ -61,11 +61,6 @@ const LoggingType = {
   "REGULAR": 'R'
 };
 export default class Logging {
-
-  //private static getSourceSuffix() {
-  //  return `~${Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname()}~${cluster.isWorker ? 'worker' + cluster.worker.id : 'master'}`;
-  //}
-
   // Log Debug
   static logDebug(log) {
     if (typeof log !== 'object') {
@@ -244,7 +239,7 @@ export default class Logging {
       Logging._logActionAppAuthExceptionMessage(tenantID, action, exception);
     } else if (exception instanceof BadRequestError) {
       Logging._logActionBadRequestExceptionMessage(tenantID, action, exception);
-      // Log Unexpected
+    // Log Unexpected
     } else {
       Logging._logActionExceptionMessage(tenantID, action, exception);
     }
@@ -505,6 +500,12 @@ export default class Logging {
       log.source = `${Constants.CENTRAL_SERVER}`;
     }
 
+    // Host
+    log.host = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname();
+
+    // Process
+    log.process = cluster.isWorker ? 'worker ' + cluster.worker.id : 'master';
+
     // Check
     if (log.detailedMessages) {
       // Array?
@@ -557,11 +558,7 @@ export default class Logging {
         logFn = console.log;
         break;
     }
-    
-    //if(log.level != LogLevel.ERROR || log.module == 'WSClient' || log.action.startsWith('WS')) {
-    //  return;//TODO REMOVE THIS IF STATEMENT!!!!!
-    //}
-    
+
     // Log
     log.timestamp = new Date();
     if (log.hasOwnProperty('simpleMessage')) {
