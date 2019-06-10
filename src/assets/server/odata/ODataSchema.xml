@@ -1,4 +1,4 @@
-module.exports = `<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <service xmlns="http://www.w3.org/2007/app" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:m="http://docs.oasis-open.org/odata/ns/metadata" xml:base="https://sap-ev-odata-server.cfapps.eu10.hana.ondemand.com/odata/" m:context="https://sap-ev-odata-server.cfapps.eu10.hana.ondemand.com/odata/$metadata">
    <workspace>
       <atom:title type="text">Default</atom:title>
@@ -31,4 +31,3 @@ module.exports = `<?xml version="1.0" encoding="UTF-8"?>
       </collection>
    </workspace>
 </service>
-`;

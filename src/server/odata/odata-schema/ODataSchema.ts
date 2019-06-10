@@ -1,15 +1,21 @@
-import oDataSchema from './ODataSchema.xml';
+import fs from 'fs';
 import auth from 'basic-auth';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import CentralServiceApi from '../client/CentralServiceApi';
+import TSGlobal from '../../../types/GlobalType';
+
 require('source-map-support').install();
+
+declare var global: TSGlobal;
 
 export default class ODataSchema {
   
   public static restServerUrl: string = '';
 
   static async getSchema(req, res, next) {
+    // Read XML schema
+    const oDataSchema = fs.readFileSync(`${global.appRoot}/assets/server/odata/ODataSchema.xml`, 'utf8');
     // Set default header
     res.setHeader('Cache-Control', 'no-cache');
     // Check authentication
@@ -43,11 +49,9 @@ export default class ODataSchema {
         action: "SecurePing",
         message: 'Unauthorized Access'
       });
-
       res.send(401);
       return;
     }
-
     res.setHeader('OData-Version', '4.0');
     // Send available versions
     if (req.path === '/' || req.path === '//') {
