@@ -75,9 +75,7 @@ export default class VehicleStorage {
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Read DB
     const vehiclesMDB = await global.database.getCollection(tenantID, 'vehicles')
-      .aggregate(aggregation, {
-        allowDiskUse: true
-      })
+      .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Set
     let vehicle = null;
@@ -191,7 +189,7 @@ export default class VehicleStorage {
     }
     // Count Records
     const vehiclesCountMDB = await global.database.getCollection(tenantID, 'vehicles')
-      .aggregate([...aggregation, { $count: "count", allowDiskUse: true }])
+      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {

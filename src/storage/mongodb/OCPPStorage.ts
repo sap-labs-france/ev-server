@@ -75,7 +75,7 @@ export default class OCPPStorage {
     }
     // Count Records
     const statusNotificationsCountMDB = await global.database.getCollection(tenantID, 'statusnotifications')
-      .aggregate([...aggregation, { $count: "count", allowDiskUse: true }])
+      .aggregate([...aggregation, { $count: "count"}], { allowDiskUse: true })
       .toArray();
     // Sort
     if (sort) {
@@ -101,13 +101,7 @@ export default class OCPPStorage {
     });
     // Read DB
     const statusNotificationsMDB = await global.database.getCollection(tenantID, 'statusnotifications')
-      .aggregate(aggregation, {
-        collation: {
-          locale: Constants.DEFAULT_LOCALE,
-          strength: 2
-        },
-        allowDiskUse: true
-      })
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     const statusNotifications = [];
     // Create
@@ -262,7 +256,7 @@ export default class OCPPStorage {
     });
     // Count Records
     const bootNotificationsCountMDB = await global.database.getCollection(tenantID, 'bootnotifications')
-      .aggregate([...aggregation, { $count: "count", allowDiskUse: true }])
+      .aggregate([...aggregation, { $count: "count"}], { allowDiskUse: true })
       .toArray();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
@@ -288,7 +282,7 @@ export default class OCPPStorage {
     });
     // Read DB
     const bootNotificationsMDB = await global.database.getCollection(tenantID, 'bootnotifications')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation,{ collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     const bootNotifications = [];
     // Create

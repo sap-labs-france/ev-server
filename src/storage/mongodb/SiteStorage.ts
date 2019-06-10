@@ -261,7 +261,7 @@ export default class SiteStorage {
     }
     // Count Records
     const sitesCountMDB = await global.database.getCollection(tenantID, 'sites')
-      .aggregate([...aggregation, { $count: "count", allowDiskUse: true }])
+      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {

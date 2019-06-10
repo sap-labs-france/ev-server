@@ -51,7 +51,7 @@ export default class NotificationStorage {
     });
     // Count Records
     const notificationsCountMDB = await global.database.getCollection(tenantID, 'notifications')
-      .aggregate([...aggregation, { $count: "count", allowDiskUse: true }])
+      .aggregate([...aggregation, { $count: "count"}], { allowDiskUse: true })
       .toArray();
     // Add Charge Box
     aggregation.push({
