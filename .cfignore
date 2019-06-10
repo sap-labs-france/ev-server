@@ -16,6 +16,7 @@ build
 # Temporary
 .netrwhist
 *~
+*.orig
 Procfile
 postman
 archi

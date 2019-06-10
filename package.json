@@ -153,7 +153,6 @@
 		"test:org": "mocha test/**/*OrgTest.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
 		"test:setting": "mocha test/**/SettingTest.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
 		"test:user": "mocha test/**/UserTest.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
-		"test:auth": "mocha test/**/AuthenticationTest.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
 		"test:transaction": "mocha test/**/TransactionTest.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
 		"test:siteorg": "mocha test/**/SiteOrgTest.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
 		"clinic:clean": "clinic clean",

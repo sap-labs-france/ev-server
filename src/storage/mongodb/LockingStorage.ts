@@ -1,11 +1,13 @@
+import cfenv from 'cfenv';
+import Database from '../../utils/Database';
+import TSGlobal from '../../types/GlobalType';
+import Configuration from '../../utils/Configuration';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
 
-const cfenv = require('cfenv');
-const Database = require('../../utils/Database');
-const Configuration = require('../../utils/Configuration');
-const Constants = require('../../utils/Constants');
-const Logging = require('../../utils/Logging');
+declare var global: TSGlobal;
 
-class LockingStorage {
+export default class LockingStorage {
   static async getLocks() {
     // Debug
     const uniqueTimerID = Logging.traceStart('LockingStorage', 'getLocks');
@@ -86,7 +88,11 @@ class LockingStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('LockingStorage', 'saveRunLock');
     // Transfer
-    const runLock = {};
+    let runLock: { 
+      _id: string;
+      name: string;
+      type: string;
+    };
     Database.updateRunLock(runLockToSave, runLock, false);
     // Set the ID
     runLock._id = runLock.name + "~" + runLock.type;
@@ -101,7 +107,11 @@ class LockingStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('LockingStorage', 'deleteRunLock');
     // Transfer
-    const runLock = {};
+    let runLock: { 
+      _id: string;
+      name: string;
+      type: string;
+    };
     Database.updateRunLock(runLockToDelete, runLock, false);
     // Set the ID
     runLock._id = runLock.name + "~" + runLock.type;
@@ -112,5 +122,3 @@ class LockingStorage {
     Logging.traceEnd('LockingStorage', 'deleteRunLock', uniqueTimerID, { runLock: runLock });
   } 
 }
-
-module.exports = LockingStorage;
