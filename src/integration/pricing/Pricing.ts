@@ -20,14 +20,14 @@ export class PricedConsumption {
 
 export default abstract class Pricing {
 
-  //Protected because only used in subclasses at the moment
-  protected readonly tenantId: string; //Assuming GUID or other string format ID
-  //protected readonly setting: PricingSettings;
+  // Protected because only used in subclasses at the moment
+  protected readonly tenantId: string; // Assuming GUID or other string format ID
+  // protected readonly setting: PricingSettings;
   protected readonly transaction: Transaction;
 
   constructor(tenantId: string, setting: PricingSettings, transaction: Transaction) {
     this.tenantId = tenantId;
-    //this.setting = setting;
+    // this.setting = setting;
     this.transaction = transaction;
   }
 

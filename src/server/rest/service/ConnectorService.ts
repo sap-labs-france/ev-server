@@ -13,7 +13,7 @@ import AbstractService from './AbstractService';
 const MODULE_NAME = 'ConnectorService';
 
 export default class ConnectorService extends AbstractService {
-  static async handleGetConnection(action, req, res, next) {
+  public static async handleGetConnection(action, req, res, next) {
     try {
       // Filter
       const filteredRequest = ConnectorSecurity.filterConnectionRequest(req.query, req.user);
@@ -54,7 +54,7 @@ export default class ConnectorService extends AbstractService {
     }
   }
 
-  static async handleGetConnections(action, req, res, next) {
+  public static async handleGetConnections(action, req, res, next) {
     try {
       // Check auth
       if (!Authorizations.canListConnections(req.user)) {
@@ -80,7 +80,7 @@ export default class ConnectorService extends AbstractService {
     }
   }
 
-  static async handleCreateConnection(action, req, res, next) {
+  public static async handleCreateConnection(action, req, res, next) {
     try {
       // Filter
       const filteredRequest = ConnectorSecurity.filterConnectionCreateRequest(req.body, req.user);
@@ -113,7 +113,7 @@ export default class ConnectorService extends AbstractService {
     }
   }
 
-  static async handleDeleteConnection(action, req, res, next) {
+  public static async handleDeleteConnection(action, req, res, next) {
     try {
       // Filter
       const filteredRequest = ConnectorSecurity.filterConnectionDeleteRequest(req.query, req.user);
@@ -170,7 +170,7 @@ export default class ConnectorService extends AbstractService {
     }
   }
 
-  static instantiateConnector(tenantId, connectorId, setting) {
+  private static instantiateConnector(tenantId, connectorId, setting) {
     switch (connectorId) {
       case 'concur':
         return new ConcurConnector(tenantId, setting);

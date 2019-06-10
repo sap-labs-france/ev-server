@@ -9,10 +9,9 @@ import Constants from '../../../utils/Constants';
 const MODULE_NAME = "WSServer";
 export default class WSServer extends WebSocket.Server {
   private httpServer: any;
-  private serverName: any;
+  private serverName: string;
   private serverConfig: any;
-  private keepAliveIntervalValue: any;
-  public on: any;
+  private keepAliveIntervalValue: number;
   private keepAliveInterval: any;
   public clients: any;
 
@@ -25,7 +24,7 @@ export default class WSServer extends WebSocket.Server {
    * @param {Function} verifyClientCb
    * @param {Function} handleProtocolsCb
    */
-  public constructor(httpServer, serverName, serverConfig, verifyClientCb: any = () => { }, handleProtocolsCb: any = () => { }) {
+  public constructor(httpServer, serverName, serverConfig, verifyClientCb: WebSocket.VerifyClientCallbackAsync | WebSocket.VerifyClientCallbackSync = (): void => { }, handleProtocolsCb: Function = (): void => { }) {
     // Create the Web Socket Server
     super({
       server: httpServer,
@@ -37,21 +36,23 @@ export default class WSServer extends WebSocket.Server {
     this.serverConfig = serverConfig;
     this.keepAliveIntervalValue = (this.serverConfig.hasOwnProperty('keepaliveinterval') ?
       this.serverConfig.keepaliveinterval : Constants.WS_DEFAULT_KEEPALIVE) * 1000; // ms
-    this.on('connection', (ws) => {
+    this.on('connection', (ws: any): void => {
       ws.isAlive = true;
-      ws.on('pong', () => { ws.isAlive = true; });
+      ws.on('pong', (): void => { ws.isAlive = true; });
     });
-    this.keepAliveInterval = setInterval(() => {
-      this.clients.forEach((ws) => {
-        if (ws.isAlive === false)
-          return ws.terminate();
-        ws.isAlive = false;
-        ws.ping(() => { });
-      });
-    }, this.keepAliveIntervalValue);
+    if (!this.keepAliveInterval) {
+      this.keepAliveInterval = setInterval((): void => {
+        this.clients.forEach((ws): boolean => {
+          if (ws.isAlive === false)
+            return ws.terminate();
+          ws.isAlive = false;
+          ws.ping((): void => { });
+        });
+      }, this.keepAliveIntervalValue);
+    }
   }
 
-  static createHttpServer(serverConfig) {
+  public static createHttpServer(serverConfig): http.Server {
     // Create HTTP server
     let httpServer;
     // Secured protocol?
@@ -76,7 +77,7 @@ export default class WSServer extends WebSocket.Server {
     return httpServer;
   }
 
-  broadcastToClients(message) {
+  public broadcastToClients(message): void {
     this.clients.forEach((client) => {
       if (client.readyState === WebSocket.OPEN) {
         client.send(message);
@@ -84,7 +85,7 @@ export default class WSServer extends WebSocket.Server {
     });
   }
 
-  start() {
+  public start(): void {
     // Log
     let logMsg;
     if (cluster.isWorker) {
@@ -95,17 +96,17 @@ export default class WSServer extends WebSocket.Server {
     // eslint-disable-next-line no-console
     console.log(logMsg);
     // Make server to listen
-    this._startListening();
+    this.startListening();
   }
 
-  _startListening() {
+  private startListening(): void {
     // Start listening
-    this.httpServer.listen(this.serverConfig.port, this.serverConfig.host, () => {
+    this.httpServer.listen(this.serverConfig.port, this.serverConfig.host, (): void => {
       // Log
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME,
-        method: "_startListening", action: "Startup",
+        method: "startListening", action: "Startup",
         message: `${this.serverName} Json ${MODULE_NAME} listening on '${this.serverConfig.protocol}://${this.httpServer.address().address}:${this.httpServer.address().port}'`
       });
       // eslint-disable-next-line no-console

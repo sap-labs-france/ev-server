@@ -23,8 +23,9 @@ export default class AbstractEndpoint {
 
   // Return based URL of OCPI Service
   public getBaseUrl(req: Request): string {
-    return '/'; //TODO: getBaseUrl does not exist in OCPIServices. Please fix
-    //return this.ocpiService.getBaseUrl(req);
+    return '/'; 
+    // TODO: getBaseUrl does not exist in OCPIServices. Please fix
+    // return this.ocpiService.getBaseUrl(req);
   }
 
   // Abstract - Process endpoint

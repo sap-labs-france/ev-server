@@ -111,7 +111,7 @@ describe('OCPI Service Tests', function () {
       expect(response.data.data.endpoints).to.be.an('array').that.is.not.empty;
     });
 
-    //check data object for Array of Endpoints
+    // check data object for Array of Endpoints
     it('should contains valid Endpoint objects', async () => {
       expect(response.data.data.endpoints, 'Invalid Endpoints Object').to.satisfy((endpoints) => {
         let validEndpoints = true;

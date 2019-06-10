@@ -31,7 +31,7 @@ export default class SimplePricing extends Pricing {
   }
 
   async computePrice(consumptionData: {consumption: any}): Promise<PricedConsumption> {
-    //Shorthand
+    // Shorthand
     const s = this.getSettings();
     
     return {
@@ -39,7 +39,7 @@ export default class SimplePricing extends Pricing {
       amount: parseFloat((s.price * (consumptionData.consumption / 1000)).toFixed(6)),
       roundedAmount: parseFloat((s.price * (consumptionData.consumption / 1000)).toFixed(2)),
       currencyCode: s.currency,
-      cumulatedAmount: 0 //TODO: handle this using NULLs instead?
+      cumulatedAmount: 0 // TODO: handle this using NULLs instead?
     };
   }
 }

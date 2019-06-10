@@ -7,14 +7,14 @@ export interface StatisticsRequest {
   SiteAreaID?: string|number;
   ChargeBoxID?: string|number;
   UserID?: string|number;
-  //TODO: Choose single type
+  // TODO: Choose single type
 }
 
 export default class StatisticSecurity {
   // eslint-disable-next-line no-unused-vars
   static filterUserStatisticsRequest(request: StatisticsRequest, loggedUser?: any): StatisticsRequest {
     if(!request.Year || !request.SiteID) {
-      //TODO: Potentially throw error or return specific result
+      // TODO: Potentially throw error or return specific result
     }
     return {
       Year: sanitize(request.Year),
@@ -28,7 +28,7 @@ export default class StatisticSecurity {
   // eslint-disable-next-line no-unused-vars
   static filterChargingStationStatisticsRequest(request: StatisticsRequest, loggedUser?: any): StatisticsRequest {
     if(!request.Year || !request.SiteID) {
-      //TODO: Potentially throw error or return specific result
+      // TODO: Potentially throw error or return specific result
     }
     return {
       Year: sanitize(request.Year),
@@ -37,13 +37,13 @@ export default class StatisticSecurity {
       UserID: sanitize(request.UserID),
       SiteID: sanitize(request.SiteID)
     };
-    //TODO: Why are both methods exactly the same?
+    // TODO: Why are both methods exactly the same?
   }
 
   // eslint-disable-next-line no-unused-vars
   static filterMetricsStatisticsRequest(request: StatisticsRequest, loggedUser?: any): StatisticsRequest {
     if(!request.PeriodInMonth) {
-      //TODO: Potentially throw error
+      // TODO: Potentially throw error
     }
     return {PeriodInMonth: sanitize(request.PeriodInMonth)};
   }

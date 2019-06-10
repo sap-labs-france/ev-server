@@ -109,7 +109,7 @@ export default class CentralRestServer {
     return CentralRestServer.restHttpServer;
   }
 
-  //TODO: never used?
+  // TODO: never used?
   private static socketIOListenCb() {
     // Log
     const logMsg = `REST SocketIO Server listening on '${CentralRestServer.centralSystemRestConfig.protocol}://${CentralRestServer.restHttpServer.address().address}:${CentralRestServer.restHttpServer.address().port}'`;

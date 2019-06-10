@@ -27,7 +27,7 @@ export default class AbstractConnector extends TenantHolder {
   }
 
   static getConnection(tenantId, id) {
-    return ConnectionStorage.getConnection(tenantId, id); //Changed from getConnectionById cuz non existent. check if correct TODO
+    return ConnectionStorage.getConnection(tenantId, id); // TODO: Changed from getConnectionById cuz non existent. Check if correct
   }
 
   static deleteConnectionById(tenantId, id) {
