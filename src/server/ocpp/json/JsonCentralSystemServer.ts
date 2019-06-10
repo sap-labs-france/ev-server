@@ -117,7 +117,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     // Create the WS server
     this._createWSServer();
     // Make server to listen
-    this.wsServer._startListening();
+    this.wsServer.startListening();
   }
 
   addJsonConnection(wsConnection) {
