@@ -13,6 +13,9 @@ import uuid from 'uuid/v4';
 import { performance, PerformanceObserver } from 'perf_hooks';
 import SourceMap from 'source-map-support';
 SourceMap.install();
+import cfenv from 'cfenv';
+import cluster from 'cluster';
+import os from 'os';
 
 const _loggingConfig = Configuration.getLoggingConfig();
 let _traceStatistics = null;
@@ -501,7 +504,7 @@ export default class Logging {
     }
 
     // Host
-    log.host = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname();
+    log.host = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
 
     // Process
     log.process = cluster.isWorker ? 'worker ' + cluster.worker.id : 'master';

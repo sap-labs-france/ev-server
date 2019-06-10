@@ -14,7 +14,7 @@ export default class MongoDBStorage {
   private db: Db;
 
   // Create database access
-  constructor(private readonly dbConfig: StorageCfg) {}
+  public constructor(private readonly dbConfig: StorageCfg) {}
 
   public getCollection(tenantID: string, collectionName: string): Collection {
     if(!this.db) {
@@ -23,7 +23,7 @@ export default class MongoDBStorage {
     return this.db.collection(DatabaseUtils.getCollectionName(tenantID, collectionName));
   }
 
-  watch(pipeline, options) {
+  public watch(pipeline, options): ChangeStream {
     return this.db.watch(pipeline, options);
   }
 

@@ -14,7 +14,7 @@ export default class WSConnection {
   private ip: any;
   private wsConnection: any;
   private req: any;
-  private requests: any;
+  private _requests: any = {};
   private chargingStationID: any;
   private tenantID: any;
   protected initialized: any;
@@ -30,7 +30,6 @@ export default class WSConnection {
     this.ip = req && ((req.connection && req.connection.remoteAddress) || req.headers['x-forwarded-for']);
     this.wsConnection = wsConnection;
     this.req = req;
-    this.requests = {};
     this.chargingStationID = null;
     this.tenantID = null;
     this.initialized = false;
@@ -99,7 +98,7 @@ export default class WSConnection {
   onClose(code, reason?) {
   }
 
-  async onMessage(message) {
+  public async onMessage(message): Promise<void> {
     // Parse the message
     const [messageType, messageId, commandName, commandPayload, errorDetails] = JSON.parse(message);
 
@@ -117,13 +116,20 @@ export default class WSConnection {
         // Outcome Message
         case Constants.OCPP_JSON_CALL_RESULT_MESSAGE:
           // Respond
-          const [responseCallback] = this.requests[messageId];
-          if (!responseCallback) {
-            // Error
-            throw new BackendError(this.getChargingStationID(), `Response for unknown message ${messageId}`,
+          // eslint-disable-next-line no-case-declarations
+          let responseCallback;
+          if (Utils.isIterable(this._requests[messageId])) {
+            [responseCallback] = this._requests[messageId];
+          } else {
+            throw new BackendError(this.getChargingStationID(), `Response request for unknown message id ${messageId} is not iterable`,
               "WSConnection", "onMessage", commandName);
           }
-          delete this.requests[messageId];
+          if (!responseCallback) {
+            // Error
+            throw new BackendError(this.getChargingStationID(), `Response for unknown message id ${messageId}`,
+              "WSConnection", "onMessage", commandName);
+          }
+          delete this._requests[messageId];
           responseCallback(commandName);
           break;
         // Error Message
@@ -139,13 +145,20 @@ export default class WSConnection {
               error: JSON.stringify(message, null, " ")
             }
           });
-          if (!this.requests[messageId]) {
+          if (!this._requests[messageId]) {
             // Error
-            throw new BackendError(this.getChargingStationID(), `Error for unknown message ${messageId}`,
+            throw new BackendError(this.getChargingStationID(), `Error for unknown message id ${messageId}`,
               "WSConnection", "onMessage", commandName);
           }
-          const [, rejectCallback] = this.requests[messageId];
-          delete this.requests[messageId];
+          // eslint-disable-next-line no-case-declarations
+          let rejectCallback;
+          if (Utils.isIterable(this._requests[messageId])) {
+            [, rejectCallback] = this._requests[messageId];
+          } else {
+            throw new BackendError(this.getChargingStationID(), `Error request for unknown message id ${messageId} is not iterable`,
+              "WSConnection", "onMessage", commandName);
+          }
+          delete this._requests[messageId];
           rejectCallback(new OCPPError(commandName, commandPayload, errorDetails));
           break;
         // Error
@@ -206,7 +219,7 @@ export default class WSConnection {
         // Request
         case Constants.OCPP_JSON_CALL_MESSAGE:
           // Build request
-          this.requests[messageId] = [responseCallback, rejectCallback];
+          this._requests[messageId] = [responseCallback, rejectCallback];
           messageToSend = JSON.stringify([messageType, messageId, commandName, command]);
           break;
         // Response
@@ -252,7 +265,7 @@ export default class WSConnection {
       // Function that will receive the request's rejection
       function rejectCallback(reason) {
         // Build Exception
-        self.requests[messageId] = [() => { }, () => { }];
+        self._requests[messageId] = [() => { }, () => { }];
         const error = reason instanceof OCPPError ? reason : new Error(reason);
         // Send error
         reject(error);

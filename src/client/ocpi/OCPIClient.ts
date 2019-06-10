@@ -123,10 +123,10 @@ export default class OCPIClient {
     // log
     Logging.logInfo({
       tenantID: this.ocpiEndpoint.getTenantID(),
-      action: 'GET versions',
-      message: `get versions at ${this.ocpiEndpoint.getVersionUrl()}`,
+      action: 'OCPIGetVersions',
+      message: `Get OCPI versions at ${this.ocpiEndpoint.getVersionUrl()}`,
       source: 'OCPI Client',
-      module: 'OCPI Client',
+      module: 'OCPIClient',
       method: `getServices`
     });
 
@@ -164,10 +164,10 @@ export default class OCPIClient {
     // log
     Logging.logInfo({
       tenantID: tenant.getID(),
-      action: 'POST credentials',
+      action: 'OCPIPostCredentials',
       message: `Post credentials at ${credentialsUrl}`,
       source: 'OCPI Client',
-      module: 'OCPI Client',
+      module: 'OCPIClient',
       method: `postCredentials`,
       detailedMessages: cpoCredentials
     });
@@ -234,7 +234,7 @@ export default class OCPIClient {
       action: 'OCPIPatchLocations',
       message: `Patch location at ${fullUrl}`,
       source: 'OCPI Client',
-      module: 'OCPI Client',
+      module: 'OCPIClient',
       method: `patchEVSEStatus`,
       detailedMessages: payload
     });
@@ -261,7 +261,14 @@ export default class OCPIClient {
    */
   async sendEVSEStatuses(processAllEVSEs = true) {
     // result
-    const sendResult = { success: 0, failure: 0, total: 0, logs: [], chargeBoxIDsInFailure: [], chargeBoxIDsInSuccess: [] };
+    const sendResult = {
+      success: 0,
+      failure: 0,
+      total: 0,
+      logs: [],
+      chargeBoxIDsInFailure: [],
+      chargeBoxIDsInSuccess: []
+    };
 
     // read configuration to retrieve
     const tenant = await this.ocpiEndpoint.getTenant();
@@ -278,10 +285,10 @@ export default class OCPIClient {
       // log error if failure
       Logging.logError({
         tenantID: tenant.getID(),
-        action: 'SendEVSEStatuses',
+        action: 'OCPISendEVSEStatuses',
         message: `OCPI Configuration not active`,
         source: 'OCPI Client',
-        module: 'OCPI Client',
+        module: 'OCPIClient',
         method: `sendEVSEStatuses`
       });
       return;
@@ -330,11 +337,14 @@ export default class OCPIClient {
               await this.patchEVSEStatus(location.id, evse.uid, evse.status);
               sendResult.success++;
               sendResult.chargeBoxIDsInSuccess.push(evse.chargeBoxId);
+              sendResult.logs.push(
+                `Updated successfully status for locationID:${location.id} - evseID:${evse.id}`
+              );
             } catch (error) {
               sendResult.failure++;
               sendResult.chargeBoxIDsInFailure.push(evse.chargeBoxId);
               sendResult.logs.push(
-                `failure updating status for locationID:${location.id} - evseID:${evse.id}:${error.message}`
+                `Failure updating status for locationID:${location.id} - evseID:${evse.id}:${error.message}`
               );
             }
           }
@@ -347,11 +357,22 @@ export default class OCPIClient {
       // log error if failure
       Logging.logError({
         tenantID: tenant.getID(),
-        action: 'SendEVSEStatuses',
-        message: `Patching locations log details`,
+        action: 'OCPISendEVSEStatuses',
+        message: `Patching of ${sendResult.logs.length} EVSE statuses has been done with errors (see details)`,
         detailedMessages: sendResult.logs,
         source: 'OCPI Client',
-        module: 'OCPI Client',
+        module: 'OCPIClient',
+        method: `sendEVSEStatuses`
+      });
+    } else if (sendResult.success > 0) {
+      // log info
+      Logging.logInfo({
+        tenantID: tenant.getID(),
+        action: 'OCPISendEVSEStatuses',
+        message: `Patching of ${sendResult.logs.length} EVSE statuses has been done successfully (see details)`,
+        detailedMessages: sendResult.logs,
+        source: 'OCPI Client',
+        module: 'OCPIClient',
         method: `sendEVSEStatuses`
       });
     }
@@ -361,7 +382,8 @@ export default class OCPIClient {
 
     // set result
     if (sendResult) {
-      this.ocpiEndpoint.setLastPatchJobResult(sendResult.success, sendResult.failure, sendResult.total, _.uniq(sendResult.chargeBoxIDsInFailure), _.uniq(sendResult.chargeBoxIDsInSuccess));
+      this.ocpiEndpoint.setLastPatchJobResult(sendResult.success, sendResult.failure, sendResult.total, 
+        _.uniq(sendResult.chargeBoxIDsInFailure), _.uniq(sendResult.chargeBoxIDsInSuccess));
     } else {
       this.ocpiEndpoint.setLastPatchJobResult(0, 0, 0);
     }

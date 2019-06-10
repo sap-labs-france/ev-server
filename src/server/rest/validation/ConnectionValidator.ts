@@ -1,11 +1,15 @@
 import SchemaValidator from './SchemaValidator';
-import connectionCreation from '../schemas/connectors/connections/connection-creation.json';
+import fs from 'fs';
+import TSGlobal from '../../../types/GlobalType';
+declare var global: TSGlobal;
 
 export default class ConnectionValidator extends SchemaValidator {
   public validate: any;
+  private connectionCreation: any;
 
   private constructor() {
     super("TenantValidator");
+    this.connectionCreation = fs.readFileSync(`${global.appRoot}/assets/server/rest/schemas/connectors/connections/connection-creation.json`, 'utf8');
   }
 
   private static instance: ConnectionValidator|null = null;
@@ -17,7 +21,7 @@ export default class ConnectionValidator extends SchemaValidator {
   }
 
   validateConnectionCreation(content) {
-    this.validate(connectionCreation, content);
+    this.validate(this.connectionCreation, content);
   }
 }
 

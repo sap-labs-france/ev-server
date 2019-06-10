@@ -3,6 +3,9 @@
 		"enable": false,
 		"num_worker": 2
 	},
+	"WSClient": {
+		"autoReconnectTimeout": 0
+	  },
 	"CentralSystems": [
 		{
 			"type": "ocpp",
@@ -80,10 +83,6 @@
 	},
 	"JsonEndpoint": {
 		"baseUrl": ""
-	},
-	"WSClient": {
-		"autoReconnectMaxRetries": 10,
-		"autoReconnectTimeout": 60
 	},
 	"Storage": {
 		"implementation": "mongodb",

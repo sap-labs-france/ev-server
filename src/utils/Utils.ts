@@ -39,6 +39,13 @@ export default class Utils {
     return tagID;
   }
 
+  public static isIterable(obj): boolean {
+    if (obj) {
+      return typeof obj[Symbol.iterator] === 'function';
+    }
+    return false;
+  }
+
   // Temporary method for Revenue Cloud concept
   static async pushTransactionToRevenueCloud(action, transaction, user, actionOnUser) {
     // Refund Transaction
@@ -148,7 +155,7 @@ export default class Utils {
       return true;
     }
     // Check type
-    if (typeof document != "object") {
+    if (typeof document !== 'object') {
       return true;
     }
     // Check
@@ -228,8 +235,8 @@ export default class Utils {
     return userID;
   }
 
-  static isEmptyArray(array) {
-    if (array && array.length > 0) {
+  public static isEmptyArray(array): boolean {
+    if (Array.isArray(array) && array.length > 0) {
       return false;
     }
     return true;
@@ -319,7 +326,7 @@ export default class Utils {
 
   static checkRecordLimit(recordLimit) {
     // String?
-    if (typeof recordLimit === "string") {
+    if (typeof recordLimit === 'string') {
       recordLimit = parseInt(recordLimit);
     }
     // Not provided?

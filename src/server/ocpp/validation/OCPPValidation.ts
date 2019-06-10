@@ -3,19 +3,28 @@ import Constants from '../../../utils/Constants';
 import BackendError from '../../../exception/BackendError';
 import Logging from '../../../utils/Logging';
 import SchemaValidator from '../../rest/validation/SchemaValidator';
-import bootNotificationRequest from './boot-notification-request.json';
-import authorizeRequest from './authorize-request.json';
-import statusNotificationRequest from './status-notification-request.json';
-import startTransactionRequest from './start-transaction-request.json';
-import stopTransactionRequest16 from './stop-transaction-request-16.json';
-import stopTransactionRequest15 from './stop-transaction-request-15.json';
+import fs from 'fs';
+import TSGlobal from '../../../types/GlobalType';
+declare var global: TSGlobal;
 import SourceMap from 'source-map-support';
 SourceMap.install();
 export default class OCPPValidation extends SchemaValidator {
   public validate: any;
+  private _bootNotificationRequest;
+  private _authorizeRequest;
+  private _statusNotificationRequest;
+  private _startTransactionRequest;
+  private _stopTransactionRequest16;
+  private _stopTransactionRequest15;
 
   constructor() {
     super('OCPPValidation');
+    this._bootNotificationRequest = fs.readFileSync(`${global.appRoot}/assets/server/ocpp/validation/boot-notification-request.json`, 'utf8');
+    this._authorizeRequest = fs.readFileSync(`${global.appRoot}/assets/server/ocpp/validation/authorize-request.json`, 'utf8');
+    this._statusNotificationRequest = fs.readFileSync(`${global.appRoot}/assets/server/ocpp/validation/status-notification-request.json`, 'utf8');
+    this._startTransactionRequest = fs.readFileSync(`${global.appRoot}/assets/server/ocpp/validation/start-transaction-request.json`, 'utf8');
+    this._stopTransactionRequest15 = fs.readFileSync(`${global.appRoot}/assets/server/ocpp/validation/stop-transaction-request-16.json`, 'utf8');
+    this._stopTransactionRequest16 = fs.readFileSync(`${global.appRoot}/assets/server/ocpp/validation/stop-transaction-request-15.json`, 'utf8');
   }
 
   private static instance: OCPPValidation|null = null;
@@ -34,15 +43,15 @@ export default class OCPPValidation extends SchemaValidator {
     if (!statusNotification.timestamp) {
       statusNotification.timestamp = new Date().toISOString();
     }
-    this.validate(statusNotificationRequest, statusNotification);
+    this.validate(this._statusNotificationRequest, statusNotification);
   }
 
   validateAuthorize(authorize) {
-    this.validate(authorizeRequest, authorize);
+    this.validate(this._authorizeRequest, authorize);
   }
 
   validateBootNotification(bootNotification) {
-    this.validate(bootNotificationRequest, bootNotification);
+    this.validate(this._bootNotificationRequest, bootNotification);
   }
 
   validateDiagnosticsStatusNotification(chargingStation, diagnosticsStatusNotification) {
@@ -52,7 +61,7 @@ export default class OCPPValidation extends SchemaValidator {
   }
 
   validateStartTransaction(chargingStation, startTransaction) {
-    this.validate(startTransactionRequest, startTransaction);
+    this.validate(this._startTransactionRequest, startTransaction);
     // Check Connector ID
     if (!chargingStation.getConnector(startTransaction.connectorId)) {
       throw new BackendError(chargingStation.getID(),
@@ -66,9 +75,9 @@ export default class OCPPValidation extends SchemaValidator {
 
   validateStopTransaction(chargingStation, stopTransaction) {
     if (chargingStation.getOcppVersion() === Constants.OCPP_VERSION_16) {
-      this.validate(stopTransactionRequest16, stopTransaction);
+      this.validate(this._stopTransactionRequest16, stopTransaction);
     } else {
-      this.validate(stopTransactionRequest15, stopTransaction);
+      this.validate(this._stopTransactionRequest15, stopTransaction);
     }
   }
 
