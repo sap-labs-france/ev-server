@@ -4,6 +4,7 @@ import TSGlobal from './types/GlobalType';
 import BBPromise from 'bluebird';
 global.Promise = BBPromise;
 import cluster from 'cluster';
+import LockingStorage from './storage/mongodb/LockingStorage';
 import MongoDBStorage from './storage/mongodb/MongoDBStorage';
 import MongoDBStorageNotification from './storage/mongodb/MongoDBStorageNotification';
 import Configuration from './utils/Configuration';
@@ -38,7 +39,7 @@ export default class Bootstrap {
   private static ocpiServer: any;
   private static oDataServerConfig: any;
   private static oDataServer: any;
-  private static databaseDone: any;
+  private static databaseDone: boolean;
   private static database: any;
   private static migrationDone: any;
 
@@ -239,6 +240,9 @@ export default class Bootstrap {
         this.databaseDone = true;
       }
       global.database = this.database;
+      // Clean the locks in DB belonging to the current app/host
+      if (cluster.isMaster && this.databaseDone)
+        await LockingStorage.cleanLocks();
 
       if (cluster.isMaster && !this.migrationDone && this.centralSystemRestConfig) {
         // Check and trigger migration (only master process can run the migration)

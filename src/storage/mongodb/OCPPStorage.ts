@@ -1,4 +1,3 @@
-// import ChargingStation from '../../entity/ChargingStation';
 import Constants from '../../utils/Constants';
 import Utils from '../../utils/Utils';
 import Database from '../../utils/Database';

@@ -14,10 +14,10 @@ export default class MongoDBStorage {
   private db: Db;
 
   // Create database access
-  public constructor(private readonly dbConfig: StorageCfg) {}
+  public constructor(private readonly dbConfig: StorageCfg) { }
 
   public getCollection(tenantID: string, collectionName: string): Collection {
-    if(!this.db) {
+    if (!this.db) {
       throw new InternalError('Not supposed to call getCollection before start', []);
     }
     return this.db.collection(DatabaseUtils.getCollectionName(tenantID, collectionName));
@@ -27,9 +27,9 @@ export default class MongoDBStorage {
     return this.db.watch(pipeline, options);
   }
 
-  public async handleIndexesInCollection(allCollections: {name: string}[], tenantID: string, name: string, indexes?: {fields: any; options?: any}[]): Promise<boolean> {
+  public async handleIndexesInCollection(allCollections: { name: string }[], tenantID: string, name: string, indexes?: { fields: any; options?: any }[]): Promise<boolean> {
     //Safety check
-    if(!this.db) {
+    if (!this.db) {
       throw new InternalError('Not supposed to call handleIndexesInCollection before start', []);
     }
 
@@ -81,14 +81,14 @@ export default class MongoDBStorage {
   }
 
   public async checkAndCreateTenantDatabase(tenantID: string): Promise<void> {
-    //Safety check
-    if(!this.db) {
+    // Safety check
+    if (!this.db) {
       throw new InternalError('Not supposed to call checkAndCreateTenantDatabase before start', []);
     }
 
     const name = new RegExp(`^${tenantID}.`);
     // Get all the tenant collections
-    const collections = await this.db.listCollections({name: name}).toArray();
+    const collections = await this.db.listCollections({ name: name }).toArray();
     // Users
     await this.handleIndexesInCollection(collections, tenantID, 'users', [
       { fields: { email: 1 }, options: { unique: true } }
@@ -140,17 +140,15 @@ export default class MongoDBStorage {
       { fields: { chargeBoxID: 1, connectorId: 1 } },
       { fields: { userID: 1 } }
     ]);
-
   }
 
   public async deleteTenantDatabase(tenantID: string): Promise<void> {
-    // Done only in Dev environment!
     // Delay the deletion: there are some collections remaining after Unit Test execution
     setTimeout(async () => {
       // Not the Default tenant
       if (tenantID !== Constants.DEFAULT_TENANT) {
-        //Safety check
-        if(!this.db) {
+        // Safety check
+        if (!this.db) {
           throw new InternalError('Not supposed to call deleteTenantDatabase before start', []);
         }
 
@@ -169,8 +167,8 @@ export default class MongoDBStorage {
   }
 
   public async migrateTenantDatabase(tenantID: string): Promise<void> {
-    //Safety check
-    if(!this.db) {
+    // Safety check
+    if (!this.db) {
       throw new InternalError('Not supposed to call migrateTenantDatabase before start', []);
     }
     // Migrate not prefixed collections
@@ -184,8 +182,8 @@ export default class MongoDBStorage {
   }
 
   public async checkDatabase(): Promise<void> {
-    //Safety check
-    if(!this.db) {
+    // Safety check
+    if (!this.db) {
       throw new InternalError('Not supposed to call checkDatabase before start', []);
     }
     // Get all the collections
@@ -206,21 +204,21 @@ export default class MongoDBStorage {
       { fields: { level: 1 } },
       { fields: { type: 1 } }
     ]);
+    // Locks
+    await this.handleIndexesInCollection(collections, Constants.DEFAULT_TENANT, 'locks', [
+      { fields: { type: 1, name: 1 }, options: { unique: true } }
+    ]);
 
     for (const collection of collections) {
       if (collection.name === 'migrations') {
         await this.db.collection(collection.name).rename(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, collection.name), { dropTarget: true });
       }
+      if (collection.name === 'runningmigrations') {
+        await this.db.collection(collection.name).drop();
+      }
     }
 
-    // Running migrations
-    await this.handleIndexesInCollection(collections, Constants.DEFAULT_TENANT, 'runningmigrations', [
-      { fields: { timestamp: 1 } },
-      { fields: { name: 1 } },
-      { fields: { version: 1 } }
-    ]);
-
-    //TODO: could create class representing tenant collection for great typechecking
+    // TODO: could create class representing tenant collection for great typechecking
     const tenantsMDB = await this.db.collection(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, 'tenants'))
       .find({})
       .toArray();
@@ -244,7 +242,7 @@ export default class MongoDBStorage {
       // No: Build it
       mongoUrl = mongoUriBuilder({
         host: urlencode(this.dbConfig.host),
-        port: Number.parseInt(urlencode(this.dbConfig.port+'')),
+        port: Number.parseInt(urlencode(this.dbConfig.port + '')),
         username: urlencode(this.dbConfig.user),
         password: urlencode(this.dbConfig.password),
         database: urlencode(this.dbConfig.database),

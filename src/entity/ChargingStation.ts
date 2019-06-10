@@ -40,7 +40,7 @@ export default class ChargingStation extends TenantHolder {
     return ChargingStationStorage.getChargingStation(tenantID, id);
   }
 
-  static async getChargingStations(tenantID, params, limit, skip, sort): Promise<{count: number, result: ChargingStation[]}> {
+  static async getChargingStations(tenantID, params, limit, skip, sort): Promise<{count: number; result: ChargingStation[]}> {
     return ChargingStationStorage.getChargingStations(tenantID, params, limit, skip, sort);
   }
 

@@ -66,7 +66,7 @@ export default class ChargingStationStorage {
     return chargingStation;
   }
 
-  static async getChargingStations(tenantID, params: any = {}, limit?, skip?, sort?): Promise<{count: number, result: ChargingStation[]}> {
+  static async getChargingStations(tenantID, params: any = {}, limit?, skip?, sort?): Promise<{count: number; result: ChargingStation[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
     // Check Tenant
