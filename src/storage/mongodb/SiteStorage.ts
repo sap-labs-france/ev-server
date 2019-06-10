@@ -204,9 +204,13 @@ export default class SiteStorage {
     const filters: any = {};
     // Source?
     if (params.search) {
-      filters.$or = [
-        { "name": { $regex: params.search, $options: 'i' } }
-      ];
+      if (ObjectID.isValid(params.search)) {
+        filters._id = Utils.convertToObjectID(params.search);
+      } else {
+        filters.$or = [
+          { "name": { $regex: params.search, $options: 'i' } }
+        ];
+      }
     }
     // Set Company?
     if (params.companyID) {

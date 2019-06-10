@@ -160,14 +160,18 @@ export default class CompanyStorage {
     skip = Utils.checkRecordSkip(skip);
     // Set the filters
     const filters: any = {};
-    // Source?
+    // Build filter
     if (params.search) {
-      // Build filter
-      filters.$or = [
-        { "name": { $regex: params.search, $options: 'i' } },
-        { "address.city": { $regex: params.search, $options: 'i' } },
-        { "address.country": { $regex: params.search, $options: 'i' } }
-      ];
+      // Valid ID?
+      if (ObjectID.isValid(params.search)) {
+        filters._id = Utils.convertToObjectID(params.search);
+      } else {
+        filters.$or = [
+          { "name": { $regex: params.search, $options: 'i' } },
+          { "address.city": { $regex: params.search, $options: 'i' } },
+          { "address.country": { $regex: params.search, $options: 'i' } }
+        ];
+      }
     }
     // Create Aggregation
     const aggregation = [];
