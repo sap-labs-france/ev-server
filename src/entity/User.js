@@ -368,8 +368,10 @@ class User extends AbstractTenantEntity {
         filteredRequest.role = Constants.ROLE_BASIC;
       }
     } else {
-      // Update
-      filteredRequest.role = user.getRole();
+      // Do not allow to change if not Admin
+      if (!Authorizations.isAdmin(req.user)) {
+        filteredRequest.role = user.getRole();
+      }
     }
     if (req.method === 'POST' && !filteredRequest.status) {
       filteredRequest.status = Constants.USER_STATUS_BLOCKED;
