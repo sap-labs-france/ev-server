@@ -4,8 +4,7 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
-
-  {
+    {
       "type": "node",
       "request": "launch",
       "name": "Mocha Tests - Run All",
@@ -98,13 +97,24 @@
     {
       "type": "node",
       "request": "launch",
-      "name": "Debug",
+      "name": "Debug Program",
       "cwd": "${workspaceFolder}",
       "runtimeExecutable": "npm",
       "runtimeArgs": [
-        "run-script", "start:dev:debug"
+        "run-script",
+        "start:dev:debug"
       ],
       "port": 9229
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Debug Program (TypeScript)",
+      "program": "${workspaceFolder}/src/start.ts",
+      "preLaunchTask": "tsc: build - tsconfig.json",
+      "outFiles": [
+        "${workspaceFolder}/dist/**/*.js"
+      ]
     }
   ]
 }

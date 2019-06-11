@@ -111,7 +111,7 @@ describe('OCPI Service Tests', function () {
       expect(response.data.data.endpoints).to.be.an('array').that.is.not.empty;
     });
 
-    //check data object for Array of Endpoints
+    // check data object for Array of Endpoints
     it('should contains valid Endpoint objects', async () => {
       expect(response.data.data.endpoints, 'Invalid Endpoints Object').to.satisfy((endpoints) => {
         let validEndpoints = true;
@@ -371,21 +371,21 @@ describe('OCPI Service Tests', function () {
      * Success Cases
      */
     describe('Success cases', () => {
-      it('Should create a new ocpiendpoint', async () => {
+      it('Should create a new ocpiEndpoint', async () => {
         // Check
-        expect(this.newOcpiendpoint).to.not.be.null;
+        expect(this.newOcpiEndpoint).to.not.be.null;
         // Create the entity
-        this.newOcpiendpoint = await CentralServerService.createEntity(
-          CentralServerService.ocpiendpointApi, Factory.ocpiendpoint.build( { }));
+        this.newOcpiEndpoint = await CentralServerService.createEntity(
+          CentralServerService.ocpiEndpointApi, Factory.ocpiEndpoint.build( { }));
       });
 
 
-      it('Should update the ocpiendpoint token', async () => {
+      it('Should update the ocpiEndpoint token', async () => {
         // Change entity
-        this.newOcpiendpoint.localToken = OCPIService.getToken();
+        this.newOcpiEndpoint.localToken = OCPIService.getToken();
         // Update
         await CentralServerService.updateEntity(
-          CentralServerService.ocpiendpointApi, this.newOcpiendpoint);
+          CentralServerService.ocpiEndpointApi, this.newOcpiEndpoint);
       });
 
       // check access for each evse
@@ -420,10 +420,10 @@ describe('OCPI Service Tests', function () {
         this.ocpiService.validateCredentialEntity(response.data.data);
       });
 
-      it('Should delete the created ocpiendpoint', async () => {
+      it('Should delete the created ocpiEndpoint', async () => {
         // Delete the created entity
         await CentralServerService.deleteEntity(
-          CentralServerService.ocpiendpointApi, this.newOcpiendpoint);
+          CentralServerService.ocpiEndpointApi, this.newOcpiEndpoint);
       });
     });
 

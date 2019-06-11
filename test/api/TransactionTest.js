@@ -745,11 +745,11 @@ describe('Transaction tests', function() {
       const tagId = user.tagIDs[0];
       const meterStart = 0;
       const startDate = moment();
-      const transactionId = await this.dataHelper16.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
-      let response = await this.centralServerService.transactionApi.delete(transactionId);
-      expect(response.status).to.equal(500);
-      response = await this.centralServerService.transactionApi.readById(transactionId);
+      const transactionId = await this.dataHelper.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
+      let response = await CentralServerService.transactionApi.delete(transactionId);
       expect(response.status).to.equal(200);
+      response = await CentralServerService.transactionApi.readById(transactionId);
+      expect(response.status).to.equal(550);
     });
     it('delete a closed transaction', async () => {
       const user = await this.dataHelper16.createUser();
@@ -817,11 +817,12 @@ describe('Transaction tests', function() {
   });
 
   it('inactivity should be computed', async () => {
-    const user = await this.dataHelper16.createUser();
-    const company = await this.dataHelper16.createCompany();
-    const site = await this.dataHelper16.createSite(company, [user]);
-    const chargingStation = await this.dataHelper16.createChargingStation();
-    await this.dataHelper16.createSiteArea(site, [chargingStation]);
+    const user = await this.dataHelper.createUser();
+    
+    const company = await this.dataHelper.createCompany();
+    const site = await this.dataHelper.createSite(company, [user]);
+    const chargingStation = await this.dataHelper.createChargingStation();
+    await this.dataHelper.createSiteArea(site, [chargingStation]);
     const connectorId = 1;
     const tagId = user.tagIDs[0];
     const meterStart = 180;

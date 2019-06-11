@@ -1,7 +1,7 @@
 const soap = require('strong-soap').soap;
 const OCPPService = require('../OCPPService');
 const config = require('../../../config');
-const {performance} = require('perf_hooks');
+const { performance } = require('perf_hooks');
 
 class OCPPSoapService15 extends OCPPService {
   constructor(serverUrl) {
@@ -77,12 +77,6 @@ class OCPPSoapService15 extends OCPPService {
   async _execute(request) {
     // Init Client (Done only once)
     await this._initSOAPClient();
-    // Log
-    if (config.get('ocpp.soap.logs') === 'json') {
-      console.log(JSON.stringify({
-        request
-      }, null, 2));
-    }
     // Init SOAP header
     this.client.clearSoapHeaders();
     this.client.addSoapHeader(request.headers);
@@ -96,31 +90,16 @@ class OCPPSoapService15 extends OCPPService {
       t0 = performance.now();
       const { result, envelope, soapHeader } = await this.service[request.name](payload);
       t1 = performance.now();
-      // Log
-      if (config.get('ocpp.soap.logs') === 'xml') {
-        console.log('<!-- Request -->');
-        console.log(this.client.lastRequest);
-        if (soapHeader) {
-          console.log('<!-- Response Header -->');
-          console.log(soapHeader)
-        }
-        console.log('<!-- Response Envelope -->');
-        console.log(envelope);
-        console.log('\n');
-      }
       // Respond
       const response = {
         executionTime: (t1 - t0),
         headers: soapHeader || {},
         data: result || {}
       };
-      // Log Response
-      if (config.get('ocpp.soap.logs') === 'json') {
-        console.log(JSON.stringify(response, null, 2));
-      }
       // Return response
       return response;
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.log(error);
     }
   }

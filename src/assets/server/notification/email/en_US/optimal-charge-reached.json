@@ -1,5 +1,6 @@
 {
   "subject": "Optimal charge reached",
+  "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {

@@ -5,17 +5,27 @@ installation
 build
 .git
 .gitignore
+.gitattributes
 .jshintrc
-EVSE.postman_collection.json
-EVSE.postman_environment.json
-EVSE-SAP-System-Landscape.vsdx
-package-lock.json
+.eslintrc.json
+.vscode
+.clinic
+# vim
+# Persistent undo
+[._]*.un~
+# Temporary
+.netrwhist
+*~
+*.orig
 Procfile
-readme.md
+postman
+archi
+cloud-infos.md
+README.md
 tam-model.png
 users-template.json
 user-test-case.txt
+security-scan-source-clear.txt
 webpack.config.js
-yarn.lock
 yarn-error.log
 manifest-cf-template.yml

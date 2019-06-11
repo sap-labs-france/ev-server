@@ -1,5 +1,6 @@
 {
   "subject": "<%- chargeBoxID %> - Connecteur <%- connectorId %> - <%- error %>",
+  "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {

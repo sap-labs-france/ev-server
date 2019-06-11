@@ -1,5 +1,6 @@
 {
   "subject": "Session terminée",
+  "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {

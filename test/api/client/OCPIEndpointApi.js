@@ -7,23 +7,23 @@ class OCPIEndpointApi extends CrudApi {
   }
 
   readById(id) {
-    return super.readById('/client/api/Ocpiendpoint', id);
+    return super.readById('/client/api/OcpiEndpoint', id);
   }
 
   readAll(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
-    return super.readAll('/client/api/Ocpiendpoints', params, paging, ordering);
+    return super.readAll('/client/api/OcpiEndpoints', params, paging, ordering);
   }
 
   create(data) {
-    return super.create('/client/api/OcpiendpointCreate', data);
+    return super.create('/client/api/OcpiEndpointCreate', data);
   }
 
   update(data) {
-    return super.update('/client/api/OcpiendpointUpdate', data);
+    return super.update('/client/api/OcpiEndpointUpdate', data);
   }
 
   delete(id) {
-    return super.delete('/client/api/OcpiendpointDelete', id);
+    return super.delete('/client/api/OcpiEndpointDelete', id);
   }
 }
 

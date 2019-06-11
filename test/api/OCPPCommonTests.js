@@ -42,14 +42,14 @@ class OCPPCommonTests {
     this.transactionStopUser = this.context.newUser;
     this.transactionStartMeterValue = 0;
     this.transactionStartSoC = 0;
-    this.transactionMeterValues = Array.from({length: 10}, () => faker.random.number({
+    this.transactionMeterValues = Array.from({length: 12}, () => faker.random.number({
       min: 200,
       max: 500
-    })).concat([0, 0, 0, 0]);
+    })).concat([0, 0]);
     this.transactionMeterSoCValues = Array.from({length: 10}, () => faker.random.number({
       min: 0,
       max: 90
-    })).concat([95, 97, 99, 100]).sort((a, b) => (a - b));
+    })).concat([98, 99, 100, 100]).sort((a, b) => (a - b));
     this.transactionMeterValueIntervalSecs = 60;
     this.transactionStartTime = moment().subtract(this.transactionMeterValues.length * this.transactionMeterValueIntervalSecs, "seconds");
     this.transactionTotalConsumption = this.transactionMeterValues.reduce((sum, meterValue) => sum + meterValue);
