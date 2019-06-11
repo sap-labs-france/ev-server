@@ -4,9 +4,9 @@
         {
             "label": "tsc watch",
             "type": "shell",
-            "command": ".ev-server/node_modules/.bin/tsc",
+            "command": "./node_modules/.bin/tsc",
             "isBackground": true,
-            "args": ["--watch", "--noEmit", "--project", "www"],
+            "args": ["--watch", "--noEmit", "--project", "src"],
             "group": {
                 "kind": "build",
                 "isDefault": true
