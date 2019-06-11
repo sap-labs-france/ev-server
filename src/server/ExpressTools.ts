@@ -45,7 +45,7 @@ export default {
   },
 
   createHttpServer: function (serverConfig: any, expressApp: express.Application): http.Server {
-    let server;
+    let server: http.Server;
     // Create the HTTP server
     if (serverConfig.protocol === "https") {
       // Create the options
@@ -91,7 +91,7 @@ export default {
       // eslint-disable-next-line no-console
       console.log(logMsg + ` ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
     }
-    let cb;
+    let cb: Function;
     if (listenCb !== null && typeof listenCb === 'function') {
       cb = listenCb;
     } else {
