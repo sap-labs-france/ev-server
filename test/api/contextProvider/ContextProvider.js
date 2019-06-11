@@ -8,6 +8,7 @@ const chaiSubset = require('chai-subset');
 chai.use(chaiSubset);
 const {
   SITE_CONTEXTS,
+  SITE_AREA_CONTEXTS,
   TENANT_CONTEXT_LIST,
   TENANT_SITE_LIST
 } = require('./ContextConstants');
@@ -19,7 +20,7 @@ class ContextProvider {
 
   constructor() {
     // Create a super admin interface
-    this.superAdminCentralServerService = new CentralServerService(null, true);
+    this.superAdminCentralServerService = new CentralServerService(null, {email: config.get('superadmin.username'), password: config.get('superadmin.password')});
     this.tenantsContexts = [];
     this.initialized = false;
   }
@@ -70,28 +71,28 @@ class ContextProvider {
     const tenantEntity = this.tenantEntities.find((tenant) => tenant.name === tenantContextDef.tenantName);
     expect(tenantEntity).to.not.be.empty;
     
-    // Create Central Server Service
-    const localCentralServiceService = new CentralServerService(tenantEntity.subdomain);
+    // Create Central Server Service for admin user defined in config
+    const defaultAdminCentralServiceService = new CentralServerService(tenantEntity.subdomain);
     let chargingStationList = null;
     let siteAreaList = null;
     let siteList = null;
     let companyList = null;
     let userList = null;
     // Read all existing entities
-    chargingStationList = (await localCentralServiceService.chargingStationApi.readAll()).data.result;
-    siteAreaList = (await localCentralServiceService.siteAreaApi.readAll()).data.result;
-    siteList = (await localCentralServiceService.siteApi.readAll()).data.result;
-    companyList = (await localCentralServiceService.companyApi.readAll()).data.result;
-    userList = (await localCentralServiceService.userApi.readAll()).data.result;
+    chargingStationList = (await defaultAdminCentralServiceService.chargingStationApi.readAll()).data.result;
+    siteAreaList = (await defaultAdminCentralServiceService.siteAreaApi.readAll()).data.result;
+    siteList = (await defaultAdminCentralServiceService.siteApi.readAll()).data.result;
+    companyList = (await defaultAdminCentralServiceService.companyApi.readAll()).data.result;
+    userList = (await defaultAdminCentralServiceService.userApi.readAll()).data.result;
     for (const user of userList) {
       user.password = config.get('admin.password');
-      user.centralServerService = new CentralServerService(tenantEntity.subdomain, false, user);
+      user.centralServerService = new CentralServerService(tenantEntity.subdomain, user);
     }
 
     // Create tenant context
-    const newTenantContext = new TenantContext(tenantContextDef.tenantName, tenantEntity, localCentralServiceService);
+    const newTenantContext = new TenantContext(tenantContextDef.tenantName, tenantEntity, defaultAdminCentralServiceService);
     this.tenantsContexts.push(newTenantContext);
-    newTenantContext.getContext().users = userList;
+    newTenantContext.addUsers(userList);//getContext().users = userList;
     newTenantContext.getContext().companies = companyList;
 
     if (tenantEntity.components && tenantEntity.components.hasOwnProperty(Constants.COMPONENTS.ORGANIZATION) &&
@@ -112,7 +113,7 @@ class ContextProvider {
     }
     // Create list of unassigned charging station by creating a dummy site
     const siteContext = new SiteContext({id: 1, name: SITE_CONTEXTS.NO_SITE}, newTenantContext);
-    const emptySiteAreaContext = siteContext.addSiteArea({id: 1, name: SITE_CONTEXTS.NO_SITE});
+    const emptySiteAreaContext = siteContext.addSiteArea({id: 1, name: SITE_AREA_CONTEXTS.NO_SITE});
     const chargingStations = chargingStationList.filter((chargingStation) => !chargingStation.hasOwnProperty('siteAreaID') || chargingStation.siteAreaID === null || chargingStation.siteAreaID === undefined);
     for (const chargingStation of chargingStations) {
       emptySiteAreaContext.addChargingStation(chargingStation);

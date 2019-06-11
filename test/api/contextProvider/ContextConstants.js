@@ -1,162 +1,201 @@
+/**************************************
+* Available contexts that can be used in the unit tests
+***************************************/
 const TENANT_CONTEXTS = {
-  TENANT_WITH_ALL_COMPONENTS: "ut-all",
-  TENANT_WITH_NO_COMPONENTS: "ut-nothing",
-  TENANT_ORGANIZATION: "ut-org",
-  TENANT_SIMPLE_PRICING: "ut-pricing",
-  TENANT_CONVERGENT_CHARGING: "ut-convcharg",
-  TENANT_OCPI: "ut-ocpi",
-  TENANT_FUNDING: "ut-refund"
+  TENANT_WITH_ALL_COMPONENTS: "ut-all", // All components are active
+  TENANT_WITH_NO_COMPONENTS: "ut-nothing", // No components are active
+  TENANT_ORGANIZATION: "ut-org", // Only organization component is active
+  TENANT_SIMPLE_PRICING: "ut-pricing", // Only pricing component is active
+  TENANT_CONVERGENT_CHARGING: "ut-convcharg", // Only convergent charging component is active
+  TENANT_OCPI: "ut-ocpi", // Only ocpi component is active
+  TENANT_FUNDING: "ut-refund" // Only organization component is active
 };
 
 const SITE_CONTEXTS = {
   NO_SITE: "No site", // Used for unassigned Charging Station or CS in tenant with no organizations
-  SITE_BASIC: "ut-site",
-  SITE_WITH_AUTO_USER_ASSIGNMENT: "ut-site-auto",
-  SITE_WITH_OTHER_USER_STOP_AUTHPORIZATION: "ut-site-stop"
+  SITE_BASIC: "ut-site", // Default site with no settings
+  SITE_WITH_AUTO_USER_ASSIGNMENT: "ut-site-auto", // Automatic user assignment is active
+  SITE_WITH_OTHER_USER_STOP_AUTHPORIZATION: "ut-site-stop" // Authorization to stop other users transaction is active
 };
 
 const SITE_AREA_CONTEXTS = {
-  WITH_ACL: "withACL", 
-  WITHOUT_ACL: "withoutACL"
+  NO_SITE: "No site", // Used for unassigned Charging Station or CS in tenant with no organizations
+  WITH_ACL: "withACL",  // ACL is active
+  WITHOUT_ACL: "withoutACL" // ACL is inactive
 };
 
 const CHARGING_STATION_CONTEXTS = {
-  ASSIGNED_OCCP16: "cs-16", 
-  UNASSIGNED_OCPP16: "cs-notassigned"
+  ASSIGNED_OCCP16: "cs-16", // Charging Station is assigned to each site area with OCPP16
+  UNASSIGNED_OCPP16: "cs-notassigned" // Charging station is not assigned and use OCPP16
+};
+
+const USER_CONTEXTS = {
+  DEFAULT_ADMIN: {
+    role: 'A', status: 'A', assignedToSite: true, withTagIDs: true
+  },
+  ADMIN_UNASSIGNED: {
+    role: 'A', status: 'A', assignedToSite: false, withTagIDs: true
+  },
+  BASIC_USER: {
+    role: 'B', status: 'A', assignedToSite: true, withTagIDs: true
+  },
+  BASIC_USER_UNASSIGNED: {
+    role: 'B', status: 'A', assignedToSite: false, withTagIDs: true
+  },
+  BASIC_USER_PENDING: {
+    role: 'B', status: 'P', assignedToSite: true, withTagIDs: true
+  },
+  BASIC_USER_LOCKED: {
+    role: 'B', status: 'L', assignedToSite: true, withTagIDs: true
+  },
+  BASIC_USER_NO_TAGS: {
+    role: 'B', status: 'A', assignedToSite: true, withTagIDs: false
+  },
+  DEMO_USER: {
+    role: 'D', status: 'A', assignedToSite: true, withTagIDs: true
+  },
 };
 
 
+/*************************************
+* Definition of the different contexts
+**************************************/
 const TENANT_CONTEXT_LIST = [{
-    // contextName: TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS,
-    tenantName: TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS,
-    subdomain: 'utall',
-    componentSettings: {
-      pricing: {
-        simple: {
-          price: 1,
-          currency: 'EUR'
-        }
-      },
-      ocpi: {
-        country_code: 'FR',
-        party_id: 'UT'
+  // contextName: TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS,
+  tenantName: TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS,
+  subdomain: 'utall',
+  componentSettings: {
+    pricing: {
+      simple: {
+        price: 1,
+        currency: 'EUR'
       }
     },
+    ocpi: {
+      country_code: 'FR',
+      party_id: 'UT'
+    }
   },
-  {
-    // contextName: TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
-    tenantName: TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
-    subdomain: 'utnothing',
-  },
-  {
-    // contextName: TENANT_CONTEXTS.TENANT_ORGANIZATION,
-    tenantName: TENANT_CONTEXTS.TENANT_ORGANIZATION,
-    subdomain: 'utorg',
-  },
-  {
-    // contextName: TENANT_CONTEXTS.TENANT_SIMPLE_PRICING,
-    tenantName: TENANT_CONTEXTS.TENANT_SIMPLE_PRICING,
-    subdomain: 'utprice',
-    componentSettings: {
-      pricing: {
-        simple: {
-          price: 1,
-          currency: 'EUR'
-        }
+},
+{
+  // contextName: TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+  tenantName: TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+  subdomain: 'utnothing',
+},
+{
+  // contextName: TENANT_CONTEXTS.TENANT_ORGANIZATION,
+  tenantName: TENANT_CONTEXTS.TENANT_ORGANIZATION,
+  subdomain: 'utorg',
+},
+{
+  // contextName: TENANT_CONTEXTS.TENANT_SIMPLE_PRICING,
+  tenantName: TENANT_CONTEXTS.TENANT_SIMPLE_PRICING,
+  subdomain: 'utprice',
+  componentSettings: {
+    pricing: {
+      simple: {
+        price: 1,
+        currency: 'EUR'
       }
-    },
+    }
   },
-  {
-    // contextName: TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
-    tenantName: TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
-    subdomain: 'utconvcharg',
+},
+{
+  // contextName: TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
+  tenantName: TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
+  subdomain: 'utconvcharg',
+},
+{
+  // contextName: TENANT_CONTEXTS.TENANT_OCPI,
+  tenantName: TENANT_CONTEXTS.TENANT_OCPI,
+  subdomain: 'utocpi',
+  componentSettings: {
+    ocpi: {
+      country_code: 'FR',
+      party_id: 'UT'
+    }
   },
-  {
-    // contextName: TENANT_CONTEXTS.TENANT_OCPI,
-    tenantName: TENANT_CONTEXTS.TENANT_OCPI,
-    subdomain: 'utocpi',
-    componentSettings: {
-      ocpi: {
-        country_code: 'FR',
-        party_id: 'UT'
+},
+{
+  // contextName: TENANT_CONTEXTS.TENANT_FUNDING,
+  tenantName: TENANT_CONTEXTS.TENANT_FUNDING,
+  subdomain: 'utrefund',
+  componentSettings: {
+    pricing: {
+      convergentChargingPricing: {
+        url: '',
+        chargeableItemName: '',
+        user: '',
+        password: ''
       }
-    },
+    }
   },
-  {
-    // contextName: TENANT_CONTEXTS.TENANT_FUNDING,
-    tenantName: TENANT_CONTEXTS.TENANT_FUNDING,
-    subdomain: 'utrefund',
-    componentSettings: {
-      pricing: {
-        convergentChargingPricing: {
-          url: '',
-          chargeableItemName: '',
-          user: '',
-          password: ''
-        }
-      }
-    },
-  }
-];
+}];
 
 // List of users created in a tenant
 const TENANT_USER_LIST = [
   // email and password are taken from config file for all users
   { // Default Admin user. 
     id: '5ce249a1a39ae1c056c389bd',
-    role: 'A',
-    status: 'A',
-    assignedToSite: true
+    role: USER_CONTEXTS.DEFAULT_ADMIN.role,
+    status: USER_CONTEXTS.DEFAULT_ADMIN.status,
+    assignedToSite: USER_CONTEXTS.DEFAULT_ADMIN.assignedToSite,
+    tagIDs: (USER_CONTEXTS.DEFAULT_ADMIN.withTagIDs ? ['A1234'] : null)
   },
   { // Admin not assigned
     id: '5ce249a1a39ae1c056c123ef',
-    role: 'A',
-    status: 'A',
-    assignedToSite: false,
-    emailPrefix: 'a-unassigned-'
+    role: USER_CONTEXTS.ADMIN_UNASSIGNED.role,
+    status: USER_CONTEXTS.ADMIN_UNASSIGNED.status,
+    assignedToSite: USER_CONTEXTS.ADMIN_UNASSIGNED.assignedToSite,
+    emailPrefix: 'a-unassigned-',
+    tagIDs: (USER_CONTEXTS.ADMIN_UNASSIGNED.withTagIDs ? ['A12341'] : null)
   },
   { // Basic user
     id: '5ce249a1a39ae1c056c123ab',
-    role: 'B',
-    status: 'A',
-    assignedToSite: true,
-    emailPrefix: 'basic-'
+    role: USER_CONTEXTS.BASIC_USER.role,
+    status: USER_CONTEXTS.BASIC_USER.status,
+    assignedToSite: USER_CONTEXTS.BASIC_USER.assignedToSite,
+    emailPrefix: 'basic-',
+    tagIDs: (USER_CONTEXTS.BASIC_USER.withTagIDs ? ['A12342'] : null)
   },
   { // Demo user
     id: '5ce249a1a39ae1c056c123cd',
-    role: 'D',
-    status: 'A',
-    assignedToSite: true,
-    emailPrefix: 'demo-'
+    role: USER_CONTEXTS.DEMO_USER.role,
+    status: USER_CONTEXTS.DEMO_USER.status,
+    assignedToSite: USER_CONTEXTS.DEMO_USER.assignedToSite,
+    emailPrefix: 'demo-',
+    tagIDs: (USER_CONTEXTS.DEMO_USER.withTagIDs ? ['A12343'] : null)
   },
   { // Basic user unassigned
-    id: '5ce249a1a39ae1c056c234ab',
-    role: 'B',
-    status: 'A',
-    assignedToSite: false,
-    emailPrefix: 'b-unassigned-'
+    role: USER_CONTEXTS.BASIC_USER_UNASSIGNED.role,
+    status: USER_CONTEXTS.BASIC_USER_UNASSIGNED.status,
+    assignedToSite: USER_CONTEXTS.BASIC_USER_UNASSIGNED.assignedToSite,
+    emailPrefix: 'b-unassigned-',
+    tagIDs: (USER_CONTEXTS.BASIC_USER_UNASSIGNED.withTagIDs ? ['A12348'] : null)
   },
   { // Basic user pending
     id: '5ce249a1a39ae1c056c456ab',
-    role: 'B',
-    status: 'P',
-    assignedToSite: true,
-    emailPrefix: 'b-pending-'
+    role: USER_CONTEXTS.BASIC_USER_PENDING.role,
+    status: USER_CONTEXTS.BASIC_USER_PENDING.status,
+    assignedToSite: USER_CONTEXTS.BASIC_USER_PENDING.assignedToSite,
+    emailPrefix: 'b-pending-',
+    tagIDs: (USER_CONTEXTS.BASIC_USER_PENDING.withTagIDs ? ['A12349'] : null)
   },
   { // Basic user Locked
     id: '5ce249a1a39ae1c056c789ef',
-    role: 'B',
-    status: 'L',
-    assignedToSite: true,
-    emailPrefix: 'b-locked-'
+    role: USER_CONTEXTS.BASIC_USER_LOCKED.role,
+    status: USER_CONTEXTS.BASIC_USER_LOCKED.status,
+    assignedToSite: USER_CONTEXTS.BASIC_USER_LOCKED.assignedToSite,
+    emailPrefix: 'b-locked-',
+    tagIDs: (USER_CONTEXTS.BASIC_USER_LOCKED.withTagIDs ? ['A123410'] : null)
   },
   { // Basic user No Tags
     id: '5ce249a1a39ae1c056c567ab',
-    role: 'B',
-    status: 'A',
-    assignedToSite: true,
+    role: USER_CONTEXTS.BASIC_USER_NO_TAGS.role,
+    status: USER_CONTEXTS.BASIC_USER_NO_TAGS.status,
+    assignedToSite: USER_CONTEXTS.BASIC_USER_NO_TAGS.assignedToSite,
     emailPrefix: 'b-notTag',
-    TagIDs: null
+    tagIDs: (USER_CONTEXTS.BASIC_USER_NO_TAGS.withTagIDs ? ['A123411'] : null)
   }
 ];
 
@@ -273,5 +312,6 @@ module.exports = {
   TENANT_SITE_LIST,
   TENANT_SITEAREA_LIST,
   TENANT_CHARGINGSTATION_LIST,
-  CHARGING_STATION_CONTEXTS
+  CHARGING_STATION_CONTEXTS,
+  USER_CONTEXTS
 };

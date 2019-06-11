@@ -24,7 +24,7 @@ chai.use(chaiSubset);
 
 class CentralServerService {
 
-  constructor(tenantSubdomain = null, onlySuperAdmin = false, user = null) {
+  constructor(tenantSubdomain = null, user = null) {
     this.tenantSubdomain = tenantSubdomain;
     this.baseURL = `${config.get('server.scheme')}://${config.get('server.host')}:${config.get('server.port')}`;
     // Create the Base API
@@ -37,24 +37,22 @@ class CentralServerService {
         password: config.get('admin.password')
       };
     }
-    if (!onlySuperAdmin) {
-      // Create the Authenticated API
-      if (tenantSubdomain) {
-        this.authenticatedApi = new AuthenticatedBaseApi(this.baseURL, this.authenticatedUser.email, this.authenticatedUser.password, tenantSubdomain);
-      } else {
-        this.authenticatedApi = new AuthenticatedBaseApi(this.baseURL, this.authenticatedUser.email, this.authenticatedUser.password, config.get('admin.tenant'));
-      }
-      // Create the Company
-      this.companyApi = new CompanyApi(this.authenticatedApi);
-      this.siteApi = new SiteApi(this.authenticatedApi);
-      this.siteAreaApi = new SiteAreaApi(this.authenticatedApi);
-      this.userApi = new UserApi(this.authenticatedApi);
-      this.chargingStationApi = new ChargingStationApi(this.authenticatedApi, this.baseApi);
-      this.transactionApi = new TransactionApi(this.authenticatedApi);
-      this.settingApi = new SettingApi(this.authenticatedApi);
-      this.ocpiendpointApi = new OCPIEndpointApi(this.authenticatedApi);
+    // Create the Authenticated API
+    if (tenantSubdomain) {
+      this.authenticatedApi = new AuthenticatedBaseApi(this.baseURL, this.authenticatedUser.email, this.authenticatedUser.password, tenantSubdomain);
+    } else {
+      this.authenticatedApi = new AuthenticatedBaseApi(this.baseURL, this.authenticatedUser.email, this.authenticatedUser.password, config.get('admin.tenant'));
     }
-    this.authenticatedSuperAdminApi = new AuthenticatedBaseApi(this.baseURL, config.get('superadmin.username'), config.get('superadmin.password'), "");
+    // Create the Company
+    this.companyApi = new CompanyApi(this.authenticatedApi);
+    this.siteApi = new SiteApi(this.authenticatedApi);
+    this.siteAreaApi = new SiteAreaApi(this.authenticatedApi);
+    this.userApi = new UserApi(this.authenticatedApi);
+    this.chargingStationApi = new ChargingStationApi(this.authenticatedApi, this.baseApi);
+    this.transactionApi = new TransactionApi(this.authenticatedApi);
+    this.settingApi = new SettingApi(this.authenticatedApi);
+    this.ocpiendpointApi = new OCPIEndpointApi(this.authenticatedApi);
+    this.authenticatedSuperAdminApi = new AuthenticatedBaseApi(this.baseURL, this.authenticatedUser.email, this.authenticatedUser.password, "");
     this.authenticationApi = new AuthenticationApi(this.baseApi);
     this.tenantApi = new TenantApi(this.authenticatedSuperAdminApi, this.baseApi);
     this.mailApi = new MailApi(new BaseApi(`http://${config.get('mailServer.host')}:${config.get('mailServer.port')}`));

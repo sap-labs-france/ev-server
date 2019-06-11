@@ -1,9 +1,3 @@
-const faker = require('faker');
-const Factory = require('../../factories/Factory');
-const {
-  SITE_CONTEXTS
-} = require('./ContextConstants');
-
 const ChargingStationContext = require('./ChargingStationContext');
 class SiteAreaContext {
 
@@ -11,7 +5,6 @@ class SiteAreaContext {
     this.tenantContext = tenantContext;
     this.chargingStations = [];
     this.siteArea = siteArea;
-    this.createdChargingStations = [];
   }
 
   async cleanUpCreatedData() {
@@ -19,13 +12,6 @@ class SiteAreaContext {
     for (const chargingStation of this.chargingStations) {
       // Delegate
       await chargingStation.cleanUpCreatedData();
-    }
-    // clean up charging stations
-    for (const chargingStation of this.createdChargingStations) {
-      // Delegate
-      await chargingStation.cleanUpCreatedData();
-      // Delete CS
-      await this.tenantContext.getAdminCentralServerService().deleteEntity(this.tenantContext.getAdminCentralServerService().chargingStationApi, chargingStation, false);
     }
   }
 
@@ -67,37 +53,6 @@ class SiteAreaContext {
     return response;
   }
 
-  async createChargingStation(ocppVersion, chargingStation = Factory.chargingStation.build({
-    id: faker.random.alphaNumeric(12)
-  }), connectorsDef = null) {
-    const response = await this.tenantContext.getOCPPService(ocppVersion).executeBootNotification(
-      chargingStation.id, chargingStation);
-    const createdChargingStation = await this.tenantContext.getAdminCentralServerService().getEntityById(
-      this.tenantContext.getAdminCentralServerService().chargingStationApi, chargingStation);
-    chargingStation.connectors = [];
-    for (let i = 0; i < (connectorsDef ? connectorsDef.length : 2); i++) {
-      createdChargingStation.connectors[i] = {
-        connectorId: i + 1,
-        status: (connectorsDef && connectorsDef.status ? connectorsDef.status : 'Available'),
-        errorCode: (connectorsDef && connectorsDef.errorCode ? connectorsDef.errorCode : 'NoError'),
-        timestamp: (connectorsDef && connectorsDef.timestamp ? connectorsDef.timestamp : new Date().toISOString()),
-        type: (connectorsDef && connectorsDef.type ? connectorsDef.type : 'U'),
-        power: (connectorsDef && connectorsDef.power ? connectorsDef.power : 22170)
-      };
-    }
-    for (const connector of createdChargingStation.connectors) {
-      const responseNotif = await this.tenantContext.getOCPPService(ocppVersion).executeStatusNotification(createdChargingStation.id, connector);
-    }
-    if (this.siteArea.name !== SITE_CONTEXTS.NO_SITE) {
-      //assign to Site Area
-      createdChargingStation.siteArea = this.siteArea;
-      await this.tenantContext.getAdminCentralServerService().updateEntity(
-        this.tenantContext.getAdminCentralServerService().chargingStationApi, createdChargingStation);
-    }
-    const createdCS = new ChargingStationContext(createdChargingStation, this.tenantContext);
-    this.createdChargingStations.push(createdCS);
-    return createdCS;
-  }
 }
 
 module.exports = SiteAreaContext;

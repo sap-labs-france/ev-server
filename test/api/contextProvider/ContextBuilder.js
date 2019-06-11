@@ -23,12 +23,14 @@ const MongoDBStorage = require('../../../src/storage/mongodb/MongoDBStorage');
 const TenantContext = require('./TenantContext');
 const faker = require('faker');
 const SiteContext = require('./SiteContext');
+const SiteAreaContext = require('./SiteAreaContext');
+const ChargingStationContext = require('./ChargingStationContext');
 
 class ContextBuilder {
 
   constructor() {
     // Create a super admin interface
-    this.superAdminCentralServerService = new CentralServerService(null, true);
+    this.superAdminCentralServerService = new CentralServerService(null, {email: config.get('superadmin.username'), password: config.get('superadmin.password')});
     this.tenantsContexts = [];
     // Create MongoDB
     global.database = new MongoDBStorage(config.get('storage'));
@@ -170,7 +172,7 @@ class ContextBuilder {
       // Update the email
       defaultAdminUser.setEMail(config.get('admin.username'));
       // Add a Tag ID
-      defaultAdminUser.setTagIDs(TENANT_USER_LIST[0].TagIDs ? TENANT_USER_LIST[0].TagIDs : [faker.random.alphaNumeric(8).toUpperCase()]);
+      defaultAdminUser.setTagIDs(TENANT_USER_LIST[0].tagIDs ? TENANT_USER_LIST[0].tagIDs : [faker.random.alphaNumeric(8).toUpperCase()]);
       // Fix id
       defaultAdminUser.getModel().id = TENANT_USER_LIST[0].id;
       await defaultAdminUser.save();
@@ -211,6 +213,9 @@ class ContextBuilder {
       createUser.role = userDef.role;
       createUser.status = userDef.status;
       createUser.id = userDef.id;
+      if (userDef.tagIDs) {
+        createUser.tagIDs = userDef.tagIDs;
+      }
       const user = new User(buildTenant.id, createUser);
       user.save();
       // const user = await localCentralServiceService.createEntity(
@@ -225,7 +230,7 @@ class ContextBuilder {
     this.tenantsContexts.push(newTenantContext);
     console.log('CREATE tenant context ' + newTenantContext.getTenant().id +
        ' ' + newTenantContext.getTenant().subdomain);
-    newTenantContext.getContext().users = userList;
+    newTenantContext.addUsers(userList);
     // Check if Organization is active
     if (buildTenant.components && buildTenant.components.hasOwnProperty(Constants.COMPONENTS.ORGANIZATION) &&
       buildTenant.components[Constants.COMPONENTS.ORGANIZATION].active) {
@@ -234,7 +239,6 @@ class ContextBuilder {
       for (const companyDef of TENANT_COMPANY_LIST) {
         const dummyCompany = Factory.company.build();
         dummyCompany.id = companyDef.id;
-
         company = new Company(buildTenant.id, dummyCompany);
         company = (await company.save()).getModel(); // await newTenantContext.createCompany(dummyCompany);
         newTenantContext.getContext().companies.push(company);
@@ -242,8 +246,6 @@ class ContextBuilder {
       // Build sites/sitearea according to tenant definition
       for (const siteContextDef of TENANT_SITE_LIST) {
         let site = null;
-        const siteContext = new SiteContext(siteContextDef.name);
-        newTenantContext.addSiteContext(siteContext);
         // Create site
         const siteTemplate = Factory.site.build({
           companyID: siteContextDef.companyID,
@@ -256,7 +258,8 @@ class ContextBuilder {
         site = new Site(buildTenant.id, siteTemplate);
         site = (await site.save()).getModel();
         await Site.addUsersToSite(buildTenant.id, site.id, userListToAssign.map(user => user.id));
-        siteContext.setSite(site);
+        const siteContext = new SiteContext(site, newTenantContext);
+        newTenantContext.addSiteContext(siteContext);
         // Create site areas of current site
         for (const siteAreaDef of TENANT_SITEAREA_LIST.filter(siteArea => siteArea.siteName === site.name)) {
           const siteAreaTemplate = Factory.siteArea.build();
@@ -267,7 +270,9 @@ class ContextBuilder {
           console.log(siteAreaTemplate.name);
           let siteArea = new SiteArea(buildTenant.id, siteAreaTemplate);
           siteArea = (await siteArea.save()).getModel();
-          siteContext.siteAreas.push(siteArea);
+          // siteContext.siteAreas.push(siteArea);
+          const siteAreaContext = new SiteAreaContext(siteArea, newTenantContext);
+          siteContext.addSiteArea(siteAreaContext);
           const relevantCS = TENANT_CHARGINGSTATION_LIST.filter(chargingStation =>
             chargingStation.siteAreaNames && chargingStation.siteAreaNames.includes(siteArea.name) === true);
           // Create Charging Station for site area
@@ -281,8 +286,8 @@ class ContextBuilder {
       }
     }
     // create unassigned Charging station
-    const siteContext = new SiteContext(SITE_CONTEXTS.NO_SITE);
-    newTenantContext.addSiteContext(siteContext);
+    // const siteContext = new SiteContext(SITE_CONTEXTS.NO_SITE);
+    // newTenantContext.addSiteContext(siteContext);
     const relevantCS = TENANT_CHARGINGSTATION_LIST.filter(chargingStation =>
       chargingStation.siteAreaNames === null);
     // Create Charging Station for site area

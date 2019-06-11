@@ -6,7 +6,7 @@ const chaiSubset = require('chai-subset');
 chai.use(chaiSubset);
 const moment = require('moment');
 const faker = require('faker');
-const {TENANT_CONTEXTS, SITE_CONTEXTS, SITE_AREA_CONTEXTS} = require('./contextProvider/ContextConstants');
+const {TENANT_CONTEXTS, SITE_CONTEXTS, SITE_AREA_CONTEXTS, USER_CONTEXTS} = require('./contextProvider/ContextConstants');
 const ContextProvider = require('./contextProvider/ContextProvider');
 const config = require('../config');
 
@@ -17,7 +17,6 @@ describe('Transaction tests FOR TEST CONTEXT', function() {
   });
 
   afterEach(async () => {
-    // await ContextProvider.destroy();
     await this.tenantContext.cleanUpCreatedData();
   });
 
