@@ -21,7 +21,7 @@ export default abstract class AbstractOCPIService {
   private endpoints: Map<string, AbstractEndpoint> = new Map();
 
   // Create OCPI Service
-  constructor(private readonly ocpiRestConfig: any, private readonly version = "0.0.0") {}
+  public constructor(private readonly ocpiRestConfig: any, private readonly version = "0.0.0") {}
 
   /**
    * Register Endpoint to this service

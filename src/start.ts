@@ -25,8 +25,8 @@ declare var global: TSGlobal;
 const MODULE_NAME = 'Bootstrap';
 
 export default class Bootstrap {
-  private static num_workers: any;
-  private static isClusterEnable: any;
+  private static numWorkers: number;
+  private static isClusterEnable: boolean;
   private static centralSystemRestConfig: any;
   private static centralRestServer: any;
   private static chargingStationConfig: any;
@@ -41,11 +41,11 @@ export default class Bootstrap {
   private static oDataServer: any;
   private static databaseDone: boolean;
   private static database: any;
-  private static migrationDone: any;
+  private static migrationDone: boolean;
 
-  private static startServerWorkers(serverName) {
-    this.num_workers = Configuration.getClusterConfig().num_worker;
-    function onlineCb(worker) {
+  private static startServerWorkers(serverName): void {
+    this.numWorkers = Configuration.getClusterConfig().num_worker;
+    function onlineCb(worker): void {
       // Log
       const logMsg = `${serverName} server worker ${worker.id} is online`;
       Logging.logInfo({
@@ -57,7 +57,7 @@ export default class Bootstrap {
       // eslint-disable-next-line no-console
       console.log(logMsg);
     }
-    function exitCb(worker, code, signal?) {
+    function exitCb(worker, code, signal?): void {
       // Log
       const logMsg = serverName + ' server worker ' + worker.id + ' died with code: ' + code + ', and signal: ' + signal +
         '.\n Starting new ' + serverName + ' server worker';
@@ -73,13 +73,13 @@ export default class Bootstrap {
     }
     // Log
     // eslint-disable-next-line no-console
-    console.log(`Starting ${serverName} server master process: setting up ${this.num_workers} workers...`);
+    console.log(`Starting ${serverName} server master process: setting up ${this.numWorkers} workers...`);
     // Create cluster worker processes
-    for (let i = 1; i <= this.num_workers; i++) {
+    for (let i = 1; i <= this.numWorkers; i++) {
       // Invoke cluster fork method to create a cluster worker
       cluster.fork();
       // Log
-      const logMsg = `Starting ${serverName} server worker ${i} of ${this.num_workers}...`;
+      const logMsg = `Starting ${serverName} server worker ${i} of ${this.numWorkers}...`;
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME,
@@ -93,7 +93,7 @@ export default class Bootstrap {
     cluster.on('exit', exitCb);
   }
 
-  static async startMaster() {
+  private static async startMaster(): Promise<void> {
     try {
       if (this.isClusterEnable && Utils.isEmptyArray(cluster.workers)) {
         await Bootstrap.startServerWorkers("Main");
@@ -110,7 +110,7 @@ export default class Bootstrap {
     }
   }
 
-  static async startServersListening() {
+  private static async startServersListening(): Promise<void> {
     try {
       // -------------------------------------------------------------------------
       // REST Server (Front-End)
@@ -191,12 +191,12 @@ export default class Bootstrap {
     }
   }
 
-  static async start() {
+  public static async start(): Promise<void> {
     try {
       if (cluster.isMaster) {
-        const nodejs_env = process.env.NODE_ENV || 'dev';
+        const nodejsEnv = process.env.NODE_ENV || 'dev';
         // eslint-disable-next-line no-console
-        console.log(`NodeJS is started in '${nodejs_env}' mode`);
+        console.log(`NodeJS is started in '${nodejsEnv}' mode`);
       }
       // Get all configs
       this.storageConfig = Configuration.getStorageConfig();
@@ -251,7 +251,7 @@ export default class Bootstrap {
       }
 
       // Listen to promise failure
-      process.on('unhandledRejection', (reason: any, p) => {
+      process.on('unhandledRejection', (reason: any, p): void => {
         // eslint-disable-next-line no-console
         console.log("Unhandled Rejection at Promise: ", p, " reason: ", reason);
         Logging.logError({

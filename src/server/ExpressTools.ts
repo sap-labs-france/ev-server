@@ -16,7 +16,7 @@ import Logging from '../utils/Logging';
 import Constants from '../utils/Constants';
 
 export default {
-  init: function (bodyLimit: string = '1mb') {
+  init: function (bodyLimit: string = '1mb'): express.Application  {
     const app = express();
     // Secure the application
     app.use(helmet());
@@ -44,8 +44,8 @@ export default {
     return app;
   },
 
-  createHttpServer: function (serverConfig: any, expressApp: any) {
-    let server;
+  createHttpServer: function (serverConfig: any, expressApp: express.Application): http.Server {
+    let server: http.Server;
     // Create the HTTP server
     if (serverConfig.protocol === "https") {
       // Create the options
@@ -77,7 +77,7 @@ export default {
     return server;
   },
 
-  startServer: function (serverConfig: any, httpServer: any, serverName: any, serverModuleName: any, listenCb: any = null, listen: any = true): void {
+  startServer: function (serverConfig: any, httpServer: any, serverName: string, serverModuleName: any, listenCb: Function = null, listen: boolean = true): void {
     // Default listen callback
     function defaultListenCb(): void {
       // Log
@@ -91,7 +91,7 @@ export default {
       // eslint-disable-next-line no-console
       console.log(logMsg + ` ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
     }
-    let cb;
+    let cb: Function;
     if (listenCb !== null && typeof listenCb === 'function') {
       cb = listenCb;
     } else {

@@ -264,7 +264,7 @@ export default class TransactionSecurity {
       }
     }
     const filteredTransaction = this.filterTransactionResponse(transaction, loggedUser);
-    if(consumptions.length == 0) {
+    if (consumptions.length === 0) {
       filteredTransaction.values = [];
       return filteredTransaction;
     }
@@ -290,10 +290,10 @@ export default class TransactionSecurity {
         cumulated: consumption.cumulatedConsumption
       }));
     }
-    for(let i = 1; i < filteredTransaction.values.length; i++) {
-      if(filteredTransaction.values[i].instantPower == 0 && filteredTransaction.values[i-1] != 0) {
+    for (let i = 1; i < filteredTransaction.values.length; i++) {
+      if (filteredTransaction.values[i].instantPower === 0 && filteredTransaction.values[i - 1] !== 0) {
         const addedValue = JSON.parse(JSON.stringify(filteredTransaction.values[i]));
-        const newDate = new Date(filteredTransaction.values[i-1].endedAt.getTime() + 60000);
+        const newDate = new Date(filteredTransaction.values[i - 1].endedAt.getTime() + 60000);
         addedValue.endedAt = newDate;
         addedValue.date = newDate;
         filteredTransaction.values.splice(i, 0, addedValue);
