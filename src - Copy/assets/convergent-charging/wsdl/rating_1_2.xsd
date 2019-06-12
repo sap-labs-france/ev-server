@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--Published by JAX-WS RI at http://jax-ws.dev.java.net. RI's version is JAX-WS RI 2.1.6 in JDK 6.--><xs:schema version="1.0" targetNamespace="http://rating.ws.highdeal.com/" xmlns:tns="http://rating.ws.highdeal.com/" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:complexType name="DateAttributeDescription">
+    <xs:sequence>
+      <xs:element name="enumeration" type="tns:DateEnumeration" minOccurs="0"/>
+      <xs:element name="range" type="tns:DateRange" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DateEnumeration">
+    <xs:sequence>
+      <xs:element name="value" type="xs:anySimpleType" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DateRange">
+    <xs:sequence>
+      <xs:element name="min" type="tns:DateBoundary"/>
+      <xs:element name="max" type="tns:DateBoundary"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="DateBoundary">
+    <xs:simpleContent>
+      <xs:extension base="xs:anySimpleType">
+        <xs:attribute name="included" type="xs:boolean"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="SearchResponse">
+    <xs:complexContent>
+      <xs:extension base="tns:Response">
+        <xs:sequence>
+          <xs:element name="totalCount" type="xs:int" minOccurs="0"/>
+          <xs:element name="lastUniqueId" type="xs:string" minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="Response">
+    <xs:sequence>
+      <xs:element name="status" type="tns:ResponseStatus"/>
+      <xs:element name="message" type="xs:string" minOccurs="0"/>
+      <xs:element name="error" type="tns:Failure" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="Failure">
+    <xs:sequence>
+      <xs:element name="category" type="tns:FailureCategory" minOccurs="0"/>
+      <xs:element name="message" type="xs:string" minOccurs="0"/>
+      <xs:element name="cause" type="tns:FailureCause" minOccurs="0"/>
+      <xs:element name="causedBy" type="tns:FailureCause" nillable="true" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="FailureCause">
+    <xs:sequence>
+      <xs:element name="module" type="xs:string"/>
+      <xs:element name="code" type="xs:int"/>
+      <xs:element name="message" type="xs:string"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="MassResponse">
+    <xs:complexContent>
+      <xs:extension base="tns:Response">
+        <xs:sequence>
+          <xs:element name="failures" type="xs:int" minOccurs="0"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="AdditionalInfo">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="description" type="xs:string" minOccurs="0"/>
+      <xs:element name="string" type="xs:string" minOccurs="0"/>
+      <xs:element name="date" type="xs:anySimpleType" minOccurs="0"/>
+      <xs:element name="number" type="xs:decimal" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="IntegerRange">
+    <xs:sequence>
+      <xs:element name="min" type="tns:IntegerBoundary"/>
+      <xs:element name="max" type="tns:IntegerBoundary"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="IntegerBoundary">
+    <xs:simpleContent>
+      <xs:extension base="xs:decimal">
+        <xs:attribute name="included" type="xs:boolean"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="NumberBoundary">
+    <xs:simpleContent>
+      <xs:extension base="xs:decimal">
+        <xs:attribute name="included" type="xs:boolean"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="SearchFilter">
+    <xs:sequence>
+      <xs:element name="searchWindow" type="tns:SearchFilterWindow" minOccurs="0"/>
+      <xs:element name="totalCountRequired" type="xs:boolean" default="false" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="SearchFilterWindow">
+    <xs:sequence>
+      <xs:element name="windowSize" type="xs:int" minOccurs="0"/>
+      <xs:element name="fromUniqueId" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="StringAttributeDescription">
+    <xs:sequence>
+      <xs:element name="enumeration" type="tns:StringEnumeration" minOccurs="0"/>
+      <xs:element name="pattern" type="xs:string" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="StringEnumeration">
+    <xs:sequence>
+      <xs:element name="value" type="xs:string" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="NumberAttributeDescription">
+    <xs:sequence>
+      <xs:element name="enumeration" type="tns:NumberEnumeration" minOccurs="0"/>
+      <xs:element name="range" type="tns:NumberRange" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="NumberEnumeration">
+    <xs:sequence>
+      <xs:element name="value" type="xs:decimal" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="NumberRange">
+    <xs:sequence>
+      <xs:element name="min" type="tns:NumberBoundary"/>
+      <xs:element name="max" type="tns:NumberBoundary"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="AdditionalAttributeDescription">
+    <xs:sequence>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="pattern" type="xs:string" minOccurs="0"/>
+      <xs:element name="stringEnumeration" type="tns:StringEnumeration" minOccurs="0"/>
+      <xs:element name="numberEnumeration" type="tns:NumberEnumeration" minOccurs="0"/>
+      <xs:element name="dateEnumeration" type="tns:DateEnumeration" minOccurs="0"/>
+      <xs:element name="numberRange" type="tns:NumberRange" minOccurs="0"/>
+      <xs:element name="dateRange" type="tns:DateRange" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:complexType name="NullableFlag">
+    <xs:sequence/>
+    <xs:attribute name="undef" type="xs:boolean"/>
+  </xs:complexType>
+  <xs:complexType name="NullableString">
+    <xs:complexContent>
+      <xs:extension base="tns:NullableFlag">
+        <xs:sequence>
+          <xs:element name="value" type="xs:string"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="NullableDate">
+    <xs:complexContent>
+      <xs:extension base="tns:NullableFlag">
+        <xs:sequence>
+          <xs:element name="value" type="xs:dateTime"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:complexType name="Amount">
+    <xs:simpleContent>
+      <xs:extension base="xs:decimal">
+        <xs:attribute name="currencyCode" type="xs:string"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:complexType name="PositiveAmount">
+    <xs:simpleContent>
+      <xs:extension base="xs:decimal">
+        <xs:attribute name="currencyCode" type="xs:string"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:simpleType name="ResponseStatus">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="return"/>
+      <xs:enumeration value="error"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="FailureCategory">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="alreadyExists"/>
+      <xs:enumeration value="doesNotExist"/>
+      <xs:enumeration value="invalid"/>
+      <xs:enumeration value="prerequisiteMissing"/>
+      <xs:enumeration value="incompatibleConfiguration"/>
+      <xs:enumeration value="illegalState"/>
+      <xs:enumeration value="temporaryIllegalState"/>
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>

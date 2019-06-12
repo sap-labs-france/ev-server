@@ -1,0 +1,38 @@
+{
+  "subject": "Charge optimale atteinte",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Charge Optimale Atteinte",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
+      "",
+      "Votre véhicule électrique, qui est connecté sur <b><%- chargeBoxID %></b>, a atteint sa charge optimale."
+    ],
+    "stats": [
+      { "label": "Niveau Batterie", "value": "<%- stateOfCharge %> %" }
+    ],
+    "action": {
+      "title": "Voir Session",
+      "url": "<%- evseDashboardChargingStationURL %>"
+    },
+    "afterActionLines": [
+      "Cordialement,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}

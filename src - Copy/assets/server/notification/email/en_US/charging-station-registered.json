@@ -1,0 +1,35 @@
+{
+  "subject": "<%- chargeBoxID %> just registered",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Charger Registered",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Hi Admin,",
+      "",
+      "<b><%- chargeBoxID %></b> just registered to the central server."
+    ],
+    "action": {
+      "title": "View <%- chargeBoxID %>",
+      "url": "<%- evseDashboardChargingStationURL %>"
+    },
+    "afterActionLines": [
+      "Best Regards,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
