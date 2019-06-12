@@ -1,7 +1,7 @@
 import Logging from '../../../../utils/Logging';
 import Constants from '../../../../utils/Constants';
 import TSGlobal from '../../../../types/GlobalType';
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 const MODULE_NAME = "JsonChargingStationService";
 export default class JsonChargingStationService {
@@ -19,10 +19,7 @@ export default class JsonChargingStationService {
       // Handle
       return await this.chargingStationService["handle" + command](headers, payload);
     } catch (error) {
-      // Log
-      //Logging.logException(error, command, headers.tenantID, headers.chargeBoxIdentity, MODULE_NAME, command); TODO: Changed this to fit arguments more closely
       Logging.logException(error, command, headers.chargeBoxIdentity, MODULE_NAME, command, headers.tenantID);
-      // Rethrow
       throw error;
     }
   }

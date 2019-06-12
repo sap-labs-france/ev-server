@@ -185,40 +185,6 @@ export default class CompanyService {
     }
   }
 
-  /**
-   * @deprecated 
-   */
-  public static async handleGetCompanyLogos(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
-    res.json({error: 'Action CompanyLogos is deprecated.'});
-    // try {
-    //   // check if organization component is active
-    //   if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
-    //     throw new OrganizationComponentInactiveError(
-    //       Constants.ACTION_LIST,
-    //       Constants.ENTITY_COMPANIES,
-    //       560, 'CompanyService', 'handleGetCompanyLogos');
-    //   }
-
-    //   // Check auth
-    //   if (!Authorizations.canListCompanies(req.user)) {
-    //     // Not Authorized!
-    //     throw new AppAuthError(
-    //       Constants.ACTION_LIST,
-    //       Constants.ENTITY_COMPANIES,
-    //       null,
-    //       560, 'CompanyService', 'handleGetCompanyLogos',
-    //       req.user);
-    //   }
-    //   // Get the company logo
-    //   const companyLogos = await Company.getCompanyLogos(req.user.tenantID);
-    //   res.json(companyLogos);
-    //   next();
-    // } catch (error) {
-    //   // Log
-    //   Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
-    // }
-  }
-
   public static async handleGetCompanies(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       // check if organization component is active

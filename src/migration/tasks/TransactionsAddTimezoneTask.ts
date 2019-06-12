@@ -2,7 +2,7 @@ import Tenant from '../../entity/Tenant';
 import MigrationTask from '../MigrationTask';
 import tzlookup from 'tz-lookup';
 import TSGlobal from '../../types/GlobalType';
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class TransactionsAddTimezoneTask extends MigrationTask {
   async migrate() {
@@ -14,7 +14,7 @@ export default class TransactionsAddTimezoneTask extends MigrationTask {
 
   /**
    * @deprecated
-   * @param tenant 
+   * @param tenant
    */
   async migrateTenant(tenant) {
     /*const chargingStationTimezones:any = {};
@@ -45,7 +45,7 @@ export default class TransactionsAddTimezoneTask extends MigrationTask {
       // Save it
       await global.database.getCollection<any>(tenant.getID(), 'transactions').findOneAndReplace(
         { "_id": transactionMDB._id },
-        { $set: { timezone }}, 
+        { $set: { timezone }},
         { upsert: true, new: true, returnOriginal: false });
     }*/
   }

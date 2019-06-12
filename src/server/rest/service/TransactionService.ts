@@ -15,7 +15,7 @@ import fs from "fs";
 import crypto from 'crypto';
 import TSGlobal from '../../../types/GlobalType';
 
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class TransactionService {
   static async handleRefundTransactions(action, req, res, next) {

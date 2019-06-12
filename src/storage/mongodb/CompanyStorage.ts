@@ -14,7 +14,7 @@ import TenantHolder from '../../types/TenantHolder';
 import Editeable from '../../types/Editeable';
 import fs from 'fs';
 
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class CompanyStorage {
 

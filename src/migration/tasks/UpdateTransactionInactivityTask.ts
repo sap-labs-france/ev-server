@@ -7,7 +7,7 @@ import MigrationTask from '../MigrationTask';
 import TSGlobal from '../../types/GlobalType';
 import Transaction from '../../entity/Transaction';
 import { deprecate } from 'util';
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class UpdateTransactionInactivityTask extends MigrationTask {
   async migrate() {
@@ -20,7 +20,7 @@ export default class UpdateTransactionInactivityTask extends MigrationTask {
 
   /**
    * @deprecated
-   * @param tenant 
+   * @param tenant
    */
   async migrateTenant(tenant) {
     /*// Create Aggregation

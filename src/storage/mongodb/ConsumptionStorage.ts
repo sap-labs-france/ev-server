@@ -5,7 +5,7 @@ import Consumption from '../../entity/Consumption';
 import crypto from 'crypto';
 import TSGlobal from '../../types/GlobalType';
 
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class ConsumptionStorage {
   static async saveConsumption(tenantID, consumptionToSave) {

@@ -7,10 +7,10 @@ import DatabaseUtils from './DatabaseUtils';
 import Notification from '../../entity/Notification';
 import TSGlobal from '../../types/GlobalType';
 
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class NotificationStorage {
-  
+
   static async getNotifications(tenantID, params: any = {}, limit?, skip?, sort?) {
     // Debug
     const uniqueTimerID = Logging.traceStart('NotificationStorage', 'getNotifications');

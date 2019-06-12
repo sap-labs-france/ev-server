@@ -4,12 +4,12 @@ import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import BackendError from '../../exception/BackendError';
-import ChargingStation from '../../entity/ChargingStation'; 
-import SiteArea from '../../entity/SiteArea'; 
-import Site from '../../entity/Site'; 
+import ChargingStation from '../../entity/ChargingStation';
+import SiteArea from '../../entity/SiteArea';
+import Site from '../../entity/Site';
 import Tenant from '../../entity/Tenant';
 import TSGlobal from '../../types/GlobalType';
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class ChargingStationStorage {
 
