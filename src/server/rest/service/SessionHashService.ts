@@ -7,7 +7,7 @@ import crypto from 'crypto';
 import HttpStatus from 'http-status-codes';
 import TSGlobal from '../../../types/GlobalType';
 
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class SessionHashService {
   // Check if Session has been updated and require new login

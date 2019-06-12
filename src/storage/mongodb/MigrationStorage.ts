@@ -3,7 +3,7 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import TSGlobal from '../../types/GlobalType';
 
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class MigrationStorage {
   static async getMigrations() {
@@ -33,7 +33,7 @@ export default class MigrationStorage {
   static async saveMigration(migrationToSave) {
     // Debug
     const uniqueTimerID = Logging.traceStart('MigrationStorage', 'saveMigration');
-    
+
     // Transfer
     const migration: any = {};
     Database.updateMigration(migrationToSave, migration, false);

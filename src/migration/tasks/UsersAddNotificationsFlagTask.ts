@@ -1,7 +1,7 @@
 import Tenant from '../../entity/Tenant';
 import MigrationTask from '../MigrationTask';
 import TSGlobal from '../../types/GlobalType';
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class UsersAddNotificationsFlagTask extends MigrationTask {
   async migrate() {
@@ -23,7 +23,7 @@ export default class UsersAddNotificationsFlagTask extends MigrationTask {
       // Add
       await global.database.getCollection(tenant.getID(), 'users').findOneAndReplace(
         { "_id": user._id },
-        { $set: { notificationsActive: true }}, 
+        { $set: { notificationsActive: true }},
         { upsert: true, returnOriginal: false });
     }
   }

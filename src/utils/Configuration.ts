@@ -6,7 +6,7 @@ import os from 'os';
 import SourceMap from 'source-map-support';
 SourceMap.install();
 
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 const {
   WS_DEFAULT_RECONNECT_MAX_RETRIES = Constants.WS_DEFAULT_RECONNECT_MAX_RETRIES,
   WS_DEFAULT_RECONNECT_TIMEOUT = Constants.WS_DEFAULT_RECONNECT_TIMEOUT
@@ -180,7 +180,7 @@ export default class Configuration {
 
   /**
    * @todo
-   * @param config 
+   * @param config
    */
   static saveConfig(config) {
     //

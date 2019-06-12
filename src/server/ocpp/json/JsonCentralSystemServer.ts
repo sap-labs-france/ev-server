@@ -6,7 +6,7 @@ import JsonWSConnection from './JsonWSConnection';
 import JsonRestWSConnection from './JsonRestWSConnection';
 import CentralSystemServer from '../CentralSystemServer';
 import TSGlobal from '../../../types/GlobalType';
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class JsonCentralSystemServer extends CentralSystemServer {
 
@@ -129,7 +129,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     // Check first
     if (this.jsonChargingStationClients[wsConnection.getID()] &&
       this.jsonChargingStationClients[wsConnection.getID()].getWSConnection().id === wsConnection.getWSConnection().id) {
-      // Remove from cache    
+      // Remove from cache
       delete this.jsonChargingStationClients[wsConnection.getID()];
     }
   }

@@ -4,7 +4,7 @@ import MigrationTask from '../MigrationTask';
 import Constants from '../../utils/Constants';
 import BBPromise from "bluebird";
 import TSGlobal from '../../types/GlobalType';
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class UpdateTransactionExtraInactivityTask extends MigrationTask {
   async migrate() {
@@ -40,14 +40,14 @@ export default class UpdateTransactionExtraInactivityTask extends MigrationTask 
       }, 1, 0, { timestamp: 1 });
       // Check
       if (statusNotifications.count > 0) {
-        const statusNotification = statusNotifications.result[0];        
+        const statusNotification = statusNotifications.result[0];
         // Compute the extra inactivity
-        const transactionStopTimestamp = new Date(transactionMDB.stop.timestamp); 
+        const transactionStopTimestamp = new Date(transactionMDB.stop.timestamp);
         const statusNotifTimestamp = new Date(statusNotification.timestamp);
-        // Set 
+        // Set
         transactionMDB.stop.extraInactivitySecs = Math.floor((statusNotifTimestamp.getTime() - transactionStopTimestamp.getTime()) / 1000);
       } else {
-        // Set 
+        // Set
         transactionMDB.stop.extraInactivitySecs = 0;
       }
       // Save

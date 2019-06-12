@@ -5,7 +5,7 @@ import Logging from '../../utils/Logging';
 import Constants from '../../utils/Constants';
 import MigrationTask from '../MigrationTask';
 import TSGlobal from '../../types/GlobalType';
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class CleanupMeterValuesTask extends MigrationTask {
   public totalCount: any;
