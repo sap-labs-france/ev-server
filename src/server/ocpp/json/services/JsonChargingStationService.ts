@@ -19,9 +19,7 @@ export default class JsonChargingStationService {
       // Handle
       return await this.chargingStationService["handle" + command](headers, payload);
     } catch (error) {
-      // Log
-      Logging.logException(error, command, headers.tenantID, headers.chargeBoxIdentity, MODULE_NAME, command);
-      // Rethrow
+      Logging.logException(error, command, headers.chargeBoxIdentity, MODULE_NAME, command, headers.tenantID);
       throw error;
     }
   }
