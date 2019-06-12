@@ -12,11 +12,11 @@ import sanitize from 'express-sanitizer';
 import SourceMap from 'source-map-support';
 SourceMap.install();
 import TSGlobal from '../../../types/GlobalType';
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 const MODULE_NAME = "SoapCentralSystemServer";
 export default class SoapCentralSystemServer extends CentralSystemServer {
-  
+
   private express: any;
 
   constructor(centralSystemConfig, chargingStationConfig) {
