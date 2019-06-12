@@ -20,7 +20,8 @@ export default class JsonChargingStationService {
       return await this.chargingStationService["handle" + command](headers, payload);
     } catch (error) {
       // Log
-      Logging.logException(error, command, headers.tenantID, headers.chargeBoxIdentity, MODULE_NAME, command);
+      //Logging.logException(error, command, headers.tenantID, headers.chargeBoxIdentity, MODULE_NAME, command); TODO: Changed this to fit arguments more closely
+      Logging.logException(error, command, headers.chargeBoxIdentity, MODULE_NAME, command, headers.tenantID);
       // Rethrow
       throw error;
     }
