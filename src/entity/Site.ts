@@ -146,8 +146,8 @@ export default class Site extends TenantHolder {
 
   setCompany(company) {
     if (company) {
-      this._model.company = company.getModel();
-      this._model.companyID = company.getID();
+      this._model.company = company;
+      this._model.companyID = company.id;
     } else {
       this._model.company = null;
     }

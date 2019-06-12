@@ -113,13 +113,13 @@ export default class SiteSecurity {
         filteredSite.id = site.id;
         filteredSite.name = site.name;
         filteredSite.gps = site.gps;
-        filteredSite.companyID = site.companyID;
+        filteredSite.companyID = site.getCompanyID();
       }
       if (site.address) {
         filteredSite.address = UtilsSecurity.filterAddressRequest(site.address);
       }
       if (site.company) {
-        filteredSite.company = CompanySecurity.filterCompanyResponse(site.company, loggedUser);
+        filteredSite.company = CompanySecurity.filterCompanyResponse({id: site.company._id.toHexString(), ...site.company}, loggedUser);
       }
       if (site.siteAreas) {
         filteredSite.siteAreas = SiteAreaSecurity.filterSiteAreasResponse(site.siteAreas, loggedUser);

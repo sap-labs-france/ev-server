@@ -225,7 +225,6 @@ export default class Utils {
       if (typeof user === "object" &&
         user.constructor.name !== "ObjectID" && ('id' in user || 'getID' in user)) {
         // This is the User Model
-        //fs.writeFileSync('./MYFILE.txt', JSON.stringify(user) + '#done\n', {flag: 'a'}); // TODO REMOVE
         userID = Utils.convertToObjectID('id' in user?user.id:user.getID());
       }
       // Check String

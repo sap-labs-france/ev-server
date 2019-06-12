@@ -68,8 +68,6 @@ export default class CompanyStorage {
     */
     let companiesMDB = await CompanyStorage.getCompanies(tenantID, {search: id, withSites: false}, 1);
 
-    fs.writeFileSync('./MYFILE.txt', '##T3: ' + JSON.stringify(companiesMDB), {flag: 'a'});
-
     let company: Company = null;
     // Check
     if (companiesMDB && companiesMDB.count > 0) {
@@ -105,8 +103,6 @@ export default class CompanyStorage {
       { _id: new ObjectID(companyToSave.id) },
       { $set: set},
       { upsert: true });
-
-    fs.writeFileSync('./MYFILE.txt', '##T: ' + JSON.stringify(result), {flag: 'a'});
 
     if(! result.ok) {
       throw new BackendError('CompanyStorage#saveCompany', 'Couldn\'t update company');
@@ -273,8 +269,6 @@ export default class CompanyStorage {
     // Debug
     Logging.traceEnd('CompanyStorage', 'getCompanies', uniqueTimerID, { params, limit, skip, sort });
     
-    //fs.writeFileSync('./MYFILE.txt', JSON.stringify(companiesMDB), {flag: 'a'});
-
     // Ok
     return {
       count: (companiesCountMDB.length > 0 ?
