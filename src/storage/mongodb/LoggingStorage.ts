@@ -7,7 +7,7 @@ import fs from 'fs';
 declare var global: Global;
 
 export default class LoggingStorage {
-  static async deleteLogs(tenantID, deleteUpToDate) {
+  public static async deleteLogs(tenantID, deleteUpToDate) {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build filter
@@ -29,7 +29,7 @@ export default class LoggingStorage {
     return result.result;
   }
 
-  static async deleteSecurityLogs(tenantID, deleteUpToDate) {
+  public static async deleteSecurityLogs(tenantID, deleteUpToDate) {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build filter
@@ -51,7 +51,7 @@ export default class LoggingStorage {
     return result.result;
   }
 
-  static async saveLog(tenantID, logToSave) {
+  public static async saveLog(tenantID, logToSave) {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check User
@@ -61,14 +61,14 @@ export default class LoggingStorage {
     if('actionOnUser' in logToSave) {
       logToSave.actionOnUserID = Utils.convertUserToObjectID(logToSave.actionOnUser);
     }
-      // Transfer
+    // Transfer
     const log: any = {};
     Database.updateLogging(logToSave, log, false);
     // Insert
     await global.database.getCollection<any>(tenantID, 'logs').insertOne(log);
   }
 
-  static async getLog(tenantID, id) {
+  public static async getLog(tenantID, id) {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -86,7 +86,7 @@ export default class LoggingStorage {
     return logging;
   }
 
-  static async getLogs(tenantID, params: any = {}, limit?, skip?, sort?) {
+  public static async getLogs(tenantID, params: any = {}, limit?, skip?, sort?) {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit

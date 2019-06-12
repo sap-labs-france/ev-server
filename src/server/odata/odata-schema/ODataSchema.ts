@@ -7,10 +7,10 @@ import SourceMap from 'source-map-support';
 import TSGlobal from '../../../types/GlobalType';
 SourceMap.install();
 
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class ODataSchema {
-  
+
   public static restServerUrl: string = '';
 
   static async getSchema(req, res, next) {

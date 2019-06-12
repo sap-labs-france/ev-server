@@ -12,7 +12,7 @@ import SiteArea from '../../entity/SiteArea';
 import User from '../../entity/User';
 import TSGlobal from '../../types/GlobalType';
 
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class SiteStorage {
   static async getSite(tenantID, id) {
@@ -28,7 +28,7 @@ export default class SiteStorage {
     });
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
-    
+
     // Add SiteAreas
     aggregation.push({
       $lookup: {
@@ -38,7 +38,7 @@ export default class SiteStorage {
         as: "siteAreas"
       }
     });
-    
+
     // Read DB
     const sitesMDB = await global.database.getCollection<any>(tenantID, 'sites')
       .aggregate(aggregation, { allowDiskUse: true })
@@ -250,7 +250,7 @@ export default class SiteStorage {
       if (params.excludeSitesOfUserID) {
         filters["siteusers.userID"] = { $ne: Utils.convertToObjectID(params.excludeSitesOfUserID) };
       }
-      
+
     }
     // Filters
     if (filters) {
@@ -389,7 +389,7 @@ export default class SiteStorage {
           site.setAvailableConnectors(availableConnectors);
           site.setTotalConnectors(totalConnectors);
         }
-        
+
         // Set Company?
         if (siteMDB.company) {
           site.setCompany(siteMDB.company); //TODO: this might break...
