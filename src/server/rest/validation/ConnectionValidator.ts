@@ -1,7 +1,7 @@
 import SchemaValidator from './SchemaValidator';
 import fs from 'fs';
 import TSGlobal from '../../../types/GlobalType';
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class ConnectionValidator extends SchemaValidator {
   public validate: any;

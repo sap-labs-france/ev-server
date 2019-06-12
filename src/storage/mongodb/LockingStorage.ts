@@ -5,7 +5,7 @@ import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class LockingStorage {
   static async getLocks() {
@@ -88,7 +88,7 @@ export default class LockingStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('LockingStorage', 'saveRunLock');
     // Transfer
-    let runLock: { 
+    let runLock: {
       _id: string;
       name: string;
       type: string;
@@ -107,7 +107,7 @@ export default class LockingStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('LockingStorage', 'deleteRunLock');
     // Transfer
-    let runLock: { 
+    let runLock: {
       _id: string;
       name: string;
       type: string;
@@ -120,5 +120,5 @@ export default class LockingStorage {
       .deleteOne(runLock);
     // Debug
     Logging.traceEnd('LockingStorage', 'deleteRunLock', uniqueTimerID, { runLock: runLock });
-  } 
+  }
 }

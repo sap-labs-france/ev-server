@@ -9,7 +9,7 @@ import Database from '../../utils/Database';
 import pLimit from 'p-limit';
 import MigrationTask from '../MigrationTask';
 import TSGlobal from '../../types/GlobalType';
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 
 const DEFAULT_CONSUMPTION_ATTRIBUTE = {
@@ -164,7 +164,7 @@ export default class CreateConsumptionsTask extends MigrationTask {
         // Compute
         newConsumption.pricingSource = "simple";
         newConsumption.amount = ((consumption.valueWh / 1000) * pricing.priceKWH).toFixed(6);
-        newConsumption.roundedAmount = (parseFloat(newConsumption.amount)).toFixed(2); 
+        newConsumption.roundedAmount = (parseFloat(newConsumption.amount)).toFixed(2);
         newConsumption.currencyCode = pricing.priceUnit;
         if (lastConsumption) {
           // Add
@@ -273,7 +273,7 @@ export default class CreateConsumptionsTask extends MigrationTask {
         // Meter Value State of Charge?
       } else if (transaction.isSocMeterValue(meterValue)) {
         // Set the last SoC
-        
+
         consumptions[consumptions.length - 1].stateOfCharge = meterValue.value;
         // Check last Meter Value
         if (consumptions.length > 0 &&

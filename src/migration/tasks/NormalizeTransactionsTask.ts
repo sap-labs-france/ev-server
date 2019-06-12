@@ -6,7 +6,7 @@ import Logging from '../../utils/Logging';
 import Constants from '../../utils/Constants';
 import MigrationTask from '../MigrationTask';
 import TSGlobal from '../../types/GlobalType';
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class NormalizeTransactionsTask extends MigrationTask {
   async migrate() {
@@ -98,12 +98,12 @@ export default class NormalizeTransactionsTask extends MigrationTask {
       }
       if (pricing) {
         transaction.price = 0;
-        transaction.roundedPrice = 0; 
+        transaction.roundedPrice = 0;
         transaction.priceUnit = pricing.priceUnit;
         transaction.pricingSource = "simple";
       } else {
         transaction.price = 0;
-        transaction.roundedPrice = 0; 
+        transaction.roundedPrice = 0;
         transaction.priceUnit = "";
         transaction.pricingSource = "";
       }
@@ -146,7 +146,7 @@ export default class NormalizeTransactionsTask extends MigrationTask {
       // Save it
       await global.database.getCollection(tenant.getID(), 'transactions').findOneAndReplace(
         { "_id": transactionMDB._id },
-        transaction, 
+        transaction,
         { upsert: true, returnOriginal: false });
     }
     // Charger Not Found?

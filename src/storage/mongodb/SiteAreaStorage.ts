@@ -10,7 +10,7 @@ import SiteArea from '../../entity/SiteArea';
 import ChargingStation from '../../entity/ChargingStation';
 import TSGlobal from '../../types/GlobalType';
 
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class SiteAreaStorage {
   static async getSiteAreaImage(tenantID, id) {

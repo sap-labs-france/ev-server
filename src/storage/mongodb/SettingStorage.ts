@@ -8,7 +8,7 @@ import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import TSGlobal from '../../types/GlobalType';
 
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class SettingStorage {
   static async getSetting(tenantID, id) {
