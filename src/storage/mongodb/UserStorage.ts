@@ -11,7 +11,7 @@ import fs from 'fs';
 import TSGlobal from '../../types/GlobalType';
 import User from '../../entity/User';
 
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 export default class UserStorage {
@@ -347,7 +347,7 @@ export default class UserStorage {
         }
       }
     }
-    
+
     // Debug
     Logging.traceEnd('UserStorage', 'saveUser', uniqueTimerID, { userToSave });
     return updatedUser;

@@ -10,7 +10,7 @@ import NotificationTask from '../NotificationTask';
 import Tenant from '../../entity/Tenant';
 import TSGlobal from '../../types/GlobalType';
 
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 import SourceMap from 'source-map-support';
 SourceMap.install();

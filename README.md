@@ -1,10 +1,11 @@
-# Electric Vehicule Charging Station (EVSE) - Application Server
+# Electric Vehicle Charging Station (EVSE) - Application Server
 
 ## Summary
 
 This application server (NodeJs) collects and stores the data (MongoDB) received from the Charging Stations via the OCPP protocol and exposes a REST service to an Angular front-end dashboard application ([EVSE-Dashboard](https://github.com/LucasBrazi06/ev-dashboard)).
 
 The application:
+
 * Displays of the charging stations, their status and their delivered power in real time.
 * User management (create, update, delete, authorize, change role...)
 * Charging station charging curve real time
@@ -164,6 +165,7 @@ Now your database is ready to be used.
 ## The Application Server
 
 The application server consists of:
+
 * **Central Service Server**: Serves the charging stations
 * **Central Service REST Server**: Serves the Angular front-end dashboard
 
@@ -449,17 +451,12 @@ Tested and supported Charging Station:
 
 ### Production Mode
 
-Build the application:
-
-```
-npm run build:prod
-```
-
 Start the application:
 
 ```
-npm run start:prod
+npm run start
 ```
+
 You can also start the application with the standard nodejs profiler:
 
 ```
@@ -468,13 +465,7 @@ npm run start:prod:prof
 
 ### Development Mode
 
-Build the application (it will watch any changes and rebuild it on the fly):
-
-```
-npm run build:dev
-```
-
-In another console, start the application (restarts if any changes is detected):
+In a console, start the application (rebuild and restarts if any changes is detected):
 
 ```
 npm run start:dev
@@ -534,7 +525,7 @@ To stop it, execute command:
 ```bash
 docker-compose -p evse -f docker-compose-local-env.yml down
 ```
-The mongo database folder will be kept along mutliple restarts. to remove it, delete the folder [docker/mongo](./docker/mongo).
+The mongo database folder will be kept along multiple restarts. To remove it, delete the folder [docker/mongo](./docker/mongo).
 
 Due to fixed replica set configuration, the database hostname has to be referenced in the host machine to be accessible.
 To enable it, as admin, add the entry `ev_mongo 127.0.0.1` in `/private/etc/hosts` for mac-os or in `c:\Windows\System32\Drivers\etc\hosts` for windows.
@@ -542,7 +533,7 @@ To enable it, as admin, add the entry `ev_mongo 127.0.0.1` in `/private/etc/host
 The database is then accessible using the credential `evse-admin/evse-admin-pwd`. 
 
 #### ev-server
-In case of UI development or test purpose, the server has been containerised.
+In case of UI development or test purpose, the server has been containerized.
 To start it, execute command:
 ```bash
 docker-compose -p evse -f docker-compose-server.yml up

@@ -21,7 +21,7 @@ import Utils from './utils/Utils';
 import SourceMap from 'source-map-support';
 SourceMap.install();
 
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 const MODULE_NAME = 'Bootstrap';
 
 export default class Bootstrap {

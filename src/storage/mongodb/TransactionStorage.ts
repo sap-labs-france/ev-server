@@ -7,7 +7,7 @@ import PricingStorage from './PricingStorage';
 import TSGlobal from './../../types/GlobalType';
 import Transaction from '../../entity/Transaction';
 
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class TransactionStorage {
   static async deleteTransaction(tenantID, transaction) {
@@ -168,7 +168,7 @@ export default class TransactionStorage {
         $unwind: { "path": "$chargeBox", "preserveNullAndEmptyArrays": true }
       });
     }
-  
+
     // Limit records?
     if (!params.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues

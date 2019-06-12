@@ -3,7 +3,7 @@ import Utils from '../../utils/Utils';
 import Logging from '../../utils/Logging';
 import TSGlobal from '../../types/GlobalType';
 
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class PricingStorage {
   static async getPricing(tenantID) {
