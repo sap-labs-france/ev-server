@@ -1,5 +1,5 @@
 const CentralServerService = require('../client/CentralServerService');
-const Constants = require('../../../src/utils/Constants');
+import Constants from '../../../src/utils/Constants';
 const {
   expect
 } = require('chai');

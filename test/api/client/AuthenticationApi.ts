@@ -1,12 +1,13 @@
+import AuthenticatedBaseApi from "./utils/AuthenticatedBaseApi";
 
-class AuthenticationApi {
-
-  constructor(baseApi) {
-    this.baseApi = baseApi;
+export default class AuthenticationApi {
+  private _baseApi: any;
+  public constructor(baseApi) {
+    this._baseApi = baseApi;
   }
 
-  async login(email, password, acceptEula = true, tenant = '') {
-    const data = {};
+  public async login(email, password, acceptEula = true, tenant = '') {
+    let data: any = {};
     // Allow caller to not pass param for the tests
     if (email) {
       data.email = email;
@@ -21,7 +22,7 @@ class AuthenticationApi {
       data.tenant = tenant;
     }
     // Send
-    const response = await this.baseApi.send({
+    const response = await this._baseApi.send({
       method: 'POST',
       url: '/client/auth/Login',
       headers: {
@@ -32,12 +33,12 @@ class AuthenticationApi {
     return response;
   }
 
-  async registerUser(user, tenant = '') {
+  public async registerUser(user, tenant = '') {
     if (tenant != null) {
       user.tenant = tenant;
     }
     // Send
-    const response = await this.baseApi.send({
+    const response = await this._baseApi.send({
       method: 'POST',
       url: '/client/auth/RegisterUser',
       headers: {
@@ -48,14 +49,14 @@ class AuthenticationApi {
     return response;
   }
 
-  async resetUserPassword(email, tenant = '') {
+  public async resetUserPassword(email, tenant = '') {
     const data = {
       email: email,
       tenant: tenant,
       captcha: '03AMGVjXiyflPJpUOJF-AW2YP9-uQZvbVKsnx2CaESTX7mr59laYB0KKn7QERpWk-cadi1e2D0oYyjClv6UcYJ3IrYI951f2uopiLQv8ykAKEz3TQ3ZWgYJQSvItSZ7cd8wSFl7EF9aVEIHJobWg4OljtmSf2YUyXFnma76ih089LfUe0uSQC8piAT6DJ5WVcNaR827jbJrzCtYSPFX8u_GSFM6jCQU0RdnFgTuFIst2hyZ_FfiKJSpG9pSF2avSie1R-y6PVJktxNHdDaTuN4PK-AucjKrHSO9A'
     };
     // Send
-    const response = await this.baseApi.send({
+    const response = await this._baseApi.send({
       method: 'POST',
       url: '/client/auth/Reset',
       headers: {
@@ -67,4 +68,4 @@ class AuthenticationApi {
   }
 }
 
-module.exports = AuthenticationApi;
+// module.exports = AuthenticationApi;

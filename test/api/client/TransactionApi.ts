@@ -1,44 +1,44 @@
-const CrudApi = require('./utils/CrudApi');
-const Constants = require('./utils/Constants');
-const moment = require('moment');
-const {
+import CrudApi from './utils/CrudApi';
+import Constants from './utils/Constants';
+import moment from 'moment';
+import {
   expect
-} = require('chai');
+} from 'chai';
 
-class TransactionApi extends CrudApi {
-  constructor(authenticatedApi) {
+export default class TransactionApi extends CrudApi {
+  public constructor(authenticatedApi) {
     super(authenticatedApi);
   }
 
-  readById(id) {
-    return super.readById('/client/api/Transaction', id);
+  public readById(id) {
+    return super.readById(id, '/client/api/Transaction');
   }
 
-  readAllActive(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
-    return super.readAll('/client/api/TransactionsActive', params, paging, ordering);
+  public readAllActive(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+    return super.readAll(params, paging, ordering, '/client/api/TransactionsActive');
   }
 
-  readAllCompleted(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
-    return super.readAll('/client/api/TransactionsCompleted', params, paging, ordering);
+  public readAllCompleted(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+    return super.readAll(params, paging, ordering, '/client/api/TransactionsCompleted');
   }
 
-  readAllInError(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
-    return super.readAll('/client/api/TransactionsInError', params, paging, ordering);
+  public readAllInError(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+    return super.readAll(params, paging, ordering, '/client/api/TransactionsInError');
   }
 
-  readAllConsumption(params) {
-    return super.read('/client/api/ChargingStationConsumptionFromTransaction', params);
+  public readAllConsumption(params) {
+    return super.read(params, '/client/api/ChargingStationConsumptionFromTransaction');
   }
 
-  readAllYears(params) {
-    return super.readAll('/client/api/TransactionYears', params);
+  public readAllYears(params) {
+    return super.readAll(params, Constants.DEFAULT_PAGING, Constants.DEFAULT_ORDERING, '/client/api/TransactionYears');
   }
 
-  delete(id) {
-    return super.delete('/client/api/TransactionDelete', id);
+  public delete(id) {
+    return super.delete(id, '/client/api/TransactionDelete');
   }
 
-  async startTransaction(ocpp, chargingStation, chargingStationConnector, user, meterStart, startTime, withSoC = false) {
+  public async startTransaction(ocpp, chargingStation, chargingStationConnector, user, meterStart, startTime, withSoC = false) {
     // Start the transaction
     let response = await ocpp.executeStartTransaction(chargingStation.id, {
       connectorId: chargingStationConnector.connectorId,
@@ -52,7 +52,7 @@ class TransactionApi extends CrudApi {
     expect(response.data).to.have.property('transactionId');
     expect(response.data.transactionId).to.not.equal(0);
     // Keep it
-    let transactionId = response.data.transactionId;
+    const transactionId = response.data.transactionId;
     // Set Connector Status to Occupied
     chargingStationConnector.status = 'Occupied';
     chargingStationConnector.timestamp = new Date().toISOString();
@@ -90,7 +90,7 @@ class TransactionApi extends CrudApi {
     return response.data;
   }
 
-  async sendTransactionMeterValue(ocpp, transaction, chargingStation, user, meterValue, currentTime, currentConsumption, totalConsumption) {
+  public async sendTransactionMeterValue(ocpp, transaction, chargingStation, user, meterValue, currentTime, currentConsumption, totalConsumption) {
     let response;
     // OCPP 1.6?
     if (ocpp.getVersion() === "1.6") {
@@ -153,7 +153,7 @@ class TransactionApi extends CrudApi {
     });
   }
 
-  async sendBeginMeterValue(ocpp, transaction, chargingStation, user,
+  public async sendBeginMeterValue(ocpp, transaction, chargingStation, user,
     meterValue, meterSocValue, currentTime, withSoC = false) {
     let response;
     // OCPP 1.6?
@@ -215,7 +215,7 @@ class TransactionApi extends CrudApi {
     }
   }
 
-  async sendTransactionWithSoCMeterValue(ocpp, transaction, chargingStation, user,
+  public async sendTransactionWithSoCMeterValue(ocpp, transaction, chargingStation, user,
     meterValue, meterSocValue, currentTime, currentConsumption, totalConsumption) {
     let response;
     // OCPP 1.6?
@@ -264,7 +264,7 @@ class TransactionApi extends CrudApi {
     }
   }
 
-  async sendEndMeterValue(ocpp, transaction, chargingStation, user,
+  public async sendEndMeterValue(ocpp, transaction, chargingStation, user,
     meterValue, meterSocValue, currentTime, withSoC = false) {
     let response;
     // OCPP 1.6?
@@ -330,7 +330,7 @@ class TransactionApi extends CrudApi {
     }
   }
 
-  async stopTransaction(ocpp, transaction, userStart, userStop, meterStop, stopTime,
+  public async stopTransaction(ocpp, transaction, userStart, userStop, meterStop, stopTime,
     chargingStationConnector, totalConsumption, totalInactivity, totalPrice, stateOfCharge) {
     // Stop the transaction
     let response = await ocpp.executeStopTransaction(transaction.chargeBoxID, {
@@ -391,4 +391,4 @@ class TransactionApi extends CrudApi {
   }
 }
 
-module.exports = TransactionApi;
+// module.exports = TransactionApi;

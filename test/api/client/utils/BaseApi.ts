@@ -1,14 +1,16 @@
-const axios = require('axios');
-const querystring = require('querystring');
+import axios from 'axios';
+import querystring from 'querystring';
 const config = require('../../../config');
-const {performance} = require('perf_hooks');
+import {performance} from 'perf_hooks';
 
-class BaseApi {
-  constructor(baseURL) {
+export default class BaseApi {
+  private baseURL: string;
+
+  public constructor(baseURL) {
     this.baseURL = baseURL;
   }
 
-  async send(httpRequest) {
+  public async send(httpRequest): Promise<any> {
     let httpResponse;
     // Set the base URL
     httpRequest.baseURL = this.baseURL;
@@ -34,7 +36,7 @@ class BaseApi {
       }
     }
     // Set response
-    let response = {
+    const response = {
       executionTime: (t1 - t0),
       status: httpResponse.status,
       statusText: httpResponse.statusText,
@@ -45,4 +47,4 @@ class BaseApi {
   }
 }
 
-module.exports = BaseApi;
+// module.exports = BaseApi;

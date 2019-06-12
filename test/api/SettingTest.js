@@ -1,8 +1,8 @@
-const path = require('path');
-global.appRoot = path.resolve(__dirname, '../../src');
-const {expect} = require('chai');
-const CentralServerService = require('./client/CentralServerService');
-const Factory = require('../factories/Factory');
+import path from 'path';
+// global.appRoot = path.resolve(__dirname, '../../src');
+import CentralServerService from './client/CentralServerService';
+import Factory from '../factories/Factory';
+import {expect} from 'chai';
 
 describe('Setting tests', function () {
   this.timeout(30000);

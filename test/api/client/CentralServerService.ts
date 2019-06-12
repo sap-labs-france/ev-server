@@ -1,65 +1,87 @@
-const {
-  expect
-} = require('chai');
-const BaseApi = require('./utils/BaseApi');
-const AuthenticatedBaseApi = require('./utils/AuthenticatedBaseApi');
-const config = require('../../config');
-const Constants = require('./utils/Constants');
-const chai = require('chai');
-const chaiSubset = require('chai-subset');
-const CompanyApi = require('./CompanyApi');
-const SiteApi = require('./SiteApi');
-const SiteAreaApi = require('./SiteAreaApi');
-const UserApi = require('./UserApi');
-const AuthenticationApi = require('./AuthenticationApi');
-const TenantApi = require('./TenantApi');
-const ChargingStationApi = require('./ChargingStationApi');
-const TransactionApi = require('./TransactionApi');
-const MailApi = require('./MailApi');
-const SettingApi = require('./SettingApi');
-const OCPIEndpointApi = require('./OCPIEndpointApi');
+import {expect} from 'chai';
+import BaseApi from './utils/BaseApi';
+import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
+import config from '../../config';
+import Constants from './utils/Constants';
+import chai from 'chai';
+import chaiSubset from 'chai-subset';
+import CompanyApi from './CompanyApi';
+import SiteApi from './SiteApi';
+import SiteAreaApi from './SiteAreaApi';
+import UserApi from './UserApi';
+import AuthenticationApi from './AuthenticationApi';
+import TenantApi from './TenantApi';
+import ChargingStationApi from './ChargingStationApi';
+import TransactionApi from './TransactionApi';
+import MailApi from './MailApi';
+import SettingApi from './SettingApi';
+import OCPIEndpointApi from './OCPIEndpointApi';
 
 // Set
 chai.use(chaiSubset);
 
-class CentralServerService {
+export default class CentralServerService {
+  
+  private static _defaultInstance = new CentralServerService();
 
-  constructor(tenantSubdomain = null, user = null) {
-    this.tenantSubdomain = tenantSubdomain;
-    this.baseURL = `${config.get('server.scheme')}://${config.get('server.host')}:${config.get('server.port')}`;
+  private _tenantSubdomain: string;
+  private _baseURL: string;
+  private _baseApi: BaseApi;
+  private _authenticatedUser: any;
+  public authenticatedApi: AuthenticatedBaseApi;
+  public companyApi: CompanyApi;
+  public siteApi: SiteApi;
+  public siteAreaApi: SiteAreaApi;
+  public userApi: UserApi;
+  public chargingStationApi: ChargingStationApi;
+  public transactionApi: TransactionApi;
+  public settingApi: SettingApi;
+  public ocpiendpointApi: OCPIEndpointApi;
+  public authenticatedSuperAdminApi: AuthenticatedBaseApi;
+  public authenticationApi: AuthenticationApi;
+  public tenantApi: TenantApi;
+  public mailApi: MailApi;
+
+  public static get DefaultInstance(): CentralServerService {
+    return this._defaultInstance || (this._defaultInstance = new this());
+  }
+
+  public constructor(tenantSubdomain = null, user = null) {
+    this._tenantSubdomain = tenantSubdomain;
+    this._baseURL = `${config.get('server.scheme')}://${config.get('server.host')}:${config.get('server.port')}`;
     // Create the Base API
-    this.baseApi = new BaseApi(this.baseURL);
+    this._baseApi = new BaseApi(this._baseURL);
     if (user) {
-      this.authenticatedUser = user;
+      this._authenticatedUser = user;
     } else {
-      this.authenticatedUser = {
+      this._authenticatedUser = {
         email: config.get('admin.username'),
         password: config.get('admin.password')
       };
     }
     // Create the Authenticated API
     if (tenantSubdomain) {
-      this.authenticatedApi = new AuthenticatedBaseApi(this.baseURL, this.authenticatedUser.email, this.authenticatedUser.password, tenantSubdomain);
+      this.authenticatedApi = new AuthenticatedBaseApi(this._baseURL, this._authenticatedUser.email, this._authenticatedUser.password, tenantSubdomain);
     } else {
-      this.authenticatedApi = new AuthenticatedBaseApi(this.baseURL, this.authenticatedUser.email, this.authenticatedUser.password, config.get('admin.tenant'));
+      this.authenticatedApi = new AuthenticatedBaseApi(this._baseURL, this._authenticatedUser.email, this._authenticatedUser.password, config.get('admin.tenant'));
     }
     // Create the Company
     this.companyApi = new CompanyApi(this.authenticatedApi);
     this.siteApi = new SiteApi(this.authenticatedApi);
     this.siteAreaApi = new SiteAreaApi(this.authenticatedApi);
     this.userApi = new UserApi(this.authenticatedApi);
-    this.chargingStationApi = new ChargingStationApi(this.authenticatedApi, this.baseApi);
+    this.chargingStationApi = new ChargingStationApi(this.authenticatedApi, this._baseApi);
     this.transactionApi = new TransactionApi(this.authenticatedApi);
     this.settingApi = new SettingApi(this.authenticatedApi);
     this.ocpiendpointApi = new OCPIEndpointApi(this.authenticatedApi);
-    this.authenticatedSuperAdminApi = new AuthenticatedBaseApi(this.baseURL, this.authenticatedUser.email, this.authenticatedUser.password, "");
-    this.authenticationApi = new AuthenticationApi(this.baseApi);
-    this.tenantApi = new TenantApi(this.authenticatedSuperAdminApi, this.baseApi);
+    this.authenticatedSuperAdminApi = new AuthenticatedBaseApi(this._baseURL, this._authenticatedUser.email, this._authenticatedUser.password, "");
+    this.authenticationApi = new AuthenticationApi(this._baseApi);
+    this.tenantApi = new TenantApi(this.authenticatedSuperAdminApi, this._baseApi);
     this.mailApi = new MailApi(new BaseApi(`http://${config.get('mailServer.host')}:${config.get('mailServer.port')}`));
   }
 
-  async updatePriceSetting(priceKWH, priceUnit) {
-    const settings = await this.settingApi.readAll();
+  public async updatePriceSetting(priceKWH, priceUnit) {
+    const settings = await this.settingApi.readAll({});
     let newSetting = false;
     let setting = settings.data.result.find(s => s.identifier == 'pricing');
     if (!setting) {
@@ -80,9 +102,9 @@ class CentralServerService {
     }
   }
 
-  async createEntity(entityApi, entity, performCheck = true) {
+  public async createEntity(entityApi, entity, performCheck = true) {
     // Create
-    let response = await entityApi.create(entity);
+    const response = await entityApi.create(entity);
     // Check
     if (performCheck) {
       expect(response.status).to.equal(200);
@@ -98,11 +120,11 @@ class CentralServerService {
     }
   }
 
-  async getEntityById(entityApi, entity, performCheck = true) {
+  public async getEntityById(entityApi, entity, performCheck = true) {
     // Check first if created
     expect(entity).to.not.be.null;
     // Retrieve it from the backend
-    let response = await entityApi.readById(entity.id);
+    const response = await entityApi.readById(entity.id);
     // Check
     if (performCheck) {
       // Check if ok
@@ -117,11 +139,11 @@ class CentralServerService {
     }
   }
 
-  async checkEntityInList(entityApi, entity, performCheck = true) {
+  public async checkEntityInList(entityApi, entity, performCheck = true) {
     // Check
     expect(entity).to.not.be.null;
     // Retrieve from the backend
-    let response = await entityApi.readAll({}, {
+    const response = await entityApi.readAll({}, {
       limit: Constants.UNLIMITED,
       skip: 0
     });
@@ -143,11 +165,11 @@ class CentralServerService {
     }
   }
 
-  async checkEntityInListWithParams(entityApi, entity, params = {}, performCheck = true) {
+  public async checkEntityInListWithParams(entityApi, entity, params = {}, performCheck = true) {
     // Check
     expect(entity).to.not.be.null;
     // Retrieve from the backend
-    let response = await entityApi.readAll(params, {
+    const response = await entityApi.readAll(params, {
       limit: Constants.UNLIMITED,
       skip: 0
     });
@@ -168,11 +190,11 @@ class CentralServerService {
     }
   }
 
-  async deleteEntity(entityApi, entity, performCheck = true) {
+  public async deleteEntity(entityApi, entity, performCheck = true) {
     // Check
     expect(entity).to.not.be.null;
     // Delete it in the backend
-    let response = await entityApi.delete(entity.id);
+    const response = await entityApi.delete(entity.id);
     // Check
     if (performCheck) {
       // Check
@@ -185,11 +207,11 @@ class CentralServerService {
     }
   }
 
-  async updateEntity(entityApi, entity, performCheck = true) {
+  public async updateEntity(entityApi, entity, performCheck = true) {
     // Check
     expect(entity).to.not.be.null;
     // Delete it in the backend
-    let response = await entityApi.update(entity);
+    const response = await entityApi.update(entity);
     // Check
     if (performCheck) {
       // Check
@@ -202,11 +224,11 @@ class CentralServerService {
     }
   }
 
-  async checkDeletedEntityById(entityApi, entity, performCheck = true) {
+  public async checkDeletedEntityById(entityApi, entity, performCheck = true) {
     // Check
     expect(entity).to.not.be.null;
     // Create it in the backend
-    let response = await entityApi.readById(entity.id);
+    const response = await entityApi.readById(entity.id);
     // Check
     if (performCheck) {
       // Check if not found
@@ -218,4 +240,5 @@ class CentralServerService {
   }
 }
 
-module.exports = CentralServerService;
+const DefaultCentralServerService = CentralServerService.DefaultInstance;
+// module.exports = CentralServerService;

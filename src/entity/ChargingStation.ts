@@ -535,7 +535,7 @@ export default class ChargingStation extends TenantHolder {
 
   async requestGenericOCPPCommand(commandName, params) {
     // Get the client
-    const chargingStationClient = this.getChargingStationClient();
+    const chargingStationClient = await this.getChargingStationClient();
     // Set Charging Profile
     const result = await chargingStationClient.genericOCPPCommand(commandName, params);
     // Log

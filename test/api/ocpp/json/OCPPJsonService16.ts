@@ -1,23 +1,26 @@
-const uuid = require('uuid/v4');
-const OCPPService = require('../OCPPService');
-const WSClient = require('../../../../src/client/WSClient');
-const config = require('../../../config');
-const { performance } = require('perf_hooks');
+import uuid from 'uuid/v4';
+import OCPPService from '../OCPPService';
+import WSClient from '../../../../src/client/WSClient'; // from '../../../../src/client/WSClient');
+import config from '../../../config';
+import { performance } from 'perf_hooks';
 const OCPP_JSON_CALL_MESSAGE = 2;
 const OCPP_JSON_CALL_RESULT_MESSAGE = 3;
 
-class OCPPJsonService16 extends OCPPService {
-  constructor(serverUrl, requestHandler) {
+export default class OCPPJsonService16 extends OCPPService {
+  private _wsSessions: any;
+  private requestHandler: any;
+  
+  public constructor(serverUrl, requestHandler) {
     super(serverUrl);
     this._wsSessions = new Map();
     this.requestHandler = requestHandler;
   }
 
-  getVersion() {
+  public getVersion() {
     return "1.6";
   }
 
-  openConnection(chargeBoxIdentity) {
+  public openConnection(chargeBoxIdentity) {
     // eslint-disable-next-line no-undef
     return new Promise((resolve, reject) => {
       // Create WS
@@ -46,7 +49,7 @@ class OCPPJsonService16 extends OCPPService {
           const messageJson = JSON.parse(message.data);
           // Check if this corresponds to a request
           if (messageJson[0] === OCPP_JSON_CALL_RESULT_MESSAGE && sentRequests[messageJson[1]]) {
-            const response = {};
+            const response: any = {};
             // Set the data
             response.responseMessageId = messageJson[1];
             response.executionTime = t1 - sentRequests[messageJson[1]].t0;
@@ -66,7 +69,7 @@ class OCPPJsonService16 extends OCPPService {
     });
   }
 
-  async handleRequest(chargeBoxIdentity, messageId, commandName, commandPayload) {
+  public async handleRequest(chargeBoxIdentity, messageId, commandName, commandPayload) {
     let result = {};
 
     if (this.requestHandler && typeof this.requestHandler["handle" + commandName] === 'function') {
@@ -76,7 +79,7 @@ class OCPPJsonService16 extends OCPPService {
 
   }
 
-  closeConnection() {
+  public closeConnection() {
     // Close
     if (this._wsSessions) {
       this._wsSessions.forEach(session => session.connection.close());
@@ -84,67 +87,67 @@ class OCPPJsonService16 extends OCPPService {
     }
   }
 
-  async executeAuthorize(chargeBoxIdentity, payload) {
+  public async executeAuthorize(chargeBoxIdentity, payload) {
     return await this._send(chargeBoxIdentity,
       this._buildRequest('Authorize', payload)
     );
   }
 
-  async executeStartTransaction(chargeBoxIdentity, payload) {
+  public async executeStartTransaction(chargeBoxIdentity, payload) {
     return await this._send(chargeBoxIdentity,
       this._buildRequest('StartTransaction', payload)
     );
   }
 
-  async executeStopTransaction(chargeBoxIdentity, payload) {
+  public async executeStopTransaction(chargeBoxIdentity, payload) {
     return await this._send(chargeBoxIdentity,
       this._buildRequest('StopTransaction', payload)
     );
   }
 
-  async executeHeartbeat(chargeBoxIdentity, payload) {
+  public async executeHeartbeat(chargeBoxIdentity, payload) {
     return await this._send(chargeBoxIdentity,
       this._buildRequest('Heartbeat', payload)
     );
   }
 
-  async executeMeterValues(chargeBoxIdentity, payload) {
+  public async executeMeterValues(chargeBoxIdentity, payload) {
     return await this._send(chargeBoxIdentity,
       this._buildRequest('MeterValues', payload)
     );
   }
 
-  async executeBootNotification(chargeBoxIdentity, payload) {
+  public async executeBootNotification(chargeBoxIdentity, payload) {
     return await this._send(chargeBoxIdentity,
       this._buildRequest('BootNotification', payload)
     );
   }
 
-  async executeStatusNotification(chargeBoxIdentity, payload) {
+  public async executeStatusNotification(chargeBoxIdentity, payload) {
     return await this._send(chargeBoxIdentity,
       this._buildRequest('StatusNotification', payload)
     );
   }
 
-  async executeFirmwareStatusNotification(chargeBoxIdentity, payload) {
+  public async executeFirmwareStatusNotification(chargeBoxIdentity, payload) {
     return await this._send(chargeBoxIdentity,
       this._buildRequest('FirmwareStatusNotification', payload)
     );
   }
 
-  async executeDiagnosticsStatusNotification(chargeBoxIdentity, payload) {
+  public async executeDiagnosticsStatusNotification(chargeBoxIdentity, payload) {
     return await this._send(chargeBoxIdentity,
       this._buildRequest('DiagnosticsStatusNotification', payload)
     );
   }
 
-  async executeDataTransfer(chargeBoxIdentity, payload) {
+  public async executeDataTransfer(chargeBoxIdentity, payload) {
     return await this._send(chargeBoxIdentity,
       this._buildRequest('DataTransfer', payload)
     );
   }
 
-  async _send(chargeBoxIdentity, message) {
+  private async _send(chargeBoxIdentity, message) {
     // WS Opened?
     if (!this._wsSessions.get(chargeBoxIdentity)) {
       // Open WS
@@ -162,7 +165,7 @@ class OCPPJsonService16 extends OCPPService {
     }
   }
 
-  _buildRequest(command, payload) {
+  private _buildRequest(command, payload) {
     // Build the request
     return [
       OCPP_JSON_CALL_MESSAGE,
@@ -171,7 +174,7 @@ class OCPPJsonService16 extends OCPPService {
       payload];
   }
 
-  _buildResponse(messageId, payload) {
+  private _buildResponse(messageId, payload) {
     // Build the request
     return [
       OCPP_JSON_CALL_RESULT_MESSAGE,
@@ -180,4 +183,4 @@ class OCPPJsonService16 extends OCPPService {
   }
 }
 
-module.exports = OCPPJsonService16;
+// module.exports = OCPPJsonService16;

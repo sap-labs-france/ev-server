@@ -1,5 +1,4 @@
 const CentralServerService = require('../client/CentralServerService');
-const Constants = require('../../../src/utils/Constants');
 const Factory = require('../../factories/Factory');
 const TenantFactory = require('../../factories/TenantFactory');
 const UserFactory = require('../../factories/UserFactory');
@@ -25,6 +24,7 @@ const faker = require('faker');
 const SiteContext = require('./SiteContext');
 const SiteAreaContext = require('./SiteAreaContext');
 const ChargingStationContext = require('./ChargingStationContext');
+import Constants from '../../../src/utils/Constants';
 
 class ContextBuilder {
 

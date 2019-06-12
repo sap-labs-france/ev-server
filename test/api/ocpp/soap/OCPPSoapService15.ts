@@ -1,80 +1,82 @@
-const soap = require('strong-soap').soap;
-const OCPPService = require('../OCPPService');
-const config = require('../../../config');
-const { performance } = require('perf_hooks');
+import soap from 'strong-soap';
+import OCPPService from '../OCPPService';
+import config from '../../../config';
+import { performance } from 'perf_hooks';
 
-class OCPPSoapService15 extends OCPPService {
-  constructor(serverUrl) {
+export default class OCPPSoapService15 extends OCPPService {
+  public client: any;
+  public service: any;
+  public constructor(serverUrl) {
     super(serverUrl);
     // Init
     this.client = null;
   }
 
-  getVersion() {
+  public getVersion() {
     return "1.5";
   }
 
-  executeAuthorize(chargeBoxIdentity, payload) {
+  public executeAuthorize(chargeBoxIdentity, payload) {
     return this._execute(
       this._buildSOAPRequest(chargeBoxIdentity, 'Authorize', payload)
     );
   }
 
-  executeStartTransaction(chargeBoxIdentity, payload) {
+  public executeStartTransaction(chargeBoxIdentity, payload) {
     return this._execute(
       this._buildSOAPRequest(chargeBoxIdentity, 'StartTransaction', payload)
     );
   }
 
-  executeStopTransaction(chargeBoxIdentity, payload) {
+  public executeStopTransaction(chargeBoxIdentity, payload) {
     return this._execute(
       this._buildSOAPRequest(chargeBoxIdentity, 'StopTransaction', payload)
     );
   }
 
-  executeHeartbeat(chargeBoxIdentity, payload) {
+  public executeHeartbeat(chargeBoxIdentity, payload) {
     return this._execute(
       this._buildSOAPRequest(chargeBoxIdentity, 'Heartbeat', payload)
     );
   }
 
-  executeMeterValues(chargeBoxIdentity, payload) {
+  public executeMeterValues(chargeBoxIdentity, payload) {
     return this._execute(
       this._buildSOAPRequest(chargeBoxIdentity, 'MeterValues', payload)
     );
   }
 
-  executeBootNotification(chargeBoxIdentity, payload) {
+  public executeBootNotification(chargeBoxIdentity, payload) {
     return this._execute(
       this._buildSOAPRequest(chargeBoxIdentity, 'BootNotification', payload)
     );
   }
 
-  executeStatusNotification(chargeBoxIdentity, payload) {
+  public executeStatusNotification(chargeBoxIdentity, payload) {
     return this._execute(
       this._buildSOAPRequest(chargeBoxIdentity, 'StatusNotification', payload)
     );
   }
 
-  executeFirmwareStatusNotification(chargeBoxIdentity, payload) {
+  public executeFirmwareStatusNotification(chargeBoxIdentity, payload) {
     return this._execute(
       this._buildSOAPRequest(chargeBoxIdentity, 'FirmwareStatusNotification', payload)
     );
   }
 
-  executeDiagnosticsStatusNotification(chargeBoxIdentity, payload) {
+  public executeDiagnosticsStatusNotification(chargeBoxIdentity, payload) {
     return this._execute(
       this._buildSOAPRequest(chargeBoxIdentity, 'DiagnosticsStatusNotification', payload)
     );
   }
 
-  executeDataTransfer(chargeBoxIdentity, payload) {
+  public executeDataTransfer(chargeBoxIdentity, payload) {
     return this._execute(
       this._buildSOAPRequest(chargeBoxIdentity, 'DataTransfer', payload)
     );
   }
 
-  async _execute(request) {
+  private async _execute(request) {
     // Init Client (Done only once)
     await this._initSOAPClient();
     // Init SOAP header
@@ -104,7 +106,7 @@ class OCPPSoapService15 extends OCPPService {
     }
   }
 
-  _buildSOAPRequest(chargeBoxIdentity, action, payload) {
+  private _buildSOAPRequest(chargeBoxIdentity, action, payload) {
     return {
       name: action,
       headers: {
@@ -118,14 +120,14 @@ class OCPPSoapService15 extends OCPPService {
         }
       },
       data: payload
-    }
+    };
   }
 
-  _getRequestNameFromAction(actionName) {
-    return actionName.replace(/^\w/, c => c.toLowerCase()).concat("Request")
+  private _getRequestNameFromAction(actionName) {
+    return actionName.replace(/^\w/, c => c.toLowerCase()).concat("Request");
   }
 
-  async _initSOAPClient() {
+  private async _initSOAPClient() {
     // Client options
     const options = {};
     // Check
@@ -149,4 +151,4 @@ class OCPPSoapService15 extends OCPPService {
   }
 }
 
-module.exports = OCPPSoapService15;
+// module.exports = OCPPSoapService15;

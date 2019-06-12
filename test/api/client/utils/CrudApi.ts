@@ -1,21 +1,24 @@
-const Constants = require('./Constants')
+import Constants from './Constants';
+import AuthenticatedBaseApi from './AuthenticatedBaseApi';
 
 /**
  * CRUD API (Create Read Update Delete)
  *
  * @class CrudApi
  */
-class CrudApi {
+export default class CrudApi {
+
+  protected _authenticatedApi: AuthenticatedBaseApi;
 
   /**
    * Creates an instance of CrudApi.
    * Only deals with secure connection
    * 
-   * @param {*} this.authenticatedApi The authenticated API to perform the requests
+   * @param {*} this._authenticatedApi The authenticated API to perform the requests
    * @memberof CrudApi
    */
-  constructor(authenticatedApi) {
-    this.authenticatedApi = authenticatedApi;
+  public constructor(authenticatedApi: AuthenticatedBaseApi) {
+    this._authenticatedApi = authenticatedApi;
   }
 
   /**
@@ -24,8 +27,8 @@ class CrudApi {
    * @param {*} authenticatedApi
    * @memberof CrudApi
    */
-  setAutheticatedApi(authenticatedApi) {
-    this.authenticatedApi = authenticatedApi;
+  public setAutheticatedApi(authenticatedApi) {
+    this._authenticatedApi = authenticatedApi;
   }
 
   /**
@@ -36,9 +39,9 @@ class CrudApi {
    * @returns The HTTP response
    * @memberof CrudApi
    */
-  readById(path, id) {
+  public readById(id, path) {
     // Execute
-    return this.read(path, { ID: id });
+    return this.read({ ID: id }, path);
   }
   
   /**
@@ -49,8 +52,8 @@ class CrudApi {
    * @returns The HTTP response
    * @memberof CrudApi
    */
-  read(path, params) {
-    return this.authenticatedApi.send({
+  public read(params, path) {
+    return this._authenticatedApi.send({
       method: 'GET',
       url: path,
       params
@@ -67,13 +70,13 @@ class CrudApi {
    * @returns The HTTP response
    * @memberof CrudApi
    */
-  readAll(path, params={}, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+  public readAll(params={}, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING, path) {
     // Build Paging
     this._buildPaging(paging, params);
     // Build Ordering
     this._buildOrdering(ordering, params);
     // Call
-    return this.authenticatedApi.send({
+    return this._authenticatedApi.send({
       method: 'GET',
       url: path,
       params: params
@@ -88,8 +91,8 @@ class CrudApi {
    * @returns The HTTP response
    * @memberof CrudApi
    */
-  create(path, data) {
-    return this.authenticatedApi.send({
+  public create(data, path) {
+    return this._authenticatedApi.send({
       method: 'POST',
       url: path,
       data: data,
@@ -104,8 +107,8 @@ class CrudApi {
    * @returns The HTTP response
    * @memberof CrudApi
    */
-  update(path, data) {
-    return this.authenticatedApi.send({
+  public update(data, path) {
+    return this._authenticatedApi.send({
       method: 'PUT',
       url: path,
       data: data,
@@ -120,8 +123,8 @@ class CrudApi {
    * @returns
    * @memberof CrudApi
    */
-  delete(path, id) {
-    return this.authenticatedApi.send({
+  public delete(id, path) {
+    return this._authenticatedApi.send({
       method: 'DELETE',
       url: path,
       params: {
@@ -131,7 +134,7 @@ class CrudApi {
   }
 
   // Build the paging in the Queryparam
-  _buildPaging(paging, queryString) {
+  private _buildPaging(paging, queryString): void {
     // Check
     if (paging) {
       // Limit
@@ -146,7 +149,7 @@ class CrudApi {
   }
 
   // Build the ordering in the Queryparam
-  _buildOrdering(ordering, queryString) {
+  private _buildOrdering(ordering, queryString): void {
     // Check
     if (ordering && ordering.length) {
       if (!queryString.SortFields) {
@@ -162,4 +165,4 @@ class CrudApi {
   }
 }
 
-module.exports = CrudApi;
+// module.exports = CrudApi;
