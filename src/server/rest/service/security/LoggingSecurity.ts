@@ -12,6 +12,8 @@ export default class LoggingSecurity {
     filteredRequest.DateUntil = sanitize(request.DateUntil);
     filteredRequest.Level = sanitize(request.Level);
     filteredRequest.Source = sanitize(request.Source);
+    filteredRequest.Host = sanitize(request.Host);
+    filteredRequest.Process = sanitize(request.Process);
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.SortDate = sanitize(request.SortDate);
     filteredRequest.Type = sanitize(request.Type);
@@ -44,6 +46,8 @@ export default class LoggingSecurity {
     filteredLogging.timestamp = logging.timestamp;
     filteredLogging.type = logging.type;
     filteredLogging.source = logging.source;
+    filteredLogging.host = logging.host;
+    filteredLogging.process = logging.process;
     filteredLogging.userFullName = logging.userFullName;
     filteredLogging.action = logging.action;
     filteredLogging.message = logging.message;

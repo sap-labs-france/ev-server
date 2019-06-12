@@ -23,8 +23,8 @@ export default class LoggingService {
       // Get logs
       const loggings = await Logging.getLogs(req.user.tenantID, {
         'search': filteredRequest.Search, 'dateFrom': filteredRequest.DateFrom, 'dateUntil': filteredRequest.DateUntil, 'userID': filteredRequest.UserID,
-        'level': filteredRequest.Level, 'type': filteredRequest.Type, 'source': filteredRequest.Source,
-        'action': filteredRequest.Action, 'onlyRecordCount': filteredRequest.OnlyRecordCount
+        'level': filteredRequest.Level, 'type': filteredRequest.Type, 'source': filteredRequest.Source, 'host': filteredRequest.Host,
+        'process': filteredRequest.Process, 'action': filteredRequest.Action, 'onlyRecordCount': filteredRequest.OnlyRecordCount
       }, filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
       LoggingSecurity.filterLoggingsResponse(loggings, req.user);
@@ -54,8 +54,8 @@ export default class LoggingService {
       // Get logs
       const loggings = await Logging.getLogs(req.user.tenantID, {
         'search': filteredRequest.Search, 'dateFrom': filteredRequest.DateFrom, 'dateUntil': filteredRequest.DateUntil, 'userID': filteredRequest.UserID,
-        'level': filteredRequest.Level, 'type': filteredRequest.Type, 'source': filteredRequest.Source,
-        'action': filteredRequest.Action, 'onlyRecordCount': filteredRequest.OnlyRecordCount
+        'level': filteredRequest.Level, 'type': filteredRequest.Type, 'source': filteredRequest.Source, 'host': filteredRequest.Host,
+        'process': filteredRequest.Process, 'action': filteredRequest.Action, 'onlyRecordCount': filteredRequest.OnlyRecordCount
       }, filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
       LoggingSecurity.filterLoggingsResponse(loggings, req.user);
@@ -111,7 +111,7 @@ export default class LoggingService {
   }
 
   static convertToCSV(loggings) {
-    let csv = 'id,timestamp,level,type,action,message,method,module,source\r\n';
+    let csv = 'id,timestamp,level,type,action,message,method,module,source,host,process\r\n';
     for (const log of loggings) {
       csv += `${log.id},`;
       csv += `${log.timestamp},`;
@@ -121,7 +121,9 @@ export default class LoggingService {
       csv += `${log.message},`;
       csv += `${log.method},`;
       csv += `${log.module},`;
-      csv += `${log.source}\r\n`;
+      csv += `${log.source}`;
+      csv += `${log.host}`;
+      csv += `${log.process}\r\n`;
     }
     return csv;
   }
