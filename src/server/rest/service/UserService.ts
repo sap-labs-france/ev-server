@@ -498,7 +498,6 @@ export default class UserService {
       next();
     } catch (error) {
       // Log
-      console.log(error);
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
   }

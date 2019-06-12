@@ -103,8 +103,6 @@ export default class CompanyService {
           'CompanyService', 'handleGetCompany', req.user);
       }
 
-      fs.writeFileSync('./MYFILE.txt', '##T2: ' + JSON.stringify(companyId), {flag: 'a'});
-
       // Get it
       const company = await CompanyStorage.getCompany(req.user.tenantID, companyId);
       
