@@ -67,11 +67,14 @@ export default class CompanyStorage {
 
     */
     let companiesMDB = await CompanyStorage.getCompanies(tenantID, {search: id, withSites: false}, 1);
+
+    fs.writeFileSync('./MYFILE.txt', '##T3: ' + JSON.stringify(companiesMDB), {flag: 'a'});
+
     let company: Company = null;
     // Check
     if (companiesMDB && companiesMDB.count > 0) {
       // Create
-      company = companiesMDB[0];
+      company = companiesMDB.result[0];
     }
     // Debug
     Logging.traceEnd('CompanyStorage', 'getCompany', uniqueTimerID, { id });
@@ -86,10 +89,10 @@ export default class CompanyStorage {
     
     const set: any = {};
     set._id = new ObjectID(companyToSave.id);
-    set.createdBy = new ObjectID(companyToSave.createdBy.getID());
+    set.createdBy = new ObjectID(companyToSave.createdBy.id);
     set.createdOn = companyToSave.createdOn;
     if(companyToSave.lastChangedBy) {
-      set.lastChangedBy = new ObjectID(companyToSave.lastChangedBy.getID());
+      set.lastChangedBy = new ObjectID(companyToSave.lastChangedBy.id);
     }
     if(companyToSave.lastChangedOn) {
       set.lastChangedOn = companyToSave.lastChangedOn;
@@ -102,6 +105,8 @@ export default class CompanyStorage {
       { _id: new ObjectID(companyToSave.id) },
       { $set: set},
       { upsert: true });
+
+    fs.writeFileSync('./MYFILE.txt', '##T: ' + JSON.stringify(result), {flag: 'a'});
 
     if(! result.ok) {
       throw new BackendError('CompanyStorage#saveCompany', 'Couldn\'t update company');
@@ -268,7 +273,7 @@ export default class CompanyStorage {
     // Debug
     Logging.traceEnd('CompanyStorage', 'getCompanies', uniqueTimerID, { params, limit, skip, sort });
     
-    fs.writeFileSync('./MYFILE.txt', JSON.stringify(companiesMDB), {flag: 'a'});
+    //fs.writeFileSync('./MYFILE.txt', JSON.stringify(companiesMDB), {flag: 'a'});
 
     // Ok
     return {
@@ -285,9 +290,17 @@ export default class CompanyStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
 
+    //Get sites to fetch IDs in order to delete site areas
+    const sites = (await global.database.getCollection<any>(tenantID, 'sites')
+      .find({ companyID: new ObjectID(id) }).project({_id: 1}).toArray()).map(site => site._id);
+    
     //Delete sites
     await global.database.getCollection<any>(tenantID, 'sites')
-      .deleteMany({ companyID: id });
+      .deleteMany({ companyID: new ObjectID(id) });
+
+    //Delete site areas
+    await global.database.getCollection<any>(tenantID, 'siteareas')
+      .deleteMany({ siteID: { $in: sites } });
 
     // Delete the Company
     await global.database.getCollection<Company>(tenantID, 'companies')

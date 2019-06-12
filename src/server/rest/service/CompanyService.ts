@@ -12,6 +12,7 @@ import OrganizationComponentInactiveError from '../../../exception/OrganizationC
 import { Request, NextFunction, Response } from 'express';
 import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
 import { ObjectID } from 'bson';
+import fs from 'fs';
 
 export default class CompanyService {
 
@@ -101,6 +102,8 @@ export default class CompanyService {
           `The Company's ID must be provided`, 500,
           'CompanyService', 'handleGetCompany', req.user);
       }
+
+      fs.writeFileSync('./MYFILE.txt', '##T2: ' + JSON.stringify(companyId), {flag: 'a'});
 
       // Get it
       const company = await CompanyStorage.getCompany(req.user.tenantID, companyId);
@@ -243,14 +246,14 @@ export default class CompanyService {
       const filteredRequest = CompanySecurity.filterCompaniesRequest(req.query);
       
       // Get the companies
-      const companies = await CompanyStorage.getCompanies(req.user.tenantID,
+      const companies = (await CompanyStorage.getCompanies(req.user.tenantID,
         {
           search: filteredRequest.Search,
           companyIDs: Authorizations.getAuthorizedEntityIDsFromLoggedUser(Constants.ENTITY_COMPANY, req.user),
           withSites: filteredRequest.WithSites,
           onlyRecordCount: filteredRequest.OnlyRecordCount
         },
-        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort));
      
       // Filter
       CompanySecurity.filterCompaniesResponse(companies, req.user);

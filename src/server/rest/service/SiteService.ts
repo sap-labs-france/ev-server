@@ -265,7 +265,7 @@ export default class SiteService {
           `The Site with ID '${filteredRequest.ID}' does not exist anymore`, 550,
           'SiteService', 'handleGetSite', req.user);
       }
-      console.log(site);
+      
       // Return
       res.json(
         // Filter

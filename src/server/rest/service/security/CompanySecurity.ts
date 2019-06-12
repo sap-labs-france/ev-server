@@ -13,9 +13,10 @@ export default class CompanySecurity {
   }
 
   public static filterCompaniesRequest(request): {Search: string, WithSites: boolean, Skip?: number, Limit?: number, OnlyRecordCount?: boolean, Sort?: any} {
-    let filteredRequest: {Search: string, WithSites: boolean, Skip?: number, Limit?: number, OnlyRecordCount?: boolean, Sort?: any};
-    filteredRequest.Search = sanitize(request.Search);
-    filteredRequest.WithSites = UtilsSecurity.filterBoolean(request.WithSites);
+    let filteredRequest: {Search: string, WithSites: boolean, Skip?: number, Limit?: number, OnlyRecordCount?: boolean, Sort?: any} = {
+      Search: sanitize(request.Search), 
+      WithSites: UtilsSecurity.filterBoolean(request.WithSites)
+    };
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;

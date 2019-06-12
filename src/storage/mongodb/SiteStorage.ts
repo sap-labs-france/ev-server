@@ -432,4 +432,5 @@ export default class SiteStorage {
     // Debug
     Logging.traceEnd('SiteStorage', 'deleteSite', uniqueTimerID, { id });
   }
+
 }
