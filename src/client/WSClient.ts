@@ -13,9 +13,14 @@ export default class WSClient {
   private autoReconnectMaxRetries: any;
   private autoReconnectTimeout: any;
   private logTenantID: any;
-  private ws: any;
-  public onreconnect: any;
-  public onmaximum: any;
+  private ws: WebSocket;
+  public onopen: Function;
+  public onerror: Function;
+  public onclose: Function;
+  public onmessage: Function;
+  public onmaximum: Function;
+  public onreconnect: Function;
+  public readyState: any;
 
   public constructor(url, options, dbLogging = true) {
     this.url = url;
