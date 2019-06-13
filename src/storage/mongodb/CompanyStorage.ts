@@ -73,18 +73,19 @@ export default class CompanyStorage {
     return company;
   }
 
-  public static async saveCompany(tenantID: string, companyToSave: Company, saveLogo: boolean = true): Promise<void> {
+  public static async saveCompany(tenantID: string, companyToSave: Company, saveLogo: boolean = true): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'saveCompany');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     
     const mongoCompany: any = {};
-    mongoCompany._id = companyToSave.id==="-1"?new ObjectID().toHexString():Utils.convertToObjectID(companyToSave.id);
-    mongoCompany.createdBy = new ObjectID(companyToSave.createdBy.id);
+    const newId: string = companyToSave.id.length==0 ? new ObjectID().toHexString() : companyToSave.id;
+    mongoCompany._id = Utils.convertToObjectID(newId);
+    mongoCompany.createdBy = Utils.convertToObjectID(companyToSave.createdBy.id);
     mongoCompany.createdOn = companyToSave.createdOn;
     if(companyToSave.lastChangedBy) {
-      mongoCompany.lastChangedBy = new ObjectID(companyToSave.lastChangedBy.id);
+      mongoCompany.lastChangedBy = Utils.convertToObjectID(companyToSave.lastChangedBy.id);
     }
     if(companyToSave.lastChangedOn) {
       mongoCompany.lastChangedOn = companyToSave.lastChangedOn;
@@ -94,7 +95,7 @@ export default class CompanyStorage {
 
     // Modify
     const result = await global.database.getCollection<Company>(tenantID, 'companies').findOneAndUpdate(
-      { _id: new ObjectID(companyToSave.id) },
+      { _id: mongoCompany._id },
       { $set: mongoCompany},
       { upsert: true });
 
@@ -104,11 +105,13 @@ export default class CompanyStorage {
 
     //Save Logo
     if(saveLogo) {
-      CompanyStorage._saveCompanyLogo(tenantID, companyToSave.id, companyToSave.logo);
+      CompanyStorage._saveCompanyLogo(tenantID, newId, companyToSave.logo);
     }
 
     // Debug
     Logging.traceEnd('CompanyStorage', 'saveCompany', uniqueTimerID, { companyToSave });
+
+    return newId;
   }
 
   private static async _saveCompanyLogo(tenantID: string, companyId: string, companyLogoToSave: string): Promise<void> {
@@ -139,9 +142,10 @@ export default class CompanyStorage {
     // Check Skip
     skip = Utils.checkRecordSkip(skip);
     // Set the filters
-    const filters: {_id?:string, $or?:any[]} = {};
+    let filters: ({_id?:string, $or?:any[]}|undefined);
     // Build filter
     if (params.search) {
+      filters = {};
       // Valid ID?
       if (ObjectID.isValid(params.search)) {
         filters._id = Utils.convertToObjectID(params.search);
@@ -178,6 +182,7 @@ export default class CompanyStorage {
       // Always limit the nbr of record to avoid perfs issues
       aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
     }
+
     // Count Records
     const companiesCountMDB = await global.database.getCollection<{count: number}>(tenantID, 'companies')
       .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
@@ -190,8 +195,8 @@ export default class CompanyStorage {
         result: []
       };
     }
-    // Remove the limit
-    aggregation.pop();
+
+    
 
     //Site lookup TODO: modify if sites get typed as well
     if (params.withSites) {
@@ -217,7 +222,8 @@ export default class CompanyStorage {
         as: 'logo'}
       },
       {$unwind: {
-        'path': '$logo'}
+        'path': '$logo',
+        'preserveNullAndEmptyArrays': true}
       },
       {$project: {
         logo: '$logo.logo', 
@@ -245,12 +251,12 @@ export default class CompanyStorage {
       });
     }
     // Skip
-    if(skip && skip > 0){
+    if(skip > 0){
       aggregation.push( { $skip: skip } );
     }
     // Limit
     aggregation.push({
-      $limit: ( limit && limit > 0 && limit < Constants.MAX_DB_RECORD_COUNT ) ? limit : Constants.MAX_DB_RECORD_COUNT
+      $limit: ( limit > 0 && limit < Constants.MAX_DB_RECORD_COUNT ) ? limit : Constants.MAX_DB_RECORD_COUNT
     });
 
     // Read DB
@@ -281,7 +287,7 @@ export default class CompanyStorage {
     SiteStorage.deleteCompanySites(tenantID, id);
 
     // Delete the Company
-    await global.database.getCollection<Company>(tenantID, 'companies')
+    let t = await global.database.getCollection<Company>(tenantID, 'companies')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
 
     // Delete Logo

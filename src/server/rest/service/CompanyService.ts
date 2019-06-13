@@ -105,7 +105,6 @@ export default class CompanyService {
 
       // Get it
       const company = await CompanyStorage.getCompany(req.user.tenantID, companyId);
-      
       if (!company) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -254,7 +253,7 @@ export default class CompanyService {
       // Filter
       const idlessCompany = CompanySecurity.filterCompanyCreateRequest(req.body);
       const company: Company = {
-        id: "-1",
+        id: '',
         createdBy: new User(req.user.tenantID, {id: req.user.id}),
         createdOn: new Date(),
         ...idlessCompany};
@@ -263,17 +262,17 @@ export default class CompanyService {
       CompanyService._checkIfCompanyValid(company, req);
       
       // Save
-      await CompanyStorage.saveCompany(req.user.tenantID, company, true);
+      const newId = await CompanyStorage.saveCompany(req.user.tenantID, company, true);
       
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
         user: req.user, module: 'CompanyService', method: 'handleCreateCompany',
-        message: `Company '${company.id}' has been created successfully`,
+        message: `Company '${newId}' has been created successfully`,
         action: action, detailedMessages: company
       });
       // Ok
-      res.json(Object.assign({ id: company.id }, Constants.REST_RESPONSE_SUCCESS));
+      res.json(Object.assign({ id: newId }, Constants.REST_RESPONSE_SUCCESS));
       next();
     } catch (error) {
       // Log

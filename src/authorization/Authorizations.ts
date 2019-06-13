@@ -641,9 +641,9 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TENANT, Constants.ACTION_DELETE);
   }
 
-  static canCreateConnection(loggedUser, connection) {
+  static canCreateConnection(loggedUser) {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CONNECTION, Constants.ACTION_CREATE,
-      {"user": connection.userId.toString(), "owner": loggedUser.id});
+      {"owner": loggedUser.id});
   }
 
   static canDeleteConnection(loggedUser, connection) {

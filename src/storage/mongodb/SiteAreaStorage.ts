@@ -399,7 +399,7 @@ export default class SiteAreaStorage {
 
     //Find site areas to delete
     const siteareas: string[] = (await global.database.getCollection<any>(tenantID, 'siteareas')
-      .find({ siteID: { $in: siteIDs } }).project({_id: 1}).toArray()).map(idWrapper => idWrapper._id.toHexString());
+      .find({ siteID: { $in: siteIDs.map(id=>Utils.convertToObjectID(id)) } }).project({_id: 1}).toArray()).map(idWrapper => idWrapper._id.toHexString());
 
     //Delete site areas
     const result = await SiteAreaStorage.deleteSiteAreas(tenantID, siteareas);

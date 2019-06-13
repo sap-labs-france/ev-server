@@ -448,7 +448,7 @@ export default class SiteStorage {
     SiteAreaStorage.deleteSiteAreasFromSites(tenantID, sites);
     
     //Delete sites
-    let result = await global.database.getCollection<any>(tenantID, 'sites')
+    await global.database.getCollection<any>(tenantID, 'sites')
       .deleteMany({ companyID: new ObjectID(companyID) });
 
     // Debug
