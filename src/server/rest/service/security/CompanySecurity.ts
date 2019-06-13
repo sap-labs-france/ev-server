@@ -38,7 +38,7 @@ export default class CompanySecurity {
   }
 
   public static _filterCompanyRequest(request: CompanyData): CompanyData {
-    return {name: request.name, address: UtilsSecurity.filterAddressRequest(request.address), logo: request.logo};
+    return {name: request.name, address: UtilsSecurity.filterAddressRequest(request.address), logo: request.logo}; //TODO Why does logo and name not get sanitized?
   }
 
   public static filterCompanyResponse(company: Company, loggedUser: User) { //TODO typings

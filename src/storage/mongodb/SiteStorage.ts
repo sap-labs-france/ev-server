@@ -312,7 +312,7 @@ export default class SiteStorage {
           foreignField: "_id",
           as: "company"
         }
-      });
+      });//TODO project fields to actually match Company object so that Site can be typed
       // Single Record
       aggregation.push({
         $unwind: { "path": "$company", "preserveNullAndEmptyArrays": true }

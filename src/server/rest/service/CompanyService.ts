@@ -314,7 +314,18 @@ export default class CompanyService {
           req.user);
       }
       // Update
-      Database.updateCompany(filteredRequest, company);
+      if(filteredRequest.logo) { //TODO: logo is required here; check if frontend actually always sends logo or not...
+        company.logo = filteredRequest.logo;
+      }
+      if(filteredRequest.name) {
+        company.name = filteredRequest.name;
+      }
+      if(filteredRequest.address) {
+        company.address = filteredRequest.address;
+      }
+      //TODO: Currently unable to change createdBy, createdOn, and id. Wanted behavior?
+      
+      //Database.updateCompany(filteredRequest, company);
 
       // Update timestamp
       company.lastChangedBy = new User(req.user.tenantID, { 'id': req.user.id });

@@ -604,7 +604,7 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_COMPANIES, Constants.ACTION_LIST);
   }
 
-  static canReadCompany(loggedUser: any, company: any) {
+  static canReadCompany(loggedUser: any, company: Company) {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_COMPANY, Constants.ACTION_READ,
       {"company": company.id, "companies": loggedUser.companies});
   }
