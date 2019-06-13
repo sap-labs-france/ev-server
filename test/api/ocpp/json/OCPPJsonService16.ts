@@ -151,7 +151,8 @@ export default class OCPPJsonService16 extends OCPPService {
     // WS Opened?
     if (!this._wsSessions.get(chargeBoxIdentity)) {
       // Open WS
-      this._wsSessions.set(chargeBoxIdentity, await this.openConnection(chargeBoxIdentity));
+      const ws = await this.openConnection(chargeBoxIdentity);
+      this._wsSessions.set(chargeBoxIdentity, ws);
     }
     // Send
     const t0 = performance.now();

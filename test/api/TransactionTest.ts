@@ -1,5 +1,7 @@
-// const path = require('path');
-// global.appRoot = path.resolve(__dirname, '../../src');
+const path = require('path');
+import TSGlobal from '../../src/types/GlobalType';
+declare const global: TSGlobal;
+global.appRoot = path.resolve(__dirname, '../../src');
 import chai from 'chai';
 import {expect} from 'chai';
 import chaiSubset from 'chai-subset';
@@ -17,18 +19,18 @@ class TestData {
 
   public constructor() {
     this.centralServerService = new CentralServerService();
-    this.dataHelper16 = new DataHelper('1.6', this.tenantID);
   }
 
   public async init(): Promise<void>{
     this.tenantID = await this.centralServerService.authenticatedApi.getTenantID();
+    this.dataHelper16 = new DataHelper('1.6', this.tenantID);
   }
 }
 
 let testData: TestData;
 
 describe('Transaction tests', function() {
-  this.timeout(10000);
+  this.timeout(1000000);
   before(async () => {
     testData = new TestData();
     await testData.init();

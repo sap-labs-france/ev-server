@@ -1,31 +1,34 @@
-const {expect} = require('chai');
-const chai = require('chai');
-const chaiSubset = require('chai-subset');
+import {expect} from 'chai';
+import chai from 'chai';
+import chaiSubset from 'chai-subset';
 chai.use(chaiSubset);
-const Factory = require('../factories/Factory');
-const faker = require('faker');
-const CentralServerService = require('./client/CentralServerService');
-const OCPPJsonService16 = require('./ocpp/json/OCPPJsonService16');
-const OCPPSoapService15 = require('./ocpp/soap/OCPPSoapService15');
-const config = require('../config');
-const Utils = require('../../src/utils/Utils');
-const {from} = require('rxjs');
-const {mergeMap} = require('rxjs/operators');
+import Factory from '../factories/Factory';
+import faker from 'faker';
+import CentralServerService from './client/CentralServerService';
+import OCPPJsonService16 from './ocpp/json/OCPPJsonService16';
+import OCPPSoapService15 from './ocpp/soap/OCPPSoapService15';
+import config from '../config';
+import Utils from '../../src/utils/Utils';
+import {from} from 'rxjs';
+import {mergeMap} from 'rxjs/operators';
 
-class DataHelper {
+export default class DataHelper {
+  private ocpp: any;
+  private centralServerService: CentralServerService;
+  private context: any;
 
-  constructor(ocppVersion, tenantID, ocppRequestHandler) {
+  public constructor(ocppVersion, tenantID, ocppRequestHandler = null) {
     if (ocppVersion === '1.6') {
-      this.ocpp = new OCPPJsonService16(`${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP16/${tenantID}`, ocppRequestHandler);
+       this.ocpp = new OCPPJsonService16(`${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP16/${tenantID}`, ocppRequestHandler);
     } else if (ocppVersion === '1.5') {
-      this.ocpp = new OCPPSoapService15(`${config.get('ocpp.soap.scheme')}://${config.get('ocpp.soap.host')}:${config.get('ocpp.soap.port')}/OCPP15?TenantID=${tenantID}`);
+       this.ocpp = new OCPPSoapService15(`${config.get('ocpp.soap.scheme')}://${config.get('ocpp.soap.host')}:${config.get('ocpp.soap.port')}/OCPP15?TenantID=${tenantID}`);
     } else {
       throw new Error('unkown ocpp version');
     }
 
-    this.centralServerService = new CentralServerService(tenantID);
+     this.centralServerService = new CentralServerService();
 
-    this.context = {
+     this.context = {
       chargingStations: [],
       siteAreas: [],
       sites: [],
@@ -34,43 +37,43 @@ class DataHelper {
     };
   }
 
-  async createUser(user = Factory.user.build()) {
-    const createdUser = await this.centralServerService.createEntity(this.centralServerService.userApi, user);
-    this.context.users.push(createdUser);
+  public async createUser(user = Factory.user.build()) {
+    const createdUser = await  this.centralServerService.createEntity( this.centralServerService.userApi, user);
+     this.context.users.push(createdUser);
     return createdUser;
   }
 
-  async createCompany(company = Factory.company.build()) {
-    const createdCompany = await this.centralServerService.createEntity(this.centralServerService.companyApi, company);
-    this.context.companies.push(createdCompany);
+  public async createCompany(company = Factory.company.build()) {
+    const createdCompany = await  this.centralServerService.createEntity( this.centralServerService.companyApi, company);
+     this.context.companies.push(createdCompany);
     return createdCompany;
   }
 
-  async createSite(company, users, site = Factory.site.build({
+  public async createSite(company, users, site = Factory.site.build({
     companyID: company.id,
     userIDs: users.map(user => user.id)
   })) {
-    const createdSite = await this.centralServerService.createEntity(this.centralServerService.siteApi, site);
-    this.context.sites.push(createdSite);
+    const createdSite = await  this.centralServerService.createEntity( this.centralServerService.siteApi, site);
+     this.context.sites.push(createdSite);
     return createdSite;
   }
 
-  async createSiteArea(site, chargingStations, siteArea = Factory.siteArea.build({
+  public async createSiteArea(site, chargingStations, siteArea = Factory.siteArea.build({
     siteID: site.id,
     chargeBoxIDs: chargingStations.map(chargingStation => chargingStation.id)
   })) {
-    const createdSiteArea = await this.centralServerService.createEntity(this.centralServerService.siteAreaApi, siteArea);
-    this.context.siteAreas.push(createdSiteArea);
+    const createdSiteArea = await  this.centralServerService.createEntity( this.centralServerService.siteAreaApi, siteArea);
+     this.context.siteAreas.push(createdSiteArea);
     return createdSiteArea;
   }
 
-  async getChargingStation(chargingStation, withCheck = true) {
-    return await CentralServerService.getEntityById(CentralServerService.chargingStationApi, chargingStation, withCheck);
+  public async getChargingStation(chargingStation, withCheck = true) {
+    return await this.centralServerService.getEntityById(this.centralServerService.chargingStationApi, chargingStation, withCheck);
   }
 
-  async createChargingStation(chargingStation = Factory.chargingStation.build({id: faker.random.alphaNumeric(12)}), numberOfConnectors = 2) {
-    await this.sendBootNotification(chargingStation);
-    const createdChargingStation = await this.getChargingStation(chargingStation);
+  public async createChargingStation(chargingStation = Factory.chargingStation.build({id: faker.random.alphaNumeric(12)}), numberOfConnectors = 2) {
+    await  this.sendBootNotification(chargingStation);
+    const createdChargingStation = await  this.getChargingStation(chargingStation);
     chargingStation.connectors = [];
     for (let i = 0; i < numberOfConnectors; i++) {
       createdChargingStation.connectors[i] = {
@@ -81,42 +84,42 @@ class DataHelper {
       };
     }
     for (const connector of createdChargingStation.connectors) {
-      const response = await this.ocpp.executeStatusNotification(createdChargingStation.id, connector);
+      const response = await  this.ocpp.executeStatusNotification(createdChargingStation.id, connector);
       expect(response).to.not.be.null;
       expect(response.data).to.be.empty;
     }
 
-    this.context.chargingStations.push(createdChargingStation);
+     this.context.chargingStations.push(createdChargingStation);
     return createdChargingStation;
   }
 
-  async destroyData() {
-    await this.executeOnAll(this.context.users, user => this.centralServerService.deleteEntity(
-      this.centralServerService.userApi, user));
-    this.context.siteAreas.forEach(siteArea => this.centralServerService.deleteEntity(
-      this.centralServerService.siteAreaApi, siteArea));
-    this.context.sites.forEach(site => this.centralServerService.deleteEntity(
-      this.centralServerService.siteApi, site));
-    this.context.companies.forEach(company => this.centralServerService.deleteEntity(
-      this.centralServerService.companyApi, company));
-    this.context.chargingStations.forEach(chargingStation => this.centralServerService.deleteEntity(
-      this.centralServerService.chargingStationApi, chargingStation));
+  public async destroyData() {
+    await  this.executeOnAll( this.context.users, user =>  this.centralServerService.deleteEntity(
+       this.centralServerService.userApi, user));
+     this.context.siteAreas.forEach(siteArea =>  this.centralServerService.deleteEntity(
+       this.centralServerService.siteAreaApi, siteArea));
+     this.context.sites.forEach(site =>  this.centralServerService.deleteEntity(
+       this.centralServerService.siteApi, site));
+     this.context.companies.forEach(company =>  this.centralServerService.deleteEntity(
+       this.centralServerService.companyApi, company));
+     this.context.chargingStations.forEach(chargingStation =>  this.centralServerService.deleteEntity(
+       this.centralServerService.chargingStationApi, chargingStation));
   }
 
-  async executeOnAll(array, method) {
+  public async executeOnAll(array, method) {
     await from(array).pipe(
       mergeMap(method, 50)
     ).toPromise();
   }
 
-  async close() {
-    if (this.ocpp && this.ocpp.closeConnection) {
-      this.ocpp.closeConnection();
+  public async close() {
+    if ( this.ocpp &&  this.ocpp.closeConnection) {
+       this.ocpp.closeConnection();
     }
   }
 
-  async authorize(chargingStation, tagId, expectedStatus = 'Accepted') {
-    const response = await this.ocpp.executeAuthorize(chargingStation.id, {
+  public async authorize(chargingStation, tagId, expectedStatus = 'Accepted') {
+    const response = await  this.ocpp.executeAuthorize(chargingStation.id, {
       idTag: tagId
     });
     expect(response.data).to.have.property('idTagInfo');
@@ -124,8 +127,8 @@ class DataHelper {
     return response.data;
   }
 
-  async sendBootNotification(chargingStation, expectedStatus = 'Accepted') {
-    const response = await this.ocpp.executeBootNotification(
+  public async sendBootNotification(chargingStation, expectedStatus = 'Accepted') {
+    const response = await  this.ocpp.executeBootNotification(
       chargingStation.id, {
         chargeBoxSerialNumber: chargingStation.chargeBoxSerialNumber,
         chargePointModel: chargingStation.chargePointModel,
@@ -140,8 +143,8 @@ class DataHelper {
     return response.data;
   }
 
-  async startTransaction(chargingStation, connectorId, tagId, meterStart, startDate, expectedStatus = 'Accepted') {
-    const response = await this.ocpp.executeStartTransaction(chargingStation.id, {
+  public async startTransaction(chargingStation, connectorId, tagId, meterStart, startDate, expectedStatus = 'Accepted') {
+    const response = await  this.ocpp.executeStartTransaction(chargingStation.id, {
       connectorId: connectorId,
       idTag: tagId,
       meterStart: meterStart,
@@ -158,8 +161,8 @@ class DataHelper {
     return response.data.transactionId;
   }
 
-  async stopTransaction(chargingStation, transactionId, tagId, meterStop, stopDate, transactionData, expectedStatus = 'Accepted') {
-    const response = await this.ocpp.executeStopTransaction(chargingStation.id, {
+  public async stopTransaction(chargingStation, transactionId, tagId, meterStop, stopDate, transactionData, expectedStatus = 'Accepted') {
+    const response = await  this.ocpp.executeStopTransaction(chargingStation.id, {
       transactionId: transactionId,
       idTag: tagId,
       meterStop: meterStop,
@@ -171,8 +174,8 @@ class DataHelper {
   }
 
 
-  async sendConsumptionMeterValue(chargingStation, connectorId, transactionId, meterValue, timestamp) {
-    const response = await this.ocpp.executeMeterValues(chargingStation.id, {
+  public async sendConsumptionMeterValue(chargingStation, connectorId, transactionId, meterValue, timestamp) {
+    const response = await  this.ocpp.executeMeterValues(chargingStation.id, {
       connectorId: connectorId,
       transactionId: transactionId,
       meterValue: {
@@ -191,8 +194,8 @@ class DataHelper {
     expect(response.data).to.eql({});
   }
 
-  async sendSoCMeterValue(chargingStation, connectorId, transactionId, meterValue, timestamp) {
-    const response = await this.ocpp.executeMeterValues(chargingStation.id, {
+  public async sendSoCMeterValue(chargingStation, connectorId, transactionId, meterValue, timestamp) {
+    const response = await  this.ocpp.executeMeterValues(chargingStation.id, {
       connectorId: connectorId,
       transactionId: transactionId,
       meterValue: {
@@ -209,8 +212,8 @@ class DataHelper {
     expect(response.data).to.eql({});
   }
 
-  async sendClockMeterValue(chargingStation, connectorId, transactionId, meterValue, timestamp) {
-    const response = await this.ocpp.executeMeterValues(chargingStation.id, {
+  public async sendClockMeterValue(chargingStation, connectorId, transactionId, meterValue, timestamp) {
+    const response = await  this.ocpp.executeMeterValues(chargingStation.id, {
       connectorId: connectorId,
       transactionId: transactionId,
       meterValue: {
@@ -229,7 +232,7 @@ class DataHelper {
     expect(response.data).to.eql({});
   }
 
-  async setConnectorStatus(ocpp, chargingStation, connectorId, status, timestamp) {
+  public async setConnectorStatus(ocpp, chargingStation, connectorId, status, timestamp) {
     const connector = Utils.duplicateJSON(chargingStation.connectors[connectorId]);
     connector.status = status;
     connector.timestamp = timestamp.toISOString();
@@ -239,7 +242,7 @@ class DataHelper {
     chargingStation.connectors[connectorId].timestamp = connector.timestamp;
   }
 
-  getConfigurationOf(chargingStation) {
+  public getConfigurationOf(chargingStation) {
     const configuration = {
       "stationTemplate": {
         "baseName": "CS-" + faker.random.alphaNumeric(10),
@@ -267,7 +270,7 @@ class DataHelper {
       }
     };
     chargingStation.connectors.forEach(connector => {
-      configuration.Connectors[connector.connectorId] = {
+      configuration['Connectors'][connector.connectorId] = {
         "MeterValues": [{
           "unit": "Percent",
           "context": "Sample.Periodic",
@@ -283,4 +286,4 @@ class DataHelper {
   }
 }
 
-module.exports = DataHelper;
+// module.exports = DataHelper;

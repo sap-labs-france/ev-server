@@ -28,6 +28,13 @@ export default class AuthenticatedBaseApi extends BaseApi {
     return this._tenantID;
   }
 
+  public async getTenant() {
+    if (!this._tenantID) {
+      await this.authenticate();
+    }
+    return this._tenant;
+  }
+
   public async authenticate() {
     // Already logged?
     if (!this._token) {

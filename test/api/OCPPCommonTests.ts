@@ -1,27 +1,51 @@
 const path = require('path');
+import TSGlobal from '../../src/types/GlobalType';
+declare const global: TSGlobal;
 global.appRoot = path.resolve(__dirname, '../../src');
-const moment = require('moment');
-const {
-  expect
-} = require('chai');
-const chai = require('chai');
-const chaiSubset = require('chai-subset');
-const faker = require('faker');
+import chai from 'chai';
+import {expect} from 'chai';
+import chaiSubset from 'chai-subset';
+import moment from 'moment';
+import faker from 'faker';
+import DataHelper from './DataHelper';
+import CentralServerService from '../api/client/CentralServerService';
+import OCPPBootstrap from './OCPPBootstrap';
+
 chai.use(chaiSubset);
-const CentralServerService = require('./client/CentralServerService');
-const OCPPBootstrap = require('./OCPPBootstrap');
 
-class OCPPCommonTests {
-  constructor(ocpp) {
+export default class OCPPCommonTests {
+
+  public ocpp: any;
+  public bootstrap: any;
+  public priceKWH = 1;
+  public context: any;
+  public chargingStationConnector1: any;
+  public chargingStationConnector2: any;
+  public transactionStartUser: any;
+  public transactionStopUser: any;
+  public transactionStartMeterValue: any;
+  public transactionStartSoC: any;
+  public transactionMeterValues: any;
+  public transactionMeterSoCValues: any;
+  public transactionMeterValueIntervalSecs: any;
+  public transactionStartTime: any;
+  public transactionTotalConsumption: any;
+  public transactionEndMeterValue: any;
+  public transactionEndSoC: any;
+  public transactionTotalInactivity: any;
+  public totalPrice: any;
+  public newTransaction: any;
+  public transactionCurrentTime: any;
+
+  public constructor(ocpp) {
     this.ocpp = ocpp;
-  }
-
-  async before() {
-    this.priceKWH = 1;
-    // await CentralServerService.pricingApi.update({priceKWH: this.priceKWH, priceUnit: 'EUR'});
-    await CentralServerService.updatePriceSetting(this.priceKWH , 'EUR');
     // Create Bootstrap with OCPP
     this.bootstrap = new OCPPBootstrap(this.ocpp);
+  }
+
+  public async before() {
+    // await CentralServerService.DefaultInstance.pricingApi.update({priceKWH: OCPPCommonTests.priceKWH, priceUnit: 'EUR'});
+    await CentralServerService.DefaultInstance.updatePriceSetting(this.priceKWH , 'EUR');
     // Create data
     this.context = await this.bootstrap.createContext();
     // Default Connector values
@@ -60,20 +84,20 @@ class OCPPCommonTests {
     this.totalPrice =  this.priceKWH * (this.transactionTotalConsumption / 1000);
   }
 
-  async after() {
+  public async after() {
     // Destroy context
     if (this.context) {
       await this.bootstrap.destroyContext(this.context);
     }
   }
 
-  async testConnectorStatus() {
+  public async testConnectorStatus() {
     // Update Status of Connector 1
     let response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, this.chargingStationConnector1);
     // Check
     expect(response.data).to.eql({});
     // Check Connector 1
-    await CentralServerService.chargingStationApi.checkConnector(
+    await CentralServerService.DefaultInstance.chargingStationApi.checkConnector(
       this.context.newChargingStation, 1, this.chargingStationConnector1);
 
     // Update Status of Connector 2
@@ -81,11 +105,11 @@ class OCPPCommonTests {
     // Check
     expect(response.data).to.eql({});
     // Check Connector 2
-    await CentralServerService.chargingStationApi.checkConnector(
+    await CentralServerService.DefaultInstance.chargingStationApi.checkConnector(
       this.context.newChargingStation, 2, this.chargingStationConnector2);
   }
 
-  async testChangeConnectorStatus() {
+  public async testChangeConnectorStatus() {
     // Set it to Occupied
     this.chargingStationConnector1.status = 'Occupied';
     this.chargingStationConnector1.timestamp = new Date().toISOString();
@@ -95,11 +119,11 @@ class OCPPCommonTests {
     expect(response.data).to.eql({});
 
     // Check Connector 1
-    await CentralServerService.chargingStationApi.checkConnector(
+    await CentralServerService.DefaultInstance.chargingStationApi.checkConnector(
       this.context.newChargingStation, 1, this.chargingStationConnector1);
 
     // Connector 2 should be still available
-    await CentralServerService.chargingStationApi.checkConnector(
+    await CentralServerService.DefaultInstance.chargingStationApi.checkConnector(
       this.context.newChargingStation, 2, this.chargingStationConnector2);
 
     // Reset Status of Connector 1
@@ -111,18 +135,18 @@ class OCPPCommonTests {
     expect(response.data).to.eql({});
 
     // Check Connector 1
-    await CentralServerService.chargingStationApi.checkConnector(
+    await CentralServerService.DefaultInstance.chargingStationApi.checkConnector(
       this.context.newChargingStation, 1, this.chargingStationConnector1);
   }
 
-  async testHeartbeat() {
+  public async testHeartbeat() {
     // Update Status of Connector 1
     const response = await this.ocpp.executeHeartbeat(this.context.newChargingStation.id, {});
     // Check
     expect(response.data).to.have.property('currentTime');
   }
 
-  async testDataTransfer() {
+  public async testDataTransfer() {
     // Check
     const response = await this.ocpp.executeDataTransfer(this.context.newChargingStation.id, {
       "vendorId": "Schneider Electric",
@@ -145,7 +169,7 @@ class OCPPCommonTests {
     await this.testAuthorize('ThisIsATooTooTooLongTag', 'Invalid');
   }
 
-  async testAuthorize(tagId, expectedStatus) {
+  public async testAuthorize(tagId, expectedStatus) {
     const response = await this.ocpp.executeAuthorize(this.context.newChargingStation.id, {
       idTag: tagId
     });
@@ -154,9 +178,9 @@ class OCPPCommonTests {
     expect(response.data.idTagInfo.status).to.equal(expectedStatus);
   }
 
-  async testStartTransaction(withSoC = false) {
+  public async testStartTransaction(withSoC = false) {
     // Start a new Transaction
-    this.newTransaction = await CentralServerService.transactionApi.startTransaction(
+    this.newTransaction = await CentralServerService.DefaultInstance.transactionApi.startTransaction(
       this.ocpp,
       this.context.newChargingStation,
       this.chargingStationConnector1,
@@ -168,7 +192,7 @@ class OCPPCommonTests {
     expect(this.newTransaction).to.not.be.null;
   }
 
-  async testStartSecondTransaction(withSoC = false) {
+  public async testStartSecondTransaction(withSoC = false) {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
     // Set
@@ -178,7 +202,7 @@ class OCPPCommonTests {
     this.newTransaction = null;
 
     // Start the Transaction
-    this.newTransaction = await CentralServerService.transactionApi.startTransaction(
+    this.newTransaction = await CentralServerService.DefaultInstance.transactionApi.startTransaction(
       this.ocpp,
       this.context.newChargingStation,
       this.chargingStationConnector1,
@@ -191,7 +215,7 @@ class OCPPCommonTests {
     expect(this.newTransaction.id).to.not.equal(transactionId);
   }
 
-  async testSendMeterValues(withSoC = false) {
+  public async testSendMeterValues(withSoC = false) {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
     // Current Time matches Transaction one
@@ -199,7 +223,7 @@ class OCPPCommonTests {
     // Start Meter Value matches Transaction one
     let transactionCurrentMeterValue = this.transactionStartMeterValue;
     // Send Transaction.Begin
-    await CentralServerService.transactionApi.sendBeginMeterValue(
+    await CentralServerService.DefaultInstance.transactionApi.sendBeginMeterValue(
       this.ocpp,
       this.newTransaction,
       this.context.newChargingStation,
@@ -216,7 +240,7 @@ class OCPPCommonTests {
       this.transactionCurrentTime.add(this.transactionMeterValueIntervalSecs, "s");
       if (withSoC) {
         // Send Meter Values
-        await CentralServerService.transactionApi.sendTransactionWithSoCMeterValue(
+        await CentralServerService.DefaultInstance.transactionApi.sendTransactionWithSoCMeterValue(
           this.ocpp,
           this.newTransaction,
           this.context.newChargingStation,
@@ -227,7 +251,7 @@ class OCPPCommonTests {
           this.transactionMeterValues[index] * this.transactionMeterValueIntervalSecs,
           transactionCurrentMeterValue - this.transactionStartMeterValue);
       } else {
-        await CentralServerService.transactionApi.sendTransactionMeterValue(
+        await CentralServerService.DefaultInstance.transactionApi.sendTransactionMeterValue(
           this.ocpp,
           this.newTransaction,
           this.context.newChargingStation,
@@ -239,7 +263,7 @@ class OCPPCommonTests {
       }
     }
     // Send Transaction.End
-    await CentralServerService.transactionApi.sendEndMeterValue(
+    await CentralServerService.DefaultInstance.transactionApi.sendEndMeterValue(
       this.ocpp,
       this.newTransaction,
       this.context.newChargingStation,
@@ -250,7 +274,7 @@ class OCPPCommonTests {
       withSoC);
   }
 
-  async testStopTransaction(withSoC = false) {
+  public async testStopTransaction(withSoC = false) {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
     expect(this.transactionCurrentTime).to.not.be.null;
@@ -259,7 +283,7 @@ class OCPPCommonTests {
     this.transactionCurrentTime.add(this.transactionMeterValueIntervalSecs, "s");
 
     // Stop the Transaction
-    await CentralServerService.transactionApi.stopTransaction(
+    await CentralServerService.DefaultInstance.transactionApi.stopTransaction(
       this.ocpp,
       this.newTransaction,
       this.transactionStartUser,
@@ -273,15 +297,15 @@ class OCPPCommonTests {
       (withSoC ? this.transactionEndSoC : 0));
   }
 
-  async testTransactionMetrics(withSoC = false) {
+  public async testTransactionMetrics(withSoC = false) {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
 
     // Get the consumption
-    const response = await CentralServerService.transactionApi.readAllConsumption({TransactionId: this.newTransaction.id});
+    const response = await CentralServerService.DefaultInstance.transactionApi.readAllConsumption({TransactionId: this.newTransaction.id});
     expect(response.status).to.equal(200);
     // Check Headers
-    expect(response.data).to.deep.containSubset({
+    expect(response.data).to.deep['containSubset']({
       "chargeBoxID": this.newTransaction.chargeBoxID,
       "connectorId": this.newTransaction.connectorId,
       "stateOfCharge": (withSoC ? this.transactionStartSoC : 0),
@@ -334,20 +358,20 @@ class OCPPCommonTests {
     }
   }
 
-  async testDeleteTransaction() {
+  public async testDeleteTransaction() {
     // Delete the created entity
-    await CentralServerService.deleteEntity(
-      CentralServerService.transactionApi, this.newTransaction);
+    await CentralServerService.DefaultInstance.deleteEntity(
+      CentralServerService.DefaultInstance.transactionApi, this.newTransaction);
     this.newTransaction = null; 
   }
 
-  async testConnectorStatusToStopTransaction() {
+  public async testConnectorStatusToStopTransaction() {
     // Check on Transaction
     expect(this.newTransaction).to.be.null;
     expect(this.chargingStationConnector1.status).to.eql('Available');
 
     // Start a new Transaction
-    this.newTransaction = await CentralServerService.transactionApi.startTransaction(
+    this.newTransaction = await CentralServerService.DefaultInstance.transactionApi.startTransaction(
       this.ocpp,
       this.context.newChargingStation,
       this.chargingStationConnector1,
@@ -366,10 +390,10 @@ class OCPPCommonTests {
     // Check
     expect(response.data).to.eql({});
     // Check Connector 1
-    await CentralServerService.chargingStationApi.checkConnector(
+    await CentralServerService.DefaultInstance.chargingStationApi.checkConnector(
       this.context.newChargingStation, 1, this.chargingStationConnector1);
 
   }
 }
 
-module.exports = OCPPCommonTests;
+// module.exports = OCPPCommonTests;

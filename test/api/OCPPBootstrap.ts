@@ -1,40 +1,41 @@
 const path = require('path');
+import TSGlobal from '../../src/types/GlobalType';
+declare const global: TSGlobal;
 global.appRoot = path.resolve(__dirname, '../../src');
-const faker = require('faker');
-const { expect } = require('chai');
-const chai = require('chai');
-const chaiSubset = require('chai-subset');
+import chai from 'chai';
+import {expect} from 'chai';
+import chaiSubset from 'chai-subset';
+import faker from 'faker';
+import CentralServerService from '../api/client/CentralServerService';
 chai.use(chaiSubset);
+import Factory from '../factories/Factory';
 
-const CentralServerService = require('./client/CentralServerService');
-const Factory = require('../factories/Factory');
-const TenantFactory = require('../factories/TenantFactory');
-
-class OCPPBootstrap {
-  constructor(ocpp) {
+export default class OCPPBootstrap {
+  public ocpp: any;
+  public constructor(ocpp) {
     this.ocpp = ocpp;
   }
 
-  async createContext() {
-    const context = {};
+  public async createContext() {
+    const context:any = {};
     try {
       // // Create
-      // this.tenantNoOrg = await CentralServerService.createEntity(
-      //   CentralServerService.tenantApi, TenantFactory.buildTenantCreate());
+      // this.tenantNoOrg = await CentralServerService.DefaultInstance.createEntity(
+      //   CentralServerService.DefaultInstance.tenantApi, TenantFactory.buildTenantCreate());
 
       // Create User
-      context.newUser = await CentralServerService.createEntity(
-        CentralServerService.userApi, Factory.user.build());
+      context.newUser = await CentralServerService.DefaultInstance.createEntity(
+        CentralServerService.DefaultInstance.userApi, Factory.user.build());
       expect(context.newUser).to.not.be.null;
 
       // Create Company
-      context.newCompany = await CentralServerService.createEntity(
-        CentralServerService.companyApi, Factory.company.build());
+      context.newCompany = await CentralServerService.DefaultInstance.createEntity(
+        CentralServerService.DefaultInstance.companyApi, Factory.company.build());
       expect(context.newCompany).to.not.be.null;
 
       // Create Site
-      context.newSite = await CentralServerService.createEntity(
-        CentralServerService.siteApi, Factory.site.build({
+      context.newSite = await CentralServerService.DefaultInstance.createEntity(
+        CentralServerService.DefaultInstance.siteApi, Factory.site.build({
           companyID: context.newCompany.id,
           userIDs: [context.newUser.id]
         }));
@@ -81,8 +82,8 @@ class OCPPBootstrap {
       expect(response.data).to.eql({});
 
       // Create the Site Area 
-      context.newSiteArea = await CentralServerService.createEntity(
-        CentralServerService.siteAreaApi, Factory.siteArea.build({
+      context.newSiteArea = await CentralServerService.DefaultInstance.createEntity(
+        CentralServerService.DefaultInstance.siteAreaApi, Factory.siteArea.build({
           siteID: context.newSite.id,
           chargeBoxIDs: [chargingStationID]
         }));
@@ -93,8 +94,8 @@ class OCPPBootstrap {
       context.newChargingStation.id = chargingStationID;
       context.newChargingStation.siteAreaID = context.newSiteArea.id;
       // Get the new Charger
-      context.newChargingStation = await CentralServerService.getEntityById(
-        CentralServerService.chargingStationApi, context.newChargingStation);
+      context.newChargingStation = await CentralServerService.DefaultInstance.getEntityById(
+        CentralServerService.DefaultInstance.chargingStationApi, context.newChargingStation);
         
     } catch (error) {
       // Error: Clean up!
@@ -106,45 +107,45 @@ class OCPPBootstrap {
     return context;
   }
 
-  async destroyContext(context) {
+  public async destroyContext(context) {
     // if (this.tenantNoOrg) {
     //   // Check if the deleted entity cannot be retrieved with its id
-    //   await CentralServerService.checkDeletedEntityById(
-    //     CentralServerService.tenantApi, this.tenantNoOrg);
+    //   await CentralServerService.DefaultInstance.checkDeletedEntityById(
+    //     CentralServerService.DefaultInstance.tenantApi, this.tenantNoOrg);
     // }    
 
     // Delete User?
     if (context.newUser) {
       // Delete
-      await CentralServerService.deleteEntity(
-        CentralServerService.userApi, context.newUser);
+      await CentralServerService.DefaultInstance.deleteEntity(
+        CentralServerService.DefaultInstance.userApi, context.newUser);
     }
     // Delete Site Area?
     if (context.newSiteArea) {
       // Delete
-      await CentralServerService.deleteEntity(
-        CentralServerService.siteAreaApi, context.newSiteArea);
+      await CentralServerService.DefaultInstance.deleteEntity(
+        CentralServerService.DefaultInstance.siteAreaApi, context.newSiteArea);
     }
     // Delete Site?
     if (context.newSite) {
       // Delete
-      await CentralServerService.deleteEntity(
-        CentralServerService.siteApi, context.newSite);
+      await CentralServerService.DefaultInstance.deleteEntity(
+        CentralServerService.DefaultInstance.siteApi, context.newSite);
     }
     // Delete Company?
     if (context.newCompany) {
       // Delete
-      await CentralServerService.deleteEntity(
-        CentralServerService.companyApi, context.newCompany);
+      await CentralServerService.DefaultInstance.deleteEntity(
+        CentralServerService.DefaultInstance.companyApi, context.newCompany);
     }
     // Delete Charging Station?
     if (context.newChargingStation) {
       // Delete
-      await CentralServerService.deleteEntity(
-        CentralServerService.chargingStationApi, context.newChargingStation);
+      await CentralServerService.DefaultInstance.deleteEntity(
+        CentralServerService.DefaultInstance.chargingStationApi, context.newChargingStation);
     }
   }
 
 }
 
-module.exports = OCPPBootstrap;
+// module.exports = OCPPBootstrap;
