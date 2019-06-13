@@ -254,7 +254,7 @@ export default class CompanyService {
       // Filter
       const idlessCompany = CompanySecurity.filterCompanyCreateRequest(req.body);
       const company: Company = {
-        id: new ObjectID().toHexString(),
+        id: "-1",
         createdBy: new User(req.user.tenantID, {id: req.user.id}),
         createdOn: new Date(),
         ...idlessCompany};

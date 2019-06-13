@@ -86,7 +86,7 @@ export default class CompanyStorage {
     await Utils.checkTenant(tenantID);
     
     const set: any = {};
-    set._id = new ObjectID(companyToSave.id);
+    set._id = new ObjectID(companyToSave.id==="-1"?new ObjectID().toHexString():companyToSave.id);
     set.createdBy = new ObjectID(companyToSave.createdBy.id);
     set.createdOn = companyToSave.createdOn;
     if(companyToSave.lastChangedBy) {
