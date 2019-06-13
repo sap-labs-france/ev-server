@@ -124,8 +124,8 @@
   "scripts": {
     "start": "npm run start:prod",
     "prestart": "npm run build:prod",
-    "start:dev": "cross-env NODE_ENV=development ts-node-dev --max-old-space-size=4096 -- src/start.ts",
-    "start:dev:debug": "cross-env NODE_ENV=development ts-node-dev --inspect-brk --max-old-space-size=4096 -- src/start.ts",
+    "start:dev": "ts-node-dev --max-old-space-size=4096 -- src/start.ts",
+    "start:dev:debug": "ts-node-dev --inspect-brk --max-old-space-size=4096 -- src/start.ts",
     "start:dev:prof": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=development node --prof dist/start.js",
     "start:dev:doctorprof": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=development clinic doctor -- node dist/start.js",
     "start:dev:flameprof": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=development clinic flame -- node dist/start.js",
