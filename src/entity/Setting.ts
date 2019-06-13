@@ -30,6 +30,14 @@ export default class Setting extends TenantHolder {
     this._model.identifier = identifier;
   }
 
+  getSensitiveData() {
+    return this._model.sensitiveData;
+  }
+
+  setSensitiveData(data) {
+    this._model.sensitiveData = data;
+  }
+
   getContent() {
     return this._model.content;
   }

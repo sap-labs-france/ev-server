@@ -505,6 +505,7 @@ export default class Database {
     }
 
     dest.identifier = src.identifier;
+    dest.sensitiveData = src.sensitiveData;
     dest.content = src.content;
 
     Database.updateCreatedAndLastChanged(src, dest);

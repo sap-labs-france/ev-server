@@ -7,6 +7,8 @@ import Constants from '../../../utils/Constants';
 import Setting from '../../../entity/Setting';
 import User from '../../../entity/User';
 import SettingSecurity from './security/SettingSecurity';
+import Safe from '../../../utils/Safe';
+import _ from 'lodash';
 
 export default class SettingService {
   static async handleDeleteSetting(action, req, res, next) {
@@ -79,6 +81,19 @@ export default class SettingService {
           `The Setting with ID '${filteredRequest.ID}' does not exist anymore`, 550,
           'SettingService', 'handleGetSetting', req.user);
       }
+      // Hash data sent to the front end based on the properties stored in the sensitiveData array
+      if(setting.sensitiveData && setting.sensitiveData.length > 0) {
+        setting.sensitiveData.forEach((property: string) => {
+          const stored = _.get(setting, property);
+          if(stored && stored.length > 0) {
+            // Hash the stored value
+            _.set(setting, property, Safe.hash(stored));
+          } else {
+            // If stored is undefined or empty then send empty string
+            _.set(setting, property, '');
+          }
+        })
+      }
       // Return
       res.json(
         // Filter
@@ -119,6 +134,21 @@ export default class SettingService {
       // Filter
       settings.result = SettingSecurity.filterSettingsResponse(
         settings.result, req.user);
+      // Hash data sent to the front end based on the properties stored in the sensitiveData array
+      settings.result.forEach((setting) => {
+        if(setting.sensitiveData && setting.sensitiveData.length > 0) {
+          setting.sensitiveData.forEach((property: string) => {
+            const stored = _.get(setting, property);
+            if(stored && stored.length > 0) {
+              // Hash the stored value
+              _.set(setting, property, Safe.hash(stored));
+            } else {
+              // If stored is undefined or empty then send empty string
+              _.set(setting, property, '');
+            }
+          });
+        }
+      });
       // Return
       res.json(settings);
       next();
@@ -145,7 +175,19 @@ export default class SettingService {
       const filteredRequest = SettingSecurity.filterSettingCreateRequest(req.body, req.user);
       // Check Mandatory fields
       Setting.checkIfSettingValid(filteredRequest, req);
-
+      // Encrypt data in the database based on the properties stored in the sensitiveData array
+      if(filteredRequest.sensitiveData && filteredRequest.sensitiveData.length > 0) {
+        filteredRequest.sensitiveData.forEach((property: string) => {
+          const input = _.get(filteredRequest, property);
+          if(input && input.length > 0) {
+            // Encrypt the input value
+            _.set(filteredRequest, property, Safe.encrypt(input));
+          } else {
+            // If input value is empty or undefined then store empty string
+            _.set(filteredRequest, property, '');
+          }
+        })
+      }
       // Create setting
       const setting = new Setting(req.user.tenantID, filteredRequest);
       // Update timestamp
@@ -193,6 +235,22 @@ export default class SettingService {
           560,
           'SettingService', 'handleUpdateSetting',
           req.user);
+      }
+      // Encrypt data in the database based on the properties stored in the sensitiveData array
+      if(filteredRequest.sensitiveData && filteredRequest.sensitiveData.length > 0) {
+        filteredRequest.sensitiveData.forEach((property: string) => {
+          const input = _.get(filteredRequest, property);
+          const stored = _.get(setting.getModel(), property);
+          // Compare the input value and the hashed stored value in order to detect if the value has been changed
+          // note : the stored value is encrypted
+          if(input && input.length > 0 && input !== Safe.hash(stored)) {
+            // Encrypt the input value
+            _.set(filteredRequest, property, Safe.encrypt(input));
+          } else {
+            // If input value is empty or the value hasn't been updated then keep the old value => needs to be validated !
+            _.set(filteredRequest, property, stored);
+          }
+        });
       }
       // Update
       Database.updateSetting(filteredRequest, setting.getModel());

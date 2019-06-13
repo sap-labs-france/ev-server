@@ -1,4 +1,8 @@
 {
+	"Crypto": {
+		"key": "",
+		"algorithm": ""
+	},
 	"Cluster": {
 		"enable": false,
 		"num_worker": 2
