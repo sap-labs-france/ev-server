@@ -83,7 +83,7 @@ class ConnectorService extends AbstractService {
   static async handleCreateConnection(action, req, res, next) {
     try {
       // Check auth
-      if (!Authorizations.canCreateConnection(req.user)) {
+      if (!Authorizations.canCreateConnection(req.user, req.body)) {
         // Not Authorized!
         throw new UnauthorizedError(
           Constants.ACTION_CREATE,
