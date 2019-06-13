@@ -7,10 +7,6 @@ import BackendError from '../../exception/BackendError';
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import TSGlobal from '../../types/GlobalType';
-import TenantStorage from './TenantStorage';
-import TenantHolder from '../../types/TenantHolder';
-import Editeable from '../../types/Editeable';
-import fs from 'fs';
 
 declare const global: TSGlobal;
 

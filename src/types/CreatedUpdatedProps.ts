@@ -1,6 +1,6 @@
 import User from "../entity/User";
 
-export default interface Editeable {
+export default interface CreatedUpdatedProps {
 
     readonly id: string;
     createdBy: User;

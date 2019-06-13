@@ -215,7 +215,7 @@ export default class Utils {
     return changedID;
   }
 
-  public static convertUserToObjectID(user: any): ObjectId|null { //TODO Fix htis method...
+  public static convertUserToObjectID(user: any): ObjectId|null { //TODO Fix this method...
     let userID = null;
     // Check Created By
     if (user) {
