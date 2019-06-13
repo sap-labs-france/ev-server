@@ -635,7 +635,7 @@ export default class TransactionService {
       }
       const filter: any = { stop: { $exists: true } };
       // Filter
-      const filteredRequest = TransactionSecurity.filterTransactionsInErrorRequest(req.query/*, req.user TODO ?*/);
+      const filteredRequest = TransactionSecurity.filterTransactionsInErrorRequest(req.query);
       if (filteredRequest.ChargeBoxID) {
         filter.chargeBoxID = filteredRequest.ChargeBoxID;
       }

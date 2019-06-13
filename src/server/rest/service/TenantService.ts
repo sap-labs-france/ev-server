@@ -15,10 +15,12 @@ import AbstractService from './AbstractService';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import Utils from '../../../utils/Utils';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import { Request, Response, NextFunction } from 'express';
 
 const MODULE_NAME = 'TenantService';
 
 export default class TenantService extends AbstractService {
+
   static async handleDeleteTenant(action, req, res, next) {
     try {
       // Filter
@@ -157,7 +159,7 @@ export default class TenantService extends AbstractService {
     }
   }
 
-  static async handleCreateTenant(action, req, res, next) {
+  public static async handleCreateTenant(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       // Check auth
       if (!Authorizations.canCreateTenant(req.user)) {

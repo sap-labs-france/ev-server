@@ -83,7 +83,7 @@ export default class CreateConsumptionsTask extends MigrationTask {
       $match: { "consumptions": { $eq: [] } }
     });
     // Read all transactions
-    const transactionsMDB = await global.database.getCollection(tenant.getID(), 'transactions')
+    const transactionsMDB = await global.database.getCollection<any>(tenant.getID(), 'transactions')
       .aggregate(aggregation).toArray();
     // Add Site ID and Site Area ID in Transaction
     const transactions = transactionsMDB.map(transaction => {
@@ -193,7 +193,7 @@ export default class CreateConsumptionsTask extends MigrationTask {
       return consumptionMDB;
     });
     // Insert
-    await global.database.getCollection(tenantID, 'consumptions').insertMany(consumptionsMDB);
+    await global.database.getCollection<any>(tenantID, 'consumptions').insertMany(consumptionsMDB);
   }
 
   async getConsumptions(transaction) {

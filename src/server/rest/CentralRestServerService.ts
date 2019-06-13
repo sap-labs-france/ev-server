@@ -254,11 +254,6 @@ export default {
             // Delegate
             CompanyService.handleGetCompany(action, req, res, next);
             break;
-          // Get all the company logos
-          case "CompanyLogos":
-            // Delegate
-            CompanyService.handleGetCompanyLogos(action, req, res, next);
-            break;
           // Get one company logo
           case "CompanyLogo":
             // Delegate

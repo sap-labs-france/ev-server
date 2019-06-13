@@ -12,6 +12,8 @@ export default class DatabaseUtils {
   public static pushCreatedLastChangedInAggregation(tenantID: string, aggregation: any[]): void {
     // Filter
     const filterUserFields = {
+      "_id": 0,
+      "__v": 0,
       "email": 0,
       "phone": 0,
       "mobile": 0,
@@ -49,6 +51,9 @@ export default class DatabaseUtils {
     aggregation.push({
       $unwind: { "path": "$createdBy", "preserveNullAndEmptyArrays": true }
     });
+    // Rename id & convert to string to fit type schema
+    aggregation.push({$addFields: {'createdBy.id': {$toString: '$createdBy._id'}}});
+    
     // Filter
     aggregation.push({
       $project: {
@@ -68,6 +73,9 @@ export default class DatabaseUtils {
     aggregation.push({
       $unwind: { "path": "$lastChangedBy", "preserveNullAndEmptyArrays": true }
     });
+    //Prep for type schema
+    aggregation.push({$addFields: {'lastChangedBy.id': {$toString: '$lastChangedBy._id'}}});
+    
     // Filter
     aggregation.push({
       $project: {

@@ -13,7 +13,7 @@ import SiteStorage from '../storage/mongodb/SiteStorage';
 
 export default class User extends TenantHolder {
   private _model: any = {};
-
+  public id: string;
   constructor(tenantID: any, user: any) {
     super(tenantID);
     Database.updateUser(user, this._model);

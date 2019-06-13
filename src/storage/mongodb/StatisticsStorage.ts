@@ -82,7 +82,7 @@ export default class StatisticsStorage {
       $sort: { "_id.month": 1, "_id.chargeBox": 1 }
     });
     // Read DB
-    const transactionStatsMDB = await global.database.getCollection(tenantID, 'transactions')
+    const transactionStatsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Set
@@ -202,7 +202,7 @@ export default class StatisticsStorage {
       $sort: { "_id.month": 1, "_id.chargeBox": 1 }
     });
     // Read DB
-    const transactionStatsMDB = await global.database.getCollection(tenantID, 'transactions')
+    const transactionStatsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Set
@@ -531,7 +531,7 @@ export default class StatisticsStorage {
     // Filters
     aggregation.push(match);
     // Read DB
-    const transactionStatsMDB = await global.database.getCollection(tenantID, 'sites')
+    const transactionStatsMDB = await global.database.getCollection<any>(tenantID, 'sites')
       .aggregate(match, { allowDiskUse: true })
       .toArray();
     // Set

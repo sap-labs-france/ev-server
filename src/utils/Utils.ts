@@ -13,6 +13,7 @@ import path from 'path';
 import Logging from './Logging'; // Avoid fucking circular deps
 import Tenant from '../entity/Tenant'; // Avoid fucking circular deps
 import SourceMap from 'source-map-support';
+import User from '../entity/User';
 SourceMap.install();
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
@@ -214,7 +215,7 @@ export default class Utils {
     return changedID;
   }
 
-  static convertUserToObjectID(user) {
+  public static convertUserToObjectID(user: any): ObjectId|null { //TODO Fix this method...
     let userID = null;
     // Check Created By
     if (user) {
@@ -222,9 +223,9 @@ export default class Utils {
       userID = user;
       // Check User Model
       if (typeof user === "object" &&
-        user.constructor.name !== "ObjectID") {
+        user.constructor.name !== "ObjectID" && ('id' in user || 'getID' in user)) {
         // This is the User Model
-        userID = Utils.convertToObjectID(user.id);
+        userID = Utils.convertToObjectID('id' in user?user.id:user.getID());
       }
       // Check String
       if (typeof user === "string") {
@@ -324,7 +325,7 @@ export default class Utils {
     }
   }
 
-  static checkRecordLimit(recordLimit) {
+  public static checkRecordLimit(recordLimit: number|string): number {
     // String?
     if (typeof recordLimit === 'string') {
       recordLimit = parseInt(recordLimit);
@@ -345,7 +346,7 @@ export default class Utils {
     return value[0].toUpperCase() + value.substring(1);
   }
 
-  static checkRecordSkip(recordSkip) {
+  public static checkRecordSkip(recordSkip: number|string): number {
     // String?
     if (typeof recordSkip === "string") {
       recordSkip = parseInt(recordSkip);

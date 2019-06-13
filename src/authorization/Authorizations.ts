@@ -14,6 +14,7 @@ import AuthorizationsDefinition from './AuthorizationsDefinition';
 import ChargingStation from '../entity/ChargingStation';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import SourceMap from 'source-map-support';
+import Company from '../types/Company';
 SourceMap.install();
 
 export default class Authorizations {
@@ -603,20 +604,20 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_COMPANIES, Constants.ACTION_LIST);
   }
 
-  static canReadCompany(loggedUser: any, company: any) {
+  static canReadCompany(loggedUser: any, company: Company) {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_COMPANY, Constants.ACTION_READ,
-      {"company": company.id.toString(), "companies": loggedUser.companies});
+      {"company": company.id, "companies": loggedUser.companies});
   }
 
   static canCreateCompany(loggedUser: any) {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_COMPANY, Constants.ACTION_CREATE);
   }
 
-  static canUpdateCompany(loggedUser: any, company: any) {
+  static canUpdateCompany(loggedUser: any, company: Company) {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_COMPANY, Constants.ACTION_UPDATE);
   }
 
-  static canDeleteCompany(loggedUser: any, company: any) {
+  static canDeleteCompany(loggedUser: any, company: Company) {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_COMPANY, Constants.ACTION_DELETE);
   }
 
@@ -640,9 +641,9 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TENANT, Constants.ACTION_DELETE);
   }
 
-  static canCreateConnection(loggedUser, connection) {
+  static canCreateConnection(loggedUser) {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CONNECTION, Constants.ACTION_CREATE,
-      {"user": connection.userId.toString(), "owner": loggedUser.id});
+      {"owner": loggedUser.id});
   }
 
   static canDeleteConnection(loggedUser, connection) {
