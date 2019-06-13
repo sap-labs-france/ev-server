@@ -4,34 +4,40 @@ import UtilsSecurity from './UtilsSecurity';
 import SiteSecurity from './SiteSecurity';
 import User from '../../../../entity/User';
 import Company from '../../../../types/Company';
+import ByID from '../../../../types/requests/ByID';
+import CompanyData from '../../../../types/requests/CompanyData';
+import { IncomingCompanySearch, FilteredCompanySearch } from '../../../../types/requests/CompanySearch';
+import BadRequestError from '../../../../exception/BadRequestError';
 
 export default class CompanySecurity {
 
-  //
-  public static filterCompanyRequest(request: {ID: string}): string {
+  public static filterCompanyRequest(request: ByID): string {
     return sanitize(request.ID);
   }
 
-  public static filterCompaniesRequest(request): {Search: string, WithSites: boolean, Skip?: number, Limit?: number, OnlyRecordCount?: boolean, Sort?: any} {
-    let filteredRequest: {Search: string, WithSites: boolean, Skip?: number, Limit?: number, OnlyRecordCount?: boolean, Sort?: any} = {
+  public static filterCompaniesRequest(request: IncomingCompanySearch): FilteredCompanySearch {
+    let filteredRequest: FilteredCompanySearch = {
       Search: sanitize(request.Search), 
       WithSites: UtilsSecurity.filterBoolean(request.WithSites)
-    };
+    } as FilteredCompanySearch;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
-  }//TODO better also check CompanyStorage sort params
+  }
 
-  static filterCompanyUpdateRequest(request: any): {name: string, address: any, logo: string, id: string} {
+  static filterCompanyUpdateRequest(request: CompanyData): CompanyData {
+    if(! request.id) {
+      throw new BadRequestError({message: 'ID not provided in update request.'});
+    }
     const filteredRequest = CompanySecurity._filterCompanyRequest(request);
     return {id: sanitize(request.id), ...filteredRequest};
   }
 
-  public static filterCompanyCreateRequest(request: any) {
+  public static filterCompanyCreateRequest(request: CompanyData): CompanyData {
     return CompanySecurity._filterCompanyRequest(request);
   }
 
-  public static _filterCompanyRequest(request: any) {
+  public static _filterCompanyRequest(request: CompanyData): CompanyData {
     return {name: request.name, address: UtilsSecurity.filterAddressRequest(request.address), logo: request.logo};
   }
 
