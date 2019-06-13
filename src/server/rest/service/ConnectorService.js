@@ -117,7 +117,7 @@ class ConnectorService extends AbstractService {
   static async handleDeleteConnection(action, req, res, next) {
     try {
       // Check auth
-      if (!Authorizations.canDeleteConnection(req.user)) {
+      if (!Authorizations.canDeleteConnection(req.user, req.query)) {
         // Not Authorized!
         throw new UnauthorizedError(
           Constants.ACTION_DELETE,
