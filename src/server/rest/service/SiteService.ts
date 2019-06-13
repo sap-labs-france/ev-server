@@ -5,7 +5,6 @@ import AppAuthError from '../../../exception/AppAuthError';
 import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import Site from '../../../entity/Site';
-import Company from '../../../types/Company';
 import User from '../../../entity/User';
 import SiteSecurity from './security/SiteSecurity';
 import UtilsService from './UtilsService';
@@ -401,11 +400,10 @@ export default class SiteService {
       }
       // Filter
       const filteredRequest = SiteSecurity.filterSiteCreateRequest(req.body, req.user);
-      // Check Company
-      const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.companyID);
       // Check Mandatory fields
       Site.checkIfSiteValid(filteredRequest, req);
-      // Found?
+      // Check Company
+      const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.companyID);
       if (!company) {
         // Not Found!
         throw new AppError(
