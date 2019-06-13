@@ -6,7 +6,7 @@ export default interface Company extends CreatedUpdatedProps {
     
     name: string;
     address: Address;
-    logo: string;
+    logo?: string;
     sites?: Site[];
 
 }

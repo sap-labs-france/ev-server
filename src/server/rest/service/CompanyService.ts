@@ -13,6 +13,7 @@ import { Request, NextFunction, Response } from 'express';
 import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
 import { ObjectID } from 'bson';
 import fs from 'fs';
+import BadRequestError from '../../../exception/BadRequestError';
 
 export default class CompanyService {
 
@@ -252,11 +253,22 @@ export default class CompanyService {
       }
       // Filter
       const idlessCompany = CompanySecurity.filterCompanyCreateRequest(req.body);
+      if(!idlessCompany.name) {
+        throw new BadRequestError({message: 'Need to provide company name.'});
+      }
+      if(!idlessCompany.address) {
+        throw new BadRequestError({message: 'Need to provide address for company.'});
+      }
       const company: Company = {
         id: '',
         createdBy: new User(req.user.tenantID, {id: req.user.id}),
         createdOn: new Date(),
-        ...idlessCompany};
+        name: idlessCompany.name,
+        address: idlessCompany.address,
+        };
+      if(idlessCompany.logo) {
+        company.logo = idlessCompany.logo;
+      }//TODO: Is logo optional or not? rn it is
 
       // Check Mandatory fields
       CompanyService._checkIfCompanyValid(company, req);
@@ -324,7 +336,7 @@ export default class CompanyService {
         company.address = filteredRequest.address;
       }
       //TODO: Currently unable to change createdBy, createdOn, and id. Wanted behavior?
-      
+
       //Database.updateCompany(filteredRequest, company);
 
       // Update timestamp
