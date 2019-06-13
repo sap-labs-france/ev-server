@@ -15,51 +15,8 @@ export default class CompanyStorage {
   public static async getCompany(tenantID: string, id: string): Promise<Company> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompany');
-    
-    /*
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Create Aggregation
-    const aggregation = [];
 
-    // Filters
-    aggregation.push({
-      $match: { _id: Utils.convertToObjectID(id) },
-    });
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
-
-    //Add company logo
-    aggregation.push({$lookup: {
-        from: tenantID + '.companylogos',
-        localField: '_id',
-        foreignField: '_id',
-        as: 'logo'}
-      },
-      {$unwind: {
-        'path': '$logo'
-        }
-      },
-      {$project: {
-        'logo': '$logo.logo', 
-        'id':{$toString: '$_id'}, 
-        _id: 0, 
-        createdBy: 1, 
-        createdOn: 1, 
-        lastChangedBy: 1, 
-        lastChangedOn: 1, 
-        name: 1, 
-        address: 1}
-      }
-    );
-
-    // Read DB
-    const companiesMDB = await global.database.getCollection<Company>(tenantID, 'companies')
-      .aggregate(aggregation)
-      .limit(1)
-      .toArray();
-
-    */
+    // Reuse 
     let companiesMDB = await CompanyStorage.getCompanies(tenantID, {search: id, withSites: false}, 1);
 
     let company: Company = null;
@@ -80,7 +37,7 @@ export default class CompanyStorage {
     await Utils.checkTenant(tenantID);
     
     const mongoCompany: any = {};
-    const newId: string = companyToSave.id.length==0 ? new ObjectID().toHexString() : companyToSave.id;
+    const newId: string = companyToSave.id.length === 0 ? new ObjectID().toHexString() : companyToSave.id;
     mongoCompany._id = Utils.convertToObjectID(newId);
     mongoCompany.createdBy = Utils.convertToObjectID(companyToSave.createdBy.id);
     mongoCompany.createdOn = companyToSave.createdOn;
@@ -99,11 +56,14 @@ export default class CompanyStorage {
       { $set: mongoCompany},
       { upsert: true });
 
-    if(! result.ok) {
-      throw new BackendError('CompanyStorage#saveCompany', 'Couldn\'t update company');
+    if(!result.ok) {
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        `Couldn't update company`,
+        'CompanyStorage', 'saveCompany');
     }
 
-    //Save Logo
+    // Save Logo
     if(saveLogo) {
       CompanyStorage._saveCompanyLogo(tenantID, newId, companyToSave.logo);
     }
@@ -195,10 +155,9 @@ export default class CompanyStorage {
         result: []
       };
     }
+   
 
-    
-
-    //Site lookup TODO: modify if sites get typed as well
+    // Site lookup TODO: modify if sites get typed as well
     if (params.withSites) {
       // Add Sites
       aggregation.push({
@@ -275,7 +234,6 @@ export default class CompanyStorage {
     };
   }
 
-  //TODO: Wrap each database call in an if statement to check if result is "ok", otherwise throw error
   public static async deleteCompany(tenantID: string, id: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'deleteCompany');
@@ -283,11 +241,11 @@ export default class CompanyStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
 
-    //Delete sites assocatied with company
+    // Delete sites associated with Company
     SiteStorage.deleteCompanySites(tenantID, id);
 
     // Delete the Company
-    let t = await global.database.getCollection<Company>(tenantID, 'companies')
+    await global.database.getCollection<Company>(tenantID, 'companies')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
 
     // Delete Logo
