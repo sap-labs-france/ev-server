@@ -15,6 +15,7 @@ import TSGlobal from '../../types/GlobalType';
 declare const global: TSGlobal;
 
 export default class SiteStorage {
+
   static async getSite(tenantID, id) {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getSite');
@@ -408,7 +409,7 @@ export default class SiteStorage {
     };
   }
 
-  static async deleteSite(tenantID, id) {
+  public static async deleteSite(tenantID, id) {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'deleteSite');
     // Check Tenant
@@ -431,6 +432,27 @@ export default class SiteStorage {
       .deleteMany({ 'siteID': Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd('SiteStorage', 'deleteSite', uniqueTimerID, { id });
+  }
+
+  public static async deleteCompanySites(tenantID: string, companyID: string) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('SiteStorage', 'deleteCompanySites');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+
+    //Get sites to fetch IDs in order to delete site areas
+    const sites: string[] = (await global.database.getCollection<any>(tenantID, 'sites')
+      .find({ companyID: new ObjectID(companyID) }).project({_id: 1}).toArray()).map(site => site._id.toHexString());
+    
+    //Delete site areas
+    SiteAreaStorage.deleteSiteAreasFromSites(tenantID, sites);
+    
+    //Delete sites
+    let result = await global.database.getCollection<any>(tenantID, 'sites')
+      .deleteMany({ companyID: new ObjectID(companyID) });
+
+    // Debug
+    Logging.traceEnd('SiteStorage', 'deleteCompanySites', uniqueTimerID, { companyID });
   }
 
 }

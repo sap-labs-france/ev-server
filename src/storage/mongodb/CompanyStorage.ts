@@ -1,8 +1,6 @@
-import Site from '../../entity/Site';  
 import Company from '../../types/Company';
 import { ObjectID } from 'mongodb';
 import Constants from '../../utils/Constants';
-import Database from '../../utils/Database';
 import Utils from '../../utils/Utils';
 import SiteStorage from './SiteStorage';
 import BackendError from '../../exception/BackendError';
@@ -85,23 +83,23 @@ export default class CompanyStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     
-    const set: any = {};
-    set._id = new ObjectID(companyToSave.id==="-1"?new ObjectID().toHexString():companyToSave.id);
-    set.createdBy = new ObjectID(companyToSave.createdBy.id);
-    set.createdOn = companyToSave.createdOn;
+    const mongoCompany: any = {};
+    mongoCompany._id = companyToSave.id==="-1"?new ObjectID().toHexString():Utils.convertToObjectID(companyToSave.id);
+    mongoCompany.createdBy = new ObjectID(companyToSave.createdBy.id);
+    mongoCompany.createdOn = companyToSave.createdOn;
     if(companyToSave.lastChangedBy) {
-      set.lastChangedBy = new ObjectID(companyToSave.lastChangedBy.id);
+      mongoCompany.lastChangedBy = new ObjectID(companyToSave.lastChangedBy.id);
     }
     if(companyToSave.lastChangedOn) {
-      set.lastChangedOn = companyToSave.lastChangedOn;
+      mongoCompany.lastChangedOn = companyToSave.lastChangedOn;
     }
-    set.address = companyToSave.address;
-    set.name = companyToSave.name;
+    mongoCompany.address = companyToSave.address;
+    mongoCompany.name = companyToSave.name;
 
     // Modify
     const result = await global.database.getCollection<Company>(tenantID, 'companies').findOneAndUpdate(
       { _id: new ObjectID(companyToSave.id) },
-      { $set: set},
+      { $set: mongoCompany},
       { upsert: true });
 
     if(! result.ok) {
@@ -116,8 +114,6 @@ export default class CompanyStorage {
     // Debug
     Logging.traceEnd('CompanyStorage', 'saveCompany', uniqueTimerID, { companyToSave });
   }
-
-  //TODO: Every save method ever always uses checkTenant, which is yet another call to the DB. Seems cumbersome?
 
   private static async _saveCompanyLogo(tenantID: string, companyId: string, companyLogoToSave: string): Promise<void> {
     // Debug
@@ -258,11 +254,11 @@ export default class CompanyStorage {
     }
     // Limit
     aggregation.push({
-      $limit: limit&&limit>0&&limit<Constants.MAX_DB_RECORD_COUNT?limit:Constants.MAX_DB_RECORD_COUNT
+      $limit: ( limit && limit > 0 && limit < Constants.MAX_DB_RECORD_COUNT ) ? limit : Constants.MAX_DB_RECORD_COUNT
     });
 
     // Read DB
-    const companiesMDB = await global.database.getCollection<Company>(tenantID, 'companies')
+    const companies = await global.database.getCollection<Company>(tenantID, 'companies')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
 
@@ -273,10 +269,11 @@ export default class CompanyStorage {
     return {
       count: (companiesCountMDB.length > 0 ?
         (companiesCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : companiesCountMDB[0].count) : 0),
-      result: companiesMDB
+      result: companies
     };
   }
 
+  //TODO: Wrap each database call in an if statement to check if result is "ok", otherwise throw error
   public static async deleteCompany(tenantID: string, id: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'deleteCompany');
@@ -284,24 +281,15 @@ export default class CompanyStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
 
-    //Get sites to fetch IDs in order to delete site areas
-    const sites = (await global.database.getCollection<any>(tenantID, 'sites')
-      .find({ companyID: new ObjectID(id) }).project({_id: 1}).toArray()).map(site => site._id);
-    
-    //Delete sites
-    await global.database.getCollection<any>(tenantID, 'sites')
-      .deleteMany({ companyID: new ObjectID(id) });
-
-    //Delete site areas
-    await global.database.getCollection<any>(tenantID, 'siteareas')
-      .deleteMany({ siteID: { $in: sites } });
+    //Delete sites assocatied with company
+    SiteStorage.deleteCompanySites(tenantID, id);
 
     // Delete the Company
     await global.database.getCollection<Company>(tenantID, 'companies')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
 
     // Delete Logo
-    await global.database.getCollection<any>(tenantID, 'companylogos') //TODO: Add generic typing
+    await global.database.getCollection<any>(tenantID, 'companylogos')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
 
     // Debug

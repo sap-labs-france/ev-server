@@ -357,20 +357,54 @@ export default class SiteAreaStorage {
   static async deleteSiteArea(tenantID, id) {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'deleteSiteArea');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Remove Charging Station's Site Area
-    await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany(
-      { siteAreaID: Utils.convertToObjectID(id) },
-      { $set: { siteAreaID: null } },
-      { upsert: false });
-    // Delete Site
-    await global.database.getCollection<any>(tenantID, 'siteareas')
-      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
-    // Delete Image
-    await global.database.getCollection<any>(tenantID, 'sitesareaimages')
-      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
+    
+    //Delete singular site area
+    SiteAreaStorage.deleteSiteAreas(tenantID, [id]);
+
     // Debug
     Logging.traceEnd('SiteAreaStorage', 'deleteSiteArea', uniqueTimerID, { id });
+  }
+
+  public static async deleteSiteAreas(tenantID: string, siteAreaIDs: string[]) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'deleteSiteAreas');
+
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+
+    // Remove Charging Station's Site Area
+    await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany(
+      { siteAreaID: { $in: siteAreaIDs.map(ID => Utils.convertToObjectID(ID)) } },
+      { $set: { siteAreaID: null } },
+      { upsert: false });
+
+    // Delete SiteArea
+    await global.database.getCollection<any>(tenantID, 'siteareas')
+      .deleteMany({ '_id': { $in: siteAreaIDs.map(ID => Utils.convertToObjectID(ID)) } });
+
+    // Delete Image
+    await global.database.getCollection<any>(tenantID, 'sitesareaimages')
+      .deleteMany({ '_id': { $in: siteAreaIDs.map(ID => Utils.convertToObjectID(ID)) } });
+
+    // Debug
+    Logging.traceEnd('SiteAreaStorage', 'deleteSiteAreas', uniqueTimerID, { siteAreaIDs });
+  }
+
+  public static async deleteSiteAreasFromSites(tenantID: string, siteIDs: string[]) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'deleteSiteAreasFromSites');
+    
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+
+    //Find site areas to delete
+    const siteareas: string[] = (await global.database.getCollection<any>(tenantID, 'siteareas')
+      .find({ siteID: { $in: siteIDs } }).project({_id: 1}).toArray()).map(idWrapper => idWrapper._id.toHexString());
+
+    //Delete site areas
+    const result = await SiteAreaStorage.deleteSiteAreas(tenantID, siteareas);
+    
+    // Debug
+    Logging.traceEnd('SiteAreaStorage', 'deleteSiteAreasFromSites', uniqueTimerID, { siteIDs });
   }
 }
