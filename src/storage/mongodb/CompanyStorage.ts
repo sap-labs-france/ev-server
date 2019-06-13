@@ -83,7 +83,7 @@ export default class CompanyStorage {
 
     // Modify
     await global.database.getCollection<any>(tenantID, 'companylogos').findOneAndUpdate(
-      { '_id': new ObjectID(companyId) },
+      { '_id': Utils.convertToObjectID(companyId) },
       { $set: { logo: companyLogoToSave } },
       { upsert: true });
 

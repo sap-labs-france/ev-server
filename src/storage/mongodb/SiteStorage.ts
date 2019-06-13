@@ -361,24 +361,21 @@ export default class SiteStorage {
           for (const chargeBox of siteMDB.chargeBoxes) {
             // Check not deleted
             if (chargeBox.deleted) {
-              // Forget
               continue;
             }
             totalChargers++;
             // Handle Connectors
             for (const connector of chargeBox.connectors) {
               totalConnectors++;
-              // Check if Available
+              // Check Available
               if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
-                // Add
                 availableConnectors++;
               }
             }
             // Handle Chargers
             for (const connector of chargeBox.connectors) {
-              // Check if Available
+              // Check Available
               if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
-                // Add
                 availableChargers++;
                 break;
               }
@@ -440,19 +437,21 @@ export default class SiteStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
 
-    //Get sites to fetch IDs in order to delete site areas
-    const sites: string[] = (await global.database.getCollection<any>(tenantID, 'sites')
-      .find({ companyID: new ObjectID(companyID) }).project({_id: 1}).toArray()).map(site => site._id.toHexString());
+    // Get sites to fetch IDs in order to delete site areas
+    const siteIDs: string[] = (await global.database.getCollection<any>(tenantID, 'sites')
+      .find({ companyID: Utils.convertToObjectID(companyID) })
+      .project({_id: 1})
+      .toArray())
+      .map(site => site._id.toHexString());
     
-    //Delete site areas
-    SiteAreaStorage.deleteSiteAreasFromSites(tenantID, sites);
+    // Delete site areas
+    SiteAreaStorage.deleteSiteAreasFromSites(tenantID, siteIDs);
     
-    //Delete sites
+    // Delete sites
     await global.database.getCollection<any>(tenantID, 'sites')
-      .deleteMany({ companyID: new ObjectID(companyID) });
+      .deleteMany({ companyID: Utils.convertToObjectID(companyID) });
 
     // Debug
     Logging.traceEnd('SiteStorage', 'deleteCompanySites', uniqueTimerID, { companyID });
   }
-
 }
