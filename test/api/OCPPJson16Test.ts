@@ -8,8 +8,8 @@ import CentralServerService from './client/CentralServerService';
 import config from '../config';
 
 class TestData {
-  public ocpp: any;
-  public ocppCommonTests: any;
+  public ocpp: OCPPJsonService16;
+  public ocppCommonTests: OCPPCommonTests;
 }
 
 const testData: TestData = new TestData();

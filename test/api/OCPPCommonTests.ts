@@ -65,7 +65,6 @@ export default class OCPPCommonTests {
     this.transactionStartUser = this.context.newUser;
     this.transactionStopUser = this.context.newUser;
     this.transactionStartMeterValue = 0;
-    this.transactionStartSoC = 0;
     this.transactionMeterValues = Array.from({length: 12}, () => faker.random.number({
       min: 200,
       max: 500
@@ -74,8 +73,9 @@ export default class OCPPCommonTests {
       min: 0,
       max: 90
     })).concat([98, 99, 100, 100]).sort((a, b) => (a - b));
+    this.transactionStartSoC = this.transactionMeterSoCValues[0];
     this.transactionMeterValueIntervalSecs = 60;
-    this.transactionStartTime = moment().subtract(this.transactionMeterValues.length * this.transactionMeterValueIntervalSecs, "seconds");
+    this.transactionStartTime = moment().subtract(this.transactionMeterValues.length * this.transactionMeterValueIntervalSecs + 1, "seconds");
     this.transactionTotalConsumption = this.transactionMeterValues.reduce((sum, meterValue) => sum + meterValue);
     this.transactionEndMeterValue = this.transactionStartMeterValue + this.transactionTotalConsumption;
     this.transactionEndSoC = 100;
@@ -180,7 +180,7 @@ export default class OCPPCommonTests {
 
   public async testStartTransaction(withSoC = false) {
     // Start a new Transaction
-    this.newTransaction = await CentralServerService.DefaultInstance.transactionApi.startTransaction(
+    const response = await CentralServerService.DefaultInstance.transactionApi.startTransaction(
       this.ocpp,
       this.context.newChargingStation,
       this.chargingStationConnector1,
@@ -188,6 +188,7 @@ export default class OCPPCommonTests {
       this.transactionStartMeterValue,
       this.transactionStartTime,
       withSoC);
+    this.newTransaction = (await CentralServerService.DefaultInstance.transactionApi.readById(response.data.transactionId)).data;
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
   }
@@ -202,7 +203,7 @@ export default class OCPPCommonTests {
     this.newTransaction = null;
 
     // Start the Transaction
-    this.newTransaction = await CentralServerService.DefaultInstance.transactionApi.startTransaction(
+    const response = await CentralServerService.DefaultInstance.transactionApi.startTransaction(
       this.ocpp,
       this.context.newChargingStation,
       this.chargingStationConnector1,
@@ -210,6 +211,9 @@ export default class OCPPCommonTests {
       this.transactionStartMeterValue,
       this.transactionStartTime,
       withSoC);
+
+    // Check if the Transaction exists
+    this.newTransaction = (await CentralServerService.DefaultInstance.transactionApi.readById(response.data.transactionId)).data;
     // Check
     expect(this.newTransaction).to.not.be.null;
     expect(this.newTransaction.id).to.not.equal(transactionId);
@@ -332,29 +336,29 @@ export default class OCPPCommonTests {
     });
     // Init
     const transactionCurrentTime = moment(this.newTransaction.timestamp);
-    let transactionCumulatedConsumption = 0;
+    let transactionCumulatedConsumption = this.transactionStartMeterValue;
     // Check Consumption
     for (let i = 0; i < response.data.values.length; i++) {
       // Get the value
       const value = response.data.values[i];
-      // Add time
-      transactionCurrentTime.add(this.transactionMeterValueIntervalSecs, "s");
-      // Sum
-      transactionCumulatedConsumption += this.transactionMeterValues[i];
       // Check
       expect(value).to.include({
         "chargeBoxID": this.newTransaction.chargeBoxID,
         "connectorId": this.newTransaction.connectorId,
         "date": transactionCurrentTime.toISOString(),
-        "value": this.transactionMeterValues[i] * this.transactionMeterValueIntervalSecs,
+        "value": ( i > 0 ? this.transactionMeterValues[i - 1] * this.transactionMeterValueIntervalSecs : this.transactionStartMeterValue),
         "cumulated": transactionCumulatedConsumption
       });
       if (withSoC) {
         // Check
         expect(value).to.include({
-          "stateOfCharge": this.transactionMeterSoCValues[i]
+          "stateOfCharge": (i > 0 ? this.transactionMeterSoCValues[i - 1] : this.transactionStartSoC)
         });
       }
+      // Add time
+      transactionCurrentTime.add(this.transactionMeterValueIntervalSecs, "s");
+      // Sum
+      transactionCumulatedConsumption += this.transactionMeterValues[i];
     }
   }
 
@@ -362,7 +366,7 @@ export default class OCPPCommonTests {
     // Delete the created entity
     await CentralServerService.DefaultInstance.deleteEntity(
       CentralServerService.DefaultInstance.transactionApi, this.newTransaction);
-    this.newTransaction = null; 
+    this.newTransaction = null;
   }
 
   public async testConnectorStatusToStopTransaction() {
@@ -371,7 +375,7 @@ export default class OCPPCommonTests {
     expect(this.chargingStationConnector1.status).to.eql('Available');
 
     // Start a new Transaction
-    this.newTransaction = await CentralServerService.DefaultInstance.transactionApi.startTransaction(
+    const response = await CentralServerService.DefaultInstance.transactionApi.startTransaction(
       this.ocpp,
       this.context.newChargingStation,
       this.chargingStationConnector1,
@@ -380,15 +384,17 @@ export default class OCPPCommonTests {
       this.transactionStartTime,
       false);
     // Check on Transaction
+    expect(response).to.not.be.null;
+    this.newTransaction = (await CentralServerService.DefaultInstance.transactionApi.readById(response.data.transactionId)).data;
     expect(this.newTransaction).to.not.be.null;
 
     this.chargingStationConnector1.status = 'Available';
     this.chargingStationConnector1.errorCode = 'NoError';
     this.chargingStationConnector1.timestamp = new Date().toISOString();
     // Update Status of Connector 1
-    let response = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, this.chargingStationConnector1);
+    let responseStatusNotification = await this.ocpp.executeStatusNotification(this.context.newChargingStation.id, this.chargingStationConnector1);
     // Check
-    expect(response.data).to.eql({});
+    expect(responseStatusNotification.data).to.eql({});
     // Check Connector 1
     await CentralServerService.DefaultInstance.chargingStationApi.checkConnector(
       this.context.newChargingStation, 1, this.chargingStationConnector1);

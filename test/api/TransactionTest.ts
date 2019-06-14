@@ -430,7 +430,7 @@ describe('Transaction tests', function() {
         TransactionId: transactionId,
         StartDateTime: startDate.clone().subtract(1, "hour").toISOString()
       });
-      expect(response.data.values).has.lengthOf(2);
+      expect(response.data.values).has.lengthOf(3);
       expect(response.data).to.containSubset({
         id: transactionId,
         values: [
@@ -485,7 +485,7 @@ describe('Transaction tests', function() {
         StartDateTime: startDate.clone().subtract(1, "hour").toISOString(),
         EndDateTime: startDate.clone().add(1, "hour").toISOString()
       });
-      expect(response.data.values).has.lengthOf(1);
+      expect(response.data.values).has.lengthOf(2);
       expect(response.data).to.containSubset({
         id: transactionId,
         values: [
@@ -502,7 +502,7 @@ describe('Transaction tests', function() {
         StartDateTime: startDate.clone().subtract(1, "hour").toISOString(),
         EndDateTime: startDate.clone().add(1.5, "hour").toISOString()
       });
-      expect(response.data.values).has.lengthOf(1);
+      expect(response.data.values).has.lengthOf(2);
       expect(response.data).to.containSubset({
         id: transactionId,
         values: [
@@ -519,7 +519,7 @@ describe('Transaction tests', function() {
         StartDateTime: startDate.clone().subtract(1, "hour").toISOString(),
         EndDateTime: startDate.clone().add(3, "hour").toISOString()
       });
-      expect(response.data.values).has.lengthOf(2);
+      expect(response.data.values).has.lengthOf(3);
       expect(response.data).to.containSubset({
         id: transactionId,
         values: [
@@ -541,7 +541,7 @@ describe('Transaction tests', function() {
         StartDateTime: startDate.clone().add(1, "hour").toISOString(),
         EndDateTime: startDate.clone().add(2, "hour").toISOString()
       });
-      expect(response.data.values).has.lengthOf(2);
+      expect(response.data.values).has.lengthOf(3);
       expect(response.data).to.containSubset({
         id: transactionId,
         values: [
@@ -563,7 +563,7 @@ describe('Transaction tests', function() {
         StartDateTime: startDate.clone().add(1.5, "hour").toISOString(),
         EndDateTime: startDate.clone().add(2, "hour").toISOString()
       });
-      expect(response.data.values).has.lengthOf(1);
+      expect(response.data.values).has.lengthOf(2);
       expect(response.data).to.containSubset({
         id: transactionId,
         values: [
@@ -580,7 +580,7 @@ describe('Transaction tests', function() {
         StartDateTime: startDate.clone().add(2, "hour").toISOString(),
         EndDateTime: startDate.clone().add(3, "hour").toISOString()
       });
-      expect(response.data.values).has.lengthOf(1);
+      expect(response.data.values).has.lengthOf(2);
       expect(response.data).to.containSubset({
         id: transactionId,
         values: [
@@ -617,7 +617,7 @@ describe('Transaction tests', function() {
         TransactionId: transactionId,
         EndDateTime: startDate.clone().add(1, "hour").toISOString()
       });
-      expect(response.data.values).has.lengthOf(1);
+      expect(response.data.values).has.lengthOf(2);
       expect(response.data).to.containSubset({
         id: transactionId,
         values: [
@@ -632,7 +632,7 @@ describe('Transaction tests', function() {
         TransactionId: transactionId,
         EndDateTime: startDate.clone().add(2.5, "hour").toISOString()
       });
-      expect(response.data.values).has.lengthOf(2);
+      expect(response.data.values).has.lengthOf(3);
       expect(response.data).to.containSubset({
         id: transactionId,
         values: [
@@ -652,7 +652,7 @@ describe('Transaction tests', function() {
         TransactionId: transactionId,
         EndDateTime: startDate.clone().add(4, "hour").toISOString()
       });
-      expect(response.data.values).has.lengthOf(2);
+      expect(response.data.values).has.lengthOf(3);
       expect(response.data).to.containSubset({
         id: transactionId,
         values: [

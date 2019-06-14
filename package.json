@@ -125,7 +125,7 @@
     "scripts": {
         "start": "npm run start:prod",
         "prestart": "npm run build:prod",
-        "start:dev": " ts-node-dev --max-old-space-size=4096 -- src/start.ts",
+        "start:dev": "ts-node-dev --max-old-space-size=4096 -- src/start.ts",
         "start:dev:debug": "cross-env NODE_ENV=development ts-node-dev --inspect-brk --max-old-space-size=4096 -- src/start.ts",
         "start:dev:prof": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=development node --prof dist/start.js",
         "start:dev:doctorprof": "cross-env NODE_OPTIONS=\"--max-old-space-size=4096\" NODE_ENV=development clinic doctor -- node dist/start.js",
@@ -155,6 +155,7 @@
         "test:transaction": "mocha -r ts-node/register test/**/TransactionTest.ts --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
         "test:siteorg": "mocha test/**/SiteOrgTest.js --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
         "test:auth": "mocha -r ts-node/register test/**/AuthenticationTest.ts --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
+        "test:ocpp16": "mocha -r ts-node/register test/**/OCPPJson16Test.ts --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
         "test:authentication": "mocha -r ts-node/register test/**/AuthenticationTest.ts --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
         "test:transactionTest": "mocha test/**/TemplateUnitTest.js --exit --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
         "test:company": "mocha -r ts-node/register test/**/CompanyTest.ts --exit --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
