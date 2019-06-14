@@ -19,7 +19,7 @@ export default class OCPIEndpointSecurity {
   }
 
   // eslint-disable-next-line no-unused-vars
-  static filterOcpiEndpointsRequest(request, loggedUser) {
+  public static filterOcpiEndpointsRequest(request, loggedUser) {
     const filteredRequest: any = {};
     filteredRequest.Search = sanitize(request.Search);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
