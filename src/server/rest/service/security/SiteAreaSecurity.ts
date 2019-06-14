@@ -3,53 +3,63 @@ import Authorizations from '../../../../authorization/Authorizations';
 import UtilsSecurity from './UtilsSecurity';
 import ChargingStationSecurity from './ChargingStationSecurity';
 import SiteSecurity from './SiteSecurity';
+import ByID from '../../../../types/requests/ByID';
+import { IncomingSiteAreaSearch, FilteredSiteAreaSearch, IncomingSiteAreasSearch, FilteredSiteAreasSearch } from '../../../../types/requests/SiteAreaSearch';
+import BadRequestError from '../../../../exception/BadRequestError';
 
 export default class SiteAreaSecurity {
 
 
-  // eslint-disable-next-line no-unused-vars
-  static filterSiteAreaDeleteRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    // Set
+  public static filterSiteAreaDeleteRequest(request: ByID): string {
+    return sanitize(request.ID);
+  }
+
+  public static filterSiteAreaRequest(request: IncomingSiteAreaSearch): FilteredSiteAreaSearch {
+    //Throw error if arguments missing
+    if(! request.ID) {
+      throw new BadRequestError({message: 'ID is required for all SiteArea related requests'});
+    }
+
+    //Filter request
+    const filteredRequest: FilteredSiteAreaSearch = {} as FilteredSiteAreaSearch;
     filteredRequest.ID = sanitize(request.ID);
+    filteredRequest.WithChargeBoxes = !request.WithChargeBoxes ? false : sanitize(request.WithChargeBoxes);
+    filteredRequest.WithSite = !request.WithSite ? false : sanitize(request.WithSite);
     return filteredRequest;
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterSiteAreaRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    filteredRequest.ID = sanitize(request.ID);
-    filteredRequest.WithChargeBoxes = sanitize(request.WithChargeBoxes);
-    filteredRequest.WithSite = sanitize(request.WithSite);
-    return filteredRequest;
-  }
+  public static filterSiteAreasRequest(request: IncomingSiteAreasSearch): FilteredSiteAreasSearch {
+    //Throw error if arguments missing
+    if(! request.Search || ! request.SiteID) {
+      throw new BadRequestError({message: 'SiteID and Search are required for all SiteAreas related requests'});
+    }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterSiteAreasRequest(request, loggedUser) {
-    const filteredRequest: any = {};
+    //Filter request
+    const filteredRequest: FilteredSiteAreasSearch = {} as FilteredSiteAreasSearch;
     filteredRequest.Search = sanitize(request.Search);
-    filteredRequest.WithSite = UtilsSecurity.filterBoolean(request.WithSite);
-    filteredRequest.WithChargeBoxes = UtilsSecurity.filterBoolean(request.WithChargeBoxes);
-    filteredRequest.WithAvailableChargers = UtilsSecurity.filterBoolean(request.WithAvailableChargers);
+    filteredRequest.WithSite = !request.WithSite ? false : UtilsSecurity.filterBoolean(request.WithSite);
+    filteredRequest.WithChargeBoxes = !request.WithChargeBoxes ? false : UtilsSecurity.filterBoolean(request.WithChargeBoxes);
+    filteredRequest.WithAvailableChargers = !request.WithAvailableChargers ? false : UtilsSecurity.filterBoolean(request.WithAvailableChargers);
     filteredRequest.SiteID = sanitize(request.SiteID);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
   }
 
-  static filterSiteAreaUpdateRequest(request, loggedUser) {
+
+  static filterSiteAreaUpdateRequest(request:) {
     // Set
-    const filteredRequest = SiteAreaSecurity._filterSiteAreaRequest(request, loggedUser);
+    const filteredRequest = SiteAreaSecurity._filterSiteAreaRequest(request);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  static filterSiteAreaCreateRequest(request, loggedUser) {
-    return SiteAreaSecurity._filterSiteAreaRequest(request, loggedUser);
+  static filterSiteAreaCreateRequest(request) {
+    return SiteAreaSecurity._filterSiteAreaRequest(request);
   }
 
   // eslint-disable-next-line no-unused-vars
-  static _filterSiteAreaRequest(request, loggedUser) {
+  static _filterSiteAreaRequest(request) {
     const filteredRequest: any = {};
     filteredRequest.name = sanitize(request.name);
     filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address, loggedUser);
