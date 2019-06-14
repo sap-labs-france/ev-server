@@ -52,11 +52,11 @@
                     }
               },
               "statistics": {
-                "type": "object",
-                "properties": {
-                    "active": { "type": "boolean" }
-                  }
-            },
+                  "type": "object",
+                  "properties": {
+                      "active": { "type": "boolean" }
+                    }
+              },
               "analytics": {
                   "type": "object",
                   "properties": {
