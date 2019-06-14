@@ -43,8 +43,16 @@ export default class WSServer extends WebSocket.Server {
     if (!this.keepAliveInterval) {
       this.keepAliveInterval = setInterval((): void => {
         this.clients.forEach((ws): boolean => {
-          if (ws.isAlive === false)
+          if (ws.isAlive === false) {
+            // Log
+            Logging.logError({
+              tenantID: Constants.DEFAULT_TENANT,
+              module: MODULE_NAME,
+              method: "constructor",
+              message: `Web Socket on ${ws.url} do not respond to ping, terminating`
+            });
             return ws.terminate();
+          }
           ws.isAlive = false;
           ws.ping((): void => { });
         });
