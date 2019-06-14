@@ -26,7 +26,7 @@ const MODULE_NAME = 'Bootstrap';
 
 export default class Bootstrap {
   private static numWorkers: number;
-  private static isClusterEnable: boolean;
+  private static isClusterEnabled: boolean;
   private static centralSystemRestConfig: any;
   private static centralRestServer: any;
   private static chargingStationConfig: any;
@@ -44,7 +44,7 @@ export default class Bootstrap {
   private static migrationDone: boolean;
 
   private static startServerWorkers(serverName): void {
-    this.numWorkers = Configuration.getClusterConfig().num_worker;
+    this.numWorkers = Configuration.getClusterConfig().numWorkers;
     function onlineCb(worker): void {
       // Log
       const logMsg = `${serverName} server worker ${worker.id} is online`;
@@ -95,7 +95,7 @@ export default class Bootstrap {
 
   private static async startMaster(): Promise<void> {
     try {
-      if (this.isClusterEnable && Utils.isEmptyArray(cluster.workers)) {
+      if (this.isClusterEnabled && Utils.isEmptyArray(cluster.workers)) {
         await Bootstrap.startServerWorkers("Main");
       }
     } catch (error) {
@@ -205,7 +205,7 @@ export default class Bootstrap {
       this.chargingStationConfig = Configuration.getChargingStationConfig();
       this.ocpiConfig = Configuration.getOCPIServiceConfig();
       this.oDataServerConfig = Configuration.getODataServiceConfig();
-      this.isClusterEnable = Configuration.getClusterConfig().enable;
+      this.isClusterEnabled = Configuration.getClusterConfig().enabled;
       // Init global vars
       global.userHashMapIDs = {};
       global.tenantHashMapIDs = {};
@@ -276,7 +276,7 @@ export default class Bootstrap {
         await this.centralRestServer.startSocketIO();
       }
 
-      if (cluster.isMaster && this.isClusterEnable) {
+      if (cluster.isMaster && this.isClusterEnabled) {
         await Bootstrap.startMaster();
       } else {
         await Bootstrap.startServersListening();

@@ -31,20 +31,26 @@ export default class Configuration {
 
   // Cluster config
   static getClusterConfig() {
-    const nb_cpus = os.cpus().length;
+    let clusterConfig = Configuration.getConfig().Cluster;
+    const nbCpus = os.cpus().length;
     // Read conf and set defaults values
-    if (!Configuration.getConfig().Cluster)
-      Configuration.getConfig().Cluster = {};
-    if (!Configuration.getConfig().Cluster.hasOwnProperty('enable'))
-      Configuration.getConfig().Cluster.enable = false;
-    // Running with cluster on one worker is meaningless, default to two workers
-    if (Configuration.getConfig().Cluster.hasOwnProperty('num_worker') && Configuration.getConfig().Cluster.num_worker < 2)
-      Configuration.getConfig().Cluster.num_worker = 2;
-    if (Configuration.getConfig().Cluster.hasOwnProperty('num_worker') && Configuration.getConfig().Cluster.num_worker > nb_cpus)
-      Configuration.getConfig().Cluster.num_worker = nb_cpus;
-    if (!Configuration.getConfig().Cluster.hasOwnProperty('num_worker'))
-      Configuration.getConfig().Cluster.num_worker = nb_cpus;
-    return Configuration.getConfig().Cluster;
+    if (!clusterConfig) {
+      clusterConfig = {};
+    }
+    if (!clusterConfig.hasOwnProperty('enabled')) {
+      clusterConfig.enabled = false;
+    }
+    // Check number of workers
+    if (clusterConfig.hasOwnProperty('numWorkers')) {
+      if (clusterConfig.numWorkers < 2) {
+        clusterConfig.numWorkers = 2;
+      } else if (clusterConfig.numWorkers > nbCpus) {
+        clusterConfig.numWorkers = nbCpus;
+      }
+    } else {
+      clusterConfig.numWorkers = nbCpus;
+    }
+    return clusterConfig;
   }
 
   // Central System config
