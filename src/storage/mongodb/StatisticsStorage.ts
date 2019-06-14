@@ -5,7 +5,7 @@ import Logging from '../../utils/Logging';
 import moment from 'moment';
 import TSGlobal from '../../types/GlobalType';
 
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class StatisticsStorage {
   static async getChargingStationStats(tenantID, filter, groupBy) {
@@ -36,7 +36,7 @@ export default class StatisticsStorage {
       match.siteID = Utils.convertToObjectID(filter.siteID);
     }
     // Filter on Site Area?
-    if (filter.siteAreaID) 
+    if (filter.siteAreaID)
     {
       match.siteAreaID = Utils.convertToObjectID(filter.siteAreaID);
     }
@@ -54,7 +54,7 @@ export default class StatisticsStorage {
     aggregation.push({
       $match: match
     });
-    
+
     // Group
     switch (groupBy) {
       // By Consumption
@@ -82,7 +82,7 @@ export default class StatisticsStorage {
       $sort: { "_id.month": 1, "_id.chargeBox": 1 }
     });
     // Read DB
-    const transactionStatsMDB = await global.database.getCollection(tenantID, 'transactions')
+    const transactionStatsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Set
@@ -141,9 +141,9 @@ export default class StatisticsStorage {
     // Filter on Site?
     if (filter.siteID) {
       match.siteID = Utils.convertToObjectID(filter.siteID);
-    }    
+    }
     // Filter on Site Area?
-    if (filter.siteAreaID) 
+    if (filter.siteAreaID)
     {
       match.siteAreaID = Utils.convertToObjectID(filter.siteAreaID);
     }
@@ -161,7 +161,7 @@ export default class StatisticsStorage {
     aggregation.push({
       $match: match
     });
-    
+
     // Group
     switch (groupBy) {
       // By Consumption
@@ -202,7 +202,7 @@ export default class StatisticsStorage {
       $sort: { "_id.month": 1, "_id.chargeBox": 1 }
     });
     // Read DB
-    const transactionStatsMDB = await global.database.getCollection(tenantID, 'transactions')
+    const transactionStatsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Set
@@ -284,7 +284,7 @@ export default class StatisticsStorage {
       {
         $unwind: '$chargingStation'
       },
-      // Get today active transactions 
+      // Get today active transactions
       {
         "$lookup": {
           from: DatabaseUtils.getCollectionName(tenantID, 'transactions'),
@@ -308,7 +308,7 @@ export default class StatisticsStorage {
           as: 'activeTransactions'
         }
       },
-      // Get today finished transactions 
+      // Get today finished transactions
       {
         "$lookup": {
           from: DatabaseUtils.getCollectionName(tenantID, 'transactions'),
@@ -395,7 +395,7 @@ export default class StatisticsStorage {
             // $cond: {
             //   if: '$chargingStation.cannotChargeInParallel',
             //   then: 1,
-            //   else: { 
+            //   else: {
             $size: '$chargingStation.connectors'
             //   }
             // }
@@ -433,7 +433,7 @@ export default class StatisticsStorage {
           },
         }
       },
-      // Aggregate data for site 
+      // Aggregate data for site
       {
         "$group": {
           _id: {
@@ -531,7 +531,7 @@ export default class StatisticsStorage {
     // Filters
     aggregation.push(match);
     // Read DB
-    const transactionStatsMDB = await global.database.getCollection(tenantID, 'sites')
+    const transactionStatsMDB = await global.database.getCollection<any>(tenantID, 'sites')
       .aggregate(match, { allowDiskUse: true })
       .toArray();
     // Set
@@ -542,7 +542,7 @@ export default class StatisticsStorage {
       let companyStat = null;
       let sites = [];
       for (const transactionStatMDB of transactionStatsMDB) {
-        // Check if we change to another company 
+        // Check if we change to another company
         if (companyStat && companyStat.companyID !== transactionStatMDB.company._id.toString()) {
           companyStat.trends.totalConsumption.avg = companyStat.trends.totalConsumption.avg / sites.length;
           companyStat.trends.duration.avg = companyStat.trends.duration.avg / sites.length;

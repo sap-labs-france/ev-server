@@ -12,7 +12,7 @@ export default class RunLock {
   private _runLock: { name: string; type: string };
   private _onMultipleHosts: boolean;
 
-  constructor(name, onMultipleHosts = true) {
+  public constructor(name, onMultipleHosts = true) {
     this._MODULE_NAME = 'RunLock';
     if (!name) {
       const logMsg = `RunLock must have a unique name`;
@@ -32,12 +32,12 @@ export default class RunLock {
     Database.updateRunLock({ name: name, timestamp: new Date() }, this._runLock, false);
   }
 
-  async acquire() {
+  public async acquire(): Promise<void> {
     if (!await LockingStorage.getLockStatus(this._runLock, this._onMultipleHosts))
       await LockingStorage.saveRunLock(this._runLock);
   }
 
-  async tryAcquire() {
+  public async tryAcquire(): Promise<boolean> {
     if (await LockingStorage.getLockStatus(this._runLock, this._onMultipleHosts)) {
       return false;
     }
@@ -46,11 +46,11 @@ export default class RunLock {
     return true;
   }
 
-  async timedAcquire(duration = 60) { }
+  public async timedAcquire(duration = 60) { }
 
-  async tryTimedAcquire(duration = 60) { }
+  public async tryTimedAcquire(duration = 60) { }
 
-  async release() {
+  public async release(): Promise<void> {
     if (!await LockingStorage.getLockStatus(this._runLock, this._onMultipleHosts)) {
       const logMsg = `RunLock ${this._runLock.name} is not acquired`;
       Logging.logError({

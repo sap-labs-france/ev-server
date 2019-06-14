@@ -5,11 +5,11 @@ import AppAuthError from '../../../exception/AppAuthError';
 import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import Site from '../../../entity/Site';
-import Company from '../../../entity/Company';
 import User from '../../../entity/User';
 import SiteSecurity from './security/SiteSecurity';
 import UtilsService from './UtilsService';
 import OrganizationComponentInactiveError from '../../../exception/OrganizationComponentInactiveError';
+import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
 
 export default class SiteService {
   static async handleAddUsersToSite(action, req, res, next) {
@@ -264,7 +264,7 @@ export default class SiteService {
           `The Site with ID '${filteredRequest.ID}' does not exist anymore`, 550,
           'SiteService', 'handleGetSite', req.user);
       }
-      console.log(site);
+      
       // Return
       res.json(
         // Filter
@@ -400,11 +400,10 @@ export default class SiteService {
       }
       // Filter
       const filteredRequest = SiteSecurity.filterSiteCreateRequest(req.body, req.user);
-      // Check Company
-      const company = await Company.getCompany(req.user.tenantID, filteredRequest.companyID);
       // Check Mandatory fields
       Site.checkIfSiteValid(filteredRequest, req);
-      // Found?
+      // Check Company
+      const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.companyID);
       if (!company) {
         // Not Found!
         throw new AppError(

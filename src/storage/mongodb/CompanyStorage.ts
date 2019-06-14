@@ -1,8 +1,6 @@
-import Site from '../../entity/Site';  
-import Company from '../../entity/Company';
+import Company from '../../types/Company';
 import { ObjectID } from 'mongodb';
 import Constants from '../../utils/Constants';
-import Database from '../../utils/Database';
 import Utils from '../../utils/Utils';
 import SiteStorage from './SiteStorage';
 import BackendError from '../../exception/BackendError';
@@ -10,146 +8,91 @@ import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import TSGlobal from '../../types/GlobalType';
 
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class CompanyStorage {
-  static async getCompany(tenantID, id) {
+
+  public static async getCompany(tenantID: string, id: string): Promise<Company> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompany');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Create Aggregation
-    const aggregation = [];
-    // Filters
-    aggregation.push({
-      $match: { _id: Utils.convertToObjectID(id) }
-    });
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
-    // Read DB
-    const companiesMDB = await global.database.getCollection(tenantID, 'companies')
-      .aggregate(aggregation)
-      .limit(1)
-      .toArray();
-    let company = null;
+
+    // Reuse 
+    let companiesMDB = await CompanyStorage.getCompanies(tenantID, {search: id, withSites: false}, 1);
+
+    let company: Company = null;
     // Check
-    if (companiesMDB && companiesMDB.length > 0) {
+    if (companiesMDB && companiesMDB.count > 0) {
       // Create
-      company = new Company(tenantID, companiesMDB[0]);
+      company = companiesMDB.result[0];
     }
     // Debug
     Logging.traceEnd('CompanyStorage', 'getCompany', uniqueTimerID, { id });
     return company;
   }
 
-  static async getCompanyLogo(tenantID, id) {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompanyLogo');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Read DB
-    const companyLogosMDB = await global.database.getCollection(tenantID, 'companylogos')
-      .find({ _id: Utils.convertToObjectID(id) })
-      .limit(1)
-      .toArray();
-    let companyLogo = null;
-    // Set
-    if (companyLogosMDB && companyLogosMDB.length > 0) {
-      companyLogo = {
-        id: companyLogosMDB[0]._id,
-        logo: companyLogosMDB[0].logo
-      };
-    }
-    // Debug
-    Logging.traceEnd('CompanyStorage', 'getCompanyLogo', uniqueTimerID);
-    return companyLogo;
-  }
-
-  static async getCompanyLogos(tenantID) {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompanyLogos');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Read DB
-    const companyLogosMDB = await global.database.getCollection(tenantID, 'companylogos')
-      .find({})
-      .toArray();
-    // Set
-    const companyLogos = [];
-    if (companyLogosMDB && companyLogosMDB.length > 0) {
-      // Add
-      for (const companyLogoMDB of companyLogosMDB) {
-        companyLogos.push({
-          id: companyLogoMDB._id,
-          logo: companyLogoMDB.logo
-        });
-      }
-    }
-    // Debug
-    Logging.traceEnd('CompanyStorage', 'getCompanyLogos', uniqueTimerID, {});
-    return companyLogos;
-  }
-
-  static async saveCompany(tenantID, companyToSave) {
+  public static async saveCompany(tenantID: string, companyToSave: Company, saveLogo: boolean = true): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'saveCompany');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Check if ID/Name is provided
-    if (!companyToSave.id && !companyToSave.name) {
-      // ID must be provided!
+    
+    const mongoCompany: any = {};
+    const newId: string = companyToSave.id.length === 0 ? new ObjectID().toHexString() : companyToSave.id;
+    mongoCompany._id = Utils.convertToObjectID(newId);
+    mongoCompany.createdBy = Utils.convertToObjectID(companyToSave.createdBy.id);
+    mongoCompany.createdOn = companyToSave.createdOn;
+    if(companyToSave.lastChangedBy) {
+      mongoCompany.lastChangedBy = Utils.convertToObjectID(companyToSave.lastChangedBy.id);
+    }
+    if(companyToSave.lastChangedOn) {
+      mongoCompany.lastChangedOn = companyToSave.lastChangedOn;
+    }
+    mongoCompany.address = companyToSave.address;
+    mongoCompany.name = companyToSave.name;
+
+    // Modify
+    const result = await global.database.getCollection<Company>(tenantID, 'companies').findOneAndUpdate(
+      { _id: mongoCompany._id },
+      { $set: mongoCompany},
+      { upsert: true });
+
+    if(!result.ok) {
       throw new BackendError(
         Constants.CENTRAL_SERVER,
-        `Company has no ID and no Name`,
-        "CompanyStorage", "saveCompany");
+        `Couldn't update company`,
+        'CompanyStorage', 'saveCompany');
     }
-    const companyFilter: any = {};
-    // Build Request
-    if (companyToSave.id) {
-      companyFilter._id = Utils.convertToObjectID(companyToSave.id);
-    } else {
-      companyFilter._id = new ObjectID();
+
+    // Save Logo
+    if(saveLogo) {
+      CompanyStorage._saveCompanyLogo(tenantID, newId, companyToSave.logo);
     }
-    // Check Created By/On
-    companyToSave.createdBy = Utils.convertUserToObjectID(companyToSave.createdBy);
-    companyToSave.lastChangedBy = Utils.convertUserToObjectID(companyToSave.lastChangedBy);
-    // Transfer
-    const company: any = {};
-    Database.updateCompany(companyToSave, company, false);
-    // Modify
-    const result = await global.database.getCollection(tenantID, 'companies').findOneAndUpdate(
-      companyFilter,
-      { $set: company },
-      { upsert: true, returnOriginal: false });
+
     // Debug
     Logging.traceEnd('CompanyStorage', 'saveCompany', uniqueTimerID, { companyToSave });
-    return new Company(tenantID, result.value);
+
+    return newId;
   }
 
-  static async saveCompanyLogo(tenantID, companyLogoToSave) {
+  private static async _saveCompanyLogo(tenantID: string, companyId: string, companyLogoToSave: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'saveCompanyLogo');
+
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Check if ID is provided
-    if (!companyLogoToSave.id) {
-      // ID must be provided!
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        `Company Logo has no ID`,
-        "CompanyStorage", "saveCompanyLogo");
-    }
+
     // Modify
-    await global.database.getCollection(tenantID, 'companylogos').findOneAndUpdate(
-      { '_id': Utils.convertToObjectID(companyLogoToSave.id) },
-      { $set: { logo: companyLogoToSave.logo } },
-      { upsert: true, returnOriginal: false });
+    await global.database.getCollection<any>(tenantID, 'companylogos').findOneAndUpdate(
+      { '_id': Utils.convertToObjectID(companyId) },
+      { $set: { logo: companyLogoToSave } },
+      { upsert: true });
+
     // Debug
     Logging.traceEnd('CompanyStorage', 'saveCompanyLogo', uniqueTimerID, {});
   }
 
   // Delegate
-  static async getCompanies(tenantID, params: any = {}, limit, skip, sort) {
+  public static async getCompanies(tenantID: string, params: {search?: string, companyIDs?: string[], onlyRecordCount?: boolean, withSites?:boolean}={}, limit?: number, skip?: number, sort?: boolean): Promise<{count: number, result: Company[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompanies');
     // Check Tenant
@@ -159,9 +102,10 @@ export default class CompanyStorage {
     // Check Skip
     skip = Utils.checkRecordSkip(skip);
     // Set the filters
-    const filters: any = {};
+    let filters: ({_id?:string, $or?:any[]}|undefined);
     // Build filter
     if (params.search) {
+      filters = {};
       // Valid ID?
       if (ObjectID.isValid(params.search)) {
         filters._id = Utils.convertToObjectID(params.search);
@@ -175,6 +119,7 @@ export default class CompanyStorage {
     }
     // Create Aggregation
     const aggregation = [];
+
     // Limit on Company for Basic Users
     if (params.companyIDs && params.companyIDs.length > 0) {
       // Build filter
@@ -184,12 +129,35 @@ export default class CompanyStorage {
         }
       });
     }
+
     // Filters
     if (filters) {
       aggregation.push({
         $match: filters
       });
     }
+
+    // Limit records?
+    if (!params.onlyRecordCount) {
+      // Always limit the nbr of record to avoid perfs issues
+      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+    }
+
+    // Count Records
+    const companiesCountMDB = await global.database.getCollection<{count: number}>(tenantID, 'companies')
+      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
+      .toArray();
+    // Check if only the total count is requested
+    if (params.onlyRecordCount) {
+      // Return only the count
+      return {
+        count: (companiesCountMDB.length > 0 ? companiesCountMDB[0].count : 0),
+        result: []
+      };
+    }
+   
+
+    // Site lookup TODO: modify if sites get typed as well
     if (params.withSites) {
       // Add Sites
       aggregation.push({
@@ -201,38 +169,34 @@ export default class CompanyStorage {
         }
       });
     }
-    if (params.withLogo) {
-      // Add Logo
-      aggregation.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, "companylogos"),
-          localField: "_id",
-          foreignField: "_id",
-          as: "companylogos"
-        }
-      });
-    }
-    // Limit records?
-    if (!params.onlyRecordCount) {
-      // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
-    }
-    // Count Records
-    const companiesCountMDB = await global.database.getCollection(tenantID, 'companies')
-      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
-      .toArray();
-    // Check if only the total count is requested
-    if (params.onlyRecordCount) {
-      // Return only the count
-      return {
-        count: (companiesCountMDB.length > 0 ? companiesCountMDB[0].count : 0),
-        result: []
-      };
-    }
-    // Remove the limit
-    aggregation.pop();
+
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
+
+    //Add company logo
+    aggregation.push({$lookup: {
+        from: tenantID + '.companylogos',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'logo'}
+      },
+      {$unwind: {
+        'path': '$logo',
+        'preserveNullAndEmptyArrays': true}
+      },
+      {$project: {
+        logo: '$logo.logo', 
+        id:{$toString: '$_id'}, 
+        _id: 0, 
+        createdBy: 1, 
+        createdOn: 1, 
+        lastChangedBy: 1, 
+        lastChangedOn: 1, 
+        name: 1, 
+        address: 1}
+      }
+    );
+
     // Sort
     if (sort) {
       // Sort
@@ -246,39 +210,22 @@ export default class CompanyStorage {
       });
     }
     // Skip
-    aggregation.push({
-      $skip: skip
-    });
+    if(skip > 0){
+      aggregation.push( { $skip: skip } );
+    }
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: ( limit > 0 && limit < Constants.MAX_DB_RECORD_COUNT ) ? limit : Constants.MAX_DB_RECORD_COUNT
     });
+
     // Read DB
-    const companiesMDB = await global.database.getCollection(tenantID, 'companies')
+    const companies = await global.database.getCollection<Company>(tenantID, 'companies')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
-    const companies = [];
-    // Check
-    if (companiesMDB && companiesMDB.length > 0) {
-      for (const companyMDB of companiesMDB) {
-        // Create
-        const company = new Company(tenantID, companyMDB);
-        // Set site
-        if (params.withSites && companyMDB.sites) {
-          company.setSites(companyMDB.sites.map((site) => {
-            return new Site(tenantID, site);
-          }));
-        }
-        // Set logo
-        if (companyMDB.companylogos && companyMDB.companylogos[0]) {
-          company.setLogo(companyMDB.companylogos[0].logo);
-        }
-        // Add
-        companies.push(company);
-      }
-    }
+
     // Debug
     Logging.traceEnd('CompanyStorage', 'getCompanies', uniqueTimerID, { params, limit, skip, sort });
+    
     // Ok
     return {
       count: (companiesCountMDB.length > 0 ?
@@ -287,24 +234,24 @@ export default class CompanyStorage {
     };
   }
 
-  static async deleteCompany(tenantID, id) {
+  public static async deleteCompany(tenantID: string, id: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'deleteCompany');
+
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Delete Sites
-    const sites = await SiteStorage.getSites(tenantID, { 'companyID': id });
-    // Delete
-    for (const site of sites.result) {
-      //	Delete Site
-      await site.delete();
-    }
+
+    // Delete sites associated with Company
+    SiteStorage.deleteCompanySites(tenantID, id);
+
     // Delete the Company
-    await global.database.getCollection(tenantID, 'companies')
+    await global.database.getCollection<Company>(tenantID, 'companies')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
+
     // Delete Logo
-    await global.database.getCollection(tenantID, 'companylogos')
+    await global.database.getCollection<any>(tenantID, 'companylogos')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
+
     // Debug
     Logging.traceEnd('CompanyStorage', 'deleteCompany', uniqueTimerID, { id });
   }

@@ -6,7 +6,7 @@ import Logging from '../../utils/Logging';
 import Constants from '../../utils/Constants';
 import MigrationTask from '../MigrationTask';
 import TSGlobal from '../../types/GlobalType';
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 
 export default class CleanupTransactionTask extends MigrationTask {
@@ -57,7 +57,7 @@ export default class CleanupTransactionTask extends MigrationTask {
       }
     });
     // Read all transactions
-    const transactionsMDB = await global.database.getCollection(tenant.getID(), 'transactions')
+    const transactionsMDB = await global.database.getCollection<any>(tenant.getID(), 'transactions')
       .aggregate(aggregation).toArray();
     // Delete
     for (const transactionMDB of transactionsMDB) {

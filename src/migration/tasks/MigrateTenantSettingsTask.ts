@@ -1,6 +1,6 @@
 import MigrationTask from '../MigrationTask';
 import Global from '../../types/GlobalType';
-declare var global: Global;
+declare const global: Global;
 
 export default class MigrateTenantSettingsTask extends MigrationTask {
 
@@ -8,7 +8,7 @@ export default class MigrateTenantSettingsTask extends MigrationTask {
     // Migrate Default Tenant's components
 
     // TODO: add types to specific mongo collections to get rid of all any types
-    const tenantsMDB = await global.database.getCollection(
+    const tenantsMDB = await global.database.getCollection<any>(
       'default', 'tenants').aggregate([]).toArray();
     for (const tenantMDB of tenantsMDB) {
       let changed = false;
@@ -35,7 +35,7 @@ export default class MigrateTenantSettingsTask extends MigrationTask {
         // Changed
         if (changed) {
           // Save it
-          await global.database.getCollection('default', 'tenants').findOneAndUpdate({
+          await global.database.getCollection<any>('default', 'tenants').findOneAndUpdate({
             "_id": tenantMDB._id
           }, {
             $set: tenantMDB
@@ -43,10 +43,10 @@ export default class MigrateTenantSettingsTask extends MigrationTask {
         }
       }
       // Delete unused settings
-      await global.database.getCollection(
+      await global.database.getCollection<any>(
         tenantMDB._id, 'settings').deleteOne({ identifier: 'chargeathome' });
       // Update Tenant's settings
-      const tenantSettingsMDB = await global.database.getCollection(
+      const tenantSettingsMDB = await global.database.getCollection<any>(
         tenantMDB._id, 'settings').aggregate([]).toArray();
       for (const tenantSettingMDB of tenantSettingsMDB) {
         let settingsChanged = false;
@@ -93,7 +93,7 @@ export default class MigrateTenantSettingsTask extends MigrationTask {
         }
         if (settingsChanged) {
           // Save it
-          await global.database.getCollection(tenantMDB._id, 'settings').findOneAndUpdate({
+          await global.database.getCollection<any>(tenantMDB._id, 'settings').findOneAndUpdate({
             "_id": tenantSettingMDB._id
           }, {
             $set: tenantSettingMDB
@@ -102,7 +102,7 @@ export default class MigrateTenantSettingsTask extends MigrationTask {
       }
       // Rename 'sac' to 'analytics'
       // Delete unused settings
-      await global.database.getCollection(tenantMDB._id, 'settings').findOneAndUpdate(
+      await global.database.getCollection<any>(tenantMDB._id, 'settings').findOneAndUpdate(
         { identifier: 'sac' },
         { $set: { identifier: 'analytics' } }
       );

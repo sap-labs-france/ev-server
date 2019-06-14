@@ -7,7 +7,7 @@ import MigrationTask from '../MigrationTask';
 import TSGlobal from '../../types/GlobalType';
 import Transaction from '../../entity/Transaction';
 import { deprecate } from 'util';
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class UpdateTransactionInactivityTask extends MigrationTask {
   async migrate() {
@@ -20,7 +20,7 @@ export default class UpdateTransactionInactivityTask extends MigrationTask {
 
   /**
    * @deprecated
-   * @param tenant 
+   * @param tenant
    */
   async migrateTenant(tenant) {
     /*// Create Aggregation
@@ -54,7 +54,7 @@ export default class UpdateTransactionInactivityTask extends MigrationTask {
       $sort: {timestamp: -1}
     });
     // Read DB
-    const transactionsMDB = await global.database.getCollection(tenant.getID(), 'transactions')
+    const transactionsMDB = await global.database.getCollection<any>(tenant.getID(), 'transactions')
       .aggregate(aggregation)
       .toArray();
     // Process each transaction
@@ -87,11 +87,11 @@ export default class UpdateTransactionInactivityTask extends MigrationTask {
         }
       }
       // Delete Transactions
-      await global.database.getCollection(tenant.getID(), 'transactions').findOneAndDelete({'_id': transaction.getID()});
+      await global.database.getCollection<any>(tenant.getID(), 'transactions').findOneAndDelete({'_id': transaction.getID()});
       // Remove Id
       delete transaction.id;
       // Save it
-      await global.database.getCollection(tenant.getID(), 'transactions').findOneAndUpdate({
+      await global.database.getCollection<any>(tenant.getID(), 'transactions').findOneAndUpdate({
         "_id": transactionMDB._id
       }, {
         $set: transaction

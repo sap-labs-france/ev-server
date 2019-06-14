@@ -7,7 +7,7 @@ import PricingStorage from './PricingStorage';
 import TSGlobal from './../../types/GlobalType';
 import Transaction from '../../entity/Transaction';
 
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class TransactionStorage {
   static async deleteTransaction(tenantID, transaction) {
@@ -16,13 +16,13 @@ export default class TransactionStorage {
     // Check
     await Utils.checkTenant(tenantID);
     // Delete
-    await global.database.getCollection(tenantID, 'transactions')
+    await global.database.getCollection<any>(tenantID, 'transactions')
       .findOneAndDelete({ '_id': transaction.getID() });
     // Delete Meter Values
-    await global.database.getCollection(tenantID, 'metervalues')
+    await global.database.getCollection<any>(tenantID, 'metervalues')
       .deleteMany({ 'transactionId': transaction.getID() });
     // Delete Consumptions
-    await global.database.getCollection(tenantID, 'consumptions')
+    await global.database.getCollection<any>(tenantID, 'consumptions')
       .deleteMany({ 'transactionId': transaction.getID() });
     // Debug
     Logging.traceEnd('TransactionStorage', 'deleteTransaction', uniqueTimerID, { transaction });
@@ -42,7 +42,7 @@ export default class TransactionStorage {
     const transactionMDB: any = {};
     Database.updateTransaction(transactionToSave, transactionMDB, false);
     // Modify
-    const result = await global.database.getCollection(tenantID, 'transactions').findOneAndReplace(
+    const result = await global.database.getCollection<any>(tenantID, 'transactions').findOneAndReplace(
       { "_id": Utils.convertToInt(transactionToSave.id) },
       transactionMDB,
       { upsert: true, returnOriginal: false });
@@ -57,7 +57,7 @@ export default class TransactionStorage {
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactionYears');
     // Check
     await Utils.checkTenant(tenantID);
-    const firstTransactionsMDB = await global.database.getCollection(tenantID, 'transactions')
+    const firstTransactionsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .find({})
       .sort({ timestamp: 1 })
       .limit(1)
@@ -168,14 +168,14 @@ export default class TransactionStorage {
         $unwind: { "path": "$chargeBox", "preserveNullAndEmptyArrays": true }
       });
     }
-  
+
     // Limit records?
     if (!params.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
       aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
     }
     // Count Records
-    const transactionsCountMDB = await global.database.getCollection(tenantID, 'transactions')
+    const transactionsCountMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate([...aggregation, {
         $group: {
           _id: null,
@@ -259,7 +259,7 @@ export default class TransactionStorage {
       $unwind: { "path": "$stop.user", "preserveNullAndEmptyArrays": true }
     });
     // Read DB
-    const transactionsMDB = await global.database.getCollection(tenantID, 'transactions')
+    const transactionsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Set
@@ -458,7 +458,7 @@ export default class TransactionStorage {
       aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
     }
     // Count Records
-    const transactionsCountMDB = await global.database.getCollection(tenantID, 'transactions')
+    const transactionsCountMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate([...aggregation, { $count: "count"}], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
@@ -493,7 +493,7 @@ export default class TransactionStorage {
       $limit: limit
     });
     // Read DB
-    const transactionsMDB = await global.database.getCollection(tenantID, 'transactions')
+    const transactionsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Set
@@ -568,7 +568,7 @@ export default class TransactionStorage {
       $unwind: { "path": "$chargeBox", "preserveNullAndEmptyArrays": true }
     });
     // Read DB
-    const transactionsMDB = await global.database.getCollection(tenantID, 'transactions')
+    const transactionsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
@@ -608,7 +608,7 @@ export default class TransactionStorage {
       $unwind: { "path": "$user", "preserveNullAndEmptyArrays": true }
     });
     // Read DB
-    const transactionsMDB = await global.database.getCollection(tenantID, 'transactions')
+    const transactionsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
@@ -637,7 +637,7 @@ export default class TransactionStorage {
     // The last one
     aggregation.push({ $limit: 1 });
     // Read DB
-    const transactionsMDB = await global.database.getCollection(tenantID, 'transactions')
+    const transactionsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug

@@ -3,7 +3,7 @@ import Utils from '../../utils/Utils';
 import Logging from '../../utils/Logging';
 import TSGlobal from '../../types/GlobalType';
 
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class PricingStorage {
   static async getPricing(tenantID) {
@@ -12,7 +12,7 @@ export default class PricingStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const pricingsMDB = await global.database.getCollection(tenantID, 'pricings')
+    const pricingsMDB = await global.database.getCollection<any>(tenantID, 'pricings')
       .find({})
       .limit(1)
       .toArray();
@@ -38,7 +38,7 @@ export default class PricingStorage {
     const pricing: any = {};
     Database.updatePricing(pricingToSave, pricing, false);
     // Modify
-    await global.database.getCollection(tenantID, 'pricings').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'pricings').findOneAndUpdate(
       {},
       { $set: pricing },
       { upsert: true, returnOriginal: false });

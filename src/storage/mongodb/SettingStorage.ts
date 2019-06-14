@@ -8,7 +8,7 @@ import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import TSGlobal from '../../types/GlobalType';
 
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class SettingStorage {
   static async getSetting(tenantID, id) {
@@ -25,7 +25,7 @@ export default class SettingStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Read DB
-    const settingsMDB = await global.database.getCollection(tenantID, 'settings')
+    const settingsMDB = await global.database.getCollection<any>(tenantID, 'settings')
       .aggregate(aggregation)
       .toArray();
     // Set
@@ -46,7 +46,7 @@ export default class SettingStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const settingsMDB = await global.database.getCollection(tenantID, 'settings')
+    const settingsMDB = await global.database.getCollection<any>(tenantID, 'settings')
       .find({ 'identifier': identifier })
       .limit(1)
       .toArray();
@@ -87,7 +87,7 @@ export default class SettingStorage {
     const setting: any = {};
     Database.updateSetting(settingToSave, setting, false);
     // Modify
-    const result = await global.database.getCollection(tenantID, 'settings').findOneAndUpdate(
+    const result = await global.database.getCollection<any>(tenantID, 'settings').findOneAndUpdate(
       settingFilter,
       { $set: setting },
       { upsert: true, returnOriginal: false });
@@ -135,7 +135,7 @@ export default class SettingStorage {
     }
 
     // Count Records
-    const settingsCountMDB = await global.database.getCollection(tenantID, 'settings')
+    const settingsCountMDB = await global.database.getCollection<any>(tenantID, 'settings')
       .aggregate([...aggregation, { $count: "count" }])
       .toArray();
     // Add Created By / Last Changed By
@@ -163,7 +163,7 @@ export default class SettingStorage {
       $limit: limit
     });
     // Read DB
-    const settingsMDB = await global.database.getCollection(tenantID, 'settings')
+    const settingsMDB = await global.database.getCollection<any>(tenantID, 'settings')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
     const settings = [];
@@ -190,7 +190,7 @@ export default class SettingStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete Component
-    await global.database.getCollection(tenantID, 'settings')
+    await global.database.getCollection<any>(tenantID, 'settings')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd('SettingStorage', 'deleteSetting', uniqueTimerID, { id });

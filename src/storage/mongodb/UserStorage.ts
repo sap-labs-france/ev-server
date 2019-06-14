@@ -11,7 +11,7 @@ import fs from 'fs';
 import TSGlobal from '../../types/GlobalType';
 import User from '../../entity/User';
 
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 export default class UserStorage {
@@ -64,7 +64,7 @@ export default class UserStorage {
     // Get current eula
     const currentEula = await UserStorage.getLatestEndUserLicenseAgreement(/*tenantID, TODO ?*/language);
     // Read DB
-    const eulasMDB = await global.database.getCollection(tenantID, 'eulas')
+    const eulasMDB = await global.database.getCollection<any>(tenantID, 'eulas')
       .find({ 'language': language })
       .sort({ 'version': -1 })
       .limit(1)
@@ -86,7 +86,7 @@ export default class UserStorage {
         eula.text = currentEula;
         eula.hash = currentEulaHash;
         // Create
-        const result = await global.database.getCollection(tenantID, 'eulas')
+        const result = await global.database.getCollection<any>(tenantID, 'eulas')
           .insertOne(eula);
         // Update object
         eula = {};
@@ -114,7 +114,7 @@ export default class UserStorage {
         .update(currentEula)
         .digest("hex");
       // Create
-      const result = await global.database.getCollection(tenantID, 'eulas').insertOne(eula);
+      const result = await global.database.getCollection<any>(tenantID, 'eulas').insertOne(eula);
       // Update object
       eula = {};
       Database.updateEula(result.ops[0], eula);
@@ -132,7 +132,7 @@ export default class UserStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const tagsMDB = await global.database.getCollection(tenantID, 'tags')
+    const tagsMDB = await global.database.getCollection<any>(tenantID, 'tags')
       .find({ '_id': tagID })
       .limit(1)
       .toArray();
@@ -155,7 +155,7 @@ export default class UserStorage {
     await Utils.checkTenant(tenantID);
 
     // Read DB
-    const usersMDB = await global.database.getCollection(tenantID, 'users')
+    const usersMDB = await global.database.getCollection<any>(tenantID, 'users')
       .find({ 'email': email })
       .limit(1)
       .toArray();
@@ -185,7 +185,7 @@ export default class UserStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Read DB
-    const usersMDB = await global.database.getCollection(tenantID, 'users')
+    const usersMDB = await global.database.getCollection<any>(tenantID, 'users')
       .aggregate(aggregation, { allowDiskUse: true })
       .limit(1)
       .toArray();
@@ -205,7 +205,7 @@ export default class UserStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const userImagesMDB = await global.database.getCollection(tenantID, 'userimages')
+    const userImagesMDB = await global.database.getCollection<any>(tenantID, 'userimages')
       .find({ '_id': Utils.convertToObjectID(id) })
       .limit(1)
       .toArray();
@@ -229,7 +229,7 @@ export default class UserStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const userImagesMDB = await global.database.getCollection(tenantID, 'userimages')
+    const userImagesMDB = await global.database.getCollection<any>(tenantID, 'userimages')
       .find({})
       .toArray();
     const userImages = [];
@@ -257,7 +257,7 @@ export default class UserStorage {
         // Create the list
         for (const siteID of siteIDs) {
           // Execute
-          await global.database.getCollection(tenantID, 'siteusers').deleteMany({
+          await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
             "userID": Utils.convertToObjectID(userID),
             "siteID": Utils.convertToObjectID(siteID)
           });
@@ -287,7 +287,7 @@ export default class UserStorage {
           });
         }
         // Execute
-        await global.database.getCollection(tenantID, 'siteusers').insertMany(siteUsers);
+        await global.database.getCollection<any>(tenantID, 'siteusers').insertMany(siteUsers);
       }
     }
     // Debug
@@ -321,7 +321,7 @@ export default class UserStorage {
     const user: any = {};
     Database.updateUser(userToSave, user, false);
     // Modify and return the modified document
-    const result = await global.database.getCollection(tenantID, 'users').findOneAndUpdate(
+    const result = await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
       userFilter,
       { $set: user },
       { upsert: true, returnOriginal: false });
@@ -330,7 +330,7 @@ export default class UserStorage {
     // Add tags
     if (userToSave.hasOwnProperty("tagIDs")) {
       // Delete Tag IDs
-      await global.database.getCollection(tenantID, 'tags')
+      await global.database.getCollection<any>(tenantID, 'tags')
         .deleteMany({ 'userID': Utils.convertToObjectID(updatedUser.getID()) });
       // At least one tag
       if (userToSave.tagIDs.length > 0) {
@@ -340,14 +340,14 @@ export default class UserStorage {
             continue;
           }
           // Modify
-          await global.database.getCollection(tenantID, 'tags').findOneAndUpdate(
+          await global.database.getCollection<any>(tenantID, 'tags').findOneAndUpdate(
             { '_id': tagID },
             { $set: { 'userID': Utils.convertToObjectID(updatedUser.getID()) } },
             { upsert: true, returnOriginal: false });
         }
       }
     }
-    
+
     // Debug
     Logging.traceEnd('UserStorage', 'saveUser', uniqueTimerID, { userToSave });
     return updatedUser;
@@ -367,7 +367,7 @@ export default class UserStorage {
         "UserStorage", "saveUserImage");
     }
     // Modify and return the modified document
-    await global.database.getCollection(tenantID, 'userimages').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'userimages').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(userImageToSave.id) },
       { $set: { image: userImageToSave.image } },
       { upsert: true, returnOriginal: false });
@@ -479,7 +479,7 @@ export default class UserStorage {
       aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
     }
     // Count Records
-    const usersCountMDB = await global.database.getCollection(tenantID, 'users')
+    const usersCountMDB = await global.database.getCollection<any>(tenantID, 'users')
       .aggregate([...aggregation, { $count: "count"}], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
@@ -533,7 +533,7 @@ export default class UserStorage {
       $limit: limit
     });
     // Read DB
-    const usersMDB = await global.database.getCollection(tenantID, 'users')
+    const usersMDB = await global.database.getCollection<any>(tenantID, 'users')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     const users = [];
@@ -649,7 +649,7 @@ export default class UserStorage {
       aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
     }
     // Count Records
-    const usersCountMDB = await global.database.getCollection(tenantID, 'users')
+    const usersCountMDB = await global.database.getCollection<any>(tenantID, 'users')
       .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
@@ -701,7 +701,7 @@ export default class UserStorage {
       $limit: limit
     });
     // Read DB
-    const usersMDB = await global.database.getCollection(tenantID, 'users')
+    const usersMDB = await global.database.getCollection<any>(tenantID, 'users')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     const users = [];
@@ -732,16 +732,16 @@ export default class UserStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete User from sites
-    await global.database.getCollection(tenantID, 'siteusers')
+    await global.database.getCollection<any>(tenantID, 'siteusers')
       .findOneAndDelete({ 'userID': Utils.convertToObjectID(id) });
     // Delete Image
-    await global.database.getCollection(tenantID, 'userimages')
+    await global.database.getCollection<any>(tenantID, 'userimages')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Delete Tags
-    await global.database.getCollection(tenantID, 'tags')
+    await global.database.getCollection<any>(tenantID, 'tags')
       .deleteMany({ 'userID': Utils.convertToObjectID(id) });
     // Delete User
-    await global.database.getCollection(tenantID, 'users')
+    await global.database.getCollection<any>(tenantID, 'users')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd('UserStorage', 'deleteUser', uniqueTimerID, { id });
@@ -755,7 +755,7 @@ export default class UserStorage {
       user = new User(tenantID, userMDB);
 
       // Get the Tags
-      const tagsMDB = await global.database.getCollection(tenantID, 'tags')
+      const tagsMDB = await global.database.getCollection<any>(tenantID, 'tags')
         .find({ "userID": Utils.convertToObjectID(user.getID()) })
         .toArray();
 

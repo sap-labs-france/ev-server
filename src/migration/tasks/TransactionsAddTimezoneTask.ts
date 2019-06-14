@@ -2,7 +2,7 @@ import Tenant from '../../entity/Tenant';
 import MigrationTask from '../MigrationTask';
 import tzlookup from 'tz-lookup';
 import TSGlobal from '../../types/GlobalType';
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class TransactionsAddTimezoneTask extends MigrationTask {
   async migrate() {
@@ -14,12 +14,12 @@ export default class TransactionsAddTimezoneTask extends MigrationTask {
 
   /**
    * @deprecated
-   * @param tenant 
+   * @param tenant
    */
   async migrateTenant(tenant) {
     /*const chargingStationTimezones:any = {};
     // Read all  Charging Stations
-    const chargingStationsMDB = await global.database.getCollection(tenant.getID(), 'chargingstations')
+    const chargingStationsMDB = await global.database.getCollection<any>(tenant.getID(), 'chargingstations')
       .aggregate([]).toArray();
     // Compute timezone
     for (const chargingStationMDB of chargingStationsMDB) {
@@ -32,7 +32,7 @@ export default class TransactionsAddTimezoneTask extends MigrationTask {
     }
     // Build Mapping
     // Read all transactions
-    const transactionsMDB = await global.database.getCollection(tenant.getID(), 'transactions')
+    const transactionsMDB = await global.database.getCollection<any>(tenant.getID(), 'transactions')
       .aggregate([])
       .toArray();
     // Process each transaction
@@ -43,9 +43,9 @@ export default class TransactionsAddTimezoneTask extends MigrationTask {
         timezone = "Europe/Paris";
       }
       // Save it
-      await global.database.getCollection(tenant.getID(), 'transactions').findOneAndReplace(
+      await global.database.getCollection<any>(tenant.getID(), 'transactions').findOneAndReplace(
         { "_id": transactionMDB._id },
-        { $set: { timezone }}, 
+        { $set: { timezone }},
         { upsert: true, new: true, returnOriginal: false });
     }*/
   }

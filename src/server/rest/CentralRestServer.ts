@@ -18,14 +18,14 @@ SourceMap.install();
 const MODULE_NAME = "CentralRestServer";
 
 export default class CentralRestServer {
-  
+
   private static centralSystemRestConfig;
   private static restHttpServer;
   private static socketIO;
   private static currentNotifications = [];
-  
   private chargingStationConfig: any;
   private express: any;
+
   // Create the rest server
   constructor(centralSystemRestConfig, chargingStationConfig) {
     // Keep params

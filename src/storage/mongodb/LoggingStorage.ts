@@ -3,11 +3,11 @@ import Database from '../../utils/Database';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import Global from './../../types/GlobalType';
-
+import fs from 'fs';
 declare var global: Global;
 
 export default class LoggingStorage {
-  static async deleteLogs(tenantID, deleteUpToDate) {
+  public static async deleteLogs(tenantID, deleteUpToDate) {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build filter
@@ -23,13 +23,13 @@ export default class LoggingStorage {
       return;
     }
     // Delete Logs
-    const result = await global.database.getCollection(tenantID, 'logs')
+    const result = await global.database.getCollection<any>(tenantID, 'logs')
       .deleteMany(filters);
     // Return the result
     return result.result;
   }
 
-  static async deleteSecurityLogs(tenantID, deleteUpToDate) {
+  public static async deleteSecurityLogs(tenantID, deleteUpToDate) {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build filter
@@ -45,30 +45,34 @@ export default class LoggingStorage {
       return;
     }
     // Delete Logs
-    const result = await global.database.getCollection(tenantID, 'logs')
+    const result = await global.database.getCollection<any>(tenantID, 'logs')
       .deleteMany(filters);
     // Return the result
     return result.result;
   }
 
-  static async saveLog(tenantID, logToSave) {
+  public static async saveLog(tenantID, logToSave) {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check User
-    logToSave.userID = Utils.convertUserToObjectID(logToSave.user);
-    logToSave.actionOnUserID = Utils.convertUserToObjectID(logToSave.actionOnUser);
+    if('user' in logToSave){
+      logToSave.userID = Utils.convertUserToObjectID(logToSave.user);
+    }
+    if('actionOnUser' in logToSave) {
+      logToSave.actionOnUserID = Utils.convertUserToObjectID(logToSave.actionOnUser);
+    }
     // Transfer
     const log: any = {};
     Database.updateLogging(logToSave, log, false);
     // Insert
-    await global.database.getCollection(tenantID, 'logs').insertOne(log);
+    await global.database.getCollection<any>(tenantID, 'logs').insertOne(log);
   }
 
-  static async getLog(tenantID, id) {
+  public static async getLog(tenantID, id) {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const loggingMDB = await global.database.getCollection(tenantID, 'logs')
+    const loggingMDB = await global.database.getCollection<any>(tenantID, 'logs')
       .find({ _id: Utils.convertToObjectID(id) })
       .limit(1)
       .toArray();
@@ -82,7 +86,7 @@ export default class LoggingStorage {
     return logging;
   }
 
-  static async getLogs(tenantID, params: any = {}, limit?, skip?, sort?) {
+  public static async getLogs(tenantID, params: any = {}, limit?, skip?, sort?) {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
@@ -176,7 +180,7 @@ export default class LoggingStorage {
       // Always limit the nbr of record to avoid perfs issues
       aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
     }
-    const loggingsCountMDB = await global.database.getCollection(tenantID, 'logs')
+    const loggingsCountMDB = await global.database.getCollection<any>(tenantID, 'logs')
       .aggregate([...aggregation, { $count: 'count' }], { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
     // Check if only the total count is requested
@@ -236,7 +240,7 @@ export default class LoggingStorage {
       $unwind: { 'path': '$actionOnUser', 'preserveNullAndEmptyArrays': true }
     });
     // Read DB
-    const loggingsMDB = await global.database.getCollection(tenantID, 'logs')
+    const loggingsMDB = await global.database.getCollection<any>(tenantID, 'logs')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     const loggings = [];

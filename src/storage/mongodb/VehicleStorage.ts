@@ -8,7 +8,7 @@ import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import TSGlobal from '../../types/GlobalType';
 
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class VehicleStorage {
 
@@ -18,7 +18,7 @@ export default class VehicleStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const vehicleImagesMDB = await global.database.getCollection(tenantID, 'vehicleimages')
+    const vehicleImagesMDB = await global.database.getCollection<any>(tenantID, 'vehicleimages')
       .find({ _id: Utils.convertToObjectID(id) })
       .limit(1)
       .toArray();
@@ -41,7 +41,7 @@ export default class VehicleStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const vehicleImagesMDB = await global.database.getCollection(tenantID, 'vehicleimages')
+    const vehicleImagesMDB = await global.database.getCollection<any>(tenantID, 'vehicleimages')
       .find({})
       .toArray();
     const vehicleImages = [];
@@ -74,7 +74,7 @@ export default class VehicleStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Read DB
-    const vehiclesMDB = await global.database.getCollection(tenantID, 'vehicles')
+    const vehiclesMDB = await global.database.getCollection<any>(tenantID, 'vehicles')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Set
@@ -115,7 +115,7 @@ export default class VehicleStorage {
     const vehicle: any = {};
     Database.updateVehicle(vehicleToSave, vehicle, false);
     // Modify
-    const result = await global.database.getCollection(tenantID, 'vehicles').findOneAndUpdate(
+    const result = await global.database.getCollection<any>(tenantID, 'vehicles').findOneAndUpdate(
       vehicleFilter,
       { $set: vehicle },
       { upsert: true, returnOriginal: false });
@@ -139,7 +139,7 @@ export default class VehicleStorage {
         "VehicleStorage", "saveVehicleImages");
     }
     // Modify
-    await global.database.getCollection(tenantID, 'vehicleimages').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'vehicleimages').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(vehicleImagesToSave.id) },
       { $set: { images: vehicleImagesToSave.images } },
       { upsert: true, returnOriginal: false });
@@ -188,7 +188,7 @@ export default class VehicleStorage {
       aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
     }
     // Count Records
-    const vehiclesCountMDB = await global.database.getCollection(tenantID, 'vehicles')
+    const vehiclesCountMDB = await global.database.getCollection<any>(tenantID, 'vehicles')
       .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
@@ -226,7 +226,7 @@ export default class VehicleStorage {
       $limit: limit
     });
     // Read DB
-    const vehiclesMDB = await global.database.getCollection(tenantID, 'vehicles')
+    const vehiclesMDB = await global.database.getCollection<any>(tenantID, 'vehicles')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     const vehicles = [];
@@ -254,10 +254,10 @@ export default class VehicleStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete Vehicle
-    await global.database.getCollection(tenantID, 'vehicles')
+    await global.database.getCollection<any>(tenantID, 'vehicles')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Delete Images
-    await global.database.getCollection(tenantID, 'vehicleimages')
+    await global.database.getCollection<any>(tenantID, 'vehicleimages')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd('VehicleStorage', 'deleteVehicle', uniqueTimerID, { id });

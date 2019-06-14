@@ -1,7 +1,7 @@
 import SchemaValidator from './SchemaValidator';
 import fs from 'fs';
 import TSGlobal from '../../../types/GlobalType';
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class ConnectionValidator extends SchemaValidator {
   public validate: any;
@@ -9,7 +9,7 @@ export default class ConnectionValidator extends SchemaValidator {
 
   private constructor() {
     super("TenantValidator");
-    this.connectionCreation = fs.readFileSync(`${global.appRoot}/assets/server/rest/schemas/connectors/connections/connection-creation.json`, 'utf8');
+    this.connectionCreation = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/schemas/connectors/connections/connection-creation.json`, 'utf8'));
   }
 
   private static instance: ConnectionValidator|null = null;

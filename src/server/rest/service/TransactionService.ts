@@ -15,7 +15,7 @@ import fs from "fs";
 import crypto from 'crypto';
 import TSGlobal from '../../../types/GlobalType';
 
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class TransactionService {
   static async handleRefundTransactions(action, req, res, next) {
@@ -635,7 +635,7 @@ export default class TransactionService {
       }
       const filter: any = { stop: { $exists: true } };
       // Filter
-      const filteredRequest = TransactionSecurity.filterTransactionsInErrorRequest(req.query/*, req.user TODO ?*/);
+      const filteredRequest = TransactionSecurity.filterTransactionsInErrorRequest(req.query);
       if (filteredRequest.ChargeBoxID) {
         filter.chargeBoxID = filteredRequest.ChargeBoxID;
       }
