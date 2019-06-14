@@ -7,7 +7,7 @@ import Global from './../../types/GlobalType';
 declare const global: Global;
 
 export default class LoggingStorage {
-  static async deleteLogs(tenantID, deleteUpToDate) {
+  public static async deleteLogs(tenantID, deleteUpToDate) {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build filter
@@ -29,7 +29,7 @@ export default class LoggingStorage {
     return result.result;
   }
 
-  static async deleteSecurityLogs(tenantID, deleteUpToDate) {
+  public static async deleteSecurityLogs(tenantID, deleteUpToDate) {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build filter
@@ -51,12 +51,16 @@ export default class LoggingStorage {
     return result.result;
   }
 
-  static async saveLog(tenantID, logToSave) {
+  public static async saveLog(tenantID, logToSave) {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check User
-    logToSave.userID = Utils.convertUserToObjectID(logToSave.user);
-    logToSave.actionOnUserID = Utils.convertUserToObjectID(logToSave.actionOnUser);
+    if (logToSave.hasOwnProperty('user')) {
+      logToSave.userID = Utils.convertUserToObjectID(logToSave.user);
+    }
+    if (logToSave.hasOwnProperty('actionOnUser')) { 
+      logToSave.actionOnUserID = Utils.convertUserToObjectID(logToSave.actionOnUser);
+    }
     // Transfer
     const log: any = {};
     Database.updateLogging(logToSave, log, false);
@@ -64,7 +68,7 @@ export default class LoggingStorage {
     await global.database.getCollection(tenantID, 'logs').insertOne(log);
   }
 
-  static async getLog(tenantID, id) {
+  public static async getLog(tenantID, id) {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
@@ -82,7 +86,7 @@ export default class LoggingStorage {
     return logging;
   }
 
-  static async getLogs(tenantID, params: any = {}, limit?, skip?, sort?) {
+  public static async getLogs(tenantID, params: any = {}, limit?, skip?, sort?) {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
