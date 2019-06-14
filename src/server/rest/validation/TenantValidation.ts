@@ -23,7 +23,7 @@ export default class TenantValidator extends SchemaValidator {
   }
 
 
-  public validateTenantCreation(content: any): void {
+  public validateTenantCreation(content: any): void{
     this.validate(this._tenantCreation, content);
   }
 

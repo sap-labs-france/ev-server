@@ -90,7 +90,7 @@ export default class UserSecurity {
       filteredRequest.locale = sanitize(request.locale);
     }
     if (request.hasOwnProperty("address")) {
-      filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address, loggedUser);
+      filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address);
     }
     if (request.hasOwnProperty("passwords") && request.passwords.hasOwnProperty("password") && request.passwords.password.length > 0) {
       filteredRequest.password = sanitize(request.passwords.password);
@@ -164,7 +164,7 @@ export default class UserSecurity {
         filteredUser.plateID = user.plateID;
         filteredUser.role = user.role;
         if (user.address) {
-          filteredUser.address = UtilsSecurity.filterAddressRequest(user.address, loggedUser);
+          filteredUser.address = UtilsSecurity.filterAddressRequest(user.address);
         }
       } else {
         // Set only necessary info
@@ -180,7 +180,7 @@ export default class UserSecurity {
         filteredUser.costCenter = user.costCenter;
         filteredUser.tagIDs = user.tagIDs;
         if (user.address) {
-          filteredUser.address = UtilsSecurity.filterAddressRequest(user.address, loggedUser);
+          filteredUser.address = UtilsSecurity.filterAddressRequest(user.address);
         }
       }
       // Created By / Last Changed By

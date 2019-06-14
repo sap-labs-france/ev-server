@@ -16,11 +16,11 @@ export default class MongoDBStorage {
   // Create database access
   public constructor(private readonly dbConfig: StorageCfg) { }
 
-  public getCollection(tenantID: string, collectionName: string): Collection {
+  public getCollection<type>(tenantID: string, collectionName: string): Collection<type> {
     if (!this.db) {
       throw new InternalError('Not supposed to call getCollection before start', []);
     }
-    return this.db.collection(DatabaseUtils.getCollectionName(tenantID, collectionName));
+    return this.db.collection<type>(DatabaseUtils.getCollectionName(tenantID, collectionName));
   }
 
   public watch(pipeline, options): ChangeStream {

@@ -7,6 +7,7 @@ import SiteStorage from '../storage/mongodb/SiteStorage';
 import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
 import User from './User';
+import Company from '../types/Company';
 
 export default class Site extends TenantHolder {
   private _model: any = {};
@@ -134,7 +135,7 @@ export default class Site extends TenantHolder {
     this._model.lastChangedOn = lastChangedOn;
   }
 
-  async getCompany() {
+  async getCompany(): Promise<Company> {
     const company = await CompanyStorage.getCompany(this.getTenantID(), this._model.companyID);
     this.setCompany(company);
     return company;
@@ -144,10 +145,10 @@ export default class Site extends TenantHolder {
     return this._model.companyID;
   }
 
-  setCompany(company) {
+  setCompany(company: Company) {
     if (company) {
-      this._model.company = company.getModel();
-      this._model.companyID = company.getID();
+      this._model.company = company;
+      this._model.companyID = company.id;
     } else {
       this._model.company = null;
     }

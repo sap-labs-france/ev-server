@@ -51,7 +51,7 @@ export default class UpdateTransactionSimplePriceTask extends MigrationTask {
   }
 
   async updateTransactionPrice(tenantId, simplePricing) {
-    const transactionsCollection = await global.database.getCollection(tenantId, 'transactions');
+    const transactionsCollection = await global.database.getCollection<any>(tenantId, 'transactions');
     const transactions = await transactionsCollection.find().toArray();
 
     await BBPromise.map(transactions,
@@ -79,7 +79,7 @@ export default class UpdateTransactionSimplePriceTask extends MigrationTask {
   }
 
   async updateConsumptionPrice(tenantId, simplePricing, transactionId) {
-    const consumptionsCollection = await global.database.getCollection(tenantId, 'consumptions');
+    const consumptionsCollection = await global.database.getCollection<any>(tenantId, 'consumptions');
     const consumptions = await consumptionsCollection.aggregate([
       {$match: {transactionId: transactionId}},
       {$sort: {endedAt: 1}}

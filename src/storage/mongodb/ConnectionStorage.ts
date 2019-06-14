@@ -18,7 +18,7 @@ export default class ConnectionStorage {
       connectorId: connectionToSave.connectorId,
       userId: Utils.convertUserToObjectID(connectionToSave.userId)
     };
-    const result = await global.database.getCollection(tenantID, 'connections').findOneAndUpdate(
+    const result = await global.database.getCollection<any>(tenantID, 'connections').findOneAndUpdate(
       connectionFilter,
       { $set: connection },
       { upsert: true, returnOriginal: false });
@@ -34,7 +34,7 @@ export default class ConnectionStorage {
       $match: { connectorId: connectorId, userId: Utils.convertToObjectID(userId) }
     });
 
-    const results = await global.database.getCollection(tenantID, 'connections')
+    const results = await global.database.getCollection<any>(tenantID, 'connections')
       .aggregate(aggregation)
       .toArray();
 
@@ -54,10 +54,10 @@ export default class ConnectionStorage {
       $match: { userId: Utils.convertToObjectID(userId) }
     });
     // Count Records
-    const connectionsCountMDB = await global.database.getCollection(tenantID, 'connections')
+    const connectionsCountMDB = await global.database.getCollection<any>(tenantID, 'connections')
       .aggregate([...aggregation, { $count: "count"}], { allowDiskUse: true })
       .toArray();
-    const connectionsMDB = await global.database.getCollection(tenantID, 'connections')
+    const connectionsMDB = await global.database.getCollection<any>(tenantID, 'connections')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
 
@@ -82,7 +82,7 @@ export default class ConnectionStorage {
       $match: { _id: Utils.convertToObjectID(id) }
     });
 
-    const results = await global.database.getCollection(tenantID, 'connections')
+    const results = await global.database.getCollection<any>(tenantID, 'connections')
       .aggregate(aggregation)
       .toArray();
 
@@ -100,7 +100,7 @@ export default class ConnectionStorage {
     // Check
     await Utils.checkTenant(tenantID);
     // Delete
-    await global.database.getCollection(tenantID, 'connections')
+    await global.database.getCollection<any>(tenantID, 'connections')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd('ConnectionStorage', 'deleteConnection', uniqueTimerID, { id });

@@ -61,7 +61,7 @@ export default class NormalizeTransactionsTask extends MigrationTask {
     // Get the price
     const pricing = await PricingStorage.getPricing(tenant.getID());
     // Read all transactions
-    const transactionsMDB = await global.database.getCollection(tenant.getID(), 'transactions')
+    const transactionsMDB = await global.database.getCollection<any>(tenant.getID(), 'transactions')
       .aggregate(aggregation)
       .toArray();
     // Process each transaction
@@ -144,7 +144,7 @@ export default class NormalizeTransactionsTask extends MigrationTask {
         transaction.stop.pricingSource = "";
       }
       // Save it
-      await global.database.getCollection(tenant.getID(), 'transactions').findOneAndReplace(
+      await global.database.getCollection<any>(tenant.getID(), 'transactions').findOneAndReplace(
         { "_id": transactionMDB._id },
         transaction,
         { upsert: true, returnOriginal: false });

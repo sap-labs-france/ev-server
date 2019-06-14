@@ -2,54 +2,46 @@ import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import UtilsSecurity from './UtilsSecurity';
 import SiteSecurity from './SiteSecurity';
+import User from '../../../../entity/User';
+import Company from '../../../../types/Company';
+import ByID from '../../../../types/requests/ByID';
+import CompanyData from '../../../../types/requests/CompanyData';
+import { IncomingCompanySearch, FilteredCompanySearch } from '../../../../types/requests/CompanySearch';
+import BadRequestError from '../../../../exception/BadRequestError';
 
 export default class CompanySecurity {
-  // eslint-disable-next-line no-unused-vars
-  static filterCompanyDeleteRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.ID = sanitize(request.ID);
-    return filteredRequest;
+
+  public static filterCompanyRequest(request: ByID): string {
+    return sanitize(request.ID);
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterCompanyRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    filteredRequest.ID = sanitize(request.ID);
-    return filteredRequest;
-  }
-
-  // eslint-disable-next-line no-unused-vars
-  static filterCompaniesRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    filteredRequest.Search = sanitize(request.Search);
-    filteredRequest.WithSites = UtilsSecurity.filterBoolean(request.WithSites);
-    filteredRequest.WithLogo = UtilsSecurity.filterBoolean(request.WithLogo);
+  public static filterCompaniesRequest(request: IncomingCompanySearch): FilteredCompanySearch {
+    let filteredRequest: FilteredCompanySearch = {
+      Search: sanitize(request.Search), 
+      WithSites: UtilsSecurity.filterBoolean(request.WithSites)
+    } as FilteredCompanySearch;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
   }
 
-  static filterCompanyUpdateRequest(request, loggedUser) {
-    // Set
-    const filteredRequest = CompanySecurity._filterCompanyRequest(request, loggedUser);
-    filteredRequest.id = sanitize(request.id);
-    return filteredRequest;
+  static filterCompanyUpdateRequest(request: CompanyData): CompanyData {
+    if(! request.id) {
+      throw new BadRequestError({message: 'ID not provided in update request.'});
+    }
+    const filteredRequest = CompanySecurity._filterCompanyRequest(request);
+    return {id: sanitize(request.id), ...filteredRequest};
   }
 
-  static filterCompanyCreateRequest(request, loggedUser) {
-    return CompanySecurity._filterCompanyRequest(request, loggedUser);
+  public static filterCompanyCreateRequest(request: CompanyData): CompanyData {
+    return CompanySecurity._filterCompanyRequest(request);
   }
 
-  static _filterCompanyRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    filteredRequest.name = sanitize(request.name);
-    filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address, loggedUser);
-    filteredRequest.logo = sanitize(request.logo);
-    return filteredRequest;
+  public static _filterCompanyRequest(request: CompanyData): CompanyData {
+    return {name: request.name, address: UtilsSecurity.filterAddressRequest(request.address), logo: request.logo}; //TODO Why does logo and name not get sanitized?
   }
 
-  static filterCompanyResponse(company, loggedUser) {
+  public static filterCompanyResponse(company: Company, loggedUser: User) { //TODO typings
     let filteredCompany;
 
     if (!company) {
@@ -67,9 +59,7 @@ export default class CompanySecurity {
         filteredCompany.id = company.id;
         filteredCompany.name = company.name;
         filteredCompany.logo = company.logo;
-      }
-      if (company.address) {
-        filteredCompany.address = UtilsSecurity.filterAddressRequest(company.address, loggedUser);
+        filteredCompany.address = UtilsSecurity.filterAddressRequest(company.address);
       }
       if (company.sites) {
         filteredCompany.sites = company.sites.map((site) => {
@@ -83,7 +73,7 @@ export default class CompanySecurity {
     return filteredCompany;
   }
 
-  static filterCompaniesResponse(companies, loggedUser) {
+  public static filterCompaniesResponse(companies, loggedUser) {
     const filteredCompanies = [];
 
     if (!companies.result) {

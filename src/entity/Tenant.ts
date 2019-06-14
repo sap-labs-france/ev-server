@@ -2,8 +2,40 @@ import Database from '../utils/Database';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import User from './User';
 import Setting from '../entity/Setting';
+import TenantComponents from '../types/TenantComponents';
+
 
 export default class Tenant {
+  
+  /*private _id: string;
+  private _name: string;
+  private _email: string;
+  private _subdomain: string;
+  private _components: Array<TenantComponents>;
+  private _createdOn: number; //Timestamp
+  private _createdByUser: User; //Use UserId instead of User object copy
+  private _lastChangedOn: number; //imestmap
+  private _lastChangedByUser: User; //STee above
+
+  //ID getter
+  public getID(): string {
+    return this._id;
+  }
+
+  //Name getter/setters
+  public getName(): string {
+    return this._name;
+  }
+
+    //chainable
+  public setName(newName: string): Tenant {
+    this._name = newName;
+    return this;
+  }
+
+  //Email getter/setters
+*/
+
   private _model: any = {};
 
   constructor(tenant: any) {
@@ -159,4 +191,5 @@ export default class Tenant {
   setLastChangedOn(lastChangedOn: any) {
     this._model.lastChangedOn = lastChangedOn;
   }
+
 }

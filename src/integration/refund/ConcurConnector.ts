@@ -13,6 +13,7 @@ import InternalError from '../../exception/InternalError';
 import jwt from 'jsonwebtoken';
 import BBPromise from "bluebird";
 import Transaction from '../../entity/Transaction';
+import Site from '../../entity/Site';
 
 const MODULE_NAME = 'ConcurConnector';
 const CONNECTOR_ID = 'concur';
@@ -293,7 +294,7 @@ const CONNECTOR_ID = 'concur';
     }
   }
 
-  async getLocation(connection, site) {
+  async getLocation(connection, site: Site) {
     let response = await axios.get(`${this.getApiUrl()}/api/v3.0/common/locations?city=${site.getAddress().city}`, {
       headers: {
         Accept: 'application/json',
@@ -304,7 +305,7 @@ const CONNECTOR_ID = 'concur';
       return response.data.Items[0];
     } else {
       const company = await site.getCompany();
-      response = await axios.get(`${this.getApiUrl()}/api/v3.0/common/locations?city=${company.getAddress().city}`, {
+      response = await axios.get(`${this.getApiUrl()}/api/v3.0/common/locations?city=${company.address.city}`, {
         headers: {
           Accept: 'application/json',
           Authorization: `Bearer ${connection.getData().access_token}`
