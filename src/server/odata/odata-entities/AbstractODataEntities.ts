@@ -48,7 +48,7 @@ export default class AbstractODataEntities {
     let result = [];
     let fields = [];
     // Check if error
-    if (response.status != 200) {
+    if (response.status !== 200) {
       cb({ message: response.data.message });
       return;
     }

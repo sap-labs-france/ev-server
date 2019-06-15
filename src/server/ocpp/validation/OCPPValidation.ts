@@ -11,6 +11,7 @@ SourceMap.install();
 export default class OCPPValidation extends SchemaValidator {
 
   public validate: any;
+  private static instance: OCPPValidation|null = null;
   private _bootNotificationRequest: any;
   private _authorizeRequest: any;
   private _statusNotificationRequest: any;
@@ -28,7 +29,6 @@ export default class OCPPValidation extends SchemaValidator {
     this._stopTransactionRequest16 = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/validation/stop-transaction-request-16.json`, 'utf8'));
   }
 
-  private static instance: OCPPValidation|null = null;
   static getInstance(): OCPPValidation {
     if (OCPPValidation.instance === null) {
       OCPPValidation.instance = new OCPPValidation();

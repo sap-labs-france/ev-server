@@ -24,7 +24,7 @@ export default class ODataSites extends AbstractODataEntities {
   }
 
   // Custom convert to:
-  // Move Adress object to same level
+  // Move Address object to same level
   static convert(object, req) {
     const site = super.convert(object, req);
     return site.address ? _.merge(site, site.address) : site;

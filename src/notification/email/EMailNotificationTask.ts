@@ -206,7 +206,7 @@ export default class EMailNotificationTask extends NotificationTask {
       ]
     };
     // Send the message and get a callback with an error or details of the message that was sent
-    return this.server.send(messageToSend, function(err, messageSent) {
+    return await this.server.send(messageToSend, function(err, messageSent) {
       if (err) {
         // Error!
         try {

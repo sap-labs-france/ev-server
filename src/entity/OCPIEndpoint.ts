@@ -131,7 +131,8 @@ export default class OCPIEndpoint extends TenantHolder {
   }
 
   setBusinessDetails(businessDetails) {
-    return this._model.businessDetails = businessDetails;
+    this._model.businessDetails = businessDetails;
+    return this._model.businessDetails;
   }
 
   getToken() {
@@ -223,7 +224,7 @@ export default class OCPIEndpoint extends TenantHolder {
     return OCPIEndpointStorage.getOcpiEndpoints(tenantID, params, limit, skip, sort);
   }
 
-  static async getOcpiEndpointWithToken(tenantID, token) {
+  static getOcpiEndpointWithToken(tenantID, token) {
     return OCPIEndpointStorage.getOcpiEndpointWithToken(tenantID, token);
   }
 

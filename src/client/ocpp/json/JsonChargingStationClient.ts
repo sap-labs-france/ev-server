@@ -24,7 +24,7 @@ export default class JsonChargingStationClient extends ChargingStationClient {
   }
 
   remoteStartTransaction(params) {
-    const { tagID, connectorID, chargingProfile:any = {} } = params;
+    const { tagID, connectorID, chargingProfile: any = {} } = params;
     const payload: any = {
       connectorId: connectorID,
       idTag: tagID

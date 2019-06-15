@@ -73,7 +73,7 @@ export default abstract class AbstractOCPIService {
   public restService(req: TenantIdHoldingRequest, res: Response, next: Function): void { // eslint-disable-line
     // Parse the action
     const regexResult = /^\/\w*/g.exec(req.url);
-    if (regexResult == null) {
+    if (regexResult === null) {
       throw new BackendError("AbstractOCPIService.ts#restService", "Regex did not match.");
     }
     const action = regexResult[0].substring(1);

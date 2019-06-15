@@ -214,7 +214,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
   async _sendMessage(request) {
     // Return a promise
     // eslint-disable-next-line no-undef
-    return new Promise(async (resolve, reject) => {
+    return await new Promise(async (resolve, reject) => {
       // Open WS Connection
       await this._openConnection();
       // Check if wsConnection in ready

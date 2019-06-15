@@ -39,8 +39,7 @@ export default class ODataSchema {
         await centralServiceApi.securePing();
       }
     } catch (error) {
-      // Login info
-      // Add logging
+      // Add logging: login info
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         module: "ODataServer",

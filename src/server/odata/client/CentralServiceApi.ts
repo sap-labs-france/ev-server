@@ -1,6 +1,5 @@
 import AuthenticatedApi from './AuthenticatedApi';
 export default class CentralServiceApi extends AuthenticatedApi {
-  public send: any;
 
   constructor(baseURL, user, password, tenant) {
     super(baseURL,user,password,tenant);

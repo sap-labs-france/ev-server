@@ -1,6 +1,7 @@
 import fs from 'fs';
 import { soap } from 'strong-soap';
 import morgan from 'morgan';
+import express from 'express';
 import expressTools from '../../ExpressTools';
 import CentralSystemServer from '../CentralSystemServer';
 import Logging from '../../../utils/Logging';
@@ -17,7 +18,7 @@ declare const global: TSGlobal;
 const MODULE_NAME = "SoapCentralSystemServer";
 export default class SoapCentralSystemServer extends CentralSystemServer {
 
-  private express: any;
+  private express: express.Application;
 
   constructor(centralSystemConfig, chargingStationConfig) {
     // Call parent
