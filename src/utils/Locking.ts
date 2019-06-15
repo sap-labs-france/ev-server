@@ -1,6 +1,6 @@
 import Constants from './Constants';
-import LockingStorage from '../storage/mongodb/LockingStorage';
 import Database from './Database';
+import LockingStorage from '../storage/mongodb/LockingStorage';
 import Logging from './Logging';
 
 /**

@@ -11,8 +11,6 @@ import UtilsService from './UtilsService';
 import OrganizationComponentInactiveError from '../../../exception/OrganizationComponentInactiveError';
 import { NextFunction, Request, Response } from 'express';
 import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
-import { ObjectID } from 'bson';
-import fs from 'fs';
 import BadRequestError from '../../../exception/BadRequestError';
 
 export default class CompanyService {

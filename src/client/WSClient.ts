@@ -1,6 +1,6 @@
-import WebSocket from 'ws';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
+import WebSocket from 'ws';
 
 const MODULE_NAME = "WSClient";
 

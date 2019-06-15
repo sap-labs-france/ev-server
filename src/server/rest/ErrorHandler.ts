@@ -25,31 +25,31 @@ export default class ErrorHandler {
     next();
   }
 
-  static async _handleAppError(err, res) {
+  static _handleAppError(err, res) {
     res.status((err.errorCode ? err.errorCode : 500)).send({
       "message": Utils.hideShowMessage(err.message)
     });
   }
 
-  static async _handleUnauthorizedError(err, res) {
+  static _handleUnauthorizedError(err, res) {
     res.status(HttpStatus.UNAUTHORIZED).send({});
   }
 
-  static async _handleBadRequestError(err, res) {
+  static _handleBadRequestError(err, res) {
     res.status(HttpStatus.BAD_REQUEST).json({
       "message": err.message,
       "details": err.details ? err.details : []
     });
   }
 
-  static async _handleConflictError(err, res) {
+  static _handleConflictError(err, res) {
     res.status(HttpStatus.CONFLICT).json({
       "message": err.messageKey,
       "params": err.messageParams
     });
   }
 
-  static async _handleNotFoundError(err, res) {
+  static _handleNotFoundError(err, res) {
     res.status(HttpStatus.NOT_FOUND).json({});
   }
 }
