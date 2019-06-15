@@ -4,8 +4,9 @@ import BackendError from '../exception/BackendError';
 
 export default abstract class TenantHolder {
   private tenant: Tenant;
+  private readonly tenantID: string;
 
-  public constructor(readonly tenantID: string, lazyLoadTenant: boolean = true) {
+  public constructor(tenantID: string, lazyLoadTenant: boolean = true) {
     if (!lazyLoadTenant) {
       this.getTenant();
     }
@@ -16,9 +17,9 @@ export default abstract class TenantHolder {
   }
 
   public async getTenant(): Promise<Tenant> {
-    if (this.tenant == null) {
+    if (this.tenant === null) {
       this.tenant = await TenantStorage.getTenant(this.tenantID);
-      if (this.tenant == null) {
+      if (this.tenant === null) {
         throw new BackendError("TenantHolder#getTenant", "TenantStorage.getTenant did not return Tenant");
       }
     }

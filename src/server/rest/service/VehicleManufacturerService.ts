@@ -15,7 +15,7 @@ export default class VehicleManufacturerService {
       const filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerDeleteRequest(
         req.query, req.user);
       // Check Mandatory fields
-      if(!filteredRequest.ID) {
+      if (!filteredRequest.ID) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -64,7 +64,7 @@ export default class VehicleManufacturerService {
       // Filter
       const filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerRequest(req.query, req.user);
       // Charge Box is mandatory
-      if(!filteredRequest.ID) {
+      if (!filteredRequest.ID) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -113,7 +113,7 @@ export default class VehicleManufacturerService {
           'vehicleType': filteredRequest.VehicleType, 'onlyRecordCount': filteredRequest.OnlyRecordCount },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
-      vehicleManufacturers.result = vehicleManufacturers.result.map((vehicleManufacturer) => vehicleManufacturer.getModel());
+      vehicleManufacturers.result = vehicleManufacturers.result.map((vehicleManufacturer) => { return vehicleManufacturer.getModel(); });
       // Filter
       VehicleManufacturerSecurity.filterVehicleManufacturersResponse(vehicleManufacturers, req.user);
       // Return
@@ -139,7 +139,7 @@ export default class VehicleManufacturerService {
           req.user);
       }
       // Filter
-      const filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerCreateRequest( req.body, req.user );
+      const filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerCreateRequest(req.body, req.user);
       // Check Mandatory fields
       VehicleManufacturer.checkIfVehicleManufacturerValid(filteredRequest, req);
       // Create vehicleManufacturer
@@ -171,7 +171,7 @@ export default class VehicleManufacturerService {
   static async handleUpdateVehicleManufacturer(action, req, res, next) {
     try {
       // Filter
-      const filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerUpdateRequest( req.body, req.user );
+      const filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerUpdateRequest(req.body, req.user);
       // Check email
       const vehicleManufacturer = await	VehicleManufacturer.getVehicleManufacturer(req.user.tenantID, filteredRequest.id);
       if (!vehicleManufacturer) {
@@ -222,7 +222,7 @@ export default class VehicleManufacturerService {
       // Filter
       const filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerRequest(req.query, req.user);
       // Charge Box is mandatory
-      if(!filteredRequest.ID) {
+      if (!filteredRequest.ID) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,

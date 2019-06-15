@@ -16,8 +16,8 @@ export default class CompanyStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompany');
 
-    // Reuse 
-    let companiesMDB = await CompanyStorage.getCompanies(tenantID, {search: id, withSites: false}, 1);
+    // Reuse
+    const companiesMDB = await CompanyStorage.getCompanies(tenantID, {search: id, withSites: false}, 1);
 
     let company: Company = null;
     // Check
@@ -35,16 +35,16 @@ export default class CompanyStorage {
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'saveCompany');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    
+
     const mongoCompany: any = {};
     const newId: string = companyToSave.id.length === 0 ? new ObjectID().toHexString() : companyToSave.id;
     mongoCompany._id = Utils.convertToObjectID(newId);
     mongoCompany.createdBy = Utils.convertToObjectID(companyToSave.createdBy.id);
     mongoCompany.createdOn = companyToSave.createdOn;
-    if(companyToSave.lastChangedBy) {
+    if (companyToSave.lastChangedBy) {
       mongoCompany.lastChangedBy = Utils.convertToObjectID(companyToSave.lastChangedBy.id);
     }
-    if(companyToSave.lastChangedOn) {
+    if (companyToSave.lastChangedOn) {
       mongoCompany.lastChangedOn = companyToSave.lastChangedOn;
     }
     mongoCompany.address = companyToSave.address;
@@ -56,7 +56,7 @@ export default class CompanyStorage {
       { $set: mongoCompany},
       { upsert: true });
 
-    if(!result.ok) {
+    if (!result.ok) {
       throw new BackendError(
         Constants.CENTRAL_SERVER,
         `Couldn't update company`,
@@ -64,7 +64,7 @@ export default class CompanyStorage {
     }
 
     // Save Logo
-    if(saveLogo) {
+    if (saveLogo) {
       CompanyStorage._saveCompanyLogo(tenantID, newId, companyToSave.logo);
     }
 
@@ -92,7 +92,7 @@ export default class CompanyStorage {
   }
 
   // Delegate
-  public static async getCompanies(tenantID: string, params: {search?: string, companyIDs?: string[], onlyRecordCount?: boolean, withSites?:boolean}={}, limit?: number, skip?: number, sort?: boolean): Promise<{count: number, result: Company[]}> {
+  public static async getCompanies(tenantID: string, params: {search?: string; companyIDs?: string[]; onlyRecordCount?: boolean; withSites?: boolean} = {}, limit?: number, skip?: number, sort?: boolean): Promise<{count: number; result: Company[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompanies');
     // Check Tenant
@@ -102,7 +102,7 @@ export default class CompanyStorage {
     // Check Skip
     skip = Utils.checkRecordSkip(skip);
     // Set the filters
-    let filters: ({_id?:string, $or?:any[]}|undefined);
+    let filters: ({_id?: string; $or?: any[]}|undefined);
     // Build filter
     if (params.search) {
       filters = {};
@@ -125,7 +125,7 @@ export default class CompanyStorage {
       // Build filter
       aggregation.push({
         $match: {
-          _id: { $in: params.companyIDs.map((companyID) => Utils.convertToObjectID(companyID)) }
+          _id: { $in: params.companyIDs.map((companyID) => { return Utils.convertToObjectID(companyID); }) }
         }
       });
     }
@@ -155,7 +155,7 @@ export default class CompanyStorage {
         result: []
       };
     }
-   
+
 
     // Site lookup TODO: modify if sites get typed as well
     if (params.withSites) {
@@ -173,28 +173,28 @@ export default class CompanyStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
 
-    //Add company logo
+    // Add company logo
     aggregation.push({$lookup: {
-        from: tenantID + '.companylogos',
-        localField: '_id',
-        foreignField: '_id',
-        as: 'logo'}
-      },
-      {$unwind: {
-        'path': '$logo',
-        'preserveNullAndEmptyArrays': true}
-      },
-      {$project: {
-        logo: '$logo.logo', 
-        id:{$toString: '$_id'}, 
-        _id: 0, 
-        createdBy: 1, 
-        createdOn: 1, 
-        lastChangedBy: 1, 
-        lastChangedOn: 1, 
-        name: 1, 
-        address: 1}
-      }
+      from: tenantID + '.companylogos',
+      localField: '_id',
+      foreignField: '_id',
+      as: 'logo'}
+    },
+    {$unwind: {
+      'path': '$logo',
+      'preserveNullAndEmptyArrays': true}
+    },
+    {$project: {
+      logo: '$logo.logo',
+      id:{$toString: '$_id'},
+      _id: 0,
+      createdBy: 1,
+      createdOn: 1,
+      lastChangedBy: 1,
+      lastChangedOn: 1,
+      name: 1,
+      address: 1}
+    }
     );
 
     // Sort
@@ -210,12 +210,12 @@ export default class CompanyStorage {
       });
     }
     // Skip
-    if(skip > 0){
-      aggregation.push( { $skip: skip } );
+    if (skip > 0) {
+      aggregation.push({ $skip: skip });
     }
     // Limit
     aggregation.push({
-      $limit: ( limit > 0 && limit < Constants.MAX_DB_RECORD_COUNT ) ? limit : Constants.MAX_DB_RECORD_COUNT
+      $limit: (limit > 0 && limit < Constants.MAX_DB_RECORD_COUNT) ? limit : Constants.MAX_DB_RECORD_COUNT
     });
 
     // Read DB
@@ -225,7 +225,7 @@ export default class CompanyStorage {
 
     // Debug
     Logging.traceEnd('CompanyStorage', 'getCompanies', uniqueTimerID, { params, limit, skip, sort });
-    
+
     // Ok
     return {
       count: (companiesCountMDB.length > 0 ?

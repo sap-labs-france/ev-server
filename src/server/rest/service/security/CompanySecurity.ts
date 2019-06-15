@@ -6,7 +6,7 @@ import User from '../../../../entity/User';
 import Company from '../../../../types/Company';
 import ByID from '../../../../types/requests/ByID';
 import CompanyData from '../../../../types/requests/CompanyData';
-import { IncomingCompanySearch, FilteredCompanySearch } from '../../../../types/requests/CompanySearch';
+import { FilteredCompanySearch, IncomingCompanySearch } from '../../../../types/requests/CompanySearch';
 import BadRequestError from '../../../../exception/BadRequestError';
 
 export default class CompanySecurity {
@@ -16,8 +16,8 @@ export default class CompanySecurity {
   }
 
   public static filterCompaniesRequest(request: IncomingCompanySearch): FilteredCompanySearch {
-    let filteredRequest: FilteredCompanySearch = {
-      Search: sanitize(request.Search), 
+    const filteredRequest: FilteredCompanySearch = {
+      Search: sanitize(request.Search),
       WithSites: UtilsSecurity.filterBoolean(request.WithSites)
     } as FilteredCompanySearch;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
@@ -26,7 +26,7 @@ export default class CompanySecurity {
   }
 
   static filterCompanyUpdateRequest(request: CompanyData): CompanyData {
-    if(! request.id) {
+    if (!request.id) {
       throw new BadRequestError({message: 'ID not provided in update request.'});
     }
     const filteredRequest = CompanySecurity._filterCompanyRequest(request);
@@ -38,10 +38,10 @@ export default class CompanySecurity {
   }
 
   public static _filterCompanyRequest(request: CompanyData): CompanyData {
-    return {name: request.name, address: UtilsSecurity.filterAddressRequest(request.address), logo: request.logo}; //TODO Why does logo and name not get sanitized?
+    return {name: request.name, address: UtilsSecurity.filterAddressRequest(request.address), logo: request.logo}; // TODO Why does logo and name not get sanitized?
   }
 
-  public static filterCompanyResponse(company: Company, loggedUser: User) { //TODO typings
+  public static filterCompanyResponse(company: Company, loggedUser: User) { // TODO typings
     let filteredCompany;
 
     if (!company) {

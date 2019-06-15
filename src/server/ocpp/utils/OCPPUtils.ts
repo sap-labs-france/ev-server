@@ -5,7 +5,7 @@ import SourceMap from 'source-map-support';
 SourceMap.install();
 
 export default class OCPPUtils {
-  
+
   static lockAllConnectors(chargingStation) {
     chargingStation.getConnectors().forEach(async (connector) => {
       // Check

@@ -1,10 +1,10 @@
 import Constants from './Constants';
-import LockingStorage from '../storage/mongodb/LockingStorage';
 import Database from './Database';
+import LockingStorage from '../storage/mongodb/LockingStorage';
 import Logging from './Logging';
 
 /**
- * Namespace based mutually exclusive runtime locking primitive with a DB storage 
+ * Namespace based mutually exclusive runtime locking primitive with a DB storage
  * for sharing purpose among different hosts.
  */
 export default class RunLock {
@@ -34,7 +34,7 @@ export default class RunLock {
 
   public async acquire(): Promise<void> {
     if (!await LockingStorage.getLockStatus(this._runLock, this._onMultipleHosts))
-      await LockingStorage.saveRunLock(this._runLock);
+    { await LockingStorage.saveRunLock(this._runLock); }
   }
 
   public async tryAcquire(): Promise<boolean> {

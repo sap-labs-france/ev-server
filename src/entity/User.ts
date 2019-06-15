@@ -293,7 +293,7 @@ export default class User extends TenantHolder {
   }
 
   setSites(sites) {
-    this._model.sites = sites.map((site) => site.getModel());
+    this._model.sites = sites.map((site) => { return site.getModel(); });
   }
 
   async getSites() {
@@ -332,10 +332,10 @@ export default class User extends TenantHolder {
       await this.saveImage();
       // Save User
       return this.save();
-    } else {
-      // Delete physically
-      return UserStorage.deleteUser(this.getTenantID(), this.getID());
     }
+    // Delete physically
+    return UserStorage.deleteUser(this.getTenantID(), this.getID());
+
   }
 
   static checkIfUserValid(filteredRequest, user, req) {
@@ -376,28 +376,28 @@ export default class User extends TenantHolder {
     }
     // Creation?
     if ((filteredRequest.role !== Constants.ROLE_BASIC) && (filteredRequest.role !== Constants.ROLE_DEMO) &&
-        !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
+      !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Only Admins can assign the role '${Utils.getRoleNameFromRoleID(filteredRequest.role)}'`, 500,
         'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
     }
     // Only Admin user can change role
-    if (tenantID === 'default' && filteredRequest.role  && filteredRequest.role !== Constants.ROLE_SUPER_ADMIN) {
+    if (tenantID === 'default' && filteredRequest.role && filteredRequest.role !== Constants.ROLE_SUPER_ADMIN) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `User cannot have the role '${Utils.getRoleNameFromRoleID(filteredRequest.role)}' in the Super Tenant`, 500,
         'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
     }
     // Only Super Admin user in Super Tenant (default)
-    if (tenantID === 'default' && filteredRequest.role  && filteredRequest.role !== Constants.ROLE_SUPER_ADMIN) {
+    if (tenantID === 'default' && filteredRequest.role && filteredRequest.role !== Constants.ROLE_SUPER_ADMIN) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `User cannot have the role '${Utils.getRoleNameFromRoleID(filteredRequest.role)}' in the Super Tenant`, 500,
         'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
     }
     // Only Basic, Demo, Admin user other Tenants (!== default)
-    if (tenantID !== 'default' && filteredRequest.role  && filteredRequest.role === Constants.ROLE_SUPER_ADMIN) {
+    if (tenantID !== 'default' && filteredRequest.role && filteredRequest.role === Constants.ROLE_SUPER_ADMIN) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `User cannot have the Super Admin role in this Tenant`, 500,
@@ -405,7 +405,7 @@ export default class User extends TenantHolder {
     }
     // Only Admin and Super Admin can use role different from Basic
     if (filteredRequest.role === Constants.ROLE_ADMIN && filteredRequest.role === Constants.ROLE_SUPER_ADMIN &&
-        !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
+      !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `User without role Admin or Super Admin tried to ${filteredRequest.id ? 'update' : 'create'} an User with the '${Utils.getRoleNameFromRoleID(filteredRequest.role)}' role`, 500,

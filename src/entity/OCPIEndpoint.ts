@@ -122,7 +122,7 @@ export default class OCPIEndpoint extends TenantHolder {
     const localToken = OCPIUtils.btoa(JSON.stringify(newToken));
     // Set local token
     this.setLocalToken(localToken);
-    // return
+    // Return
     return localToken;
   }
 
@@ -131,7 +131,8 @@ export default class OCPIEndpoint extends TenantHolder {
   }
 
   setBusinessDetails(businessDetails) {
-    return this._model.businessDetails = businessDetails;
+    this._model.businessDetails = businessDetails;
+    return this._model.businessDetails;
   }
 
   getToken() {
@@ -223,16 +224,16 @@ export default class OCPIEndpoint extends TenantHolder {
     return OCPIEndpointStorage.getOcpiEndpoints(tenantID, params, limit, skip, sort);
   }
 
-  static async getOcpiEndpointWithToken(tenantID, token) {
+  static getOcpiEndpointWithToken(tenantID, token) {
     return OCPIEndpointStorage.getOcpiEndpointWithToken(tenantID, token);
   }
 
   static async getDefaultOcpiEndpoint(tenantID) {
-    // check if default endpoint exist
+    // Check if default endpoint exist
     let ocpiendpoint = await OCPIEndpointStorage.getDefaultOcpiEndpoint(tenantID);
 
     if (!ocpiendpoint) {
-      // create new endpoint
+      // Create new endpoint
       ocpiendpoint = new OCPIEndpoint(tenantID, {});
       ocpiendpoint.setName('default');
       ocpiendpoint.setStatus(Constants.OCPI_REGISTERING_STATUS.OCPI_NEW);

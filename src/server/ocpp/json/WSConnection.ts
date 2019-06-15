@@ -27,7 +27,7 @@ export default class WSConnection {
 
   constructor(wsConnection, req, wsServer) {
     // Init
-    this.url = req.url.trim().replace(/\b(\?|&).*/, '');  // Filter trailing URL parameters
+    this.url = req.url.trim().replace(/\b(\?|&).*/, ''); // Filter trailing URL parameters
     this.ip = req && ((req.connection && req.connection.remoteAddress) || req.headers['x-forwarded-for']);
     this.wsConnection = wsConnection;
     this.req = req;
@@ -254,7 +254,7 @@ export default class WSConnection {
         resolve();
       } else {
         // Send timeout
-        setTimeout(() => rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${Tenant.getTenant(this.tenantID)})'`), Constants.OCPP_SOCKET_TIMEOUT);
+        setTimeout(() => { return rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${Tenant.getTenant(this.tenantID)})'`); }, Constants.OCPP_SOCKET_TIMEOUT);
       }
 
       // Function that will receive the request's response
@@ -287,10 +287,10 @@ export default class WSConnection {
     if (this.isTenantValid()) {
       // Ok verified
       return this.tenantID;
-    } else {
-      // No go to the master tenant
-      return Constants.DEFAULT_TENANT;
     }
+    // No go to the master tenant
+    return Constants.DEFAULT_TENANT;
+
   }
 
   setTenantID(tenantID) {

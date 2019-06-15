@@ -354,7 +354,7 @@ export default class OCPPStorage {
     if (siteAreaID) {
       // At least one User
       if (chargingStationIDs && chargingStationIDs.length > 0) {
-        // update all chargers
+        // Update all chargers
         await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany({
           $and: [{
             "_id": {
@@ -390,7 +390,7 @@ export default class OCPPStorage {
     if (siteAreaID) {
       // At least one User
       if (chargingStationIDs && chargingStationIDs.length > 0) {
-        // update all chargers
+        // Update all chargers
         await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany({
           $and: [{
             "_id": {
@@ -462,7 +462,7 @@ export default class OCPPStorage {
       meterValueMDB.timestamp = new Date(meterValueMDB.timestamp);
     }
     // Sort
-    meterValuesMDB.sort((meterValue1, meterValue2) => meterValue1.timestamp.getTime() - meterValue2.timestamp.getTime());
+    meterValuesMDB.sort((meterValue1, meterValue2) => { return meterValue1.timestamp.getTime() - meterValue2.timestamp.getTime(); });
     // Create
     const meterValues = [];
     for (const meterValueMDB of meterValuesMDB) {

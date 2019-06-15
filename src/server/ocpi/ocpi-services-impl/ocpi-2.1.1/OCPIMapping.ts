@@ -18,7 +18,7 @@ export default class OCPIMapping {
    */
   static async convertSite2Location(tenant: any, site: any, options: any = {}) {
     if (site instanceof Site) {
-      // build object
+      // Build object
       return {
         "id": site.getID(),
         "name": site.getName(),
@@ -43,13 +43,13 @@ export default class OCPIMapping {
    * @return Array of OCPI EVSES
    */
   static async getEvsesFromSiteaArea(tenant: any, siteArea: any, options: any) {
-    // build evses array
+    // Build evses array
     const evses: any = [];
 
-    // get charging stations from SiteArea
+    // Get charging stations from SiteArea
     const chargingStations = await siteArea.getChargingStations();
 
-    // convert charging stations to evse(s)
+    // Convert charging stations to evse(s)
     chargingStations.forEach((chargingStation: any) => {
       if (chargingStation.canChargeInParallel()) {
         evses.push(...this.convertCharginStation2MultipleEvses(tenant, chargingStation, options));
@@ -58,7 +58,7 @@ export default class OCPIMapping {
       }
     });
 
-    // return evses
+    // Return evses
     return evses;
   }
 
@@ -70,16 +70,16 @@ export default class OCPIMapping {
  * @return Array of OCPI EVSES
  */
   static async getEvsesFromSite(tenant: any, site: any, options: any) {
-    // build evses array
+    // Build evses array
     const evses = [];
     const siteAreas = await site.getSiteAreas();
 
     for (const siteArea of siteAreas) {
-      // get charging stations from SiteArea
+      // Get charging stations from SiteArea
       evses.push(...await this.getEvsesFromSiteaArea(tenant, siteArea, options));
     }
 
-    // return evses
+    // Return evses
     return evses;
   }
 
@@ -88,21 +88,21 @@ export default class OCPIMapping {
    * @param {Tenant} tenant
    */
   static async getAllLocations(tenant: any, limit: any, skip: any, options: any) {
-    // result
+    // Result
     const result: any = { count: 0, locations: [] };
 
     // Get all sites
     const sites = await Site.getSites(tenant.getID(), {}, limit, skip, null);
-    
-    // convert Sites to Locations
+
+    // Convert Sites to Locations
     for (const site of sites.result) {
       result.locations.push(await this.convertSite2Location(tenant, site, options));
     }
 
-    // set count
+    // Set count
     result.count = sites.count;
 
-    // return locations
+    // Return locations
     return result;
   }
 
@@ -114,10 +114,10 @@ export default class OCPIMapping {
    * @return Array of OCPI EVSES
    */
   static convertCharginStation2MultipleEvses(tenant: any, chargingStation: any, options: any) {
-    // evse_id
+    // Build evse_id
     const evse_id = this.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.getID()}`);
 
-    // loop through connectors and send one evse per connector
+    // Loop through connectors and send one evse per connector
     const evses = chargingStation.getConnectors().map((connector: any) => {
       const evse: any = {
         "uid": `${chargingStation.getID()}*${connector.connectorId}`,
@@ -126,7 +126,7 @@ export default class OCPIMapping {
         "connectors": [this.convertConnector2OCPIConnector(chargingStation, connector, evse_id)]
       };
 
-      // check addChargeBoxID flag
+      // Check addChargeBoxID flag
       if (options && options.addChargeBoxID) {
         evse.chargeBoxId = chargingStation.getID();
       }
@@ -134,7 +134,7 @@ export default class OCPIMapping {
       return evse;
     });
 
-    // return all evses
+    // Return all evses
     return evses;
   }
 
@@ -146,7 +146,7 @@ export default class OCPIMapping {
    * @return OCPI EVSE
    */
   static convertChargingStation2UniqueEvse(tenant: any, chargingStation: any, options: any) {
-    // build evse_id
+    // Build evse_id
     const evse_id = this.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.getID()}`);
 
     // Get all connectors
@@ -154,7 +154,7 @@ export default class OCPIMapping {
       return this.convertConnector2OCPIConnector(chargingStation, connector, evse_id);
     });
 
-    // build evse
+    // Build evse
     const evse: any = {
       "uid": `${chargingStation.getID()}`,
       // "id": this.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.getID()}`),
@@ -163,7 +163,7 @@ export default class OCPIMapping {
       "connectors": connectors
     };
 
-    // check addChargeBoxID flag
+    // Check addChargeBoxID flag
     if (options && options.addChargeBoxID) {
       evse.chargeBoxId = chargingStation.getID();
     }
@@ -183,14 +183,14 @@ export default class OCPIMapping {
 
     let aggregatedConnectorStatusIndex = 0;
 
-    // loop through connector
+    // Loop through connector
     for (const connector of connectors) {
       if (statusesOrdered.indexOf(connector.status) > aggregatedConnectorStatusIndex) {
         aggregatedConnectorStatusIndex = statusesOrdered.indexOf(connector.status);
       }
     }
 
-    // return value
+    // Return value
     return statusesOrdered[aggregatedConnectorStatusIndex];
   }
 
@@ -231,7 +231,7 @@ export default class OCPIMapping {
    * Convert ID to EVSE_ID compliant to eMI3 by replacing all non alphanumeric characters tby '*'
    */
   static convert2evseid(id: any) {
-    if (id != null && id != "") {
+    if (id !== null && id !== "") {
       return id.replace(/[\W_]+/g, "*").toUpperCase();
     }
   }
@@ -274,21 +274,21 @@ export default class OCPIMapping {
   }
 
   /**
-   * build OCPI Credential Object
+   * Build OCPI Credential Object
    * @param {*} tenant
    * @param {*} token
    */
   static async buildOCPICredentialObject(tenant, token, versionUrl?) {
-    // credentail
+    // Credential
     const credential: any = {};
 
-    // get ocpi service configuration
+    // Get ocpi service configuration
     const ocpiSetting = await tenant.getSetting(Constants.COMPONENTS.OCPI);
 
-    // define version url
+    // Define version url
     credential.url = (versionUrl ? versionUrl : 'https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/cpo/versions');
 
-    // check if available
+    // Check if available
     if (ocpiSetting && ocpiSetting.getContent()) {
       const configuration = ocpiSetting.getContent().ocpi;
       credential.token = token;
@@ -302,12 +302,12 @@ export default class OCPIMapping {
       credential.party_id = 'SLF';
     }
 
-    // return credential object
+    // Return credential object
     return credential;
   }
 
   /**
-   * convert OCPI Endpoints
+   * Convert OCPI Endpoints
    */
   static convertEndpoints(endpointsEntity) {
     const endpoints: any = {};

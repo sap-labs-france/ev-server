@@ -116,11 +116,9 @@ export default class StatisticService {
     if (Authorizations.isBasic(loggedUser)) {
       // Only for current user
       filter.userID = loggedUser.id;
-    } else {
-      if (filteredRequest.UserID) {
-        filter.userID = filteredRequest.UserID;
-      }
+    } else if (!Authorizations.isBasic(loggedUser) && filteredRequest.UserID) {
+      filter.userID = filteredRequest.UserID;
     }
     return filter;
-  } 
+  }
 }

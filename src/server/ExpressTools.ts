@@ -16,7 +16,7 @@ import Logging from '../utils/Logging';
 import Constants from '../utils/Constants';
 
 export default {
-  init: function (bodyLimit: string = '1mb'): express.Application  {
+  init: function(bodyLimit: string = '1mb'): express.Application {
     const app = express();
     // Secure the application
     app.use(helmet());
@@ -44,7 +44,7 @@ export default {
     return app;
   },
 
-  createHttpServer: function (serverConfig: any, expressApp: express.Application): http.Server {
+  createHttpServer: function(serverConfig: any, expressApp: express.Application): http.Server {
     let server: http.Server;
     // Create the HTTP server
     if (serverConfig.protocol === "https") {
@@ -77,7 +77,7 @@ export default {
     return server;
   },
 
-  startServer: function (serverConfig: any, httpServer: any, serverName: string, serverModuleName: any, listenCb: Function = null, listen: boolean = true): void {
+  startServer: function(serverConfig: any, httpServer: any, serverName: string, serverModuleName: any, listenCb: Function = null, listen: boolean = true): void {
     // Default listen callback
     function defaultListenCb(): void {
       // Log

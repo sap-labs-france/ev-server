@@ -7,7 +7,7 @@ export default class UtilsSecurity {
   static filterBoolean(value) {
     let result = false;
     // Check boolean
-    if(value) {
+    if (value) {
       // Sanitize
       value = sanitize(value);
       // Check the type

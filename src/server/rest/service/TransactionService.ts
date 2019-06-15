@@ -10,7 +10,7 @@ import ChargingStation from '../../../entity/ChargingStation';
 import User from '../../../entity/User';
 import SettingStorage from "../../../storage/mongodb/SettingStorage";
 import ConcurConnector from "../../../integration/refund/ConcurConnector";
-import OCPPService from"../../../server/ocpp/services/OCPPService";
+import OCPPService from "../../../server/ocpp/services/OCPPService";
 import fs from "fs";
 import crypto from 'crypto';
 import TSGlobal from '../../../types/GlobalType';
@@ -83,7 +83,7 @@ export default class TransactionService {
           `The user with ID '${req.user.id}' does not exist`, 550,
           'TransactionService', 'handleRefundTransactions', req.user);
       }
-      if (!transactionsToRefund.every(tr => tr.getUserID() === req.user.id)) {
+      if (!transactionsToRefund.every((tr) => { return tr.getUserID() === req.user.id; })) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The user with ID '${req.user.id}' cannot refund another user's transaction`, 551,
@@ -94,7 +94,7 @@ export default class TransactionService {
       const connector = new ConcurConnector(req.user.tenantID, setting);
       const refundedTransactions = await connector.refund(user, transactionsToRefund);
       // // Transfer it to the Revenue Cloud
-      // await Utils.pushTransactionToRevenueCloud(action, transaction, req.user, transaction.getUserJson());
+      // pragma await Utils.pushTransactionToRevenueCloud(action, transaction, req.user, transaction.getUserJson());
 
       const response: any = {
         ...Constants.REST_RESPONSE_SUCCESS,
@@ -307,7 +307,7 @@ export default class TransactionService {
       const endDateTime = filteredRequest.EndDateTime ? filteredRequest.EndDateTime : Constants.MAX_DATE;
       // Filter?
       if (consumptions && (filteredRequest.StartDateTime || filteredRequest.EndDateTime)) {
-        consumptions = consumptions.filter(consumption => moment(consumption.getEndedAt()).isBetween(startDateTime, endDateTime, null, '[]'));
+        consumptions = consumptions.filter((consumption) => { return moment(consumption.getEndedAt()).isBetween(startDateTime, endDateTime, null, '[]'); });
       }
       // Return the result
       res.json(TransactionSecurity.filterConsumptionsFromTransactionResponse(transaction, consumptions, req.user));

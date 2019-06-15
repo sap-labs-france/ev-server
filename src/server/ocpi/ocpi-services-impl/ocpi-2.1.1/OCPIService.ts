@@ -15,7 +15,7 @@ SourceMap.install();
   constructor(ocpiRestConfig) {
     super(ocpiRestConfig, VERSION);
 
-    // register Endpoints
+    // Register Endpoints
     this.registerEndpoint(new CredentialsEndpoint(this));
     this.registerEndpoint(new LocationsEndpoint(this));
   }

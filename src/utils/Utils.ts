@@ -215,7 +215,7 @@ export default class Utils {
     return changedID;
   }
 
-  public static convertUserToObjectID(user: any): ObjectId|null { //TODO Fix this method...
+  public static convertUserToObjectID(user: any): ObjectId|null { // TODO Fix this method...
     let userID = null;
     // Check Created By
     if (user) {
@@ -225,7 +225,7 @@ export default class Utils {
       if (typeof user === "object" &&
         user.constructor.name !== "ObjectID" && ('id' in user || 'getID' in user)) {
         // This is the User Model
-        userID = Utils.convertToObjectID('id' in user?user.id:user.getID());
+        userID = Utils.convertToObjectID('id' in user ? user.id : user.getID());
       }
       // Check String
       if (typeof user === "string") {
@@ -320,9 +320,9 @@ export default class Utils {
     // Check Prod
     if (Utils.isServerInProductionMode()) {
       return "An unexpected server error occurred. Check the server's logs!";
-    } else {
-      return message;
     }
+    return message;
+
   }
 
   public static checkRecordLimit(recordLimit: number|string): number {

@@ -167,7 +167,7 @@ export default class EMailNotificationTask extends NotificationTask {
     let adminEmails = null;
     if (data.adminUsers && data.adminUsers.length > 0) {
       // Add Admins
-      adminEmails = data.adminUsers.map((adminUser) => adminUser.email).join(';');
+      adminEmails = data.adminUsers.map((adminUser) => { return adminUser.email; }).join(';');
     }
     // Send the email
     const message = await this.sendEmail({
@@ -188,7 +188,7 @@ export default class EMailNotificationTask extends NotificationTask {
       return (data.user ? data.user.email : null);
     } else if (data.users) {
       // Return a list of emails
-      return data.users.map((user) => user.email).join(',');
+      return data.users.map((user) => { return user.email; }).join(',');
     }
   }
 
@@ -200,13 +200,13 @@ export default class EMailNotificationTask extends NotificationTask {
       cc: email.cc,
       bcc: email.bcc,
       subject: email.subject,
-      // text: email.text,
+      // pragma text: email.text,
       attachment: [
         { data: email.html, alternative: true }
       ]
     };
-    // send the message and get a callback with an error or details of the message that was sent
-    return await this.server.send(messageToSend, function (err, messageSent) {
+    // Send the message and get a callback with an error or details of the message that was sent
+    return await this.server.send(messageToSend, function(err, messageSent) {
       if (err) {
         // Error!
         try {

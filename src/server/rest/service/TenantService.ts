@@ -15,7 +15,7 @@ import AbstractService from './AbstractService';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import Utils from '../../../utils/Utils';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 
 const MODULE_NAME = 'TenantService';
 
@@ -148,7 +148,7 @@ export default class TenantService extends AbstractService {
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
-      tenants.result = tenants.result.map((tenant) => tenant.getModel());
+      tenants.result = tenants.result.map((tenant) => { return tenant.getModel(); });
       // Filter
       TenantSecurity.filterTenantsResponse(tenants, req.user);
       // Return

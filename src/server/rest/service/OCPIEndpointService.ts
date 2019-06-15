@@ -115,7 +115,7 @@ export default class OCPIEndpointService {
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
-      ocpiendpoints.result = ocpiendpoints.result.map((ocpiendpoint) => ocpiendpoint.getModel());
+      ocpiendpoints.result = ocpiendpoints.result.map((ocpiendpoint) => { return ocpiendpoint.getModel(); });
       // Filter
       ocpiendpoints.result = OCPIEndpointSecurity.filterOcpiEndpointsResponse(
         ocpiendpoints.result, req.user);
@@ -148,7 +148,7 @@ export default class OCPIEndpointService {
 
       // Create ocpiendpoint
       const ocpiendpoint = new OCPIEndpoint(req.user.tenantID, filteredRequest);
-      // set status
+      // Set status
       ocpiendpoint.setStatus(Constants.OCPI_REGISTERING_STATUS.OCPI_NEW);
       // Update timestamp
       ocpiendpoint.setCreatedBy(new User(req.user.tenantID, { 'id': req.user.id }));
@@ -238,11 +238,11 @@ export default class OCPIEndpointService {
       OCPIEndpoint.checkIfOcpiEndpointValid(filteredRequest, req);
       // Create temporary ocpiendpoint
       const ocpiendpoint = new OCPIEndpoint(req.user.tenantID, filteredRequest);
-      // build OCPI Client
+      // Build OCPI Client
       const ocpiClient = new OCPIClient(ocpiendpoint);
-      // try to ping
+      // Try to ping
       const pingResult = await ocpiClient.ping();
-      // check ping result
+      // Check ping result
       if (pingResult.statusCode === 200) {
         // Log
         Logging.logSecurityInfo({
@@ -286,13 +286,13 @@ export default class OCPIEndpointService {
       const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointSendEVSEStatusesRequest(req.body, req.user);
       // Check Mandatory fields
       OCPIEndpoint.checkIfOcpiEndpointValid(filteredRequest, req);
-      // get ocpiendpoint
+      // Get ocpiendpoint
       const ocpiendpoint = await OCPIEndpoint.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
-      // build OCPI Client
+      // Build OCPI Client
       const ocpiClient = new OCPIClient(ocpiendpoint);
-      // send EVSE statuses
+      // Send EVSE statuses
       const sendResult = await ocpiClient.sendEVSEStatuses();
-      // return result
+      // Return result
       res.json(sendResult);
 
       next();
@@ -327,12 +327,12 @@ export default class OCPIEndpointService {
           'OCPIEndpointService', 'handleRegisterOcpiEndpoint',
           req.user);
       }
-      // build OCPI Client
+      // Build OCPI Client
       const ocpiClient = new OCPIClient(ocpiendpoint);
-      // try to ping
+      // Try to ping
       const pingResult = await ocpiClient.register();
 
-      // check ping result
+      // Check ping result
       if (pingResult.statusCode === 200) {
         // Log
         Logging.logSecurityInfo({

@@ -69,7 +69,7 @@ export default class ConnectorService extends AbstractService {
       const filteredRequest = ConnectorSecurity.filterConnectionsRequest(req.query, req.user);
       const connections = await AbstractConnector.getConnectionsByUserId(req.user.tenantID, filteredRequest.userId);
       // Set
-      connections.result = connections.result.map((connection) => connection.getModel());
+      connections.result = connections.result.map((connection) => { return connection.getModel(); });
       // Filter
       ConnectorSecurity.filterConnectionsResponse(connections, req.user);
       // Return
@@ -97,7 +97,7 @@ export default class ConnectorService extends AbstractService {
       const setting = await AbstractConnector.getConnectorSetting(req.user.tenantID, filteredRequest.settingId);
       const connector = this.instantiateConnector(req.user.tenantID, filteredRequest.connectorId, setting.getContent()[filteredRequest.connectorId]);
       const connection = await connector.createConnection(filteredRequest.userId, filteredRequest.data);
-      
+
       ConnectionValidator.getInstance().validateConnectionCreation(req.body);
 
       // Log

@@ -4,7 +4,7 @@ import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import Global from './../../types/GlobalType';
 import fs from 'fs';
-declare var global: Global;
+declare const global: Global;
 
 export default class LoggingStorage {
   public static async deleteLogs(tenantID, deleteUpToDate) {
@@ -55,10 +55,10 @@ export default class LoggingStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check User
-    if('user' in logToSave){
+    if ('user' in logToSave) {
       logToSave.userID = Utils.convertUserToObjectID(logToSave.user);
     }
-    if('actionOnUser' in logToSave) {
+    if ('actionOnUser' in logToSave) {
       logToSave.actionOnUserID = Utils.convertUserToObjectID(logToSave.actionOnUser);
     }
     // Transfer

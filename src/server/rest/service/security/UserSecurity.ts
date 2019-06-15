@@ -9,7 +9,7 @@ export default class UserSecurity {
     // Set
     filteredRequest.userID = sanitize(request.userID);
     if (request.siteIDs) {
-      filteredRequest.siteIDs = request.siteIDs.map(siteID => sanitize(siteID));
+      filteredRequest.siteIDs = request.siteIDs.map((siteID) => { return sanitize(siteID); });
     }
     return filteredRequest;
   }
@@ -20,7 +20,7 @@ export default class UserSecurity {
     // Set
     filteredRequest.userID = sanitize(request.userID);
     if (request.siteIDs) {
-      filteredRequest.siteIDs = request.siteIDs.map(siteID => sanitize(siteID));
+      filteredRequest.siteIDs = request.siteIDs.map((siteID) => { return sanitize(siteID); });
     }
     return filteredRequest;
   }

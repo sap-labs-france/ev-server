@@ -88,7 +88,7 @@ export default class ChargingStationStorage {
         ]
       }]
     };
-    // include deleted charging stations if requested
+    // Include deleted charging stations if requested
     if (params.includeDeleted) {
       filters.$and[0].$or.push({
         "deleted": true
@@ -139,7 +139,7 @@ export default class ChargingStationStorage {
         // Build filter
         filters.$and.push({
           "siteArea.siteID": {
-            $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
+            $in: params.siteIDs.map((siteID) => { return Utils.convertToObjectID(siteID); })
           }
         });
       }
@@ -344,12 +344,12 @@ export default class ChargingStationStorage {
     // Build facets meaning each different error scenario
     let facets: any = {};
     if (params.errorType) {
-      // check allowed
+      // Check allowed
       if (!(await Tenant.getTenant(tenantID)).isComponentActive(Constants.COMPONENTS.ORGANIZATION) && params.errorType === 'missingSiteArea') {
         throw new BackendError(null, `Organization is not active whereas filter is on missing site.`,
           "ChargingStationStorage", "getChargingStationsInError");
       }
-      // build facet only for one error type
+      // Build facet only for one error type
       facets.$facet = {};
       facets.$facet[params.errorType] = ChargingStationStorage.builChargerInErrorFacet(params.errorType);
     } else {
@@ -366,7 +366,7 @@ export default class ChargingStationStorage {
         facets.$facet.missingSiteArea = ChargingStationStorage.builChargerInErrorFacet("missingSiteArea");
       }
     }
-    // merge in each facet the join for sitearea and siteareaid
+    // Merge in each facet the join for sitearea and siteareaid
     const project = [];
     for (const facet in facets.$facet) {
       if (siteAreaIdJoin) {
@@ -649,10 +649,10 @@ export default class ChargingStationStorage {
           value = param.value;
           // Break
           return false;
-        } else {
-          // Continue
-          return true;
         }
+        // Continue
+        return true;
+
       });
     }
     // Debug
@@ -693,7 +693,7 @@ export default class ChargingStationStorage {
     if (siteAreaID) {
       // At least one User
       if (chargingStationIDs && chargingStationIDs.length > 0) {
-        // update all chargers
+        // Update all chargers
         await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany({
           $and: [
             { "_id": { $in: chargingStationIDs } },
@@ -722,7 +722,7 @@ export default class ChargingStationStorage {
     if (siteAreaID) {
       // At least one User
       if (chargingStationIDs && chargingStationIDs.length > 0) {
-        // update all chargers
+        // Update all chargers
         await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany({
           $and: [
             { "_id": { $in: chargingStationIDs } },

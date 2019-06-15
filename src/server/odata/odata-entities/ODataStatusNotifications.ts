@@ -33,7 +33,7 @@ export default class ODataStatusNotifications extends AbstractODataEntities {
       statusNotification.id = statusNotification._id;
     }
     if (statusNotification.hasOwnProperty('timestamp') && statusNotification.timestamp) {
-      // convert timestamp and build date object
+      // Convert timestamp and build date object
       statusNotification.timestamp = this.convertTimestamp(statusNotification.timestamp, req);
       statusNotification.notificationDate = this.buildDateObject(statusNotification.timestamp, req);
     }
