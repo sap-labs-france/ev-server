@@ -4,7 +4,7 @@ declare module 'mongo-uri-builder' {
     password?: string;
     host?: string;
     port?: number;
-    replicas?: {host: string; port?: number}[];
+    replicas?: { host: string; port?: number }[];
     database?: string;
     options?: any;
   }
