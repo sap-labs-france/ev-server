@@ -11,7 +11,7 @@ declare const global: TSGlobal;
 
 export default class SessionHashService {
   // Check if Session has been updated and require new login
-  static async isSessionHashUpdated(req, res, next) {
+  static isSessionHashUpdated(req, res, next) {
     // Get tenant id, user id and hash ID
     const userID = req.user.id;
     const tenantID = req.user.tenantID;
