@@ -293,7 +293,7 @@ export default class User extends TenantHolder {
   }
 
   setSites(sites) {
-    this._model.sites = sites.map((site) => site.getModel());
+    this._model.sites = sites.map((site) => { return site.getModel(); });
   }
 
   async getSites() {
@@ -332,10 +332,10 @@ export default class User extends TenantHolder {
       await this.saveImage();
       // Save User
       return this.save();
-    } else {
-      // Delete physically
-      return UserStorage.deleteUser(this.getTenantID(), this.getID());
     }
+    // Delete physically
+    return UserStorage.deleteUser(this.getTenantID(), this.getID());
+
   }
 
   static checkIfUserValid(filteredRequest, user, req) {

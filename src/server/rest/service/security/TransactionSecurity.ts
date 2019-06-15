@@ -8,7 +8,7 @@ export default class TransactionSecurity {
   static filterTransactionsRefund(request, loggedUser) {
     const filteredRequest: any = {};
     // Set
-    filteredRequest.transactionIds = request.transactionIds.map(id => sanitize(id));
+    filteredRequest.transactionIds = request.transactionIds.map((id) => { return sanitize(id); });
     return filteredRequest;
   }
 
@@ -117,7 +117,7 @@ export default class TransactionSecurity {
       filteredTransaction.meterStart = transaction.getMeterStart();
       filteredTransaction.timestamp = transaction.getStartDate();
       filteredTransaction.timezone = transaction.getTimezone();
-      // if (Authorizations.isAdmin(loggedUser) && transaction.getModel().hasOwnProperty('price')) {
+      // If (Authorizations.isAdmin(loggedUser) && transaction.getModel().hasOwnProperty('price')) {
       if (transaction.hasStartPrice()) {
         filteredTransaction.price = transaction.getStartPrice();
         filteredTransaction.roundedPrice = transaction.getStartRoundedPrice();
@@ -156,7 +156,7 @@ export default class TransactionSecurity {
         filteredTransaction.stop.totalInactivitySecs = transaction.getStopTotalInactivitySecs() + transaction.getStopExtraInactivitySecs();
         filteredTransaction.stop.totalDurationSecs = transaction.getStopTotalDurationSecs();
         filteredTransaction.stop.stateOfCharge = transaction.getStopStateOfCharge();
-        // if (Authorizations.isAdmin(loggedUser) && transaction.hasStopPrice()) {
+        // pragma if (Authorizations.isAdmin(loggedUser) && transaction.hasStopPrice()) {
         if (transaction.hasStopPrice()) {
           filteredTransaction.stop.price = transaction.getStopPrice();
           filteredTransaction.stop.roundedPrice = transaction.getStopRoundedPrice();
@@ -272,15 +272,15 @@ export default class TransactionSecurity {
     // Admin?
     if (Authorizations.isAdmin(loggedUser)) {
       // Set them all
-      filteredTransaction.values = consumptions.map(consumption => consumption.getModel()).map(consumption => ({
+      filteredTransaction.values = consumptions.map((consumption) => { return consumption.getModel(); }).map((consumption) => { return {
         ...consumption,
         date: consumption.endedAt,
         value: consumption.instantPower,
         cumulated: consumption.cumulatedConsumption
-      }));
+      }; });
     } else {
       // Clean
-      filteredTransaction.values = consumptions.map(consumption => consumption.getModel()).map(consumption => ({
+      filteredTransaction.values = consumptions.map((consumption) => { return consumption.getModel(); }).map((consumption) => { return {
         endedAt: consumption.endedAt,
         instantPower: consumption.instantPower,
         cumulatedConsumption: consumption.cumulatedConsumption,
@@ -288,7 +288,7 @@ export default class TransactionSecurity {
         date: consumption.endedAt,
         value: consumption.instantPower,
         cumulated: consumption.cumulatedConsumption
-      }));
+      }; });
     }
     for (let i = 1; i < filteredTransaction.values.length; i++) {
       if (filteredTransaction.values[i].instantPower === 0 && filteredTransaction.values[i - 1] !== 0) {

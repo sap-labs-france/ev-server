@@ -32,7 +32,7 @@ export default class LoggingSecurity {
     return filteredRequest;
   }
 
-  static filterLoggingResponse(logging, loggedUser, withDetailedMessage=false) {
+  static filterLoggingResponse(logging, loggedUser, withDetailedMessage = false) {
     const filteredLogging: any = {};
 
     if (!logging) {
@@ -70,7 +70,7 @@ export default class LoggingSecurity {
 
   static filterLoggingsResponse(loggings, loggedUser) {
     const filteredLoggings = [];
-		
+
     if (!loggings.result) {
       return null;
     }

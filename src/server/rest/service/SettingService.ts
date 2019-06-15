@@ -115,7 +115,7 @@ export default class SettingService {
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
-      settings.result = settings.result.map((setting) => setting.getModel());
+      settings.result = settings.result.map((setting) => { return setting.getModel(); });
       // Filter
       settings.result = SettingSecurity.filterSettingsResponse(
         settings.result, req.user);

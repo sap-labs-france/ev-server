@@ -118,15 +118,15 @@ export default class Bootstrap {
       if (this.centralSystemRestConfig) {
         // Create the server
         if (!this.centralRestServer)
-          this.centralRestServer = new CentralRestServer(this.centralSystemRestConfig, this.chargingStationConfig);
+        { this.centralRestServer = new CentralRestServer(this.centralSystemRestConfig, this.chargingStationConfig); }
         // Create database Web Socket notifications
         if (!this.storageNotification)
-          this.storageNotification = new MongoDBStorageNotification(this.storageConfig, this.centralRestServer);
+        { this.storageNotification = new MongoDBStorageNotification(this.storageConfig, this.centralRestServer); }
         // Start database Web Socket notifications
         this.storageNotification.start();
         // Start it
         await this.centralRestServer.start();
-        // if (this.centralSystemRestConfig.socketIO) {
+        // pragma if (this.centralSystemRestConfig.socketIO) {
         //   await this.centralRestServer.startSocketIO();
         // }
       }
@@ -242,7 +242,7 @@ export default class Bootstrap {
       global.database = this.database;
       // Clean the locks in DB belonging to the current app/host
       if (cluster.isMaster && this.databaseDone)
-        await LockingStorage.cleanLocks();
+      { await LockingStorage.cleanLocks(); }
 
       if (cluster.isMaster && !this.migrationDone && this.centralSystemRestConfig) {
         // Check and trigger migration (only master process can run the migration)

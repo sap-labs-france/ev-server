@@ -17,7 +17,7 @@ export default class TransactionsAddTimezoneTask extends MigrationTask {
    * @param tenant
    */
   async migrateTenant(tenant) {
-    /*const chargingStationTimezones:any = {};
+    /* pragma const chargingStationTimezones:any = {};
     // Read all  Charging Stations
     const chargingStationsMDB = await global.database.getCollection<any>(tenant.getID(), 'chargingstations')
       .aggregate([]).toArray();

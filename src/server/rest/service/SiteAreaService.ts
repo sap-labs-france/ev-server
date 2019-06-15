@@ -15,7 +15,7 @@ import OrganizationComponentInactiveError from '../../../exception/OrganizationC
 export default class SiteAreaService {
   static async handleCreateSiteArea(action, req, res, next) {
     try {
-      // check if organization component is active
+      // Check if organization component is active
       if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
         throw new OrganizationComponentInactiveError(
           Constants.ACTION_CREATE,
@@ -34,7 +34,7 @@ export default class SiteAreaService {
           req.user);
       }
       // Filter
-      const filteredRequest = SiteAreaSecurity.filterSiteAreaCreateRequest( req.body, req.user );
+      const filteredRequest = SiteAreaSecurity.filterSiteAreaCreateRequest(req.body, req.user);
       // Check Mandatory fields
       SiteArea.checkIfSiteAreaValid(filteredRequest, req);
       // Check Site
@@ -89,7 +89,7 @@ export default class SiteAreaService {
 
   static async handleGetSiteAreas(action, req, res, next) {
     try {
-      // check if organization component is active
+      // Check if organization component is active
       if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
         throw new OrganizationComponentInactiveError(
           Constants.ACTION_LIST,
@@ -122,7 +122,7 @@ export default class SiteAreaService {
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
-      siteAreas.result = siteAreas.result.map((siteArea) => siteArea.getModel());
+      siteAreas.result = siteAreas.result.map((siteArea) => { return siteArea.getModel(); });
       // Filter
       SiteAreaSecurity.filterSiteAreasResponse(siteAreas, req.user);
       // Return
@@ -136,7 +136,7 @@ export default class SiteAreaService {
 
   static async handleDeleteSiteArea(action, req, res, next) {
     try {
-      // check if organization component is active
+      // Check if organization component is active
       if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
         throw new OrganizationComponentInactiveError(
           Constants.ACTION_DELETE,
@@ -147,7 +147,7 @@ export default class SiteAreaService {
       // Filter
       const filteredRequest = SiteAreaSecurity.filterSiteAreaDeleteRequest(req.query, req.user);
       // Check Mandatory fields
-      if(!filteredRequest.ID) {
+      if (!filteredRequest.ID) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -194,7 +194,7 @@ export default class SiteAreaService {
 
   static async handleGetSiteArea(action, req, res, next) {
     try {
-      // check if organization component is active
+      // Check if organization component is active
       if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
         throw new OrganizationComponentInactiveError(
           Constants.ACTION_READ,
@@ -205,7 +205,7 @@ export default class SiteAreaService {
       // Filter
       const filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query, req.user);
       // Charge Box is mandatory
-      if(!filteredRequest.ID) {
+      if (!filteredRequest.ID) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -249,7 +249,7 @@ export default class SiteAreaService {
 
   static async handleGetSiteAreaImage(action, req, res, next) {
     try {
-      // check if organization component is active
+      // Check if organization component is active
       if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
         throw new OrganizationComponentInactiveError(
           Constants.ACTION_READ,
@@ -260,7 +260,7 @@ export default class SiteAreaService {
       // Filter
       const filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query, req.user);
       // Charge Box is mandatory
-      if(!filteredRequest.ID) {
+      if (!filteredRequest.ID) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -298,7 +298,7 @@ export default class SiteAreaService {
 
   static async handleUpdateSiteArea(action, req, res, next) {
     try {
-      // check if organization component is active
+      // Check if organization component is active
       if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
         throw new OrganizationComponentInactiveError(
           Constants.ACTION_UPDATE,
@@ -307,7 +307,7 @@ export default class SiteAreaService {
       }
 
       // Filter
-      const filteredRequest = SiteAreaSecurity.filterSiteAreaUpdateRequest( req.body, req.user );
+      const filteredRequest = SiteAreaSecurity.filterSiteAreaUpdateRequest(req.body, req.user);
       // Check
       const siteArea = await SiteArea.getSiteArea(req.user.tenantID, filteredRequest.id);
       if (!siteArea) {

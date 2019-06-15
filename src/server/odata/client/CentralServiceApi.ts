@@ -39,7 +39,7 @@ export default class CentralServiceApi extends AuthenticatedApi {
   }
 
   async getTransactionsCompleted(params) {
-    return await this.send({  
+    return await this.send({
       method: 'GET',
       url: '/client/api/TransactionsCompleted',
       params: params
@@ -47,7 +47,7 @@ export default class CentralServiceApi extends AuthenticatedApi {
   }
 
   async getUsers(params) {
-    return await this.send({  
+    return await this.send({
       method: 'GET',
       url: '/client/api/Users',
       params: params
@@ -55,7 +55,7 @@ export default class CentralServiceApi extends AuthenticatedApi {
   }
 
   async getStatusNotifications(params) {
-    return await this.send({  
+    return await this.send({
       method: 'GET',
       url: '/client/api/StatusNotifications',
       params: params
@@ -63,7 +63,7 @@ export default class CentralServiceApi extends AuthenticatedApi {
   }
 
   async getBootNotifications(params) {
-    return await this.send({  
+    return await this.send({
       method: 'GET',
       url: '/client/api/BootNotifications',
       params: params
@@ -71,7 +71,7 @@ export default class CentralServiceApi extends AuthenticatedApi {
   }
 
   async securePing() {
-    return await this.send({  
+    return await this.send({
       method: 'GET',
       url: '/client/api/Ping'
     });

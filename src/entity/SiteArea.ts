@@ -220,6 +220,6 @@ export default class SiteArea extends TenantHolder {
   }
 
   setChargingStations(chargeBoxes) {
-    this._model.chargeBoxes = chargeBoxes.map((chargeBox) => chargeBox.getModel());
+    this._model.chargeBoxes = chargeBoxes.map((chargeBox) => { return chargeBox.getModel(); });
   }
 }

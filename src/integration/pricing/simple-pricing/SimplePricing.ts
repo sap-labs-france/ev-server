@@ -1,4 +1,4 @@
-import Pricing, { PricingSettings, PricedConsumption } from '../Pricing';
+import Pricing, { PricedConsumption, PricingSettings } from '../Pricing';
 import Consumption from '../../../entity/Consumption';
 import Transaction from '../../../entity/Transaction';
 
@@ -33,7 +33,7 @@ export default class SimplePricing extends Pricing {
   async computePrice(consumptionData: {consumption: any}): Promise<PricedConsumption> {
     // Shorthand
     const s = this.getSettings();
-    
+
     return {
       pricingSource: 'simple',
       amount: parseFloat((s.price * (consumptionData.consumption / 1000)).toFixed(6)),

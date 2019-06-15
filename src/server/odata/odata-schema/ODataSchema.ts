@@ -40,7 +40,7 @@ export default class ODataSchema {
       }
     } catch (error) {
       // Login info
-      // add logging
+      // Add logging
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         module: "ODataServer",

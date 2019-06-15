@@ -53,7 +53,7 @@ export default class DatabaseUtils {
     });
     // Rename id & convert to string to fit type schema
     aggregation.push({$addFields: {'createdBy.id': {$toString: '$createdBy._id'}}});
-    
+
     // Filter
     aggregation.push({
       $project: {
@@ -73,9 +73,9 @@ export default class DatabaseUtils {
     aggregation.push({
       $unwind: { "path": "$lastChangedBy", "preserveNullAndEmptyArrays": true }
     });
-    //Prep for type schema
+    // Prep for type schema
     aggregation.push({$addFields: {'lastChangedBy.id': {$toString: '$lastChangedBy._id'}}});
-    
+
     // Filter
     aggregation.push({
       $project: {

@@ -490,7 +490,7 @@ export default class UserService {
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
-      users.result = users.result.map((user) => user.getModel());
+      users.result = users.result.map((user) => { return user.getModel(); });
       // Filter
       UserSecurity.filterUsersResponse(users, req.user);
       // Return
@@ -527,7 +527,7 @@ export default class UserService {
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
-      users.result = users.result.map((user) => user.getModel());
+      users.result = users.result.map((user) => { return user.getModel(); });
       // Filter
       UserSecurity.filterUsersResponse(users, req.user);
       // Return
@@ -674,7 +674,7 @@ export default class UserService {
         const invoiceHeader = await erpService.getInvoiceDocumentHeader(invoiceNumber);
         let invoice = await erpService.getInvoiceDocument(invoiceHeader, invoiceNumber);
         if (!invoice) {
-          // retry to get invoice
+          // Retry to get invoice
           invoice = await erpService.getInvoiceDocument(invoiceHeader, invoiceNumber);
         }
         if (!invoice) {

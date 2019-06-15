@@ -26,7 +26,7 @@ const SOURCE_UNKNOWN_USER_BADGED = "NotifyUnknownUserBadged";
 const SOURCE_TRANSACTION_STARTED = "NotifyTransactionStarted";
 const SOURCE_VERIFICATION_EMAIL = "NotifyVerificationEmail";
 export default class NotificationHandler {
-  
+
   static async saveNotification(tenantID, channel, sourceId, sourceDescr, user, chargingStation, data = {}) {
     // Create the object
     const notification = new Notification(tenantID, {
@@ -67,7 +67,7 @@ export default class NotificationHandler {
     // Found
     if (adminUsers.count > 0) {
       // Convert to JSon
-      return adminUsers.result.map((adminUser) => adminUser.getModel());
+      return adminUsers.result.map((adminUser) => { return adminUser.getModel(); });
     }
   }
 
@@ -75,7 +75,7 @@ export default class NotificationHandler {
     try {
       // Save it
       const notifications = await NotificationStorage.getNotifications(tenantID, { sourceId });
-      // return
+      // Return
       return notifications.count > 0;
     } catch (error) {
       // Log error

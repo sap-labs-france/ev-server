@@ -6,7 +6,7 @@ import TenantComponents from '../types/TenantComponents';
 
 
 export default class Tenant {
-  // private _id: string;
+  // pragma private _id: string;
   // private _name: string;
   // private _email: string;
   // private _subdomain: string;

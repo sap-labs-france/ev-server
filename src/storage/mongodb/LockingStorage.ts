@@ -40,12 +40,12 @@ export default class LockingStorage {
         // Same name and type
         return ((lockToTest.name === lock.name) &&
           (lockToTest.type === lock.type));
-      } else {
-        // Same name, hostname and type
-        return ((lockToTest.name === lock.name) &&
+      }
+      // Same name, hostname and type
+      return ((lockToTest.name === lock.name) &&
           (lockToTest.type === lock.type)) &&
           (lockToTest.hostname === lock.hostname);
-      }
+
     });
     return lockStatus;
   }
@@ -60,7 +60,7 @@ export default class LockingStorage {
     Logging.traceEnd('LockingStorage', 'cleanLocks', uniqueTimerID);
   }
 
-  // static async getRunLocks() {
+  // pragma static async getRunLocks() {
   //   // Debug
   //   const uniqueTimerID = Logging.traceStart('LockingStorage', 'getRunLocks');
   //   // Read DB

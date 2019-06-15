@@ -12,7 +12,7 @@ export default class SiteSecurity {
     // Set
     filteredRequest.siteID = sanitize(request.siteID);
     if (request.userIDs) {
-      filteredRequest.userIDs = request.userIDs.map(userID => sanitize(userID));
+      filteredRequest.userIDs = request.userIDs.map((userID) => { return sanitize(userID); });
     }
     return filteredRequest;
   }
@@ -23,7 +23,7 @@ export default class SiteSecurity {
     // Set
     filteredRequest.siteID = sanitize(request.siteID);
     if (request.userIDs) {
-      filteredRequest.userIDs = request.userIDs.map(userID => sanitize(userID));
+      filteredRequest.userIDs = request.userIDs.map((userID) => { return sanitize(userID); });
     }
     return filteredRequest;
   }
@@ -76,7 +76,7 @@ export default class SiteSecurity {
     filteredRequest.allowAllUsersToStopTransactions =
       UtilsSecurity.filterBoolean(request.allowAllUsersToStopTransactions);
     filteredRequest.autoUserSiteAssignment =
-      UtilsSecurity.filterBoolean(request.autoUserSiteAssignment);   
+      UtilsSecurity.filterBoolean(request.autoUserSiteAssignment);
     filteredRequest.gps = sanitize(request.gps);
     if (request.userIDs) {
       // Handle Users

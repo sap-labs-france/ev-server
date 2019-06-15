@@ -29,7 +29,7 @@ export default class ODataCompanies extends AbstractODataEntities {
     const company: Company = super.convert(object, req);
     return company.address ? _.merge(company, company.address) : company;
   }
-  //TODO ^^^ Check this
+  // TODO ^^^ Check this
 }
 
 

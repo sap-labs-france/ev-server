@@ -2,7 +2,7 @@ import uuid from 'uuid/v4';
 import ChargingStationClient from '../../ocpp/ChargingStationClient';
 
 export default class JsonChargingStationClient extends ChargingStationClient {
-	
+
   private wsConnection: any;
   public tagID: any;
   public connectorID: any;

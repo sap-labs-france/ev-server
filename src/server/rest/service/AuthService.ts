@@ -1,5 +1,5 @@
 import passport from 'passport';
-import { Strategy, ExtractJwt } from 'passport-jwt';
+import { ExtractJwt, Strategy } from 'passport-jwt';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import axios from 'axios';
@@ -17,7 +17,7 @@ import Authorizations from '../../../authorization/Authorizations';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import AuthSecurity from './security/AuthSecurity';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import SessionHashService  from './SessionHashService';
+import SessionHashService from './SessionHashService';
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
@@ -28,7 +28,7 @@ if (_centralSystemRestConfig) {
   jwtOptions = {
     jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
     secretOrKey: _centralSystemRestConfig.userTokenKey
-    // issuer: 'evse-dashboard',
+    // pragma issuer: 'evse-dashboard',
     // audience: 'evse-dashboard'
   };
   // Use
@@ -88,7 +88,7 @@ export default class AuthService {
           // Check
           if (!filteredRequest.Arg2) {
             const results = [];
-            // check authorization for each connectors
+            // Check authorization for each connectors
             for (let index = 0; index < chargingStation.getConnectors().length; index++) {
               const connector = chargingStation.getConnector(index + 1);
               const tempResult = { 'IsAuthorized': false };
@@ -97,7 +97,7 @@ export default class AuthService {
               }
               results.push(tempResult);
             }
-            // return table of result (will be in the connector order)
+            // Return table of result (will be in the connector order)
             result = results;
           } else {
             result.IsAuthorized = await AuthService.isStopTransactionAuthorized(filteredRequest, chargingStation, filteredRequest.Arg2, req.user);
@@ -147,7 +147,7 @@ export default class AuthService {
 
   static async checkConnectorsActionAuthorizations(tenantID, user, chargingStation) {
     const results = [];
-    // check if organization component is active
+    // Check if organization component is active
     const tenant = await Tenant.getTenant(tenantID);
     const isOrganizationComponentActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
     let siteArea;
@@ -190,7 +190,7 @@ export default class AuthService {
         return results;
       }
     }
-    // check authorization for each connectors
+    // Check authorization for each connectors
     for (let index = 0; index < chargingStation.getConnectors().length; index++) {
       const connector = chargingStation.getConnector(index + 1);
       results.push(await Authorizations.getConnectorActionAuthorizations(tenantID, user, chargingStation, connector, siteArea, site));
@@ -374,13 +374,11 @@ export default class AuthService {
           Constants.CENTRAL_SERVER,
           `The captcha is invalid`, 500,
           'AuthService', 'handleRegisterUser');
-      } else {
-        if (response.data.score < 0.5) {
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            `The captcha score is too low`, 500,
-            'AuthService', 'handleRegisterUser');
-        }
+      } else if (response.data.score < 0.5) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The captcha score is too low`, 500,
+          'AuthService', 'handleRegisterUser');
       }
       // Check email
       const user = await User.getUserByEmail(tenantID, filteredRequest.email);
@@ -471,13 +469,11 @@ export default class AuthService {
           Constants.CENTRAL_SERVER,
           `The captcha is invalid`, 500,
           'AuthService', 'handleRegisterUser');
-      } else {
-        if (response.data.score < 0.5) {
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            `The captcha score is too low`, 500,
-            'AuthService', 'handleRegisterUser');
-        }
+      } else if (response.data.score < 0.5) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The captcha score is too low`, 500,
+          'AuthService', 'handleRegisterUser');
       }
       // Yes: Generate new password
       const resetHash = Utils.generateGUID();
@@ -797,20 +793,11 @@ export default class AuthService {
           Constants.CENTRAL_SERVER,
           `The captcha is invalid`, 500,
           'AuthService', 'handleResendVerificationEmail');
-      } else {
-        if (response.data.score < 0.5) {
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            `The captcha score is too low`, 500,
-            'AuthService', 'handleResendVerificationEmail');
-        } else {
-          if (response.data.score < 0.5) {
-            throw new AppError(
-              Constants.CENTRAL_SERVER,
-              `The captcha score is too low`, 500,
-              'AuthService', 'handleResendVerificationEmail');
-          }
-        }
+      } else if (response.data.score < 0.5) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The captcha score is too low`, 500,
+          'AuthService', 'handleResendVerificationEmail');
       }
       // Is valid email?
       let user = await User.getUserByEmail(tenantID, filteredRequest.email);

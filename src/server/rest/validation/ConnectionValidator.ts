@@ -14,7 +14,7 @@ export default class ConnectionValidator extends SchemaValidator {
 
   private static instance: ConnectionValidator|null = null;
   public static getInstance(): ConnectionValidator {
-    if(ConnectionValidator.instance == null) {
+    if (ConnectionValidator.instance === null) {
       ConnectionValidator.instance = new ConnectionValidator();
     }
     return ConnectionValidator.instance;

@@ -36,7 +36,7 @@ export default class WSClient {
     this.dbLogging = dbLogging;
     this.autoReconnectRetryCount = 0;
     this.autoReconnectMaxRetries = options.autoReconnectMaxRetries; // -1 for unlimited retries
-    this.autoReconnectTimeout = options.autoReconnectTimeout * 1000; // ms, 0 to disable
+    this.autoReconnectTimeout = options.autoReconnectTimeout * 1000; // Ms, 0 to disable
     this.logTenantID = options.logTenantID ? options.logTenantID : Constants.DEFAULT_TENANT;
     this.open();
   }
@@ -61,7 +61,7 @@ export default class WSClient {
   private reinstantiateCbs() {
     ['onopen', 'onerror', 'onclose', 'onmessage'].forEach((method) => {
       if ('' + this.callbacks[method] !== '' + (() => { }))
-        this.ws[method] = this.callbacks[method];
+      { this.ws[method] = this.callbacks[method]; }
     });
   }
 

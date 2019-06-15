@@ -3,7 +3,7 @@ import _ from 'lodash';
 
 export default class AbstractODataEntities {
   static buildParams(query) {
-    // check limit parameter
+    // Check limit parameter
     const limit = query.$limit ? query.$limit : 0;
     const params: any = {};
     params.Skip = query.$skip;
@@ -12,11 +12,11 @@ export default class AbstractODataEntities {
   }
 
   static convert(object,req) {
-    // this implementation is necessary as the OData-imple-server do not support multiple key
-    // we have to build a unique key based on tenant and object real key
+    // This implementation is necessary as the OData-imple-server do not support multiple key
+    // We have to build a unique key based on tenant and object real key
     const uniqueID = this.getObjectKey(object);
 
-    // set tenant
+    // Set tenant
     return _.merge({ uniqueID: `${req.tenant}-${uniqueID}`, tenant: req.tenant}, object);
   }
 
@@ -26,14 +26,14 @@ export default class AbstractODataEntities {
   }
 
   static convertTimestamp(timestampUTC, req) {
-    return  (req.timezone && timestampUTC) ? moment(timestampUTC).tz(req.timezone).format() : timestampUTC; 
+    return (req.timezone && timestampUTC) ? moment(timestampUTC).tz(req.timezone).format() : timestampUTC;
   }
 
   static buildDateObject(timestamp,req) {
     if (!timestamp) {
       return;
     }
-    // date object: Date/DayOfTheWeek/ourOfTheDay
+    // Date object: Date/DayOfTheWeek/HourOfTheDay
     const date = moment(timestamp).tz(req.timezone);
     return {
       date: date.format('YYYY-MM-DD'),
@@ -47,7 +47,7 @@ export default class AbstractODataEntities {
     let count = 0;
     let result = [];
     let fields = [];
-    // check if error
+    // Check if error
     if (response.status != 200) {
       cb({ message: response.data.message });
       return;
@@ -60,30 +60,29 @@ export default class AbstractODataEntities {
     if (response.data && response.data.result && response.data.count) {
       count = response.data.count;
       result = response.data.result;
-      if (fields.length != 0) {
+      if (fields.length !== 0) {
         if (Array.isArray(result)) {
-          result = result.map((object)=> {return _.pick(this.convert(object,req),fields);});
+          result = result.map((object) => { return _.pick(this.convert(object,req),fields); });
         } else {
           result = [_.pick(this.convert(result,req), fields)];
         }
       } else {
         if (Array.isArray(result)) {
-          result = result.map((object)=> {return this.convert(object,req);});
+          result = result.map((object) => { return this.convert(object,req); });
         } else {
           result = this.convert(result,req);
         }
       }
     }
-    // return response
+    // Return response
     if (query.$inlinecount) {
       cb(null, {
         count: count,
         value: result
       });
     } else {
-      // cb(null, response.data.result);
+      // pragma cb(null, response.data.result);
       cb(null, result);
     }
   }
 }
-

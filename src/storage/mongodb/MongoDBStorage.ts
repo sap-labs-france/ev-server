@@ -4,7 +4,7 @@ import urlencode from 'urlencode';
 import DatabaseUtils from './DatabaseUtils';
 import StorageCfg from './../../utils/ConfigurationClasses/StorageConfiguration';
 import Constants from '../../utils/Constants';
-import { Db, MongoClient, Collection, ChangeStream } from 'mongodb';
+import { ChangeStream, Collection, Db, MongoClient } from 'mongodb';
 import SourceMap from 'source-map-support';
 SourceMap.install();
 import InternalError from '../../exception/InternalError';
@@ -222,7 +222,7 @@ export default class MongoDBStorage {
     const tenantsMDB = await this.db.collection(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, 'tenants'))
       .find({})
       .toArray();
-    const tenantIds = tenantsMDB.map(t => t._id.toString());
+    const tenantIds = tenantsMDB.map((t) => { return t._id.toString(); });
     for (const tenantId of tenantIds) {
       this.checkAndCreateTenantDatabase(tenantId);
     }

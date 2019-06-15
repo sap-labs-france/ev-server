@@ -45,7 +45,7 @@ export default abstract class AbstractSoapClient {
     // Build the SOAP Request
     const payload: any = {};
     payload[request.requestName] = request.data;
-    // payload[this._getRequestNameFromAction(request.name)] = request.data;
+    // pragma payload[this._getRequestNameFromAction(request.name)] = request.data;
     let t0 = 0;
     let t1 = 0;
     try {

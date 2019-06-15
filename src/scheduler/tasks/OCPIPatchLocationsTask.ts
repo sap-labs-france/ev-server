@@ -16,7 +16,7 @@ export default class OCPIPatchLocationsTask implements SchedulerTask {
 
   static async processTenant(tenant, config) {
     try {
-      // check if OCPI component is active
+      // Check if OCPI component is active
       if (!tenant.isComponentActive(Constants.COMPONENTS.OCPI)) {
         Logging.logDebug({
           tenantID: tenant.getID(),
@@ -25,7 +25,7 @@ export default class OCPIPatchLocationsTask implements SchedulerTask {
           message: `OCPI Inactive for this tenant. The task 'OCPIPatchLocationsTask' is skipped.`
         });
 
-        // skip execution
+        // Skip execution
         return;
       }
       Logging.logInfo({
@@ -35,7 +35,7 @@ export default class OCPIPatchLocationsTask implements SchedulerTask {
         message: `The task 'OCPIPatchLocationsTask' is being run`
       });
 
-      // get all available endpoints
+      // Get all available endpoints
       const ocpiEndpoints = await OCPIEndpoint.getOcpiEndpoints(tenant.getID());
 
       for (const ocpiEndpoint of ocpiEndpoints.result) {
@@ -49,7 +49,7 @@ export default class OCPIPatchLocationsTask implements SchedulerTask {
 
   // eslint-disable-next-line no-unused-vars
   static async processOCPIEndpoint(ocpiEndpoint, config) {
-    // check if OCPI endpoint is registered
+    // Check if OCPI endpoint is registered
     if (ocpiEndpoint.getStatus() != Constants.OCPI_REGISTERING_STATUS.OCPI_REGISTERED) {
       Logging.logDebug({
         tenantID: ocpiEndpoint.getTenantID(),
@@ -77,10 +77,10 @@ export default class OCPIPatchLocationsTask implements SchedulerTask {
       message: `The patching Locations process for endpoint ${ocpiEndpoint.getName()} is being processed`
     });
 
-    // build OCPI Client
+    // Build OCPI Client
     const ocpiClient = new OCPIClient(ocpiEndpoint);
 
-    // send EVSE statuses
+    // Send EVSE statuses
     const sendResult = await ocpiClient.sendEVSEStatuses(false);
 
     Logging.logInfo({

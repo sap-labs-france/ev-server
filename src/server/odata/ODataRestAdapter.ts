@@ -20,7 +20,7 @@ export default class ODataRestAdapter {
   static async query(collection, query?, req?, cb?) {
     // Get tenant from url
     const requestedHost = req.host;
-    // Split 
+    // Split
     const split = requestedHost.split('.');
     // Get tenant at first place
     let subdomain = split[0];
@@ -92,7 +92,7 @@ export default class ODataRestAdapter {
           cb('Invalid Entity');
       }
     } catch (error) {
-      // add logging
+      // Add logging
       Logging.logError({
         tenantID: req.tenantID,
         module: MODULE_NAME,

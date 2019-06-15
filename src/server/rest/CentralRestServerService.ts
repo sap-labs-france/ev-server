@@ -82,10 +82,10 @@ export default {
             // TODO: To Remove
             // Hack for mobile app not sending the RemoteStopTransaction yet
             if (action === "StartTransaction") {
-              action = "RemoteStartTransaction";              
+              action = "RemoteStartTransaction";
             }
             if (action === "StopTransaction") {
-              action = "RemoteStopTransaction";              
+              action = "RemoteStopTransaction";
             }
             // Delegate
             ChargingStationService.handleAction(action, req, res, next);

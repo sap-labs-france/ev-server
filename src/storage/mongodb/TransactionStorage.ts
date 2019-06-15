@@ -190,7 +190,7 @@ export default class TransactionStorage {
         allowDiskUse: true
       })
       .toArray();
-    const transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ?  transactionsCountMDB[0] : null;
+    const transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ? transactionsCountMDB[0] : null;
     // Check if only the total count is requested
     if (params.onlyRecordCount) {
       return {
@@ -439,7 +439,7 @@ export default class TransactionStorage {
       facets.$facet = newFacet;
     }
 
-    // merge in each facet the join for sitearea and siteareaid
+    // Merge in each facet the join for sitearea and siteareaid
     const facetNames = [];
     for (const facet in facets.$facet) {
       facets.$facet[facet] = [...facets.$facet[facet], ...toSubRequests];
@@ -462,7 +462,7 @@ export default class TransactionStorage {
       .aggregate([...aggregation, { $count: "count"}], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
-    const transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ?  transactionsCountMDB[0] : null;
+    const transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ? transactionsCountMDB[0] : null;
     if (params.onlyRecordCount) {
       // Return only the count
       return {

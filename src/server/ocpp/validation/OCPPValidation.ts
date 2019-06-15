@@ -9,7 +9,7 @@ declare const global: TSGlobal;
 import SourceMap from 'source-map-support';
 SourceMap.install();
 export default class OCPPValidation extends SchemaValidator {
-  
+
   public validate: any;
   private _bootNotificationRequest: any;
   private _authorizeRequest: any;
@@ -30,7 +30,7 @@ export default class OCPPValidation extends SchemaValidator {
 
   private static instance: OCPPValidation|null = null;
   static getInstance(): OCPPValidation {
-    if(OCPPValidation.instance == null) {
+    if (OCPPValidation.instance === null) {
       OCPPValidation.instance = new OCPPValidation();
     }
     return OCPPValidation.instance;
