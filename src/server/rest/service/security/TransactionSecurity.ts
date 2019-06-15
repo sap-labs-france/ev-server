@@ -124,7 +124,7 @@ export default class TransactionSecurity {
         filteredTransaction.priceUnit = transaction.getStartPriceUnit();
         filteredTransaction.pricingSource = transaction.getStartPricingSource();
       }
-      // Runime Data
+      // Runtime Data
       if (transaction.isActive()) {
         filteredTransaction.currentConsumption = transaction.getCurrentConsumption();
         filteredTransaction.currentTotalConsumption = transaction.getCurrentTotalConsumption();
