@@ -177,18 +177,18 @@ export default class Configuration {
 
   static saveAdvancedConfig(advancedConfig) {
     // Read conf
-    const config = Configuration.getConfig();
+    const conf = Configuration.getConfig();
     // Set
-    config.Advanced = advancedConfig;
+    conf.Advanced = advancedConfig;
     // Save Config
-    Configuration.saveConfig(config);
+    Configuration.saveConfig(conf);
   }
 
   /**
    * @todo
-   * @param config
+   * @param conf
    */
-  static saveConfig(config) {
+  static saveConfig(conf) {
     //
   }
 
