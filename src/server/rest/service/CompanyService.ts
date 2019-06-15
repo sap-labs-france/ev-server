@@ -265,7 +265,7 @@ export default class CompanyService {
         createdOn: new Date(),
         name: idlessCompany.name,
         address: idlessCompany.address,
-        };
+      };
       if(idlessCompany.logo) {
         company.logo = idlessCompany.logo;
       }//TODO: Is logo optional or not? rn it is
