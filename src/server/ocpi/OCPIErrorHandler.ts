@@ -32,7 +32,7 @@ export default class OCPIErrorHandler {
     });
 
     // Return response with error
-    res.status(error.httpErrorCode).json(OCPIUtils.error(error));
+    await res.status(error.httpErrorCode).json(OCPIUtils.error(error));
 
     next();
   }

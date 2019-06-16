@@ -77,7 +77,7 @@ export default class UserStorage {
       currentEulaHash = crypto.createHash('sha256')
         .update(currentEula)
         .digest("hex");
-      if (currentEulaHash != eulaMDB.hash) {
+      if (currentEulaHash !== eulaMDB.hash) {
         // New Version
         eula = {};
         eula.timestamp = new Date();

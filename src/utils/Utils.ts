@@ -1,7 +1,6 @@
-import { ObjectId } from 'mongodb';
+import { ObjectID } from 'mongodb';
 import Configuration from './Configuration';
 import uuidV4 from 'uuid/v4';
-import { ObjectID } from 'mongodb';
 import Constants from './Constants';
 import BackendError from '../exception/BackendError';
 import crypto from 'crypto';
@@ -122,7 +121,7 @@ export default class Utils {
     // Check if not default tenant?
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Check if object id is valid
-      if (!ObjectId.isValid(tenantID)) {
+      if (!ObjectID.isValid(tenantID)) {
         // Error
         throw new BackendError(null, `Invalid Tenant ID '${tenantID}'`);
       }
@@ -215,7 +214,7 @@ export default class Utils {
     return changedID;
   }
 
-  public static convertUserToObjectID(user: any): ObjectId|null { // TODO Fix this method...
+  public static convertUserToObjectID(user: any): ObjectID|null { // TODO Fix this method...
     let userID = null;
     // Check Created By
     if (user) {

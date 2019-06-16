@@ -221,7 +221,7 @@ export default class TransactionService {
       let user;
       if (transaction.getUserID()) {
         // Get Transaction User
-        const user = await User.getUser(req.user.tenantID, transaction.getUserID());
+        user = await User.getUser(req.user.tenantID, transaction.getUserID());
         // Check
         if (!user) {
           // Not Found!
