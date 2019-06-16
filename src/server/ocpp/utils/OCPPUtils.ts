@@ -7,7 +7,7 @@ SourceMap.install();
 export default class OCPPUtils {
 
   static lockAllConnectors(chargingStation) {
-    chargingStation.getConnectors().forEach(async (connector) => {
+    chargingStation.getConnectors().forEach((connector) => {
       // Check
       if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
         // Check OCPP Version

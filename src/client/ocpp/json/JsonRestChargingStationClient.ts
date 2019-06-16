@@ -214,7 +214,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
   async _sendMessage(request) {
     // Return a promise
     // eslint-disable-next-line no-undef
-    return await new Promise(async (resolve, reject) => {
+    const promise = await new Promise(async (resolve, reject) => {
       // Open WS Connection
       await this._openConnection();
       // Check if wsConnection in ready
@@ -238,6 +238,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         return reject(`Socket is closed for message ${request[2]}`);
       }
     });
+    return promise;
   }
 
   _buildRequest(command, params = {}) {

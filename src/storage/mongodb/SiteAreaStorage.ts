@@ -359,7 +359,7 @@ export default class SiteAreaStorage {
     const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'deleteSiteArea');
 
     // Delete singular site area
-    SiteAreaStorage.deleteSiteAreas(tenantID, [id]);
+    await SiteAreaStorage.deleteSiteAreas(tenantID, [id]);
 
     // Debug
     Logging.traceEnd('SiteAreaStorage', 'deleteSiteArea', uniqueTimerID, { id });

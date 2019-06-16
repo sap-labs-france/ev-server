@@ -41,7 +41,7 @@ export default class ODataRestAdapter {
       }
       // Check if sac setting is active
       if (!tenant.isComponentActive(Constants.COMPONENTS.ANALYTICS)) {
-        cb(Error("SAP Analytics Clound Interface not enabled"));
+        cb(Error("SAP Analytics Cloud Interface not enabled"));
         return;
       }
       // Default timezone

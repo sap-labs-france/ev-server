@@ -12,9 +12,12 @@ import InternalError from '../../exception/InternalError';
 
 export default class MongoDBStorage {
   private db: Db;
+  private readonly dbConfig: StorageCfg;
 
   // Create database access
-  public constructor(private readonly dbConfig: StorageCfg) { }
+  public constructor(dbConfig: StorageCfg) {
+    this.dbConfig = dbConfig;
+  }
 
   public getCollection<type>(tenantID: string, collectionName: string): Collection<type> {
     if (!this.db) {
@@ -77,7 +80,7 @@ export default class MongoDBStorage {
         }
       }
     }
-    return await false; // TODO: Is this wanted behavior? Previously, sometimes returned bool sometimes nothing.
+    return false; // TODO: Is this wanted behavior? Previously, sometimes returned bool sometimes nothing.
   }
 
   public async checkAndCreateTenantDatabase(tenantID: string): Promise<void> {

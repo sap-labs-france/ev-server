@@ -425,7 +425,7 @@ export default class OCPPService {
     }
   }
 
-  async _buildConsumptionAndUpdateTransactionFromMeterValue(transaction, meterValue) {
+  _buildConsumptionAndUpdateTransactionFromMeterValue(transaction, meterValue) {
     // Get the last one
     const lastMeterValue = transaction.getLastMeterValue();
     // State of Charge?
@@ -468,7 +468,7 @@ export default class OCPPService {
       transaction, lastMeterValue.timestamp, meterValue.timestamp, meterValue);
   }
 
-  async _buildConsumptionFromTransactionAndMeterValue(transaction, startedAt, endedAt, meterValue) {
+  _buildConsumptionFromTransactionAndMeterValue(transaction, startedAt, endedAt, meterValue) {
     // Only Consumption and SoC (No consumption for Transaction Begin/End: scenario already handled in Start/Stop Transaction)
     if (OCPPUtils.isSocMeterValue(meterValue) ||
       OCPPUtils.isConsumptionMeterValue(meterValue)) {
