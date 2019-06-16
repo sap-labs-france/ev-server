@@ -15,7 +15,9 @@ export default class MongoDBStorage {
   private readonly dbConfig: StorageCfg;
 
   // Create database access
-  public constructor(dbConfig: StorageCfg) { }
+  public constructor(dbConfig: StorageCfg) {
+    this.dbConfig = dbConfig;
+  }
 
   public getCollection<type>(tenantID: string, collectionName: string): Collection<type> {
     if (!this.db) {

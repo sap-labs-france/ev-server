@@ -7,6 +7,7 @@ export default abstract class TenantHolder {
   private readonly tenantID: string;
 
   public constructor(tenantID: string, lazyLoadTenant: boolean = true) {
+    this.tenantID = tenantID;
     if (!lazyLoadTenant) {
       this.getTenant();
     }
