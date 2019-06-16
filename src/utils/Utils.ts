@@ -10,10 +10,10 @@ import axios from 'axios';
 import url from 'url';
 import fs from 'fs';
 import path from 'path';
-import Logging from './Logging'; // Avoid fucking circular deps
-import Tenant from '../entity/Tenant'; // Avoid fucking circular deps
+import Logging from './Logging';
+import Tenant from '../entity/Tenant';
 import SourceMap from 'source-map-support';
-import User from '../entity/User';
+// import User from '../entity/User';
 SourceMap.install();
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();

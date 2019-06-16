@@ -8,6 +8,7 @@ import { ChangeStream, Collection, Db, MongoClient } from 'mongodb';
 import SourceMap from 'source-map-support';
 SourceMap.install();
 import InternalError from '../../exception/InternalError';
+import RunLock from './../../utils/Locking';
 
 
 export default class MongoDBStorage {
@@ -56,8 +57,16 @@ export default class MongoDBStorage {
         });
         // Found?
         if (!foundIndex) {
-          // No: Create Index
-          await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
+          // Index creation RunLock
+          const indexCreationLock = new RunLock(`Index creation ${tenantID}~${name}`);
+
+          if (await indexCreationLock.tryAcquire()) {
+            // Create Index
+            await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
+
+            // Release the index creation RunLock
+            await indexCreationLock.release();
+          }
         }
       }
       // Check each index that should be dropped
@@ -72,8 +81,16 @@ export default class MongoDBStorage {
         });
         // Found?
         if (!foundIndex) {
-          // Drop Index
-          await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
+          // Index drop RunLock
+          const indexDropLock = new RunLock(`Index drop ${tenantID}~${name}`);
+
+          if (await indexDropLock.tryAcquire()) {
+            // Drop Index
+            await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
+
+            // Release the index creation RunLock
+            await indexDropLock.release();
+          }
         }
       }
     }

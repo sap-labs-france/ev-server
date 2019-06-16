@@ -129,12 +129,6 @@ export default class MigrationHandler {
       const startTaskTime = moment();
       const startDate = new Date();
 
-      const currentMigration = {
-        name: currentMigrationTask.getName(),
-        version: currentMigrationTask.getVersion(),
-        timestamp: startDate
-      };
-
       // Execute Migration
       await currentMigrationTask.migrate();
 
