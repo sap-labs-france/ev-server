@@ -58,7 +58,7 @@ export default class MongoDBStorage {
         // Found?
         if (!foundIndex) {
           // Index creation RunLock
-          const indexCreationLock = new RunLock(`Index creation ${tenantID}~${name}`);
+          const indexCreationLock = new RunLock(`Index creation ${tenantID}~${name}~${JSON.stringify(index.fields)}`);
 
           if (await indexCreationLock.tryAcquire()) {
             // Create Index
@@ -82,13 +82,13 @@ export default class MongoDBStorage {
         // Found?
         if (!foundIndex) {
           // Index drop RunLock
-          const indexDropLock = new RunLock(`Index drop ${tenantID}~${name}`);
+          const indexDropLock = new RunLock(`Index drop ${tenantID}~${name}~${JSON.stringify(databaseIndex.key)}`);
 
           if (await indexDropLock.tryAcquire()) {
             // Drop Index
             await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
 
-            // Release the index creation RunLock
+            // Release the index drop RunLock
             await indexDropLock.release();
           }
         }
