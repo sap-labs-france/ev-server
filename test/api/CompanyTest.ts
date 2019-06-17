@@ -1,5 +1,7 @@
-// const path = require('path');
-// global.appRoot = path.resolve(__dirname, '../../src');
+const path = require('path');
+import TSGlobal from '../../src/types/GlobalType';
+declare const global: TSGlobal;
+global.appRoot = path.resolve(__dirname, '../../src');
 import CentralServerService from './client/CentralServerService';
 import Factory from '../factories/Factory';
 import {expect} from 'chai';

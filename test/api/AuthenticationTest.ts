@@ -1,5 +1,7 @@
-// import  path from 'path';
-// global.appRoot = path.resolve(__dirname, '../../src');
+const path = require('path');
+import TSGlobal from '../../src/types/GlobalType';
+declare const global: TSGlobal;
+global.appRoot = path.resolve(__dirname, '../../src');
 import  {expect} from 'chai';
 import  chai from 'chai';
 import  chaiSubset from 'chai-subset';

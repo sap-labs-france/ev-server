@@ -11,6 +11,7 @@ import config from '../config';
 import Utils from '../../src/utils/Utils';
 import {from} from 'rxjs';
 import {mergeMap} from 'rxjs/operators';
+import OCPPService from './ocpp/OCPPService';
 
 export default class DataHelper {
   private ocpp: any;

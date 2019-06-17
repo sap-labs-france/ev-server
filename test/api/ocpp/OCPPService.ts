@@ -6,43 +6,43 @@ export default class OCPPService {
     this.serverUrl = serverUrl;
   }
   
-  public executeAuthorize(chargeBoxIdentity, data) {
+  public executeAuthorize(chargeBoxIdentity, data):any {
     throw new Error("Method not implemented!");
   }
 
-  public executeStartTransaction(chargeBoxIdentity, data) {
+  public executeStartTransaction(chargeBoxIdentity, data):any {
     throw new Error("Method not implemented!");
   }
 
-  public executeStopTransaction(chargeBoxIdentity, data) {
+  public executeStopTransaction(chargeBoxIdentity, data):any {
     throw new Error("Method not implemented!");
   }
 
-  public executeHeartbeat(chargeBoxIdentity, data) {
+  public executeHeartbeat(chargeBoxIdentity, data):any {
     throw new Error("Method not implemented!");
   }
 
-  public executeMeterValues(chargeBoxIdentity, data) {
+  public executeMeterValues(chargeBoxIdentity, data):any {
     throw new Error("Method not implemented!");
   }
 
-  public executeBootNotification(chargeBoxIdentity, data) {
+  public executeBootNotification(chargeBoxIdentity, data):any {
     throw new Error("Method not implemented!");
   }
 
-  public executeStatusNotification(chargeBoxIdentity, data) {
+  public executeStatusNotification(chargeBoxIdentity, data):any {
     throw new Error("Method not implemented!");
   }
 
-  public executeFirmwareStatusNotification(chargeBoxIdentity, data) {
+  public executeFirmwareStatusNotification(chargeBoxIdentity, data):any {
     throw new Error("Method not implemented!");
   }
 
-  public executeDiagnosticsStatusNotification(chargeBoxIdentity, data) {
+  public executeDiagnosticsStatusNotification(chargeBoxIdentity, data):any {
     throw new Error("Method not implemented!");
   }
 
-  public executeDataTransfer(chargeBoxIdentity, data) {
+  public executeDataTransfer(chargeBoxIdentity, data):any {
     throw new Error("Method not implemented!");
   }
 }
