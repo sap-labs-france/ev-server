@@ -18,9 +18,9 @@ export default abstract class TenantHolder {
   }
 
   public async getTenant(): Promise<Tenant> {
-    if (this.tenant === null) {
+    if (!this.tenant) {
       this.tenant = await TenantStorage.getTenant(this.tenantID);
-      if (this.tenant === null) {
+      if (!this.tenant) {
         throw new BackendError("TenantHolder#getTenant", "TenantStorage.getTenant did not return Tenant");
       }
     }
