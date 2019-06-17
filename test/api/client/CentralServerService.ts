@@ -36,7 +36,7 @@ export default class CentralServerService {
   public chargingStationApi: ChargingStationApi;
   public transactionApi: TransactionApi;
   public settingApi: SettingApi;
-  public ocpiendpointApi: OCPIEndpointApi;
+  public ocpiEndpointApi: OCPIEndpointApi;
   public authenticatedSuperAdminApi: AuthenticatedBaseApi;
   public authenticationApi: AuthenticationApi;
   public tenantApi: TenantApi;
@@ -73,7 +73,7 @@ export default class CentralServerService {
     this.chargingStationApi = new ChargingStationApi(this.authenticatedApi, this._baseApi);
     this.transactionApi = new TransactionApi(this.authenticatedApi);
     this.settingApi = new SettingApi(this.authenticatedApi);
-    this.ocpiendpointApi = new OCPIEndpointApi(this.authenticatedApi);
+    this.ocpiEndpointApi = new OCPIEndpointApi(this.authenticatedApi);
     this.authenticatedSuperAdminApi = new AuthenticatedBaseApi(this._baseURL, this._authenticatedUser.email, this._authenticatedUser.password, "");
     this.authenticationApi = new AuthenticationApi(this._baseApi);
     this.tenantApi = new TenantApi(this.authenticatedSuperAdminApi, this._baseApi);

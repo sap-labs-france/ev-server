@@ -1,13 +1,18 @@
-const BaseApi = require('../client/utils/BaseApi');
-const config = require('../../config');
-const { expect } = require('chai');
-const chai = require('chai');
-const chaiSubset = require('chai-subset');
+import BaseApi from '../client/utils/BaseApi';
+import config from '../../config';
+import { expect } from 'chai';
+import chai from 'chai';
+import chaiSubset from 'chai-subset';
 
 // Set
 chai.use(chaiSubset);
 
-class OCPIService {
+export default class OCPIService {
+
+  public baseURL: any;
+  public token: any;
+  public baseApi: BaseApi;
+
   constructor() {
     this.baseURL = `${config.get('ocpi.scheme')}://${config.get('ocpi.host')}:${config.get('ocpi.port')}`;
 
@@ -160,5 +165,3 @@ class OCPIService {
 
 
 }
-
-module.exports = OCPIService;
