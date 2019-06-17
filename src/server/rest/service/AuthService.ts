@@ -825,7 +825,7 @@ export default class AuthService {
 
       let verificationToken;
       // Check verificationToken
-      if (user.getVerificationToken() === null) {
+      if (!user.getVerificationToken()) {
         // Verification token was not created after registration
         // This should not happen
         // Generate new verificationToken

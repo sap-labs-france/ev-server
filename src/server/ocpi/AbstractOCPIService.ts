@@ -73,7 +73,7 @@ export default abstract class AbstractOCPIService {
   public restService(req: TenantIdHoldingRequest, res: Response, next: Function): void { // eslint-disable-line
     // Parse the action
     const regexResult = /^\/\w*/g.exec(req.url);
-    if (regexResult === null) {
+    if (!regexResult) {
       throw new BackendError("AbstractOCPIService.ts#restService", "Regex did not match.");
     }
     const action = regexResult[0].substring(1);
@@ -187,10 +187,10 @@ export default abstract class AbstractOCPIService {
 
       // TODO: Temporary properties in config: add eMI3 country_id/party_id
       // TODO: to be moved to database
-      if (this.ocpiRestConfig.eMI3id !== null &&
-        this.ocpiRestConfig.eMI3id[tenantSubdomain] !== null &&
-        this.ocpiRestConfig.eMI3id[tenantSubdomain].country_id !== null &&
-        this.ocpiRestConfig.eMI3id[tenantSubdomain].party_id !== null) {
+      if (this.ocpiRestConfig.eMI3id &&
+        this.ocpiRestConfig.eMI3id[tenantSubdomain] &&
+        this.ocpiRestConfig.eMI3id[tenantSubdomain].country_id &&
+        this.ocpiRestConfig.eMI3id[tenantSubdomain].party_id) {
         tenant._eMI3 = {};
         tenant._eMI3.country_id = this.ocpiRestConfig.eMI3id[tenantSubdomain].country_id;
         tenant._eMI3.party_id = this.ocpiRestConfig.eMI3id[tenantSubdomain].party_id;
