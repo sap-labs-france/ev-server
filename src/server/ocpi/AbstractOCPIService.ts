@@ -41,7 +41,7 @@ export default abstract class AbstractOCPIService {
     const baseUrl = this.getBaseUrl(req);
     const path = this.getPath();
 
-    // return Service url
+    // Return Service url
     return `${baseUrl}${path}`;
   }
 
@@ -49,10 +49,10 @@ export default abstract class AbstractOCPIService {
   public getBaseUrl(req: Request): string {
     const protocol = (this.ocpiRestConfig.externalProtocol ? this.ocpiRestConfig.externalProtocol : "https");
 
-    // get host from the req
+    // Get host from the req
     const host = req.get('host');
 
-    // return Service url
+    // Return Service url
     return `${protocol}://${host}`;
   }
 
@@ -72,18 +72,18 @@ export default abstract class AbstractOCPIService {
   // Rest Service Implementation
   public restService(req: TenantIdHoldingRequest, res: Response, next: Function): void { // eslint-disable-line
     // Parse the action
-    const regexResult =  /^\/\w*/g.exec(req.url);
-    if(regexResult == null) {
+    const regexResult = /^\/\w*/g.exec(req.url);
+    if (!regexResult) {
       throw new BackendError("AbstractOCPIService.ts#restService", "Regex did not match.");
     }
     const action = regexResult[0].substring(1);
 
-    // set default tenant in case of exception
+    // Set default tenant in case of exception
     req.tenantID = Constants.DEFAULT_TENANT;
 
-    // check action
+    // Check action
     switch (action) {
-      // if empty - return available endpoints
+      // If empty - return available endpoints
       case "":
         this.getSupportedEndpoints(req, res, next);
         break;
@@ -100,13 +100,13 @@ export default abstract class AbstractOCPIService {
     const fullUrl = this.getServiceUrl(req);
     const registeredEndpointsArray = Object.values(this.getRegisteredEndpoints());
 
-    // build payload
-    const supportedEndpoints = registeredEndpointsArray.map(endpoint => {
+    // Build payload
+    const supportedEndpoints = registeredEndpointsArray.map((endpoint) => {
       const identifier = endpoint.getIdentifier();
       return { "identifier": `${identifier}`, "url": `${fullUrl}${identifier}/` };
     });
 
-    // return payload
+    // Return payload
     res.json(OCPIUtils.success({ "version": this.getVersion(), "endpoints": supportedEndpoints }));
   }
 
@@ -117,7 +117,7 @@ export default abstract class AbstractOCPIService {
     try {
       const registeredEndpoints = this.getRegisteredEndpoints();
 
-      // get token from header
+      // Get token from header
       if (!req.headers || !req.headers.authorization) {
         throw new OCPIServerError(
           'Login',
@@ -125,7 +125,7 @@ export default abstract class AbstractOCPIService {
           MODULE_NAME, 'processEndpointAction', undefined);
       }
 
-      // log authorization token
+      // Log authorization token
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: 'Login',
@@ -136,12 +136,12 @@ export default abstract class AbstractOCPIService {
         detailedMessages: { "Authorization": req.headers.authorization }
       });
 
-      // get token
+      // Get token
       let decodedToken: {tenant: string; tid: string};
       try {
         const token = req.headers.authorization.split(" ")[1];
 
-        // log token
+        // Log token
         Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
           action: 'Login',
@@ -160,13 +160,13 @@ export default abstract class AbstractOCPIService {
           MODULE_NAME, 'processEndpointAction', undefined);
       }
 
-      // get tenant from the called URL - TODO: review this handle tenant and tid in decoded token
+      // Get tenant from the called URL - TODO: review this handle tenant and tid in decoded token
       const tenantSubdomain = (decodedToken.tenant ? decodedToken.tenant : decodedToken.tid);
 
-      // get tenant from database
+      // Get tenant from database
       const tenant: any = await Tenant.getTenantBySubdomain(tenantSubdomain);
 
-      // check if tenant is found
+      // Check if tenant is found
       if (!tenant) {
         throw new OCPIServerError(
           'Login',
@@ -174,10 +174,10 @@ export default abstract class AbstractOCPIService {
           MODULE_NAME, 'processEndpointAction', undefined);
       }
 
-      // pass tenant id to req
+      // Pass tenant id to req
       req.tenantID = tenant.getID();
 
-      // check if service is enabled for tenant
+      // Check if service is enabled for tenant
       if (!this.ocpiRestConfig.tenantEnabled.includes(tenantSubdomain)) {
         throw new OCPIServerError(
           'Login',
@@ -187,10 +187,10 @@ export default abstract class AbstractOCPIService {
 
       // TODO: Temporary properties in config: add eMI3 country_id/party_id
       // TODO: to be moved to database
-      if (this.ocpiRestConfig.eMI3id != null &&
-        this.ocpiRestConfig.eMI3id[tenantSubdomain] != null &&
-        this.ocpiRestConfig.eMI3id[tenantSubdomain].country_id != null &&
-        this.ocpiRestConfig.eMI3id[tenantSubdomain].party_id != null) {
+      if (this.ocpiRestConfig.eMI3id &&
+        this.ocpiRestConfig.eMI3id[tenantSubdomain] &&
+        this.ocpiRestConfig.eMI3id[tenantSubdomain].country_id &&
+        this.ocpiRestConfig.eMI3id[tenantSubdomain].party_id) {
         tenant._eMI3 = {};
         tenant._eMI3.country_id = this.ocpiRestConfig.eMI3id[tenantSubdomain].country_id;
         tenant._eMI3.party_id = this.ocpiRestConfig.eMI3id[tenantSubdomain].party_id;
@@ -201,12 +201,12 @@ export default abstract class AbstractOCPIService {
           MODULE_NAME, 'processEndpointAction', undefined);
       }
 
-      // handle request action (endpoint)
+      // Handle request action (endpoint)
       const endpoint = registeredEndpoints.get(action);
       if (endpoint) {
         endpoint.process(req, res, next, tenant);
       } else {
-        // res.sendStatus(501);
+        // pragma res.sendStatus(501);
         throw new OCPIServerError(
           'Process Endpoint',
           `Endpoint ${action} not implemented`, 501,

@@ -16,7 +16,7 @@ export default class UpdateTransactionSimplePriceTask extends MigrationTask {
    * @deprecated
    */
   async migrate() {
-    /*for (const subdomain of SUB_DOMAINS) {
+    /* pragma for (const subdomain of SUB_DOMAINS) {
       const startDate = moment();
       const tenant = await Tenant.getTenantBySubdomain(subdomain);
       if (!tenant) {
@@ -51,11 +51,11 @@ export default class UpdateTransactionSimplePriceTask extends MigrationTask {
   }
 
   async updateTransactionPrice(tenantId, simplePricing) {
-    const transactionsCollection = await global.database.getCollection(tenantId, 'transactions');
+    const transactionsCollection = await global.database.getCollection<any>(tenantId, 'transactions');
     const transactions = await transactionsCollection.find().toArray();
 
     await BBPromise.map(transactions,
-      async transaction => {
+      async (transaction) => {
         if (transaction.stop && transaction.stop.totalConsumption) {
           const updatedField = await simplePricing.computePrice({consumption: transaction.stop.totalConsumption});
           await transactionsCollection.updateOne({_id: transaction._id}, {
@@ -79,13 +79,13 @@ export default class UpdateTransactionSimplePriceTask extends MigrationTask {
   }
 
   async updateConsumptionPrice(tenantId, simplePricing, transactionId) {
-    const consumptionsCollection = await global.database.getCollection(tenantId, 'consumptions');
+    const consumptionsCollection = await global.database.getCollection<any>(tenantId, 'consumptions');
     const consumptions = await consumptionsCollection.aggregate([
       {$match: {transactionId: transactionId}},
       {$sort: {endedAt: 1}}
     ]).toArray();
     await BBPromise.map(consumptions,
-      async consumption => {
+      async (consumption) => {
         const updatedField = await simplePricing.computePrice({consumption: consumption.consumption});
         const cumulatedField = await simplePricing.computePrice({consumption: consumption.cumulatedConsumption});
 

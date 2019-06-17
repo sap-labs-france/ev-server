@@ -11,19 +11,19 @@ export default class TenantValidator extends SchemaValidator {
 
   private constructor() {
     super("TenantValidator");
-    this._tenantCreation = fs.readFileSync(`${global.appRoot}/assets/server/rest/schemas/tenant/tenant-creation.json`, 'utf8');
-    this._tenantUpdate = fs.readFileSync(`${global.appRoot}/assets/server/rest/schemas/tenant/tenant-update.json`, 'utf8');
+    this._tenantCreation = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/schemas/tenant/tenant-creation.json`, 'utf8'));
+    this._tenantUpdate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/schemas/tenant/tenant-update.json`, 'utf8'));
   }
 
   public static getInstance(): TenantValidator {
-    if(!TenantValidator._instance) {
+    if (!TenantValidator._instance) {
       TenantValidator._instance = new TenantValidator();
     }
     return TenantValidator._instance;
   }
 
 
-  public validateTenantCreation(content: any): void {
+  public validateTenantCreation(content: any): void{
     this.validate(this._tenantCreation, content);
   }
 

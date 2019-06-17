@@ -39,12 +39,12 @@ export default class CleanupMeterValuesTask extends MigrationTask {
       "$match": { "transactions": { "$eq": [] } }
     });
     // Read all transactions
-    const meterValuesMDB = await global.database.getCollection(tenant.getID(), 'metervalues')
+    const meterValuesMDB = await global.database.getCollection<any>(tenant.getID(), 'metervalues')
       .aggregate(aggregation).toArray();
     // Delete
     for (const meterValueMDB of meterValuesMDB) {
       // Delete
-      await global.database.getCollection(tenant.getID(), 'metervalues')
+      await global.database.getCollection<any>(tenant.getID(), 'metervalues')
         .findOneAndDelete({'_id': meterValueMDB._id});
     }
     // Log

@@ -496,9 +496,9 @@ export default class Transaction extends TenantHolder {
   getCurrentTotalDurationSecs() {
     if (this.isActive()) {
       return moment.duration(moment(this.getLastMeterValue().timestamp).diff(moment(this.getStartDate()))).asSeconds();
-    } else {
-      return moment.duration(moment(this.getStopDate()).diff(moment(this.getStartDate()))).asSeconds();
     }
+    return moment.duration(moment(this.getStopDate()).diff(moment(this.getStartDate()))).asSeconds();
+
   }
 
   getStopTotalDurationSecs() {

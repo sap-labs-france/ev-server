@@ -2,7 +2,7 @@ import uuid from 'uuid/v4';
 import ChargingStationClient from '../../ocpp/ChargingStationClient';
 
 export default class JsonChargingStationClient extends ChargingStationClient {
-	
+
   private wsConnection: any;
   public tagID: any;
   public connectorID: any;
@@ -24,12 +24,12 @@ export default class JsonChargingStationClient extends ChargingStationClient {
   }
 
   remoteStartTransaction(params) {
-    const { tagID, connectorID, chargingProfile:any = {} } = params;
+    const { tagID, connectorID, chargingProfile: any = {} } = params;
     const payload: any = {
       connectorId: connectorID,
       idTag: tagID
     };
-    if (this.chargingProfile !== null && Object.getOwnPropertyNames(this.chargingProfile).length > 0) {
+    if (this.chargingProfile && Object.getOwnPropertyNames(this.chargingProfile).length > 0) {
       payload.chargingProfile = this.chargingProfile;
     }
     return this.wsConnection.sendMessage(uuid(), payload, 2, "RemoteStartTransaction");
@@ -48,7 +48,7 @@ export default class JsonChargingStationClient extends ChargingStationClient {
 
   getConfiguration(params) {
     const { keys } = params;
-    return this.wsConnection.sendMessage(uuid(), ((keys === null) ? {} : {
+    return this.wsConnection.sendMessage(uuid(), ((!keys) ? {} : {
       key: keys
     }), 2, "GetConfiguration");
   }

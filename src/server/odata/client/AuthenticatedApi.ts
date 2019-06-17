@@ -46,7 +46,7 @@ export default class AuthenticatedApi extends BaseApi {
     if (acceptEula) {
       data.acceptEula = acceptEula;
     }
-    if (tenant != null) {
+    if (tenant) {
       data.tenant = tenant;
     }
     // Send

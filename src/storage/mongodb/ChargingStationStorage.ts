@@ -46,7 +46,7 @@ export default class ChargingStationStorage {
       }
     });
     // Read DB
-    const chargingStationMDB = await global.database.getCollection(tenantID, 'chargingstations')
+    const chargingStationMDB = await global.database.getCollection<any>(tenantID, 'chargingstations')
       .aggregate(aggregation)
       .limit(1)
       .toArray();
@@ -88,7 +88,7 @@ export default class ChargingStationStorage {
         ]
       }]
     };
-    // include deleted charging stations if requested
+    // Include deleted charging stations if requested
     if (params.includeDeleted) {
       filters.$and[0].$or.push({
         "deleted": true
@@ -139,7 +139,7 @@ export default class ChargingStationStorage {
         // Build filter
         filters.$and.push({
           "siteArea.siteID": {
-            $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
+            $in: params.siteIDs.map((siteID) => { return Utils.convertToObjectID(siteID); })
           }
         });
       }
@@ -178,7 +178,7 @@ export default class ChargingStationStorage {
       aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
     }
     // Count Records
-    const chargingStationsCountMDB = await global.database.getCollection(tenantID, 'chargingstations')
+    const chargingStationsCountMDB = await global.database.getCollection<any>(tenantID, 'chargingstations')
       .aggregate([...aggregation, {$count: "count"}], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
@@ -216,7 +216,7 @@ export default class ChargingStationStorage {
       $limit: limit
     });
     // Read DB
-    const chargingStationsMDB = await global.database.getCollection(tenantID, 'chargingstations')
+    const chargingStationsMDB = await global.database.getCollection<any>(tenantID, 'chargingstations')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     const chargingStations = [];
@@ -344,12 +344,12 @@ export default class ChargingStationStorage {
     // Build facets meaning each different error scenario
     let facets: any = {};
     if (params.errorType) {
-      // check allowed
+      // Check allowed
       if (!(await Tenant.getTenant(tenantID)).isComponentActive(Constants.COMPONENTS.ORGANIZATION) && params.errorType === 'missingSiteArea') {
         throw new BackendError(null, `Organization is not active whereas filter is on missing site.`,
           "ChargingStationStorage", "getChargingStationsInError");
       }
-      // build facet only for one error type
+      // Build facet only for one error type
       facets.$facet = {};
       facets.$facet[params.errorType] = ChargingStationStorage.builChargerInErrorFacet(params.errorType);
     } else {
@@ -366,7 +366,7 @@ export default class ChargingStationStorage {
         facets.$facet.missingSiteArea = ChargingStationStorage.builChargerInErrorFacet("missingSiteArea");
       }
     }
-    // merge in each facet the join for sitearea and siteareaid
+    // Merge in each facet the join for sitearea and siteareaid
     const project = [];
     for (const facet in facets.$facet) {
       if (siteAreaIdJoin) {
@@ -395,7 +395,7 @@ export default class ChargingStationStorage {
       aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
     }
     // Count Records
-    const chargingStationsCountMDB = await global.database.getCollection(tenantID, 'chargingstations')
+    const chargingStationsCountMDB = await global.database.getCollection<any>(tenantID, 'chargingstations')
       .aggregate([...aggregation, { $count: "count" }])
       .toArray();
     // Check if only the total count is requested
@@ -433,7 +433,7 @@ export default class ChargingStationStorage {
       $limit: limit
     });
     // Read DB
-    const chargingStationsFacetMDB = await global.database.getCollection(tenantID, 'chargingstations')
+    const chargingStationsFacetMDB = await global.database.getCollection<any>(tenantID, 'chargingstations')
       .aggregate(aggregation, {
         collation: {
           locale: Constants.DEFAULT_LOCALE,
@@ -533,7 +533,7 @@ export default class ChargingStationStorage {
     const chargingStation: any = {};
     Database.updateChargingStation(chargingStationToSave, chargingStation, false);
     // Modify and return the modified document
-    const result = await global.database.getCollection(tenantID, 'chargingstations').findOneAndUpdate({
+    const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate({
       "_id": chargingStationToSave.id
     }, {
       $set: chargingStation
@@ -554,7 +554,7 @@ export default class ChargingStationStorage {
     const updatedFields: any = {};
     updatedFields["connectors." + (connector.connectorId - 1)] = connector;
     // Modify and return the modified document
-    const result = await global.database.getCollection(tenantID, 'chargingstations').findOneAndUpdate({
+    const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate({
       "_id": chargingStation.id
     }, {
       $set: updatedFields
@@ -575,7 +575,7 @@ export default class ChargingStationStorage {
     const updatedFields: any = {};
     updatedFields["lastHeartBeat"] = Utils.convertToDate(chargingStation.lastHeartBeat);
     // Modify and return the modified document
-    const result = await global.database.getCollection(tenantID, 'chargingstations').findOneAndUpdate({
+    const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate({
       "_id": chargingStation.id
     }, {
       $set: updatedFields
@@ -602,7 +602,7 @@ export default class ChargingStationStorage {
       updatedFields["lastChangedOn"] = Utils.convertToDate(chargingStation.lastChangedOn);
     }
     // Modify and return the modified document
-    const result = await global.database.getCollection(tenantID, 'chargingstations').findOneAndUpdate({
+    const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate({
       "_id": chargingStation.id
     }, {
       $set: updatedFields
@@ -622,10 +622,10 @@ export default class ChargingStationStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete Configuration
-    await global.database.getCollection(tenantID, 'configurations')
+    await global.database.getCollection<any>(tenantID, 'configurations')
       .findOneAndDelete({ '_id': id });
     // Delete Charger
-    await global.database.getCollection(tenantID, 'chargingstations')
+    await global.database.getCollection<any>(tenantID, 'chargingstations')
       .findOneAndDelete({ '_id': id });
     // Keep the rest (bootnotif, authorize...)
     // Debug
@@ -649,10 +649,10 @@ export default class ChargingStationStorage {
           value = param.value;
           // Break
           return false;
-        } else {
-          // Continue
-          return true;
         }
+        // Continue
+        return true;
+
       });
     }
     // Debug
@@ -666,7 +666,7 @@ export default class ChargingStationStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const configurationsMDB = await global.database.getCollection(tenantID, 'configurations')
+    const configurationsMDB = await global.database.getCollection<any>(tenantID, 'configurations')
       .find({
         "_id": chargeBoxID
       })
@@ -693,8 +693,8 @@ export default class ChargingStationStorage {
     if (siteAreaID) {
       // At least one User
       if (chargingStationIDs && chargingStationIDs.length > 0) {
-        // update all chargers
-        await global.database.getCollection(tenantID, 'chargingstations').updateMany({
+        // Update all chargers
+        await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany({
           $and: [
             { "_id": { $in: chargingStationIDs } },
             { "siteAreaID": Utils.convertToObjectID(siteAreaID) }
@@ -722,8 +722,8 @@ export default class ChargingStationStorage {
     if (siteAreaID) {
       // At least one User
       if (chargingStationIDs && chargingStationIDs.length > 0) {
-        // update all chargers
-        await global.database.getCollection(tenantID, 'chargingstations').updateMany({
+        // Update all chargers
+        await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany({
           $and: [
             { "_id": { $in: chargingStationIDs } },
             { "siteAreaID": null }

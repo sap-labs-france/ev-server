@@ -25,7 +25,7 @@ export default class ConsumptionStorage {
     const consumption: any = {};
     Database.updateConsumption(consumptionToSave, consumption, false);
     // Modify
-    const result = await global.database.getCollection(tenantID, 'consumptions').findOneAndUpdate(
+    const result = await global.database.getCollection<any>(tenantID, 'consumptions').findOneAndUpdate(
       { "_id": consumptionToSave.id },
       {
         $set: consumption
@@ -43,7 +43,7 @@ export default class ConsumptionStorage {
     // Check
     await Utils.checkTenant(tenantID);
     // Delete
-    await global.database.getCollection(tenantID, 'consumptions')
+    await global.database.getCollection<any>(tenantID, 'consumptions')
       .deleteMany({ 'transactionId': transactionId });
     // Debug
     Logging.traceEnd('ConsumptionStorage', 'deleteConsumptions', uniqueTimerID, { transactionId });
@@ -64,7 +64,7 @@ export default class ConsumptionStorage {
       }
     });
     // Read DB
-    const consumptionsMDB = await global.database.getCollection(tenantID, 'consumptions')
+    const consumptionsMDB = await global.database.getCollection<any>(tenantID, 'consumptions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
@@ -120,14 +120,14 @@ export default class ConsumptionStorage {
     // Sort values
     aggregation.push({ $sort: { endedAt: 1 } });
     // Read DB
-    const consumptionsMDB = await global.database.getCollection(tenantID, 'consumptions')
+    const consumptionsMDB = await global.database.getCollection<any>(tenantID, 'consumptions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
     Logging.traceEnd('ConsumptionStorage', 'getConsumption', uniqueTimerID, { transactionId });
     // Found?
     if (consumptionsMDB && consumptionsMDB.length > 0) {
-      return consumptionsMDB.map(c => new Consumption(tenantID, c));
+      return consumptionsMDB.map((c) => { return new Consumption(tenantID, c); });
     }
     return null;
   }

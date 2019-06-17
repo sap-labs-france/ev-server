@@ -4,8 +4,8 @@
 		"algorithm": "aes-256-ctr"
 	},
 	"Cluster": {
-		"enable": false,
-		"num_worker": 2
+		"enabled": false,
+		"numWorkers": 2
 	},
 	"CentralSystems": [
 		{

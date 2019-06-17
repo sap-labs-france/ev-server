@@ -12,7 +12,7 @@ export default class SiteSecurity {
     // Set
     filteredRequest.siteID = sanitize(request.siteID);
     if (request.userIDs) {
-      filteredRequest.userIDs = request.userIDs.map(userID => sanitize(userID));
+      filteredRequest.userIDs = request.userIDs.map((userID) => { return sanitize(userID); });
     }
     return filteredRequest;
   }
@@ -23,7 +23,7 @@ export default class SiteSecurity {
     // Set
     filteredRequest.siteID = sanitize(request.siteID);
     if (request.userIDs) {
-      filteredRequest.userIDs = request.userIDs.map(userID => sanitize(userID));
+      filteredRequest.userIDs = request.userIDs.map((userID) => { return sanitize(userID); });
     }
     return filteredRequest;
   }
@@ -71,12 +71,12 @@ export default class SiteSecurity {
   static _filterSiteRequest(request, loggedUser) {
     const filteredRequest: any = {};
     filteredRequest.name = sanitize(request.name);
-    filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address, loggedUser);
+    filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address);
     filteredRequest.image = sanitize(request.image);
     filteredRequest.allowAllUsersToStopTransactions =
       UtilsSecurity.filterBoolean(request.allowAllUsersToStopTransactions);
     filteredRequest.autoUserSiteAssignment =
-      UtilsSecurity.filterBoolean(request.autoUserSiteAssignment);   
+      UtilsSecurity.filterBoolean(request.autoUserSiteAssignment);
     filteredRequest.gps = sanitize(request.gps);
     if (request.userIDs) {
       // Handle Users
@@ -113,13 +113,13 @@ export default class SiteSecurity {
         filteredSite.id = site.id;
         filteredSite.name = site.name;
         filteredSite.gps = site.gps;
-        filteredSite.companyID = site.companyID;
+        filteredSite.companyID = site.getCompanyID();
       }
       if (site.address) {
-        filteredSite.address = UtilsSecurity.filterAddressRequest(site.address, loggedUser);
+        filteredSite.address = UtilsSecurity.filterAddressRequest(site.address);
       }
       if (site.company) {
-        filteredSite.company = CompanySecurity.filterCompanyResponse(site.company, loggedUser);
+        filteredSite.company = CompanySecurity.filterCompanyResponse({id: site.company._id.toHexString(), ...site.company}, loggedUser);
       }
       if (site.siteAreas) {
         filteredSite.siteAreas = SiteAreaSecurity.filterSiteAreasResponse(site.siteAreas, loggedUser);

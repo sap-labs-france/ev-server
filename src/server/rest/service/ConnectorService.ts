@@ -69,7 +69,7 @@ export default class ConnectorService extends AbstractService {
       const filteredRequest = ConnectorSecurity.filterConnectionsRequest(req.query, req.user);
       const connections = await AbstractConnector.getConnectionsByUserId(req.user.tenantID, filteredRequest.userId);
       // Set
-      connections.result = connections.result.map((connection) => connection.getModel());
+      connections.result = connections.result.map((connection) => { return connection.getModel(); });
       // Filter
       ConnectorSecurity.filterConnectionsResponse(connections, req.user);
       // Return
@@ -82,17 +82,8 @@ export default class ConnectorService extends AbstractService {
 
   public static async handleCreateConnection(action, req, res, next) {
     try {
-      // Filter
-      const filteredRequest = ConnectorSecurity.filterConnectionCreateRequest(req.body, req.user);
-      const setting = await AbstractConnector.getConnectorSetting(req.user.tenantID, filteredRequest.settingId);
-      const connector = this.instantiateConnector(req.user.tenantID, filteredRequest.connectorId, setting.getContent()[filteredRequest.connectorId]);
-      const connection = await connector.createConnection(filteredRequest.userId, filteredRequest.data);
       // Check auth
-<<<<<<< HEAD:src/server/rest/service/ConnectorService.ts
-      if (!Authorizations.canCreateConnection(req.user, connection.getModel())) {
-=======
-      if (!Authorizations.canCreateConnection(req.user, req.body)) {
->>>>>>> ce22f8878a04b7363befcd198772cad309d41c60:src/server/rest/service/ConnectorService.js
+      if (!Authorizations.canCreateConnection(req.user)) {
         // Not Authorized!
         throw new UnauthorizedError(
           Constants.ACTION_CREATE,
@@ -100,6 +91,13 @@ export default class ConnectorService extends AbstractService {
           null,
           req.user);
       }
+
+      // Filter
+      const filteredRequest = ConnectorSecurity.filterConnectionCreateRequest(req.body, req.user);
+      const setting = await AbstractConnector.getConnectorSetting(req.user.tenantID, filteredRequest.settingId);
+      const connector = this.instantiateConnector(req.user.tenantID, filteredRequest.connectorId, setting.getContent()[filteredRequest.connectorId]);
+      const connection = await connector.createConnection(filteredRequest.userId, filteredRequest.data);
+
       ConnectionValidator.getInstance().validateConnectionCreation(req.body);
 
       // Log
@@ -119,8 +117,6 @@ export default class ConnectorService extends AbstractService {
 
   public static async handleDeleteConnection(action, req, res, next) {
     try {
-<<<<<<< HEAD:src/server/rest/service/ConnectorService.ts
-=======
       // Check auth
       if (!Authorizations.canDeleteConnection(req.user, req.query)) {
         // Not Authorized!
@@ -130,7 +126,6 @@ export default class ConnectorService extends AbstractService {
           null,
           req.user);
       }
->>>>>>> ce22f8878a04b7363befcd198772cad309d41c60:src/server/rest/service/ConnectorService.js
       // Filter
       const filteredRequest = ConnectorSecurity.filterConnectionDeleteRequest(req.query, req.user);
 

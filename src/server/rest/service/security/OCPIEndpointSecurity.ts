@@ -19,7 +19,7 @@ export default class OCPIEndpointSecurity {
   }
 
   // eslint-disable-next-line no-unused-vars
-  static filterOcpiEndpointsRequest(request, loggedUser) {
+  public static filterOcpiEndpointsRequest(request, loggedUser) {
     const filteredRequest: any = {};
     filteredRequest.Search = sanitize(request.Search);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
@@ -43,12 +43,12 @@ export default class OCPIEndpointSecurity {
   }
 
   static filterOcpiEndpointSendEVSEStatusesRequest(request, loggedUser) {
-    // set ocpiendpoint
+    // Set ocpiendpoint
     const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request, loggedUser);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
-  
+
   static filterOcpiEndpointRegisterRequest(request, loggedUser) {
     // Set OcpiEndpoint
     const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request, loggedUser);

@@ -13,7 +13,7 @@ export default class UsersAddNotificationsFlagTask extends MigrationTask {
 
   async migrateTenant(tenant) {
     // Read all Users
-    const users = await global.database.getCollection(tenant.getID(), 'users')
+    const users = await global.database.getCollection<any>(tenant.getID(), 'users')
       .aggregate([
         { $match: {"notificationsActive": { $exists: false }}}
       ])
@@ -21,7 +21,7 @@ export default class UsersAddNotificationsFlagTask extends MigrationTask {
     // Process each user
     for (const user of users) {
       // Add
-      await global.database.getCollection(tenant.getID(), 'users').findOneAndReplace(
+      await global.database.getCollection<any>(tenant.getID(), 'users').findOneAndReplace(
         { "_id": user._id },
         { $set: { notificationsActive: true }},
         { upsert: true, returnOriginal: false });

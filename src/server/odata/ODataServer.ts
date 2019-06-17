@@ -48,7 +48,7 @@ export default class ODataServer {
     ODataSchema.restServerUrl = restServerUrl;
     this.express.use('/odata',
       ODataSchema.getSchema,
-      function (req, res) {
+      function(req, res) {
         oDataServer.handle(req, res);
       }
     );

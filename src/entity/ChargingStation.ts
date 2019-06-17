@@ -16,15 +16,15 @@ import * as moment from "moment";
 import momentDurationFormatSetup from "moment-duration-format";
 import tzlookup from "tz-lookup";
 import buildChargingStationClient from '../client/ocpp/ChargingStationClientFactory';
-
 import SourceMap from 'source-map-support';
+import Company from '../types/Company';
 SourceMap.install();
 
 momentDurationFormatSetup(moment);
 
 export default class ChargingStation extends TenantHolder {
   public site: any;
-  public company: any;
+  public company: Company;
   private _model: any = {};
 
   constructor(tenantID, chargingStation) {
@@ -40,7 +40,7 @@ export default class ChargingStation extends TenantHolder {
     return ChargingStationStorage.getChargingStation(tenantID, id);
   }
 
-  static async getChargingStations(tenantID, params, limit, skip, sort): Promise<{count: number; result: ChargingStation[]}> {
+  static async getChargingStations(tenantID, params, limit, skip, sort): Promise<{ count: number; result: ChargingStation[] }> {
     return ChargingStationStorage.getChargingStations(tenantID, params, limit, skip, sort);
   }
 
@@ -454,7 +454,7 @@ export default class ChargingStation extends TenantHolder {
     return this.site;
   }
 
-  async getCompany() {
+  async getCompany(): Promise<Company> {
     if (!this.company) {
       // Get the Site
       const site = await this.getSite();

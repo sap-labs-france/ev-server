@@ -56,6 +56,12 @@
                         "active": { "type": "boolean" }
                       }
                 },
+                "statistics": {
+                    "type": "object",
+                    "properties": {
+                        "active": { "type": "boolean" }
+                      }
+                },
                 "analytics": {
                     "type": "object",
                     "properties": {

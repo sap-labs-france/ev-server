@@ -54,7 +54,7 @@ export default class UpdateTransactionSoCTask extends MigrationTask {
       $sort: { timestamp: -1 }
     });
     // Read DB
-    const meterValuesMDB = await global.database.getCollection(tenant.getID(), 'metervalues')
+    const meterValuesMDB = await global.database.getCollection<any>(tenant.getID(), 'metervalues')
       .aggregate(aggregation)
       .toArray();
     // Transaction Processed
@@ -72,7 +72,7 @@ export default class UpdateTransactionSoCTask extends MigrationTask {
         meterValueMDB.transaction.stop.stateOfCharge = 0;
       }
       // Add
-      let foundTransaction = transactionsProcessed.find((transactionProcessed) => transactionProcessed._id ===  meterValueMDB.transaction._id);
+      let foundTransaction = transactionsProcessed.find((transactionProcessed) => { return transactionProcessed._id === meterValueMDB.transaction._id; });
       if (!foundTransaction) {
         // Add
         transactionsProcessed.push(meterValueMDB.transaction);
@@ -92,7 +92,7 @@ export default class UpdateTransactionSoCTask extends MigrationTask {
       // Update
       Database.updateTransaction(foundTransaction, transaction, false);
       // Save it
-      await global.database.getCollection(tenant.getID(), 'transactions').findOneAndUpdate({
+      await global.database.getCollection<any>(tenant.getID(), 'transactions').findOneAndUpdate({
         "_id": meterValueMDB.transaction._id
       }, {
         $set: transaction

@@ -26,7 +26,7 @@ export default class OCPIEndpointStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Read DB
-    const ocpiEndpointsMDB = await global.database.getCollection(tenantID, 'ocpiendpoints')
+    const ocpiEndpointsMDB = await global.database.getCollection<any>(tenantID, 'ocpiendpoints')
       .aggregate(aggregation)
       .toArray();
     // Set
@@ -54,7 +54,7 @@ export default class OCPIEndpointStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Read DB
-    const ocpiEndpointsMDB = await global.database.getCollection(tenantID, 'ocpiendpoints')
+    const ocpiEndpointsMDB = await global.database.getCollection<any>(tenantID, 'ocpiendpoints')
       .aggregate(aggregation)
       .toArray();
     // Set
@@ -95,7 +95,7 @@ export default class OCPIEndpointStorage {
     const ocpiEndpoint: any = {};
     Database.updateOcpiEndpoint(ocpiEndpointToSave, ocpiEndpoint, false);
     // Modify
-    const result = await global.database.getCollection(tenantID, 'ocpiendpoints').findOneAndUpdate(
+    const result = await global.database.getCollection<any>(tenantID, 'ocpiendpoints').findOneAndUpdate(
       ocpiEndpointFilter,
       { $set: ocpiEndpoint },
       { upsert: true, returnOriginal: false });
@@ -105,8 +105,8 @@ export default class OCPIEndpointStorage {
     return new OCPIEndpoint(tenantID, result.value);
   }
 
-  // get default ocpiEndpoint -
-  // not quite sure how multiple OcpiEndpoint will be handled in futur - for now keep use the first available
+  // Get default ocpiEndpoint -
+  // Not quite sure how multiple OcpiEndpoint will be handled in futur - for now keep use the first available
   static async getDefaultOcpiEndpoint(tenantID) {
     const ocpiEndpoints = await this.getOcpiEndpoints(tenantID);
 
@@ -142,7 +142,7 @@ export default class OCPIEndpointStorage {
       });
     }
     // Count Records
-    const ocpiEndpointsCountMDB = await global.database.getCollection(tenantID, 'ocpiendpoints')
+    const ocpiEndpointsCountMDB = await global.database.getCollection<any>(tenantID, 'ocpiendpoints')
       .aggregate([...aggregation, { $count: "count" }])
       .toArray();
     // Add Created By / Last Changed By
@@ -170,7 +170,7 @@ export default class OCPIEndpointStorage {
       $limit: limit
     });
     // Read DB
-    const ocpiEndpointsMDB = await global.database.getCollection(tenantID, 'ocpiendpoints')
+    const ocpiEndpointsMDB = await global.database.getCollection<any>(tenantID, 'ocpiendpoints')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
     const ocpiEndpoints = [];
@@ -197,7 +197,7 @@ export default class OCPIEndpointStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete OcpiEndpoint
-    await global.database.getCollection(tenantID, 'ocpiendpoints')
+    await global.database.getCollection<any>(tenantID, 'ocpiendpoints')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd('OCPIEndpointStorage', 'deleteOcpiEndpoint', uniqueTimerID, { id });
@@ -209,7 +209,7 @@ export default class OCPIEndpointStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete OcpiEndpoint
-    await global.database.getCollection(tenantID, 'ocpiendpoints').deleteMany({});
+    await global.database.getCollection<any>(tenantID, 'ocpiendpoints').deleteMany({});
     // Debug
     Logging.traceEnd('OCPIEndpointStorage', 'deleteOcpiEndpoints', uniqueTimerID);
   }

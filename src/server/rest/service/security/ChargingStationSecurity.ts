@@ -11,7 +11,7 @@ export default class ChargingStationSecurity {
     // Set
     filteredRequest.siteAreaID = sanitize(request.siteAreaID);
     if (request.chargingStationIDs) {
-      filteredRequest.chargingStationIDs = request.chargingStationIDs.map(chargingStationID => sanitize(chargingStationID));
+      filteredRequest.chargingStationIDs = request.chargingStationIDs.map((chargingStationID) => { return sanitize(chargingStationID); });
     }
     return filteredRequest;
   }
@@ -22,7 +22,7 @@ export default class ChargingStationSecurity {
     // Set
     filteredRequest.siteAreaID = sanitize(request.siteAreaID);
     if (request.chargingStationIDs) {
-      filteredRequest.chargingStationIDs = request.chargingStationIDs.map(chargingStationID => sanitize(chargingStationID));
+      filteredRequest.chargingStationIDs = request.chargingStationIDs.map((chargingStationID) => { return sanitize(chargingStationID); });
     }
     return filteredRequest;
   }
@@ -230,7 +230,7 @@ export default class ChargingStationSecurity {
     if (request.connectors) {
       // Filter
       filteredRequest.connectors = request.connectors.map((connector) => {
-        return { 
+        return {
           connectorId: sanitize(connector.connectorId),
           power: sanitize(connector.power),
           type: sanitize(connector.type),
@@ -248,7 +248,7 @@ export default class ChargingStationSecurity {
     // Check
     filteredRequest.chargeBoxID = sanitize(request.chargeBoxID);
     // Do not check action?
-    filteredRequest.args =  request.args;
+    filteredRequest.args = request.args;
     return filteredRequest;
   }
 
@@ -257,7 +257,7 @@ export default class ChargingStationSecurity {
     const filteredRequest: any = {};
     // Check
     filteredRequest.chargeBoxID = sanitize(request.chargeBoxID);
-    filteredRequest.maxIntensity =  sanitize(request.args.maxIntensity);
+    filteredRequest.maxIntensity = sanitize(request.args.maxIntensity);
     return filteredRequest;
   }
 }

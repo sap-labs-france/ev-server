@@ -10,7 +10,7 @@ import CFLog from 'cf-nodejs-logging-support';
 import Configuration from '../utils/Configuration';
 import LoggingStorage from '../storage/mongodb/LoggingStorage';
 import uuid from 'uuid/v4';
-import { performance, PerformanceObserver } from 'perf_hooks';
+import { PerformanceObserver, performance } from 'perf_hooks';
 import SourceMap from 'source-map-support';
 SourceMap.install();
 import cfenv from 'cfenv';
@@ -27,7 +27,7 @@ const obs = new PerformanceObserver((items): void => {
   }
 
   // Add statistics
-  if (_traceStatistics === null) {
+  if (!_traceStatistics) {
     _traceStatistics = {};
     // Start interval to display statistics
     if (_loggingConfig.traceStatisticInterval) {
@@ -101,7 +101,7 @@ export default class Logging {
     }
 
     if (currentStatistics) {
-      // update current statistics timers
+      // Update current statistics timers
       currentStatistics.countTime = (currentStatistics.countTime ? currentStatistics.countTime + 1 : 1);
       currentStatistics.minTime = (currentStatistics.minTime ? (currentStatistics.minTime > duration ? duration : currentStatistics.minTime) : duration);
       currentStatistics.maxTime = (currentStatistics.maxTime ? (currentStatistics.maxTime < duration ? duration : currentStatistics.maxTime) : duration);
@@ -282,6 +282,7 @@ export default class Logging {
   private static _logActionExceptionMessage(tenantID, action, exception): void {
     Logging.logError({
       tenantID: tenantID,
+      user: exception.user, // TODO Added this to remove exception while logging, careful
       source: exception.source,
       module: exception.module,
       method: exception.method,
@@ -535,7 +536,7 @@ export default class Logging {
     }
   }
 
-  // console Log
+  // Console Log
   private static _consoleLog(log): void {
     let logFn;
     // Set the function to log

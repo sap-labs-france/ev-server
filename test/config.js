@@ -170,7 +170,7 @@ const config = convict({
       env: 'SUPERADMIN_PASSWORD'
     }
   },
-  mailServer:{
+  mailServer: {
     host: {
       doc: 'The mail server IP address to bind.',
       format: String,
@@ -182,7 +182,7 @@ const config = convict({
       default: 1080,
     },
   },
-  wsClient:{
+  wsClient: {
     autoReconnectMaxRetries: {
       doc: 'Web Socket client re-connection max retries.',
       format: 'int',
@@ -193,6 +193,63 @@ const config = convict({
       format: 'int',
       default: 0,
     },
+  },
+  storage: {
+    implementation: {
+      doc: 'DB type',
+      format: String,
+      default: "mongodb"
+    },
+    uri: {
+      doc: 'URL',
+      // format: String,
+      default: null
+    },
+    host: {
+      doc: 'host name',
+      format: String,
+      default: "localhost"
+    },
+    port: {
+      doc: 'port number',
+      format: 'port',
+      default: 32500
+    },
+    user: {
+      doc: 'user name',
+      format: String,
+      default: ''
+    },
+    password: {
+      doc: 'password',
+      format: String,
+      default: ''
+    },
+    database: {
+      doc: 'db name',
+      format: String,
+      default: "evse"
+    },
+    poolSize: {
+      doc: 'pool size',
+      format: Number,
+      default: 20
+    },
+    replicaSet: {
+      doc: 'replica set name',
+      format: String,
+      default: "rs0"
+    },
+    monitorDBChange: {
+      doc: 'monitor changes',
+      format: Boolean,
+      default: false
+    },
+    debug: {
+      doc: 'debug',
+      format: Boolean,
+      default: false
+    }
   }
 });
 
@@ -205,6 +262,8 @@ if (fs.existsSync(fileName)) {
 }
 
 // Perform validation
-config.validate({allowed: 'strict'});
+config.validate({
+  allowed: 'strict'
+});
 
 module.exports = config;
