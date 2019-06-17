@@ -217,7 +217,7 @@ export default class MongoDBStorageNotification {
     });
   }
 
-  static handleError(error) {    // Log
+  static handleError(error) { // Log
     Logging.logError({
       tenantID: Constants.DEFAULT_TENANT,
       module: "MongoDBStorageNotification",

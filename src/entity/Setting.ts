@@ -120,12 +120,12 @@ export default class Setting extends TenantHolder {
         if (!currentSettingContent) {
           // Only Concur
           return { "type": "concur", "concur": {} };
-        } else {
-          // Changed?
-          if (!currentSettingContent.hasOwnProperty(activeComponent.type)) {
-            return { "type": "concur", "concur": {} };
-          }
         }
+        // Changed?
+        if (!currentSettingContent.hasOwnProperty(activeComponent.type)) {
+          return { "type": "concur", "concur": {} };
+        }
+
         break;
 
       // Refund
@@ -134,12 +134,12 @@ export default class Setting extends TenantHolder {
         if (!currentSettingContent) {
           // Only Gireve
           return { "type": "gireve", "ocpi": {} };
-        } else {
-          // Changed?
-          if (!currentSettingContent.hasOwnProperty(activeComponent.type)) {
-            return { "type": "gireve", "ocpi": {} };
-          }
         }
+        // Changed?
+        if (!currentSettingContent.hasOwnProperty(activeComponent.type)) {
+          return { "type": "gireve", "ocpi": {} };
+        }
+
         break;
 
       // SAC
@@ -148,12 +148,12 @@ export default class Setting extends TenantHolder {
         if (!currentSettingContent) {
           // Only SAP Analytics
           return { "type": "sac", "sac": {} };
-        } else {
-          // Changed?
-          if (!currentSettingContent.hasOwnProperty(activeComponent.type)) {
-            return { "type": "sac", "sac": {} };
-          }
         }
+        // Changed?
+        if (!currentSettingContent.hasOwnProperty(activeComponent.type)) {
+          return { "type": "sac", "sac": {} };
+        }
+
         break;
     }
   }

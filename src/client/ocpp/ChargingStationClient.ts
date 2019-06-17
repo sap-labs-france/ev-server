@@ -88,7 +88,7 @@ export default abstract class ChargingStationClient {
         case 'UpdateFirmware':
           return this.updateFirmware(params);
         default:
-          // throw error
+          // Throw error
           throw new BackendError('', `OCPP Command ${commandName} not supported in backend`,
             "ChargingStationClient", "sendCommand");
       }

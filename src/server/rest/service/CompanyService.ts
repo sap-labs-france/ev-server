@@ -9,17 +9,15 @@ import Authorizations from '../../../authorization/Authorizations';
 import CompanySecurity from './security/CompanySecurity';
 import UtilsService from './UtilsService';
 import OrganizationComponentInactiveError from '../../../exception/OrganizationComponentInactiveError';
-import { Request, NextFunction, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
-import { ObjectID } from 'bson';
-import fs from 'fs';
 import BadRequestError from '../../../exception/BadRequestError';
 
 export default class CompanyService {
 
   public static async handleDeleteCompany(action: string, req: Request, res: Response, next: NextFunction) {
     try {
-      // check if organization component is active
+      // Check if organization component is active
       if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
         throw new OrganizationComponentInactiveError(
           Constants.ACTION_DELETE,
@@ -84,7 +82,7 @@ export default class CompanyService {
 
   public static async handleGetCompany(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // check if organization component is active
+      // Check if organization component is active
       if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
         throw new OrganizationComponentInactiveError(
           Constants.ACTION_READ,
@@ -95,7 +93,7 @@ export default class CompanyService {
       // Filter
       const companyId = CompanySecurity.filterCompanyRequest(req.query);
       // Charge Box is mandatory
-      
+
       if (!companyId) {
         // Not Found!
         throw new AppError(
@@ -137,7 +135,7 @@ export default class CompanyService {
 
   public static async handleGetCompanyLogo(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // check if organization component is active
+      // Check if organization component is active
       if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
         throw new OrganizationComponentInactiveError(
           Constants.ACTION_READ,
@@ -147,7 +145,7 @@ export default class CompanyService {
 
       // Filter
       const companyId = CompanySecurity.filterCompanyRequest(req.query);
-      
+
       // Charge Box is mandatory
       if (!companyId) {
         // Not Found!
@@ -156,7 +154,7 @@ export default class CompanyService {
           `The Company's ID must be provided`, 500,
           'CompanyService', 'handleGetCompanyLogo', req.user);
       }
-      
+
       // Get it
       const company = await CompanyStorage.getCompany(req.user.tenantID, companyId);
       if (!company) {
@@ -187,7 +185,7 @@ export default class CompanyService {
 
   public static async handleGetCompanies(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // check if organization component is active
+      // Check if organization component is active
       if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
         throw new OrganizationComponentInactiveError(
           Constants.ACTION_LIST,
@@ -205,10 +203,10 @@ export default class CompanyService {
           560, 'CompanyService', 'handleGetCompanies',
           req.user);
       }
-     
+
       // Filter
       const filteredRequest = CompanySecurity.filterCompaniesRequest(req.query);
-      
+
       // Get the companies
       const companies = (await CompanyStorage.getCompanies(req.user.tenantID,
         {
@@ -218,10 +216,10 @@ export default class CompanyService {
           onlyRecordCount: filteredRequest.OnlyRecordCount
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort));
-     
+
       // Filter
       CompanySecurity.filterCompaniesResponse(companies, req.user);
-      
+
       // Return
       res.json(companies);
       next();
@@ -233,7 +231,7 @@ export default class CompanyService {
 
   public static async handleCreateCompany(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // check if organization component is active
+      // Check if organization component is active
       if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
         throw new OrganizationComponentInactiveError(
           Constants.ACTION_CREATE,
@@ -253,10 +251,10 @@ export default class CompanyService {
       }
       // Filter
       const idlessCompany = CompanySecurity.filterCompanyCreateRequest(req.body);
-      if(!idlessCompany.name) {
+      if (!idlessCompany.name) {
         throw new BadRequestError({message: 'Need to provide company name.'});
       }
-      if(!idlessCompany.address) {
+      if (!idlessCompany.address) {
         throw new BadRequestError({message: 'Need to provide address for company.'});
       }
       const company: Company = {
@@ -265,17 +263,17 @@ export default class CompanyService {
         createdOn: new Date(),
         name: idlessCompany.name,
         address: idlessCompany.address,
-        };
-      if(idlessCompany.logo) {
+      };
+      if (idlessCompany.logo) {
         company.logo = idlessCompany.logo;
-      }//TODO: Is logo optional or not? rn it is
+      } // TODO: Is logo optional or not? rn it is
 
       // Check Mandatory fields
       CompanyService._checkIfCompanyValid(company, req);
-      
+
       // Save
       const newId = await CompanyStorage.saveCompany(req.user.tenantID, company, true);
-      
+
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
@@ -294,7 +292,7 @@ export default class CompanyService {
 
   static async handleUpdateCompany(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // check if organization component is active
+      // Check if organization component is active
       if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
         throw new OrganizationComponentInactiveError(
           Constants.ACTION_UPDATE,
@@ -326,18 +324,18 @@ export default class CompanyService {
           req.user);
       }
       // Update
-      if(filteredRequest.logo) { //TODO: logo is required here; check if frontend actually always sends logo or not...
+      if (filteredRequest.logo) { // TODO: logo is required here; check if frontend actually always sends logo or not...
         company.logo = filteredRequest.logo;
       }
-      if(filteredRequest.name) {
+      if (filteredRequest.name) {
         company.name = filteredRequest.name;
       }
-      if(filteredRequest.address) {
+      if (filteredRequest.address) {
         company.address = filteredRequest.address;
       }
-      //TODO: Currently unable to change createdBy, createdOn, and id. Wanted behavior?
+      // TODO: Currently unable to change createdBy, createdOn, and id. Wanted behavior?
 
-      //Database.updateCompany(filteredRequest, company);
+      // Database.updateCompany(filteredRequest, company);
 
       // Update timestamp
       company.lastChangedBy = new User(req.user.tenantID, { 'id': req.user.id });
@@ -364,14 +362,14 @@ export default class CompanyService {
   }
 
   private static _checkIfCompanyValid(filteredRequest: any, req: Request): void {
-    if(req.method !== 'POST' && !filteredRequest.id) {
+    if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Company ID is mandatory`, 500,
         'CompanyService', 'checkIfCompanyValid',
         req.user.id);
     }
-    if(!filteredRequest.name) {
+    if (!filteredRequest.name) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Company Name is mandatory`, 500,

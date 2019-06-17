@@ -66,7 +66,7 @@ export default class ERPService extends AbstractSoapClient {
     if (!result.data.INVDOCPDF2) {
       return null;
     }
-    const hexPayload = result.data.INVDOCPDF2.map(doc => doc.detail.$attributes.value).join('');
+    const hexPayload = result.data.INVDOCPDF2.map((doc) => { return doc.detail.$attributes.value; }).join('');
     return Buffer.from(hexPayload, 'hex');
   }
 
@@ -86,10 +86,10 @@ export class InvoiceCreateRequest {
     this.I_VKONT = I_VKONT;
     this.I_MAX_PROBCL = I_MAX_PROBCL;
     this.I_BILLING_PROCESS = I_BILLING_PROCESS;
-    // this.I_PROCESS = I_PROCESS;
+    // pragma this.I_PROCESS = I_PROCESS;
     // this.I_BILLING_DATE = I_BILLING_DATE;
     this.I_INVOICE_PROCESS = I_INVOICE_PROCESS;
-    // this.I_INVOICE_DATE = I_INVOICE_DATE;
+    // pragma this.I_INVOICE_DATE = I_INVOICE_DATE;
     // this.I_INVOICE_BLDAT = I_INVOICE_BLDAT;
     // this.I_INVOICE_BUDAT = I_INVOICE_BUDAT;
     // this.I_INVOICE_FIKEY = I_INVOICE_FIKEY;

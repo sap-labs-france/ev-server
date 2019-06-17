@@ -228,7 +228,7 @@ export default class SiteStorage {
       // Build filter
       aggregation.push({
         $match: {
-          _id: { $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID)) }
+          _id: { $in: params.siteIDs.map((siteID) => { return Utils.convertToObjectID(siteID); }) }
         }
       });
     }
@@ -312,7 +312,7 @@ export default class SiteStorage {
           foreignField: "_id",
           as: "company"
         }
-      });//TODO project fields to actually match Company object so that Site can be typed
+      }); // TODO project fields to actually match Company object so that Site can be typed
       // Single Record
       aggregation.push({
         $unwind: { "path": "$company", "preserveNullAndEmptyArrays": true }
@@ -352,7 +352,7 @@ export default class SiteStorage {
         // Set Users
         if (params.userID && siteMDB.users) {
           // Set Users
-          site.setUsers(siteMDB.users.map((user) => new User(tenantID, user)));
+          site.setUsers(siteMDB.users.map((user) => { return new User(tenantID, user); }));
         }
         // Count Available/Occupied Chargers/Connectors
         if (params.withAvailableChargers) {
@@ -390,7 +390,7 @@ export default class SiteStorage {
 
         // Set Company?
         if (siteMDB.company) {
-          site.setCompany(siteMDB.company); //TODO: this might break...
+          site.setCompany(siteMDB.company); // TODO: this might break...
         }
         // Add
         sites.push(site);
@@ -442,11 +442,11 @@ export default class SiteStorage {
       .find({ companyID: Utils.convertToObjectID(companyID) })
       .project({_id: 1})
       .toArray())
-      .map(site => site._id.toHexString());
-    
+      .map((site) => { return site._id.toHexString(); });
+
     // Delete site areas
     SiteAreaStorage.deleteSiteAreasFromSites(tenantID, siteIDs);
-    
+
     // Delete sites
     await global.database.getCollection<any>(tenantID, 'sites')
       .deleteMany({ companyID: Utils.convertToObjectID(companyID) });

@@ -89,7 +89,7 @@ export default class CentralRestServer {
     if (centralSystemConfig.distEnabled) {
       // Serve all the static files of the front-end
       // eslint-disable-next-line no-unused-vars
-      this.express.get(/^\/(?!client\/)(.+)$/, function (req, res, next) {
+      this.express.get(/^\/(?!client\/)(.+)$/, function(req, res, next) {
         // Filter to not handle other server requests
         if (!res.headersSent) {
           // Not already processed: serve the file
@@ -98,7 +98,7 @@ export default class CentralRestServer {
       });
       // Default, serve the index.html
       // eslint-disable-next-line no-unused-vars
-      this.express.get('/', function (req, res, next) {
+      this.express.get('/', function(req, res, next) {
         // Return the index.html
         res.sendFile(path.join(__dirname, centralSystemConfig.distPath, 'index.html'));
       });

@@ -34,14 +34,14 @@ export default class OCPIUtils {
       status_code: -1
     };
 
-    // check type of OCPI error Client vs Server
+    // Check type of OCPI error Client vs Server
     if (error instanceof OCPIClientError) {
       errorBody.status_code = error.ocpiError.status_code;
     } else if (error instanceof OCPIServerError) {
       errorBody.status_code = error.ocpiError.status_code;
     }
 
-    // return error Body
+    // Return error Body
     return errorBody;
   }
 
@@ -53,9 +53,9 @@ export default class OCPIUtils {
    * @param {*} total total number of records
    */
   public static buildNextUrl(req: Request, offset: number, limit: number, total: number): string|undefined {
-    // check if next link should be generated
+    // Check if next link should be generated
     if (offset + limit < total) {
-      // build url
+      // Build url
       return req.protocol + '://' + req.get('host') + req.originalUrl.split('?')[0] + '?offset=' + (offset + limit) + '&limit=' + limit;
     }
   }

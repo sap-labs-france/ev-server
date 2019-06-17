@@ -1,7 +1,6 @@
-import { ObjectId } from 'mongodb';
+import { ObjectID } from 'mongodb';
 import Configuration from './Configuration';
 import uuidV4 from 'uuid/v4';
-import { ObjectID } from 'mongodb';
 import Constants from './Constants';
 import BackendError from '../exception/BackendError';
 import crypto from 'crypto';
@@ -10,10 +9,10 @@ import axios from 'axios';
 import url from 'url';
 import fs from 'fs';
 import path from 'path';
-import Logging from './Logging'; // Avoid fucking circular deps
-import Tenant from '../entity/Tenant'; // Avoid fucking circular deps
+import Logging from './Logging';
+import Tenant from '../entity/Tenant';
 import SourceMap from 'source-map-support';
-import User from '../entity/User';
+// import User from '../entity/User';
 SourceMap.install();
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
@@ -122,7 +121,7 @@ export default class Utils {
     // Check if not default tenant?
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Check if object id is valid
-      if (!ObjectId.isValid(tenantID)) {
+      if (!ObjectID.isValid(tenantID)) {
         // Error
         throw new BackendError(null, `Invalid Tenant ID '${tenantID}'`);
       }
@@ -215,7 +214,7 @@ export default class Utils {
     return changedID;
   }
 
-  public static convertUserToObjectID(user: any): ObjectId|null { //TODO Fix this method...
+  public static convertUserToObjectID(user: any): ObjectID|null { // TODO Fix this method...
     let userID = null;
     // Check Created By
     if (user) {
@@ -225,7 +224,7 @@ export default class Utils {
       if (typeof user === "object" &&
         user.constructor.name !== "ObjectID" && ('id' in user || 'getID' in user)) {
         // This is the User Model
-        userID = Utils.convertToObjectID('id' in user?user.id:user.getID());
+        userID = Utils.convertToObjectID('id' in user ? user.id : user.getID());
       }
       // Check String
       if (typeof user === "string") {
@@ -320,9 +319,9 @@ export default class Utils {
     // Check Prod
     if (Utils.isServerInProductionMode()) {
       return "An unexpected server error occurred. Check the server's logs!";
-    } else {
-      return message;
     }
+    return message;
+
   }
 
   public static checkRecordLimit(recordLimit: number|string): number {
@@ -369,7 +368,7 @@ export default class Utils {
    * @returns a copy of the source
    */
   static duplicateJSON(src) {
-    if (src === null || src === undefined || typeof src !== 'object') {
+    if (!src || typeof src !== 'object') {
       return src;
     }
     // Recreate all of it

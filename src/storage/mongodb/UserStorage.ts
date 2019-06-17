@@ -62,7 +62,7 @@ export default class UserStorage {
       language = "en";
     }
     // Get current eula
-    const currentEula = await UserStorage.getLatestEndUserLicenseAgreement(/*tenantID, TODO ?*/language);
+    const currentEula = await UserStorage.getLatestEndUserLicenseAgreement(/* TenantID, TODO ? */language);
     // Read DB
     const eulasMDB = await global.database.getCollection<any>(tenantID, 'eulas')
       .find({ 'language': language })
@@ -77,7 +77,7 @@ export default class UserStorage {
       currentEulaHash = crypto.createHash('sha256')
         .update(currentEula)
         .digest("hex");
-      if (currentEulaHash != eulaMDB.hash) {
+      if (currentEulaHash !== eulaMDB.hash) {
         // New Version
         eula = {};
         eula.timestamp = new Date();
@@ -95,34 +95,34 @@ export default class UserStorage {
         Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement', uniqueTimerID, { language });
         // Return
         return eula;
-      } else {
-        // Ok: Transfer
-        eula = {};
-        Database.updateEula(eulaMDB, eula);
-        // Debug
-        Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement', uniqueTimerID, { language });
-        return eula;
       }
-    } else {
-      // Create Default
+      // Ok: Transfer
       eula = {};
-      eula.timestamp = new Date();
-      eula.language = language;
-      eula.version = 1;
-      eula.text = currentEula;
-      eula.hash = crypto.createHash('sha256')
-        .update(currentEula)
-        .digest("hex");
-      // Create
-      const result = await global.database.getCollection<any>(tenantID, 'eulas').insertOne(eula);
-      // Update object
-      eula = {};
-      Database.updateEula(result.ops[0], eula);
+      Database.updateEula(eulaMDB, eula);
       // Debug
       Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement', uniqueTimerID, { language });
-      // Return
       return eula;
+
     }
+    // Create Default
+    eula = {};
+    eula.timestamp = new Date();
+    eula.language = language;
+    eula.version = 1;
+    eula.text = currentEula;
+    eula.hash = crypto.createHash('sha256')
+      .update(currentEula)
+      .digest("hex");
+    // Create
+    const result = await global.database.getCollection<any>(tenantID, 'eulas').insertOne(eula);
+    // Update object
+    eula = {};
+    Database.updateEula(result.ops[0], eula);
+    // Debug
+    Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement', uniqueTimerID, { language });
+    // Return
+    return eula;
+
   }
 
   static async getUserByTagId(tenantID, tagID) {
@@ -462,7 +462,7 @@ export default class UserStorage {
         }
       });
 
-      // check which filter to use
+      // Check which filter to use
       if (params.siteID) {
         aggregation.push({
           $match: { "siteusers.siteID": Utils.convertToObjectID(params.siteID) }

@@ -78,7 +78,7 @@ export default class NormalizeTransactionsTask extends MigrationTask {
       if (transactionMDB.chargeBox) {
         // Yes: Assigned to Site Area?
         if (transactionMDB.siteArea) {
-          // yes
+          // Yes
           transaction.siteAreaID = transactionMDB.siteArea._id;
           transaction.siteID = transactionMDB.siteArea.siteID;
         } else {

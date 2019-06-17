@@ -4,17 +4,21 @@ import urlencode from 'urlencode';
 import DatabaseUtils from './DatabaseUtils';
 import StorageCfg from './../../utils/ConfigurationClasses/StorageConfiguration';
 import Constants from '../../utils/Constants';
-import { Db, MongoClient, Collection, ChangeStream } from 'mongodb';
+import { ChangeStream, Collection, Db, MongoClient } from 'mongodb';
 import SourceMap from 'source-map-support';
 SourceMap.install();
 import InternalError from '../../exception/InternalError';
+import RunLock from './../../utils/Locking';
 
 
 export default class MongoDBStorage {
   private db: Db;
+  private readonly dbConfig: StorageCfg;
 
   // Create database access
-  public constructor(private readonly dbConfig: StorageCfg) { }
+  public constructor(dbConfig: StorageCfg) {
+    this.dbConfig = dbConfig;
+  }
 
   public getCollection<type>(tenantID: string, collectionName: string): Collection<type> {
     if (!this.db) {
@@ -56,8 +60,16 @@ export default class MongoDBStorage {
         });
         // Found?
         if (!foundIndex) {
-          // No: Create Index
-          await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
+          // Index creation RunLock
+          const indexCreationLock = new RunLock(`Index creation ${tenantID}~${name}~${JSON.stringify(index.fields)}`);
+
+          if (await indexCreationLock.tryAcquire()) {
+            // Create Index
+            await this.db.collection(tenantCollectionName).createIndex(index.fields, index.options);
+
+            // Release the index creation RunLock
+            await indexCreationLock.release();
+          }
         }
       }
       // Check each index that should be dropped
@@ -72,12 +84,20 @@ export default class MongoDBStorage {
         });
         // Found?
         if (!foundIndex) {
-          // Drop Index
-          await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
+          // Index drop RunLock
+          const indexDropLock = new RunLock(`Index drop ${tenantID}~${name}~${JSON.stringify(databaseIndex.key)}`);
+
+          if (await indexDropLock.tryAcquire()) {
+            // Drop Index
+            await this.db.collection(tenantCollectionName).dropIndex(databaseIndex.key);
+
+            // Release the index drop RunLock
+            await indexDropLock.release();
+          }
         }
       }
     }
-    return await false; // TODO: Is this wanted behavior? Previously, sometimes returned bool sometimes nothing.
+    return false; // TODO: Is this wanted behavior? Previously, sometimes returned bool sometimes nothing.
   }
 
   public async checkAndCreateTenantDatabase(tenantID: string): Promise<void> {
@@ -222,7 +242,7 @@ export default class MongoDBStorage {
     const tenantsMDB = await this.db.collection(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, 'tenants'))
       .find({})
       .toArray();
-    const tenantIds = tenantsMDB.map(t => t._id.toString());
+    const tenantIds = tenantsMDB.map((t) => { return t._id.toString(); });
     for (const tenantId of tenantIds) {
       this.checkAndCreateTenantDatabase(tenantId);
     }

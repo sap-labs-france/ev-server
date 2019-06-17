@@ -161,17 +161,17 @@ export default class Site extends TenantHolder {
   }
 
   setSiteAreas(siteAreas) {
-    this._model.siteAreas = siteAreas.map((siteArea) => siteArea.getModel());
+    this._model.siteAreas = siteAreas.map((siteArea) => { return siteArea.getModel(); });
   }
 
   async getUsers() {
     if (this._model.users) {
-      return this._model.users.map((user) => new User(this.getTenantID(), user));
-    } else {
-      const users = await UserStorage.getUsers(this.getTenantID(), { 'siteID': this.getID() });
-      this.setUsers(users.result);
-      return users.result;
+      return this._model.users.map((user) => { return new User(this.getTenantID(), user); });
     }
+    const users = await UserStorage.getUsers(this.getTenantID(), { 'siteID': this.getID() });
+    this.setUsers(users.result);
+    return users.result;
+
   }
 
   async getUser(userID) {
@@ -194,7 +194,7 @@ export default class Site extends TenantHolder {
   }
 
   setUsers(users) {
-    this._model.users = users.map((user) => user.getModel());
+    this._model.users = users.map((user) => { return user.getModel(); });
   }
 
   save() {

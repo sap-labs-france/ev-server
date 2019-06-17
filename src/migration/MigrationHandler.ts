@@ -57,10 +57,10 @@ export default class MigrationHandler {
       // Check
       for (const currentMigrationTask of currentMigrationTasks) {
         // Check if not already done
-        const migrationTaskDone = migrationTasksDone.find((migrationTaskDone) => {
+        const migrationTaskDone = migrationTasksDone.find((migrationTask) => {
           // Same name and version
-          return ((currentMigrationTask.getName() === migrationTaskDone.name) &&
-            (currentMigrationTask.getVersion() === migrationTaskDone.version));
+          return ((currentMigrationTask.getName() === migrationTask.name) &&
+            (currentMigrationTask.getVersion() === migrationTask.version));
         });
         // Already processed?
         if (migrationTaskDone) {
@@ -128,12 +128,6 @@ export default class MigrationHandler {
       // Start time and date
       const startTaskTime = moment();
       const startDate = new Date();
-
-      const currentMigration = {
-        name: currentMigrationTask.getName(),
-        version: currentMigrationTask.getVersion(),
-        timestamp: startDate
-      };
 
       // Execute Migration
       await currentMigrationTask.migrate();

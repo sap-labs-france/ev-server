@@ -127,7 +127,7 @@ export default class ConsumptionStorage {
     Logging.traceEnd('ConsumptionStorage', 'getConsumption', uniqueTimerID, { transactionId });
     // Found?
     if (consumptionsMDB && consumptionsMDB.length > 0) {
-      return consumptionsMDB.map(c => new Consumption(tenantID, c));
+      return consumptionsMDB.map((c) => { return new Consumption(tenantID, c); });
     }
     return null;
   }

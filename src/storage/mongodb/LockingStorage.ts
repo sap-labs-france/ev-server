@@ -8,7 +8,7 @@ import Logging from '../../utils/Logging';
 declare const global: TSGlobal;
 
 export default class LockingStorage {
-  static async getLocks() {
+  public static async getLocks(): Promise<any[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart('LockingStorage', 'getLocks');
     // Read DB
@@ -32,25 +32,25 @@ export default class LockingStorage {
     return locks;
   }
 
-  static async getLockStatus(lockToTest, lockOnMultipleHosts = true) {
+  public static async getLockStatus(lockToTest, lockOnMultipleHosts = true): Promise<boolean> {
     //  Check
     const locks = await LockingStorage.getLocks();
-    const lockStatus = locks.find((lock) => {
+    const lockStatus = locks.find((lock): boolean => {
       if (lockOnMultipleHosts) {
         // Same name and type
         return ((lockToTest.name === lock.name) &&
           (lockToTest.type === lock.type));
-      } else {
-        // Same name, hostname and type
-        return ((lockToTest.name === lock.name) &&
+      }
+      // Same name, hostname and type
+      return ((lockToTest.name === lock.name) &&
           (lockToTest.type === lock.type)) &&
           (lockToTest.hostname === lock.hostname);
-      }
+
     });
     return lockStatus;
   }
 
-  static async cleanLocks(hostname = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname()) {
+  public static async cleanLocks(hostname = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname()): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('LockingStorage', 'cleanLocks');
     // Delete
@@ -60,7 +60,7 @@ export default class LockingStorage {
     Logging.traceEnd('LockingStorage', 'cleanLocks', uniqueTimerID);
   }
 
-  // static async getRunLocks() {
+  // pragma static async getRunLocks() {
   //   // Debug
   //   const uniqueTimerID = Logging.traceStart('LockingStorage', 'getRunLocks');
   //   // Read DB
@@ -84,7 +84,7 @@ export default class LockingStorage {
   //   return runLocks;
   // }
 
-  static async saveRunLock(runLockToSave) {
+  public static async saveRunLock(runLockToSave): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('LockingStorage', 'saveRunLock');
     // Transfer
@@ -103,7 +103,7 @@ export default class LockingStorage {
     Logging.traceEnd('LockingStorage', 'saveRunningMigration', uniqueTimerID, { runLock: runLock });
   }
 
-  static async deleteRunLock(runLockToDelete) {
+  public static async deleteRunLock(runLockToDelete): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('LockingStorage', 'deleteRunLock');
     // Transfer

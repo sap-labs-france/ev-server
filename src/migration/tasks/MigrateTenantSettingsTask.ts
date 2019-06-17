@@ -39,7 +39,7 @@ export default class MigrateTenantSettingsTask extends MigrationTask {
             "_id": tenantMDB._id
           }, {
             $set: tenantMDB
-          }, { upsert: true, /*new: true,*/ returnOriginal: false }); // TODO: Typescript complains about new parameter. Please check.
+          }, { upsert: true, /* pragma new: true, */ returnOriginal: false }); // TODO: Typescript complains about new parameter. Please check.
         }
       }
       // Delete unused settings
@@ -97,7 +97,7 @@ export default class MigrateTenantSettingsTask extends MigrationTask {
             "_id": tenantSettingMDB._id
           }, {
             $set: tenantSettingMDB
-          }, { upsert: true, /*new: true,TODO check why typescript complains*/ returnOriginal: false });
+          }, { upsert: true, /* pragma new: true, TODO check why typescript complains */ returnOriginal: false });
         }
       }
       // Rename 'sac' to 'analytics'

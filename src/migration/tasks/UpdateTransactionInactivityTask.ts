@@ -23,7 +23,7 @@ export default class UpdateTransactionInactivityTask extends MigrationTask {
    * @param tenant
    */
   async migrateTenant(tenant) {
-    /*// Create Aggregation
+    /* // Create Aggregation
     const aggregation = [];
     // Filters
     aggregation.push({

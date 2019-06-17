@@ -303,18 +303,18 @@ const CONNECTOR_ID = 'concur';
     });
     if (response.data && response.data.Items && response.data.Items.length > 0) {
       return response.data.Items[0];
-    } else {
-      const company = await site.getCompany();
-      response = await axios.get(`${this.getApiUrl()}/api/v3.0/common/locations?city=${company.address.city}`, {
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${connection.getData().access_token}`
-        }
-      });
-      if (response.data && response.data.Items && response.data.Items.length > 0) {
-        return response.data.Items[0];
-      }
     }
+    const company = await site.getCompany();
+    response = await axios.get(`${this.getApiUrl()}/api/v3.0/common/locations?city=${company.address.city}`, {
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${connection.getData().access_token}`
+      }
+    });
+    if (response.data && response.data.Items && response.data.Items.length > 0) {
+      return response.data.Items[0];
+    }
+
     throw new AppError(
       MODULE_NAME,
       `The city '${site.getAddress().city}' of the station is unknown to Concur`, 553,

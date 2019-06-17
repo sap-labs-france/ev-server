@@ -105,8 +105,8 @@ export default class OCPIEndpointStorage {
     return new OCPIEndpoint(tenantID, result.value);
   }
 
-  // get default ocpiEndpoint -
-  // not quite sure how multiple OcpiEndpoint will be handled in futur - for now keep use the first available
+  // Get default ocpiEndpoint -
+  // Not quite sure how multiple OcpiEndpoint will be handled in futur - for now keep use the first available
   static async getDefaultOcpiEndpoint(tenantID) {
     const ocpiEndpoints = await this.getOcpiEndpoints(tenantID);
 

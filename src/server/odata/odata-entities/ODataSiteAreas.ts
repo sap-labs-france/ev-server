@@ -24,10 +24,10 @@ export default class ODataSiteAreas extends AbstractODataEntities {
   }
 
   // Custom convert to:
-  // Move Adress object to same level
+  // Move Address object to same level
   static convert(object, req) {
     const siteArea = super.convert(object, req);
-    return siteArea.address ? _.merge(siteArea, siteArea.address):siteArea;
+    return siteArea.address ? _.merge(siteArea, siteArea.address) : siteArea;
   }
 }
 

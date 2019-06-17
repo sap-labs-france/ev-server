@@ -110,7 +110,7 @@ export default class JsonWSConnection extends WSConnection {
   }
 
   getChargingStationClient() {
-    // only return client if WS is open
+    // Only return client if WS is open
     if (this.isWSConnectionOpen()) {
       return this.chargingStationClient;
     }

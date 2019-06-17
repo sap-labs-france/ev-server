@@ -16,7 +16,7 @@ export default class TenantValidator extends SchemaValidator {
   }
 
   public static getInstance(): TenantValidator {
-    if(!TenantValidator._instance) {
+    if (!TenantValidator._instance) {
       TenantValidator._instance = new TenantValidator();
     }
     return TenantValidator._instance;

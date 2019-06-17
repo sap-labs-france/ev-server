@@ -87,9 +87,9 @@ export default class Authorizations {
         companies: companyIDs,
         sites: siteIDs
       };
-    } else {
-      return {};
     }
+    return {};
+
   }
 
   private static async checkAndGetUserTagIDOnChargingStation(chargingStation: any, tagID: any, action: any) {
@@ -159,7 +159,7 @@ export default class Authorizations {
 
   static async getConnectorActionAuthorizations(tenantID: string, user: any, chargingStation: any, connector: any, siteArea: any, site: any) {
     const tenant: Tenant|null = await Tenant.getTenant(tenantID);
-    if(tenant == null) {
+    if (!tenant) {
       throw new BackendError('Authorizations.ts#getConnectorActionAuthorizations', 'Tenant null');
     }
     const isOrgCompActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
@@ -171,7 +171,7 @@ export default class Authorizations {
         user.getModel()
       );
     }
-    // set default value
+    // Set default value
     let isUserAssignedToSite = false;
     let accessControlEnable = true;
     let userAllowedToStopAllTransactions = false;
@@ -225,7 +225,7 @@ export default class Authorizations {
       // Basic user can start a transaction if he is assigned to the site or site management is not active
       result.isStopAuthorized = result.isStopAuthorized &&
         // Site Management is active  and user assigned to site and anyone allowed to stop or same user as transaction
-        // or access control disable
+        // Or access control disable
         (isOrgCompActive && isUserAssignedToSite &&
           (userAllowedToStopAllTransactions || isSameUserAsTransaction || !accessControlEnable)) ||
         // Site management inactive and badge access control and user identical to transaction
@@ -234,7 +234,7 @@ export default class Authorizations {
         (!isOrgCompActive && !accessControlEnable);
       result.isTransactionDisplayAuthorized =
         // Site Management is active  and user assigned to site and same user as transaction
-        // or access control disable
+        // Or access control disable
         (isOrgCompActive && isUserAssignedToSite &&
           (isSameUserAsTransaction || !accessControlEnable)) ||
         // Site management inactive and badge access control and user identical to transaction
@@ -351,7 +351,7 @@ export default class Authorizations {
         "Authorizations", "_checkAndGetUserOnChargingStation",
         user.getModel());
     }
-    
+
     // Check if User belongs to a Site ------------------------------------------
     // Org component enabled?
     if (isOrgCompActive) {
@@ -695,9 +695,9 @@ export default class Authorizations {
   static getUserScopes(role) {
     const scopes = [];
     this.accessControl.allowedResources({role: role}).forEach(
-      resource => {
+      (resource) => {
         this.accessControl.allowedActions({role: role, resource: resource}).forEach(
-          action => {
+          (action) => {
             scopes.push(`${resource}:${action}`);
           }
         );
