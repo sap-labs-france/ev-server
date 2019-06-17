@@ -92,7 +92,9 @@ export default class LockingStorage {
       _id: string;
       name: string;
       type: string;
-    };
+      timestamp: Date;
+      hostname: string;
+    } = { _id: '', name: '', type: '', timestamp: null, hostname: '' };
     Database.updateRunLock(runLockToSave, runLock, false);
     // Set the ID
     runLock._id = runLock.name + "~" + runLock.type;
@@ -111,7 +113,9 @@ export default class LockingStorage {
       _id: string;
       name: string;
       type: string;
-    };
+      timestamp: Date;
+      hostname: string;
+    } = { _id: '', name: '', type: '', timestamp: null, hostname: '' };
     Database.updateRunLock(runLockToDelete, runLock, false);
     // Set the ID
     runLock._id = runLock.name + "~" + runLock.type;
