@@ -88,7 +88,11 @@ export default class ConnectorService extends AbstractService {
       const connector = this.instantiateConnector(req.user.tenantID, filteredRequest.connectorId, setting.getContent()[filteredRequest.connectorId]);
       const connection = await connector.createConnection(filteredRequest.userId, filteredRequest.data);
       // Check auth
+<<<<<<< HEAD:src/server/rest/service/ConnectorService.ts
       if (!Authorizations.canCreateConnection(req.user, connection.getModel())) {
+=======
+      if (!Authorizations.canCreateConnection(req.user, req.body)) {
+>>>>>>> ce22f8878a04b7363befcd198772cad309d41c60:src/server/rest/service/ConnectorService.js
         // Not Authorized!
         throw new UnauthorizedError(
           Constants.ACTION_CREATE,
@@ -115,6 +119,18 @@ export default class ConnectorService extends AbstractService {
 
   public static async handleDeleteConnection(action, req, res, next) {
     try {
+<<<<<<< HEAD:src/server/rest/service/ConnectorService.ts
+=======
+      // Check auth
+      if (!Authorizations.canDeleteConnection(req.user, req.query)) {
+        // Not Authorized!
+        throw new UnauthorizedError(
+          Constants.ACTION_DELETE,
+          Constants.ENTITY_CONNECTION,
+          null,
+          req.user);
+      }
+>>>>>>> ce22f8878a04b7363befcd198772cad309d41c60:src/server/rest/service/ConnectorService.js
       // Filter
       const filteredRequest = ConnectorSecurity.filterConnectionDeleteRequest(req.query, req.user);
 

@@ -1,7 +1,7 @@
 {	
 	"Crypto": {
 		"key": "",
-		"algorithm": ""
+		"algorithm": "aes-256-ctr"
 	},
 	"Cluster": {
 		"enable": false,

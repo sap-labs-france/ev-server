@@ -1,6 +1,9 @@
 import crypto from 'crypto';
 import Configuration from './Configuration';
 import InternalError from '../exception/InternalError';
+import BackendError from '../exception/BackendError';
+import _ from 'lodash';
+
 
 let _configuration;
 const IV_LENGTH = 16;
@@ -25,7 +28,7 @@ export default class Safe {
       encrypted = Buffer.concat([encrypted, cipher.final()]);
       return iv.toString('hex') + ':' + encrypted.toString('hex');
     } catch (error) {
-      throw new InternalError(`Unable to encrypt data`, error);
+      throw new BackendError(`Setting encryption error`, error);
     }
   }
 
@@ -39,7 +42,7 @@ export default class Safe {
       decrypted = Buffer.concat([decrypted, decipher.final()]);
       return decrypted.toString();
     } catch (error) {
-      throw new InternalError(`Unable to decrypt data`, error);
+      throw new BackendError(`Setting decryption error`, error);
     }
   }
 
@@ -47,7 +50,7 @@ export default class Safe {
     try {
       return crypto.createHash('sha256').update(data).digest("hex");
     } catch (error) {
-      throw new InternalError(`Unable to hash data`, error);
+      throw new BackendError(`Setting hash error`, error);
     }
   }
 }

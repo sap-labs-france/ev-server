@@ -13,7 +13,7 @@ import InternalError from '../../exception/InternalError';
 import jwt from 'jsonwebtoken';
 import BBPromise from "bluebird";
 import Transaction from '../../entity/Transaction';
-import Safe from '../../utils/Safe';
+import Cipher from '../../utils/Cipher';
 
 const MODULE_NAME = 'ConcurConnector';
 const CONNECTOR_ID = 'concur';
@@ -91,7 +91,7 @@ const CONNECTOR_ID = 'concur';
   }
 
   getClientSecretDecrypted() {
-    return Safe.decrypt(this.getSetting().clientSecret);
+    return Cipher.decryptString(this.getSetting().clientSecret);
 }
 
   getExpenseTypeCode() {

@@ -82,12 +82,18 @@ export default class SettingService {
           'SettingService', 'handleGetSetting', req.user);
       }
       // Hash data sent to the front end based on the properties stored in the sensitiveData array
-      if(setting.sensitiveData && setting.sensitiveData.length > 0) {
+      if(!Array.isArray(setting.sensitiveData)) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The property sensitiveData for Setting with ID '${filteredRequest.id}' is not an array`, 550,
+          'SettingService', 'handleGetSetting', req.user);
+      }
+      if(setting.sensitiveData && Array.isArray(setting.sensitiveData) && setting.sensitiveData.length > 0) {
         setting.sensitiveData.forEach((property: string) => {
-          const stored = _.get(setting, property);
-          if(stored && stored.length > 0) {
+          const encryptedData = _.get(setting, property);
+          if(encryptedData && encryptedData.length > 0) {
             // Hash the stored value
-            _.set(setting, property, Safe.hash(stored));
+            _.set(setting, property, Safe.hash(encryptedData));
           } else {
             // If stored is undefined or empty then send empty string
             _.set(setting, property, '');
@@ -136,12 +142,18 @@ export default class SettingService {
         settings.result, req.user);
       // Hash data sent to the front end based on the properties stored in the sensitiveData array
       settings.result.forEach((setting) => {
-        if(setting.sensitiveData && setting.sensitiveData.length > 0) {
+        if(!Array.isArray(setting.sensitiveData)) {
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `The property sensitiveData for Setting with ID '${setting.id}' is not an array`, 550,
+            'SettingService', 'handleGetSetting', req.user);
+        }
+          if(setting.sensitiveData && setting.sensitiveData.length > 0) {
           setting.sensitiveData.forEach((property: string) => {
-            const stored = _.get(setting, property);
-            if(stored && stored.length > 0) {
+            const encryptedData = _.get(setting, property);
+            if(encryptedData && encryptedData.length > 0) {
               // Hash the stored value
-              _.set(setting, property, Safe.hash(stored));
+              _.set(setting, property, Safe.hash(encryptedData));
             } else {
               // If stored is undefined or empty then send empty string
               _.set(setting, property, '');
@@ -176,6 +188,12 @@ export default class SettingService {
       // Check Mandatory fields
       Setting.checkIfSettingValid(filteredRequest, req);
       // Encrypt data in the database based on the properties stored in the sensitiveData array
+      if(!Array.isArray(filteredRequest.sensitiveData)) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The property sensitiveData for Setting with ID '${filteredRequest.id}' is not an array`, 550,
+          'SettingService', 'handleGetSetting', req.user);
+      }
       if(filteredRequest.sensitiveData && filteredRequest.sensitiveData.length > 0) {
         filteredRequest.sensitiveData.forEach((property: string) => {
           const input = _.get(filteredRequest, property);
@@ -237,18 +255,24 @@ export default class SettingService {
           req.user);
       }
       // Encrypt data in the database based on the properties stored in the sensitiveData array
+      if(!Array.isArray(filteredRequest.sensitiveData)) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The property sensitiveData for Setting with ID '${filteredRequest.id}' is not an array`, 550,
+          'SettingService', 'handleGetSetting', req.user);
+      }
       if(filteredRequest.sensitiveData && filteredRequest.sensitiveData.length > 0) {
         filteredRequest.sensitiveData.forEach((property: string) => {
           const input = _.get(filteredRequest, property);
-          const stored = _.get(setting.getModel(), property);
+          const encryptedData = _.get(setting.getModel(), property);
           // Compare the input value and the hashed stored value in order to detect if the value has been changed
           // note : the stored value is encrypted
-          if(input && input.length > 0 && input !== Safe.hash(stored)) {
+          if(input && input.length > 0 && input !== Safe.hash(encryptedData)) {
             // Encrypt the input value
             _.set(filteredRequest, property, Safe.encrypt(input));
           } else {
             // If input value is empty or the value hasn't been updated then keep the old value => needs to be validated !
-            _.set(filteredRequest, property, stored);
+            _.set(filteredRequest, property, encryptedData);
           }
         });
       }

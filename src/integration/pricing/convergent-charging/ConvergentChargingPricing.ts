@@ -3,7 +3,7 @@ import moment from 'moment-timezone';
 import Logging from '../../../utils/Logging';
 import Pricing, { PricedConsumption } from '../Pricing';
 import SiteArea from '../../../entity/SiteArea';
-import Safe from '../../../utils/Safe';
+import Cipher from '../../../utils/Cipher';
 
 export default class ConvergentChargingPricing extends Pricing {
   public statefulChargingService: any;
@@ -13,7 +13,7 @@ export default class ConvergentChargingPricing extends Pricing {
 
   constructor(tenantId, setting, transaction) {
     super(tenantId, setting, transaction);
-    this.statefulChargingService = new StatefulChargingService(this.setting.url, this.setting.user, Safe.decrypt(this.setting.password));
+    this.statefulChargingService = new StatefulChargingService(this.setting.url, this.setting.user, Cipher.decryptString(this.setting.password));
   }
 
   getSettings() {

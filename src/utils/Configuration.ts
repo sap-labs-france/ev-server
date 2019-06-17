@@ -24,7 +24,7 @@ export default class Configuration {
   }
 
   // Crypto config
-  static getCryptoConfig() {
+  public static getCryptoConfig() {
     // Read conf
     return Configuration.getConfig().Crypto;
   }
