@@ -45,11 +45,11 @@ export default class UpdateKebaMeterValuesTask extends MigrationTask {
         "chargingStation.chargePointVendor": "Keba AG"
       }
     });
-    const meterValuesMDB = await global.database.getCollection(tenant.getID(), 'metervalues')
+    const meterValuesMDB = await global.database.getCollection<any>(tenant.getID(), 'metervalues')
       .aggregate(aggregation)
       .toArray();
     for (const meterValueMDB of meterValuesMDB) {
-      await global.database.getCollection(tenant.getID(), 'metervalues').findOneAndDelete({'_id': meterValueMDB._id});
+      await global.database.getCollection<any>(tenant.getID(), 'metervalues').findOneAndDelete({'_id': meterValueMDB._id});
     }
   }
 

@@ -6,7 +6,7 @@ import TSGlobal from '../../types/GlobalType';
 
 declare const global: TSGlobal;
 
-const buildChargingStationClient = async function (chargingStation) {
+const buildChargingStationClient = async function(chargingStation) {
   let chargingClient = null;
   // Check protocol
   switch (chargingStation.getOcppProtocol()) {

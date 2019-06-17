@@ -83,10 +83,10 @@ export default class CreateConsumptionsTask extends MigrationTask {
       $match: { "consumptions": { $eq: [] } }
     });
     // Read all transactions
-    const transactionsMDB = await global.database.getCollection(tenant.getID(), 'transactions')
+    const transactionsMDB = await global.database.getCollection<any>(tenant.getID(), 'transactions')
       .aggregate(aggregation).toArray();
     // Add Site ID and Site Area ID in Transaction
-    const transactions = transactionsMDB.map(transaction => {
+    const transactions = transactionsMDB.map((transaction) => {
       // Create
       return new Transaction(tenant.getID(), transaction);
     });
@@ -97,11 +97,11 @@ export default class CreateConsumptionsTask extends MigrationTask {
     this.totalCount = transactions.length;
     // Create promises
     const promises = transactions.map(
-      transaction => limit(async () => {
+      (transaction) => { return limit(async () => {
         try {
           // Compute
           await this.computeConsumptions(transaction, pricing);
-        } catch(error) {
+        } catch (error) {
           Logging.logError({
             tenantID: Constants.DEFAULT_TENANT,
             source: "CreateConsumptionsTask", action: "Migration",
@@ -109,7 +109,7 @@ export default class CreateConsumptionsTask extends MigrationTask {
             message: `Tenant ${tenant.getName()} (${tenant.getID()}): Transaction ID '${transaction.getID()}' failed to migrate`
           });
         }
-      })
+      }); }
     );
     // Execute them all
     // eslint-disable-next-line no-undef
@@ -185,7 +185,7 @@ export default class CreateConsumptionsTask extends MigrationTask {
 
   async insertMany(tenantID, consumptions) {
     // Transfer
-    const consumptionsMDB = consumptions.map(consumption => {
+    const consumptionsMDB = consumptions.map((consumption) => {
       const consumptionMDB: any = {};
       // Update
       Database.updateConsumption(consumption, consumptionMDB, false);
@@ -193,7 +193,7 @@ export default class CreateConsumptionsTask extends MigrationTask {
       return consumptionMDB;
     });
     // Insert
-    await global.database.getCollection(tenantID, 'consumptions').insertMany(consumptionsMDB);
+    await global.database.getCollection<any>(tenantID, 'consumptions').insertMany(consumptionsMDB);
   }
 
   async getConsumptions(transaction) {
@@ -248,7 +248,7 @@ export default class CreateConsumptionsTask extends MigrationTask {
           const sampleMultiplier = 3600 / diffSecs;
           // Consumption
           const consumptionWh = meterValue.value - lastMeterValue.value;
-          // compute
+          // Compute
           const currentConsumption = consumptionWh * sampleMultiplier;
           // Set cumulated
           cumulatedConsumption += consumptionWh;

@@ -8,7 +8,7 @@ export default class OCPIErrorHandler {
     let error;
     let detailedMessages = {};
 
-    // check instance of error
+    // Check instance of error
     if (!(err instanceof OCPIServerError || err instanceof OCPIClientError)) {
       error = new OCPIServerError(
         '-',
@@ -20,7 +20,7 @@ export default class OCPIErrorHandler {
       error = err;
     }
 
-    // add logging
+    // Add logging
     Logging.logError({
       tenantID: req.tenantID,
       action: error.action,
@@ -31,8 +31,8 @@ export default class OCPIErrorHandler {
       detailedMessages: detailedMessages
     });
 
-    // return response with error
-    res.status(error.httpErrorCode).json(OCPIUtils.error(error));
+    // Return response with error
+    await res.status(error.httpErrorCode).json(OCPIUtils.error(error));
 
     next();
   }

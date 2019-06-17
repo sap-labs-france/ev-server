@@ -50,7 +50,7 @@ export default class NotificationStorage {
       $match: filters
     });
     // Count Records
-    const notificationsCountMDB = await global.database.getCollection(tenantID, 'notifications')
+    const notificationsCountMDB = await global.database.getCollection<any>(tenantID, 'notifications')
       .aggregate([...aggregation, { $count: "count"}], { allowDiskUse: true })
       .toArray();
     // Add Charge Box
@@ -100,7 +100,7 @@ export default class NotificationStorage {
       $limit: limit
     });
     // Read DB
-    const notificationsMDB = await global.database.getCollection(tenantID, 'notifications')
+    const notificationsMDB = await global.database.getCollection<any>(tenantID, 'notifications')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     const notifications = [];
@@ -136,7 +136,7 @@ export default class NotificationStorage {
       .update(`${notificationToSave.sourceId}~${notificationToSave.channel}`)
       .digest("hex");
     // Create
-    await global.database.getCollection(tenantID, 'notifications')
+    await global.database.getCollection<any>(tenantID, 'notifications')
       .insertOne(notification);
     // Debug
     Logging.traceEnd('NotificationStorage', 'saveNotification', uniqueTimerID, { notification });

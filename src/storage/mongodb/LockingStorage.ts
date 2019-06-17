@@ -8,11 +8,11 @@ import Logging from '../../utils/Logging';
 declare const global: TSGlobal;
 
 export default class LockingStorage {
-  static async getLocks() {
+  public static async getLocks(): Promise<any[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart('LockingStorage', 'getLocks');
     // Read DB
-    const locksMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'locks')
+    const locksMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
       .find({})
       .toArray();
     const locks = [];
@@ -32,39 +32,39 @@ export default class LockingStorage {
     return locks;
   }
 
-  static async getLockStatus(lockToTest, lockOnMultipleHosts = true) {
+  public static async getLockStatus(lockToTest, lockOnMultipleHosts = true): Promise<boolean> {
     //  Check
     const locks = await LockingStorage.getLocks();
-    const lockStatus = locks.find((lock) => {
+    const lockStatus = locks.find((lock): boolean => {
       if (lockOnMultipleHosts) {
         // Same name and type
         return ((lockToTest.name === lock.name) &&
           (lockToTest.type === lock.type));
-      } else {
-        // Same name, hostname and type
-        return ((lockToTest.name === lock.name) &&
+      }
+      // Same name, hostname and type
+      return ((lockToTest.name === lock.name) &&
           (lockToTest.type === lock.type)) &&
           (lockToTest.hostname === lock.hostname);
-      }
+
     });
     return lockStatus;
   }
 
-  static async cleanLocks(hostname = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname()) {
+  public static async cleanLocks(hostname = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname()): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('LockingStorage', 'cleanLocks');
     // Delete
-    await global.database.getCollection(Constants.DEFAULT_TENANT, 'locks')
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
       .deleteMany({ hostname: hostname });
     // Debug
     Logging.traceEnd('LockingStorage', 'cleanLocks', uniqueTimerID);
   }
 
-  // static async getRunLocks() {
+  // pragma static async getRunLocks() {
   //   // Debug
   //   const uniqueTimerID = Logging.traceStart('LockingStorage', 'getRunLocks');
   //   // Read DB
-  //   const runLocksMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'locks')
+  //   const runLocksMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
   //     .find({ type: 'runLock' })
   //     .toArray();
   //   const runLocks = [];
@@ -84,7 +84,7 @@ export default class LockingStorage {
   //   return runLocks;
   // }
 
-  static async saveRunLock(runLockToSave) {
+  public static async saveRunLock(runLockToSave): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('LockingStorage', 'saveRunLock');
     // Transfer
@@ -97,13 +97,13 @@ export default class LockingStorage {
     // Set the ID
     runLock._id = runLock.name + "~" + runLock.type;
     // Create
-    await global.database.getCollection(Constants.DEFAULT_TENANT, 'locks')
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
       .insertOne(runLock);
     // Debug
     Logging.traceEnd('LockingStorage', 'saveRunningMigration', uniqueTimerID, { runLock: runLock });
   }
 
-  static async deleteRunLock(runLockToDelete) {
+  public static async deleteRunLock(runLockToDelete): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('LockingStorage', 'deleteRunLock');
     // Transfer
@@ -116,7 +116,7 @@ export default class LockingStorage {
     // Set the ID
     runLock._id = runLock.name + "~" + runLock.type;
     // Delete
-    await global.database.getCollection(Constants.DEFAULT_TENANT, 'locks')
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
       .deleteOne(runLock);
     // Debug
     Logging.traceEnd('LockingStorage', 'deleteRunLock', uniqueTimerID, { runLock: runLock });

@@ -2,8 +2,38 @@ import Database from '../utils/Database';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import User from './User';
 import Setting from '../entity/Setting';
+import TenantComponents from '../types/TenantComponents';
+
 
 export default class Tenant {
+  // pragma private _id: string;
+  // private _name: string;
+  // private _email: string;
+  // private _subdomain: string;
+  // private _components: Array<TenantComponents>;
+  // private _createdOn: number; //Timestamp
+  // private _createdByUser: User; //Use UserId instead of User object copy
+  // private _lastChangedOn: number; //Timestamp
+  // private _lastChangedByUser: User; //STee above
+
+  // // ID getter
+  // public getID(): string {
+  //   return this._id;
+  // }
+
+  // // Name getter/setters
+  // public getName(): string {
+  //   return this._name;
+  // }
+
+  // // Chainable
+  // public setName(newName: string): Tenant {
+  //   this._name = newName;
+  //   return this;
+  // }
+
+  // // Email getter/setters
+
   private _model: any = {};
 
   constructor(tenant: any) {
@@ -11,19 +41,19 @@ export default class Tenant {
     Database.updateTenant(tenant, this._model);
   }
 
-  public static getTenant(id: any): Promise<Tenant|null> {
+  public static getTenant(id: any): Promise<Tenant | null> {
     return TenantStorage.getTenant(id);
   }
 
-  public static getTenantByName(name: string): Promise<Tenant|null> {
+  public static getTenantByName(name: string): Promise<Tenant | null> {
     return TenantStorage.getTenantByName(name);
   }
 
-  static getTenantBySubdomain(subdomain: string): Promise<Tenant|null> {
+  static getTenantBySubdomain(subdomain: string): Promise<Tenant | null> {
     return TenantStorage.getTenantBySubdomain(subdomain);
   }
 
-  static getTenants(params = {}, limit?: number, skip?: number, sort?: boolean): Promise<{count: number; result: Tenant[]}> {
+  static getTenants(params = {}, limit?: number, skip?: number, sort?: boolean): Promise<{ count: number; result: Tenant[] }> {
     return TenantStorage.getTenants(params, limit, skip, sort);
   }
 
@@ -103,7 +133,7 @@ export default class Tenant {
   getComponents() {
     const components = [];
     for (const componentName in this._model.components) {
-      components.push({name: componentName, ...this._model.components[componentName]});
+      components.push({ name: componentName, ...this._model.components[componentName] });
     }
     return components;
   }
@@ -159,4 +189,5 @@ export default class Tenant {
   setLastChangedOn(lastChangedOn: any) {
     this._model.lastChangedOn = lastChangedOn;
   }
+
 }

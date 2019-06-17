@@ -16,8 +16,11 @@ export default class UtilsService {
     }
   }
 
-  static async isOrganizationComponentActive(tenantID) {
+  public static async isOrganizationComponentActive(tenantID): Promise<boolean> {
     const tenant = await Tenant.getTenant(tenantID);
+    if (!tenant) {
+      return false;
+    }
     return tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
   }
 }

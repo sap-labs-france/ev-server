@@ -1,12 +1,12 @@
-
 import AbstractODataEntities from './AbstractODataEntities';
 import _ from 'lodash';
+import Company from '../../../types/Company';
 
 export default class ODataCompanies extends AbstractODataEntities {
   public buildParams: any;
   public returnResponse: any;
 
-  static getObjectKey(company) {
+  static getObjectKey(company: Company) {
     return company.id;
   }
 
@@ -26,9 +26,10 @@ export default class ODataCompanies extends AbstractODataEntities {
   // Custom convert to:
   // Move Address object to same level
   static convert(object, req) {
-    const company = super.convert(object, req);
+    const company: Company = super.convert(object, req);
     return company.address ? _.merge(company, company.address) : company;
   }
+  // TODO ^^^ Check this
 }
 
 

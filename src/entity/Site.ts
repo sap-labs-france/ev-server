@@ -7,6 +7,7 @@ import SiteStorage from '../storage/mongodb/SiteStorage';
 import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
 import User from './User';
+import Company from '../types/Company';
 
 export default class Site extends TenantHolder {
   private _model: any = {};
@@ -134,7 +135,7 @@ export default class Site extends TenantHolder {
     this._model.lastChangedOn = lastChangedOn;
   }
 
-  async getCompany() {
+  async getCompany(): Promise<Company> {
     const company = await CompanyStorage.getCompany(this.getTenantID(), this._model.companyID);
     this.setCompany(company);
     return company;
@@ -144,10 +145,10 @@ export default class Site extends TenantHolder {
     return this._model.companyID;
   }
 
-  setCompany(company) {
+  setCompany(company: Company) {
     if (company) {
-      this._model.company = company.getModel();
-      this._model.companyID = company.getID();
+      this._model.company = company;
+      this._model.companyID = company.id;
     } else {
       this._model.company = null;
     }
@@ -160,17 +161,17 @@ export default class Site extends TenantHolder {
   }
 
   setSiteAreas(siteAreas) {
-    this._model.siteAreas = siteAreas.map((siteArea) => siteArea.getModel());
+    this._model.siteAreas = siteAreas.map((siteArea) => { return siteArea.getModel(); });
   }
 
   async getUsers() {
     if (this._model.users) {
-      return this._model.users.map((user) => new User(this.getTenantID(), user));
-    } else {
-      const users = await UserStorage.getUsers(this.getTenantID(), { 'siteID': this.getID() });
-      this.setUsers(users.result);
-      return users.result;
+      return this._model.users.map((user) => { return new User(this.getTenantID(), user); });
     }
+    const users = await UserStorage.getUsers(this.getTenantID(), { 'siteID': this.getID() });
+    this.setUsers(users.result);
+    return users.result;
+
   }
 
   async getUser(userID) {
@@ -193,7 +194,7 @@ export default class Site extends TenantHolder {
   }
 
   setUsers(users) {
-    this._model.users = users.map((user) => user.getModel());
+    this._model.users = users.map((user) => { return user.getModel(); });
   }
 
   save() {

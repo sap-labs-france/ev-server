@@ -9,13 +9,15 @@ declare const global: TSGlobal;
 import SourceMap from 'source-map-support';
 SourceMap.install();
 export default class OCPPValidation extends SchemaValidator {
+
   public validate: any;
-  private _bootNotificationRequest;
-  private _authorizeRequest;
-  private _statusNotificationRequest;
-  private _startTransactionRequest;
-  private _stopTransactionRequest16;
-  private _stopTransactionRequest15;
+  private static instance: OCPPValidation|null = null;
+  private _bootNotificationRequest: any;
+  private _authorizeRequest: any;
+  private _statusNotificationRequest: any;
+  private _startTransactionRequest: any;
+  private _stopTransactionRequest16: any;
+  private _stopTransactionRequest15: any;
 
   constructor() {
     super('OCPPValidation');
@@ -23,13 +25,12 @@ export default class OCPPValidation extends SchemaValidator {
     this._authorizeRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/validation/authorize-request.json`, 'utf8'));
     this._statusNotificationRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/validation/status-notification-request.json`, 'utf8'));
     this._startTransactionRequest = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/validation/start-transaction-request.json`, 'utf8'));
-    this._stopTransactionRequest15 = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/validation/stop-transaction-request-16.json`, 'utf8'));
-    this._stopTransactionRequest16 = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/validation/stop-transaction-request-15.json`, 'utf8'));
+    this._stopTransactionRequest15 = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/validation/stop-transaction-request-15.json`, 'utf8'));
+    this._stopTransactionRequest16 = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/ocpp/validation/stop-transaction-request-16.json`, 'utf8'));
   }
 
-  private static instance: OCPPValidation|null = null;
   static getInstance(): OCPPValidation {
-    if(OCPPValidation.instance == null) {
+    if (OCPPValidation.instance === null) {
       OCPPValidation.instance = new OCPPValidation();
     }
     return OCPPValidation.instance;

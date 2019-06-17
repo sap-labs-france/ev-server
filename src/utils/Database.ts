@@ -2,9 +2,11 @@ import Utils from './Utils';
 import Constants from './Constants';
 import Configuration from './Configuration';
 import cfenv from 'cfenv';
-import cluster from 'cluster';
 import os from 'os';
 import SourceMap from 'source-map-support';
+import Company from '../types/Company';
+import cluster from 'cluster';
+import Address from '../types/Address';
 SourceMap.install();
 
 export default class Database {
@@ -400,13 +402,16 @@ export default class Database {
     }
   }
 
-  static updateCompany(src, dest, forFrontEnd = true) {
+  /**
+   * @deprecated
+   */
+  static updateCompany(src: Company, dest: Company, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);
       dest.logo = src.logo;
     }
     dest.name = src.name;
-    dest.address = {};
+    dest.address = {} as Address;
     Database.updateAddress(src.address, dest.address);
     Database.updateCreatedAndLastChanged(src, dest);
   }

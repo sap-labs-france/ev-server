@@ -15,13 +15,13 @@ export default class OCPIClient {
   // Ping eMSP
   async ping() {
     const pingResult: any = {};
-    // try to access base Url (GET .../versions)
-    // access versions API
+    // Try to access base Url (GET .../versions)
+    // Access versions API
     try {
-      // get versions
+      // Get versions
       const endpoints = await this.getVersions();
 
-      // check response
+      // Check response
       if (!endpoints.data || !(endpoints.data.status_code === 1000) || !endpoints.data.data) {
         pingResult.statusCode = 412;
         pingResult.statusText = `Invalid response from GET ${this.ocpiEndpoint.getBaseUrl()}`;
@@ -34,7 +34,7 @@ export default class OCPIClient {
       pingResult.statusCode = (error.response) ? error.response.status : 500;
     }
 
-    // return result
+    // Return result
     return pingResult;
   }
 
@@ -43,10 +43,10 @@ export default class OCPIClient {
     const registerResult: any = {};
 
     try {
-      // get available version.
+      // Get available version.
       const ocpiVersions = await this.getVersions();
 
-      // loop through versions and pick the same one
+      // Loop through versions and pick the same one
       let versionFound = false;
       for (const ocpiVersion of ocpiVersions.data.data) {
         if (ocpiVersion.version === '2.1.1') {
@@ -57,33 +57,33 @@ export default class OCPIClient {
         }
       }
 
-      // if not found trigger exception
+      // If not found trigger exception
       if (!versionFound) {
         throw new Error(`OCPI Endpoint version 2.1.1 not found`);
       }
 
-      // try to read services
+      // Try to read services
       const services = await this.getServices();
 
-      // set available endpoints
+      // Set available endpoints
       this.ocpiEndpoint.setAvailableEndpoints(OCPIMapping.convertEndpoints(services.data.data));
 
-      // post credentials and recieve response
+      // Post credentials and recieve response
       const respPostCredentials = await this.postCredentials();
       const credential = respPostCredentials.data.data;
 
-      // store information
-      // this.ocpiEndpoint.setBaseUrl(credential.url);
+      // Store information
+      // pragma this.ocpiEndpoint.setBaseUrl(credential.url);
       this.ocpiEndpoint.setToken(credential.token);
       this.ocpiEndpoint.setCountryCode(credential.country_code);
       this.ocpiEndpoint.setPartyId(credential.party_id);
       this.ocpiEndpoint.setBusinessDetails(credential.business_details);
 
-      // save endpoint
+      // Save endpoint
       this.ocpiEndpoint.setStatus(Constants.OCPI_REGISTERING_STATUS.OCPI_REGISTERED);
       await this.ocpiEndpoint.save();
 
-      // send success
+      // Send success
       registerResult.statusCode = 200;
       registerResult.statusText = 'OK';
     } catch (error) {
@@ -91,7 +91,7 @@ export default class OCPIClient {
       registerResult.statusCode = (error.response) ? error.response.status : 500;
     }
 
-    // return result
+    // Return result
     return registerResult;
   }
 
@@ -108,7 +108,7 @@ export default class OCPIClient {
       timeout: 10000
     });
 
-    // check response
+    // Check response
     if (!respOcpiVersions.data || !respOcpiVersions.data.data) {
       throw new Error(`Invalid response from GET ${this.ocpiEndpoint.getBaseUrl()}`);
     }
@@ -120,7 +120,7 @@ export default class OCPIClient {
    * GET /ocpi/emsp/{version}
    */
   async getServices() {
-    // log
+    // Log
     Logging.logInfo({
       tenantID: this.ocpiEndpoint.getTenantID(),
       action: 'OCPIGetVersions',
@@ -138,7 +138,7 @@ export default class OCPIClient {
       timeout: 10000
     });
 
-    // check response
+    // Check response
     if (!respOcpiServices.data || !respOcpiServices.data.data) {
       throw new Error(`Invalid response from GET ${this.ocpiEndpoint.getVersionUrl()}`);
     }
@@ -150,18 +150,18 @@ export default class OCPIClient {
    * POST /ocpi/emsp/{version}/credentials
    */
   async postCredentials() {
-    // get credentials url
+    // Get credentials url
     const credentialsUrl = this.ocpiEndpoint.getEndpointUrl('credentials');
 
     if (!credentialsUrl) {
       throw new Error('Credentials url not available');
     }
 
-    // build CPO credential object
+    // Build CPO credential object
     const tenant = await this.ocpiEndpoint.getTenant();
     const cpoCredentials = await OCPIMapping.buildOCPICredentialObject(tenant, await this.ocpiEndpoint.generateLocalToken());
 
-    // log
+    // Log
     Logging.logInfo({
       tenantID: tenant.getID(),
       action: 'OCPIPostCredentials',
@@ -172,7 +172,7 @@ export default class OCPIClient {
       detailedMessages: cpoCredentials
     });
 
-    // call eMSP with CPO credentials
+    // Call eMSP with CPO credentials
     const respOcpiCredentials = await axios.post(credentialsUrl, cpoCredentials,
       {
         headers: {
@@ -182,7 +182,7 @@ export default class OCPIClient {
         timeout: 10000
       });
 
-    // check response
+    // Check response
     if (!respOcpiCredentials.data || !respOcpiCredentials.data.data) {
       throw new Error(`Invalid response from POST`);
     }
@@ -194,19 +194,19 @@ export default class OCPIClient {
    * PATH EVSE Status
    */
   async patchEVSEStatus(locationId: any, evseId: any, newStatus: any) {
-    // check for input parameter
+    // Check for input parameter
     if (!locationId || !evseId || !newStatus) {
       throw new Error('Invalid parameters');
     }
 
-    // get locations endpoint url
+    // Get locations endpoint url
     const locationsUrl = this.ocpiEndpoint.getEndpointUrl('locations');
 
     if (!locationsUrl) {
       throw new Error('Locations endpoint URL undefined');
     }
 
-    // read configuration to retrieve
+    // Read configuration to retrieve
     const tenant = await this.ocpiEndpoint.getTenant();
     const ocpiSetting = await tenant.getSetting(Constants.COMPONENTS.OCPI);
 
@@ -222,13 +222,13 @@ export default class OCPIClient {
     const countryCode = ocpiContent.countryCode;
     const partyID = ocpiContent.partyID;
 
-    // build url to EVSE
+    // Build url to EVSE
     const fullUrl = locationsUrl + `/${countryCode}/${partyID}/${locationId}/${evseId}`;
 
-    // build payload
+    // Build payload
     const payload = { "status": newStatus };
 
-    // log
+    // Log
     Logging.logInfo({
       tenantID: tenant.getID(),
       action: 'OCPIPatchLocations',
@@ -239,7 +239,7 @@ export default class OCPIClient {
       detailedMessages: payload
     });
 
-    // call IOP
+    // Call IOP
     const response = await axios.patch(fullUrl, payload,
       {
         headers: {
@@ -249,7 +249,7 @@ export default class OCPIClient {
         timeout: 10000
       });
 
-    // check response
+    // Check response
     if (!response.data) {
       throw new Error(`Invalid response from PATCH`);
     }
@@ -260,7 +260,7 @@ export default class OCPIClient {
    * Send all EVSEs
    */
   async sendEVSEStatuses(processAllEVSEs = true) {
-    // result
+    // Result
     const sendResult = {
       success: 0,
       failure: 0,
@@ -270,11 +270,11 @@ export default class OCPIClient {
       chargeBoxIDsInSuccess: []
     };
 
-    // read configuration to retrieve
+    // Read configuration to retrieve
     const tenant = await this.ocpiEndpoint.getTenant();
-    // get ocpi service configuration
+    // Get ocpi service configuration
     const ocpiSetting = await tenant.getSetting(Constants.COMPONENTS.OCPI);
-    // define eMI3
+    // Define eMI3
     tenant._eMI3 = {};
 
     if (ocpiSetting && ocpiSetting.getContent()) {
@@ -282,7 +282,7 @@ export default class OCPIClient {
       tenant._eMI3.country_id = configuration.countryCode;
       tenant._eMI3.party_id = configuration.partyID;
     } else {
-      // log error if failure
+      // Log error if failure
       Logging.logError({
         tenantID: tenant.getID(),
         action: 'OCPISendEVSEStatuses',
@@ -294,39 +294,39 @@ export default class OCPIClient {
       return;
     }
 
-    // define get option
+    // Define get option
     const options = { "addChargeBoxID": true };
 
-    // get timestamp before starting process - to be saved in DB at the end of the process
+    // Get timestamp before starting process - to be saved in DB at the end of the process
     const startDate = new Date();
 
-    // check if all EVSEs should be processed - in case of delta send - process only following EVSEs:
+    // Check if all EVSEs should be processed - in case of delta send - process only following EVSEs:
     //    - EVSEs (ChargingStations) in error from previous push
     //    - EVSEs (ChargingStations) with status notification from latest pushDate
     let chargeBoxIDsToProcess = [];
 
     if (!processAllEVSEs) {
-      // get ChargingStation in Failure from previous run
+      // Get ChargingStation in Failure from previous run
       chargeBoxIDsToProcess.push(...this.getChargeBoxIDsInFailure());
 
-      // get ChargingStation with new status notification
+      // Get ChargingStation with new status notification
       chargeBoxIDsToProcess.push(...await this.getChargeBoxIDsWithNewStatusNotifications(tenant));
 
-      // remove duplicates
+      // Remove duplicates
       chargeBoxIDsToProcess = _.uniq(chargeBoxIDsToProcess);
     }
 
-    // get all EVSES from all locations
+    // Get all EVSES from all locations
     const locationsResult = await OCPIMapping.getAllLocations(tenant, 0, 0, options);
 
-    // loop through locations
+    // Loop through locations
     for (const location of locationsResult.locations) {
       if (location && location.evses) {
-        // loop through EVSE
+        // Loop through EVSE
         for (const evse of location.evses) {
-          // total amount of EVSEs
+          // Total amount of EVSEs
           sendResult.total++;
-          // check if EVSE should be processed
+          // Check if EVSE should be processed
           if (!processAllEVSEs && !chargeBoxIDsToProcess.includes(evse.chargeBoxId)) {
             continue;
           }
@@ -352,9 +352,9 @@ export default class OCPIClient {
       }
     }
 
-    // log error if any
+    // Log error if any
     if (sendResult.failure > 0) {
-      // log error if failure
+      // Log error if failure
       Logging.logError({
         tenantID: tenant.getID(),
         action: 'OCPISendEVSEStatuses',
@@ -365,7 +365,7 @@ export default class OCPIClient {
         method: `sendEVSEStatuses`
       });
     } else if (sendResult.success > 0) {
-      // log info
+      // Log info
       Logging.logInfo({
         tenantID: tenant.getID(),
         action: 'OCPISendEVSEStatuses',
@@ -377,21 +377,21 @@ export default class OCPIClient {
       });
     }
 
-    // save result in ocpi endpoint
+    // Save result in ocpi endpoint
     this.ocpiEndpoint.setLastPatchJobOn(startDate);
 
-    // set result
+    // Set result
     if (sendResult) {
-      this.ocpiEndpoint.setLastPatchJobResult(sendResult.success, sendResult.failure, sendResult.total, 
+      this.ocpiEndpoint.setLastPatchJobResult(sendResult.success, sendResult.failure, sendResult.total,
         _.uniq(sendResult.chargeBoxIDsInFailure), _.uniq(sendResult.chargeBoxIDsInSuccess));
     } else {
       this.ocpiEndpoint.setLastPatchJobResult(0, 0, 0);
     }
 
-    // save
+    // Save
     await this.ocpiEndpoint.save();
 
-    // return result
+    // Return result
     return sendResult;
   }
 
@@ -399,28 +399,28 @@ export default class OCPIClient {
   getChargeBoxIDsInFailure() {
     if (this.ocpiEndpoint.getLastPatchJobResult() && this.ocpiEndpoint.getLastPatchJobResult().chargeBoxIDsInFailure) {
       return this.ocpiEndpoint.getLastPatchJobResult().chargeBoxIDsInFailure;
-    } else {
-      return [];
     }
+    return [];
+
   }
 
   // Get ChargeBoxIds with new status notifications
   async getChargeBoxIDsWithNewStatusNotifications(tenant) {
-    // get last job
+    // Get last job
     const lastPatchJobOn = this.ocpiEndpoint.getLastPatchJobOn() ? this.ocpiEndpoint.getLastPatchJobOn() : new Date();
 
-    // build params
+    // Build params
     const params = { "dateFrom": lastPatchJobOn };
 
-    // get last status notifications
+    // Get last status notifications
     const statusNotificationsResult = await OCPPStorage.getStatusNotifications(tenant.getID(), params);
 
-    // loop through notifications
+    // Loop through notifications
     if (statusNotificationsResult.count > 0) {
-      return statusNotificationsResult.result.map(statusNotification => { return statusNotification.chargeBoxID; });
-    } else {
-      return [];
+      return statusNotificationsResult.result.map((statusNotification) => { return statusNotification.chargeBoxID; });
     }
+    return [];
+
   }
 
 }

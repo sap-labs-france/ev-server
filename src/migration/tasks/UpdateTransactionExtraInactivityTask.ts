@@ -25,7 +25,7 @@ export default class UpdateTransactionExtraInactivityTask extends MigrationTask 
       }
     });
     // Read DB
-    const transactionsMDB = await global.database.getCollection(tenant.getID(), 'transactions')
+    const transactionsMDB = await global.database.getCollection<any>(tenant.getID(), 'transactions')
       .aggregate(aggregation)
       .toArray();
 
@@ -51,7 +51,7 @@ export default class UpdateTransactionExtraInactivityTask extends MigrationTask 
         transactionMDB.stop.extraInactivitySecs = 0;
       }
       // Save
-      await global.database.getCollection(tenant.getID(), 'transactions').findOneAndUpdate(
+      await global.database.getCollection<any>(tenant.getID(), 'transactions').findOneAndUpdate(
         { "_id": transactionMDB._id },
         { $set: transactionMDB },
         { upsert: true, returnOriginal: false}

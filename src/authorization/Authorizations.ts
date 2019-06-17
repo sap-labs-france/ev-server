@@ -14,6 +14,7 @@ import AuthorizationsDefinition from './AuthorizationsDefinition';
 import ChargingStation from '../entity/ChargingStation';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import SourceMap from 'source-map-support';
+import Company from '../types/Company';
 SourceMap.install();
 
 export default class Authorizations {
@@ -86,9 +87,9 @@ export default class Authorizations {
         companies: companyIDs,
         sites: siteIDs
       };
-    } else {
-      return {};
     }
+    return {};
+
   }
 
   private static async checkAndGetUserTagIDOnChargingStation(chargingStation: any, tagID: any, action: any) {
@@ -158,7 +159,7 @@ export default class Authorizations {
 
   static async getConnectorActionAuthorizations(tenantID: string, user: any, chargingStation: any, connector: any, siteArea: any, site: any) {
     const tenant: Tenant|null = await Tenant.getTenant(tenantID);
-    if(tenant == null) {
+    if (tenant === null) {
       throw new BackendError('Authorizations.ts#getConnectorActionAuthorizations', 'Tenant null');
     }
     const isOrgCompActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
@@ -170,7 +171,7 @@ export default class Authorizations {
         user.getModel()
       );
     }
-    // set default value
+    // Set default value
     let isUserAssignedToSite = false;
     let accessControlEnable = true;
     let userAllowedToStopAllTransactions = false;
@@ -224,7 +225,7 @@ export default class Authorizations {
       // Basic user can start a transaction if he is assigned to the site or site management is not active
       result.isStopAuthorized = result.isStopAuthorized &&
         // Site Management is active  and user assigned to site and anyone allowed to stop or same user as transaction
-        // or access control disable
+        // Or access control disable
         (isOrgCompActive && isUserAssignedToSite &&
           (userAllowedToStopAllTransactions || isSameUserAsTransaction || !accessControlEnable)) ||
         // Site management inactive and badge access control and user identical to transaction
@@ -233,7 +234,7 @@ export default class Authorizations {
         (!isOrgCompActive && !accessControlEnable);
       result.isTransactionDisplayAuthorized =
         // Site Management is active  and user assigned to site and same user as transaction
-        // or access control disable
+        // Or access control disable
         (isOrgCompActive && isUserAssignedToSite &&
           (isSameUserAsTransaction || !accessControlEnable)) ||
         // Site management inactive and badge access control and user identical to transaction
@@ -350,7 +351,7 @@ export default class Authorizations {
         "Authorizations", "_checkAndGetUserOnChargingStation",
         user.getModel());
     }
-    
+
     // Check if User belongs to a Site ------------------------------------------
     // Org component enabled?
     if (isOrgCompActive) {
@@ -603,20 +604,20 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_COMPANIES, Constants.ACTION_LIST);
   }
 
-  static canReadCompany(loggedUser: any, company: any) {
+  static canReadCompany(loggedUser: any, company: Company) {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_COMPANY, Constants.ACTION_READ,
-      {"company": company.id.toString(), "companies": loggedUser.companies});
+      {"company": company.id, "companies": loggedUser.companies});
   }
 
   static canCreateCompany(loggedUser: any) {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_COMPANY, Constants.ACTION_CREATE);
   }
 
-  static canUpdateCompany(loggedUser: any, company: any) {
+  static canUpdateCompany(loggedUser: any, company: Company) {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_COMPANY, Constants.ACTION_UPDATE);
   }
 
-  static canDeleteCompany(loggedUser: any, company: any) {
+  static canDeleteCompany(loggedUser: any, company: Company) {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_COMPANY, Constants.ACTION_DELETE);
   }
 
@@ -640,9 +641,9 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TENANT, Constants.ACTION_DELETE);
   }
 
-  static canCreateConnection(loggedUser, connection) {
+  static canCreateConnection(loggedUser) {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CONNECTION, Constants.ACTION_CREATE,
-      {"user": connection.userId.toString(), "owner": loggedUser.id});
+      {"owner": loggedUser.id});
   }
 
   static canDeleteConnection(loggedUser, connection) {
@@ -694,9 +695,9 @@ export default class Authorizations {
   static getUserScopes(role) {
     const scopes = [];
     this.accessControl.allowedResources({role: role}).forEach(
-      resource => {
+      (resource) => {
         this.accessControl.allowedActions({role: role, resource: resource}).forEach(
-          action => {
+          (action) => {
             scopes.push(`${resource}:${action}`);
           }
         );

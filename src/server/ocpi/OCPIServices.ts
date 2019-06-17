@@ -14,10 +14,10 @@ export default class OCPIServices {
 
   // Create OCPI Service
   constructor(ocpiRestConfig: Config['OCPIService']) {
-    // add available OCPI services
+    // Add available OCPI services
     // version 2.1.1
     this.ocpiServices.push(new OCPIService2_1_1(ocpiRestConfig));
-    // version 2.0
+    // pragma version 2.0
     this.ocpiServices.push(new OCPIService2_0(ocpiRestConfig));
   }
   /**
@@ -25,10 +25,10 @@ export default class OCPIServices {
    */
   public getVersions(req: Request, res: Response): void {
     // Get all the versions
-    const versions = this.ocpiServices.map(ocpiService => {
+    const versions = this.ocpiServices.map((ocpiService) => {
       return { "version": ocpiService.getVersion(), "url": ocpiService.getServiceUrl(req) };
     });
-    // send available versions
+    // Send available versions
     res.json(OCPIUtils.success(versions));
   }
 

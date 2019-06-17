@@ -57,7 +57,7 @@ export default class CleanupTransactionTask extends MigrationTask {
       }
     });
     // Read all transactions
-    const transactionsMDB = await global.database.getCollection(tenant.getID(), 'transactions')
+    const transactionsMDB = await global.database.getCollection<any>(tenant.getID(), 'transactions')
       .aggregate(aggregation).toArray();
     // Delete
     for (const transactionMDB of transactionsMDB) {

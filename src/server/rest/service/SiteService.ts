@@ -5,16 +5,16 @@ import AppAuthError from '../../../exception/AppAuthError';
 import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import Site from '../../../entity/Site';
-import Company from '../../../entity/Company';
 import User from '../../../entity/User';
 import SiteSecurity from './security/SiteSecurity';
 import UtilsService from './UtilsService';
 import OrganizationComponentInactiveError from '../../../exception/OrganizationComponentInactiveError';
+import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
 
 export default class SiteService {
   static async handleAddUsersToSite(action, req, res, next) {
     try {
-      // check if organization component is active
+      // Check if organization component is active
       if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
         throw new OrganizationComponentInactiveError(
           Constants.ACTION_UPDATE,
@@ -97,7 +97,7 @@ export default class SiteService {
 
   static async handleRemoveUsersFromSite(action, req, res, next) {
     try {
-      // check if organization component is active
+      // Check if organization component is active
       if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
         throw new OrganizationComponentInactiveError(
           Constants.ACTION_UPDATE,
@@ -180,7 +180,7 @@ export default class SiteService {
 
   static async handleDeleteSite(action, req, res, next) {
     try {
-      // check if organization component is active
+      // Check if organization component is active
       if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
         throw new OrganizationComponentInactiveError(
           Constants.ACTION_DELETE,
@@ -238,7 +238,7 @@ export default class SiteService {
 
   static async handleGetSite(action, req, res, next) {
     try {
-      // check if organization component is active
+      // Check if organization component is active
       if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
         throw new OrganizationComponentInactiveError(
           Constants.ACTION_READ,
@@ -264,7 +264,7 @@ export default class SiteService {
           `The Site with ID '${filteredRequest.ID}' does not exist anymore`, 550,
           'SiteService', 'handleGetSite', req.user);
       }
-      console.log(site);
+
       // Return
       res.json(
         // Filter
@@ -280,7 +280,7 @@ export default class SiteService {
 
   static async handleGetSites(action, req, res, next) {
     try {
-      // check if organization component is active
+      // Check if organization component is active
       if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
         throw new OrganizationComponentInactiveError(
           Constants.ACTION_LIST,
@@ -315,7 +315,7 @@ export default class SiteService {
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
-      sites.result = sites.result.map((site) => site.getModel());
+      sites.result = sites.result.map((site) => { return site.getModel(); });
       // Filter
       SiteSecurity.filterSitesResponse(sites, req.user);
       // Return
@@ -329,7 +329,7 @@ export default class SiteService {
 
   static async handleGetSiteImage(action, req, res, next) {
     try {
-      // check if organization component is active
+      // Check if organization component is active
       if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
         throw new OrganizationComponentInactiveError(
           Constants.ACTION_READ,
@@ -379,7 +379,7 @@ export default class SiteService {
 
   static async handleCreateSite(action, req, res, next) {
     try {
-      // check if organization component is active
+      // Check if organization component is active
       if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
         throw new OrganizationComponentInactiveError(
           Constants.ACTION_CREATE,
@@ -400,11 +400,10 @@ export default class SiteService {
       }
       // Filter
       const filteredRequest = SiteSecurity.filterSiteCreateRequest(req.body, req.user);
-      // Check Company
-      const company = await Company.getCompany(req.user.tenantID, filteredRequest.companyID);
       // Check Mandatory fields
       Site.checkIfSiteValid(filteredRequest, req);
-      // Found?
+      // Check Company
+      const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.companyID);
       if (!company) {
         // Not Found!
         throw new AppError(
@@ -453,7 +452,7 @@ export default class SiteService {
 
   static async handleUpdateSite(action, req, res, next) {
     try {
-      // check if organization component is active
+      // Check if organization component is active
       if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
         throw new OrganizationComponentInactiveError(
           Constants.ACTION_UPDATE,

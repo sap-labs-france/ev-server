@@ -27,7 +27,7 @@ const RECORDS_LIMIT = 20;
     try {
       switch (req.method) {
         case "GET":
-          // call method
+          // Call method
           await this.getLocationRequest(req, res, next, tenant);
           break;
         default:
@@ -48,20 +48,20 @@ const RECORDS_LIMIT = 20;
     //    /ocpi/cpo/2.0/locations/{location_id}/{evse_uid}
     //    /ocpi/cpo/2.0/locations/{location_id}/{evse_uid}/{connector_id}
     const urlSegment = req.path.substring(1).split('/');
-    // remove action
+    // Remove action
     urlSegment.shift();
 
-    // get filters
+    // Get filters
     const locationId = urlSegment.shift();
     const evseUid = urlSegment.shift();
     const connectorId = urlSegment.shift();
     let payload = {};
 
-    // process request
+    // Process request
     if (locationId && evseUid && connectorId) {
       payload = await this.getConnector(tenant, locationId, evseUid, connectorId);
 
-      // check if at least of site found
+      // Check if at least of site found
       if (!payload) {
         throw new OCPIServerError(
           'GET locations',
@@ -72,7 +72,7 @@ const RECORDS_LIMIT = 20;
     } else if (locationId && evseUid) {
       payload = await this.getEvse(tenant, locationId, evseUid);
 
-      // check if at least of site found
+      // Check if at least of site found
       if (!payload) {
         throw new OCPIServerError(
           'GET locations',
@@ -80,10 +80,10 @@ const RECORDS_LIMIT = 20;
           EP_IDENTIFIER, 'getLocationRequest', null);
       }
     } else if (locationId) {
-      // get single location
+      // Get single location
       payload = await this.getLocation(tenant, locationId);
 
-      // check if at least of site found
+      // Check if at least of site found
       if (!payload) {
         throw new OCPIServerError(
           'GET locations',
@@ -91,21 +91,21 @@ const RECORDS_LIMIT = 20;
           EP_IDENTIFIER, 'getLocationRequest', null);
       }
     } else {
-      // get query parameters
+      // Get query parameters
       const offset = (req.query.offset) ? parseInt(req.query.offset) : 0;
       const limit = (req.query.limit && req.query.limit < RECORDS_LIMIT) ? parseInt(req.query.limit) : RECORDS_LIMIT;
 
-      // get all locations
+      // Get all locations
       const result = await this.getAllLocations(tenant, limit, offset);
       payload = result.locations;
 
-      // set header
+      // Set header
       res.set({
         'X-Total-Count': result.count,
         'X-Limit': RECORDS_LIMIT
       });
 
-      // return next link
+      // Return next link
       const nextUrl = OCPIUtils.buildNextUrl(req, offset, limit, result.count);
       if (nextUrl) {
         res.links({
@@ -114,82 +114,82 @@ const RECORDS_LIMIT = 20;
       }
     }
 
-    // return Payload
+    // Return Payload
     res.json(OCPIUtils.success(payload));
   }
 
   /**
    * Get All OCPI Locations from given tenant TODO: move to OCPIMapping
-   * @param {Tenant} tenant 
+   * @param {Tenant} tenant
    */
   async getAllLocations(tenant, limit, skip) {
-    // result
+    // Result
     const result = { count: 0, locations: [] };
 
     // Get all sites
     const sites = await Site.getSites(tenant.getID(), {}, limit, skip, null);
 
-    // convert Sites to Locations
+    // Convert Sites to Locations
     for (const site of sites.result) {
       result.locations.push(await OCPIMapping.convertSite2Location(tenant, site));
     }
 
-    // set count
+    // Set count
     result.count = sites.count;
 
-    // return locations
+    // Return locations
     return result;
   }
 
   /**
    * Get OCPI Location from its id (Site ID)
-   * @param {*} tenant 
-   * @param {*} locationId 
+   * @param {*} tenant
+   * @param {*} locationId
    */
   async getLocation(tenant, locationId) {
-    // get site
+    // Get site
     const site = await Site.getSite(tenant.getID(), locationId);
 
-    // convert
+    // Convert
     return await OCPIMapping.convertSite2Location(tenant, site);
   }
 
   /**
    * Get OCPI EVSE from its location id/evse_id
-   * @param {*} tenant 
-   * @param {*} locationId 
-   * @param {*} evseId 
+   * @param {*} tenant
+   * @param {*} locationId
+   * @param {*} evseId
    */
   async getEvse(tenant, locationId, evseUid) {
-    // get site
+    // Get site
     const site = await Site.getSite(tenant.getID(), locationId);
 
-    // convert to location
+    // Convert to location
     const location = await OCPIMapping.convertSite2Location(tenant, site);
 
-    // loop through EVSE
+    // Loop through EVSE
     if (location) {
       for (const evse of location.evses) {
-        if (evse.uid === evseUid) return evse;
+        if (evse.uid === evseUid) { return evse; }
       }
     }
   }
 
   /**
    * Get OCPI Connector from its location_id/evse_uid/connector id
-   * @param {*} tenant 
-   * @param {*} locationId 
-   * @param {*} evseUid 
-   * @param {*} connectorId 
+   * @param {*} tenant
+   * @param {*} locationId
+   * @param {*} evseUid
+   * @param {*} connectorId
    */
   async getConnector(tenant, locationId, evseUid, connectorId) {
-    // get site
+    // Get site
     const evse = await this.getEvse(tenant, locationId, evseUid);
 
-    // loop through Connector
+    // Loop through Connector
     if (evse) {
       for (const connector of evse.connectors) {
-        if (connector.id === connectorId) return connector;
+        if (connector.id === connectorId) { return connector; }
       }
     }
   }

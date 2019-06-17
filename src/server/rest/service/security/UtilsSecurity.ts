@@ -7,7 +7,7 @@ export default class UtilsSecurity {
   static filterBoolean(value) {
     let result = false;
     // Check boolean
-    if(value) {
+    if (value) {
       // Sanitize
       value = sanitize(value);
       // Check the type
@@ -102,8 +102,7 @@ export default class UtilsSecurity {
     }
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterAddressRequest(address, loggedUser) {
+  static filterAddressRequest(address) {
     const filteredAddress: any = {};
     if (address) {
       filteredAddress.address1 = sanitize(address.address1);

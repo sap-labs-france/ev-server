@@ -14,7 +14,7 @@ export default class VehicleService {
       // Filter
       const filteredRequest = VehicleSecurity.filterVehicleDeleteRequest(req.query, req.user);
       // Check Mandatory fields
-      if(!filteredRequest.ID) {
+      if (!filteredRequest.ID) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -63,7 +63,7 @@ export default class VehicleService {
       // Filter
       const filteredRequest = VehicleSecurity.filterVehicleRequest(req.query, req.user);
       // Charge Box is mandatory
-      if(!filteredRequest.ID) {
+      if (!filteredRequest.ID) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -113,7 +113,7 @@ export default class VehicleService {
           'onlyRecordCount': filteredRequest.OnlyRecordCount },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
-      vehicles.result = vehicles.result.map((vehicle) => vehicle.getModel());
+      vehicles.result = vehicles.result.map((vehicle) => { return vehicle.getModel(); });
       // Filter
       VehicleSecurity.filterVehiclesResponse(vehicles, req.user);
       // Return
@@ -130,7 +130,7 @@ export default class VehicleService {
       // Filter
       const filteredRequest = VehicleSecurity.filterVehicleRequest(req.query, req.user);
       // Charge Box is mandatory
-      if(!filteredRequest.ID) {
+      if (!filteredRequest.ID) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -205,7 +205,7 @@ export default class VehicleService {
           req.user);
       }
       // Filter
-      const filteredRequest = VehicleSecurity.filterVehicleCreateRequest( req.body, req.user );
+      const filteredRequest = VehicleSecurity.filterVehicleCreateRequest(req.body, req.user);
       // Check Mandatory fields
       Vehicle.checkIfVehicleValid(filteredRequest, req);
       // Create vehicle
@@ -241,7 +241,7 @@ export default class VehicleService {
   static async handleUpdateVehicle(action, req, res, next) {
     try {
       // Filter
-      const filteredRequest = VehicleSecurity.filterVehicleUpdateRequest( req.body, req.user );
+      const filteredRequest = VehicleSecurity.filterVehicleUpdateRequest(req.body, req.user);
       // Check email
       const vehicle = await Vehicle.getVehicle(req.user.tenantID, filteredRequest.id);
       if (!vehicle) {

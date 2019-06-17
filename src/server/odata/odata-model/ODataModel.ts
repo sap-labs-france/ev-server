@@ -165,7 +165,7 @@ export default {
   entitySets: {
     "Transactions": {
       entityType: "eMobility.Transaction"
-    },    
+    },
     "TransactionsCompleted": {
       entityType: "eMobility.Transaction"
     },

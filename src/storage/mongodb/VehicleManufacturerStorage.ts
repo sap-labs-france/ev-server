@@ -20,7 +20,7 @@ export default class VehicleManufacturerStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const vehicleManufacturerLogosMDB = await global.database.getCollection(tenantID, 'vehiclemanufacturerlogos')
+    const vehicleManufacturerLogosMDB = await global.database.getCollection<any>(tenantID, 'vehiclemanufacturerlogos')
       .find({ _id: Utils.convertToObjectID(id) })
       .limit(1)
       .toArray();
@@ -43,7 +43,7 @@ export default class VehicleManufacturerStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const vehicleManufacturerLogosMDB = await global.database.getCollection(tenantID, 'vehiclemanufacturerlogos')
+    const vehicleManufacturerLogosMDB = await global.database.getCollection<any>(tenantID, 'vehiclemanufacturerlogos')
       .find()
       .toArray();
     const vehicleManufacturerLogos = [];
@@ -76,7 +76,7 @@ export default class VehicleManufacturerStorage {
         "VehicleManufacturerStorage", "saveVehicleManufacturerLogo");
     }
     // Modify
-    await global.database.getCollection(tenantID, 'vehiclemanufacturerlogos').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'vehiclemanufacturerlogos').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(vehicleManufacturerLogoToSave.id) },
       { $set: { logo: vehicleManufacturerLogoToSave.logo } },
       { upsert: true, returnOriginal: false });
@@ -98,7 +98,7 @@ export default class VehicleManufacturerStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Read DB
-    const vehicleManufacturersMDB = await global.database.getCollection(tenantID, 'vehiclemanufacturers')
+    const vehicleManufacturersMDB = await global.database.getCollection<any>(tenantID, 'vehiclemanufacturers')
       .aggregate(aggregation, { allowDiskUse: true })
       .limit(1)
       .toArray();
@@ -140,7 +140,7 @@ export default class VehicleManufacturerStorage {
     const vehicleManufacturer: any = {};
     Database.updateVehicleManufacturer(vehicleManufacturerToSave, vehicleManufacturer, false);
     // Modify
-    const result = await global.database.getCollection(tenantID, 'vehiclemanufacturers').findOneAndUpdate(
+    const result = await global.database.getCollection<any>(tenantID, 'vehiclemanufacturers').findOneAndUpdate(
       vehicleManufacturerFilter,
       { $set: vehicleManufacturer },
       { upsert: true, returnOriginal: false });
@@ -201,7 +201,7 @@ export default class VehicleManufacturerStorage {
       aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
     }
     // Count Records
-    const vehiclemanufacturersCountMDB = await global.database.getCollection(tenantID, 'vehiclemanufacturers')
+    const vehiclemanufacturersCountMDB = await global.database.getCollection<any>(tenantID, 'vehiclemanufacturers')
       .aggregate([...aggregation, { $count: "count"}], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
@@ -239,7 +239,7 @@ export default class VehicleManufacturerStorage {
       $limit: limit
     });
     // Read DB
-    const vehiclemanufacturersMDB = await global.database.getCollection(tenantID, 'vehiclemanufacturers')
+    const vehiclemanufacturersMDB = await global.database.getCollection<any>(tenantID, 'vehiclemanufacturers')
       .aggregate(aggregation,{ collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     const vehicleManufacturers = [];
@@ -283,10 +283,10 @@ export default class VehicleManufacturerStorage {
       await vehicle.delete();
     }
     // Delete the Vehicle Manufacturers
-    await global.database.getCollection(tenantID, 'vehiclemanufacturers')
+    await global.database.getCollection<any>(tenantID, 'vehiclemanufacturers')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Delete Vehicle Manufacturer Logo
-    await global.database.getCollection(tenantID, 'vehiclemanufacturerlogos')
+    await global.database.getCollection<any>(tenantID, 'vehiclemanufacturerlogos')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd('VehicleManufacturerStorage', 'deleteVehicleManufacturer', uniqueTimerID, { id });

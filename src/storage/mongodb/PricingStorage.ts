@@ -12,7 +12,7 @@ export default class PricingStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const pricingsMDB = await global.database.getCollection(tenantID, 'pricings')
+    const pricingsMDB = await global.database.getCollection<any>(tenantID, 'pricings')
       .find({})
       .limit(1)
       .toArray();
@@ -38,7 +38,7 @@ export default class PricingStorage {
     const pricing: any = {};
     Database.updatePricing(pricingToSave, pricing, false);
     // Modify
-    await global.database.getCollection(tenantID, 'pricings').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'pricings').findOneAndUpdate(
       {},
       { $set: pricing },
       { upsert: true, returnOriginal: false });

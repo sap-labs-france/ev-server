@@ -82,7 +82,7 @@ export default class StatisticsStorage {
       $sort: { "_id.month": 1, "_id.chargeBox": 1 }
     });
     // Read DB
-    const transactionStatsMDB = await global.database.getCollection(tenantID, 'transactions')
+    const transactionStatsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Set
@@ -202,7 +202,7 @@ export default class StatisticsStorage {
       $sort: { "_id.month": 1, "_id.chargeBox": 1 }
     });
     // Read DB
-    const transactionStatsMDB = await global.database.getCollection(tenantID, 'transactions')
+    const transactionStatsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Set
@@ -239,9 +239,9 @@ export default class StatisticsStorage {
     const uniqueTimerID = Logging.traceStart('StatisticsStorage', 'getCurrentMetrics');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // filter results of last 6 months
+    // Filter results of last 6 months
     const transactionDateFilter = moment().utc().startOf('day').subtract(filteredRequest.periodInMonth, 'months').toDate();
-    // beginning of the day
+    // Beginning of the day
     const beginningOfTheDay = moment().utc().startOf('date').toDate();
     // Build filter
     const match = [
@@ -489,7 +489,7 @@ export default class StatisticsStorage {
           },
         }
       },
-      // enrich with company information
+      // Enrich with company information
       {
         "$lookup": {
           from: DatabaseUtils.getCollectionName(tenantID, 'companies'),
@@ -510,7 +510,7 @@ export default class StatisticsStorage {
           as: 'company.logo'
         }
       },
-      // enrich with site image
+      // Enrich with site image
       {
         "$lookup": {
           from: DatabaseUtils.getCollectionName(tenantID, 'siteimages'),
@@ -522,7 +522,7 @@ export default class StatisticsStorage {
       {
         "$unwind": "$site.image"
       },
-      // sort
+      // Sort
       { $sort: { 'company.name': 1, '_id.name': 1 } }
 
     ];
@@ -531,7 +531,7 @@ export default class StatisticsStorage {
     // Filters
     aggregation.push(match);
     // Read DB
-    const transactionStatsMDB = await global.database.getCollection(tenantID, 'sites')
+    const transactionStatsMDB = await global.database.getCollection<any>(tenantID, 'sites')
       .aggregate(match, { allowDiskUse: true })
       .toArray();
     // Set
@@ -556,7 +556,7 @@ export default class StatisticsStorage {
           if (!companyStat) {
             companyStat = StatisticsStorage.convertDBMetricsToCompanyMetrics(transactionStatMDB);
           } else {
-            // cumulate company overall results
+            // Cumulate company overall results
             companyStat.currentConsumption += transactionStatMDB.siteCurrentConsumption;
             companyStat.totalConsumption += transactionStatMDB.siteTotalConsumption;
             companyStat.currentTotalInactivitySecs += transactionStatMDB.siteCurrentTotalInactivitySecs;
@@ -575,10 +575,10 @@ export default class StatisticsStorage {
             companyStat.address.push(transactionStatMDB._id.address);
           }
         }
-        // push current site
+        // Push current site
         sites.push(StatisticsStorage.convertDBMetricsToSiteMetrics(transactionStatMDB));
       }
-      // push last values
+      // Push last values
       companyStat.trends.totalConsumption.avg = companyStat.trends.totalConsumption.avg / sites.length;
       companyStat.trends.duration.avg = companyStat.trends.duration.avg / sites.length;
       companyStat.trends.inactivity.avg = companyStat.trends.inactivity.avg / sites.length;
@@ -594,7 +594,7 @@ export default class StatisticsStorage {
   static convertDBMetricsToCompanyMetrics(transactionStatMDB) {
     const companyStat: any = {};
     companyStat.company = transactionStatMDB.company;
-    // fill in with current consumption and dummy site
+    // Fill in with current consumption and dummy site
     companyStat.currentConsumption = transactionStatMDB.siteCurrentConsumption;
     companyStat.totalConsumption = transactionStatMDB.siteTotalConsumption;
     companyStat.currentTotalInactivitySecs = transactionStatMDB.siteCurrentTotalInactivitySecs;
@@ -624,7 +624,7 @@ export default class StatisticsStorage {
   static convertDBMetricsToSiteMetrics(transactionStatMDB) {
     const siteStat: any = {};
     siteStat.company = transactionStatMDB.company;
-    // fill in with current consumption and dummy site
+    // Fill in with current consumption and dummy site
     siteStat.currentConsumption = transactionStatMDB.siteCurrentConsumption;
     siteStat.totalConsumption = transactionStatMDB.siteTotalConsumption;
     siteStat.currentTotalInactivitySecs = transactionStatMDB.siteCurrentTotalInactivitySecs;

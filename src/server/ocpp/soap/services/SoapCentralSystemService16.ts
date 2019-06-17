@@ -10,7 +10,7 @@ const MODULE_NAME = "SoapCentralSystemService16";
 export default { /* Services */
   CentralSystemService: { /* Ports */
     CentralSystemServiceSoap12: { /* Methods */
-      Authorize: function (args, callback, headers, req) {
+      Authorize: function(args, callback, headers, req) {
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
@@ -43,7 +43,7 @@ export default { /* Services */
         });
       },
 
-      BootNotification: function (args, callback, headers, req) {
+      BootNotification: function(args, callback, headers, req) {
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Add OCPP Version
@@ -78,7 +78,7 @@ export default { /* Services */
         });
       },
 
-      DataTransfer: function (args, callback, headers, req) {
+      DataTransfer: function(args, callback, headers, req) {
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
@@ -106,7 +106,7 @@ export default { /* Services */
         });
       },
 
-      DiagnosticsStatusNotification: function (args, callback, headers, req) {
+      DiagnosticsStatusNotification: function(args, callback, headers, req) {
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
@@ -130,7 +130,7 @@ export default { /* Services */
         });
       },
 
-      FirmwareStatusNotification: function (args, callback, headers, req) {
+      FirmwareStatusNotification: function(args, callback, headers, req) {
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
@@ -154,7 +154,7 @@ export default { /* Services */
         });
       },
 
-      Heartbeat: function (args, callback, headers, req) {
+      Heartbeat: function(args, callback, headers, req) {
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
@@ -182,7 +182,7 @@ export default { /* Services */
         });
       },
 
-      MeterValues: function (args, callback, headers, req) {
+      MeterValues: function(args, callback, headers, req) {
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
@@ -206,7 +206,7 @@ export default { /* Services */
         });
       },
 
-      StartTransaction: function (args, callback, headers, req) {
+      StartTransaction: function(args, callback, headers, req) {
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
@@ -240,7 +240,7 @@ export default { /* Services */
         });
       },
 
-      StatusNotification: function (args, callback, headers, req) {
+      StatusNotification: function(args, callback, headers, req) {
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log
@@ -265,7 +265,7 @@ export default { /* Services */
         });
       },
 
-      StopTransaction: function (args, callback, headers, req) {
+      StopTransaction: function(args, callback, headers, req) {
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
           // Log

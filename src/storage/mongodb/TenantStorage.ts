@@ -25,7 +25,7 @@ export default class TenantStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation('', aggregation);
     // Read DB
-    const tenantsMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
+    const tenantsMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants')
       .aggregate(aggregation)
       .limit(1)
       .toArray();
@@ -54,7 +54,7 @@ export default class TenantStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'getTenantByFilter');
     // Read DB
-    const tenantsMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
+    const tenantsMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants')
       .find(filter)
       .limit(1)
       .toArray();
@@ -93,7 +93,7 @@ export default class TenantStorage {
     const tenant: any = {};
     Database.updateTenant(tenantToSave, tenant, false);
     // Modify
-    const result = await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants').findOneAndUpdate(
+    const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants').findOneAndUpdate(
       tenantFilter, {
         $set: tenant
       }, {
@@ -144,7 +144,7 @@ export default class TenantStorage {
       });
     }
     // Count Records
-    const tenantsCountMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
+    const tenantsCountMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants')
       .aggregate([...aggregation, { $count: "count"}], { allowDiskUse: true })
       .toArray();
     // Add Created By / Last Changed By
@@ -172,7 +172,7 @@ export default class TenantStorage {
       $limit: limit
     });
     // Read DB
-    const tenantsMDB = await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
+    const tenantsMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
 
@@ -195,7 +195,7 @@ export default class TenantStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'deleteTenant');
     // Delete
-    await global.database.getCollection(Constants.DEFAULT_TENANT, 'tenants')
+    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants')
       .findOneAndDelete({
         '_id': Utils.convertToObjectID(id)
       });

@@ -11,20 +11,20 @@ export default class AbstractEndpoint {
   // Create OCPI Service
   constructor(readonly ocpiService: OCPIService, readonly identifier: string = "default", readonly version: string = "0.0.0") {}
 
-  // get Endpoint Identifier
+  // Get Endpoint Identifier
   public getIdentifier(): string {
     return this.identifier;
   }
 
-  // get Endpoint version
+  // Get Endpoint version
   public getVersion(): string {
     return this.version;
   }
 
   // Return based URL of OCPI Service
   public getBaseUrl(req: Request): string {
-    return '/'; 
-    // TODO: getBaseUrl does not exist in OCPIServices. Please fix
+    return '/';
+    // TODO: getBaseUrl does not exist in OCPIServices. Please fix.
     // return this.ocpiService.getBaseUrl(req);
   }
 
@@ -39,7 +39,7 @@ export default class AbstractEndpoint {
   private handleError(error: any, req: Request, res: Response, next: Function, action: string, module: string, method: string) { // eslint-disable-line
     // TODO: add logging
 
-    // return response with error
+    // Return response with error
     res.status(error.errorCode).json(OCPIUtils.error(error));
   }
 }

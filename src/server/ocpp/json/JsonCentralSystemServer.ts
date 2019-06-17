@@ -69,9 +69,9 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         return protocols;
       } else if (protocols === "rest") {
         return protocols;
-      } else {
-        return false;
       }
+      return false;
+
     };
 
     // Create the WS server
