@@ -384,7 +384,7 @@ export default class Database {
       dest.lastChangedBy = src.lastChangedBy;
       // User model?
       if (typeof dest.lastChangedBy === "object" &&
-        dest.lastChangedBy.constructor.name != "ObjectID") {
+        dest.lastChangedBy.constructor.name !== "ObjectID") {
         // Yes
         dest.lastChangedBy = {};
         Database.updateUser(src.lastChangedBy, dest.lastChangedBy);
