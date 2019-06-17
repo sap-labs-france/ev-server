@@ -368,7 +368,7 @@ export default class Utils {
    * @returns a copy of the source
    */
   static duplicateJSON(src) {
-    if (src === null || src === undefined || typeof src !== 'object') {
+    if (!src || typeof src !== 'object') {
       return src;
     }
     // Recreate all of it
