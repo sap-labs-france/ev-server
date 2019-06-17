@@ -33,13 +33,8 @@ export default class AuthenticationApi {
     return response;
   }
 
-<<<<<<< HEAD:test/api/client/AuthenticationApi.ts
-  public async registerUser(user, tenant = '') {
-    if (tenant != null) {
-=======
   async registerUser(user, tenant = '') {
     if (tenant) {
->>>>>>> 345832f7ba56675c59b05cc0388f17cc4bdd119e:test/api/client/AuthenticationApi.js
       user.tenant = tenant;
     }
     // Send
@@ -73,8 +68,4 @@ export default class AuthenticationApi {
   }
 }
 
-<<<<<<< HEAD:test/api/client/AuthenticationApi.ts
 // module.exports = AuthenticationApi;
-=======
-module.exports = AuthenticationApi;
->>>>>>> 345832f7ba56675c59b05cc0388f17cc4bdd119e:test/api/client/AuthenticationApi.js
