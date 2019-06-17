@@ -1,0 +1,150 @@
+const path = require('path');
+import TSGlobal from '../../src/types/GlobalType';
+declare const global: TSGlobal;
+global.appRoot = path.resolve(__dirname, '../../src');
+import  {expect} from 'chai';
+import  chai from 'chai';
+import  chaiSubset from 'chai-subset';
+import CentralServerService from './client/CentralServerService';
+import  config from '../config';
+import  UserFactory from '../factories/UserFactory';
+import  jwt from 'jsonwebtoken';
+chai.use(chaiSubset);
+
+const testData: any = {};
+
+describe('Authentication Service', function() {
+  this.timeout(1000);
+
+  describe('Success cases', () => {
+    before(async () => {
+      // Get credentials
+      testData.adminEmail = config.get('admin.username');
+      testData.adminPassword = config.get('admin.password');
+      testData.adminTenant = config.get('admin.tenant');
+    });
+
+    it('Should authenticate a registered user', async () => {
+      // Check Login
+      const response = await CentralServerService.DefaultInstance.authenticationApi.login(testData.adminEmail, testData.adminPassword, true, testData.adminTenant);
+      // Check
+      expect(response.status).to.be.eql(200);
+      expect(response.data).to.have.property('token');
+      expect(response.data.token).to.be.a('string');
+      const tenantID = jwt.decode(response.data.token)['tenantID'];
+      const tenant = await CentralServerService.DefaultInstance.getEntityById(CentralServerService.DefaultInstance.tenantApi, {id: tenantID});
+      expect(tenant).to.have.property('subdomain', testData.adminTenant);
+    });
+
+    it('Should be possible to register a new user', async () => {
+      // Check Login
+      const newUser = UserFactory.buildRegisterUser();
+      let response = await CentralServerService.DefaultInstance.authenticationApi.registerUser(newUser, testData.adminTenant);
+      // Check
+      expect(response.status).to.be.eql(200);
+      expect(response.data).to.have.property('status', "Success");
+
+      response = await CentralServerService.DefaultInstance.userApi.getByEmail(newUser.email);
+      expect(response.status).to.be.eql(200);
+      expect(response.data).to.have.property('count', 1);
+      const user = response.data.result[0];
+      expect(user).to.have.property('email', newUser.email);
+      expect(user).to.have.property('name', newUser.name);
+      expect(user).to.have.property('firstName', newUser.firstName);
+      expect(user).to.have.property('status', 'P');
+      expect(user).to.have.property('role', 'B');
+    });
+
+    it('Should be possible to register a new user', async () => {
+      const newUser = UserFactory.buildRegisterUser();
+      let response = await CentralServerService.DefaultInstance.authenticationApi.registerUser(newUser, testData.adminTenant);
+      // Check
+      expect(response.status).to.be.eql(200);
+      expect(response.data).to.have.property('status', "Success");
+
+      response = await CentralServerService.DefaultInstance.userApi.getByEmail(newUser.email);
+      expect(response.status).to.be.eql(200);
+      expect(response.data).to.have.property('count', 1);
+      const user = response.data.result[0];
+      expect(user).to.have.property('email', newUser.email);
+      expect(user).to.have.property('name', newUser.name);
+      expect(user).to.have.property('firstName', newUser.firstName);
+      expect(user).to.have.property('status', 'P');
+      expect(user).to.have.property('role', 'B');
+    });
+
+    it('Should be possible to reset a user password', async () => {
+      const newUser = await CentralServerService.DefaultInstance.createEntity(
+        CentralServerService.DefaultInstance.userApi, UserFactory.build());
+
+      const response = await CentralServerService.DefaultInstance.authenticationApi.resetUserPassword(newUser.email, testData.adminTenant);
+      // Check
+      expect(response.status).to.be.eql(200);
+      expect(response.data).to.have.property('status', "Success");
+    });
+  });
+
+  describe('Error cases', () => {
+    it('Should not allow authentication of known user with wrong password', async () => {
+      // Call
+      const response = await CentralServerService.DefaultInstance.authenticationApi.login(testData.adminEmail, 'another', true);
+      // Check
+      expect(response.status).to.be.eql(550);
+      expect(response.data).to.not.have.property('token');
+    });
+
+    it('Should not allow authentication without password', async () => {
+      // Call
+      const response = await CentralServerService.DefaultInstance.authenticationApi.login(testData.adminEmail, null, true);
+      // Check
+      expect(response.status).to.be.eql(500);
+      expect(response.data).to.not.have.property('token');
+    });
+
+    it('Should not allow authentication not accepting eula', async () => {
+      // Call
+      const response = await CentralServerService.DefaultInstance.authenticationApi.login(testData.adminEmail, testData.adminPassword, false);
+      // Check
+      expect(response.status).to.be.eql(520);
+      expect(response.data).to.not.have.property('token');
+    });
+
+    it('Should not allow authentication without eula', async () => {
+      // Call
+      const response = await CentralServerService.DefaultInstance.authenticationApi.login(testData.adminEmail, testData.adminPassword, null);
+      // Check
+      expect(response.status).to.be.eql(520);
+      expect(response.data).to.not.have.property('token');
+    });
+
+    it('Should not allow authentication without email', async () => {
+      // Call
+      const response = await CentralServerService.DefaultInstance.authenticationApi.login(null, testData.adminPassword, true);
+      // Check
+      expect(response.status).to.be.eql(500);
+      expect(response.data).to.not.have.property('token');
+    });
+
+    it('Should not allow authentication of unknown email', async () => {
+      // Call
+      const response = await CentralServerService.DefaultInstance.authenticationApi.login('unkown@sap.com', testData.adminPassword, true);
+      expect(response.status).to.be.eql(550);
+      expect(response.data).to.not.have.property('token');
+    });
+
+    it('should not allow authentication without tenant', async () => {
+      const response = await CentralServerService.DefaultInstance.authenticationApi.login('unkown@sap.com', testData.adminPassword, true, null);
+      expect(response.status).to.be.eql(550);
+      expect(response.data).to.have.property('message', 'Wrong email or password');
+      expect(response.data).to.not.have.property('token');
+    });
+
+    it('should not allow authentication of unknown tenant', async () => {
+      const response = await CentralServerService.DefaultInstance.authenticationApi.login('unkown@sap.com', testData.adminPassword, true, 'unkown');
+      expect(response.status).to.be.eql(550);
+      expect(response.data).to.have.property('message', 'Wrong email or password');
+      expect(response.data).to.not.have.property('token');
+    });
+  });
+});
+
