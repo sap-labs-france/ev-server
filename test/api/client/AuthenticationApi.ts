@@ -33,7 +33,7 @@ export default class AuthenticationApi {
     return response;
   }
 
-  async registerUser(user, tenant = '') {
+  async registerUser(user, tenant = null) {
     if (tenant) {
       user.tenant = tenant;
     }
