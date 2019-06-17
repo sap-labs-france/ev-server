@@ -7,6 +7,7 @@
     "dbaeumer.vscode-eslint",
     "eamodio.gitlens",
     "EditorConfig.EditorConfig",
+    "maty.vscode-mocha-sidebar",
     "streetsidesoftware.code-spell-checker"
   ]
 }
