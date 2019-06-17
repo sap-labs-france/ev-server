@@ -27,7 +27,7 @@ const obs = new PerformanceObserver((items): void => {
   }
 
   // Add statistics
-  if (_traceStatistics === null) {
+  if (!_traceStatistics) {
     _traceStatistics = {};
     // Start interval to display statistics
     if (_loggingConfig.traceStatisticInterval) {

@@ -17,7 +17,7 @@ class AuthenticationApi {
     if (acceptEula) {
       data.acceptEula = acceptEula;
     }
-    if (tenant != null) {
+    if (tenant) {
       data.tenant = tenant;
     }
     // Send
@@ -33,7 +33,7 @@ class AuthenticationApi {
   }
 
   async registerUser(user, tenant = '') {
-    if (tenant != null) {
+    if (tenant) {
       user.tenant = tenant;
     }
     // Send
