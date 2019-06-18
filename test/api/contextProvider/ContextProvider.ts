@@ -114,7 +114,7 @@ export default class ContextProvider {
     // Create list of unassigned charging station by creating a dummy site
     const siteContext = new SiteContext({id: 1, name: CONTEXT_CONSTANTS.SITE_CONTEXTS.NO_SITE}, newTenantContext);
     const emptySiteAreaContext = siteContext.addSiteArea({id: 1, name: CONTEXT_CONSTANTS.SITE_AREA_CONTEXTS.NO_SITE});
-    const chargingStations = chargingStationList.filter((chargingStation) => !chargingStation.hasOwnProperty('siteAreaID') || chargingStation.siteAreaID === null || chargingStation.siteAreaID === undefined);
+    const chargingStations = chargingStationList.filter((chargingStation) => !chargingStation.hasOwnProperty('siteAreaID') || !chargingStation.siteAreaID);
     for (const chargingStation of chargingStations) {
       emptySiteAreaContext.addChargingStation(chargingStation);
     }
