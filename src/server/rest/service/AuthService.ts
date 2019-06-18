@@ -987,7 +987,7 @@ export default class AuthService {
   }
 
   static async getTenantID(subdomain) {
-    if (typeof subdomain === 'undefined') {
+    if (Utils.isUndefined(subdomain)) {
       return null;
     }
     // Check
