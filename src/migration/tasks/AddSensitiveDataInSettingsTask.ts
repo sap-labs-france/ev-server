@@ -18,22 +18,22 @@ export default class AddSensitiveDataInSettingsTask extends MigrationTask {
 
   public async migrateTenant(tenant) {
     // Read all Settings
-    const settings = await global.database.getCollection(tenant.getID(), 'settings').aggregate([]).toArray();
+    const settings: any = await global.database.getCollection(tenant.getID(), 'settings').aggregate([]).toArray();
     // Process each setting
     for (const setting of settings) {
       // Add sensitiveData property if not present
-      if(!setting.sensitiveData){
-          setting.sensitiveData = [];
+      if (!setting.sensitiveData) {
+        setting.sensitiveData = [];
       }
       // Fill sensitiveData property
       if (setting.content.type === Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR) {
-          setting.sensitiveData = ['content.concur.clientSecret'];
+        setting.sensitiveData = ['content.concur.clientSecret'];
       } else if (setting.content.type === Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING) {
-          setting.sensitiveData = ['content.convergentCharging.password'];
+        setting.sensitiveData = ['content.convergentCharging.password'];
       }
       // Encrypt clientSecret (Concur) or password (ConvergentCharging) if found
       if (setting.content.type === Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR) {
-        if(setting.content.concur.clientSecret) {
+        if (setting.content.concur.clientSecret) {
           setting.content.concur.clientSecret = Cipher.encryptString(setting.content.concur.clientSecret);
         } else {
           setting.content.concur.clientSecret = '';
@@ -42,10 +42,10 @@ export default class AddSensitiveDataInSettingsTask extends MigrationTask {
           "_id": setting._id
         }, {
           $set: setting
-        }, {upsert: true, /*new: true,*/ returnOriginal: false});
+        }, { upsert: true, /*new: true,*/ returnOriginal: false });
         // Encrypt password (Convergent Charing) if found
       } else if (setting.content.type === Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING) {
-        if(setting.content.convergentCharging.password) {
+        if (setting.content.convergentCharging.password) {
           setting.content.convergentCharging.password = Cipher.encryptString(setting.content.convergentCharging.password);
         } else {
           setting.content.convergentCharging.password = '';
@@ -54,7 +54,7 @@ export default class AddSensitiveDataInSettingsTask extends MigrationTask {
           "_id": setting._id
         }, {
           $set: setting
-        }, {upsert: true, /*new: true,*/ returnOriginal: false});
+        }, { upsert: true, /*new: true,*/ returnOriginal: false });
       }
     }
   }
