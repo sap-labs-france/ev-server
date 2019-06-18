@@ -1,10 +1,10 @@
-import {expect} from 'chai';
+import { expect } from 'chai';
 import CrudApi from './utils/CrudApi';
 import Constants from './utils/Constants';
 
-export default class ChargingStationApi  extends CrudApi {
+export default class ChargingStationApi extends CrudApi {
 
-private _baseApi;
+  private _baseApi;
 
   public constructor(authenticatedApi, baseApi) {
     super(authenticatedApi);
@@ -66,7 +66,7 @@ private _baseApi;
     const foundChargingStation = response.data;
     // Check
     expect(foundChargingStation.connectors).to.not.be.null;
-    expect(foundChargingStation.connectors[connectorId-1]).to.include(connectorData);
+    expect(foundChargingStation.connectors[connectorId - 1]).to.include(connectorData);
   }
 }
 
