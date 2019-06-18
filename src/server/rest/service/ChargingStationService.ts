@@ -61,7 +61,7 @@ export default class ChargingStationService {
             'ChargingStationService', 'handleAddChargingStationsToSiteArea', req.user);
         }
         // Check auth
-        if (!Authorizations.canUpdateChargingStation(req.user, chargingStation.getModel())) {
+        if (!Authorizations.canUpdateChargingStation(req.user)) {
           throw new AppAuthError(
             Constants.ACTION_UPDATE,
             Constants.ENTITY_CHARGING_STATION,
@@ -136,7 +136,7 @@ export default class ChargingStationService {
             'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea', req.user);
         }
         // Check auth
-        if (!Authorizations.canUpdateChargingStation(req.user, chargingStation.getModel())) {
+        if (!Authorizations.canUpdateChargingStation(req.user)) {
           throw new AppAuthError(
             Constants.ACTION_UPDATE,
             Constants.ENTITY_CHARGING_STATION,
@@ -176,7 +176,7 @@ export default class ChargingStationService {
           'ChargingStationService', 'handleUpdateChargingStationParams', req.user);
       }
       // Check Auth
-      if (!Authorizations.canUpdateChargingStation(req.user, chargingStation.getModel())) {
+      if (!Authorizations.canUpdateChargingStation(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_UPDATE, Constants.ENTITY_CHARGING_STATION,
@@ -277,7 +277,7 @@ export default class ChargingStationService {
           'ChargingStationService', 'handleGetChargingStationConfiguration', req.user);
       }
       // Check auth
-      if (!Authorizations.canReadChargingStation(req.user, chargingStation.getModel())) {
+      if (!Authorizations.canReadChargingStation(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_READ, Constants.ENTITY_CHARGING_STATION,
@@ -319,7 +319,7 @@ export default class ChargingStationService {
           'ChargingStationService', 'handleRequestChargingStationConfiguration', req.user);
       }
       // Check auth
-      if (!Authorizations.canReadChargingStation(req.user, chargingStation.getModel())) {
+      if (!Authorizations.canReadChargingStation(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_READ,
@@ -362,7 +362,7 @@ export default class ChargingStationService {
           'ChargingStationService', 'handleDeleteChargingStation', req.user);
       }
       // Check auth
-      if (!Authorizations.canDeleteChargingStation(req.user, chargingStation.getModel())) {
+      if (!Authorizations.canDeleteChargingStation(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_DELETE,

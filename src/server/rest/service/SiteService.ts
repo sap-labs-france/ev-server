@@ -10,6 +10,7 @@ import SiteSecurity from './security/SiteSecurity';
 import UtilsService from './UtilsService';
 import OrganizationComponentInactiveError from '../../../exception/OrganizationComponentInactiveError';
 import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
+import UserSecurity from "./security/UserSecurity";
 
 export default class SiteService {
   static async handleAddUsersToSite(action, req, res, next) {
@@ -85,6 +86,74 @@ export default class SiteService {
         tenantID: req.user.tenantID,
         user: req.user, module: 'SiteService', method: 'handleAddUsersToSite',
         message: `Site's Users have been added successfully`, action: action
+      });
+      // Ok
+      res.json(Constants.REST_RESPONSE_SUCCESS);
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
+  static async handleUpdateSiteUsersRole(action, req, res, next) {
+    try {
+      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
+        throw new OrganizationComponentInactiveError(
+          Constants.ACTION_UPDATE,
+          Constants.ENTITY_SITE,
+          560, 'SiteService', 'handleUpdateSiteUsersRole');
+      }
+      const filteredRequest = SiteSecurity.filterUpdateSiteUsersRoleRequest(req.body);
+      if (!filteredRequest.siteID) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Site's ID must be provided`, 500,
+          'SiteService', 'handleUpdateSiteUsersRole', req.user);
+      }
+      if (!filteredRequest.role) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The role must be provided`, 500,
+          'SiteService', 'handleUpdateSiteUsersRole', req.user);
+      }
+      if (filteredRequest.role !== Constants.ROLE_ADMIN && filteredRequest.role !== Constants.ROLE_BASIC) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The role ${filteredRequest.role} is not supported`, 500,
+          'SiteService', 'handleUpdateSiteUsersRole', req.user);
+      }
+      if (!filteredRequest.userIDs || (filteredRequest.userIDs && filteredRequest.userIDs.length <= 0)) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The User's IDs must be provided`, 500,
+          'SiteService', 'handleUpdateSiteUsersRole', req.user);
+      }
+
+      if (!Authorizations.canUpdateSite(req.user, filteredRequest.siteID)) {
+        throw new AppAuthError(
+          Constants.ACTION_UPDATE,
+          Constants.ENTITY_SITE,
+          filteredRequest.siteID,
+          560,
+          'SiteService', 'handleAddUsersToSite',
+          req.user);
+      }
+
+      // Get the Site
+      const site = await Site.getSite(req.user.tenantID, filteredRequest.siteID);
+      if (!site) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Site with ID '${filteredRequest.siteID}' does not exist anymore`, 550,
+          'SiteService', 'handleUpdateSiteUsersRole', req.user);
+      }
+      await Site.updateSiteUsersRole(req.user.tenantID, filteredRequest.siteID, filteredRequest.userIDs, filteredRequest.role);
+      // Log
+      Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
+        user: req.user, module: 'SiteService', method: 'handleUpdateSiteUsersRole',
+        message: `Site's Users have been updated successfully to ${filteredRequest.role}`, action: action
       });
       // Ok
       res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -171,6 +240,57 @@ export default class SiteService {
       });
       // Ok
       res.json(Constants.REST_RESPONSE_SUCCESS);
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
+  static async handleGetUsersBySite(action, req, res, next) {
+    try {
+      // Check if organization component is active
+      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
+        throw new OrganizationComponentInactiveError(
+          Constants.ACTION_UPDATE,
+          Constants.ENTITY_SITE,
+          560, 'SiteService', 'handleGetUsersBySite');
+      }
+
+      const filteredRequest = SiteSecurity.filterSiteUsersRequest(req.query);
+      // Check Mandatory fields
+      if (!filteredRequest.siteID) {
+        // Not Found!
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Site's ID must be provided`, 500,
+          'SiteService', 'handleGetUsersBySite', req.user);
+      }
+      // Get the Site
+      const site = await Site.getSite(req.user.tenantID, filteredRequest.siteID);
+      if (!site) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Site with ID '${filteredRequest.siteID}' does not exist anymore`, 550,
+          'SiteService', 'handleGetUsersBySite', req.user);
+      }
+      // Check auth
+      if (!Authorizations.canUpdateSite(req.user, site.getModel())) {
+        throw new AppAuthError(
+          Constants.ACTION_UPDATE,
+          Constants.ENTITY_SITE,
+          site.getID(),
+          560,
+          'SiteService', 'handleGetUsersBySite',
+          req.user);
+      }
+
+      const users = await Site.getUsersBySite(req.user.tenantID, filteredRequest.siteID,
+        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+
+      users.result = users.result.map((user) => { return user.getModel(); });
+      UserSecurity.filterUsersResponse(users, req.user);
+      res.json(users);
       next();
     } catch (error) {
       // Log
@@ -315,7 +435,9 @@ export default class SiteService {
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
-      sites.result = sites.result.map((site) => { return site.getModel(); });
+      sites.result = sites.result.map((site) => {
+        return site.getModel();
+      });
       // Filter
       SiteSecurity.filterSitesResponse(sites, req.user);
       // Return
@@ -442,7 +564,7 @@ export default class SiteService {
         action: action, detailedMessages: newSite
       });
       // Ok
-      res.json(Object.assign({ id: newSite.getID() }, Constants.REST_RESPONSE_SUCCESS));
+      res.json(Object.assign({id: newSite.getID()}, Constants.REST_RESPONSE_SUCCESS));
       next();
     } catch (error) {
       // Log

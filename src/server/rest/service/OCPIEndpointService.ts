@@ -32,7 +32,7 @@ export default class OCPIEndpointService {
           'OCPIEndpointService', 'handleDeleteOcpiEndpoint', req.user);
       }
       // Check auth
-      if (!Authorizations.canDeleteOcpiEndpoint(req.user, ocpiendpoint.getModel())) {
+      if (!Authorizations.canDeleteOcpiEndpoint(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_DELETE,
@@ -186,7 +186,7 @@ export default class OCPIEndpointService {
       // Check Mandatory fields
       OCPIEndpoint.checkIfOcpiEndpointValid(filteredRequest, req);
       // Check auth
-      if (!Authorizations.canUpdateOcpiEndpoint(req.user, ocpiendpoint.getModel())) {
+      if (!Authorizations.canUpdateOcpiEndpoint(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
@@ -317,7 +317,7 @@ export default class OCPIEndpointService {
       // Check Mandatory fields
       OCPIEndpoint.checkIfOcpiEndpointValid(filteredRequest, req);
       // Check auth
-      if (!Authorizations.canRegisterOcpiEndpoint(req.user, ocpiendpoint.getModel())) {
+      if (!Authorizations.canRegisterOcpiEndpoint(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_REGISTER,

@@ -32,7 +32,7 @@ export default class VehicleManufacturerService {
           'VehicleManufacturerService', 'handleDeleteVehicleManufacturer', req.user);
       }
       // Check auth
-      if (!Authorizations.canDeleteVehicleManufacturer(req.user, vehicleManufacturer.getModel())) {
+      if (!Authorizations.canDeleteVehicleManufacturer(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_DELETE,
@@ -183,7 +183,7 @@ export default class VehicleManufacturerService {
       // Check Mandatory fields
       VehicleManufacturer.checkIfVehicleManufacturerValid(filteredRequest, req);
       // Check auth
-      if (!Authorizations.canUpdateVehicleManufacturer(req.user, vehicleManufacturer.getModel())) {
+      if (!Authorizations.canUpdateVehicleManufacturer(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
@@ -238,7 +238,7 @@ export default class VehicleManufacturerService {
           'VehicleManufacturerService', 'handleGetVehicleManufacturerLogo', req.user);
       }
       // Check auth
-      if (!Authorizations.canReadVehicleManufacturer(req.user, vehicleManufacturer.getModel())) {
+      if (!Authorizations.canReadVehicleManufacturer(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_READ,

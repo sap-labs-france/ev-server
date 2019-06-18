@@ -135,7 +135,7 @@ export default class TransactionService {
           'TransactionService', 'handleDeleteTransaction', req.user);
       }
       // Check auth
-      if (!Authorizations.canDeleteTransaction(req.user, transaction)) {
+      if (!Authorizations.canDeleteTransaction(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_DELETE,
@@ -198,7 +198,7 @@ export default class TransactionService {
           'TransactionService', 'handleTransactionSoftStop', req.user);
       }
       // Check auth
-      if (!Authorizations.canUpdateTransaction(req.user, transaction)) {
+      if (!Authorizations.canUpdateTransaction(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_UPDATE,

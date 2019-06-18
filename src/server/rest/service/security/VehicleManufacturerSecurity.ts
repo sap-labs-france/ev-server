@@ -56,9 +56,9 @@ export default class VehicleManufacturerSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadVehicleManufacturer(loggedUser, vehicleManufacturer)) {
+    if (Authorizations.canReadVehicleManufacturer(loggedUser)) {
       // Admin?
-      if (Authorizations.isAdmin(loggedUser)) {
+      if (Authorizations.isAdmin(loggedUser.role)) {
         // Yes: set all params
         filteredVehicleManufacturer = vehicleManufacturer;
       } else {

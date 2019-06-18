@@ -31,7 +31,7 @@ export default class VehicleService {
           'VehicleService', 'handleDeleteVehicle', req.user);
       }
       // Check auth
-      if (!Authorizations.canDeleteVehicle(req.user, vehicle.getModel())) {
+      if (!Authorizations.canDeleteVehicle(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_DELETE,
@@ -146,7 +146,7 @@ export default class VehicleService {
           'VehicleService', 'handleGetVehicleImage', req.user);
       }
       // Check auth
-      if (!Authorizations.canReadVehicle(req.user, vehicle.getModel())) {
+      if (!Authorizations.canReadVehicle(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_READ,
@@ -253,7 +253,7 @@ export default class VehicleService {
       // Check Mandatory fields
       Vehicle.checkIfVehicleValid(filteredRequest, req);
       // Check auth
-      if (!Authorizations.canUpdateVehicle(req.user, vehicle.getModel())) {
+      if (!Authorizations.canUpdateVehicle(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_UPDATE,

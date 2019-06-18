@@ -103,11 +103,11 @@ export default class User extends TenantHolder {
     this._model.locale = locale;
   }
 
-  getRole() {
+  public getRole(): string {
     return this._model.role;
   }
 
-  setRole(role) {
+  public setRole(role: string) {
     this._model.role = role;
   }
 
@@ -367,7 +367,7 @@ export default class User extends TenantHolder {
       }
     } else {
       // Do not allow to change if not Admin
-      if (!Authorizations.isAdmin(req.user)) {
+      if (!Authorizations.isAdmin(req.user.role)) {
         filteredRequest.role = user.getRole();
       }
     }
@@ -376,7 +376,7 @@ export default class User extends TenantHolder {
     }
     // Creation?
     if ((filteredRequest.role !== Constants.ROLE_BASIC) && (filteredRequest.role !== Constants.ROLE_DEMO) &&
-      !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
+        !Authorizations.isAdmin(req.user.role) && !Authorizations.isSuperAdmin(req.user.role)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Only Admins can assign the role '${Utils.getRoleNameFromRoleID(filteredRequest.role)}'`, 500,
@@ -405,7 +405,7 @@ export default class User extends TenantHolder {
     }
     // Only Admin and Super Admin can use role different from Basic
     if (filteredRequest.role === Constants.ROLE_ADMIN && filteredRequest.role === Constants.ROLE_SUPER_ADMIN &&
-      !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
+        !Authorizations.isAdmin(req.user.role) && !Authorizations.isSuperAdmin(req.user.role)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `User without role Admin or Super Admin tried to ${filteredRequest.id ? 'update' : 'create'} an User with the '${Utils.getRoleNameFromRoleID(filteredRequest.role)}' role`, 500,
