@@ -1,21 +1,21 @@
-import CentralServerService from'../client/CentralServerService';
-import Factory from'../../factories/Factory';
-import TenantFactory from'../../factories/TenantFactory';
-import UserFactory from'../../factories/UserFactory';
-import CONTEXT_CONSTANTS from'./ContextConstants';
-import User from'../../../src/entity/User';
-import Company from'../../../src/types/Company';
-import CompanyStorage from'../../../src/storage/mongodb/CompanyStorage';
-import Site from'../../../src/entity/Site';
-import SiteArea from'../../../src/entity/SiteArea';
-import Tenant from'../../../src/entity/Tenant';
-import config from'../../config';
-import MongoDBStorage from'../../../src/storage/mongodb/MongoDBStorage';
-import TenantContext from'./TenantContext';
-import faker from'faker';
-import SiteContext from'./SiteContext';
-import SiteAreaContext from'./SiteAreaContext';
-import ChargingStationContext from'./ChargingStationContext';
+import CentralServerService from '../client/CentralServerService';
+import Factory from '../../factories/Factory';
+import TenantFactory from '../../factories/TenantFactory';
+import UserFactory from '../../factories/UserFactory';
+import CONTEXT_CONSTANTS from './ContextConstants';
+import User from '../../../src/entity/User';
+import Company from '../../../src/types/Company';
+import CompanyStorage from '../../../src/storage/mongodb/CompanyStorage';
+import Site from '../../../src/entity/Site';
+import SiteArea from '../../../src/entity/SiteArea';
+import Tenant from '../../../src/entity/Tenant';
+import config from '../../config';
+import MongoDBStorage from '../../../src/storage/mongodb/MongoDBStorage';
+import TenantContext from './TenantContext';
+import faker from 'faker';
+import SiteContext from './SiteContext';
+import SiteAreaContext from './SiteAreaContext';
+import ChargingStationContext from './ChargingStationContext';
 import Constants from '../../../src/utils/Constants';
 
 var global = {
@@ -66,7 +66,7 @@ export default class ContextBuilder {
 
   /**
    * It will first destroy all Unit Test tenants
-   * Then it will create new ones with the minimum entities 
+   * Then it will create new ones with the minimum entities
    * All definition is coming from ContextConstants.js
    *
    * @memberof ContextBuilder
@@ -86,7 +86,7 @@ export default class ContextBuilder {
    * Pirvate method
    * It will build the necessary tenants
    * Precondition: The tenant MUST not exist already in the DB
-   * 
+   *
    * @param {*} tenantContextDef
    * @returns
    * @memberof ContextBuilder
@@ -150,10 +150,10 @@ export default class ContextBuilder {
     await this.superAdminCentralServerService.updateEntity(
       this.superAdminCentralServerService.tenantApi, buildTenant);
 
-    // Retrieve default admin 
+    // Retrieve default admin
     const existingUserList = (await User.getUsers(buildTenant.id)).result;
     let defaultAdminUser = null;
-    // Search existing admin 
+    // Search existing admin
     if (existingUserList && Array.isArray(existingUserList)) {
       defaultAdminUser = existingUserList.find((user) => {
         return user.getModel().id === CONTEXT_CONSTANTS.TENANT_USER_LIST[0].id || user.getEMail() === config.get('admin.username') ||
