@@ -57,7 +57,7 @@ export default class Cipher {
     }
   }
 
-  public static encryptJSON(obj: any): object {
+  public static encryptJSON(obj: any) {
     try{
       if (typeof obj !== 'object') {
         throw new Error(`The parameter ${obj} passed is not an object`);
@@ -75,13 +75,12 @@ export default class Cipher {
           }
         });
       }
-      return obj; // pas indispensable
     } catch (err) {
       throw new BackendError('Error during encryption of JSON', err);
     }
   }
 
-  public static decryptJSON(obj: any): object {
+  public static decryptJSON(obj: any) {
     try{
       if (typeof obj !== 'object') {
         throw new Error(`The parameter ${obj} passed is not an object`);
@@ -99,13 +98,12 @@ export default class Cipher {
           }
         });
       }
-      return obj;
     } catch (error) {
       throw new BackendError('Error during decryption of JSON', error);
     }
   }
 
-  public static hashJSON(obj: any): object {
+  public static hashJSON(obj: any) {
     try{
       if (typeof obj !== 'object') {
         throw new Error(`The parameter ${obj} passed is not an object`);
@@ -123,7 +121,6 @@ export default class Cipher {
           }
         });
       }
-      return obj; // pas indispensable
     } catch (error) {
       throw new BackendError('Error during hash of JSON', error);
     }

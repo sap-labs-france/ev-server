@@ -83,7 +83,7 @@ export default class SettingService {
       }
       // Process the sensitive data if any
       // Hash sensitive data before being sent to the front end
-      setting = Cipher.hashJSON(setting);
+      Cipher.hashJSON(setting);
       // Return
       res.json(
         // Filter
@@ -127,7 +127,7 @@ export default class SettingService {
       // Process the sensitive data if any
       settings.result.forEach((setting) => {
         // Hash sensitive data before being sent to the front end
-        setting = Cipher.hashJSON(setting);
+        Cipher.hashJSON(setting);
       });
       // Return
       res.json(settings);
@@ -156,7 +156,7 @@ export default class SettingService {
       // Check Mandatory fields
       Setting.checkIfSettingValid(filteredRequest, req);
       // Process the sensitive data if any
-      filteredRequest = Cipher.encryptJSON(filteredRequest);
+      Cipher.encryptJSON(filteredRequest);
       // Create setting
       const setting = new Setting(req.user.tenantID, filteredRequest);
       // Update timestamp
@@ -236,7 +236,7 @@ export default class SettingService {
         });
       }
       // Encrypt sensitive data before being saved to the db
-      filteredRequest = Cipher.encryptJSON(filteredRequest);
+      Cipher.encryptJSON(filteredRequest);
       // Update
       Database.updateSetting(filteredRequest, setting.getModel());
       // Update timestamp
