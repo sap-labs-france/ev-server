@@ -231,7 +231,7 @@ export default class OCPIMapping {
    * Convert ID to EVSE_ID compliant to eMI3 by replacing all non alphanumeric characters tby '*'
    */
   static convert2evseid(id: any) {
-    if (id !== null && id !== "") {
+    if (id) {
       return id.replace(/[\W_]+/g, "*").toUpperCase();
     }
   }

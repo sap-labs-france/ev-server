@@ -159,7 +159,7 @@ export default class Authorizations {
 
   static async getConnectorActionAuthorizations(tenantID: string, user: any, chargingStation: any, connector: any, siteArea: any, site: any) {
     const tenant: Tenant|null = await Tenant.getTenant(tenantID);
-    if (tenant === null) {
+    if (!tenant) {
       throw new BackendError('Authorizations.ts#getConnectorActionAuthorizations', 'Tenant null');
     }
     const isOrgCompActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);

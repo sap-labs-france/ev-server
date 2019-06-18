@@ -1,0 +1,62 @@
+import ChargingStationContext from './ChargingStationContext';
+import TenantContext from './TenantContext';
+
+export default class SiteAreaContext {
+
+  private tenantContext: TenantContext;
+  private chargingStations: Array<ChargingStationContext>;
+  private siteArea: any;
+
+  constructor(siteArea, tenantContext: TenantContext) {
+    this.tenantContext = tenantContext;
+    this.chargingStations = [];
+    this.siteArea = siteArea;
+  }
+
+  async cleanUpCreatedData() {
+    // clean up charging stations
+    for (const chargingStation of this.chargingStations) {
+      // Delegate
+      await chargingStation.cleanUpCreatedData();
+    }
+  }
+
+  getSiteAreaName() {
+    return this.siteArea.name;
+  }
+
+  setSiteArea(siteArea) {
+    this.siteArea = siteArea;
+  }
+
+  getSiteArea() {
+    return this.siteArea;
+  }
+
+  getChargingStations() {
+    return this.chargingStations;
+  }
+
+  getChargingStation(chargingStationID) {
+    // search in context list
+    return this.chargingStations.find(chargingStationContext => {return chargingStationContext.getChargingStation().id === chargingStationID;});
+  }
+
+  getChargingStationContext(chargingStationContext) {
+    // search in context list
+    return this.chargingStations.find(chargingStation => {return chargingStation.getChargingStation().id.startsWith(chargingStationContext);});
+  }
+
+  addChargingStation(chargingStation) {
+    const charginStationContext = new ChargingStationContext(chargingStation, this.tenantContext);
+    this.chargingStations.push(charginStationContext);
+  }
+
+  async assignChargingStation(chargingStation) {
+    const readChargingStation = (await this.tenantContext.getAdminCentralServerService().getEntityById(this.tenantContext.getAdminCentralServerService().chargingStationApi, chargingStation, false)).data;
+    readChargingStation.siteArea = this.siteArea;
+    const response = await this.tenantContext.getAdminCentralServerService().chargingStationApi.updateParams(readChargingStation);
+    return response;
+  }
+
+}

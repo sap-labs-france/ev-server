@@ -92,7 +92,7 @@ export default {
       console.log(logMsg + ` ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
     }
     let cb: Function;
-    if (listenCb !== null && typeof listenCb === 'function') {
+    if (listenCb && typeof listenCb === 'function') {
       cb = listenCb;
     } else {
       cb = defaultListenCb;
