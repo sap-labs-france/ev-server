@@ -82,18 +82,8 @@ export default class SettingService {
           'SettingService', 'handleGetSetting', req.user);
       }
       // Process the sensitive data if any
-      if(setting.sensitiveData){
-        if(!Array.isArray(setting.sensitiveData)) {
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            `The property sensitiveData for Setting with ID '${filteredRequest.id}' is not an array`, 550,
-            'SettingService', 'handleGetSetting', req.user);
-        }
-        // Hash sensitive data before being sent to the front end
-        if(setting.sensitiveData.length > 0 ) {
-          setting = Cipher.hashJSON(setting);
-        }
-      }
+      // Hash sensitive data before being sent to the front end
+      setting = Cipher.hashJSON(setting);
       // Return
       res.json(
         // Filter
@@ -136,19 +126,8 @@ export default class SettingService {
         settings.result, req.user);
       // Process the sensitive data if any
       settings.result.forEach((setting) => {
-        // Test if sensitive data are set on this object
-        if(setting.sensitiveData){
-          if(!Array.isArray(setting.sensitiveData)) {
-            throw new AppError(
-              Constants.CENTRAL_SERVER,
-              `The property sensitiveData for Setting with ID '${filteredRequest.id}' is not an array`, 550,
-              'SettingService', 'handleGetSetting', req.user);
-          }
-          // Hash sensitive data before being sent to the front end
-          if(setting.sensitiveData.length > 0) {
-            setting = Cipher.hashJSON(setting);
-          }
-        }
+        // Hash sensitive data before being sent to the front end
+        setting = Cipher.hashJSON(setting);
       });
       // Return
       res.json(settings);
@@ -177,18 +156,7 @@ export default class SettingService {
       // Check Mandatory fields
       Setting.checkIfSettingValid(filteredRequest, req);
       // Process the sensitive data if any
-      if(filteredRequest.sensitiveData){
-        if(!Array.isArray(filteredRequest.sensitiveData)) {
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            `The property sensitiveData for Setting with ID '${filteredRequest.id}' is not an array`, 550,
-            'SettingService', 'handleGetSetting', req.user);
-        }
-        // Encrypt sensitive data
-        if(filteredRequest.sensitiveData.length > 0) {
-          filteredRequest = Cipher.encryptJSON(filteredRequest);
-        }
-      }
+      filteredRequest = Cipher.encryptJSON(filteredRequest);
       // Create setting
       const setting = new Setting(req.user.tenantID, filteredRequest);
       // Update timestamp
@@ -247,25 +215,28 @@ export default class SettingService {
         }
         // Preprocess the data to detect updated values
         filteredRequest.sensitiveData.forEach((property: string) => {
-          if(!_.has(filteredRequest,property) || !_.has(setting.getModel(),property)){
-            throw new Error(`The property ${property} of ${filteredRequest.id} or ${setting.id} passed is not set`);
-          }
-          const input = _.get(filteredRequest, property);
-          const encrypted = _.get(setting.getModel(), property);
-          if (!input || !encrypted) {
-            throw new Error('Error in update setting : retrieval of input or encryptedData');
-          }
-          // If value unchanged then the value has be decrypted because it will be automatically encrypted again (next step)
-          if(input === Cipher.hashString(encrypted)) {
-            // Decrypt the encrypted data
-            _.set(filteredRequest, property, Cipher.decryptString(encrypted));
+          // Check that the property does exist in the JSON coming from the dashboard
+          // Otherwise skip to the next property
+          if(_.has(filteredRequest,property)) {
+            const valueInRequest = _.get(filteredRequest, property);
+            // Check that the property has a value in the JSON coming from the dashboard
+            // Otherwise skip to the next property and do not update the db
+            if(valueInRequest && valueInRequest.length > 0) { // if the value in the JSON coming from the dashboard is either undefined, null or empty then skip to the next property
+              // Check that the same property does exist in the db and has a value
+              // If the db value (hashed) equals the dashboard value then the value has not been changed
+              // and therefore must be decrypted as it will be automatically encrypted again in the next step
+              if(_.has(setting.getModel(),property)) {
+                const valueInDb = _.get(setting.getModel(), property);
+                if(valueInDb && (valueInRequest === Cipher.hashString(valueInDb))) {
+                  _.set(filteredRequest, property, Cipher.decryptString(valueInDb));
+                }
+              }
+            }
           }
         });
-        // Encrypt sensitive data before being saved to the db
-        if(filteredRequest.sensitiveData.length > 0) {
-          filteredRequest = Cipher.encryptJSON(filteredRequest);
-        }
       }
+      // Encrypt sensitive data before being saved to the db
+      filteredRequest = Cipher.encryptJSON(filteredRequest);
       // Update
       Database.updateSetting(filteredRequest, setting.getModel());
       // Update timestamp

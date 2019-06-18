@@ -57,51 +57,45 @@ export default class Cipher {
     }
   }
 
-  public static encryptJSON(obj: any) {
+  public static encryptJSON(obj: any): object {
     try{
       if (typeof obj !== 'object') {
         throw new Error(`The parameter ${obj} passed is not an object`);
       }
-      if (obj.sensitiveData) {
+      if ('sensitiveData' in obj) {
         if (!Array.isArray(obj.sensitiveData)) { // sensitive data must be an array
           throw new Error(`The property sensitiveData of parameter ${obj} passed is not an array`);
         }
         obj.sensitiveData.forEach((property: string) => { // sensitive data can have multiple values
-          if(!_.has(obj,property)){
-            throw new Error(`The property ${property} of ${obj} passed is not set`);
-          }
-          const value = _.get(obj, property);
-          if(value.length > 0) {
-            _.set(obj, property, this.encryptString(value));
-          } else {
-            throw new Error(`The value of ${property} of ${obj} passed is not valid or set`);
+          if(_.has(obj,property)){ // If the property doesn't exist, skip it and go to the next property
+            const value = _.get(obj, property);
+            if(value && value.length > 0) { // if the value is undefined, null or empty then do nothing and go to the next property
+              _.set(obj, property, this.encryptString(value));
+            }
           }
         });
       }
-      return obj;
+      return obj; // pas indispensable
     } catch (err) {
       throw new BackendError('Error during encryption of JSON', err);
     }
   }
 
-  public static decryptJSON(obj: any) {
+  public static decryptJSON(obj: any): object {
     try{
       if (typeof obj !== 'object') {
         throw new Error(`The parameter ${obj} passed is not an object`);
       }
-      if (obj.sensitiveData) {
+      if ('sensitiveData' in obj) {
         if (!Array.isArray(obj.sensitiveData)) { // sensitive data must be an array
           throw new Error(`The property sensitiveData of parameter ${obj} passed is not an array`);
         }
         obj.sensitiveData.forEach((property: string) => { // sensitive data can have multiple values
-          if(!_.has(obj,property)){
-            throw new Error(`The property ${property} of ${obj} passed is not set`);
-          }
-          const value = _.get(obj, property);
-          if(value.length > 0) {
-            _.set(obj, property, this.decryptString(value));
-          } else {
-            throw new Error(`The value of ${property} of ${obj} passed is not valid or set`);
+          if(_.has(obj,property)){ // If the property doesn't exist, skip it and go to the next property
+            const value = _.get(obj, property);
+            if(value && value.length > 0) { // if the value is undefined, null or empty then do nothing and go to the next property
+              _.set(obj, property, this.decryptString(value));
+            }
           }
         });
       }
@@ -111,28 +105,25 @@ export default class Cipher {
     }
   }
 
-  public static hashJSON(obj: any) {
+  public static hashJSON(obj: any): object {
     try{
       if (typeof obj !== 'object') {
         throw new Error(`The parameter ${obj} passed is not an object`);
       }
-      if (obj.sensitiveData) {
+      if ('sensitiveData' in obj) {
         if (!Array.isArray(obj.sensitiveData)) { // sensitive data must be an array
           throw new Error(`The property sensitiveData of parameter ${obj} passed is not an array`);
         }
         obj.sensitiveData.forEach((property: string) => { // sensitive data can have multiple values
-          if(!_.has(obj,property)){
-            throw new Error(`The property ${property} of ${obj} passed is not set`);
-          }
-          const value = _.get(obj, property);
-          if(value.length > 0) {
-            _.set(obj, property, this.hashString(value));
-          } else {
-            throw new Error(`The value of ${property} of ${obj} passed is not valid or set`);
+          if(_.has(obj,property)){ // If the property doesn't exist, skip it and go to the next property
+            const value = _.get(obj, property);
+            if(value && value.length > 0) { // if the value is undefined, null or empty then do nothing and go to the next property
+              _.set(obj, property, this.hashString(value));
+            }
           }
         });
       }
-      return obj;
+      return obj; // pas indispensable
     } catch (error) {
       throw new BackendError('Error during hash of JSON', error);
     }
