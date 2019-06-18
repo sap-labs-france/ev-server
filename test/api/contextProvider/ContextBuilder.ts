@@ -1,32 +1,32 @@
-const CentralServerService = require('../client/CentralServerService');
-const Factory = require('../../factories/Factory');
-const TenantFactory = require('../../factories/TenantFactory');
-const UserFactory = require('../../factories/UserFactory');
-const {
-  TENANT_CONTEXTS,
-  SITE_CONTEXTS,
-  TENANT_CONTEXT_LIST,
-  TENANT_USER_LIST,
-  TENANT_COMPANY_LIST,
-  TENANT_SITE_LIST,
-  TENANT_SITEAREA_LIST,
-  TENANT_CHARGINGSTATION_LIST
-} = require('./ContextConstants');
-const User = require('../../../src/entity/User');
-const Company = require('../../../src/entity/Company');
-const Site = require('../../../src/entity/Site');
-const SiteArea = require('../../../src/entity/SiteArea');
-const Tenant = require('../../../src/entity/Tenant');
-const config = require('../../config');
-const MongoDBStorage = require('../../../src/storage/mongodb/MongoDBStorage');
-const TenantContext = require('./TenantContext');
-const faker = require('faker');
-const SiteContext = require('./SiteContext');
-const SiteAreaContext = require('./SiteAreaContext');
-const ChargingStationContext = require('./ChargingStationContext');
+import CentralServerService from '../client/CentralServerService';
+import Factory from '../../factories/Factory';
+import TenantFactory from '../../factories/TenantFactory';
+import UserFactory from '../../factories/UserFactory';
+import CONTEXT_CONSTANTS from './ContextConstants';
+import User from '../../../src/entity/User';
+import Company from '../../../src/types/Company';
+import CompanyStorage from '../../../src/storage/mongodb/CompanyStorage';
+import Site from '../../../src/entity/Site';
+import SiteArea from '../../../src/entity/SiteArea';
+import Tenant from '../../../src/entity/Tenant';
+import config from '../../config';
+import MongoDBStorage from '../../../src/storage/mongodb/MongoDBStorage';
+import TenantContext from './TenantContext';
+import faker from 'faker';
+import SiteContext from './SiteContext';
+import SiteAreaContext from './SiteAreaContext';
+import ChargingStationContext from './ChargingStationContext';
 import Constants from '../../../src/utils/Constants';
 
-class ContextBuilder {
+var global = {
+  database: null
+}
+
+export default class ContextBuilder {
+
+  private superAdminCentralServerService: CentralServerService;
+  private tenantsContexts: Array<TenantContext>;
+  private initialized: boolean;
 
   constructor() {
     // Create a super admin interface
@@ -55,7 +55,7 @@ class ContextBuilder {
       }, 10000);
     } else {
       // delete all tenants
-      for (const tenantContextDef of TENANT_CONTEXT_LIST) {
+      for (const tenantContextDef of CONTEXT_CONSTANTS.TENANT_CONTEXT_LIST) {
         const tenantEntity = await Tenant.getTenantByName(tenantContextDef.tenantName);
         if (tenantEntity) {
           await this.superAdminCentralServerService.tenantApi.delete(tenantEntity.getID());
@@ -66,7 +66,7 @@ class ContextBuilder {
 
   /**
    * It will first destroy all Unit Test tenants
-   * Then it will create new ones with the minimum entities 
+   * Then it will create new ones with the minimum entities
    * All definition is coming from ContextConstants.js
    *
    * @memberof ContextBuilder
@@ -75,7 +75,7 @@ class ContextBuilder {
     await this._init();
     await this.destroy();
     // Prepare list of tenants to create
-    const tenantContexts = TENANT_CONTEXT_LIST;
+    const tenantContexts = CONTEXT_CONSTANTS.TENANT_CONTEXT_LIST;
     // Build each tenant context
     for (const tenantContextDef of tenantContexts) {
       await this._buildTenantContext(tenantContextDef);
@@ -86,7 +86,7 @@ class ContextBuilder {
    * Pirvate method
    * It will build the necessary tenants
    * Precondition: The tenant MUST not exist already in the DB
-   * 
+   *
    * @param {*} tenantContextDef
    * @returns
    * @memberof ContextBuilder
@@ -95,39 +95,39 @@ class ContextBuilder {
     // Build component list
     const components = {};
     switch (tenantContextDef.tenantName) {
-      case TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS:
+      case CONTEXT_CONSTANTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS:
         for (const component in Constants.COMPONENTS) {
           components[Constants.COMPONENTS[component]] = {
             active: true
           };
         }
         break;
-      case TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS:
+      case CONTEXT_CONSTANTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS:
         // no components
         break;
-      case TENANT_CONTEXTS.TENANT_ORGANIZATION:
+      case CONTEXT_CONSTANTS.TENANT_CONTEXTS.TENANT_ORGANIZATION:
         for (const component in Constants.COMPONENTS) {
           components[Constants.COMPONENTS[component]] = {
             active: (Constants.COMPONENTS[component] === Constants.COMPONENTS.ORGANIZATION)
           };
         }
         break;
-      case TENANT_CONTEXTS.TENANT_SIMPLE_PRICING:
-      case TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING:
+      case CONTEXT_CONSTANTS.TENANT_CONTEXTS.TENANT_SIMPLE_PRICING:
+      case CONTEXT_CONSTANTS.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING:
         for (const component in Constants.COMPONENTS) {
           components[Constants.COMPONENTS[component]] = {
             active: (Constants.COMPONENTS[component] === Constants.COMPONENTS.PRICING)
           };
         }
         break;
-      case TENANT_CONTEXTS.TENANT_OCPI:
+      case CONTEXT_CONSTANTS.TENANT_CONTEXTS.TENANT_OCPI:
         for (const component in Constants.COMPONENTS) {
           components[Constants.COMPONENTS[component]] = {
             active: (Constants.COMPONENTS[component] === Constants.COMPONENTS.OCPI)
           };
         }
         break;
-      case TENANT_CONTEXTS.TENANT_FUNDING:
+      case CONTEXT_CONSTANTS.TENANT_CONTEXTS.TENANT_FUNDING:
         for (const component in Constants.COMPONENTS) {
           components[Constants.COMPONENTS[component]] = {
             active: (Constants.COMPONENTS[component] === Constants.COMPONENTS.REFUND)
@@ -138,7 +138,7 @@ class ContextBuilder {
         throw 'Unknown context name ' + tenantContextDef.context;
     }
     // Check if tenant exist
-    let buildTenant = {};
+    let buildTenant:any = {};
     // Create Tenant
     const dummyTenant = TenantFactory.buildTenantCreate();
     dummyTenant.name = tenantContextDef.tenantName;
@@ -150,21 +150,21 @@ class ContextBuilder {
     await this.superAdminCentralServerService.updateEntity(
       this.superAdminCentralServerService.tenantApi, buildTenant);
 
-    // Retrieve default admin 
+    // Retrieve default admin
     const existingUserList = (await User.getUsers(buildTenant.id)).result;
     let defaultAdminUser = null;
-    // Search existing admin 
+    // Search existing admin
     if (existingUserList && Array.isArray(existingUserList)) {
       defaultAdminUser = existingUserList.find((user) => {
-        return user.getModel().id === TENANT_USER_LIST[0].id || user.getEMail() === config.get('admin.username') ||
+        return user.getModel().id === CONTEXT_CONSTANTS.TENANT_USER_LIST[0].id || user.getEMail() === config.get('admin.username') ||
           user.getRole() === 'A';
       });
     }
-    if ((defaultAdminUser.getID() !== TENANT_USER_LIST[0].id) || (defaultAdminUser.getStatus() !== 'A')) {
+    if ((defaultAdminUser.getID() !== CONTEXT_CONSTANTS.TENANT_USER_LIST[0].id) || (defaultAdminUser.getStatus() !== 'A')) {
       // It is a different default user so firt delete it
       await defaultAdminUser.delete();
       // Activate user
-      defaultAdminUser.setStatus(TENANT_USER_LIST[0].status);
+      defaultAdminUser.setStatus(CONTEXT_CONSTANTS.TENANT_USER_LIST[0].status);
       // Generate the password hash
       const newPasswordHashed = await User.hashPasswordBcrypt(config.get('admin.password'));
       // Update the password
@@ -172,9 +172,9 @@ class ContextBuilder {
       // Update the email
       defaultAdminUser.setEMail(config.get('admin.username'));
       // Add a Tag ID
-      defaultAdminUser.setTagIDs(TENANT_USER_LIST[0].tagIDs ? TENANT_USER_LIST[0].tagIDs : [faker.random.alphaNumeric(8).toUpperCase()]);
+      defaultAdminUser.setTagIDs(CONTEXT_CONSTANTS.TENANT_USER_LIST[0].tagIDs ? CONTEXT_CONSTANTS.TENANT_USER_LIST[0].tagIDs : [faker.random.alphaNumeric(8).toUpperCase()]);
       // Fix id
-      defaultAdminUser.getModel().id = TENANT_USER_LIST[0].id;
+      defaultAdminUser.getModel().id = CONTEXT_CONSTANTS.TENANT_USER_LIST[0].id;
       await defaultAdminUser.save();
     }
 
@@ -204,8 +204,8 @@ class ContextBuilder {
     userList = [adminUser]; // default admin is always assigned to site
     // Prepare users
     // Skip first entry as it is teh default admin already consider above
-    for (let index = 1; index < TENANT_USER_LIST.length; index++) {
-      const userDef = TENANT_USER_LIST[index];
+    for (let index = 1; index < CONTEXT_CONSTANTS.TENANT_USER_LIST.length; index++) {
+      const userDef = CONTEXT_CONSTANTS.TENANT_USER_LIST[index];
       const createUser = UserFactory.build();
       createUser.email = userDef.emailPrefix + defaultAdminUser.getEMail();
       // Update the password
@@ -226,7 +226,7 @@ class ContextBuilder {
       userList.push(user.getModel());
     }
     // Persist tenant context
-    const newTenantContext = new TenantContext(tenantContextDef.tenantName, buildTenant, localCentralServiceService);
+    const newTenantContext = new TenantContext(tenantContextDef.tenantName, buildTenant, localCentralServiceService, null);
     this.tenantsContexts.push(newTenantContext);
     console.log('CREATE tenant context ' + newTenantContext.getTenant().id +
        ' ' + newTenantContext.getTenant().subdomain);
@@ -236,15 +236,14 @@ class ContextBuilder {
       buildTenant.components[Constants.COMPONENTS.ORGANIZATION].active) {
       // Create the company
       let company = null;
-      for (const companyDef of TENANT_COMPANY_LIST) {
+      for (const companyDef of CONTEXT_CONSTANTS.TENANT_COMPANY_LIST) {
         const dummyCompany = Factory.company.build();
         dummyCompany.id = companyDef.id;
-        company = new Company(buildTenant.id, dummyCompany);
-        company = (await company.save()).getModel(); // await newTenantContext.createCompany(dummyCompany);
-        newTenantContext.getContext().companies.push(company);
+        company = (await CompanyStorage.saveCompany(buildTenant.id, dummyCompany));
+        newTenantContext.getContext().companies.push(dummyCompany);
       }
       // Build sites/sitearea according to tenant definition
-      for (const siteContextDef of TENANT_SITE_LIST) {
+      for (const siteContextDef of CONTEXT_CONSTANTS.TENANT_SITE_LIST) {
         let site = null;
         // Create site
         const siteTemplate = Factory.site.build({
@@ -261,7 +260,7 @@ class ContextBuilder {
         const siteContext = new SiteContext(site, newTenantContext);
         newTenantContext.addSiteContext(siteContext);
         // Create site areas of current site
-        for (const siteAreaDef of TENANT_SITEAREA_LIST.filter(siteArea => siteArea.siteName === site.name)) {
+        for (const siteAreaDef of CONTEXT_CONSTANTS.TENANT_SITEAREA_LIST.filter(siteArea => siteArea.siteName === site.name)) {
           const siteAreaTemplate = Factory.siteArea.build();
           siteAreaTemplate.id = siteAreaDef.id;
           siteAreaTemplate.name = siteAreaDef.name;
@@ -273,12 +272,12 @@ class ContextBuilder {
           // siteContext.siteAreas.push(siteArea);
           const siteAreaContext = new SiteAreaContext(siteArea, newTenantContext);
           siteContext.addSiteArea(siteAreaContext);
-          const relevantCS = TENANT_CHARGINGSTATION_LIST.filter(chargingStation =>
-            chargingStation.siteAreaNames && chargingStation.siteAreaNames.includes(siteArea.name) === true);
+          const relevantCS = CONTEXT_CONSTANTS.TENANT_CHARGINGSTATION_LIST.filter(chargingStation =>
+            chargingStation.siteAreaNames && chargingStation.siteAreaNames.includes(siteArea.getName()) === true);
           // Create Charging Station for site area
           for (const chargingStationDef of relevantCS) {
             const chargingStationTemplate = Factory.chargingStation.build();
-            chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteArea.name;
+            chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteArea.getName();
             console.log(chargingStationTemplate.id);
             await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteArea);
           }
@@ -288,7 +287,7 @@ class ContextBuilder {
     // create unassigned Charging station
     // const siteContext = new SiteContext(SITE_CONTEXTS.NO_SITE);
     // newTenantContext.addSiteContext(siteContext);
-    const relevantCS = TENANT_CHARGINGSTATION_LIST.filter(chargingStation =>
+    const relevantCS = CONTEXT_CONSTANTS.TENANT_CHARGINGSTATION_LIST.filter(chargingStation =>
       chargingStation.siteAreaNames === null);
     // Create Charging Station for site area
     for (const chargingStationDef of relevantCS) {
@@ -301,5 +300,3 @@ class ContextBuilder {
   }
 
 }
-
-module.exports = new ContextBuilder();
