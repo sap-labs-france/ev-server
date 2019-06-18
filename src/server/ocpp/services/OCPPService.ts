@@ -11,7 +11,7 @@ import OCPPValidation from '../validation/OCPPValidation';
 import BackendError from '../../../exception/BackendError';
 import Configuration from '../../../utils/Configuration';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
-import SiteArea from '../../../entity/SiteArea';
+import SiteArea from '../../../types/SiteArea';
 import User from '../../../entity/User';
 const moment = require('moment-timezone');
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
@@ -19,6 +19,7 @@ import momentDurationFormatSetup from 'moment-duration-format';// TODO what
 // pragma const momentDurationFormatSetup = require("moment-duration-format");
 
 import SourceMap from 'source-map-support';
+import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 SourceMap.install();
 
 momentDurationFormatSetup(moment);
@@ -141,7 +142,7 @@ export default class OCPPService {
       // Check if charger will be automatically assigned
       if (Configuration.getTestConfig() && Configuration.getTestConfig().automaticChargerAssignment) {
         // Get all the site areas
-        const siteAreas = await SiteArea.getSiteAreas(headers.tenantID);
+        const siteAreas = await SiteAreaStorage.getSiteAreas(headers.tenantID, null, Constants.MAX_DB_RECORD_COUNT, 0, null); // TODO ??? params inferred arbitrarily, not sure which ones should be set to what. review.
         // Assign them
         if (Array.isArray(siteAreas.result) && siteAreas.result.length > 0) {
           // Set

@@ -8,9 +8,10 @@ import ChargingStationSecurity from './security/ChargingStationSecurity';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import ChargingStation from '../../../entity/ChargingStation';
-import SiteArea from '../../../entity/SiteArea';
+import SiteArea from '../../../types/SiteArea';
 import Tenant from '../../../entity/Tenant';
 import fs from 'fs';
+import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 
 export default class ChargingStationService {
   static async handleAddChargingStationsToSiteArea(action, req, res, next) {
@@ -33,7 +34,7 @@ export default class ChargingStationService {
           'ChargingStationService', 'handleAddChargingStationsToSiteArea', req.user);
       }
       // Get the Site Area
-      const siteArea = await SiteArea.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
+      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID, false, false, false);
       if (!siteArea) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -41,11 +42,11 @@ export default class ChargingStationService {
           'ChargingStationService', 'handleAddChargingStationsToSiteArea', req.user);
       }
       // Check auth
-      if (!Authorizations.canUpdateSiteArea(req.user, siteArea.getModel())) {
+      if (!Authorizations.canUpdateSiteArea(req.user, siteArea)) {
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
           Constants.ENTITY_SITE_AREA,
-          siteArea.getID(),
+          siteArea.id,
           560,
           'ChargingStationService', 'handleAddChargingStationsToSiteArea',
           req.user);
@@ -108,7 +109,7 @@ export default class ChargingStationService {
           'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea', req.user);
       }
       // Get the Site Area
-      const siteArea = await SiteArea.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
+      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID, false, false, false);
       if (!siteArea) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -116,11 +117,11 @@ export default class ChargingStationService {
           'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea', req.user);
       }
       // Check auth
-      if (!Authorizations.canUpdateSite(req.user, siteArea.getModel())) {
+      if (!Authorizations.canUpdateSiteArea(req.user, siteArea)) {
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
           Constants.ENTITY_SITE_AREA,
-          siteArea.getID(),
+          siteArea.id,
           560,
           'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea',
           req.user);
@@ -202,7 +203,7 @@ export default class ChargingStationService {
       }
       // Update Site Area
       if (filteredRequest.hasOwnProperty('siteArea')) {
-        chargingStation.setSiteArea(await SiteArea.getSiteArea(req.user.tenantID, filteredRequest.siteArea.id, false, false));
+        chargingStation.setSiteArea(await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteArea.id, false, false, false));
       }
       // Update Site Area
       if (filteredRequest.hasOwnProperty('powerLimitUnit')) {

@@ -1,13 +1,8 @@
-export interface IncomingSearchable {
-    Skip?: number;
-    Limit?: number;
-    OnlyRecordCount?: boolean;
-    SortFields?: string[];
-    SortDirs?: string[];
-}
-export interface FilteredSearchable {
+export default interface FilteredSearchable {
     Skip: number;
     Limit: number;
     OnlyRecordCount?: boolean;
+    SortFields: string[];
+    SortDirs: string[];
     Sort: any;
 }

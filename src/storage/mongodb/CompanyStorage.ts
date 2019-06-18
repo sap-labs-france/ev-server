@@ -7,6 +7,7 @@ import BackendError from '../../exception/BackendError';
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import TSGlobal from '../../types/GlobalType';
+import User from '../../entity/User';
 
 declare const global: TSGlobal;
 
@@ -39,10 +40,10 @@ export default class CompanyStorage {
     const mongoCompany: any = {};
     const newId: string = companyToSave.id.length === 0 ? new ObjectID().toHexString() : companyToSave.id;
     mongoCompany._id = Utils.convertToObjectID(newId);
-    mongoCompany.createdBy = Utils.convertToObjectID(companyToSave.createdBy.id);
+    mongoCompany.createdBy = Utils.convertToObjectID(companyToSave.createdBy.getID());
     mongoCompany.createdOn = companyToSave.createdOn;
     if (companyToSave.lastChangedBy) {
-      mongoCompany.lastChangedBy = Utils.convertToObjectID(companyToSave.lastChangedBy.id);
+      mongoCompany.lastChangedBy = Utils.convertToObjectID(companyToSave.lastChangedBy.getID());
     }
     if (companyToSave.lastChangedOn) {
       mongoCompany.lastChangedOn = companyToSave.lastChangedOn;
@@ -92,7 +93,7 @@ export default class CompanyStorage {
   }
 
   // Delegate
-  public static async getCompanies(tenantID: string, params: {search?: string; companyIDs?: string[]; onlyRecordCount?: boolean; withSites?: boolean} = {}, limit?: number, skip?: number, sort?: boolean): Promise<{count: number; result: Company[]}> {
+  public static async getCompanies(tenantID: string, params: {search?: string, companyIDs?: string[], onlyRecordCount?: boolean, withSites?:boolean}={}, limit?: number, skip?: number, sort?: any): Promise<{count: number, result: Company[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompanies');
     // Check Tenant
@@ -155,7 +156,8 @@ export default class CompanyStorage {
         result: []
       };
     }
-
+    // Remove the limit
+    aggregation.pop();
 
     // Site lookup TODO: modify if sites get typed as well
     if (params.withSites) {
@@ -219,9 +221,15 @@ export default class CompanyStorage {
     });
 
     // Read DB
-    const companies = await global.database.getCollection<Company>(tenantID, 'companies')
+    let companies = await global.database.getCollection<Company>(tenantID, 'companies')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
+
+    //TODO remove after properly typing user...
+    companies = companies.map(company => {return {
+                                            ...company,
+                                            createdBy: (company.createdBy===null||company.createdBy.id===null)?null:new User(tenantID, company.createdBy.id),
+                                            lastChangedBy: (company.lastChangedBy===null||company.lastChangedBy.id===null)?null:new User(tenantID, company.lastChangedBy.id)};});
 
     // Debug
     Logging.traceEnd('CompanyStorage', 'getCompanies', uniqueTimerID, { params, limit, skip, sort });

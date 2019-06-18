@@ -4,38 +4,55 @@ import UtilsSecurity from './UtilsSecurity';
 import ChargingStationSecurity from './ChargingStationSecurity';
 import SiteSecurity from './SiteSecurity';
 import ByID from '../../../../types/requests/ByID';
-import { IncomingSiteAreaSearch, FilteredSiteAreaSearch, IncomingSiteAreasSearch, FilteredSiteAreasSearch } from '../../../../types/requests/SiteAreaSearch';
+import { HttpSiteAreaSearchRequest, HttpSiteAreasSearchRequest } from '../../../../types/requests/SiteAreaSearch';
 import BadRequestError from '../../../../exception/BadRequestError';
+import { HttpSiteAreaUpdateRequest, HttpSiteAreaCreateRequest } from '../../../../types/requests/SiteAreaData';
+import AppAuthError from '../../../../exception/AppAuthError';
+import Constants from '../../../../utils/Constants';
+import { Request } from 'express';
+import AppError from '../../../../exception/AppError';
+import { create } from 'domain';
+import Utils from '../../../../utils/Utils';
 
 export default class SiteAreaSecurity {
 
 
-  public static filterSiteAreaDeleteRequest(request: ByID): string {
+  public static filterSiteAreaDeleteRequest(request: ByID, userToken): string {
+    Utils.assertObjectExists(request.ID, 'Site Area ID must be provided', 'SiteAreaService', 'handleDeleteSiteArea', userToken);
     return sanitize(request.ID);
   }
 
-  public static filterSiteAreaRequest(request: IncomingSiteAreaSearch): FilteredSiteAreaSearch {
+  public static filterSiteAreaRequest(request: Partial<HttpSiteAreaSearchRequest>, userToken): HttpSiteAreaSearchRequest {
     //Throw error if arguments missing
-    if(! request.ID) {
-      throw new BadRequestError({message: 'ID is required for all SiteArea related requests'});
-    }
+    Utils.assertObjectExists(request.ID, 'ID must be provided.', 'SiteAreaSecurity', 'filterSiteAreaRequest', userToken);
 
     //Filter request
-    const filteredRequest: FilteredSiteAreaSearch = {} as FilteredSiteAreaSearch;
+    const filteredRequest: HttpSiteAreaSearchRequest = {} as HttpSiteAreaSearchRequest;
     filteredRequest.ID = sanitize(request.ID);
     filteredRequest.WithChargeBoxes = !request.WithChargeBoxes ? false : sanitize(request.WithChargeBoxes);
     filteredRequest.WithSite = !request.WithSite ? false : sanitize(request.WithSite);
     return filteredRequest;
   }
 
-  public static filterSiteAreasRequest(request: IncomingSiteAreasSearch): FilteredSiteAreasSearch {
+  public static filterSiteAreasRequest(request: Partial<HttpSiteAreasSearchRequest>, userToken): HttpSiteAreasSearchRequest {
+    // Check auth
+    if (!Authorizations.canListSiteAreas(userToken)) {
+      // Not Authorized!
+      throw new AppAuthError(
+        Constants.ACTION_LIST,
+        Constants.ENTITY_SITE_AREAS,
+        null,
+        560, 'SiteAreaService', 'handleGetSiteAreas',
+        userToken);
+    }
+    
     //Throw error if arguments missing
     if(! request.Search || ! request.SiteID) {
       throw new BadRequestError({message: 'SiteID and Search are required for all SiteAreas related requests'});
     }
 
     //Filter request
-    const filteredRequest: FilteredSiteAreasSearch = {} as FilteredSiteAreasSearch;
+    const filteredRequest: HttpSiteAreasSearchRequest = {} as HttpSiteAreasSearchRequest;
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.WithSite = !request.WithSite ? false : UtilsSecurity.filterBoolean(request.WithSite);
     filteredRequest.WithChargeBoxes = !request.WithChargeBoxes ? false : UtilsSecurity.filterBoolean(request.WithChargeBoxes);
@@ -47,27 +64,60 @@ export default class SiteAreaSecurity {
   }
 
 
-  static filterSiteAreaUpdateRequest(request:) {
+  public static filterSiteAreaUpdateRequest(request: Partial<HttpSiteAreaUpdateRequest>, userToken): HttpSiteAreaUpdateRequest {
     // Set
-    const filteredRequest = SiteAreaSecurity._filterSiteAreaRequest(request);
+    if(! request.id) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `Site id is mandatory`, 500,
+        'SiteAreaSecurity', 'filterSiteAreaUpdateRequest',
+        userToken.id, request.id);
+    }
+    const filteredRequest = {id: sanitize(request.id), ...SiteAreaSecurity._filterSiteAreaRequest(request, userToken)};
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  static filterSiteAreaCreateRequest(request) {
-    return SiteAreaSecurity._filterSiteAreaRequest(request);
+  public static filterSiteAreaCreateRequest(request: Partial<HttpSiteAreaCreateRequest>, userToken): HttpSiteAreaCreateRequest {
+    // Check auth
+    if (!Authorizations.canCreateSite(userToken)) {
+      // Not Authorized!
+      throw new AppAuthError(
+        Constants.ACTION_CREATE,
+        Constants.ENTITY_SITE_AREA,
+        null,
+        560, 'SiteAreaSecurity', 'filterSiteAreaCreateRequest',
+        userToken);
+    }
+
+    return SiteAreaSecurity._filterSiteAreaRequest(request, userToken);
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static _filterSiteAreaRequest(request) {
-    const filteredRequest: any = {};
+  public static _filterSiteAreaRequest(request: Partial<HttpSiteAreaUpdateRequest>, userToken): HttpSiteAreaCreateRequest {
+    const filteredRequest: HttpSiteAreaCreateRequest = {} as HttpSiteAreaCreateRequest;
+    // Check if name exists, if not throw error
+    if(! request.name) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `Site Area Name is mandatory`, 500,
+        'SiteAreaSecurity', 'filterSiteAreaRequest',
+        userToken.id, request.id);
+    }
     filteredRequest.name = sanitize(request.name);
     filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address);
     filteredRequest.image = sanitize(request.image);
     filteredRequest.maximumPower = sanitize(request.maximumPower);
     filteredRequest.accessControl = UtilsSecurity.filterBoolean(request.accessControl);
+    
+    // Check if siteID exists, if not throw error
+    if(! request.siteID) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `Site ID is mandatory`, 500,
+        'SiteAreaSecurity', 'filterSiteAreaRequest',
+        userToken.id, request.id);
+    }
     filteredRequest.siteID = sanitize(request.siteID);
-    filteredRequest.chargeBoxIDs = sanitize(request.chargeBoxIDs);
     return filteredRequest;
   }
 
@@ -143,6 +193,6 @@ export default class SiteAreaSecurity {
     }
     siteAreas.result = filteredSiteAreas;
   }
-}
 
+}
 

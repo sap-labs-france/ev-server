@@ -6,7 +6,7 @@ import User from '../../../../entity/User';
 import Company from '../../../../types/Company';
 import ByID from '../../../../types/requests/ByID';
 import CompanyData from '../../../../types/requests/CompanyData';
-import { FilteredCompanySearch, IncomingCompanySearch } from '../../../../types/requests/CompanySearch';
+import { FilteredCompanySearch } from '../../../../types/requests/CompanySearch';
 import BadRequestError from '../../../../exception/BadRequestError';
 
 export default class CompanySecurity {
@@ -15,8 +15,8 @@ export default class CompanySecurity {
     return sanitize(request.ID);
   }
 
-  public static filterCompaniesRequest(request: IncomingCompanySearch): FilteredCompanySearch {
-    const filteredRequest: FilteredCompanySearch = {
+  public static filterCompaniesRequest(request: Partial<FilteredCompanySearch>): FilteredCompanySearch {
+    let filteredRequest: FilteredCompanySearch = {
       Search: sanitize(request.Search),
       WithSites: UtilsSecurity.filterBoolean(request.WithSites)
     } as FilteredCompanySearch;

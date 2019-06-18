@@ -15,6 +15,7 @@ import ChargingStation from '../entity/ChargingStation';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import SourceMap from 'source-map-support';
 import Company from '../types/Company';
+import SiteArea from '../types/SiteArea';
 SourceMap.install();
 
 export default class Authorizations {
@@ -157,7 +158,7 @@ export default class Authorizations {
     return user;
   }
 
-  static async getConnectorActionAuthorizations(tenantID: string, user: any, chargingStation: any, connector: any, siteArea: any, site: any) {
+  static async getConnectorActionAuthorizations(tenantID: string, user: any, chargingStation: any, connector: any, siteArea: SiteArea, site: any) {
     const tenant: Tenant|null = await Tenant.getTenant(tenantID);
     if (!tenant) {
       throw new BackendError('Authorizations.ts#getConnectorActionAuthorizations', 'Tenant null');
@@ -178,7 +179,7 @@ export default class Authorizations {
     let isSameUserAsTransaction = false;
     if (isOrgCompActive) {
       // Acces Control Enabled?
-      accessControlEnable = siteArea.isAccessControlEnabled();
+      accessControlEnable = siteArea.accessControl;
       // Allow to stop all transactions
       userAllowedToStopAllTransactions = site.isAllowAllUsersToStopTransactionsEnabled();
       // Check if User belongs to the charging station Site
@@ -246,7 +247,7 @@ export default class Authorizations {
   }
 
   static async isTagIDAuthorizedOnChargingStation(chargingStation: ChargingStation, tagID: any, action: any) {
-    let site, siteArea;
+    let site, siteArea: SiteArea;
     // Get the Organization component
     const tenant = await TenantStorage.getTenant(chargingStation.getTenantID());
     const isOrgCompActive = await tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
@@ -263,17 +264,17 @@ export default class Authorizations {
           "Authorizations", "_checkAndGetUserOnChargingStation");
       }
       // Access Control Enabled?
-      if (!siteArea.isAccessControlEnabled()) {
+      if (!siteArea.accessControl) {
         // No control
         return;
       }
       // Site -----------------------------------------------------
-      site = await siteArea.getSite();
+      site = siteArea.site;
       if (!site) {
         // Reject Site Not Found
         throw new AppError(
           chargingStation.getID(),
-          `Site Area '${siteArea.getName()}' is not assigned to a Site!`, 525,
+          `Site Area '${siteArea.name}' is not assigned to a Site!`, 525,
           "Authorizations", "checkAndGetUserOnChargingStation");
       }
     }
@@ -579,7 +580,7 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREAS, Constants.ACTION_LIST);
   }
 
-  static canReadSiteArea(loggedUser: any, siteArea: any) {
+  static canReadSiteArea(loggedUser: any, siteArea: SiteArea) {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA, Constants.ACTION_READ) &&
       Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_READ,
         {"site": siteArea.siteID, "sites": loggedUser.sites});
@@ -590,12 +591,12 @@ export default class Authorizations {
       Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_CREATE);
   }
 
-  static canUpdateSiteArea(loggedUser: any, siteArea: any) {
+  static canUpdateSiteArea(loggedUser: any, siteArea: SiteArea) {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA, Constants.ACTION_UPDATE) &&
       Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_UPDATE);
   }
 
-  static canDeleteSiteArea(loggedUser: any, siteArea: any) {
+  static canDeleteSiteArea(loggedUser: any, siteArea: SiteArea) {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA, Constants.ACTION_DELETE) &&
       Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_DELETE);
   }

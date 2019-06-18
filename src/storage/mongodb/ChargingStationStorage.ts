@@ -5,7 +5,7 @@ import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import BackendError from '../../exception/BackendError';
 import ChargingStation from '../../entity/ChargingStation';
-import SiteArea from '../../entity/SiteArea';
+import SiteArea from '../../types/SiteArea';
 import Site from '../../entity/Site';
 import Tenant from '../../entity/Tenant';
 import TSGlobal from '../../types/GlobalType';
@@ -27,38 +27,23 @@ export default class ChargingStationStorage {
         _id: id
       }
     });
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
-    // Add
-    aggregation.push({
-      $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, "siteareas"),
-        localField: "siteAreaID",
-        foreignField: "_id",
-        as: "siteArea"
-      }
-    });
-    // Add
-    aggregation.push({
-      $unwind: {
-        "path": "$siteArea",
-        "preserveNullAndEmptyArrays": true
-      }
-    });
+    // With Site Area, TODO make sure this works
+    DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, aggregation, 'siteAreaID', '_id', 'siteArea', [ 'siteAreaID', 'chargePointSerialNumber', 'chargePointModel', 'chargeBoxSerialNumber', 'chargePointVendor', 'iccid', 'imsi', 'meterType', 'firmwareVersion',
+    'meterSerialNumber', 'endpoint', 'ocppVersion', 'ocppProtocol', 'lastHeartBeat', 'deleted', 'lastReboot', 'chargingStationURL', 'connectors', 'firmwareVersion', 'maximumPower', 'latitude', 'longitude', 'powerLimitUnit', 'cannotChargeInParallel', 'numberOfConnectedPhase', 'cfApplicationIDAndInstanceIndex']);
+
     // Read DB
     const chargingStationMDB = await global.database.getCollection<any>(tenantID, 'chargingstations')
       .aggregate(aggregation)
       .limit(1)
       .toArray();
-    let chargingStation = null;
+    let chargingStation: ChargingStation = null;
     // Found
     if (chargingStationMDB && chargingStationMDB.length > 0) {
       // Create
       chargingStation = new ChargingStation(tenantID, chargingStationMDB[0]);
       // Set Site Area
       if (chargingStationMDB[0].siteArea) {
-        chargingStation.setSiteArea(
-          new SiteArea(tenantID, chargingStationMDB[0].siteArea));
+        chargingStation.setSiteArea(chargingStationMDB[0].siteArea);
       }
     }
     // Debug
@@ -118,15 +103,10 @@ export default class ChargingStationStorage {
         "siteAreaID": null
       });
     } else {
-      // With Site Area
-      aggregation.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, "siteareas"),
-          localField: "siteAreaID",
-          foreignField: "_id",
-          as: "siteArea"
-        }
-      });
+      // With Site Area, TODO make sure this works
+      DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, aggregation, 'siteAreaID', '_id', 'siteArea', [ 'siteAreaID', 'chargePointSerialNumber', 'chargePointModel', 'chargeBoxSerialNumber', 'chargePointVendor', 'iccid', 'imsi', 'meterType', 'firmwareVersion',
+    'meterSerialNumber', 'endpoint', 'ocppVersion', 'ocppProtocol', 'lastHeartBeat', 'deleted', 'lastReboot', 'chargingStationURL', 'connectors', 'firmwareVersion', 'maximumPower', 'latitude', 'longitude', 'powerLimitUnit', 'cannotChargeInParallel', 'numberOfConnectedPhase', 'cfApplicationIDAndInstanceIndex']);
+
       // Single Record
       aggregation.push({
         $unwind: {
@@ -226,7 +206,7 @@ export default class ChargingStationStorage {
       const chargingStation = new ChargingStation(tenantID, chargingStationMDB);
       // Add the Site Area?
       if (chargingStationMDB.siteArea) {
-        const siteArea = new SiteArea(tenantID, chargingStationMDB.siteArea);
+        const siteArea = chargingStationMDB.siteArea;
         // Set
         chargingStation.setSiteArea(siteArea);
         if (chargingStationMDB.site) {
@@ -296,7 +276,7 @@ export default class ChargingStationStorage {
       });
     } else {
       // Always get the Site Area
-      siteAreaIdJoin = [{
+      /*siteAreaIdJoin = [{
         $lookup: {
           from: DatabaseUtils.getCollectionName(tenantID, "siteareas"),
           localField: "siteAreaID",
@@ -309,7 +289,12 @@ export default class ChargingStationStorage {
           "path": "$siteArea",
           "preserveNullAndEmptyArrays": true
         }
-      }];
+      }];*/
+      let siteAreaIdJoin = [];
+      // With Site Area, TODO make sure this works
+      DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, siteAreaIdJoin, 'siteAreaID', '_id', 'siteArea', [ 'siteAreaID', 'chargePointSerialNumber', 'chargePointModel', 'chargeBoxSerialNumber', 'chargePointVendor', 'iccid', 'imsi', 'meterType', 'firmwareVersion',
+    'meterSerialNumber', 'endpoint', 'ocppVersion', 'ocppProtocol', 'lastHeartBeat', 'deleted', 'lastReboot', 'chargingStationURL', 'connectors', 'firmwareVersion', 'maximumPower', 'latitude', 'longitude', 'powerLimitUnit', 'cannotChargeInParallel', 'numberOfConnectedPhase', 'cfApplicationIDAndInstanceIndex']);
+
     }
     // Check Site ID
     if (params.siteID) {
@@ -451,7 +436,7 @@ export default class ChargingStationStorage {
       chargingStation.getModel().uniqueId = chargingStationMDB.uniqueId;
       // Add the Site Area?
       if (chargingStationMDB.siteArea) {
-        const siteArea = new SiteArea(tenantID, chargingStationMDB.siteArea);
+        const siteArea = chargingStationMDB.siteArea;
         // Set
         chargingStation.setSiteArea(siteArea);
         if (chargingStationMDB.site) {

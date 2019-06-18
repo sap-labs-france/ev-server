@@ -1,5 +1,4 @@
 import Logging from '../../../utils/Logging';
-import Database from '../../../utils/Database';
 import AppError from '../../../exception/AppError';
 import AppAuthError from '../../../exception/AppAuthError';
 import Constants from '../../../utils/Constants';
@@ -334,7 +333,6 @@ export default class CompanyService {
         company.address = filteredRequest.address;
       }
       // TODO: Currently unable to change createdBy, createdOn, and id. Wanted behavior?
-
       // Database.updateCompany(filteredRequest, company);
 
       // Update timestamp
