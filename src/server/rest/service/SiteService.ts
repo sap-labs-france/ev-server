@@ -191,6 +191,15 @@ export default class SiteService {
           `The Site's IDs must be provided`, 500,
           'SiteService', 'handleRemoveUsersFromSite', req.user);
       }
+      if (!Authorizations.canUpdateSite(req.user, filteredRequest.siteID)) {
+        throw new AppAuthError(
+          Constants.ACTION_UPDATE,
+          Constants.ENTITY_SITE,
+          filteredRequest.siteID,
+          560,
+          'SiteService', 'handleRemoveUsersFromSite',
+          req.user);
+      }
       // Get the Site
       const site = await Site.getSite(req.user.tenantID, filteredRequest.siteID);
       if (!site) {
@@ -198,16 +207,6 @@ export default class SiteService {
           Constants.CENTRAL_SERVER,
           `The Site with ID '${filteredRequest.siteID}' does not exist anymore`, 550,
           'SiteService', 'handleRemoveUsersFromSite', req.user);
-      }
-      // Check auth
-      if (!Authorizations.canUpdateSite(req.user, site.getModel())) {
-        throw new AppAuthError(
-          Constants.ACTION_UPDATE,
-          Constants.ENTITY_SITE,
-          site.getID(),
-          560,
-          'SiteService', 'handleRemoveUsersFromSite',
-          req.user);
       }
       // Get Users
       for (const userID of filteredRequest.userIDs) {
