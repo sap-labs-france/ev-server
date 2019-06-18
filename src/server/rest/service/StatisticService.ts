@@ -9,7 +9,7 @@ export default class StatisticService {
   static async handleUserUsageStatistics(action, req, res, next) {
     try {
       // Filter
-      const filteredRequest = StatisticSecurity.filterUserStatisticsRequest(req.query, req.user);
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
@@ -26,7 +26,7 @@ export default class StatisticService {
   static async handleGetUserConsumptionStatistics(action, req, res, next) {
     try {
       // Filter
-      const filteredRequest = StatisticSecurity.filterUserStatisticsRequest(req.query, req.user);
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
@@ -43,7 +43,7 @@ export default class StatisticService {
   static async handleGetChargingStationUsageStatistics(action, req, res, next) {
     try {
       // Filter
-      const filteredRequest = StatisticSecurity.filterChargingStationStatisticsRequest(req.query, req.user);
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
@@ -75,7 +75,7 @@ export default class StatisticService {
   static async handleGetChargingStationConsumptionStatistics(action, req, res, next) {
     try {
       // Filter
-      const filteredRequest = StatisticSecurity.filterChargingStationStatisticsRequest(req.query, req.user);
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
@@ -93,10 +93,13 @@ export default class StatisticService {
     // Only completed transactions
     const filter: any = { stop: {$exists: true} };
     // Date
-    if (filteredRequest.Year) {
-      filter.startDateTime = moment().year(filteredRequest.Year).startOf('year').toDate().toISOString();
-      filter.endDateTime = moment().year(filteredRequest.Year).endOf('year').toDate().toISOString();
+    if ('Year' in filteredRequest) {
+      if (filteredRequest.Year > 0) {
+        filter.startDateTime = moment().year(filteredRequest.Year).startOf('year').toDate().toISOString();
+        filter.endDateTime = moment().year(filteredRequest.Year).endOf('year').toDate().toISOString();
+      }
     } else {
+      // Current year
       filter.startDateTime = moment().startOf('year').toDate().toISOString();
       filter.endDateTime = moment().endOf('year').toDate().toISOString();
     }
