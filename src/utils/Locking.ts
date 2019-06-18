@@ -9,7 +9,7 @@ import Logging from './Logging';
  */
 export default class RunLock {
   private _MODULE_NAME: string;
-  private _runLock: { name: string; type: string };
+  private _runLock: { name: string; type: string; timestamp: Date; hostname: string };
   private _onMultipleHosts: boolean;
 
   public constructor(name, onMultipleHosts = true) {
@@ -28,13 +28,12 @@ export default class RunLock {
       return;
     }
     this._onMultipleHosts = onMultipleHosts;
-    this._runLock = { name: '', type: '' };
+    this._runLock = { name: '', type: '', timestamp: null, hostname: '' };
     Database.updateRunLock({ name: name, timestamp: new Date() }, this._runLock, false);
   }
 
   public async acquire(): Promise<void> {
-    if (!await LockingStorage.getLockStatus(this._runLock, this._onMultipleHosts))
-    { await LockingStorage.saveRunLock(this._runLock); }
+    if (!await LockingStorage.getLockStatus(this._runLock, this._onMultipleHosts)) { await LockingStorage.saveRunLock(this._runLock); }
   }
 
   public async tryAcquire(): Promise<boolean> {
