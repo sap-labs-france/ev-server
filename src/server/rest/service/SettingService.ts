@@ -152,7 +152,7 @@ export default class SettingService {
           req.user);
       }
       // Filter
-      let filteredRequest = SettingSecurity.filterSettingCreateRequest(req.body, req.user);
+      const filteredRequest = SettingSecurity.filterSettingCreateRequest(req.body, req.user);
       // Check Mandatory fields
       Setting.checkIfSettingValid(filteredRequest, req);
       // Process the sensitive data if any
@@ -183,7 +183,7 @@ export default class SettingService {
   public static async handleUpdateSetting(action, req, res, next) {
     try {
       // Filter
-      let filteredRequest = SettingSecurity.filterSettingUpdateRequest(req.body, req.user);
+      const filteredRequest = SettingSecurity.filterSettingUpdateRequest(req.body, req.user);
       // Get Setting
       const setting = await Setting.getSetting(req.user.tenantID, filteredRequest.id);
       if (!setting) {
@@ -211,36 +211,27 @@ export default class SettingService {
         if (!Array.isArray(filteredRequest.sensitiveData)) {
           throw new AppError(
             Constants.CENTRAL_SERVER,
-            `The property sensitiveData for Setting with ID '${filteredRequest.id}' is not an array`, 550,
-            'SettingService', 'handleGetSetting', req.user);
+            `The property 'sensitiveData' for Setting with ID '${filteredRequest.id}' is not an array`, 555,
+            'SettingService', 'handleUpdateSetting', req.user);
         }
-        filteredRequest.sensitiveData.forEach((property: string) => {
-          // Check that the property does exist in the JSON coming from the dashboard
-          // Otherwise skip to the next property (the dashboard is the version of truth which means
-          // that the property will also be deleted if existing in the db)
-          // Needs to be validated
-          if (_.has(filteredRequest, property)) {
-            const valueInRequest = _.get(filteredRequest, property);
-            // Check that the property has a value in the JSON coming from the dashboard
-            // Otherwise skip to the next property (the dashboard is the version of truth which means
-            // that the value will also be deleted if existing in the db)
-            // Needs to be validated
-            if (valueInRequest && valueInRequest.length > 0) {
-              // Check that the same property does exist in the db and has a value
-              // If not, the dashboard is the version of truth and therefore the db will be updated with the dashboard's JSON
-              // If yes, then compare the db value (hashed) to the dashboard value; if they are equal then the value has not been changed
-              // and therefore must be decrypted as it will be automatically encrypted again in the next step
-              if (_.has(setting.getModel(), property)) {
-                const valueInDb = _.get(setting.getModel(), property);
-                if (valueInDb && (valueInRequest === Cypher.hash(valueInDb))) {
-                  _.set(filteredRequest, property, Cypher.decrypt(valueInDb));
-                }
-              }
+        // Process sensitive properties
+        for (const property of filteredRequest.sensitiveData) {
+          // Get the sensitive property from the request
+          const valueInRequest = _.get(filteredRequest, property);
+          if (valueInRequest && valueInRequest.length > 0) {
+            // Get the sensitive property from the DB
+            const valueInDb = _.get(setting.getModel(), property);
+            const hashedValueInDB = Cypher.hash(valueInDb);
+            // Value has been changed?
+            if (valueInDb && (valueInRequest !== hashedValueInDB)) {
+              // Yes: Encrypt
+              _.set(filteredRequest, property, Cypher.encrypt(valueInRequest));
+            } else {
+              // No: Put back the encrypted value
+              _.set(filteredRequest, property, valueInDb);
             }
           }
-        });
-        // Encrypt sensitive data before being saved to the db
-        Cypher.encryptSensitiveDataInJSON(filteredRequest);
+        }
       }
       // Update
       Database.updateSetting(filteredRequest, setting.getModel());
