@@ -206,6 +206,7 @@ export default class SettingService {
           req.user);
       }
       // Process the sensitive data if any
+      // Preprocess the data to take care of updated values
       if(filteredRequest.sensitiveData){
         if(!Array.isArray(filteredRequest.sensitiveData)) {
           throw new AppError(
@@ -213,17 +214,21 @@ export default class SettingService {
             `The property sensitiveData for Setting with ID '${filteredRequest.id}' is not an array`, 550,
             'SettingService', 'handleGetSetting', req.user);
         }
-        // Preprocess the data to detect updated values
         filteredRequest.sensitiveData.forEach((property: string) => {
           // Check that the property does exist in the JSON coming from the dashboard
-          // Otherwise skip to the next property
+          // Otherwise skip to the next property (the dashboard is the version of truth which means
+          // that the property will also be deleted if existing in the db)
+          // Needs to be validated
           if(_.has(filteredRequest,property)) {
             const valueInRequest = _.get(filteredRequest, property);
             // Check that the property has a value in the JSON coming from the dashboard
-            // Otherwise skip to the next property and do not update the db
-            if(valueInRequest && valueInRequest.length > 0) { // if the value in the JSON coming from the dashboard is either undefined, null or empty then skip to the next property
+            // Otherwise skip to the next property (the dashboard is the version of truth which means
+            // that the value will also be deleted if existing in the db)
+            // Needs to be validated
+            if(valueInRequest && valueInRequest.length > 0) {
               // Check that the same property does exist in the db and has a value
-              // If the db value (hashed) equals the dashboard value then the value has not been changed
+              // If not, the dashboard is the version of truth and therefore the db will be updated with the dashboard's JSON
+              // If yes, then compare the db value (hashed) to the dashboard value; if they are equal then the value has not been changed
               // and therefore must be decrypted as it will be automatically encrypted again in the next step
               if(_.has(setting.getModel(),property)) {
                 const valueInDb = _.get(setting.getModel(), property);
@@ -234,9 +239,9 @@ export default class SettingService {
             }
           }
         });
+        // Encrypt sensitive data before being saved to the db
+        Cipher.encryptJSON(filteredRequest);
       }
-      // Encrypt sensitive data before being saved to the db
-      Cipher.encryptJSON(filteredRequest);
       // Update
       Database.updateSetting(filteredRequest, setting.getModel());
       // Update timestamp
