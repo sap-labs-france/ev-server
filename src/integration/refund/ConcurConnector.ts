@@ -217,7 +217,7 @@ const CONNECTOR_ID = 'concur';
     const startDate = moment();
     const refundedTransactions = [];
     let connection = await this.getConnectionByUserId(user.getID());
-    if (connection === undefined) {
+    if (!connection) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `The user with ID '${user.getID()}' does not have a connection to connector '${CONNECTOR_ID}'`, 552,

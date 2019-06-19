@@ -1,11 +1,16 @@
-const SiteAreaContext = require('./SiteAreaContext');
-class SiteContext {
+import SiteAreaContext from './SiteAreaContext';
+import TenantContext from './TenantContext';
 
-  constructor(site, tenantContext) {
+export default class SiteContext {
+
+  private tenantContext: TenantContext;
+  private siteAreas: Array<SiteAreaContext>;
+  private site: any;
+
+  constructor(site, tenantContext: TenantContext) {
     this.tenantContext = tenantContext;
     this.siteAreas = [];
     this.site = site;
-    
   }
 
   async cleanUpCreatedData() {
@@ -37,7 +42,7 @@ class SiteContext {
   }
 
   getSiteAreas() {
-    return this.siteAreas.concat(this.createdSiteAreas);
+    return this.siteAreas;
   }
 
   addSiteArea(siteArea) {
@@ -47,5 +52,3 @@ class SiteContext {
   }
 
 }
-
-module.exports = SiteContext;

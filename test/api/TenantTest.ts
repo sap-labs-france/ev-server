@@ -12,17 +12,21 @@ import HttpStatus from 'http-status-codes';
 
 class TestData {
   public newTenant: any;
+  public superAdminCentralService: any;
 }
 
 const testData: TestData = new TestData();
 
 describe('Tenant tests', function () {
   this.timeout(30000);
+  before(async () => {
+    testData.superAdminCentralService = new CentralServerService("");
+  });
 
   describe('Success cases', () => {
     it('Should be possible to create a valid tenant', async () => {
       // Create
-      testData.newTenant = await new CentralServerService().createEntity(
+      testData.newTenant = await CentralServerService.DefaultInstance.createEntity(
         CentralServerService.DefaultInstance.tenantApi, Factory.tenant.buildTenantCreate());
     });
 
@@ -48,7 +52,7 @@ describe('Tenant tests', function () {
 
     it('Should find the updated tenant by id', async () => {
       // Check if the updated entity can be retrieved with its id
-      let updatedTenant = await CentralServerService.DefaultInstance.getEntityById(
+      const updatedTenant = await CentralServerService.DefaultInstance.getEntityById(
         CentralServerService.DefaultInstance.tenantApi, testData.newTenant);
       // Check
       expect(updatedTenant.name).to.equal(testData.newTenant.name);

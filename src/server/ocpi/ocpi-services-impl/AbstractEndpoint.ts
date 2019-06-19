@@ -29,14 +29,16 @@ export default class AbstractEndpoint {
   }
 
   // Abstract - Process endpoint
-  public process(req: Request, res: Response, next: Function, tenant: Tenant) { // eslint-disable-line
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public process(req: Request, res: Response, next: Function, tenant: Tenant) {
     res.sendStatus(501);
   }
 
   /**
    * Handle error and return correct payload
    */
-  private handleError(error: any, req: Request, res: Response, next: Function, action: string, module: string, method: string) { // eslint-disable-line
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  private handleError(error: any, req: Request, res: Response, next: Function, action: string, module: string, method: string) {
     // TODO: add logging
 
     // Return response with error
