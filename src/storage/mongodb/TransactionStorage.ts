@@ -572,9 +572,6 @@ export default class TransactionStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
 
-    //console.log(transactionsMDB);
-    //console.log(aggregation);
-
     // Debug
     Logging.traceEnd('TransactionStorage', 'getTransaction', uniqueTimerID, { id });
     // Found?

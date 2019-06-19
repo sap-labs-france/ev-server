@@ -157,7 +157,7 @@ export default class SiteAreaSecurity {
       }
       if (siteArea.site) {
         // Site
-        filteredSiteArea.site = SiteSecurity.filterSiteResponse(siteArea.site, loggedUser);
+        filteredSiteArea.site = SiteSecurity.filterSiteResponse(siteArea.site._model, loggedUser);
       }
       if (siteArea.chargeBoxes) {
         filteredSiteArea.chargeBoxes = ChargingStationSecurity
