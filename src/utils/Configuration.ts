@@ -23,6 +23,12 @@ export default class Configuration {
     return config;
   }
 
+  // Crypto config
+  public static getCryptoConfig() {
+    // Read conf
+    return Configuration.getConfig().Crypto;
+  }
+
   // Scheduler config
   static getSchedulerConfig() {
     // Read conf

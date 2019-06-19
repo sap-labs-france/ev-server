@@ -13,6 +13,7 @@ import InternalError from '../../exception/InternalError';
 import jwt from 'jsonwebtoken';
 import BBPromise from "bluebird";
 import Transaction from '../../entity/Transaction';
+import Cypher from '../../utils/Cypher';
 import Site from '../../entity/Site';
 
 const MODULE_NAME = 'ConcurConnector';
@@ -90,6 +91,10 @@ const CONNECTOR_ID = 'concur';
     return this.getSetting().clientSecret;
   }
 
+  getClientSecretDecrypted() {
+    return Cypher.decrypt(this.getSetting().clientSecret);
+}
+
   getExpenseTypeCode() {
     return this.getSetting().expenseTypeCode;
   }
@@ -123,7 +128,7 @@ const CONNECTOR_ID = 'concur';
         querystring.stringify({
           code: data.code,
           client_id: this.getClientId(),
-          client_secret: this.getClientSecret(),
+          client_secret: this.getClientSecretDecrypted(),
           redirect_uri: data.redirectUri,
           grant_type: 'authorization_code'
         }),
@@ -168,7 +173,7 @@ const CONNECTOR_ID = 'concur';
       const response = await axios.post(`${this.getAuthenticationUrl()}/oauth2/v0/token`,
         querystring.stringify({
           client_id: this.getClientId(),
-          client_secret: this.getClientSecret(),
+          client_secret: this.getClientSecretDecrypted(),
           refresh_token: connection.getData().refresh_token,
           scope: connection.getData().scope,
           grant_type: 'refresh_token'
