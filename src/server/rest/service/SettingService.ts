@@ -7,7 +7,7 @@ import Constants from '../../../utils/Constants';
 import Setting from '../../../entity/Setting';
 import User from '../../../entity/User';
 import SettingSecurity from './security/SettingSecurity';
-import Cipher from '../../../utils/Cipher';
+import Cypher from '../../../utils/Cypher';
 import _ from 'lodash';
 
 export default class SettingService {
@@ -83,7 +83,7 @@ export default class SettingService {
       }
       // Process the sensitive data if any
       // Hash sensitive data before being sent to the front end
-      Cipher.hashJSON(setting);
+      Cypher.hashSensitiveDataInJSON(setting);
       // Return
       res.json(
         // Filter
@@ -127,7 +127,7 @@ export default class SettingService {
       // Process the sensitive data if any
       settings.result.forEach((setting) => {
         // Hash sensitive data before being sent to the front end
-        Cipher.hashJSON(setting);
+        Cypher.hashSensitiveDataInJSON(setting);
       });
       // Return
       res.json(settings);
@@ -156,7 +156,7 @@ export default class SettingService {
       // Check Mandatory fields
       Setting.checkIfSettingValid(filteredRequest, req);
       // Process the sensitive data if any
-      Cipher.encryptJSON(filteredRequest);
+      Cypher.encryptSensitiveDataInJSON(filteredRequest);
       // Create setting
       const setting = new Setting(req.user.tenantID, filteredRequest);
       // Update timestamp
@@ -232,15 +232,15 @@ export default class SettingService {
               // and therefore must be decrypted as it will be automatically encrypted again in the next step
               if (_.has(setting.getModel(), property)) {
                 const valueInDb = _.get(setting.getModel(), property);
-                if (valueInDb && (valueInRequest === Cipher.hashString(valueInDb))) {
-                  _.set(filteredRequest, property, Cipher.decryptString(valueInDb));
+                if (valueInDb && (valueInRequest === Cypher.hash(valueInDb))) {
+                  _.set(filteredRequest, property, Cypher.decrypt(valueInDb));
                 }
               }
             }
           }
         });
         // Encrypt sensitive data before being saved to the db
-        Cipher.encryptJSON(filteredRequest);
+        Cypher.encryptSensitiveDataInJSON(filteredRequest);
       }
       // Update
       Database.updateSetting(filteredRequest, setting.getModel());

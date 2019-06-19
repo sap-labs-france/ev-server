@@ -1,6 +1,6 @@
 import Tenant from '../../entity/Tenant';
 import MigrationTask from '../MigrationTask';
-import Cipher from '../../utils/Cipher';
+import Cypher from '../../utils/Cypher';
 import Constants from '../../utils/Constants';
 import TSGlobal from '../../types/GlobalType';
 declare const global: TSGlobal;
@@ -34,7 +34,7 @@ export default class AddSensitiveDataInSettingsTask extends MigrationTask {
       // Encrypt clientSecret (Concur) or password (ConvergentCharging) if found
       if (setting.content.type === Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR) {
         if (setting.content.concur.clientSecret) {
-          setting.content.concur.clientSecret = Cipher.encryptString(setting.content.concur.clientSecret);
+          setting.content.concur.clientSecret = Cypher.encrypt(setting.content.concur.clientSecret);
         } else {
           setting.content.concur.clientSecret = '';
         }
@@ -46,7 +46,7 @@ export default class AddSensitiveDataInSettingsTask extends MigrationTask {
         // Encrypt password (Convergent Charing) if found
       } else if (setting.content.type === Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING) {
         if (setting.content.convergentCharging.password) {
-          setting.content.convergentCharging.password = Cipher.encryptString(setting.content.convergentCharging.password);
+          setting.content.convergentCharging.password = Cypher.encrypt(setting.content.convergentCharging.password);
         } else {
           setting.content.convergentCharging.password = '';
         }
