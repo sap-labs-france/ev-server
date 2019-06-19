@@ -19,6 +19,7 @@ import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStor
 import { filter } from 'bluebird';
 
 export default class SiteAreaService {
+  
   public static async handleCreateSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       // Check if organization component is active
