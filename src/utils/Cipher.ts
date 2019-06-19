@@ -63,13 +63,16 @@ export default class Cipher {
         throw new Error(`The parameter ${obj} passed is not an object`);
       }
       if ('sensitiveData' in obj) {
-        if (!Array.isArray(obj.sensitiveData)) { // sensitive data must be an array
+        // Check that sensitive data is an array
+        if (!Array.isArray(obj.sensitiveData)) {
           throw new Error(`The property sensitiveData of parameter ${obj} passed is not an array`);
         }
-        obj.sensitiveData.forEach((property: string) => { // sensitive data can have multiple values
-          if (_.has(obj, property)) { // If the property doesn't exist, skip it and go to the next property
+        obj.sensitiveData.forEach((property: string) => {
+          // Check that the property does exist otherwise skip to the next property
+          if (_.has(obj, property)) {
             const value = _.get(obj, property);
-            if (value && value.length > 0) { // if the value is undefined, null or empty then do nothing and go to the next property
+            // if the value is undefined, null or empty then do nothing and skip to the next property
+            if (value && value.length > 0) {
               _.set(obj, property, this.encryptString(value));
             }
           }
@@ -86,13 +89,16 @@ export default class Cipher {
         throw new Error(`The parameter ${obj} passed is not an object`);
       }
       if ('sensitiveData' in obj) {
-        if (!Array.isArray(obj.sensitiveData)) { // sensitive data must be an array
+        // Check that sensitive data is an array
+        if (!Array.isArray(obj.sensitiveData)) {
           throw new Error(`The property sensitiveData of parameter ${obj} passed is not an array`);
         }
-        obj.sensitiveData.forEach((property: string) => { // sensitive data can have multiple values
-          if (_.has(obj, property)) { // If the property doesn't exist, skip it and go to the next property
+        obj.sensitiveData.forEach((property: string) => {
+          // Check that the property does exist otherwise skip to the next property
+          if (_.has(obj, property)) {
             const value = _.get(obj, property);
-            if (value && value.length > 0) { // if the value is undefined, null or empty then do nothing and go to the next property
+            // if the value is undefined, null or empty then do nothing and skip to the next property
+            if (value && value.length > 0) {
               _.set(obj, property, this.decryptString(value));
             }
           }
@@ -109,13 +115,16 @@ export default class Cipher {
         throw new Error(`The parameter ${obj} passed is not an object`);
       }
       if ('sensitiveData' in obj) {
-        if (!Array.isArray(obj.sensitiveData)) { // sensitive data must be an array
+        // Check that sensitive data is an array
+        if (!Array.isArray(obj.sensitiveData)) {
           throw new Error(`The property sensitiveData of parameter ${obj} passed is not an array`);
         }
-        obj.sensitiveData.forEach((property: string) => { // sensitive data can have multiple values
-          if (_.has(obj, property)) { // If the property doesn't exist, skip it and go to the next property
+        obj.sensitiveData.forEach((property: string) => {
+          // Check that the property does exist otherwise skip to the next property
+          if (_.has(obj, property)) {
             const value = _.get(obj, property);
-            if (value && value.length > 0) { // if the value is undefined, null or empty then do nothing and go to the next property
+            // if the value is undefined, null or empty then do nothing and skip to the next property
+            if (value && value.length > 0) {
               _.set(obj, property, this.hashString(value));
             }
           }
