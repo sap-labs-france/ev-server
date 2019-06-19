@@ -70,7 +70,7 @@ export default class ContextProvider {
     // Check if tenant exist
     const tenantEntity = this.tenantEntities.find((tenant) => tenant.name === tenantContextDef.tenantName);
     expect(tenantEntity).to.not.be.empty;
-    
+
     // Create Central Server Service for admin user defined in config
     const defaultAdminCentralServiceService = new CentralServerService(tenantEntity.subdomain);
     let chargingStationList = null;
@@ -92,7 +92,7 @@ export default class ContextProvider {
     // Create tenant context
     const newTenantContext = new TenantContext(tenantContextDef.tenantName, tenantEntity, defaultAdminCentralServiceService, null);
     this.tenantsContexts.push(newTenantContext);
-    newTenantContext.addUsers(userList);//getContext().users = userList;
+    newTenantContext.addUsers(userList); // getContext().users = userList;
     newTenantContext.getContext().companies = companyList;
 
     if (tenantEntity.components && tenantEntity.components.hasOwnProperty(Constants.COMPONENTS.ORGANIZATION) &&
@@ -114,7 +114,7 @@ export default class ContextProvider {
     // Create list of unassigned charging station by creating a dummy site
     const siteContext = new SiteContext({id: 1, name: CONTEXT_CONSTANTS.SITE_CONTEXTS.NO_SITE}, newTenantContext);
     const emptySiteAreaContext = siteContext.addSiteArea({id: 1, name: CONTEXT_CONSTANTS.SITE_AREA_CONTEXTS.NO_SITE});
-    const chargingStations = chargingStationList.filter((chargingStation) => !chargingStation.hasOwnProperty('siteAreaID') || chargingStation.siteAreaID === null || chargingStation.siteAreaID === undefined);
+    const chargingStations = chargingStationList.filter((chargingStation) => !chargingStation.siteAreaID);
     for (const chargingStation of chargingStations) {
       emptySiteAreaContext.addChargingStation(chargingStation);
     }

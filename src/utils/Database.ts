@@ -362,7 +362,7 @@ export default class Database {
       dest.createdBy = src.createdBy;
       // User model?
       if (typeof dest.createdBy === "object" &&
-        dest.createdBy.constructor.name != "ObjectID") {
+        dest.createdBy.constructor.name !== "ObjectID") {
         // Yes
         dest.createdBy = {};
         Database.updateUser(src.createdBy, dest.createdBy);

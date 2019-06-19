@@ -78,7 +78,7 @@ export default abstract class ChargingStationClient {
         // Clear charging profiles
         case 'ClearChargingProfile':
           return this.clearChargingProfile(params);
-        // Change availibility
+        // Change availability
         case 'ChangeAvailability':
           return this.changeAvailability(params);
         // Get diagnostic

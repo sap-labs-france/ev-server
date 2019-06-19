@@ -389,4 +389,8 @@ export default class Utils {
         return 'Unknown';
     }
   }
+
+  static isUndefined(obj) {
+    return typeof obj === 'undefined';
+  }
 }
