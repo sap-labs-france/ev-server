@@ -142,7 +142,8 @@ export default class OCPPService {
       // Check if charger will be automatically assigned
       if (Configuration.getTestConfig() && Configuration.getTestConfig().automaticChargerAssignment) {
         // Get all the site areas
-        const siteAreas = await SiteAreaStorage.getSiteAreas(headers.tenantID, null, Constants.MAX_DB_RECORD_COUNT, 0, null); // TODO ??? params inferred arbitrarily, not sure which ones should be set to what. review.
+        // FIXME: Please reviews; withSite etc params have been inferred more or less arbitrarily. What is really needed?
+        const siteAreas = await SiteAreaStorage.getSiteAreas(headers.tenantID, null, Constants.MAX_DB_RECORD_COUNT, 0, null);
         // Assign them
         if (Array.isArray(siteAreas.result) && siteAreas.result.length > 0) {
           // Set

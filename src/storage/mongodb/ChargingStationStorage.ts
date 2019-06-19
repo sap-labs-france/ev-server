@@ -280,20 +280,6 @@ export default class ChargingStationStorage {
       });
     } else {
       // Always get the Site Area
-      /*siteAreaIdJoin = [{
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, "siteareas"),
-          localField: "siteAreaID",
-          foreignField: "_id",
-          as: "siteArea"
-        }
-      },
-      {
-        $unwind: {
-          "path": "$siteArea",
-          "preserveNullAndEmptyArrays": true
-        }
-      }];*/
       let siteAreaIdJoin = [];
       // With Site Area, TODO make sure this works
       DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, siteAreaIdJoin, 'siteAreaID', '_id', 'siteArea', [ 'siteAreaID', 'chargePointSerialNumber', 'chargePointModel', 'chargeBoxSerialNumber', 'chargePointVendor', 'iccid', 'imsi', 'meterType', 'firmwareVersion',

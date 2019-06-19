@@ -19,7 +19,7 @@ import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStor
 import { filter } from 'bluebird';
 
 export default class SiteAreaService {
-  
+
   public static async handleCreateSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       // Check if organization component is active
@@ -258,21 +258,11 @@ export default class SiteAreaService {
 
       siteArea.lastChangedBy = new User(req.user.tenantID, {'id': req.user.id});
       siteArea.lastChangedOn = new Date();
-      //if(filteredRequest.image) {
-        siteArea.image = filteredRequest.image;
-      //}
-      //if(filteredRequest.maximumPower) {
-        siteArea.maximumPower = filteredRequest.maximumPower;
-      //}
-      //if(filteredRequest.name) {
-        siteArea.name = filteredRequest.name;
-      //}
-      //if(filteredRequest.address) {
-        siteArea.address = filteredRequest.address;
-      //}
-      //if(filteredRequest.accessControl) {
-        siteArea.accessControl = filteredRequest.accessControl;
-      //}
+      siteArea.image = filteredRequest.image;
+      siteArea.maximumPower = filteredRequest.maximumPower;
+      siteArea.name = filteredRequest.name;
+      siteArea.address = filteredRequest.address;
+      siteArea.accessControl = filteredRequest.accessControl;
       siteArea.siteID = filteredRequest.siteID;
 
       // Update Site Area

@@ -3,7 +3,7 @@ import Authorizations from '../../../../authorization/Authorizations';
 import UtilsSecurity from './UtilsSecurity';
 import ChargingStationSecurity from './ChargingStationSecurity';
 import SiteSecurity from './SiteSecurity';
-import ByID from '../../../../types/requests/ByID';
+import ByID from '../../../../types/requests/RequestByID';
 import { HttpSiteAreaSearchRequest, HttpSiteAreasSearchRequest } from '../../../../types/requests/SiteAreaSearch';
 import BadRequestError from '../../../../exception/BadRequestError';
 import { HttpSiteAreaUpdateRequest, HttpSiteAreaCreateRequest } from '../../../../types/requests/SiteAreaData';

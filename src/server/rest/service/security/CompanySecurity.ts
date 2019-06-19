@@ -4,7 +4,7 @@ import UtilsSecurity from './UtilsSecurity';
 import SiteSecurity from './SiteSecurity';
 import User from '../../../../entity/User';
 import Company from '../../../../types/Company';
-import ByID from '../../../../types/requests/ByID';
+import ByID from '../../../../types/requests/RequestByID';
 import CompanyData from '../../../../types/requests/CompanyData';
 import { FilteredCompanySearch } from '../../../../types/requests/CompanySearch';
 import BadRequestError from '../../../../exception/BadRequestError';

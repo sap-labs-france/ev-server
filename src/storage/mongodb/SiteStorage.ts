@@ -251,48 +251,6 @@ export default class SiteStorage {
 
     if (params.withAvailableChargers) {
       DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, aggregation, '_id', 'siteID', 'siteAreas', ['address', 'allowUsersToStopTransaction, autoUserSiteAssignement', 'companyID', 'name']);
-      // aggregation.push({
-      //   $lookup: {
-      //     from: DatabaseUtils.getCollectionName(tenantID, "siteareas"),
-      //     localField: "_id",
-      //     foreignField: "siteID",
-      //     as: "siteAreas"
-      //   }
-      // },
-      // {
-      //   $project: Utils.mongoIncludeCreatedProps({
-      //     address: 1,
-      //     allowUsersToStopTransactions: 1,
-      //     autoUserSiteAssignment: 1,
-      //     companyID: 1,
-      //     name: 1,
-      //     siteAreas: Utils.mongoIncludeCreatedProps({
-      //       id: '$siteAreas._id',
-      //       name: 1,
-      //       maximumPower: 1,
-      //       address: 1,
-      //       image: 1,
-      //       siteID: 1,
-      //       accessControl: 1,
-      //     })
-      //   })
-      // },
-      // {$unwind: '$siteAreas'});
-      // DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation, 'siteAreas');
-      // aggregation.push({
-      //   $group: {
-      //     _id: '$_id',
-      //     address: {$first: '$address'},
-      //     allowAllUsersToStopTransactions: {$first: '$allowAllUsersToStopTransactions'},
-      //     autoUserSiteAssignment: {$first: '$autoUserSiteAssignment'},
-      //     companyID: {$first: '$companyID'},
-      //     createdBy: {$first: '$createdBy'},
-      //     createdOn: {$first: '$createdOn'},
-      //     lastChangedBy: {$first: '$lastChangedBy'},
-      //     name: {$first: '$name'},
-      //     siteAreas: {$push: '$siteAreas'}
-      //   }
-      // });
     }
     // Add Chargers
     if (params.withAvailableChargers) {
