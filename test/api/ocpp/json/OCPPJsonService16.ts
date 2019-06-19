@@ -147,7 +147,7 @@ export default class OCPPJsonService16 extends OCPPService {
     );
   }
 
-  private async _send(chargeBoxIdentity, message) {
+  private async _send(chargeBoxIdentity, message): Promise<any> {
     // WS Opened?
     if (!this._wsSessions.get(chargeBoxIdentity)) {
       // Open WS

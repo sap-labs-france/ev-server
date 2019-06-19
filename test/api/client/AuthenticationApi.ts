@@ -18,7 +18,7 @@ export default class AuthenticationApi {
     if (acceptEula) {
       data.acceptEula = acceptEula;
     }
-    if (tenant) {
+    if (tenant != null) {
       data.tenant = tenant;
     }
     // Send

@@ -325,14 +325,14 @@ export default class ChargingStation extends TenantHolder {
   }
 
   getConnector(identifier) {
-    if (identifier !== undefined && this._model.connectors) {
+    if (identifier && this._model.connectors) {
       for (const connector of this._model.connectors) {
         if (connector && connector.connectorId === identifier) {
           return connector;
         }
       }
     }
-    return undefined;
+    return null;
   }
 
   setConnectors(connectors) {

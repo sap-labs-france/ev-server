@@ -399,5 +399,10 @@ export default class Utils {
         errorMsg, 550,
         module, method, userToken);
     }
+  
+  }
+  
+  static isUndefined(obj) {
+    return typeof obj === 'undefined';
   }
 }

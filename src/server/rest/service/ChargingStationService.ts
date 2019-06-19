@@ -708,7 +708,7 @@ export default class ChargingStationService {
         result = await chargingStation.handleAction(action, filteredRequest.args);
       } else if (action === 'RemoteStartTransaction') {
         // Check Tag ID
-        if (!filteredRequest.args || !filteredRequest.args.tagID || filteredRequest.args.tagID === "undefined") {
+        if (!filteredRequest.args || !filteredRequest.args.tagID) {
           throw new AppError(
             Constants.CENTRAL_SERVER,
             `The user does not have any badge`, 580,

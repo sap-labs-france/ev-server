@@ -30,7 +30,7 @@ class TestData {
 let testData: TestData;
 
 describe('Transaction tests', function() {
-  this.timeout(1000000);
+  this.timeout(10000);
   before(async () => {
     testData = new TestData();
     await testData.init();
@@ -837,7 +837,7 @@ describe('Transaction tests', function() {
 
   it('inactivity should be computed', async () => {
     const user = await testData.dataHelper16.createUser();
-    
+
     const company = await testData.dataHelper16.createCompany();
     const site = await testData.dataHelper16.createSite(company, [user]);
     const chargingStation = await testData.dataHelper16.createChargingStation();
