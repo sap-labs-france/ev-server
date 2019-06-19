@@ -271,7 +271,8 @@ export default class Authorizations {
         return;
       }
       // Site -----------------------------------------------------
-      site = siteArea.site ? siteArea.site : (siteArea.siteID ? await SiteStorage.getSite(chargingStation.getTenantID(), siteArea.siteID) : null); // TODO consider changing structure of CS->SA-S entirely...
+      // TODO consider changing structure of CS->SA->S entirely; It's a little inconvenient that sometimes CS includes SA with includes S, which can also include SA, but not always
+      site = siteArea.site ? siteArea.site : (siteArea.siteID ? await SiteStorage.getSite(chargingStation.getTenantID(), siteArea.siteID) : null); 
 
       if (!site) {
         // Reject Site Not Found
