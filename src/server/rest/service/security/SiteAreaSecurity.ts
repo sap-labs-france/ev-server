@@ -45,11 +45,6 @@ export default class SiteAreaSecurity {
         560, 'SiteAreaService', 'handleGetSiteAreas',
         userToken);
     }
-    
-    //Throw error if arguments missing
-    if(! request.Search || ! request.SiteID) {
-      throw new BadRequestError({message: 'SiteID and Search are required for all SiteAreas related requests'});
-    }
 
     //Filter request
     const filteredRequest: HttpSiteAreasSearchRequest = {} as HttpSiteAreasSearchRequest;
@@ -108,6 +103,7 @@ export default class SiteAreaSecurity {
     filteredRequest.image = sanitize(request.image);
     filteredRequest.maximumPower = sanitize(request.maximumPower);
     filteredRequest.accessControl = UtilsSecurity.filterBoolean(request.accessControl);
+    filteredRequest.chargeBoxIDs = request.chargeBoxIDs?sanitize(request.chargeBoxIDs):[];
     
     // Check if siteID exists, if not throw error
     if(! request.siteID) {

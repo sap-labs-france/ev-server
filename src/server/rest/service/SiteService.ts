@@ -10,6 +10,7 @@ import SiteSecurity from './security/SiteSecurity';
 import UtilsService from './UtilsService';
 import OrganizationComponentInactiveError from '../../../exception/OrganizationComponentInactiveError';
 import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
+import SiteStorage from '../../../storage/mongodb/SiteStorage';
 
 export default class SiteService {
   static async handleAddUsersToSite(action, req, res, next) {
@@ -219,7 +220,7 @@ export default class SiteService {
           req.user);
       }
       // Delete
-      await site.delete();
+      await SiteStorage.deleteSite(req.user.tenantID, site.getID());//site.delete();
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,

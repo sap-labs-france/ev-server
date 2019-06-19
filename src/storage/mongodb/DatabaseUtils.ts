@@ -139,14 +139,14 @@ export default class DatabaseUtils {
     }};
     let project = {$project: {...topRenames}};
     let group = {$group: {_id: '$_id'}};
-    for(const top in topIncludes) {
+    for(const top of topIncludes) {
       project.$project[top] = 1;
       group.$group[top] = {$first: `$${top}`};
     }
     group.$group[intoField] = {$push: `$${intoField}`};
     project.$project[intoField] = {...nestedRenames};
     project.$project[intoField].id = `$${intoField}._id`;
-    for(const nes in nestedIncludes) {
+    for(const nes of nestedIncludes) {
       project.$project[intoField][nes] = 1;
     }
     //Need to group, push users, then project to remove id

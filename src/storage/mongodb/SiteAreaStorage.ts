@@ -67,13 +67,13 @@ export default class SiteAreaStorage {
 
     const mongoSiteArea: any = {
       _id: siteAreaFilter._id,
-      createdBy: Utils.convertToObjectID(siteAreaToSave.createdBy.getID()),
+      createdBy: Utils.convertToObjectID(siteAreaToSave.createdBy.id?siteAreaToSave.createdBy.id:siteAreaToSave.createdBy.getID()), //TODO convert user properly
       createdOn: siteAreaToSave.createdOn,
       name: siteAreaToSave.name,
       siteID: Utils.convertToObjectID(siteAreaToSave.siteID)
     }
     if(siteAreaToSave.lastChangedBy && siteAreaToSave.lastChangedOn) {
-      mongoSiteArea.lastChangedBy = Utils.convertToObjectID(siteAreaToSave.lastChangedBy.getID());
+      mongoSiteArea.lastChangedBy = Utils.convertToObjectID(siteAreaToSave.lastChangedBy.id?siteAreaToSave.lastChangedBy.id:siteAreaToSave.lastChangedBy.getID());//TODO change w/ user
       mongoSiteArea.lastChangedOn = siteAreaToSave.lastChangedOn;
     }
     if(siteAreaToSave.address) {
@@ -291,8 +291,6 @@ export default class SiteAreaStorage {
     const incompleteSiteAreas = await global.database.getCollection<Omit<SiteArea, 'chargingStations'|'site'>&{chargingStations:any, site:any}>(tenantID, 'siteareas')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
-
-    //console.log(incompleteSiteAreas);
 
     const siteAreas: SiteArea[] = [];
     // Check

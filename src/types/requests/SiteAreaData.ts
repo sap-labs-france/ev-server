@@ -7,6 +7,7 @@ export interface HttpSiteAreaCreateRequest {
     maximumPower: number;
     accessControl: boolean;
     siteID: string;
+    chargeBoxIDs: string[];
 }
 
 export interface HttpSiteAreaUpdateRequest extends Partial<HttpSiteAreaCreateRequest> {

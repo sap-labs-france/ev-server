@@ -415,6 +415,7 @@ export default class ChargingStationService {
       }
       // Get it
       const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.ID);
+
       // Found?
       if (!chargingStation) {
         // Not Found!

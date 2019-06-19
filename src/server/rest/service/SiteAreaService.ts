@@ -15,6 +15,8 @@ import { Request, Response, NextFunction } from 'express';
 import Utils from '../../../utils/Utils';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import { filter } from 'bluebird';
 
 export default class SiteAreaService {
   public static async handleCreateSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -47,6 +49,8 @@ export default class SiteAreaService {
         chargingStations: [],
         ...idlessSiteArea
       };
+
+      await ChargingStationStorage.addChargingStationsToSiteArea(req.user.tenantID, siteArea.id, filteredRequest.chargeBoxIDs);
 
       // Ok
       Logging.logSecurityInfo({
@@ -95,7 +99,6 @@ export default class SiteAreaService {
       res.json(siteAreas);
       next();
     } catch (error) {
-      console.log(error);
       // Log
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
@@ -118,7 +121,7 @@ export default class SiteAreaService {
       const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, searchId, false, false, false);
 
       // Found?
-      Utils.assertObjectExists(!searchId, 'Site Area not found.', 'SiteAreaService', 'handleDeleteSiteArea', req.user);
+      Utils.assertObjectExists(siteArea, 'Site Area not found.', 'SiteAreaService', 'handleDeleteSiteArea', req.user);
 
       // Check auth
       if (!Authorizations.canDeleteSiteArea(req.user, siteArea)) {
@@ -186,7 +189,6 @@ export default class SiteAreaService {
       );
       next();
     } catch (error) {
-      console.log(error);
       // Log
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }

@@ -16,6 +16,7 @@ import TenantStorage from '../storage/mongodb/TenantStorage';
 import SourceMap from 'source-map-support';
 import Company from '../types/Company';
 import SiteArea from '../types/SiteArea';
+import SiteStorage from '../storage/mongodb/SiteStorage';
 SourceMap.install();
 
 export default class Authorizations {
@@ -263,13 +264,15 @@ export default class Authorizations {
           `Charging Station '${chargingStation.getID()}' is not assigned to a Site Area!`, 525,
           "Authorizations", "_checkAndGetUserOnChargingStation");
       }
+
       // Access Control Enabled?
       if (!siteArea.accessControl) {
         // No control
         return;
       }
       // Site -----------------------------------------------------
-      site = siteArea.site;
+      site = siteArea.site ? siteArea.site : (siteArea.siteID ? await SiteStorage.getSite(chargingStation.getTenantID(), siteArea.siteID) : null); // TODO consider changing structure of CS->SA-S entirely...
+
       if (!site) {
         // Reject Site Not Found
         throw new AppError(

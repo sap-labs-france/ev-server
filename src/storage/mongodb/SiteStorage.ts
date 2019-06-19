@@ -16,19 +16,17 @@ declare const global: TSGlobal;
 
 export default class SiteStorage {
 
-  static async getSite(tenantID, id) {
+  public static async getSite(tenantID, id): Promise<Site> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getSite');
 
     const sitesMDB = await SiteStorage.getSites(tenantID, {search: id}, 1, 0, null);
-    let site = null;
     if (sitesMDB && sitesMDB.count > 0) {
-      site = new Site(tenantID, sitesMDB[0]);
-      site.setSiteAreas(sitesMDB[0].siteAreas);
+      sitesMDB.result[0].setSiteAreas((sitesMDB.result[0] as any).siteAreas);
     }
     // Debug
     Logging.traceEnd('SiteStorage', 'getSite', uniqueTimerID, { id });
-    return site;
+    return sitesMDB.result[0];
   }
 
   static async getSiteImage(tenantID, id) {

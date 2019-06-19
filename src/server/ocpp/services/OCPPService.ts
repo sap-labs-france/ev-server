@@ -158,6 +158,7 @@ export default class OCPPService {
         'heartbeatInterval': this.chargingStationConfig.heartbeatIntervalSecs
       };
     } catch (error) {
+
       // Set the source
       error.source = headers.chargeBoxIdentity;
       // Log error

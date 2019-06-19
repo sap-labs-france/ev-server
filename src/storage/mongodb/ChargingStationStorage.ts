@@ -31,11 +31,14 @@ export default class ChargingStationStorage {
     DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, aggregation, 'siteAreaID', '_id', 'siteArea', [ 'siteAreaID', 'chargePointSerialNumber', 'chargePointModel', 'chargeBoxSerialNumber', 'chargePointVendor', 'iccid', 'imsi', 'meterType', 'firmwareVersion',
     'meterSerialNumber', 'endpoint', 'ocppVersion', 'ocppProtocol', 'lastHeartBeat', 'deleted', 'lastReboot', 'chargingStationURL', 'connectors', 'firmwareVersion', 'maximumPower', 'latitude', 'longitude', 'powerLimitUnit', 'cannotChargeInParallel', 'numberOfConnectedPhase', 'cfApplicationIDAndInstanceIndex']);
 
+    aggregation.push({$unwind: {path: '$siteArea', preserveNullAndEmptyArrays: true}});
+
     // Read DB
     const chargingStationMDB = await global.database.getCollection<any>(tenantID, 'chargingstations')
       .aggregate(aggregation)
       .limit(1)
       .toArray();
+
     let chargingStation: ChargingStation = null;
     // Found
     if (chargingStationMDB && chargingStationMDB.length > 0) {
@@ -46,6 +49,7 @@ export default class ChargingStationStorage {
         chargingStation.setSiteArea(chargingStationMDB[0].siteArea);
       }
     }
+
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'getChargingStation', uniqueTimerID);
     return chargingStation;
