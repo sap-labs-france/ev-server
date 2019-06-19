@@ -207,8 +207,8 @@ export default class SettingService {
       }
       // Process the sensitive data if any
       // Preprocess the data to take care of updated values
-      if(filteredRequest.sensitiveData){
-        if(!Array.isArray(filteredRequest.sensitiveData)) {
+      if (filteredRequest.sensitiveData) {
+        if (!Array.isArray(filteredRequest.sensitiveData)) {
           throw new AppError(
             Constants.CENTRAL_SERVER,
             `The property sensitiveData for Setting with ID '${filteredRequest.id}' is not an array`, 550,
@@ -219,20 +219,20 @@ export default class SettingService {
           // Otherwise skip to the next property (the dashboard is the version of truth which means
           // that the property will also be deleted if existing in the db)
           // Needs to be validated
-          if(_.has(filteredRequest,property)) {
+          if (_.has(filteredRequest, property)) {
             const valueInRequest = _.get(filteredRequest, property);
             // Check that the property has a value in the JSON coming from the dashboard
             // Otherwise skip to the next property (the dashboard is the version of truth which means
             // that the value will also be deleted if existing in the db)
             // Needs to be validated
-            if(valueInRequest && valueInRequest.length > 0) {
+            if (valueInRequest && valueInRequest.length > 0) {
               // Check that the same property does exist in the db and has a value
               // If not, the dashboard is the version of truth and therefore the db will be updated with the dashboard's JSON
               // If yes, then compare the db value (hashed) to the dashboard value; if they are equal then the value has not been changed
               // and therefore must be decrypted as it will be automatically encrypted again in the next step
-              if(_.has(setting.getModel(),property)) {
+              if (_.has(setting.getModel(), property)) {
                 const valueInDb = _.get(setting.getModel(), property);
-                if(valueInDb && (valueInRequest === Cipher.hashString(valueInDb))) {
+                if (valueInDb && (valueInRequest === Cipher.hashString(valueInDb))) {
                   _.set(filteredRequest, property, Cipher.decryptString(valueInDb));
                 }
               }
