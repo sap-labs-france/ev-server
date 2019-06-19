@@ -12,6 +12,8 @@ import path from 'path';
 import Logging from './Logging';
 import Tenant from '../entity/Tenant';
 import SourceMap from 'source-map-support';
+import _ from 'lodash';
+
 // import User from '../entity/User';
 SourceMap.install();
 
@@ -85,12 +87,12 @@ export default class Utils {
   }
 
   static async normalizeAndCheckSOAPParams(headers, req) {
-    // ChargeBox Identity
+    // Normalize
     Utils._normalizeOneSOAPParam(headers, 'chargeBoxIdentity');
-    // Action
     Utils._normalizeOneSOAPParam(headers, 'Action');
-    // To
     Utils._normalizeOneSOAPParam(headers, 'To');
+    Utils._normalizeOneSOAPParam(headers, 'From.Address');
+    Utils._normalizeOneSOAPParam(headers, 'ReplyTo.Address');
     // Parse the request
     const urlParts = url.parse(req.url, true);
     const tenantID = urlParts.query.TenantID;
@@ -101,10 +103,9 @@ export default class Utils {
   }
 
   static _normalizeOneSOAPParam(headers, name) {
-    // Object?
-    if (typeof headers[name] === 'object' && headers[name].$value) {
-      // Yes: Set header
-      headers[name] = headers[name].$value;
+    const val = _.get(headers, name);
+    if (val && val.$value) {
+      _.set(headers, name, val.$value);
     }
   }
 
