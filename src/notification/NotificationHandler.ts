@@ -56,7 +56,7 @@ export default class NotificationHandler {
         tenantID: tenantID,
         source: (chargingStation ? chargingStation.id : null),
         module: "Notification", method: "saveNotification",
-        action: sourceDescr, message: `Admin users is being notified`
+        action: sourceDescr, message: `Admin users are being notified`
       });
     }
   }
