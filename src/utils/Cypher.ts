@@ -4,8 +4,7 @@ import BackendError from '../exception/BackendError';
 import _ from 'lodash';
 import Constants from './Constants';
 
-
-let _configuration = Configuration.getCryptoConfig();
+const _configuration = Configuration.getCryptoConfig();
 const IV_LENGTH = 16;
 
 export default class Cypher {

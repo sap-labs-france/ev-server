@@ -5,8 +5,6 @@ import Constants from '../../utils/Constants';
 import TSGlobal from '../../types/GlobalType';
 declare const global: TSGlobal;
 
-
-
 export default class AddSensitiveDataInSettingsTask extends MigrationTask {
   public async migrate() {
     const tenants = await Tenant.getTenants();
@@ -18,44 +16,41 @@ export default class AddSensitiveDataInSettingsTask extends MigrationTask {
 
   public async migrateTenant(tenant) {
     // Read all Settings
-    const settings: any = await global.database.getCollection(tenant.getID(), 'settings').aggregate([]).toArray();
+    const settings: any = await global.database.getCollection(tenant.getID(), 'settings')
+      .aggregate([{
+        $match: {
+          "sensitiveData": { $exists: false }
+        }
+      }])
+      .toArray();
     // Process each setting
     for (const setting of settings) {
       // Add sensitiveData property if not present
-      if (!setting.sensitiveData) {
-        setting.sensitiveData = [];
-      }
-      // Fill sensitiveData property
+      setting.sensitiveData = [];
+      // Concur
       if (setting.content.type === Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR) {
         setting.sensitiveData = ['content.concur.clientSecret'];
-      } else if (setting.content.type === Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING) {
-        setting.sensitiveData = ['content.convergentCharging.password'];
-      }
-      // Encrypt clientSecret (Concur) or password (ConvergentCharging) if found
-      if (setting.content.type === Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR) {
+        // Encrypt
         if (setting.content.concur.clientSecret) {
           setting.content.concur.clientSecret = Cypher.encrypt(setting.content.concur.clientSecret);
         } else {
           setting.content.concur.clientSecret = '';
         }
-        await global.database.getCollection(tenant.getID(), 'settings').findOneAndUpdate({
-          "_id": setting._id
-        }, {
-          $set: setting
-        }, { upsert: true, /*new: true,*/ returnOriginal: false });
-        // Encrypt password (Convergent Charing) if found
+      // Convergent Charging
       } else if (setting.content.type === Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING) {
+        setting.sensitiveData = ['content.convergentCharging.password'];
         if (setting.content.convergentCharging.password) {
           setting.content.convergentCharging.password = Cypher.encrypt(setting.content.convergentCharging.password);
         } else {
           setting.content.convergentCharging.password = '';
         }
-        await global.database.getCollection(tenant.getID(), 'settings').findOneAndUpdate({
-          "_id": setting._id
-        }, {
-          $set: setting
-        }, { upsert: true, /*new: true,*/ returnOriginal: false });
       }
+      // Update
+      await global.database.getCollection(tenant.getID(), 'settings').findOneAndUpdate(
+        { "_id": setting._id },
+        { $set: setting },
+        { upsert: true, returnOriginal: false }
+      );
     }
   }
 
@@ -67,4 +62,3 @@ export default class AddSensitiveDataInSettingsTask extends MigrationTask {
     return "AddSensitiveDataInSettings";
   }
 }
-
