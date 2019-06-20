@@ -1,10 +1,13 @@
+
 const path = require('path');
+import TSGlobal from '../../src/types/GlobalType';
+declare const global: TSGlobal;
 global.appRoot = path.resolve(__dirname, '../../src');
-const chai = require('chai');
-const {expect} = require('chai');
-const chaiSubset = require('chai-subset');
-chai.use(chaiSubset);
-const ContextBuilder = require('./ContextProvider/ContextBuilder');
+import chai from 'chai';
+import {expect} from 'chai';
+import ContextBuilder from './ContextProvider/ContextBuilder';
+import CentralServerService from './client/CentralServerService';
+import Factory from '../factories/Factory';
 
 // For Visual Studio it is recommended to install Mocha sidebar and Chai snippets
 // Mocha is the test framework and chai provides functions to check expectations
@@ -17,7 +20,8 @@ describe('Unit test Context Builder', function() {
     // Used to create data before teh whole test chain is started
     // To simplify you can use the ContextBuilder to get a tenant and some preloaded entities
     // To be used with care as more than 20 tenants!!!
-    await ContextBuilder.prepareContexts();
+    const contextbuilder = new ContextBuilder();
+    await contextbuilder.prepareContexts();
     // this.tenantContext = await ContextBuilder.getTenantContext(TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS, SITE_CONTEXTS.SITE_BASIC)
     // It will build all tenants except if you provide input arguments to limit to some contexts only. 
     // if you want to limit tom some context only

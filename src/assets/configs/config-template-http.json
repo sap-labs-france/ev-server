@@ -1,4 +1,8 @@
-{
+{	
+	"Crypto": {
+		"key": "",
+		"algorithm": "aes-256-ctr"
+	},
 	"Cluster": {
 		"enabled": false,
 		"numWorkers": 2

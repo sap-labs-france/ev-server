@@ -1,6 +1,7 @@
 import chai from 'chai';
 import {expect} from 'chai';
 import chaiSubset from 'chai-subset';
+chai.use(require('chai-datetime'));
 chai.use(chaiSubset);
 import moment from 'moment';
 import faker from 'faker';
@@ -153,7 +154,7 @@ describe('OCPP Validation tests', function() {
 
   it('Should be possible to stop a transaction without transactionData', async () => {
     const transacId = await testData.dataHelper.startTransaction(testData.defaultChargingStation, testData.defaultConnectorId, testData.numberTag, testData.defaultMeterStart, moment());
-    await testData.dataHelper.stopTransaction(testData.defaultChargingStation, transacId, testData.numberTag, faker.random.number(100000), moment(), {});
+    await testData.dataHelper.stopTransaction(testData.defaultChargingStation, transacId, testData.numberTag, faker.random.number(100000), moment(), []);
 
     const transacId15 = await testData.dataHelper15.startTransaction(testData.defaultChargingStation15, testData.defaultConnectorId, testData.numberTag, testData.defaultMeterStart, moment());
     await testData.dataHelper15.stopTransaction(testData.defaultChargingStation15, transacId15, testData.numberTag, faker.random.number(100000), moment(), {});
@@ -305,7 +306,7 @@ describe('OCPP Validation tests', function() {
 
     await testData.dataHelper.stopTransaction(testData.defaultChargingStation, transacId, testData.numberTag, stopValue, stopDate, transacData15,  'Invalid');
 
-    await testData.dataHelper.stopTransaction(testData.defaultChargingStation, transacId, testData.numberTag, stopValue, stopDate, {});
+    await testData.dataHelper.stopTransaction(testData.defaultChargingStation, transacId, testData.numberTag, stopValue, stopDate, []);
 
     const transacId15 = await testData.dataHelper15.startTransaction(testData.defaultChargingStation15, testData.defaultConnectorId, testData.numberTag, testData.defaultMeterStart, startDate15);
 

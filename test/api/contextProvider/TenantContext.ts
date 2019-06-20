@@ -1,18 +1,25 @@
-const faker = require('faker');
-const Factory = require('../../factories/Factory');
-const config = require('../../config');
-const OCPPJsonService16 = require('../ocpp/json/OCPPJsonService16');
-const OCPPJsonService15 = require('../ocpp/soap/OCPPSoapService15');
-const SiteContext = require('./SiteContext');
-const SiteAreaContext = require('./SiteAreaContext');
-const ChargingStationContext = require('./ChargingStationContext');
-const CentralServerService = require('../client/CentralServerService');
+import faker from 'faker';
+import Factory from '../../factories/Factory';
+import config from '../../config';
+import OCPPJsonService16 from '../ocpp/json/OCPPJsonService16';
+import OCPPJsonService15 from '../ocpp/soap/OCPPSoapService15';
+import SiteContext from './SiteContext';
+import SiteAreaContext from './SiteAreaContext';
+import ChargingStationContext from './ChargingStationContext';
+import CentralServerService from '../client/CentralServerService';
 const {
   TENANT_USER_LIST,
   SITE_AREA_CONTEXTS
 } = require('./ContextConstants');
 
-class TenantContext {
+export default class TenantContext {
+
+  private tenantName: string;
+  private tenant: any;
+  private centralAdminServerService: CentralServerService;
+  private ocpp16: OCPPJsonService16;
+  private ocpp15: OCPPJsonService15;
+  private context: any;
 
   constructor(tenantName, tenant, centralService, ocppRequestHandler) {
     this.tenantName = tenantName;
@@ -185,7 +192,7 @@ class TenantContext {
     userIDs: users.map(user => user.id)
   }), loggedUser = null) {
     const siteContext = new SiteContext(site.name, this);
-    const createdSite = await this.centralAdminServerService.createEntity(this.centralAdminServerService.companySite, site);
+    const createdSite = await this.centralAdminServerService.createEntity(this.centralAdminServerService.siteApi, site);
     siteContext.setSite(createdSite);
     this.context.siteContexts.push(siteContext);
     return siteContext;
@@ -201,7 +208,7 @@ class TenantContext {
 
   async createChargingStation(ocppVersion, chargingStation = Factory.chargingStation.build({
     id: faker.random.alphaNumeric(12)
-  }), connectorsDef = null) {
+  }), connectorsDef = null, siteArea = null) {
     const response = await this.getOCPPService(ocppVersion).executeBootNotification(
       chargingStation.id, chargingStation);
     const createdChargingStation = await this.getAdminCentralServerService().getEntityById(
@@ -220,9 +227,9 @@ class TenantContext {
     for (const connector of createdChargingStation.connectors) {
       const responseNotif = await this.getOCPPService(ocppVersion).executeStatusNotification(createdChargingStation.id, connector);
     }
-    if (this.siteArea) {
+    if (siteArea) {
       //assign to Site Area
-      createdChargingStation.siteArea = this.siteArea;
+      createdChargingStation.siteArea = siteArea;
       await this.getAdminCentralServerService().updateEntity(
         this.getAdminCentralServerService().chargingStationApi, createdChargingStation);
     }
@@ -248,4 +255,4 @@ class TenantContext {
 
 }
 
-module.exports = TenantContext;
+// module.exports = TenantContext;

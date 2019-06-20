@@ -203,13 +203,13 @@ describe('OCPI Service Tests', function () {
           for (const location of locations) {
             // validate location
             testData.ocpiService.validateLocationEntity(location);
-            // validLocationsAndSubEntities = validLocationsAndSubEntities 
+            // validLocationsAndSubEntities = validLocationsAndSubEntities
 
             // loop through evse
             for (const evse of location.evses) {
               // validate evse
               testData.ocpiService.validateEvseEntity(evse);
-              // validLocationsAndSubEntities = validLocationsAndSubEntities && 
+              // validLocationsAndSubEntities = validLocationsAndSubEntities &&
 
               // loop through connectors
               for (const connector of evse.connectors) {
@@ -230,7 +230,7 @@ describe('OCPI Service Tests', function () {
     describe('Access with paging', () => {
       // check access for each location
       it('should access url /ocpi/cpo/2.1.1/locations/ and have headers X-Limit and X-Total-Count', async () => {
-        // Call 
+        // Call
         const response = await testData.ocpiService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/?offset=0&limit=20');
 
         expect(response.data).to.not.be.empty;
@@ -243,7 +243,7 @@ describe('OCPI Service Tests', function () {
 
       // check access for each location
       it('should access url with paging /ocpi/cpo/2.1.1/locations/?offset=0&limit=20', async () => {
-        // Call 
+        // Call
         const response = await testData.ocpiService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/?offset=0&limit=20');
 
         expect(response.data).to.not.be.empty;
@@ -254,7 +254,7 @@ describe('OCPI Service Tests', function () {
 
       // check limit
       it('should access url with paging /ocpi/cpo/2.1.1/locations/?offset=0&limit=1', async () => {
-        // Call 
+        // Call
         const response = await testData.ocpiService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/?offset=0&limit=1');
 
         expect(response.data).to.not.be.empty;
@@ -270,7 +270,7 @@ describe('OCPI Service Tests', function () {
   });
 
   /**
-   * Test single access to location/evse/connector: 
+   * Test single access to location/evse/connector:
    *    - /ocpi/cpo/2.1.1/locations/{locationId}
    *    - /ocpi/cpo/2.1.1/locations/{locationId}/{evseUid}
    *    - /ocpi/cpo/2.1.1/locations/{locationId}/{evseId}/{connectorId}
@@ -294,7 +294,7 @@ describe('OCPI Service Tests', function () {
       // check access for each location
       it('should access single location entity /ocpi/cpo/2.1.1/locations/{locationId}', async () => {
         for (const location of response.data.data) {
-          // Call 
+          // Call
           const locationResponse = await testData.ocpiService.accessPath('GET', `/ocpi/cpo/2.1.1/locations/${location.id}`);
           // Check status
           expect(locationResponse.status).to.be.eql(200);
@@ -306,7 +306,7 @@ describe('OCPI Service Tests', function () {
       it('should access single EVSE entity /ocpi/cpo/2.1.1/locations/{locationId}/{evseUid}', async () => {
         for (const location of response.data.data) {
           for (const evse of location.evses) {
-            // Call 
+            // Call
             const evseResponse = await testData.ocpiService.accessPath('GET', `/ocpi/cpo/2.1.1/locations/${location.id}/${evse.uid}`);
             // Check status
             expect(evseResponse.status).to.be.eql(200);
@@ -320,7 +320,7 @@ describe('OCPI Service Tests', function () {
         for (const location of response.data.data) {
           for (const evse of location.evses) {
             for (const connector of evse.connectors) {
-              // Call 
+              // Call
               const connectorResponse = await testData.ocpiService.accessPath('GET', `/ocpi/cpo/2.1.1/locations/${location.id}/${evse.uid}/${connector.id}`);
               // Check status
               expect(connectorResponse.status).to.be.eql(200);
@@ -371,7 +371,7 @@ describe('OCPI Service Tests', function () {
   });
 
   /**
- * Test single access to location/evse/connector: 
+ * Test single access to location/evse/connector:
  *    - /ocpi/cpo/2.1.1/locations/{locationId}
  *    - /ocpi/cpo/2.1.1/locations/{locationId}/{evseUid}
  *    - /ocpi/cpo/2.1.1/locations/{locationId}/{evseId}/{connectorId}

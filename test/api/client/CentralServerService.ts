@@ -21,7 +21,7 @@ import OCPIEndpointApi from './OCPIEndpointApi';
 chai.use(chaiSubset);
 
 export default class CentralServerService {
-  
+
   private static _defaultInstance = new CentralServerService();
 
   private _tenantSubdomain: string;
@@ -46,7 +46,7 @@ export default class CentralServerService {
     return this._defaultInstance || (this._defaultInstance = new this());
   }
 
-  public constructor(tenantSubdomain = null, user = null) {
+  public constructor(tenantSubdomain = null, user = null, superAdminUser = null) {
     this._tenantSubdomain = tenantSubdomain;
     this._baseURL = `${config.get('server.scheme')}://${config.get('server.host')}:${config.get('server.port')}`;
     // Create the Base API
@@ -60,10 +60,10 @@ export default class CentralServerService {
       };
     }
     // Create the Authenticated API
-    if (tenantSubdomain) {
-      this.authenticatedApi = new AuthenticatedBaseApi(this._baseURL, this._authenticatedUser.email, this._authenticatedUser.password, tenantSubdomain);
-    } else {
+    if (!tenantSubdomain) {
       this.authenticatedApi = new AuthenticatedBaseApi(this._baseURL, this._authenticatedUser.email, this._authenticatedUser.password, config.get('admin.tenant'));
+    } else {
+      this.authenticatedApi = new AuthenticatedBaseApi(this._baseURL, this._authenticatedUser.email, this._authenticatedUser.password, tenantSubdomain);
     }
     // Create the Company
     this.companyApi = new CompanyApi(this.authenticatedApi);
@@ -74,7 +74,11 @@ export default class CentralServerService {
     this.transactionApi = new TransactionApi(this.authenticatedApi);
     this.settingApi = new SettingApi(this.authenticatedApi);
     this.ocpiEndpointApi = new OCPIEndpointApi(this.authenticatedApi);
-    this.authenticatedSuperAdminApi = new AuthenticatedBaseApi(this._baseURL, this._authenticatedUser.email, this._authenticatedUser.password, "");
+    if (superAdminUser) {
+      this.authenticatedSuperAdminApi = new AuthenticatedBaseApi(this._baseURL, superAdminUser.email, superAdminUser.password, "");
+    } else {
+      this.authenticatedSuperAdminApi = new AuthenticatedBaseApi(this._baseURL, this._authenticatedUser.email, this._authenticatedUser.password, "");
+    }
     this.authenticationApi = new AuthenticationApi(this._baseApi);
     this.tenantApi = new TenantApi(this.authenticatedSuperAdminApi, this._baseApi);
     this.mailApi = new MailApi(new BaseApi(`http://${config.get('mailServer.host')}:${config.get('mailServer.port')}`));

@@ -46,6 +46,7 @@
       }
     ],
     "curly": "error",
+    "brace-style": "error",
     "eqeqeq": [
       "error",
       "always"

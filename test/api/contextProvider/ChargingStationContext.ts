@@ -1,7 +1,13 @@
-const faker = require('faker');
-const Utils = require('../../../src/utils/Utils');
+import faker from 'faker';
+import Utils from '../../../src/utils/Utils';
+import TenantContext from './TenantContext';
 
-class ChargingStationContext {
+export default class ChargingStationContext {
+
+  private chargingStation: any;
+  private tenantContext: TenantContext;
+  private transactionsStarted: any;
+  private transactionsStopped: any;
 
   constructor(chargingStation, tenantContext) {
     this.chargingStation = chargingStation;
@@ -50,7 +56,7 @@ class ChargingStationContext {
   }
 
   async stopTransaction(transactionId, tagId, meterStop, stopDate) {
-    const response = await this.getOCPPService(this.chargingStation.ocppVersion).executeStopTransaction(this.chargingStation.id, {
+    const response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeStopTransaction(this.chargingStation.id, {
       transactionId: transactionId,
       idTag: tagId,
       meterStop: meterStop,
@@ -102,7 +108,7 @@ class ChargingStationContext {
   }
 
   async sendClockMeterValue(connectorId, transactionId, meterValue, timestamp) {
-    const response = await this.getOCPPService(this.chargingStation.ocppVersion).executeMeterValues(this.chargingStation.id, {
+    const response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeMeterValues(this.chargingStation.id, {
       connectorId: connectorId,
       transactionId: transactionId,
       meterValue: {
@@ -125,7 +131,7 @@ class ChargingStationContext {
     const connector = Utils.duplicateJSON(this.chargingStation.connectors[connectorId]);
     connector.status = status;
     connector.timestamp = timestamp.toISOString();
-    const response = await this.getOCPPService(this.chargingStation.ocppVersion).executeStatusNotification(this.chargingStation.id, connector);
+    const response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeStatusNotification(this.chargingStation.id, connector);
     this.chargingStation.connectors[connectorId].status = connector.status;
     this.chargingStation.connectors[connectorId].timestamp = connector.timestamp;
     return response;
@@ -174,5 +180,3 @@ class ChargingStationContext {
     return configuration;
   }
 }
-
-module.exports = ChargingStationContext;

@@ -1,9 +1,10 @@
 import cfenv from 'cfenv';
-import Database from '../../utils/Database';
-import TSGlobal from '../../types/GlobalType';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
+import Database from '../../utils/Database';
+import Lock from '../../types/Lock';
 import Logging from '../../utils/Logging';
+import TSGlobal from '../../types/GlobalType';
 
 declare const global: TSGlobal;
 
@@ -88,13 +89,7 @@ export default class LockingStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('LockingStorage', 'saveRunLock');
     // Transfer
-    let runLock: {
-      _id: string;
-      name: string;
-      type: string;
-      timestamp: Date;
-      hostname: string;
-    } = { _id: '', name: '', type: '', timestamp: null, hostname: '' };
+    let runLock: Lock = { _id: '', name: '', type: '', timestamp: null, hostname: '' };
     Database.updateRunLock(runLockToSave, runLock, false);
     // Set the ID
     runLock._id = runLock.name + "~" + runLock.type;
@@ -109,13 +104,7 @@ export default class LockingStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('LockingStorage', 'deleteRunLock');
     // Transfer
-    let runLock: {
-      _id: string;
-      name: string;
-      type: string;
-      timestamp: Date;
-      hostname: string;
-    } = { _id: '', name: '', type: '', timestamp: null, hostname: '' };
+    let runLock: Lock = { _id: '', name: '', type: '', timestamp: null, hostname: '' };
     Database.updateRunLock(runLockToDelete, runLock, false);
     // Set the ID
     runLock._id = runLock.name + "~" + runLock.type;

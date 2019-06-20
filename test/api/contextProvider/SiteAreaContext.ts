@@ -1,7 +1,13 @@
-const ChargingStationContext = require('./ChargingStationContext');
-class SiteAreaContext {
+import ChargingStationContext from './ChargingStationContext';
+import TenantContext from './TenantContext';
 
-  constructor(siteArea, tenantContext) {
+export default class SiteAreaContext {
+
+  private tenantContext: TenantContext;
+  private chargingStations: Array<ChargingStationContext>;
+  private siteArea: any;
+
+  constructor(siteArea, tenantContext: TenantContext) {
     this.tenantContext = tenantContext;
     this.chargingStations = [];
     this.siteArea = siteArea;
@@ -28,17 +34,17 @@ class SiteAreaContext {
   }
 
   getChargingStations() {
-    return this.chargingStations.concat(this.createChargingStation);
+    return this.chargingStations;
   }
 
   getChargingStation(chargingStationID) {
     // search in context list
-    return this.chargingStations.concat(this.createChargingStation).find(chargingStationContext => {return chargingStationContext.getChargingStation().id === chargingStationID;});
+    return this.chargingStations.find(chargingStationContext => {return chargingStationContext.getChargingStation().id === chargingStationID;});
   }
 
   getChargingStationContext(chargingStationContext) {
     // search in context list
-    return this.chargingStations.concat(this.createChargingStation).find(chargingStation => {return chargingStation.getChargingStation().id.startsWith(chargingStationContext);});
+    return this.chargingStations.find(chargingStation => {return chargingStation.getChargingStation().id.startsWith(chargingStationContext);});
   }
 
   addChargingStation(chargingStation) {
@@ -54,5 +60,3 @@ class SiteAreaContext {
   }
 
 }
-
-module.exports = SiteAreaContext;
