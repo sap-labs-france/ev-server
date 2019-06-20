@@ -18,5 +18,3 @@ export default abstract class NotificationTask {
   abstract sendChargingStationRegistered(data: any, locale: string, tenantID: string): NotificationResult;
 
 }
-
-
