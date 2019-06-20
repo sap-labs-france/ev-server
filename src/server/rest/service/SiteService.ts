@@ -246,14 +246,14 @@ export default class SiteService {
     }
   }
 
-  static async handleGetUsersBySite(action, req, res, next) {
+  static async handleGetUsersFromSite(action, req, res, next) {
     try {
       // Check if organization component is active
       if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
         throw new OrganizationComponentInactiveError(
           Constants.ACTION_UPDATE,
           Constants.ENTITY_SITE,
-          560, 'SiteService', 'handleGetUsersBySite');
+          560, 'SiteService', 'handleGetUsersFromSite');
       }
 
       const filteredRequest = SiteSecurity.filterSiteUsersRequest(req.query);
@@ -263,7 +263,7 @@ export default class SiteService {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The Site's ID must be provided`, 500,
-          'SiteService', 'handleGetUsersBySite', req.user);
+          'SiteService', 'handleGetUsersFromSite', req.user);
       }
       // Get the Site
       const site = await Site.getSite(req.user.tenantID, filteredRequest.siteID);
@@ -271,7 +271,7 @@ export default class SiteService {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The Site with ID '${filteredRequest.siteID}' does not exist anymore`, 550,
-          'SiteService', 'handleGetUsersBySite', req.user);
+          'SiteService', 'handleGetUsersFromSite', req.user);
       }
       // Check auth
       if (!Authorizations.canUpdateSite(req.user, site.getModel())) {
@@ -280,11 +280,11 @@ export default class SiteService {
           Constants.ENTITY_SITE,
           site.getID(),
           560,
-          'SiteService', 'handleGetUsersBySite',
+          'SiteService', 'handleGetUsersFromSite',
           req.user);
       }
 
-      const users = await Site.getUsersBySite(req.user.tenantID, filteredRequest.siteID,
+      const users = await Site.getUsersFromSite(req.user.tenantID, filteredRequest.siteID,
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 
       users.result = users.result.map((user) => { return user.getModel(); });
@@ -317,6 +317,16 @@ export default class SiteService {
           `The Site's ID must be provided`, 500,
           'SiteService', 'handleDeleteSite', req.user);
       }
+      // Check auth
+      if (!Authorizations.canDeleteSite(req.user, filteredRequest.ID)) {
+        throw new AppAuthError(
+          Constants.ACTION_DELETE,
+          Constants.ENTITY_SITE,
+          filteredRequest.ID,
+          560,
+          'SiteService', 'handleDeleteSite',
+          req.user);
+      }
       // Get
       const site = await Site.getSite(req.user.tenantID, filteredRequest.ID);
       if (!site) {
@@ -325,17 +335,6 @@ export default class SiteService {
           Constants.CENTRAL_SERVER,
           `Site with ID '${filteredRequest.ID}' does not exist`, 550,
           'SiteService', 'handleDeleteSite', req.user);
-      }
-      // Check auth
-      if (!Authorizations.canDeleteSite(req.user, site.getModel())) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_DELETE,
-          Constants.ENTITY_SITE,
-          site.getID(),
-          560,
-          'SiteService', 'handleDeleteSite',
-          req.user);
       }
       // Delete
       await site.delete();
