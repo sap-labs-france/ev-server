@@ -681,8 +681,8 @@ export default class Authorizations {
   }
 
   public static async getUserScopes(user: User): Promise<ReadonlyArray<string>> {
-    const roles = Authorizations.getAuthGroupsFromUser(user.getRole(), await user.getSites());
-    return AuthorizationsDefinition.getInstance().getAvailableScopes(roles);
+    const groups = Authorizations.getAuthGroupsFromUser(user.getRole(), await user.getSites());
+    return AuthorizationsDefinition.getInstance().getScopes(groups);
   }
 
   private static getAuthGroupsFromUser(userRole: string, sitesAdmin: ReadonlyArray<string>): ReadonlyArray<string> {

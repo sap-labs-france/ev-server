@@ -159,12 +159,12 @@ export default class AuthorizationsDefinition {
     return AuthorizationsDefinition._instance;
   }
 
-  public getAvailableScopes(role: ReadonlyArray<string>): ReadonlyArray<string> {
+  public getScopes(groups: ReadonlyArray<string>): ReadonlyArray<string> {
     const scopes = [];
     try {
-      this.accessControl.allowedResources({role: role}).forEach(
+      this.accessControl.allowedResources({role: groups}).forEach(
         (resource: string): void => {
-          this.accessControl.allowedActions({role: role, resource: resource}).forEach(
+          this.accessControl.allowedActions({role: groups, resource: resource}).forEach(
             (action: string): number => scopes.push(`${resource}:${action}`)
           );
         }
