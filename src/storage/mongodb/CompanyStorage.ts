@@ -233,7 +233,7 @@ export default class CompanyStorage {
 
     // Debug
     Logging.traceEnd('CompanyStorage', 'getCompanies', uniqueTimerID, { params, limit, skip, sort });
-
+    
     // Ok
     return {
       count: (companiesCountMDB.length > 0 ?

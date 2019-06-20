@@ -143,7 +143,7 @@ export default class SiteSecurity {
         filteredSite.address = UtilsSecurity.filterAddressRequest(site.address);
       }
       if (site.company) {
-        filteredSite.company = CompanySecurity.filterCompanyResponse({id: site.company._id.toHexString(), ...site.company}, loggedUser);
+        filteredSite.company = CompanySecurity.filterCompanyResponse({id: site.company._id.toHexString(), ...site.company}, loggedUser);//TODO change
       }
       if (site.siteAreas) {
         filteredSite.siteAreas = SiteAreaSecurity.filterSiteAreasResponse(site.siteAreas, loggedUser);

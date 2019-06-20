@@ -42,7 +42,9 @@ export default class SiteAreaService {
       const idlessSiteArea: Optional<SiteArea, 'id'|'chargingStations'|'site'> = {
         ...filteredRequest,
         createdBy: new User(req.user.tenantID, {id: req.user.id}),
-        createdOn: new Date()
+        createdOn: new Date(),
+        lastChangedBy: new User(req.user.tenantID, {id: req.user.id}),
+        lastChangedOn: new Date()
       };
 
       const siteArea: Optional<SiteArea,'site'> = {

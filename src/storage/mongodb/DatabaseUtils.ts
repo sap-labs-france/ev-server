@@ -121,6 +121,39 @@ export default class DatabaseUtils {
       true);
   }
 
+  // WOSWOI = Without Site Without Image, bad name, change... SimpleCompany?
+  public static pushCompanyWOSWOIJoinInAggregation(tenantID: string, aggregation: any[], local: string, foreign: string, as: string, includes: string[]) {
+    this.pushTransformedJoinInAggregation(
+      tenantID,
+      aggregation,
+      'companies',
+      local,
+      foreign,
+      as,
+      includes,
+      {},
+      ['name', 'address'],
+      {id: `$${as}._id`},
+      true,
+      true);
+  }
+
+  public static pushCompanyWOSWOIJoinInAggregation(tenantID: string, aggregation: any[], local: string, foreign: string, as: string, includes: string[]) {
+    this.pushTransformedJoinInAggregation(
+      tenantID,
+      aggregation,
+      'companies',
+      local,
+      foreign,
+      as,
+      includes,
+      {},
+      ['name', 'address'],
+      {id: `$${as}._id`},
+      true,
+      true);
+  }
+
   public static pushTransformedJoinInAggregation(tenantID: string, aggregation: any[], joinCollection: string, local: string, foreign: string, intoField: string, topIncludes: string[], topRenames: any, nestedIncludes: string[],
      nestedRenames: any, topCreatedProps: boolean, joinCreatedProps: boolean) {
 
@@ -150,15 +183,16 @@ export default class DatabaseUtils {
       project.$project[intoField][nes] = 1;
     }
     //Need to group, push users, then project to remove id
+    aggregation.push(
+      initialJoin,
+      {$unwind: {path: `$${intoField}`, preserveNullAndEmptyArrays: true}},
+      project
+    );
     if(joinCreatedProps){
-      aggregation.push(
-        initialJoin,
-        {$unwind: {path: `$${intoField}`, preserveNullAndEmptyArrays: true}},
-        project
-      );
       DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation, intoField);
-      aggregation.push(group);
     }
+    aggregation.push(group);
+
     if(topCreatedProps) {
       DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     }
