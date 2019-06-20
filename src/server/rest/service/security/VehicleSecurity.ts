@@ -71,9 +71,9 @@ export default class VehicleSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadVehicle(loggedUser, vehicle)) {
+    if (Authorizations.canReadVehicle(loggedUser)) {
       // Admin?
-      if (Authorizations.isAdmin(loggedUser)) {
+      if (Authorizations.isAdmin(loggedUser.role)) {
         // Yes: set all params
         filteredVehicle = vehicle;
       } else {

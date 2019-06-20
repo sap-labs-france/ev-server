@@ -933,7 +933,7 @@ export default class AuthService {
     // Save
     await user.save();
     // Build Authorization
-    const scopes = Authorizations.getUserScopes(user.getRole());
+    const scopes = await Authorizations.getUserScopes(user);
     const authorizedEntities = await Authorizations.getAuthorizedEntities(user);
     const userHashID = SessionHashService.buildUserHashID(user);
     let tenantHashID;

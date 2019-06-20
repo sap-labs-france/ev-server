@@ -33,7 +33,7 @@ export default class SettingService {
           'SettingService', 'handleDeleteSetting', req.user);
       }
       // Check auth
-      if (!Authorizations.canDeleteSetting(req.user, setting.getModel())) {
+      if (!Authorizations.canDeleteSetting(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_DELETE,
@@ -195,7 +195,7 @@ export default class SettingService {
       // Check Mandatory fields
       Setting.checkIfSettingValid(filteredRequest, req);
       // Check auth
-      if (!Authorizations.canUpdateSetting(req.user, setting.getModel())) {
+      if (!Authorizations.canUpdateSetting(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_UPDATE,

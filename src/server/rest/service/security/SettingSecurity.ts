@@ -55,7 +55,7 @@ export default class SettingSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadSetting(loggedUser, setting)) {
+    if (Authorizations.canReadSetting(loggedUser)) {
       // Admin?
       // if (Authorizations.isAdmin(loggedUser)) {
       // Yes: set all params

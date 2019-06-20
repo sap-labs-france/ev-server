@@ -1,5 +1,4 @@
 import Logging from '../../../utils/Logging';
-import Database from '../../../utils/Database';
 import AppError from '../../../exception/AppError';
 import AppAuthError from '../../../exception/AppAuthError';
 import Constants from '../../../utils/Constants';
@@ -9,7 +8,7 @@ import Authorizations from '../../../authorization/Authorizations';
 import CompanySecurity from './security/CompanySecurity';
 import UtilsService from './UtilsService';
 import OrganizationComponentInactiveError from '../../../exception/OrganizationComponentInactiveError';
-import { NextFunction, Request, Response } from 'express';
+import {NextFunction, Request, Response} from 'express';
 import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
 import BadRequestError from '../../../exception/BadRequestError';
 
@@ -50,7 +49,7 @@ export default class CompanyService {
       }
 
       // Check auth
-      if (!Authorizations.canDeleteCompany(req.user, company)) {
+      if (!Authorizations.canDeleteCompany(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_DELETE,
@@ -102,6 +101,17 @@ export default class CompanyService {
           'CompanyService', 'handleGetCompany', req.user);
       }
 
+      // Check auth
+      if (!Authorizations.canReadCompany(req.user, companyId)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_READ,
+          Constants.ENTITY_COMPANY,
+          companyId,
+          560, 'CompanyService', 'handleGetCompany',
+          req.user);
+      }
+
       // Get it
       const company = await CompanyStorage.getCompany(req.user.tenantID, companyId);
       if (!company) {
@@ -109,16 +119,6 @@ export default class CompanyService {
           Constants.CENTRAL_SERVER,
           `The Company with ID '${companyId}' does not exist anymore`, 550,
           'CompanyService', 'handleGetCompany', req.user);
-      }
-      // Check auth
-      if (!Authorizations.canReadCompany(req.user, company)) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_READ,
-          Constants.ENTITY_COMPANY,
-          company.id,
-          560, 'CompanyService', 'handleGetCompany',
-          req.user);
       }
       // Return
       res.json(
@@ -155,6 +155,17 @@ export default class CompanyService {
           'CompanyService', 'handleGetCompanyLogo', req.user);
       }
 
+      // Check auth
+      if (!Authorizations.canReadCompany(req.user, companyId)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_READ,
+          Constants.ENTITY_COMPANY,
+          companyId,
+          560, 'CompanyService', 'handleGetCompanyLogo',
+          req.user);
+      }
+
       // Get it
       const company = await CompanyStorage.getCompany(req.user.tenantID, companyId);
       if (!company) {
@@ -163,19 +174,8 @@ export default class CompanyService {
           `The Company with ID '${companyId}' does not exist anymore`, 550,
           'CompanyService', 'handleGetCompanyLogo', req.user);
       }
-
-      // Check auth
-      if (!Authorizations.canReadCompany(req.user, company)) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_READ,
-          Constants.ENTITY_COMPANY,
-          company.id,
-          560, 'CompanyService', 'handleGetCompanyLogo',
-          req.user);
-      }
       // Return
-      res.json({id: company.id, logo:company.logo});
+      res.json({id: company.id, logo: company.logo});
       next();
     } catch (error) {
       // Log
@@ -282,7 +282,7 @@ export default class CompanyService {
         action: action, detailedMessages: company
       });
       // Ok
-      res.json(Object.assign({ id: newId }, Constants.REST_RESPONSE_SUCCESS));
+      res.json(Object.assign({id: newId}, Constants.REST_RESPONSE_SUCCESS));
       next();
     } catch (error) {
       // Log
@@ -314,7 +314,7 @@ export default class CompanyService {
       CompanyService._checkIfCompanyValid(filteredRequest, req);
 
       // Check auth
-      if (!Authorizations.canUpdateCompany(req.user, company)) {
+      if (!Authorizations.canUpdateCompany(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
@@ -338,7 +338,7 @@ export default class CompanyService {
       // Database.updateCompany(filteredRequest, company);
 
       // Update timestamp
-      company.lastChangedBy = new User(req.user.tenantID, { 'id': req.user.id });
+      company.lastChangedBy = new User(req.user.tenantID, {'id': req.user.id});
       company.lastChangedOn = new Date();
 
       // Update Company

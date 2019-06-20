@@ -99,7 +99,7 @@ export default class UserSecurity {
       filteredRequest.phone = sanitize(request.phone);
     }
     // Admin?
-    if (Authorizations.isAdmin(loggedUser)) {
+    if (Authorizations.isAdmin(loggedUser.role)) {
       // Ok to set the sensitive data
       if (request.hasOwnProperty("notificationsActive")) {
         filteredRequest.notificationsActive = sanitize(request.notificationsActive);
@@ -121,7 +121,7 @@ export default class UserSecurity {
       }
     }
     // Admin?
-    if (Authorizations.isSuperAdmin(loggedUser)) {
+    if (Authorizations.isSuperAdmin(loggedUser.role)) {
       // Ok to set the sensitive data
       if (request.hasOwnProperty("email")) {
         filteredRequest.email = sanitize(request.email);
@@ -146,7 +146,7 @@ export default class UserSecurity {
     // Check auth
     if (Authorizations.canReadUser(loggedUser, user)) {
       // Admin?
-      if (Authorizations.isAdmin(loggedUser) || Authorizations.isSuperAdmin(loggedUser)) {
+      if (Authorizations.isAdmin(loggedUser.role) || Authorizations.isSuperAdmin(loggedUser.role)) {
         filteredUser.id = user.id;
         filteredUser.name = user.name;
         filteredUser.firstName = user.firstName;
@@ -200,7 +200,7 @@ export default class UserSecurity {
     // Check auth
     if (Authorizations.canReadUser(loggedUser, user)) {
       // Admin?
-      if (Authorizations.isAdmin(loggedUser)) {
+      if (Authorizations.isAdmin(loggedUser.role)) {
         filteredUser.id = user.id;
         filteredUser.name = user.name;
         filteredUser.firstName = user.firstName;

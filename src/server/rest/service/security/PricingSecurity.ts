@@ -8,7 +8,7 @@ export default class PricingSecurity {
     if (!pricing) {
       return null;
     }
-    if (!Authorizations.isAdmin(loggedUser)) {
+    if (!Authorizations.isAdmin(loggedUser.role)) {
       return null;
     }
     // Set

@@ -88,7 +88,7 @@ export default class LoggingService {
       // Get logs
       const logging = await Logging.getLog(req.user.tenantID, filteredRequest.ID);
       // Check auth
-      if (!Authorizations.canReadLogging(req.user, logging)) {
+      if (!Authorizations.canReadLogging(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_READ,
