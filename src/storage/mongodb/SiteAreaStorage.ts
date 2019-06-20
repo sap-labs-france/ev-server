@@ -68,7 +68,8 @@ export default class SiteAreaStorage {
     const mongoSiteArea: any = {
       _id: siteAreaFilter._id,
       createdBy: Utils.convertToObjectID(siteAreaToSave.createdBy.id?siteAreaToSave.createdBy.id:siteAreaToSave.createdBy.getID()), //TODO convert user properly
-      createdOn: siteAreaToSave.createdOn,
+      createdOn: siteAreaToSave.createdOn?siteAreaToSave.createdOn:new Date(),
+      
       name: siteAreaToSave.name,
       siteID: Utils.convertToObjectID(siteAreaToSave.siteID)
     }
