@@ -276,7 +276,7 @@ export default {
             SiteService.handleGetSiteImage(action, req, res, next);
             break;
           case "SiteUsers":
-            SiteService.handleGetUsersBySite(action, req, res, next);
+            SiteService.handleGetUsersFromSite(action, req, res, next);
             break;
           // Get all tenant
           case "Tenants":

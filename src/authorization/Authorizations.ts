@@ -463,7 +463,7 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_UPDATE);
   }
 
-  public static canDeleteSite(loggedUser: any, site: any): boolean {
+  public static canDeleteSite(loggedUser: any, siteID: any): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_DELETE);
   }
 
@@ -681,11 +681,11 @@ export default class Authorizations {
   }
 
   public static async getUserScopes(user: User): Promise<ReadonlyArray<string>> {
-    const roles = Authorizations.getAuthorizedRoles(user.getRole(), await user.getSites());
+    const roles = Authorizations.getAuthGroupsFromUser(user.getRole(), await user.getSites());
     return AuthorizationsDefinition.getInstance().getAvailableScopes(roles);
   }
 
-  private static getAuthorizedRoles(userRole: string, sitesAdmin: ReadonlyArray<string>): ReadonlyArray<string> {
+  private static getAuthGroupsFromUser(userRole: string, sitesAdmin: ReadonlyArray<string>): ReadonlyArray<string> {
     const roles: Array<string> = [];
     switch (userRole) {
       case 'A':
@@ -708,7 +708,7 @@ export default class Authorizations {
   }
 
   private static canPerformAction(loggedUser, resource, action, context?): boolean {
-    const roles = Authorizations.getAuthorizedRoles(loggedUser.role, loggedUser.sitesAdmin);
+    const roles = Authorizations.getAuthGroupsFromUser(loggedUser.role, loggedUser.sitesAdmin);
     const authorized = AuthorizationsDefinition.getInstance().can(roles, resource, action, context);
     if (!authorized && Authorizations.getConfiguration().debug) {
       Logging.logSecurityInfo({

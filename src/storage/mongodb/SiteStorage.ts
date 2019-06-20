@@ -229,25 +229,7 @@ export default class SiteStorage {
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'updateSiteUsersRole');
     await Utils.checkTenant(tenantID);
 
-    if (!siteID) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        `siteID is missing`,
-        "SiteStorage", "updateSiteUsersRole");
-    }
-    if (!userIDs || userIDs.length < 1) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        `userIDs is missing`,
-        "SiteStorage", "updateSiteUsersRole");
-    }
-    if (!role) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        `role is missing`,
-        "SiteStorage", "updateSiteUsersRole");
-    }
-    const result = await global.database.getCollection<any>(tenantID, 'siteusers').updateMany(
+    await global.database.getCollection<any>(tenantID, 'siteusers').updateMany(
       {
         siteID: Utils.convertToObjectID(siteID),
         userID: {
