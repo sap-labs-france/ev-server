@@ -113,7 +113,7 @@ export default class SiteSecurity {
         filteredSite.id = site.id;
         filteredSite.name = site.name;
         filteredSite.gps = site.gps;
-        filteredSite.companyID = site.getCompanyID();
+        filteredSite.companyID = site.companyID;
       }
       if (site.address) {
         filteredSite.address = UtilsSecurity.filterAddressRequest(site.address);
