@@ -38,7 +38,7 @@ export default class ConnectionStorage {
       .aggregate(aggregation)
       .toArray();
 
-    let connection = undefined;
+    let connection;
     if (results && results.length > 0) {
       connection = new Connection(tenantID, results[0]);
     }
@@ -86,7 +86,7 @@ export default class ConnectionStorage {
       .aggregate(aggregation)
       .toArray();
 
-    let connection = null;
+    let connection;
     if (results && results.length > 0) {
       connection = new Connection(tenantID, results[0]);
     }
