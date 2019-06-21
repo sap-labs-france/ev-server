@@ -4,7 +4,7 @@ import TenantContext from './TenantContext';
 export default class SiteContext {
 
   private tenantContext: TenantContext;
-  private siteAreas: Array<SiteAreaContext>;
+  private siteAreas: SiteAreaContext[];
   private site: any;
 
   constructor(site, tenantContext: TenantContext) {

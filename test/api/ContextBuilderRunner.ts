@@ -20,10 +20,10 @@ describe('Unit test Context Builder', function() {
     // Used to create data before teh whole test chain is started
     // To simplify you can use the ContextBuilder to get a tenant and some preloaded entities
     // To be used with care as more than 20 tenants!!!
-    const contextbuilder = new ContextBuilder();
-    await contextbuilder.prepareContexts();
+    const contextBuilder = new ContextBuilder();
+    await contextBuilder.prepareContexts();
     // this.tenantContext = await ContextBuilder.getTenantContext(TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS, SITE_CONTEXTS.SITE_BASIC)
-    // It will build all tenants except if you provide input arguments to limit to some contexts only. 
+    // It will build all tenants except if you provide input arguments to limit to some contexts only.
     // if you want to limit tom some context only
     // await ContextBuilder.prepareContext([TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS with any additional context], [ORGANIZATION_CONTEXTS.SITE_WITH_ACL with any additional context]);
     // Or you can call the get directly which will provide you the tenant and build it if it does not exist
@@ -46,7 +46,7 @@ describe('Unit test Context Builder', function() {
       const test = 2;
       // const adminUser = this.tenantContextAll.getContextUser(null, 'florent.pernice@sap.com');
       //startTransaction(chargingStation, connectorId, tagId, meterStart, startDate, expectedStatus = 'Accepted')
-      // await this.tenantContextAll.startTransaction(this.tenantContextAll.getOrganizationContext(SITE_CONTEXTS.SITE_BASIC).getChargingStations()[0], 1, 
+      // await this.tenantContextAll.startTransaction(this.tenantContextAll.getOrganizationContext(SITE_CONTEXTS.SITE_BASIC).getChargingStations()[0], 1,
       //   adminUser.tagIDs[0], 0, moment());
       expect(test).to.equal(2);
     });
