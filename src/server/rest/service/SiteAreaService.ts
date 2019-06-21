@@ -118,23 +118,24 @@ export default class SiteAreaService {
       // Filter
       const searchId = SiteAreaSecurity.filterSiteAreaDeleteRequest(req.query, req.user);
 
+      // Check auth
+      if (!Authorizations.canDeleteSiteArea(req.user)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_DELETE,
+          Constants.ENTITY_SITE_AREA,
+          searchId,
+          560,
+          'SiteAreaService', 'handleDeleteSiteArea',
+          req.user);
+      }
+
       // Get
       const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, searchId, false, false, false);
 
       // Found?
       Utils.assertObjectExists(siteArea, 'Site Area not found.', 'SiteAreaService', 'handleDeleteSiteArea', req.user);
 
-      // Check auth
-      if (!Authorizations.canDeleteSiteArea(req.user, siteArea)) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_DELETE,
-          Constants.ENTITY_SITE_AREA,
-          siteArea.id,
-          560,
-          'SiteAreaService', 'handleDeleteSiteArea',
-          req.user);
-      }
       // Delete
       await SiteAreaStorage.deleteSiteArea(req.user.tenantID, siteArea.id);
 
@@ -165,23 +166,25 @@ export default class SiteAreaService {
 
       // Filter
       const filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query, req.user);
+
+      // Check auth
+      if (!Authorizations.canReadSiteArea(req.user, filteredRequest.ID)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_READ,
+          Constants.ENTITY_SITE_AREA,
+          filteredRequest.ID,
+          560,
+          'SiteAreaService', 'handleGetSiteAreaImage',
+          req.user);
+      }
+
       // Get it
       const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID,
         filteredRequest.ID, filteredRequest.WithChargeBoxes, filteredRequest.WithSite, true);
       // Found?
       Utils.assertObjectExists(siteArea, 'Site Area not found.', 'SiteAreaService', 'handleGetSiteArea', req.user);
 
-      // Check auth
-      if (!Authorizations.canReadSiteArea(req.user, siteArea)) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_READ,
-          Constants.ENTITY_SITE_AREA,
-          siteArea.id,
-          560,
-          'SiteAreaService', 'handleGetSiteAreaImage',
-          req.user);
-      }
       // Return
       res.json(
         // Filter
@@ -207,20 +210,22 @@ export default class SiteAreaService {
 
       // Filter
       const filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query, req.user);
-      // Get it
-      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.ID, false, false, true);
-      Utils.assertObjectExists(siteArea, 'Site Area does not exist.', 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
 
       // Check auth
-      if (!Authorizations.canReadSiteArea(req.user, siteArea)) {
+      if (!Authorizations.canReadSiteArea(req.user, filteredRequest.ID)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_READ,
           Constants.ENTITY_SITE_AREA,
-          siteArea.id,
+          filteredRequest.ID,
           560, 'SiteAreaService', 'handleGetSiteAreaImage',
           req.user);
       }
+
+      // Get it
+      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.ID, false, false, true);
+      Utils.assertObjectExists(siteArea, 'Site Area does not exist.', 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
+
       // Return
       res.json({id: siteArea.id, image: siteArea.image});
       next();
@@ -242,19 +247,21 @@ export default class SiteAreaService {
 
       // Filter
       const filteredRequest = SiteAreaSecurity.filterSiteAreaUpdateRequest(req.body, req.user);
-      // Check
-      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.id, false, false, false);
-      Utils.assertObjectExists(siteArea, `The Site Area with ID '${filteredRequest.id}' does not exist anymore`, 'SiteAreaService', 'handleUpdateSiteArea', req.user);
+      
       // Check auth
-      if (!Authorizations.canUpdateSiteArea(req.user, siteArea)) {
+      if (!Authorizations.canUpdateSiteArea(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
           Constants.ENTITY_SITE_AREA,
-          siteArea.id,
+          filteredRequest.id,
           560, 'SiteAreaService', 'handleUpdateSiteArea',
           req.user);
       }
+      
+      // Check
+      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.id, false, false, false);
+      Utils.assertObjectExists(siteArea, `The Site Area with ID '${filteredRequest.id}' does not exist anymore`, 'SiteAreaService', 'handleUpdateSiteArea', req.user);
 
       siteArea.lastChangedBy = new User(req.user.tenantID, {'id': req.user.id});
       siteArea.lastChangedOn = new Date();

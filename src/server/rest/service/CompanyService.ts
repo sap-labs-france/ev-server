@@ -36,6 +36,17 @@ export default class CompanyService {
           'CompanyService', 'handleDeleteCompany', req.user);
       }
 
+      // Check auth
+      if (!Authorizations.canDeleteCompany(req.user)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_DELETE,
+          Constants.ENTITY_COMPANY,
+          companyId,
+          560, 'CompanyService', 'handleDeleteCompany',
+          req.user);
+      }
+
       // Get
       const company = await CompanyStorage.getCompany(req.user.tenantID, companyId);
 
@@ -46,17 +57,6 @@ export default class CompanyService {
           Constants.CENTRAL_SERVER,
           `Company with ID '${companyId}' does not exist`, 550,
           'CompanyService', 'handleDeleteCompany', req.user);
-      }
-
-      // Check auth
-      if (!Authorizations.canDeleteCompany(req.user)) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_DELETE,
-          Constants.ENTITY_COMPANY,
-          company.id,
-          560, 'CompanyService', 'handleDeleteCompany',
-          req.user);
       }
 
       // Delete
@@ -302,6 +302,18 @@ export default class CompanyService {
 
       // Filter
       const filteredRequest = CompanySecurity.filterCompanyUpdateRequest(req.body);
+
+      // Check auth
+      if (!Authorizations.canUpdateCompany(req.user)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_UPDATE,
+          Constants.ENTITY_COMPANY,
+          filteredRequest.id,
+          560, 'CompanyService', 'handleUpdateCompany',
+          req.user);
+      }
+
       // Check email
       const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.id);
       if (!company) {
@@ -313,16 +325,6 @@ export default class CompanyService {
       // Check Mandatory fields
       CompanyService._checkIfCompanyValid(filteredRequest, req);
 
-      // Check auth
-      if (!Authorizations.canUpdateCompany(req.user)) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_UPDATE,
-          Constants.ENTITY_COMPANY,
-          company.id,
-          560, 'CompanyService', 'handleUpdateCompany',
-          req.user);
-      }
       // Update
       if (filteredRequest.logo) { // TODO: logo is required here; check if frontend actually always sends logo or not...
         company.logo = filteredRequest.logo;

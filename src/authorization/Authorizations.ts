@@ -574,10 +574,10 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREAS, Constants.ACTION_LIST);
   }
 
-  public static canReadSiteArea(loggedUser: any, siteArea: SiteArea) {
+  public static canReadSiteArea(loggedUser: any, siteAreaID: string) {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA, Constants.ACTION_READ) &&
       Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_READ,
-        {"site": siteArea.siteID, "sites": loggedUser.sites});
+        {"site": siteAreaID, "sites": loggedUser.sites});
   }
 
   public static canCreateSiteArea(loggedUser: any): boolean {
@@ -585,12 +585,12 @@ export default class Authorizations {
       Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_CREATE);
   }
 
-  public static canUpdateSiteArea(loggedUser: any, siteArea: SiteArea) {
+  public static canUpdateSiteArea(loggedUser: any) {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA, Constants.ACTION_UPDATE) &&
       Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_UPDATE);
   }
 
-  public static canDeleteSiteArea(loggedUser: any, siteArea: SiteArea) {
+  public static canDeleteSiteArea(loggedUser: any) {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA, Constants.ACTION_DELETE) &&
       Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_DELETE);
   }
