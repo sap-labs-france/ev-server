@@ -54,7 +54,7 @@ export default class ConvergentChargingPricing extends Pricing {
   }
 
   async startSession(consumptionData): Promise<PricedConsumption|null> {
-    const siteArea = await SiteAreaStorage.getSiteArea(this.tenantId, this.transaction.getSiteAreaID(), false, false, false);
+    const siteArea = await SiteAreaStorage.getSiteArea(this.tenantId, this.transaction.getSiteAreaID());
     const sessionId = this.computeSessionId(consumptionData);
     const chargeableItemProperties = this.consumptionToChargeableItemProperties(consumptionData);
     chargeableItemProperties.push(new ChargeableItemProperty('status', Type.string, 'start'));
@@ -80,7 +80,7 @@ export default class ConvergentChargingPricing extends Pricing {
   }
 
   async updateSession(consumptionData): Promise<PricedConsumption|null> {
-    const siteArea = await SiteAreaStorage.getSiteArea(this.tenantId, this.transaction.getSiteAreaID(), false, false, false);
+    const siteArea = await SiteAreaStorage.getSiteArea(this.tenantId, this.transaction.getSiteAreaID());
     const sessionId = this.computeSessionId(consumptionData);
 
     const chargeableItemProperties = this.consumptionToChargeableItemProperties(consumptionData);
@@ -109,7 +109,7 @@ export default class ConvergentChargingPricing extends Pricing {
   }
 
   async stopSession(consumptionData): Promise<PricedConsumption|null> {
-    const siteArea = await SiteAreaStorage.getSiteArea(this.tenantId, this.transaction.getSiteAreaID(),false, false, false);
+    const siteArea = await SiteAreaStorage.getSiteArea(this.tenantId, this.transaction.getSiteAreaID());
     const sessionId = this.computeSessionId(consumptionData);
     const chargeableItemProperties = this.consumptionToChargeableItemProperties(consumptionData);
     chargeableItemProperties.push(new ChargeableItemProperty('status', Type.string, 'stop'));

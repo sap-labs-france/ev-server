@@ -215,7 +215,7 @@ export default class ChargingStationStorage {
         chargingStation.setSiteArea(siteArea);
         if (chargingStationMDB.site) {
           // Add site
-          siteArea.setSite(new Site(tenantID, chargingStationMDB.site));
+          siteArea.site = chargingStationMDB.site;
         }
       }
       // Add

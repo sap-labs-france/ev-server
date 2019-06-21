@@ -78,8 +78,8 @@ export default class ChargingStation extends TenantHolder {
       return this._model.siteArea;
     } else if (this._model.siteAreaID) {
       // Get from DB
-      const siteArea = await SiteAreaStorage.getSiteArea(this.getTenantID(), this._model.siteAreaID, true, true, false);
-
+      const siteArea = await SiteAreaStorage.getSiteArea(this.getTenantID(), this._model.siteAreaID,
+        { withSite: withSite, withChargeBoxes: true });
       // Set it
       this.setSiteArea(siteArea);
       // Return

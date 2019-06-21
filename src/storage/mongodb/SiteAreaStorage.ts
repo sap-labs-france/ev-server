@@ -37,17 +37,19 @@ export default class SiteAreaStorage {
     return siteAreaImage;
   }
 
-  public static async getSiteArea(tenantID: string, id: string, withSite: boolean, withChargeBoxes: boolean, withImage: boolean): Promise<SiteArea> {
+  public static async getSiteArea(tenantID: string, id: string,
+      params: { withSite?: boolean, withChargeBoxes?: boolean, withImage?: boolean } = {}): Promise<SiteArea> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'getSiteArea');
     // Check Tenant
     await Utils.checkTenant(tenantID);
 
-    const siteAreaResult
-     = await SiteAreaStorage.getSiteAreas(tenantID, { search: id, onlyRecordCount: false, withImage: withImage, withSite: withSite, withChargeBoxes: withChargeBoxes, withAvailableChargers: true }, 1, 0, null);
+    const siteAreaResult = await SiteAreaStorage.getSiteAreas(
+      tenantID, { search: id, onlyRecordCount: false, withImage: params.withImage,
+      withSite: params.withSite, withChargeBoxes: params.withChargeBoxes, withAvailableChargers: true }, 1, 0, null);
 
     // Debug
-    Logging.traceEnd('SiteAreaStorage', 'getSiteArea', uniqueTimerID, { id, withChargeBoxes, withSite });
+    Logging.traceEnd('SiteAreaStorage', 'getSiteArea', uniqueTimerID, { id, withChargeBoxes: params.withChargeBoxes, withSite: params.withSite });
     return siteAreaResult.result[0];
   }
 
