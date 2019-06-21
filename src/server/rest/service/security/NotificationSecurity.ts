@@ -41,7 +41,7 @@ export default class NotificationSecurity {
       return null;
     }
     // Check auth
-    if (!notification.userID || Authorizations.canReadUser(loggedUser, {id: notification.userID})) {
+    if (!notification.userID || Authorizations.canReadUser(loggedUser, notification.userID)) {
       // No user provided and you are not admin?
       if (!notification.userID && !Authorizations.isAdmin(loggedUser.role)) {
         // Yes: do not send this notif

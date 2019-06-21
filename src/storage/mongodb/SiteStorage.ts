@@ -195,23 +195,19 @@ export default class SiteStorage {
     Logging.traceEnd('SiteStorage', 'getUsersBySite', uniqueTimerID, {siteID});
   }
 
-  static async updateSiteUsersRole(tenantID, siteID, userIDs: ReadonlyArray<ObjectID | string>, role: string) {
-    const uniqueTimerID = Logging.traceStart('SiteStorage', 'updateSiteUsersRole');
+  static async updateSiteUserRole(tenantID, siteID, userID, role: string) {
+    const uniqueTimerID = Logging.traceStart('SiteStorage', 'updateSiteUserRole');
     await Utils.checkTenant(tenantID);
 
     await global.database.getCollection<any>(tenantID, 'siteusers').updateMany(
       {
         siteID: Utils.convertToObjectID(siteID),
-        userID: {
-          $in: userIDs.map((userID) => {
-            return Utils.convertToObjectID(userID);
-          })
-        }
+        userID: Utils.convertToObjectID(userID)
       },
       {
         $set: {role: role}
       });
-    Logging.traceEnd('SiteStorage', 'updateSiteUsersRole', uniqueTimerID, {siteID, userIDs, role});
+    Logging.traceEnd('SiteStorage', 'updateSiteUserRole', uniqueTimerID, {siteID, userID, role});
   }
 
   static async saveSite(tenantID, siteToSave) {

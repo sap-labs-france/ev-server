@@ -34,6 +34,16 @@ export default class UserService {
           `Site's IDs must be provided`, 500,
           'UserService', 'handleAddSitesToUser', req.user);
       }
+      // Check auth
+      if (!Authorizations.canUpdateUser(req.user, filteredRequest.userID)) {
+        throw new AppAuthError(
+          Constants.ACTION_UPDATE,
+          Constants.ENTITY_USER,
+          filteredRequest.userID,
+          560,
+          'UserService', 'handleAddSitesToUser',
+          req.user);
+      }
       // Get the User
       const user = await User.getUser(req.user.tenantID, filteredRequest.userID);
       if (!user) {
@@ -41,16 +51,6 @@ export default class UserService {
           Constants.CENTRAL_SERVER,
           `User with ID '${filteredRequest.userID}' does not exist anymore`, 550,
           'UserService', 'handleAddSitesToUser', req.user);
-      }
-      // Check auth
-      if (!Authorizations.canUpdateUser(req.user, user.getModel())) {
-        throw new AppAuthError(
-          Constants.ACTION_UPDATE,
-          Constants.ENTITY_USER,
-          user.getID(),
-          560,
-          'UserService', 'handleAddSitesToUser',
-          req.user, user);
       }
       // Get Sites
       for (const siteID of filteredRequest.siteIDs) {
@@ -109,6 +109,17 @@ export default class UserService {
           `Site's IDs must be provided`, 500,
           'UserService', 'handleAddSitesToUser', req.user);
       }
+      // Check auth
+      if (!Authorizations.canUpdateUser(req.user, filteredRequest.userID)) {
+        throw new AppAuthError(
+          Constants.ACTION_UPDATE,
+          Constants.ENTITY_USER,
+          filteredRequest.userID,
+          560,
+          'UserService', 'handleAddSitesToUser',
+          req.user);
+      }
+
       // Get the User
       const user = await User.getUser(req.user.tenantID, filteredRequest.userID);
       if (!user) {
@@ -116,16 +127,6 @@ export default class UserService {
           Constants.CENTRAL_SERVER,
           `User with ID '${filteredRequest.userID}' does not exist anymore`, 550,
           'UserService', 'handleAddSitesToUser', req.user);
-      }
-      // Check auth
-      if (!Authorizations.canUpdateUser(req.user, user.getModel())) {
-        throw new AppAuthError(
-          Constants.ACTION_UPDATE,
-          Constants.ENTITY_USER,
-          user.getID(),
-          560,
-          'UserService', 'handleAddSitesToUser',
-          req.user, user);
       }
       // Get Sites
       for (const siteID of filteredRequest.siteIDs) {
@@ -177,6 +178,19 @@ export default class UserService {
           `User's ID must be provided`, 500,
           'UserService', 'handleDeleteUser', req.user);
       }
+
+      // Check auth
+      if (!Authorizations.canDeleteUser(req.user, filteredRequest.ID)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_DELETE,
+          Constants.ENTITY_USER,
+          filteredRequest.ID,
+          560,
+          'UserService', 'handleDeleteUser',
+          req.user);
+      }
+
       // Check Mandatory fields
       if (filteredRequest.ID === req.user.id) {
         // Not Found!
@@ -199,17 +213,6 @@ export default class UserService {
           Constants.CENTRAL_SERVER,
           `User with ID '${filteredRequest.id}' is already deleted`, 550,
           'UserService', 'handleDeleteUser', req.user);
-      }
-      // Check auth
-      if (!Authorizations.canDeleteUser(req.user, user.getModel())) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_DELETE,
-          Constants.ENTITY_USER,
-          user.getID(),
-          560,
-          'UserService', 'handleDeleteUser',
-          req.user);
       }
       // Delete from site
       const sites = await user.getSites();
@@ -249,6 +252,16 @@ export default class UserService {
           `User's ID must be provided`, 500,
           'UserService', 'handleDeleteUser', req.user);
       }
+      // Check auth
+      if (!Authorizations.canUpdateUser(req.user, filteredRequest.id)) {
+        throw new AppAuthError(
+          Constants.ACTION_UPDATE,
+          Constants.ENTITY_USER,
+          filteredRequest.id,
+          560,
+          'UserService', 'handleUpdateUser',
+          req.user);
+      }
       // Check email
       const user = await User.getUser(req.user.tenantID, filteredRequest.id);
       if (!user) {
@@ -277,16 +290,6 @@ export default class UserService {
           Constants.CENTRAL_SERVER,
           `Email '${filteredRequest.email}' already exists`, 510,
           'UserService', 'handleUpdateUser', req.user);
-      }
-      // Check auth
-      if (!Authorizations.canUpdateUser(req.user, user.getModel())) {
-        throw new AppAuthError(
-          Constants.ACTION_UPDATE,
-          Constants.ENTITY_USER,
-          user.getID(),
-          560,
-          'UserService', 'handleUpdateUser',
-          req.user, user);
       }
       // Check if Status has been changed
       if (filteredRequest.status &&
@@ -353,6 +356,16 @@ export default class UserService {
           `User's ID must be provided`, 500,
           'UserService', 'handleGetUser', req.user);
       }
+      // Check auth
+      if (!Authorizations.canReadUser(req.user, filteredRequest.ID)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_READ,
+          Constants.ENTITY_USER,
+          filteredRequest.ID,
+          560, 'UserService', 'handleGetUser',
+          req.user);
+      }
       // Get the user
       const user = await User.getUser(req.user.tenantID, filteredRequest.ID);
       if (!user) {
@@ -367,16 +380,6 @@ export default class UserService {
           Constants.CENTRAL_SERVER,
           `User with ID '${filteredRequest.ID}' is logically deleted`, 550,
           'UserService', 'handleGetUser', req.user);
-      }
-      // Check auth
-      if (!Authorizations.canReadUser(req.user, user.getModel())) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_READ,
-          Constants.ENTITY_USER,
-          user.getID(),
-          560, 'UserService', 'handleGetUser',
-          req.user);
       }
       // Set the user
       res.json(
@@ -403,6 +406,16 @@ export default class UserService {
           `User's ID must be provided`, 500,
           'UserService', 'handleGetUser', req.user);
       }
+      // Check auth
+      if (!Authorizations.canReadUser(req.user, filteredRequest.ID)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_READ,
+          Constants.ENTITY_USER,
+          filteredRequest.ID,
+          560, 'UserService', 'handleGetUserImage',
+          req.user);
+      }
       // Get the logged user
       const user = await User.getUser(req.user.tenantID, filteredRequest.ID);
       if (!user) {
@@ -417,16 +430,6 @@ export default class UserService {
           Constants.CENTRAL_SERVER,
           `User with ID '${filteredRequest.ID}' is logically deleted`, 550,
           'UserService', 'handleGetUserImage', req.user);
-      }
-      // Check auth
-      if (!Authorizations.canReadUser(req.user, user.getModel())) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_READ,
-          Constants.ENTITY_USER,
-          user.getID(),
-          560, 'UserService', 'handleGetUserImage',
-          req.user);
       }
       // Get the user image
       const userImage = await User.getUserImage(req.user.tenantID, filteredRequest.ID);
@@ -490,7 +493,9 @@ export default class UserService {
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
-      users.result = users.result.map((user) => { return user.getModel(); });
+      users.result = users.result.map((user) => {
+        return user.getModel();
+      });
       // Filter
       UserSecurity.filterUsersResponse(users, req.user);
       // Return
@@ -527,7 +532,9 @@ export default class UserService {
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
-      users.result = users.result.map((user) => { return user.getModel(); });
+      users.result = users.result.map((user) => {
+        return user.getModel();
+      });
       // Filter
       UserSecurity.filterUsersResponse(users, req.user);
       // Return
@@ -616,6 +623,16 @@ export default class UserService {
           `User's ID must be provided`, 500,
           'UserService', 'handleGetUserInvoice', req.user);
       }
+      // Check auth
+      if (!Authorizations.canReadUser(req.user, filteredRequest.ID)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_READ,
+          Constants.ENTITY_USER,
+          filteredRequest.ID,
+          560, 'UserService', 'handleGetUserInvoice',
+          req.user);
+      }
       // Get the user
       const user = await User.getUser(req.user.tenantID, filteredRequest.ID);
       if (!user) {
@@ -630,16 +647,6 @@ export default class UserService {
           Constants.CENTRAL_SERVER,
           `User with ID '${filteredRequest.ID}' is logically deleted`, 550,
           'UserService', 'handleGetUserInvoice', req.user);
-      }
-      // Check auth
-      if (!Authorizations.canReadUser(req.user, user.getModel())) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_READ,
-          Constants.ENTITY_USER,
-          user.getID(),
-          560, 'UserService', 'handleGetUserInvoice',
-          req.user);
       }
       let setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, Constants.COMPONENTS.PRICING);
       setting = setting.getContent().convergentCharging;

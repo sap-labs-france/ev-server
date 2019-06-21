@@ -434,43 +434,43 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_USERS, Constants.ACTION_LIST);
   }
 
-  public static canReadUser(loggedUser: any, user: any): boolean {
+  public static canReadUser(loggedUser: any, userId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_USER, Constants.ACTION_READ,
-      {"user": user.id.toString(), "owner": loggedUser.id});
+      {"user": userId, "owner": loggedUser.id});
   }
 
   public static canCreateUser(loggedUser: any): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_USER, Constants.ACTION_CREATE);
   }
 
-  public static canUpdateUser(loggedUser: any, user: any): boolean {
+  public static canUpdateUser(loggedUser: any, userId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_USER, Constants.ACTION_UPDATE,
-      {"user": user.id.toString(), "owner": loggedUser.id});
+      {"user": userId, "owner": loggedUser.id});
   }
 
-  public static canDeleteUser(loggedUser: any, user: any): boolean {
+  public static canDeleteUser(loggedUser: any, userId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_USER, Constants.ACTION_DELETE,
-      {"user": user.id.toString(), "owner": loggedUser.id});
+      {"user": userId, "owner": loggedUser.id});
   }
 
   public static canListSites(loggedUser: any): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITES, Constants.ACTION_LIST);
   }
 
-  public static canReadSite(loggedUser: any, site: any): boolean {
+  public static canReadSite(loggedUser: any, siteId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_READ,
-      {"site": site.id.toString(), "sites": loggedUser.sites});
+      {"site": siteId, "sites": loggedUser.sites});
   }
 
   public static canCreateSite(loggedUser: any): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_CREATE);
   }
 
-  public static canUpdateSite(loggedUser: any, siteID: string): boolean {
+  public static canUpdateSite(loggedUser: any, siteId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_UPDATE);
   }
 
-  public static canDeleteSite(loggedUser: any, siteID: any): boolean {
+  public static canDeleteSite(loggedUser: any, siteId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_DELETE);
   }
 
@@ -641,14 +641,14 @@ export default class Authorizations {
       {"owner": loggedUser.id});
   }
 
-  public static canDeleteConnection(loggedUser, connection): boolean {
+  public static canDeleteConnection(loggedUser, userId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CONNECTION, Constants.ACTION_DELETE,
-      {"user": connection.userId.toString(), "owner": loggedUser.id});
+      {"user": userId, "owner": loggedUser.id});
   }
 
-  public static canReadConnection(loggedUser, connection): boolean {
+  public static canReadConnection(loggedUser, userId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CONNECTION, Constants.ACTION_READ,
-      {"user": connection.userId.toString(), "owner": loggedUser.id});
+      {"user": userId, "owner": loggedUser.id});
   }
 
   public static canListConnections(loggedUser: any): boolean {

@@ -19,15 +19,11 @@ export default class SiteSecurity {
     return filteredRequest;
   }
 
-  static filterUpdateSiteUsersRoleRequest(request) {
+  static filterUpdateSiteUserRoleRequest(request) {
     const filteredRequest: any = {};
     filteredRequest.siteID = sanitize(request.siteID);
+    filteredRequest.userID = sanitize(request.userID);
     filteredRequest.role = sanitize(request.role);
-    if (request.userIDs) {
-      filteredRequest.userIDs = request.userIDs.map((userID) => {
-        return sanitize(userID);
-      });
-    }
     return filteredRequest;
   }
 
@@ -109,7 +105,7 @@ export default class SiteSecurity {
       });
       filteredRequest.userIDs = request.userIDs.filter((userID) => {
         // Check auth
-        if (Authorizations.canReadUser(loggedUser, {id: userID})) {
+        if (Authorizations.canReadUser(loggedUser, userID)) {
           return true;
         }
         return false;
@@ -126,7 +122,7 @@ export default class SiteSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadSite(loggedUser, site)) {
+    if (Authorizations.canReadSite(loggedUser, site.id)) {
       // Admin?
       if (Authorizations.isAdmin(loggedUser.role)) {
         // Yes: set all params

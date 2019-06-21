@@ -70,7 +70,7 @@ export default class SiteService {
             'SiteService', 'handleAddUsersToSite', req.user);
         }
         // Check auth
-        if (!Authorizations.canUpdateUser(req.user, user.getModel())) {
+        if (!Authorizations.canUpdateUser(req.user, userID)) {
           throw new AppAuthError(
             Constants.ACTION_UPDATE,
             Constants.ENTITY_USER,
@@ -97,38 +97,38 @@ export default class SiteService {
     }
   }
 
-  static async handleUpdateSiteUsersRole(action, req, res, next) {
+  static async handleUpdateSiteUserRole(action, req, res, next) {
     try {
       if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
         throw new OrganizationComponentInactiveError(
           Constants.ACTION_UPDATE,
           Constants.ENTITY_SITE,
-          560, 'SiteService', 'handleUpdateSiteUsersRole');
+          560, 'SiteService', 'handleUpdateSiteUserRole');
       }
-      const filteredRequest = SiteSecurity.filterUpdateSiteUsersRoleRequest(req.body);
+      const filteredRequest = SiteSecurity.filterUpdateSiteUserRoleRequest(req.body);
       if (!filteredRequest.siteID) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Site's ID must be provided`, 500,
-          'SiteService', 'handleUpdateSiteUsersRole', req.user);
+          `The Site ID must be provided`, 500,
+          'SiteService', 'handleUpdateSiteUserRole', req.user);
+      }
+      if (!filteredRequest.userID) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The User ID must be provided`, 500,
+          'SiteService', 'handleUpdateSiteUserRole', req.user);
       }
       if (!filteredRequest.role) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The role must be provided`, 500,
-          'SiteService', 'handleUpdateSiteUsersRole', req.user);
+          'SiteService', 'handleUpdateSiteUserRole', req.user);
       }
       if (filteredRequest.role !== Constants.ROLE_ADMIN && filteredRequest.role !== Constants.ROLE_BASIC) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The role ${filteredRequest.role} is not supported`, 500,
-          'SiteService', 'handleUpdateSiteUsersRole', req.user);
-      }
-      if (!filteredRequest.userIDs || (filteredRequest.userIDs && filteredRequest.userIDs.length <= 0)) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The User's IDs must be provided`, 500,
-          'SiteService', 'handleUpdateSiteUsersRole', req.user);
+          'SiteService', 'handleUpdateSiteUserRole', req.user);
       }
 
       if (!Authorizations.canUpdateSite(req.user, filteredRequest.siteID)) {
@@ -137,7 +137,7 @@ export default class SiteService {
           Constants.ENTITY_SITE,
           filteredRequest.siteID,
           560,
-          'SiteService', 'handleAddUsersToSite',
+          'SiteService', 'handleUpdateSiteUserRole',
           req.user);
       }
 
@@ -147,14 +147,15 @@ export default class SiteService {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The Site with ID '${filteredRequest.siteID}' does not exist anymore`, 550,
-          'SiteService', 'handleUpdateSiteUsersRole', req.user);
+          'SiteService', 'handleUpdateSiteUserRole', req.user);
       }
-      await Site.updateSiteUsersRole(req.user.tenantID, filteredRequest.siteID, filteredRequest.userIDs, filteredRequest.role);
+      await Site.updateSiteUserRole(req.user.tenantID, filteredRequest.siteID, filteredRequest.userID, filteredRequest.role);
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
-        user: req.user, module: 'SiteService', method: 'handleUpdateSiteUsersRole',
-        message: `Site's Users have been updated successfully to ${filteredRequest.role}`, action: action
+        user: req.user, module: 'SiteService', method: 'handleUpdateSiteUserRole',
+        message: `The site role of user ${filteredRequest.userID} has been updated successfully 
+          to ${filteredRequest.role}`, action: action
       });
       // Ok
       res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -220,7 +221,7 @@ export default class SiteService {
             'SiteService', 'handleRemoveUsersFromSite', req.user);
         }
         // Check auth
-        if (!Authorizations.canUpdateUser(req.user, user.getModel())) {
+        if (!Authorizations.canUpdateUser(req.user, userID)) {
           throw new AppAuthError(
             Constants.ACTION_UPDATE,
             Constants.ENTITY_USER,
@@ -288,7 +289,9 @@ export default class SiteService {
       const users = await Site.getUsersFromSite(req.user.tenantID, filteredRequest.siteID,
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 
-      users.result = users.result.map((user) => { return user.getModel(); });
+      users.result = users.result.map((user) => {
+        return user.getModel();
+      });
       UserSecurity.filterUsersResponse(users, req.user);
       res.json(users);
       next();
@@ -468,6 +471,17 @@ export default class SiteService {
           `The Site's ID must be provided`, 500,
           'SiteService', 'handleGetSiteImage', req.user);
       }
+      // Check auth
+      if (!Authorizations.canReadSite(req.user, filteredRequest.ID)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_READ,
+          Constants.ENTITY_SITE,
+          filteredRequest.ID,
+          560,
+          'SiteService', 'handleGetSiteImage',
+          req.user);
+      }
       // Get it
       const site = await Site.getSite(req.user.tenantID, filteredRequest.ID);
       if (!site) {
@@ -475,17 +489,6 @@ export default class SiteService {
           Constants.CENTRAL_SERVER,
           `The Site with ID '${filteredRequest.ID}' does not exist anymore`, 550,
           'SiteService', 'handleGetSite', req.user);
-      }
-      // Check auth
-      if (!Authorizations.canReadSite(req.user, site.getModel())) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_READ,
-          Constants.ENTITY_SITE,
-          site.getID(),
-          560,
-          'SiteService', 'handleGetSiteImage',
-          req.user);
       }
       // Get the image
       const siteImage = await Site.getSiteImage(req.user.tenantID, filteredRequest.ID);
