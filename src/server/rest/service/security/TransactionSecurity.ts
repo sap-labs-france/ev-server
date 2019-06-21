@@ -198,25 +198,25 @@ export default class TransactionSecurity {
   }
 
   static _filterUserInTransactionResponse(user, loggedUser) {
-    const userID: any = {};
+    const filteredUser: any = {};
 
     if (!user) {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadUser(loggedUser, user)) {
+    if (Authorizations.canReadUser(loggedUser, user.id)) {
       // Demo user?
       if (Authorizations.isDemo(loggedUser)) {
-        userID.id = null;
-        userID.name = Constants.ANONIMIZED_VALUE;
-        userID.firstName = Constants.ANONIMIZED_VALUE;
+        filteredUser.id = null;
+        filteredUser.name = Constants.ANONIMIZED_VALUE;
+        filteredUser.firstName = Constants.ANONIMIZED_VALUE;
       } else {
-        userID.id = user.id;
-        userID.name = user.name;
-        userID.firstName = user.firstName;
+        filteredUser.id = user.id;
+        filteredUser.name = user.name;
+        filteredUser.firstName = user.firstName;
       }
     }
-    return userID;
+    return filteredUser;
   }
 
   // eslint-disable-next-line no-unused-vars
@@ -255,7 +255,7 @@ export default class TransactionSecurity {
     }
     // Check Authorisation
     if (transaction.getUserJson()) {
-      if (!Authorizations.canReadUser(loggedUser, transaction.getUserJson())) {
+      if (!Authorizations.canReadUser(loggedUser, transaction.getUserJson().id)) {
         return null;
       }
     } else {

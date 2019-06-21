@@ -105,7 +105,7 @@ export default class SiteSecurity {
       });
       filteredRequest.userIDs = request.userIDs.filter((userID) => {
         // Check auth
-        if (Authorizations.canReadUser(loggedUser, {id: userID})) {
+        if (Authorizations.canReadUser(loggedUser, userID)) {
           return true;
         }
         return false;
@@ -122,7 +122,7 @@ export default class SiteSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadSite(loggedUser, site)) {
+    if (Authorizations.canReadSite(loggedUser, site.id)) {
       // Admin?
       if (Authorizations.isAdmin(loggedUser.role)) {
         // Yes: set all params
