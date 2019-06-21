@@ -267,7 +267,7 @@ export default class Authorizations {
       }
       // Site -----------------------------------------------------
       // TODO consider changing structure of CS->SA->S entirely; It's a little inconvenient that sometimes CS includes SA with includes S, which can also include SA, but not always
-      site = siteArea.site ? siteArea.site : (siteArea.siteID ? await SiteStorage.getSite(chargingStation.getTenantID(), siteArea.siteID) : null); 
+      site = siteArea.site ? siteArea.site : (siteArea.siteID ? await SiteStorage.getSite(chargingStation.getTenantID(), siteArea.siteID) : null);
 
       if (!site) {
         // Reject Site Not Found
@@ -574,7 +574,7 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREAS, Constants.ACTION_LIST);
   }
 
-  public static canReadSiteArea(loggedUser: any, siteAreaID: string) {
+  public static canReadSiteArea(loggedUser: any, siteAreaID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA, Constants.ACTION_READ) &&
       Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_READ,
         {"site": siteAreaID, "sites": loggedUser.sites});
@@ -585,12 +585,12 @@ export default class Authorizations {
       Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_CREATE);
   }
 
-  public static canUpdateSiteArea(loggedUser: any) {
+  public static canUpdateSiteArea(loggedUser: any): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA, Constants.ACTION_UPDATE) &&
       Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_UPDATE);
   }
 
-  public static canDeleteSiteArea(loggedUser: any) {
+  public static canDeleteSiteArea(loggedUser: any): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA, Constants.ACTION_DELETE) &&
       Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_DELETE);
   }
@@ -681,7 +681,6 @@ export default class Authorizations {
 
   private static getConfiguration() {
     if (!this.configuration) {
-      // Load it
       this.configuration = Configuration.getAuthorizationConfig();
     }
     return this.configuration;
