@@ -19,7 +19,7 @@ export default class SiteStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getSite');
 
-    const sitesMDB = await SiteStorage.getSites(tenantID, {search: id, withAvailableChargers: true}, 1, 0, null);
+    const sitesMDB = await SiteStorage.getSites(tenantID, {search: id/*, withAvailableChargers: true*/}, 1, 0, null);
     if (sitesMDB && sitesMDB.count > 0) {
       sitesMDB.result[0].setSiteAreas((sitesMDB.result[0] as any).siteAreas);
     }
