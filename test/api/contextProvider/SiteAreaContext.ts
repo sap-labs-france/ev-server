@@ -4,7 +4,7 @@ import TenantContext from './TenantContext';
 export default class SiteAreaContext {
 
   private tenantContext: TenantContext;
-  private chargingStations: Array<ChargingStationContext>;
+  private chargingStations: ChargingStationContext[];
   private siteArea: any;
 
   constructor(siteArea, tenantContext: TenantContext) {
@@ -48,8 +48,8 @@ export default class SiteAreaContext {
   }
 
   addChargingStation(chargingStation) {
-    const charginStationContext = new ChargingStationContext(chargingStation, this.tenantContext);
-    this.chargingStations.push(charginStationContext);
+    const chargingStationContext = new ChargingStationContext(chargingStation, this.tenantContext);
+    this.chargingStations.push(chargingStationContext);
   }
 
   async assignChargingStation(chargingStation) {
