@@ -254,8 +254,8 @@ export default class Site extends TenantHolder {
     return SiteStorage.getUsersBySite(tenantID, id, limit, skip, sort);
   }
 
-  static updateSiteUsersRole(tenantID, id, userIDs, role: string) {
-    return SiteStorage.updateSiteUsersRole(tenantID, id, userIDs, role);
+  static updateSiteUserRole(tenantID, id, userID, role: string) {
+    return SiteStorage.updateSiteUserRole(tenantID, id, userID, role);
   }
 
   static removeUsersFromSite(tenantID, id, userIDs) {

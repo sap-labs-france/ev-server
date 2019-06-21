@@ -19,15 +19,11 @@ export default class SiteSecurity {
     return filteredRequest;
   }
 
-  static filterUpdateSiteUsersRoleRequest(request) {
+  static filterUpdateSiteUserRoleRequest(request) {
     const filteredRequest: any = {};
     filteredRequest.siteID = sanitize(request.siteID);
+    filteredRequest.userID = sanitize(request.userID);
     filteredRequest.role = sanitize(request.role);
-    if (request.userIDs) {
-      filteredRequest.userIDs = request.userIDs.map((userID) => {
-        return sanitize(userID);
-      });
-    }
     return filteredRequest;
   }
 

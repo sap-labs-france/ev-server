@@ -528,10 +528,9 @@ export default {
             // Delegate
             SiteAreaService.handleUpdateSiteArea(action, req, res, next);
             break;
-          // Add Sites to User
-          case "SiteUsersRoleUpdate":
+          case "SiteUserRoleUpdate":
             // Delegate
-            SiteService.handleUpdateSiteUsersRole(action, req, res, next);
+            SiteService.handleUpdateSiteUserRole(action, req, res, next);
             break;
           // Company
           case "CompanyUpdate":
