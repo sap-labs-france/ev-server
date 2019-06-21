@@ -15,7 +15,7 @@ describe('Company tests', function() {
   before(function() {
     centralServerService = new CentralServerService();
   });
-  
+
 
   describe('Success cases', () => {
     it('Should create a new company', async () => {

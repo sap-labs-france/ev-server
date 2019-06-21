@@ -23,6 +23,7 @@
         "SwitchCase": 1
       }
     ],
+    "@typescript-eslint/array-type": "off",
     "semi": "off",
     "@typescript-eslint/semi": [
       "error",
@@ -45,6 +46,7 @@
       }
     ],
     "curly": "error",
+    "brace-style": "error",
     "eqeqeq": [
       "error",
       "always"
@@ -135,3 +137,4 @@
     "sort-imports": "warn"
   }
 }
+

@@ -80,9 +80,9 @@ export default class OCPIEndpointSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadOcpiEndpoint(loggedUser, ocpiendpoint)) {
+    if (Authorizations.canReadOcpiEndpoint(loggedUser)) {
       // Admin?
-      if (Authorizations.isAdmin(loggedUser)) {
+      if (Authorizations.isAdmin(loggedUser.role)) {
         // Yes: set all params
         filteredOcpiEndpoint = ocpiendpoint;
       } else {

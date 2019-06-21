@@ -933,7 +933,7 @@ export default class AuthService {
     // Save
     await user.save();
     // Build Authorization
-    const scopes = Authorizations.getUserScopes(user.getRole());
+    const scopes = await Authorizations.getUserScopes(user);
     const authorizedEntities = await Authorizations.getAuthorizedEntities(user);
     const userHashID = SessionHashService.buildUserHashID(user);
     let tenantHashID;
@@ -987,7 +987,7 @@ export default class AuthService {
   }
 
   static async getTenantID(subdomain) {
-    if (subdomain === undefined) {
+    if (Utils.isUndefined(subdomain)) {
       return null;
     }
     // Check

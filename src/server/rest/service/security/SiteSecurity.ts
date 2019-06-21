@@ -12,7 +12,21 @@ export default class SiteSecurity {
     // Set
     filteredRequest.siteID = sanitize(request.siteID);
     if (request.userIDs) {
-      filteredRequest.userIDs = request.userIDs.map((userID) => { return sanitize(userID); });
+      filteredRequest.userIDs = request.userIDs.map((userID) => {
+        return sanitize(userID);
+      });
+    }
+    return filteredRequest;
+  }
+
+  static filterUpdateSiteUsersRoleRequest(request) {
+    const filteredRequest: any = {};
+    filteredRequest.siteID = sanitize(request.siteID);
+    filteredRequest.role = sanitize(request.role);
+    if (request.userIDs) {
+      filteredRequest.userIDs = request.userIDs.map((userID) => {
+        return sanitize(userID);
+      });
     }
     return filteredRequest;
   }
@@ -23,7 +37,9 @@ export default class SiteSecurity {
     // Set
     filteredRequest.siteID = sanitize(request.siteID);
     if (request.userIDs) {
-      filteredRequest.userIDs = request.userIDs.map((userID) => { return sanitize(userID); });
+      filteredRequest.userIDs = request.userIDs.map((userID) => {
+        return sanitize(userID);
+      });
     }
     return filteredRequest;
   }
@@ -40,6 +56,14 @@ export default class SiteSecurity {
   static filterSiteRequest(request, loggedUser) {
     const filteredRequest: any = {};
     filteredRequest.ID = sanitize(request.ID);
+    return filteredRequest;
+  }
+
+  static filterSiteUsersRequest(request) {
+    const filteredRequest: any = {};
+    filteredRequest.siteID = sanitize(request.SiteID);
+    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+    UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
   }
 
@@ -104,7 +128,7 @@ export default class SiteSecurity {
     // Check auth
     if (Authorizations.canReadSite(loggedUser, site)) {
       // Admin?
-      if (Authorizations.isAdmin(loggedUser)) {
+      if (Authorizations.isAdmin(loggedUser.role)) {
         // Yes: set all params
         filteredSite = site;
       } else {
@@ -113,7 +137,7 @@ export default class SiteSecurity {
         filteredSite.id = site.id;
         filteredSite.name = site.name;
         filteredSite.gps = site.gps;
-        filteredSite.companyID = site.getCompanyID();
+        filteredSite.companyID = site.companyID;
       }
       if (site.address) {
         filteredSite.address = UtilsSecurity.filterAddressRequest(site.address);

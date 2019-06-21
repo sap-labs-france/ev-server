@@ -35,13 +35,13 @@ export default class ChargingStationSecurity {
       return null;
     }
     // Check organization
-    if (organizationIsActive && !Authorizations.isAdmin(loggedUser) && (!chargingStation.siteArea || !Authorizations.canReadSite(loggedUser, {id: chargingStation.siteArea.siteID}))) {
+    if (organizationIsActive && !Authorizations.isAdmin(loggedUser.role) && (!chargingStation.siteArea || !Authorizations.canReadSite(loggedUser, {id: chargingStation.siteArea.siteID}))) {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadChargingStation(loggedUser, chargingStation)) {
+    if (Authorizations.canReadChargingStation(loggedUser)) {
       // Admin?
-      if (Authorizations.isAdmin(loggedUser)) {
+      if (Authorizations.isAdmin(loggedUser.role)) {
         // Yes: set all params
         filteredChargingStation = chargingStation;
         for (const connector of filteredChargingStation.connectors) {

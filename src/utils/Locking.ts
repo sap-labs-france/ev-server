@@ -1,5 +1,6 @@
 import Constants from './Constants';
 import Database from './Database';
+import Lock from '../types/Lock';
 import LockingStorage from '../storage/mongodb/LockingStorage';
 import Logging from './Logging';
 
@@ -9,7 +10,7 @@ import Logging from './Logging';
  */
 export default class RunLock {
   private _MODULE_NAME: string;
-  private _runLock: { name: string; type: string; timestamp: Date; hostname: string };
+  private _runLock: Lock;
   private _onMultipleHosts: boolean;
 
   public constructor(name, onMultipleHosts = true) {
@@ -33,7 +34,9 @@ export default class RunLock {
   }
 
   public async acquire(): Promise<void> {
-    if (!await LockingStorage.getLockStatus(this._runLock, this._onMultipleHosts)) { await LockingStorage.saveRunLock(this._runLock); }
+    if (!await LockingStorage.getLockStatus(this._runLock, this._onMultipleHosts)) {
+      await LockingStorage.saveRunLock(this._runLock);
+    }
   }
 
   public async tryAcquire(): Promise<boolean> {
