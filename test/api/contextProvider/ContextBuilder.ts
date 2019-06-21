@@ -223,13 +223,14 @@ export default class ContextBuilder {
     userListToAssign = [adminUser]; // default admin is always assigned to site
     userList = [adminUser]; // default admin is always assigned to site
     // Prepare users
-    // Skip first entry as it is teh default admin already consider above
+    // Skip first entry as it is the default admin already consider above
     for (let index = 1; index < CONTEXTS.TENANT_USER_LIST.length; index++) {
       const userDef = CONTEXTS.TENANT_USER_LIST[index];
       const createUser = UserFactory.build();
       createUser.email = userDef.emailPrefix + defaultAdminUser.getEMail();
       // Update the password
-      createUser.passwords.repeatPassword = createUser.passwords.password = config.get('admin.password');
+      const newPasswordHashed = await User.hashPasswordBcrypt(config.get('admin.password'));
+      createUser.password = newPasswordHashed;
       createUser.role = userDef.role;
       createUser.status = userDef.status;
       createUser.id = userDef.id;
@@ -238,12 +239,13 @@ export default class ContextBuilder {
       }
       const user = new User(buildTenant.id, createUser);
       user.save();
-      // const user = await localCentralServiceService.createEntity(
-      // localCentralServiceService.userApi, createUser);
       if (userDef.assignedToSite) {
         userListToAssign.push(user.getModel());
       }
-      userList.push(user.getModel());
+      // Set back password to clear value for login/logout
+      const userModel = user.getModel();
+      userModel.passwordClear = config.get('admin.password');
+      userList.push(userModel);
     }
     // Persist tenant context
     const newTenantContext = new TenantContext(tenantContextDef.tenantName, buildTenant, localCentralServiceService, null);
