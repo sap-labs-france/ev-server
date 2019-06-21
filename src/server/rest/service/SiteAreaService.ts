@@ -91,7 +91,8 @@ export default class SiteAreaService {
           'siteID': filteredRequest.SiteID,
           'onlyRecordCount': filteredRequest.OnlyRecordCount
         },
-        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+        { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort }
+      );
 
       // Filter
       SiteAreaSecurity.filterSiteAreasResponse(siteAreas, req.user);

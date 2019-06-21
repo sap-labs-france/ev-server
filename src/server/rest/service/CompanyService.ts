@@ -208,14 +208,15 @@ export default class CompanyService {
       const filteredRequest = CompanySecurity.filterCompaniesRequest(req.query);
 
       // Get the companies
-      const companies = (await CompanyStorage.getCompanies(req.user.tenantID,
+      const companies = await CompanyStorage.getCompanies(req.user.tenantID,
         {
           search: filteredRequest.Search,
           companyIDs: Authorizations.getAuthorizedEntityIDsFromLoggedUser(Constants.ENTITY_COMPANY, req.user),
           withSites: filteredRequest.WithSites,
           onlyRecordCount: filteredRequest.OnlyRecordCount
         },
-        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort));
+        { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort }
+      );
 
       // Filter
       CompanySecurity.filterCompaniesResponse(companies, req.user);

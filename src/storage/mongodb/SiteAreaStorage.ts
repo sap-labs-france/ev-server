@@ -1,5 +1,4 @@
 import Constants from '../../utils/Constants';
-import Database from '../../utils/Database';
 import Utils from '../../utils/Utils';
 import BackendError from '../../exception/BackendError';
 import { ObjectID } from 'mongodb';
@@ -9,6 +8,7 @@ import Site from '../../entity/Site';
 import SiteArea from '../../types/SiteArea';
 import ChargingStation from '../../entity/ChargingStation';
 import TSGlobal from '../../types/GlobalType';
+import DbParams from '../../types/database/DbParams';
 
 declare const global: TSGlobal;
 
@@ -46,7 +46,8 @@ export default class SiteAreaStorage {
 
     const siteAreaResult = await SiteAreaStorage.getSiteAreas(
       tenantID, { search: id, onlyRecordCount: false, withImage: params.withImage,
-      withSite: params.withSite, withChargeBoxes: params.withChargeBoxes, withAvailableChargers: true }, 1, 0, null);
+      withSite: params.withSite, withChargeBoxes: params.withChargeBoxes, withAvailableChargers: true },
+      { limit: 1, skip: 0 });
 
     // Debug
     Logging.traceEnd('SiteAreaStorage', 'getSiteArea', uniqueTimerID, { id, withChargeBoxes: params.withChargeBoxes, withSite: params.withSite });
@@ -127,15 +128,17 @@ export default class SiteAreaStorage {
     Logging.traceEnd('SiteAreaStorage', 'saveSiteAreaImage', uniqueTimerID);
   }
 
-  public static async getSiteAreas(tenantID: string, params: {search?: string, withImage?: boolean, siteID?: string, siteIDs?: string[], onlyRecordCount?: boolean, withSite?: boolean, withChargeBoxes?: boolean, withAvailableChargers?: boolean} = {}, limit: number, skip: number, sort: any): Promise<{count: number, result: SiteArea[]}> {
+  public static async getSiteAreas(tenantID: string,
+      params: {search?: string, withImage?: boolean, siteID?: string, siteIDs?: string[], onlyRecordCount?: boolean, withSite?: boolean, withChargeBoxes?: boolean, withAvailableChargers?: boolean} = {},
+      dbParams?: DbParams): Promise<{count: number, result: SiteArea[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'getSiteAreas');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
-    limit = Utils.checkRecordLimit(limit);
+    const limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    skip = Utils.checkRecordSkip(skip);
+    const skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
     const filters: any = {};
     // Build filter
@@ -270,10 +273,10 @@ export default class SiteAreaStorage {
       });
     }
     // Sort
-    if (sort) {
+    if (dbParams.sort) {
       // Sort
       aggregation.push({
-        $sort: sort
+        $sort: dbParams.sort
       });
     } else {
       // Default
@@ -367,7 +370,8 @@ export default class SiteAreaStorage {
       }
     }
     // Debug
-    Logging.traceEnd('SiteAreaStorage', 'getSiteAreas', uniqueTimerID, { params, limit, skip, sort });
+    Logging.traceEnd('SiteAreaStorage', 'getSiteAreas', uniqueTimerID,
+      { params, limit: dbParams.limit, skip: dbParams.skip, sort: dbParams.sort });
     // Ok
     return {
       count: (siteAreasCountMDB.length > 0 ?

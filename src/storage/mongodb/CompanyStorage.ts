@@ -8,6 +8,7 @@ import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import TSGlobal from '../../types/GlobalType';
 import User from '../../entity/User';
+import DbParams from '../../types/database/DbParams';
 
 declare const global: TSGlobal;
 
@@ -18,7 +19,7 @@ export default class CompanyStorage {
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompany');
 
     // Reuse
-    const companiesMDB = await CompanyStorage.getCompanies(tenantID, {search: id, withSites: false}, 1);
+    const companiesMDB = await CompanyStorage.getCompanies(tenantID, {search: id, withSites: false}, { limit: 1, skip: 0 });
 
     let company: Company = null;
     // Check
@@ -93,15 +94,17 @@ export default class CompanyStorage {
   }
 
   // Delegate
-  public static async getCompanies(tenantID: string, params: {search?: string, companyIDs?: string[], onlyRecordCount?: boolean, withSites?:boolean}={}, limit?: number, skip?: number, sort?: any): Promise<{count: number, result: Company[]}> {
+  public static async getCompanies(tenantID: string,
+      params: {search?: string, companyIDs?: string[], onlyRecordCount?: boolean, withSites?:boolean}={},
+      dbParams?: DbParams): Promise<{count: number, result: Company[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompanies');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
-    limit = Utils.checkRecordLimit(limit);
+    const limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    skip = Utils.checkRecordSkip(skip);
+    const skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
     let filters: ({_id?: string; $or?: any[]}|undefined);
     // Build filter
@@ -200,10 +203,10 @@ export default class CompanyStorage {
     );
 
     // Sort
-    if (sort) {
+    if (dbParams.sort) {
       // Sort
       aggregation.push({
-        $sort: sort
+        $sort: dbParams.sort
       });
     } else {
       // Default
@@ -227,12 +230,13 @@ export default class CompanyStorage {
 
     //TODO remove after properly typing user...
     companies = companies.map(company => {return {
-                                            ...company,
-                                            createdBy: (company.createdBy===null||company.createdBy.id===null)?null:new User(tenantID, company.createdBy.id),
-                                            lastChangedBy: (company.lastChangedBy===null||company.lastChangedBy.id===null)?null:new User(tenantID, company.lastChangedBy.id)};});
+      ...company,
+      createdBy: (company.createdBy===null||company.createdBy.id===null)?null:new User(tenantID, company.createdBy.id),
+      lastChangedBy: (company.lastChangedBy===null||company.lastChangedBy.id===null)?null:new User(tenantID, company.lastChangedBy.id)};});
 
     // Debug
-    Logging.traceEnd('CompanyStorage', 'getCompanies', uniqueTimerID, { params, limit, skip, sort });
+    Logging.traceEnd('CompanyStorage', 'getCompanies', uniqueTimerID,
+      { params, limit: dbParams.limit, skip: dbParams.skip, sort: dbParams.sort });
 
     // Ok
     return {

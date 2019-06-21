@@ -154,7 +154,9 @@ export default class Site extends TenantHolder {
   }
 
   async getSiteAreas() {
-    const siteAreas = await SiteAreaStorage.getSiteAreas(this.getTenantID(), {siteID: this.getID(), onlyRecordCount: false, withChargeBoxes: true, withAvailableChargers: true, withSite: false, withImage: false}, Constants.MAX_DB_RECORD_COUNT, 0, null);
+    const siteAreas = await SiteAreaStorage.getSiteAreas(this.getTenantID(),
+      { siteID: this.getID(), onlyRecordCount: false, withChargeBoxes: true, withAvailableChargers: true, withSite: false, withImage: false},
+      { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 });
     this.setSiteAreas(siteAreas.result);
     return siteAreas.result;
   }
