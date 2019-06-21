@@ -221,14 +221,18 @@ export default class SettingService {
           if (valueInRequest && valueInRequest.length > 0) {
             // Get the sensitive property from the DB
             const valueInDb = _.get(setting.getModel(), property);
-            const hashedValueInDB = Cypher.hash(valueInDb);
-            // Value has been changed?
-            if (valueInDb && (valueInRequest !== hashedValueInDB)) {
-              // Yes: Encrypt
-              _.set(filteredRequest, property, Cypher.encrypt(valueInRequest));
+            if (valueInDb && valueInDb.length > 0) {
+              const hashedValueInDB = Cypher.hash(valueInDb);
+              if (valueInRequest !== hashedValueInDB) {
+                // Yes: Encrypt
+                _.set(filteredRequest, property, Cypher.encrypt(valueInRequest));
+              } else {
+                // No: Put back the encrypted value
+                _.set(filteredRequest, property, valueInDb);
+              }
             } else {
-              // No: Put back the encrypted value
-              _.set(filteredRequest, property, valueInDb);
+              // Value in db is empty then encrypt
+              _.set(filteredRequest, property, Cypher.encrypt(valueInRequest));
             }
           }
         }
