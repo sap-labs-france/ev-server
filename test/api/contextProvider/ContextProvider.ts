@@ -101,7 +101,7 @@ export default class ContextProvider {
     // Create tenant context
     const newTenantContext = new TenantContext(tenantContextDef.tenantName, tenantEntity, defaultAdminCentralServiceService, null);
     this.tenantsContexts.push(newTenantContext);
-    newTenantContext.addUsers(userList);//getContext().users = userList;
+    newTenantContext.addUsers(userList); // getContext().users = userList;
     newTenantContext.getContext().companies = companyList;
 
     if (tenantEntity.components && tenantEntity.components.hasOwnProperty(Constants.COMPONENTS.ORGANIZATION) &&
