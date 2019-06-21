@@ -144,7 +144,7 @@ export default class UserSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadUser(loggedUser, user)) {
+    if (Authorizations.canReadUser(loggedUser, user.id)) {
       // Admin?
       if (Authorizations.isAdmin(loggedUser.role) || Authorizations.isSuperAdmin(loggedUser.role)) {
         filteredUser.id = user.id;
@@ -198,7 +198,7 @@ export default class UserSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadUser(loggedUser, user)) {
+    if (Authorizations.canReadUser(loggedUser, user.id)) {
       // Admin?
       if (Authorizations.isAdmin(loggedUser.role)) {
         filteredUser.id = user.id;

@@ -35,7 +35,7 @@ export default class ChargingStationSecurity {
       return null;
     }
     // Check organization
-    if (organizationIsActive && !Authorizations.isAdmin(loggedUser.role) && (!chargingStation.siteArea || !Authorizations.canReadSite(loggedUser, {id: chargingStation.siteArea.siteID}))) {
+    if (organizationIsActive && !Authorizations.isAdmin(loggedUser.role) && (!chargingStation.siteArea || !Authorizations.canReadSite(loggedUser, chargingStation.siteArea.siteID))) {
       return null;
     }
     // Check auth

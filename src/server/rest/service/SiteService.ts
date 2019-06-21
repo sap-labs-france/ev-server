@@ -69,7 +69,7 @@ export default class SiteService {
             'SiteService', 'handleAddUsersToSite', req.user);
         }
         // Check auth
-        if (!Authorizations.canUpdateUser(req.user, user.getModel())) {
+        if (!Authorizations.canUpdateUser(req.user, userID)) {
           throw new AppAuthError(
             Constants.ACTION_UPDATE,
             Constants.ENTITY_USER,
@@ -220,7 +220,7 @@ export default class SiteService {
             'SiteService', 'handleRemoveUsersFromSite', req.user);
         }
         // Check auth
-        if (!Authorizations.canUpdateUser(req.user, user.getModel())) {
+        if (!Authorizations.canUpdateUser(req.user, userID)) {
           throw new AppAuthError(
             Constants.ACTION_UPDATE,
             Constants.ENTITY_USER,
@@ -470,6 +470,17 @@ export default class SiteService {
           `The Site's ID must be provided`, 500,
           'SiteService', 'handleGetSiteImage', req.user);
       }
+      // Check auth
+      if (!Authorizations.canReadSite(req.user, filteredRequest.ID)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_READ,
+          Constants.ENTITY_SITE,
+          filteredRequest.ID,
+          560,
+          'SiteService', 'handleGetSiteImage',
+          req.user);
+      }
       // Get it
       const site = await Site.getSite(req.user.tenantID, filteredRequest.ID);
       if (!site) {
@@ -477,17 +488,6 @@ export default class SiteService {
           Constants.CENTRAL_SERVER,
           `The Site with ID '${filteredRequest.ID}' does not exist anymore`, 550,
           'SiteService', 'handleGetSite', req.user);
-      }
-      // Check auth
-      if (!Authorizations.canReadSite(req.user, site.getModel())) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_READ,
-          Constants.ENTITY_SITE,
-          site.getID(),
-          560,
-          'SiteService', 'handleGetSiteImage',
-          req.user);
       }
       // Get the image
       const siteImage = await Site.getSiteImage(req.user.tenantID, filteredRequest.ID);
