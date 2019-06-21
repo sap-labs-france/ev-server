@@ -45,7 +45,7 @@ export default class TenantService extends AbstractService {
           MODULE_NAME, 'handleDeleteTenant', req.user);
       }
       // Check auth
-      if (!Authorizations.canDeleteTenant(req.user, tenant.getModel())) {
+      if (!Authorizations.canDeleteTenant(req.user)) {
         // Not Authorized!
         throw new UnauthorizedError(
           Constants.ACTION_DELETE,
@@ -108,7 +108,7 @@ export default class TenantService extends AbstractService {
           MODULE_NAME, 'handleGetTenant', req.user);
       }
       // Check auth
-      if (!Authorizations.canReadTenant(req.user, tenant.getModel())) {
+      if (!Authorizations.canReadTenant(req.user)) {
         // Not Authorized!
         throw new UnauthorizedError(
           Constants.ACTION_READ,
@@ -280,7 +280,7 @@ export default class TenantService extends AbstractService {
           MODULE_NAME, 'handleUpdateTenant', req.user);
       }
       // Check auth
-      if (!Authorizations.canUpdateTenant(req.user, tenant.getModel())) {
+      if (!Authorizations.canUpdateTenant(req.user)) {
         // Not Authorized!
         throw new UnauthorizedError(
           Constants.ACTION_UPDATE,

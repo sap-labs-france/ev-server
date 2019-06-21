@@ -259,7 +259,7 @@ export default class TransactionSecurity {
         return null;
       }
     } else {
-      if (!Authorizations.isAdmin(loggedUser)) {
+      if (!Authorizations.isAdmin(loggedUser.role)) {
         return null;
       }
     }
@@ -270,7 +270,7 @@ export default class TransactionSecurity {
     }
 
     // Admin?
-    if (Authorizations.isAdmin(loggedUser)) {
+    if (Authorizations.isAdmin(loggedUser.role)) {
       // Set them all
       filteredTransaction.values = consumptions.map((consumption) => { return consumption.getModel(); }).map((consumption) => { return {
         ...consumption,
@@ -308,7 +308,7 @@ export default class TransactionSecurity {
     initialValue.cumulated = 0;
     initialValue.instantPower = 0;
     initialValue.cumulatedConsumption = 0;
-    if (Authorizations.isAdmin(loggedUser)) {
+    if (Authorizations.isAdmin(loggedUser.role)) {
       initialValue.startedAt = new Date(initialDate.getTime() - 60000);
       initialValue.consumption = 0;
       initialValue.amount = 0;

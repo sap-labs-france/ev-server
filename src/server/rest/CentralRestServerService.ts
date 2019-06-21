@@ -19,6 +19,7 @@ import NotificationService from './service/NotificationService';
 import ConnectorService from './service/ConnectorService';
 import SessionHashService from './service/SessionHashService';
 import SourceMap from 'source-map-support';
+
 SourceMap.install();
 
 export default {
@@ -47,7 +48,7 @@ export default {
     let action = /^\/\w*/g.exec(req.url)[0].substring(1);
 
     // Check if User has been updated and require new login
-    if (await SessionHashService.isSessionHashUpdated(req,res,next)) {
+    if (await SessionHashService.isSessionHashUpdated(req, res, next)) {
       return;
     }
     // Check Context
@@ -274,6 +275,9 @@ export default {
           case "SiteImage":
             // Delegate
             SiteService.handleGetSiteImage(action, req, res, next);
+            break;
+          case "SiteUsers":
+            SiteService.handleGetUsersFromSite(action, req, res, next);
             break;
           // Get all tenant
           case "Tenants":
@@ -524,6 +528,11 @@ export default {
           case "SiteAreaUpdate":
             // Delegate
             SiteAreaService.handleUpdateSiteArea(action, req, res, next);
+            break;
+          // Add Sites to User
+          case "SiteUsersRoleUpdate":
+            // Delegate
+            SiteService.handleUpdateSiteUsersRole(action, req, res, next);
             break;
           // Company
           case "CompanyUpdate":

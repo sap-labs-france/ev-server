@@ -61,7 +61,7 @@ export default class TenantSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadTenant(loggedUser, tenant)) {
+    if (Authorizations.canReadTenant(loggedUser)) {
       // Set only necessary info
       filteredTenant = {};
       filteredTenant.id = tenant.id;

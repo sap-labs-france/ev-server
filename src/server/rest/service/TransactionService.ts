@@ -14,6 +14,7 @@ import OCPPService from "../../../server/ocpp/services/OCPPService";
 import fs from "fs";
 import crypto from 'crypto';
 import TSGlobal from '../../../types/GlobalType';
+import Cypher from '../../../utils/Cypher';
 
 declare const global: TSGlobal;
 
@@ -135,7 +136,7 @@ export default class TransactionService {
           'TransactionService', 'handleDeleteTransaction', req.user);
       }
       // Check auth
-      if (!Authorizations.canDeleteTransaction(req.user, transaction)) {
+      if (!Authorizations.canDeleteTransaction(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_DELETE,
@@ -198,7 +199,7 @@ export default class TransactionService {
           'TransactionService', 'handleTransactionSoftStop', req.user);
       }
       // Check auth
-      if (!Authorizations.canUpdateTransaction(req.user, transaction)) {
+      if (!Authorizations.canUpdateTransaction(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
@@ -593,9 +594,9 @@ export default class TransactionService {
       // Hash userId and tagId for confidentiality purposes
       for (const transaction of transactions.result) {
         if (transaction.user) {
-          transaction.user.id = transaction.user ? this.hashString(transaction.user.id) : '';
+          transaction.user.id = transaction.user ? Cypher.hash(transaction.user.id) : '';
         }
-        transaction.tagID = transaction.tagID ? this.hashString(transaction.tagID) : '';
+        transaction.tagID = transaction.tagID ? Cypher.hash(transaction.tagID) : '';
       }
 
       const filename = "transactions_export.csv";
@@ -690,9 +691,5 @@ export default class TransactionService {
       csv += `${transaction.stop ? transaction.stop.priceUnit : ''}\r\n`;
     }
     return csv;
-  }
-
-  static hashString(data) {
-    return crypto.createHash('sha256').update(data).digest("hex");
   }
 }

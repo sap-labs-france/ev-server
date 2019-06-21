@@ -7,9 +7,11 @@ import Constants from '../../../utils/Constants';
 import Setting from '../../../entity/Setting';
 import User from '../../../entity/User';
 import SettingSecurity from './security/SettingSecurity';
+import Cypher from '../../../utils/Cypher';
+import _ from 'lodash';
 
 export default class SettingService {
-  static async handleDeleteSetting(action, req, res, next) {
+  public static async handleDeleteSetting(action, req, res, next) {
     try {
       // Filter
       const filteredRequest = SettingSecurity.filterSettingDeleteRequest(req.query, req.user);
@@ -31,7 +33,7 @@ export default class SettingService {
           'SettingService', 'handleDeleteSetting', req.user);
       }
       // Check auth
-      if (!Authorizations.canDeleteSetting(req.user, setting.getModel())) {
+      if (!Authorizations.canDeleteSetting(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_DELETE,
@@ -59,7 +61,7 @@ export default class SettingService {
     }
   }
 
-  static async handleGetSetting(action, req, res, next) {
+  public static async handleGetSetting(action, req, res, next) {
     try {
       // Filter
       const filteredRequest = SettingSecurity.filterSettingRequest(req.query, req.user);
@@ -72,13 +74,16 @@ export default class SettingService {
           'SettingService', 'handleGetSetting', req.user);
       }
       // Get it
-      const setting = await Setting.getSetting(req.user.tenantID, filteredRequest.ID);
+      let setting = await Setting.getSetting(req.user.tenantID, filteredRequest.ID);
       if (!setting) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The Setting with ID '${filteredRequest.ID}' does not exist anymore`, 550,
           'SettingService', 'handleGetSetting', req.user);
       }
+      // Process the sensitive data if any
+      // Hash sensitive data before being sent to the front end
+      Cypher.hashSensitiveDataInJSON(setting);
       // Return
       res.json(
         // Filter
@@ -92,7 +97,7 @@ export default class SettingService {
     }
   }
 
-  static async handleGetSettings(action, req, res, next) {
+  public static async handleGetSettings(action, req, res, next) {
     try {
       // Check auth
       if (!Authorizations.canListSettings(req.user)) {
@@ -115,10 +120,15 @@ export default class SettingService {
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
-      settings.result = settings.result.map((setting) => { return setting.getModel(); });
+      settings.result = settings.result.map((setting) => setting.getModel());
       // Filter
       settings.result = SettingSecurity.filterSettingsResponse(
         settings.result, req.user);
+      // Process the sensitive data if any
+      settings.result.forEach((setting) => {
+        // Hash sensitive data before being sent to the front end
+        Cypher.hashSensitiveDataInJSON(setting);
+      });
       // Return
       res.json(settings);
       next();
@@ -128,7 +138,7 @@ export default class SettingService {
     }
   }
 
-  static async handleCreateSetting(action, req, res, next) {
+  public static async handleCreateSetting(action, req, res, next) {
     try {
       // Check auth
       if (!Authorizations.canCreateSetting(req.user)) {
@@ -145,7 +155,8 @@ export default class SettingService {
       const filteredRequest = SettingSecurity.filterSettingCreateRequest(req.body, req.user);
       // Check Mandatory fields
       Setting.checkIfSettingValid(filteredRequest, req);
-
+      // Process the sensitive data if any
+      Cypher.encryptSensitiveDataInJSON(filteredRequest);
       // Create setting
       const setting = new Setting(req.user.tenantID, filteredRequest);
       // Update timestamp
@@ -169,7 +180,7 @@ export default class SettingService {
     }
   }
 
-  static async handleUpdateSetting(action, req, res, next) {
+  public static async handleUpdateSetting(action, req, res, next) {
     try {
       // Filter
       const filteredRequest = SettingSecurity.filterSettingUpdateRequest(req.body, req.user);
@@ -184,7 +195,7 @@ export default class SettingService {
       // Check Mandatory fields
       Setting.checkIfSettingValid(filteredRequest, req);
       // Check auth
-      if (!Authorizations.canUpdateSetting(req.user, setting.getModel())) {
+      if (!Authorizations.canUpdateSetting(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
@@ -193,6 +204,34 @@ export default class SettingService {
           560,
           'SettingService', 'handleUpdateSetting',
           req.user);
+      }
+      // Process the sensitive data if any
+      // Preprocess the data to take care of updated values
+      if (filteredRequest.sensitiveData) {
+        if (!Array.isArray(filteredRequest.sensitiveData)) {
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `The property 'sensitiveData' for Setting with ID '${filteredRequest.id}' is not an array`, 555,
+            'SettingService', 'handleUpdateSetting', req.user);
+        }
+        // Process sensitive properties
+        for (const property of filteredRequest.sensitiveData) {
+          // Get the sensitive property from the request
+          const valueInRequest = _.get(filteredRequest, property);
+          if (valueInRequest && valueInRequest.length > 0) {
+            // Get the sensitive property from the DB
+            const valueInDb = _.get(setting.getModel(), property);
+            const hashedValueInDB = Cypher.hash(valueInDb);
+            // Value has been changed?
+            if (valueInDb && (valueInRequest !== hashedValueInDB)) {
+              // Yes: Encrypt
+              _.set(filteredRequest, property, Cypher.encrypt(valueInRequest));
+            } else {
+              // No: Put back the encrypted value
+              _.set(filteredRequest, property, valueInDb);
+            }
+          }
+        }
       }
       // Update
       Database.updateSetting(filteredRequest, setting.getModel());

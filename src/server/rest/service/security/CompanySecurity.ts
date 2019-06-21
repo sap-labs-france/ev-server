@@ -41,16 +41,16 @@ export default class CompanySecurity {
     return {name: request.name, address: UtilsSecurity.filterAddressRequest(request.address), logo: request.logo}; // TODO Why does logo and name not get sanitized?
   }
 
-  public static filterCompanyResponse(company: Company, loggedUser: User) { // TODO typings
+  public static filterCompanyResponse(company: Company, loggedUser: any) { //TODO typings
     let filteredCompany;
 
     if (!company) {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadCompany(loggedUser, company)) {
+    if (Authorizations.canReadCompany(loggedUser, company.id)) {
       // Admin?
-      if (Authorizations.isAdmin(loggedUser)) {
+      if (Authorizations.isAdmin(loggedUser.role)) {
         // Yes: set all params
         filteredCompany = company;
       } else {

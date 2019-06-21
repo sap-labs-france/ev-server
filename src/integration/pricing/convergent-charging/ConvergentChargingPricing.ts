@@ -4,6 +4,7 @@ import Logging from '../../../utils/Logging';
 import Pricing, { PricedConsumption } from '../Pricing';
 import SiteArea from '../../../types/SiteArea';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import Cypher from '../../../utils/Cypher';
 
 export default class ConvergentChargingPricing extends Pricing {
   public statefulChargingService: any;
@@ -13,7 +14,7 @@ export default class ConvergentChargingPricing extends Pricing {
 
   constructor(tenantId, setting, transaction) {
     super(tenantId, setting, transaction);
-    this.statefulChargingService = new StatefulChargingService(this.setting.url, this.setting.user, this.setting.password);
+    this.statefulChargingService = new StatefulChargingService(this.setting.url, this.setting.user, Cypher.decrypt(this.setting.password));
   }
 
   getSettings() {

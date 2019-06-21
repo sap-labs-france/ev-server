@@ -43,6 +43,7 @@ export default class SettingSecurity {
   static _filterSettingRequest(request, loggedUser) {
     const filteredRequest: any = {};
     filteredRequest.identifier = sanitize(request.identifier);
+    filteredRequest.sensitiveData = sanitize(request.sensitiveData);
     filteredRequest.content = sanitize(request.content);
     return filteredRequest;
   }
@@ -54,7 +55,7 @@ export default class SettingSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadSetting(loggedUser, setting)) {
+    if (Authorizations.canReadSetting(loggedUser)) {
       // Admin?
       // if (Authorizations.isAdmin(loggedUser)) {
       // Yes: set all params
