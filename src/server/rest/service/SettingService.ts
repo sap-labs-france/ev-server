@@ -237,7 +237,6 @@ export default class SettingService {
           }
         }
       }
-      console.log(`>>> filteredrequest after:${JSON.stringify(filteredRequest)}`);
       // Update
       Database.updateSetting(filteredRequest, setting.getModel());
       // Update timestamp
