@@ -13,8 +13,17 @@ export default class SiteAreaApi extends CrudApi {
     return super.readAll(params, paging, ordering, '/client/api/SiteAreas');
   }
 
-  public create(data) {
-    return super.create(data, '/client/api/SiteAreaCreate');
+  public async create(data) {
+    const siteArea = await super.create(data, '/client/api/SiteAreaCreate');
+    // Check User IDs
+    if (data.chargeBoxIDs) {
+      // Assign Chargers to Site
+      await super.create({
+        siteAreaID: siteArea.data.id,
+        chargingStationIDs: data.chargeBoxIDs
+      }, '/client/api/AddChargingStationsToSiteArea');
+    }
+    return siteArea;
   }
 
   public update(data) {
