@@ -10,6 +10,7 @@ import Constants from '../../utils/Constants';
 
 export default class ErrorHandler {
   static async errorHandler(err, req, res, next) {
+    // Logging.logException(err, 'N/A', Constants.CENTRAL_SERVER, 'ErrorHandler', 'errorHandler', req.user.tenantID, req.user);
     if (err instanceof AppAuthError || err instanceof UnauthorizedError) {
       await ErrorHandler._handleUnauthorizedError(err, res);
     } else if (err instanceof BadRequestError) {

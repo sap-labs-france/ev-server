@@ -229,7 +229,6 @@ export default class AuthService {
   }
 
   static async handleLogIn(action, req, res, next) {
-
     // Filter
     const filteredRequest = AuthSecurity.filterLoginRequest(req.body);
 
