@@ -40,7 +40,7 @@ export default class OCPPBootstrap {
           userIDs: [context.newUser.id]
         }));
       expect(context.newSite).to.not.be.null;
-      
+
       // Generate ID
       const chargingStationID = faker.random.alphaNumeric(12);
       // Create Charger Object
@@ -50,14 +50,14 @@ export default class OCPPBootstrap {
       // Check
       expect(response.data).to.not.be.null;
       expect(response.data.status).to.eql('Accepted');
-      expect(response.data).to.have.property('currentTime');      
+      expect(response.data).to.have.property('currentTime');
       // Check according the OCPP version
       if (this.ocpp.getVersion() === "1.6") {
         // OCPP 1.6
-        expect(response.data).to.have.property('interval');      
+        expect(response.data).to.have.property('interval');
       } else {
         // OCPP 1.2, 1.5
-        expect(response.data).to.have.property('heartbeatInterval');      
+        expect(response.data).to.have.property('heartbeatInterval');
       }
 
       // Send Status Notif for Connector A
@@ -81,7 +81,7 @@ export default class OCPPBootstrap {
       expect(response).to.not.be.null;
       expect(response.data).to.eql({});
 
-      // Create the Site Area 
+      // Create the Site Area
       context.newSiteArea = await CentralServerService.DefaultInstance.createEntity(
         CentralServerService.DefaultInstance.siteAreaApi, Factory.siteArea.build({
           siteID: context.newSite.id,
@@ -89,20 +89,20 @@ export default class OCPPBootstrap {
         }));
       expect(context.newSiteArea).to.not.be.null;
 
-      // Retrieve the latest Charger object with the Site Area ID 
+      // Retrieve the latest Charger object with the Site Area ID
       context.newChargingStation = chargingStation;
       context.newChargingStation.id = chargingStationID;
       context.newChargingStation.siteAreaID = context.newSiteArea.id;
       // Get the new Charger
       context.newChargingStation = await CentralServerService.DefaultInstance.getEntityById(
         CentralServerService.DefaultInstance.chargingStationApi, context.newChargingStation);
-        
+
     } catch (error) {
       // Error: Clean up!
       this.destroyContext(context);
       throw error;
     }
-    
+
     // Ok
     return context;
   }
@@ -112,7 +112,7 @@ export default class OCPPBootstrap {
     //   // Check if the deleted entity cannot be retrieved with its id
     //   await CentralServerService.DefaultInstance.checkDeletedEntityById(
     //     CentralServerService.DefaultInstance.tenantApi, this.tenantNoOrg);
-    // }    
+    // }
 
     // Delete User?
     if (context.newUser) {
