@@ -990,9 +990,6 @@ export default class AuthService {
   }
 
   static async getTenantID(subdomain) {
-    if (!subdomain) {
-      return null;
-    }
     // Check
     if (!subdomain) {
       return Constants.DEFAULT_TENANT;
