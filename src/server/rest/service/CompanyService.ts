@@ -23,13 +23,7 @@ export default class CompanyService {
       const companyID = CompanySecurity.filterCompanyRequestByID(req.query);
 
       // Check Mandatory fields
-      if (!companyID) {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Company's ID must be provided`, 500,
-          'CompanyService', 'handleDeleteCompany', req.user);
-      }
+      UtilsService.assertIdIsProvided(companyID, 'CompanyService', 'handleDeleteCompany', req.user);
 
       // Check auth
       if (!Authorizations.canDeleteCompany(req.user)) {
@@ -79,13 +73,7 @@ export default class CompanyService {
       const filteredRequest = CompanySecurity.filterCompanyRequest(req.query);
 
       // ID is mandatory
-      if (!filteredRequest.ID) {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Company's ID must be provided`, 500,
-          'CompanyService', 'handleGetCompany', req.user);
-      }
+      UtilsService.assertIdIsProvided(filteredRequest.ID, 'CompanyService', 'handleGetCompany', req.user);
 
       // Check auth
       if (!Authorizations.canReadCompany(req.user, filteredRequest.ID)) {
@@ -127,13 +115,7 @@ export default class CompanyService {
       const companyID = CompanySecurity.filterCompanyRequestByID(req.query);
 
       // Charge Box is mandatory
-      if (!companyID) {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Company's ID must be provided`, 500,
-          'CompanyService', 'handleGetCompanyLogo', req.user);
-      }
+      UtilsService.assertIdIsProvided(companyID, 'CompanyService', 'handleGetCompanyLogo', req.user);
 
       // Check auth
       if (!Authorizations.canReadCompany(req.user, companyID)) {

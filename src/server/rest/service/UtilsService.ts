@@ -18,6 +18,16 @@ export default class UtilsService {
     }
   }
 
+  public static assertIdIsProvided(id: string, module: string, method: string, userToken) {
+    if (!id) {
+      // Object does not exist
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `The ID must be provided`, 500,
+        module, method, userToken);
+    }
+  }
+
   public static assertObjectExists(object: any, errorMsg: string, module: string, method: string, userToken) {
     if (!object) {
       // Object does not exist

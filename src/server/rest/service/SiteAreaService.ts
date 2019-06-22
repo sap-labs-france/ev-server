@@ -9,6 +9,7 @@ import SiteArea from '../../../types/SiteArea';
 import UtilsService from './UtilsService';
 import { Request, Response, NextFunction } from 'express';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import Utils from '../../../utils/Utils';
 
 export default class SiteAreaService {
 
@@ -23,13 +24,7 @@ export default class SiteAreaService {
       const siteAreaID = SiteAreaSecurity.filterSiteAreaRequestByID(req.query);
 
       // Check Mandatory fields
-      if (!siteAreaID) {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Site Area's ID must be provided`, 500,
-          'SiteAreaService', 'handleDeleteSiteArea', req.user);
-      }
+      UtilsService.assertIdIsProvided(siteAreaID, 'SiteAreaService', 'handleDeleteSiteArea', req.user);
 
       // Check auth
       if (!Authorizations.canDeleteSiteArea(req.user)) {
@@ -80,13 +75,7 @@ export default class SiteAreaService {
       const filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query);
 
       // ID is mandatory
-      if (!filteredRequest.ID) {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Site Area's ID must be provided`, 500,
-          'SiteAreaService', 'handleGetSiteArea', req.user);
-      }
+      UtilsService.assertIdIsProvided(filteredRequest.ID, 'SiteAreaService', 'handleGetSiteArea', req.user);
 
       // Check auth
       if (!Authorizations.canReadSiteArea(req.user, filteredRequest.ID)) {
@@ -130,13 +119,7 @@ export default class SiteAreaService {
       const siteAreaID = SiteAreaSecurity.filterSiteAreaRequestByID(req.query);
 
       // Charge Box is mandatory
-      if (!siteAreaID) {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Site Area's ID must be provided`, 500,
-          'SiteAreaService', 'handleGetSiteAreaImage', req.user);
-      }
+      UtilsService.assertIdIsProvided(siteAreaID, 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
 
       // Check auth
       if (!Authorizations.canReadSiteArea(req.user, siteAreaID)) {
