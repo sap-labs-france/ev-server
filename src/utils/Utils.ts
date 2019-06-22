@@ -391,18 +391,4 @@ export default class Utils {
         return 'Unknown';
     }
   }
-
-  public static assertObjectExists(object: any, errorMsg: string, module: string, method: string, userToken) {
-    if (!object) {
-      // Object does not exist
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        errorMsg, 550,
-        module, method, userToken);
-    }
-  }
-
-  static isUndefined(obj) {
-    return typeof obj === 'undefined';
-  }
 }

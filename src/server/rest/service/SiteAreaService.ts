@@ -7,24 +7,19 @@ import Authorizations from '../../../authorization/Authorizations';
 import User from '../../../entity/User';
 import SiteArea from '../../../types/SiteArea';
 import UtilsService from './UtilsService';
-import OrganizationComponentInactiveError from '../../../exception/OrganizationComponentInactiveError';
 import { Request, Response, NextFunction } from 'express';
-import Utils from '../../../utils/Utils';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 
 export default class SiteAreaService {
 
   public static async handleDeleteSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // Check if organization component is active
-      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
-        throw new OrganizationComponentInactiveError(
-          Constants.ACTION_DELETE,
-          Constants.ENTITY_SITE_AREA,
-          560, 'SiteAreaService', 'handleDeleteSiteArea');
-      }
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+        Constants.ACTION_DELETE, Constants.ENTITY_SITE_AREA, 'SiteAreaService', 'handleDeleteSiteArea');
 
-      // Filter
+        // Filter
       const siteAreaID = SiteAreaSecurity.filterSiteAreaRequestByID(req.query);
 
       // Check Mandatory fields
@@ -52,7 +47,7 @@ export default class SiteAreaService {
       const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, siteAreaID);
 
       // Found?
-      Utils.assertObjectExists(siteArea, `Site Area with ID '${siteAreaID}' does not exist`, 'SiteAreaService', 'handleDeleteSiteArea', req.user);
+      UtilsService.assertObjectExists(siteArea, `Site Area with ID '${siteAreaID}' does not exist`, 'SiteAreaService', 'handleDeleteSiteArea', req.user);
 
       // Delete
       await SiteAreaStorage.deleteSiteArea(req.user.tenantID, siteArea.id);
@@ -76,13 +71,10 @@ export default class SiteAreaService {
 
   public static async handleGetSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // Check if organization component is active
-      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
-        throw new OrganizationComponentInactiveError(
-          Constants.ACTION_READ,
-          Constants.ENTITY_SITE_AREA,
-          560, 'SiteAreaService', 'handleGetSiteArea');
-      }
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+        Constants.ACTION_READ, Constants.ENTITY_SITE_AREA, 'SiteAreaService', 'handleGetSiteArea');
 
       // Filter
       const filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query);
@@ -113,7 +105,7 @@ export default class SiteAreaService {
         { withSite: filteredRequest.WithSite, withChargeBoxes: filteredRequest.WithChargeBoxes, withImage: true});
 
       // Found?
-      Utils.assertObjectExists(siteArea, `The Site Area with ID '${filteredRequest.ID}' does not exist`, 'SiteAreaService', 'handleGetSiteArea', req.user);
+      UtilsService.assertObjectExists(siteArea, `The Site Area with ID '${filteredRequest.ID}' does not exist`, 'SiteAreaService', 'handleGetSiteArea', req.user);
 
       // Return
       res.json(
@@ -129,13 +121,10 @@ export default class SiteAreaService {
 
   public static async handleGetSiteAreaImage(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // Check if organization component is active
-      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
-        throw new OrganizationComponentInactiveError(
-          Constants.ACTION_READ,
-          Constants.ENTITY_SITE_AREA,
-          560, 'SiteAreaService', 'handleGetSiteAreaImage');
-      }
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+        Constants.ACTION_READ, Constants.ENTITY_SITE_AREA, 'SiteAreaService', 'handleGetSiteAreaImage');
 
       // Filter
       const siteAreaID = SiteAreaSecurity.filterSiteAreaRequestByID(req.query);
@@ -164,7 +153,7 @@ export default class SiteAreaService {
       const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, siteAreaID, { withImage: true });
 
       // Check
-      Utils.assertObjectExists(siteArea, 'Site Area does not exist.', 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
+      UtilsService.assertObjectExists(siteArea, 'Site Area does not exist.', 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
 
       // Return
       res.json({id: siteArea.id, image: siteArea.image});
@@ -177,13 +166,10 @@ export default class SiteAreaService {
 
   public static async handleGetSiteAreas(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // Check if organization component is active
-      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
-        throw new OrganizationComponentInactiveError(
-          Constants.ACTION_LIST,
-          Constants.ENTITY_SITE_AREAS,
-          560, 'SiteAreaService', 'handleGetSiteAreas');
-      }
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+        Constants.ACTION_LIST, Constants.ENTITY_SITE_AREAS, 'SiteAreaService', 'handleGetSiteAreas');
 
       // Check auth
       if (!Authorizations.canListSiteAreas(req.user)) {
@@ -227,13 +213,10 @@ export default class SiteAreaService {
 
   public static async handleCreateSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // Check if organization component is active
-      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
-        throw new OrganizationComponentInactiveError(
-          Constants.ACTION_CREATE,
-          Constants.ENTITY_SITE_AREA,
-          560, 'SiteAreaService', 'handleCreateSiteArea');
-      }
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+        Constants.ACTION_CREATE, Constants.ENTITY_SITE_AREAS, 'SiteAreaService', 'handleCreateSiteArea');
 
       // Check auth
       if (!Authorizations.canCreateSiteArea(req.user)) {
@@ -279,13 +262,10 @@ export default class SiteAreaService {
 
   public static async handleUpdateSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // Check if organization component is active
-      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
-        throw new OrganizationComponentInactiveError(
-          Constants.ACTION_UPDATE,
-          Constants.ENTITY_SITE_AREA,
-          560, 'SiteAreaService', 'handleUpdateSiteArea');
-      }
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+        Constants.ACTION_UPDATE, Constants.ENTITY_SITE_AREA, 'SiteAreaService', 'handleUpdateSiteArea');
 
       // Filter
       const filteredRequest = SiteAreaSecurity.filterSiteAreaUpdateRequest(req.body);
@@ -305,7 +285,7 @@ export default class SiteAreaService {
       const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.id);
 
       // Check
-      Utils.assertObjectExists(siteArea, `The Site Area with ID '${filteredRequest.id}' does not exist`, 'SiteAreaService', 'handleUpdateSiteArea', req.user);
+      UtilsService.assertObjectExists(siteArea, `The Site Area with ID '${filteredRequest.id}' does not exist`, 'SiteAreaService', 'handleUpdateSiteArea', req.user);
 
       // Check Mandatory fields
       SiteAreaService._checkIfSiteAreaValid(filteredRequest, req);

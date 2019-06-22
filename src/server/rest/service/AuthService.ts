@@ -262,9 +262,9 @@ export default class AuthService {
           `The End-user License Agreement is mandatory`, 520,
           'AuthService', 'handleLogIn');
       }
-      
+
       const user = await User.getUserByEmail(tenantID, filteredRequest.email);
-      
+
       if (!user) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -986,7 +986,7 @@ export default class AuthService {
   }
 
   static async getTenantID(subdomain) {
-    if (Utils.isUndefined(subdomain)) {
+    if (!subdomain) {
       return null;
     }
     // Check

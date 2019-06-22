@@ -112,8 +112,6 @@ export default class SiteAreaStorage {
     const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'saveSiteAreaImage');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Check if ID is provided
-    Utils.assertObjectExists(siteAreaID, 'Site Area Image has no ID', 'SiteAreaStorage', 'saveSiteAreaImage', null);
 
     // Modify
     await global.database.getCollection<any>(tenantID, 'siteareaimages').findOneAndUpdate(

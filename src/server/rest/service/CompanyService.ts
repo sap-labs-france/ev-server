@@ -7,22 +7,17 @@ import User from '../../../entity/User';
 import Authorizations from '../../../authorization/Authorizations';
 import CompanySecurity from './security/CompanySecurity';
 import UtilsService from './UtilsService';
-import OrganizationComponentInactiveError from '../../../exception/OrganizationComponentInactiveError';
 import {NextFunction, Request, Response} from 'express';
 import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
-import Utils from '../../../utils/Utils';
 
 export default class CompanyService {
 
   public static async handleDeleteCompany(action: string, req: Request, res: Response, next: NextFunction) {
     try {
-      // Check if organization component is active
-      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
-        throw new OrganizationComponentInactiveError(
-          Constants.ACTION_DELETE,
-          Constants.ENTITY_COMPANY,
-          560, 'CompanyService', 'handleDeleteCompany');
-      }
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+        Constants.ACTION_DELETE, Constants.ENTITY_COMPANY, 'CompanyService', 'handleDeleteCompany');
 
       // Filter
       const companyID = CompanySecurity.filterCompanyRequestByID(req.query);
@@ -51,7 +46,7 @@ export default class CompanyService {
       const company = await CompanyStorage.getCompany(req.user.tenantID, companyID);
 
       // Found?
-      Utils.assertObjectExists(company, `Company with ID '${companyID}' does not exist`, 'CompanyService', 'handleDeleteCompany', req.user);
+      UtilsService.assertObjectExists(company, `Company with ID '${companyID}' does not exist`, 'CompanyService', 'handleDeleteCompany', req.user);
 
       // Delete
       await CompanyStorage.deleteCompany(req.user.tenantID, company.id);
@@ -75,13 +70,10 @@ export default class CompanyService {
 
   public static async handleGetCompany(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // Check if organization component is active
-      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
-        throw new OrganizationComponentInactiveError(
-          Constants.ACTION_READ,
-          Constants.ENTITY_COMPANY,
-          560, 'CompanyService', 'handleGetCompany');
-      }
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+        Constants.ACTION_READ, Constants.ENTITY_COMPANY, 'CompanyService', 'handleGetCompany');
 
       // Filter
       const filteredRequest = CompanySecurity.filterCompanyRequest(req.query);
@@ -110,7 +102,7 @@ export default class CompanyService {
       const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.ID);
 
       // Found?
-      Utils.assertObjectExists(company, `The Company with ID '${filteredRequest.ID}' does not exist`, 'CompanyService', 'handleGetCompany', req.user);
+      UtilsService.assertObjectExists(company, `The Company with ID '${filteredRequest.ID}' does not exist`, 'CompanyService', 'handleGetCompany', req.user);
 
       // Return
       res.json(
@@ -126,13 +118,10 @@ export default class CompanyService {
 
   public static async handleGetCompanyLogo(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // Check if organization component is active
-      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
-        throw new OrganizationComponentInactiveError(
-          Constants.ACTION_READ,
-          Constants.ENTITY_COMPANY,
-          560, 'CompanyService', 'handleGetCompanyLogo');
-      }
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+        Constants.ACTION_READ, Constants.ENTITY_COMPANY, 'CompanyService', 'handleGetCompanyLogo');
 
       // Filter
       const companyID = CompanySecurity.filterCompanyRequestByID(req.query);
@@ -161,7 +150,7 @@ export default class CompanyService {
       const company = await CompanyStorage.getCompany(req.user.tenantID, companyID);
 
       // Check
-      Utils.assertObjectExists(company, `The Company with ID '${companyID}' does not exist`, 'CompanyService', 'handleGetCompanyLogo', req.user);
+      UtilsService.assertObjectExists(company, `The Company with ID '${companyID}' does not exist`, 'CompanyService', 'handleGetCompanyLogo', req.user);
 
       // Return
       res.json({id: company.id, logo: company.logo});
@@ -174,13 +163,10 @@ export default class CompanyService {
 
   public static async handleGetCompanies(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // Check if organization component is active
-      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
-        throw new OrganizationComponentInactiveError(
-          Constants.ACTION_LIST,
-          Constants.ENTITY_COMPANIES,
-          560, 'CompanyService', 'handleGetCompanies');
-      }
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+        Constants.ACTION_LIST, Constants.ENTITY_COMPANIES, 'CompanyService', 'handleGetCompanies');
 
       // Check auth
       if (!Authorizations.canListCompanies(req.user)) {
@@ -221,13 +207,10 @@ export default class CompanyService {
 
   public static async handleCreateCompany(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // Check if organization component is active
-      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
-        throw new OrganizationComponentInactiveError(
-          Constants.ACTION_CREATE,
-          Constants.ENTITY_COMPANY,
-          560, 'CompanyService', 'handleCreateCompany');
-      }
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+        Constants.ACTION_CREATE, Constants.ENTITY_COMPANY, 'CompanyService', 'handleCreateCompany');
 
       // Check auth
       if (!Authorizations.canCreateCompany(req.user)) {
@@ -274,13 +257,10 @@ export default class CompanyService {
 
   public static async handleUpdateCompany(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // Check if organization component is active
-      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
-        throw new OrganizationComponentInactiveError(
-          Constants.ACTION_UPDATE,
-          Constants.ENTITY_COMPANY,
-          560, 'CompanyService', 'handleUpdateCompany');
-      }
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+        Constants.ACTION_UPDATE, Constants.ENTITY_COMPANY, 'CompanyService', 'handleUpdateCompany');
 
       // Filter
       const filteredRequest = CompanySecurity.filterCompanyUpdateRequest(req.body);
@@ -300,7 +280,7 @@ export default class CompanyService {
       const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.id);
 
       // Check
-      Utils.assertObjectExists(company, `The Site Area with ID '${filteredRequest.id}' does not exist`, 'CompanyService', 'handleUpdateCompany', req.user);
+      UtilsService.assertObjectExists(company, `The Site Area with ID '${filteredRequest.id}' does not exist`, 'CompanyService', 'handleUpdateCompany', req.user);
 
       // Check Mandatory fields
       CompanyService._checkIfCompanyValid(filteredRequest, req);
