@@ -4,7 +4,7 @@ import ChargingStation from "../entity/ChargingStation";
 import Site from "../entity/Site";
 
 export default interface SiteArea extends CreatedUpdatedProps {
-
+  id: string;
   name: string;
   maximumPower: number;
   address: Address;
@@ -17,5 +17,4 @@ export default interface SiteArea extends CreatedUpdatedProps {
   totalChargers?: number;
   availableConnectors?: number;
   totalConnectors?: number;
-
 }

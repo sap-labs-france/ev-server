@@ -10,7 +10,7 @@ import UtilsService from './UtilsService';
 import OrganizationComponentInactiveError from '../../../exception/OrganizationComponentInactiveError';
 import {NextFunction, Request, Response} from 'express';
 import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
-import BadRequestError from '../../../exception/BadRequestError';
+import Utils from '../../../utils/Utils';
 
 export default class CompanyService {
 
@@ -25,10 +25,10 @@ export default class CompanyService {
       }
 
       // Filter
-      const companyId = CompanySecurity.filterCompanyRequest(req.query);
+      const companyID = CompanySecurity.filterCompanyRequestByID(req.query);
 
       // Check Mandatory fields
-      if (!companyId) {
+      if (!companyID) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -42,22 +42,16 @@ export default class CompanyService {
         throw new AppAuthError(
           Constants.ACTION_DELETE,
           Constants.ENTITY_COMPANY,
-          companyId,
+          companyID,
           560, 'CompanyService', 'handleDeleteCompany',
           req.user);
       }
 
       // Get
-      const company = await CompanyStorage.getCompany(req.user.tenantID, companyId);
+      const company = await CompanyStorage.getCompany(req.user.tenantID, companyID);
 
       // Found?
-      if (!company) {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `Company with ID '${companyId}' does not exist`, 550,
-          'CompanyService', 'handleDeleteCompany', req.user);
-      }
+      Utils.assertObjectExists(company, `Company with ID '${companyID}' does not exist`, 'CompanyService', 'handleDeleteCompany', req.user);
 
       // Delete
       await CompanyStorage.deleteCompany(req.user.tenantID, company.id);
@@ -90,10 +84,10 @@ export default class CompanyService {
       }
 
       // Filter
-      const companyId = CompanySecurity.filterCompanyRequest(req.query);
-      // Charge Box is mandatory
+      const filteredRequest = CompanySecurity.filterCompanyRequest(req.query);
 
-      if (!companyId) {
+      // ID is mandatory
+      if (!filteredRequest.ID) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -102,29 +96,26 @@ export default class CompanyService {
       }
 
       // Check auth
-      if (!Authorizations.canReadCompany(req.user, companyId)) {
+      if (!Authorizations.canReadCompany(req.user, filteredRequest.ID)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_READ,
           Constants.ENTITY_COMPANY,
-          companyId,
+          filteredRequest.ID,
           560, 'CompanyService', 'handleGetCompany',
           req.user);
       }
 
       // Get it
-      const company = await CompanyStorage.getCompany(req.user.tenantID, companyId);
-      if (!company) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Company with ID '${companyId}' does not exist anymore`, 550,
-          'CompanyService', 'handleGetCompany', req.user);
-      }
+      const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.ID);
+
+      // Found?
+      Utils.assertObjectExists(company, `The Company with ID '${filteredRequest.ID}' does not exist`, 'CompanyService', 'handleGetCompany', req.user);
+
       // Return
       res.json(
         // Filter
-        CompanySecurity.filterCompanyResponse(
-          company, req.user)
+        CompanySecurity.filterCompanyResponse(company, req.user)
       );
       next();
     } catch (error) {
@@ -144,10 +135,10 @@ export default class CompanyService {
       }
 
       // Filter
-      const companyId = CompanySecurity.filterCompanyRequest(req.query);
+      const companyID = CompanySecurity.filterCompanyRequestByID(req.query);
 
       // Charge Box is mandatory
-      if (!companyId) {
+      if (!companyID) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -156,24 +147,22 @@ export default class CompanyService {
       }
 
       // Check auth
-      if (!Authorizations.canReadCompany(req.user, companyId)) {
+      if (!Authorizations.canReadCompany(req.user, companyID)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_READ,
           Constants.ENTITY_COMPANY,
-          companyId,
+          companyID,
           560, 'CompanyService', 'handleGetCompanyLogo',
           req.user);
       }
 
       // Get it
-      const company = await CompanyStorage.getCompany(req.user.tenantID, companyId);
-      if (!company) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Company with ID '${companyId}' does not exist anymore`, 550,
-          'CompanyService', 'handleGetCompanyLogo', req.user);
-      }
+      const company = await CompanyStorage.getCompany(req.user.tenantID, companyID);
+
+      // Check
+      Utils.assertObjectExists(company, `The Company with ID '${companyID}' does not exist`, 'CompanyService', 'handleGetCompanyLogo', req.user);
+
       // Return
       res.json({id: company.id, logo: company.logo});
       next();
@@ -250,40 +239,32 @@ export default class CompanyService {
           560, 'CompanyService', 'handleCreateCompany',
           req.user);
       }
+
       // Filter
-      const idlessCompany = CompanySecurity.filterCompanyCreateRequest(req.body);
-      if (!idlessCompany.name) {
-        throw new BadRequestError({message: 'Need to provide company name.'});
-      }
-      if (!idlessCompany.address) {
-        throw new BadRequestError({message: 'Need to provide address for company.'});
-      }
-      const company: Company = {
-        id: '',
+      const filteredRequest = CompanySecurity.filterCompanyCreateRequest(req.body);
+
+      // Check
+      CompanyService._checkIfCompanyValid(filteredRequest, req);
+
+      // Create company
+      const newCompany: Company = {
+        ...filteredRequest,
         createdBy: new User(req.user.tenantID, {id: req.user.id}),
         createdOn: new Date(),
-        name: idlessCompany.name,
-        address: idlessCompany.address,
-      };
-      if (idlessCompany.logo) {
-        company.logo = idlessCompany.logo;
-      } // TODO: Is logo optional or not? rn it is
-
-      // Check Mandatory fields
-      CompanyService._checkIfCompanyValid(company, req);
+      } as Company;
 
       // Save
-      const newId = await CompanyStorage.saveCompany(req.user.tenantID, company, true);
+      newCompany.id = await CompanyStorage.saveCompany(req.user.tenantID, newCompany);
 
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
         user: req.user, module: 'CompanyService', method: 'handleCreateCompany',
-        message: `Company '${newId}' has been created successfully`,
-        action: action, detailedMessages: company
+        message: `Company '${newCompany.id}' has been created successfully`,
+        action: action, detailedMessages: newCompany
       });
       // Ok
-      res.json(Object.assign({id: newId}, Constants.REST_RESPONSE_SUCCESS));
+      res.json(Object.assign({id: newCompany.id}, Constants.REST_RESPONSE_SUCCESS));
       next();
     } catch (error) {
       // Log
@@ -291,7 +272,7 @@ export default class CompanyService {
     }
   }
 
-  static async handleUpdateCompany(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateCompany(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       // Check if organization component is active
       if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
@@ -317,34 +298,22 @@ export default class CompanyService {
 
       // Check email
       const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.id);
-      if (!company) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Company with ID '${filteredRequest.id}' does not exist anymore`, 550,
-          'CompanyService', 'handleUpdateCompany', req.user);
-      }
+
+      // Check
+      Utils.assertObjectExists(company, `The Site Area with ID '${filteredRequest.id}' does not exist`, 'CompanyService', 'handleUpdateCompany', req.user);
+
       // Check Mandatory fields
       CompanyService._checkIfCompanyValid(filteredRequest, req);
 
       // Update
-      if (filteredRequest.logo) { // TODO: logo is required here; check if frontend actually always sends logo or not...
-        company.logo = filteredRequest.logo;
-      }
-      if (filteredRequest.name) {
-        company.name = filteredRequest.name;
-      }
-      if (filteredRequest.address) {
-        company.address = filteredRequest.address;
-      }
-      // TODO: Currently unable to change createdBy, createdOn, and id. Wanted behavior?
-      // Database.updateCompany(filteredRequest, company);
-
-      // Update timestamp
+      company.name = filteredRequest.name;
+      company.address = filteredRequest.address;
+      company.logo = filteredRequest.logo;
       company.lastChangedBy = new User(req.user.tenantID, {'id': req.user.id});
       company.lastChangedOn = new Date();
 
       // Update Company
-      CompanyStorage.saveCompany(req.user.tenantID, company, true);
+      await CompanyStorage.saveCompany(req.user.tenantID, company);
 
       // Log
       Logging.logSecurityInfo({
@@ -379,8 +348,6 @@ export default class CompanyService {
         req.user.id, filteredRequest.id);
     }
   }
-
-
 }
 
 

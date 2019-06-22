@@ -54,63 +54,60 @@ export default class SiteAreaStorage {
     return siteAreaResult.result[0];
   }
 
-  public static async saveSiteArea(tenantID: string, siteAreaToSave: Optional<SiteArea, 'id'|'chargingStations'|'site'>, saveImage=false): Promise<string> {
+  public static async saveSiteArea(tenantID: string, siteAreaToSave: SiteArea, saveImage=false): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'saveSiteArea');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-
-    // Build Request
-    const siteAreaFilter: any = {};
-    if (siteAreaToSave.id) {
-      siteAreaFilter._id = Utils.convertToObjectID(siteAreaToSave.id);
-    } else {
-      siteAreaFilter._id = new ObjectID();
-    }
-
-    const mongoSiteArea: any = {
-      _id: siteAreaFilter._id,
-      createdBy: Utils.convertToObjectID(siteAreaToSave.createdBy.id?siteAreaToSave.createdBy.id:siteAreaToSave.createdBy.getID()), //TODO convert user properly
-      createdOn: siteAreaToSave.createdOn,
+    // Set
+    const siteAreaMDB: any = {
+      _id: !siteAreaToSave.id ? new ObjectID() : Utils.convertToObjectID(siteAreaToSave.id),
       name: siteAreaToSave.name,
+      accessControl: siteAreaToSave.accessControl,
       siteID: Utils.convertToObjectID(siteAreaToSave.siteID)
     }
-    if(siteAreaToSave.lastChangedBy && siteAreaToSave.lastChangedOn) {
-      mongoSiteArea.lastChangedBy = Utils.convertToObjectID(siteAreaToSave.lastChangedBy.id?siteAreaToSave.lastChangedBy.id:siteAreaToSave.lastChangedBy.getID());//TODO change w/ user
-      mongoSiteArea.lastChangedOn = siteAreaToSave.lastChangedOn;
-    }
     if(siteAreaToSave.address) {
-      mongoSiteArea.address = siteAreaToSave.address;
+      siteAreaMDB.address = siteAreaToSave.address;
     }
     if(siteAreaToSave.maximumPower) {
-      mongoSiteArea.maximumPower = siteAreaToSave.maximumPower;
+      siteAreaMDB.maximumPower = siteAreaToSave.maximumPower;
     }
-    mongoSiteArea.accessControl = siteAreaToSave.accessControl;
+    if (siteAreaToSave.createdBy && siteAreaToSave.createdOn) {
+      siteAreaMDB.createdBy = Utils.convertToObjectID(
+        siteAreaToSave.createdBy.id ? siteAreaToSave.createdBy.id : siteAreaToSave.createdBy.getID()),
+      siteAreaMDB.createdOn = siteAreaToSave.createdOn
+    }
+    if(siteAreaToSave.lastChangedBy && siteAreaToSave.lastChangedOn) {
+      siteAreaMDB.lastChangedBy = Utils.convertToObjectID(
+        siteAreaToSave.lastChangedBy.id ? siteAreaToSave.lastChangedBy.id : siteAreaToSave.lastChangedBy.getID());
+      siteAreaMDB.lastChangedOn = siteAreaToSave.lastChangedOn;
+    }
 
     // Modify
     const result = await global.database.getCollection<SiteArea>(tenantID, 'siteareas').findOneAndUpdate(
-      siteAreaFilter,
-      { $set: mongoSiteArea },
-      { upsert: true, returnOriginal: false });
+      { _id: siteAreaMDB._id },
+      { $set: siteAreaMDB },
+      { upsert: true, returnOriginal: false }
+    );
 
-    if(! result.ok ) {
+    if(!result.ok ) {
       throw new BackendError(
         Constants.CENTRAL_SERVER,
         `Couldn't update SiteArea`,
         'SiteAreaStorage', 'saveSiteArea');
     }
-    const newId: string = siteAreaFilter._id.toHexString();
+
     if(saveImage) {
-      await SiteAreaStorage.saveSiteAreaImage(tenantID, newId, siteAreaToSave.image);
+      await SiteAreaStorage._saveSiteAreaImage(tenantID, siteAreaMDB._id.toHexString(), siteAreaToSave.image);
     }
 
     // Debug
     Logging.traceEnd('SiteAreaStorage', 'saveSiteArea', uniqueTimerID, { siteAreaToSave });
-    // Create
-    return newId;
+
+    return siteAreaMDB._id.toHexString();
   }
 
-  static async saveSiteAreaImage(tenantID: string, siteAreaID: string, siteAreaImageToSave: string): Promise<void> {
+  private static async _saveSiteAreaImage(tenantID: string, siteAreaID: string, siteAreaImageToSave: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'saveSiteAreaImage');
     // Check Tenant
