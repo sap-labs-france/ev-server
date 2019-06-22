@@ -86,21 +86,21 @@ export default interface Site implements CreatedUpdatedProps {
     if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Site ID is mandatory`, 500,
+        `Site ID is mandatory`, Constants.HTTP_GENERAL_ERROR,
         'Site', 'checkIfSiteValid',
         req.user.id);
     }
     if (!filteredRequest.name) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Site Name is mandatory`, 500,
+        `Site Name is mandatory`, Constants.HTTP_GENERAL_ERROR,
         'Site', 'checkIfSiteValid',
         req.user.id, filteredRequest.id);
     }
     if (!filteredRequest.companyID) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Company ID is mandatory for the Site`, 500,
+        `Company ID is mandatory for the Site`, Constants.HTTP_GENERAL_ERROR,
         'Sites', 'checkIfSiteValid',
         req.user.id, filteredRequest.id);
     }

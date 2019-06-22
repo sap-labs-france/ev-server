@@ -13,7 +13,6 @@ import AuthorizationsDefinition from './AuthorizationsDefinition';
 import ChargingStation from '../entity/ChargingStation';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import SourceMap from 'source-map-support';
-import Company from '../types/Company';
 import SiteArea from '../types/SiteArea';
 import SiteStorage from '../storage/mongodb/SiteStorage';
 import Site from '../entity/Site';
@@ -121,7 +120,7 @@ export default class Authorizations {
       // Not authorized
       throw new AppError(
         chargingStation.getID(),
-        `User with Tag ID '${tagID}' not found but saved as inactive user`, 500,
+        `User with Tag ID '${tagID}' not found but saved as inactive user`, Constants.HTTP_GENERAL_ERROR,
         "Authorizations", "_checkAndGetUserTagIDOnChargingStation", user.getModel()
       );
     } else {
@@ -163,7 +162,7 @@ export default class Authorizations {
     if (isOrgCompActive && (!siteArea || !site)) {
       throw new AppError(
         chargingStation.getID(),
-        `Site area and site not provided for Charging Station '${chargingStation.getID()}'!`, 500,
+        `Site area and site not provided for Charging Station '${chargingStation.getID()}'!`, Constants.HTTP_GENERAL_ERROR,
         "Authorizations", "getConnectorActionAuthorizations",
         user.getModel()
       );
@@ -189,7 +188,7 @@ export default class Authorizations {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `Transaction ID '${connector.activeTransactionID}' does not exist`,
-          560, 'Authorizations', 'getConnectorActionAuthorizations');
+          Constants.HTTP_AUTH_ERROR, 'Authorizations', 'getConnectorActionAuthorizations');
       }
       // Check if transaction user is the same as request user
       isSameUserAsTransaction = transaction.getUserID() === user.getID();
@@ -256,7 +255,8 @@ export default class Authorizations {
         // Reject Site Not Found
         throw new AppError(
           chargingStation.getID(),
-          `Charging Station '${chargingStation.getID()}' is not assigned to a Site Area!`, 525,
+          `Charging Station '${chargingStation.getID()}' is not assigned to a Site Area!`,
+          Constants.HTTP_AUTH_CHARGER_WITH_NO_SITE_AREA_ERROR,
           "Authorizations", "_checkAndGetUserOnChargingStation");
       }
 
@@ -273,7 +273,8 @@ export default class Authorizations {
         // Reject Site Not Found
         throw new AppError(
           chargingStation.getID(),
-          `Site Area '${siteArea.name}' is not assigned to a Site!`, 525,
+          `Site Area '${siteArea.name}' is not assigned to a Site!`,
+          Constants.HTTP_AUTH_SITE_AREA_WITH_NO_SITE_ERROR,
           "Authorizations", "checkAndGetUserOnChargingStation");
       }
     }
@@ -347,7 +348,7 @@ export default class Authorizations {
       // Reject but save ok
       throw new AppError(
         chargingStation.getID(),
-        `${Utils.buildUserFullName(user.getModel())} is '${User.getStatusDescription(user.getStatus())}'`, 500,
+        `${Utils.buildUserFullName(user.getModel())} is '${User.getStatusDescription(user.getStatus())}'`, Constants.HTTP_GENERAL_ERROR,
         "Authorizations", "_checkAndGetUserOnChargingStation",
         user.getModel());
     }
@@ -361,7 +362,8 @@ export default class Authorizations {
         // Yes: Reject the User
         throw new AppError(
           chargingStation.getID(),
-          `User is not assigned to the site '${site.getName()}'!`, 525,
+          `User is not assigned to the site '${site.getName()}'!`,
+          Constants.HTTP_AUTH_USER_WITH_NO_SITE_ERROR,
           "Authorizations", "_checkAndGetUserOnChargingStation",
           user.getModel());
       }
@@ -373,7 +375,7 @@ export default class Authorizations {
         action,
         Constants.ENTITY_CHARGING_STATION,
         chargingStation.getID(),
-        500, "Authorizations", "_checkAndGetUserOnChargingStation",
+        Constants.HTTP_GENERAL_ERROR, "Authorizations", "_checkAndGetUserOnChargingStation",
         user.getModel());
     }
   }

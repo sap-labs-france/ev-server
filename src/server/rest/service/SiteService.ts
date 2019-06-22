@@ -27,14 +27,14 @@ export default class SiteService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Site's ID must be provided`, 500,
+          `The Site's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
           'SiteService', 'handleAddUsersToSite', req.user);
       }
       if (!filteredRequest.userIDs || (filteredRequest.userIDs && filteredRequest.userIDs.length <= 0)) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The User's IDs must be provided`, 500,
+          `The User's IDs must be provided`, Constants.HTTP_GENERAL_ERROR,
           'SiteService', 'handleAddUsersToSite', req.user);
       }
       // Get the Site
@@ -42,7 +42,7 @@ export default class SiteService {
       if (!site) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Site with ID '${filteredRequest.siteID}' does not exist anymore`, 550,
+          `The Site with ID '${filteredRequest.siteID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'SiteService', 'handleAddUsersToSite', req.user);
       }
       // Check auth
@@ -51,7 +51,7 @@ export default class SiteService {
           Constants.ACTION_UPDATE,
           Constants.ENTITY_SITE,
           site.getID(),
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'SiteService', 'handleAddUsersToSite',
           req.user);
       }
@@ -62,7 +62,7 @@ export default class SiteService {
         if (!user) {
           throw new AppError(
             Constants.CENTRAL_SERVER,
-            `The User with ID '${userID}' does not exist anymore`, 550,
+            `The User with ID '${userID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
             'SiteService', 'handleAddUsersToSite', req.user);
         }
         // Check auth
@@ -71,7 +71,7 @@ export default class SiteService {
             Constants.ACTION_UPDATE,
             Constants.ENTITY_USER,
             userID,
-            560,
+            Constants.HTTP_AUTH_ERROR,
             'SiteService', 'handleAddUsersToSite',
             req.user, user);
         }
@@ -104,25 +104,25 @@ export default class SiteService {
       if (!filteredRequest.siteID) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Site ID must be provided`, 500,
+          `The Site ID must be provided`, Constants.HTTP_GENERAL_ERROR,
           'SiteService', 'handleUpdateSiteUserRole', req.user);
       }
       if (!filteredRequest.userID) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The User ID must be provided`, 500,
+          `The User ID must be provided`, Constants.HTTP_GENERAL_ERROR,
           'SiteService', 'handleUpdateSiteUserRole', req.user);
       }
       if (!filteredRequest.role) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The role must be provided`, 500,
+          `The role must be provided`, Constants.HTTP_GENERAL_ERROR,
           'SiteService', 'handleUpdateSiteUserRole', req.user);
       }
       if (filteredRequest.role !== Constants.ROLE_ADMIN && filteredRequest.role !== Constants.ROLE_BASIC) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The role ${filteredRequest.role} is not supported`, 500,
+          `The role ${filteredRequest.role} is not supported`, Constants.HTTP_GENERAL_ERROR,
           'SiteService', 'handleUpdateSiteUserRole', req.user);
       }
 
@@ -131,7 +131,7 @@ export default class SiteService {
           Constants.ACTION_UPDATE,
           Constants.ENTITY_SITE,
           filteredRequest.siteID,
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'SiteService', 'handleUpdateSiteUserRole',
           req.user);
       }
@@ -141,7 +141,7 @@ export default class SiteService {
       if (!site) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Site with ID '${filteredRequest.siteID}' does not exist anymore`, 550,
+          `The Site with ID '${filteredRequest.siteID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'SiteService', 'handleUpdateSiteUserRole', req.user);
       }
       await Site.updateSiteUserRole(req.user.tenantID, filteredRequest.siteID, filteredRequest.userID, filteredRequest.role);
@@ -175,14 +175,14 @@ export default class SiteService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Site's ID must be provided`, 500,
+          `The Site's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
           'SiteService', 'handleRemoveUsersFromSite', req.user);
       }
       if (!filteredRequest.userIDs || (filteredRequest.userIDs && filteredRequest.userIDs.length <= 0)) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Site's IDs must be provided`, 500,
+          `The Site's IDs must be provided`, Constants.HTTP_GENERAL_ERROR,
           'SiteService', 'handleRemoveUsersFromSite', req.user);
       }
       if (!Authorizations.canUpdateSite(req.user, filteredRequest.siteID)) {
@@ -190,7 +190,7 @@ export default class SiteService {
           Constants.ACTION_UPDATE,
           Constants.ENTITY_SITE,
           filteredRequest.siteID,
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'SiteService', 'handleRemoveUsersFromSite',
           req.user);
       }
@@ -199,7 +199,7 @@ export default class SiteService {
       if (!site) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Site with ID '${filteredRequest.siteID}' does not exist anymore`, 550,
+          `The Site with ID '${filteredRequest.siteID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'SiteService', 'handleRemoveUsersFromSite', req.user);
       }
       // Get Users
@@ -209,7 +209,7 @@ export default class SiteService {
         if (!user) {
           throw new AppError(
             Constants.CENTRAL_SERVER,
-            `The User with ID '${userID}' does not exist anymore`, 550,
+            `The User with ID '${userID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
             'SiteService', 'handleRemoveUsersFromSite', req.user);
         }
         // Check auth
@@ -218,7 +218,7 @@ export default class SiteService {
             Constants.ACTION_UPDATE,
             Constants.ENTITY_USER,
             userID,
-            560,
+            Constants.HTTP_AUTH_ERROR,
             'SiteService', 'handleRemoveUsersFromSite',
             req.user, user);
         }
@@ -253,7 +253,7 @@ export default class SiteService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Site's ID must be provided`, 500,
+          `The Site's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
           'SiteService', 'handleGetUsersFromSite', req.user);
       }
       // Get the Site
@@ -261,7 +261,7 @@ export default class SiteService {
       if (!site) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Site with ID '${filteredRequest.siteID}' does not exist anymore`, 550,
+          `The Site with ID '${filteredRequest.siteID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'SiteService', 'handleGetUsersFromSite', req.user);
       }
       // Check auth
@@ -270,7 +270,7 @@ export default class SiteService {
           Constants.ACTION_UPDATE,
           Constants.ENTITY_SITE,
           site.getID(),
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'SiteService', 'handleGetUsersFromSite',
           req.user);
       }
@@ -304,7 +304,7 @@ export default class SiteService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Site's ID must be provided`, 500,
+          `The Site's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
           'SiteService', 'handleDeleteSite', req.user);
       }
       // Check auth
@@ -313,7 +313,7 @@ export default class SiteService {
           Constants.ACTION_DELETE,
           Constants.ENTITY_SITE,
           filteredRequest.ID,
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'SiteService', 'handleDeleteSite',
           req.user);
       }
@@ -323,7 +323,7 @@ export default class SiteService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Site with ID '${filteredRequest.ID}' does not exist`, 550,
+          `Site with ID '${filteredRequest.ID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'SiteService', 'handleDeleteSite', req.user);
       }
       // Delete
@@ -358,7 +358,7 @@ export default class SiteService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Site's ID must be provided`, 500,
+          `The Site's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
           'SiteService', 'handleGetSite', req.user);
       }
       // Get it
@@ -366,7 +366,7 @@ export default class SiteService {
       if (!site) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Site with ID '${filteredRequest.ID}' does not exist anymore`, 550,
+          `The Site with ID '${filteredRequest.ID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'SiteService', 'handleGetSite', req.user);
       }
 
@@ -397,7 +397,7 @@ export default class SiteService {
           Constants.ACTION_LIST,
           Constants.ENTITY_SITES,
           null,
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'SiteService', 'handleGetSites',
           req.user);
       }
@@ -445,7 +445,7 @@ export default class SiteService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Site's ID must be provided`, 500,
+          `The Site's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
           'SiteService', 'handleGetSiteImage', req.user);
       }
       // Check auth
@@ -455,7 +455,7 @@ export default class SiteService {
           Constants.ACTION_READ,
           Constants.ENTITY_SITE,
           filteredRequest.ID,
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'SiteService', 'handleGetSiteImage',
           req.user);
       }
@@ -464,7 +464,7 @@ export default class SiteService {
       if (!site) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Site with ID '${filteredRequest.ID}' does not exist anymore`, 550,
+          `The Site with ID '${filteredRequest.ID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'SiteService', 'handleGetSite', req.user);
       }
       // Get the image
@@ -492,7 +492,7 @@ export default class SiteService {
           Constants.ACTION_CREATE,
           Constants.ENTITY_SITE,
           null,
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'SiteService', 'handleCreateSite',
           req.user);
       }
@@ -506,7 +506,7 @@ export default class SiteService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Company ID '${filteredRequest.companyID}' does not exist`, 550,
+          `The Company ID '${filteredRequest.companyID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'SiteService', 'handleCreateSite', req.user);
       }
       // Create site
@@ -562,7 +562,7 @@ export default class SiteService {
       if (!site) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Site with ID '${filteredRequest.id}' does not exist anymore`, 550,
+          `The Site with ID '${filteredRequest.id}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'SiteService', 'handleUpdateSite', req.user);
       }
       // Check Mandatory fields
@@ -574,7 +574,7 @@ export default class SiteService {
           Constants.ACTION_UPDATE,
           Constants.ENTITY_SITE,
           site.getID(),
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'SiteService', 'handleUpdateSite',
           req.user);
       }

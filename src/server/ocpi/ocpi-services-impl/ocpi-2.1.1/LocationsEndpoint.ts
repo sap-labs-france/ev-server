@@ -5,6 +5,7 @@ import OCPIUtils from '../../OCPIUtils';
 import OCPIServerError from '../../../../exception/OCPIServerError';
 
 import SourceMap from 'source-map-support';
+import Constants from '../../../../utils/Constants';
 SourceMap.install();
 
 const EP_IDENTIFIER = "locations";
@@ -65,7 +66,7 @@ const RECORDS_LIMIT = 20;
       if (!payload) {
         throw new OCPIServerError(
           'GET locations',
-          `Connector id '${connectorId}' not found on EVSE uid '${evseUid}' and location id '${locationId}'`, 500,
+          `Connector id '${connectorId}' not found on EVSE uid '${evseUid}' and location id '${locationId}'`, Constants.HTTP_GENERAL_ERROR,
           EP_IDENTIFIER, 'getLocationRequest', null);
       }
 
@@ -76,7 +77,7 @@ const RECORDS_LIMIT = 20;
       if (!payload) {
         throw new OCPIServerError(
           'GET locations',
-          `EVSE uid not found '${evseUid}' on location id '${locationId}'`, 500,
+          `EVSE uid not found '${evseUid}' on location id '${locationId}'`, Constants.HTTP_GENERAL_ERROR,
           EP_IDENTIFIER, 'getLocationRequest', null);
       }
     } else if (locationId) {
@@ -87,7 +88,7 @@ const RECORDS_LIMIT = 20;
       if (!payload) {
         throw new OCPIServerError(
           'GET locations',
-          `Site id '${locationId}' not found`, 500,
+          `Site id '${locationId}' not found`, Constants.HTTP_GENERAL_ERROR,
           EP_IDENTIFIER, 'getLocationRequest', null);
       }
     } else {

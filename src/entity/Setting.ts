@@ -171,7 +171,7 @@ export default class Setting extends TenantHolder {
     if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Setting ID is mandatory`, 500,
+        `Setting ID is mandatory`, Constants.HTTP_GENERAL_ERROR,
         'Setting', 'checkIfSettingValid',
         req.user.id);
     }

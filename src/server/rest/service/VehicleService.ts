@@ -18,7 +18,7 @@ export default class VehicleService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Vehicle's ID must be provided`, 500,
+          `The Vehicle's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
           'VehicleService', 'handleDeleteVehicle', req.user);
       }
       // Get
@@ -27,7 +27,7 @@ export default class VehicleService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Vehicle with ID '${filteredRequest.ID}' does not exist`, 550,
+          `Vehicle with ID '${filteredRequest.ID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'VehicleService', 'handleDeleteVehicle', req.user);
       }
       // Check auth
@@ -37,7 +37,7 @@ export default class VehicleService {
           Constants.ACTION_DELETE,
           Constants.ENTITY_VEHICLE,
           vehicle.getID(),
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'VehicleService', 'handleDeleteVehicle',
           req.user);
       }
@@ -67,7 +67,7 @@ export default class VehicleService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Vehicle's ID must be provided`, 500,
+          `The Vehicle's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
           'VehicleService', 'handleGetVehicle', req.user);
       }
       // Get it
@@ -75,7 +75,7 @@ export default class VehicleService {
       if (!vehicle) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Vehicle with ID '${filteredRequest.ID}' does not exist anymore`, 550,
+          `The Vehicle with ID '${filteredRequest.ID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'VehicleService', 'handleGetVehicle', req.user);
       }
       // Return
@@ -100,7 +100,7 @@ export default class VehicleService {
           Constants.ACTION_LIST,
           Constants.ENTITY_VEHICLES,
           null,
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'VehicleService', 'handleGetVehicles',
           req.user);
       }
@@ -134,7 +134,7 @@ export default class VehicleService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Vehicle's ID must be provided`, 500,
+          `The Vehicle's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
           'VehicleService', 'handleGetVehicleImage', req.user);
       }
       // Get it
@@ -142,7 +142,7 @@ export default class VehicleService {
       if (!vehicle) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Vehicle with ID '${filteredRequest.ID}' does not exist anymore`, 550,
+          `The Vehicle with ID '${filteredRequest.ID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'VehicleService', 'handleGetVehicleImage', req.user);
       }
       // Check auth
@@ -152,7 +152,7 @@ export default class VehicleService {
           Constants.ACTION_READ,
           Constants.ENTITY_VEHICLE,
           vehicle.getID(),
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'VehicleService', 'handleGetVehicleImage',
           req.user);
       }
@@ -176,7 +176,7 @@ export default class VehicleService {
           Constants.ACTION_LIST,
           Constants.ENTITY_VEHICLES,
           null,
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'VehicleService', 'handleGetVehicleImages',
           req.user);
       }
@@ -200,7 +200,7 @@ export default class VehicleService {
           Constants.ACTION_CREATE,
           Constants.ENTITY_VEHICLE,
           null,
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'VehicleService', 'handleCreateVehicle',
           req.user);
       }
@@ -247,7 +247,7 @@ export default class VehicleService {
       if (!vehicle) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Vehicle with ID '${filteredRequest.id}' does not exist anymore`, 550,
+          `The Vehicle with ID '${filteredRequest.id}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'VehicleService', 'handleUpdateVehicle', req.user);
       }
       // Check Mandatory fields
@@ -259,7 +259,7 @@ export default class VehicleService {
           Constants.ACTION_UPDATE,
           Constants.ENTITY_VEHICLE,
           vehicle.getID(),
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'VehicleService', 'handleUpdateVehicle',
           req.user);
       }

@@ -33,7 +33,7 @@ export default class SiteAreaService {
           Constants.ACTION_DELETE,
           Constants.ENTITY_SITE_AREA,
           siteAreaID,
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'SiteAreaService', 'handleDeleteSiteArea',
           req.user);
       }
@@ -84,7 +84,7 @@ export default class SiteAreaService {
           Constants.ACTION_READ,
           Constants.ENTITY_SITE_AREA,
           filteredRequest.ID,
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'SiteAreaService', 'handleGetSiteAreaImage',
           req.user);
       }
@@ -128,7 +128,7 @@ export default class SiteAreaService {
           Constants.ACTION_READ,
           Constants.ENTITY_SITE_AREA,
           siteAreaID,
-          560, 'SiteAreaService', 'handleGetSiteAreaImage',
+          Constants.HTTP_AUTH_ERROR, 'SiteAreaService', 'handleGetSiteAreaImage',
           req.user);
       }
 
@@ -161,7 +161,7 @@ export default class SiteAreaService {
           Constants.ACTION_LIST,
           Constants.ENTITY_SITE_AREAS,
           null,
-          560, 'SiteAreaService', 'handleGetSiteAreas',
+          Constants.HTTP_AUTH_ERROR, 'SiteAreaService', 'handleGetSiteAreas',
           req.user);
       }
 
@@ -208,7 +208,7 @@ export default class SiteAreaService {
           Constants.ACTION_CREATE,
           Constants.ENTITY_SITE_AREA,
           null,
-          560, 'SiteAreaService', 'handleCreateSiteArea',
+          Constants.HTTP_AUTH_ERROR, 'SiteAreaService', 'handleCreateSiteArea',
           req.user);
       }
 
@@ -260,7 +260,7 @@ export default class SiteAreaService {
           Constants.ACTION_UPDATE,
           Constants.ENTITY_SITE_AREA,
           filteredRequest.id,
-          560, 'SiteAreaService', 'handleUpdateSiteArea',
+          Constants.HTTP_AUTH_ERROR, 'SiteAreaService', 'handleUpdateSiteArea',
           req.user);
       }
 
@@ -307,21 +307,21 @@ export default class SiteAreaService {
     if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Site Area ID is mandatory`, 500,
+        `Site Area ID is mandatory`, Constants.HTTP_GENERAL_ERROR,
         'SiteAreaService', '_checkIfSiteAreaValid',
         req.user.id);
     }
     if (!filteredRequest.name) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Site Area is mandatory`, 500,
+        `Site Area is mandatory`, Constants.HTTP_GENERAL_ERROR,
         'SiteAreaService', '_checkIfSiteAreaValid',
         req.user.id, filteredRequest.id);
     }
     if(!filteredRequest.siteID) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Site ID is mandatory`, 500,
+        `Site ID is mandatory`, Constants.HTTP_GENERAL_ERROR,
         'SiteAreaService', '_checkIfSiteAreaValid',
         req.user.id, filteredRequest.id);
     }

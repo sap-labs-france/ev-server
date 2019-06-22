@@ -36,7 +36,7 @@ const CONNECTOR_ID = 'concur';
       {
         retries: 3,
         retryCondition: (error) => {
-          return error.response.status === 500;
+          return error.response.status === Constants.HTTP_GENERAL_ERROR;
         },
         retryDelay: (retryCount, error) => {
           if (error.config.method === 'post') {
@@ -162,7 +162,7 @@ const CONNECTOR_ID = 'concur';
       });
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Concur access token not granted for ${userId}`, 500,
+        `Concur access token not granted for ${userId}`, Constants.HTTP_GENERAL_ERROR,
         MODULE_NAME, 'GetAccessToken', userId);
     }
   }
@@ -201,7 +201,7 @@ const CONNECTOR_ID = 'concur';
       });
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Concur access token not refreshed for ${userId}`, 500,
+        `Concur access token not refreshed for ${userId}`, Constants.HTTP_GENERAL_ERROR,
         MODULE_NAME, 'refreshToken', userId);
     }
   }
@@ -220,7 +220,8 @@ const CONNECTOR_ID = 'concur';
     if (!connection) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The user with ID '${user.getID()}' does not have a connection to connector '${CONNECTOR_ID}'`, 552,
+        `The user with ID '${user.getID()}' does not have a connection to connector '${CONNECTOR_ID}'`,
+        Constants.HTTP_CONCUR_NO_CONNECTOR_CONNECTION_ERROR,
         'TransactionService', 'handleRefundTransactions', user);
     }
 
@@ -322,7 +323,8 @@ const CONNECTOR_ID = 'concur';
 
     throw new AppError(
       MODULE_NAME,
-      `The city '${site.getAddress().city}' of the station is unknown to Concur`, 553,
+      `The city '${site.getAddress().city}' of the station is unknown to Concur`,
+      Constants.HTTP_CONCUR_CITY_UNKNOWN_ERROR,
       MODULE_NAME, 'getLocation');
   }
 

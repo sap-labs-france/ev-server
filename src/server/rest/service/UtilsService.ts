@@ -23,7 +23,8 @@ export default class UtilsService {
       // Object does not exist
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The ID must be provided`, 500,
+        `The ID must be provided`,
+        Constants.HTTP_GENERAL_ERROR,
         module, method, userToken);
     }
   }
@@ -33,7 +34,8 @@ export default class UtilsService {
       // Object does not exist
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        errorMsg, 550,
+        errorMsg,
+        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         module, method, userToken);
     }
   }
@@ -50,7 +52,8 @@ export default class UtilsService {
     if (!active) {
       throw new ComponentInactiveError(
         component, action, entity,
-        560, module, method);
+        Constants.HTTP_AUTH_ERROR,
+        module, method);
     }
   }
 }

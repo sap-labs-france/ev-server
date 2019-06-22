@@ -210,7 +210,7 @@ export default class OCPIEndpoint extends TenantHolder {
     if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The OCPI Endpoint ID is mandatory`, 500,
+        `The OCPI Endpoint ID is mandatory`, Constants.HTTP_GENERAL_ERROR,
         'OCPIEndpoint', 'checkIfOcpiEndpointValid',
         req.user.id);
     }

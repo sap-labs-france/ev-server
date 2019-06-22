@@ -121,7 +121,7 @@ export default abstract class AbstractOCPIService {
       if (!req.headers || !req.headers.authorization) {
         throw new OCPIServerError(
           'Login',
-          `Missing authorization token`, 500,
+          `Missing authorization token`, Constants.HTTP_GENERAL_ERROR,
           MODULE_NAME, 'processEndpointAction', undefined);
       }
 
@@ -156,7 +156,7 @@ export default abstract class AbstractOCPIService {
       } catch (error) {
         throw new OCPIServerError(
           'Login',
-          `Invalid authorization token`, 500,
+          `Invalid authorization token`, Constants.HTTP_GENERAL_ERROR,
           MODULE_NAME, 'processEndpointAction', undefined);
       }
 
@@ -170,7 +170,7 @@ export default abstract class AbstractOCPIService {
       if (!tenant) {
         throw new OCPIServerError(
           'Login',
-          `The Tenant '${tenantSubdomain}' does not exist`, 500,
+          `The Tenant '${tenantSubdomain}' does not exist`, Constants.HTTP_GENERAL_ERROR,
           MODULE_NAME, 'processEndpointAction', undefined);
       }
 
@@ -181,7 +181,7 @@ export default abstract class AbstractOCPIService {
       if (!this.ocpiRestConfig.tenantEnabled.includes(tenantSubdomain)) {
         throw new OCPIServerError(
           'Login',
-          `The Tenant '${tenantSubdomain}' is not enabled for OCPI`, 500,
+          `The Tenant '${tenantSubdomain}' is not enabled for OCPI`, Constants.HTTP_GENERAL_ERROR,
           MODULE_NAME, 'processEndpointAction', undefined);
       }
 
@@ -197,7 +197,7 @@ export default abstract class AbstractOCPIService {
       } else {
         throw new OCPIServerError(
           'Login',
-          `The Tenant '${tenantSubdomain}' doesn't have country_id and/or party_id defined`, 500,
+          `The Tenant '${tenantSubdomain}' doesn't have country_id and/or party_id defined`, Constants.HTTP_GENERAL_ERROR,
           MODULE_NAME, 'processEndpointAction', undefined);
       }
 
@@ -209,7 +209,8 @@ export default abstract class AbstractOCPIService {
         // pragma res.sendStatus(501);
         throw new OCPIServerError(
           'Process Endpoint',
-          `Endpoint ${action} not implemented`, 501,
+          `Endpoint ${action} not implemented`,
+          Constants.HTTP_NOT_IMPLEMENTED_ERROR,
           MODULE_NAME, 'processEndpointAction');
       }
     } catch (error) {

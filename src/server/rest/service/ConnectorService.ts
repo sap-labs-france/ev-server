@@ -22,7 +22,7 @@ export default class ConnectorService extends AbstractService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Connection's ID must be provided`, 500,
+          `The Connection's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
           MODULE_NAME, 'handleGetConnection', req.user);
       }
 
@@ -40,7 +40,7 @@ export default class ConnectorService extends AbstractService {
       if (!connection) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Connection with ID '${filteredRequest.ID}' does not exist`, 550,
+          `Connection with ID '${filteredRequest.ID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           MODULE_NAME, 'handleGetConnection', req.user);
       }
       // Return
@@ -134,7 +134,7 @@ export default class ConnectorService extends AbstractService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The userId must be provided`, 500,
+          `The userId must be provided`, Constants.HTTP_GENERAL_ERROR,
           MODULE_NAME, 'handleDeleteConnection', req.user);
       }
 
@@ -142,7 +142,7 @@ export default class ConnectorService extends AbstractService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The connectorId must be provided`, 500,
+          `The connectorId must be provided`, Constants.HTTP_GENERAL_ERROR,
           MODULE_NAME, 'handleDeleteConnection', req.user);
       }
 
@@ -162,7 +162,7 @@ export default class ConnectorService extends AbstractService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Connection [${filteredRequest.connectorId},${filteredRequest.userId}] does not exist`, 550,
+          `Connection [${filteredRequest.connectorId},${filteredRequest.userId}] does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           MODULE_NAME, 'handleDeleteConnection', req.user);
       }
 

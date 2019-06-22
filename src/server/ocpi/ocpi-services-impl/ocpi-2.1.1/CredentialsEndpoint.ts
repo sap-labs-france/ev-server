@@ -109,7 +109,7 @@ const MODULE_NAME = "CredentialsEndpoint";
     if (!OCPIMapping.isValidOCPICredential(credential)) {
       throw new OCPIClientError(
         'POST credentials',
-        `Invalid Credential Object`, 500,
+        `Invalid Credential Object`, Constants.HTTP_GENERAL_ERROR,
         EP_IDENTIFIER, 'postCredentials', null);
     }
 
@@ -137,7 +137,7 @@ const MODULE_NAME = "CredentialsEndpoint";
     if (!ocpiEndpoint) {
       throw new OCPIServerError(
         'POST credentials',
-        `OCPI Endpoint not available or wrong token`, 500,
+        `OCPI Endpoint not available or wrong token`, Constants.HTTP_GENERAL_ERROR,
         EP_IDENTIFIER, 'postCredentials', null);
     }
 
@@ -242,7 +242,7 @@ const MODULE_NAME = "CredentialsEndpoint";
     } catch (error) {
       throw new OCPIServerError(
         'POST credentials',
-        `Unable to use client API: ${error.message}`, 500,
+        `Unable to use client API: ${error.message}`, Constants.HTTP_GENERAL_ERROR,
         EP_IDENTIFIER, 'postCredentials', Constants.OCPI_STATUS_CODE.CODE_3001_UNABLE_TO_USE_CLIENT_API_ERROR);
     }
 

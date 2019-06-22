@@ -110,14 +110,14 @@ export default class VehicleManufacturer extends TenantHolder {
     if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Vehicle Manufacturer ID is mandatory`, 500,
+        `Vehicle Manufacturer ID is mandatory`, Constants.HTTP_GENERAL_ERROR,
         'VehicleManufacturer', 'checkIfVehicleManufacturerValid',
         req.user.id);
     }
     if (!filteredRequest.name) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Vehicle Manufacturer Name is mandatory`, 500,
+        `Vehicle Manufacturer Name is mandatory`, Constants.HTTP_GENERAL_ERROR,
         'VehicleManufacturer', 'checkIfVehicleManufacturerValid',
         req.user.id, filteredRequest.id);
     }

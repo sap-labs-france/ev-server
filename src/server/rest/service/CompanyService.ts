@@ -32,7 +32,7 @@ export default class CompanyService {
           Constants.ACTION_DELETE,
           Constants.ENTITY_COMPANY,
           companyID,
-          560, 'CompanyService', 'handleDeleteCompany',
+          Constants.HTTP_AUTH_ERROR, 'CompanyService', 'handleDeleteCompany',
           req.user);
       }
 
@@ -82,7 +82,7 @@ export default class CompanyService {
           Constants.ACTION_READ,
           Constants.ENTITY_COMPANY,
           filteredRequest.ID,
-          560, 'CompanyService', 'handleGetCompany',
+          Constants.HTTP_AUTH_ERROR, 'CompanyService', 'handleGetCompany',
           req.user);
       }
 
@@ -121,10 +121,9 @@ export default class CompanyService {
       if (!Authorizations.canReadCompany(req.user, companyID)) {
         // Not Authorized!
         throw new AppAuthError(
-          Constants.ACTION_READ,
-          Constants.ENTITY_COMPANY,
+          Constants.ACTION_READ, Constants.ENTITY_COMPANY,
           companyID,
-          560, 'CompanyService', 'handleGetCompanyLogo',
+          Constants.HTTP_AUTH_ERROR, 'CompanyService', 'handleGetCompanyLogo',
           req.user);
       }
 
@@ -157,7 +156,7 @@ export default class CompanyService {
           Constants.ACTION_LIST,
           Constants.ENTITY_COMPANIES,
           null,
-          560, 'CompanyService', 'handleGetCompanies',
+          Constants.HTTP_AUTH_ERROR, 'CompanyService', 'handleGetCompanies',
           req.user);
       }
 
@@ -201,7 +200,7 @@ export default class CompanyService {
           Constants.ACTION_CREATE,
           Constants.ENTITY_COMPANY,
           null,
-          560, 'CompanyService', 'handleCreateCompany',
+          Constants.HTTP_AUTH_ERROR, 'CompanyService', 'handleCreateCompany',
           req.user);
       }
 
@@ -254,7 +253,7 @@ export default class CompanyService {
           Constants.ACTION_UPDATE,
           Constants.ENTITY_COMPANY,
           filteredRequest.id,
-          560, 'CompanyService', 'handleUpdateCompany',
+          Constants.HTTP_AUTH_ERROR, 'CompanyService', 'handleUpdateCompany',
           req.user);
       }
 
@@ -298,14 +297,14 @@ export default class CompanyService {
     if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Company ID is mandatory`, 500,
+        `Company ID is mandatory`, Constants.HTTP_GENERAL_ERROR,
         'CompanyService', 'checkIfCompanyValid',
         req.user.id);
     }
     if (!filteredRequest.name) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Company Name is mandatory`, 500,
+        `Company Name is mandatory`, Constants.HTTP_GENERAL_ERROR,
         'CompanyService', 'checkIfCompanyValid',
         req.user.id, filteredRequest.id);
     }

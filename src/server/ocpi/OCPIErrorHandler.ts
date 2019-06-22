@@ -12,7 +12,7 @@ export default class OCPIErrorHandler {
     if (!(err instanceof OCPIServerError || err instanceof OCPIClientError)) {
       error = new OCPIServerError(
         '-',
-        err.message, 500,
+        err.message, Constants.HTTP_GENERAL_ERROR,
         'OCPI Server', `${req.method} ${req.originalUrl}`, Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR);
       detailedMessages = err.stack;
 

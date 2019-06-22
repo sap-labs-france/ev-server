@@ -183,7 +183,7 @@ export default class MongoDBStorage {
           }
         }
       }
-    }, 500);
+    }, Constants.HTTP_GENERAL_ERROR);
   }
 
   public async migrateTenantDatabase(tenantID: string): Promise<void> {

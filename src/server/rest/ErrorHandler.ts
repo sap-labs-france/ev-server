@@ -6,6 +6,7 @@ import NotFoundError from '../../exception/NotFoundError';
 import UnauthorizedError from '../../exception/UnauthorizedError';
 import Utils from '../../utils/Utils';
 import HttpStatus from 'http-status-codes';
+import Constants from '../../utils/Constants';
 
 export default class ErrorHandler {
   static async errorHandler(err, req, res, next) {
@@ -20,13 +21,13 @@ export default class ErrorHandler {
     } else if (err instanceof AppError) {
       await ErrorHandler._handleAppError(err, res);
     } else {
-      res.status(500).send({});
+      res.status(Constants.HTTP_GENERAL_ERROR).send({});
     }
     next();
   }
 
   static _handleAppError(err, res) {
-    res.status((err.errorCode ? err.errorCode : 500)).send({
+    res.status((err.errorCode ? err.errorCode : Constants.HTTP_GENERAL_ERROR)).send({
       "message": Utils.hideShowMessage(err.message)
     });
   }
