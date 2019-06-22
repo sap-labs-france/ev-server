@@ -229,13 +229,14 @@ export default class AuthService {
   }
 
   static async handleLogIn(action, req, res, next) {
-    let tenantID = Constants.DEFAULT_TENANT;
+    let tenantID;
     try {
       // Filter
       const filteredRequest = AuthSecurity.filterLoginRequest(req.body);
       // Get Tenant
       tenantID = await AuthService.getTenantID(filteredRequest.tenant);
       if (!tenantID) {
+        tenantID = Constants.DEFAULT_TENANT;
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `User with email '${filteredRequest.email}' tried to log in with an unknown tenant '${filteredRequest.tenant}'!`,
@@ -320,7 +321,7 @@ export default class AuthService {
       }
     } catch (err) {
       // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next, tenantID);
+      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next, (!tenantID ? Constants.DEFAULT_TENANT : tenantID));
     }
   }
 
