@@ -229,21 +229,19 @@ export default class AuthService {
   }
 
   static async handleLogIn(action, req, res, next) {
-    // Filter
-    const filteredRequest = AuthSecurity.filterLoginRequest(req.body);
-
-    const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
-
-    if (!tenantID) {
-      Logging.logSecurityError({
-        tenantID: Constants.DEFAULT_TENANT, module: 'AuthService', method: 'handleLogIn',
-        message: `User with email '${filteredRequest.email}' tried to log in with an unknown tenant '${filteredRequest.tenant}'!`,
-        action: action
-      });
-      next(new AppError(Constants.CENTRAL_SERVER, 'Wrong email or password', Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleLogIn'));
-      return;
-    }
+    let tenantID = Constants.DEFAULT_TENANT;
     try {
+      // Filter
+      const filteredRequest = AuthSecurity.filterLoginRequest(req.body);
+      // Get Tenant
+      tenantID = await AuthService.getTenantID(filteredRequest.tenant);
+      if (!tenantID) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `User with email '${filteredRequest.email}' tried to log in with an unknown tenant '${filteredRequest.tenant}'!`,
+          Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+          'AuthService', 'handleLogIn', null, null, action);
+      }
       // Check
       if (!filteredRequest.email) {
         throw new AppError(
