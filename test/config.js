@@ -93,7 +93,7 @@ const config = convict({
     token: {
       doc: "OCPI token",
       format: String,
-      default: 'eyAiYSI6IDEgLCAidGVuYW50IjogInNsZiIgfQ==',
+      default: 'eyJhayI6NTEsInRpZCI6InNsZiIsInprIjoxMn0=',
       env: 'OCPI_TOKEN'
     },
     logs: {

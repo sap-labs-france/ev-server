@@ -21,7 +21,10 @@ export default abstract class AbstractOCPIService {
   private endpoints: Map<string, AbstractEndpoint> = new Map();
 
   // Create OCPI Service
-  public constructor(private readonly ocpiRestConfig: any, private readonly version = "0.0.0") {}
+  public constructor(
+    private readonly ocpiRestConfig: any,
+    private readonly version = "0.0.0") {
+  }
 
   /**
    * Register Endpoint to this service
@@ -98,7 +101,7 @@ export default abstract class AbstractOCPIService {
    */
   public getSupportedEndpoints(req: TenantIdHoldingRequest, res: Response, next: Function): void { // eslint-disable-line
     const fullUrl = this.getServiceUrl(req);
-    const registeredEndpointsArray = Object.values(this.getRegisteredEndpoints());
+    const registeredEndpointsArray = Array.from(this.getRegisteredEndpoints().values());
 
     // Build payload
     const supportedEndpoints = registeredEndpointsArray.map((endpoint) => {
@@ -122,7 +125,7 @@ export default abstract class AbstractOCPIService {
         throw new OCPIServerError(
           'Login',
           `Missing authorization token`, Constants.HTTP_GENERAL_ERROR,
-          MODULE_NAME, 'processEndpointAction', undefined);
+          MODULE_NAME, 'processEndpointAction');
       }
 
       // Log authorization token
@@ -157,7 +160,7 @@ export default abstract class AbstractOCPIService {
         throw new OCPIServerError(
           'Login',
           `Invalid authorization token`, Constants.HTTP_GENERAL_ERROR,
-          MODULE_NAME, 'processEndpointAction', undefined);
+          MODULE_NAME, 'processEndpointAction');
       }
 
       // Get tenant from the called URL - TODO: review this handle tenant and tid in decoded token
@@ -171,7 +174,7 @@ export default abstract class AbstractOCPIService {
         throw new OCPIServerError(
           'Login',
           `The Tenant '${tenantSubdomain}' does not exist`, Constants.HTTP_GENERAL_ERROR,
-          MODULE_NAME, 'processEndpointAction', undefined);
+          MODULE_NAME, 'processEndpointAction');
       }
 
       // Pass tenant id to req
@@ -182,7 +185,7 @@ export default abstract class AbstractOCPIService {
         throw new OCPIServerError(
           'Login',
           `The Tenant '${tenantSubdomain}' is not enabled for OCPI`, Constants.HTTP_GENERAL_ERROR,
-          MODULE_NAME, 'processEndpointAction', undefined);
+          MODULE_NAME, 'processEndpointAction');
       }
 
       // TODO: Temporary properties in config: add eMI3 country_id/party_id
@@ -198,7 +201,7 @@ export default abstract class AbstractOCPIService {
         throw new OCPIServerError(
           'Login',
           `The Tenant '${tenantSubdomain}' doesn't have country_id and/or party_id defined`, Constants.HTTP_GENERAL_ERROR,
-          MODULE_NAME, 'processEndpointAction', undefined);
+          MODULE_NAME, 'processEndpointAction');
       }
 
       // Handle request action (endpoint)

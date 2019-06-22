@@ -9,8 +9,8 @@ SourceMap.install();
 
 /**
  * OCPI Service 2.1.1  - Implementation
- */export default class OCPIServices extends AbstractOCPIService {
-  public registerEndpoint: any;
+ */
+export default class OCPIServices extends AbstractOCPIService {
   // Create OCPI Service
   constructor(ocpiRestConfig) {
     super(ocpiRestConfig, VERSION);

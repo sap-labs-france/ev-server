@@ -110,7 +110,7 @@ const MODULE_NAME = "CredentialsEndpoint";
       throw new OCPIClientError(
         'POST credentials',
         `Invalid Credential Object`, Constants.HTTP_GENERAL_ERROR,
-        EP_IDENTIFIER, 'postCredentials', null);
+        EP_IDENTIFIER, 'postCredentials');
     }
 
     // Get token from header
@@ -138,7 +138,7 @@ const MODULE_NAME = "CredentialsEndpoint";
       throw new OCPIServerError(
         'POST credentials',
         `OCPI Endpoint not available or wrong token`, Constants.HTTP_GENERAL_ERROR,
-        EP_IDENTIFIER, 'postCredentials', null);
+        EP_IDENTIFIER, 'postCredentials');
     }
 
     // Save information
@@ -243,7 +243,8 @@ const MODULE_NAME = "CredentialsEndpoint";
       throw new OCPIServerError(
         'POST credentials',
         `Unable to use client API: ${error.message}`, Constants.HTTP_GENERAL_ERROR,
-        EP_IDENTIFIER, 'postCredentials', Constants.OCPI_STATUS_CODE.CODE_3001_UNABLE_TO_USE_CLIENT_API_ERROR);
+        EP_IDENTIFIER, 'postCredentials', Constants.OCPI_STATUS_CODE.CODE_3001_UNABLE_TO_USE_CLIENT_API_ERROR,
+        error.stack);
     }
 
     // Generate new token

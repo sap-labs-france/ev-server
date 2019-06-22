@@ -67,7 +67,7 @@ const RECORDS_LIMIT = 20;
         throw new OCPIServerError(
           'GET locations',
           `Connector id '${connectorId}' not found on EVSE uid '${evseUid}' and location id '${locationId}'`, Constants.HTTP_GENERAL_ERROR,
-          EP_IDENTIFIER, 'getLocationRequest', null);
+          EP_IDENTIFIER, 'getLocationRequest');
       }
 
     } else if (locationId && evseUid) {
@@ -78,7 +78,7 @@ const RECORDS_LIMIT = 20;
         throw new OCPIServerError(
           'GET locations',
           `EVSE uid not found '${evseUid}' on location id '${locationId}'`, Constants.HTTP_GENERAL_ERROR,
-          EP_IDENTIFIER, 'getLocationRequest', null);
+          EP_IDENTIFIER, 'getLocationRequest');
       }
     } else if (locationId) {
       // Get single location
@@ -89,7 +89,7 @@ const RECORDS_LIMIT = 20;
         throw new OCPIServerError(
           'GET locations',
           `Site id '${locationId}' not found`, Constants.HTTP_GENERAL_ERROR,
-          EP_IDENTIFIER, 'getLocationRequest', null);
+          EP_IDENTIFIER, 'getLocationRequest');
       }
     } else {
       // Get query parameters

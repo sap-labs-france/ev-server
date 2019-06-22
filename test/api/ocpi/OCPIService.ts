@@ -71,11 +71,11 @@ export default class OCPIService {
   /**
    * POST Credentials for 2.1.1
    */
-  async postCredentials2_1_1(credentail) {
+  async postCredentials2_1_1(credential) {
     return this.baseApi.send({
       method: 'POST',
       url: 'ocpi/cpo/2.1.1/credentials',
-      data: credentail,
+      data: credential,
       headers: {
         Authorization: this.token
       }
@@ -84,8 +84,8 @@ export default class OCPIService {
 
   /**
    * Access path with specific method
-   * @param {*} method 
-   * @param {*} path 
+   * @param {*} method
+   * @param {*} path
    */
   async accessPath(method, path) {
     return this.baseApi.send({
@@ -99,7 +99,7 @@ export default class OCPIService {
 
   /**
    * Check basic structure for OCPI Response
-   * @param {*} ocpiResponse 
+   * @param {*} ocpiResponse
    */
   checkOCPIResponseStructure(ocpiResponse) {
     expect(ocpiResponse).to.not.be.empty;
@@ -111,7 +111,7 @@ export default class OCPIService {
 
   /**
    * Check basic structure for OCPI Error Response
-   * @param {*} ocpiErrorResponse 
+   * @param {*} ocpiErrorResponse
    */
   checkOCPIErrorResponseStructure(ocpiErrorResponse) {
     expect(ocpiErrorResponse).to.not.be.empty;
@@ -122,7 +122,7 @@ export default class OCPIService {
 
   /**
    * Validate Credential Entity
-   * @param {*} credential 
+   * @param {*} credential
    */
   validateCredentialEntity(credential) {
     expect(credential).to.not.be.empty;
@@ -134,7 +134,7 @@ export default class OCPIService {
 
   /**
    * Validate Location Entity
-   * @param {*} location 
+   * @param {*} location
    */
   validateLocationEntity(location) {
     return expect(location).to.have.property('id').that.is.not.empty &&
@@ -143,7 +143,7 @@ export default class OCPIService {
 
   /**
    * Validate EVSE Entity
-   * @param {*} evse 
+   * @param {*} evse
    */
   validateEvseEntity(evse) {
     return expect(evse).to.have.property('uid').that.is.not.empty &&
