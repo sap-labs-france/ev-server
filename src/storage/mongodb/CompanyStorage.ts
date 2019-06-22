@@ -7,6 +7,8 @@ import BackendError from '../../exception/BackendError';
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import TSGlobal from '../../types/GlobalType';
+import User from '../../entity/User';
+import DbParams from '../../types/database/DbParams';
 
 declare const global: TSGlobal;
 
@@ -17,12 +19,11 @@ export default class CompanyStorage {
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompany');
 
     // Reuse
-    const companiesMDB = await CompanyStorage.getCompanies(tenantID, {search: id, withSites: false}, 1);
+    const companiesMDB = await CompanyStorage.getCompanies(tenantID, {search: id, withSites: false}, { limit: 1, skip: 0 });
 
     let company: Company = null;
     // Check
     if (companiesMDB && companiesMDB.count > 0) {
-      // Create
       company = companiesMDB.result[0];
     }
     // Debug
@@ -30,31 +31,37 @@ export default class CompanyStorage {
     return company;
   }
 
-  public static async saveCompany(tenantID: string, companyToSave: Company, saveLogo: boolean = true): Promise<string> {
+  public static async saveCompany(tenantID: string, companyToSave: Company, saveLogo=true): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'saveCompany');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-
-    const mongoCompany: any = {};
-    const newId: string = companyToSave.id.length === 0 ? new ObjectID().toHexString() : companyToSave.id;
-    mongoCompany._id = Utils.convertToObjectID(newId);
-    mongoCompany.createdBy = Utils.convertToObjectID(companyToSave.createdBy.id);
-    mongoCompany.createdOn = companyToSave.createdOn;
-    if (companyToSave.lastChangedBy) {
-      mongoCompany.lastChangedBy = Utils.convertToObjectID(companyToSave.lastChangedBy.id);
+    // Set
+    const companyMDB: any = {
+      _id: !companyToSave.id ? new ObjectID() : Utils.convertToObjectID(companyToSave.id),
+      name: companyToSave.name,
+      address: companyToSave.address,
+    };
+    if(companyToSave.address) {
+      companyMDB.address = companyToSave.address;
     }
-    if (companyToSave.lastChangedOn) {
-      mongoCompany.lastChangedOn = companyToSave.lastChangedOn;
+    if (companyToSave.createdBy && companyToSave.createdOn) {
+      companyMDB.createdBy = Utils.convertToObjectID(
+        companyToSave.createdBy.id ? companyToSave.createdBy.id : companyToSave.createdBy.getID()),
+      companyMDB.createdOn = companyToSave.createdOn
     }
-    mongoCompany.address = companyToSave.address;
-    mongoCompany.name = companyToSave.name;
+    if (companyToSave.lastChangedBy && companyToSave.lastChangedOn) {
+      companyMDB.lastChangedBy = Utils.convertToObjectID(
+        companyToSave.lastChangedBy.id ? companyToSave.lastChangedBy.id : companyToSave.lastChangedBy.getID());
+      companyMDB.lastChangedOn = companyToSave.lastChangedOn;
+    }
 
     // Modify
     const result = await global.database.getCollection<Company>(tenantID, 'companies').findOneAndUpdate(
-      { _id: mongoCompany._id },
-      { $set: mongoCompany},
-      { upsert: true });
+      { _id: companyMDB._id },
+      { $set: companyMDB},
+      { upsert: true }
+    );
 
     if (!result.ok) {
       throw new BackendError(
@@ -65,13 +72,13 @@ export default class CompanyStorage {
 
     // Save Logo
     if (saveLogo) {
-      CompanyStorage._saveCompanyLogo(tenantID, newId, companyToSave.logo);
+      CompanyStorage._saveCompanyLogo(tenantID, companyMDB._id.toHexString(), companyToSave.logo);
     }
 
     // Debug
     Logging.traceEnd('CompanyStorage', 'saveCompany', uniqueTimerID, { companyToSave });
 
-    return newId;
+    return companyMDB._id.toHexString();
   }
 
   private static async _saveCompanyLogo(tenantID: string, companyId: string, companyLogoToSave: string): Promise<void> {
@@ -92,15 +99,17 @@ export default class CompanyStorage {
   }
 
   // Delegate
-  public static async getCompanies(tenantID: string, params: {search?: string; companyIDs?: string[]; onlyRecordCount?: boolean; withSites?: boolean} = {}, limit?: number, skip?: number, sort?: boolean): Promise<{count: number; result: Company[]}> {
+  public static async getCompanies(tenantID: string,
+      params: {search?: string, companyIDs?: string[], onlyRecordCount?: boolean, withSites?:boolean}={},
+      dbParams?: DbParams): Promise<{count: number, result: Company[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompanies');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
-    limit = Utils.checkRecordLimit(limit);
+    const limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    skip = Utils.checkRecordSkip(skip);
+    const skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
     let filters: ({_id?: string; $or?: any[]}|undefined);
     // Build filter
@@ -155,9 +164,10 @@ export default class CompanyStorage {
         result: []
       };
     }
+    // Remove the limit
+    aggregation.pop();
 
-
-    // Site lookup TODO: modify if sites get typed as well
+    // Site lookup
     if (params.withSites) {
       // Add Sites
       aggregation.push({
@@ -198,13 +208,11 @@ export default class CompanyStorage {
     );
 
     // Sort
-    if (sort) {
-      // Sort
+    if (dbParams.sort) {
       aggregation.push({
-        $sort: sort
+        $sort: dbParams.sort
       });
     } else {
-      // Default
       aggregation.push({
         $sort: { name: 1 }
       });
@@ -219,12 +227,13 @@ export default class CompanyStorage {
     });
 
     // Read DB
-    const companies = await global.database.getCollection<Company>(tenantID, 'companies')
+    let companies = await global.database.getCollection<Company>(tenantID, 'companies')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
 
     // Debug
-    Logging.traceEnd('CompanyStorage', 'getCompanies', uniqueTimerID, { params, limit, skip, sort });
+    Logging.traceEnd('CompanyStorage', 'getCompanies', uniqueTimerID,
+      { params, limit: dbParams.limit, skip: dbParams.skip, sort: dbParams.sort });
 
     // Ok
     return {

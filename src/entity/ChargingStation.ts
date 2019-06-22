@@ -3,7 +3,6 @@ import Logging from '../utils/Logging';
 import Utils from '../utils/Utils';
 import User from './User';
 import Transaction from './Transaction';
-import SiteArea from './SiteArea';
 import Constants from '../utils/Constants';
 import Database from '../utils/Database';
 import BackendError from '../exception/BackendError';
@@ -18,6 +17,7 @@ import tzlookup from "tz-lookup";
 import buildChargingStationClient from '../client/ocpp/ChargingStationClientFactory';
 import SourceMap from 'source-map-support';
 import Company from '../types/Company';
+import SiteArea from '../types/SiteArea';
 SourceMap.install();
 
 momentDurationFormatSetup(moment);
@@ -64,10 +64,10 @@ export default class ChargingStation extends TenantHolder {
     return this._model.id;
   }
 
-  setSiteArea(siteArea) {
+  setSiteArea(siteArea: SiteArea) {
     if (siteArea) {
-      this._model.siteArea = siteArea.getModel();
-      this._model.siteAreaID = siteArea.getID();
+      this._model.siteArea = siteArea;
+      this._model.siteAreaID = siteArea.id;
     } else {
       this._model.siteArea = null;
     }
@@ -75,10 +75,11 @@ export default class ChargingStation extends TenantHolder {
 
   async getSiteArea(withSite = false) {
     if (this._model.siteArea) {
-      return new SiteArea(this.getTenantID(), this._model.siteArea);
+      return this._model.siteArea;
     } else if (this._model.siteAreaID) {
       // Get from DB
-      const siteArea = await SiteAreaStorage.getSiteArea(this.getTenantID(), this._model.siteAreaID, false, withSite);
+      const siteArea = await SiteAreaStorage.getSiteArea(this.getTenantID(), this._model.siteAreaID,
+        { withSite: withSite, withChargeBoxes: true });
       // Set it
       this.setSiteArea(siteArea);
       // Return
@@ -449,7 +450,7 @@ export default class ChargingStation extends TenantHolder {
         return null;
       }
       // Get Site
-      this.site = await siteArea.getSite();
+      this.site = await siteArea.site;
     }
     return this.site;
   }

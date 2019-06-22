@@ -3,62 +3,58 @@ import Authorizations from '../../../../authorization/Authorizations';
 import UtilsSecurity from './UtilsSecurity';
 import ChargingStationSecurity from './ChargingStationSecurity';
 import SiteSecurity from './SiteSecurity';
+import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import { HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
+import SiteArea from '../../../../types/SiteArea';
 
 export default class SiteAreaSecurity {
 
-
-  // eslint-disable-next-line no-unused-vars
-  static filterSiteAreaDeleteRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.ID = sanitize(request.ID);
-    return filteredRequest;
+  public static filterSiteAreaRequestByID(request: HttpByIDRequest): string {
+    return sanitize(request.ID);
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterSiteAreaRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    filteredRequest.ID = sanitize(request.ID);
-    filteredRequest.WithChargeBoxes = sanitize(request.WithChargeBoxes);
-    filteredRequest.WithSite = sanitize(request.WithSite);
-    return filteredRequest;
+  public static filterSiteAreaRequest(request: Partial<HttpSiteAreaRequest>): HttpSiteAreaRequest {
+    //Filter request
+    return {
+      ID: sanitize(request.ID),
+      WithChargeBoxes: !request.WithChargeBoxes ? false : sanitize(request.WithChargeBoxes),
+      WithSite: !request.WithSite ? false : sanitize(request.WithSite)
+    } as HttpSiteAreaRequest;
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterSiteAreasRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    filteredRequest.Search = sanitize(request.Search);
-    filteredRequest.WithSite = UtilsSecurity.filterBoolean(request.WithSite);
-    filteredRequest.WithChargeBoxes = UtilsSecurity.filterBoolean(request.WithChargeBoxes);
-    filteredRequest.WithAvailableChargers = UtilsSecurity.filterBoolean(request.WithAvailableChargers);
-    filteredRequest.SiteID = sanitize(request.SiteID);
+  public static filterSiteAreasRequest(request: Partial<HttpSiteAreasRequest>): HttpSiteAreasRequest {
+    const filteredRequest: HttpSiteAreasRequest = {
+      Search: sanitize(request.Search),
+      WithSite: !request.WithSite ? false : UtilsSecurity.filterBoolean(request.WithSite),
+      WithChargeBoxes: !request.WithChargeBoxes ? false : UtilsSecurity.filterBoolean(request.WithChargeBoxes),
+      WithAvailableChargers: !request.WithAvailableChargers ? false : UtilsSecurity.filterBoolean(request.WithAvailableChargers),
+      SiteID: sanitize(request.SiteID)
+    } as HttpSiteAreasRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
   }
 
-  static filterSiteAreaUpdateRequest(request, loggedUser) {
-    // Set
-    const filteredRequest = SiteAreaSecurity._filterSiteAreaRequest(request, loggedUser);
-    filteredRequest.id = sanitize(request.id);
-    return filteredRequest;
+  public static filterSiteAreaUpdateRequest(request: Partial<SiteArea>): Partial<SiteArea> {
+    return {
+      id: sanitize(request.id),
+      ...SiteAreaSecurity._filterSiteAreaRequest(request)
+    };
   }
 
-  static filterSiteAreaCreateRequest(request, loggedUser) {
-    return SiteAreaSecurity._filterSiteAreaRequest(request, loggedUser);
+  public static filterSiteAreaCreateRequest(request: Partial<SiteArea>): Partial<SiteArea> {
+    return SiteAreaSecurity._filterSiteAreaRequest(request);
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static _filterSiteAreaRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    filteredRequest.name = sanitize(request.name);
-    filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address);
-    filteredRequest.image = sanitize(request.image);
-    filteredRequest.maximumPower = sanitize(request.maximumPower);
-    filteredRequest.accessControl = UtilsSecurity.filterBoolean(request.accessControl);
-    filteredRequest.siteID = sanitize(request.siteID);
-    filteredRequest.chargeBoxIDs = sanitize(request.chargeBoxIDs);
-    return filteredRequest;
+  public static _filterSiteAreaRequest(request: Partial<SiteArea>): Partial<SiteArea> {
+    return {
+      name: sanitize(request.name),
+      address: UtilsSecurity.filterAddressRequest(request.address),
+      image: sanitize(request.image),
+      maximumPower: sanitize(request.maximumPower),
+      accessControl: UtilsSecurity.filterBoolean(request.accessControl),
+      siteID: sanitize(request.siteID)
+    };
   }
 
   static filterSiteAreaResponse(siteArea, loggedUser) {
@@ -101,7 +97,7 @@ export default class SiteAreaSecurity {
       }
       if (siteArea.site) {
         // Site
-        filteredSiteArea.site = SiteSecurity.filterSiteResponse(siteArea.site, loggedUser);
+        filteredSiteArea.site = SiteSecurity.filterSiteResponse(siteArea.site._model, loggedUser);
       }
       if (siteArea.chargeBoxes) {
         filteredSiteArea.chargeBoxes = ChargingStationSecurity
@@ -134,5 +130,4 @@ export default class SiteAreaSecurity {
     siteAreas.result = filteredSiteAreas;
   }
 }
-
 

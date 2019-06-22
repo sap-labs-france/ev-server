@@ -1,14 +1,13 @@
-import TenantHolder from './TenantHolder';
-import Database from '../utils/Database';
 import AppError from '../exception/AppError';
+import Company from '../types/Company';
 import Constants from '../utils/Constants';
+import Database from '../utils/Database';
 import CompanyStorage from '../storage/mongodb/CompanyStorage';
 import SiteStorage from '../storage/mongodb/SiteStorage';
 import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
+import TenantHolder from './TenantHolder';
 import UserStorage from '../storage/mongodb/UserStorage';
 import User from './User';
-import Company from '../types/Company';
-
 export default class Site extends TenantHolder {
   private _model: any = {};
 
@@ -155,13 +154,15 @@ export default class Site extends TenantHolder {
   }
 
   async getSiteAreas() {
-    const siteAreas = await SiteAreaStorage.getSiteAreas(this.getTenantID(), { 'siteID': this.getID() });
+    const siteAreas = await SiteAreaStorage.getSiteAreas(this.getTenantID(),
+      { siteID: this.getID(), onlyRecordCount: false, withChargeBoxes: true, withAvailableChargers: true, withSite: false, withImage: false},
+      { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 });
     this.setSiteAreas(siteAreas.result);
     return siteAreas.result;
   }
 
   setSiteAreas(siteAreas) {
-    this._model.siteAreas = siteAreas.map((siteArea) => { return siteArea.getModel(); });
+    this._model.siteAreas = siteAreas;
   }
 
   async getUsers() {

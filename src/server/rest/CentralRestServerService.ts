@@ -46,6 +46,7 @@ export default {
   async restServiceSecured(req, res, next) {
     // Parse the action
     let action = /^\/\w*/g.exec(req.url)[0].substring(1);
+
     // Check if User has been updated and require new login
     if (await SessionHashService.isSessionHashUpdated(req, res, next)) {
       return;

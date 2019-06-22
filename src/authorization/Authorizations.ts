@@ -13,6 +13,10 @@ import AuthorizationsDefinition from './AuthorizationsDefinition';
 import ChargingStation from '../entity/ChargingStation';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import SourceMap from 'source-map-support';
+import Company from '../types/Company';
+import SiteArea from '../types/SiteArea';
+import SiteStorage from '../storage/mongodb/SiteStorage';
+import Site from '../entity/Site';
 SourceMap.install();
 
 export default class Authorizations {
@@ -150,8 +154,8 @@ export default class Authorizations {
     return user;
   }
 
-  public static async getConnectorActionAuthorizations(tenantID: string, user: any, chargingStation: any, connector: any, siteArea: any, site: any) {
-    const tenant: Tenant | null = await Tenant.getTenant(tenantID);
+  public static async getConnectorActionAuthorizations(tenantID: string, user: any, chargingStation: any, connector: any, siteArea: SiteArea, site: any) {
+    const tenant: Tenant|null = await Tenant.getTenant(tenantID);
     if (!tenant) {
       throw new BackendError('Authorizations.ts#getConnectorActionAuthorizations', 'Tenant null');
     }
@@ -171,7 +175,7 @@ export default class Authorizations {
     let isSameUserAsTransaction = false;
     if (isOrgCompActive) {
       // Acces Control Enabled?
-      accessControlEnable = siteArea.isAccessControlEnabled();
+      accessControlEnable = siteArea.accessControl;
       // Allow to stop all transactions
       userAllowedToStopAllTransactions = site.isAllowAllUsersToStopTransactionsEnabled();
       // Check if User belongs to the charging station Site
@@ -238,8 +242,8 @@ export default class Authorizations {
     return result;
   }
 
-  public static async isTagIDAuthorizedOnChargingStation(chargingStation: ChargingStation, tagID: string, action: string): Promise<User> {
-    let site, siteArea;
+  public static async isTagIDAuthorizedOnChargingStation(chargingStation: ChargingStation, tagID: any, action: any) {
+    let site, siteArea: SiteArea;
     // Get the Organization component
     const tenant = await TenantStorage.getTenant(chargingStation.getTenantID());
     const isOrgCompActive = await tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
@@ -255,18 +259,21 @@ export default class Authorizations {
           `Charging Station '${chargingStation.getID()}' is not assigned to a Site Area!`, 525,
           "Authorizations", "_checkAndGetUserOnChargingStation");
       }
+
       // Access Control Enabled?
-      if (!siteArea.isAccessControlEnabled()) {
+      if (!siteArea.accessControl) {
         // No control
         return;
       }
       // Site -----------------------------------------------------
-      site = await siteArea.getSite();
+      // TODO consider changing structure of CS->SA->S entirely; It's a little inconvenient that sometimes CS includes SA with includes S, which can also include SA, but not always
+      site = siteArea.site ? siteArea.site : (siteArea.siteID ? await SiteStorage.getSite(chargingStation.getTenantID(), siteArea.siteID) : null);
+
       if (!site) {
         // Reject Site Not Found
         throw new AppError(
           chargingStation.getID(),
-          `Site Area '${siteArea.getName()}' is not assigned to a Site!`, 525,
+          `Site Area '${siteArea.name}' is not assigned to a Site!`, 525,
           "Authorizations", "checkAndGetUserOnChargingStation");
       }
     }
@@ -567,10 +574,10 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREAS, Constants.ACTION_LIST);
   }
 
-  public static canReadSiteArea(loggedUser: any, siteArea: any): boolean {
+  public static canReadSiteArea(loggedUser: any, siteAreaID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA, Constants.ACTION_READ) &&
       Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_READ,
-        {"site": siteArea.siteID, "sites": loggedUser.sites});
+        {"site": siteAreaID, "sites": loggedUser.sites});
   }
 
   public static canCreateSiteArea(loggedUser: any): boolean {
@@ -578,12 +585,12 @@ export default class Authorizations {
       Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_CREATE);
   }
 
-  public static canUpdateSiteArea(loggedUser: any, siteArea: any): boolean {
+  public static canUpdateSiteArea(loggedUser: any): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA, Constants.ACTION_UPDATE) &&
       Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_UPDATE);
   }
 
-  public static canDeleteSiteArea(loggedUser: any, siteArea: any): boolean {
+  public static canDeleteSiteArea(loggedUser: any): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA, Constants.ACTION_DELETE) &&
       Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_DELETE);
   }
@@ -674,7 +681,6 @@ export default class Authorizations {
 
   private static getConfiguration() {
     if (!this.configuration) {
-      // Load it
       this.configuration = Configuration.getAuthorizationConfig();
     }
     return this.configuration;
@@ -685,7 +691,7 @@ export default class Authorizations {
     return AuthorizationsDefinition.getInstance().getScopes(groups);
   }
 
-  private static getAuthGroupsFromUser(userRole: string, sitesAdmin: ReadonlyArray<string>): ReadonlyArray<string> {
+  private static getAuthGroupsFromUser(userRole: string, sitesAdmin: ReadonlyArray<Site>): ReadonlyArray<string> {
     const roles: Array<string> = [];
     switch (userRole) {
       case 'A':

@@ -100,6 +100,7 @@ export default class TenantService extends AbstractService {
       }
       // Get it
       const tenant = await Tenant.getTenant(filteredRequest.ID);
+      
       if (!tenant) {
         throw new AppError(
           Constants.CENTRAL_SERVER,

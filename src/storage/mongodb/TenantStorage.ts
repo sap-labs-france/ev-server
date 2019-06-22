@@ -29,6 +29,7 @@ export default class TenantStorage {
       .aggregate(aggregation)
       .limit(1)
       .toArray();
+
     let tenant = null;
     // Found?
     if (tenantsMDB && tenantsMDB.length > 0) {
@@ -37,6 +38,8 @@ export default class TenantStorage {
     }
     // Debug
     Logging.traceEnd('TenantStorage', 'getTenant', uniqueTimerID, { id });
+
+    
     return tenant;
   }
 

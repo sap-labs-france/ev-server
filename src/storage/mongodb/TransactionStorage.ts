@@ -571,6 +571,7 @@ export default class TransactionStorage {
     const transactionsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
+
     // Debug
     Logging.traceEnd('TransactionStorage', 'getTransaction', uniqueTimerID, { id });
     // Found?

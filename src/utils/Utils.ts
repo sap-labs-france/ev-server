@@ -12,6 +12,7 @@ import path from 'path';
 import Logging from './Logging';
 import Tenant from '../entity/Tenant';
 import SourceMap from 'source-map-support';
+import AppError from '../exception/AppError';
 import _ from 'lodash';
 
 // import User from '../entity/User';
@@ -388,6 +389,16 @@ export default class Utils {
         return 'Super Admin';
       default:
         return 'Unknown';
+    }
+  }
+
+  public static assertObjectExists(object: any, errorMsg: string, module: string, method: string, userToken) {
+    if (!object) {
+      // Object does not exist
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        errorMsg, 550,
+        module, method, userToken);
     }
   }
 
