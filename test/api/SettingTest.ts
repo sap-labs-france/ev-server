@@ -12,7 +12,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('Setting tests', function () {
+describe('Setting tests', function() {
   this.timeout(30000);
 
   describe('Success cases', () => {

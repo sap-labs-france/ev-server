@@ -10,7 +10,6 @@ const OcpiEndpointsFactory = require('./OcpiEndpointsFactory');
 
 export default abstract class Factory {
 
-  // constructor() {
   public static site = SiteFactory;
   public static company = CompanyFactory;
   public static user = UserFactory;
@@ -20,7 +19,4 @@ export default abstract class Factory {
   public static tenant = TenantFactory;
   public static setting = SettingFactory;
   public static ocpiEndpoint = OcpiEndpointsFactory;
-  // }
 }
-
-// module.exports = new Factory();
