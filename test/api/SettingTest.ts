@@ -74,6 +74,5 @@ describe('Setting tests', function() {
   });
 
   describe('Error cases', () => {
-    // it('Should not create a setting area without a setting', async () => { });
   });
 });

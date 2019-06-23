@@ -18,6 +18,7 @@ import buildChargingStationClient from '../client/ocpp/ChargingStationClientFact
 import SourceMap from 'source-map-support';
 import Company from '../types/Company';
 import SiteArea from '../types/SiteArea';
+import SiteStorage from '../storage/mongodb/SiteStorage';
 SourceMap.install();
 
 momentDurationFormatSetup(moment);
@@ -448,6 +449,9 @@ export default class ChargingStation extends TenantHolder {
       // Check Site Area
       if (!siteArea) {
         return null;
+      }
+      if (!siteArea.site && siteArea.siteID) {
+        siteArea.site = await SiteStorage.getSite(this.getTenantID(), siteArea.siteID);
       }
       // Get Site
       this.site = await siteArea.site;

@@ -28,12 +28,15 @@ export default class ContextProvider {
   }
 
   public static get DefaultInstance(): ContextProvider {
-    return this._defaultInstance || (this._defaultInstance = new this());
+    if (!this._defaultInstance) {
+      this._defaultInstance = new ContextProvider();
+    }
+    return this._defaultInstance;
   }
 
   async _init() {
     if (!this.initialized) {
-      // read all tenants
+      // Read all tenants
       this.tenantEntities = (await this.superAdminCentralServerService.tenantApi.readAll({}, {limit: 0, skip:0})).data.result;
     }
     this.initialized = true;
@@ -69,7 +72,7 @@ export default class ContextProvider {
     }
 
     // Not find build context
-    return await this._tenantEntityContext(this._getTenantContextDef(tenantContextName));
+    return this._tenantEntityContext(this._getTenantContextDef(tenantContextName));
   }
 
   async _tenantEntityContext(tenantContextDef) {
