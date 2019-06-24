@@ -142,7 +142,7 @@
     "clean-install-win": "rmdir node_modules /S /Q && del package-lock.json && npm cache clear --force && npm install",
     "clean-install-lin": "rm -rf ./node_modules && rm -f ./package-lock.json && npm cache clear --force && npm install",
     "lint": "eslint --ext .js,.ts src test",
-    "lint-fix": "eslint --ext .js,.ts --fix src",
+    "lint-fix": "eslint --ext .js,.ts --fix src test",
     "jshint": "jshint src test",
     "test": "cross-env TS_NODE_FILES=true mocha -r ts-node/register test/**/*Test.ts --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
     "test:parallel": "mocha-parallel-tests -r ts-node/register test/**/*Test.ts --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
