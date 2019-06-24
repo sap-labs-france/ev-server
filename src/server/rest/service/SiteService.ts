@@ -103,23 +103,23 @@ export default class SiteService {
       // Filter
       const filteredRequest = SiteSecurity.filterUpdateSiteUserRoleRequest(req.body);
       // Check
-      if (!filteredRequest.siteID) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Site ID must be provided`, Constants.HTTP_GENERAL_ERROR,
-          'SiteService', 'handleUpdateSiteUserAdmin', req.user);
-      }
       if (!filteredRequest.userID) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The User ID must be provided`, Constants.HTTP_GENERAL_ERROR,
           'SiteService', 'handleUpdateSiteUserAdmin', req.user);
       }
+      if (!filteredRequest.siteID) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Site ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+          'SiteService', 'handleUpdateSiteUserAdmin', req.user, filteredRequest.userID);
+      }
       if (!('siteAdmin' in filteredRequest)) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The Site Admin value must be provided`, Constants.HTTP_GENERAL_ERROR,
-          'SiteService', 'handleUpdateSiteUserAdmin', req.user);
+          'SiteService', 'handleUpdateSiteUserAdmin', req.user, filteredRequest.userID);
       }
       if (!Authorizations.canUpdateSite(req.user, filteredRequest.siteID)) {
         throw new AppAuthError(
@@ -128,7 +128,7 @@ export default class SiteService {
           filteredRequest.siteID,
           Constants.HTTP_AUTH_ERROR,
           'SiteService', 'handleUpdateSiteUserAdmin',
-          req.user);
+          req.user, filteredRequest.userID);
       }
       if (!Authorizations.canUpdateUser(req.user, filteredRequest.userID)) {
         throw new AppAuthError(
@@ -137,7 +137,7 @@ export default class SiteService {
           filteredRequest.userID,
           Constants.HTTP_AUTH_ERROR,
           'SiteService', 'handleUpdateSiteUserAdmin',
-          req.user, { id: filteredRequest.userID });
+          req.user, filteredRequest.userID);
       }
       // Get the Site
       const site = await Site.getSite(req.user.tenantID, filteredRequest.siteID);
@@ -153,6 +153,13 @@ export default class SiteService {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The User with ID '${filteredRequest.userID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+          'SiteService', 'handleUpdateSiteUserAdmin', req.user, filteredRequest.userID);
+      }
+      // Check user
+      if (!Authorizations.isBasic(user.getRole())) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `Only Users with Basic role can be Site Admin`, Constants.HTTP_GENERAL_ERROR,
           'SiteService', 'handleUpdateSiteUserAdmin', req.user, filteredRequest.userID);
       }
       await Site.updateSiteUserAdmin(req.user.tenantID, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteAdmin);
