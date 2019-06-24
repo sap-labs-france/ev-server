@@ -16,6 +16,7 @@ import SourceMap from 'source-map-support';
 import SiteArea from '../types/SiteArea';
 import SiteStorage from '../storage/mongodb/SiteStorage';
 import Site from '../entity/Site';
+import UserStorage from '../storage/mongodb/UserStorage';
 SourceMap.install();
 
 export default class Authorizations {
@@ -689,7 +690,8 @@ export default class Authorizations {
   }
 
   public static async getUserScopes(user: User): Promise<ReadonlyArray<string>> {
-    const groups = Authorizations.getAuthGroupsFromUser(user.getRole(), await user.getSites());
+    const sitesAdmin = await UserStorage.getSites(user.getTenantID(), { userID: user.getID(), siteAdmin: true });
+    const groups = Authorizations.getAuthGroupsFromUser(user.getRole(), sitesAdmin['result']);
     return AuthorizationsDefinition.getInstance().getScopes(groups);
   }
 

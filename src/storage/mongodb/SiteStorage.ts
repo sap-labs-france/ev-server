@@ -100,9 +100,9 @@ export default class SiteStorage {
     Logging.traceEnd('SiteStorage', 'addUsersToSite', uniqueTimerID, { siteID, userIDs });
   }
 
-  static async getUsers(tenantID, siteID, limit?, skip?, sort?) {
+  static async getUsers(tenantID, params: {siteID: string}, limit?, skip?, sort?) {
     // Debug
-    const uniqueTimerID = Logging.traceStart('SiteStorage', 'getUsersBySite');
+    const uniqueTimerID = Logging.traceStart('SiteStorage', 'getUsers');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
@@ -114,7 +114,7 @@ export default class SiteStorage {
     // Filter
     aggregation.push({
       $match: {
-        siteID: Utils.convertToObjectID(siteID)
+        siteID: Utils.convertToObjectID(params.siteID)
       }
     });
     // Get users
@@ -161,7 +161,7 @@ export default class SiteStorage {
     } else {
       // Default
       aggregation.push({
-        $sort: { status: -1, name: 1, firstName: 1 }
+        $sort: { "users.name": 1, "users.firstName": 1 }
       });
     }
     // Skip
@@ -187,7 +187,7 @@ export default class SiteStorage {
     }
 
     // Debug
-    Logging.traceEnd('SiteStorage', 'getUsersBySite', uniqueTimerID, { siteID });
+    Logging.traceEnd('SiteStorage', 'getUsers', uniqueTimerID, { siteID: params.siteID });
 
     // Ok
     return {

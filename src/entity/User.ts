@@ -116,7 +116,7 @@ export default class User extends TenantHolder {
     this._model.siteAdmin = siteAdmin;
   }
 
-  public siteAdmin(): boolean {
+  public isSiteAdmin(): boolean {
     return this._model.siteAdmin;
   }
 
