@@ -488,10 +488,6 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SETTING, Constants.ACTION_DELETE);
   }
 
-  public static canCreateSetting(loggedUser: any): boolean {
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SETTING, Constants.ACTION_CREATE);
-  }
-
   public static canUpdateSetting(loggedUser: any): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SETTING, Constants.ACTION_UPDATE);
   }

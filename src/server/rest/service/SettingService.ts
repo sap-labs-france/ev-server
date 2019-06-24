@@ -138,48 +138,6 @@ export default class SettingService {
     }
   }
 
-  public static async handleCreateSetting(action, req, res, next) {
-    try {
-      // Check auth
-      if (!Authorizations.canCreateSetting(req.user)) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_CREATE,
-          Constants.ENTITY_SETTING,
-          null,
-          Constants.HTTP_AUTH_ERROR,
-          'SettingService', 'handleCreateSetting',
-          req.user);
-      }
-      // Filter
-      const filteredRequest = SettingSecurity.filterSettingCreateRequest(req.body, req.user);
-      // Check Mandatory fields
-      Setting.checkIfSettingValid(filteredRequest, req);
-      // Process the sensitive data if any
-      Cypher.encryptSensitiveDataInJSON(filteredRequest);
-      // Create setting
-      const setting = new Setting(req.user.tenantID, filteredRequest);
-      // Update timestamp
-      setting.setCreatedBy(new User(req.user.tenantID, { 'id': req.user.id }));
-      setting.setCreatedOn(new Date());
-      // Save Setting
-      const newSetting = await setting.save();
-      // Log
-      Logging.logSecurityInfo({
-        tenantID: req.user.tenantID,
-        user: req.user, module: 'SettingService', method: 'handleCreateSetting',
-        message: `Setting '${newSetting.getIdentifier()}' has been created successfully`,
-        action: action, detailedMessages: newSetting
-      });
-      // Ok
-      res.json(Object.assign({ id: newSetting.getID() }, Constants.REST_RESPONSE_SUCCESS));
-      next();
-    } catch (error) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
-    }
-  }
-
   public static async handleUpdateSetting(action, req, res, next) {
     try {
       // Filter

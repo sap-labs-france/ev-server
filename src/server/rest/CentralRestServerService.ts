@@ -160,11 +160,6 @@ export default {
             // Delegate
             TransactionService.handleRefundTransactions(action, req, res, next);
             break;
-          // Create Setting
-          case "SettingCreate":
-            // Delegate
-            SettingService.handleCreateSetting(action, req, res, next);
-            break;
           // Create OcpiEndpoint
           case "OcpiEndpointCreate":
             // Delegate
