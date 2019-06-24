@@ -23,7 +23,6 @@ export default class ODataCompanies extends AbstractODataEntities {
     }
   }
 
-  // Custom convert to:
   // Move Address object to same level
   static convert(object, req) {
     const company: Company = super.convert(object, req);
