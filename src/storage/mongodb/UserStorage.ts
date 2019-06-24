@@ -283,6 +283,7 @@ export default class UserStorage {
         for (const siteID of siteIDs) {
           // Add
           siteUsers.push({
+            "_id": crypto.createHash('sha256').update(`${siteID}~${userID}`).digest("hex"),
             "userID": Utils.convertToObjectID(userID),
             "siteID": Utils.convertToObjectID(siteID)
           });

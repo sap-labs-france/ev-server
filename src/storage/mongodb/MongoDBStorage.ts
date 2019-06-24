@@ -136,7 +136,7 @@ export default class MongoDBStorage {
     ]);
     // Sites/Users
     await this.handleIndexesInCollection(collections, tenantID, 'siteusers', [
-      { fields: { siteID: 1 } },
+      { fields: { siteID: 1, userID: 1 }, options: { unique: true } },
       { fields: { userID: 1 } }
     ]);
     // Transactions

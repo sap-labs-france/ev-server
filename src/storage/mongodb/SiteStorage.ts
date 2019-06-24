@@ -7,7 +7,7 @@ import { ObjectID } from 'mongodb';
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import Site from '../../entity/Site';
-import SiteArea from '../../types/SiteArea';
+import crypto from 'crypto';
 import User from '../../entity/User';
 import TSGlobal from '../../types/GlobalType';
 
@@ -88,6 +88,7 @@ export default class SiteStorage {
         for (const userID of userIDs) {
           // Add
           siteUsers.push({
+            "_id": crypto.createHash('sha256').update(`${siteID}~${userID}`).digest("hex"),
             "userID": Utils.convertToObjectID(userID),
             "siteID": Utils.convertToObjectID(siteID)
           });
