@@ -263,8 +263,8 @@ export default class Database {
       if (src.image) {
         dest.image = src.image;
       }
-      if ('isSiteAdmin' in src) {
-        dest.isSiteAdmin = src.isSiteAdmin;
+      if ('siteAdmin' in src) {
+        dest.siteAdmin = src.siteAdmin;
       }
     }
     if (src.hasOwnProperty("name")) {

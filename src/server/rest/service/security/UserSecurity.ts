@@ -167,8 +167,8 @@ export default class UserSecurity {
         filteredUser.tagIDs = user.tagIDs;
         filteredUser.plateID = user.plateID;
         filteredUser.role = user.role;
-        if ('isSiteAdmin' in user) {
-          filteredUser.isSiteAdmin = user.isSiteAdmin;
+        if ('siteAdmin' in user) {
+          filteredUser.siteAdmin = user.siteAdmin;
         }
         if (user.address) {
           filteredUser.address = UtilsSecurity.filterAddressRequest(user.address);

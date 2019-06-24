@@ -115,7 +115,7 @@ export default class SiteService {
           `The User ID must be provided`, Constants.HTTP_GENERAL_ERROR,
           'SiteService', 'handleUpdateSiteUserAdmin', req.user);
       }
-      if (!('isSiteAdmin' in filteredRequest)) {
+      if (!('siteAdmin' in filteredRequest)) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The Site Admin value must be provided`, Constants.HTTP_GENERAL_ERROR,
@@ -155,12 +155,12 @@ export default class SiteService {
           `The User with ID '${filteredRequest.userID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'SiteService', 'handleUpdateSiteUserAdmin', req.user, filteredRequest.userID);
       }
-      await Site.updateSiteUserAdmin(req.user.tenantID, filteredRequest.siteID, filteredRequest.userID, filteredRequest.isSiteAdmin);
+      await Site.updateSiteUserAdmin(req.user.tenantID, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteAdmin);
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
         user: req.user, module: 'SiteService', method: 'handleUpdateSiteUserAdmin',
-        message: `The User '${Utils.buildUserFullName(user)}' has been ${filteredRequest.isSiteAdmin ? 'assigned' : 'removed'} the Site Admin role on site '${site.getName()}'`,
+        message: `The User '${Utils.buildUserFullName(user)}' has been ${filteredRequest.siteAdmin ? 'assigned' : 'removed'} the Site Admin role on site '${site.getName()}'`,
         action: action
       });
       // Ok

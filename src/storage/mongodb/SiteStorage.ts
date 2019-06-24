@@ -181,7 +181,7 @@ export default class SiteStorage {
     for (const siteuserMDB of siteusersMDB) {
       if (siteuserMDB.users) {
         const user = new User(tenantID, siteuserMDB.users);
-        user.setIsSiteAdmin(siteuserMDB.isSiteAdmin);
+        user.setSiteAdmin(siteuserMDB.siteAdmin);
         users.push(user);
       }
     }
@@ -197,7 +197,7 @@ export default class SiteStorage {
     };
   }
 
-  static async updateSiteUserAdmin(tenantID, siteID, userID, isSiteAdmin: boolean) {
+  static async updateSiteUserAdmin(tenantID, siteID, userID, siteAdmin: boolean) {
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'updateSiteUserAdmin');
     await Utils.checkTenant(tenantID);
 
@@ -207,9 +207,9 @@ export default class SiteStorage {
         userID: Utils.convertToObjectID(userID)
       },
       {
-        $set: { isSiteAdmin }
+        $set: { siteAdmin }
       });
-    Logging.traceEnd('SiteStorage', 'updateSiupdateSiteUserAdminteUserRole', uniqueTimerID, { siteID, userID, isSiteAdmin });
+    Logging.traceEnd('SiteStorage', 'updateSiupdateSiteUserAdminteUserRole', uniqueTimerID, { siteID, userID, siteAdmin });
   }
 
   static async saveSite(tenantID, siteToSave) {

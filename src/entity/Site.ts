@@ -259,8 +259,8 @@ export default class Site extends TenantHolder {
     return SiteStorage.getUsers(tenantID, id, limit, skip, sort);
   }
 
-  static updateSiteUserAdmin(tenantID, id, userID, isSiteAdmin: boolean) {
-    return SiteStorage.updateSiteUserAdmin(tenantID, id, userID, isSiteAdmin);
+  static updateSiteUserAdmin(tenantID, id, userID, siteAdmin: boolean) {
+    return SiteStorage.updateSiteUserAdmin(tenantID, id, userID, siteAdmin);
   }
 
   static removeUsersFromSite(tenantID, id, userIDs) {
