@@ -44,7 +44,9 @@ export default class ConvergentChargingPricing extends Pricing {
     const dataId = consumptionData.userID + consumptionData.chargeBoxID + consumptionData.connectorId + this.transaction.getStartDate();
 
     let hash = 0, i, chr;
-    if (dataId.length === 0) { return hash; }
+    if (dataId.length === 0) {
+      return hash;
+    }
     for (i = 0; i < dataId.length; i++) {
       chr = dataId.charCodeAt(i);
       hash = ((hash << 5) - hash) + chr;
@@ -457,15 +459,21 @@ export class TransactionSet {
 
   constructor(model) {
     if (Array.isArray(model)) {
-      this.ccTransactions = model.map((cctrModel) => { return new CCTransaction(cctrModel.master); });
+      this.ccTransactions = model.map((cctrModel) => {
+        return new CCTransaction(cctrModel.master);
+      });
     } else {
       this.ccTransactions = [new CCTransaction(model.master)];
     }
   }
 
   getTotalUnroundedAmount() {
-    return this.ccTransactions.map((t) => { return parseFloat(t.details['default.unrounded_amount']); })
-      .reduce((previousValue, currentValue) => { return previousValue + currentValue; }, 0);
+    return this.ccTransactions.map((t) => {
+      return parseFloat(t.details['default.unrounded_amount']);
+    })
+      .reduce((previousValue, currentValue) => {
+        return previousValue + currentValue;
+      }, 0);
   }
 
   getCurrencyCode() {
@@ -489,10 +497,16 @@ export class Notification {
     this.prettyName = model['$attributes'].prettyName;
     this.severityLevel = model['$attributes'].severityLevel;
 
-    model.arg.map((detail) => { return detail['$attributes']; }).forEach((detail) => { return this[detail.name] = detail.value; });
+    model.arg.map((detail) => {
+      return detail['$attributes'];
+    }).forEach((detail) => {
+      return this[detail.name] = detail.value;
+    });
     if (this.properties) {
       const props: any = {};
-      this.properties.split('\n').filter((s) => { return s.length > 0; })
+      this.properties.split('\n').filter((s) => {
+        return s.length > 0;
+      })
         .forEach((propString) => {
           const array = propString.split(' = ');
           props[array[0]] = array[1];
@@ -520,7 +534,9 @@ export class CCTransaction {
       this[key] = model['$attributes'][key];
     }
     this.details = {};
-    model.detail.map((detail) => { return detail['$attributes']; }).forEach(
+    model.detail.map((detail) => {
+      return detail['$attributes'];
+    }).forEach(
       (detail) => {
         let value;
         switch (detail.type) {
@@ -538,7 +554,9 @@ export class CCTransaction {
       });
     if (model.notification) {
       if (Array.isArray(model.notification)) {
-        this.notifications = model.notification.map((n) => { return new Notification(n); });
+        this.notifications = model.notification.map((n) => {
+          return new Notification(n);
+        });
       } else {
         this.notifications = [new Notification(model.notification)];
       }
@@ -594,5 +612,4 @@ export class CCTransaction {
     return this.details;
   }
 }
-
 

@@ -18,8 +18,7 @@ export default abstract class AbstractSoapClient {
     readonly port: string,
     readonly user: string,
     readonly password: string,
-    readonly clientSSLSecurity: any)
-  {
+    readonly clientSSLSecurity: any) {
     this.service = service;
   }
 

@@ -56,7 +56,7 @@ export default class CreateConsumptionsTask extends MigrationTask {
       }
     });
     aggregation.push({
-      $unwind: {"path": "$chargeBox", "preserveNullAndEmptyArrays": true}
+      $unwind: { "path": "$chargeBox", "preserveNullAndEmptyArrays": true }
     });
     // Add Site Area
     aggregation.push({
@@ -68,7 +68,7 @@ export default class CreateConsumptionsTask extends MigrationTask {
       }
     });
     aggregation.push({
-      $unwind: {"path": "$siteArea", "preserveNullAndEmptyArrays": true}
+      $unwind: { "path": "$siteArea", "preserveNullAndEmptyArrays": true }
     });
     // Add Consumption
     aggregation.push({
@@ -97,19 +97,21 @@ export default class CreateConsumptionsTask extends MigrationTask {
     this.totalCount = transactions.length;
     // Create promises
     const promises = transactions.map(
-      (transaction) => { return limit(async () => {
-        try {
+      (transaction) => {
+        return limit(async () => {
+          try {
           // Compute
-          await this.computeConsumptions(transaction, pricing);
-        } catch (error) {
-          Logging.logError({
-            tenantID: Constants.DEFAULT_TENANT,
-            source: "CreateConsumptionsTask", action: "Migration",
-            module: "CreateConsumptionsTask", method: "migrate",
-            message: `Tenant ${tenant.getName()} (${tenant.getID()}): Transaction ID '${transaction.getID()}' failed to migrate`
-          });
-        }
-      }); }
+            await this.computeConsumptions(transaction, pricing);
+          } catch (error) {
+            Logging.logError({
+              tenantID: Constants.DEFAULT_TENANT,
+              source: "CreateConsumptionsTask", action: "Migration",
+              module: "CreateConsumptionsTask", method: "migrate",
+              message: `Tenant ${tenant.getName()} (${tenant.getID()}): Transaction ID '${transaction.getID()}' failed to migrate`
+            });
+          }
+        });
+      }
     );
     // Execute them all
     // eslint-disable-next-line no-undef
@@ -122,7 +124,7 @@ export default class CreateConsumptionsTask extends MigrationTask {
         tenantID: Constants.DEFAULT_TENANT,
         source: "CreateConsumptionsTask", action: "Migration",
         module: "CreateConsumptionsTask", method: "migrate",
-        message: `Tenant ${tenant.getName()} (${tenant.getID()}): ${transactions.length} transactions migrated after ${moment.duration(endTime.diff(this.startTime)).format("mm:ss.SS", {trim: false})}`
+        message: `Tenant ${tenant.getName()} (${tenant.getID()}): ${transactions.length} transactions migrated after ${moment.duration(endTime.diff(this.startTime)).format("mm:ss.SS", { trim: false })}`
       });
     }
   }
@@ -304,5 +306,4 @@ export default class CreateConsumptionsTask extends MigrationTask {
     return "CreateConsumptionsTask";
   }
 }
-
 

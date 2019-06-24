@@ -202,7 +202,7 @@ export default class VehicleManufacturerStorage {
     }
     // Count Records
     const vehiclemanufacturersCountMDB = await global.database.getCollection<any>(tenantID, 'vehiclemanufacturers')
-      .aggregate([...aggregation, { $count: "count"}], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {

@@ -9,6 +9,7 @@ export default class Connection extends TenantHolder {
 
     Database.updateConnection(connection, this.model);
   }
+
   getModel() {
     return this.model;
   }
@@ -32,6 +33,7 @@ export default class Connection extends TenantHolder {
   getCreatedAt() {
     return this.model.createdAt;
   }
+
   getUpdatedAt() {
     return this.model.updatedAt;
   }
@@ -42,5 +44,4 @@ export default class Connection extends TenantHolder {
     this.model.validUntil = validUntil;
   }
 }
-
 

@@ -373,7 +373,9 @@ export default class ChargingStationService {
           req.user);
       }
       // Check no active transaction
-      const foundIndex = chargingStation.getConnectors().findIndex((connector) => { return (connector ? connector.activeTransactionID > 0 : false); });
+      const foundIndex = chargingStation.getConnectors().findIndex((connector) => {
+        return (connector ? connector.activeTransactionID > 0 : false);
+      });
       if (foundIndex >= 0) {
         // Can' t be deleted
         throw new AppError(
@@ -474,7 +476,9 @@ export default class ChargingStationService {
         const tenant: Tenant = await chargingStations.result[0].getTenant();
         const organizationIsActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
         // Convert to JSon
-        chargingStations.result = chargingStations.result.map((chargingStation) => { return chargingStation.getModel(); });
+        chargingStations.result = chargingStations.result.map((chargingStation) => {
+          return chargingStation.getModel();
+        });
         // Filter
         ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user, organizationIsActive);
       }
@@ -521,7 +525,9 @@ export default class ChargingStationService {
         const tenant: Tenant = await chargingStations.result[0].getTenant();
         const organizationIsActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
         // Set
-        chargingStations.result = chargingStations.result.map((chargingStation) => { return chargingStation.getModel(); });
+        chargingStations.result = chargingStations.result.map((chargingStation) => {
+          return chargingStation.getModel();
+        });
         // Filter
         ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user, organizationIsActive);
       }
@@ -582,7 +588,9 @@ export default class ChargingStationService {
         const tenant: Tenant = await chargingStations.result[0].getTenant();
         const organizationIsActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
         // Set
-        chargingStations.result = chargingStations.result.map((chargingStation) => { return chargingStation.getModel(); });
+        chargingStations.result = chargingStations.result.map((chargingStation) => {
+          return chargingStation.getModel();
+        });
         // Filter
         ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user, organizationIsActive);
       }
@@ -908,5 +916,4 @@ export default class ChargingStationService {
     return csv;
   }
 }
-
 

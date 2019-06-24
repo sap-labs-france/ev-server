@@ -84,7 +84,9 @@ export default class TransactionService {
           `The user with ID '${req.user.id}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'TransactionService', 'handleRefundTransactions', req.user);
       }
-      if (!transactionsToRefund.every((tr) => { return tr.getUserID() === req.user.id; })) {
+      if (!transactionsToRefund.every((tr) => {
+        return tr.getUserID() === req.user.id;
+      })) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The user with ID '${req.user.id}' cannot refund another user's transaction`,
@@ -309,7 +311,9 @@ export default class TransactionService {
       const endDateTime = filteredRequest.EndDateTime ? filteredRequest.EndDateTime : Constants.MAX_DATE;
       // Filter?
       if (consumptions && (filteredRequest.StartDateTime || filteredRequest.EndDateTime)) {
-        consumptions = consumptions.filter((consumption) => { return moment(consumption.getEndedAt()).isBetween(startDateTime, endDateTime, null, '[]'); });
+        consumptions = consumptions.filter((consumption) => {
+          return moment(consumption.getEndedAt()).isBetween(startDateTime, endDateTime, null, '[]');
+        });
       }
       // Return the result
       res.json(TransactionSecurity.filterConsumptionsFromTransactionResponse(transaction, consumptions, req.user));
@@ -476,7 +480,7 @@ export default class TransactionService {
       }
       // Get Transactions
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-        {...filter, 'withChargeBoxes': true, 'onlyRecordCount': filteredRequest.OnlyRecordCount},
+        { ...filter, 'withChargeBoxes': true, 'onlyRecordCount': filteredRequest.OnlyRecordCount },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
       TransactionSecurity.filterTransactionsResponse(transactions, req.user);
@@ -587,8 +591,8 @@ export default class TransactionService {
         filter.siteAreaID = filteredRequest.SiteAreaID;
       }
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-        {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID,
-          'onlyRecordCount': filteredRequest.OnlyRecordCount},
+        { ...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID,
+          'onlyRecordCount': filteredRequest.OnlyRecordCount },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
       TransactionSecurity.filterTransactionsResponse(transactions, req.user);
@@ -659,8 +663,8 @@ export default class TransactionService {
         filter.siteAreaID = filteredRequest.SiteAreaID;
       }
       const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
-        {...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID,
-          'onlyRecordCount': filteredRequest.OnlyRecordCount},
+        { ...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID,
+          'onlyRecordCount': filteredRequest.OnlyRecordCount },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
       TransactionSecurity.filterTransactionsResponse(transactions, req.user);

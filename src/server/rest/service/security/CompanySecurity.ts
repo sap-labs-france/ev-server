@@ -48,7 +48,7 @@ export default class CompanySecurity {
     };
   }
 
-  public static filterCompanyResponse(company: Company, loggedUser: any) { //TODO typings
+  public static filterCompanyResponse(company: Company, loggedUser: any) { // TODO: typings
     let filteredCompany;
 
     if (!company) {

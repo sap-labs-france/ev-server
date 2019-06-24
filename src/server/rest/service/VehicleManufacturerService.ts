@@ -49,7 +49,7 @@ export default class VehicleManufacturerService {
         tenantID: req.user.tenantID,
         user: req.user, module: 'VehicleManufacturerService', method: 'handleDeleteVehicleManufacturer',
         message: `Vehicle Manufacturer '${vehicleManufacturer.getName()}' has been deleted successfully`,
-        action: action, detailedMessages: vehicleManufacturer});
+        action: action, detailedMessages: vehicleManufacturer });
       // Ok
       res.json(Constants.REST_RESPONSE_SUCCESS);
       next();
@@ -113,7 +113,9 @@ export default class VehicleManufacturerService {
           'vehicleType': filteredRequest.VehicleType, 'onlyRecordCount': filteredRequest.OnlyRecordCount },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
-      vehicleManufacturers.result = vehicleManufacturers.result.map((vehicleManufacturer) => { return vehicleManufacturer.getModel(); });
+      vehicleManufacturers.result = vehicleManufacturers.result.map((vehicleManufacturer) => {
+        return vehicleManufacturer.getModel();
+      });
       // Filter
       VehicleManufacturerSecurity.filterVehicleManufacturersResponse(vehicleManufacturers, req.user);
       // Return
@@ -145,7 +147,7 @@ export default class VehicleManufacturerService {
       // Create vehicleManufacturer
       const vehicleManufacturer = new VehicleManufacturer(req.user.tenantID, filteredRequest);
       // Update timestamp
-      vehicleManufacturer.setCreatedBy(new User(req.user.tenantID, {'id': req.user.id}));
+      vehicleManufacturer.setCreatedBy(new User(req.user.tenantID, { 'id': req.user.id }));
       vehicleManufacturer.setCreatedOn(new Date());
       // Save
       const newVehicleManufacturer = await vehicleManufacturer.save();
@@ -158,7 +160,7 @@ export default class VehicleManufacturerService {
         tenantID: req.user.tenantID,
         user: req.user, module: 'VehicleManufacturerService', method: 'handleCreateVehicleManufacturer',
         message: `Vehicle Manufacturer '${newVehicleManufacturer.getName()}' has been created successfully`,
-        action: action, detailedMessages: newVehicleManufacturer});
+        action: action, detailedMessages: newVehicleManufacturer });
       // Ok
       res.json(Object.assign({ id: newVehicleManufacturer.getID() }, Constants.REST_RESPONSE_SUCCESS));
       next();
@@ -196,7 +198,7 @@ export default class VehicleManufacturerService {
       // Update
       Database.updateVehicleManufacturer(filteredRequest, vehicleManufacturer.getModel());
       // Update timestamp
-      vehicleManufacturer.setLastChangedBy(new User(req.user.tenantID, {'id': req.user.id}));
+      vehicleManufacturer.setLastChangedBy(new User(req.user.tenantID, { 'id': req.user.id }));
       vehicleManufacturer.setLastChangedOn(new Date());
       // Update VehicleManufacturer
       const updatedVehicleManufacturer = await vehicleManufacturer.save();
@@ -207,7 +209,7 @@ export default class VehicleManufacturerService {
         tenantID: req.user.tenantID,
         user: req.user, module: 'VehicleManufacturerService', method: 'handleUpdateVehicleManufacturer',
         message: `Vehicle Manufacturer '${updatedVehicleManufacturer.getName()}' has been updated successfully`,
-        action: action, detailedMessages: updatedVehicleManufacturer});
+        action: action, detailedMessages: updatedVehicleManufacturer });
       // Ok
       res.json(Constants.REST_RESPONSE_SUCCESS);
       next();

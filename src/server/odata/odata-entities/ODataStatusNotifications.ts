@@ -43,4 +43,3 @@ export default class ODataStatusNotifications extends AbstractODataEntities {
   }
 }
 
-

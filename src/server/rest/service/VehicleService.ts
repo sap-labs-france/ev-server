@@ -48,7 +48,7 @@ export default class VehicleService {
         tenantID: req.user.tenantID,
         user: req.user, module: 'VehicleService', method: 'handleDeleteVehicle',
         message: `Vehicle '${vehicle.getName()}' has been deleted successfully`,
-        action: action, detailedMessages: vehicle});
+        action: action, detailedMessages: vehicle });
       // Ok
       res.json(Constants.REST_RESPONSE_SUCCESS);
       next();
@@ -113,7 +113,9 @@ export default class VehicleService {
           'onlyRecordCount': filteredRequest.OnlyRecordCount },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
-      vehicles.result = vehicles.result.map((vehicle) => { return vehicle.getModel(); });
+      vehicles.result = vehicles.result.map((vehicle) => {
+        return vehicle.getModel();
+      });
       // Filter
       VehicleSecurity.filterVehiclesResponse(vehicles, req.user);
       // Return
@@ -211,7 +213,7 @@ export default class VehicleService {
       // Create vehicle
       const vehicle = new Vehicle(req.user.tenantID, filteredRequest);
       // Update timestamp
-      vehicle.setCreatedBy(new User(req.user.tenantID, {'id': req.user.id}));
+      vehicle.setCreatedBy(new User(req.user.tenantID, { 'id': req.user.id }));
       vehicle.setCreatedOn(new Date());
       // Save
       const newVehicle = await vehicle.save();
@@ -228,7 +230,7 @@ export default class VehicleService {
         tenantID: req.user.tenantID,
         user: req.user, module: 'VehicleService', method: 'handleCreateVehicle',
         message: `Vehicle '${newVehicle.getName()}' has been created successfully`,
-        action: action, detailedMessages: newVehicle});
+        action: action, detailedMessages: newVehicle });
       // Ok
       res.json(Object.assign({ id: newVehicle.getID() }, Constants.REST_RESPONSE_SUCCESS));
       next();
@@ -266,7 +268,7 @@ export default class VehicleService {
       // Update
       Database.updateVehicle(filteredRequest, vehicle.getModel());
       // Update timestamp
-      vehicle.setLastChangedBy(new User(req.user.tenantID, {'id': req.user.id}));
+      vehicle.setLastChangedBy(new User(req.user.tenantID, { 'id': req.user.id }));
       vehicle.setLastChangedOn(new Date());
       // Update Vehicle
       const updatedVehicle = await vehicle.save();
@@ -279,7 +281,7 @@ export default class VehicleService {
         tenantID: req.user.tenantID,
         user: req.user, module: 'VehicleService', method: 'handleUpdateVehicle',
         message: `Vehicle '${updatedVehicle.getName()}' has been updated successfully`,
-        action: action, detailedMessages: updatedVehicle});
+        action: action, detailedMessages: updatedVehicle });
       // Ok
       res.json(Constants.REST_RESPONSE_SUCCESS);
       next();

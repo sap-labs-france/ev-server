@@ -67,7 +67,9 @@ export default class NotificationHandler {
     // Found
     if (adminUsers.count > 0) {
       // Convert to JSon
-      return adminUsers.result.map((adminUser) => { return adminUser.getModel(); });
+      return adminUsers.result.map((adminUser) => {
+        return adminUser.getModel();
+      });
     }
   }
 

@@ -155,7 +155,7 @@ export default class Site extends TenantHolder {
 
   async getSiteAreas() {
     const siteAreas = await SiteAreaStorage.getSiteAreas(this.getTenantID(),
-      { siteID: this.getID(), onlyRecordCount: false, withChargeBoxes: true, withAvailableChargers: true, withSite: false, withImage: false},
+      { siteID: this.getID(), onlyRecordCount: false, withChargeBoxes: true, withAvailableChargers: true, withSite: false, withImage: false },
       { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 });
     this.setSiteAreas(siteAreas.result);
     return siteAreas.result;
@@ -167,7 +167,9 @@ export default class Site extends TenantHolder {
 
   async getUsers() {
     if (this._model.users) {
-      return this._model.users.map((user) => { return new User(this.getTenantID(), user); });
+      return this._model.users.map((user) => {
+        return new User(this.getTenantID(), user);
+      });
     }
     const users = await UserStorage.getUsers(this.getTenantID(), { 'siteID': this.getID() });
     this.setUsers(users.result);
@@ -195,7 +197,9 @@ export default class Site extends TenantHolder {
   }
 
   setUsers(users) {
-    this._model.users = users.map((user) => { return user.getModel(); });
+    this._model.users = users.map((user) => {
+      return user.getModel();
+    });
   }
 
   save() {

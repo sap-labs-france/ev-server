@@ -36,8 +36,7 @@ export default class StatisticsStorage {
       match.siteID = Utils.convertToObjectID(filter.siteID);
     }
     // Filter on Site Area?
-    if (filter.siteAreaID)
-    {
+    if (filter.siteAreaID) {
       match.siteAreaID = Utils.convertToObjectID(filter.siteAreaID);
     }
     // Filter on Charge Box?
@@ -61,7 +60,7 @@ export default class StatisticsStorage {
       case Constants.STATS_GROUP_BY_CONSUMPTION:
         aggregation.push({
           $group: {
-//            _id: { chargeBox: "$chargeBoxID", year: { $year: "$timestamp" }, month: { $month: "$timestamp" } },
+            // _id: { chargeBox: "$chargeBoxID", year: { $year: "$timestamp" }, month: { $month: "$timestamp" } },
             _id: { chargeBox: "$chargeBoxID", month: { $month: "$timestamp" } },
             total: { $sum: { $divide: ["$stop.totalConsumption", 1000] } }
           }
@@ -72,7 +71,7 @@ export default class StatisticsStorage {
       case Constants.STATS_GROUP_BY_USAGE:
         aggregation.push({
           $group: {
-//            _id: { chargeBox: "$chargeBoxID", year: { $year: "$timestamp" }, month: { $month: "$timestamp" } },
+            // _id: { chargeBox: "$chargeBoxID", year: { $year: "$timestamp" }, month: { $month: "$timestamp" } },
             _id: { chargeBox: "$chargeBoxID", month: { $month: "$timestamp" } },
             total: { $sum: { $divide: [{ $subtract: ["$stop.timestamp", "$timestamp"] }, 60 * 60 * 1000] } }
           }
@@ -145,8 +144,7 @@ export default class StatisticsStorage {
       match.siteID = Utils.convertToObjectID(filter.siteID);
     }
     // Filter on Site Area?
-    if (filter.siteAreaID)
-    {
+    if (filter.siteAreaID) {
       match.siteAreaID = Utils.convertToObjectID(filter.siteAreaID);
     }
     // Filter on Charge Box?
@@ -170,7 +168,7 @@ export default class StatisticsStorage {
       case Constants.STATS_GROUP_BY_CONSUMPTION:
         aggregation.push({
           $group: {
-//            _id: { userID: "$userID", year: { $year: "$timestamp" }, month: { $month: "$timestamp" } },
+            // _id: { userID: "$userID", year: { $year: "$timestamp" }, month: { $month: "$timestamp" } },
             _id: { userID: "$userID", month: { $month: "$timestamp" } },
             total: { $sum: { $divide: ["$stop.totalConsumption", 1000] } }
           }
@@ -181,7 +179,7 @@ export default class StatisticsStorage {
       case Constants.STATS_GROUP_BY_USAGE:
         aggregation.push({
           $group: {
-//            _id: { userID: "$userID", year: { $year: "$timestamp" }, month: { $month: "$timestamp" } },
+            // _id: { userID: "$userID", year: { $year: "$timestamp" }, month: { $month: "$timestamp" } },
             _id: { userID: "$userID", month: { $month: "$timestamp" } },
             total: { $sum: { $divide: [{ $subtract: ["$stop.timestamp", "$timestamp"] }, 60 * 60 * 1000] } }
           }

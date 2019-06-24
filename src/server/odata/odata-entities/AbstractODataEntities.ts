@@ -11,13 +11,13 @@ export default class AbstractODataEntities {
     return params;
   }
 
-  static convert(object,req) {
+  static convert(object, req) {
     // This implementation is necessary as the OData-imple-server do not support multiple key
     // We have to build a unique key based on tenant and object real key
     const uniqueID = this.getObjectKey(object);
 
     // Set tenant
-    return _.merge({ uniqueID: `${req.tenant}-${uniqueID}`, tenant: req.tenant}, object);
+    return _.merge({ uniqueID: `${req.tenant}-${uniqueID}`, tenant: req.tenant }, object);
   }
 
   // eslint-disable-next-line no-unused-vars
@@ -29,7 +29,7 @@ export default class AbstractODataEntities {
     return (req.timezone && timestampUTC) ? moment(timestampUTC).tz(req.timezone).format() : timestampUTC;
   }
 
-  static buildDateObject(timestamp,req) {
+  static buildDateObject(timestamp, req) {
     if (!timestamp) {
       return;
     }
@@ -62,15 +62,20 @@ export default class AbstractODataEntities {
       result = response.data.result;
       if (fields.length !== 0) {
         if (Array.isArray(result)) {
-          result = result.map((object) => { return _.pick(this.convert(object,req),fields); });
+          result = result.map((object) => {
+            return _.pick(this.convert(object, req), fields);
+          });
         } else {
-          result = [_.pick(this.convert(result,req), fields)];
+          result = [_.pick(this.convert(result, req), fields)];
         }
       } else {
+        // eslint-disable-next-line no-lonely-if
         if (Array.isArray(result)) {
-          result = result.map((object) => { return this.convert(object,req); });
+          result = result.map((object) => {
+            return this.convert(object, req);
+          });
         } else {
-          result = this.convert(result,req);
+          result = this.convert(result, req);
         }
       }
     }

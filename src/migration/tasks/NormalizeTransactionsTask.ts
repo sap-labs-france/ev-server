@@ -44,7 +44,7 @@ export default class NormalizeTransactionsTask extends MigrationTask {
       }
     });
     aggregation.push({
-      $unwind: {"path": "$chargeBox", "preserveNullAndEmptyArrays": true}
+      $unwind: { "path": "$chargeBox", "preserveNullAndEmptyArrays": true }
     });
     // Add Site Area
     aggregation.push({
@@ -56,7 +56,7 @@ export default class NormalizeTransactionsTask extends MigrationTask {
       }
     });
     aggregation.push({
-      $unwind: {"path": "$siteArea", "preserveNullAndEmptyArrays": true}
+      $unwind: { "path": "$siteArea", "preserveNullAndEmptyArrays": true }
     });
     // Get the price
     const pricing = await PricingStorage.getPricing(tenant.getID());

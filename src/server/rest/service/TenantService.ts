@@ -149,7 +149,9 @@ export default class TenantService extends AbstractService {
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
-      tenants.result = tenants.result.map((tenant) => { return tenant.getModel(); });
+      tenants.result = tenants.result.map((tenant) => {
+        return tenant.getModel();
+      });
       // Filter
       TenantSecurity.filterTenantsResponse(tenants, req.user);
       // Return
@@ -258,7 +260,7 @@ export default class TenantService extends AbstractService {
         detailedMessages: newTenant
       });
       // Ok
-      res.status(HttpStatusCodes.OK).json(Object.assign({id: newTenant.getID()}, Constants.REST_RESPONSE_SUCCESS));
+      res.status(HttpStatusCodes.OK).json(Object.assign({ id: newTenant.getID() }, Constants.REST_RESPONSE_SUCCESS));
       next();
     } catch (error) {
       AbstractService._handleError(error, req, next, action, MODULE_NAME, 'handleCreateTenant');

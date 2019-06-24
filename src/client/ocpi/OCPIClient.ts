@@ -417,7 +417,9 @@ export default class OCPIClient {
 
     // Loop through notifications
     if (statusNotificationsResult.count > 0) {
-      return statusNotificationsResult.result.map((statusNotification) => { return statusNotification.chargeBoxID; });
+      return statusNotificationsResult.result.map((statusNotification) => {
+        return statusNotification.chargeBoxID;
+      });
     }
     return [];
 

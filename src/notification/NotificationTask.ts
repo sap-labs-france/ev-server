@@ -6,7 +6,6 @@ export default abstract class NotificationTask {
   // I cannot create a robust class for it without knowing more about the code
   // Therefore, type: any for now. Please change
 
-
   abstract sendNewRegisteredUser(data: any, locale: string, tenantID: string): NotificationResult;
   abstract sendRequestPassword(data: any, locale: string, tenantID: string): NotificationResult;
   abstract sendNewPassword(data: any, locale: string, tenantID: string): NotificationResult;

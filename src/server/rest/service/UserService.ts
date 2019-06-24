@@ -307,7 +307,7 @@ export default class UserService {
         user.setPassword(newPasswordHashed);
       }
       // Update timestamp
-      user.setLastChangedBy(new User(req.user.tenantID, {'id': req.user.id}));
+      user.setLastChangedBy(new User(req.user.tenantID, { 'id': req.user.id }));
       user.setLastChangedOn(new Date());
       // Update User
       const updatedUser = await user.save();
@@ -581,7 +581,7 @@ export default class UserService {
         user.setPassword(newPasswordHashed);
       }
       // Set timestamp
-      user.setCreatedBy(new User(req.user.tenantID, {'id': req.user.id}));
+      user.setCreatedBy(new User(req.user.tenantID, { 'id': req.user.id }));
       user.setCreatedOn(new Date());
       // Set default
       if (!filteredRequest.hasOwnProperty('notificationsActive')) {
@@ -603,7 +603,7 @@ export default class UserService {
         action: action
       });
       // Ok
-      res.json(Object.assign({id: newUser.getID()}, Constants.REST_RESPONSE_SUCCESS));
+      res.json(Object.assign({ id: newUser.getID() }, Constants.REST_RESPONSE_SUCCESS));
       next();
     } catch (error) {
       // Log
@@ -652,7 +652,7 @@ export default class UserService {
       setting = setting.getContent().convergentCharging;
 
       if (!setting) {
-        Logging.logException({"message": "Convergent Charging setting is missing"}, "UserInvoice", Constants.CENTRAL_SERVER, "UserService", "handleGetUserInvoice", req.user.tenantID, req.user);
+        Logging.logException({ "message": "Convergent Charging setting is missing" }, "UserInvoice", Constants.CENTRAL_SERVER, "UserService", "handleGetUserInvoice", req.user.tenantID, req.user);
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `An issue occurred while creating the invoice`, Constants.HTTP_AUTH_ERROR,

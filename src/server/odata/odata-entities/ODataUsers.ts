@@ -22,4 +22,3 @@ export default class ODataUsers extends AbstractODataEntities {
   }
 }
 
-
