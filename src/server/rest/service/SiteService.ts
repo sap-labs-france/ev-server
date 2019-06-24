@@ -11,6 +11,7 @@ import UtilsService from './UtilsService';
 import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import UserSecurity from "./security/UserSecurity";
+import Utils from '../../../utils/Utils';
 
 export default class SiteService {
   static async handleAddUsersToSite(action, req, res, next) {
@@ -93,64 +94,74 @@ export default class SiteService {
     }
   }
 
-  static async handleUpdateSiteUserRole(action, req, res, next) {
+  static async handleUpdateSiteUserAdmin(action, req, res, next) {
     try {
       // Check if component is active
       await UtilsService.assertComponentIsActive(
         req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
-        Constants.ACTION_UPDATE, Constants.ENTITY_SITE, 'SiteService', 'handleUpdateSiteUserRole');
-
+        Constants.ACTION_UPDATE, Constants.ENTITY_SITE, 'SiteService', 'handleUpdateSiteUserAdmin');
+      // Filter
       const filteredRequest = SiteSecurity.filterUpdateSiteUserRoleRequest(req.body);
+      // Check
       if (!filteredRequest.siteID) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The Site ID must be provided`, Constants.HTTP_GENERAL_ERROR,
-          'SiteService', 'handleUpdateSiteUserRole', req.user);
+          'SiteService', 'handleUpdateSiteUserAdmin', req.user);
       }
       if (!filteredRequest.userID) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The User ID must be provided`, Constants.HTTP_GENERAL_ERROR,
-          'SiteService', 'handleUpdateSiteUserRole', req.user);
+          'SiteService', 'handleUpdateSiteUserAdmin', req.user);
       }
-      if (!filteredRequest.role) {
+      if (!('isSiteAdmin' in filteredRequest)) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The role must be provided`, Constants.HTTP_GENERAL_ERROR,
-          'SiteService', 'handleUpdateSiteUserRole', req.user);
+          `The Site Admin value must be provided`, Constants.HTTP_GENERAL_ERROR,
+          'SiteService', 'handleUpdateSiteUserAdmin', req.user);
       }
-      if (filteredRequest.role !== Constants.ROLE_ADMIN && filteredRequest.role !== Constants.ROLE_BASIC) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The role ${filteredRequest.role} is not supported`, Constants.HTTP_GENERAL_ERROR,
-          'SiteService', 'handleUpdateSiteUserRole', req.user);
-      }
-
       if (!Authorizations.canUpdateSite(req.user, filteredRequest.siteID)) {
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
           Constants.ENTITY_SITE,
           filteredRequest.siteID,
           Constants.HTTP_AUTH_ERROR,
-          'SiteService', 'handleUpdateSiteUserRole',
+          'SiteService', 'handleUpdateSiteUserAdmin',
           req.user);
       }
-
+      if (!Authorizations.canUpdateUser(req.user, filteredRequest.userID)) {
+        throw new AppAuthError(
+          Constants.ACTION_UPDATE,
+          Constants.ENTITY_USER,
+          filteredRequest.userID,
+          Constants.HTTP_AUTH_ERROR,
+          'SiteService', 'handleUpdateSiteUserAdmin',
+          req.user, { id: filteredRequest.userID });
+      }
       // Get the Site
       const site = await Site.getSite(req.user.tenantID, filteredRequest.siteID);
       if (!site) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The Site with ID '${filteredRequest.siteID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-          'SiteService', 'handleUpdateSiteUserRole', req.user);
+          'SiteService', 'handleUpdateSiteUserAdmin', req.user, filteredRequest.userID);
       }
-      await Site.updateSiteUserRole(req.user.tenantID, filteredRequest.siteID, filteredRequest.userID, filteredRequest.role);
+      // Get the User
+      const user = await User.getUser(req.user.tenantID, filteredRequest.userID);
+      if (!user) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The User with ID '${filteredRequest.userID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+          'SiteService', 'handleUpdateSiteUserAdmin', req.user, filteredRequest.userID);
+      }
+      await Site.updateSiteUserAdmin(req.user.tenantID, filteredRequest.siteID, filteredRequest.userID, filteredRequest.isSiteAdmin);
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
-        user: req.user, module: 'SiteService', method: 'handleUpdateSiteUserRole',
-        message: `The site role of user ${filteredRequest.userID} has been updated successfully
-          to ${filteredRequest.role}`, action: action
+        user: req.user, module: 'SiteService', method: 'handleUpdateSiteUserAdmin',
+        message: `The User '${Utils.buildUserFullName(user)}' has been ${filteredRequest.isSiteAdmin ? 'assigned' : 'removed'} the Site Admin role on site '${site.getName()}'`,
+        action: action
       });
       // Ok
       res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -240,7 +251,7 @@ export default class SiteService {
     }
   }
 
-  static async handleGetUsersFromSite(action, req, res, next) {
+  static async handleGetUsers(action, req, res, next) {
     try {
       // Check if component is active
       await UtilsService.assertComponentIsActive(
@@ -275,7 +286,7 @@ export default class SiteService {
           req.user);
       }
 
-      const users = await Site.getUsersFromSite(req.user.tenantID, filteredRequest.siteID,
+      const users = await Site.getUsers(req.user.tenantID, filteredRequest.siteID,
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 
       users.result = users.result.map((user) => {

@@ -100,7 +100,7 @@ export default class SiteStorage {
     Logging.traceEnd('SiteStorage', 'addUsersToSite', uniqueTimerID, { siteID, userIDs });
   }
 
-  static async getUsersBySite(tenantID, siteID, limit?, skip?, sort?) {
+  static async getUsers(tenantID, siteID, limit?, skip?, sort?) {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getUsersBySite');
     // Check Tenant
@@ -109,45 +109,47 @@ export default class SiteStorage {
     limit = Utils.checkRecordLimit(limit);
     // Check Skip
     skip = Utils.checkRecordSkip(skip);
-    const filters: any = {
-      "$and": [
-        {
-          "$or": [
-            { "deleted": { $exists: false } },
-            { "deleted": false },
-            { "deleted": null }
-          ]
-        }
-      ]
-    };
     // Create Aggregation
-    const aggregation: any[] = [
-      {
-        $match: filters
-      },
-      {
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, "siteusers"),
-          localField: "_id",
-          foreignField: "userID",
-          as: "siteusers"
-        }
-      },
-      {
-        $match: { "siteusers.siteID": Utils.convertToObjectID(siteID) }
-      },
-      {
-        $project: {
-          "_id": 1,
-          "name": 1,
-          "firstName": 1,
-          "email": 1,
-          "siteusers.role": 1
-        }
+    const aggregation: any[] = [];
+    // Filter
+    aggregation.push({
+      $match: {
+        siteID: Utils.convertToObjectID(siteID)
       }
-    ];
+    });
+    // Get users
+    aggregation.push({
+      $lookup: {
+        from: DatabaseUtils.getCollectionName(tenantID, "users"),
+        localField: "userID",
+        foreignField: "_id",
+        as: "users"
+      }
+    });
+    // Single Record
+    aggregation.push({
+      $unwind: { "path": "$users", "preserveNullAndEmptyArrays": true }
+    });
+    // Filter deleted users
+    aggregation.push({
+      $match: {
+        "$or": [
+          {
+            "users.deleted": {
+              "$exists": false
+            }
+          },
+          {
+            "users.deleted": false
+          },
+          {
+            "users.deleted": null
+          }
+        ]
+      }
+    });
     // Count Records
-    const usersCountMDB = await global.database.getCollection<any>(tenantID, 'users')
+    const usersCountMDB = await global.database.getCollection<any>(tenantID, 'siteusers')
       .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
       .toArray();
     // Sort
@@ -171,18 +173,21 @@ export default class SiteStorage {
       $limit: limit
     });
     // Read DB
-    const usersMDB = await global.database.getCollection<any>(tenantID, 'users')
+    const siteusersMDB = await global.database.getCollection<any>(tenantID, 'siteusers')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     const users = [];
     // Create
-    for (const userMDB of usersMDB) {
-      const user = new User(tenantID, userMDB);
-      if (userMDB.siteusers && userMDB.siteusers.length > 0) {
-        user.setRole(userMDB.siteusers[0].role);
+    for (const siteuserMDB of siteusersMDB) {
+      if (siteuserMDB.users) {
+        const user = new User(tenantID, siteuserMDB.users);
+        user.setIsSiteAdmin(siteuserMDB.isSiteAdmin);
+        users.push(user);
       }
-      users.push(user);
     }
+
+    // Debug
+    Logging.traceEnd('SiteStorage', 'getUsersBySite', uniqueTimerID, { siteID });
 
     // Ok
     return {
@@ -190,13 +195,10 @@ export default class SiteStorage {
         (usersCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : usersCountMDB[0].count) : 0),
       result: users
     };
-
-    // Debug
-    Logging.traceEnd('SiteStorage', 'getUsersBySite', uniqueTimerID, { siteID });
   }
 
-  static async updateSiteUserRole(tenantID, siteID, userID, role: string) {
-    const uniqueTimerID = Logging.traceStart('SiteStorage', 'updateSiteUserRole');
+  static async updateSiteUserAdmin(tenantID, siteID, userID, isSiteAdmin: boolean) {
+    const uniqueTimerID = Logging.traceStart('SiteStorage', 'updateSiteUserAdmin');
     await Utils.checkTenant(tenantID);
 
     await global.database.getCollection<any>(tenantID, 'siteusers').updateMany(
@@ -205,9 +207,9 @@ export default class SiteStorage {
         userID: Utils.convertToObjectID(userID)
       },
       {
-        $set: { role: role }
+        $set: { isSiteAdmin }
       });
-    Logging.traceEnd('SiteStorage', 'updateSiteUserRole', uniqueTimerID, { siteID, userID, role });
+    Logging.traceEnd('SiteStorage', 'updateSiupdateSiteUserAdminteUserRole', uniqueTimerID, { siteID, userID, isSiteAdmin });
   }
 
   static async saveSite(tenantID, siteToSave) {

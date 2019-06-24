@@ -23,7 +23,9 @@ export default class SiteSecurity {
     const filteredRequest: any = {};
     filteredRequest.siteID = sanitize(request.siteID);
     filteredRequest.userID = sanitize(request.userID);
-    filteredRequest.role = sanitize(request.role);
+    if ('isSiteAdmin' in request) {
+      filteredRequest.isSiteAdmin = UtilsSecurity.filterBoolean(request.isSiteAdmin);
+    }
     return filteredRequest;
   }
 

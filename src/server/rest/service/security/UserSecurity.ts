@@ -167,6 +167,9 @@ export default class UserSecurity {
         filteredUser.tagIDs = user.tagIDs;
         filteredUser.plateID = user.plateID;
         filteredUser.role = user.role;
+        if ('isSiteAdmin' in user) {
+          filteredUser.isSiteAdmin = user.isSiteAdmin;
+        }
         if (user.address) {
           filteredUser.address = UtilsSecurity.filterAddressRequest(user.address);
         }
@@ -227,9 +230,7 @@ export default class UserSecurity {
     for (const user of users.result) {
       // Filter
       const filteredUser = UserSecurity.filterUserResponse(user, loggedUser);
-      // Ok?
       if (filteredUser) {
-        // Add
         filteredUsers.push(filteredUser);
       }
     }

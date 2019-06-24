@@ -255,12 +255,12 @@ export default class Site extends TenantHolder {
     return SiteStorage.addUsersToSite(tenantID, id, userIDs);
   }
 
-  static getUsersFromSite(tenantID, id, limit?, skip?, sort?) {
-    return SiteStorage.getUsersBySite(tenantID, id, limit, skip, sort);
+  static getUsers(tenantID, id, limit?, skip?, sort?) {
+    return SiteStorage.getUsers(tenantID, id, limit, skip, sort);
   }
 
-  static updateSiteUserRole(tenantID, id, userID, role: string) {
-    return SiteStorage.updateSiteUserRole(tenantID, id, userID, role);
+  static updateSiteUserAdmin(tenantID, id, userID, isSiteAdmin: boolean) {
+    return SiteStorage.updateSiteUserAdmin(tenantID, id, userID, isSiteAdmin);
   }
 
   static removeUsersFromSite(tenantID, id, userIDs) {
