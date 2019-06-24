@@ -32,4 +32,3 @@ export default class ODataCompanies extends AbstractODataEntities {
   // TODO ^^^ Check this
 }
 
-

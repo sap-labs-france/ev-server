@@ -19,7 +19,7 @@ export default class CompanyStorage {
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompany');
 
     // Reuse
-    const companiesMDB = await CompanyStorage.getCompanies(tenantID, {search: id, withSites: false}, { limit: 1, skip: 0 });
+    const companiesMDB = await CompanyStorage.getCompanies(tenantID, { search: id, withSites: false }, { limit: 1, skip: 0 });
 
     let company: Company = null;
     // Check
@@ -31,7 +31,7 @@ export default class CompanyStorage {
     return company;
   }
 
-  public static async saveCompany(tenantID: string, companyToSave: Company, saveLogo=true): Promise<string> {
+  public static async saveCompany(tenantID: string, companyToSave: Company, saveLogo = true): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'saveCompany');
     // Check Tenant
@@ -42,13 +42,13 @@ export default class CompanyStorage {
       name: companyToSave.name,
       address: companyToSave.address,
     };
-    if(companyToSave.address) {
+    if (companyToSave.address) {
       companyMDB.address = companyToSave.address;
     }
     if (companyToSave.createdBy && companyToSave.createdOn) {
       companyMDB.createdBy = Utils.convertToObjectID(
         companyToSave.createdBy.id ? companyToSave.createdBy.id : companyToSave.createdBy.getID()),
-      companyMDB.createdOn = companyToSave.createdOn
+      companyMDB.createdOn = companyToSave.createdOn;
     }
     if (companyToSave.lastChangedBy && companyToSave.lastChangedOn) {
       companyMDB.lastChangedBy = Utils.convertToObjectID(
@@ -59,7 +59,7 @@ export default class CompanyStorage {
     // Modify
     const result = await global.database.getCollection<Company>(tenantID, 'companies').findOneAndUpdate(
       { _id: companyMDB._id },
-      { $set: companyMDB},
+      { $set: companyMDB },
       { upsert: true }
     );
 
@@ -100,8 +100,8 @@ export default class CompanyStorage {
 
   // Delegate
   public static async getCompanies(tenantID: string,
-      params: {search?: string, companyIDs?: string[], onlyRecordCount?: boolean, withSites?:boolean}={},
-      dbParams?: DbParams): Promise<{count: number, result: Company[]}> {
+    params: {search?: string; companyIDs?: string[]; onlyRecordCount?: boolean; withSites?: boolean} = {},
+    dbParams?: DbParams): Promise<{count: number; result: Company[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompanies');
     // Check Tenant
@@ -134,7 +134,9 @@ export default class CompanyStorage {
       // Build filter
       aggregation.push({
         $match: {
-          _id: { $in: params.companyIDs.map((companyID) => { return Utils.convertToObjectID(companyID); }) }
+          _id: { $in: params.companyIDs.map((companyID) => {
+            return Utils.convertToObjectID(companyID);
+          }) }
         }
       });
     }
@@ -184,26 +186,26 @@ export default class CompanyStorage {
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
 
     // Add company logo
-    aggregation.push({$lookup: {
+    aggregation.push({ $lookup: {
       from: tenantID + '.companylogos',
       localField: '_id',
       foreignField: '_id',
-      as: 'logo'}
+      as: 'logo' }
     },
-    {$unwind: {
+    { $unwind: {
       'path': '$logo',
-      'preserveNullAndEmptyArrays': true}
+      'preserveNullAndEmptyArrays': true }
     },
-    {$project: {
+    { $project: {
       logo: '$logo.logo',
-      id:{$toString: '$_id'},
+      id:{ $toString: '$_id' },
       _id: 0,
       createdBy: 1,
       createdOn: 1,
       lastChangedBy: 1,
       lastChangedOn: 1,
       name: 1,
-      address: 1}
+      address: 1 }
     }
     );
 
@@ -227,7 +229,7 @@ export default class CompanyStorage {
     });
 
     // Read DB
-    let companies = await global.database.getCollection<Company>(tenantID, 'companies')
+    const companies = await global.database.getCollection<Company>(tenantID, 'companies')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
 

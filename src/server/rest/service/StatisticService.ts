@@ -91,7 +91,7 @@ export default class StatisticService {
 
   static buildFilter(filteredRequest, loggedUser) {
     // Only completed transactions
-    const filter: any = { stop: {$exists: true} };
+    const filter: any = { stop: { $exists: true } };
     // Date
     if ('Year' in filteredRequest) {
       if (filteredRequest.Year > 0) {

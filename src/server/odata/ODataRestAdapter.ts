@@ -107,9 +107,10 @@ export default class ODataRestAdapter {
   }
 
   static registerAdapter(oDataServer) {
-    if (!oDataServer) { return; }
+    if (!oDataServer) {
+      return;
+    }
     oDataServer.model(oDataModel).query(ODataRestAdapter.query);
   }
 }
-
 

@@ -14,7 +14,7 @@ export default class SiteAreaSecurity {
   }
 
   public static filterSiteAreaRequest(request: Partial<HttpSiteAreaRequest>): HttpSiteAreaRequest {
-    //Filter request
+    // Filter request
     return {
       ID: sanitize(request.ID),
       WithChargeBoxes: !request.WithChargeBoxes ? false : sanitize(request.WithChargeBoxes),

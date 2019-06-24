@@ -92,4 +92,3 @@ export default class OCPIPatchLocationsTask implements SchedulerTask {
   }
 }
 
-

@@ -79,7 +79,9 @@ export default class VehicleManufacturer extends TenantHolder {
 
   async getVehicles() {
     if (this._model.vehicles) {
-      return this._model.vehicles.map((vehicle) => { return new Vehicle(this.getTenantID(), vehicle); });
+      return this._model.vehicles.map((vehicle) => {
+        return new Vehicle(this.getTenantID(), vehicle);
+      });
     }
     const vehicles = await VehicleStorage.getVehicles(this.getTenantID(), { 'vehicleManufacturerID': this.getID() });
     this.setVehicles(vehicles.result);

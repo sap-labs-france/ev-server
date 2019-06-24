@@ -89,7 +89,7 @@ export default class LockingStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('LockingStorage', 'saveRunLock');
     // Transfer
-    let runLock: Lock = { _id: '', name: '', type: '', timestamp: null, hostname: '' };
+    const runLock: Lock = { _id: '', name: '', type: '', timestamp: null, hostname: '' };
     Database.updateRunLock(runLockToSave, runLock, false);
     // Set the ID
     runLock._id = runLock.name + "~" + runLock.type;
@@ -104,7 +104,7 @@ export default class LockingStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('LockingStorage', 'deleteRunLock');
     // Transfer
-    let runLock: Lock = { _id: '', name: '', type: '', timestamp: null, hostname: '' };
+    const runLock: Lock = { _id: '', name: '', type: '', timestamp: null, hostname: '' };
     Database.updateRunLock(runLockToDelete, runLock, false);
     // Set the ID
     runLock._id = runLock.name + "~" + runLock.type;

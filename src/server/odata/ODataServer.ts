@@ -12,6 +12,7 @@ const MODULE_NAME = "ODataServer";
 export default class ODataServer {
   private oDataServerConfig: any;
   private express: any;
+
   // Create the rest server
   constructor(oDataServerConfig) {
     // Keep params

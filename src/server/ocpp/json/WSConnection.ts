@@ -254,7 +254,9 @@ export default class WSConnection {
         resolve();
       } else {
         // Send timeout
-        setTimeout(() => { return rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${Tenant.getTenant(this.tenantID)})'`); }, Constants.OCPP_SOCKET_TIMEOUT);
+        setTimeout(() => {
+          return rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${Tenant.getTenant(this.tenantID)})'`);
+        }, Constants.OCPP_SOCKET_TIMEOUT);
       }
 
       // Function that will receive the request's response
@@ -313,5 +315,4 @@ export default class WSConnection {
     return this.wsConnection.readyState === OPEN;
   }
 }
-
 

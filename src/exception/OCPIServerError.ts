@@ -12,8 +12,7 @@ export default class OCPIServerError extends Error {
     readonly module: string = "N/A",
     readonly method: string = "N/A",
     ocpiError?: {status_code: number; status_message: string},
-    detailedMessages?: any)
-  {
+    detailedMessages?: any) {
     super(message);
     this.detailedMessages = detailedMessages;
     this.ocpiError = (ocpiError) ? ocpiError : Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR;

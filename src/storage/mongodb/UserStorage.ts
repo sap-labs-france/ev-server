@@ -480,7 +480,7 @@ export default class UserStorage {
     }
     // Count Records
     const usersCountMDB = await global.database.getCollection<any>(tenantID, 'users')
-      .aggregate([...aggregation, { $count: "count"}], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {

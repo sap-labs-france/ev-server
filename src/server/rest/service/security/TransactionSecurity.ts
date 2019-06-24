@@ -8,7 +8,9 @@ export default class TransactionSecurity {
   static filterTransactionsRefund(request, loggedUser) {
     const filteredRequest: any = {};
     // Set
-    filteredRequest.transactionIds = request.transactionIds.map((id) => { return sanitize(id); });
+    filteredRequest.transactionIds = request.transactionIds.map((id) => {
+      return sanitize(id);
+    });
     return filteredRequest;
   }
 
@@ -258,10 +260,8 @@ export default class TransactionSecurity {
       if (!Authorizations.canReadUser(loggedUser, transaction.getUserJson().id)) {
         return null;
       }
-    } else {
-      if (!Authorizations.isAdmin(loggedUser.role)) {
-        return null;
-      }
+    } else if (!transaction.getUserJson() && !Authorizations.isAdmin(loggedUser.role)) {
+      return null;
     }
     const filteredTransaction = this.filterTransactionResponse(transaction, loggedUser);
     if (consumptions.length === 0) {
@@ -272,23 +272,31 @@ export default class TransactionSecurity {
     // Admin?
     if (Authorizations.isAdmin(loggedUser.role)) {
       // Set them all
-      filteredTransaction.values = consumptions.map((consumption) => { return consumption.getModel(); }).map((consumption) => { return {
-        ...consumption,
-        date: consumption.endedAt,
-        value: consumption.instantPower,
-        cumulated: consumption.cumulatedConsumption
-      }; });
+      filteredTransaction.values = consumptions.map((consumption) => {
+        return consumption.getModel();
+      }).map((consumption) => {
+        return {
+          ...consumption,
+          date: consumption.endedAt,
+          value: consumption.instantPower,
+          cumulated: consumption.cumulatedConsumption
+        };
+      });
     } else {
       // Clean
-      filteredTransaction.values = consumptions.map((consumption) => { return consumption.getModel(); }).map((consumption) => { return {
-        endedAt: consumption.endedAt,
-        instantPower: consumption.instantPower,
-        cumulatedConsumption: consumption.cumulatedConsumption,
-        stateOfCharge: consumption.stateOfCharge,
-        date: consumption.endedAt,
-        value: consumption.instantPower,
-        cumulated: consumption.cumulatedConsumption
-      }; });
+      filteredTransaction.values = consumptions.map((consumption) => {
+        return consumption.getModel();
+      }).map((consumption) => {
+        return {
+          endedAt: consumption.endedAt,
+          instantPower: consumption.instantPower,
+          cumulatedConsumption: consumption.cumulatedConsumption,
+          stateOfCharge: consumption.stateOfCharge,
+          date: consumption.endedAt,
+          value: consumption.instantPower,
+          cumulated: consumption.cumulatedConsumption
+        };
+      });
     }
     for (let i = 1; i < filteredTransaction.values.length; i++) {
       if (filteredTransaction.values[i].instantPower === 0 && filteredTransaction.values[i - 1] !== 0) {
@@ -319,5 +327,4 @@ export default class TransactionSecurity {
     return filteredTransaction;
   }
 }
-
 

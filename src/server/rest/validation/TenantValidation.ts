@@ -5,7 +5,7 @@ declare const global: TSGlobal;
 
 export default class TenantValidator extends SchemaValidator {
 
-  private static _instance: TenantValidator | undefined = undefined;
+  private static _instance: TenantValidator | undefined;
   private _tenantCreation: any;
   private _tenantUpdate: any;
 

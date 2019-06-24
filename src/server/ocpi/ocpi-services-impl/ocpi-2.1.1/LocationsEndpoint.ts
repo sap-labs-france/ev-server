@@ -171,7 +171,9 @@ const RECORDS_LIMIT = 20;
     // Loop through EVSE
     if (location) {
       for (const evse of location.evses) {
-        if (evse.uid === evseUid) { return evse; }
+        if (evse.uid === evseUid) {
+          return evse;
+        }
       }
     }
   }
@@ -190,11 +192,11 @@ const RECORDS_LIMIT = 20;
     // Loop through Connector
     if (evse) {
       for (const connector of evse.connectors) {
-        if (connector.id === connectorId) { return connector; }
+        if (connector.id === connectorId) {
+          return connector;
+        }
       }
     }
   }
 }
-
-
 

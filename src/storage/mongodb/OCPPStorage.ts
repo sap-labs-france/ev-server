@@ -75,7 +75,7 @@ export default class OCPPStorage {
     }
     // Count Records
     const statusNotificationsCountMDB = await global.database.getCollection<any>(tenantID, 'statusnotifications')
-      .aggregate([...aggregation, { $count: "count"}], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
       .toArray();
     // Sort
     if (sort) {
@@ -256,7 +256,7 @@ export default class OCPPStorage {
     });
     // Count Records
     const bootNotificationsCountMDB = await global.database.getCollection<any>(tenantID, 'bootnotifications')
-      .aggregate([...aggregation, { $count: "count"}], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
       .toArray();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
@@ -462,7 +462,9 @@ export default class OCPPStorage {
       meterValueMDB.timestamp = new Date(meterValueMDB.timestamp);
     }
     // Sort
-    meterValuesMDB.sort((meterValue1, meterValue2) => { return meterValue1.timestamp.getTime() - meterValue2.timestamp.getTime(); });
+    meterValuesMDB.sort((meterValue1, meterValue2) => {
+      return meterValue1.timestamp.getTime() - meterValue2.timestamp.getTime();
+    });
     // Create
     const meterValues = [];
     for (const meterValueMDB of meterValuesMDB) {

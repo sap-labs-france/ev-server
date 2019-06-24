@@ -14,6 +14,7 @@ import SiteStorage from '../storage/mongodb/SiteStorage';
 export default class User extends TenantHolder {
   private _model: any = {};
   public id: string;
+
   constructor(tenantID: any, user: any) {
     super(tenantID);
     Database.updateUser(user, this._model);
@@ -293,7 +294,9 @@ export default class User extends TenantHolder {
   }
 
   setSites(sites) {
-    this._model.sites = sites.map((site) => { return site.getModel(); });
+    this._model.sites = sites.map((site) => {
+      return site.getModel();
+    });
   }
 
   async getSites() {

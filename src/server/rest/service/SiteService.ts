@@ -327,7 +327,7 @@ export default class SiteService {
           'SiteService', 'handleDeleteSite', req.user);
       }
       // Delete
-      await SiteStorage.deleteSite(req.user.tenantID, site.getID());//site.delete();
+      await SiteStorage.deleteSite(req.user.tenantID, site.getID()); // Site.delete();
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
@@ -512,7 +512,7 @@ export default class SiteService {
       // Create site
       const site = new Site(req.user.tenantID, filteredRequest);
       // Update timestamp
-      site.setCreatedBy(new User(req.user.tenantID, {'id': req.user.id}));
+      site.setCreatedBy(new User(req.user.tenantID, { 'id': req.user.id }));
       site.setCreatedOn(new Date());
       // Get the users
       const users = [];
@@ -540,7 +540,7 @@ export default class SiteService {
         action: action, detailedMessages: newSite
       });
       // Ok
-      res.json(Object.assign({id: newSite.getID()}, Constants.REST_RESPONSE_SUCCESS));
+      res.json(Object.assign({ id: newSite.getID() }, Constants.REST_RESPONSE_SUCCESS));
       next();
     } catch (error) {
       // Log
@@ -581,7 +581,7 @@ export default class SiteService {
       // Update
       Database.updateSite(filteredRequest, site.getModel());
       // Update timestamp
-      site.setLastChangedBy(new User(req.user.tenantID, {'id': req.user.id}));
+      site.setLastChangedBy(new User(req.user.tenantID, { 'id': req.user.id }));
       site.setLastChangedOn(new Date());
       // Update Site's Image
       await site.saveImage();

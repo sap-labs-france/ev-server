@@ -57,6 +57,7 @@
     "no-extra-bind": "error",
     "no-lone-blocks": "error",
     "no-multi-spaces": "error",
+    "no-empty": "error",
     "require-await": "error",
     "no-return-await": "error",
     "no-return-assign": [
@@ -66,6 +67,13 @@
     "no-useless-catch": "error",
     "no-useless-return": "error",
     "no-shadow": "error",
+    "no-multiple-empty-lines": [
+      "error",
+      {
+        "max": 2,
+        "maxEOF": 1
+      }
+    ],
     "block-spacing": "error",
     "capitalized-comments": [
       "error",
@@ -134,7 +142,17 @@
     "no-duplicate-imports": "error",
     "no-var": "error",
     "prefer-const": "error",
-    "sort-imports": "warn"
+    "sort-imports": "warn",
+    "object-curly-spacing": [
+      "error",
+      "always"
+    ],
+    "lines-between-class-members": [
+      "error",
+      "always",
+      {
+        "exceptAfterSingleLine": true
+      }
+    ]
   }
 }
-

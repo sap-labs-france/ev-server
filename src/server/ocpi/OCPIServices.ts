@@ -2,7 +2,7 @@ import OCPIService2_1_1 from './ocpi-services-impl/ocpi-2.1.1/OCPIService';
 import OCPIService2_0 from './ocpi-services-impl/ocpi-2.0/OCPIService';
 import OCPIUtils from '../ocpi/OCPIUtils';
 import AbstractOCPIService from './AbstractOCPIService';
-import {Request, Response} from 'express';
+import { Request, Response } from 'express';
 import { Config } from '../../utils/ConfigurationClasses/Config';
 
 import SourceMap from 'source-map-support';
@@ -20,6 +20,7 @@ export default class OCPIServices {
     // pragma version 2.0
     this.ocpiServices.push(new OCPIService2_0(ocpiRestConfig));
   }
+
   /**
    * Get all implemented versions of OCPI
    */
