@@ -105,18 +105,6 @@
         "start:dev:debug"
       ],
       "port": 9229
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Debug Program (TypeScript)",
-      "program": "${workspaceFolder}/src/start.ts",
-      "preLaunchTask": "tsc: build - tsconfig.json",
-      "sourceMaps": true,
-      "smartStep": true,
-      "outFiles": [
-        "${workspaceFolder}/dist/**/*.js"
-      ]
     }
   ]
 }

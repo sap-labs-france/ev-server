@@ -7,7 +7,7 @@ import UserSecurity from './UserSecurity';
 import SiteUserRequest from '../../../../types/requests/SiteUserRequest';
 import AppError from '../../../../exception/AppError';
 import Constants from '../../../../utils/Constants';
-import ByID from '../../../../types/requests/RequestByID';
+import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 
 export default class SiteSecurity {
 
@@ -48,11 +48,11 @@ export default class SiteSecurity {
     return filteredRequest;
   }
 
-  public static filterSiteDeleteRequest(request: Partial<ByID>): string {
+  public static filterSiteDeleteRequest(request: Partial<HttpByIDRequest>): string {
     return this.filterSiteRequest(request);
   }
 
-  public static filterSiteRequest(request: Partial<ByID>): string {
+  public static filterSiteRequest(request: Partial<HttpByIDRequest>): string {
     return request.ID?sanitize(request.ID):null;
   }
 
@@ -105,7 +105,7 @@ export default class SiteSecurity {
       });
       filteredRequest.userIDs = request.userIDs.filter((userID) => {
         // Check auth
-        if (Authorizations.canReadUser(userToken, {id: userID})) {
+        if (Authorizations.canReadUser(userToken, userID)) {
           return true;
         }
         return false;
@@ -122,7 +122,7 @@ export default class SiteSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadSite(loggedUser, site)) {
+    if (Authorizations.canReadSite(loggedUser, site.id)) {
       // Admin?
       if (Authorizations.isAdmin(loggedUser.role)) {
         // Yes: set all params
@@ -189,5 +189,4 @@ export default class SiteSecurity {
     sites.result = filteredSites;
   }
 }
-
 

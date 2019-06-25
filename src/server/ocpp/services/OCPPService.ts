@@ -143,7 +143,9 @@ export default class OCPPService {
       if (Configuration.getTestConfig() && Configuration.getTestConfig().automaticChargerAssignment) {
         // Get all the site areas
         // FIXME: Please reviews; withSite etc params have been inferred more or less arbitrarily. What is really needed?
-        const siteAreas = await SiteAreaStorage.getSiteAreas(headers.tenantID, null, Constants.MAX_DB_RECORD_COUNT, 0, null);
+        const siteAreas = await SiteAreaStorage.getSiteAreas(headers.tenantID, null,
+          { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 }
+        );
         // Assign them
         if (Array.isArray(siteAreas.result) && siteAreas.result.length > 0) {
           // Set
@@ -532,7 +534,9 @@ export default class OCPPService {
         if (consumption) {
           // Existing Consumption (SoC or Consumption MeterValue)?
           const existingConsumption = consumptions.find(
-            (c) => { return c.endedAt.getTime() === consumption.endedAt.getTime(); });
+            (c) => {
+              return c.endedAt.getTime() === consumption.endedAt.getTime();
+            });
           if (existingConsumption) {
             // Update existing
             for (const property in consumption) {
@@ -1364,5 +1368,4 @@ export default class OCPPService {
     }
   }
 }
-
 

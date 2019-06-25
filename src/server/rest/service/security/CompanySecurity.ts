@@ -2,46 +2,53 @@ import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import UtilsSecurity from './UtilsSecurity';
 import SiteSecurity from './SiteSecurity';
-import User from '../../../../entity/User';
 import Company from '../../../../types/Company';
-import ByID from '../../../../types/requests/RequestByID';
-import CompanyData from '../../../../types/requests/CompanyData';
-import { FilteredCompanySearch } from '../../../../types/requests/CompanySearch';
-import BadRequestError from '../../../../exception/BadRequestError';
+import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
 
 export default class CompanySecurity {
 
-  public static filterCompanyRequest(request: ByID): string {
+  public static filterCompanyRequestByID(request: HttpByIDRequest): string {
     return sanitize(request.ID);
   }
 
-  public static filterCompaniesRequest(request: Partial<FilteredCompanySearch>): FilteredCompanySearch {
-    let filteredRequest: FilteredCompanySearch = {
+  public static filterCompanyRequest(request: HttpByIDRequest): HttpCompanyRequest {
+    return {
+      ID: sanitize(request.ID)
+    };
+  }
+
+  public static filterCompaniesRequest(request: HttpCompaniesRequest): HttpCompaniesRequest {
+    const filteredRequest: HttpCompaniesRequest = {
       Search: sanitize(request.Search),
       WithSites: UtilsSecurity.filterBoolean(request.WithSites)
-    } as FilteredCompanySearch;
+    } as HttpCompaniesRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
   }
 
-  static filterCompanyUpdateRequest(request: CompanyData): CompanyData {
-    if (!request.id) {
-      throw new BadRequestError({message: 'ID not provided in update request.'});
-    }
+  static filterCompanyUpdateRequest(request: Partial<Company>): Partial<Company> {
     const filteredRequest = CompanySecurity._filterCompanyRequest(request);
-    return {id: sanitize(request.id), ...filteredRequest};
+    return {
+      id: sanitize(request.id),
+      ...filteredRequest
+    };
   }
 
-  public static filterCompanyCreateRequest(request: CompanyData): CompanyData {
+  public static filterCompanyCreateRequest(request: Partial<Company>): Partial<Company> {
     return CompanySecurity._filterCompanyRequest(request);
   }
 
-  public static _filterCompanyRequest(request: CompanyData): CompanyData {
-    return {name: request.name, address: UtilsSecurity.filterAddressRequest(request.address), logo: request.logo}; // TODO Why does logo and name not get sanitized?
+  public static _filterCompanyRequest(request: Partial<Company>): Partial<Company> {
+    return {
+      name: sanitize(request.name),
+      address: UtilsSecurity.filterAddressRequest(request.address),
+      logo: request.logo
+    };
   }
 
-  public static filterCompanyResponse(company: Company, loggedUser: any) { //TODO typings
+  public static filterCompanyResponse(company: Company, loggedUser: any) { // TODO: typings
     let filteredCompany;
 
     if (!company) {
@@ -85,14 +92,11 @@ export default class CompanySecurity {
     for (const company of companies.result) {
       // Filter
       const filteredCompany = CompanySecurity.filterCompanyResponse(company, loggedUser);
-      // Ok?
+      // Add
       if (filteredCompany) {
-        // Add
         filteredCompanies.push(filteredCompany);
       }
     }
     companies.result = filteredCompanies;
   }
 }
-
-

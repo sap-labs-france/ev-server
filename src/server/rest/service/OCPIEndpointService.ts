@@ -19,7 +19,7 @@ export default class OCPIEndpointService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Ocpi Endpoint's ID must be provided`, 500,
+          `The Ocpi Endpoint's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
           'OCPIEndpointService', 'handleDeleteOcpiEndpoint', req.user);
       }
       // Get
@@ -28,7 +28,7 @@ export default class OCPIEndpointService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Ocpi Endpoint with ID '${filteredRequest.ID}' does not exist`, 550,
+          `Ocpi Endpoint with ID '${filteredRequest.ID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'OCPIEndpointService', 'handleDeleteOcpiEndpoint', req.user);
       }
       // Check auth
@@ -38,7 +38,7 @@ export default class OCPIEndpointService {
           Constants.ACTION_DELETE,
           Constants.ENTITY_OCPI_ENDPOINT,
           ocpiendpoint.getID(),
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'OCPIEndpointService', 'handleDeleteOcpiEndpoint',
           req.user);
       }
@@ -69,7 +69,7 @@ export default class OCPIEndpointService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Ocpi Endpoint's ID must be provided`, 500,
+          `The Ocpi Endpoint's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
           'OCPIEndpointService', 'handleGetOcpiEndpoint', req.user);
       }
       // Get it
@@ -77,7 +77,7 @@ export default class OCPIEndpointService {
       if (!ocpiendpoint) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Ocpi Endpoint with ID '${filteredRequest.ID}' does not exist anymore`, 550,
+          `The Ocpi Endpoint with ID '${filteredRequest.ID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'OCPIEndpointService', 'handleGetOcpiEndpoint', req.user);
       }
       // Return
@@ -102,7 +102,7 @@ export default class OCPIEndpointService {
           Constants.ACTION_LIST,
           Constants.ENTITY_OCPI_ENDPOINTS,
           null,
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'OCPIEndpointService', 'handleGetOcpiEndpoints',
           req.user);
       }
@@ -115,7 +115,9 @@ export default class OCPIEndpointService {
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
-      ocpiendpoints.result = ocpiendpoints.result.map((ocpiendpoint) => { return ocpiendpoint.getModel(); });
+      ocpiendpoints.result = ocpiendpoints.result.map((ocpiendpoint) => {
+        return ocpiendpoint.getModel();
+      });
       // Filter
       ocpiendpoints.result = OCPIEndpointSecurity.filterOcpiEndpointsResponse(
         ocpiendpoints.result, req.user);
@@ -137,7 +139,7 @@ export default class OCPIEndpointService {
           Constants.ACTION_CREATE,
           Constants.ENTITY_OCPI_ENDPOINT,
           null,
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'OCPIEndpointService', 'handleCreateOcpiEndpoint',
           req.user);
       }
@@ -180,7 +182,7 @@ export default class OCPIEndpointService {
       if (!ocpiendpoint) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Ocpi Endpoint with ID '${filteredRequest.id}' does not exist anymore`, 550,
+          `The Ocpi Endpoint with ID '${filteredRequest.id}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'OCPIEndpointService', 'handleUpdateOcpiEndpoint', req.user);
       }
       // Check Mandatory fields
@@ -192,7 +194,7 @@ export default class OCPIEndpointService {
           Constants.ACTION_UPDATE,
           Constants.ENTITY_OCPI_ENDPOINT,
           ocpiendpoint.getID(),
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'OCPIEndpointService', 'handleUpdateOcpiEndpoint',
           req.user);
       }
@@ -228,7 +230,7 @@ export default class OCPIEndpointService {
           Constants.ACTION_PING,
           Constants.ENTITY_OCPI_ENDPOINT,
           null,
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'OCPIEndpointService', 'handlePingOcpiEndpoint',
           req.user);
       }
@@ -278,7 +280,7 @@ export default class OCPIEndpointService {
           Constants.ACTION_SEND_EVSE_STATUSES,
           Constants.ENTITY_OCPI_ENDPOINT,
           null,
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'OCPIEndpointService', 'handleSendEVSEStatusesOcpiEndpoint',
           req.user);
       }
@@ -311,7 +313,7 @@ export default class OCPIEndpointService {
       if (!ocpiendpoint) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Ocpi Endpoint with ID '${filteredRequest.id}' does not exist anymore`, 550,
+          `The Ocpi Endpoint with ID '${filteredRequest.id}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'OCPIEndpointService', 'handleRegisterOcpiEndpoint', req.user);
       }
       // Check Mandatory fields
@@ -323,7 +325,7 @@ export default class OCPIEndpointService {
           Constants.ACTION_REGISTER,
           Constants.ENTITY_OCPI_ENDPOINT,
           null,
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'OCPIEndpointService', 'handleRegisterOcpiEndpoint',
           req.user);
       }
@@ -368,7 +370,7 @@ export default class OCPIEndpointService {
           Constants.ACTION_GENERATE_LOCAL_TOKEN,
           Constants.ENTITY_OCPI_ENDPOINT,
           null,
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'OCPIEndpointService', 'handleGenerateLocalTokenOcpiEndpoint',
           req.user);
       }
@@ -396,5 +398,4 @@ export default class OCPIEndpointService {
     }
   }
 }
-
 

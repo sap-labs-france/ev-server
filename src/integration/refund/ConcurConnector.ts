@@ -36,7 +36,7 @@ const CONNECTOR_ID = 'concur';
       {
         retries: 3,
         retryCondition: (error) => {
-          return error.response.status === 500;
+          return error.response.status === Constants.HTTP_GENERAL_ERROR;
         },
         retryDelay: (retryCount, error) => {
           if (error.config.method === 'post') {
@@ -93,7 +93,7 @@ const CONNECTOR_ID = 'concur';
 
   getClientSecretDecrypted() {
     return Cypher.decrypt(this.getSetting().clientSecret);
-}
+  }
 
   getExpenseTypeCode() {
     return this.getSetting().expenseTypeCode;
@@ -162,7 +162,7 @@ const CONNECTOR_ID = 'concur';
       });
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Concur access token not granted for ${userId}`, 500,
+        `Concur access token not granted for ${userId}`, Constants.HTTP_GENERAL_ERROR,
         MODULE_NAME, 'GetAccessToken', userId);
     }
   }
@@ -201,7 +201,7 @@ const CONNECTOR_ID = 'concur';
       });
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Concur access token not refreshed for ${userId}`, 500,
+        `Concur access token not refreshed for ${userId}`, Constants.HTTP_GENERAL_ERROR,
         MODULE_NAME, 'refreshToken', userId);
     }
   }
@@ -220,7 +220,8 @@ const CONNECTOR_ID = 'concur';
     if (!connection) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The user with ID '${user.getID()}' does not have a connection to connector '${CONNECTOR_ID}'`, 552,
+        `The user with ID '${user.getID()}' does not have a connection to connector '${CONNECTOR_ID}'`,
+        Constants.HTTP_CONCUR_NO_CONNECTOR_CONNECTION_ERROR,
         'TransactionService', 'handleRefundTransactions', user);
     }
 
@@ -240,7 +241,7 @@ const CONNECTOR_ID = 'concur';
           const locationId = await this.getLocation(connection, await chargingStation.getSite());
           if (quickRefund) {
             const entryId = await this.createQuickExpense(connection, transaction, locationId, user);
-            transaction.setRefundData({refundId: entryId, type: 'quick', refundedAt: new Date()});
+            transaction.setRefundData({ refundId: entryId, type: 'quick', refundedAt: new Date() });
           } else {
             const entryId = await this.createExpenseReportEntry(connection, expenseReportId, transaction, locationId, user);
             transaction.setRefundData({
@@ -256,7 +257,7 @@ const CONNECTOR_ID = 'concur';
           Logging.logException(exception, "Refund", MODULE_NAME, MODULE_NAME, "refund", this.getTenantID(), user);
         }
       },
-      {concurrency: 10});
+      { concurrency: 10 });
 
     Logging.logInfo({
       tenantID: this.getTenantID(),
@@ -322,7 +323,8 @@ const CONNECTOR_ID = 'concur';
 
     throw new AppError(
       MODULE_NAME,
-      `The city '${site.getAddress().city}' of the station is unknown to Concur`, 553,
+      `The city '${site.getAddress().city}' of the station is unknown to Concur`,
+      Constants.HTTP_CONCUR_CITY_UNKNOWN_ERROR,
       MODULE_NAME, 'getLocation');
   }
 
@@ -338,7 +340,7 @@ const CONNECTOR_ID = 'concur';
     try {
       const startDate = moment();
       const response = await axios.post(`${this.getAuthenticationUrl()}/quickexpense/v4/users/${jwt.decode(connection.getData().access_token).sub}/context/TRAVELER/quickexpenses`, {
-        'comment': `Session started the ${moment.tz(transaction.getStartDate(), transaction.getTimezone()).format("YYYY-MM-DD HH:mm:ss")} during ${moment.duration(transaction.getStopTotalDurationSecs(), 'seconds').format(`h[h]mm`, {trim: false})}`,
+        'comment': `Session started the ${moment.tz(transaction.getStartDate(), transaction.getTimezone()).format("YYYY-MM-DD HH:mm:ss")} during ${moment.duration(transaction.getStopTotalDurationSecs(), 'seconds').format(`h[h]mm`, { trim: false })}`,
         'vendor': this.getReportName(),
         'entryDetails': `Refund of transaction ${transaction.getID}`,
         'expenseTypeID': this.getExpenseTypeCode(),
@@ -387,7 +389,7 @@ const CONNECTOR_ID = 'concur';
       const startDate = moment();
       const response = await axios.post(`${this.getApiUrl()}/api/v3.0/expense/entries`, {
         'Description': `E-Mobility reimbursement ${moment.tz(transaction.getStartDate(), transaction.getTimezone()).format("YYYY-MM-DD")}`,
-        'Comment': `Session started the ${moment.tz(transaction.getStartDate(), transaction.getTimezone()).format("YYYY-MM-DD HH:mm:ss")} during ${moment.duration(transaction.getStopTotalDurationSecs(), 'seconds').format(`h[h]mm`, {trim: false})}`,
+        'Comment': `Session started the ${moment.tz(transaction.getStartDate(), transaction.getTimezone()).format("YYYY-MM-DD HH:mm:ss")} during ${moment.duration(transaction.getStopTotalDurationSecs(), 'seconds').format(`h[h]mm`, { trim: false })}`,
         'VendorDescription': 'E-Mobility',
         'Custom1': transaction.getID(),
         'ExpenseTypeCode': this.getExpenseTypeCode(),
@@ -468,5 +470,4 @@ const CONNECTOR_ID = 'concur';
   }
 
 }
-
 

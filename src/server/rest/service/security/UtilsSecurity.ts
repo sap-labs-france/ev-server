@@ -120,18 +120,14 @@ export default class UtilsSecurity {
 
   static filterCreatedAndLastChanged(filteredEntity, entity, loggedUser) {
     if (entity.createdBy && typeof entity.createdBy === "object" &&
-        entity.createdBy.id && Authorizations.canReadUser(loggedUser, entity.createdBy)) {
+      entity.createdBy.id && Authorizations.canReadUser(loggedUser, entity.createdBy.id)) {
       // Build user
       filteredEntity.createdBy = Utils.buildUserFullName(entity.createdBy, false);
-    } else {
-      entity.createdBy = null;
     }
     if (entity.lastChangedBy && typeof entity.lastChangedBy === "object" &&
-        entity.lastChangedBy.id && Authorizations.canReadUser(loggedUser, entity.lastChangedBy)) {
+      entity.lastChangedBy.id && Authorizations.canReadUser(loggedUser, entity.lastChangedBy.id)) {
       // Build user
       filteredEntity.lastChangedBy = Utils.buildUserFullName(entity.lastChangedBy, false);
-    } else {
-      entity.lastChangedBy = null;
     }
     if (entity.lastChangedOn) {
       filteredEntity.lastChangedOn = entity.lastChangedOn;
@@ -141,5 +137,4 @@ export default class UtilsSecurity {
     }
   }
 }
-
 

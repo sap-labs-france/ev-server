@@ -1,68 +1,145 @@
 import Logging from '../../../utils/Logging';
-import Database from '../../../utils/Database';
 import AppError from '../../../exception/AppError';
 import AppAuthError from '../../../exception/AppAuthError';
 import Constants from '../../../utils/Constants';
 import SiteAreaSecurity from './security/SiteAreaSecurity';
 import Authorizations from '../../../authorization/Authorizations';
 import User from '../../../entity/User';
-import ChargingStation from '../../../entity/ChargingStation';
-import Site from '../../../entity/Site';
 import SiteArea from '../../../types/SiteArea';
 import UtilsService from './UtilsService';
-import OrganizationComponentInactiveError from '../../../exception/OrganizationComponentInactiveError';
-import { Request, Response, NextFunction } from 'express';
-import Utils from '../../../utils/Utils';
+import { NextFunction, Request, Response } from 'express';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
-import SiteStorage from '../../../storage/mongodb/SiteStorage';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import { filter } from 'bluebird';
+import Utils from '../../../utils/Utils';
 
 export default class SiteAreaService {
 
-  public static async handleCreateSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleDeleteSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // Check if organization component is active
-      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
-        throw new OrganizationComponentInactiveError(
-          Constants.ACTION_CREATE,
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+        Constants.ACTION_DELETE, Constants.ENTITY_SITE_AREA, 'SiteAreaService', 'handleDeleteSiteArea');
+
+      // Filter
+      const siteAreaID = SiteAreaSecurity.filterSiteAreaRequestByID(req.query);
+
+      // Check Mandatory fields
+      UtilsService.assertIdIsProvided(siteAreaID, 'SiteAreaService', 'handleDeleteSiteArea', req.user);
+
+      // Check auth
+      if (!Authorizations.canDeleteSiteArea(req.user)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_DELETE,
           Constants.ENTITY_SITE_AREA,
-          560, 'SiteAreaService', 'handleCreateSiteArea');
+          siteAreaID,
+          Constants.HTTP_AUTH_ERROR,
+          'SiteAreaService', 'handleDeleteSiteArea',
+          req.user);
       }
 
-      // Filter, check fields, check auth
-      const filteredRequest = SiteAreaSecurity.filterSiteAreaCreateRequest( req.body, req.user );
+      // Get
+      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, siteAreaID);
 
-      // Check Site
-      if(! SiteStorage.siteExists(req.user.tenantID, filteredRequest.siteID)) {
-        Utils.assertObjectExists(null, `The Site ID '${filteredRequest.siteID}' does not exist`, 'SiteAreaService', 'handleCreateSiteArea', req.user);
-      }
+      // Found?
+      UtilsService.assertObjectExists(siteArea, `Site Area with ID '${siteAreaID}' does not exist`, 'SiteAreaService', 'handleDeleteSiteArea', req.user);
 
-      // Create site
-      const idlessSiteArea: Optional<SiteArea, 'id'|'chargingStations'|'site'> = {
-        ...filteredRequest,
-        createdBy: new User(req.user.tenantID, {id: req.user.id}),
-        createdOn: new Date(),
-        lastChangedBy: new User(req.user.tenantID, {id: req.user.id}),
-        lastChangedOn: new Date()
-      };
+      // Delete
+      await SiteAreaStorage.deleteSiteArea(req.user.tenantID, siteArea.id);
 
-      const siteArea: Optional<SiteArea,'site'> = {
-        id: await SiteAreaStorage.saveSiteArea(req.user.tenantID, idlessSiteArea, true),
-        chargingStations: [],
-        ...idlessSiteArea
-      };
-
-      await ChargingStationStorage.addChargingStationsToSiteArea(req.user.tenantID, siteArea.id, filteredRequest.chargeBoxIDs);
-
-      // Ok
+      // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
-        user: req.user, module: 'SiteAreaService', method: 'handleCreateSiteArea',
-        message: `Site Area '${siteArea.name}' has been created successfully`,
-        action: action, detailedMessages: siteArea});
+        user: req.user, module: 'SiteAreaService', method: 'handleDeleteSiteArea',
+        message: `Site Area '${siteArea.name}' has been deleted successfully`,
+        action: action, detailedMessages: siteArea }
+      );
+
       // Ok
-      res.json(Object.assign({ id: siteArea.id }, Constants.REST_RESPONSE_SUCCESS));
+      res.json(Constants.REST_RESPONSE_SUCCESS);
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
+  public static async handleGetSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+        Constants.ACTION_READ, Constants.ENTITY_SITE_AREA, 'SiteAreaService', 'handleGetSiteArea');
+
+      // Filter
+      const filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query);
+
+      // ID is mandatory
+      UtilsService.assertIdIsProvided(filteredRequest.ID, 'SiteAreaService', 'handleGetSiteArea', req.user);
+
+      // Check auth
+      if (!Authorizations.canReadSiteArea(req.user, filteredRequest.ID)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_READ,
+          Constants.ENTITY_SITE_AREA,
+          filteredRequest.ID,
+          Constants.HTTP_AUTH_ERROR,
+          'SiteAreaService', 'handleGetSiteAreaImage',
+          req.user);
+      }
+
+      // Get it
+      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.ID,
+        { withSite: filteredRequest.WithSite, withChargeBoxes: filteredRequest.WithChargeBoxes, withImage: true });
+
+      // Found?
+      UtilsService.assertObjectExists(siteArea, `The Site Area with ID '${filteredRequest.ID}' does not exist`, 'SiteAreaService', 'handleGetSiteArea', req.user);
+
+      // Return
+      res.json(
+        // Filter
+        SiteAreaSecurity.filterSiteAreaResponse(siteArea, req.user)
+      );
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
+  public static async handleGetSiteAreaImage(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+        Constants.ACTION_READ, Constants.ENTITY_SITE_AREA, 'SiteAreaService', 'handleGetSiteAreaImage');
+
+      // Filter
+      const siteAreaID = SiteAreaSecurity.filterSiteAreaRequestByID(req.query);
+
+      // Charge Box is mandatory
+      UtilsService.assertIdIsProvided(siteAreaID, 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
+
+      // Check auth
+      if (!Authorizations.canReadSiteArea(req.user, siteAreaID)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_READ,
+          Constants.ENTITY_SITE_AREA,
+          siteAreaID,
+          Constants.HTTP_AUTH_ERROR, 'SiteAreaService', 'handleGetSiteAreaImage',
+          req.user);
+      }
+
+      // Get it
+      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, siteAreaID, { withImage: true });
+
+      // Check
+      UtilsService.assertObjectExists(siteArea, 'Site Area does not exist.', 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
+
+      // Return
+      res.json({ id: siteArea.id, image: siteArea.image });
       next();
     } catch (error) {
       // Log
@@ -72,28 +149,38 @@ export default class SiteAreaService {
 
   public static async handleGetSiteAreas(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // Check if organization component is active
-      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
-        throw new OrganizationComponentInactiveError(
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+        Constants.ACTION_LIST, Constants.ENTITY_SITE_AREAS, 'SiteAreaService', 'handleGetSiteAreas');
+
+      // Check auth
+      if (!Authorizations.canListSiteAreas(req.user)) {
+        // Not Authorized!
+        throw new AppAuthError(
           Constants.ACTION_LIST,
           Constants.ENTITY_SITE_AREAS,
-          560, 'SiteAreaService', 'handleGetSiteAreas');
+          null,
+          Constants.HTTP_AUTH_ERROR, 'SiteAreaService', 'handleGetSiteAreas',
+          req.user);
       }
 
       // Filter
-      const filteredRequest = SiteAreaSecurity.filterSiteAreasRequest(req.query, req.user);
+      const filteredRequest = SiteAreaSecurity.filterSiteAreasRequest(req.query);
+
       // Get the sites
       const siteAreas = await SiteAreaStorage.getSiteAreas(req.user.tenantID,
         {
-          'search': filteredRequest.Search,
-          'siteIDs': Authorizations.getAuthorizedEntityIDsFromLoggedUser(Constants.ENTITY_SITE, req.user),
-          'withSite': filteredRequest.WithSite,
-          'withChargeBoxes': filteredRequest.WithChargeBoxes,
-          'withAvailableChargers': filteredRequest.WithAvailableChargers,
-          'siteID': filteredRequest.SiteID,
-          'onlyRecordCount': filteredRequest.OnlyRecordCount
+          search: filteredRequest.Search,
+          siteIDs: Authorizations.getAuthorizedEntityIDsFromLoggedUser(Constants.ENTITY_SITE, req.user),
+          withSite: filteredRequest.WithSite,
+          withChargeBoxes: filteredRequest.WithChargeBoxes,
+          withAvailableChargers: filteredRequest.WithAvailableChargers,
+          siteID: filteredRequest.SiteID,
+          onlyRecordCount: filteredRequest.OnlyRecordCount
         },
-        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+        { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort }
+      );
 
       // Filter
       SiteAreaSecurity.filterSiteAreasResponse(siteAreas, req.user);
@@ -107,129 +194,48 @@ export default class SiteAreaService {
     }
   }
 
-  public static async handleDeleteSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleCreateSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // Check if organization component is active
-      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
-        throw new OrganizationComponentInactiveError(
-          Constants.ACTION_DELETE,
-          Constants.ENTITY_SITE_AREA,
-          560, 'SiteAreaService', 'handleDeleteSiteArea');
-      }
-
-      // Filter
-      const searchId = SiteAreaSecurity.filterSiteAreaDeleteRequest(req.query, req.user);
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+        Constants.ACTION_CREATE, Constants.ENTITY_SITE_AREAS, 'SiteAreaService', 'handleCreateSiteArea');
 
       // Check auth
-      if (!Authorizations.canDeleteSiteArea(req.user)) {
+      if (!Authorizations.canCreateSiteArea(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
-          Constants.ACTION_DELETE,
+          Constants.ACTION_CREATE,
           Constants.ENTITY_SITE_AREA,
-          searchId,
-          560,
-          'SiteAreaService', 'handleDeleteSiteArea',
+          null,
+          Constants.HTTP_AUTH_ERROR, 'SiteAreaService', 'handleCreateSiteArea',
           req.user);
       }
 
-      // Get
-      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, searchId, false, false, false);
+      // Filter
+      const filteredRequest = SiteAreaSecurity.filterSiteAreaCreateRequest(req.body);
 
-      // Found?
-      Utils.assertObjectExists(siteArea, 'Site Area not found.', 'SiteAreaService', 'handleDeleteSiteArea', req.user);
+      // Check
+      SiteAreaService._checkIfSiteAreaValid(filteredRequest, req);
 
-      // Delete
-      await SiteAreaStorage.deleteSiteArea(req.user.tenantID, siteArea.id);
+      // Create site
+      const newSiteArea: SiteArea = {
+        ...filteredRequest,
+        createdBy: new User(req.user.tenantID, { id: req.user.id }),
+        createdOn: new Date()
+      } as SiteArea;
 
-      // Log
+      // Save
+      newSiteArea.id = await SiteAreaStorage.saveSiteArea(req.user.tenantID, newSiteArea, true);
+
+      // Ok
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
-        user: req.user, module: 'SiteAreaService', method: 'handleDeleteSiteArea',
-        message: `Site Area '${siteArea.name}' has been deleted successfully`,
-        action: action, detailedMessages: siteArea});
+        user: req.user, module: 'SiteAreaService', method: 'handleCreateSiteArea',
+        message: `Site Area '${newSiteArea.name}' has been created successfully`,
+        action: action, detailedMessages: newSiteArea });
       // Ok
-      res.json(Constants.REST_RESPONSE_SUCCESS);
-      next();
-    } catch (error) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
-    }
-  }
-
-  public static async handleGetSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      // Check if organization component is active
-      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
-        throw new OrganizationComponentInactiveError(
-          Constants.ACTION_READ,
-          Constants.ENTITY_SITE_AREA,
-          560, 'SiteAreaService', 'handleGetSiteArea');
-      }
-
-      // Filter
-      const filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query, req.user);
-
-      // Check auth
-      if (!Authorizations.canReadSiteArea(req.user, filteredRequest.ID)) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_READ,
-          Constants.ENTITY_SITE_AREA,
-          filteredRequest.ID,
-          560,
-          'SiteAreaService', 'handleGetSiteAreaImage',
-          req.user);
-      }
-
-      // Get it
-      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID,
-        filteredRequest.ID, filteredRequest.WithChargeBoxes, filteredRequest.WithSite, true);
-      // Found?
-      Utils.assertObjectExists(siteArea, 'Site Area not found.', 'SiteAreaService', 'handleGetSiteArea', req.user);
-
-      // Return
-      res.json(
-        // Filter
-        SiteAreaSecurity.filterSiteAreaResponse(
-          siteArea, req.user)
-      );
-      next();
-    } catch (error) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
-    }
-  }
-
-  public static async handleGetSiteAreaImage(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      // Check if organization component is active
-      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
-        throw new OrganizationComponentInactiveError(
-          Constants.ACTION_READ,
-          Constants.ENTITY_SITE_AREA,
-          560, 'SiteAreaService', 'handleGetSiteAreaImage');
-      }
-
-      // Filter
-      const filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query, req.user);
-
-      // Check auth
-      if (!Authorizations.canReadSiteArea(req.user, filteredRequest.ID)) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_READ,
-          Constants.ENTITY_SITE_AREA,
-          filteredRequest.ID,
-          560, 'SiteAreaService', 'handleGetSiteAreaImage',
-          req.user);
-      }
-
-      // Get it
-      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.ID, false, false, true);
-      Utils.assertObjectExists(siteArea, 'Site Area does not exist.', 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
-
-      // Return
-      res.json({id: siteArea.id, image: siteArea.image});
+      res.json(Object.assign({ id: newSiteArea.id }, Constants.REST_RESPONSE_SUCCESS));
       next();
     } catch (error) {
       // Log
@@ -239,17 +245,14 @@ export default class SiteAreaService {
 
   public static async handleUpdateSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // Check if organization component is active
-      if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
-        throw new OrganizationComponentInactiveError(
-          Constants.ACTION_UPDATE,
-          Constants.ENTITY_SITE_AREA,
-          560, 'SiteAreaService', 'handleUpdateSiteArea');
-      }
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+        Constants.ACTION_UPDATE, Constants.ENTITY_SITE_AREA, 'SiteAreaService', 'handleUpdateSiteArea');
 
       // Filter
-      const filteredRequest = SiteAreaSecurity.filterSiteAreaUpdateRequest(req.body, req.user);
-      
+      const filteredRequest = SiteAreaSecurity.filterSiteAreaUpdateRequest(req.body);
+
       // Check auth
       if (!Authorizations.canUpdateSiteArea(req.user)) {
         // Not Authorized!
@@ -257,22 +260,28 @@ export default class SiteAreaService {
           Constants.ACTION_UPDATE,
           Constants.ENTITY_SITE_AREA,
           filteredRequest.id,
-          560, 'SiteAreaService', 'handleUpdateSiteArea',
+          Constants.HTTP_AUTH_ERROR, 'SiteAreaService', 'handleUpdateSiteArea',
           req.user);
       }
-      
-      // Check
-      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.id, false, false, false);
-      Utils.assertObjectExists(siteArea, `The Site Area with ID '${filteredRequest.id}' does not exist anymore`, 'SiteAreaService', 'handleUpdateSiteArea', req.user);
 
-      siteArea.lastChangedBy = new User(req.user.tenantID, {'id': req.user.id});
-      siteArea.lastChangedOn = new Date();
-      siteArea.image = filteredRequest.image;
-      siteArea.maximumPower = filteredRequest.maximumPower;
+      // Get
+      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.id);
+
+      // Check
+      UtilsService.assertObjectExists(siteArea, `The Site Area with ID '${filteredRequest.id}' does not exist`, 'SiteAreaService', 'handleUpdateSiteArea', req.user);
+
+      // Check Mandatory fields
+      SiteAreaService._checkIfSiteAreaValid(filteredRequest, req);
+
+      // Update
       siteArea.name = filteredRequest.name;
       siteArea.address = filteredRequest.address;
+      siteArea.image = filteredRequest.image;
+      siteArea.maximumPower = filteredRequest.maximumPower;
       siteArea.accessControl = filteredRequest.accessControl;
       siteArea.siteID = filteredRequest.siteID;
+      siteArea.lastChangedBy = new User(req.user.tenantID, { 'id': req.user.id });
+      siteArea.lastChangedOn = new Date();
 
       // Update Site Area
       await SiteAreaStorage.saveSiteArea(req.user.tenantID, siteArea, true);
@@ -282,13 +291,39 @@ export default class SiteAreaService {
         tenantID: req.user.tenantID,
         user: req.user, module: 'SiteAreaService', method: 'handleUpdateSiteArea',
         message: `Site Area '${siteArea.name}' has been updated successfully`,
-        action: action, detailedMessages: siteArea});
+        action: action, detailedMessages: siteArea
+      });
+
       // Ok
       res.json(Constants.REST_RESPONSE_SUCCESS);
       next();
     } catch (error) {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
+  private static _checkIfSiteAreaValid(filteredRequest: any, req: Request): void {
+    if (req.method !== 'POST' && !filteredRequest.id) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `Site Area ID is mandatory`, Constants.HTTP_GENERAL_ERROR,
+        'SiteAreaService', '_checkIfSiteAreaValid',
+        req.user.id);
+    }
+    if (!filteredRequest.name) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `Site Area is mandatory`, Constants.HTTP_GENERAL_ERROR,
+        'SiteAreaService', '_checkIfSiteAreaValid',
+        req.user.id, filteredRequest.id);
+    }
+    if (!filteredRequest.siteID) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `Site ID is mandatory`, Constants.HTTP_GENERAL_ERROR,
+        'SiteAreaService', '_checkIfSiteAreaValid',
+        req.user.id, filteredRequest.id);
     }
   }
 }

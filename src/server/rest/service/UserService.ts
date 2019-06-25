@@ -24,33 +24,33 @@ export default class UserService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `User's ID must be provided`, 500,
+          `User's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
           'UserService', 'handleAddSitesToUser', req.user);
       }
       if (!filteredRequest.siteIDs || (filteredRequest.siteIDs && filteredRequest.siteIDs.length <= 0)) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Site's IDs must be provided`, 500,
+          `Site's IDs must be provided`, Constants.HTTP_GENERAL_ERROR,
           'UserService', 'handleAddSitesToUser', req.user);
+      }
+      // Check auth
+      if (!Authorizations.canUpdateUser(req.user, filteredRequest.userID)) {
+        throw new AppAuthError(
+          Constants.ACTION_UPDATE,
+          Constants.ENTITY_USER,
+          filteredRequest.userID,
+          Constants.HTTP_AUTH_ERROR,
+          'UserService', 'handleAddSitesToUser',
+          req.user);
       }
       // Get the User
       const user = await User.getUser(req.user.tenantID, filteredRequest.userID);
       if (!user) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `User with ID '${filteredRequest.userID}' does not exist anymore`, 550,
+          `User with ID '${filteredRequest.userID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'UserService', 'handleAddSitesToUser', req.user);
-      }
-      // Check auth
-      if (!Authorizations.canUpdateUser(req.user, user.getModel())) {
-        throw new AppAuthError(
-          Constants.ACTION_UPDATE,
-          Constants.ENTITY_USER,
-          user.getID(),
-          560,
-          'UserService', 'handleAddSitesToUser',
-          req.user, user);
       }
       // Get Sites
       for (const siteID of filteredRequest.siteIDs) {
@@ -59,7 +59,7 @@ export default class UserService {
         if (!site) {
           throw new AppError(
             Constants.CENTRAL_SERVER,
-            `Site with ID '${siteID}' does not exist anymore`, 550,
+            `Site with ID '${siteID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
             'UserService', 'handleAddSitesToUser', req.user);
         }
         // Check auth
@@ -68,7 +68,7 @@ export default class UserService {
             Constants.ACTION_UPDATE,
             Constants.ENTITY_SITE,
             siteID,
-            560,
+            Constants.HTTP_AUTH_ERROR,
             'UserService', 'handleAddSitesToUser',
             req.user, user);
         }
@@ -99,33 +99,34 @@ export default class UserService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `User's ID must be provided`, 500,
+          `User's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
           'UserService', 'handleAddSitesToUser', req.user);
       }
       if (!filteredRequest.siteIDs || (filteredRequest.siteIDs && filteredRequest.siteIDs.length <= 0)) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Site's IDs must be provided`, 500,
+          `Site's IDs must be provided`, Constants.HTTP_GENERAL_ERROR,
           'UserService', 'handleAddSitesToUser', req.user);
       }
+      // Check auth
+      if (!Authorizations.canUpdateUser(req.user, filteredRequest.userID)) {
+        throw new AppAuthError(
+          Constants.ACTION_UPDATE,
+          Constants.ENTITY_USER,
+          filteredRequest.userID,
+          Constants.HTTP_AUTH_ERROR,
+          'UserService', 'handleAddSitesToUser',
+          req.user);
+      }
+
       // Get the User
       const user = await User.getUser(req.user.tenantID, filteredRequest.userID);
       if (!user) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `User with ID '${filteredRequest.userID}' does not exist anymore`, 550,
+          `User with ID '${filteredRequest.userID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'UserService', 'handleAddSitesToUser', req.user);
-      }
-      // Check auth
-      if (!Authorizations.canUpdateUser(req.user, user.getModel())) {
-        throw new AppAuthError(
-          Constants.ACTION_UPDATE,
-          Constants.ENTITY_USER,
-          user.getID(),
-          560,
-          'UserService', 'handleAddSitesToUser',
-          req.user, user);
       }
       // Get Sites
       for (const siteID of filteredRequest.siteIDs) {
@@ -134,7 +135,7 @@ export default class UserService {
         if (!site) {
           throw new AppError(
             Constants.CENTRAL_SERVER,
-            `Site with ID '${siteID}' does not exist anymore`, 550,
+            `Site with ID '${siteID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
             'UserService', 'handleAddSitesToUser', req.user);
         }
         // Check auth
@@ -143,7 +144,7 @@ export default class UserService {
             Constants.ACTION_UPDATE,
             Constants.ENTITY_SITE,
             siteID,
-            560,
+            Constants.HTTP_AUTH_ERROR,
             'UserService', 'handleAddSitesToUser',
             req.user, user);
         }
@@ -174,15 +175,28 @@ export default class UserService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `User's ID must be provided`, 500,
+          `User's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
           'UserService', 'handleDeleteUser', req.user);
       }
+
+      // Check auth
+      if (!Authorizations.canDeleteUser(req.user, filteredRequest.ID)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_DELETE,
+          Constants.ENTITY_USER,
+          filteredRequest.ID,
+          Constants.HTTP_AUTH_ERROR,
+          'UserService', 'handleDeleteUser',
+          req.user);
+      }
+
       // Check Mandatory fields
       if (filteredRequest.ID === req.user.id) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `User cannot delete himself`, 500,
+          `User cannot delete himself`, Constants.HTTP_GENERAL_ERROR,
           'UserService', 'handleDeleteUser', req.user);
       }
       // Check email
@@ -190,26 +204,15 @@ export default class UserService {
       if (!user) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `User with ID '${filteredRequest.id}' does not exist anymore`, 550,
+          `User with ID '${filteredRequest.id}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'UserService', 'handleDeleteUser', req.user);
       }
       // Deleted
       if (user.deleted) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `User with ID '${filteredRequest.id}' is already deleted`, 550,
+          `User with ID '${filteredRequest.id}' is already deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'UserService', 'handleDeleteUser', req.user);
-      }
-      // Check auth
-      if (!Authorizations.canDeleteUser(req.user, user.getModel())) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_DELETE,
-          Constants.ENTITY_USER,
-          user.getID(),
-          560,
-          'UserService', 'handleDeleteUser',
-          req.user);
       }
       // Delete from site
       const sites = await user.getSites();
@@ -246,15 +249,25 @@ export default class UserService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `User's ID must be provided`, 500,
+          `User's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
           'UserService', 'handleDeleteUser', req.user);
+      }
+      // Check auth
+      if (!Authorizations.canUpdateUser(req.user, filteredRequest.id)) {
+        throw new AppAuthError(
+          Constants.ACTION_UPDATE,
+          Constants.ENTITY_USER,
+          filteredRequest.id,
+          Constants.HTTP_AUTH_ERROR,
+          'UserService', 'handleUpdateUser',
+          req.user);
       }
       // Check email
       const user = await User.getUser(req.user.tenantID, filteredRequest.id);
       if (!user) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `User with ID '${filteredRequest.id}' does not exist anymore`, 550,
+          `User with ID '${filteredRequest.id}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'UserService', 'handleUpdateUser', req.user);
       }
       // Check Mandatory fields
@@ -263,7 +276,7 @@ export default class UserService {
       if (user.deleted) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `User with ID '${filteredRequest.id}' is logically deleted`, 550,
+          `User with ID '${filteredRequest.id}' is logically deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'UserService', 'handleUpdateUser', req.user);
       }
       // Check Mandatory fields
@@ -275,18 +288,8 @@ export default class UserService {
         // Yes!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Email '${filteredRequest.email}' already exists`, 510,
+          `Email '${filteredRequest.email}' already exists`, Constants.HTTP_USER_EMAIL_ALREADY_EXIST_ERROR,
           'UserService', 'handleUpdateUser', req.user);
-      }
-      // Check auth
-      if (!Authorizations.canUpdateUser(req.user, user.getModel())) {
-        throw new AppAuthError(
-          Constants.ACTION_UPDATE,
-          Constants.ENTITY_USER,
-          user.getID(),
-          560,
-          'UserService', 'handleUpdateUser',
-          req.user, user);
       }
       // Check if Status has been changed
       if (filteredRequest.status &&
@@ -304,7 +307,7 @@ export default class UserService {
         user.setPassword(newPasswordHashed);
       }
       // Update timestamp
-      user.setLastChangedBy(new User(req.user.tenantID, {'id': req.user.id}));
+      user.setLastChangedBy(new User(req.user.tenantID, { 'id': req.user.id }));
       user.setLastChangedOn(new Date());
       // Update User
       const updatedUser = await user.save();
@@ -350,33 +353,33 @@ export default class UserService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `User's ID must be provided`, 500,
+          `User's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
           'UserService', 'handleGetUser', req.user);
+      }
+      // Check auth
+      if (!Authorizations.canReadUser(req.user, filteredRequest.ID)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_READ,
+          Constants.ENTITY_USER,
+          filteredRequest.ID,
+          Constants.HTTP_AUTH_ERROR, 'UserService', 'handleGetUser',
+          req.user);
       }
       // Get the user
       const user = await User.getUser(req.user.tenantID, filteredRequest.ID);
       if (!user) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `User with ID '${filteredRequest.ID}' does not exist anymore`, 550,
+          `User with ID '${filteredRequest.ID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'UserService', 'handleGetUser', req.user);
       }
       // Deleted?
       if (user.deleted) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `User with ID '${filteredRequest.ID}' is logically deleted`, 550,
+          `User with ID '${filteredRequest.ID}' is logically deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'UserService', 'handleGetUser', req.user);
-      }
-      // Check auth
-      if (!Authorizations.canReadUser(req.user, user.getModel())) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_READ,
-          Constants.ENTITY_USER,
-          user.getID(),
-          560, 'UserService', 'handleGetUser',
-          req.user);
       }
       // Set the user
       res.json(
@@ -400,33 +403,33 @@ export default class UserService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `User's ID must be provided`, 500,
+          `User's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
           'UserService', 'handleGetUser', req.user);
+      }
+      // Check auth
+      if (!Authorizations.canReadUser(req.user, filteredRequest.ID)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_READ,
+          Constants.ENTITY_USER,
+          filteredRequest.ID,
+          Constants.HTTP_AUTH_ERROR, 'UserService', 'handleGetUserImage',
+          req.user);
       }
       // Get the logged user
       const user = await User.getUser(req.user.tenantID, filteredRequest.ID);
       if (!user) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `User with ID '${filteredRequest.ID}' does not exist anymore`, 550,
+          `User with ID '${filteredRequest.ID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'UserService', 'handleGetUserImage', req.user);
       }
       // Deleted?
       if (user.deleted) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `User with ID '${filteredRequest.ID}' is logically deleted`, 550,
+          `User with ID '${filteredRequest.ID}' is logically deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'UserService', 'handleGetUserImage', req.user);
-      }
-      // Check auth
-      if (!Authorizations.canReadUser(req.user, user.getModel())) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_READ,
-          Constants.ENTITY_USER,
-          user.getID(),
-          560, 'UserService', 'handleGetUserImage',
-          req.user);
       }
       // Get the user image
       const userImage = await User.getUserImage(req.user.tenantID, filteredRequest.ID);
@@ -448,7 +451,7 @@ export default class UserService {
           Constants.ACTION_LIST,
           Constants.ENTITY_USERS,
           null,
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'UserService', 'handleGetUserImages',
           req.user);
       }
@@ -472,7 +475,7 @@ export default class UserService {
           Constants.ACTION_LIST,
           Constants.ENTITY_USERS,
           null,
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'UserService', 'handleGetUsers',
           req.user);
       }
@@ -490,7 +493,9 @@ export default class UserService {
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
-      users.result = users.result.map((user) => { return user.getModel(); });
+      users.result = users.result.map((user) => {
+        return user.getModel();
+      });
       // Filter
       UserSecurity.filterUsersResponse(users, req.user);
       // Return
@@ -511,7 +516,7 @@ export default class UserService {
           Constants.ACTION_LIST,
           Constants.ENTITY_USERS,
           null,
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'UserService', 'handleGetUsersInError',
           req.user);
       }
@@ -527,7 +532,9 @@ export default class UserService {
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
-      users.result = users.result.map((user) => { return user.getModel(); });
+      users.result = users.result.map((user) => {
+        return user.getModel();
+      });
       // Filter
       UserSecurity.filterUsersResponse(users, req.user);
       // Return
@@ -548,7 +555,7 @@ export default class UserService {
           Constants.ACTION_CREATE,
           Constants.ENTITY_USER,
           null,
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'UserService', 'handleCreateUser',
           req.user);
       }
@@ -561,7 +568,7 @@ export default class UserService {
       if (foundUser) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Email '${filteredRequest.email}' already exists`, 510,
+          `Email '${filteredRequest.email}' already exists`, Constants.HTTP_USER_EMAIL_ALREADY_EXIST_ERROR,
           'UserService', 'handleCreateUser', req.user);
       }
       // Create user
@@ -574,7 +581,7 @@ export default class UserService {
         user.setPassword(newPasswordHashed);
       }
       // Set timestamp
-      user.setCreatedBy(new User(req.user.tenantID, {'id': req.user.id}));
+      user.setCreatedBy(new User(req.user.tenantID, { 'id': req.user.id }));
       user.setCreatedOn(new Date());
       // Set default
       if (!filteredRequest.hasOwnProperty('notificationsActive')) {
@@ -596,7 +603,7 @@ export default class UserService {
         action: action
       });
       // Ok
-      res.json(Object.assign({id: newUser.getID()}, Constants.REST_RESPONSE_SUCCESS));
+      res.json(Object.assign({ id: newUser.getID() }, Constants.REST_RESPONSE_SUCCESS));
       next();
     } catch (error) {
       // Log
@@ -613,42 +620,42 @@ export default class UserService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `User's ID must be provided`, 500,
+          `User's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
           'UserService', 'handleGetUserInvoice', req.user);
+      }
+      // Check auth
+      if (!Authorizations.canReadUser(req.user, filteredRequest.ID)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_READ,
+          Constants.ENTITY_USER,
+          filteredRequest.ID,
+          Constants.HTTP_AUTH_ERROR, 'UserService', 'handleGetUserInvoice',
+          req.user);
       }
       // Get the user
       const user = await User.getUser(req.user.tenantID, filteredRequest.ID);
       if (!user) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `User with ID '${filteredRequest.ID}' does not exist anymore`, 550,
+          `User with ID '${filteredRequest.ID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'UserService', 'handleGetUserInvoice', req.user);
       }
       // Deleted?
       if (user.deleted) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `User with ID '${filteredRequest.ID}' is logically deleted`, 550,
+          `User with ID '${filteredRequest.ID}' is logically deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'UserService', 'handleGetUserInvoice', req.user);
-      }
-      // Check auth
-      if (!Authorizations.canReadUser(req.user, user.getModel())) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_READ,
-          Constants.ENTITY_USER,
-          user.getID(),
-          560, 'UserService', 'handleGetUserInvoice',
-          req.user);
       }
       let setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, Constants.COMPONENTS.PRICING);
       setting = setting.getContent().convergentCharging;
 
       if (!setting) {
-        Logging.logException({"message": "Convergent Charging setting is missing"}, "UserInvoice", Constants.CENTRAL_SERVER, "UserService", "handleGetUserInvoice", req.user.tenantID, req.user);
+        Logging.logException({ "message": "Convergent Charging setting is missing" }, "UserInvoice", Constants.CENTRAL_SERVER, "UserService", "handleGetUserInvoice", req.user.tenantID, req.user);
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `An issue occurred while creating the invoice`, 560,
+          `An issue occurred while creating the invoice`, Constants.HTTP_AUTH_ERROR,
           'UserService', 'handleGetUserInvoice', req.user);
       }
       const ratingService = new RatingService(setting.url, setting.user, setting.password);
@@ -661,7 +668,7 @@ export default class UserService {
         Logging.logException(exception, "UserInvoice", Constants.CENTRAL_SERVER, "UserService", "handleGetUserInvoice", req.user.tenantID, req.user);
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `An issue occurred while creating the invoice`, 560,
+          `An issue occurred while creating the invoice`, Constants.HTTP_AUTH_ERROR,
           'UserService', 'handleGetUserInvoice', req.user);
       }
       if (!invoiceNumber) {
@@ -680,7 +687,8 @@ export default class UserService {
         if (!invoice) {
           throw new AppError(
             Constants.CENTRAL_SERVER,
-            `An error occurred while requesting invoice ${invoiceNumber}`, 561,
+            `An error occurred while requesting invoice ${invoiceNumber}`,
+            Constants.HTTP_PRICING_REQUEST_INVOICE_ERROR,
             'UserService', 'handleGetUserInvoice', req.user);
         }
         const filename = 'invoice.pdf';
@@ -702,7 +710,8 @@ export default class UserService {
       } catch (e) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `An error occurred while requesting invoice ${invoiceNumber}`, 561,
+          `An error occurred while requesting invoice ${invoiceNumber}`,
+          Constants.HTTP_PRICING_REQUEST_INVOICE_ERROR,
           'UserService', 'handleGetUserInvoice', req.user);
       }
     } catch (error) {

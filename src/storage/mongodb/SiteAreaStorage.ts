@@ -1,5 +1,4 @@
 import Constants from '../../utils/Constants';
-import Database from '../../utils/Database';
 import Utils from '../../utils/Utils';
 import BackendError from '../../exception/BackendError';
 import { ObjectID } from 'mongodb';
@@ -9,20 +8,20 @@ import Site from '../../entity/Site';
 import SiteArea from '../../types/SiteArea';
 import ChargingStation from '../../entity/ChargingStation';
 import global from '../../types/GlobalType';
-
+import DbParams from '../../types/database/DbParams';
 export default class SiteAreaStorage {
 
-  public static async getSiteAreaImage(tenantID: string, id: string): Promise<{id: string, image: string}> {
+  public static async getSiteAreaImage(tenantID: string, id: string): Promise<{id: string; image: string}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'getSiteAreaImage');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const siteAreaImagesMDB = await global.database.getCollection<{_id: string, image: string}>(tenantID, 'siteareaimages')
+    const siteAreaImagesMDB = await global.database.getCollection<{_id: string; image: string}>(tenantID, 'siteareaimages')
       .find({ _id: Utils.convertToObjectID(id) })
       .limit(1)
       .toArray();
-    let siteAreaImage: {id: string, image: string} = null;
+    let siteAreaImage: {id: string; image: string} = null;
     // Set
     if (siteAreaImagesMDB && siteAreaImagesMDB.length > 0) {
       siteAreaImage = {
@@ -35,84 +34,81 @@ export default class SiteAreaStorage {
     return siteAreaImage;
   }
 
-  public static async getSiteArea(tenantID: string, id: string, withSite: boolean, withChargeBoxes: boolean, withImage: boolean): Promise<SiteArea> {
+  public static async getSiteArea(tenantID: string, id: string,
+    params: { withSite?: boolean; withChargeBoxes?: boolean; withImage?: boolean } = {}): Promise<SiteArea> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'getSiteArea');
     // Check Tenant
     await Utils.checkTenant(tenantID);
 
-    const siteAreaResult
-     = await SiteAreaStorage.getSiteAreas(tenantID, { search: id, onlyRecordCount: false, withImage: withImage, withSite: withSite, withChargeBoxes: withChargeBoxes, withAvailableChargers: true }, 1, 0, null);
+    const siteAreaResult = await SiteAreaStorage.getSiteAreas(
+      tenantID, { search: id, onlyRecordCount: false, withImage: params.withImage,
+        withSite: params.withSite, withChargeBoxes: params.withChargeBoxes, withAvailableChargers: true },
+      { limit: 1, skip: 0 });
 
     // Debug
-    Logging.traceEnd('SiteAreaStorage', 'getSiteArea', uniqueTimerID, { id, withChargeBoxes, withSite });
+    Logging.traceEnd('SiteAreaStorage', 'getSiteArea', uniqueTimerID, { id, withChargeBoxes: params.withChargeBoxes, withSite: params.withSite });
     return siteAreaResult.result[0];
   }
 
-  public static async saveSiteArea(tenantID: string, siteAreaToSave: Optional<SiteArea, 'id'|'chargingStations'|'site'>, saveImage=false): Promise<string> {
+  public static async saveSiteArea(tenantID: string, siteAreaToSave: SiteArea, saveImage = false): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'saveSiteArea');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-
-    // Build Request
-    const siteAreaFilter: any = {};
-    if (siteAreaToSave.id) {
-      siteAreaFilter._id = Utils.convertToObjectID(siteAreaToSave.id);
-    } else {
-      siteAreaFilter._id = new ObjectID();
-    }
-
-    const mongoSiteArea: any = {
-      _id: siteAreaFilter._id,
-      createdBy: Utils.convertToObjectID(siteAreaToSave.createdBy.id?siteAreaToSave.createdBy.id:siteAreaToSave.createdBy.getID()), //TODO convert user properly
-      createdOn: siteAreaToSave.createdOn?siteAreaToSave.createdOn:new Date(),
-      
+    // Set
+    const siteAreaMDB: any = {
+      _id: !siteAreaToSave.id ? new ObjectID() : Utils.convertToObjectID(siteAreaToSave.id),
       name: siteAreaToSave.name,
+      accessControl: siteAreaToSave.accessControl,
       siteID: Utils.convertToObjectID(siteAreaToSave.siteID)
+    };
+    if (siteAreaToSave.address) {
+      siteAreaMDB.address = siteAreaToSave.address;
     }
-    if(siteAreaToSave.lastChangedBy && siteAreaToSave.lastChangedOn) {
-      mongoSiteArea.lastChangedBy = Utils.convertToObjectID(siteAreaToSave.lastChangedBy.id?siteAreaToSave.lastChangedBy.id:siteAreaToSave.lastChangedBy.getID());//TODO change w/ user
-      mongoSiteArea.lastChangedOn = siteAreaToSave.lastChangedOn;
+    if (siteAreaToSave.maximumPower) {
+      siteAreaMDB.maximumPower = siteAreaToSave.maximumPower;
     }
-    if(siteAreaToSave.address) {
-      mongoSiteArea.address = siteAreaToSave.address;
+    if (siteAreaToSave.createdBy && siteAreaToSave.createdOn) {
+      siteAreaMDB.createdBy = Utils.convertToObjectID(
+        siteAreaToSave.createdBy.id ? siteAreaToSave.createdBy.id : siteAreaToSave.createdBy.getID()),
+      siteAreaMDB.createdOn = siteAreaToSave.createdOn;
     }
-    if(siteAreaToSave.maximumPower) {
-      mongoSiteArea.maximumPower = siteAreaToSave.maximumPower;
+    if (siteAreaToSave.lastChangedBy && siteAreaToSave.lastChangedOn) {
+      siteAreaMDB.lastChangedBy = Utils.convertToObjectID(
+        siteAreaToSave.lastChangedBy.id ? siteAreaToSave.lastChangedBy.id : siteAreaToSave.lastChangedBy.getID());
+      siteAreaMDB.lastChangedOn = siteAreaToSave.lastChangedOn;
     }
-    mongoSiteArea.accessControl = siteAreaToSave.accessControl;
 
     // Modify
     const result = await global.database.getCollection<SiteArea>(tenantID, 'siteareas').findOneAndUpdate(
-      siteAreaFilter,
-      { $set: mongoSiteArea },
-      { upsert: true, returnOriginal: false });
+      { _id: siteAreaMDB._id },
+      { $set: siteAreaMDB },
+      { upsert: true, returnOriginal: false }
+    );
 
-    if(! result.ok ) {
+    if (!result.ok) {
       throw new BackendError(
         Constants.CENTRAL_SERVER,
         `Couldn't update SiteArea`,
         'SiteAreaStorage', 'saveSiteArea');
     }
-    const newId: string = siteAreaFilter._id.toHexString();
-    if(saveImage) {
-      await SiteAreaStorage.saveSiteAreaImage(tenantID, newId, siteAreaToSave.image);
+
+    if (saveImage) {
+      await SiteAreaStorage._saveSiteAreaImage(tenantID, siteAreaMDB._id.toHexString(), siteAreaToSave.image);
     }
 
     // Debug
     Logging.traceEnd('SiteAreaStorage', 'saveSiteArea', uniqueTimerID, { siteAreaToSave });
-    // Create
-    return newId;
+
+    return siteAreaMDB._id.toHexString();
   }
 
-  static async saveSiteAreaImage(tenantID: string, siteAreaID: string, siteAreaImageToSave: string): Promise<void> {
+  private static async _saveSiteAreaImage(tenantID: string, siteAreaID: string, siteAreaImageToSave: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'saveSiteAreaImage');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Check if ID is provided
-    Utils.assertObjectExists(siteAreaID, 'Site Area Image has no ID', 'SiteAreaStorage', 'saveSiteAreaImage', null);
 
     // Modify
     await global.database.getCollection<any>(tenantID, 'siteareaimages').findOneAndUpdate(
@@ -124,15 +120,17 @@ export default class SiteAreaStorage {
     Logging.traceEnd('SiteAreaStorage', 'saveSiteAreaImage', uniqueTimerID);
   }
 
-  public static async getSiteAreas(tenantID: string, params: {search?: string, withImage?: boolean, siteID?: string, siteIDs?: string[], onlyRecordCount?: boolean, withSite?: boolean, withChargeBoxes?: boolean, withAvailableChargers?: boolean} = {}, limit: number, skip: number, sort: any): Promise<{count: number, result: SiteArea[]}> {
+  public static async getSiteAreas(tenantID: string,
+    params: {search?: string; withImage?: boolean; siteID?: string; siteIDs?: string[]; onlyRecordCount?: boolean; withSite?: boolean; withChargeBoxes?: boolean; withAvailableChargers?: boolean} = {},
+    dbParams?: DbParams): Promise<{count: number; result: SiteArea[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'getSiteAreas');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
-    limit = Utils.checkRecordLimit(limit);
+    const limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    skip = Utils.checkRecordSkip(skip);
+    const skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
     const filters: any = {};
     // Build filter
@@ -162,7 +160,9 @@ export default class SiteAreaStorage {
       // Build filter
       aggregation.push({
         $match: {
-          siteID: { $in: params.siteIDs.map((siteID) => { return Utils.convertToObjectID(siteID); }) }
+          siteID: { $in: params.siteIDs.map((siteID) => {
+            return Utils.convertToObjectID(siteID);
+          }) }
         }
       });
     }
@@ -173,7 +173,7 @@ export default class SiteAreaStorage {
     }
     // Count Records
     const siteAreasCountMDB = await global.database.getCollection<{count: number}>(tenantID, 'siteareas')
-      .aggregate([...aggregation, { $count: "count"}], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {
@@ -219,38 +219,20 @@ export default class SiteAreaStorage {
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
 
     // Add site area image
-    if(params.withImage) {
-      aggregation.push({$lookup: {
-          from: tenantID + '.siteareaimages',
-          localField: '_id',
-          foreignField: '_id',
-          as: 'image'}
-        },
-        {$unwind: {
-          'path': '$image',
-          'preserveNullAndEmptyArrays': true}
-        },
-        {$project: {
-          image: '$image.image',
-          id: {$toString: '$_id'},
-          _id: 0,
-          createdBy: 1,
-          createdOn: 1,
-          lastChangedBy: 1,
-          lastChangedOn: 1,
-          name: 1,
-          address: 1,
-          maximumPower: 1,
-          siteID: 1,
-          accessControl: 1,
-          chargingStations: 1,
-          site: 1
-          }
-        }
-      );
-    }else{
-      aggregation.push({$project: {
-        id: {$toString: '$_id'},
+    if (params.withImage) {
+      aggregation.push({ $lookup: {
+        from: tenantID + '.siteareaimages',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'image' }
+      },
+      { $unwind: {
+        'path': '$image',
+        'preserveNullAndEmptyArrays': true }
+      },
+      { $project: {
+        image: '$image.image',
+        id: { $toString: '$_id' },
         _id: 0,
         createdBy: 1,
         createdOn: 1,
@@ -263,14 +245,32 @@ export default class SiteAreaStorage {
         accessControl: 1,
         chargingStations: 1,
         site: 1
-        }
+      }
+      }
+      );
+    } else {
+      aggregation.push({ $project: {
+        id: { $toString: '$_id' },
+        _id: 0,
+        createdBy: 1,
+        createdOn: 1,
+        lastChangedBy: 1,
+        lastChangedOn: 1,
+        name: 1,
+        address: 1,
+        maximumPower: 1,
+        siteID: 1,
+        accessControl: 1,
+        chargingStations: 1,
+        site: 1
+      }
       });
     }
     // Sort
-    if (sort) {
+    if (dbParams.sort) {
       // Sort
       aggregation.push({
-        $sort: sort
+        $sort: dbParams.sort
       });
     } else {
       // Default
@@ -287,7 +287,7 @@ export default class SiteAreaStorage {
       $limit: limit
     });
     // Read DB
-    const incompleteSiteAreas = await global.database.getCollection<Omit<SiteArea, 'chargingStations'|'site'>&{chargingStations:any, site:any}>(tenantID, 'siteareas')
+    const incompleteSiteAreas = await global.database.getCollection<Omit<SiteArea, 'chargingStations'|'site'>&{chargingStations: any; site: any}>(tenantID, 'siteareas')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
 
@@ -364,7 +364,8 @@ export default class SiteAreaStorage {
       }
     }
     // Debug
-    Logging.traceEnd('SiteAreaStorage', 'getSiteAreas', uniqueTimerID, { params, limit, skip, sort });
+    Logging.traceEnd('SiteAreaStorage', 'getSiteAreas', uniqueTimerID,
+      { params, limit: dbParams.limit, skip: dbParams.skip, sort: dbParams.sort });
     // Ok
     return {
       count: (siteAreasCountMDB.length > 0 ?
@@ -393,17 +394,23 @@ export default class SiteAreaStorage {
 
     // Remove Charging Station's Site Area
     await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany(
-      { siteAreaID: { $in: siteAreaIDs.map((ID) => { return Utils.convertToObjectID(ID); }) } },
+      { siteAreaID: { $in: siteAreaIDs.map((ID) => {
+        return Utils.convertToObjectID(ID);
+      }) } },
       { $set: { siteAreaID: null } },
       { upsert: false });
 
     // Delete SiteArea
     await global.database.getCollection<any>(tenantID, 'siteareas')
-      .deleteMany({ '_id': { $in: siteAreaIDs.map((ID) => { return Utils.convertToObjectID(ID); }) } });
+      .deleteMany({ '_id': { $in: siteAreaIDs.map((ID) => {
+        return Utils.convertToObjectID(ID);
+      }) } });
 
     // Delete Image
     await global.database.getCollection<any>(tenantID, 'sitesareaimages')
-      .deleteMany({ '_id': { $in: siteAreaIDs.map((ID) => { return Utils.convertToObjectID(ID); }) } });
+      .deleteMany({ '_id': { $in: siteAreaIDs.map((ID) => {
+        return Utils.convertToObjectID(ID);
+      }) } });
 
     // Debug
     Logging.traceEnd('SiteAreaStorage', 'deleteSiteAreas', uniqueTimerID, { siteAreaIDs });
@@ -418,7 +425,11 @@ export default class SiteAreaStorage {
 
     // Find site areas to delete
     const siteareas: string[] = (await global.database.getCollection<any>(tenantID, 'siteareas')
-      .find({ siteID: { $in: siteIDs.map((id) => { return Utils.convertToObjectID(id); }) } }).project({_id: 1}).toArray()).map((idWrapper) => { return idWrapper._id.toHexString(); });
+      .find({ siteID: { $in: siteIDs.map((id) => {
+        return Utils.convertToObjectID(id);
+      }) } }).project({ _id: 1 }).toArray()).map((idWrapper) => {
+      return idWrapper._id.toHexString();
+    });
 
     // Delete site areas
     const result = await SiteAreaStorage.deleteSiteAreas(tenantID, siteareas);

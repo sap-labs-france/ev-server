@@ -43,7 +43,9 @@ export default class SettingSecurity {
   static _filterSettingRequest(request, loggedUser) {
     const filteredRequest: any = {};
     filteredRequest.identifier = sanitize(request.identifier);
-    filteredRequest.sensitiveData = sanitize(request.sensitiveData);
+    if ('sensitiveData' in request) {
+      filteredRequest.sensitiveData = sanitize(request.sensitiveData);
+    }
     filteredRequest.content = sanitize(request.content);
     return filteredRequest;
   }
@@ -93,5 +95,4 @@ export default class SettingSecurity {
     return filteredSettings;
   }
 }
-
 

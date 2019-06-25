@@ -3,7 +3,7 @@ export default {
   entityTypes: {
     "Company": {
       "uniqueID": { "type": "Edm.String", key: true },
-      "tenant": { "type": "Edm.String"},
+      "tenant": { "type": "Edm.String" },
       "id": { "type": "Edm.String" },
       "name":  { "type": "Edm.String" },
       'country': { "type": "Edm.String" },
@@ -18,7 +18,7 @@ export default {
     },
     "Site": {
       "uniqueID": { "type": "Edm.String", key: true },
-      "tenant": { "type": "Edm.String"},
+      "tenant": { "type": "Edm.String" },
       "id": { "type": "Edm.String" },
       "name":  { "type": "Edm.String" },
       "companyID": { "type": "Edm.String" },
@@ -34,7 +34,7 @@ export default {
     },
     "SiteArea": {
       "uniqueID": { "type": "Edm.String", key: true },
-      "tenant": { "type": "Edm.String"},
+      "tenant": { "type": "Edm.String" },
       "id": { "type": "Edm.String" },
       "name":  { "type": "Edm.String" },
       "siteID": { "type": "Edm.String" },
@@ -50,7 +50,7 @@ export default {
     },
     "ChargingStation": {
       "uniqueID": { "type": "Edm.String", key: true },
-      "tenant": { "type": "Edm.String"},
+      "tenant": { "type": "Edm.String" },
       "id": { "type": "Edm.String" },
       "chargeBoxSerialNumber" : { "type": "Edm.String" },
       "chargePointModel" : { "type": "Edm.String" },
@@ -68,8 +68,8 @@ export default {
     },
     "User": {
       "uniqueID": { "type": "Edm.String", key: true },
-      "tenant": { "type": "Edm.String"},
-      "id" : { "type": "Edm.String"},
+      "tenant": { "type": "Edm.String" },
+      "id" : { "type": "Edm.String" },
       "email" : { "type": "Edm.String" },
       "name" : { "type": "Edm.String" },
       "firstName" : { "type": "Edm.String" },
@@ -89,9 +89,9 @@ export default {
       "id": { "type": "Edm.Int32" },
       "chargeBoxID": { "type": "Edm.String" },
       "connectorId": { "type": "Edm.Int32" },
-      "timestamp": { "type": "Edm.DateTimeOffset"},
-      "startDate": { "type": "eMobility.ComplexDate"},
-      "stopDate": { "type": "eMobility.ComplexDate"},
+      "timestamp": { "type": "Edm.DateTimeOffset" },
+      "startDate": { "type": "eMobility.ComplexDate" },
+      "stopDate": { "type": "eMobility.ComplexDate" },
       "startTagID": { "type": "Edm.String" },
       "stopTagID": { "type": "Edm.String" },
       "startUser": { "type": "eMobility.User" },
@@ -100,9 +100,9 @@ export default {
     },
     "BootNotification": {
       "uniqueID": { "type": "Edm.String", key: true },
-      "tenant": { "type": "Edm.String"},
+      "tenant": { "type": "Edm.String" },
       "id": { "type": "Edm.String" },
-      "chargeBoxID": { "type": "Edm.String"},
+      "chargeBoxID": { "type": "Edm.String" },
       "chargePointVendor": { "type": "Edm.String" },
       "chargePointModel": { "type": "Edm.String" },
       "chargePointSerialNumber": { "type": "Edm.String" },
@@ -111,7 +111,7 @@ export default {
       "ocppVersion": { "type": "Edm.String" },
       "endpoint": { "type": "Edm.String" },
       "timestamp":  { "type": "Edm.DateTimeOffset" },
-      "bootDate": { "type": "eMobility.ComplexDate"},
+      "bootDate": { "type": "eMobility.ComplexDate" },
       "count": { "type": "Edm.Int32" }
     },
     "StatusNotification": {
@@ -120,8 +120,8 @@ export default {
       "id": { "type": "Edm.String" },
       "chargeBoxID": { "type": "Edm.String" },
       "connectorId": { "type": "Edm.Int32" },
-      "timestamp": { "type": "Edm.DateTimeOffset"},
-      "notificationDate": { "type": "eMobility.ComplexDate"},
+      "timestamp": { "type": "Edm.DateTimeOffset" },
+      "notificationDate": { "type": "eMobility.ComplexDate" },
       "status": { "type": "Edm.String" },
       "errorCode": { "type": "Edm.String" },
       "info": { "type": "Edm.String" },
@@ -152,14 +152,14 @@ export default {
       'longitude': { "type": "Edm.Double" }
     },
     'User': {
-      "id" : { "type": "Edm.String"},
+      "id" : { "type": "Edm.String" },
       "fullName" : { "type": "Edm.String" }
     },
     'ComplexDate': {
-      "date" : { "type": "Edm.DateTimeOffset"},
-      "dayOfTheWeek" : { "type": "Edm.Int32"},
-      "hourOfTheDay" : { "type": "Edm.Int32"},
-      "weekOfTheYear" : { "type": "Edm.Int32"}
+      "date" : { "type": "Edm.DateTimeOffset" },
+      "dayOfTheWeek" : { "type": "Edm.Int32" },
+      "hourOfTheDay" : { "type": "Edm.Int32" },
+      "weekOfTheYear" : { "type": "Edm.Int32" }
     }
   },
   entitySets: {

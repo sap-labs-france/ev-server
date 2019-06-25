@@ -277,7 +277,7 @@ export default {
             SiteService.handleGetSiteImage(action, req, res, next);
             break;
           case "SiteUsers":
-            SiteService.handleGetUsersFromSite(action, req, res, next);
+            SiteService.handleGetUsers(action, req, res, next);
             break;
           // Get all tenant
           case "Tenants":
@@ -529,10 +529,9 @@ export default {
             // Delegate
             SiteAreaService.handleUpdateSiteArea(action, req, res, next);
             break;
-          // Add Sites to User
-          case "SiteUsersRoleUpdate":
+          case "SiteUserAdmin":
             // Delegate
-            SiteService.handleUpdateSiteUsersRole(action, req, res, next);
+            SiteService.handleUpdateSiteUserAdmin(action, req, res, next);
             break;
           // Company
           case "CompanyUpdate":

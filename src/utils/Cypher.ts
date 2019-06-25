@@ -82,7 +82,7 @@ export default class Cypher {
         // Check that the property does exist otherwise skip to the next property
         if (_.has(obj, property)) {
           const value = _.get(obj, property);
-          // if the value is undefined, null or empty then do nothing and skip to the next property
+          // If the value is undefined, null or empty then do nothing and skip to the next property
           if (value && value.length > 0) {
             _.set(obj, property, this.decrypt(value));
           }
@@ -108,7 +108,7 @@ export default class Cypher {
         // Check that the property does exist otherwise skip to the next property
         if (_.has(obj, property)) {
           const value = _.get(obj, property);
-          // if the value is undefined, null or empty then do nothing and skip to the next property
+          // If the value is undefined, null or empty then do nothing and skip to the next property
           if (value && value.length > 0) {
             _.set(obj, property, this.hash(value));
           }

@@ -273,7 +273,7 @@ export default class Logging {
       Logging._logActionExceptionMessage(tenantID, action, exception);
     }
     // Send error
-    res.status((exception.errorCode ? exception.errorCode : 500)).send({
+    res.status((exception.errorCode ? exception.errorCode : Constants.HTTP_GENERAL_ERROR)).send({
       "message": Utils.hideShowMessage(exception.message)
     });
     next();

@@ -94,4 +94,3 @@ export default class AbstractConnector extends TenantHolder {
   }
 }
 
-

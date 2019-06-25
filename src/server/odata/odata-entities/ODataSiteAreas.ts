@@ -31,4 +31,3 @@ export default class ODataSiteAreas extends AbstractODataEntities {
   }
 }
 
-

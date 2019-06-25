@@ -7,6 +7,7 @@ import User from "../entity/User";
 
 export default interface Site extends CreatedUpdatedProps {
 
+    id: string;
     name: string;
     address: Address;
     companyID: string;

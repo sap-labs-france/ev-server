@@ -43,22 +43,22 @@ export default class DatabaseUtils {
     aggregation.push({
       $lookup: {
         from: DatabaseUtils.getCollectionName(tenantID, 'users'),
-        localField: (fieldOf.length===0 ? '' : fieldOf + '.') + "createdBy",
+        localField: (fieldOf.length === 0 ? '' : fieldOf + '.') + "createdBy",
         foreignField: "_id",
-        as: (fieldOf.length===0 ? '' : fieldOf + '.') + "createdBy"
+        as: (fieldOf.length === 0 ? '' : fieldOf + '.') + "createdBy"
       }
     });
     // Single Record
     aggregation.push({
-      $unwind: { "path": `$${(fieldOf.length===0 ? '' : fieldOf + '.')}createdBy`, "preserveNullAndEmptyArrays": true }
+      $unwind: { "path": `$${(fieldOf.length === 0 ? '' : fieldOf + '.')}createdBy`, "preserveNullAndEmptyArrays": true }
     });
     // Rename id & convert to string to fit type schema
     let addFieldsContent: any = {};
-    addFieldsContent[(fieldOf.length===0 ? '' : fieldOf + '.') + 'createdBy.id'] = {$toString: `$${(fieldOf.length===0 ? '' : fieldOf + '.')}createdBy._id`};
-    aggregation.push({$addFields: addFieldsContent});
+    addFieldsContent[(fieldOf.length === 0 ? '' : fieldOf + '.') + 'createdBy.id'] = { $toString: `$${(fieldOf.length === 0 ? '' : fieldOf + '.')}createdBy._id` };
+    aggregation.push({ $addFields: addFieldsContent });
 
     let projectContent: any = {};
-    projectContent[(fieldOf.length===0 ? '' : fieldOf + '.') + 'createdBy'] = filterUserFields;
+    projectContent[(fieldOf.length === 0 ? '' : fieldOf + '.') + 'createdBy'] = filterUserFields;
     // Filter
     aggregation.push({
       $project: projectContent
@@ -67,23 +67,23 @@ export default class DatabaseUtils {
     aggregation.push({
       $lookup: {
         from: DatabaseUtils.getCollectionName(tenantID, 'users'),
-        localField: (fieldOf.length===0 ? '' : fieldOf + '.') + "lastChangedBy",
+        localField: (fieldOf.length === 0 ? '' : fieldOf + '.') + "lastChangedBy",
         foreignField: "_id",
-        as: (fieldOf.length===0 ? '' : fieldOf + '.') + "lastChangedBy"
+        as: (fieldOf.length === 0 ? '' : fieldOf + '.') + "lastChangedBy"
       }
     });
     // Single Record
     aggregation.push({
-      $unwind: { "path": `$${(fieldOf.length===0 ? '' : fieldOf + '.')}lastChangedBy`, "preserveNullAndEmptyArrays": true }
+      $unwind: { "path": `$${(fieldOf.length === 0 ? '' : fieldOf + '.')}lastChangedBy`, "preserveNullAndEmptyArrays": true }
     });
-    //Prep for type schema
+    // Prep for type schema
     addFieldsContent = {};
-    addFieldsContent[(fieldOf.length===0 ? '' : fieldOf + '.') + 'lastChangedBy.id'] = {$toString: `$${(fieldOf.length===0 ? '' : fieldOf + '.')}lastChangedBy._id`};
-    aggregation.push({$addFields: addFieldsContent});
+    addFieldsContent[(fieldOf.length === 0 ? '' : fieldOf + '.') + 'lastChangedBy.id'] = { $toString: `$${(fieldOf.length === 0 ? '' : fieldOf + '.')}lastChangedBy._id` };
+    aggregation.push({ $addFields: addFieldsContent });
 
     // Filter
     projectContent = {};
-    projectContent[(fieldOf.length===0 ? '' : fieldOf + '.') + 'lastChangedBy'] = filterUserFields;
+    projectContent[(fieldOf.length === 0 ? '' : fieldOf + '.') + 'lastChangedBy'] = filterUserFields;
     aggregation.push({
       $project: projectContent
     });
@@ -116,7 +116,7 @@ export default class DatabaseUtils {
       includes,
       {},
       ['address', 'name', 'maximumPower', 'image', 'siteID', 'accessControl'],
-      {id: `$${as}._id`},
+      { id: `$${as}._id` },
       true,
       true);
   }
@@ -138,48 +138,32 @@ export default class DatabaseUtils {
       true);
   }
 
-  public static pushCompanyWOSWOIJoinInAggregation(tenantID: string, aggregation: any[], local: string, foreign: string, as: string, includes: string[]) {
-    this.pushTransformedJoinInAggregation(
-      tenantID,
-      aggregation,
-      'companies',
-      local,
-      foreign,
-      as,
-      includes,
-      {},
-      ['name', 'address'],
-      {id: `$${as}._id`},
-      true,
-      true);
-  }
-
   public static pushTransformedJoinInAggregation(tenantID: string, aggregation: any[], joinCollection: string, local: string, foreign: string, intoField: string, topIncludes: string[], topRenames: any, nestedIncludes: string[],
-     nestedRenames: any, topCreatedProps: boolean, joinCreatedProps: boolean) {
+    nestedRenames: any, topCreatedProps: boolean, joinCreatedProps: boolean) {
 
-    if(topCreatedProps) {
+    if (topCreatedProps) {
       topIncludes.push('createdBy', 'createdOn', 'lastChangedBy', 'lastChangedOn');
     }
-    if(joinCreatedProps) {
+    if (joinCreatedProps) {
       nestedIncludes.push('createdBy', 'createdOn', 'lastChangedBy', 'lastChangedOn');
     }
 
-    const initialJoin = {$lookup: {
+    const initialJoin = { $lookup: {
       from: DatabaseUtils.getCollectionName(tenantID, joinCollection),
       localField: local,
       foreignField: foreign,
       as: intoField
-    }};
-    let project = {$project: {...topRenames}};
-    let group = {$group: {_id: '$_id'}};
-    for(const top of topIncludes) {
+    } };
+    const project = { $project: { ...topRenames } };
+    const group = { $group: { _id: '$_id' } };
+    for (const top of topIncludes) {
       project.$project[top] = 1;
-      group.$group[top] = {$first: `$${top}`};
+      group.$group[top] = { $first: `$${top}` };
     }
-    group.$group[intoField] = {$push: `$${intoField}`};
-    project.$project[intoField] = {...nestedRenames};
+    group.$group[intoField] = { $push: `$${intoField}` };
+    project.$project[intoField] = { ...nestedRenames };
     project.$project[intoField].id = `$${intoField}._id`;
-    for(const nes of nestedIncludes) {
+    for (const nes of nestedIncludes) {
       project.$project[intoField][nes] = 1;
     }
     //Need to group, push users, then project to remove id

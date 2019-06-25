@@ -16,7 +16,7 @@ export default class PricingService {
         throw new AppAuthError(
           action, Constants.ENTITY_PRICING,
           null,
-          560, 'PricingService', 'handleGetPricing',
+          Constants.HTTP_AUTH_ERROR, 'PricingService', 'handleGetPricing',
           req.user);
       }
       // Get the Pricing
@@ -46,7 +46,7 @@ export default class PricingService {
         throw new AppAuthError(
           action, Constants.ENTITY_PRICING,
           null,
-          560, 'PricingService', 'handleUpdatePricing',
+          Constants.HTTP_AUTH_ERROR, 'PricingService', 'handleUpdatePricing',
           req.user);
       }
       // Filter
@@ -56,7 +56,7 @@ export default class PricingService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The price ${filteredRequest.priceKWH} has not a correct format`, 500,
+          `The price ${filteredRequest.priceKWH} has not a correct format`, Constants.HTTP_GENERAL_ERROR,
           'PricingService', 'handleUpdatePricing', req.user);
       }
       // Update

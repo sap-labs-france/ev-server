@@ -5,6 +5,7 @@ import OCPIUtils from '../../OCPIUtils';
 import OCPIServerError from '../../../../exception/OCPIServerError';
 
 import SourceMap from 'source-map-support';
+import Constants from '../../../../utils/Constants';
 SourceMap.install();
 
 const EP_IDENTIFIER = "locations";
@@ -65,8 +66,8 @@ const RECORDS_LIMIT = 20;
       if (!payload) {
         throw new OCPIServerError(
           'GET locations',
-          `Connector id '${connectorId}' not found on EVSE uid '${evseUid}' and location id '${locationId}'`, 500,
-          EP_IDENTIFIER, 'getLocationRequest', null);
+          `Connector id '${connectorId}' not found on EVSE uid '${evseUid}' and location id '${locationId}'`, Constants.HTTP_GENERAL_ERROR,
+          EP_IDENTIFIER, 'getLocationRequest');
       }
 
     } else if (locationId && evseUid) {
@@ -76,8 +77,8 @@ const RECORDS_LIMIT = 20;
       if (!payload) {
         throw new OCPIServerError(
           'GET locations',
-          `EVSE uid not found '${evseUid}' on location id '${locationId}'`, 500,
-          EP_IDENTIFIER, 'getLocationRequest', null);
+          `EVSE uid not found '${evseUid}' on location id '${locationId}'`, Constants.HTTP_GENERAL_ERROR,
+          EP_IDENTIFIER, 'getLocationRequest');
       }
     } else if (locationId) {
       // Get single location
@@ -87,8 +88,8 @@ const RECORDS_LIMIT = 20;
       if (!payload) {
         throw new OCPIServerError(
           'GET locations',
-          `Site id '${locationId}' not found`, 500,
-          EP_IDENTIFIER, 'getLocationRequest', null);
+          `Site id '${locationId}' not found`, Constants.HTTP_GENERAL_ERROR,
+          EP_IDENTIFIER, 'getLocationRequest');
       }
     } else {
       // Get query parameters
@@ -170,7 +171,9 @@ const RECORDS_LIMIT = 20;
     // Loop through EVSE
     if (location) {
       for (const evse of location.evses) {
-        if (evse.uid === evseUid) { return evse; }
+        if (evse.uid === evseUid) {
+          return evse;
+        }
       }
     }
   }
@@ -189,11 +192,11 @@ const RECORDS_LIMIT = 20;
     // Loop through Connector
     if (evse) {
       for (const connector of evse.connectors) {
-        if (connector.id === connectorId) { return connector; }
+        if (connector.id === connectorId) {
+          return connector;
+        }
       }
     }
   }
 }
-
-
 

@@ -31,7 +31,7 @@ export default class OCPIClient {
       }
     } catch (error) {
       pingResult.message = error.message;
-      pingResult.statusCode = (error.response) ? error.response.status : 500;
+      pingResult.statusCode = (error.response) ? error.response.status : Constants.HTTP_GENERAL_ERROR;
     }
 
     // Return result
@@ -88,7 +88,7 @@ export default class OCPIClient {
       registerResult.statusText = 'OK';
     } catch (error) {
       registerResult.message = error.message;
-      registerResult.statusCode = (error.response) ? error.response.status : 500;
+      registerResult.statusCode = (error.response) ? error.response.status : Constants.HTTP_GENERAL_ERROR;
     }
 
     // Return result
@@ -417,7 +417,9 @@ export default class OCPIClient {
 
     // Loop through notifications
     if (statusNotificationsResult.count > 0) {
-      return statusNotificationsResult.result.map((statusNotification) => { return statusNotification.chargeBoxID; });
+      return statusNotificationsResult.result.map((statusNotification) => {
+        return statusNotification.chargeBoxID;
+      });
     }
     return [];
 

@@ -12,7 +12,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('Setting tests', function () {
+describe('Setting tests', function() {
   this.timeout(30000);
 
   describe('Success cases', () => {
@@ -74,6 +74,5 @@ describe('Setting tests', function () {
   });
 
   describe('Error cases', () => {
-    // it('Should not create a setting area without a setting', async () => { });
   });
 });

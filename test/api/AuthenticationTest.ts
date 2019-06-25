@@ -14,19 +14,20 @@ chai.use(chaiSubset);
 const testData: any = {};
 
 describe('Authentication Service', function() {
-  this.timeout(1000);
+  this.timeout(5000);
+
+  before(() => {
+    // Get credentials
+    testData.adminEmail = config.get('admin.username');
+    testData.adminPassword = config.get('admin.password');
+    testData.adminTenant = config.get('admin.tenant');
+  });
 
   describe('Success cases', () => {
-    before(async () => {
-      // Get credentials
-      testData.adminEmail = config.get('admin.username');
-      testData.adminPassword = config.get('admin.password');
-      testData.adminTenant = config.get('admin.tenant');
-    });
-
     it('Should authenticate a registered user', async () => {
       // Check Login
-      const response = await CentralServerService.DefaultInstance.authenticationApi.login(testData.adminEmail, testData.adminPassword, true, testData.adminTenant);
+      const response = await CentralServerService.DefaultInstance.authenticationApi.login(
+        testData.adminEmail, testData.adminPassword, true, testData.adminTenant);
       // Check
       expect(response.status).to.be.eql(200);
       expect(response.data).to.have.property('token');
@@ -95,7 +96,8 @@ describe('Authentication Service', function() {
 
     it('Should not allow authentication without password', async () => {
       // Call
-      const response = await CentralServerService.DefaultInstance.authenticationApi.login(testData.adminEmail, null, true);
+      const response = await CentralServerService.DefaultInstance.authenticationApi.login(
+        testData.adminEmail, null, true, testData.adminTenant);
       // Check
       expect(response.status).to.be.eql(500);
       expect(response.data).to.not.have.property('token');
@@ -103,7 +105,8 @@ describe('Authentication Service', function() {
 
     it('Should not allow authentication not accepting eula', async () => {
       // Call
-      const response = await CentralServerService.DefaultInstance.authenticationApi.login(testData.adminEmail, testData.adminPassword, false);
+      const response = await CentralServerService.DefaultInstance.authenticationApi.login(
+        testData.adminEmail, testData.adminPassword, false, testData.adminTenant);
       // Check
       expect(response.status).to.be.eql(520);
       expect(response.data).to.not.have.property('token');
@@ -111,7 +114,8 @@ describe('Authentication Service', function() {
 
     it('Should not allow authentication without eula', async () => {
       // Call
-      const response = await CentralServerService.DefaultInstance.authenticationApi.login(testData.adminEmail, testData.adminPassword, null);
+      const response = await CentralServerService.DefaultInstance.authenticationApi.login(
+        testData.adminEmail, testData.adminPassword, null, testData.adminTenant);
       // Check
       expect(response.status).to.be.eql(520);
       expect(response.data).to.not.have.property('token');
@@ -119,7 +123,8 @@ describe('Authentication Service', function() {
 
     it('Should not allow authentication without email', async () => {
       // Call
-      const response = await CentralServerService.DefaultInstance.authenticationApi.login(null, testData.adminPassword, true);
+      const response = await CentralServerService.DefaultInstance.authenticationApi.login(
+        null, testData.adminPassword, true, testData.adminTenant);
       // Check
       expect(response.status).to.be.eql(500);
       expect(response.data).to.not.have.property('token');
@@ -127,22 +132,20 @@ describe('Authentication Service', function() {
 
     it('Should not allow authentication of unknown email', async () => {
       // Call
-      const response = await CentralServerService.DefaultInstance.authenticationApi.login('unkown@sap.com', testData.adminPassword, true);
+      const response = await CentralServerService.DefaultInstance.authenticationApi.login('unknown@sap.com', testData.adminPassword, true);
       expect(response.status).to.be.eql(550);
       expect(response.data).to.not.have.property('token');
     });
 
     it('should not allow authentication without tenant', async () => {
-      const response = await CentralServerService.DefaultInstance.authenticationApi.login('unkown@sap.com', testData.adminPassword, true, null);
+      const response = await CentralServerService.DefaultInstance.authenticationApi.login('unknown@sap.com', testData.adminPassword, true, null);
       expect(response.status).to.be.eql(550);
-      expect(response.data).to.have.property('message', 'Wrong email or password');
       expect(response.data).to.not.have.property('token');
     });
 
     it('should not allow authentication of unknown tenant', async () => {
-      const response = await CentralServerService.DefaultInstance.authenticationApi.login('unkown@sap.com', testData.adminPassword, true, 'unkown');
+      const response = await CentralServerService.DefaultInstance.authenticationApi.login('unknown@sap.com', testData.adminPassword, true, 'unknown');
       expect(response.status).to.be.eql(550);
-      expect(response.data).to.have.property('message', 'Wrong email or password');
       expect(response.data).to.not.have.property('token');
     });
   });

@@ -3,118 +3,58 @@ import Authorizations from '../../../../authorization/Authorizations';
 import UtilsSecurity from './UtilsSecurity';
 import ChargingStationSecurity from './ChargingStationSecurity';
 import SiteSecurity from './SiteSecurity';
-import ByID from '../../../../types/requests/RequestByID';
-import { HttpSiteAreaSearchRequest, HttpSiteAreasSearchRequest } from '../../../../types/requests/SiteAreaSearch';
-import BadRequestError from '../../../../exception/BadRequestError';
-import { HttpSiteAreaUpdateRequest, HttpSiteAreaCreateRequest } from '../../../../types/requests/SiteAreaData';
-import AppAuthError from '../../../../exception/AppAuthError';
-import Constants from '../../../../utils/Constants';
-import { Request } from 'express';
-import AppError from '../../../../exception/AppError';
-import { create } from 'domain';
-import Utils from '../../../../utils/Utils';
+import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import { HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
+import SiteArea from '../../../../types/SiteArea';
 
 export default class SiteAreaSecurity {
 
-
-  public static filterSiteAreaDeleteRequest(request: ByID, userToken): string {
-    Utils.assertObjectExists(request.ID, 'Site Area ID must be provided', 'SiteAreaService', 'handleDeleteSiteArea', userToken);
+  public static filterSiteAreaRequestByID(request: HttpByIDRequest): string {
     return sanitize(request.ID);
   }
 
-  public static filterSiteAreaRequest(request: Partial<HttpSiteAreaSearchRequest>, userToken): HttpSiteAreaSearchRequest {
-    //Throw error if arguments missing
-    Utils.assertObjectExists(request.ID, 'ID must be provided.', 'SiteAreaSecurity', 'filterSiteAreaRequest', userToken);
-
-    //Filter request
-    const filteredRequest: HttpSiteAreaSearchRequest = {} as HttpSiteAreaSearchRequest;
-    filteredRequest.ID = sanitize(request.ID);
-    filteredRequest.WithChargeBoxes = !request.WithChargeBoxes ? false : sanitize(request.WithChargeBoxes);
-    filteredRequest.WithSite = !request.WithSite ? false : sanitize(request.WithSite);
-    return filteredRequest;
+  public static filterSiteAreaRequest(request: Partial<HttpSiteAreaRequest>): HttpSiteAreaRequest {
+    // Filter request
+    return {
+      ID: sanitize(request.ID),
+      WithChargeBoxes: !request.WithChargeBoxes ? false : sanitize(request.WithChargeBoxes),
+      WithSite: !request.WithSite ? false : sanitize(request.WithSite)
+    } as HttpSiteAreaRequest;
   }
 
-  public static filterSiteAreasRequest(request: Partial<HttpSiteAreasSearchRequest>, userToken): HttpSiteAreasSearchRequest {
-    // Check auth
-    if (!Authorizations.canListSiteAreas(userToken)) {
-      // Not Authorized!
-      throw new AppAuthError(
-        Constants.ACTION_LIST,
-        Constants.ENTITY_SITE_AREAS,
-        null,
-        560, 'SiteAreaService', 'handleGetSiteAreas',
-        userToken);
-    }
-
-    //Filter request
-    const filteredRequest: HttpSiteAreasSearchRequest = {} as HttpSiteAreasSearchRequest;
-    filteredRequest.Search = sanitize(request.Search);
-    filteredRequest.WithSite = !request.WithSite ? false : UtilsSecurity.filterBoolean(request.WithSite);
-    filteredRequest.WithChargeBoxes = !request.WithChargeBoxes ? false : UtilsSecurity.filterBoolean(request.WithChargeBoxes);
-    filteredRequest.WithAvailableChargers = !request.WithAvailableChargers ? false : UtilsSecurity.filterBoolean(request.WithAvailableChargers);
-    filteredRequest.SiteID = sanitize(request.SiteID);
+  public static filterSiteAreasRequest(request: Partial<HttpSiteAreasRequest>): HttpSiteAreasRequest {
+    const filteredRequest: HttpSiteAreasRequest = {
+      Search: sanitize(request.Search),
+      WithSite: !request.WithSite ? false : UtilsSecurity.filterBoolean(request.WithSite),
+      WithChargeBoxes: !request.WithChargeBoxes ? false : UtilsSecurity.filterBoolean(request.WithChargeBoxes),
+      WithAvailableChargers: !request.WithAvailableChargers ? false : UtilsSecurity.filterBoolean(request.WithAvailableChargers),
+      SiteID: sanitize(request.SiteID)
+    } as HttpSiteAreasRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
   }
 
-
-  public static filterSiteAreaUpdateRequest(request: Partial<HttpSiteAreaUpdateRequest>, userToken): HttpSiteAreaUpdateRequest {
-    // Set
-    if(! request.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Site id is mandatory`, 500,
-        'SiteAreaSecurity', 'filterSiteAreaUpdateRequest',
-        userToken.id, request.id);
-    }
-    const filteredRequest = {id: sanitize(request.id), ...SiteAreaSecurity._filterSiteAreaRequest(request, userToken)};
-    filteredRequest.id = sanitize(request.id);
-    return filteredRequest;
+  public static filterSiteAreaUpdateRequest(request: Partial<SiteArea>): Partial<SiteArea> {
+    return {
+      id: sanitize(request.id),
+      ...SiteAreaSecurity._filterSiteAreaRequest(request)
+    };
   }
 
-  public static filterSiteAreaCreateRequest(request: Partial<HttpSiteAreaCreateRequest>, userToken): HttpSiteAreaCreateRequest {
-    // Check auth
-    if (!Authorizations.canCreateSite(userToken)) {
-      // Not Authorized!
-      throw new AppAuthError(
-        Constants.ACTION_CREATE,
-        Constants.ENTITY_SITE_AREA,
-        null,
-        560, 'SiteAreaSecurity', 'filterSiteAreaCreateRequest',
-        userToken);
-    }
-
-    return SiteAreaSecurity._filterSiteAreaRequest(request, userToken);
+  public static filterSiteAreaCreateRequest(request: Partial<SiteArea>): Partial<SiteArea> {
+    return SiteAreaSecurity._filterSiteAreaRequest(request);
   }
 
-  public static _filterSiteAreaRequest(request: Partial<HttpSiteAreaUpdateRequest>, userToken): HttpSiteAreaCreateRequest {
-    const filteredRequest: HttpSiteAreaCreateRequest = {} as HttpSiteAreaCreateRequest;
-    // Check if name exists, if not throw error
-    if(! request.name) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Site Area Name is mandatory`, 500,
-        'SiteAreaSecurity', 'filterSiteAreaRequest',
-        userToken.id, request.id);
-    }
-    filteredRequest.name = sanitize(request.name);
-    filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address);
-    filteredRequest.image = sanitize(request.image);
-    filteredRequest.maximumPower = sanitize(request.maximumPower);
-    filteredRequest.accessControl = UtilsSecurity.filterBoolean(request.accessControl);
-    filteredRequest.chargeBoxIDs = request.chargeBoxIDs?sanitize(request.chargeBoxIDs):[];
-    
-    // Check if siteID exists, if not throw error
-    if(! request.siteID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Site ID is mandatory`, 500,
-        'SiteAreaSecurity', 'filterSiteAreaRequest',
-        userToken.id, request.id);
-    }
-    filteredRequest.siteID = sanitize(request.siteID);
-    return filteredRequest;
+  public static _filterSiteAreaRequest(request: Partial<SiteArea>): Partial<SiteArea> {
+    return {
+      name: sanitize(request.name),
+      address: UtilsSecurity.filterAddressRequest(request.address),
+      image: sanitize(request.image),
+      maximumPower: sanitize(request.maximumPower),
+      accessControl: UtilsSecurity.filterBoolean(request.accessControl),
+      siteID: sanitize(request.siteID)
+    };
   }
 
   static filterSiteAreaResponse(siteArea, loggedUser) {
@@ -189,6 +129,5 @@ export default class SiteAreaSecurity {
     }
     siteAreas.result = filteredSiteAreas;
   }
-
 }
 

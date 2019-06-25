@@ -110,7 +110,7 @@ export default class TransactionApi extends CrudApi {
           }]
         },
       });
-      // OCPP 1.5
+    // OCPP 1.5
     } else {
       response = await ocpp.executeMeterValues(chargingStation.id, {
         connectorId: transaction.connectorId,

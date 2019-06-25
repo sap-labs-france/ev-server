@@ -57,8 +57,8 @@ export default class UpdateTransactionSimplePriceTask extends MigrationTask {
     await BBPromise.map(transactions,
       async (transaction) => {
         if (transaction.stop && transaction.stop.totalConsumption) {
-          const updatedField = await simplePricing.computePrice({consumption: transaction.stop.totalConsumption});
-          await transactionsCollection.updateOne({_id: transaction._id}, {
+          const updatedField = await simplePricing.computePrice({ consumption: transaction.stop.totalConsumption });
+          await transactionsCollection.updateOne({ _id: transaction._id }, {
             $set: {
               'stop.price': updatedField.amount,
               'stop.roundedPrice': updatedField.roundedAmount,
@@ -75,21 +75,21 @@ export default class UpdateTransactionSimplePriceTask extends MigrationTask {
           });
         }
       },
-      {concurrency: 5});
+      { concurrency: 5 });
   }
 
   async updateConsumptionPrice(tenantId, simplePricing, transactionId) {
     const consumptionsCollection = await global.database.getCollection<any>(tenantId, 'consumptions');
     const consumptions = await consumptionsCollection.aggregate([
-      {$match: {transactionId: transactionId}},
-      {$sort: {endedAt: 1}}
+      { $match: { transactionId: transactionId } },
+      { $sort: { endedAt: 1 } }
     ]).toArray();
     await BBPromise.map(consumptions,
       async (consumption) => {
-        const updatedField = await simplePricing.computePrice({consumption: consumption.consumption});
-        const cumulatedField = await simplePricing.computePrice({consumption: consumption.cumulatedConsumption});
+        const updatedField = await simplePricing.computePrice({ consumption: consumption.consumption });
+        const cumulatedField = await simplePricing.computePrice({ consumption: consumption.cumulatedConsumption });
 
-        await consumptionsCollection.updateOne({_id: consumption._id}, {
+        await consumptionsCollection.updateOne({ _id: consumption._id }, {
           $set: {
             amount: updatedField.amount,
             roundedAmount: updatedField.roundedAmount,
@@ -97,7 +97,7 @@ export default class UpdateTransactionSimplePriceTask extends MigrationTask {
           }
         });
       },
-      {concurrency: 5}
+      { concurrency: 5 }
     );
   }
 
@@ -113,5 +113,4 @@ export default class UpdateTransactionSimplePriceTask extends MigrationTask {
     return "UpdateTransactionSimplePriceTask";
   }
 }
-
 

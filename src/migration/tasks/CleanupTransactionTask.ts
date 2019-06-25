@@ -86,4 +86,3 @@ export default class CleanupTransactionTask extends MigrationTask {
   }
 }
 
-

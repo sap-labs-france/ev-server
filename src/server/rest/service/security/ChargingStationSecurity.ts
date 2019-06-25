@@ -11,7 +11,9 @@ export default class ChargingStationSecurity {
     // Set
     filteredRequest.siteAreaID = sanitize(request.siteAreaID);
     if (request.chargingStationIDs) {
-      filteredRequest.chargingStationIDs = request.chargingStationIDs.map((chargingStationID) => { return sanitize(chargingStationID); });
+      filteredRequest.chargingStationIDs = request.chargingStationIDs.map((chargingStationID) => {
+        return sanitize(chargingStationID);
+      });
     }
     return filteredRequest;
   }
@@ -22,7 +24,9 @@ export default class ChargingStationSecurity {
     // Set
     filteredRequest.siteAreaID = sanitize(request.siteAreaID);
     if (request.chargingStationIDs) {
-      filteredRequest.chargingStationIDs = request.chargingStationIDs.map((chargingStationID) => { return sanitize(chargingStationID); });
+      filteredRequest.chargingStationIDs = request.chargingStationIDs.map((chargingStationID) => {
+        return sanitize(chargingStationID);
+      });
     }
     return filteredRequest;
   }
@@ -35,7 +39,7 @@ export default class ChargingStationSecurity {
       return null;
     }
     // Check organization
-    if (organizationIsActive && !Authorizations.isAdmin(loggedUser.role) && (!chargingStation.siteArea || !Authorizations.canReadSite(loggedUser, {id: chargingStation.siteArea.siteID}))) {
+    if (organizationIsActive && !Authorizations.isAdmin(loggedUser.role) && (!chargingStation.siteArea || !Authorizations.canReadSite(loggedUser, chargingStation.siteArea.siteID))) {
       return null;
     }
     // Check auth
@@ -261,5 +265,4 @@ export default class ChargingStationSecurity {
     return filteredRequest;
   }
 }
-
 

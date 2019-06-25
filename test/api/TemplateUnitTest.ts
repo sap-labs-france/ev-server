@@ -3,7 +3,6 @@ import TSGlobal from '../../src/types/GlobalType';
 declare const global: TSGlobal;
 global.appRoot = path.resolve(__dirname, '../../src');
 import CONTEXTS from './contextProvider/ContextConstants';
-// const ContextBuilder = require('./contextProvider/ContextBuilder');
 import ContextProvider from './contextProvider/ContextProvider';
 import chai from 'chai';
 import {expect} from 'chai';
@@ -12,13 +11,12 @@ chai.use(require('chai-datetime'));
 chai.use(chaiSubset);
 chai.use(require('../helpers/responseHelper'));
 import moment from 'moment';
-import TenantContext from './contextProvider/TenantContext';
 
 // For Visual Studio it is recommended to install Mocha sidebar and Chai snippets
 // Mocha is the test framework and chai provides functions to check expectations
 
-describe('Unit test template', function() {
-  this.timeout(50000100); // Not mandatory will automatically stop the unit test after that period of time
+describe('Template for Dev Unit Test', function() {
+  this.timeout(10000); // Not mandatory will automatically stop the unit test after that period of time
 
   before(async () => {
     chai.config.includeStack = true;
@@ -26,8 +24,7 @@ describe('Unit test template', function() {
     await ContextProvider.DefaultInstance.prepareContexts();
   });
 
-  afterEach(async () => {
-    console.log('Reinitialize content after each test');
+  afterEach(() => {
     // Should be called after each UT to clean up created data
     ContextProvider.DefaultInstance.cleanUpCreatedContent();
   });
@@ -53,7 +50,7 @@ describe('Unit test template', function() {
   });
 
   describe('Unit test 2 global description  level 1', () => {
-    it('simple unit test 1', async () => {
+    it('simple unit test 1', () => {
       const test = 2;
       expect(test).to.equal(2);
     });
@@ -61,6 +58,5 @@ describe('Unit test template', function() {
 });
 
 function timeout(ms) {
-  // eslint-disable-next-line no-undef
   return new Promise(resolve => setTimeout(resolve, ms));
 }
