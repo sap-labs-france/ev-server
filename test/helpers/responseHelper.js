@@ -7,7 +7,7 @@ module.exports = function (chai, utils) {
     new Assertion(this._obj).to.be.instanceof(Object);
     new Assertion(this._obj).to.be.not.null;
     new Assertion(this._obj.data).to.not.be.null;
-    
+
     // second, our type check
     this.assert(
       obj.data.transactionId > 0

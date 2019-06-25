@@ -1,4 +1,4 @@
-const path = require('path');
+import path from 'path';
 import TSGlobal from '../../src/types/GlobalType';
 declare const global: TSGlobal;
 global.appRoot = path.resolve(__dirname, '../../src');
@@ -14,7 +14,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('OCPP 1.6 JSON Tests', function () {
+describe('OCPP 1.6 JSON Tests', function() {
   this.timeout(10000);
 
   before(async () => {

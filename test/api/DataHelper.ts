@@ -176,22 +176,45 @@ export default class DataHelper {
 
 
   public async sendConsumptionMeterValue(chargingStation, connectorId, transactionId, meterValue, timestamp) {
-    const response = await  this.ocpp.executeMeterValues(chargingStation.id, {
-      connectorId: connectorId,
-      transactionId: transactionId,
-      meterValue: {
-        timestamp: timestamp.toISOString(),
-        sampledValue: [{
-          value: meterValue,
-          format: "Raw",
-          measurand: "Energy.Active.Import.Register",
-          unit: 'Wh',
-          location: "Outlet",
-          context: "Sample.Periodic"
-        }]
+    let response;
+    // OCPP 1.6?
+    if (this.ocpp.getVersion() === "1.6") {
+      response = await  this.ocpp.executeMeterValues(chargingStation.id, {
+        connectorId: connectorId,
+        transactionId: transactionId,
+        meterValue: {
+          timestamp: timestamp.toISOString(),
+          sampledValue: [{
+            value: meterValue,
+            format: "Raw",
+            measurand: "Energy.Active.Import.Register",
+            unit: 'Wh',
+            location: "Outlet",
+            context: "Sample.Periodic"
+          }]
 
-      },
-    });
+        },
+      });
+    // OCPP 1.5
+    } else {
+      response = await this.ocpp.executeMeterValues(chargingStation.id, {
+        connectorId: connectorId,
+        transactionId: transactionId,
+        values: {
+          timestamp: timestamp.toISOString(),
+          value: {
+            $attributes: {
+              unit: 'Wh',
+              location: "Outlet",
+              measurand: "Energy.Active.Import.Register",
+              format: "Raw",
+              context: "Sample.Periodic"
+            },
+            $value: meterValue
+          }
+        },
+      });
+    }
     expect(response.data).to.eql({});
   }
 
@@ -214,22 +237,44 @@ export default class DataHelper {
   }
 
   public async sendClockMeterValue(chargingStation, connectorId, transactionId, meterValue, timestamp) {
-    const response = await  this.ocpp.executeMeterValues(chargingStation.id, {
-      connectorId: connectorId,
-      transactionId: transactionId,
-      meterValue: {
-        timestamp: timestamp.toISOString(),
-        sampledValue: [{
-          value: meterValue,
-          format: "Raw",
-          measurand: "Energy.Active.Import.Register",
-          unit: 'Wh',
-          location: "Outlet",
-          context: "Sample.Clock"
-        }]
-
-      },
-    });
+    let response;
+    // OCPP 1.6?
+    if (this.ocpp.getVersion() === "1.6") {
+      const response = await  this.ocpp.executeMeterValues(chargingStation.id, {
+        connectorId: connectorId,
+        transactionId: transactionId,
+        meterValue: {
+          timestamp: timestamp.toISOString(),
+          sampledValue: [{
+            value: meterValue,
+            format: "Raw",
+            measurand: "Energy.Active.Import.Register",
+            unit: 'Wh',
+            location: "Outlet",
+            context: "Sample.Clock"
+          }]
+        },
+      });
+      // OCPP 1.5
+    } else {
+      response = await this.ocpp.executeMeterValues(chargingStation.id, {
+        connectorId: connectorId,
+        transactionId: transactionId,
+        values: {
+          timestamp: timestamp.toISOString(),
+          value: {
+            $attributes: {
+              unit: 'Wh',
+              location: "Outlet",
+              measurand: "Energy.Active.Import.Register",
+              format: "Raw",
+              context: "Sample.Clock"
+            },
+            $value: meterValue
+          }
+        },
+      });
+    }
     expect(response.data).to.eql({});
   }
 

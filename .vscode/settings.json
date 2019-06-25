@@ -1,8 +1,15 @@
 {
-    "eslint.validate": [
-        "javascript",
-        "javascriptreact",
-        "typescript",
-        "typescriptreact"
-    ],
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "mocha.env": {
+    "TS_NODE_FILES": true
+  },
+  "mocha.requires": [
+    "ts-node/register"
+  ],
+  "mocha.files.glob": "test/**/*Test.ts"
 }

@@ -31,7 +31,7 @@ export default class TenantService extends AbstractService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Tenant's ID must be provided`, 500,
+          `The Tenant's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
           MODULE_NAME, 'handleDeleteTenant', req.user);
       }
       // Get
@@ -41,11 +41,11 @@ export default class TenantService extends AbstractService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Tenant with ID '${filteredRequest.ID}' does not exist`, 550,
+          `Tenant with ID '${filteredRequest.ID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           MODULE_NAME, 'handleDeleteTenant', req.user);
       }
       // Check auth
-      if (!Authorizations.canDeleteTenant(req.user, tenant.getModel())) {
+      if (!Authorizations.canDeleteTenant(req.user)) {
         // Not Authorized!
         throw new UnauthorizedError(
           Constants.ACTION_DELETE,
@@ -56,7 +56,7 @@ export default class TenantService extends AbstractService {
       if (tenant.getID() === req.user.tenantID) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Your own tenant with id '${tenant.getID()}' cannot be deleted`, 550,
+          `Your own tenant with id '${tenant.getID()}' cannot be deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           MODULE_NAME, 'handleDeleteTenant', req.user);
       }
       // Delete
@@ -95,19 +95,20 @@ export default class TenantService extends AbstractService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Tenant's ID must be provided`, 500,
+          `The Tenant's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
           MODULE_NAME, 'handleGetTenant', req.user);
       }
       // Get it
       const tenant = await Tenant.getTenant(filteredRequest.ID);
+
       if (!tenant) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Tenant with ID '${filteredRequest.ID}' does not exist`, 550,
+          `Tenant with ID '${filteredRequest.ID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           MODULE_NAME, 'handleGetTenant', req.user);
       }
       // Check auth
-      if (!Authorizations.canReadTenant(req.user, tenant.getModel())) {
+      if (!Authorizations.canReadTenant(req.user)) {
         // Not Authorized!
         throw new UnauthorizedError(
           Constants.ACTION_READ,
@@ -148,7 +149,9 @@ export default class TenantService extends AbstractService {
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
-      tenants.result = tenants.result.map((tenant) => { return tenant.getModel(); });
+      tenants.result = tenants.result.map((tenant) => {
+        return tenant.getModel();
+      });
       // Filter
       TenantSecurity.filterTenantsResponse(tenants, req.user);
       // Return
@@ -257,7 +260,7 @@ export default class TenantService extends AbstractService {
         detailedMessages: newTenant
       });
       // Ok
-      res.status(HttpStatusCodes.OK).json(Object.assign({id: newTenant.getID()}, Constants.REST_RESPONSE_SUCCESS));
+      res.status(HttpStatusCodes.OK).json(Object.assign({ id: newTenant.getID() }, Constants.REST_RESPONSE_SUCCESS));
       next();
     } catch (error) {
       AbstractService._handleError(error, req, next, action, MODULE_NAME, 'handleCreateTenant');
@@ -275,11 +278,11 @@ export default class TenantService extends AbstractService {
       if (!tenant) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Tenant with ID '${filteredRequest.ID}' does not exist`, 550,
+          `Tenant with ID '${filteredRequest.ID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           MODULE_NAME, 'handleUpdateTenant', req.user);
       }
       // Check auth
-      if (!Authorizations.canUpdateTenant(req.user, tenant.getModel())) {
+      if (!Authorizations.canUpdateTenant(req.user)) {
         // Not Authorized!
         throw new UnauthorizedError(
           Constants.ACTION_UPDATE,

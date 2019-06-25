@@ -29,6 +29,7 @@ export default class TenantStorage {
       .aggregate(aggregation)
       .limit(1)
       .toArray();
+
     let tenant = null;
     // Found?
     if (tenantsMDB && tenantsMDB.length > 0) {
@@ -37,6 +38,8 @@ export default class TenantStorage {
     }
     // Debug
     Logging.traceEnd('TenantStorage', 'getTenant', uniqueTimerID, { id });
+
+
     return tenant;
   }
 
@@ -145,7 +148,7 @@ export default class TenantStorage {
     }
     // Count Records
     const tenantsCountMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants')
-      .aggregate([...aggregation, { $count: "count"}], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
       .toArray();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation('', aggregation);

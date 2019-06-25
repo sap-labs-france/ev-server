@@ -49,7 +49,7 @@ export default class UpdateKebaMeterValuesTask extends MigrationTask {
       .aggregate(aggregation)
       .toArray();
     for (const meterValueMDB of meterValuesMDB) {
-      await global.database.getCollection<any>(tenant.getID(), 'metervalues').findOneAndDelete({'_id': meterValueMDB._id});
+      await global.database.getCollection<any>(tenant.getID(), 'metervalues').findOneAndDelete({ '_id': meterValueMDB._id });
     }
   }
 

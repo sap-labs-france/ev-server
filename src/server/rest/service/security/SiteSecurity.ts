@@ -12,7 +12,19 @@ export default class SiteSecurity {
     // Set
     filteredRequest.siteID = sanitize(request.siteID);
     if (request.userIDs) {
-      filteredRequest.userIDs = request.userIDs.map((userID) => { return sanitize(userID); });
+      filteredRequest.userIDs = request.userIDs.map((userID) => {
+        return sanitize(userID);
+      });
+    }
+    return filteredRequest;
+  }
+
+  static filterUpdateSiteUserRoleRequest(request) {
+    const filteredRequest: any = {};
+    filteredRequest.siteID = sanitize(request.siteID);
+    filteredRequest.userID = sanitize(request.userID);
+    if ('siteAdmin' in request) {
+      filteredRequest.siteAdmin = UtilsSecurity.filterBoolean(request.siteAdmin);
     }
     return filteredRequest;
   }
@@ -23,7 +35,9 @@ export default class SiteSecurity {
     // Set
     filteredRequest.siteID = sanitize(request.siteID);
     if (request.userIDs) {
-      filteredRequest.userIDs = request.userIDs.map((userID) => { return sanitize(userID); });
+      filteredRequest.userIDs = request.userIDs.map((userID) => {
+        return sanitize(userID);
+      });
     }
     return filteredRequest;
   }
@@ -40,6 +54,14 @@ export default class SiteSecurity {
   static filterSiteRequest(request, loggedUser) {
     const filteredRequest: any = {};
     filteredRequest.ID = sanitize(request.ID);
+    return filteredRequest;
+  }
+
+  static filterSiteUsersRequest(request) {
+    const filteredRequest: any = {};
+    filteredRequest.siteID = sanitize(request.SiteID);
+    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+    UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
   }
 
@@ -85,7 +107,7 @@ export default class SiteSecurity {
       });
       filteredRequest.userIDs = request.userIDs.filter((userID) => {
         // Check auth
-        if (Authorizations.canReadUser(loggedUser, {id: userID})) {
+        if (Authorizations.canReadUser(loggedUser, userID)) {
           return true;
         }
         return false;
@@ -102,9 +124,9 @@ export default class SiteSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadSite(loggedUser, site)) {
+    if (Authorizations.canReadSite(loggedUser, site.id)) {
       // Admin?
-      if (Authorizations.isAdmin(loggedUser)) {
+      if (Authorizations.isAdmin(loggedUser.role)) {
         // Yes: set all params
         filteredSite = site;
       } else {
@@ -119,7 +141,7 @@ export default class SiteSecurity {
         filteredSite.address = UtilsSecurity.filterAddressRequest(site.address);
       }
       if (site.company) {
-        filteredSite.company = CompanySecurity.filterCompanyResponse({id: site.company._id.toHexString(), ...site.company}, loggedUser);
+        filteredSite.company = CompanySecurity.filterCompanyResponse({ id: site.company._id.toHexString(), ...site.company }, loggedUser);
       }
       if (site.siteAreas) {
         filteredSite.siteAreas = SiteAreaSecurity.filterSiteAreasResponse(site.siteAreas, loggedUser);
@@ -169,5 +191,4 @@ export default class SiteSecurity {
     sites.result = filteredSites;
   }
 }
-
 

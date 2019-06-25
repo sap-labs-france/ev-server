@@ -7,7 +7,8 @@ SourceMap.install();
 
 /**
  * OCPI Service 2.0 - Not Implemented - Only used for testing multiple Services declaration
- */export default class OCPIServices extends AbstractOCPIService {
+ */
+export default class OCPIServices extends AbstractOCPIService {
   // Create OCPI Service
   constructor(ocpiRestConfig) {
     super(ocpiRestConfig, VERSION);

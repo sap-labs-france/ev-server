@@ -12,9 +12,9 @@ import path from 'path';
 import Logging from './Logging';
 import Tenant from '../entity/Tenant';
 import SourceMap from 'source-map-support';
+// Import AppError from '../exception/AppError';
 import _ from 'lodash';
 
-// import User from '../entity/User';
 SourceMap.install();
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
@@ -215,7 +215,7 @@ export default class Utils {
     return changedID;
   }
 
-  public static convertUserToObjectID(user: any): ObjectID|null { // TODO Fix this method...
+  public static convertUserToObjectID(user: any): ObjectID | null { // TODO: Fix this method...
     let userID = null;
     // Check Created By
     if (user) {
@@ -255,6 +255,7 @@ export default class Utils {
         fullName = user.name;
       }
     } else {
+      // eslint-disable-next-line no-lonely-if
       if (user.firstName) {
         fullName = `${user.firstName} ${user.name}`;
       } else {
@@ -325,7 +326,7 @@ export default class Utils {
 
   }
 
-  public static checkRecordLimit(recordLimit: number|string): number {
+  public static checkRecordLimit(recordLimit: number | string): number {
     // String?
     if (typeof recordLimit === 'string') {
       recordLimit = parseInt(recordLimit);
@@ -346,7 +347,7 @@ export default class Utils {
     return value[0].toUpperCase() + value.substring(1);
   }
 
-  public static checkRecordSkip(recordSkip: number|string): number {
+  public static checkRecordSkip(recordSkip: number | string): number {
     // String?
     if (typeof recordSkip === "string") {
       recordSkip = parseInt(recordSkip);
@@ -389,9 +390,5 @@ export default class Utils {
       default:
         return 'Unknown';
     }
-  }
-
-  static isUndefined(obj) {
-    return typeof obj === 'undefined';
   }
 }

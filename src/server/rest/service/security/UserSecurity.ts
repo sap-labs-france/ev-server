@@ -9,7 +9,9 @@ export default class UserSecurity {
     // Set
     filteredRequest.userID = sanitize(request.userID);
     if (request.siteIDs) {
-      filteredRequest.siteIDs = request.siteIDs.map((siteID) => { return sanitize(siteID); });
+      filteredRequest.siteIDs = request.siteIDs.map((siteID) => {
+        return sanitize(siteID);
+      });
     }
     return filteredRequest;
   }
@@ -20,7 +22,9 @@ export default class UserSecurity {
     // Set
     filteredRequest.userID = sanitize(request.userID);
     if (request.siteIDs) {
-      filteredRequest.siteIDs = request.siteIDs.map((siteID) => { return sanitize(siteID); });
+      filteredRequest.siteIDs = request.siteIDs.map((siteID) => {
+        return sanitize(siteID);
+      });
     }
     return filteredRequest;
   }
@@ -99,7 +103,7 @@ export default class UserSecurity {
       filteredRequest.phone = sanitize(request.phone);
     }
     // Admin?
-    if (Authorizations.isAdmin(loggedUser)) {
+    if (Authorizations.isAdmin(loggedUser.role)) {
       // Ok to set the sensitive data
       if (request.hasOwnProperty("notificationsActive")) {
         filteredRequest.notificationsActive = sanitize(request.notificationsActive);
@@ -121,7 +125,7 @@ export default class UserSecurity {
       }
     }
     // Admin?
-    if (Authorizations.isSuperAdmin(loggedUser)) {
+    if (Authorizations.isSuperAdmin(loggedUser.role)) {
       // Ok to set the sensitive data
       if (request.hasOwnProperty("email")) {
         filteredRequest.email = sanitize(request.email);
@@ -144,9 +148,9 @@ export default class UserSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadUser(loggedUser, user)) {
+    if (Authorizations.canReadUser(loggedUser, user.id)) {
       // Admin?
-      if (Authorizations.isAdmin(loggedUser) || Authorizations.isSuperAdmin(loggedUser)) {
+      if (Authorizations.isAdmin(loggedUser.role) || Authorizations.isSuperAdmin(loggedUser.role)) {
         filteredUser.id = user.id;
         filteredUser.name = user.name;
         filteredUser.firstName = user.firstName;
@@ -163,6 +167,9 @@ export default class UserSecurity {
         filteredUser.tagIDs = user.tagIDs;
         filteredUser.plateID = user.plateID;
         filteredUser.role = user.role;
+        if ('siteAdmin' in user) {
+          filteredUser.siteAdmin = user.siteAdmin;
+        }
         if (user.address) {
           filteredUser.address = UtilsSecurity.filterAddressRequest(user.address);
         }
@@ -198,9 +205,9 @@ export default class UserSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadUser(loggedUser, user)) {
+    if (Authorizations.canReadUser(loggedUser, user.id)) {
       // Admin?
-      if (Authorizations.isAdmin(loggedUser)) {
+      if (Authorizations.isAdmin(loggedUser.role)) {
         filteredUser.id = user.id;
         filteredUser.name = user.name;
         filteredUser.firstName = user.firstName;
@@ -223,14 +230,11 @@ export default class UserSecurity {
     for (const user of users.result) {
       // Filter
       const filteredUser = UserSecurity.filterUserResponse(user, loggedUser);
-      // Ok?
       if (filteredUser) {
-        // Add
         filteredUsers.push(filteredUser);
       }
     }
     users.result = filteredUsers;
   }
 }
-
 

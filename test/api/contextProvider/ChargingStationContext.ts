@@ -29,7 +29,7 @@ export default class ChargingStationContext {
 
   addTransactionStarted(transaction) {
     this.transactionsStarted.push(transaction);
-  } 
+  }
 
   addTransactionStopped(transaction) {
     this.transactionsStopped.push(transaction);
@@ -138,7 +138,7 @@ export default class ChargingStationContext {
   }
 
   getConfiguration() {
-    const configuration = {
+    const configuration:any = {
       "stationTemplate": {
         "baseName": "CS-" + faker.random.alphaNumeric(10),
         "chargePointModel": this.chargingStation.chargePointModel,

@@ -1,10 +1,11 @@
 import User from '../entity/User';
+import Constants from '../utils/Constants';
 
 export default class AppError extends Error {
   constructor(
     readonly source: string,
     readonly message: string,
-    readonly errorCode: string|number = 500,
+    readonly errorCode: number = Constants.HTTP_GENERAL_ERROR,
     readonly module: string = "N/A",
     readonly method: string = "N/A",
     readonly user?: User,

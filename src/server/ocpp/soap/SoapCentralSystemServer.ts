@@ -68,27 +68,39 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     // Log
     if (this.centralSystemConfig.debug) {
       // Listen
-      soapServer12.log = (type, data) => { this._handleSoapServerLog('1.2', type, data); };
+      soapServer12.log = (type, data) => {
+        this._handleSoapServerLog('1.2', type, data);
+      };
       // Log Request
-      soapServer12.on('request', (request, methodName) => { this._handleSoapServerMessage('1.2', request, methodName); });
+      soapServer12.on('request', (request, methodName) => {
+        this._handleSoapServerMessage('1.2', request, methodName);
+      });
     }
     // OCPP 1.5 -----------------------------------------
     const soapServer15 = soap.listen(httpServer, '/OCPP15', centralSystemService15, this.readWsdl('OCPPCentralSystemService15.wsdl'));
     // Log
     if (this.centralSystemConfig.debug) {
       // Listen
-      soapServer15.log = (type, data) => { this._handleSoapServerLog('1.5', type, data); };
+      soapServer15.log = (type, data) => {
+        this._handleSoapServerLog('1.5', type, data);
+      };
       // Log Request
-      soapServer15.on('request', (request, methodName) => { this._handleSoapServerMessage('1.5', request, methodName); });
+      soapServer15.on('request', (request, methodName) => {
+        this._handleSoapServerMessage('1.5', request, methodName);
+      });
     }
     // OCPP 1.6 -----------------------------------------
     const soapServer16 = soap.listen(httpServer, '/OCPP16', centralSystemService16, this.readWsdl('OCPPCentralSystemService16.wsdl'));
     // Log
     if (this.centralSystemConfig.debug) {
       // Listen
-      soapServer16.log = (type, data) => { this._handleSoapServerLog('1.6', type, data); };
+      soapServer16.log = (type, data) => {
+        this._handleSoapServerLog('1.6', type, data);
+      };
       // Log Request
-      soapServer16.on('request', (request, methodName) => { this._handleSoapServerMessage('1.6', request, methodName); });
+      soapServer16.on('request', (request, methodName) => {
+        this._handleSoapServerMessage('1.6', request, methodName);
+      });
     }
   }
 
@@ -119,5 +131,4 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     }
   }
 }
-
 

@@ -79,7 +79,9 @@ export default class VehicleManufacturer extends TenantHolder {
 
   async getVehicles() {
     if (this._model.vehicles) {
-      return this._model.vehicles.map((vehicle) => { return new Vehicle(this.getTenantID(), vehicle); });
+      return this._model.vehicles.map((vehicle) => {
+        return new Vehicle(this.getTenantID(), vehicle);
+      });
     }
     const vehicles = await VehicleStorage.getVehicles(this.getTenantID(), { 'vehicleManufacturerID': this.getID() });
     this.setVehicles(vehicles.result);
@@ -110,14 +112,14 @@ export default class VehicleManufacturer extends TenantHolder {
     if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Vehicle Manufacturer ID is mandatory`, 500,
+        `Vehicle Manufacturer ID is mandatory`, Constants.HTTP_GENERAL_ERROR,
         'VehicleManufacturer', 'checkIfVehicleManufacturerValid',
         req.user.id);
     }
     if (!filteredRequest.name) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Vehicle Manufacturer Name is mandatory`, 500,
+        `Vehicle Manufacturer Name is mandatory`, Constants.HTTP_GENERAL_ERROR,
         'VehicleManufacturer', 'checkIfVehicleManufacturerValid',
         req.user.id, filteredRequest.id);
     }

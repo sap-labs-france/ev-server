@@ -1,21 +1,21 @@
 import { soap } from 'strong-soap';
 import AbstractSoapClient from './AbstractSoapClient';
+import TSGlobal from '../../../types/GlobalType';
+declare const global: TSGlobal;
 
 export default class RatingService extends AbstractSoapClient {
 
-  // TODO: Absolutely remove the global as any typecase; instead, define the global properly.
-  // https://stackoverflow.com/questions/40743131/how-to-prevent-property-does-not-exist-on-type-global-with-jsdom-and-t
   public constructor(serverUrl: string, user: string, password: string) {
     super(
       `${serverUrl}/ARTIX/rating`,
-      `${(global as any).appRoot}/assets/convergent-charging/wsdl/rating_1.wsdl`,
+      `${global.appRoot}/assets/convergent-charging/wsdl/rating_1.wsdl`,
       'rating',
       'RatingServicesPort',
       user,
       password,
       new soap.ClientSSLSecurity(
-        `${(global as any).appRoot}/assets/convergent-charging/ssl/hybris-access.key`,
-        `${(global as any).appRoot}/assets/convergent-charging/ssl/hybris-access.crt`,
+        `${global.appRoot}/assets/convergent-charging/ssl/hybris-access.key`,
+        `${global.appRoot}/assets/convergent-charging/ssl/hybris-access.crt`,
         { rejectUnauthorized: false, strictSSL: false }
       )
     );
@@ -27,7 +27,9 @@ export default class RatingService extends AbstractSoapClient {
   }
 
   public timeout(delayms: number): Promise<number> {
-    return new Promise((resolve) => { return setTimeout(resolve, delayms); });
+    return new Promise((resolve) => {
+      return setTimeout(resolve, delayms);
+    });
   }
 }
 

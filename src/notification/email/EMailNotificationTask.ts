@@ -167,7 +167,9 @@ export default class EMailNotificationTask extends NotificationTask {
     let adminEmails = null;
     if (data.adminUsers && data.adminUsers.length > 0) {
       // Add Admins
-      adminEmails = data.adminUsers.map((adminUser) => { return adminUser.email; }).join(';');
+      adminEmails = data.adminUsers.map((adminUser) => {
+        return adminUser.email;
+      }).join(';');
     }
     // Send the email
     const message = await this.sendEmail({
@@ -188,7 +190,9 @@ export default class EMailNotificationTask extends NotificationTask {
       return (data.user ? data.user.email : null);
     } else if (data.users) {
       // Return a list of emails
-      return data.users.map((user) => { return user.email; }).join(',');
+      return data.users.map((user) => {
+        return user.email;
+      }).join(',');
     }
   }
 

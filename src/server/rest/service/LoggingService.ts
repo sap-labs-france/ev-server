@@ -15,7 +15,7 @@ export default class LoggingService {
           Constants.ACTION_LIST,
           Constants.ENTITY_LOGGINGS,
           null,
-          560, 'LoggingService', 'handleGetLoggings',
+          Constants.HTTP_AUTH_ERROR, 'LoggingService', 'handleGetLoggings',
           req.user);
       }
       // Filter
@@ -46,7 +46,7 @@ export default class LoggingService {
           Constants.ACTION_LIST,
           Constants.ENTITY_LOGGINGS,
           null,
-          560, 'LoggingService', 'handleGetLoggingsExport',
+          Constants.HTTP_AUTH_ERROR, 'LoggingService', 'handleGetLoggingsExport',
           req.user);
       }
       // Filter
@@ -88,13 +88,13 @@ export default class LoggingService {
       // Get logs
       const logging = await Logging.getLog(req.user.tenantID, filteredRequest.ID);
       // Check auth
-      if (!Authorizations.canReadLogging(req.user, logging)) {
+      if (!Authorizations.canReadLogging(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_READ,
           Constants.ENTITY_LOGGING,
           null,
-          560, 'LoggingService', 'handleGetLogging',
+          Constants.HTTP_AUTH_ERROR, 'LoggingService', 'handleGetLogging',
           req.user);
       }
       // Return

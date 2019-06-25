@@ -31,7 +31,7 @@ export default class StatisticSecurity {
     if (!request.PeriodInMonth) {
       // TODO: Potentially throw error
     }
-    return {PeriodInMonth: sanitize(request.PeriodInMonth)};
+    return { PeriodInMonth: sanitize(request.PeriodInMonth) };
   }
 
   // eslint-disable-next-line no-unused-vars

@@ -8,7 +8,9 @@ export default class TransactionSecurity {
   static filterTransactionsRefund(request, loggedUser) {
     const filteredRequest: any = {};
     // Set
-    filteredRequest.transactionIds = request.transactionIds.map((id) => { return sanitize(id); });
+    filteredRequest.transactionIds = request.transactionIds.map((id) => {
+      return sanitize(id);
+    });
     return filteredRequest;
   }
 
@@ -198,25 +200,25 @@ export default class TransactionSecurity {
   }
 
   static _filterUserInTransactionResponse(user, loggedUser) {
-    const userID: any = {};
+    const filteredUser: any = {};
 
     if (!user) {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadUser(loggedUser, user)) {
+    if (Authorizations.canReadUser(loggedUser, user.id)) {
       // Demo user?
       if (Authorizations.isDemo(loggedUser)) {
-        userID.id = null;
-        userID.name = Constants.ANONIMIZED_VALUE;
-        userID.firstName = Constants.ANONIMIZED_VALUE;
+        filteredUser.id = null;
+        filteredUser.name = Constants.ANONIMIZED_VALUE;
+        filteredUser.firstName = Constants.ANONIMIZED_VALUE;
       } else {
-        userID.id = user.id;
-        userID.name = user.name;
-        userID.firstName = user.firstName;
+        filteredUser.id = user.id;
+        filteredUser.name = user.name;
+        filteredUser.firstName = user.firstName;
       }
     }
-    return userID;
+    return filteredUser;
   }
 
   // eslint-disable-next-line no-unused-vars
@@ -255,13 +257,11 @@ export default class TransactionSecurity {
     }
     // Check Authorisation
     if (transaction.getUserJson()) {
-      if (!Authorizations.canReadUser(loggedUser, transaction.getUserJson())) {
+      if (!Authorizations.canReadUser(loggedUser, transaction.getUserJson().id)) {
         return null;
       }
-    } else {
-      if (!Authorizations.isAdmin(loggedUser)) {
-        return null;
-      }
+    } else if (!transaction.getUserJson() && !Authorizations.isAdmin(loggedUser.role)) {
+      return null;
     }
     const filteredTransaction = this.filterTransactionResponse(transaction, loggedUser);
     if (consumptions.length === 0) {
@@ -270,25 +270,33 @@ export default class TransactionSecurity {
     }
 
     // Admin?
-    if (Authorizations.isAdmin(loggedUser)) {
+    if (Authorizations.isAdmin(loggedUser.role)) {
       // Set them all
-      filteredTransaction.values = consumptions.map((consumption) => { return consumption.getModel(); }).map((consumption) => { return {
-        ...consumption,
-        date: consumption.endedAt,
-        value: consumption.instantPower,
-        cumulated: consumption.cumulatedConsumption
-      }; });
+      filteredTransaction.values = consumptions.map((consumption) => {
+        return consumption.getModel();
+      }).map((consumption) => {
+        return {
+          ...consumption,
+          date: consumption.endedAt,
+          value: consumption.instantPower,
+          cumulated: consumption.cumulatedConsumption
+        };
+      });
     } else {
       // Clean
-      filteredTransaction.values = consumptions.map((consumption) => { return consumption.getModel(); }).map((consumption) => { return {
-        endedAt: consumption.endedAt,
-        instantPower: consumption.instantPower,
-        cumulatedConsumption: consumption.cumulatedConsumption,
-        stateOfCharge: consumption.stateOfCharge,
-        date: consumption.endedAt,
-        value: consumption.instantPower,
-        cumulated: consumption.cumulatedConsumption
-      }; });
+      filteredTransaction.values = consumptions.map((consumption) => {
+        return consumption.getModel();
+      }).map((consumption) => {
+        return {
+          endedAt: consumption.endedAt,
+          instantPower: consumption.instantPower,
+          cumulatedConsumption: consumption.cumulatedConsumption,
+          stateOfCharge: consumption.stateOfCharge,
+          date: consumption.endedAt,
+          value: consumption.instantPower,
+          cumulated: consumption.cumulatedConsumption
+        };
+      });
     }
     for (let i = 1; i < filteredTransaction.values.length; i++) {
       if (filteredTransaction.values[i].instantPower === 0 && filteredTransaction.values[i - 1] !== 0) {
@@ -308,7 +316,7 @@ export default class TransactionSecurity {
     initialValue.cumulated = 0;
     initialValue.instantPower = 0;
     initialValue.cumulatedConsumption = 0;
-    if (Authorizations.isAdmin(loggedUser)) {
+    if (Authorizations.isAdmin(loggedUser.role)) {
       initialValue.startedAt = new Date(initialDate.getTime() - 60000);
       initialValue.consumption = 0;
       initialValue.amount = 0;
@@ -319,5 +327,4 @@ export default class TransactionSecurity {
     return filteredTransaction;
   }
 }
-
 

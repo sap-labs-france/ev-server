@@ -104,18 +104,18 @@ export default class Setting extends TenantHolder {
         // Settings does not exists
         if (!currentSettingContent) {
           // Create default settings
-          if (activeComponent.type === Constants.SETTING_PRICING_TYPE_SIMPLE) {
+          if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE) {
             return { "type": "simple", "simple": {} };
-          } else if (activeComponent.type === Constants.SETTING_PRICING_TYPE_CONVERGENT_CHARGING) {
+          } else if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING) {
             return { "type": "convergentCharging", "convergentCharging": {} };
           }
         } else {
           // Changed?
           if (!currentSettingContent.hasOwnProperty(activeComponent.type)) {
             // Create new settings
-            if (activeComponent.type === Constants.SETTING_PRICING_TYPE_SIMPLE) {
+            if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE) {
               return { "type": "simple", "simple": {} };
-            } else if (activeComponent.type === Constants.SETTING_PRICING_TYPE_CONVERGENT_CHARGING) {
+            } else if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING) {
               return { "type": "convergentCharging", "convergentCharging": {} };
             }
           }
@@ -171,7 +171,7 @@ export default class Setting extends TenantHolder {
     if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Setting ID is mandatory`, 500,
+        `Setting ID is mandatory`, Constants.HTTP_GENERAL_ERROR,
         'Setting', 'checkIfSettingValid',
         req.user.id);
     }

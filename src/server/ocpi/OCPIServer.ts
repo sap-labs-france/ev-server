@@ -11,6 +11,7 @@ const MODULE_NAME = "OCPIServer";
 export default class OCPIServer {
   private ocpiRestConfig: any;
   private express: any;
+
   // Create the rest server
   constructor(ocpiRestConfig) {
     // Keep params
@@ -39,7 +40,7 @@ export default class OCPIServer {
     // New OCPI Services Instances
     const ocpiServices = new OCPIServices(this.ocpiRestConfig);
     // OCPI versions
-    this.express.use(Constants.OCPI_SERVER_BASE_PATH, ocpiServices.getVersions);
+    this.express.use(Constants.OCPI_SERVER_BASE_PATH, ocpiServices.getVersions.bind(ocpiServices));
     // Register all services in express
     ocpiServices.getOCPIServiceImplementations().forEach((ocpiService) => {
       this.express.use(ocpiService.getPath(), ocpiService.restService.bind(ocpiService));

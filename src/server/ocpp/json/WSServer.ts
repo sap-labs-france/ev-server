@@ -38,7 +38,9 @@ export default class WSServer extends WebSocket.Server {
       this.serverConfig.keepaliveinterval : Constants.WS_DEFAULT_KEEPALIVE) * 1000; // Ms
     this.on('connection', (ws: any): void => {
       ws.isAlive = true;
-      ws.on('pong', (): void => { ws.isAlive = true; });
+      ws.on('pong', (): void => {
+        ws.isAlive = true;
+      });
     });
     if (!this.keepAliveInterval) {
       this.keepAliveInterval = setInterval((): void => {

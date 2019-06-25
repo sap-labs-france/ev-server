@@ -66,7 +66,9 @@ export default class ERPService extends AbstractSoapClient {
     if (!result.data.INVDOCPDF2) {
       return null;
     }
-    const hexPayload = result.data.INVDOCPDF2.map((doc) => { return doc.detail.$attributes.value; }).join('');
+    const hexPayload = result.data.INVDOCPDF2.map((doc) => {
+      return doc.detail.$attributes.value;
+    }).join('');
     return Buffer.from(hexPayload, 'hex');
   }
 

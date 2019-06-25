@@ -75,4 +75,3 @@ export default class LoggingDatabaseTableCleanupTask implements SchedulerTask {
   }
 }
 
-

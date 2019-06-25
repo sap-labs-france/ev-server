@@ -20,7 +20,7 @@ export default class SettingService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Setting's ID must be provided`, 500,
+          `The Setting's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
           'SettingService', 'handleDeleteSetting', req.user);
       }
       // Get
@@ -29,17 +29,17 @@ export default class SettingService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Setting with ID '${filteredRequest.ID}' does not exist`, 550,
+          `Setting with ID '${filteredRequest.ID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'SettingService', 'handleDeleteSetting', req.user);
       }
       // Check auth
-      if (!Authorizations.canDeleteSetting(req.user, setting.getModel())) {
+      if (!Authorizations.canDeleteSetting(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_DELETE,
           Constants.ENTITY_SETTING,
           setting.getID(),
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'SettingService', 'handleDeleteSetting',
           req.user);
       }
@@ -70,15 +70,15 @@ export default class SettingService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Setting's ID must be provided`, 500,
+          `The Setting's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
           'SettingService', 'handleGetSetting', req.user);
       }
       // Get it
-      let setting = await Setting.getSetting(req.user.tenantID, filteredRequest.ID);
+      const setting = await Setting.getSetting(req.user.tenantID, filteredRequest.ID);
       if (!setting) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Setting with ID '${filteredRequest.ID}' does not exist anymore`, 550,
+          `The Setting with ID '${filteredRequest.ID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'SettingService', 'handleGetSetting', req.user);
       }
       // Process the sensitive data if any
@@ -106,7 +106,7 @@ export default class SettingService {
           Constants.ACTION_LIST,
           Constants.ENTITY_SETTINGS,
           null,
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'SettingService', 'handleGetSettings',
           req.user);
       }
@@ -120,7 +120,9 @@ export default class SettingService {
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
-      settings.result = settings.result.map((setting) => setting.getModel());
+      settings.result = settings.result.map((setting) => {
+        return setting.getModel();
+      });
       // Filter
       settings.result = SettingSecurity.filterSettingsResponse(
         settings.result, req.user);
@@ -147,7 +149,7 @@ export default class SettingService {
           Constants.ACTION_CREATE,
           Constants.ENTITY_SETTING,
           null,
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'SettingService', 'handleCreateSetting',
           req.user);
       }
@@ -189,19 +191,19 @@ export default class SettingService {
       if (!setting) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Setting with ID '${filteredRequest.id}' does not exist anymore`, 550,
+          `The Setting with ID '${filteredRequest.id}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'SettingService', 'handleUpdateSetting', req.user);
       }
       // Check Mandatory fields
       Setting.checkIfSettingValid(filteredRequest, req);
       // Check auth
-      if (!Authorizations.canUpdateSetting(req.user, setting.getModel())) {
+      if (!Authorizations.canUpdateSetting(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
           Constants.ENTITY_SETTING,
           setting.getID(),
-          560,
+          Constants.HTTP_AUTH_ERROR,
           'SettingService', 'handleUpdateSetting',
           req.user);
       }
@@ -211,7 +213,8 @@ export default class SettingService {
         if (!Array.isArray(filteredRequest.sensitiveData)) {
           throw new AppError(
             Constants.CENTRAL_SERVER,
-            `The property 'sensitiveData' for Setting with ID '${filteredRequest.id}' is not an array`, 555,
+            `The property 'sensitiveData' for Setting with ID '${filteredRequest.id}' is not an array`,
+            Constants.HTTP_CYPHER_INVALID_SENSITIVE_DATA_ERROR,
             'SettingService', 'handleUpdateSetting', req.user);
         }
         // Process sensitive properties
@@ -221,14 +224,18 @@ export default class SettingService {
           if (valueInRequest && valueInRequest.length > 0) {
             // Get the sensitive property from the DB
             const valueInDb = _.get(setting.getModel(), property);
-            const hashedValueInDB = Cypher.hash(valueInDb);
-            // Value has been changed?
-            if (valueInDb && (valueInRequest !== hashedValueInDB)) {
-              // Yes: Encrypt
-              _.set(filteredRequest, property, Cypher.encrypt(valueInRequest));
+            if (valueInDb && valueInDb.length > 0) {
+              const hashedValueInDB = Cypher.hash(valueInDb);
+              if (valueInRequest !== hashedValueInDB) {
+                // Yes: Encrypt
+                _.set(filteredRequest, property, Cypher.encrypt(valueInRequest));
+              } else {
+                // No: Put back the encrypted value
+                _.set(filteredRequest, property, valueInDb);
+              }
             } else {
-              // No: Put back the encrypted value
-              _.set(filteredRequest, property, valueInDb);
+              // Value in db is empty then encrypt
+              _.set(filteredRequest, property, Cypher.encrypt(valueInRequest));
             }
           }
         }

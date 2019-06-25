@@ -7,10 +7,7 @@ import SiteContext from './SiteContext';
 import SiteAreaContext from './SiteAreaContext';
 import ChargingStationContext from './ChargingStationContext';
 import CentralServerService from '../client/CentralServerService';
-const {
-  TENANT_USER_LIST,
-  SITE_AREA_CONTEXTS
-} = require('./ContextConstants');
+import CONTEXTS from './ContextConstants';
 
 export default class TenantContext {
 
@@ -123,7 +120,7 @@ export default class TenantContext {
       return this.context.users.find((user) => {
         let conditionMet = null;
         for (const key in params) {
-          const userContextDef = TENANT_USER_LIST.find((userList) => userList.id === user.id);
+          const userContextDef = CONTEXTS.TENANT_USER_LIST.find((userList) => userList.id === user.id);
           if (user.hasOwnProperty(key)) {
             if (conditionMet !== null) {
               conditionMet = conditionMet && user[key] === params[key];
@@ -138,13 +135,13 @@ export default class TenantContext {
             }
           } else if (key === 'withTagIDs') {
             if (conditionMet !== null) {
-              conditionMet = conditionMet && (params[key] ?  user.hasOwnProperty('tagIDs') && Array.isArray(user.tagIDs) && user.tagIDs.length > 0 : 
+              conditionMet = conditionMet && (params[key] ?  user.hasOwnProperty('tagIDs') && Array.isArray(user.tagIDs) && user.tagIDs.length > 0 :
                 (user.hasOwnProperty('tagIDs') ? user.tagIDs.length === 0 : true));
             } else {
-              conditionMet = (params[key] ?  user.hasOwnProperty('tagIDs') && Array.isArray(user.tagIDs) && user.tagIDs.length > 0 : 
+              conditionMet = (params[key] ?  user.hasOwnProperty('tagIDs') && Array.isArray(user.tagIDs) && user.tagIDs.length > 0 :
                 (user.hasOwnProperty('tagIDs') ? user.tagIDs.length === 0 : true));
             }
-          } 
+          }
         }
         return conditionMet;
       });
@@ -243,7 +240,7 @@ export default class TenantContext {
   }
 
   findSiteContextFromChargingStation(chargingStation) {
-    return this.getSiteContexts().find((context) => context.chargingStations.find((tmpChargingStation) => 
+    return this.getSiteContexts().find((context) => context.chargingStations.find((tmpChargingStation) =>
       tmpChargingStation.id === chargingStation.id));
   }
 

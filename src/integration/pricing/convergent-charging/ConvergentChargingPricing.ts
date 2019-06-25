@@ -2,7 +2,8 @@ import StatefulChargingService from './StatefulChargingService';
 import moment from 'moment-timezone';
 import Logging from '../../../utils/Logging';
 import Pricing, { PricedConsumption } from '../Pricing';
-import SiteArea from '../../../entity/SiteArea';
+import SiteArea from '../../../types/SiteArea';
+import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import Cypher from '../../../utils/Cypher';
 
 export default class ConvergentChargingPricing extends Pricing {
@@ -43,7 +44,9 @@ export default class ConvergentChargingPricing extends Pricing {
     const dataId = consumptionData.userID + consumptionData.chargeBoxID + consumptionData.connectorId + this.transaction.getStartDate();
 
     let hash = 0, i, chr;
-    if (dataId.length === 0) { return hash; }
+    if (dataId.length === 0) {
+      return hash;
+    }
     for (i = 0; i < dataId.length; i++) {
       chr = dataId.charCodeAt(i);
       hash = ((hash << 5) - hash) + chr;
@@ -53,13 +56,13 @@ export default class ConvergentChargingPricing extends Pricing {
   }
 
   async startSession(consumptionData): Promise<PricedConsumption|null> {
-    const siteArea = await SiteArea.getSiteArea(this.tenantId, this.transaction.getSiteAreaID());
+    const siteArea = await SiteAreaStorage.getSiteArea(this.tenantId, this.transaction.getSiteAreaID());
     const sessionId = this.computeSessionId(consumptionData);
     const chargeableItemProperties = this.consumptionToChargeableItemProperties(consumptionData);
     chargeableItemProperties.push(new ChargeableItemProperty('status', Type.string, 'start'));
     const reservationItem = new ReservationItem(this.setting.chargeableItemName, chargeableItemProperties);
     const request = new StartRateRequest(reservationItem, sessionId, moment(consumptionData.startedAt).format('YYYY-MM-DDTHH:mm:ss'),
-      siteArea.getName(), consumptionData.userID, 'cancelled', 30000, 'ALL_TRANSACTION_AND_RECURRING',
+      siteArea.name, consumptionData.userID, 'cancelled', 30000, 'ALL_TRANSACTION_AND_RECURRING',
       false, 'ALL_TRANSACTION_AND_RECURRING', null);
     const result = await this.statefulChargingService.execute(request);
     if (result.data.startRateResult) {
@@ -79,7 +82,7 @@ export default class ConvergentChargingPricing extends Pricing {
   }
 
   async updateSession(consumptionData): Promise<PricedConsumption|null> {
-    const siteArea = await SiteArea.getSiteArea(this.tenantId, this.transaction.getSiteAreaID());
+    const siteArea = await SiteAreaStorage.getSiteArea(this.tenantId, this.transaction.getSiteAreaID());
     const sessionId = this.computeSessionId(consumptionData);
 
     const chargeableItemProperties = this.consumptionToChargeableItemProperties(consumptionData);
@@ -88,7 +91,7 @@ export default class ConvergentChargingPricing extends Pricing {
     const reservationItem = new ReservationItem(this.setting.chargeableItemName, chargeableItemProperties);
 
     const request = new UpdateRateRequest(confirmationItem, reservationItem, sessionId, moment(consumptionData.endedAt).format('YYYY-MM-DDTHH:mm:ss'),
-      siteArea.getName(), consumptionData.userID, 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
+      siteArea.name, consumptionData.userID, 'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
     const result = await this.statefulChargingService.execute(request);
     if (result.data.updateRateResult) {
       const rateResult = new RateResult(result.data.updateRateResult);
@@ -108,14 +111,14 @@ export default class ConvergentChargingPricing extends Pricing {
   }
 
   async stopSession(consumptionData): Promise<PricedConsumption|null> {
-    const siteArea = await SiteArea.getSiteArea(this.tenantId, this.transaction.getSiteAreaID());
+    const siteArea = await SiteAreaStorage.getSiteArea(this.tenantId, this.transaction.getSiteAreaID());
     const sessionId = this.computeSessionId(consumptionData);
     const chargeableItemProperties = this.consumptionToChargeableItemProperties(consumptionData);
     chargeableItemProperties.push(new ChargeableItemProperty('status', Type.string, 'stop'));
 
     const confirmationItem = new ConfirmationItem(this.setting.chargeableItemName, chargeableItemProperties);
 
-    const request = new StopRateRequest(confirmationItem, sessionId, siteArea.getName(), consumptionData.userID, 'confirmed',
+    const request = new StopRateRequest(confirmationItem, sessionId, siteArea.name, consumptionData.userID, 'confirmed',
       'ALL_TRANSACTION_AND_RECURRING', false, 'ALL_TRANSACTION_AND_RECURRING');
     const result = await this.statefulChargingService.execute(request);
     if (result.data.stopRateResult) {
@@ -456,15 +459,21 @@ export class TransactionSet {
 
   constructor(model) {
     if (Array.isArray(model)) {
-      this.ccTransactions = model.map((cctrModel) => { return new CCTransaction(cctrModel.master); });
+      this.ccTransactions = model.map((cctrModel) => {
+        return new CCTransaction(cctrModel.master);
+      });
     } else {
       this.ccTransactions = [new CCTransaction(model.master)];
     }
   }
 
   getTotalUnroundedAmount() {
-    return this.ccTransactions.map((t) => { return parseFloat(t.details['default.unrounded_amount']); })
-      .reduce((previousValue, currentValue) => { return previousValue + currentValue; }, 0);
+    return this.ccTransactions.map((t) => {
+      return parseFloat(t.details['default.unrounded_amount']);
+    })
+      .reduce((previousValue, currentValue) => {
+        return previousValue + currentValue;
+      }, 0);
   }
 
   getCurrencyCode() {
@@ -488,10 +497,16 @@ export class Notification {
     this.prettyName = model['$attributes'].prettyName;
     this.severityLevel = model['$attributes'].severityLevel;
 
-    model.arg.map((detail) => { return detail['$attributes']; }).forEach((detail) => { return this[detail.name] = detail.value; });
+    model.arg.map((detail) => {
+      return detail['$attributes'];
+    }).forEach((detail) => {
+      return this[detail.name] = detail.value;
+    });
     if (this.properties) {
       const props: any = {};
-      this.properties.split('\n').filter((s) => { return s.length > 0; })
+      this.properties.split('\n').filter((s) => {
+        return s.length > 0;
+      })
         .forEach((propString) => {
           const array = propString.split(' = ');
           props[array[0]] = array[1];
@@ -519,7 +534,9 @@ export class CCTransaction {
       this[key] = model['$attributes'][key];
     }
     this.details = {};
-    model.detail.map((detail) => { return detail['$attributes']; }).forEach(
+    model.detail.map((detail) => {
+      return detail['$attributes'];
+    }).forEach(
       (detail) => {
         let value;
         switch (detail.type) {
@@ -537,7 +554,9 @@ export class CCTransaction {
       });
     if (model.notification) {
       if (Array.isArray(model.notification)) {
-        this.notifications = model.notification.map((n) => { return new Notification(n); });
+        this.notifications = model.notification.map((n) => {
+          return new Notification(n);
+        });
       } else {
         this.notifications = [new Notification(model.notification)];
       }
@@ -593,5 +612,4 @@ export class CCTransaction {
     return this.details;
   }
 }
-
 

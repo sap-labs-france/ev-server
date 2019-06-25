@@ -1,14 +1,13 @@
-import TenantHolder from './TenantHolder';
-import Database from '../utils/Database';
 import AppError from '../exception/AppError';
+import Company from '../types/Company';
 import Constants from '../utils/Constants';
+import Database from '../utils/Database';
 import CompanyStorage from '../storage/mongodb/CompanyStorage';
 import SiteStorage from '../storage/mongodb/SiteStorage';
 import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
+import TenantHolder from './TenantHolder';
 import UserStorage from '../storage/mongodb/UserStorage';
 import User from './User';
-import Company from '../types/Company';
-
 export default class Site extends TenantHolder {
   private _model: any = {};
 
@@ -155,18 +154,22 @@ export default class Site extends TenantHolder {
   }
 
   async getSiteAreas() {
-    const siteAreas = await SiteAreaStorage.getSiteAreas(this.getTenantID(), { 'siteID': this.getID() });
+    const siteAreas = await SiteAreaStorage.getSiteAreas(this.getTenantID(),
+      { siteID: this.getID(), onlyRecordCount: false, withChargeBoxes: true, withAvailableChargers: true, withSite: false, withImage: false },
+      { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 });
     this.setSiteAreas(siteAreas.result);
     return siteAreas.result;
   }
 
   setSiteAreas(siteAreas) {
-    this._model.siteAreas = siteAreas.map((siteArea) => { return siteArea.getModel(); });
+    this._model.siteAreas = siteAreas;
   }
 
   async getUsers() {
     if (this._model.users) {
-      return this._model.users.map((user) => { return new User(this.getTenantID(), user); });
+      return this._model.users.map((user) => {
+        return new User(this.getTenantID(), user);
+      });
     }
     const users = await UserStorage.getUsers(this.getTenantID(), { 'siteID': this.getID() });
     this.setUsers(users.result);
@@ -194,7 +197,9 @@ export default class Site extends TenantHolder {
   }
 
   setUsers(users) {
-    this._model.users = users.map((user) => { return user.getModel(); });
+    this._model.users = users.map((user) => {
+      return user.getModel();
+    });
   }
 
   save() {
@@ -214,21 +219,21 @@ export default class Site extends TenantHolder {
     if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Site ID is mandatory`, 500,
+        `Site ID is mandatory`, Constants.HTTP_GENERAL_ERROR,
         'Site', 'checkIfSiteValid',
         req.user.id);
     }
     if (!filteredRequest.name) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Site Name is mandatory`, 500,
+        `Site Name is mandatory`, Constants.HTTP_GENERAL_ERROR,
         'Site', 'checkIfSiteValid',
         req.user.id, filteredRequest.id);
     }
     if (!filteredRequest.companyID) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Company ID is mandatory for the Site`, 500,
+        `Company ID is mandatory for the Site`, Constants.HTTP_GENERAL_ERROR,
         'Sites', 'checkIfSiteValid',
         req.user.id, filteredRequest.id);
     }
@@ -248,6 +253,22 @@ export default class Site extends TenantHolder {
 
   static addUsersToSite(tenantID, id, userIDs) {
     return SiteStorage.addUsersToSite(tenantID, id, userIDs);
+  }
+
+  static getUsers(tenantID, id, limit?, skip?, sort?) {
+    return SiteStorage.getUsers(tenantID, { siteID: id }, limit, skip, sort);
+  }
+
+  public setSiteAdmin(siteAdmin: boolean) {
+    this._model.siteAdmin = siteAdmin;
+  }
+
+  public isSiteAdmin(): boolean {
+    return this._model.siteAdmin;
+  }
+
+  static updateSiteUserAdmin(tenantID, id, userID, siteAdmin: boolean) {
+    return SiteStorage.updateSiteUserAdmin(tenantID, id, userID, siteAdmin);
   }
 
   static removeUsersFromSite(tenantID, id, userIDs) {

@@ -59,7 +59,7 @@ export default class AuthService {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The Action is mandatory`,
-          550, 'AuthService', 'handleIsAuthorized');
+          Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleIsAuthorized');
       }
       let chargingStation = null;
       // Action
@@ -73,7 +73,7 @@ export default class AuthService {
             throw new AppError(
               Constants.CENTRAL_SERVER,
               `The Charging Station ID is mandatory`,
-              550, 'AuthService', 'handleIsAuthorized');
+              Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleIsAuthorized');
           }
           // Get the Charging station
           chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.Arg1);
@@ -83,7 +83,7 @@ export default class AuthService {
             throw new AppError(
               Constants.CENTRAL_SERVER,
               `Charging Station with ID '${filteredRequest.Arg1}' does not exist`,
-              550, 'AuthService', 'handleIsAuthorized');
+              Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleIsAuthorized');
           }
           // Check
           if (!filteredRequest.Arg2) {
@@ -111,7 +111,7 @@ export default class AuthService {
             throw new AppError(
               Constants.CENTRAL_SERVER,
               `The Charging Station ID is mandatory`,
-              550, 'AuthService', 'handleIsAuthorized');
+              Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleIsAuthorized');
           }
           // Get the Charging station
           chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.Arg1);
@@ -121,7 +121,7 @@ export default class AuthService {
             throw new AppError(
               Constants.CENTRAL_SERVER,
               `Charging Station with ID '${filteredRequest.Arg1}' does not exist`,
-              550, 'AuthService', 'handleIsAuthorized');
+              Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleIsAuthorized');
           }
 
           user = await User.getUser(req.user.tenantID, req.user.id);
@@ -131,7 +131,7 @@ export default class AuthService {
             throw new AppError(
               Constants.CENTRAL_SERVER,
               `User with ID '${filteredRequest.Arg1}' does not exist`,
-              550, 'AuthService', 'handleIsAuthorized');
+              Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleIsAuthorized');
           }
           result = await AuthService.checkConnectorsActionAuthorizations(req.user.tenantID, user, chargingStation);
           break;
@@ -162,7 +162,8 @@ export default class AuthService {
           // Reject Site Not Found
           throw new AppError(
             chargingStation.getID(),
-            `Charging Station '${chargingStation.getID()}' is not assigned to a Site Area!`, 525,
+            `Charging Station '${chargingStation.getID()}' is not assigned to a Site Area!`,
+            Constants.HTTP_AUTH_CHARGER_WITH_NO_SITE_AREA_ERROR,
             "AuthService", "checkConnectorsActionAuthorizations");
         }
 
@@ -172,7 +173,8 @@ export default class AuthService {
           // Reject Site Not Found
           throw new AppError(
             chargingStation.getID(),
-            `Site Area '${siteArea.getName()}' is not assigned to a Site!`, 525,
+            `Site Area '${siteArea.getName()}' is not assigned to a Site!`,
+            Constants.HTTP_AUTH_SITE_AREA_WITH_NO_SITE_ERROR,
             "AuthService", "checkConnectorsActionAuthorizations",
             user.getModel());
         }
@@ -205,7 +207,7 @@ export default class AuthService {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Transaction ID '${filteredRequest.Arg2}' does not exist`,
-        560, 'AuthService', 'isStopTransactionAuthorized');
+        Constants.HTTP_AUTH_ERROR, 'AuthService', 'isStopTransactionAuthorized');
     }
     // Check Charging Station
     if (transaction.getChargeBoxID() !== chargingStation.getID()) {
@@ -227,39 +229,40 @@ export default class AuthService {
   }
 
   static async handleLogIn(action, req, res, next) {
-
-    // Filter
-    const filteredRequest = AuthSecurity.filterLoginRequest(req.body);
-
-    const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
-
-    if (!tenantID) {
-      Logging.logSecurityError({
-        tenantID: Constants.DEFAULT_TENANT, module: 'AuthService', method: 'handleLogIn',
-        message: `User with email '${filteredRequest.email}' tried to log in with an unknown tenant '${filteredRequest.tenant}'!`,
-        action: action
-      });
-      next(new AppError(Constants.CENTRAL_SERVER, 'Wrong email or password', 550, 'AuthService', 'handleLogIn'));
-      return;
-    }
+    let tenantID;
     try {
+      // Filter
+      const filteredRequest = AuthSecurity.filterLoginRequest(req.body);
+      // Get Tenant
+      tenantID = await AuthService.getTenantID(filteredRequest.tenant);
+      if (!tenantID) {
+        tenantID = Constants.DEFAULT_TENANT;
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `User with email '${filteredRequest.email}' tried to log in with an unknown tenant '${filteredRequest.tenant}'!`,
+          Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+          'AuthService', 'handleLogIn', null, null, action);
+      }
       // Check
       if (!filteredRequest.email) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Email is mandatory`, 500,
+          `The Email is mandatory`,
+          Constants.HTTP_GENERAL_ERROR,
           'AuthService', 'handleLogIn');
       }
       if (!filteredRequest.password) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Password is mandatory`, 500,
+          `The Password is mandatory`,
+          Constants.HTTP_GENERAL_ERROR,
           'AuthService', 'handleLogIn');
       }
       if (!filteredRequest.acceptEula) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The End-user License Agreement is mandatory`, 520,
+          `The End-user License Agreement is mandatory`,
+          Constants.HTTP_USER_EULA_ERROR,
           'AuthService', 'handleLogIn');
       }
 
@@ -269,13 +272,13 @@ export default class AuthService {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The user with email '${filteredRequest.email}' does not exist for tenant '${(filteredRequest.tenant ? filteredRequest.tenant : tenantID)}'`,
-          550, 'AuthService', 'handleLogIn');
+          Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleLogIn');
       }
       if (user.isDeleted()) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The user with email '${filteredRequest.email}' is logically deleted`,
-          550, 'AuthService', 'handleLogIn');
+          Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleLogIn');
       }
       // Check if the number of trials is reached
       if (user.getPasswordWrongNbrTrials() >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
@@ -302,7 +305,7 @@ export default class AuthService {
             // Return data
             throw new AppError(
               Constants.CENTRAL_SERVER, `User is locked`,
-              550, 'AuthService', 'handleLogIn',
+              Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleLogIn',
               user.getModel());
           }
         } else {
@@ -318,8 +321,7 @@ export default class AuthService {
       }
     } catch (err) {
       // Log
-
-      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next, tenantID);
+      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next, (!tenantID ? Constants.DEFAULT_TENANT : tenantID));
     }
   }
 
@@ -361,7 +363,7 @@ export default class AuthService {
       if (!filteredRequest.captcha) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The captcha is mandatory`, 500,
+          `The captcha is mandatory`, Constants.HTTP_GENERAL_ERROR,
           'AuthService', 'handleRegisterUser');
       }
 
@@ -372,12 +374,12 @@ export default class AuthService {
       if (!response.data.success) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The captcha is invalid`, 500,
+          `The captcha is invalid`, Constants.HTTP_GENERAL_ERROR,
           'AuthService', 'handleRegisterUser');
       } else if (response.data.score < 0.5) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The captcha score is too low`, 500,
+          `The captcha score is too low`, Constants.HTTP_GENERAL_ERROR,
           'AuthService', 'handleRegisterUser');
       }
       // Check email
@@ -387,7 +389,7 @@ export default class AuthService {
       if (user) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Email already exists`, 510,
+          `Email already exists`, Constants.HTTP_USER_EMAIL_ALREADY_EXIST_ERROR,
           'AuthService', 'handleRegisterUser',
           null, user.getModel());
       }
@@ -457,7 +459,7 @@ export default class AuthService {
       if (!filteredRequest.captcha) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The captcha is mandatory`, 500,
+          `The captcha is mandatory`, Constants.HTTP_GENERAL_ERROR,
           'AuthService', 'handleUserPasswordReset');
       }
       // Check captcha
@@ -467,12 +469,12 @@ export default class AuthService {
       if (!response.data.success) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The captcha is invalid`, 500,
+          `The captcha is invalid`, Constants.HTTP_GENERAL_ERROR,
           'AuthService', 'handleRegisterUser');
       } else if (response.data.score < 0.5) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The captcha score is too low`, 500,
+          `The captcha score is too low`, Constants.HTTP_GENERAL_ERROR,
           'AuthService', 'handleRegisterUser');
       }
       // Yes: Generate new password
@@ -483,14 +485,14 @@ export default class AuthService {
       if (!user) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `User with email '${filteredRequest.email}' does not exist`, 550,
+          `User with email '${filteredRequest.email}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'AuthService', 'handleUserPasswordReset');
       }
       // Deleted
       if (user.isDeleted()) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `User with email '${filteredRequest.email}' is logically deleted`, 550,
+          `User with email '${filteredRequest.email}' is logically deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'AuthService', 'handleUserPasswordReset');
       }
       // Hash it
@@ -543,14 +545,14 @@ export default class AuthService {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `User with email '${filteredRequest.email}' does not exist`,
-          550, 'AuthService', 'handleUserPasswordReset');
+          Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleUserPasswordReset');
       }
       // Deleted
       if (user.isDeleted()) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `User with email '${filteredRequest.email}' is logically deleted`,
-          550, 'AuthService', 'handleUserPasswordReset');
+          Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleUserPasswordReset');
       }
       // Check the hash from the db
       if (!user.getPasswordResetHash()) {
@@ -688,14 +690,14 @@ export default class AuthService {
       if (!filteredRequest.Email) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Email is mandatory`, 500,
+          `The Email is mandatory`, Constants.HTTP_GENERAL_ERROR,
           'AuthService', 'handleVerifyEmail');
       }
       // Check verificationToken
       if (!filteredRequest.VerificationToken) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Verification Token is mandatory`, 500,
+          `Verification Token is mandatory`, Constants.HTTP_GENERAL_ERROR,
           'AuthService', 'handleVerifyEmail');
       }
       // Check email
@@ -704,28 +706,28 @@ export default class AuthService {
       if (!user) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The user with email '${filteredRequest.Email}' does not exist`, 550,
+          `The user with email '${filteredRequest.Email}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'AuthService', 'handleVerifyEmail');
       }
       // User deleted?
       if (user.isDeleted()) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The user with email '${filteredRequest.Email}' is logically deleted`, 550,
+          `The user with email '${filteredRequest.Email}' is logically deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'AuthService', 'handleVerifyEmail', user.getModel());
       }
       // Check if account is already active
       if (user.getStatus() === Constants.USER_STATUS_ACTIVE) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Account is already active`, 530,
+          `Account is already active`, Constants.HTTP_USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
           'AuthService', 'handleVerifyEmail', user.getModel());
       }
       // Check verificationToken
       if (user.getVerificationToken() !== filteredRequest.VerificationToken) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Wrong Verification Token`, 540,
+          `Wrong Verification Token`, Constants.HTTP_INVALID_TOKEN_ERROR,
           'AuthService', 'handleVerifyEmail', user.getModel());
       }
       // Activate user
@@ -774,14 +776,14 @@ export default class AuthService {
       if (!filteredRequest.email) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Email is mandatory`, 500,
+          `The Email is mandatory`, Constants.HTTP_GENERAL_ERROR,
           'AuthService', 'handleResendVerificationEmail');
       }
       // Check captcha
       if (!filteredRequest.captcha) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The captcha is mandatory`, 500,
+          `The captcha is mandatory`, Constants.HTTP_GENERAL_ERROR,
           'AuthService', 'handleResendVerificationEmail');
       }
 
@@ -791,12 +793,12 @@ export default class AuthService {
       if (!response.data.success) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The captcha is invalid`, 500,
+          `The captcha is invalid`, Constants.HTTP_GENERAL_ERROR,
           'AuthService', 'handleResendVerificationEmail');
       } else if (response.data.score < 0.5) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The captcha score is too low`, 500,
+          `The captcha score is too low`, Constants.HTTP_GENERAL_ERROR,
           'AuthService', 'handleResendVerificationEmail');
       }
       // Is valid email?
@@ -805,21 +807,21 @@ export default class AuthService {
       if (!user) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The user with email '${filteredRequest.email}' does not exist`, 550,
+          `The user with email '${filteredRequest.email}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'AuthService', 'handleResendVerificationEmail');
       }
       // User deleted?
       if (user.isDeleted()) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The user with email '${filteredRequest.email}' is logically deleted`, 550,
+          `The user with email '${filteredRequest.email}' is logically deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'AuthService', 'handleResendVerificationEmail', user.getModel());
       }
       // Check if account is already active
       if (user.getStatus() === Constants.USER_STATUS_ACTIVE) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Account is already active`, 530,
+          `Account is already active`, Constants.HTTP_USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
           'AuthService', 'handleResendVerificationEmail', user.getModel());
       }
 
@@ -894,7 +896,7 @@ export default class AuthService {
       // Log
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `User is locked`, 570, 'AuthService', 'checkUserLogin',
+        `User is locked`, Constants.HTTP_USER_LOCKED_ERROR, 'AuthService', 'checkUserLogin',
         user.getModel()
       );
     } else {
@@ -904,7 +906,7 @@ export default class AuthService {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `User failed to log in, ${_centralSystemRestConfig.passwordWrongNumberOfTrial - user.getPasswordWrongNbrTrials()} trial(s) remaining`,
-        550, 'AuthService', 'checkUserLogin',
+        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'checkUserLogin',
         user.getModel()
       );
     }
@@ -933,7 +935,7 @@ export default class AuthService {
     // Save
     await user.save();
     // Build Authorization
-    const scopes = Authorizations.getUserScopes(user.getRole());
+    const scopes = await Authorizations.getUserScopes(user);
     const authorizedEntities = await Authorizations.getAuthorizedEntities(user);
     const userHashID = SessionHashService.buildUserHashID(user);
     let tenantHashID;
@@ -987,9 +989,6 @@ export default class AuthService {
   }
 
   static async getTenantID(subdomain) {
-    if (Utils.isUndefined(subdomain)) {
-      return null;
-    }
     // Check
     if (!subdomain) {
       return Constants.DEFAULT_TENANT;
@@ -1006,7 +1005,7 @@ export default class AuthService {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Unknown user tried to log in with email '${filteredRequest.email}'`,
-        550, 'AuthService', 'checkUserLogin',
+        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'checkUserLogin',
         user.getModel());
     }
 
@@ -1018,7 +1017,8 @@ export default class AuthService {
       if (user.getStatus() === Constants.USER_STATUS_PENDING) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Account is pending! User must activate his account in his email`, 590,
+          `Account is pending! User must activate his account in his email`,
+          Constants.HTTP_USER_ACCOUNT_PENDING_ERROR,
           'AuthService', 'checkUserLogin',
           user.getModel());
       }
@@ -1026,7 +1026,8 @@ export default class AuthService {
       if (user.getStatus() !== Constants.USER_STATUS_ACTIVE) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Account is not active ('${user.getStatus()}')`, 580,
+          `Account is not active ('${user.getStatus()}')`,
+          Constants.HTTP_USER_ACCOUNT_INACTIVE_ERROR,
           'AuthService', 'checkUserLogin',
           user.getModel());
       }
@@ -1038,5 +1039,4 @@ export default class AuthService {
     }
   }
 }
-
 

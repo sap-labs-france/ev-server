@@ -2,6 +2,7 @@ import Constants from "../../../../utils/Constants";
 import Site from "../../../../entity/Site";
 
 import SourceMap from 'source-map-support';
+import SiteArea from "../../../../types/SiteArea";
 SourceMap.install();
 
 /**
@@ -42,12 +43,12 @@ export default class OCPIMapping {
    * @param {SiteArea} siteArea
    * @return Array of OCPI EVSES
    */
-  static async getEvsesFromSiteaArea(tenant: any, siteArea: any, options: any) {
+  static async getEvsesFromSiteaArea(tenant: any, siteArea: SiteArea, options: any) {
     // Build evses array
     const evses: any = [];
 
     // Get charging stations from SiteArea
-    const chargingStations = await siteArea.getChargingStations();
+    const chargingStations = await siteArea.chargingStations;
 
     // Convert charging stations to evse(s)
     chargingStations.forEach((chargingStation: any) => {

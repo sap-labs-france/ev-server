@@ -38,7 +38,7 @@ export default class ConnectionStorage {
       .aggregate(aggregation)
       .toArray();
 
-    let connection = undefined;
+    let connection;
     if (results && results.length > 0) {
       connection = new Connection(tenantID, results[0]);
     }
@@ -55,7 +55,7 @@ export default class ConnectionStorage {
     });
     // Count Records
     const connectionsCountMDB = await global.database.getCollection<any>(tenantID, 'connections')
-      .aggregate([...aggregation, { $count: "count"}], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
       .toArray();
     const connectionsMDB = await global.database.getCollection<any>(tenantID, 'connections')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
@@ -86,7 +86,7 @@ export default class ConnectionStorage {
       .aggregate(aggregation)
       .toArray();
 
-    let connection = null;
+    let connection;
     if (results && results.length > 0) {
       connection = new Connection(tenantID, results[0]);
     }
@@ -107,5 +107,4 @@ export default class ConnectionStorage {
   }
 
 }
-
 
