@@ -5,7 +5,7 @@
         "typescript",
         "typescriptreact"
     ],
-    "mocha.env": { "TS_NODE_FILES": true },
+    "mocha.env": { "TS_NODE_PROJECT": "tsconfig-test.json", "TS_NODE_FILES": true },
     "mocha.requires": [
       "ts-node/register"
      ],

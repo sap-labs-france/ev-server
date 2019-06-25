@@ -1,8 +1,9 @@
 {
+  "extends": "./tsconfig",
   "compilerOptions": {
     /* Basic Options */
-    "target": "ES2016",                       /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', 'ES2018', 'ES2019' or 'ESNEXT'. */
-    "module": "commonjs",                     /* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', or 'ESNext'. */
+    // "target": "ES2016",                       /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', 'ES2018', 'ES2019' or 'ESNEXT'. */
+    // "module": "commonjs",                     /* Specify module code generation: 'none', 'commonjs', 'amd', 'system', 'umd', 'es2015', or 'ESNext'. */
     // "lib": [],                             /* Specify library files to be included in the compilation. */
     // "allowJs": true,                       /* Allow javascript files to be compiled. */
     // "checkJs": true,                       /* Report errors in .js files. */
@@ -10,8 +11,8 @@
     // "declaration": true,                   /* Generates corresponding '.d.ts' file. */
     // "declarationMap": true,                /* Generates a sourcemap for each corresponding '.d.ts' file. */
     // "outFile": "./",                       /* Concatenate and emit output to single file. */
-    "outDir": "./dist/",                      /* Redirect output structure to the directory. */
-    "rootDir": "./src/",                      /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
+    // "outDir": "./dist/",                      /* Redirect output structure to the directory. */
+    // "rootDir": "./src/",                      /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
     // "composite": true,                     /* Enable project compilation */
     // "incremental": true,                   /* Enable incremental compilation */
     // "tsBuildInfoFile": "./",               /* Specify file to store incremental compilation information */
@@ -22,8 +23,8 @@
     // "isolatedModules": true,               /* Transpile each file as a separate module (similar to 'ts.transpileModule'). */
 
     /* Strict Type-Checking Options */
-    "strict": false,                          /* Enable all strict type-checking options. */
-    "noImplicitAny": false,                   /* Raise error on expressions and declarations with an implied 'any' type. */
+    // "strict": false,                          /* Enable all strict type-checking options. */
+    // "noImplicitAny": false,                   /* Raise error on expressions and declarations with an implied 'any' type. */
     // "strictNullChecks": true,              /* Enable strict null checks. */
     // "strictFunctionTypes": true,           /* Enable strict checking of function types. */
     // "strictBindCallApply": true,           /* Enable strict 'bind', 'call', and 'apply' methods on functions. */
@@ -44,15 +45,16 @@
     "typeRoots": [
       "./node_modules/@types",
       "./build/types/",
+      "./test/types/"
     ],                                        /* List of folders to include type definitions from. */
     // "types": [],                           /* Type declaration files to be included in compilation. */
     // "allowSyntheticDefaultImports": true,  /* Allow default imports from modules with no default export. This does not affect code emit, just typechecking. */
-    "resolveJsonModule": true,
-    "esModuleInterop": true,                  /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */
+    // "resolveJsonModule": true,
+    // "esModuleInterop": true,                  /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */
     // "preserveSymlinks": true,              /* Do not resolve the real path of symlinks. */
 
     /* Source Map Options */
-    "sourceMap": true,
+    // "sourceMap": true,
     // "sourceRoot": "",                      /* Specify the location where debugger should locate TypeScript files instead of source locations. */
     // "mapRoot": "",                         /* Specify the location where debugger should locate map files instead of generated locations. */
     // "inlineSourceMap": true,               /* Emit a single file with source maps instead of having a separate file. */
@@ -63,6 +65,5 @@
     // "emitDecoratorMetadata": true,         /* Enables experimental support for emitting type metadata for decorators. */
   },
   "exclude": [
-    "test"
   ]
 }
