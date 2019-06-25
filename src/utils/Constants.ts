@@ -121,7 +121,7 @@ export default {
 
   SETTING_PRICING_TYPE_SIMPLE: 'Simple',
   SETTING_PRICING_TYPE_CONVERGENT_CHARGING: 'ConvergentCharging', // TODO: Added this to get rid of error, check if correct
-  SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING: 'convergentCharging', // First letter is small cap in the setting object 
+  SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING: 'convergentCharging', // First letter is small cap in the setting object
   SETTING_REFUND_CONTENT_TYPE_CONCUR: 'concur', // First letter is small cap in the setting object
 
   METER_VALUE_CTX_SAMPLE_PERIODIC: 'Sample.Periodic',
@@ -247,6 +247,7 @@ export default {
     REFUND: "refund",
     PRICING: "pricing",
     ORGANIZATION: "organization",
+    STATISTICS: "statistics",
     ANALYTICS: "analytics"
   },
 
