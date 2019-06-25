@@ -68,14 +68,50 @@ export default class CONTEXTS {
     subdomain: 'utall',
     componentSettings: {
       pricing: {
-        simple: {
-          price: 1,
-          currency: 'EUR'
-        }
+        type: 'simple',
+        content: {
+          simple: {
+            price: 1,
+            currency: 'EUR'
+          }
+        },
       },
       ocpi: {
-        country_code: 'FR',
-        party_id: 'UT'
+        type: 'gireve',
+        content: {
+          countryCode: 'FR',
+          partyId: 'UT',
+          businessDetails: {
+            name: 'Test OCPI',
+            website: 'http://www.uttest.net'
+          }
+        }
+      },
+      organization: {
+      },
+      statistics: {
+      },
+      refund: {
+        type: 'concur',
+        content: {
+          concur: {
+            authenticationUrl: '',
+            apiUrl: '',
+            clientId: '',
+            clientSecret: '',
+            payementTypeId: '',
+            expenseTypeCode: '',
+            policyId: '',
+            reportName: ''
+          }
+        }
+      },
+      analytics: {
+        type: 'sac',
+        content: {
+          mainUrl: '',
+          timezone: 'Europe/Paris'
+        }
       }
     },
   },
@@ -88,6 +124,10 @@ export default class CONTEXTS {
     // contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION,
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION,
     subdomain: 'utorg',
+    componentSettings: {
+      organization: {
+      }
+    }
   },
   {
     // contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_SIMPLE_PRICING,
@@ -95,9 +135,12 @@ export default class CONTEXTS {
     subdomain: 'utprice',
     componentSettings: {
       pricing: {
-        simple: {
-          price: 1,
-          currency: 'EUR'
+        type: 'simple',
+        content: {
+          simple: {
+            price: 1,
+            currency: 'EUR'
+          }
         }
       }
     },
@@ -106,6 +149,19 @@ export default class CONTEXTS {
     // contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
     subdomain: 'utconvcharg',
+    componentSettings: {
+      pricing: {
+        type: 'convergentCharging',
+        content: {
+          convergentCharging: {
+            url: '',
+            chargeableItemName: '',
+            user: '',
+            password: ''
+          }
+        }
+      }
+    },
   },
   {
     // contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_OCPI,
@@ -113,9 +169,16 @@ export default class CONTEXTS {
     subdomain: 'utocpi',
     componentSettings: {
       ocpi: {
-        country_code: 'FR',
-        party_id: 'UT'
-      }
+        type: 'gireve',
+        content: {
+          countryCode: 'FR',
+          partyId: 'UT',
+          businessDetails: {
+            name: 'Test OCPI',
+            website: 'http://www.uttest.net'
+          }
+        }
+      },
     },
   },
   {
@@ -123,15 +186,22 @@ export default class CONTEXTS {
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_FUNDING,
     subdomain: 'utrefund',
     componentSettings: {
-      pricing: {
-        convergentChargingPricing: {
-          url: '',
-          chargeableItemName: '',
-          user: '',
-          password: ''
+      refund: {
+        type: 'concur',
+        content: {
+            concur: {
+              authenticationUrl: '',
+              apiUrl: '',
+              clientId: '',
+              clientSecret: '',
+              payementTypeId: '',
+              expenseTypeCode: '',
+              policyId: '',
+              reportName: ''
+            }
+          }
         }
-      }
-    },
+      },
   }];
 
   // List of users created in a tenant
