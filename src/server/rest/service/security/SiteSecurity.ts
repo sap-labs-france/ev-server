@@ -64,8 +64,7 @@ export default class SiteSecurity {
     return filteredRequest;
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterSitesRequest(request, loggedUser) {
+  static filterSitesRequest(request) {
     const filteredRequest: any = {};
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.UserID = sanitize(request.UserID);
@@ -106,7 +105,7 @@ export default class SiteSecurity {
       });
       filteredRequest.userIDs = request.userIDs.filter((userID) => {
         // Check auth
-        if (Authorizations.canReadUser(loggedUser, {id: userID})) {
+        if (Authorizations.canReadUser(userToken, {id: userID})) {
           return true;
         }
         return false;
