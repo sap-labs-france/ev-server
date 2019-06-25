@@ -365,7 +365,7 @@ export default class Utils {
   }
 
   /**
-   * Duplicate a json object
+   * Duplicate a JSON object
    * @param src
    * @returns a copy of the source
    */
