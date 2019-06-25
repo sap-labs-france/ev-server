@@ -1,5 +1,4 @@
 import Constants from '../../utils/Constants';
-import Database from '../../utils/Database';
 import Utils from '../../utils/Utils';
 import SiteAreaStorage from './SiteAreaStorage';
 import BackendError from '../../exception/BackendError';
@@ -7,8 +6,6 @@ import { ObjectID } from 'mongodb';
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import Site from '../../types/Site';
-import Company from '../../types/Company';
-import SiteArea from '../../types/SiteArea';
 import crypto from 'crypto';
 import User from '../../entity/User';
 import global from '../../types/GlobalType';

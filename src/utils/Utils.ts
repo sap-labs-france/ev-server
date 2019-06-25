@@ -391,4 +391,20 @@ export default class Utils {
         return 'Unknown';
     }
   }
+
+  public static conditionalCopy(src: any, dest: any, prop: string, method: Function = (a:any)=>a): void {
+    if(src[prop]) {
+      if(Array.isArray(src[prop])){
+        dest[prop] = src[prop].map((item:any) => method(item));
+      }else{
+        dest[prop] = method(src[prop]);
+      }
+    }
+  }
+
+  public static conditionalCopies(src: any, dest: any, props: string[], methods: Function[]): void {
+    for(let i = 0; i < props.length; i++){
+      this.conditionalCopy(src, dest, props[i], methods[i % methods.length]);
+    }
+  }
 }

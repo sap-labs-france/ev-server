@@ -216,13 +216,17 @@ export default class SiteAreaService {
       const filteredRequest = SiteAreaSecurity.filterSiteAreaCreateRequest(req.body);
 
       // Check
-      SiteAreaService._checkIfSiteAreaValid(filteredRequest, req);
+      SiteAreaService._checkIfSiteAreaValid(filteredRequest, req);//WIPTODO: remove/migrate
 
       // Create site
+      let usr = new User(req.user.tenantID, {id: req.user.id});
+      let date = new Date();
       const newSiteArea: SiteArea = {
         ...filteredRequest,
-        createdBy: new User(req.user.tenantID, { id: req.user.id }),
-        createdOn: new Date()
+        createdBy: usr,
+        createdOn: date,
+        lastChangedBy: usr,
+        lastChangedOn: date
       } as SiteArea;
 
       // Save
