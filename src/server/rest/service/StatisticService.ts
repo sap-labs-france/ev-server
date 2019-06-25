@@ -1,12 +1,12 @@
-import Logging from '../../../utils/Logging';
-import moment from 'moment';
-import Constants from '../../../utils/Constants';
 import AppAuthError from '../../../exception/AppAuthError';
 import Authorizations from '../../../authorization/Authorizations';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
 import StatisticSecurity from './security/StatisticSecurity';
 import StatisticsStorage from '../../../storage/mongodb/StatisticsStorage';
-import fs from 'fs';
 import Utils from '../../../utils/Utils';
+import fs from 'fs';
+import moment from 'moment';
 
 export default class StatisticService {
   static async handleUserUsageStatistics(action, req, res, next) {
@@ -117,6 +117,8 @@ export default class StatisticService {
       switch (filteredRequest.DataType) {
         case 'Consumption': groupBy = Constants.STATS_GROUP_BY_CONSUMPTION;
           break;
+        case 'Usage': groupBy = Constants.STATS_GROUP_BY_USAGE;
+          break;
         default: groupBy = Constants.STATS_GROUP_BY_USAGE;
       }
       let method: string;
@@ -224,36 +226,46 @@ export default class StatisticService {
     let index: number;
     let transaction: any;
     const transactions = [];
+    let unknownUser = Utils.buildUserFullName(transaction, false, false, true);
+    if (!unknownUser) {
+      unknownUser = "Unknown";
+    }
+    if (dataCategory === 'C') {
+      csv = 'chargeBoxId,';
+    } else {
+      csv = 'userName,firstName,';
+    }
+    if (year && year !== "0") {
+      csv += 'year,';
+      if (dataScope && dataScope === 'month') {
+        csv += 'month,';
+      }
+    }
     switch (dataType) {
       case 'Consumption':
-        if (dataCategory === 'C') {
-          csv = 'year,month,chargeBoxId,consumptionKwH\r\n';
-        } else {
-          csv = 'year,month,userName,firstName,consumptionKwH\r\n';
-        }
+        csv += 'consumptionKwH\r\n';
+        break;
+      case 'Usage':
+        csv += 'usageHours\r\n';
         break;
       default:
-        if (dataCategory === 'C') {
-          csv = 'year,month,chargeBoxId,usageHours\r\n';
-        } else {
-          csv = 'year,month,userName,firstName,usageHours\r\n';
-        }
+        return csv;
     }
     if (transactionStatsMDB && transactionStatsMDB.length > 0) {
       for (const transactionStatMDB of transactionStatsMDB) {
         transaction = transactionStatMDB;
         if (dataCategory !== 'C') {
           if (!transaction.user) {
-            transaction.user = { 'name': 'Unknown', 'firstName': ' ' };
+            transaction.user = { 'name': unknownUser, 'firstName': ' ' };
           }
           if (!transaction.user.name) {
-            transaction.user.name = 'Unknown';
+            transaction.user.name = unknownUser;
           }
           if (!transaction.user.firstName) {
             transaction.user.firstName = ' ';
           }
         }
-        if (!year || year == "0" || (dataScope && dataScope !== 'month')) {
+        if (!year || year == "0" || !dataScope || (dataScope && dataScope !== 'month')) {
           transaction._id.month = 0;
           index = -1;
           if (transactions && transactions.length > 0) {
@@ -279,11 +291,11 @@ export default class StatisticService {
       }
 
       for (transaction of transactions) {
-        csv += `${year ? year : '0000'},`;
-        csv += `${transaction._id.month},`;
         csv += (dataCategory === 'C') ? `${transaction._id.chargeBox},` :
-          `${transaction.user.name}, ${transaction.user.firstName},`;
-        csv += `${transaction.total}\r\n`;
+          `${transaction.user.name},${transaction.user.firstName},`;
+        csv += (year && year !== "0") ? `${year},` : '';
+        csv += (transaction._id.month > 0) ? `${transaction._id.month},` : '';
+        csv += `${Math.round(transaction.total * 100) / 100}\r\n`;
       }
     }
     return csv;
