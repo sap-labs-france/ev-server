@@ -14,7 +14,9 @@ export default class NotificationService {
         'channel': filteredRequest.Channel
       }, filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
-      notifications.result = notifications.result.map((notification) => { return notification.getModel(); });
+      notifications.result = notifications.result.map((notification) => {
+        return notification.getModel();
+      });
       // Filter
       NotificationSecurity.filterNotificationsResponse(notifications, req.user);
       // Return
@@ -26,5 +28,4 @@ export default class NotificationService {
     }
   }
 }
-
 

@@ -1,4 +1,4 @@
 
 export default interface HttpByIDRequest {
-    ID?: string;
+  ID?: string;
 }

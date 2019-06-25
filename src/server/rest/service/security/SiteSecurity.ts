@@ -23,7 +23,9 @@ export default class SiteSecurity {
     const filteredRequest: any = {};
     filteredRequest.siteID = sanitize(request.siteID);
     filteredRequest.userID = sanitize(request.userID);
-    filteredRequest.role = sanitize(request.role);
+    if ('siteAdmin' in request) {
+      filteredRequest.siteAdmin = UtilsSecurity.filterBoolean(request.siteAdmin);
+    }
     return filteredRequest;
   }
 
@@ -139,7 +141,7 @@ export default class SiteSecurity {
         filteredSite.address = UtilsSecurity.filterAddressRequest(site.address);
       }
       if (site.company) {
-        filteredSite.company = CompanySecurity.filterCompanyResponse({id: site.company._id.toHexString(), ...site.company}, loggedUser);
+        filteredSite.company = CompanySecurity.filterCompanyResponse({ id: site.company._id.toHexString(), ...site.company }, loggedUser);
       }
       if (site.siteAreas) {
         filteredSite.siteAreas = SiteAreaSecurity.filterSiteAreasResponse(site.siteAreas, loggedUser);
@@ -189,5 +191,4 @@ export default class SiteSecurity {
     sites.result = filteredSites;
   }
 }
-
 

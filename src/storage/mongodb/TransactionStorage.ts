@@ -459,7 +459,7 @@ export default class TransactionStorage {
     }
     // Count Records
     const transactionsCountMDB = await global.database.getCollection<any>(tenantID, 'transactions')
-      .aggregate([...aggregation, { $count: "count"}], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
     const transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ? transactionsCountMDB[0] : null;

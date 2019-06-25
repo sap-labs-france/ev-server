@@ -147,10 +147,9 @@ export default {
 
   DEFAULT_DB_LIMIT: 100,
 
-  SETTING_PRICING_TYPE_SIMPLE: 'Simple',
-  SETTING_PRICING_TYPE_CONVERGENT_CHARGING: 'ConvergentCharging', // TODO: Added this to get rid of error, check if correct
-  SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING: 'convergentCharging', // First letter is small cap in the setting object
-  SETTING_REFUND_CONTENT_TYPE_CONCUR: 'concur', // First letter is small cap in the setting object
+  SETTING_PRICING_CONTENT_TYPE_SIMPLE: 'simple',
+  SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING: 'convergentCharging',
+  SETTING_REFUND_CONTENT_TYPE_CONCUR: 'concur',
 
   METER_VALUE_CTX_SAMPLE_PERIODIC: 'Sample.Periodic',
   METER_VALUE_CTX_SAMPLE_CLOCK: 'Sample.Clock',

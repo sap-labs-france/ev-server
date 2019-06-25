@@ -7,7 +7,7 @@ import User from '../../../entity/User';
 import Authorizations from '../../../authorization/Authorizations';
 import CompanySecurity from './security/CompanySecurity';
 import UtilsService from './UtilsService';
-import {NextFunction, Request, Response} from 'express';
+import { NextFunction, Request, Response } from 'express';
 import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
 
 export default class CompanyService {
@@ -134,7 +134,7 @@ export default class CompanyService {
       UtilsService.assertObjectExists(company, `The Company with ID '${companyID}' does not exist`, 'CompanyService', 'handleGetCompanyLogo', req.user);
 
       // Return
-      res.json({id: company.id, logo: company.logo});
+      res.json({ id: company.id, logo: company.logo });
       next();
     } catch (error) {
       // Log
@@ -213,7 +213,7 @@ export default class CompanyService {
       // Create company
       const newCompany: Company = {
         ...filteredRequest,
-        createdBy: new User(req.user.tenantID, {id: req.user.id}),
+        createdBy: new User(req.user.tenantID, { id: req.user.id }),
         createdOn: new Date(),
       } as Company;
 
@@ -228,7 +228,7 @@ export default class CompanyService {
         action: action, detailedMessages: newCompany
       });
       // Ok
-      res.json(Object.assign({id: newCompany.id}, Constants.REST_RESPONSE_SUCCESS));
+      res.json(Object.assign({ id: newCompany.id }, Constants.REST_RESPONSE_SUCCESS));
       next();
     } catch (error) {
       // Log
@@ -270,7 +270,7 @@ export default class CompanyService {
       company.name = filteredRequest.name;
       company.address = filteredRequest.address;
       company.logo = filteredRequest.logo;
-      company.lastChangedBy = new User(req.user.tenantID, {'id': req.user.id});
+      company.lastChangedBy = new User(req.user.tenantID, { 'id': req.user.id });
       company.lastChangedOn = new Date();
 
       // Update Company
@@ -310,5 +310,4 @@ export default class CompanyService {
     }
   }
 }
-
 

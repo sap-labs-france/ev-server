@@ -14,6 +14,7 @@ import SiteStorage from '../storage/mongodb/SiteStorage';
 export default class User extends TenantHolder {
   private _model: any = {};
   public id: string;
+
   constructor(tenantID: any, user: any) {
     super(tenantID);
     Database.updateUser(user, this._model);
@@ -109,6 +110,14 @@ export default class User extends TenantHolder {
 
   public setRole(role: string) {
     this._model.role = role;
+  }
+
+  public setSiteAdmin(siteAdmin: boolean) {
+    this._model.siteAdmin = siteAdmin;
+  }
+
+  public isSiteAdmin(): boolean {
+    return this._model.siteAdmin;
   }
 
   getFirstName() {
@@ -293,7 +302,9 @@ export default class User extends TenantHolder {
   }
 
   setSites(sites) {
-    this._model.sites = sites.map((site) => { return site.getModel(); });
+    this._model.sites = sites.map((site) => {
+      return site.getModel();
+    });
   }
 
   async getSites() {

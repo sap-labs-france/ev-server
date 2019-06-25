@@ -74,7 +74,7 @@ export default class SettingService {
           'SettingService', 'handleGetSetting', req.user);
       }
       // Get it
-      let setting = await Setting.getSetting(req.user.tenantID, filteredRequest.ID);
+      const setting = await Setting.getSetting(req.user.tenantID, filteredRequest.ID);
       if (!setting) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -120,7 +120,9 @@ export default class SettingService {
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
-      settings.result = settings.result.map((setting) => setting.getModel());
+      settings.result = settings.result.map((setting) => {
+        return setting.getModel();
+      });
       // Filter
       settings.result = SettingSecurity.filterSettingsResponse(
         settings.result, req.user);

@@ -27,7 +27,11 @@ export default class SchemaValidator {
           message: error.message ? error.message : ''
         };
       });
-      const concatenatedError = {path: errors.map((e) => { return e.path; }).join(","), message: errors.map((e) => { return e.message; }).join(',')};
+      const concatenatedError = { path: errors.map((e) => {
+        return e.path;
+      }).join(","), message: errors.map((e) => {
+        return e.message;
+      }).join(',') };
       throw new BadRequestError(concatenatedError);
     } // TODO: check the error handling here, there's some kind of mistake.
   }

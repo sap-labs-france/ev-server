@@ -534,7 +534,9 @@ export default class OCPPService {
         if (consumption) {
           // Existing Consumption (SoC or Consumption MeterValue)?
           const existingConsumption = consumptions.find(
-            (c) => { return c.endedAt.getTime() === consumption.endedAt.getTime(); });
+            (c) => {
+              return c.endedAt.getTime() === consumption.endedAt.getTime();
+            });
           if (existingConsumption) {
             // Update existing
             for (const property in consumption) {
@@ -1366,5 +1368,4 @@ export default class OCPPService {
     }
   }
 }
-
 

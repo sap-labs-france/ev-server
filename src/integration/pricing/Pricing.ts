@@ -22,6 +22,7 @@ export default abstract class Pricing {
 
   // Protected because only used in subclasses at the moment
   protected readonly tenantId: string; // Assuming GUID or other string format ID
+
   // pragma protected readonly setting: PricingSettings;
   protected readonly transaction: Transaction;
 

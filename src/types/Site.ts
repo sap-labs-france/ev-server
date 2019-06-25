@@ -1,4 +1,4 @@
-/*import CreatedUpdatedProps from "./CreatedUpdatedProps";
+/* pragma import CreatedUpdatedProps from "./CreatedUpdatedProps";
 import ChargingStation from "../entity/ChargingStation";
 import Address from "./Address";
 
@@ -79,7 +79,6 @@ export default interface Site implements CreatedUpdatedProps {
   setUsers(users) {
     this._model.users = users.map((user) => user.getModel());
   }
-
 
   static checkIfSiteValid(filteredRequest, req) {
     // Update model?

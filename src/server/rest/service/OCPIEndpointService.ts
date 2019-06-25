@@ -115,7 +115,9 @@ export default class OCPIEndpointService {
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
-      ocpiendpoints.result = ocpiendpoints.result.map((ocpiendpoint) => { return ocpiendpoint.getModel(); });
+      ocpiendpoints.result = ocpiendpoints.result.map((ocpiendpoint) => {
+        return ocpiendpoint.getModel();
+      });
       // Filter
       ocpiendpoints.result = OCPIEndpointSecurity.filterOcpiEndpointsResponse(
         ocpiendpoints.result, req.user);
@@ -396,5 +398,4 @@ export default class OCPIEndpointService {
     }
   }
 }
-
 

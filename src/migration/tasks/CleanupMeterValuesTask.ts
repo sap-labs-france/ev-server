@@ -45,7 +45,7 @@ export default class CleanupMeterValuesTask extends MigrationTask {
     for (const meterValueMDB of meterValuesMDB) {
       // Delete
       await global.database.getCollection<any>(tenant.getID(), 'metervalues')
-        .findOneAndDelete({'_id': meterValueMDB._id});
+        .findOneAndDelete({ '_id': meterValueMDB._id });
     }
     // Log
     if (meterValuesMDB.length > 0) {
@@ -70,5 +70,4 @@ export default class CleanupMeterValuesTask extends MigrationTask {
     return true;
   }
 }
-
 

@@ -1,7 +1,7 @@
 import { soap } from 'strong-soap';
 import AbstractSoapClient from './AbstractSoapClient';
 import TSGlobal from '../../../types/GlobalType';
-declare var global: TSGlobal;
+declare const global: TSGlobal;
 
 export default class RatingService extends AbstractSoapClient {
 
@@ -27,7 +27,9 @@ export default class RatingService extends AbstractSoapClient {
   }
 
   public timeout(delayms: number): Promise<number> {
-    return new Promise((resolve) => { return setTimeout(resolve, delayms); });
+    return new Promise((resolve) => {
+      return setTimeout(resolve, delayms);
+    });
   }
 }
 

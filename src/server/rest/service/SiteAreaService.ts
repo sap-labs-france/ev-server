@@ -7,7 +7,7 @@ import Authorizations from '../../../authorization/Authorizations';
 import User from '../../../entity/User';
 import SiteArea from '../../../types/SiteArea';
 import UtilsService from './UtilsService';
-import { Request, Response, NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import Utils from '../../../utils/Utils';
 
@@ -20,7 +20,7 @@ export default class SiteAreaService {
         req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
         Constants.ACTION_DELETE, Constants.ENTITY_SITE_AREA, 'SiteAreaService', 'handleDeleteSiteArea');
 
-        // Filter
+      // Filter
       const siteAreaID = SiteAreaSecurity.filterSiteAreaRequestByID(req.query);
 
       // Check Mandatory fields
@@ -52,7 +52,7 @@ export default class SiteAreaService {
         tenantID: req.user.tenantID,
         user: req.user, module: 'SiteAreaService', method: 'handleDeleteSiteArea',
         message: `Site Area '${siteArea.name}' has been deleted successfully`,
-        action: action, detailedMessages: siteArea}
+        action: action, detailedMessages: siteArea }
       );
 
       // Ok
@@ -91,7 +91,7 @@ export default class SiteAreaService {
 
       // Get it
       const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.ID,
-        { withSite: filteredRequest.WithSite, withChargeBoxes: filteredRequest.WithChargeBoxes, withImage: true});
+        { withSite: filteredRequest.WithSite, withChargeBoxes: filteredRequest.WithChargeBoxes, withImage: true });
 
       // Found?
       UtilsService.assertObjectExists(siteArea, `The Site Area with ID '${filteredRequest.ID}' does not exist`, 'SiteAreaService', 'handleGetSiteArea', req.user);
@@ -139,7 +139,7 @@ export default class SiteAreaService {
       UtilsService.assertObjectExists(siteArea, 'Site Area does not exist.', 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
 
       // Return
-      res.json({id: siteArea.id, image: siteArea.image});
+      res.json({ id: siteArea.id, image: siteArea.image });
       next();
     } catch (error) {
       // Log
@@ -213,7 +213,7 @@ export default class SiteAreaService {
       }
 
       // Filter
-      const filteredRequest = SiteAreaSecurity.filterSiteAreaCreateRequest( req.body );
+      const filteredRequest = SiteAreaSecurity.filterSiteAreaCreateRequest(req.body);
 
       // Check
       SiteAreaService._checkIfSiteAreaValid(filteredRequest, req);
@@ -221,7 +221,7 @@ export default class SiteAreaService {
       // Create site
       const newSiteArea: SiteArea = {
         ...filteredRequest,
-        createdBy: new User(req.user.tenantID, {id: req.user.id}),
+        createdBy: new User(req.user.tenantID, { id: req.user.id }),
         createdOn: new Date()
       } as SiteArea;
 
@@ -233,7 +233,7 @@ export default class SiteAreaService {
         tenantID: req.user.tenantID,
         user: req.user, module: 'SiteAreaService', method: 'handleCreateSiteArea',
         message: `Site Area '${newSiteArea.name}' has been created successfully`,
-        action: action, detailedMessages: newSiteArea});
+        action: action, detailedMessages: newSiteArea });
       // Ok
       res.json(Object.assign({ id: newSiteArea.id }, Constants.REST_RESPONSE_SUCCESS));
       next();
@@ -280,7 +280,7 @@ export default class SiteAreaService {
       siteArea.maximumPower = filteredRequest.maximumPower;
       siteArea.accessControl = filteredRequest.accessControl;
       siteArea.siteID = filteredRequest.siteID;
-      siteArea.lastChangedBy = new User(req.user.tenantID, {'id': req.user.id});
+      siteArea.lastChangedBy = new User(req.user.tenantID, { 'id': req.user.id });
       siteArea.lastChangedOn = new Date();
 
       // Update Site Area
@@ -294,7 +294,7 @@ export default class SiteAreaService {
         action: action, detailedMessages: siteArea
       });
 
-        // Ok
+      // Ok
       res.json(Constants.REST_RESPONSE_SUCCESS);
       next();
     } catch (error) {
@@ -318,7 +318,7 @@ export default class SiteAreaService {
         'SiteAreaService', '_checkIfSiteAreaValid',
         req.user.id, filteredRequest.id);
     }
-    if(!filteredRequest.siteID) {
+    if (!filteredRequest.siteID) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Site ID is mandatory`, Constants.HTTP_GENERAL_ERROR,

@@ -263,6 +263,9 @@ export default class Database {
       if (src.image) {
         dest.image = src.image;
       }
+      if ('siteAdmin' in src) {
+        dest.siteAdmin = src.siteAdmin;
+      }
     }
     if (src.hasOwnProperty("name")) {
       dest.name = src.name;

@@ -44,12 +44,15 @@ export default class WSClient {
   public get CONNECTING() {
     return WebSocket.CONNECTING;
   }
+
   public get CLOSING() {
     return WebSocket.CLOSING;
   }
+
   public get CLOSED() {
     return WebSocket.CLOSED;
   }
+
   public get OPEN() {
     return WebSocket.OPEN;
   }
@@ -60,8 +63,9 @@ export default class WSClient {
 
   private reinstantiateCbs() {
     ['onopen', 'onerror', 'onclose', 'onmessage'].forEach((method) => {
-      if ('' + this.callbacks[method] !== '' + (() => { }))
-      { this.ws[method] = this.callbacks[method]; }
+      if ('' + this.callbacks[method] !== '' + (() => { })) {
+        this.ws[method] = this.callbacks[method];
+      }
     });
   }
 

@@ -29,9 +29,9 @@ export default class ChargingStationStorage {
     });
     // With Site Area, TODO make sure this works
     DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, aggregation, 'siteAreaID', '_id', 'siteArea', [ 'siteAreaID', 'chargePointSerialNumber', 'chargePointModel', 'chargeBoxSerialNumber', 'chargePointVendor', 'iccid', 'imsi', 'meterType', 'firmwareVersion',
-    'meterSerialNumber', 'endpoint', 'ocppVersion', 'ocppProtocol', 'lastHeartBeat', 'deleted', 'lastReboot', 'chargingStationURL', 'connectors', 'firmwareVersion', 'maximumPower', 'latitude', 'longitude', 'powerLimitUnit', 'cannotChargeInParallel', 'numberOfConnectedPhase', 'cfApplicationIDAndInstanceIndex']);
+      'meterSerialNumber', 'endpoint', 'ocppVersion', 'ocppProtocol', 'lastHeartBeat', 'deleted', 'lastReboot', 'chargingStationURL', 'connectors', 'firmwareVersion', 'maximumPower', 'latitude', 'longitude', 'powerLimitUnit', 'cannotChargeInParallel', 'numberOfConnectedPhase', 'cfApplicationIDAndInstanceIndex']);
 
-    aggregation.push({$unwind: {path: '$siteArea', preserveNullAndEmptyArrays: true}});
+    aggregation.push({ $unwind: { path: '$siteArea', preserveNullAndEmptyArrays: true } });
 
     // Read DB
     const chargingStationMDB = await global.database.getCollection<any>(tenantID, 'chargingstations')
@@ -109,7 +109,7 @@ export default class ChargingStationStorage {
     } else {
       // With Site Area, TODO make sure this works
       DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, aggregation, 'siteAreaID', '_id', 'siteArea', [ 'siteAreaID', 'chargePointSerialNumber', 'chargePointModel', 'chargeBoxSerialNumber', 'chargePointVendor', 'iccid', 'imsi', 'meterType', 'firmwareVersion',
-    'meterSerialNumber', 'endpoint', 'ocppVersion', 'ocppProtocol', 'lastHeartBeat', 'deleted', 'lastReboot', 'chargingStationURL', 'connectors', 'firmwareVersion', 'maximumPower', 'latitude', 'longitude', 'powerLimitUnit', 'cannotChargeInParallel', 'numberOfConnectedPhase', 'cfApplicationIDAndInstanceIndex']);
+        'meterSerialNumber', 'endpoint', 'ocppVersion', 'ocppProtocol', 'lastHeartBeat', 'deleted', 'lastReboot', 'chargingStationURL', 'connectors', 'firmwareVersion', 'maximumPower', 'latitude', 'longitude', 'powerLimitUnit', 'cannotChargeInParallel', 'numberOfConnectedPhase', 'cfApplicationIDAndInstanceIndex']);
 
       // Single Record
       aggregation.push({
@@ -123,7 +123,9 @@ export default class ChargingStationStorage {
         // Build filter
         filters.$and.push({
           "siteArea.siteID": {
-            $in: params.siteIDs.map((siteID) => { return Utils.convertToObjectID(siteID); })
+            $in: params.siteIDs.map((siteID) => {
+              return Utils.convertToObjectID(siteID);
+            })
           }
         });
       }
@@ -163,7 +165,7 @@ export default class ChargingStationStorage {
     }
     // Count Records
     const chargingStationsCountMDB = await global.database.getCollection<any>(tenantID, 'chargingstations')
-      .aggregate([...aggregation, {$count: "count"}], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {
@@ -242,7 +244,7 @@ export default class ChargingStationStorage {
     skip = Utils.checkRecordSkip(skip);
     // Create Aggregation
     const aggregation = [];
-    let siteAreaIdJoin = null;
+    const siteAreaIdJoin = null;
     let siteAreaJoin = null;
     // Set the filters
     const basicFilters: any = {
@@ -280,10 +282,10 @@ export default class ChargingStationStorage {
       });
     } else {
       // Always get the Site Area
-      let siteAreaIdJoin = [];
+      const siteAreaIdJoin = [];
       // With Site Area, TODO make sure this works
       DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, siteAreaIdJoin, 'siteAreaID', '_id', 'siteArea', [ 'siteAreaID', 'chargePointSerialNumber', 'chargePointModel', 'chargeBoxSerialNumber', 'chargePointVendor', 'iccid', 'imsi', 'meterType', 'firmwareVersion',
-    'meterSerialNumber', 'endpoint', 'ocppVersion', 'ocppProtocol', 'lastHeartBeat', 'deleted', 'lastReboot', 'chargingStationURL', 'connectors', 'firmwareVersion', 'maximumPower', 'latitude', 'longitude', 'powerLimitUnit', 'cannotChargeInParallel', 'numberOfConnectedPhase', 'cfApplicationIDAndInstanceIndex']);
+        'meterSerialNumber', 'endpoint', 'ocppVersion', 'ocppProtocol', 'lastHeartBeat', 'deleted', 'lastReboot', 'chargingStationURL', 'connectors', 'firmwareVersion', 'maximumPower', 'latitude', 'longitude', 'powerLimitUnit', 'cannotChargeInParallel', 'numberOfConnectedPhase', 'cfApplicationIDAndInstanceIndex']);
 
     }
     // Check Site ID

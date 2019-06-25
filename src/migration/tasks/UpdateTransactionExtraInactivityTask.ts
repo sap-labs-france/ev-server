@@ -54,7 +54,7 @@ export default class UpdateTransactionExtraInactivityTask extends MigrationTask 
       await global.database.getCollection<any>(tenant.getID(), 'transactions').findOneAndUpdate(
         { "_id": transactionMDB._id },
         { $set: transactionMDB },
-        { upsert: true, returnOriginal: false}
+        { upsert: true, returnOriginal: false }
       );
     },
     { concurrency: 5 });

@@ -244,12 +244,15 @@ export default class Configuration {
   // WSClient
   static getWSClientConfig() {
     // Read conf and set defaults values
-    if (!Configuration.getConfig().WSClient)
-    { Configuration.getConfig().WSClient = {}; }
-    if (!Configuration.getConfig().WSClient.hasOwnProperty('autoReconnectMaxRetries'))
-    { Configuration.getConfig().WSClient.autoReconnectMaxRetries = WS_DEFAULT_RECONNECT_MAX_RETRIES; }
-    if (!Configuration.getConfig().WSClient.hasOwnProperty('autoReconnectTimeout'))
-    { Configuration.getConfig().WSClient.autoReconnectTimeout = WS_DEFAULT_RECONNECT_TIMEOUT; }
+    if (!Configuration.getConfig().WSClient) {
+      Configuration.getConfig().WSClient = {};
+    }
+    if (!Configuration.getConfig().WSClient.hasOwnProperty('autoReconnectMaxRetries')) {
+      Configuration.getConfig().WSClient.autoReconnectMaxRetries = WS_DEFAULT_RECONNECT_MAX_RETRIES;
+    }
+    if (!Configuration.getConfig().WSClient.hasOwnProperty('autoReconnectTimeout')) {
+      Configuration.getConfig().WSClient.autoReconnectTimeout = WS_DEFAULT_RECONNECT_TIMEOUT;
+    }
     return Configuration.getConfig().WSClient;
   }
 }

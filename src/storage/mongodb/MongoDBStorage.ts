@@ -136,7 +136,7 @@ export default class MongoDBStorage {
     ]);
     // Sites/Users
     await this.handleIndexesInCollection(collections, tenantID, 'siteusers', [
-      { fields: { siteID: 1 } },
+      { fields: { siteID: 1, userID: 1 }, options: { unique: true } },
       { fields: { userID: 1 } }
     ]);
     // Transactions
@@ -242,7 +242,9 @@ export default class MongoDBStorage {
     const tenantsMDB = await this.db.collection(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, 'tenants'))
       .find({})
       .toArray();
-    const tenantIds = tenantsMDB.map((t) => { return t._id.toString(); });
+    const tenantIds = tenantsMDB.map((t) => {
+      return t._id.toString();
+    });
     for (const tenantId of tenantIds) {
       this.checkAndCreateTenantDatabase(tenantId);
     }

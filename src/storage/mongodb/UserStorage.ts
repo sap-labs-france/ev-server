@@ -10,6 +10,7 @@ import Logging from '../../utils/Logging';
 import fs from 'fs';
 import TSGlobal from '../../types/GlobalType';
 import User from '../../entity/User';
+import Site from '../../entity/Site';
 
 declare const global: TSGlobal;
 
@@ -282,6 +283,7 @@ export default class UserStorage {
         for (const siteID of siteIDs) {
           // Add
           siteUsers.push({
+            "_id": crypto.createHash('sha256').update(`${siteID}~${userID}`).digest("hex"),
             "userID": Utils.convertToObjectID(userID),
             "siteID": Utils.convertToObjectID(siteID)
           });
@@ -480,7 +482,7 @@ export default class UserStorage {
     }
     // Count Records
     const usersCountMDB = await global.database.getCollection<any>(tenantID, 'users')
-      .aggregate([...aggregation, { $count: "count"}], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {
@@ -745,6 +747,90 @@ export default class UserStorage {
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd('UserStorage', 'deleteUser', uniqueTimerID, { id });
+  }
+
+  static async getSites(tenantID, params: { userID: string; siteAdmin?: boolean }, limit?, skip?, sort?): Promise<object> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'getSites');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Check Limit
+    limit = Utils.checkRecordLimit(limit);
+    // Check Skip
+    skip = Utils.checkRecordSkip(skip);
+    // Filter
+    const filter: any = {
+      userID: Utils.convertToObjectID(params.userID)
+    };
+    if ('siteAdmin' in params) {
+      filter.siteAdmin = params.siteAdmin;
+    }
+    // Create Aggregation
+    const aggregation: any[] = [];
+    // Filter
+    aggregation.push({
+      $match: filter
+    });
+    // Get Sites
+    aggregation.push({
+      $lookup: {
+        from: DatabaseUtils.getCollectionName(tenantID, "sites"),
+        localField: "siteID",
+        foreignField: "_id",
+        as: "sites"
+      }
+    });
+    // Single Record
+    aggregation.push({
+      $unwind: { "path": "$sites", "preserveNullAndEmptyArrays": true }
+    });
+    // Count Records
+    const usersCountMDB = await global.database.getCollection<any>(tenantID, 'siteusers')
+      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
+      .toArray();
+    // Sort
+    if (sort) {
+      // Sort
+      aggregation.push({
+        $sort: sort
+      });
+    } else {
+      // Default
+      aggregation.push({
+        $sort: { "sites.name": 1 }
+      });
+    }
+    // Skip
+    aggregation.push({
+      $skip: skip
+    });
+    // Limit
+    aggregation.push({
+      $limit: limit
+    });
+    // Read DB
+    const siteusersMDB = await global.database.getCollection<any>(tenantID, 'siteusers')
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .toArray();
+    const sites = [];
+    // Create
+    for (const siteuserMDB of siteusersMDB) {
+      if (siteuserMDB.sites) {
+        const site = new Site(tenantID, siteuserMDB.sites);
+        site.setSiteAdmin(siteuserMDB.siteAdmin);
+        sites.push(site);
+      }
+    }
+
+    // Debug
+    Logging.traceEnd('UserStorage', 'UserStorage', uniqueTimerID, { userID: params.userID });
+
+    // Ok
+    return {
+      count: (usersCountMDB.length > 0 ?
+        (usersCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : usersCountMDB[0].count) : 0),
+      result: sites
+    };
   }
 
   static async _createUser(tenantID, userMDB) {

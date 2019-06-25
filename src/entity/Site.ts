@@ -155,7 +155,7 @@ export default class Site extends TenantHolder {
 
   async getSiteAreas() {
     const siteAreas = await SiteAreaStorage.getSiteAreas(this.getTenantID(),
-      { siteID: this.getID(), onlyRecordCount: false, withChargeBoxes: true, withAvailableChargers: true, withSite: false, withImage: false},
+      { siteID: this.getID(), onlyRecordCount: false, withChargeBoxes: true, withAvailableChargers: true, withSite: false, withImage: false },
       { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 });
     this.setSiteAreas(siteAreas.result);
     return siteAreas.result;
@@ -167,7 +167,9 @@ export default class Site extends TenantHolder {
 
   async getUsers() {
     if (this._model.users) {
-      return this._model.users.map((user) => { return new User(this.getTenantID(), user); });
+      return this._model.users.map((user) => {
+        return new User(this.getTenantID(), user);
+      });
     }
     const users = await UserStorage.getUsers(this.getTenantID(), { 'siteID': this.getID() });
     this.setUsers(users.result);
@@ -195,7 +197,9 @@ export default class Site extends TenantHolder {
   }
 
   setUsers(users) {
-    this._model.users = users.map((user) => { return user.getModel(); });
+    this._model.users = users.map((user) => {
+      return user.getModel();
+    });
   }
 
   save() {
@@ -251,12 +255,20 @@ export default class Site extends TenantHolder {
     return SiteStorage.addUsersToSite(tenantID, id, userIDs);
   }
 
-  static getUsersFromSite(tenantID, id, limit?, skip?, sort?) {
-    return SiteStorage.getUsersBySite(tenantID, id, limit, skip, sort);
+  static getUsers(tenantID, id, limit?, skip?, sort?) {
+    return SiteStorage.getUsers(tenantID, { siteID: id }, limit, skip, sort);
   }
 
-  static updateSiteUserRole(tenantID, id, userID, role: string) {
-    return SiteStorage.updateSiteUserRole(tenantID, id, userID, role);
+  public setSiteAdmin(siteAdmin: boolean) {
+    this._model.siteAdmin = siteAdmin;
+  }
+
+  public isSiteAdmin(): boolean {
+    return this._model.siteAdmin;
+  }
+
+  static updateSiteUserAdmin(tenantID, id, userID, siteAdmin: boolean) {
+    return SiteStorage.updateSiteUserAdmin(tenantID, id, userID, siteAdmin);
   }
 
   static removeUsersFromSite(tenantID, id, userIDs) {
