@@ -402,6 +402,11 @@ export default {
             // Delegate
             StatisticService.handleGetChargingStationUsageStatistics(action, req, res, next);
             break;
+          // Export the statistics data
+          case "StatisticsExport":
+            // Delegate
+            StatisticService.handleGetStatisticsExport(action, req, res, next);
+            break;
           // Get the current metrics
           case "CurrentMetrics":
             // Delegate
