@@ -8,6 +8,7 @@ import SiteUserRequest from '../../../../types/requests/SiteUserRequest';
 import AppError from '../../../../exception/AppError';
 import Constants from '../../../../utils/Constants';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import AppAuthError from '../../../../exception/AppAuthError';
 
 export default class SiteSecurity {
 
@@ -23,6 +24,24 @@ export default class SiteSecurity {
         Constants.CENTRAL_SERVER,
         `The role ${request.role} is not supported`, 500,
         'SiteService', 'handleUpdateSiteUsersRole', userToken);
+    }
+    if (!Authorizations.canUpdateSite(userToken)) {
+      throw new AppAuthError(
+        Constants.ACTION_UPDATE,
+        Constants.ENTITY_SITE,
+        filteredRequest.siteID,
+        Constants.HTTP_AUTH_ERROR,
+        'SiteService', 'handleUpdateSiteUserAdmin',
+        userToken, filteredRequest.userID);
+    }
+    if (!Authorizations.canUpdateUser(userToken, filteredRequest.userID)) {
+      throw new AppAuthError(
+        Constants.ACTION_UPDATE,
+        Constants.ENTITY_USER,
+        filteredRequest.userID,
+        Constants.HTTP_AUTH_ERROR,
+        'SiteService', 'handleUpdateSiteUserAdmin',
+        userToken, request.userID);
     }
     return {role: sanitize(request.role), ...this.filterAssignSiteUsers(request, userToken)};
   }
