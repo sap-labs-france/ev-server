@@ -14,8 +14,8 @@ export default interface Site extends CreatedUpdatedProps {
     allowAllUsersToStopTransactions: boolean;
     autoUserSiteAssignment: boolean;
     image?: string;
-    availableChargers?: ChargingStation[];
-    totalChargers?: ChargingStation[];
+    availableChargers?: number;
+    totalChargers?: number;
     availableConnectors?: number;
     totalConnectors?: number;
     siteAreas?: SiteArea;

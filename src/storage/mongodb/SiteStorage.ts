@@ -71,7 +71,7 @@ export default class SiteStorage {
     Logging.traceEnd('SiteStorage', 'removeUsersFromSite', uniqueTimerID, { siteID, userIDs });
   }
 
-  static async addUsersToSite(tenantID, siteID, userIDs) {
+  public static async addUsersToSite(tenantID: string, siteID: string, userIDs: string[]): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'addUsersToSite');
     // Check Tenant
@@ -98,7 +98,7 @@ export default class SiteStorage {
     Logging.traceEnd('SiteStorage', 'addUsersToSite', uniqueTimerID, { siteID, userIDs });
   }
 
-  static async getUsers(tenantID, params: {siteID: string}, limit?, skip?, sort?) {
+  public static async getUsers(tenantID: string, siteID: string, limit: number, skip: number, sort:any = null): Promise<{count: number, result: User[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getUsers');
     // Check Tenant
@@ -112,9 +112,10 @@ export default class SiteStorage {
     // Filter
     aggregation.push({
       $match: {
-        siteID: Utils.convertToObjectID(params.siteID)
+        siteID: Utils.convertToObjectID(siteID)
       }
     });
+
     // Get users
     aggregation.push({
       $lookup: {
@@ -146,6 +147,7 @@ export default class SiteStorage {
         ]
       }
     });
+
     // Count Records
     const usersCountMDB = await global.database.getCollection<any>(tenantID, 'siteusers')
       .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
@@ -185,7 +187,7 @@ export default class SiteStorage {
     }
 
     // Debug
-    Logging.traceEnd('SiteStorage', 'getUsers', uniqueTimerID, { siteID: params.siteID });
+    Logging.traceEnd('SiteStorage', 'getUsers', uniqueTimerID, { siteID: siteID });
 
     // Ok
     return {
@@ -195,7 +197,7 @@ export default class SiteStorage {
     };
   }
 
-  static async updateSiteUserAdmin(tenantID, siteID, userID, siteAdmin: boolean) {
+  public static async updateSiteUserAdmin(tenantID: string, siteID: string, userID: string, siteAdmin: boolean): Promise<void> {
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'updateSiteUserAdmin');
     await Utils.checkTenant(tenantID);
 
@@ -216,11 +218,11 @@ export default class SiteStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check if ID/Name is provided
-    if (!siteToSave.id && !siteToSave.name) {
+    if (!siteToSave.name) {
       // ID must be provided!
       throw new BackendError(
         Constants.CENTRAL_SERVER,
-        `Site has no ID and no Name`,
+        `Site has no Name`,
         "SiteStorage", "saveSite");
     }
     const siteFilter: any = {};
@@ -255,7 +257,6 @@ export default class SiteStorage {
       { $set: mongoSite },
       { upsert: true, returnOriginal: false });
     
-    let newId = null;
     
     if(! result.ok ) {
       throw new BackendError(
@@ -263,7 +264,7 @@ export default class SiteStorage {
         `Couldn't update Site`,
         'SiteStorage', 'saveSite');
     }
-    newId = siteFilter._id.toHexString();
+    let newId = siteFilter._id.toHexString();
 
     if(saveImage) {
       SiteStorage.saveSiteImage(tenantID, {id: newId, image: siteToSave.image});
@@ -402,14 +403,7 @@ export default class SiteStorage {
 
     // Add Company?
     if (params.withCompany) {
-      aggregation.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, "companies"),
-          localField: "companyID",
-          foreignField: "_id",
-          as: "company"
-        }
-      }); // TODO project fields to actually match Company object so that Site can be typed
+      DatabaseUtils.pushCompanyWOSWOIJoinInAggregation(tenantID, aggregation, 'companyID', '_id', 'company', ['address', 'allowUsersToStopTransaction, autoUserSiteAssignement', 'companyID', 'name']);
       // Single Record
       aggregation.push({
         $unwind: { "path": "$company", "preserveNullAndEmptyArrays": true }
@@ -436,22 +430,20 @@ export default class SiteStorage {
       $limit: limit
     });
     // Read DB
-    const sitesMDB = await global.database.getCollection<any>(tenantID, 'sites')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+    const sitesMDB = await global.database.getCollection<Site&{chargeBoxes: any}>(tenantID, 'sites')
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true }) //TODO change this method when typed ChargingStation...
       .toArray();
     const sites = [];
     // Check
     if (sitesMDB && sitesMDB.length > 0) {
       // Create
-      for (const siteMDB of sitesMDB) {
-        // Create
-        const site = new Site(tenantID, siteMDB);
-        
+      for (const site of sitesMDB) {
+         
         // Count Available/Occupied Chargers/Connectors
         if (params.withAvailableChargers) {
           let availableChargers = 0, totalChargers = 0, availableConnectors = 0, totalConnectors = 0;
           // Chargers
-          for (const chargeBox of siteMDB.chargeBoxes) {
+          for (const chargeBox of site.chargeBoxes) {
             // Check not deleted
             if (chargeBox.deleted) {
               continue;
@@ -475,15 +467,10 @@ export default class SiteStorage {
             }
           }
           // Set
-          site.setAvailableChargers(availableChargers);
-          site.setTotalChargers(totalChargers);
-          site.setAvailableConnectors(availableConnectors);
-          site.setTotalConnectors(totalConnectors);
-        }
-
-        // Set Company?
-        if (siteMDB.company) {
-          site.setCompany(siteMDB.company); // TODO: this might break...
+          site.availableChargers = availableChargers;
+          site.totalChargers = totalChargers;
+          site.availableConnectors = availableConnectors;
+          site.totalConnectors = totalConnectors;
         }
         // Add
         sites.push(site);
