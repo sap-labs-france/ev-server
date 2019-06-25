@@ -16,7 +16,9 @@ export default class StatisticService {
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
-      const transactionStatsMDB = await StatisticsStorage.getUserStats(req.user.tenantID, filter, Constants.STATS_GROUP_BY_USAGE);
+      const transactionStatsMDB = await StatisticsStorage.getUserStats(
+        req.user.tenantID, filter, Constants.STATS_GROUP_BY_USAGE);
+      // Convert
       const transactions = this.convertToGraphData(transactionStatsMDB, 'U');
       // Return
       res.json(transactions);
@@ -34,7 +36,9 @@ export default class StatisticService {
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
-      const transactionStatsMDB = await StatisticsStorage.getUserStats(req.user.tenantID, filter, Constants.STATS_GROUP_BY_CONSUMPTION);
+      const transactionStatsMDB = await StatisticsStorage.getUserStats(
+        req.user.tenantID, filter, Constants.STATS_GROUP_BY_CONSUMPTION);
+      // Convert
       const transactions = this.convertToGraphData(transactionStatsMDB, 'U');
       // Return
       res.json(transactions);
@@ -52,7 +56,9 @@ export default class StatisticService {
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
-      const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(req.user.tenantID, filter, Constants.STATS_GROUP_BY_USAGE);
+      const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
+        req.user.tenantID, filter, Constants.STATS_GROUP_BY_USAGE);
+      // Convert
       const transactions = this.convertToGraphData(transactionStatsMDB, 'C');
       // Return
       res.json(transactions);
@@ -85,7 +91,9 @@ export default class StatisticService {
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
-      const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(req.user.tenantID, filter, Constants.STATS_GROUP_BY_CONSUMPTION);
+      const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
+        req.user.tenantID, filter, Constants.STATS_GROUP_BY_CONSUMPTION);
+      // Convert
       const transactions = this.convertToGraphData(transactionStatsMDB, 'C');
       // Return
       res.json(transactions);
@@ -115,9 +123,11 @@ export default class StatisticService {
       // Decisions
       let groupBy: string;
       switch (filteredRequest.DataType) {
-        case 'Consumption': groupBy = Constants.STATS_GROUP_BY_CONSUMPTION;
+        case 'Consumption':
+          groupBy = Constants.STATS_GROUP_BY_CONSUMPTION;
           break;
-        default: groupBy = Constants.STATS_GROUP_BY_USAGE;
+        default:
+          groupBy = Constants.STATS_GROUP_BY_USAGE;
       }
       let method: string;
       if (filteredRequest.DataCategory === 'C') {
@@ -126,26 +136,27 @@ export default class StatisticService {
         method = 'getUserStats';
       }
 
+      // Query data
       const transactionStatsMDB = await StatisticsStorage[method](req.user.tenantID, filter, groupBy);
 
       // Build the result
       const filename = 'export' + filteredRequest.DataType + 'Statistics.csv';
       fs.writeFile(filename, this.convertToCSV(transactionStatsMDB, filteredRequest.DataCategory,
-        filteredRequest.DataType, filteredRequest.Year, filteredRequest.DataScope), (err) => {
-          if (err) {
-            throw err;
+        filteredRequest.DataType, filteredRequest.Year, filteredRequest.DataScope), (createError) => {
+        if (createError) {
+          throw createError;
+        }
+        res.download(filename, (downloadError) => {
+          if (downloadError) {
+            throw downloadError;
           }
-          res.download(filename, (err) => {
-            if (err) {
-              throw err;
+          fs.unlink(filename, (unlinkError) => {
+            if (unlinkError) {
+              throw unlinkError;
             }
-            fs.unlink(filename, (err) => {
-              if (err) {
-                throw err;
-              }
-            });
           });
         });
+      });
     } catch (error) {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
