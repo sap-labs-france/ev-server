@@ -5,7 +5,7 @@ import Constants from '../../../utils/Constants';
 import AppError from '../../../exception/AppError';
 import AppAuthError from '../../../exception/AppAuthError';
 import User from '../../../entity/User';
-import Site from '../../../entity/Site';
+import Site from '../../../types/Site';
 import Utils from '../../../utils/Utils';
 import Database from '../../../utils/Database';
 import UserSecurity from './security/UserSecurity';
@@ -13,6 +13,7 @@ import SettingStorage from "../../../storage/mongodb/SettingStorage";
 import ERPService from "../../../integration/pricing/convergent-charging/ERPService";
 import RatingService from "../../../integration/pricing/convergent-charging/RatingService";
 import fs from "fs";
+import SiteStorage from '../../../storage/mongodb/SiteStorage';
 
 export default class UserService {
   static async handleAddSitesToUser(action, req, res, next) {
@@ -55,7 +56,7 @@ export default class UserService {
       // Get Sites
       for (const siteID of filteredRequest.siteIDs) {
         // Check the site
-        const site = await Site.getSite(req.user.tenantID, siteID);
+        const site = await SiteStorage.getSite(req.user.tenantID, siteID);
         if (!site) {
           throw new AppError(
             Constants.CENTRAL_SERVER,
@@ -63,7 +64,7 @@ export default class UserService {
             'UserService', 'handleAddSitesToUser', req.user);
         }
         // Check auth
-        if (!Authorizations.canUpdateSite(req.user, site.getModel())) {
+        if (!Authorizations.canUpdateSite(req.user)) {
           throw new AppAuthError(
             Constants.ACTION_UPDATE,
             Constants.ENTITY_SITE,
@@ -131,7 +132,7 @@ export default class UserService {
       // Get Sites
       for (const siteID of filteredRequest.siteIDs) {
         // Check the site
-        const site = await Site.getSite(req.user.tenantID, siteID);
+        const site = await SiteStorage.getSite(req.user.tenantID, siteID);
         if (!site) {
           throw new AppError(
             Constants.CENTRAL_SERVER,
@@ -139,7 +140,7 @@ export default class UserService {
             'UserService', 'handleAddSitesToUser', req.user);
         }
         // Check auth
-        if (!Authorizations.canUpdateSite(req.user, site.getModel())) {
+        if (!Authorizations.canUpdateSite(req.user)) {
           throw new AppAuthError(
             Constants.ACTION_UPDATE,
             Constants.ENTITY_SITE,

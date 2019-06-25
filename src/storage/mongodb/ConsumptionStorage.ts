@@ -3,9 +3,8 @@ import Utils from '../../utils/Utils';
 import Logging from '../../utils/Logging';
 import Consumption from '../../entity/Consumption';
 import crypto from 'crypto';
-import TSGlobal from '../../types/GlobalType';
+import global from '../../types/GlobalType';
 
-declare const global: TSGlobal;
 
 export default class ConsumptionStorage {
   static async saveConsumption(tenantID, consumptionToSave) {

@@ -2,8 +2,7 @@ import ChargingStationClient from '../ChargingStationClient';
 import { soap } from 'strong-soap';
 import Logging from '../../../utils/Logging';
 import Configuration from '../../../utils/Configuration';
-import TSGlobal from '../../../types/GlobalType';
-declare const global: TSGlobal;
+import global from '../../../types/GlobalType';
 
 // Default Module name
 const _moduleName = "SoapChargingStationClient";

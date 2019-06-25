@@ -15,7 +15,7 @@ import TenantStorage from '../storage/mongodb/TenantStorage';
 import SourceMap from 'source-map-support';
 import SiteArea from '../types/SiteArea';
 import SiteStorage from '../storage/mongodb/SiteStorage';
-import Site from '../entity/Site';
+import Site from '../types/Site';
 import UserStorage from '../storage/mongodb/UserStorage';
 SourceMap.install();
 

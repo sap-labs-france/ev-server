@@ -4,10 +4,9 @@ import DatabaseUtils from './DatabaseUtils';
 import Utils from '../../utils/Utils';
 import Logging from '../../utils/Logging';
 import PricingStorage from './PricingStorage';
-import TSGlobal from './../../types/GlobalType';
+import global from './../../types/GlobalType';
 import Transaction from '../../entity/Transaction';
 
-declare const global: TSGlobal;
 
 export default class TransactionStorage {
   static async deleteTransaction(tenantID, transaction) {

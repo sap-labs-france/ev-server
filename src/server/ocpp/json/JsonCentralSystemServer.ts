@@ -5,9 +5,7 @@ import WSServer from './WSServer';
 import JsonWSConnection from './JsonWSConnection';
 import JsonRestWSConnection from './JsonRestWSConnection';
 import CentralSystemServer from '../CentralSystemServer';
-import TSGlobal from '../../../types/GlobalType';
-declare const global: TSGlobal;
-
+import global from '../../../types/GlobalType';
 export default class JsonCentralSystemServer extends CentralSystemServer {
 
   private _serverName: any;

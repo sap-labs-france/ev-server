@@ -8,9 +8,8 @@ import Utils from '../../utils/Utils';
 import Constants from '../../utils/Constants';
 import NotificationTask from '../NotificationTask';
 import Tenant from '../../entity/Tenant';
-import TSGlobal from '../../types/GlobalType';
+import global from '../../types/GlobalType';
 
-declare const global: TSGlobal;
 
 import SourceMap from 'source-map-support';
 SourceMap.install();

@@ -2,8 +2,7 @@ import { soap } from 'strong-soap';
 import ConnectionStorage from "../../../storage/mongodb/ConnectionStorage";
 import AbstractSoapClient from './AbstractSoapClient';
 import InternalError from '../../../exception/InternalError';
-import TSGlobal from '../../../types/GlobalType';
-declare const global: TSGlobal;
+import global from '../../../types/GlobalType';
 
 export default class ERPService extends AbstractSoapClient {
   public execute: any;

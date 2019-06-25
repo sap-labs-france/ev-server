@@ -3,8 +3,7 @@ import ChargingStation from '../../../entity/ChargingStation';
 import Constants from '../../../utils/Constants';
 import BackendError from '../../../exception/BackendError';
 import WSConnection from './WSConnection';
-import TSGlobal from '../../../types/GlobalType';
-declare const global: TSGlobal;
+import global from '../../../types/GlobalType';
 
 const MODULE_NAME = "JsonRestWSConnection";
 export default class JsonRestWSConnection extends WSConnection {

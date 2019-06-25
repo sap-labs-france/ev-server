@@ -138,6 +138,10 @@ export default class DatabaseUtils {
       true);
   }
 
+  public static pushBasicSiteJoinInAggregation(tenantID: string, aggregation: any[], local: string, foreign: string, as: string, includes: string[]) {
+    this.pushTransformedJoinInAggregation(tenantID, aggregation, 'sites', local, foreign, as, includes, {}, ['name', 'address', 'companyID', 'allowAllUsersToStopTransactions', 'autoUserSiteAssignment'], {id: `$${as}._id`}, false, true);
+  }
+
   public static pushTransformedJoinInAggregation(tenantID: string, aggregation: any[], joinCollection: string, local: string, foreign: string, intoField: string, topIncludes: string[], topRenames: any, nestedIncludes: string[],
     nestedRenames: any, topCreatedProps: boolean, joinCreatedProps: boolean) {
 

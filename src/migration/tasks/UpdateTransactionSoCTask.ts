@@ -2,8 +2,7 @@ import Database from '../../utils/Database';
 import Tenant from '../../entity/Tenant';
 import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
 import MigrationTask from '../MigrationTask';
-import TSGlobal from '../../types/GlobalType';
-declare const global: TSGlobal;
+import global from '../../types/GlobalType';
 
 export default class UpdateTransactionSoCTask extends MigrationTask {
   async migrate() {

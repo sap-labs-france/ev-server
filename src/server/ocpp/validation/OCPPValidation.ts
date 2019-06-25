@@ -4,8 +4,7 @@ import BackendError from '../../../exception/BackendError';
 import Logging from '../../../utils/Logging';
 import SchemaValidator from '../../rest/validation/SchemaValidator';
 import fs from 'fs';
-import TSGlobal from '../../../types/GlobalType';
-declare const global: TSGlobal;
+import global from '../../../types/GlobalType';
 import SourceMap from 'source-map-support';
 SourceMap.install();
 export default class OCPPValidation extends SchemaValidator {

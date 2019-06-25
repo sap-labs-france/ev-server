@@ -6,11 +6,11 @@ import moment from 'moment';
 import faker from 'faker';
 import DataHelper from './DataHelper';
 import path from 'path';
-import TSGlobal from '../../src/types/GlobalType';
+ import global from'../../src/types/GlobalType';
 import CentralServerService from './client/CentralServerService';
 import Factory from '../factories/Factory';
 
-declare const global: TSGlobal;
+ 
 global.appRoot = path.resolve(__dirname, '../../src');
 
 class TestData {

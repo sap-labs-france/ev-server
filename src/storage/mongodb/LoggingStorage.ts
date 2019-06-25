@@ -2,8 +2,7 @@ import Utils from '../../utils/Utils';
 import Database from '../../utils/Database';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
-import Global from './../../types/GlobalType';
-declare const global: Global;
+import global from './../../types/GlobalType';
 
 export default class LoggingStorage {
   public static async deleteLogs(tenantID, deleteUpToDate) {

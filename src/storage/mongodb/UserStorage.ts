@@ -8,11 +8,11 @@ import BackendError from '../../exception/BackendError';
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import fs from 'fs';
-import TSGlobal from '../../types/GlobalType';
+import global from '../../types/GlobalType';
 import User from '../../entity/User';
-import Site from '../../entity/Site';
+import Site from '../../types/Site';
+import UserSiteWrapper from '../../types/UserSiteWrapper';
 
-declare const global: TSGlobal;
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 export default class UserStorage {
@@ -780,6 +780,7 @@ export default class UserStorage {
         as: "sites"
       }
     });
+    DatabaseUtils.pushBasicSiteJoinInAggregation(tenantID, aggregation, 'siteID', '_id', 'sites', ['userID', 'siteID']);
     // Single Record
     aggregation.push({
       $unwind: { "path": "$sites", "preserveNullAndEmptyArrays": true }
@@ -816,11 +817,10 @@ export default class UserStorage {
     // Create
     for (const siteuserMDB of siteusersMDB) {
       if (siteuserMDB.sites) {
-        const site = new Site(tenantID, siteuserMDB.sites);
-        site.setSiteAdmin(siteuserMDB.siteAdmin);
-        sites.push(site);
+        const usersitewrapper: UserSiteWrapper = {siteAdmin: siteuserMDB.siteAdmin, userID: siteuserMDB.userID, site: siteuserMDB.sites};
+        sites.push(usersitewrapper);
       }
-    }
+    }//TODO This might be flawed, check thoroughly
 
     // Debug
     Logging.traceEnd('UserStorage', 'UserStorage', uniqueTimerID, { userID: params.userID });

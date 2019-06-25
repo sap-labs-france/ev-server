@@ -18,7 +18,7 @@ import SiteAreaContext from './SiteAreaContext';
 import ChargingStationContext from './ChargingStationContext';
 import Constants from '../../../src/utils/Constants';
 // import * as mongo from 'mongodb';
-import TSGlobal from '../../../src/types/GlobalType';
+ import global from'../../../src/types/GlobalType';
 import moment from 'moment';
 
 // declare module 'mongodb' {
@@ -27,7 +27,7 @@ import moment from 'moment';
 //   }
 // }
 
-declare const global: TSGlobal;
+ 
 
 export default class ContextBuilder {
 

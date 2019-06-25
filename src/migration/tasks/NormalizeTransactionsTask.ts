@@ -5,8 +5,8 @@ import moment from 'moment';
 import Logging from '../../utils/Logging';
 import Constants from '../../utils/Constants';
 import MigrationTask from '../MigrationTask';
-import TSGlobal from '../../types/GlobalType';
-declare const global: TSGlobal;
+import global from'../../types/GlobalType';
+ 
 
 export default class NormalizeTransactionsTask extends MigrationTask {
   async migrate() {

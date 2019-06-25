@@ -6,9 +6,8 @@ import BackendError from '../../exception/BackendError';
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import Tenant from '../../entity/Tenant';
-import TSGlobal from '../../types/GlobalType';
+import global from '../../types/GlobalType';
 
-declare const global: TSGlobal;
 
 export default class TenantStorage {
   static async getTenant(id: string): Promise<Tenant|null> {

@@ -6,10 +6,9 @@ import Logging from '../../utils/Logging';
 import BackendError from '../../exception/BackendError';
 import ChargingStation from '../../entity/ChargingStation';
 import SiteArea from '../../types/SiteArea';
-import Site from '../../entity/Site';
+import Site from '../../types/Site';
 import Tenant from '../../entity/Tenant';
-import TSGlobal from '../../types/GlobalType';
-declare const global: TSGlobal;
+import global from '../../types/GlobalType';
 
 export default class ChargingStationStorage {
 
@@ -297,20 +296,9 @@ export default class ChargingStationStorage {
     }
     if (params.withSite) {
       // Get the site from the sitearea
-      siteAreaJoin = [{
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, "sites"),
-          localField: "siteArea.siteID",
-          foreignField: "_id",
-          as: "site"
-        }
-      }, {
-        $unwind: {
-          "path": "$site",
-          "preserveNullAndEmptyArrays": true
-        }
-      }
-      ];
+      siteAreaJoin = [];
+      DatabaseUtils.pushBasicSiteJoinInAggregation(tenantID, siteAreaJoin, 'siteArea.siteID', '_id', 'site', [ 'siteAreaID', 'chargePointSerialNumber', 'chargePointModel', 'chargeBoxSerialNumber', 'chargePointVendor', 'iccid', 'imsi', 'meterType', 'firmwareVersion',
+      'meterSerialNumber', 'endpoint', 'ocppVersion', 'ocppProtocol', 'lastHeartBeat', 'deleted', 'lastReboot', 'chargingStationURL', 'connectors', 'firmwareVersion', 'maximumPower', 'latitude', 'longitude', 'powerLimitUnit', 'cannotChargeInParallel', 'numberOfConnectedPhase', 'cfApplicationIDAndInstanceIndex', 'siteArea']);
     }
     // Charger
     if (params.chargeBoxID) {
@@ -433,7 +421,7 @@ export default class ChargingStationStorage {
         chargingStation.setSiteArea(siteArea);
         if (chargingStationMDB.site) {
           // Add site
-          siteArea.setSite(new Site(tenantID, chargingStationMDB.site));
+          siteArea.site = chargingStationMDB.site;
         }
       }
       // Add

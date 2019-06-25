@@ -4,8 +4,7 @@ import Tenant from '../../entity/Tenant';
 import Logging from '../../utils/Logging';
 import Constants from '../../utils/Constants';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
-import TSGlobal from '../../types/GlobalType';
-declare const global: TSGlobal;
+import global from '../../types/GlobalType';
 
 const SLF_TENANT = {
   'name': 'SAP Labs France',

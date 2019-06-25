@@ -1,9 +1,7 @@
 import Database from '../../utils/Database';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import TSGlobal from '../../types/GlobalType';
-
-declare const global: TSGlobal;
+import global from '../../types/GlobalType';
 
 export default class MigrationStorage {
   static async getMigrations() {

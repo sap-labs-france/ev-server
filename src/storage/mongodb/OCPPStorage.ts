@@ -4,9 +4,8 @@ import Database from '../../utils/Database';
 import crypto from 'crypto';
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
-import TSGlobal from '../../types/GlobalType';
+import global from '../../types/GlobalType';
 
-declare const global: TSGlobal;
 
 export default class OCPPStorage {
   static async saveAuthorize(tenantID, authorize) {

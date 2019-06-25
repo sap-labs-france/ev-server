@@ -1,9 +1,7 @@
-//import MongoDBStorage from "../storage/mongodb/MongoDBStorage";
-
 import MongoDBStorage from '../storage/mongodb/MongoDBStorage';
 import Global = NodeJS.Global;
 
-export interface TSGlobal extends Global {
+interface TSGlobal extends Global {
   database: MongoDBStorage;
   appRoot: string;
   centralSystemJson: any;
@@ -13,7 +11,7 @@ export interface TSGlobal extends Global {
   Promise: any;
 }
 
-//declare const global: TSGlobal;
+// 
 declare var global: TSGlobal;
 export default global;
 

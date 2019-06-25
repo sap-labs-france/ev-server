@@ -3,9 +3,8 @@ import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import moment from 'moment';
-import TSGlobal from '../../types/GlobalType';
+import global from '../../types/GlobalType';
 
-declare const global: TSGlobal;
 
 export default class StatisticsStorage {
   static async getChargingStationStats(tenantID, filter, groupBy) {

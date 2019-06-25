@@ -1,8 +1,9 @@
 import Constants from "../../../../utils/Constants";
-import Site from "../../../../entity/Site";
+import Site from "../../../../types/Site";
 
 import SourceMap from 'source-map-support';
 import SiteArea from "../../../../types/SiteArea";
+import SiteStorage from "../../../../storage/mongodb/SiteStorage";
 SourceMap.install();
 
 /**
@@ -17,24 +18,22 @@ export default class OCPIMapping {
    * @param options
    * @return OCPI Location
    */
-  static async convertSite2Location(tenant: any, site: any, options: any = {}) {
-    if (site instanceof Site) {
+  static async convertSite2Location(tenant: any, site: Site, options: any = {}) {
       // Build object
       return {
-        "id": site.getID(),
-        "name": site.getName(),
-        "address": `${site.getAddress().address1} ${site.getAddress().address2}`,
-        "city": site.getAddress().city,
-        "postal_code": site.getAddress().postalCode,
-        "country": site.getAddress().country,
+        "id": site.id,
+        "name": site.name,
+        "address": `${site.address.address1} ${site.address.address2}`,
+        "city": site.address.city,
+        "postal_code": site.address.postalCode,
+        "country": site.address.country,
         "coordinates": {
-          "latitude": site.getAddress().latitude,
-          "longitude": site.getAddress().longitude
+          "latitude": site.address.latitude,
+          "longitude": site.address.longitude
         },
         "evses": await this.getEvsesFromSite(tenant, site, options),
-        "last_updated": site.getLastChangedOn()
+        "last_updated": site.lastChangedOn
       };
-    }
   }
 
   /**
@@ -93,7 +92,7 @@ export default class OCPIMapping {
     const result: any = { count: 0, locations: [] };
 
     // Get all sites
-    const sites = await Site.getSites(tenant.getID(), {}, limit, skip, null);
+    const sites = await SiteStorage.getSites(tenant.getID(), {}, limit, skip, null);
 
     // Convert Sites to Locations
     for (const site of sites.result) {

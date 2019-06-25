@@ -13,10 +13,8 @@ import ConcurConnector from "../../../integration/refund/ConcurConnector";
 import OCPPService from "../../../server/ocpp/services/OCPPService";
 import fs from "fs";
 import crypto from 'crypto';
-import TSGlobal from '../../../types/GlobalType';
+import global from '../../../types/GlobalType';
 import Cypher from '../../../utils/Cypher';
-
-declare const global: TSGlobal;
 
 export default class TransactionService {
   static async handleRefundTransactions(action, req, res, next) {

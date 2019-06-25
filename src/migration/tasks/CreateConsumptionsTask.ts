@@ -8,8 +8,7 @@ import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import pLimit from 'p-limit';
 import MigrationTask from '../MigrationTask';
-import TSGlobal from '../../types/GlobalType';
-declare const global: TSGlobal;
+import global from'../../types/GlobalType';
 
 
 const DEFAULT_CONSUMPTION_ATTRIBUTE = {

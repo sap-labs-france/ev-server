@@ -4,10 +4,9 @@ import ChargingStation from '../../entity/ChargingStation';
 import Tenant from '../../entity/Tenant';
 import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
 import MigrationTask from '../MigrationTask';
-import TSGlobal from '../../types/GlobalType';
+import global from '../../types/GlobalType';
 import Transaction from '../../entity/Transaction';
 import { deprecate } from 'util';
-declare const global: TSGlobal;
 
 export default class UpdateTransactionInactivityTask extends MigrationTask {
   async migrate() {

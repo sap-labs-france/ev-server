@@ -1,6 +1,6 @@
 const path = require('path');
-import TSGlobal from '../../src/types/GlobalType';
-declare const global: TSGlobal;
+ import global from'../../src/types/GlobalType';
+ 
 global.appRoot = path.resolve(__dirname, '../../src');
 import OCPPCommonTests from './OCPPCommonTests';
 import OCPPSoapService15 from './ocpp/soap/OCPPSoapService15';

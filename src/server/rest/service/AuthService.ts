@@ -10,7 +10,7 @@ import BadRequestError from '../../../exception/BadRequestError';
 import User from '../../../entity/User';
 import Tenant from '../../../entity/Tenant';
 import ChargingStation from '../../../entity/ChargingStation';
-import Site from '../../../entity/Site';
+import Site from '../../../types/Site';
 import Utils from '../../../utils/Utils';
 import Configuration from '../../../utils/Configuration';
 import Authorizations from '../../../authorization/Authorizations';
@@ -18,6 +18,7 @@ import NotificationHandler from '../../../notification/NotificationHandler';
 import AuthSecurity from './security/AuthSecurity';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import SessionHashService from './SessionHashService';
+import SiteStorage from '../../../storage/mongodb/SiteStorage';
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
@@ -406,7 +407,7 @@ export default class AuthService {
       // Set BadgeID (eg.: 'SF20170131')
       newUser.setTagIDs([newUser.getName()[0] + newUser.getFirstName()[0] + Utils.getRandomInt()]);
       // Assign user to all sites
-      const sites = await Site.getSites(tenantID, { withAutoUserAssignment: true });
+      const sites = await SiteStorage.getSites(tenantID, { withAutoUserAssignment: true });
       // Set
       newUser.setSites(sites.result);
       // Get EULA

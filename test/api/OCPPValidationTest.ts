@@ -7,8 +7,8 @@ import moment from 'moment';
 import faker from 'faker';
 import DataHelper from './DataHelper';
 const path = require('path');
-import TSGlobal from '../../src/types/GlobalType';
-declare const global: TSGlobal;
+ import global from'../../src/types/GlobalType';
+ 
 global.appRoot = path.resolve(__dirname, '../../src');
 import CentralServerService from './client/CentralServerService';
 import Factory from '../factories/Factory';

@@ -1,6 +1,6 @@
 import path from 'path';
+import global from './types/GlobalType';
 global.appRoot = path.resolve(__dirname);
-import TSGlobal from './types/GlobalType';
 import BBPromise from 'bluebird';
 global.Promise = BBPromise;
 import cluster from 'cluster';
@@ -20,8 +20,6 @@ import Constants from './utils/Constants';
 import Utils from './utils/Utils';
 import SourceMap from 'source-map-support';
 SourceMap.install();
-
-declare const global: TSGlobal;
 const MODULE_NAME = 'Bootstrap';
 
 export default class Bootstrap {

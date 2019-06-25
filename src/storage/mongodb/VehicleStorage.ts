@@ -6,9 +6,7 @@ import Utils from '../../utils/Utils';
 import BackendError from '../../exception/BackendError';
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
-import TSGlobal from '../../types/GlobalType';
-
-declare const global: TSGlobal;
+import global from '../../types/GlobalType';
 
 export default class VehicleStorage {
 

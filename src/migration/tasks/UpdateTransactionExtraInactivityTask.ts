@@ -3,8 +3,8 @@ import OCPPStorage from '../../storage/mongodb/OCPPStorage';
 import MigrationTask from '../MigrationTask';
 import Constants from '../../utils/Constants';
 import BBPromise from "bluebird";
-import TSGlobal from '../../types/GlobalType';
-declare const global: TSGlobal;
+ import global from'../../types/GlobalType';
+ 
 
 export default class UpdateTransactionExtraInactivityTask extends MigrationTask {
   async migrate() {

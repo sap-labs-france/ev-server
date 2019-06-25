@@ -8,9 +8,8 @@ import BackendError from '../../exception/BackendError';
 import { ObjectID } from 'mongodb';
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
-import TSGlobal from '../../types/GlobalType';
+import global from '../../types/GlobalType';
 
-declare const global: TSGlobal;
 
 export default class VehicleManufacturerStorage {
 

@@ -80,7 +80,7 @@ export default class SiteService {
     next();
   }
 
-  public static async handleUpdateSiteUsersRole(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleUpdateSiteUserAdmin(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     UtilsService.assertComponentIsActive(req.user.tenantID, 'Organization', Constants.ACTION_UPDATE,
     Constants.ENTITY_SITE, 'SiteService', 'handleUpdateSiteUsersRole');
     

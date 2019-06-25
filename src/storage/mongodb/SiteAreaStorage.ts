@@ -4,7 +4,7 @@ import BackendError from '../../exception/BackendError';
 import { ObjectID } from 'mongodb';
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
-import Site from '../../entity/Site';
+import Site from '../../types/Site';
 import SiteArea from '../../types/SiteArea';
 import ChargingStation from '../../entity/ChargingStation';
 import global from '../../types/GlobalType';
@@ -187,15 +187,7 @@ export default class SiteAreaStorage {
     aggregation.pop();
     // Sites
     if (params.withSite) {
-      // Add Sites TODO change this when typing sites
-      aggregation.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, "sites"),
-          localField: "siteID",
-          foreignField: "_id",
-          as: "site"
-        }
-      });
+      DatabaseUtils.pushBasicSiteJoinInAggregation(tenantID, aggregation, 'siteID', '_id', 'site', ['image', '_id', 'name', 'address', 'maximumPower', 'siteID', 'accessControl']);
       // Single Record
       aggregation.push({
         $unwind: { "path": "$site", "preserveNullAndEmptyArrays": true }
@@ -214,9 +206,6 @@ export default class SiteAreaStorage {
         }
       });
     }
-
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
 
     // Add site area image
     if (params.withImage) {
@@ -339,7 +328,7 @@ export default class SiteAreaStorage {
         }
         // Set Site
         if (params.withSite && incompleteSiteArea.site) {
-          site = new Site(tenantID, incompleteSiteArea.site);
+          site = incompleteSiteArea.site;
         }
         // Add
         siteAreas.push({
