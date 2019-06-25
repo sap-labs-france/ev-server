@@ -345,7 +345,7 @@ export default class SiteService {
           'SiteService', 'handleDeleteSite', req.user);
       }
       // Delete
-      await SiteStorage.deleteSite(req.user.tenantID, site.getID()); // Site.delete();
+      await SiteStorage.deleteSite(req.user.tenantID, site.getID()); // pragma site.delete();
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
