@@ -8,9 +8,7 @@ import Logging from '../../utils/Logging';
 import Site from '../../entity/Site';
 import SiteArea from '../../types/SiteArea';
 import ChargingStation from '../../entity/ChargingStation';
-import TSGlobal from '../../types/GlobalType';
-
-declare const global: TSGlobal;
+import global from '../../types/GlobalType';
 
 export default class SiteAreaStorage {
 

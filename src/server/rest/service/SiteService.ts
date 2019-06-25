@@ -4,7 +4,7 @@ import AppError from '../../../exception/AppError';
 import AppAuthError from '../../../exception/AppAuthError';
 import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
-import Site from '../../../entity/Site';
+import Site from '../../../types/Site';
 import User from '../../../entity/User';
 import SiteSecurity from './security/SiteSecurity';
 import UtilsService from './UtilsService';
@@ -12,9 +12,12 @@ import OrganizationComponentInactiveError from '../../../exception/OrganizationC
 import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import UserSecurity from "./security/UserSecurity";
+import { Request, Response, NextFunction } from 'express';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 
 export default class SiteService {
-  static async handleAddUsersToSite(action, req, res, next) {
+
+  public static async handleAddUsersToSite(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       // Check if organization component is active
       if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
@@ -25,41 +28,30 @@ export default class SiteService {
       }
 
       // Filter
-      const filteredRequest = SiteSecurity.filterAddUsersToSiteRequest(req.body, req.user);
-      // Check Mandatory fields
-      if (!filteredRequest.siteID) {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Site's ID must be provided`, 500,
-          'SiteService', 'handleAddUsersToSite', req.user);
+      const filteredRequest = SiteSecurity.filterAssignSiteUsers(req.body, req.user);
+
+      // Check auth
+      if (!Authorizations.canUpdateSite(req.user)) {
+        throw new AppAuthError(
+          Constants.ACTION_UPDATE,
+          Constants.ENTITY_SITE,
+          filteredRequest.siteID,
+          560,
+          'SiteService', 'handleAddUsersToSite',
+          req.user);
       }
-      if (!filteredRequest.userIDs || (filteredRequest.userIDs && filteredRequest.userIDs.length <= 0)) {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The User's IDs must be provided`, 500,
-          'SiteService', 'handleAddUsersToSite', req.user);
-      }
+
       // Get the Site
-      const site = await Site.getSite(req.user.tenantID, filteredRequest.siteID);
+      const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
       if (!site) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The Site with ID '${filteredRequest.siteID}' does not exist anymore`, 550,
           'SiteService', 'handleAddUsersToSite', req.user);
       }
-      // Check auth
-      if (!Authorizations.canUpdateSite(req.user, site.getModel())) {
-        throw new AppAuthError(
-          Constants.ACTION_UPDATE,
-          Constants.ENTITY_SITE,
-          site.getID(),
-          560,
-          'SiteService', 'handleAddUsersToSite',
-          req.user);
-      }
+      
       // Get Sites
+      //const users = UserStorage.getUsers(req.user.tokenID, {}, Constants.MAX_DB_RECORD_COUNT, 0, null); TODO: change getUsers to accept array of userIDs so we can do only one request instead of many
       for (const userID of filteredRequest.userIDs) {
         // Check the user
         const user = await User.getUser(req.user.tenantID, userID);
@@ -81,7 +73,7 @@ export default class SiteService {
         }
       }
       // Save
-      await Site.addUsersToSite(req.user.tenantID, filteredRequest.siteID, filteredRequest.userIDs);
+      await SiteStorage.addUsersToSite(req.user.tenantID, filteredRequest.siteID, filteredRequest.userIDs);
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
@@ -97,7 +89,7 @@ export default class SiteService {
     }
   }
 
-  static async handleUpdateSiteUsersRole(action, req, res, next) {
+  public static async handleUpdateSiteUsersRole(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
         throw new OrganizationComponentInactiveError(
@@ -105,33 +97,9 @@ export default class SiteService {
           Constants.ENTITY_SITE,
           560, 'SiteService', 'handleUpdateSiteUsersRole');
       }
-      const filteredRequest = SiteSecurity.filterUpdateSiteUsersRoleRequest(req.body);
-      if (!filteredRequest.siteID) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Site's ID must be provided`, 500,
-          'SiteService', 'handleUpdateSiteUsersRole', req.user);
-      }
-      if (!filteredRequest.role) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The role must be provided`, 500,
-          'SiteService', 'handleUpdateSiteUsersRole', req.user);
-      }
-      if (filteredRequest.role !== Constants.ROLE_ADMIN && filteredRequest.role !== Constants.ROLE_BASIC) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The role ${filteredRequest.role} is not supported`, 500,
-          'SiteService', 'handleUpdateSiteUsersRole', req.user);
-      }
-      if (!filteredRequest.userIDs || (filteredRequest.userIDs && filteredRequest.userIDs.length <= 0)) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The User's IDs must be provided`, 500,
-          'SiteService', 'handleUpdateSiteUsersRole', req.user);
-      }
-
-      if (!Authorizations.canUpdateSite(req.user, filteredRequest.siteID)) {
+      const filteredRequest = SiteSecurity.filterUpdateSiteUsersRoleRequest(req.body, req.user);
+      
+      if (!Authorizations.canUpdateSite(req.user)) {
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
           Constants.ENTITY_SITE,
@@ -142,14 +110,15 @@ export default class SiteService {
       }
 
       // Get the Site
-      const site = await Site.getSite(req.user.tenantID, filteredRequest.siteID);
+      const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
       if (!site) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The Site with ID '${filteredRequest.siteID}' does not exist anymore`, 550,
           'SiteService', 'handleUpdateSiteUsersRole', req.user);
       }
-      await Site.updateSiteUsersRole(req.user.tenantID, filteredRequest.siteID, filteredRequest.userIDs, filteredRequest.role);
+      await SiteStorage.updateSiteUsersRole(req.user.tenantID, filteredRequest.siteID, filteredRequest.userIDs, filteredRequest.role);
+
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
@@ -165,7 +134,7 @@ export default class SiteService {
     }
   }
 
-  static async handleRemoveUsersFromSite(action, req, res, next) {
+  public static async handleRemoveUsersFromSite(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       // Check if organization component is active
       if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {
@@ -176,23 +145,9 @@ export default class SiteService {
       }
 
       // Filter
-      const filteredRequest = SiteSecurity.filterRemoveUsersFromSiteRequest(req.body, req.user);
-      // Check Mandatory fields
-      if (!filteredRequest.siteID) {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Site's ID must be provided`, 500,
-          'SiteService', 'handleRemoveUsersFromSite', req.user);
-      }
-      if (!filteredRequest.userIDs || (filteredRequest.userIDs && filteredRequest.userIDs.length <= 0)) {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Site's IDs must be provided`, 500,
-          'SiteService', 'handleRemoveUsersFromSite', req.user);
-      }
-      if (!Authorizations.canUpdateSite(req.user, filteredRequest.siteID)) {
+      const filteredRequest = SiteSecurity.filterAssignSiteUsers(req.body, req.user);
+
+      if (!Authorizations.canUpdateSite(req.user)) {
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
           Constants.ENTITY_SITE,
@@ -202,7 +157,7 @@ export default class SiteService {
           req.user);
       }
       // Get the Site
-      const site = await Site.getSite(req.user.tenantID, filteredRequest.siteID);
+      const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
       if (!site) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -231,7 +186,7 @@ export default class SiteService {
         }
       }
       // Save
-      await Site.removeUsersFromSite(req.user.tenantID, filteredRequest.siteID, filteredRequest.userIDs);
+      await SiteStorage.removeUsersFromSite(req.user.tenantID, filteredRequest.siteID, filteredRequest.userIDs);
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
@@ -298,7 +253,7 @@ export default class SiteService {
     }
   }
 
-  static async handleDeleteSite(action, req, res, next) {
+  public static async handleDeleteSite(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       // Check if organization component is active
       if (!await UtilsService.isOrganizationComponentActive(req.user.tenantID)) {

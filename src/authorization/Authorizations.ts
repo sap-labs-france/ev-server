@@ -466,11 +466,11 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_CREATE);
   }
 
-  public static canUpdateSite(loggedUser: any, siteID: string): boolean {
+  public static canUpdateSite(loggedUser: any): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_UPDATE);
   }
 
-  public static canDeleteSite(loggedUser: any, siteID: any): boolean {
+  public static canDeleteSite(loggedUser: any): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_DELETE);
   }
 

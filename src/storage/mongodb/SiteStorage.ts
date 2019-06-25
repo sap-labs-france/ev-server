@@ -331,7 +331,7 @@ export default class SiteStorage {
     if (params.withAutoUserAssignment) {
       filters.autoUserSiteAssignment = true;
     }
-    
+
     // Create Aggregation
     const aggregation = [];
     // Limit on Site for Basic Users
@@ -449,13 +449,7 @@ export default class SiteStorage {
       for (const siteMDB of sitesMDB) {
         // Create
         const site = new Site(tenantID, siteMDB);
-        // Set Users
-        if (params.userID && siteMDB.users) {
-          // Set Users
-          site.setUsers(siteMDB.users.map((user) => {
-            return new User(tenantID, user);
-          }));
-        }
+        
         // Count Available/Occupied Chargers/Connectors
         if (params.withAvailableChargers) {
           let availableChargers = 0, totalChargers = 0, availableConnectors = 0, totalConnectors = 0;

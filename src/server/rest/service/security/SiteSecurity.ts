@@ -4,59 +4,56 @@ import UtilsSecurity from './UtilsSecurity';
 import CompanySecurity from './CompanySecurity';
 import SiteAreaSecurity from './SiteAreaSecurity';
 import UserSecurity from './UserSecurity';
+import SiteUserRequest from '../../../../types/requests/SiteUserRequest';
+import AppError from '../../../../exception/AppError';
+import Constants from '../../../../utils/Constants';
+import ByID from '../../../../types/requests/RequestByID';
 
 export default class SiteSecurity {
-  // eslint-disable-next-line no-unused-vars
-  static filterAddUsersToSiteRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.siteID = sanitize(request.siteID);
-    if (request.userIDs) {
-      filteredRequest.userIDs = request.userIDs.map((userID) => {
-        return sanitize(userID);
-      });
+
+  public static filterUpdateSiteUsersRoleRequest(request: Partial<SiteUserRequest>, userToken): SiteUserRequest {
+    if (!request.role) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `The role must be provided`, 500,
+        'SiteService', 'handleUpdateSiteUsersRole', userToken);
     }
-    return filteredRequest;
-  }
-
-  static filterUpdateSiteUsersRoleRequest(request) {
-    const filteredRequest: any = {};
-    filteredRequest.siteID = sanitize(request.siteID);
-    filteredRequest.role = sanitize(request.role);
-    if (request.userIDs) {
-      filteredRequest.userIDs = request.userIDs.map((userID) => {
-        return sanitize(userID);
-      });
+    if (request.role !== Constants.ROLE_ADMIN && request.role !== Constants.ROLE_BASIC) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `The role ${request.role} is not supported`, 500,
+        'SiteService', 'handleUpdateSiteUsersRole', userToken);
     }
-    return filteredRequest;
+    return {role: sanitize(request.role), ...this.filterAssignSiteUsers(request, userToken)};
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterRemoveUsersFromSiteRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.siteID = sanitize(request.siteID);
-    if (request.userIDs) {
-      filteredRequest.userIDs = request.userIDs.map((userID) => {
-        return sanitize(userID);
-      });
+  public static filterAssignSiteUsers(request: Partial<SiteUserRequest>, userToken) {
+    if (!request.siteID) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `The Site's ID must be provided`, 500,
+        'SiteSecurity', 'filterAssignSiteUsers', userToken);
     }
+    if (!request.userIDs || (request.userIDs && request.userIDs.length <= 0)) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `The User's IDs must be provided`, 500,
+        'SiteScurity', 'filterAssignSiteUsers', userToken);
+    }
+    const filteredRequest: SiteUserRequest = {} as SiteUserRequest;
+    filteredRequest.siteID = sanitize(request.siteID);
+    filteredRequest.userIDs = request.userIDs.map((userID) => {
+      return sanitize(userID);
+    });
     return filteredRequest;
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterSiteDeleteRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.ID = sanitize(request.ID);
-    return filteredRequest;
+  public static filterSiteDeleteRequest(request: Partial<ByID>): string {
+    return this.filterSiteRequest(request);
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterSiteRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    filteredRequest.ID = sanitize(request.ID);
-    return filteredRequest;
+  public static filterSiteRequest(request: Partial<ByID>): string {
+    return request.ID?sanitize(request.ID):null;
   }
 
   static filterSiteUsersRequest(request) {
@@ -92,7 +89,7 @@ export default class SiteSecurity {
     return SiteSecurity._filterSiteRequest(request, loggedUser);
   }
 
-  static _filterSiteRequest(request, loggedUser) {
+  public static _filterSiteRequest(request, userToken) {
     const filteredRequest: any = {};
     filteredRequest.name = sanitize(request.name);
     filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address);
@@ -101,7 +98,7 @@ export default class SiteSecurity {
       UtilsSecurity.filterBoolean(request.allowAllUsersToStopTransactions);
     filteredRequest.autoUserSiteAssignment =
       UtilsSecurity.filterBoolean(request.autoUserSiteAssignment);
-    filteredRequest.gps = sanitize(request.gps);
+    //filteredRequest.gps = sanitize(request.gps);
     if (request.userIDs) {
       // Handle Users
       filteredRequest.userIDs = request.userIDs.map((userID) => {

@@ -19,7 +19,6 @@ export default interface Site extends CreatedUpdatedProps {
     totalConnectors?: number;
     siteAreas?: SiteArea;
     company?: Company;
-    users?: User[];
 
 
   // static checkIfSiteValid(filteredRequest, req) {
