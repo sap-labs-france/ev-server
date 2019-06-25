@@ -86,34 +86,9 @@ export default class StatisticsStorage {
     const transactionStatsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
-    // Set
-    const transactions = [];
-    // Create
-    if (transactionStatsMDB && transactionStatsMDB.length > 0) {
-      // Create
-      let month = -1;
-      let transaction;
-      for (const transactionStatMDB of transactionStatsMDB) {
-        // Init
-        if (month !== transactionStatMDB._id.month) {
-          // Set
-          month = transactionStatMDB._id.month;
-          // Create new
-          transaction = {};
-          transaction.month = transactionStatMDB._id.month - 1;
-          // Add
-          if (transaction) {
-            transactions.push(transaction);
-          }
-        }
-        // Set consumption
-        // Add
-        transaction[transactionStatMDB._id.chargeBox] = transactionStatMDB.total;
-      }
-    }
     // Debug
     Logging.traceEnd('StatisticsStorage', 'getChargingStationStats', uniqueTimerID, { filter, groupBy });
-    return transactions;
+    return transactionStatsMDB;
   }
 
   static async getUserStats(tenantID, filter, groupBy) {
@@ -207,33 +182,9 @@ export default class StatisticsStorage {
     const transactionStatsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
-    // Set
-    const transactions = [];
-    // Create
-    if (transactionStatsMDB && transactionStatsMDB.length > 0) {
-      // Create
-      let month = -1;
-      let transaction;
-      for (const transactionStatMDB of transactionStatsMDB) {
-        // Init
-        if (month !== transactionStatMDB._id.month) {
-          // Set
-          month = transactionStatMDB._id.month;
-          // Create new
-          transaction = {};
-          transaction.month = transactionStatMDB._id.month - 1;
-          // Add
-          if (transaction) {
-            transactions.push(transaction);
-          }
-        }
-        // Set consumption
-        transaction[Utils.buildUserFullName(transactionStatMDB.user, false, false, true)] = transactionStatMDB.total;
-      }
-    }
     // Debug
     Logging.traceEnd('StatisticsStorage', 'getUserStats', uniqueTimerID, { filter, groupBy });
-    return transactions;
+    return transactionStatsMDB;
   }
 
   static async getCurrentMetrics(tenantID, filteredRequest) {
