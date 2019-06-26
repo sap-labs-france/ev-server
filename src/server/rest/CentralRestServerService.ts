@@ -255,6 +255,7 @@ export default {
       RequestMapper.instance(req.method).getAction(action)(action, req, res, next); //TODO
     
     }catch(error){
+      console.log(error);
       // Log
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }

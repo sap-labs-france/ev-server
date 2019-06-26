@@ -2,8 +2,7 @@ import Tenant from '../../entity/Tenant';
 import MigrationTask from '../MigrationTask';
 import Cypher from '../../utils/Cypher';
 import Constants from '../../utils/Constants';
- import global from'../../types/GlobalType';
- 
+import global from '../../types/GlobalType';
 
 export default class AddSensitiveDataInSettingsTask extends MigrationTask {
   public async migrate() {
