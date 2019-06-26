@@ -425,7 +425,7 @@ export default {
           // Get the usage statistics
           case "UserUsageStatistics":
             // Delegate
-            StatisticService.handleUserUsageStatistics(action, req, res, next);
+            StatisticService.handleGetUserUsageStatistics(action, req, res, next);
             break;
           // Get the active transactions
           case "TransactionsActive":
