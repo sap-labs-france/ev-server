@@ -1,6 +1,7 @@
 import Constants from '../../utils/Constants';
 import { ObjectID } from 'mongodb';
 import { filter } from 'bluebird';
+import Utils from '../../utils/Utils';
 
 const FIXED_COLLECTIONS: string[] = ['tenants', 'migrations'];
 
@@ -192,6 +193,20 @@ export default class DatabaseUtils {
     obj.createdOn = 1;
     obj.lastChangedBy = 1;
     obj.lastChangedOn = 1;
+  }
+
+  //Temporary hack to fix user Id saving. fix all this when user is typed...
+  public static safeMongoUserId(obj: any, prop: string): ObjectID|null {
+    if(!obj || !obj[prop]) {
+      return null;
+    }
+    if(obj[prop].getID === 'function'){
+      return Utils.convertToObjectID(obj[prop].getID());
+    }
+    if(obj[prop].id) {
+      return Utils.convertToObjectID(obj[prop].id);
+    }
+    return null;
   }
 
 }

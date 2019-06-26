@@ -66,7 +66,7 @@ class RequestMapper {
           AddChargingStationsToSiteArea: ChargingStationService.handleAddChargingStationsToSiteArea,
           RemoveChargingStationsFromSiteArea: ChargingStationService.handleRemoveChargingStationsFromSiteArea,
           CreateUser: UserService.handleCreateUser,
-          CreateCompany: CompanyService.handleCreateCompany,
+          CompanyCreate: CompanyService.handleCreateCompany,
           TenantCreate: TenantService.handleCreateTenant,
           VehicleCreate: VehicleService.handleCreateVehicle,
           VehicleManufacturerCreate: VehicleManufacturerService.handleCreateVehicleManufacturer,
@@ -251,7 +251,7 @@ export default {
     }
 
     try{
-    
+      console.log(req.method + ' ' + action);
       RequestMapper.instance(req.method).getAction(action)(action, req, res, next); //TODO
     
     }catch(error){

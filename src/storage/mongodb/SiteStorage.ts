@@ -233,13 +233,13 @@ export default class SiteStorage {
       siteFilter._id = new ObjectID();
     }
     // Check Created By/On
-    let mongoSite: Omit<Site, 'id'>&{_id: string} = {
+    let mongoSite: Omit<Site, 'id'|'createdBy'|'lastChangedBy'>&{_id: string, createdBy: ObjectID, lastChangedBy: ObjectID} = {
       _id: siteFilter._id,
       address: siteToSave.address,
-      companyID: siteToSave.companyID,
-      createdBy: Utils.convertToObjectID(siteToSave.createdBy.id?siteToSave.createdBy.id:siteToSave.createdBy.getID()), //TODO convert user properly + this might give a NPE
+      companyID: Utils.convertToObjectID(siteToSave.companyID),
+      createdBy: DatabaseUtils.safeMongoUserId(siteToSave, 'createdBy'), //TODO convert user properly + this might give a NPE
       createdOn: siteToSave.createdOn?siteToSave.createdOn:new Date(),
-      lastChangedBy: Utils.convertToObjectID(siteToSave.lastChangedBy.id?siteToSave.lastChangedBy.id:siteToSave.lastChangedBy.getID()), //TODO convert user properly
+      lastChangedBy: DatabaseUtils.safeMongoUserId(siteToSave, 'lastChangedBy'), //TODO convert user properly
       lastChangedOn: siteToSave.lastChangedOn?siteToSave.lastChangedOn:new Date(),
       allowAllUsersToStopTransactions: siteToSave.allowAllUsersToStopTransactions,
       autoUserSiteAssignment: siteToSave.autoUserSiteAssignment,
@@ -409,6 +409,9 @@ export default class SiteStorage {
         $unwind: { "path": "$company", "preserveNullAndEmptyArrays": true }
       });
     }
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
+    aggregation.push({$addFields: {id: '$_id'}});
+
     // Sort
     if (sort) {
       // Sort
@@ -473,6 +476,8 @@ export default class SiteStorage {
           site.totalConnectors = totalConnectors;
         }
         // Add
+        console.log(site);
+        site.companyID = (site.companyID as unknown as ObjectID).toHexString(); //TODO fix this hack, horrible...
         sites.push(site);
       }
     }

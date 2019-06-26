@@ -423,7 +423,7 @@ export default class SiteService {
     site.lastChangedBy = new User(req.user.tenantID, {'id': req.user.id});
     site.lastChangedOn = new Date();
 
-    site.id = await SiteStorage.saveSite(req.user.tenantID, site, true);
+    site.id = await SiteStorage.saveSite(req.user.tenantID, {...site, ...filteredRequest}, true); //Is this safe? TODO
 
     // Log
     Logging.logSecurityInfo({
