@@ -1,5 +1,5 @@
 import Transaction from '../../entity/Transaction';
-import Consumption from '../../entity/Consumption';
+// pragma import Consumption from '../../entity/Consumption';
 
 export abstract class PricingSettings {}
 

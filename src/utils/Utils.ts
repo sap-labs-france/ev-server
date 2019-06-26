@@ -12,7 +12,7 @@ import path from 'path';
 import Logging from './Logging';
 import Tenant from '../entity/Tenant';
 import SourceMap from 'source-map-support';
-// Import AppError from '../exception/AppError';
+// pragma import AppError from '../exception/AppError';
 import _ from 'lodash';
 
 SourceMap.install();
@@ -365,7 +365,7 @@ export default class Utils {
   }
 
   /**
-   * Duplicate a json object
+   * Duplicate a JSON object
    * @param src
    * @returns a copy of the source
    */
