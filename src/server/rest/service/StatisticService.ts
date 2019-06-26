@@ -5,12 +5,27 @@ import Logging from '../../../utils/Logging';
 import StatisticSecurity from './security/StatisticSecurity';
 import StatisticsStorage from '../../../storage/mongodb/StatisticsStorage';
 import Utils from '../../../utils/Utils';
+import UtilsService from './UtilsService';
 import fs from 'fs';
 import moment from 'moment';
 
 export default class StatisticService {
-  static async handleUserUsageStatistics(action, req, res, next) {
+  static async handleGetUserUsageStatistics(action, req, res, next) {
     try {
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserUsageStatistics');
+      // Check auth
+      if (!Authorizations.canListTransactions(req.user)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_LIST,
+          Constants.ENTITY_TRANSACTIONS,
+          null, 560,
+          'StatisticService', 'handleGetUserUsageStatistics',
+          req.user);
+      }
       // Filter
       const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
       // Build filter
@@ -29,6 +44,20 @@ export default class StatisticService {
 
   static async handleGetUserConsumptionStatistics(action, req, res, next) {
     try {
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserConsumptionStatistics');
+      // Check auth
+      if (!Authorizations.canListTransactions(req.user)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_LIST,
+          Constants.ENTITY_TRANSACTIONS,
+          null, 560,
+          'StatisticService', 'handleGetUserConsumptionStatistics',
+          req.user);
+      }
       // Filter
       const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
       // Build filter
@@ -47,6 +76,20 @@ export default class StatisticService {
 
   static async handleGetChargingStationUsageStatistics(action, req, res, next) {
     try {
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationUsageStatistics');
+      // Check auth
+      if (!Authorizations.canListTransactions(req.user)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_LIST,
+          Constants.ENTITY_TRANSACTIONS,
+          null, 560,
+          'StatisticService', 'handleGetChargingStationUsageStatistics',
+          req.user);
+      }
       // Filter
       const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
       // Build filter
@@ -65,6 +108,16 @@ export default class StatisticService {
 
   static async handleGetCurrentMetrics(action, req, res, next) {
     try {
+      // Check auth
+      if (!Authorizations.canListChargingStations(req.user)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_LIST,
+          Constants.ENTITY_CHARGING_STATIONS,
+          null, 560,
+          'StatisticService', 'handleGetCurrentMetrics',
+          req.user);
+      }
       // Filter
       const filteredRequest = StatisticSecurity.filterMetricsStatisticsRequest(req.query, req.user);
       // Get Data
@@ -80,6 +133,20 @@ export default class StatisticService {
 
   static async handleGetChargingStationConsumptionStatistics(action, req, res, next) {
     try {
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationConsumptionStatistics');
+      // Check auth
+      if (!Authorizations.canListTransactions(req.user)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_LIST,
+          Constants.ENTITY_TRANSACTIONS,
+          null, 560,
+          'StatisticService', 'handleGetChargingStationConsumptionStatistics',
+          req.user);
+      }
       // Filter
       const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
       // Build filter
@@ -98,6 +165,10 @@ export default class StatisticService {
 
   static async handleGetStatisticsExport(action, req, res, next) {
     try {
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetStatisticsExport');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
         // Not Authorized!
@@ -105,7 +176,7 @@ export default class StatisticService {
           Constants.ACTION_LIST,
           Constants.ENTITY_TRANSACTIONS,
           null, 560,
-          'StatisticsService', 'handleGetStatisticsExport',
+          'StatisticService', 'handleGetStatisticsExport',
           req.user);
       }
       // Filter
