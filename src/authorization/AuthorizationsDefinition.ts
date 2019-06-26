@@ -1,6 +1,6 @@
-import SourceMap from 'source-map-support';
 import AccessControl from 'role-acl';
 import InternalError from "../exception/InternalError";
+import SourceMap from 'source-map-support';
 
 SourceMap.install();
 
@@ -9,12 +9,8 @@ const GRANTS = {
     grants: [
       { resource: 'Users', action: 'List', attributes: ['*'] },
       { resource: 'User', action: ['Create', 'Read', 'Update'], attributes: ['*'] },
-      {
-        resource: 'User',
-        action: 'Delete',
-        attributes: ['*'],
-        condition: { Fn: 'NOT_EQUALS', args: { 'user': '$.owner' } }
-      },
+      { resource: 'User', action: 'Delete', attributes: ['*'],
+        condition: { Fn: 'NOT_EQUALS', args: { 'user': '$.owner' } } },
       { resource: 'Loggings', action: 'List', attributes: ['*'] },
       { resource: 'Logging', action: 'Read', attributes: ['*'] },
       { resource: 'Tenants', action: 'List', attributes: ['*'] },
@@ -25,12 +21,8 @@ const GRANTS = {
     grants: [
       { resource: 'Users', action: 'List', attributes: ['*'] },
       { resource: 'User', action: ['Create', 'Read', 'Update'], attributes: ['*'] },
-      {
-        resource: 'User',
-        action: 'Delete',
-        attributes: ['*'],
-        condition: { Fn: 'NOT_EQUALS', args: { 'user': '$.owner' } }
-      },
+      { resource: 'User', action: 'Delete', attributes: ['*'],
+        condition: { Fn: 'NOT_EQUALS', args: { 'user': '$.owner' } } },
       { resource: 'Companies', action: 'List', attributes: ['*'] },
       { resource: 'Company', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
       { resource: 'Sites', action: 'List', attributes: ['*'] },

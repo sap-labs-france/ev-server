@@ -960,6 +960,7 @@ export default class AuthService {
       'tenantHashID': tenantHashID,
       'scopes': scopes,
       'companies': authorizedEntities.companies,
+      'sitesAdmin': authorizedEntities.sitesAdmin,
       'sites': authorizedEntities.sites,
       'activeComponents': []
     };

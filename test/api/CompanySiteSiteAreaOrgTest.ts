@@ -1,12 +1,12 @@
-const path = require('path');
+import path from 'path';
 import TSGlobal from '../../src/types/GlobalType';
 declare const global: TSGlobal;
 global.appRoot = path.resolve(__dirname, '../../src');
 import CentralServerService from './client/CentralServerService';
 import Factory from '../factories/Factory';
-import {expect} from 'chai';
-import chai from 'chai';
+import chai, {expect} from 'chai';
 import chaiSubset from 'chai-subset';
+
 chai.use(chaiSubset);
 
 class TestData {
@@ -17,10 +17,10 @@ class TestData {
 
 const testData = new TestData();
 
-describe('Company, Site, Site Area tests', function () {
+describe('Company, Site, Site Area tests', function() {
   this.timeout(30000);
 
-  describe('Success cases', function () {
+  describe('Success cases', function() {
     beforeEach(async () => {
       // Create the Company
       testData.newCompany = await CentralServerService.DefaultInstance.createEntity(
