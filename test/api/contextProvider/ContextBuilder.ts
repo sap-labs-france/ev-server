@@ -6,8 +6,8 @@ import CONTEXTS from './ContextConstants';
 import User from '../../../src/entity/User';
 import Company from '../../../src/types/Company';
 import CompanyStorage from '../../../src/storage/mongodb/CompanyStorage';
-import Site from '../../../src/entity/Site';
-import SiteArea from '../../../src/entity/SiteArea';
+import SiteAreaStorage from '../../../src/storage/mongodb/SiteAreaStorage';
+import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
 import Tenant from '../../../src/entity/Tenant';
 import config from '../../config';
 import MongoDBStorage from '../../../src/storage/mongodb/MongoDBStorage';
@@ -90,7 +90,7 @@ export default class ContextBuilder {
   }
 
   /**
-   * Pirvate method
+   * Private method
    * It will build the necessary tenants
    * Precondition: The tenant MUST not exist already in the DB
    *
@@ -101,48 +101,18 @@ export default class ContextBuilder {
   async _buildTenantContext(tenantContextDef:any) {
     // Build component list
     const components = {};
-    switch (tenantContextDef.tenantName) {
-      case CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS:
-        for (const component in Constants.COMPONENTS) {
-          components[Constants.COMPONENTS[component]] = {
-            active: true
-          };
+    if (tenantContextDef.componentSettings) {
+      for (const component in Constants.COMPONENTS) {
+        const componentName = Constants.COMPONENTS[component];
+        if (tenantContextDef.componentSettings.hasOwnProperty(componentName)) {
+            components[componentName] = {
+              active: true
+            };
+            if (tenantContextDef.componentSettings[componentName].hasOwnProperty('type')) {
+              components[componentName]['type'] = tenantContextDef.componentSettings[componentName].type;
+            }
         }
-        break;
-      case CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS:
-        // no components
-        break;
-      case CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION:
-        for (const component in Constants.COMPONENTS) {
-          components[Constants.COMPONENTS[component]] = {
-            active: (Constants.COMPONENTS[component] === Constants.COMPONENTS.ORGANIZATION)
-          };
-        }
-        break;
-      case CONTEXTS.TENANT_CONTEXTS.TENANT_SIMPLE_PRICING:
-      case CONTEXTS.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING:
-        for (const component in Constants.COMPONENTS) {
-          components[Constants.COMPONENTS[component]] = {
-            active: (Constants.COMPONENTS[component] === Constants.COMPONENTS.PRICING)
-          };
-        }
-        break;
-      case CONTEXTS.TENANT_CONTEXTS.TENANT_OCPI:
-        for (const component in Constants.COMPONENTS) {
-          components[Constants.COMPONENTS[component]] = {
-            active: (Constants.COMPONENTS[component] === Constants.COMPONENTS.OCPI)
-          };
-        }
-        break;
-      case CONTEXTS.TENANT_CONTEXTS.TENANT_FUNDING:
-        for (const component in Constants.COMPONENTS) {
-          components[Constants.COMPONENTS[component]] = {
-            active: (Constants.COMPONENTS[component] === Constants.COMPONENTS.REFUND)
-          };
-        }
-        break;
-      default:
-        throw 'Unknown context name ' + tenantContextDef.context;
+      }
     }
     // Check if tenant exist
     let buildTenant:any = {};
@@ -156,7 +126,8 @@ export default class ContextBuilder {
     buildTenant.components = components;
     await this.superAdminCentralServerService.updateEntity(
       this.superAdminCentralServerService.tenantApi, buildTenant);
-
+    console.log('CREATE tenant context ' + buildTenant.id +
+      ' ' + buildTenant.subdomain);
     // Retrieve default admin
     const existingUserList = (await User.getUsers(buildTenant.id)).result;
     let defaultAdminUser = null;
@@ -190,9 +161,9 @@ export default class ContextBuilder {
 
     // Create Tenant component settings
     if (tenantContextDef.componentSettings) {
+      console.log(`settings in tenant ${buildTenant.name} as ${JSON.stringify(tenantContextDef.componentSettings)}`);
       const allSettings:any = await localCentralServiceService.settingApi.readAll({}, {limit:0,skip:0});
       for (const setting in tenantContextDef.componentSettings) {
-        if (tenantContextDef.componentSettings.hasOwnProperty(setting)) {
           let foundSetting:any = null;
           if (allSettings && allSettings.data && allSettings.data.result && allSettings.data.result.length > 0) {
             foundSetting = allSettings.data.result.find((existingSetting) => {
@@ -203,16 +174,17 @@ export default class ContextBuilder {
             // create new settings
             const settingInput = {
               identifier: setting,
-              content: tenantContextDef.componentSettings[setting]
+              content: tenantContextDef.componentSettings[setting].content
             };
+            console.log(`CREATE settings for ${setting} in tenant ${buildTenant.name}`);
             const response = await localCentralServiceService.createEntity(localCentralServiceService.settingApi,
               settingInput);
           }  else {
-            foundSetting.content = tenantContextDef.componentSettings[setting];
+            console.log(`UPDATE settings for ${setting} in tenant ${buildTenant.name}`);
+            foundSetting.content = tenantContextDef.componentSettings[setting].content;
             const response = await localCentralServiceService.updateEntity(localCentralServiceService.settingApi,
               foundSetting);
           }
-        }
       }
     }
     let userListToAssign = null;
@@ -250,8 +222,6 @@ export default class ContextBuilder {
     // Persist tenant context
     const newTenantContext = new TenantContext(tenantContextDef.tenantName, buildTenant, localCentralServiceService, null);
     this.tenantsContexts.push(newTenantContext);
-    console.log('CREATE tenant context ' + newTenantContext.getTenant().id +
-       ' ' + newTenantContext.getTenant().subdomain);
     newTenantContext.addUsers(userList);
     // Check if Organization is active
     if (buildTenant.components && buildTenant.components.hasOwnProperty(Constants.COMPONENTS.ORGANIZATION) &&
@@ -278,9 +248,9 @@ export default class ContextBuilder {
         siteTemplate.allowAllUsersToStopTransactions = siteContextDef.allowAllUsersToStopTransactions;
         siteTemplate.autoUserSiteAssignment = siteContextDef.autoUserSiteAssignment;
         siteTemplate.id = siteContextDef.id;
-        site = new Site(buildTenant.id, siteTemplate);
+        site = siteTemplate;
         site = (await site.save()).getModel();
-        await Site.addUsersToSite(buildTenant.id, site.id, userListToAssign.map(user => user.id));
+        await SiteStorage.addUsersToSite(buildTenant.id, site.id, userListToAssign.map(user => user.id));
         const siteContext = new SiteContext(site, newTenantContext);
         newTenantContext.addSiteContext(siteContext);
         // Create site areas of current site
@@ -291,9 +261,8 @@ export default class ContextBuilder {
           siteAreaTemplate.accessControl = siteAreaDef.accessControl;
           siteAreaTemplate.siteID = site.id;
           console.log(siteAreaTemplate.name);
-          let siteArea = new SiteArea(buildTenant.id, siteAreaTemplate);
-          let siteAreaModel:any = (await siteArea.save()).getModel();
-          // siteContext.siteAreas.push(siteArea);
+          let sireAreaID = await SiteAreaStorage.saveSiteArea(buildTenant.id, siteAreaTemplate);
+          let siteAreaModel = await SiteAreaStorage.getSiteArea(buildTenant.id, sireAreaID);
           const siteAreaContext = new SiteAreaContext(siteAreaModel, newTenantContext);
           siteContext.addSiteArea(siteAreaContext);
           const relevantCS = CONTEXTS.TENANT_CHARGINGSTATION_LIST.filter(chargingStation =>

@@ -274,6 +274,7 @@ export default {
     REFUND: "refund",
     PRICING: "pricing",
     ORGANIZATION: "organization",
+    STATISTICS: "statistics",
     ANALYTICS: "analytics"
   },
 

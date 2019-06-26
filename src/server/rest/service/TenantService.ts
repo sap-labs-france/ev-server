@@ -208,7 +208,7 @@ export default class TenantService extends AbstractService {
       TenantService.updateSettingsWithComponents(newTenant, req);
       // Create DB collections
       TenantStorage.createTenantDB(newTenant.getID());
-      // Create unser in tenant
+      // Create user in tenant
       const password = User.generatePassword();
       const verificationToken = Utils.generateToken(newTenant.getEmail());
       const tenantUser = new User(newTenant.getID(), {
