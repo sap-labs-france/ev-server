@@ -1,4 +1,4 @@
-import { expect } , chai; from; 'chai';
+import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 chai.use(chaiSubset);
 import config from '../config';
@@ -23,7 +23,7 @@ export default class DataHelper {
     } else if (ocppVersion === '1.5') {
       this.ocpp = new OCPPSoapService15(`${config.get('ocpp.soap.scheme')}://${config.get('ocpp.soap.host')}:${config.get('ocpp.soap.port')}/OCPP15?TenantID=${tenantID}`);
     } else {
-      throw new Error('unkown ocpp version');
+      throw new Error('unknown ocpp version');
     }
 
     this.centralServerService = new CentralServerService();

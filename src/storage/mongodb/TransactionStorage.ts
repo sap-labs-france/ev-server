@@ -208,7 +208,7 @@ export default class TransactionStorage {
     aggregation.pop();
     // Sort
     if (sort) {
-      if (!sort.hasOwnProperty('timestamp')) {
+      if (!sort.timestamp) {
         aggregation.push({
           $sort: { ...sort, timestamp: -1 }
         });
