@@ -31,8 +31,6 @@ export default class UserApi extends CrudApi {
   }
 
   public getByEmail(email) {
-    return this.readAll({Search : email});
+    return this.readAll({ Search : email });
   }
 }
-
-// module.exports = UserApi;

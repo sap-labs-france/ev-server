@@ -1,14 +1,14 @@
-import Company from '../../types/Company';
 import { ObjectID } from 'mongodb';
-import Constants from '../../utils/Constants';
-import Utils from '../../utils/Utils';
-import SiteStorage from './SiteStorage';
 import BackendError from '../../exception/BackendError';
+import Company from '../../types/Company';
+import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
-import Logging from '../../utils/Logging';
-import TSGlobal from '../../types/GlobalType';
-import User from '../../entity/User';
 import DbParams from '../../types/database/DbParams';
+import TSGlobal from '../../types/GlobalType';
+import Logging from '../../utils/Logging';
+import SiteStorage from './SiteStorage';
+import User from '../../entity/User';
+import Utils from '../../utils/Utils';
 
 declare const global: TSGlobal;
 
@@ -66,7 +66,7 @@ export default class CompanyStorage {
     if (!result.ok) {
       throw new BackendError(
         Constants.CENTRAL_SERVER,
-        `Couldn't update company`,
+        'Couldn\'t update company',
         'CompanyStorage', 'saveCompany');
     }
 
@@ -79,23 +79,6 @@ export default class CompanyStorage {
     Logging.traceEnd('CompanyStorage', 'saveCompany', uniqueTimerID, { companyToSave });
 
     return companyMDB._id.toHexString();
-  }
-
-  private static async _saveCompanyLogo(tenantID: string, companyId: string, companyLogoToSave: string): Promise<void> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('CompanyStorage', 'saveCompanyLogo');
-
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-
-    // Modify
-    await global.database.getCollection<any>(tenantID, 'companylogos').findOneAndUpdate(
-      { '_id': Utils.convertToObjectID(companyId) },
-      { $set: { logo: companyLogoToSave } },
-      { upsert: true });
-
-    // Debug
-    Logging.traceEnd('CompanyStorage', 'saveCompanyLogo', uniqueTimerID, {});
   }
 
   // Delegate
@@ -120,9 +103,9 @@ export default class CompanyStorage {
         filters._id = Utils.convertToObjectID(params.search);
       } else {
         filters.$or = [
-          { "name": { $regex: params.search, $options: 'i' } },
-          { "address.city": { $regex: params.search, $options: 'i' } },
-          { "address.country": { $regex: params.search, $options: 'i' } }
+          { 'name': { $regex: params.search, $options: 'i' } },
+          { 'address.city': { $regex: params.search, $options: 'i' } },
+          { 'address.country': { $regex: params.search, $options: 'i' } }
         ];
       }
     }
@@ -156,7 +139,7 @@ export default class CompanyStorage {
 
     // Count Records
     const companiesCountMDB = await global.database.getCollection<{count: number}>(tenantID, 'companies')
-      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {
@@ -174,10 +157,10 @@ export default class CompanyStorage {
       // Add Sites
       aggregation.push({
         $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, "sites"),
-          localField: "_id",
-          foreignField: "companyID",
-          as: "sites"
+          from: DatabaseUtils.getCollectionName(tenantID, 'sites'),
+          localField: '_id',
+          foreignField: 'companyID',
+          as: 'sites'
         }
       });
     }
@@ -198,7 +181,7 @@ export default class CompanyStorage {
     },
     { $project: {
       logo: '$logo.logo',
-      id:{ $toString: '$_id' },
+      id: { $toString: '$_id' },
       _id: 0,
       createdBy: 1,
       createdOn: 1,
@@ -265,5 +248,22 @@ export default class CompanyStorage {
 
     // Debug
     Logging.traceEnd('CompanyStorage', 'deleteCompany', uniqueTimerID, { id });
+  }
+
+  private static async _saveCompanyLogo(tenantID: string, companyId: string, companyLogoToSave: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('CompanyStorage', 'saveCompanyLogo');
+
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+
+    // Modify
+    await global.database.getCollection<any>(tenantID, 'companylogos').findOneAndUpdate(
+      { '_id': Utils.convertToObjectID(companyId) },
+      { $set: { logo: companyLogoToSave } },
+      { upsert: true });
+
+    // Debug
+    Logging.traceEnd('CompanyStorage', 'saveCompanyLogo', uniqueTimerID, {});
   }
 }

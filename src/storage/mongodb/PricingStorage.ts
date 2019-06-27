@@ -1,7 +1,7 @@
 import Database from '../../utils/Database';
-import Utils from '../../utils/Utils';
-import Logging from '../../utils/Logging';
 import TSGlobal from '../../types/GlobalType';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
 
 declare const global: TSGlobal;
 

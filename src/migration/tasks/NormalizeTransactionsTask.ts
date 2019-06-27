@@ -1,11 +1,11 @@
-import Tenant from '../../entity/Tenant';
-import PricingStorage from '../../storage/mongodb/PricingStorage';
-import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
 import moment from 'moment';
-import Logging from '../../utils/Logging';
 import Constants from '../../utils/Constants';
-import MigrationTask from '../MigrationTask';
+import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
 import TSGlobal from '../../types/GlobalType';
+import Logging from '../../utils/Logging';
+import MigrationTask from '../MigrationTask';
+import PricingStorage from '../../storage/mongodb/PricingStorage';
+import Tenant from '../../entity/Tenant';
 declare const global: TSGlobal;
 
 export default class NormalizeTransactionsTask extends MigrationTask {
@@ -29,7 +29,7 @@ export default class NormalizeTransactionsTask extends MigrationTask {
     // Filters
     aggregation.push({
       $match: {
-        "stop": {
+        'stop': {
           $exists: true
         }
       }
@@ -44,7 +44,7 @@ export default class NormalizeTransactionsTask extends MigrationTask {
       }
     });
     aggregation.push({
-      $unwind: { "path": "$chargeBox", "preserveNullAndEmptyArrays": true }
+      $unwind: { 'path': '$chargeBox', 'preserveNullAndEmptyArrays': true }
     });
     // Add Site Area
     aggregation.push({
@@ -56,7 +56,7 @@ export default class NormalizeTransactionsTask extends MigrationTask {
       }
     });
     aggregation.push({
-      $unwind: { "path": "$siteArea", "preserveNullAndEmptyArrays": true }
+      $unwind: { 'path': '$siteArea', 'preserveNullAndEmptyArrays': true }
     });
     // Get the price
     const pricing = await PricingStorage.getPricing(tenant.getID());
@@ -100,12 +100,12 @@ export default class NormalizeTransactionsTask extends MigrationTask {
         transaction.price = 0;
         transaction.roundedPrice = 0;
         transaction.priceUnit = pricing.priceUnit;
-        transaction.pricingSource = "simple";
+        transaction.pricingSource = 'simple';
       } else {
         transaction.price = 0;
         transaction.roundedPrice = 0;
-        transaction.priceUnit = "";
-        transaction.pricingSource = "";
+        transaction.priceUnit = '';
+        transaction.pricingSource = '';
       }
       transaction.stop = {};
       transaction.stop.meterStop = transactionMDB.stop.meterStop;
@@ -136,16 +136,16 @@ export default class NormalizeTransactionsTask extends MigrationTask {
         transaction.stop.price = parseFloat((pricing.priceKWH * (transactionMDB.stop.totalConsumption / 1000)).toFixed(6));
         transaction.stop.roundedPrice = parseFloat((parseFloat(transaction.stop.price)).toFixed(2));
         transaction.stop.priceUnit = pricing.priceUnit;
-        transaction.stop.pricingSource = "simple";
+        transaction.stop.pricingSource = 'simple';
       } else {
         transaction.stop.price = 0;
         transaction.stop.roundedPrice = 0;
-        transaction.stop.priceUnit = "";
-        transaction.stop.pricingSource = "";
+        transaction.stop.priceUnit = '';
+        transaction.stop.pricingSource = '';
       }
       // Save it
       await global.database.getCollection<any>(tenant.getID(), 'transactions').findOneAndReplace(
-        { "_id": transactionMDB._id },
+        { '_id': transactionMDB._id },
         transaction,
         { upsert: true, returnOriginal: false });
     }
@@ -154,9 +154,9 @@ export default class NormalizeTransactionsTask extends MigrationTask {
       // Log
       Logging.logWarning({
         tenantID: Constants.DEFAULT_TENANT,
-        source: "NormalizeTransactionsTask", action: "Migration",
-        module: "NormalizeTransactionsTask", method: "migrate",
-        message: `Tenant ${tenant.getName()} (${tenant.getID()}): ${chargersNotExisting.size} Charger(s) not found in ${chargersNotExistingTransactionCount} Transaction(s): ${Array.from(chargersNotExisting).join(", ")}`
+        source: 'NormalizeTransactionsTask', action: 'Migration',
+        module: 'NormalizeTransactionsTask', method: 'migrate',
+        message: `Tenant ${tenant.getName()} (${tenant.getID()}): ${chargersNotExisting.size} Charger(s) not found in ${chargersNotExistingTransactionCount} Transaction(s): ${Array.from(chargersNotExisting).join(', ')}`
       });
     }
     // Charger with no Site Area
@@ -164,19 +164,19 @@ export default class NormalizeTransactionsTask extends MigrationTask {
       // Log
       Logging.logWarning({
         tenantID: Constants.DEFAULT_TENANT,
-        source: "NormalizeTransactionsTask", action: "Migration",
-        module: "NormalizeTransactionsTask", method: "migrate",
-        message: `Tenant ${tenant.getName()} (${tenant.getID()}): ${chargersWithNoSiteArea.size} Charger(s) with no Site Area in ${chargersWithNoSiteAreaTransactionCount} Transaction(s): ${Array.from(chargersWithNoSiteArea).join(", ")}`
+        source: 'NormalizeTransactionsTask', action: 'Migration',
+        module: 'NormalizeTransactionsTask', method: 'migrate',
+        message: `Tenant ${tenant.getName()} (${tenant.getID()}): ${chargersWithNoSiteArea.size} Charger(s) with no Site Area in ${chargersWithNoSiteAreaTransactionCount} Transaction(s): ${Array.from(chargersWithNoSiteArea).join(', ')}`
       });
     }
   }
 
   getVersion() {
-    return "1.2";
+    return '1.2';
   }
 
   getName() {
-    return "NormalizeTransactions";
+    return 'NormalizeTransactions';
   }
 }
 

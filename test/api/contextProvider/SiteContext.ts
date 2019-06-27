@@ -14,9 +14,9 @@ export default class SiteContext {
   }
 
   async cleanUpCreatedData() {
-    // clean up site areas
+    // Clean up site areas
     for (const siteArea of this.siteAreas) {
-      // delegate
+      // Delegate
       await siteArea.cleanUpCreatedData();
     }
   }
@@ -34,11 +34,15 @@ export default class SiteContext {
   }
 
   getSiteArea(siteAreaName) {
-    return this.siteAreas.find((siteArea) => siteArea.getSiteArea().name === siteAreaName);
+    return this.siteAreas.find((siteArea) => {
+      return siteArea.getSiteArea().name === siteAreaName;
+    });
   }
 
   getSiteAreaContext(siteAreaContext) {
-    return this.siteAreas.find((siteArea) => siteArea.getSiteArea().name.endsWith(siteAreaContext));
+    return this.siteAreas.find((siteArea) => {
+      return siteArea.getSiteArea().name.endsWith(siteAreaContext);
+    });
   }
 
   getSiteAreas() {
@@ -46,7 +50,7 @@ export default class SiteContext {
   }
 
   addSiteArea(siteArea) {
-    const siteAreaContext = new SiteAreaContext(siteArea, this.tenantContext)
+    const siteAreaContext = new SiteAreaContext(siteArea, this.tenantContext);
     this.siteAreas.push(siteAreaContext);
     return siteAreaContext;
   }

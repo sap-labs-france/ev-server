@@ -1,14 +1,14 @@
-import Logging from '../../../utils/Logging';
-import Database from '../../../utils/Database';
-import AppError from '../../../exception/AppError';
+import _ from 'lodash';
 import AppAuthError from '../../../exception/AppAuthError';
+import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
-import Setting from '../../../entity/Setting';
-import User from '../../../entity/User';
-import SettingSecurity from './security/SettingSecurity';
 import Cypher from '../../../utils/Cypher';
-import _ from 'lodash';
+import Database from '../../../utils/Database';
+import Logging from '../../../utils/Logging';
+import Setting from '../../../entity/Setting';
+import SettingSecurity from './security/SettingSecurity';
+import User from '../../../entity/User';
 
 export default class SettingService {
   public static async handleDeleteSetting(action, req, res, next) {
@@ -20,7 +20,7 @@ export default class SettingService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Setting's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+          'The Setting\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
           'SettingService', 'handleDeleteSetting', req.user);
       }
       // Get
@@ -70,7 +70,7 @@ export default class SettingService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Setting's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+          'The Setting\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
           'SettingService', 'handleGetSetting', req.user);
       }
       // Get it

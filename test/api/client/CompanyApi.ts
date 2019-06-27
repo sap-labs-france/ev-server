@@ -1,5 +1,5 @@
-import CrudApi from './utils/CrudApi';
 import Constants from './utils/Constants';
+import CrudApi from './utils/CrudApi';
 
 export default class CompanyApi extends CrudApi {
   public constructor(authenticatedApi) {
@@ -7,7 +7,7 @@ export default class CompanyApi extends CrudApi {
   }
 
   public readById(id) {
-    return super.readById(id,'/client/api/Company');
+    return super.readById(id, '/client/api/Company');
   }
 
   public readAll(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
@@ -27,4 +27,3 @@ export default class CompanyApi extends CrudApi {
   }
 }
 
-// module.exports = CompanyApi;

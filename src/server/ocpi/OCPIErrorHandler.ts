@@ -1,8 +1,8 @@
-import OCPIUtils from '../ocpi/OCPIUtils';
+import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import OCPIServerError from '../../exception/OCPIClientError';
 import OCPIClientError from '../../exception/OCPIServerError';
-import Constants from '../../utils/Constants';
+import OCPIUtils from '../ocpi/OCPIUtils';
 
 export default class OCPIErrorHandler {
   static async errorHandler(err, req?, res?, next?) {

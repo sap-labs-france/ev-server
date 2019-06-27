@@ -1,10 +1,10 @@
-import User from '../../../entity/User';
-import Logging from '../../../utils/Logging';
-import Database from '../../../utils/Database';
-import AppError from '../../../exception/AppError';
 import AppAuthError from '../../../exception/AppAuthError';
+import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
+import Database from '../../../utils/Database';
+import Logging from '../../../utils/Logging';
+import User from '../../../entity/User';
 import Vehicle from '../../../entity/Vehicle';
 import VehicleSecurity from './security/VehicleSecurity';
 
@@ -18,7 +18,7 @@ export default class VehicleService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Vehicle's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+          'The Vehicle\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
           'VehicleService', 'handleDeleteVehicle', req.user);
       }
       // Get
@@ -67,7 +67,7 @@ export default class VehicleService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Vehicle's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+          'The Vehicle\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
           'VehicleService', 'handleGetVehicle', req.user);
       }
       // Get it
@@ -136,7 +136,7 @@ export default class VehicleService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Vehicle's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+          'The Vehicle\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
           'VehicleService', 'handleGetVehicleImage', req.user);
       }
       // Get it

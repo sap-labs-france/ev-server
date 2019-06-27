@@ -1,11 +1,11 @@
-import Database from '../../utils/Database';
-import Utils from '../../utils/Utils';
 import crypto from 'crypto';
-import Logging from '../../utils/Logging';
 import Constants from '../../utils/Constants';
+import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
-import Notification from '../../entity/Notification';
 import TSGlobal from '../../types/GlobalType';
+import Logging from '../../utils/Logging';
+import Notification from '../../entity/Notification';
+import Utils from '../../utils/Utils';
 
 declare const global: TSGlobal;
 
@@ -25,7 +25,7 @@ export default class NotificationStorage {
     // Set Site?
     if (params.userID) {
       // Set User ID
-      filters["$or"] = [
+      filters['$or'] = [
         { userID: Utils.convertToObjectID(params.userID) },
         { userID: null }
       ];
@@ -51,7 +51,7 @@ export default class NotificationStorage {
     });
     // Count Records
     const notificationsCountMDB = await global.database.getCollection<any>(tenantID, 'notifications')
-      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Add Charge Box
     aggregation.push({
@@ -64,7 +64,7 @@ export default class NotificationStorage {
     });
     // Single Record
     aggregation.push({
-      $unwind: { "path": "$chargeBox", "preserveNullAndEmptyArrays": true }
+      $unwind: { 'path': '$chargeBox', 'preserveNullAndEmptyArrays': true }
     });
     // Add User
     aggregation.push({
@@ -77,7 +77,7 @@ export default class NotificationStorage {
     });
     // Single Record
     aggregation.push({
-      $unwind: { "path": "$user", "preserveNullAndEmptyArrays": true }
+      $unwind: { 'path': '$user', 'preserveNullAndEmptyArrays': true }
     });
     // Sort
     if (sort) {
@@ -134,7 +134,7 @@ export default class NotificationStorage {
     // Set the ID
     notification._id = crypto.createHash('sha256')
       .update(`${notificationToSave.sourceId}~${notificationToSave.channel}`)
-      .digest("hex");
+      .digest('hex');
     // Create
     await global.database.getCollection<any>(tenantID, 'notifications')
       .insertOne(notification);

@@ -1,19 +1,19 @@
-import express from 'express';
+import bodyParser from 'body-parser';
+import bodyParserXml from 'body-parser-xml';
 import cors from 'cors';
+import express from 'express';
 import helmet from 'helmet';
 import hpp from 'hpp';
-import bodyParser from "body-parser";
-import bodyParserXml from 'body-parser-xml';
 bodyParserXml(bodyParser);
-import locale from 'locale';
-import http from 'http';
-import https from 'https';
-import fs from 'fs';
 import CFLog from 'cf-nodejs-logging-support';
 import cluster from 'cluster';
+import fs from 'fs';
+import http from 'http';
+import https from 'https';
+import locale from 'locale';
 import Configuration from '../utils/Configuration';
-import Logging from '../utils/Logging';
 import Constants from '../utils/Constants';
+import Logging from '../utils/Logging';
 
 export default {
   init: function(bodyLimit: string = '1mb'): express.Application {
@@ -47,24 +47,24 @@ export default {
   createHttpServer: function(serverConfig: any, expressApp: express.Application): http.Server {
     let server: http.Server;
     // Create the HTTP server
-    if (serverConfig.protocol === "https") {
+    if (serverConfig.protocol === 'https') {
       // Create the options
       const options: any = {};
       // Set the keys
-      options.key = fs.readFileSync(serverConfig["ssl-key"]);
-      options.cert = fs.readFileSync(serverConfig["ssl-cert"]);
+      options.key = fs.readFileSync(serverConfig['ssl-key']);
+      options.cert = fs.readFileSync(serverConfig['ssl-cert']);
       // Intermediate cert?
-      if (serverConfig["ssl-ca"]) {
+      if (serverConfig['ssl-ca']) {
         // Array?
-        if (Array.isArray(serverConfig["ssl-ca"])) {
+        if (Array.isArray(serverConfig['ssl-ca'])) {
           options.ca = [];
           // Add all
-          for (let i = 0; i < serverConfig["ssl-ca"].length; i++) {
-            options.ca.push(fs.readFileSync(serverConfig["ssl-ca"][i]));
+          for (let i = 0; i < serverConfig['ssl-ca'].length; i++) {
+            options.ca.push(fs.readFileSync(serverConfig['ssl-ca'][i]));
           }
         } else {
           // Add one
-          options.ca = fs.readFileSync(serverConfig["ssl-ca"]);
+          options.ca = fs.readFileSync(serverConfig['ssl-ca']);
         }
       }
       // Https server
@@ -85,7 +85,7 @@ export default {
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: serverModuleName,
-        method: "start", action: "Startup",
+        method: 'start', action: 'Startup',
         message: logMsg
       });
       // eslint-disable-next-line no-console

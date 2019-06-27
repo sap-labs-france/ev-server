@@ -1,24 +1,24 @@
-const path = require('path');
-import TSGlobal from '../../src/types/GlobalType';
-declare const global: TSGlobal;
-global.appRoot = path.resolve(__dirname, '../../src');
+import chai, { expect } from 'chai';
+import chaiSubset from 'chai-subset';
+import path from 'path';
 import CONTEXTS from './contextProvider/ContextConstants';
 import ContextProvider from './contextProvider/ContextProvider';
-import chai from 'chai';
-import { expect } from 'chai';
-import chaiSubset from 'chai-subset';
+import TSGlobal from '../../src/types/GlobalType';
 chai.use(require('chai-datetime'));
 chai.use(chaiSubset);
 chai.use(require('../helpers/responseHelper'));
 import moment from 'moment';
+import Configuration from '../../src/utils/Configuration';
 import cypher from '../../src/utils/Cypher';
 import CypherJSON from './client/utils/CypherJSON';
-import Configuration from '../../src/utils/Configuration';
+
+declare const global: TSGlobal;
+global.appRoot = path.resolve(__dirname, '../../src');
 
 // For Visual Studio it is recommended to install Mocha sidebar and Chai snippets
 // Mocha is the test framework and chai provides functions to check expectations
-const FAKE_JSON: CypherJSON = { "sensitiveData": ['content.secret1', 'content.secret2'], "content": { "secret1": "Harry", "secret2": "Potter" } };
-const FAKE_WORD = "Expelliarmus";
+const FAKE_JSON: CypherJSON = { 'sensitiveData': ['content.secret1', 'content.secret2'], 'content': { 'secret1': 'Harry', 'secret2': 'Potter' } };
+const FAKE_WORD = 'Expelliarmus';
 
 describe('Cypher Tests', function() {
   this.timeout(30000);
@@ -37,7 +37,7 @@ describe('Cypher Tests', function() {
     });
 
     it('Should encrypt and decrypt sensitive data in a JSON', () => {
-      const testJSON: CypherJSON = { "sensitiveData": ['content.secret1', 'content.secret2'], "content": { "secret1": "Harry", "secret2": "Potter" } };
+      const testJSON: CypherJSON = { 'sensitiveData': ['content.secret1', 'content.secret2'], 'content': { 'secret1': 'Harry', 'secret2': 'Potter' } };
       cypher.encryptSensitiveDataInJSON(testJSON);
       // Check encryption
       expect(FAKE_JSON.content.secret1).to.not.equal(testJSON.content.secret1);

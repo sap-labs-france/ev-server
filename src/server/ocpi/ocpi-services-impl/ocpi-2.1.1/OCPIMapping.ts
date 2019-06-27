@@ -1,8 +1,8 @@
-import Constants from "../../../../utils/Constants";
-import Site from "../../../../entity/Site";
+import Constants from '../../../../utils/Constants';
+import Site from '../../../../entity/Site';
 
 import SourceMap from 'source-map-support';
-import SiteArea from "../../../../types/SiteArea";
+import SiteArea from '../../../../types/SiteArea';
 SourceMap.install();
 
 /**
@@ -21,18 +21,18 @@ export default class OCPIMapping {
     if (site instanceof Site) {
       // Build object
       return {
-        "id": site.getID(),
-        "name": site.getName(),
-        "address": `${site.getAddress().address1} ${site.getAddress().address2}`,
-        "city": site.getAddress().city,
-        "postal_code": site.getAddress().postalCode,
-        "country": site.getAddress().country,
-        "coordinates": {
-          "latitude": site.getAddress().latitude,
-          "longitude": site.getAddress().longitude
+        'id': site.getID(),
+        'name': site.getName(),
+        'address': `${site.getAddress().address1} ${site.getAddress().address2}`,
+        'city': site.getAddress().city,
+        'postal_code': site.getAddress().postalCode,
+        'country': site.getAddress().country,
+        'coordinates': {
+          'latitude': site.getAddress().latitude,
+          'longitude': site.getAddress().longitude
         },
-        "evses": await this.getEvsesFromSite(tenant, site, options),
-        "last_updated": site.getLastChangedOn()
+        'evses': await OCPIMapping.getEvsesFromSite(tenant, site, options),
+        'last_updated': site.getLastChangedOn()
       };
     }
   }
@@ -53,9 +53,9 @@ export default class OCPIMapping {
     // Convert charging stations to evse(s)
     chargingStations.forEach((chargingStation: any) => {
       if (chargingStation.canChargeInParallel()) {
-        evses.push(...this.convertCharginStation2MultipleEvses(tenant, chargingStation, options));
+        evses.push(...OCPIMapping.convertCharginStation2MultipleEvses(tenant, chargingStation, options));
       } else {
-        evses.push(...this.convertChargingStation2UniqueEvse(tenant, chargingStation, options));
+        evses.push(...OCPIMapping.convertChargingStation2UniqueEvse(tenant, chargingStation, options));
       }
     });
 
@@ -77,7 +77,7 @@ export default class OCPIMapping {
 
     for (const siteArea of siteAreas) {
       // Get charging stations from SiteArea
-      evses.push(...await this.getEvsesFromSiteaArea(tenant, siteArea, options));
+      evses.push(...await OCPIMapping.getEvsesFromSiteaArea(tenant, siteArea, options));
     }
 
     // Return evses
@@ -97,7 +97,7 @@ export default class OCPIMapping {
 
     // Convert Sites to Locations
     for (const site of sites.result) {
-      result.locations.push(await this.convertSite2Location(tenant, site, options));
+      result.locations.push(await OCPIMapping.convertSite2Location(tenant, site, options));
     }
 
     // Set count
@@ -116,15 +116,15 @@ export default class OCPIMapping {
    */
   static convertCharginStation2MultipleEvses(tenant: any, chargingStation: any, options: any) {
     // Build evse_id
-    const evse_id = this.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.getID()}`);
+    const evse_id = OCPIMapping.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.getID()}`);
 
     // Loop through connectors and send one evse per connector
     const evses = chargingStation.getConnectors().map((connector: any) => {
       const evse: any = {
-        "uid": `${chargingStation.getID()}*${connector.connectorId}`,
-        "id": this.convert2evseid(`${evse_id}*${connector.connectorId}`),
-        "status": this.convertStatus2OCPIStatus(connector.status),
-        "connectors": [this.convertConnector2OCPIConnector(chargingStation, connector, evse_id)]
+        'uid': `${chargingStation.getID()}*${connector.connectorId}`,
+        'id': OCPIMapping.convert2evseid(`${evse_id}*${connector.connectorId}`),
+        'status': OCPIMapping.convertStatus2OCPIStatus(connector.status),
+        'connectors': [OCPIMapping.convertConnector2OCPIConnector(chargingStation, connector, evse_id)]
       };
 
       // Check addChargeBoxID flag
@@ -148,20 +148,20 @@ export default class OCPIMapping {
    */
   static convertChargingStation2UniqueEvse(tenant: any, chargingStation: any, options: any) {
     // Build evse_id
-    const evse_id = this.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.getID()}`);
+    const evse_id = OCPIMapping.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.getID()}`);
 
     // Get all connectors
     const connectors = chargingStation.getConnectors().map((connector: any) => {
-      return this.convertConnector2OCPIConnector(chargingStation, connector, evse_id);
+      return OCPIMapping.convertConnector2OCPIConnector(chargingStation, connector, evse_id);
     });
 
     // Build evse
     const evse: any = {
-      "uid": `${chargingStation.getID()}`,
+      'uid': `${chargingStation.getID()}`,
       // "id": this.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.getID()}`),
-      "id": evse_id,
-      "status": this.convertStatus2OCPIStatus(this.aggregateConnectorsStatus(connectors)),
-      "connectors": connectors
+      'id': evse_id,
+      'status': OCPIMapping.convertStatus2OCPIStatus(OCPIMapping.aggregateConnectorsStatus(connectors)),
+      'connectors': connectors
     };
 
     // Check addChargeBoxID flag
@@ -204,12 +204,12 @@ export default class OCPIMapping {
    */
   static convertConnector2OCPIConnector(chargingStation: any, connector: any, evse_id: any) {
     return {
-      "id": `${evse_id}*${connector.connectorId}`,
-      "type": Constants.MAPPING_CONNECTOR_TYPE[connector.type],
-      "voltage": connector.voltage,
-      "amperage": connector.amperage,
-      "power_type": this.convertNumberofConnectedPhase2PowerType(chargingStation.getNumberOfConnectedPhase()),
-      "last_update": chargingStation.getLastHeartBeat()
+      'id': `${evse_id}*${connector.connectorId}`,
+      'type': Constants.MAPPING_CONNECTOR_TYPE[connector.type],
+      'voltage': connector.voltage,
+      'amperage': connector.amperage,
+      'power_type': OCPIMapping.convertNumberofConnectedPhase2PowerType(chargingStation.getNumberOfConnectedPhase()),
+      'last_update': chargingStation.getLastHeartBeat()
     };
   }
 
@@ -233,7 +233,7 @@ export default class OCPIMapping {
    */
   static convert2evseid(id: any) {
     if (id) {
-      return id.replace(/[\W_]+/g, "*").toUpperCase();
+      return id.replace(/[\W_]+/g, '*').toUpperCase();
     }
   }
 
@@ -251,11 +251,11 @@ export default class OCPIMapping {
         return Constants.EVSE_STATUS.CHARGING;
       case Constants.CONN_STATUS_FAULTED:
         return Constants.EVSE_STATUS.INOPERATIVE;
-      case "Preparing":
-      case "SuspendedEV":
-      case "SuspendedEVSE":
-      case "Finishing":
-      case "Reserved":
+      case 'Preparing':
+      case 'SuspendedEV':
+      case 'SuspendedEVSE':
+      case 'Finishing':
+      case 'Reserved':
         return Constants.EVSE_STATUS.BLOCKED;
       default:
         return Constants.EVSE_STATUS.UNKNOWN;

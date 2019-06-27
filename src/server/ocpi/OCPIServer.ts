@@ -1,13 +1,13 @@
 import morgan from 'morgan';
+import SourceMap from 'source-map-support';
+import Constants from '../../utils/Constants';
 import expressTools from '../ExpressTools';
 import Logging from '../../utils/Logging';
-import Constants from '../../utils/Constants';
-import OCPIServices from './OCPIServices';
 import OCPIErrorHandler from './OCPIErrorHandler';
-import SourceMap from 'source-map-support';
+import OCPIServices from './OCPIServices';
 SourceMap.install();
 
-const MODULE_NAME = "OCPIServer";
+const MODULE_NAME = 'OCPIServer';
 export default class OCPIServer {
   private ocpiRestConfig: any;
   private express: any;
@@ -28,8 +28,8 @@ export default class OCPIServer {
               // Log
               Logging.logDebug({
                 module: MODULE_NAME,
-                method: "constructor",
-                action: "HttpRequestLog",
+                method: 'constructor',
+                action: 'HttpRequestLog',
                 message: message
               });
             }
@@ -51,7 +51,7 @@ export default class OCPIServer {
 
   // Start the server
   start() {
-    expressTools.startServer(this.ocpiRestConfig, expressTools.createHttpServer(this.ocpiRestConfig, this.express), "OCPI", MODULE_NAME);
+    expressTools.startServer(this.ocpiRestConfig, expressTools.createHttpServer(this.ocpiRestConfig, this.express), 'OCPI', MODULE_NAME);
   }
 }
 

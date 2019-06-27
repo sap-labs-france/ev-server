@@ -1,6 +1,6 @@
 import faker from 'faker';
-import Utils from '../../../src/utils/Utils';
 import TenantContext from './TenantContext';
+import Utils from '../../../src/utils/Utils';
 
 export default class ChargingStationContext {
 
@@ -77,11 +77,11 @@ export default class ChargingStationContext {
         timestamp: timestamp.toISOString(),
         sampledValue: [{
           value: meterValue,
-          format: "Raw",
-          measurand: "Energy.Active.Import.Register",
+          format: 'Raw',
+          measurand: 'Energy.Active.Import.Register',
           unit: 'Wh',
-          location: "Outlet",
-          context: "Sample.Periodic"
+          location: 'Outlet',
+          context: 'Sample.Periodic'
         }]
 
       },
@@ -97,9 +97,9 @@ export default class ChargingStationContext {
         timestamp: timestamp.toISOString(),
         sampledValue: [{
           value: meterValue,
-          format: "Raw",
-          measurand: "SoC",
-          context: "Sample.Periodic"
+          format: 'Raw',
+          measurand: 'SoC',
+          context: 'Sample.Periodic'
         }]
 
       },
@@ -115,11 +115,11 @@ export default class ChargingStationContext {
         timestamp: timestamp.toISOString(),
         sampledValue: [{
           value: meterValue,
-          format: "Raw",
-          measurand: "Energy.Active.Import.Register",
+          format: 'Raw',
+          measurand: 'Energy.Active.Import.Register',
           unit: 'Wh',
-          location: "Outlet",
-          context: "Sample.Clock"
+          location: 'Outlet',
+          context: 'Sample.Clock'
         }]
 
       },
@@ -138,42 +138,42 @@ export default class ChargingStationContext {
   }
 
   getConfiguration() {
-    const configuration:any = {
-      "stationTemplate": {
-        "baseName": "CS-" + faker.random.alphaNumeric(10),
-        "chargePointModel": this.chargingStation.chargePointModel,
-        "chargePointVendor": this.chargingStation.chargePointVendor,
-        "power": [7200, 16500, 22000, 50000],
-        "powerUnit": "W",
-        "numberOfConnectors": this.chargingStation.connectors.length,
-        "randomConnectors": false,
-        "Configuration": {
-          "NumberOfConnectors": this.chargingStation.connectors.length,
-          "param1": "test",
-          "meterValueInterval": 60
+    const configuration: any = {
+      'stationTemplate': {
+        'baseName': 'CS-' + faker.random.alphaNumeric(10),
+        'chargePointModel': this.chargingStation.chargePointModel,
+        'chargePointVendor': this.chargingStation.chargePointVendor,
+        'power': [7200, 16500, 22000, 50000],
+        'powerUnit': 'W',
+        'numberOfConnectors': this.chargingStation.connectors.length,
+        'randomConnectors': false,
+        'Configuration': {
+          'NumberOfConnectors': this.chargingStation.connectors.length,
+          'param1': 'test',
+          'meterValueInterval': 60
         },
-        "AutomaticTransactionGenerator": {
-          "enable": true,
-          "minDuration": 70,
-          "maxDuration": 180,
-          "minDelayBetweenTwoTransaction": 30,
-          "maxDelayBetweenTwoTransaction": 60,
-          "probabilityOfStart": 1,
-          "stopAutomaticTransactionGeneratorAfterHours": 0.3
+        'AutomaticTransactionGenerator': {
+          'enable': true,
+          'minDuration': 70,
+          'maxDuration': 180,
+          'minDelayBetweenTwoTransaction': 30,
+          'maxDelayBetweenTwoTransaction': 60,
+          'probabilityOfStart': 1,
+          'stopAutomaticTransactionGeneratorAfterHours': 0.3
         },
-        "Connectors": {}
+        'Connectors': {}
       }
     };
-    this.chargingStation.connectors.forEach(connector => {
+    this.chargingStation.connectors.forEach((connector) => {
       configuration.Connectors[connector.connectorId] = {
-        "MeterValues": [{
-          "unit": "Percent",
-          "context": "Sample.Periodic",
-          "measurand": "SoC",
-          "location": "EV"
+        'MeterValues': [{
+          'unit': 'Percent',
+          'context': 'Sample.Periodic',
+          'measurand': 'SoC',
+          'location': 'EV'
         }, {
-          "unit": "Wh",
-          "context": "Sample.Periodic"
+          'unit': 'Wh',
+          'context': 'Sample.Periodic'
         }]
       };
     });

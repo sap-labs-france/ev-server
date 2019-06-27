@@ -1,14 +1,14 @@
-import Logging from '../../../utils/Logging';
-import AppError from '../../../exception/AppError';
-import UnauthorizedError from '../../../exception/UnauthorizedError';
-import Constants from '../../../utils/Constants';
-import AbstractConnector from '../../../integration/AbstractConnector';
-import ConcurConnector from '../../../integration/refund/ConcurConnector';
-import Authorizations from '../../../authorization/Authorizations';
-import ConnectorSecurity from './security/ConnectorSecurity';
 import HttpStatusCodes from 'http-status-codes';
-import ConnectionValidator from '../validation/ConnectionValidator';
+import AbstractConnector from '../../../integration/AbstractConnector';
 import AbstractService from './AbstractService';
+import AppError from '../../../exception/AppError';
+import Authorizations from '../../../authorization/Authorizations';
+import ConcurConnector from '../../../integration/refund/ConcurConnector';
+import ConnectionValidator from '../validation/ConnectionValidator';
+import ConnectorSecurity from './security/ConnectorSecurity';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
+import UnauthorizedError from '../../../exception/UnauthorizedError';
 
 const MODULE_NAME = 'ConnectorService';
 
@@ -22,7 +22,7 @@ export default class ConnectorService extends AbstractService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Connection's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+          'The Connection\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
           MODULE_NAME, 'handleGetConnection', req.user);
       }
 
@@ -98,7 +98,7 @@ export default class ConnectorService extends AbstractService {
       // Filter
       const filteredRequest = ConnectorSecurity.filterConnectionCreateRequest(req.body, req.user);
       const setting = await AbstractConnector.getConnectorSetting(req.user.tenantID, filteredRequest.settingId);
-      const connector = this.instantiateConnector(req.user.tenantID, filteredRequest.connectorId, setting.getContent()[filteredRequest.connectorId]);
+      const connector = ConnectorService.instantiateConnector(req.user.tenantID, filteredRequest.connectorId, setting.getContent()[filteredRequest.connectorId]);
       const connection = await connector.createConnection(filteredRequest.userId, filteredRequest.data);
 
       ConnectionValidator.getInstance().validateConnectionCreation(req.body);
@@ -136,7 +136,7 @@ export default class ConnectorService extends AbstractService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The userId must be provided`, Constants.HTTP_GENERAL_ERROR,
+          'The userId must be provided', Constants.HTTP_GENERAL_ERROR,
           MODULE_NAME, 'handleDeleteConnection', req.user);
       }
 
@@ -144,7 +144,7 @@ export default class ConnectorService extends AbstractService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The connectorId must be provided`, Constants.HTTP_GENERAL_ERROR,
+          'The connectorId must be provided', Constants.HTTP_GENERAL_ERROR,
           MODULE_NAME, 'handleDeleteConnection', req.user);
       }
 

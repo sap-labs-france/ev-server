@@ -1,10 +1,10 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import UtilsSecurity from './UtilsSecurity';
-import SiteSecurity from './SiteSecurity';
 import Company from '../../../../types/Company';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
+import SiteSecurity from './SiteSecurity';
+import UtilsSecurity from './UtilsSecurity';
 
 export default class CompanySecurity {
 

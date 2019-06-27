@@ -1,6 +1,6 @@
 import AbstractOCPIService from '../../AbstractOCPIService';
 
-const VERSION = "2.0";
+const VERSION = '2.0';
 
 import SourceMap from 'source-map-support';
 SourceMap.install();

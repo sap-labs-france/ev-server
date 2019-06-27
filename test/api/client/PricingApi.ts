@@ -9,5 +9,3 @@ export default class SiteApi extends CrudApi {
     return super.update(data, '/client/api/PricingUpdate');
   }
 }
-
-// module.exports = SiteApi;

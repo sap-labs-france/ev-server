@@ -1,19 +1,19 @@
-import fs from 'fs';
-import WebSocket from 'ws';
-import https from 'https';
-import http from 'http';
 import cluster from 'cluster';
-import Logging from '../../../utils/Logging';
+import fs from 'fs';
+import http from 'http';
+import https from 'https';
+import WebSocket from 'ws';
 import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
 
-const MODULE_NAME = "WSServer";
+const MODULE_NAME = 'WSServer';
 export default class WSServer extends WebSocket.Server {
+  public clients: any;
   private httpServer: any;
   private serverName: string;
   private serverConfig: any;
   private keepAliveIntervalValue: number;
   private keepAliveInterval: any;
-  public clients: any;
 
   /**
    * Create a new `WSServer`.
@@ -34,7 +34,7 @@ export default class WSServer extends WebSocket.Server {
     this.httpServer = httpServer;
     this.serverName = serverName;
     this.serverConfig = serverConfig;
-    this.keepAliveIntervalValue = (this.serverConfig.hasOwnProperty('keepaliveinterval') ?
+    this.keepAliveIntervalValue = (this.serverConfig.keepaliveinterval ?
       this.serverConfig.keepaliveinterval : Constants.WS_DEFAULT_KEEPALIVE) * 1000; // Ms
     this.on('connection', (ws: any): void => {
       ws.isAlive = true;
@@ -50,7 +50,7 @@ export default class WSServer extends WebSocket.Server {
             Logging.logError({
               tenantID: Constants.DEFAULT_TENANT,
               module: MODULE_NAME,
-              method: "constructor",
+              method: 'constructor',
               message: `Web Socket on ${ws.url} do not respond to ping, terminating`
             });
             return ws.terminate();
@@ -66,12 +66,12 @@ export default class WSServer extends WebSocket.Server {
     // Create HTTP server
     let httpServer;
     // Secured protocol?
-    if (serverConfig.protocol === "wss") {
+    if (serverConfig.protocol === 'wss') {
       // Create the options
       const options: any = {};
       // Set the keys
-      options.key = fs.readFileSync(serverConfig["ssl-key"]);
-      options.cert = fs.readFileSync(serverConfig["ssl-cert"]);
+      options.key = fs.readFileSync(serverConfig['ssl-key']);
+      options.cert = fs.readFileSync(serverConfig['ssl-cert']);
       // Https server
       httpServer = https.createServer(options, (req, res) => {
         res.writeHead(200);
@@ -116,7 +116,7 @@ export default class WSServer extends WebSocket.Server {
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         module: MODULE_NAME,
-        method: "startListening", action: "Startup",
+        method: 'startListening', action: 'Startup',
         message: `${this.serverName} Json ${MODULE_NAME} listening on '${this.serverConfig.protocol}://${this.httpServer.address().address}:${this.httpServer.address().port}'`
       });
       // eslint-disable-next-line no-console

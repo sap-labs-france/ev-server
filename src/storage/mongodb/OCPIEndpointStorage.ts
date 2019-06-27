@@ -1,12 +1,12 @@
-import OCPIEndpoint from '../../entity/OCPIEndpoint'; // Avoid circular deps!!!
 import { ObjectID } from 'mongodb';
+import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
-import Utils from '../../utils/Utils';
-import BackendError from '../../exception/BackendError';
 import DatabaseUtils from './DatabaseUtils';
-import Logging from '../../utils/Logging';
 import TSGlobal from '../../types/GlobalType';
+import Logging from '../../utils/Logging';
+import OCPIEndpoint from '../../entity/OCPIEndpoint'; // Avoid circular deps!!!
+import Utils from '../../utils/Utils';
 
 declare const global: TSGlobal;
 
@@ -78,8 +78,8 @@ export default class OCPIEndpointStorage {
       // ID must be provided!
       throw new BackendError(
         Constants.CENTRAL_SERVER,
-        "OCPIEndpoint has no ID and no Name",
-        "OCPIEndpointStorage", "saveOcpiEndpoint");
+        'OCPIEndpoint has no ID and no Name',
+        'OCPIEndpointStorage', 'saveOcpiEndpoint');
     }
     const ocpiEndpointFilter: any = {};
     // Build Request
@@ -108,7 +108,7 @@ export default class OCPIEndpointStorage {
   // Get default ocpiEndpoint -
   // Not quite sure how multiple OcpiEndpoint will be handled in futur - for now keep use the first available
   static async getDefaultOcpiEndpoint(tenantID) {
-    const ocpiEndpoints = await this.getOcpiEndpoints(tenantID);
+    const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenantID);
 
     return (ocpiEndpoints.result && ocpiEndpoints.result.length > 0) ? ocpiEndpoints.result[0] : undefined;
   }
@@ -129,7 +129,7 @@ export default class OCPIEndpointStorage {
     if (params.search) {
       // Build filter
       filters.$or = [
-        { "name": { $regex: params.search, $options: 'i' } }
+        { 'name': { $regex: params.search, $options: 'i' } }
       ];
     }
 
@@ -143,7 +143,7 @@ export default class OCPIEndpointStorage {
     }
     // Count Records
     const ocpiEndpointsCountMDB = await global.database.getCollection<any>(tenantID, 'ocpiendpoints')
-      .aggregate([...aggregation, { $count: "count" }])
+      .aggregate([...aggregation, { $count: 'count' }])
       .toArray();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);

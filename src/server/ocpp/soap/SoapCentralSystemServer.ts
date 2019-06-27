@@ -1,21 +1,21 @@
-import fs from 'fs';
-import { soap } from 'strong-soap';
-import morgan from 'morgan';
 import express from 'express';
-import expressTools from '../../ExpressTools';
+import sanitize from 'express-sanitizer';
+import fs from 'fs';
+import morgan from 'morgan';
+import SourceMap from 'source-map-support';
+import { soap } from 'strong-soap';
 import CentralSystemServer from '../CentralSystemServer';
-import Logging from '../../../utils/Logging';
 import Constants from '../../../utils/Constants';
+import expressTools from '../../ExpressTools';
+import Logging from '../../../utils/Logging';
 import centralSystemService12 from './services/SoapCentralSystemService12';
 import centralSystemService15 from './services/SoapCentralSystemService15';
 import centralSystemService16 from './services/SoapCentralSystemService16';
-import sanitize from 'express-sanitizer';
-import SourceMap from 'source-map-support';
 SourceMap.install();
 import TSGlobal from '../../../types/GlobalType';
 declare const global: TSGlobal;
 
-const MODULE_NAME = "SoapCentralSystemServer";
+const MODULE_NAME = 'SoapCentralSystemServer';
 export default class SoapCentralSystemServer extends CentralSystemServer {
 
   private express: express.Application;
@@ -40,8 +40,8 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
               // Log
               Logging.logDebug({
                 tenantID: Constants.DEFAULT_TENANT,
-                module: MODULE_NAME, method: "constructor",
-                action: "HttpRequestLog",
+                module: MODULE_NAME, method: 'constructor',
+                action: 'HttpRequestLog',
                 message: message
               });
             }
@@ -60,7 +60,7 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     global.centralSystemSoap = this;
 
     const httpServer = expressTools.createHttpServer(this.centralSystemConfig, this.express);
-    expressTools.startServer(this.centralSystemConfig, httpServer, "OCPP Soap", MODULE_NAME);
+    expressTools.startServer(this.centralSystemConfig, httpServer, 'OCPP Soap', MODULE_NAME);
 
     // Create Soap Servers
     // OCPP 1.2 -----------------------------------------
@@ -112,7 +112,7 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     // Log
     Logging.logDebug({
       tenantID: Constants.DEFAULT_TENANT, module: MODULE_NAME,
-      method: "start", action: "StrongSoapDebug",
+      method: 'start', action: 'StrongSoapDebug',
       message: `OCPP ${ocppVersion} - Request '${methodName}' Received`,
       detailedMessages: request
     });
@@ -124,7 +124,7 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
       // Log
       Logging.logDebug({
         tenantID: Constants.DEFAULT_TENANT, module: MODULE_NAME,
-        method: "start", action: "StrongSoapDebug",
+        method: 'start', action: 'StrongSoapDebug',
         message: `OCPP ${ocppVersion} - Request Replied`,
         detailedMessages: data
       });

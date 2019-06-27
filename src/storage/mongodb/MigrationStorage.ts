@@ -1,7 +1,7 @@
-import Database from '../../utils/Database';
 import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
+import Database from '../../utils/Database';
 import TSGlobal from '../../types/GlobalType';
+import Logging from '../../utils/Logging';
 
 declare const global: TSGlobal;
 
@@ -38,7 +38,7 @@ export default class MigrationStorage {
     const migration: any = {};
     Database.updateMigration(migrationToSave, migration, false);
     // Set the ID
-    migration._id = migration.name + "~" + migration.version;
+    migration._id = migration.name + '~' + migration.version;
     // Create
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'migrations')
       .insertOne(migration);

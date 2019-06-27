@@ -1,17 +1,17 @@
-import Utils from './Utils';
-import Constants from './Constants';
-import AppError from '../exception/AppError';
-import BackendError from '../exception/BackendError';
-import AppAuthError from '../exception/AppAuthError';
-import BadRequestError from '../exception/BadRequestError';
-import ConflictError from '../exception/ConflictError';
-import NotFoundError from '../exception/NotFoundError';
 import CFLog from 'cf-nodejs-logging-support';
-import Configuration from '../utils/Configuration';
-import LoggingStorage from '../storage/mongodb/LoggingStorage';
-import uuid from 'uuid/v4';
 import { PerformanceObserver, performance } from 'perf_hooks';
 import SourceMap from 'source-map-support';
+import uuid from 'uuid/v4';
+import AppAuthError from '../exception/AppAuthError';
+import AppError from '../exception/AppError';
+import BackendError from '../exception/BackendError';
+import BadRequestError from '../exception/BadRequestError';
+import Configuration from '../utils/Configuration';
+import ConflictError from '../exception/ConflictError';
+import Constants from './Constants';
+import LoggingStorage from '../storage/mongodb/LoggingStorage';
+import NotFoundError from '../exception/NotFoundError';
+import Utils from './Utils';
 SourceMap.install();
 import cfenv from 'cfenv';
 import cluster from 'cluster';
@@ -34,11 +34,11 @@ const obs = new PerformanceObserver((items): void => {
       setInterval((): void => {
         const date = new Date();
         // eslint-disable-next-line no-console
-        console.log(date.toISOString().substr(0, 19) + " STATISTICS START");
+        console.log(date.toISOString().substr(0, 19) + ' STATISTICS START');
         // eslint-disable-next-line no-console
-        console.log(JSON.stringify(_traceStatistics, null, " "));
+        console.log(JSON.stringify(_traceStatistics, null, ' '));
         // eslint-disable-next-line no-console
-        console.log(date.toISOString().substr(0, 19) + " STATISTICS END");
+        console.log(date.toISOString().substr(0, 19) + ' STATISTICS END');
       }, _loggingConfig.traceStatisticInterval * 1000);
     }
   }
@@ -51,17 +51,17 @@ const obs = new PerformanceObserver((items): void => {
 obs.observe({ entryTypes: ['measure'] });
 
 const LogLevel = {
-  "INFO": 'I',
-  "DEBUG": 'D',
-  "WARNING": 'W',
-  "ERROR": 'E',
-  "NONE": 'NONE',
-  "DEFAULT": 'DEFAULT'
+  'INFO': 'I',
+  'DEBUG': 'D',
+  'WARNING': 'W',
+  'ERROR': 'E',
+  'NONE': 'NONE',
+  'DEFAULT': 'DEFAULT'
 };
 
 const LoggingType = {
-  "SECURITY": 'S',
-  "REGULAR": 'R'
+  'SECURITY': 'S',
+  'REGULAR': 'R'
 };
 export default class Logging {
   // Log Debug
@@ -175,7 +175,7 @@ export default class Logging {
       source: chargeBoxID,
       module: module,
       method: action,
-      message: `>> OCPP Request Received`,
+      message: '>> OCPP Request Received',
       action: action,
       detailedMessages: payload
     });
@@ -189,7 +189,7 @@ export default class Logging {
       source: chargeBoxID,
       module: module,
       method: action,
-      message: `>> OCPP Request Sent`,
+      message: '>> OCPP Request Sent',
       action: action,
       detailedMessages: args
     });
@@ -203,7 +203,7 @@ export default class Logging {
       source: chargeBoxID,
       module: module,
       method: action,
-      message: `<< OCPP Request Returned`,
+      message: '<< OCPP Request Returned',
       action: action,
       detailedMessages: detailedMessages
     });
@@ -251,8 +251,8 @@ export default class Logging {
   // Used to log exception in catch(...) only
   public static logActionExceptionMessageAndSendResponse(action, exception, req, res, next, tenantID = Constants.DEFAULT_TENANT): void {
     // Clear password
-    if (action === "login" && req.body.password) {
-      req.body.password = "####";
+    if (action === 'login' && req.body.password) {
+      req.body.password = '####';
     }
     if (req.user && req.user.tenantID) {
       tenantID = req.user.tenantID;
@@ -274,9 +274,17 @@ export default class Logging {
     }
     // Send error
     res.status((exception.errorCode ? exception.errorCode : Constants.HTTP_GENERAL_ERROR)).send({
-      "message": Utils.hideShowMessage(exception.message)
+      'message': Utils.hideShowMessage(exception.message)
     });
     next();
+  }
+
+  public static getLog(tenantID, id): any {
+    return LoggingStorage.getLog(tenantID, id);
+  }
+
+  public static getLogs(tenantID, params, limit, skip, sort): any {
+    return LoggingStorage.getLogs(tenantID, params, limit, skip, sort);
   }
 
   private static _logActionExceptionMessage(tenantID, action, exception): void {
@@ -289,8 +297,8 @@ export default class Logging {
       action: action,
       message: exception.message,
       detailedMessages: [{
-        "details": exception.detailedMessages,
-        "stack": exception.stack
+        'details': exception.detailedMessages,
+        'stack': exception.stack
       }]
     });
   }
@@ -306,7 +314,7 @@ export default class Logging {
       action: action,
       message: exception.message,
       detailedMessages: [{
-        "stack": exception.stack
+        'stack': exception.stack
       }]
     });
   }
@@ -322,7 +330,7 @@ export default class Logging {
       user: exception.user,
       actionOnUser: exception.actionOnUser,
       detailedMessages: [{
-        "stack": exception.stack
+        'stack': exception.stack
       }]
     });
   }
@@ -338,8 +346,8 @@ export default class Logging {
       action: action,
       message: exception.message,
       detailedMessages: [{
-        "details": exception.details,
-        "stack": exception.stack
+        'details': exception.details,
+        'stack': exception.stack
       }]
     });
   }
@@ -355,7 +363,7 @@ export default class Logging {
       action: action,
       message: exception.message,
       detailedMessages: [{
-        "stack": exception.stack
+        'stack': exception.stack
       }]
     });
   }
@@ -364,9 +372,9 @@ export default class Logging {
     let tenant = tenantID ? tenantID : Constants.DEFAULT_TENANT;
     if (!tenantID && user) {
       // Check if the log can be attached to a tenant
-      if (user.hasOwnProperty("tenantID")) {
+      if (user.hasOwnProperty('tenantID')) {
         tenant = user.tenantID;
-      } else if (user.hasOwnProperty("_tenantID")) {
+      } else if (user.hasOwnProperty('_tenantID')) {
         tenant = user._tenantID;
       }
     }
@@ -380,8 +388,8 @@ export default class Logging {
       action: action,
       message: error.message,
       detailedMessages: [{
-        "details": error.detailedMessages,
-        "stack": error.stack
+        'details': error.detailedMessages,
+        'stack': error.stack
       }]
     };
   }
@@ -389,15 +397,15 @@ export default class Logging {
   // Used to check URL params (not in catch)
   private static _format(detailedMessage): string {
     // JSON?
-    if (typeof detailedMessage === "object") {
+    if (typeof detailedMessage === 'object') {
       try {
         // Check that every detailedMessages is parsed
-        return JSON.stringify(detailedMessage, null, " ");
+        return JSON.stringify(detailedMessage, null, ' ');
       } catch (err) {
         // Log
         Logging.logWarning({
-          module: "Logging",
-          method: "_format",
+          module: 'Logging',
+          method: '_format',
           message: `Error when formatting a Log (stringify): '${err.message}'`,
           detailedMessages: detailedMessage
         });
@@ -566,7 +574,7 @@ export default class Logging {
     // Log
     log.timestamp = new Date();
     if (log.hasOwnProperty('simpleMessage')) {
-      logFn(log.timestamp.toISOString() + " " + log.simpleMessage);
+      logFn(log.timestamp.toISOString() + ' ' + log.simpleMessage);
     } else {
       logFn(log);
     }
@@ -577,21 +585,13 @@ export default class Logging {
     // Log level
     switch (logLevel) {
       case LogLevel.DEBUG:
-        return "debug";
+        return 'debug';
       case LogLevel.INFO:
-        return "info";
+        return 'info';
       case LogLevel.WARNING:
-        return "warning";
+        return 'warning';
       case LogLevel.ERROR:
-        return "error";
+        return 'error';
     }
-  }
-
-  public static getLog(tenantID, id): any {
-    return LoggingStorage.getLog(tenantID, id);
-  }
-
-  public static getLogs(tenantID, params, limit, skip, sort): any {
-    return LoggingStorage.getLogs(tenantID, params, limit, skip, sort);
   }
 }

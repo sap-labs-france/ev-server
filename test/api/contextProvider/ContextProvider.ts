@@ -1,15 +1,12 @@
+import chai, { expect } from 'chai';
+import chaiSubset from 'chai-subset';
 import CentralServerService from '../client/CentralServerService';
 import Constants from '../../../src/utils/Constants';
-import {
-  expect
-} from 'chai';
-import chai from 'chai';
-import chaiSubset from 'chai-subset';
 chai.use(chaiSubset);
-import CONTEXTS from './ContextConstants';
-import TenantContext from './TenantContext';
-import SiteContext from './SiteContext';
 import config from '../../config';
+import CONTEXTS from './ContextConstants';
+import SiteContext from './SiteContext';
+import TenantContext from './TenantContext';
 
 export default class ContextProvider {
 
@@ -22,22 +19,22 @@ export default class ContextProvider {
 
   constructor() {
     // Create a super admin interface
-    this.superAdminCentralServerService = new CentralServerService(null, {email: config.get('superadmin.username'), password: config.get('superadmin.password')});
+    this.superAdminCentralServerService = new CentralServerService(null, { email: config.get('superadmin.username'), password: config.get('superadmin.password') });
     this.tenantsContexts = [];
     this.initialized = false;
   }
 
   public static get DefaultInstance(): ContextProvider {
-    if (!this._defaultInstance) {
-      this._defaultInstance = new ContextProvider();
+    if (!ContextProvider._defaultInstance) {
+      ContextProvider._defaultInstance = new ContextProvider();
     }
-    return this._defaultInstance;
+    return ContextProvider._defaultInstance;
   }
 
   async _init() {
     if (!this.initialized) {
       // Read all tenants
-      this.tenantEntities = (await this.superAdminCentralServerService.tenantApi.readAll({}, {limit: 0, skip:0})).data.result;
+      this.tenantEntities = (await this.superAdminCentralServerService.tenantApi.readAll({}, { limit: 0, skip: 0 })).data.result;
     }
     this.initialized = true;
   }
@@ -77,7 +74,9 @@ export default class ContextProvider {
 
   async _tenantEntityContext(tenantContextDef) {
     // Check if tenant exist
-    const tenantEntity = this.tenantEntities.find((tenant) => tenant.name === tenantContextDef.tenantName);
+    const tenantEntity = this.tenantEntities.find((tenant) => {
+      return tenant.name === tenantContextDef.tenantName;
+    });
     expect(tenantEntity).to.not.be.empty;
 
     // Create Central Server Service for admin user defined in config
@@ -88,14 +87,14 @@ export default class ContextProvider {
     let companyList = null;
     let userList = null;
     // Read all existing entities
-    chargingStationList = (await defaultAdminCentralServiceService.chargingStationApi.readAll({}, {limit:0, skip:0})).data.result;
+    chargingStationList = (await defaultAdminCentralServiceService.chargingStationApi.readAll({}, { limit: 0, skip: 0 })).data.result;
     if (tenantEntity.components && tenantEntity.components.hasOwnProperty(Constants.COMPONENTS.ORGANIZATION) &&
       tenantEntity.components[Constants.COMPONENTS.ORGANIZATION].active) {
-      siteAreaList = (await defaultAdminCentralServiceService.siteAreaApi.readAll({}, {limit:0, skip:0})).data.result;
-      siteList = (await defaultAdminCentralServiceService.siteApi.readAll({}, {limit:0, skip:0})).data.result;
-      companyList = (await defaultAdminCentralServiceService.companyApi.readAll({}, {limit:0, skip:0})).data.result;
+      siteAreaList = (await defaultAdminCentralServiceService.siteAreaApi.readAll({}, { limit: 0, skip: 0 })).data.result;
+      siteList = (await defaultAdminCentralServiceService.siteApi.readAll({}, { limit: 0, skip: 0 })).data.result;
+      companyList = (await defaultAdminCentralServiceService.companyApi.readAll({}, { limit: 0, skip: 0 })).data.result;
     }
-    userList = (await defaultAdminCentralServiceService.userApi.readAll({}, {limit:0, skip:0})).data.result;
+    userList = (await defaultAdminCentralServiceService.userApi.readAll({}, { limit: 0, skip: 0 })).data.result;
     for (const user of userList) {
       user.password = config.get('admin.password');
       user.centralServerService = new CentralServerService(tenantEntity.subdomain, user);
@@ -104,18 +103,24 @@ export default class ContextProvider {
     // Create tenant context
     const newTenantContext = new TenantContext(tenantContextDef.tenantName, tenantEntity, defaultAdminCentralServiceService, null);
     this.tenantsContexts.push(newTenantContext);
-    newTenantContext.addUsers(userList); // getContext().users = userList;
+    newTenantContext.addUsers(userList); // pragma getContext().users = userList;
     newTenantContext.getContext().companies = companyList;
 
     if (tenantEntity.components && tenantEntity.components.hasOwnProperty(Constants.COMPONENTS.ORGANIZATION) &&
       tenantEntity.components[Constants.COMPONENTS.ORGANIZATION].active) {
       for (const siteContextDef of CONTEXTS.TENANT_SITE_LIST) {
-        const jsonSite = siteList.find((site) => site.name === siteContextDef.name);
+        const jsonSite = siteList.find((site) => {
+          return site.name === siteContextDef.name;
+        });
         const siteContext = new SiteContext(jsonSite, newTenantContext);
-        const siteAreas = siteAreaList.filter((siteArea) => siteContext.getSite().id === siteArea.siteID);
+        const siteAreas = siteAreaList.filter((siteArea) => {
+          return siteContext.getSite().id === siteArea.siteID;
+        });
         for (const siteArea of siteAreas) {
           const siteAreaContext = siteContext.addSiteArea(siteArea);
-          const chargingStations = chargingStationList.filter((chargingStation) => siteArea.id === chargingStation.siteAreaID);
+          const chargingStations = chargingStationList.filter((chargingStation) => {
+            return siteArea.id === chargingStation.siteAreaID;
+          });
           for (const chargingStation of chargingStations) {
             siteAreaContext.addChargingStation(chargingStation);
           }
@@ -124,9 +129,11 @@ export default class ContextProvider {
       }
     }
     // Create list of unassigned charging station by creating a dummy site
-    const siteContext = new SiteContext({id: 1, name: CONTEXTS.SITE_CONTEXTS.NO_SITE}, newTenantContext);
-    const emptySiteAreaContext = siteContext.addSiteArea({id: 1, name: CONTEXTS.SITE_AREA_CONTEXTS.NO_SITE});
-    const chargingStations = chargingStationList.filter((chargingStation) => !chargingStation.hasOwnProperty('siteAreaID') || chargingStation.siteAreaID === null || chargingStation.siteAreaID === undefined);
+    const siteContext = new SiteContext({ id: 1, name: CONTEXTS.SITE_CONTEXTS.NO_SITE }, newTenantContext);
+    const emptySiteAreaContext = siteContext.addSiteArea({ id: 1, name: CONTEXTS.SITE_AREA_CONTEXTS.NO_SITE });
+    const chargingStations = chargingStationList.filter((chargingStation) => {
+      return !chargingStation.siteAreaID || chargingStation.siteAreaID === null || chargingStation.siteAreaID === undefined;
+    });
     for (const chargingStation of chargingStations) {
       emptySiteAreaContext.addChargingStation(chargingStation);
     }
@@ -146,7 +153,7 @@ export default class ContextProvider {
       return context.tenantName === tenantContextName;
     });
     if (!tenantContext && checkValid) {
-      throw 'Unknown context name ' + tenantContextName;
+      throw new Error('Unknown context name ' + tenantContextName);
     }
     return tenantContext;
   }

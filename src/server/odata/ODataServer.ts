@@ -1,14 +1,14 @@
 import morgan from 'morgan';
-import expressTools from '../ExpressTools';
 import Configuration from '../../utils/Configuration';
+import expressTools from '../ExpressTools';
 import Logging from '../../utils/Logging';
-import ODataServerFactory from '../odata/ODataServerFactory';
 import ODataSchema from './odata-schema/ODataSchema';
+import ODataServerFactory from '../odata/ODataServerFactory';
 
 import SourceMap from 'source-map-support';
 SourceMap.install();
 
-const MODULE_NAME = "ODataServer";
+const MODULE_NAME = 'ODataServer';
 export default class ODataServer {
   private oDataServerConfig: any;
   private express: any;
@@ -29,8 +29,8 @@ export default class ODataServer {
               // Log
               Logging.logDebug({
                 module: MODULE_NAME,
-                method: "constructor",
-                action: "HttpRequestLog",
+                method: 'constructor',
+                action: 'HttpRequestLog',
                 message: message
               });
             }
@@ -57,7 +57,7 @@ export default class ODataServer {
 
   // Start the server
   start() {
-    expressTools.startServer(this.oDataServerConfig, expressTools.createHttpServer(this.oDataServerConfig, this.express), "OData", MODULE_NAME);
+    expressTools.startServer(this.oDataServerConfig, expressTools.createHttpServer(this.oDataServerConfig, this.express), 'OData', MODULE_NAME);
   }
 }
 

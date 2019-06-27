@@ -1,10 +1,34 @@
+import WebSocket from 'ws';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
-import WebSocket from 'ws';
 
-const MODULE_NAME = "WSClient";
+const MODULE_NAME = 'WSClient';
 
 export default class WSClient {
+
+  public get CONNECTING() {
+    return WebSocket.CONNECTING;
+  }
+
+  public get CLOSING() {
+    return WebSocket.CLOSING;
+  }
+
+  public get CLOSED() {
+    return WebSocket.CLOSED;
+  }
+
+  public get OPEN() {
+    return WebSocket.OPEN;
+  }
+
+  public onopen: Function;
+  public onerror: Function;
+  public onclose: Function;
+  public onmessage: Function;
+  public onmaximum: Function;
+  public onreconnect: Function;
+  public readyState: any;
   private url: any;
   private options: any;
   private callbacks: any;
@@ -14,13 +38,6 @@ export default class WSClient {
   private autoReconnectTimeout: any;
   private logTenantID: any;
   private ws: WebSocket;
-  public onopen: Function;
-  public onerror: Function;
-  public onclose: Function;
-  public onmessage: Function;
-  public onmaximum: Function;
-  public onreconnect: Function;
-  public readyState: any;
 
   public constructor(url, options, dbLogging = true) {
     this.url = url;
@@ -39,95 +56,6 @@ export default class WSClient {
     this.autoReconnectTimeout = options.autoReconnectTimeout * 1000; // Ms, 0 to disable
     this.logTenantID = options.logTenantID ? options.logTenantID : Constants.DEFAULT_TENANT;
     this.open();
-  }
-
-  public get CONNECTING() {
-    return WebSocket.CONNECTING;
-  }
-
-  public get CLOSING() {
-    return WebSocket.CLOSING;
-  }
-
-  public get CLOSED() {
-    return WebSocket.CLOSED;
-  }
-
-  public get OPEN() {
-    return WebSocket.OPEN;
-  }
-
-  private onOpen() {
-    this.autoReconnectRetryCount = 0;
-  }
-
-  private reinstantiateCbs() {
-    ['onopen', 'onerror', 'onclose', 'onmessage'].forEach((method) => {
-      if ('' + this.callbacks[method] !== '' + (() => { })) {
-        this.ws[method] = this.callbacks[method];
-      }
-    });
-  }
-
-  private onError(error) {
-    switch (error.code) {
-      case 'ECONNREFUSED':
-        if (this.dbLogging) {
-          // Error message
-          Logging.logError({
-            tenantID: this.logTenantID,
-            module: MODULE_NAME,
-            method: "onError",
-            action: "WSClientError",
-            message: `Connection refused to '${this.url}': ${error}`
-          });
-        } else {
-          // eslint-disable-next-line no-console
-          console.log(`Connection refused to '${this.url}':`, error);
-        }
-        this.reconnect();
-        break;
-      default:
-        if (this.dbLogging) {
-          // Error message
-          Logging.logError({
-            tenantID: this.logTenantID,
-            module: MODULE_NAME,
-            method: "onError",
-            action: "WSClientError",
-            message: `Connection error to '${this.url}': ${error}`
-          });
-        } else {
-          // eslint-disable-next-line no-console
-          console.log(`Connection error to '${this.url}':`, error);
-        }
-        break;
-    }
-  }
-
-  private onClose(error) {
-    switch (error.code) {
-      case 1000: // Normal close
-      case 1005:
-        this.autoReconnectRetryCount = 0;
-        break;
-      default: // Abnormal close
-        if (this.dbLogging) {
-          // Error message
-          Logging.logError({
-            tenantID: this.logTenantID,
-            module: MODULE_NAME,
-            method: "onClose",
-            action: "WSClientError",
-            message: `Connection closing error to '${this.url}': ${error}`
-          });
-        } else {
-          // eslint-disable-next-line no-console
-          console.log(`Connection closing error to '${this.url}':`, error);
-        }
-        this.reconnect();
-        break;
-    }
   }
 
   public open() {
@@ -152,8 +80,8 @@ export default class WSClient {
           Logging.logInfo({
             tenantID: this.logTenantID,
             module: MODULE_NAME,
-            method: "reconnect",
-            action: "WSClientInfo",
+            method: 'reconnect',
+            action: 'WSClientInfo',
             message: `Re-connection try #${this.autoReconnectRetryCount} to '${this.url}' with timeout ${this.autoReconnectTimeout}ms`
           });
         } else {
@@ -169,8 +97,8 @@ export default class WSClient {
         Logging.logInfo({
           tenantID: this.logTenantID,
           module: MODULE_NAME,
-          method: "reconnect",
-          action: "WSClientInfo",
+          method: 'reconnect',
+          action: 'WSClientInfo',
           message: `Re-connection maximum retries reached (${this.autoReconnectRetryCount}) or disabled (${this.autoReconnectTimeout}) to '${this.url}'`
         });
       } else {
@@ -255,6 +183,79 @@ export default class WSClient {
 
   public isConnectionOpen() {
     return this.ws.readyState === WebSocket.OPEN;
+  }
+
+  private onOpen() {
+    this.autoReconnectRetryCount = 0;
+  }
+
+  private reinstantiateCbs() {
+    ['onopen', 'onerror', 'onclose', 'onmessage'].forEach((method) => {
+      if ('' + this.callbacks[method] !== '' + (() => { })) {
+        this.ws[method] = this.callbacks[method];
+      }
+    });
+  }
+
+  private onError(error) {
+    switch (error.code) {
+      case 'ECONNREFUSED':
+        if (this.dbLogging) {
+          // Error message
+          Logging.logError({
+            tenantID: this.logTenantID,
+            module: MODULE_NAME,
+            method: 'onError',
+            action: 'WSClientError',
+            message: `Connection refused to '${this.url}': ${error}`
+          });
+        } else {
+          // eslint-disable-next-line no-console
+          console.log(`Connection refused to '${this.url}':`, error);
+        }
+        this.reconnect();
+        break;
+      default:
+        if (this.dbLogging) {
+          // Error message
+          Logging.logError({
+            tenantID: this.logTenantID,
+            module: MODULE_NAME,
+            method: 'onError',
+            action: 'WSClientError',
+            message: `Connection error to '${this.url}': ${error}`
+          });
+        } else {
+          // eslint-disable-next-line no-console
+          console.log(`Connection error to '${this.url}':`, error);
+        }
+        break;
+    }
+  }
+
+  private onClose(error) {
+    switch (error.code) {
+      case 1000: // Normal close
+      case 1005:
+        this.autoReconnectRetryCount = 0;
+        break;
+      default: // Abnormal close
+        if (this.dbLogging) {
+          // Error message
+          Logging.logError({
+            tenantID: this.logTenantID,
+            module: MODULE_NAME,
+            method: 'onClose',
+            action: 'WSClientError',
+            message: `Connection closing error to '${this.url}': ${error}`
+          });
+        } else {
+          // eslint-disable-next-line no-console
+          console.log(`Connection closing error to '${this.url}':`, error);
+        }
+        this.reconnect();
+        break;
+    }
   }
 }
 

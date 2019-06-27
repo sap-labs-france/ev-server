@@ -1,9 +1,9 @@
 import axios from 'axios';
-import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
-import OCPPStorage from '../../storage/mongodb/OCPPStorage';
+import _ from 'lodash';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import _ from 'lodash';
+import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
+import OCPPStorage from '../../storage/mongodb/OCPPStorage';
 
 export default class OCPIClient {
   private ocpiEndpoint: any;
@@ -59,7 +59,7 @@ export default class OCPIClient {
 
       // If not found trigger exception
       if (!versionFound) {
-        throw new Error(`OCPI Endpoint version 2.1.1 not found`);
+        throw new Error('OCPI Endpoint version 2.1.1 not found');
       }
 
       // Try to read services
@@ -127,7 +127,7 @@ export default class OCPIClient {
       message: `Get OCPI versions at ${this.ocpiEndpoint.getVersionUrl()}`,
       source: 'OCPI Client',
       module: 'OCPIClient',
-      method: `getServices`
+      method: 'getServices'
     });
 
     const respOcpiServices = await axios.get(this.ocpiEndpoint.getVersionUrl(), {
@@ -168,7 +168,7 @@ export default class OCPIClient {
       message: `Post credentials at ${credentialsUrl}`,
       source: 'OCPI Client',
       module: 'OCPIClient',
-      method: `postCredentials`,
+      method: 'postCredentials',
       detailedMessages: cpoCredentials
     });
 
@@ -184,7 +184,7 @@ export default class OCPIClient {
 
     // Check response
     if (!respOcpiCredentials.data || !respOcpiCredentials.data.data) {
-      throw new Error(`Invalid response from POST`);
+      throw new Error('Invalid response from POST');
     }
 
     return respOcpiCredentials;
@@ -226,7 +226,7 @@ export default class OCPIClient {
     const fullUrl = locationsUrl + `/${countryCode}/${partyID}/${locationId}/${evseId}`;
 
     // Build payload
-    const payload = { "status": newStatus };
+    const payload = { 'status': newStatus };
 
     // Log
     Logging.logInfo({
@@ -235,7 +235,7 @@ export default class OCPIClient {
       message: `Patch location at ${fullUrl}`,
       source: 'OCPI Client',
       module: 'OCPIClient',
-      method: `patchEVSEStatus`,
+      method: 'patchEVSEStatus',
       detailedMessages: payload
     });
 
@@ -251,7 +251,7 @@ export default class OCPIClient {
 
     // Check response
     if (!response.data) {
-      throw new Error(`Invalid response from PATCH`);
+      throw new Error('Invalid response from PATCH');
     }
   }
 
@@ -286,16 +286,16 @@ export default class OCPIClient {
       Logging.logError({
         tenantID: tenant.getID(),
         action: 'OCPISendEVSEStatuses',
-        message: `OCPI Configuration not active`,
+        message: 'OCPI Configuration not active',
         source: 'OCPI Client',
         module: 'OCPIClient',
-        method: `sendEVSEStatuses`
+        method: 'sendEVSEStatuses'
       });
       return;
     }
 
     // Define get option
-    const options = { "addChargeBoxID": true };
+    const options = { 'addChargeBoxID': true };
 
     // Get timestamp before starting process - to be saved in DB at the end of the process
     const startDate = new Date();
@@ -362,7 +362,7 @@ export default class OCPIClient {
         detailedMessages: sendResult.logs,
         source: 'OCPI Client',
         module: 'OCPIClient',
-        method: `sendEVSEStatuses`
+        method: 'sendEVSEStatuses'
       });
     } else if (sendResult.success > 0) {
       // Log info
@@ -373,7 +373,7 @@ export default class OCPIClient {
         detailedMessages: sendResult.logs,
         source: 'OCPI Client',
         module: 'OCPIClient',
-        method: `sendEVSEStatuses`
+        method: 'sendEVSEStatuses'
       });
     }
 
@@ -410,7 +410,7 @@ export default class OCPIClient {
     const lastPatchJobOn = this.ocpiEndpoint.getLastPatchJobOn() ? this.ocpiEndpoint.getLastPatchJobOn() : new Date();
 
     // Build params
-    const params = { "dateFrom": lastPatchJobOn };
+    const params = { 'dateFrom': lastPatchJobOn };
 
     // Get last status notifications
     const statusNotificationsResult = await OCPPStorage.getStatusNotifications(tenant.getID(), params);

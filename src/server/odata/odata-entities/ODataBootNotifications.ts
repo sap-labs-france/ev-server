@@ -14,11 +14,11 @@ export default class ODataBootNotifications extends AbstractODataEntities {
   static async getBootNotifications(centralServiceApi, query, req, cb) {
     try {
       // Check limit parameter
-      const params = this.buildParams(query);
+      const params = ODataBootNotifications.buildParams(query);
       // Perform rest call
       const response = await centralServiceApi.getBootNotifications(params);
       // Return response
-      this.returnResponse(response, query, req, cb);
+      ODataBootNotifications.returnResponse(response, query, req, cb);
     } catch (error) {
       cb(error);
     }
@@ -34,8 +34,8 @@ export default class ODataBootNotifications extends AbstractODataEntities {
     }
     if (bootNotification.hasOwnProperty('timestamp') && bootNotification.timestamp) {
       // Convert timestamp and build date object
-      bootNotification.timestamp = this.convertTimestamp(bootNotification.timestamp, req);
-      bootNotification.bootDate = this.buildDateObject(bootNotification.timestamp, req);
+      bootNotification.timestamp = ODataBootNotifications.convertTimestamp(bootNotification.timestamp, req);
+      bootNotification.bootDate = ODataBootNotifications.buildDateObject(bootNotification.timestamp, req);
     }
     // Add count property - this is necessary for SAC as it needs at least one numeric measure
     bootNotification.count = 1;

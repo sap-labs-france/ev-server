@@ -1,7 +1,7 @@
-import Configuration from '../utils/Configuration';
 import cron from 'node-cron';
-import Logging from '../utils/Logging';
+import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
+import Logging from '../utils/Logging';
 import LoggingDatabaseTableCleanupTask from './tasks/LoggingDatabaseTableCleanupTask';
 import OCPIPatchLocationsTask from './tasks/OCPIPatchLocationsTask';
 
@@ -13,9 +13,9 @@ export default class SchedulerManager {
       // Log
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        module: "Scheduler",
-        method: "init", action: "Initialization",
-        message: `The Scheduler is active`
+        module: 'Scheduler',
+        method: 'init', action: 'Initialization',
+        message: 'The Scheduler is active'
       });
       // Yes: init
       for (const task of _schedulerConfig.tasks) {
@@ -24,8 +24,8 @@ export default class SchedulerManager {
           // Log
           Logging.logError({
             tenantID: Constants.DEFAULT_TENANT,
-            module: "Scheduler",
-            method: "init", action: "Initialization",
+            module: 'Scheduler',
+            method: 'init', action: 'Initialization',
             message: `The task '${task.name}' is inactive`
           });
           // No
@@ -34,24 +34,24 @@ export default class SchedulerManager {
         // Tasks
         switch (task.name) {
           // Cleanup of logging table
-          case "loggingDatabaseTableCleanup":
+          case 'loggingDatabaseTableCleanup':
             const loggingDatabaseTableCleanupTask = new LoggingDatabaseTableCleanupTask();
-            cron.schedule(task.periodicity, loggingDatabaseTableCleanupTask.run.bind(this, task.config));
+            cron.schedule(task.periodicity, loggingDatabaseTableCleanupTask.run.bind(SchedulerManager, task.config));
             Logging.logInfo({
               tenantID: Constants.DEFAULT_TENANT,
-              module: "Scheduler",
-              method: "init", action: "Initialization",
+              module: 'Scheduler',
+              method: 'init', action: 'Initialization',
               message: `The task '${task.name}' has been scheduled with periodicity ''${task.periodicity}'`
             });
             break;
           // Cleanup of logging table
-          case "OCPIPatchLocationsTask":
+          case 'OCPIPatchLocationsTask':
             const ocpiPatvhLocationsTask = new OCPIPatchLocationsTask();
-            cron.schedule(task.periodicity, ocpiPatvhLocationsTask.run.bind(this, task.config));
+            cron.schedule(task.periodicity, ocpiPatvhLocationsTask.run.bind(SchedulerManager, task.config));
             Logging.logInfo({
               tenantID: Constants.DEFAULT_TENANT,
-              module: "Scheduler",
-              method: "init", action: "Initialization",
+              module: 'Scheduler',
+              method: 'init', action: 'Initialization',
               message: `The task '${task.name}' has been scheduled with periodicity ''${task.periodicity}'`
             });
             break;
@@ -60,8 +60,8 @@ export default class SchedulerManager {
             // Log
             Logging.logError({
               tenantID: Constants.DEFAULT_TENANT,
-              module: "Scheduler",
-              method: "init", action: "Initialization",
+              module: 'Scheduler',
+              method: 'init', action: 'Initialization',
               message: `The task '${task.name}' is unknown`
             });
         }
@@ -70,9 +70,9 @@ export default class SchedulerManager {
       // Log
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        module: "Scheduler",
-        method: "init", action: "Initialization",
-        message: `The Scheduler is inactive`
+        module: 'Scheduler',
+        method: 'init', action: 'Initialization',
+        message: 'The Scheduler is inactive'
       });
     }
   }

@@ -3,12 +3,12 @@ import TSGlobal from '../../src/types/GlobalType';
 declare const global: TSGlobal;
 global.appRoot = path.resolve(__dirname, '../../src');
 import chai from 'chai';
-import {expect} from 'chai';
+import { expect } from 'chai';
 import chaiSubset from 'chai-subset';
-import moment from 'moment';
 import faker from 'faker';
-import DataHelper from './DataHelper';
+import moment from 'moment';
 import CentralServerService from '../api/client/CentralServerService';
+import DataHelper from './DataHelper';
 
 chai.use(chaiSubset);
 
@@ -21,7 +21,7 @@ class TestData {
     this.centralServerService = new CentralServerService();
   }
 
-  public async init(): Promise<void>{
+  public async init(): Promise<void> {
     this.tenantID = await this.centralServerService.authenticatedApi.getTenantID();
     this.dataHelper16 = new DataHelper('1.6', this.tenantID);
   }
@@ -47,7 +47,7 @@ describe('Transaction tests', function() {
       expect(response.status).to.equal(550);
     });
     it('read with invalid id', async () => {
-      const response = await testData.centralServerService.transactionApi.readById(`&é"'(§è!çà)`);
+      const response = await testData.centralServerService.transactionApi.readById('&é"\'(§è!çà)');
       expect(response.status).to.equal(550);
     });
     it('read without providing id', async () => {
@@ -62,7 +62,7 @@ describe('Transaction tests', function() {
       await testData.dataHelper16.createSiteArea(site, [chargingStation]);
       const connectorId = 1;
       const tagId = user.tagIDs[0];
-      const meterStart = faker.random.number({min: 0, max: 1000});
+      const meterStart = faker.random.number({ min: 0, max: 1000 });
       const startDate = moment();
 
       const transactionId = await testData.dataHelper16.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
@@ -229,7 +229,7 @@ describe('Transaction tests', function() {
       const startDate = moment();
       await testData.dataHelper16.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
 
-      const response = await testData.centralServerService.transactionApi.readAllCompleted({ChargeBoxID: chargingStation.id});
+      const response = await testData.centralServerService.transactionApi.readAllCompleted({ ChargeBoxID: chargingStation.id });
       expect(response.status).to.equal(200);
       expect(response.data.count).to.equal(0);
     });
@@ -250,7 +250,7 @@ describe('Transaction tests', function() {
       const transactionId2 = await testData.dataHelper16.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
       await testData.dataHelper16.stopTransaction(chargingStation, transactionId2, tagId, meterStop, stopDate);
 
-      const response = await testData.centralServerService.transactionApi.readAllCompleted({ChargeBoxID: chargingStation.id});
+      const response = await testData.centralServerService.transactionApi.readAllCompleted({ ChargeBoxID: chargingStation.id });
       expect(response.status).to.equal(200);
       expect(response.data.count).to.equal(2);
       expect(response.data.result).to.containSubset([{
@@ -289,7 +289,7 @@ describe('Transaction tests', function() {
       const meterStart = 0;
       const startDate = moment();
       await testData.dataHelper16.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
-      const response = await testData.centralServerService.transactionApi.readAllInError({ChargeBoxID: chargingStation.id});
+      const response = await testData.centralServerService.transactionApi.readAllInError({ ChargeBoxID: chargingStation.id });
       expect(response.status).to.equal(200);
       expect(response.data.count).to.equal(0);
     });
@@ -310,7 +310,7 @@ describe('Transaction tests', function() {
       const transactionId2 = await testData.dataHelper16.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
       await testData.dataHelper16.stopTransaction(chargingStation, transactionId2, tagId, meterStop, stopDate);
 
-      const response = await testData.centralServerService.transactionApi.readAllInError({ChargeBoxID: chargingStation.id});
+      const response = await testData.centralServerService.transactionApi.readAllInError({ ChargeBoxID: chargingStation.id });
       expect(response.status).to.equal(200);
       expect(response.data.count).to.equal(2);
       expect(response.data.result).to.containSubset([{
@@ -339,9 +339,9 @@ describe('Transaction tests', function() {
       const meterStart = 0;
       const startDate = moment();
       const transactionId = await testData.dataHelper16.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
-      // await testData.dataHelper16.stopTransaction(chargingStation, transactionId, tagId, meterStop, stopDate);
+      // pragma await testData.dataHelper16.stopTransaction(chargingStation, transactionId, tagId, meterStop, stopDate);
 
-      const response = await testData.centralServerService.transactionApi.readAllConsumption({TransactionId: transactionId});
+      const response = await testData.centralServerService.transactionApi.readAllConsumption({ TransactionId: transactionId });
       expect(response.status).to.equal(200);
       expect(response.data).to.containSubset({
         id: transactionId,
@@ -378,7 +378,7 @@ describe('Transaction tests', function() {
         await testData.dataHelper16.sendConsumptionMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.timestamp);
       }
 
-      const response = await testData.centralServerService.transactionApi.readAllConsumption({TransactionId: transactionId});
+      const response = await testData.centralServerService.transactionApi.readAllConsumption({ TransactionId: transactionId });
       expect(response.status).to.equal(200);
       expect(response.data).to.containSubset({
         id: transactionId,
@@ -428,7 +428,7 @@ describe('Transaction tests', function() {
 
       let response = await testData.centralServerService.transactionApi.readAllConsumption({
         TransactionId: transactionId,
-        StartDateTime: startDate.clone().subtract(1, "hour").toISOString()
+        StartDateTime: startDate.clone().subtract(1, 'hour').toISOString()
       });
       expect(response.data.values).has.lengthOf(3);
       expect(response.data).to.containSubset({
@@ -449,8 +449,8 @@ describe('Transaction tests', function() {
 
       response = await testData.centralServerService.transactionApi.readAllConsumption({
         TransactionId: transactionId,
-        StartDateTime: startDate.clone().subtract(2, "hour").toISOString(),
-        EndDateTime: startDate.clone().subtract(1, "hour").toISOString()
+        StartDateTime: startDate.clone().subtract(2, 'hour').toISOString(),
+        EndDateTime: startDate.clone().subtract(1, 'hour').toISOString()
       });
       expect(response.data.values).has.lengthOf(0);
       expect(response.data).to.containSubset({
@@ -460,8 +460,8 @@ describe('Transaction tests', function() {
 
       response = await testData.centralServerService.transactionApi.readAllConsumption({
         TransactionId: transactionId,
-        StartDateTime: startDate.clone().subtract(1, "hour").toISOString(),
-        EndDateTime: startDate.clone().subtract(0, "hour").toISOString()
+        StartDateTime: startDate.clone().subtract(1, 'hour').toISOString(),
+        EndDateTime: startDate.clone().subtract(0, 'hour').toISOString()
       });
       expect(response.data.values).has.lengthOf(0);
       expect(response.data).to.containSubset({
@@ -472,8 +472,8 @@ describe('Transaction tests', function() {
 
       response = await testData.centralServerService.transactionApi.readAllConsumption({
         TransactionId: transactionId,
-        StartDateTime: startDate.clone().subtract(1, "hour").toISOString(),
-        EndDateTime: startDate.clone().add(30, "minutes").toISOString()
+        StartDateTime: startDate.clone().subtract(1, 'hour').toISOString(),
+        EndDateTime: startDate.clone().add(30, 'minutes').toISOString()
       });
       expect(response.data.values).has.lengthOf(0);
       expect(response.data).to.containSubset({
@@ -482,8 +482,8 @@ describe('Transaction tests', function() {
       });
       response = await testData.centralServerService.transactionApi.readAllConsumption({
         TransactionId: transactionId,
-        StartDateTime: startDate.clone().subtract(1, "hour").toISOString(),
-        EndDateTime: startDate.clone().add(1, "hour").toISOString()
+        StartDateTime: startDate.clone().subtract(1, 'hour').toISOString(),
+        EndDateTime: startDate.clone().add(1, 'hour').toISOString()
       });
       expect(response.data.values).has.lengthOf(2);
       expect(response.data).to.containSubset({
@@ -499,8 +499,8 @@ describe('Transaction tests', function() {
 
       response = await testData.centralServerService.transactionApi.readAllConsumption({
         TransactionId: transactionId,
-        StartDateTime: startDate.clone().subtract(1, "hour").toISOString(),
-        EndDateTime: startDate.clone().add(1.5, "hour").toISOString()
+        StartDateTime: startDate.clone().subtract(1, 'hour').toISOString(),
+        EndDateTime: startDate.clone().add(1.5, 'hour').toISOString()
       });
       expect(response.data.values).has.lengthOf(2);
       expect(response.data).to.containSubset({
@@ -516,8 +516,8 @@ describe('Transaction tests', function() {
 
       response = await testData.centralServerService.transactionApi.readAllConsumption({
         TransactionId: transactionId,
-        StartDateTime: startDate.clone().subtract(1, "hour").toISOString(),
-        EndDateTime: startDate.clone().add(3, "hour").toISOString()
+        StartDateTime: startDate.clone().subtract(1, 'hour').toISOString(),
+        EndDateTime: startDate.clone().add(3, 'hour').toISOString()
       });
       expect(response.data.values).has.lengthOf(3);
       expect(response.data).to.containSubset({
@@ -538,8 +538,8 @@ describe('Transaction tests', function() {
 
       response = await testData.centralServerService.transactionApi.readAllConsumption({
         TransactionId: transactionId,
-        StartDateTime: startDate.clone().add(1, "hour").toISOString(),
-        EndDateTime: startDate.clone().add(2, "hour").toISOString()
+        StartDateTime: startDate.clone().add(1, 'hour').toISOString(),
+        EndDateTime: startDate.clone().add(2, 'hour').toISOString()
       });
       expect(response.data.values).has.lengthOf(3);
       expect(response.data).to.containSubset({
@@ -560,8 +560,8 @@ describe('Transaction tests', function() {
 
       response = await testData.centralServerService.transactionApi.readAllConsumption({
         TransactionId: transactionId,
-        StartDateTime: startDate.clone().add(1.5, "hour").toISOString(),
-        EndDateTime: startDate.clone().add(2, "hour").toISOString()
+        StartDateTime: startDate.clone().add(1.5, 'hour').toISOString(),
+        EndDateTime: startDate.clone().add(2, 'hour').toISOString()
       });
       expect(response.data.values).has.lengthOf(2);
       expect(response.data).to.containSubset({
@@ -577,8 +577,8 @@ describe('Transaction tests', function() {
 
       response = await testData.centralServerService.transactionApi.readAllConsumption({
         TransactionId: transactionId,
-        StartDateTime: startDate.clone().add(2, "hour").toISOString(),
-        EndDateTime: startDate.clone().add(3, "hour").toISOString()
+        StartDateTime: startDate.clone().add(2, 'hour').toISOString(),
+        EndDateTime: startDate.clone().add(3, 'hour').toISOString()
       });
       expect(response.data.values).has.lengthOf(2);
       expect(response.data).to.containSubset({
@@ -594,8 +594,8 @@ describe('Transaction tests', function() {
 
       response = await testData.centralServerService.transactionApi.readAllConsumption({
         TransactionId: transactionId,
-        StartDateTime: startDate.clone().add(2.5, "hour").toISOString(),
-        EndDateTime: startDate.clone().add(3, "hour").toISOString()
+        StartDateTime: startDate.clone().add(2.5, 'hour').toISOString(),
+        EndDateTime: startDate.clone().add(3, 'hour').toISOString()
       });
       expect(response.data.values).has.lengthOf(0);
       expect(response.data).to.containSubset({
@@ -615,7 +615,7 @@ describe('Transaction tests', function() {
 
       response = await testData.centralServerService.transactionApi.readAllConsumption({
         TransactionId: transactionId,
-        EndDateTime: startDate.clone().add(1, "hour").toISOString()
+        EndDateTime: startDate.clone().add(1, 'hour').toISOString()
       });
       expect(response.data.values).has.lengthOf(2);
       expect(response.data).to.containSubset({
@@ -630,7 +630,7 @@ describe('Transaction tests', function() {
       });
       response = await testData.centralServerService.transactionApi.readAllConsumption({
         TransactionId: transactionId,
-        EndDateTime: startDate.clone().add(2.5, "hour").toISOString()
+        EndDateTime: startDate.clone().add(2.5, 'hour').toISOString()
       });
       expect(response.data.values).has.lengthOf(3);
       expect(response.data).to.containSubset({
@@ -650,7 +650,7 @@ describe('Transaction tests', function() {
       });
       response = await testData.centralServerService.transactionApi.readAllConsumption({
         TransactionId: transactionId,
-        EndDateTime: startDate.clone().add(4, "hour").toISOString()
+        EndDateTime: startDate.clone().add(4, 'hour').toISOString()
       });
       expect(response.data.values).has.lengthOf(3);
       expect(response.data).to.containSubset({
@@ -684,7 +684,7 @@ describe('Transaction tests', function() {
       const transactionId = await testData.dataHelper16.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
       await testData.dataHelper16.stopTransaction(chargingStation, transactionId, tagId, meterStop, stopDate);
 
-      const response = await testData.centralServerService.transactionApi.readAllConsumption({TransactionId: transactionId});
+      const response = await testData.centralServerService.transactionApi.readAllConsumption({ TransactionId: transactionId });
       expect(response.status).to.equal(200);
       expect(response.data).to.containSubset({
         id: transactionId,
@@ -706,7 +706,7 @@ describe('Transaction tests', function() {
       const site = await testData.dataHelper16.createSite(company, [user]);
       const chargingStation = await testData.dataHelper16.createChargingStation();
       await testData.dataHelper16.createSiteArea(site, [chargingStation]);
-      const response = await testData.centralServerService.transactionApi.readAllActive({ChargeBoxID: chargingStation.id});
+      const response = await testData.centralServerService.transactionApi.readAllActive({ ChargeBoxID: chargingStation.id });
       expect(response.status).to.equal(200);
       expect(response.data.count).to.equal(0);
     });
@@ -729,7 +729,7 @@ describe('Transaction tests', function() {
       const transactionId3 = await testData.dataHelper16.startTransaction(chargingStation, connectorId2, tagId, meterStart, startDate);
 
 
-      const response = await testData.centralServerService.transactionApi.readAllActive({ChargeBoxID: chargingStation.id});
+      const response = await testData.centralServerService.transactionApi.readAllActive({ ChargeBoxID: chargingStation.id });
       expect(response.status).to.equal(200);
       expect(response.data.count).to.equal(2);
       expect(response.data.result).to.containSubset([
@@ -747,7 +747,7 @@ describe('Transaction tests', function() {
       expect(response.status).to.equal(550);
     });
     it('delete with invalid id', async () => {
-      const response = await testData.centralServerService.transactionApi.delete(`&é"'(§è!çà)`);
+      const response = await testData.centralServerService.transactionApi.delete('&é"\'(§è!çà)');
       expect(response.status).to.equal(550);
     });
     it('delete without providing id', async () => {
@@ -828,8 +828,8 @@ describe('Transaction tests', function() {
       await testData.dataHelper16.sendConsumptionMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.timestamp);
     }
     await timeout(2000);
-    expect(await testData.centralServerService.mailApi.isMailReceived(user.email, 'transaction-started')).is.equal(true, "transaction-started mail");
-    expect(await testData.centralServerService.mailApi.isMailReceived(user.email, 'end-of-charge')).is.equal(true, "end-of-charge mail");
+    expect(await testData.centralServerService.mailApi.isMailReceived(user.email, 'transaction-started')).is.equal(true, 'transaction-started mail');
+    expect(await testData.centralServerService.mailApi.isMailReceived(user.email, 'end-of-charge')).is.equal(true, 'end-of-charge mail');
 
     await testData.dataHelper16.stopTransaction(chargingStation, transactionId, tagId, cumulated + 50, currentDate.add(1, 'hour'));
 
@@ -905,7 +905,7 @@ describe('Transaction tests', function() {
       const meterStart = 180;
       const startDate = moment();
       const transactionId = await testData.dataHelper16.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
-      await testData.centralServerService.updatePriceSetting(1.5,'EUR');
+      await testData.centralServerService.updatePriceSetting(1.5, 'EUR');
 
       const currentDate = startDate.clone();
 
@@ -959,5 +959,7 @@ describe('Transaction tests', function() {
 
 function timeout(ms) {
   // eslint-disable-next-line no-undef
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => {
+    return setTimeout(resolve, ms);
+  });
 }
