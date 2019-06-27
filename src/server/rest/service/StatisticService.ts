@@ -1,9 +1,11 @@
 import AppAuthError from '../../../exception/AppAuthError';
+import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import StatisticSecurity from './security/StatisticSecurity';
 import StatisticsStorage from '../../../storage/mongodb/StatisticsStorage';
+import User from '../../../entity/User';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 import fs from 'fs';
@@ -285,8 +287,23 @@ export default class StatisticService {
       const transactionStatsMDB = await StatisticsStorage[method](req.user.tenantID, filter, groupBy);
 
       // Build the result
+      let locale: string;
+      if (req.user.locale) {
+        locale = req.user.locale;
+      } else {
+        const user = await User.getUser(req.user.tenantID, req.user.id);
+        // Found?
+        if (!user) {
+          // Not Found!
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `User with ID '${req.user.id}' does not exist`,
+            Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'StatisticService', 'handleGetStatisticsExport');
+        }
+        locale = user.getLocale();
+      }
       const filename = 'export' + filteredRequest.DataType + 'Statistics.csv';
-      fs.writeFile(filename, this.convertToCSV(transactionStatsMDB, filteredRequest.DataCategory,
+      fs.writeFile(filename, this.convertToCSV(transactionStatsMDB, locale, filteredRequest.DataCategory,
         filteredRequest.DataType, filteredRequest.Year, filteredRequest.DataScope), (createError) => {
           if (createError) {
             throw createError;
@@ -375,9 +392,11 @@ export default class StatisticService {
     return transactions;
   }
 
-  static convertToCSV(transactionStatsMDB: any[], dataCategory, dataType, year, dataScope?) {
+  static convertToCSV(transactionStatsMDB: any[], locale: string, dataCategory: string,
+    dataType: string, year: number | string, dataScope?: string) {
     let csv: string;
     let index: number;
+    let number: number;
     let transaction: any;
     const transactions = [];
     let unknownUser = Utils.buildUserFullName(transaction, false, false, true);
@@ -447,12 +466,18 @@ export default class StatisticService {
         }
       }
 
+      // At the moment only locale = 'en-US' is supported here, proven by:
+      const supportedLocales = Intl.NumberFormat.supportedLocalesOf(['fr-FR', 'en-US']);
+      // It makes no sense to format numbers (with toLocaleString or Intl.NumberFormat) for output
+
       for (transaction of transactions) {
         csv += (dataCategory === 'C') ? `${transaction._id.chargeBox},` :
           `${transaction.user.name},${transaction.user.firstName},`;
         csv += (year && year !== "0") ? `${year},` : '';
         csv += (transaction._id.month > 0) ? `${transaction._id.month},` : '';
-        csv += `${Math.round(transaction.total * 100) / 100}\r\n`;
+        number = Math.round(transaction.total * 100) / 100;
+        // Use raw numbers
+        csv += number + '\r\n';
       }
     }
     return csv;
