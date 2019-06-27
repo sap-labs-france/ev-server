@@ -1,11 +1,11 @@
 import uuid from 'uuid/v4';
-import WSClient from '../../WSClient';
 import ChargingStationClient from '../ChargingStationClient';
-import Logging from '../../../utils/Logging';
-import Constants from '../../../utils/Constants';
 import Configuration from '../../../utils/Configuration';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
+import WSClient from '../../WSClient';
 
-const MODULE_NAME = "JsonRestChargingStationClient";
+const MODULE_NAME = 'JsonRestChargingStationClient';
 export default class JsonRestChargingStationClient extends ChargingStationClient {
   private serverURL: any;
   private chargingStation: any;
@@ -99,8 +99,8 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       tenantID: this.chargingStation.getTenantID(),
       module: MODULE_NAME,
       source: this.chargingStation.getID(),
-      method: "onOpen",
-      action: "WSRestClientConnectionOpen",
+      method: 'onOpen',
+      action: 'WSRestClientConnectionOpen',
       message: `Try to connect to '${this.serverURL}', CF Instance '${this.chargingStation.getCFApplicationIDAndInstanceIndex()}'`
     });
     // Create Promise
@@ -132,8 +132,8 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           tenantID: this.chargingStation.getTenantID(),
           module: MODULE_NAME,
           source: this.chargingStation.getID(),
-          method: "onOpen",
-          action: "WSRestClientConnectionOpened",
+          method: 'onOpen',
+          action: 'WSRestClientConnectionOpened',
           message: `Connection opened to '${this.serverURL}'`
         });
         // Connection is opened and ready to use
@@ -146,15 +146,15 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           tenantID: this.chargingStation.getTenantID(),
           module: MODULE_NAME,
           source: this.chargingStation.getID(),
-          method: "onClose",
-          action: "WSRestClientConnectionClosed",
+          method: 'onClose',
+          action: 'WSRestClientConnectionClosed',
           message: `Connection closed from '${this.serverURL}'`
         });
       };
       // Handle Error Message
       this.wsConnection.onerror = (error) => {
         // Log
-        Logging.logException(error, "WSRestConnectionClosed", this.chargingStation.getID(), MODULE_NAME, "onError", this.chargingStation.getTenantID());
+        Logging.logException(error, 'WSRestConnectionClosed', this.chargingStation.getID(), MODULE_NAME, 'onError', this.chargingStation.getTenantID());
       };
       // Handle Server Message
       this.wsConnection.onmessage = async (message) => {
@@ -166,8 +166,8 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
             tenantID: this.chargingStation.getTenantID(),
             module: MODULE_NAME,
             source: this.chargingStation.getID(),
-            method: "onMessage",
-            action: "WSRestClientMessage",
+            method: 'onMessage',
+            action: 'WSRestClientMessage',
             message: `Received message '${message.data}'`,
             detailedMessages: messageJson
           });
@@ -180,8 +180,8 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
                 tenantID: this.chargingStation.getTenantID(),
                 module: MODULE_NAME,
                 source: this.chargingStation.getID(),
-                method: "onMessage",
-                action: "WSRestClientErrorResponse",
+                method: 'onMessage',
+                action: 'WSRestClientErrorResponse',
                 message: `OCPP error response for '${JSON.stringify(messageJson[2])}'`,
                 detailedMessages: `Details: ${JSON.stringify(messageJson[3])}`
               });
@@ -197,7 +197,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           }
         } catch (error) {
           // Log
-          Logging.logException(error, "", this.chargingStation.getID(), MODULE_NAME, "onMessage", this.chargingStation.getTenantID());
+          Logging.logException(error, '', this.chargingStation.getID(), MODULE_NAME, 'onMessage', this.chargingStation.getTenantID());
         }
       };
     });
@@ -224,8 +224,8 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           tenantID: this.chargingStation.getTenantID(),
           module: MODULE_NAME,
           source: this.chargingStation.getID(),
-          method: "SendMessage",
-          action: "WSRestClientSendMessage",
+          method: 'SendMessage',
+          action: 'WSRestClientSendMessage',
           message: `Send message '${request[2]}'`,
           detailedMessages: request
         });

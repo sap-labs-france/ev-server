@@ -1,8 +1,8 @@
-import Notification from '../entity/Notification';
 import Configuration from '../utils/Configuration';
+import Constants from '../utils/Constants';
 import EMailNotificationTask from './email/EMailNotificationTask';
 import Logging from '../utils/Logging';
-import Constants from '../utils/Constants';
+import Notification from '../entity/Notification';
 import NotificationStorage from '../storage/mongodb/NotificationStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
 
@@ -12,19 +12,19 @@ SourceMap.install();
 const _notificationConfig = Configuration.getNotificationConfig();
 const _email = new EMailNotificationTask();
 
-const CHANNEL_EMAIL = "email";
-const SOURCE_CHARGING_STATION_STATUS_ERROR = "NotifyChargingStationStatusError";
-const SOURCE_CHARGING_STATION_REGISTERED = "NotifyChargingStationRegistered";
-const SOURCE_END_OF_CHARGE = "NotifyEndOfCharge";
-const SOURCE_OPTIMAL_CHARGE_REACHED = "NotifyOptimalChargeReached";
-const SOURCE_END_OF_SESSION = "NotifyEndOfSession";
-const SOURCE_NEW_PASSWORD = "NotifyNewPassword";
-const SOURCE_REQUEST_PASSWORD = "NotifyRequestPassword";
-const SOURCE_USER_ACCOUNT_STATUS_CHANGED = "NotifyUserAccountStatusChanged";
-const SOURCE_NEW_REGISTERED_USER = "NotifyNewRegisteredUser";
-const SOURCE_UNKNOWN_USER_BADGED = "NotifyUnknownUserBadged";
-const SOURCE_TRANSACTION_STARTED = "NotifyTransactionStarted";
-const SOURCE_VERIFICATION_EMAIL = "NotifyVerificationEmail";
+const CHANNEL_EMAIL = 'email';
+const SOURCE_CHARGING_STATION_STATUS_ERROR = 'NotifyChargingStationStatusError';
+const SOURCE_CHARGING_STATION_REGISTERED = 'NotifyChargingStationRegistered';
+const SOURCE_END_OF_CHARGE = 'NotifyEndOfCharge';
+const SOURCE_OPTIMAL_CHARGE_REACHED = 'NotifyOptimalChargeReached';
+const SOURCE_END_OF_SESSION = 'NotifyEndOfSession';
+const SOURCE_NEW_PASSWORD = 'NotifyNewPassword';
+const SOURCE_REQUEST_PASSWORD = 'NotifyRequestPassword';
+const SOURCE_USER_ACCOUNT_STATUS_CHANGED = 'NotifyUserAccountStatusChanged';
+const SOURCE_NEW_REGISTERED_USER = 'NotifyNewRegisteredUser';
+const SOURCE_UNKNOWN_USER_BADGED = 'NotifyUnknownUserBadged';
+const SOURCE_TRANSACTION_STARTED = 'NotifyTransactionStarted';
+const SOURCE_VERIFICATION_EMAIL = 'NotifyVerificationEmail';
 export default class NotificationHandler {
 
   static async saveNotification(tenantID, channel, sourceId, sourceDescr, user, chargingStation, data = {}) {
@@ -46,17 +46,17 @@ export default class NotificationHandler {
       Logging.logInfo({
         tenantID: tenantID,
         source: (chargingStation ? chargingStation.id : null),
-        module: "Notification", method: "saveNotification",
+        module: 'Notification', method: 'saveNotification',
         action: sourceDescr, actionOnUser: user,
-        message: `User is being notified`
+        message: 'User is being notified'
       });
     } else {
       // Admin
       Logging.logInfo({
         tenantID: tenantID,
         source: (chargingStation ? chargingStation.id : null),
-        module: "Notification", method: "saveNotification",
-        action: sourceDescr, message: `Admin users are being notified`
+        module: 'Notification', method: 'saveNotification',
+        action: sourceDescr, message: 'Admin users are being notified'
       });
     }
   }
@@ -81,7 +81,7 @@ export default class NotificationHandler {
       return notifications.count > 0;
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenantID, "HasNotification", error);
+      Logging.logActionExceptionMessage(tenantID, 'HasNotification', error);
     }
   }
 

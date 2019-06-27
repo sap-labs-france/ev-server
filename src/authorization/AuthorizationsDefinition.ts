@@ -1,6 +1,6 @@
 import AccessControl from 'role-acl';
-import InternalError from "../exception/InternalError";
 import SourceMap from 'source-map-support';
+import InternalError from '../exception/InternalError';
 
 SourceMap.install();
 
@@ -31,23 +31,23 @@ const GRANTS = {
       { resource: 'SiteArea', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
       { resource: 'ChargingStations', action: 'List', attributes: ['*'] },
       {
-        resource: 'ChargingStation', action: ["Create", "Read", "Update", "Delete",
-          "Reset", "ClearCache", "GetConfiguration", "ChangeConfiguration",
-          "RemoteStartTransaction", "RemoteStopTransaction", "UnlockConnector",
-          "Authorize", "SetChargingProfile", "GetCompositeSchedule", "ClearChargingProfile",
-          "GetDiagnostics", "UpdateFirmware"], attributes: ['*']
+        resource: 'ChargingStation', action: ['Create', 'Read', 'Update', 'Delete',
+          'Reset', 'ClearCache', 'GetConfiguration', 'ChangeConfiguration',
+          'RemoteStartTransaction', 'RemoteStopTransaction', 'UnlockConnector',
+          'Authorize', 'SetChargingProfile', 'GetCompositeSchedule', 'ClearChargingProfile',
+          'GetDiagnostics', 'UpdateFirmware'], attributes: ['*']
       },
       { resource: 'Transactions', action: 'List', attributes: ['*'] },
-      { resource: 'Transaction', action: ["Read", "Update", "Delete", "RefundTransaction"], attributes: ['*'] },
+      { resource: 'Transaction', action: ['Read', 'Update', 'Delete', 'RefundTransaction'], attributes: ['*'] },
       { resource: 'Loggings', action: 'List', attributes: ['*'] },
       { resource: 'Logging', action: 'Read', attributes: ['*'] },
-      { resource: 'Pricing', action: ["Read", "Update"], attributes: ['*'] },
+      { resource: 'Pricing', action: ['Read', 'Update'], attributes: ['*'] },
       { resource: 'Settings', action: 'List', attributes: ['*'] },
       { resource: 'Setting', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
       { resource: 'OcpiEndpoints', action: 'List', attributes: ['*'] },
       {
         resource: 'OcpiEndpoint',
-        action: ["Create", "Read", "Update", "Delete", "Ping", "GenerateLocalToken", "Register", "SendEVSEStatuses"],
+        action: ['Create', 'Read', 'Update', 'Delete', 'Ping', 'GenerateLocalToken', 'Register', 'SendEVSEStatuses'],
         attributes: ['*']
       },
       { resource: 'Connections', action: 'List', attributes: ['*'] },
@@ -75,7 +75,7 @@ const GRANTS = {
       { resource: 'ChargingStations', action: 'List', attributes: ['*'] },
       {
         resource: 'ChargingStation',
-        action: ["Read", "RemoteStartTransaction", "RemoteStopTransaction", "UnlockConnector", "Authorize"],
+        action: ['Read', 'RemoteStartTransaction', 'RemoteStopTransaction', 'UnlockConnector', 'Authorize'],
         attributes: ['*']
       },
       { resource: 'Transactions', action: 'List', attributes: ['*'] },
@@ -87,7 +87,7 @@ const GRANTS = {
       { resource: 'Setting', action: 'Read', attributes: ['*'] },
       { resource: 'Connections', action: 'List', attributes: ['*'] },
       {
-        resource: 'Connection', action: ["Create", "Read", "Delete"], attributes: ['*'],
+        resource: 'Connection', action: ['Create', 'Read', 'Delete'], attributes: ['*'],
         condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
       },
     ]
@@ -108,8 +108,8 @@ const GRANTS = {
     ]
   },
   siteAdmin: {
-    "$extend": {
-      "basic": {}
+    '$extend': {
+      'basic': {}
     },
     grants: [
       {
@@ -121,10 +121,10 @@ const GRANTS = {
         condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
       },
       {
-        resource: 'ChargingStation', action: ["Update", "Delete",
-          "Reset", "ClearCache", "GetConfiguration", "ChangeConfiguration",
-          "SetChargingProfile", "GetCompositeSchedule", "ClearChargingProfile",
-          "GetDiagnostics", "UpdateFirmware"], attributes: ['*'],
+        resource: 'ChargingStation', action: ['Update', 'Delete',
+          'Reset', 'ClearCache', 'GetConfiguration', 'ChangeConfiguration',
+          'SetChargingProfile', 'GetCompositeSchedule', 'ClearChargingProfile',
+          'GetDiagnostics', 'UpdateFirmware'], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
       },
     ]
@@ -140,7 +140,7 @@ export default class AuthorizationsDefinition {
     try {
       this.accessControl = new AccessControl(GRANTS);
     } catch (error) {
-      throw new InternalError(`Unable to load authorization grants`, error);
+      throw new InternalError('Unable to load authorization grants', error);
     }
   }
 
@@ -164,7 +164,7 @@ export default class AuthorizationsDefinition {
         }
       );
     } catch (error) {
-      throw new InternalError(`Unable to load available scopes`, error);
+      throw new InternalError('Unable to load available scopes', error);
     }
     return scopes;
   }
@@ -174,7 +174,7 @@ export default class AuthorizationsDefinition {
       const permission = this.accessControl.can(role).execute(action).with(context).on(resource);
       return permission.granted;
     } catch (error) {
-      throw new InternalError(`Unable to check authorization`, error);
+      throw new InternalError('Unable to check authorization', error);
     }
   }
 }

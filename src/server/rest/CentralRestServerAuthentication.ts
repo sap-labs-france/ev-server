@@ -1,6 +1,6 @@
+import SourceMap from 'source-map-support';
 import AuthService from './service/AuthService';
 import UtilsService from './service/UtilsService';
-import SourceMap from 'source-map-support';
 SourceMap.install();
 
 export default {
@@ -19,29 +19,29 @@ export default {
     // Check Context
     switch (req.method) {
       // Create Request
-      case "POST":
+      case 'POST':
         // Action
         switch (action) {
           // Login
-          case "Login":
+          case 'Login':
             // Delegate
             AuthService.handleLogIn(action, req, res, next);
             break;
 
           // Register User
-          case "RegisterUser":
+          case 'RegisterUser':
             // Delegate
             AuthService.handleRegisterUser(action, req, res, next);
             break;
 
           // Reset password
-          case "Reset":
+          case 'Reset':
             // Delegate
             AuthService.handleUserPasswordReset(action, req, res, next);
             break;
 
           // Resend verification email
-          case "ResendVerificationEmail":
+          case 'ResendVerificationEmail':
             // Delegate
             AuthService.handleResendVerificationEmail(action, req, res, next);
             break;
@@ -53,23 +53,23 @@ export default {
         break;
 
       // Get Request
-      case "GET":
+      case 'GET':
         // Action
         switch (action) {
           // Log out
-          case "Logout":
+          case 'Logout':
             // Delegate
             AuthService.handleUserLogOut(action, req, res, next);
             break;
 
           // End-user license agreement
-          case "EndUserLicenseAgreement":
+          case 'EndUserLicenseAgreement':
             // Delegate
             AuthService.handleGetEndUserLicenseAgreement(action, req, res, next);
             break;
 
           // Verify Email
-          case "VerifyEmail":
+          case 'VerifyEmail':
             // Delegate
             AuthService.handleVerifyEmail(action, req, res, next);
             break;

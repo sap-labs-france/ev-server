@@ -1,23 +1,23 @@
-import passport from 'passport';
-import { ExtractJwt, Strategy } from 'passport-jwt';
+import axios from 'axios';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
-import axios from 'axios';
-import Logging from '../../../utils/Logging';
-import Constants from '../../../utils/Constants';
+import passport from 'passport';
+import { ExtractJwt, Strategy } from 'passport-jwt';
 import AppError from '../../../exception/AppError';
-import BadRequestError from '../../../exception/BadRequestError';
-import User from '../../../entity/User';
-import Tenant from '../../../entity/Tenant';
-import ChargingStation from '../../../entity/ChargingStation';
-import Site from '../../../entity/Site';
-import Utils from '../../../utils/Utils';
-import Configuration from '../../../utils/Configuration';
 import Authorizations from '../../../authorization/Authorizations';
-import NotificationHandler from '../../../notification/NotificationHandler';
 import AuthSecurity from './security/AuthSecurity';
-import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
+import BadRequestError from '../../../exception/BadRequestError';
+import ChargingStation from '../../../entity/ChargingStation';
+import Configuration from '../../../utils/Configuration';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
+import NotificationHandler from '../../../notification/NotificationHandler';
 import SessionHashService from './SessionHashService';
+import Site from '../../../entity/Site';
+import Tenant from '../../../entity/Tenant';
+import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
+import User from '../../../entity/User';
+import Utils from '../../../utils/Utils';
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
@@ -58,7 +58,7 @@ export default class AuthService {
       if (!filteredRequest.Action) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Action is mandatory`,
+          'The Action is mandatory',
           Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleIsAuthorized');
       }
       let chargingStation = null;
@@ -72,7 +72,7 @@ export default class AuthService {
           if (!filteredRequest.Arg1) {
             throw new AppError(
               Constants.CENTRAL_SERVER,
-              `The Charging Station ID is mandatory`,
+              'The Charging Station ID is mandatory',
               Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleIsAuthorized');
           }
           // Get the Charging station
@@ -110,7 +110,7 @@ export default class AuthService {
           if (!filteredRequest.Arg1) {
             throw new AppError(
               Constants.CENTRAL_SERVER,
-              `The Charging Station ID is mandatory`,
+              'The Charging Station ID is mandatory',
               Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleIsAuthorized');
           }
           // Get the Charging station
@@ -164,7 +164,7 @@ export default class AuthService {
             chargingStation.getID(),
             `Charging Station '${chargingStation.getID()}' is not assigned to a Site Area!`,
             Constants.HTTP_AUTH_CHARGER_WITH_NO_SITE_AREA_ERROR,
-            "AuthService", "checkConnectorsActionAuthorizations");
+            'AuthService', 'checkConnectorsActionAuthorizations');
         }
 
         // Site -----------------------------------------------------
@@ -175,7 +175,7 @@ export default class AuthService {
             chargingStation.getID(),
             `Site Area '${siteArea.getName()}' is not assigned to a Site!`,
             Constants.HTTP_AUTH_SITE_AREA_WITH_NO_SITE_ERROR,
-            "AuthService", "checkConnectorsActionAuthorizations",
+            'AuthService', 'checkConnectorsActionAuthorizations',
             user.getModel());
         }
       } catch (error) {
@@ -247,21 +247,21 @@ export default class AuthService {
       if (!filteredRequest.email) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Email is mandatory`,
+          'The Email is mandatory',
           Constants.HTTP_GENERAL_ERROR,
           'AuthService', 'handleLogIn');
       }
       if (!filteredRequest.password) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Password is mandatory`,
+          'The Password is mandatory',
           Constants.HTTP_GENERAL_ERROR,
           'AuthService', 'handleLogIn');
       }
       if (!filteredRequest.acceptEula) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The End-user License Agreement is mandatory`,
+          'The End-user License Agreement is mandatory',
           Constants.HTTP_USER_EULA_ERROR,
           'AuthService', 'handleLogIn');
       }
@@ -291,7 +291,7 @@ export default class AuthService {
               tenantID: user.getTenantID(),
               actionOnUser: user.getModel(),
               module: 'AuthService', method: 'handleLogIn', action: action,
-              message: `User has been unlocked and can try to login again`
+              message: 'User has been unlocked and can try to login again'
             });
             // Reinit nbr of trial and status
             user.setPasswordWrongNbrTrials(0);
@@ -304,7 +304,7 @@ export default class AuthService {
           } else {
             // Return data
             throw new AppError(
-              Constants.CENTRAL_SERVER, `User is locked`,
+              Constants.CENTRAL_SERVER, 'User is locked',
               Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleLogIn',
               user.getModel());
           }
@@ -331,8 +331,8 @@ export default class AuthService {
     // Check
     if (!filteredRequest.tenant) {
       const error = new BadRequestError({
-        path: "tenant",
-        message: "The Tenant is mandatory"
+        path: 'tenant',
+        message: 'The Tenant is mandatory'
       });
       // Log Error
       Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleRegisterUser', Constants.DEFAULT_TENANT);
@@ -343,8 +343,8 @@ export default class AuthService {
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
       const error = new BadRequestError({
-        path: "tenant",
-        message: "The Tenant cannot be found"
+        path: 'tenant',
+        message: 'The Tenant cannot be found'
       });
       // Log Error
       Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleRegisterUser', Constants.DEFAULT_TENANT);
@@ -356,14 +356,14 @@ export default class AuthService {
       if (!filteredRequest.acceptEula) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The End-user License Agreement is mandatory`,
+          'The End-user License Agreement is mandatory',
           520, 'AuthService', 'handleLogIn');
       }
       // Check
       if (!filteredRequest.captcha) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The captcha is mandatory`, Constants.HTTP_GENERAL_ERROR,
+          'The captcha is mandatory', Constants.HTTP_GENERAL_ERROR,
           'AuthService', 'handleRegisterUser');
       }
 
@@ -374,12 +374,12 @@ export default class AuthService {
       if (!response.data.success) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The captcha is invalid`, Constants.HTTP_GENERAL_ERROR,
+          'The captcha is invalid', Constants.HTTP_GENERAL_ERROR,
           'AuthService', 'handleRegisterUser');
       } else if (response.data.score < 0.5) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The captcha score is too low`, Constants.HTTP_GENERAL_ERROR,
+          'The captcha score is too low', Constants.HTTP_GENERAL_ERROR,
           'AuthService', 'handleRegisterUser');
       }
       // Check email
@@ -389,7 +389,7 @@ export default class AuthService {
       if (user) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Email already exists`, Constants.HTTP_USER_EMAIL_ALREADY_EXIST_ERROR,
+          'Email already exists', Constants.HTTP_USER_EMAIL_ALREADY_EXIST_ERROR,
           'AuthService', 'handleRegisterUser',
           null, user.getModel());
       }
@@ -459,7 +459,7 @@ export default class AuthService {
       if (!filteredRequest.captcha) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The captcha is mandatory`, Constants.HTTP_GENERAL_ERROR,
+          'The captcha is mandatory', Constants.HTTP_GENERAL_ERROR,
           'AuthService', 'handleUserPasswordReset');
       }
       // Check captcha
@@ -469,12 +469,12 @@ export default class AuthService {
       if (!response.data.success) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The captcha is invalid`, Constants.HTTP_GENERAL_ERROR,
+          'The captcha is invalid', Constants.HTTP_GENERAL_ERROR,
           'AuthService', 'handleRegisterUser');
       } else if (response.data.score < 0.5) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The captcha score is too low`, Constants.HTTP_GENERAL_ERROR,
+          'The captcha score is too low', Constants.HTTP_GENERAL_ERROR,
           'AuthService', 'handleRegisterUser');
       }
       // Yes: Generate new password
@@ -558,7 +558,7 @@ export default class AuthService {
       if (!user.getPasswordResetHash()) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The user has already reset his password`,
+          'The user has already reset his password',
           540, 'AuthService', 'handleUserPasswordReset',
           user.getModel());
       }
@@ -582,7 +582,7 @@ export default class AuthService {
         user: newUser.getModel(), action: action,
         module: 'AuthService',
         method: 'handleUserPasswordReset',
-        message: `User's password has been reset successfully`,
+        message: 'User\'s password has been reset successfully',
         detailedMessages: req.body
       });
       // Send notification
@@ -614,8 +614,8 @@ export default class AuthService {
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
       const error = new BadRequestError({
-        path: "tenant",
-        message: "The Tenant is mandatory"
+        path: 'tenant',
+        message: 'The Tenant is mandatory'
       });
       // Log Error
       Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleUserPasswordReset', Constants.DEFAULT_TENANT);
@@ -645,8 +645,8 @@ export default class AuthService {
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
       const error = new BadRequestError({
-        path: "tenant",
-        message: "The Tenant is mandatory"
+        path: 'tenant',
+        message: 'The Tenant is mandatory'
       });
       // Log Error
       Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleGetEndUserLicenseAgreement', Constants.DEFAULT_TENANT);
@@ -676,8 +676,8 @@ export default class AuthService {
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
       const error = new BadRequestError({
-        path: "tenant",
-        message: "The Tenant is mandatory"
+        path: 'tenant',
+        message: 'The Tenant is mandatory'
       });
       // Log Error
       Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleVerifyEmail', Constants.DEFAULT_TENANT);
@@ -690,14 +690,14 @@ export default class AuthService {
       if (!filteredRequest.Email) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Email is mandatory`, Constants.HTTP_GENERAL_ERROR,
+          'The Email is mandatory', Constants.HTTP_GENERAL_ERROR,
           'AuthService', 'handleVerifyEmail');
       }
       // Check verificationToken
       if (!filteredRequest.VerificationToken) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Verification Token is mandatory`, Constants.HTTP_GENERAL_ERROR,
+          'Verification Token is mandatory', Constants.HTTP_GENERAL_ERROR,
           'AuthService', 'handleVerifyEmail');
       }
       // Check email
@@ -720,14 +720,14 @@ export default class AuthService {
       if (user.getStatus() === Constants.USER_STATUS_ACTIVE) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Account is already active`, Constants.HTTP_USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
+          'Account is already active', Constants.HTTP_USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
           'AuthService', 'handleVerifyEmail', user.getModel());
       }
       // Check verificationToken
       if (user.getVerificationToken() !== filteredRequest.VerificationToken) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Wrong Verification Token`, Constants.HTTP_INVALID_TOKEN_ERROR,
+          'Wrong Verification Token', Constants.HTTP_INVALID_TOKEN_ERROR,
           'AuthService', 'handleVerifyEmail', user.getModel());
       }
       // Activate user
@@ -743,7 +743,7 @@ export default class AuthService {
         tenantID: user.getTenantID(),
         user: user.getModel(), action: action,
         module: 'AuthService', method: 'handleVerifyEmail',
-        message: `User account has been successfully verified and activated`,
+        message: 'User account has been successfully verified and activated',
         detailedMessages: req.query
       });
       // Ok
@@ -763,8 +763,8 @@ export default class AuthService {
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
       const error = new BadRequestError({
-        path: "tenant",
-        message: "The Tenant is mandatory"
+        path: 'tenant',
+        message: 'The Tenant is mandatory'
       });
       // Log Error
       Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleResendVerificationEmail', Constants.DEFAULT_TENANT);
@@ -776,14 +776,14 @@ export default class AuthService {
       if (!filteredRequest.email) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Email is mandatory`, Constants.HTTP_GENERAL_ERROR,
+          'The Email is mandatory', Constants.HTTP_GENERAL_ERROR,
           'AuthService', 'handleResendVerificationEmail');
       }
       // Check captcha
       if (!filteredRequest.captcha) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The captcha is mandatory`, Constants.HTTP_GENERAL_ERROR,
+          'The captcha is mandatory', Constants.HTTP_GENERAL_ERROR,
           'AuthService', 'handleResendVerificationEmail');
       }
 
@@ -793,12 +793,12 @@ export default class AuthService {
       if (!response.data.success) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The captcha is invalid`, Constants.HTTP_GENERAL_ERROR,
+          'The captcha is invalid', Constants.HTTP_GENERAL_ERROR,
           'AuthService', 'handleResendVerificationEmail');
       } else if (response.data.score < 0.5) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The captcha score is too low`, Constants.HTTP_GENERAL_ERROR,
+          'The captcha score is too low', Constants.HTTP_GENERAL_ERROR,
           'AuthService', 'handleResendVerificationEmail');
       }
       // Is valid email?
@@ -821,7 +821,7 @@ export default class AuthService {
       if (user.getStatus() === Constants.USER_STATUS_ACTIVE) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Account is already active`, Constants.HTTP_USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
+          'Account is already active', Constants.HTTP_USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
           'AuthService', 'handleResendVerificationEmail', user.getModel());
       }
 
@@ -896,7 +896,7 @@ export default class AuthService {
       // Log
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `User is locked`, Constants.HTTP_USER_LOCKED_ERROR, 'AuthService', 'checkUserLogin',
+        'User is locked', Constants.HTTP_USER_LOCKED_ERROR, 'AuthService', 'checkUserLogin',
         user.getModel()
       );
     } else {
@@ -918,7 +918,7 @@ export default class AuthService {
       tenantID: user.getTenantID(),
       user: user.getModel(),
       module: 'AuthService', method: 'checkUserLogin',
-      action: action, message: `User logged in successfully`
+      action: action, message: 'User logged in successfully'
     });
     // Get EULA
     const endUserLicenseAgreement = await User.getEndUserLicenseAgreement(user.getTenantID(), user.getLanguage());
@@ -1018,7 +1018,7 @@ export default class AuthService {
       if (user.getStatus() === Constants.USER_STATUS_PENDING) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Account is pending! User must activate his account in his email`,
+          'Account is pending! User must activate his account in his email',
           Constants.HTTP_USER_ACCOUNT_PENDING_ERROR,
           'AuthService', 'checkUserLogin',
           user.getModel());

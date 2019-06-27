@@ -1,7 +1,7 @@
-import Tenant from '../../entity/Tenant';
-import MigrationTask from '../MigrationTask';
 import tzlookup from 'tz-lookup';
 import TSGlobal from '../../types/GlobalType';
+import MigrationTask from '../MigrationTask';
+import Tenant from '../../entity/Tenant';
 declare const global: TSGlobal;
 
 export default class TransactionsAddTimezoneTask extends MigrationTask {
@@ -51,11 +51,11 @@ export default class TransactionsAddTimezoneTask extends MigrationTask {
   }
 
   getVersion() {
-    return "1.0";
+    return '1.0';
   }
 
   getName() {
-    return "TransactionsAddTimezoneTask";
+    return 'TransactionsAddTimezoneTask';
   }
 }
 

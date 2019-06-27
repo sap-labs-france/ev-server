@@ -1,8 +1,7 @@
-import CrudApi from './utils/CrudApi';
 import Constants from './utils/Constants';
+import CrudApi from './utils/CrudApi';
 
 export default class TenantApi extends CrudApi {
-
   private _baseApi;
   public constructor(authenticatedApi, baseApi) {
     super(authenticatedApi);
@@ -37,5 +36,3 @@ export default class TenantApi extends CrudApi {
     });
   }
 }
-
-module.exports = TenantApi;

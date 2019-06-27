@@ -1,17 +1,17 @@
-import User from '../../../entity/User';
-import Logging from '../../../utils/Logging';
-import Constants from '../../../utils/Constants';
-import AppError from '../../../exception/AppError';
-import AppAuthError from '../../../exception/AppAuthError';
-import Authorizations from '../../../authorization/Authorizations';
-import ChargingStationSecurity from './security/ChargingStationSecurity';
-import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
-import ChargingStation from '../../../entity/ChargingStation';
-import SiteArea from '../../../types/SiteArea';
-import Tenant from '../../../entity/Tenant';
 import fs from 'fs';
+import AppAuthError from '../../../exception/AppAuthError';
+import AppError from '../../../exception/AppError';
+import Authorizations from '../../../authorization/Authorizations';
+import ChargingStation from '../../../entity/ChargingStation';
+import ChargingStationSecurity from './security/ChargingStationSecurity';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
+import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
+import SiteArea from '../../../types/SiteArea';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import Tenant from '../../../entity/Tenant';
+import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
+import User from '../../../entity/User';
 
 export default class ChargingStationService {
   static async handleAddChargingStationsToSiteArea(action, req, res, next) {
@@ -23,14 +23,14 @@ export default class ChargingStationService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Site Area's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+          'The Site Area\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
           'ChargingStationService', 'handleAddChargingStationsToSiteArea', req.user);
       }
       if (!filteredRequest.chargingStationIDs || (filteredRequest.chargingStationIDs && filteredRequest.chargingStationIDs.length <= 0)) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Charging Station's IDs must be provided`, Constants.HTTP_GENERAL_ERROR,
+          'The Charging Station\'s IDs must be provided', Constants.HTTP_GENERAL_ERROR,
           'ChargingStationService', 'handleAddChargingStationsToSiteArea', req.user);
       }
       // Check auth
@@ -78,7 +78,7 @@ export default class ChargingStationService {
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
         user: req.user, module: 'ChargingStationService', method: 'handleAddChargingStationsToSiteArea',
-        message: `Site Area's Charging Stations have been added successfully`, action: action
+        message: 'Site Area\'s Charging Stations have been added successfully', action: action
       });
       // Ok
       res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -98,14 +98,14 @@ export default class ChargingStationService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Site Area's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+          'The Site Area\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
           'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea', req.user);
       }
       if (!filteredRequest.chargingStationIDs || (filteredRequest.chargingStationIDs && filteredRequest.chargingStationIDs.length <= 0)) {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Site Area's IDs must be provided`, Constants.HTTP_GENERAL_ERROR,
+          'The Site Area\'s IDs must be provided', Constants.HTTP_GENERAL_ERROR,
           'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea', req.user);
       }
       // Check auth
@@ -153,7 +153,7 @@ export default class ChargingStationService {
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
         user: req.user, module: 'ChargingStationService', method: 'handleRemoveChargingStationsFromSiteArea',
-        message: `Site Area's Charging Stations have been removed successfully`, action: action
+        message: 'Site Area\'s Charging Stations have been removed successfully', action: action
       });
       // Ok
       res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -240,7 +240,7 @@ export default class ChargingStationService {
         source: updatedChargingStation.getID(),
         user: req.user, module: 'ChargingStationService',
         method: 'handleUpdateChargingStationParams',
-        message: `Parameters have been updated successfully`,
+        message: 'Parameters have been updated successfully',
         action: action, detailedMessages: {
           'numberOfConnectedPhase': updatedChargingStation.getNumberOfConnectedPhase(),
           'chargingStationURL': updatedChargingStation.getChargingStationURL()
@@ -264,7 +264,7 @@ export default class ChargingStationService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Charging Station ID is mandatory`, Constants.HTTP_GENERAL_ERROR,
+          'The Charging Station ID is mandatory', Constants.HTTP_GENERAL_ERROR,
           'ChargingStationService', 'handleGetChargingStationConfiguration', req.user);
       }
       // Get the Charging Station`
@@ -306,7 +306,7 @@ export default class ChargingStationService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Charging Station ID is mandatory`, Constants.HTTP_GENERAL_ERROR,
+          'The Charging Station ID is mandatory', Constants.HTTP_GENERAL_ERROR,
           'ChargingStationService', 'handleRequestChargingStationConfiguration', req.user);
       }
       // Get the Charging Station
@@ -349,7 +349,7 @@ export default class ChargingStationService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Charging Station ID is mandatory`, Constants.HTTP_GENERAL_ERROR,
+          'The Charging Station ID is mandatory', Constants.HTTP_GENERAL_ERROR,
           'ChargingStationService', 'handleDeleteChargingStation', req.user);
       }
       // Get
@@ -382,7 +382,7 @@ export default class ChargingStationService {
           Constants.CENTRAL_SERVER,
           `Charging station '${chargingStation.getID()}' can't be deleted due to existing active transactions`,
           Constants.HTTP_EXISTING_TRANSACTION_ERROR,
-          "ChargingStationService", "handleDeleteChargingStation", req.user);
+          'ChargingStationService', 'handleDeleteChargingStation', req.user);
       }
       // Remove Site Area
       chargingStation.setSiteArea(null);
@@ -413,7 +413,7 @@ export default class ChargingStationService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Charging Station ID is mandatory`, Constants.HTTP_GENERAL_ERROR,
+          'The Charging Station ID is mandatory', Constants.HTTP_GENERAL_ERROR,
           'ChargingStationService', 'handleGetChargingStation', req.user);
       }
       // Get it
@@ -532,8 +532,8 @@ export default class ChargingStationService {
         ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user, organizationIsActive);
       }
 
-      const filename = "chargingStations_export.csv";
-      fs.writeFile(filename, this.convertToCSV(chargingStations.result), (err) => {
+      const filename = 'chargingStations_export.csv';
+      fs.writeFile(filename, ChargingStationService.convertToCSV(chargingStations.result), (err) => {
         if (err) {
           throw err;
         }
@@ -667,7 +667,7 @@ export default class ChargingStationService {
       if (!filteredRequest.chargeBoxID) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Charging Station ID is mandatory`, Constants.HTTP_GENERAL_ERROR,
+          'Charging Station ID is mandatory', Constants.HTTP_GENERAL_ERROR,
           'ChargingStationService', 'handleAction', req.user, null, action);
       }
       // Get the Charging station
@@ -686,7 +686,7 @@ export default class ChargingStationService {
         if (!filteredRequest.args || !filteredRequest.args.transactionId) {
           throw new AppError(
             Constants.CENTRAL_SERVER,
-            `Transaction ID is mandatory`, Constants.HTTP_AUTH_ERROR,
+            'Transaction ID is mandatory', Constants.HTTP_AUTH_ERROR,
             'ChargingStationService', 'handleAction', req.user, null, action);
         }
         // Get Transaction
@@ -703,7 +703,7 @@ export default class ChargingStationService {
         if (!req.user.tagIDs || req.user.tagIDs.length === 0) {
           throw new AppError(
             Constants.CENTRAL_SERVER,
-            `The user does not have any badge`,
+            'The user does not have any badge',
             Constants.HTTP_USER_NO_BADGE_ERROR,
             'ChargingStationService', 'handleAction', req.user, null, action);
         }
@@ -721,7 +721,7 @@ export default class ChargingStationService {
         if (!filteredRequest.args || !filteredRequest.args.tagID) {
           throw new AppError(
             Constants.CENTRAL_SERVER,
-            `The user does not have any badge`,
+            'The user does not have any badge',
             Constants.HTTP_USER_NO_BADGE_ERROR,
             'ChargingStationService', 'handleAction', req.user, null, action);
         }
@@ -805,7 +805,7 @@ export default class ChargingStationService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Charging Station ID is mandatory`, Constants.HTTP_GENERAL_ERROR,
+          'The Charging Station ID is mandatory', Constants.HTTP_GENERAL_ERROR,
           'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
       }
       // Get the Charging station
@@ -834,7 +834,7 @@ export default class ChargingStationService {
         // Not Found!
         throw new AppError(
           chargingStation.getID(),
-          `Cannot retrieve the configuration`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+          'Cannot retrieve the configuration', Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
       }
       let maxIntensitySocketMax = null;
@@ -850,7 +850,7 @@ export default class ChargingStationService {
         // Not Found!
         throw new AppError(
           chargingStation.getID(),
-          `Cannot retrieve the max intensity socket from the configuration`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+          'Cannot retrieve the max intensity socket from the configuration', Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
       }
       // Check

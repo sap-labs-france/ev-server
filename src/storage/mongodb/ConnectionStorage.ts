@@ -1,9 +1,9 @@
 import Connection from '../../integration/Connection';
-import Database from '../../utils/Database';
-import Utils from '../../utils/Utils';
-import Logging from '../../utils/Logging';
 import Constants from '../../utils/Constants';
+import Database from '../../utils/Database';
 import TSGlobal from '../../types/GlobalType';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
 
 declare const global: TSGlobal;
 
@@ -55,7 +55,7 @@ export default class ConnectionStorage {
     });
     // Count Records
     const connectionsCountMDB = await global.database.getCollection<any>(tenantID, 'connections')
-      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     const connectionsMDB = await global.database.getCollection<any>(tenantID, 'connections')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })

@@ -1,8 +1,8 @@
 import Database from '../utils/Database';
-import TenantStorage from '../storage/mongodb/TenantStorage';
-import User from './User';
 import Setting from '../entity/Setting';
 import TenantComponents from '../types/TenantComponents';
+import TenantStorage from '../storage/mongodb/TenantStorage';
+import User from './User';
 
 
 export default class Tenant {

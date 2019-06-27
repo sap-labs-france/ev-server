@@ -2,7 +2,7 @@ import AuthenticatedApi from './AuthenticatedApi';
 export default class CentralServiceApi extends AuthenticatedApi {
 
   constructor(baseURL, user, password, tenant) {
-    super(baseURL,user,password,tenant);
+    super(baseURL, user, password, tenant);
   }
 
   async getCompanies(params) {

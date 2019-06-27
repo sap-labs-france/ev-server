@@ -1,11 +1,12 @@
+import config from '../config';
 import path from 'path';
+import CentralServerService from './client/CentralServerService';
 import TSGlobal from '../../src/types/GlobalType';
-declare const global: TSGlobal;
-global.appRoot = path.resolve(__dirname, '../../src');
 import OCPPCommonTests from './OCPPCommonTests';
 import OCPPSoapService15 from './ocpp/soap/OCPPSoapService15';
-import CentralServerService from './client/CentralServerService';
-import config from '../config';
+
+declare const global: TSGlobal;
+global.appRoot = path.resolve(__dirname, '../../src');
 
 class TestData {
   public ocpp: OCPPSoapService15;
@@ -14,7 +15,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('OCPP 1.5 SOAP Tests', function () {
+describe('OCPP 1.5 SOAP Tests', function() {
   this.timeout(10000);
 
   before(async () => {

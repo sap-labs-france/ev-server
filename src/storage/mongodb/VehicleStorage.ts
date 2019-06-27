@@ -1,12 +1,12 @@
-import Vehicle from '../../entity/Vehicle';
 import { ObjectID } from 'mongodb';
+import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
-import Utils from '../../utils/Utils';
-import BackendError from '../../exception/BackendError';
 import DatabaseUtils from './DatabaseUtils';
-import Logging from '../../utils/Logging';
 import TSGlobal from '../../types/GlobalType';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
+import Vehicle from '../../entity/Vehicle';
 
 declare const global: TSGlobal;
 
@@ -98,8 +98,8 @@ export default class VehicleStorage {
       // ID must be provided!
       throw new BackendError(
         Constants.CENTRAL_SERVER,
-        `Vehicle has no ID and no Model`,
-        "VehicleStorage", "saveVehicle");
+        'Vehicle has no ID and no Model',
+        'VehicleStorage', 'saveVehicle');
     }
     const vehicleFilter: any = {};
     // Build Request
@@ -135,8 +135,8 @@ export default class VehicleStorage {
       // ID must be provided!
       throw new BackendError(
         Constants.CENTRAL_SERVER,
-        `Vehicle Images has no ID`,
-        "VehicleStorage", "saveVehicleImages");
+        'Vehicle Images has no ID',
+        'VehicleStorage', 'saveVehicleImages');
     }
     // Modify
     await global.database.getCollection<any>(tenantID, 'vehicleimages').findOneAndUpdate(
@@ -163,7 +163,7 @@ export default class VehicleStorage {
     if (params.search) {
       // Build filter
       filters.$or = [
-        { "model": { $regex: params.search, $options: 'i' } }
+        { 'model': { $regex: params.search, $options: 'i' } }
       ];
     }
     // Set Company?
@@ -189,7 +189,7 @@ export default class VehicleStorage {
     }
     // Count Records
     const vehiclesCountMDB = await global.database.getCollection<any>(tenantID, 'vehicles')
-      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {

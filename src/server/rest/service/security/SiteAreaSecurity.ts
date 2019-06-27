@@ -1,11 +1,11 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import UtilsSecurity from './UtilsSecurity';
 import ChargingStationSecurity from './ChargingStationSecurity';
-import SiteSecurity from './SiteSecurity';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 import SiteArea from '../../../../types/SiteArea';
+import SiteSecurity from './SiteSecurity';
+import UtilsSecurity from './UtilsSecurity';
 
 export default class SiteAreaSecurity {
 
@@ -80,19 +80,19 @@ export default class SiteAreaSecurity {
       if (siteArea.hasOwnProperty('address')) {
         filteredSiteArea.address = UtilsSecurity.filterAddressRequest(siteArea.address);
       }
-      if (siteArea.hasOwnProperty("availableChargers")) {
+      if (siteArea.hasOwnProperty('availableChargers')) {
         filteredSiteArea.availableChargers = siteArea.availableChargers;
       }
-      if (siteArea.hasOwnProperty("totalChargers")) {
+      if (siteArea.hasOwnProperty('totalChargers')) {
         filteredSiteArea.totalChargers = siteArea.totalChargers;
       }
-      if (siteArea.hasOwnProperty("availableConnectors")) {
+      if (siteArea.hasOwnProperty('availableConnectors')) {
         filteredSiteArea.availableConnectors = siteArea.availableConnectors;
       }
-      if (siteArea.hasOwnProperty("totalConnectors")) {
+      if (siteArea.hasOwnProperty('totalConnectors')) {
         filteredSiteArea.totalConnectors = siteArea.totalConnectors;
       }
-      if (siteArea.hasOwnProperty("accessControl")) {
+      if (siteArea.hasOwnProperty('accessControl')) {
         filteredSiteArea.accessControl = siteArea.accessControl;
       }
       if (siteArea.site) {

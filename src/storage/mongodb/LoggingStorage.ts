@@ -1,8 +1,8 @@
-import Utils from '../../utils/Utils';
-import Database from '../../utils/Database';
 import Constants from '../../utils/Constants';
+import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
 import Global from './../../types/GlobalType';
+import Utils from '../../utils/Utils';
 declare const global: Global;
 
 export default class LoggingStorage {

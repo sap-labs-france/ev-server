@@ -1,21 +1,21 @@
-import NotificationHandler from '../../../notification/NotificationHandler';
-import ChargingStation from '../../../entity/ChargingStation';
 import Authorizations from '../../../authorization/Authorizations';
-import Transaction from '../../../entity/Transaction';
-import PricingFactory from '../../../integration/pricing/PricingFactory';
-import Logging from '../../../utils/Logging';
+import BackendError from '../../../exception/BackendError';
+import ChargingStation from '../../../entity/ChargingStation';
+import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
-import Utils from '../../../utils/Utils';
+import Logging from '../../../utils/Logging';
+import NotificationHandler from '../../../notification/NotificationHandler';
+import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../utils/OCPPUtils';
 import OCPPValidation from '../validation/OCPPValidation';
-import BackendError from '../../../exception/BackendError';
-import Configuration from '../../../utils/Configuration';
-import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
+import PricingFactory from '../../../integration/pricing/PricingFactory';
 import SiteArea from '../../../types/SiteArea';
+import Transaction from '../../../entity/Transaction';
 import User from '../../../entity/User';
+import Utils from '../../../utils/Utils';
 const moment = require('moment-timezone');
+import momentDurationFormatSetup from 'moment-duration-format'; // TODO what
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import momentDurationFormatSetup from 'moment-duration-format';// TODO what
 // pragma const momentDurationFormatSetup = require("moment-duration-format");
 
 import SourceMap from 'source-map-support';
@@ -37,24 +37,6 @@ export default class OCPPService {
 
   public constructor(chargingStationConfig = null) {
     this.chargingStationConfig = chargingStationConfig;
-  }
-
-  private async _checkAndGetChargingStation(chargeBoxIdentity, tenantID): Promise<ChargingStation> {
-    // Get the charging station
-    const chargingStation = await ChargingStation.getChargingStation(tenantID, chargeBoxIdentity);
-    // Found?
-    if (!chargingStation) {
-      // Error
-      throw new BackendError(chargeBoxIdentity, `Charging Station does not exist`,
-        "OCPPService", "_checkAndGetChargingStation");
-    }
-    // Found?
-    if (chargingStation.isDeleted()) {
-      // Error
-      throw new BackendError(chargeBoxIdentity, `Charging Station is deleted`,
-        "OCPPService", "_checkAndGetChargingStation");
-    }
-    return chargingStation;
   }
 
   async handleBootNotification(headers, bootNotification) {
@@ -90,7 +72,7 @@ export default class OCPPService {
             throw new BackendError(
               chargingStation.getID(),
               `Registration rejected: Vendor, Model or Serial Number attribute is different: '${bootNotification.chargePointVendor}' / '${bootNotification.chargePointModel} / ${bootNotification.chargePointSerialNumber}'! Expected '${chargingStation.getChargePointVendor()}' / '${chargingStation.getChargePointModel()}' / '${chargingStation.getChargePointSerialNumber()}'`,
-              "OCPPService", "handleBootNotification", "BootNotification");
+              'OCPPService', 'handleBootNotification', 'BootNotification');
           }
         }
         chargingStation.setChargePointSerialNumber(bootNotification.chargePointSerialNumber);
@@ -132,7 +114,7 @@ export default class OCPPService {
         tenantID: updatedChargingStation.getTenantID(),
         source: updatedChargingStation.getID(),
         module: 'OCPPService', method: 'handleBootNotification',
-        action: 'BootNotification', message: `Boot notification saved`
+        action: 'BootNotification', message: 'Boot notification saved'
       });
       // Handle the get of configuration later on
       setTimeout(() => {
@@ -190,7 +172,7 @@ export default class OCPPService {
         tenantID: chargingStation.getTenantID(),
         source: chargingStation.getID(),
         module: 'OCPPService', method: 'handleHeartbeat',
-        action: 'Heartbeat', message: `Heartbeat saved`
+        action: 'Heartbeat', message: 'Heartbeat saved'
       });
       // Return
       return {
@@ -347,7 +329,7 @@ export default class OCPPService {
       Logging.logError({
         tenantID: chargingStation.getTenantID(), source: chargingStation.getID(), module: 'OCPPService',
         method: '_notifyStatusNotification', action: 'StatusNotification',
-        message: `Error on Connector '${statusNotification.connectorId}': '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : "N/A")}'`
+        message: `Error on Connector '${statusNotification.connectorId}': '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}'`
       });
       // Send Notification
       NotificationHandler.sendChargingStationStatusError(
@@ -357,7 +339,7 @@ export default class OCPPService {
         {
           'chargeBoxID': chargingStation.getID(),
           'connectorId': statusNotification.connectorId,
-          'error': `${statusNotification.status} - ${statusNotification.errorCode} - ${(statusNotification.info ? statusNotification.info : "N/A")}`,
+          'error': `${statusNotification.status} - ${statusNotification.errorCode} - ${(statusNotification.info ? statusNotification.info : 'N/A')}`,
           'evseDashboardURL': Utils.buildEvseURL((await chargingStation.getTenant()).getSubdomain()),
           'evseDashboardChargingStationURL': await Utils.buildEvseChargingStationURL(chargingStation, '#inerror')
         },
@@ -384,7 +366,7 @@ export default class OCPPService {
         Logging.logDebug({
           tenantID: chargingStation.getTenantID(),
           source: chargingStation.getID(), module: 'OCPPService', method: 'handleMeterValues',
-          action: 'MeterValues', message: `No relevant MeterValues to save`,
+          action: 'MeterValues', message: 'No relevant MeterValues to save',
           detailedMessages: meterValues
         });
         // Process values
@@ -413,7 +395,7 @@ export default class OCPPService {
           Logging.logWarning({
             tenantID: chargingStation.getTenantID(), source: chargingStation.getID(),
             module: 'OCPPService', method: 'handleMeterValues', action: 'MeterValues',
-            message: `MeterValues is ignored as it is not linked to a transaction`,
+            message: 'MeterValues is ignored as it is not linked to a transaction',
             detailedMessages: meterValues
           });
         }
@@ -517,11 +499,11 @@ export default class OCPPService {
       // SoC handling
       if (meterValue.attribute.measurand === 'SoC') {
         // Set the first SoC
-        if (meterValue.attribute.context === "Transaction.Begin") {
+        if (meterValue.attribute.context === 'Transaction.Begin') {
           transaction.setStateOfCharge(meterValue.value);
           continue;
         // Set the Last SoC
-        } else if (meterValue.attribute.context === "Transaction.End") {
+        } else if (meterValue.attribute.context === 'Transaction.End') {
           transaction.setCurrentStateOfCharge(meterValue.value);
           continue;
         }
@@ -582,8 +564,8 @@ export default class OCPPService {
           // Default
           transaction.setStartPrice(0);
           transaction.setStartRoundedPrice(0);
-          transaction.setStartPriceUnit("");
-          transaction.setStartPricingSource("");
+          transaction.setStartPriceUnit('');
+          transaction.setStartPricingSource('');
         }
         break;
       // Meter Values
@@ -752,17 +734,17 @@ export default class OCPPService {
     // Build the inactivity percentage
     const totalInactivityPercent = Math.round((totalInactivitySecs * 100) / transaction.getStopTotalDurationSecs());
     // Format
-    return moment.duration(totalInactivitySecs, "s").format(`h[${i18nHourShort}]mm`, { trim: false }) + ` (${totalInactivityPercent}%)`;
+    return moment.duration(totalInactivitySecs, 's').format(`h[${i18nHourShort}]mm`, { trim: false }) + ` (${totalInactivityPercent}%)`;
   }
 
   // Build duration
   _buildCurrentTransactionDuration(transaction) {
-    return moment.duration(transaction.getCurrentTotalDurationSecs(), "s").format(`h[h]mm`, { trim: false });
+    return moment.duration(transaction.getCurrentTotalDurationSecs(), 's').format('h[h]mm', { trim: false });
   }
 
   // Build duration
   _buildTransactionDuration(transaction) {
-    return moment.duration(transaction.getStopTotalDurationSecs(), "s").format(`h[h]mm`, { trim: false });
+    return moment.duration(transaction.getStopTotalDurationSecs(), 's').format('h[h]mm', { trim: false });
   }
 
   _filterMeterValuesOnCharger(chargingStation, meterValues) {
@@ -778,7 +760,7 @@ export default class OCPPService {
             tenantID: chargingStation.getTenantID(),
             source: chargingStation.getID(), module: 'OCPPService', method: '_filterMeterValuesOnCharger',
             action: 'MeterValues',
-            message: `Removed Meter Value with attribute context 'Sample.Clock'`,
+            message: 'Removed Meter Value with attribute context \'Sample.Clock\'',
             detailedMessages: meterValue
           });
           return false;
@@ -911,7 +893,7 @@ export default class OCPPService {
       Logging.logInfo({
         tenantID: chargingStation.getTenantID(),
         source: chargingStation.getID(), module: 'OCPPService', method: 'handleDiagnosticsStatusNotification',
-        action: 'DiagnosticsStatusNotification', message: `Diagnostics Status Notification has been saved`
+        action: 'DiagnosticsStatusNotification', message: 'Diagnostics Status Notification has been saved'
       });
       // Return
       return {};
@@ -940,7 +922,7 @@ export default class OCPPService {
       Logging.logInfo({
         tenantID: chargingStation.getTenantID(),
         source: chargingStation.getID(), module: 'OCPPService', method: 'handleFirmwareStatusNotification',
-        action: 'FirmwareStatusNotification', message: `Firmware Status Notification has been saved`
+        action: 'FirmwareStatusNotification', message: 'Firmware Status Notification has been saved'
       });
       // Return
       return {};
@@ -1087,12 +1069,12 @@ export default class OCPPService {
         } else {
           // Simulate a Stop Transaction
           const result = await this.handleStopTransaction({
-            "tenantID": activeTransaction.getTenantID(),
-            "chargeBoxIdentity": activeTransaction.getChargeBoxID()
+            'tenantID': activeTransaction.getTenantID(),
+            'chargeBoxIdentity': activeTransaction.getChargeBoxID()
           }, {
-            "transactionId": activeTransaction.getID(),
-            "meterStop": activeTransaction.getLastMeterValue().value,
-            "timestamp": activeTransaction.getLastMeterValue().timestamp,
+            'transactionId': activeTransaction.getID(),
+            'meterStop': activeTransaction.getLastMeterValue().value,
+            'timestamp': activeTransaction.getLastMeterValue().timestamp,
           }, false, true);
           // Check
           if (result.status === 'Invalid') {
@@ -1156,7 +1138,7 @@ export default class OCPPService {
       Logging.logInfo({
         tenantID: chargingStation.getTenantID(),
         source: chargingStation.getID(), module: 'OCPPService', method: 'handleDataTransfer',
-        action: Constants.ACTION_DATA_TRANSFER, message: `Data Transfer has been saved`
+        action: Constants.ACTION_DATA_TRANSFER, message: 'Data Transfer has been saved'
       });
       // Return
       return {
@@ -1207,7 +1189,7 @@ export default class OCPPService {
       if (!transaction.isActive()) {
         throw new BackendError(chargingStation.getID(),
           `Transaction ID '${stopTransaction.transactionId}' has already been stopped`,
-          'OCPPService', "handleStopTransaction", Constants.ACTION_REMOTE_STOP_TRANSACTION,
+          'OCPPService', 'handleStopTransaction', Constants.ACTION_REMOTE_STOP_TRANSACTION,
           (alternateUser ? alternateUser.getID() : (user ? user.getID() : null)),
           (alternateUser ? (user ? user.getID() : null) : null));
       }
@@ -1366,6 +1348,24 @@ export default class OCPPService {
         }
       );
     }
+  }
+
+  private async _checkAndGetChargingStation(chargeBoxIdentity, tenantID): Promise<ChargingStation> {
+    // Get the charging station
+    const chargingStation = await ChargingStation.getChargingStation(tenantID, chargeBoxIdentity);
+    // Found?
+    if (!chargingStation) {
+      // Error
+      throw new BackendError(chargeBoxIdentity, 'Charging Station does not exist',
+        'OCPPService', '_checkAndGetChargingStation');
+    }
+    // Found?
+    if (chargingStation.isDeleted()) {
+      // Error
+      throw new BackendError(chargeBoxIdentity, 'Charging Station is deleted',
+        'OCPPService', '_checkAndGetChargingStation');
+    }
+    return chargingStation;
   }
 }
 

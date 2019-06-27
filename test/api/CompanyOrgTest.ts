@@ -1,8 +1,8 @@
+import { expect } from 'chai';
 import path from 'path';
-import TSGlobal from '../../src/types/GlobalType';
 import CentralServerService from './client/CentralServerService';
 import Factory from '../factories/Factory';
-import { expect } from 'chai';
+import TSGlobal from '../../src/types/GlobalType';
 
 declare const global: TSGlobal;
 global.appRoot = path.resolve(__dirname, '../../src');
@@ -37,7 +37,7 @@ describe('Company Org tests', function() {
 
     it('Should update the company', async () => {
       // Change entity
-      testData.newCompany.name = "New Name";
+      testData.newCompany.name = 'New Name';
       // Update
       await CentralServerService.DefaultInstance.updateEntity(
         CentralServerService.DefaultInstance.companyApi, testData.newCompany);
@@ -45,7 +45,7 @@ describe('Company Org tests', function() {
 
     it('Should find the updated company by id', async () => {
       // Check if the updated entity can be retrieved with its id
-      let updatedCompany = await CentralServerService.DefaultInstance.getEntityById(
+      const updatedCompany = await CentralServerService.DefaultInstance.getEntityById(
         CentralServerService.DefaultInstance.companyApi, testData.newCompany);
       // Check
       expect(updatedCompany.name).to.equal(testData.newCompany.name);

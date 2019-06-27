@@ -1,17 +1,14 @@
-import Logging from '../../../utils/Logging';
-import Constants from '../../../utils/Constants';
-import OCPPError from '../../../exception/OcppError';
-import JsonChargingStationClient from '../../../client/ocpp/json/JsonChargingStationClient';
-import JsonChargingStationService from './services/JsonChargingStationService';
-import WSConnection from './WSConnection';
 import BackendError from '../../../exception/BackendError';
 import Configuration from '../../../utils/Configuration';
+import Constants from '../../../utils/Constants';
+import JsonChargingStationClient from '../../../client/ocpp/json/JsonChargingStationClient';
+import JsonChargingStationService from './services/JsonChargingStationService';
+import Logging from '../../../utils/Logging';
+import OCPPError from '../../../exception/OcppError';
+import WSConnection from './WSConnection';
 
-const MODULE_NAME = "JsonWSConnection";
+const MODULE_NAME = 'JsonWSConnection';
 export default class JsonWSConnection extends WSConnection {
-  private chargingStationClient: any;
-  private chargingStationService: any;
-  private headers: any;
   public getChargingStationID: any;
   public getWSConnection: any;
   public getTenantID: any;
@@ -19,6 +16,9 @@ export default class JsonWSConnection extends WSConnection {
   public getURL: any;
   public sendMessage: any;
   public isWSConnectionOpen: any;
+  private chargingStationClient: any;
+  private chargingStationService: any;
+  private headers: any;
 
   constructor(wsConnection, req, chargingStationConfig, wsServer) {
     // Call super
@@ -36,7 +36,7 @@ export default class JsonWSConnection extends WSConnection {
       default:
         // Error
         throw new BackendError(null, `Protocol ${wsConnection.protocol} not supported`,
-          "JsonWSConnection", "constructor");
+          'JsonWSConnection', 'constructor');
     }
   }
 
@@ -48,7 +48,7 @@ export default class JsonWSConnection extends WSConnection {
       // Initialize the default Headers
       this.headers = {
         chargeBoxIdentity: this.getChargingStationID(),
-        ocppVersion: (this.getWSConnection().protocol.startsWith("ocpp") ? this.getWSConnection().protocol.replace("ocpp", "") : this.getWSConnection().protocol),
+        ocppVersion: (this.getWSConnection().protocol.startsWith('ocpp') ? this.getWSConnection().protocol.replace('ocpp', '') : this.getWSConnection().protocol),
         ocppProtocol: Constants.OCPP_PROTOCOL_JSON,
         chargingStationURL: Configuration.getJsonEndpointConfig().baseUrl,
         tenantID: this.getTenantID(),
@@ -61,9 +61,9 @@ export default class JsonWSConnection extends WSConnection {
       // Log
       Logging.logInfo({
         tenantID: this.getTenantID(),
-        module: MODULE_NAME, method: "initialize",
+        module: MODULE_NAME, method: 'initialize',
         source: this.getChargingStationID(),
-        action: "WSJsonConnectionOpened",
+        action: 'WSJsonConnectionOpened',
         message: `New Json connection from '${this.getIP()}', Protocol '${this.getWSConnection().protocol}', URL '${this.getURL()}'`
       });
     }
@@ -73,8 +73,8 @@ export default class JsonWSConnection extends WSConnection {
     // Log
     Logging.logError({
       tenantID: this.getTenantID(),
-      module: MODULE_NAME, method: "onError",
-      action: "WSJsonErrorReceived",
+      module: MODULE_NAME, method: 'onError',
+      action: 'WSJsonErrorReceived',
       message: error
     });
   }
@@ -84,8 +84,8 @@ export default class JsonWSConnection extends WSConnection {
     Logging.logInfo({
       tenantID: this.getTenantID(),
       module: MODULE_NAME,
-      source: (this.getChargingStationID() ? this.getChargingStationID() : ""),
-      method: "onClose", action: "WSJsonConnectionClose",
+      source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
+      method: 'onClose', action: 'WSJsonConnectionClose',
       message: `Connection has been closed, Reason '${reason}', Code '${code}'`
     });
     // Remove the connection
@@ -96,9 +96,9 @@ export default class JsonWSConnection extends WSConnection {
     // Log
     Logging.logSendAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
     // Check if method exist in the service
-    if (typeof this.chargingStationService["handle" + commandName] === 'function') {
+    if (typeof this.chargingStationService['handle' + commandName] === 'function') {
       // Call it
-      const result = await this.chargingStationService["handle" + commandName](this.headers, commandPayload);
+      const result = await this.chargingStationService['handle' + commandName](this.headers, commandPayload);
       // Log
       Logging.logReturnedAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, result);
       // Send Response

@@ -1,15 +1,15 @@
+import crypto from 'crypto';
+import { ObjectID } from 'mongodb';
+import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
-import Utils from '../../utils/Utils';
-import SiteAreaStorage from './SiteAreaStorage';
-import BackendError from '../../exception/BackendError';
-import { ObjectID } from 'mongodb';
 import DatabaseUtils from './DatabaseUtils';
+import TSGlobal from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Site from '../../entity/Site';
-import crypto from 'crypto';
+import SiteAreaStorage from './SiteAreaStorage';
 import User from '../../entity/User';
-import TSGlobal from '../../types/GlobalType';
+import Utils from '../../utils/Utils';
 
 declare const global: TSGlobal;
 
@@ -64,8 +64,8 @@ export default class SiteStorage {
         for (const userID of userIDs) {
           // Execute
           await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
-            "userID": Utils.convertToObjectID(userID),
-            "siteID": Utils.convertToObjectID(siteID)
+            'userID': Utils.convertToObjectID(userID),
+            'siteID': Utils.convertToObjectID(siteID)
           });
         }
       }
@@ -88,9 +88,9 @@ export default class SiteStorage {
         for (const userID of userIDs) {
           // Add
           siteUsers.push({
-            "_id": crypto.createHash('sha256').update(`${siteID}~${userID}`).digest("hex"),
-            "userID": Utils.convertToObjectID(userID),
-            "siteID": Utils.convertToObjectID(siteID)
+            '_id': crypto.createHash('sha256').update(`${siteID}~${userID}`).digest('hex'),
+            'userID': Utils.convertToObjectID(userID),
+            'siteID': Utils.convertToObjectID(siteID)
           });
         }
         // Execute
@@ -121,48 +121,51 @@ export default class SiteStorage {
     // Get users
     aggregation.push({
       $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, "users"),
-        localField: "userID",
-        foreignField: "_id",
-        as: "users"
+        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
+        localField: 'userID',
+        foreignField: '_id',
+        as: 'users'
       }
     });
     // Single Record
     aggregation.push({
-      $unwind: { "path": "$users", "preserveNullAndEmptyArrays": true }
+      $unwind: { 'path': '$users', 'preserveNullAndEmptyArrays': true }
     });
     // Filter deleted users
     aggregation.push({
       $match: {
-        "$or": [
+        '$or': [
           {
-            "users.deleted": {
-              "$exists": false
+            'users.deleted': {
+              '$exists': false
             }
           },
           {
-            "users.deleted": false
+            'users.deleted': false
           },
           {
-            "users.deleted": null
+            'users.deleted': null
           }
         ]
       }
     });
     // Count Records
     const usersCountMDB = await global.database.getCollection<any>(tenantID, 'siteusers')
-      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Sort
     if (sort) {
-      // Sort
+      // Adjust the sort to match user's collection
+      for (const key in sort) {
+        sort['users.' + key] = sort[key];
+        delete sort[key];
+      }
       aggregation.push({
         $sort: sort
       });
     } else {
-      // Default
       aggregation.push({
-        $sort: { "users.name": 1, "users.firstName": 1 }
+        $sort: { 'users.name': 1, 'users.firstName': 1 }
       });
     }
     // Skip
@@ -223,8 +226,8 @@ export default class SiteStorage {
       // ID must be provided!
       throw new BackendError(
         Constants.CENTRAL_SERVER,
-        `Site has no ID and no Name`,
-        "SiteStorage", "saveSite");
+        'Site has no ID and no Name',
+        'SiteStorage', 'saveSite');
     }
     const siteFilter: any = {};
     // Build Request
@@ -262,8 +265,8 @@ export default class SiteStorage {
       // ID must be provided!
       throw new BackendError(
         Constants.CENTRAL_SERVER,
-        `Site Image has no ID`,
-        "SiteStorage", "saveSiteImage");
+        'Site Image has no ID',
+        'SiteStorage', 'saveSiteImage');
     }
     // Modify
     await global.database.getCollection<any>(tenantID, 'siteimages').findOneAndUpdate(
@@ -291,7 +294,7 @@ export default class SiteStorage {
         filters._id = Utils.convertToObjectID(params.search);
       } else {
         filters.$or = [
-          { "name": { $regex: params.search, $options: 'i' } }
+          { 'name': { $regex: params.search, $options: 'i' } }
         ];
       }
     }
@@ -323,19 +326,19 @@ export default class SiteStorage {
       // Add Users
       aggregation.push({
         $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, "siteusers"),
-          localField: "_id",
-          foreignField: "siteID",
-          as: "siteusers"
+          from: DatabaseUtils.getCollectionName(tenantID, 'siteusers'),
+          localField: '_id',
+          foreignField: 'siteID',
+          as: 'siteusers'
         }
       });
       // User ID filter
       if (params.userID) {
-        filters["siteusers.userID"] = Utils.convertToObjectID(params.userID);
+        filters['siteusers.userID'] = Utils.convertToObjectID(params.userID);
       }
       // Exclude User ID filter
       if (params.excludeSitesOfUserID) {
-        filters["siteusers.userID"] = { $ne: Utils.convertToObjectID(params.excludeSitesOfUserID) };
+        filters['siteusers.userID'] = { $ne: Utils.convertToObjectID(params.excludeSitesOfUserID) };
       }
 
     }
@@ -352,7 +355,7 @@ export default class SiteStorage {
     }
     // Count Records
     const sitesCountMDB = await global.database.getCollection<any>(tenantID, 'sites')
-      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {
@@ -372,10 +375,10 @@ export default class SiteStorage {
     if (params.withAvailableChargers) {
       aggregation.push({
         $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, "chargingstations"),
-          localField: "siteAreas.id",
-          foreignField: "siteAreaID",
-          as: "chargeBoxes"
+          from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
+          localField: 'siteAreas.id',
+          foreignField: 'siteAreaID',
+          as: 'chargeBoxes'
         }
       });
     }
@@ -384,15 +387,15 @@ export default class SiteStorage {
     if (params.withCompany) {
       aggregation.push({
         $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, "companies"),
-          localField: "companyID",
-          foreignField: "_id",
-          as: "company"
+          from: DatabaseUtils.getCollectionName(tenantID, 'companies'),
+          localField: 'companyID',
+          foreignField: '_id',
+          as: 'company'
         }
       }); // TODO project fields to actually match Company object so that Site can be typed
       // Single Record
       aggregation.push({
-        $unwind: { "path": "$company", "preserveNullAndEmptyArrays": true }
+        $unwind: { 'path': '$company', 'preserveNullAndEmptyArrays': true }
       });
     }
     // Sort

@@ -1,15 +1,14 @@
+import fs from 'fs';
+import moment from 'moment';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import StatisticSecurity from './security/StatisticSecurity';
 import StatisticsStorage from '../../../storage/mongodb/StatisticsStorage';
-import User from '../../../entity/User';
+import StatisticSecurity from './security/StatisticSecurity';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
-import fs from 'fs';
-import moment from 'moment';
 
 export default class StatisticService {
   static async handleGetChargingStationConsumptionStatistics(action, req, res, next) {
@@ -36,7 +35,7 @@ export default class StatisticService {
       const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
         req.user.tenantID, filter, Constants.STATS_GROUP_BY_CONSUMPTION);
       // Convert
-      const transactions = this.convertToGraphData(transactionStatsMDB, 'C');
+      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
       // Return
       res.json(transactions);
       next();
@@ -70,7 +69,7 @@ export default class StatisticService {
       const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
         req.user.tenantID, filter, Constants.STATS_GROUP_BY_USAGE);
       // Convert
-      const transactions = this.convertToGraphData(transactionStatsMDB, 'C');
+      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
       // Return
       res.json(transactions);
       next();
@@ -104,7 +103,7 @@ export default class StatisticService {
       const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
         req.user.tenantID, filter, Constants.STATS_GROUP_BY_INACTIVITY);
       // Convert
-      const transactions = this.convertToGraphData(transactionStatsMDB, 'C');
+      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'C');
       // Return
       res.json(transactions);
       next();
@@ -138,7 +137,7 @@ export default class StatisticService {
       const transactionStatsMDB = await StatisticsStorage.getUserStats(
         req.user.tenantID, filter, Constants.STATS_GROUP_BY_CONSUMPTION);
       // Convert
-      const transactions = this.convertToGraphData(transactionStatsMDB, 'U');
+      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
       // Return
       res.json(transactions);
       next();
@@ -172,7 +171,7 @@ export default class StatisticService {
       const transactionStatsMDB = await StatisticsStorage.getUserStats(
         req.user.tenantID, filter, Constants.STATS_GROUP_BY_USAGE);
       // Convert
-      const transactions = this.convertToGraphData(transactionStatsMDB, 'U');
+      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
       // Return
       res.json(transactions);
       next();
@@ -206,7 +205,7 @@ export default class StatisticService {
       const transactionStatsMDB = await StatisticsStorage.getUserStats(
         req.user.tenantID, filter, Constants.STATS_GROUP_BY_INACTIVITY);
       // Convert
-      const transactions = this.convertToGraphData(transactionStatsMDB, 'U');
+      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
       // Return
       res.json(transactions);
       next();
@@ -288,7 +287,7 @@ export default class StatisticService {
 
       // Build the result
       const filename = 'export' + filteredRequest.DataType + 'Statistics.csv';
-      fs.writeFile(filename, this.convertToCSV(transactionStatsMDB, filteredRequest.DataCategory,
+      fs.writeFile(filename, StatisticService.convertToCSV(transactionStatsMDB, filteredRequest.DataCategory,
         filteredRequest.DataType, filteredRequest.Year, filteredRequest.DataScope), (createError) => {
           if (createError) {
             throw createError;
@@ -385,14 +384,14 @@ export default class StatisticService {
     const transactions = [];
     let unknownUser = Utils.buildUserFullName(undefined, false, false, true);
     if (!unknownUser) {
-      unknownUser = "Unknown";
+      unknownUser = 'Unknown';
     }
     if (dataCategory === 'C') {
       csv = 'chargeBoxId,';
     } else {
       csv = 'userName,firstName,';
     }
-    if (year && year !== "0") {
+    if (year && year !== '0') {
       csv += 'year,';
       if (dataScope && dataScope === 'month') {
         csv += 'month,';
@@ -425,7 +424,7 @@ export default class StatisticService {
             transaction.user.firstName = ' ';
           }
         }
-        if (!year || year == "0" || !dataScope || (dataScope && dataScope !== 'month')) {
+        if (!year || year == '0' || !dataScope || (dataScope && dataScope !== 'month')) {
           transaction._id.month = 0;
           index = -1;
           if (transactions && transactions.length > 0) {
@@ -457,7 +456,7 @@ export default class StatisticService {
       for (transaction of transactions) {
         csv += (dataCategory === 'C') ? `${transaction._id.chargeBox},` :
           `${transaction.user.name},${transaction.user.firstName},`;
-        csv += (year && year !== "0") ? `${year},` : '';
+        csv += (year && year !== '0') ? `${year},` : '';
         csv += (transaction._id.month > 0) ? `${transaction._id.month},` : '';
         number = Math.round(transaction.total * 100) / 100;
         // Use raw numbers

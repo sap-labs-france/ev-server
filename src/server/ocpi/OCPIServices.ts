@@ -1,9 +1,9 @@
-import OCPIService2_1_1 from './ocpi-services-impl/ocpi-2.1.1/OCPIService';
-import OCPIService2_0 from './ocpi-services-impl/ocpi-2.0/OCPIService';
-import OCPIUtils from '../ocpi/OCPIUtils';
-import AbstractOCPIService from './AbstractOCPIService';
 import { Request, Response } from 'express';
+import AbstractOCPIService from './AbstractOCPIService';
 import { Config } from '../../utils/ConfigurationClasses/Config';
+import OCPIService2_0 from './ocpi-services-impl/ocpi-2.0/OCPIService';
+import OCPIService2_1_1 from './ocpi-services-impl/ocpi-2.1.1/OCPIService';
+import OCPIUtils from '../ocpi/OCPIUtils';
 
 import SourceMap from 'source-map-support';
 SourceMap.install();
@@ -27,7 +27,7 @@ export default class OCPIServices {
   public getVersions(req: Request, res: Response): void {
     // Get all the versions
     const versions = this.ocpiServices.map((ocpiService) => {
-      return { "version": ocpiService.getVersion(), "url": ocpiService.getServiceUrl(req) };
+      return { 'version': ocpiService.getVersion(), 'url': ocpiService.getServiceUrl(req) };
     });
     // Send available versions
     res.json(OCPIUtils.success(versions));

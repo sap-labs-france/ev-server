@@ -1,11 +1,11 @@
-import Authorizations from '../../../authorization/Authorizations';
-import Logging from '../../../utils/Logging';
-import Database from '../../../utils/Database';
-import PricingSecurity from './security/PricingSecurity';
-import PricingStorage from '../../../storage/mongodb/PricingStorage';
-import Constants from '../../../utils/Constants';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
+import Authorizations from '../../../authorization/Authorizations';
+import Constants from '../../../utils/Constants';
+import Database from '../../../utils/Database';
+import Logging from '../../../utils/Logging';
+import PricingSecurity from './security/PricingSecurity';
+import PricingStorage from '../../../storage/mongodb/PricingStorage';
 
 export default class PricingService {
   static async handleGetPricing(action, req, res, next) {

@@ -1,13 +1,13 @@
-import faker from 'faker';
-import Factory from '../../factories/Factory';
 import config from '../../config';
+import faker from 'faker';
+import CentralServerService from '../client/CentralServerService';
+import ChargingStationContext from './ChargingStationContext';
+import CONTEXTS from './ContextConstants';
+import Factory from '../../factories/Factory';
 import OCPPJsonService16 from '../ocpp/json/OCPPJsonService16';
 import OCPPJsonService15 from '../ocpp/soap/OCPPSoapService15';
-import SiteContext from './SiteContext';
 import SiteAreaContext from './SiteAreaContext';
-import ChargingStationContext from './ChargingStationContext';
-import CentralServerService from '../client/CentralServerService';
-import CONTEXTS from './ContextConstants';
+import SiteContext from './SiteContext';
 
 export default class TenantContext {
 
@@ -54,9 +54,8 @@ export default class TenantContext {
       return this.ocpp16;
     } else if (ocppVersion === '1.5') {
       return this.ocpp15;
-    } else {
-      throw new Error('unkown ocpp version');
     }
+    throw new Error('unkown ocpp version');
   }
 
   getContext() {
@@ -72,9 +71,9 @@ export default class TenantContext {
       return this.context.siteContexts.concat(this.context.createdSites).find((siteContext) => {
         return siteContext.getSiteName() === siteName;
       });
-    } else {
-      return this.context.siteContexts[0]; // by default return the first context
     }
+    return this.context.siteContexts[0]; // By default return the first context
+
   }
 
   addSiteContext(siteContext) {
@@ -82,16 +81,16 @@ export default class TenantContext {
   }
 
   async cleanUpCreatedData() {
-    // clean up charging stations
+    // Clean up charging stations
     for (const chargingStation of this.context.createdChargingStations) {
       // Delegate
       await chargingStation.cleanUpCreatedData();
       // Delete CS
       await this.centralAdminServerService.deleteEntity(this.centralAdminServerService.chargingStationApi, chargingStation, false);
     }
-    // clean up site areas
+    // Clean up site areas
     for (const siteArea of this.context.createdSiteAreas) {
-      // delegate
+      // Delegate
       await siteArea.cleanUpCreatedData();
       // Delete
       await this.getAdminCentralServerService().deleteEntity(this.getAdminCentralServerService().siteAreaApi, siteArea.getSiteArea(), false);
@@ -115,37 +114,41 @@ export default class TenantContext {
 
   getContextUser(params) { // Structure { id = user ID, email = user mail, role = user role, status = user status, assignedToSite = boolean) {
     if (params.id || params.email) {
-      return this.context.users.find((user) => user.id === params.id || user.email === params.email);
-    } else {
       return this.context.users.find((user) => {
-        let conditionMet = null;
-        for (const key in params) {
-          const userContextDef = CONTEXTS.TENANT_USER_LIST.find((userList) => userList.id === user.id);
-          if (user.hasOwnProperty(key)) {
-            if (conditionMet !== null) {
-              conditionMet = conditionMet && user[key] === params[key];
-            } else {
-              conditionMet = user[key] === params[key];
-            }
-          } else if (key === 'assignedToSite') {
-            if (conditionMet !== null) {
-              conditionMet = conditionMet && (userContextDef ? params[key] === userContextDef.assignedToSite : false);
-            } else {
-              conditionMet = (userContextDef ? params[key] === userContextDef.assignedToSite : false);
-            }
-          } else if (key === 'withTagIDs') {
-            if (conditionMet !== null) {
-              conditionMet = conditionMet && (params[key] ?  user.hasOwnProperty('tagIDs') && Array.isArray(user.tagIDs) && user.tagIDs.length > 0 :
-                (user.hasOwnProperty('tagIDs') ? user.tagIDs.length === 0 : true));
-            } else {
-              conditionMet = (params[key] ?  user.hasOwnProperty('tagIDs') && Array.isArray(user.tagIDs) && user.tagIDs.length > 0 :
-                (user.hasOwnProperty('tagIDs') ? user.tagIDs.length === 0 : true));
-            }
-          }
-        }
-        return conditionMet;
+        return user.id === params.id || user.email === params.email;
       });
     }
+    return this.context.users.find((user) => {
+      let conditionMet = null;
+      for (const key in params) {
+        const userContextDef = CONTEXTS.TENANT_USER_LIST.find((userList) => {
+          return userList.id === user.id;
+        });
+        if (user.hasOwnProperty(key)) {
+          if (conditionMet !== null) {
+            conditionMet = conditionMet && user[key] === params[key];
+          } else {
+            conditionMet = user[key] === params[key];
+          }
+        } else if (key === 'assignedToSite') {
+          if (conditionMet !== null) {
+            conditionMet = conditionMet && (userContextDef ? params[key] === userContextDef.assignedToSite : false);
+          } else {
+            conditionMet = (userContextDef ? params[key] === userContextDef.assignedToSite : false);
+          }
+        } else if (key === 'withTagIDs') {
+          if (conditionMet !== null) {
+            conditionMet = conditionMet && (params[key] ? user.hasOwnProperty('tagIDs') && Array.isArray(user.tagIDs) && user.tagIDs.length > 0 :
+              (user.hasOwnProperty('tagIDs') ? user.tagIDs.length === 0 : true));
+          } else {
+            conditionMet = (params[key] ? user.hasOwnProperty('tagIDs') && Array.isArray(user.tagIDs) && user.tagIDs.length > 0 :
+              (user.hasOwnProperty('tagIDs') ? user.tagIDs.length === 0 : true));
+          }
+        }
+      }
+      return conditionMet;
+    });
+
   }
 
   /**
@@ -186,7 +189,9 @@ export default class TenantContext {
 
   async createSite(company, users, site = Factory.site.build({
     companyID: company.id,
-    userIDs: users.map(user => user.id)
+    userIDs: users.map((user) => {
+      return user.id;
+    })
   }), loggedUser = null) {
     const siteContext = new SiteContext(site.name, this);
     const createdSite = await this.centralAdminServerService.createEntity(this.centralAdminServerService.siteApi, site);
@@ -197,7 +202,9 @@ export default class TenantContext {
 
   async createSiteArea(site, chargingStations, siteArea) {
     siteArea.siteID = (site && site.id ? (!siteArea.siteID || siteArea.siteID !== site.id ? site.id : siteArea.siteID) : null);
-    siteArea.chargeBoxIDs = (Array.isArray(chargingStations) && (!siteArea.chargeBoxIDs || siteArea.chargeBoxIDs.length === 0)  ? chargingStations.map(chargingStation => chargingStation.id) : []);
+    siteArea.chargeBoxIDs = (Array.isArray(chargingStations) && (!siteArea.chargeBoxIDs || siteArea.chargeBoxIDs.length === 0) ? chargingStations.map((chargingStation) => {
+      return chargingStation.id;
+    }) : []);
     const createdSiteArea = await this.centralAdminServerService.createEntity(this.centralAdminServerService.siteAreaApi, siteArea);
     this.context.createdSiteAreas.push(new SiteAreaContext(createdSiteArea, this));
     return createdSiteArea;
@@ -225,7 +232,7 @@ export default class TenantContext {
       const responseNotif = await this.getOCPPService(ocppVersion).executeStatusNotification(createdChargingStation.id, connector);
     }
     if (siteArea) {
-      //assign to Site Area
+      // Assign to Site Area
       createdChargingStation.siteArea = siteArea;
       await this.getAdminCentralServerService().updateEntity(
         this.getAdminCentralServerService().chargingStationApi, createdChargingStation);
@@ -236,12 +243,19 @@ export default class TenantContext {
   }
 
   findSiteContextFromSiteArea(siteArea) {
-    return this.getSiteContexts().find((context) => context.siteAreas.find((tmpSiteArea) => siteArea.id === tmpSiteArea.id));
+    return this.getSiteContexts().find((context) => {
+      return context.siteAreas.find((tmpSiteArea) => {
+        return siteArea.id === tmpSiteArea.id;
+      });
+    });
   }
 
   findSiteContextFromChargingStation(chargingStation) {
-    return this.getSiteContexts().find((context) => context.chargingStations.find((tmpChargingStation) =>
-      tmpChargingStation.id === chargingStation.id));
+    return this.getSiteContexts().find((context) => {
+      return context.chargingStations.find((tmpChargingStation) => {
+        return tmpChargingStation.id === chargingStation.id;
+      });
+    });
   }
 
   async close() {
@@ -251,5 +265,3 @@ export default class TenantContext {
   }
 
 }
-
-// module.exports = TenantContext;

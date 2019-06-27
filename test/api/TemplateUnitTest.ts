@@ -2,11 +2,11 @@ import path from 'path';
 import TSGlobal from '../../src/types/GlobalType';
 declare const global: TSGlobal;
 global.appRoot = path.resolve(__dirname, '../../src');
+import chai from 'chai';
+import { expect } from 'chai';
+import chaiSubset from 'chai-subset';
 import CONTEXTS from './contextProvider/ContextConstants';
 import ContextProvider from './contextProvider/ContextProvider';
-import chai from 'chai';
-import {expect} from 'chai';
-import chaiSubset from 'chai-subset';
 chai.use(require('chai-datetime'));
 chai.use(chaiSubset);
 chai.use(require('../helpers/responseHelper'));
@@ -58,5 +58,7 @@ describe('Template for Dev Unit Test', function() {
 });
 
 function timeout(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => {
+    return setTimeout(resolve, ms);
+  });
 }

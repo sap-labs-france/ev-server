@@ -1,10 +1,10 @@
-import StatefulChargingService from './StatefulChargingService';
 import moment from 'moment-timezone';
+import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import Pricing, { PricedConsumption } from '../Pricing';
 import SiteArea from '../../../types/SiteArea';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
-import Cypher from '../../../utils/Cypher';
+import StatefulChargingService from './StatefulChargingService';
 
 export default class ConvergentChargingPricing extends Pricing {
   public statefulChargingService: any;
@@ -174,7 +174,7 @@ export default class ConvergentChargingPricing extends Pricing {
         if (ccTransaction.notifications) {
           for (const notification of ccTransaction.notifications) {
             switch (notification.code) {
-              case "CSMS_INFO":
+              case 'CSMS_INFO':
                 chargingStation = await this.transaction.getChargingStation();
                 if (chargingStation) {
                   chargingStation.requestSetChargingProfile({

@@ -1,6 +1,6 @@
 import { expect } from 'chai';
-import CrudApi from './utils/CrudApi';
 import Constants from './utils/Constants';
+import CrudApi from './utils/CrudApi';
 
 export default class ChargingStationApi extends CrudApi {
 
@@ -69,5 +69,3 @@ export default class ChargingStationApi extends CrudApi {
     expect(foundChargingStation.connectors[connectorId - 1]).to.include(connectorData);
   }
 }
-
-// module.exports = ChargingStationApi;

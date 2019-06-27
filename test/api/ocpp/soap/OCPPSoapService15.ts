@@ -1,7 +1,7 @@
-import soap from 'strong-soap';
-import OCPPService from '../OCPPService';
 import config from '../../../config';
 import { performance } from 'perf_hooks';
+import soap from 'strong-soap';
+import OCPPService from '../OCPPService';
 
 export default class OCPPSoapService15 extends OCPPService {
   public client: any;
@@ -13,7 +13,7 @@ export default class OCPPSoapService15 extends OCPPService {
   }
 
   public getVersion() {
-    return "1.5";
+    return '1.5';
   }
 
   public executeAuthorize(chargeBoxIdentity, payload) {
@@ -112,11 +112,11 @@ export default class OCPPSoapService15 extends OCPPService {
       headers: {
         chargeBoxIdentity: chargeBoxIdentity,
         From: {
-          Address: "http://www.w3.org/2005/08/addressing/anonymous"
+          Address: 'http://www.w3.org/2005/08/addressing/anonymous'
         },
         To: this.serverUrl,
         ReplyTo: {
-          "Address": "http://www.w3.org/2005/08/addressing/anonymous"
+          'Address': 'http://www.w3.org/2005/08/addressing/anonymous'
         }
       },
       data: payload
@@ -124,7 +124,9 @@ export default class OCPPSoapService15 extends OCPPService {
   }
 
   private _getRequestNameFromAction(actionName) {
-    return actionName.replace(/^\w/, c => c.toLowerCase()).concat("Request");
+    return actionName.replace(/^\w/, (c) => {
+      return c.toLowerCase();
+    }).concat('Request');
   }
 
   private async _initSOAPClient() {
@@ -133,7 +135,7 @@ export default class OCPPSoapService15 extends OCPPService {
     // Check
     if (!this.client) {
       // Create the Promise
-      this.client = await new Promise(function (resolve, reject) {
+      this.client = await new Promise(function(resolve, reject) {
         // Create the client
         soap.soap.createClient('test/api/ocpp/soap/OCPPCentralSystemService1.5.wsdl', options, (err, client) => {
           if (err) {
@@ -150,5 +152,3 @@ export default class OCPPSoapService15 extends OCPPService {
     }
   }
 }
-
-// module.exports = OCPPSoapService15;

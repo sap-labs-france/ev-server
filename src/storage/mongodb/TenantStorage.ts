@@ -1,12 +1,12 @@
-import Constants from '../../utils/Constants';
-import Database from '../../utils/Database';
-import Utils from '../../utils/Utils';
 import { ObjectID } from 'mongodb';
 import BackendError from '../../exception/BackendError';
+import Constants from '../../utils/Constants';
+import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
+import TSGlobal from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Tenant from '../../entity/Tenant';
-import TSGlobal from '../../types/GlobalType';
+import Utils from '../../utils/Utils';
 
 declare const global: TSGlobal;
 
@@ -79,8 +79,8 @@ export default class TenantStorage {
     if (!tenantToSave.id && !tenantToSave.name) {
       throw new BackendError(
         Constants.CENTRAL_SERVER,
-        `Tenant has no ID and no Name`,
-        "TenantStorage", "saveTenant");
+        'Tenant has no ID and no Name',
+        'TenantStorage', 'saveTenant');
     }
     const tenantFilter: any = {};
     // Build Request
@@ -132,7 +132,7 @@ export default class TenantStorage {
     if (params.search) {
       // Build filter
       filters.$or = [{
-        "name": {
+        'name': {
           $regex: params.search,
           $options: 'i'
         }
@@ -148,7 +148,7 @@ export default class TenantStorage {
     }
     // Count Records
     const tenantsCountMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants')
-      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation('', aggregation);

@@ -1,9 +1,9 @@
-import Tenant from '../../entity/Tenant';
-import OCPPStorage from '../../storage/mongodb/OCPPStorage';
-import MigrationTask from '../MigrationTask';
+import BBPromise from 'bluebird';
 import Constants from '../../utils/Constants';
-import BBPromise from "bluebird";
 import TSGlobal from '../../types/GlobalType';
+import MigrationTask from '../MigrationTask';
+import OCPPStorage from '../../storage/mongodb/OCPPStorage';
+import Tenant from '../../entity/Tenant';
 declare const global: TSGlobal;
 
 export default class UpdateTransactionExtraInactivityTask extends MigrationTask {
@@ -20,8 +20,8 @@ export default class UpdateTransactionExtraInactivityTask extends MigrationTask 
     // Filters
     aggregation.push({
       $match: {
-        "stop": { $exists: true },
-        "stop.extraInactivitySecs": { $exists: false }
+        'stop': { $exists: true },
+        'stop.extraInactivitySecs': { $exists: false }
       }
     });
     // Read DB
@@ -52,7 +52,7 @@ export default class UpdateTransactionExtraInactivityTask extends MigrationTask 
       }
       // Save
       await global.database.getCollection<any>(tenant.getID(), 'transactions').findOneAndUpdate(
-        { "_id": transactionMDB._id },
+        { '_id': transactionMDB._id },
         { $set: transactionMDB },
         { upsert: true, returnOriginal: false }
       );
@@ -65,11 +65,11 @@ export default class UpdateTransactionExtraInactivityTask extends MigrationTask 
   }
 
   getVersion() {
-    return "1.0";
+    return '1.0';
   }
 
   getName() {
-    return "UpdateTransactionExtraInactivityTask";
+    return 'UpdateTransactionExtraInactivityTask';
   }
 }
 

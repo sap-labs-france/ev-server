@@ -1,5 +1,5 @@
-import AbstractODataEntities from './AbstractODataEntities';
 import _ from 'lodash';
+import AbstractODataEntities from './AbstractODataEntities';
 import Company from '../../../types/Company';
 
 export default class ODataCompanies extends AbstractODataEntities {
@@ -13,11 +13,11 @@ export default class ODataCompanies extends AbstractODataEntities {
   static async getCompanies(centralServiceApi, query, req, cb) {
     try {
       // Check limit parameter
-      const params = this.buildParams(query);
+      const params = ODataCompanies.buildParams(query);
       // Perform rest call
       const response = await centralServiceApi.getCompanies(params);
       // Return response
-      this.returnResponse(response, query, req, cb);
+      ODataCompanies.returnResponse(response, query, req, cb);
     } catch (error) {
       cb(error);
     }

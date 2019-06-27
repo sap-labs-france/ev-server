@@ -1,5 +1,5 @@
-import OCPPService from './services/OCPPService';
 import Constants from '../../utils/Constants';
+import OCPPService from './services/OCPPService';
 
 import SourceMap from 'source-map-support';
 SourceMap.install();

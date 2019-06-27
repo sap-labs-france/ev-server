@@ -1,13 +1,13 @@
-import Logging from '../../../utils/Logging';
-import Database from '../../../utils/Database';
-import AppError from '../../../exception/AppError';
 import AppAuthError from '../../../exception/AppAuthError';
+import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
-import OCPIEndpoint from '../../../entity/OCPIEndpoint';
-import User from '../../../entity/User';
-import OCPIEndpointSecurity from './security/OCPIEndpointSecurity';
+import Database from '../../../utils/Database';
+import Logging from '../../../utils/Logging';
 import OCPIClient from '../../../client/ocpi/OCPIClient';
+import OCPIEndpoint from '../../../entity/OCPIEndpoint';
+import OCPIEndpointSecurity from './security/OCPIEndpointSecurity';
+import User from '../../../entity/User';
 
 export default class OCPIEndpointService {
   static async handleDeleteOcpiEndpoint(action, req, res, next) {
@@ -19,7 +19,7 @@ export default class OCPIEndpointService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Ocpi Endpoint's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+          'The Ocpi Endpoint\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
           'OCPIEndpointService', 'handleDeleteOcpiEndpoint', req.user);
       }
       // Get
@@ -69,7 +69,7 @@ export default class OCPIEndpointService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Ocpi Endpoint's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+          'The Ocpi Endpoint\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
           'OCPIEndpointService', 'handleGetOcpiEndpoint', req.user);
       }
       // Get it

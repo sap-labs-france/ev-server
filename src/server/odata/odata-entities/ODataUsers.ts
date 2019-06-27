@@ -11,11 +11,11 @@ export default class ODataUsers extends AbstractODataEntities {
   static async getUsers(centralServiceApi, query, req, cb) {
     try {
       // Check limit parameter
-      const params = this.buildParams(query);
+      const params = ODataUsers.buildParams(query);
       // Perform rest call
       const response = await centralServiceApi.getUsers(params);
       // Return response
-      this.returnResponse(response, query, req, cb);
+      ODataUsers.returnResponse(response, query, req, cb);
     } catch (error) {
       cb(error);
     }

@@ -1,17 +1,17 @@
-import Utils from '../../../utils/Utils';
-import Constants from '../../../utils/Constants';
+import fs from 'fs';
 import BackendError from '../../../exception/BackendError';
+import Constants from '../../../utils/Constants';
+import TSGlobal from '../../../types/GlobalType';
 import Logging from '../../../utils/Logging';
 import SchemaValidator from '../../rest/validation/SchemaValidator';
-import fs from 'fs';
-import TSGlobal from '../../../types/GlobalType';
+import Utils from '../../../utils/Utils';
 declare const global: TSGlobal;
 import SourceMap from 'source-map-support';
 SourceMap.install();
 export default class OCPPValidation extends SchemaValidator {
+  private static instance: OCPPValidation|null = null;
 
   public validate: any;
-  private static instance: OCPPValidation|null = null;
   private _bootNotificationRequest: any;
   private _authorizeRequest: any;
   private _statusNotificationRequest: any;
@@ -91,7 +91,7 @@ export default class OCPPValidation extends SchemaValidator {
       Logging.logWarning({
         tenantID: chargingStation.getTenantID(),
         source: chargingStation.getID(), module: 'OCPPValidation', method: 'validateMeterValues',
-        action: 'MeterValues', message: `Connector ID must not be '0' and has been reset to '1'`
+        action: 'MeterValues', message: 'Connector ID must not be \'0\' and has been reset to \'1\''
       });
       // Set to 1 (KEBA has only one connector)
       meterValues.connectorId = 1;

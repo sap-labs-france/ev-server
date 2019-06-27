@@ -1,19 +1,19 @@
-import { ObjectID } from 'mongodb';
-import Configuration from './Configuration';
-import uuidV4 from 'uuid/v4';
-import Constants from './Constants';
-import BackendError from '../exception/BackendError';
-import crypto from 'crypto';
-import ClientOAuth2 from 'client-oauth2';
 import axios from 'axios';
-import url from 'url';
+import ClientOAuth2 from 'client-oauth2';
+import crypto from 'crypto';
 import fs from 'fs';
-import path from 'path';
-import Logging from './Logging';
-import Tenant from '../entity/Tenant';
-import SourceMap from 'source-map-support';
 // pragma import AppError from '../exception/AppError';
 import _ from 'lodash';
+import { ObjectID } from 'mongodb';
+import path from 'path';
+import SourceMap from 'source-map-support';
+import url from 'url';
+import uuidV4 from 'uuid/v4';
+import BackendError from '../exception/BackendError';
+import Configuration from './Configuration';
+import Constants from './Constants';
+import Logging from './Logging';
+import Tenant from '../entity/Tenant';
 
 SourceMap.install();
 
@@ -117,7 +117,7 @@ export default class Utils {
     // Check Tenant ID
     if (!tenantID) {
       // Error
-      throw new BackendError(null, `The Tenant ID is mandatory`);
+      throw new BackendError(null, 'The Tenant ID is mandatory');
     }
     // Check if not default tenant?
     if (tenantID !== Constants.DEFAULT_TENANT) {
@@ -182,7 +182,7 @@ export default class Utils {
   static convertToObjectID(id) {
     let changedID = id;
     // Check
-    if (typeof id === "string") {
+    if (typeof id === 'string') {
       // Create Object
       changedID = new ObjectID(id);
     }
@@ -195,7 +195,7 @@ export default class Utils {
       return 0;
     }
     // Check
-    if (typeof id === "string") {
+    if (typeof id === 'string') {
       // Create Object
       changedID = parseInt(id);
     }
@@ -208,7 +208,7 @@ export default class Utils {
       return 0;
     }
     // Check
-    if (typeof id === "string") {
+    if (typeof id === 'string') {
       // Create Object
       changedID = parseFloat(id);
     }
@@ -222,13 +222,13 @@ export default class Utils {
       // Set
       userID = user;
       // Check User Model
-      if (typeof user === "object" &&
-        user.constructor.name !== "ObjectID" && ('id' in user || 'getID' in user)) {
+      if (typeof user === 'object' &&
+        user.constructor.name !== 'ObjectID' && ('id' in user || 'getID' in user)) {
         // This is the User Model
         userID = Utils.convertToObjectID('id' in user ? user.id : user.getID());
       }
       // Check String
-      if (typeof user === "string") {
+      if (typeof user === 'string') {
         // This is a String
         userID = Utils.convertToObjectID(user);
       }
@@ -246,7 +246,7 @@ export default class Utils {
   static buildUserFullName(user, withID = true, withEmail = false, inversedName = false) {
     let fullName: string;
     if (!user) {
-      return "Unknown";
+      return 'Unknown';
     }
     if (inversedName) {
       if (user.firstName) {
@@ -295,32 +295,32 @@ export default class Utils {
     const tenant = await user.getTenant();
     const _evseBaseURL = Utils.buildEvseURL(tenant.getSubdomain());
     // Add
-    return _evseBaseURL + "/users?UserID=" + user.getID() + hash;
+    return _evseBaseURL + '/users?UserID=' + user.getID() + hash;
   }
 
   static async buildEvseChargingStationURL(chargingStation, hash = '') {
     const tenant = await chargingStation.getTenant();
     const _evseBaseURL = Utils.buildEvseURL(tenant.getSubdomain());
 
-    return _evseBaseURL + "/charging-stations?ChargingStationID=" + chargingStation.getID() + hash;
+    return _evseBaseURL + '/charging-stations?ChargingStationID=' + chargingStation.getID() + hash;
   }
 
   static async buildEvseTransactionURL(chargingStation, transactionId, hash = '') {
     const tenant = await chargingStation.getTenant();
     const _evseBaseURL = Utils.buildEvseURL(tenant.getSubdomain());
     // Add
-    return _evseBaseURL + "/transactions?TransactionID=" + transactionId + hash;
+    return _evseBaseURL + '/transactions?TransactionID=' + transactionId + hash;
   }
 
   static isServerInProductionMode() {
     const env = process.env.NODE_ENV || 'dev';
-    return (env === "production");
+    return (env === 'production');
   }
 
   static hideShowMessage(message) {
     // Check Prod
     if (Utils.isServerInProductionMode()) {
-      return "An unexpected server error occurred. Check the server's logs!";
+      return 'An unexpected server error occurred. Check the server\'s logs!';
     }
     return message;
 
@@ -349,7 +349,7 @@ export default class Utils {
 
   public static checkRecordSkip(recordSkip: number | string): number {
     // String?
-    if (typeof recordSkip === "string") {
+    if (typeof recordSkip === 'string') {
       recordSkip = parseInt(recordSkip);
     }
     // Not provided?

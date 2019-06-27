@@ -9,7 +9,6 @@ const SettingFactory = require('./SettingFactory');
 const OcpiEndpointsFactory = require('./OcpiEndpointsFactory');
 
 export default abstract class Factory {
-
   public static site = SiteFactory;
   public static company = CompanyFactory;
   public static user = UserFactory;

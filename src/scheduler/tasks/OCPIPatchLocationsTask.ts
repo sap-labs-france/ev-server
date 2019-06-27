@@ -1,18 +1,10 @@
+import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
+import OCPIClient from '../../client/ocpi/OCPIClient';
+import OCPIEndpoint from '../../entity/OCPIEndpoint';
 import SchedulerTask from '../SchedulerTask';
 import Tenant from '../../entity/Tenant';
-import OCPIEndpoint from '../../entity/OCPIEndpoint';
-import Constants from '../../utils/Constants';
-import OCPIClient from '../../client/ocpi/OCPIClient';
 export default class OCPIPatchLocationsTask implements SchedulerTask {
-  constructor() {}
-
-  async run(config) {
-    const tenants = await Tenant.getTenants();
-    for (const tenant of tenants.result) {
-      OCPIPatchLocationsTask.processTenant(tenant, config);
-    }
-  }
 
   static async processTenant(tenant, config) {
     try {
@@ -20,9 +12,9 @@ export default class OCPIPatchLocationsTask implements SchedulerTask {
       if (!tenant.isComponentActive(Constants.COMPONENTS.OCPI)) {
         Logging.logDebug({
           tenantID: tenant.getID(),
-          module: "OCPIPatchLocationsTask",
-          method: "run", action: "OCPIPatchLocations",
-          message: `OCPI Inactive for this tenant. The task 'OCPIPatchLocationsTask' is skipped.`
+          module: 'OCPIPatchLocationsTask',
+          method: 'run', action: 'OCPIPatchLocations',
+          message: 'OCPI Inactive for this tenant. The task \'OCPIPatchLocationsTask\' is skipped.'
         });
 
         // Skip execution
@@ -30,9 +22,9 @@ export default class OCPIPatchLocationsTask implements SchedulerTask {
       }
       Logging.logInfo({
         tenantID: tenant.getID(),
-        module: "OCPIPatchLocationsTask",
-        method: "run", action: "OCPIPatchLocations",
-        message: `The task 'OCPIPatchLocationsTask' is being run`
+        module: 'OCPIPatchLocationsTask',
+        method: 'run', action: 'OCPIPatchLocations',
+        message: 'The task \'OCPIPatchLocationsTask\' is being run'
       });
 
       // Get all available endpoints
@@ -43,7 +35,7 @@ export default class OCPIPatchLocationsTask implements SchedulerTask {
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.getID(), "OCPIPatchLocations", error);
+      Logging.logActionExceptionMessage(tenant.getID(), 'OCPIPatchLocations', error);
     }
   }
 
@@ -53,8 +45,8 @@ export default class OCPIPatchLocationsTask implements SchedulerTask {
     if (ocpiEndpoint.getStatus() != Constants.OCPI_REGISTERING_STATUS.OCPI_REGISTERED) {
       Logging.logDebug({
         tenantID: ocpiEndpoint.getTenantID(),
-        module: "OCPIPatchLocationsTask",
-        method: "run", action: "OCPIPatchLocations",
+        module: 'OCPIPatchLocationsTask',
+        method: 'run', action: 'OCPIPatchLocations',
         message: `The OCPI Endpoint ${ocpiEndpoint.getName()} is not registered. Skipping the ocpiendpoint.`
       });
 
@@ -62,8 +54,8 @@ export default class OCPIPatchLocationsTask implements SchedulerTask {
     } else if (!ocpiEndpoint.isBackgroundPatchJobActive()) {
       Logging.logDebug({
         tenantID: ocpiEndpoint.getTenantID(),
-        module: "OCPIPatchLocationsTask",
-        method: "run", action: "OCPIPatchLocations",
+        module: 'OCPIPatchLocationsTask',
+        method: 'run', action: 'OCPIPatchLocations',
         message: `The OCPI Endpoint ${ocpiEndpoint.getName()} is inactive.`
       });
 
@@ -72,8 +64,8 @@ export default class OCPIPatchLocationsTask implements SchedulerTask {
 
     Logging.logInfo({
       tenantID: ocpiEndpoint.getTenantID(),
-      module: "OCPIPatchLocationsTask",
-      method: "patch", action: "OCPIPatchLocations",
+      module: 'OCPIPatchLocationsTask',
+      method: 'patch', action: 'OCPIPatchLocations',
       message: `The patching Locations process for endpoint ${ocpiEndpoint.getName()} is being processed`
     });
 
@@ -85,10 +77,17 @@ export default class OCPIPatchLocationsTask implements SchedulerTask {
 
     Logging.logInfo({
       tenantID: ocpiEndpoint.getTenantID(),
-      module: "OCPIPatchLocationsTask",
-      method: "patch", action: "OCPIPatchLocations",
+      module: 'OCPIPatchLocationsTask',
+      method: 'patch', action: 'OCPIPatchLocations',
       message: `The patching Locations process for endpoint ${ocpiEndpoint.getName()} is completed (Success: ${sendResult.success}/Failure: ${sendResult.failure})`
     });
+  }
+
+  async run(config) {
+    const tenants = await Tenant.getTenants();
+    for (const tenant of tenants.result) {
+      OCPIPatchLocationsTask.processTenant(tenant, config);
+    }
   }
 }
 

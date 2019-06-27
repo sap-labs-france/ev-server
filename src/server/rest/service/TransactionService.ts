@@ -1,20 +1,20 @@
-import Logging from '../../../utils/Logging';
-import AppError from '../../../exception/AppError';
-import AppAuthError from '../../../exception/AppAuthError';
-import Authorizations from '../../../authorization/Authorizations';
-import Constants from '../../../utils/Constants';
+import crypto from 'crypto';
+import fs from 'fs';
 import moment from 'moment';
+import AppAuthError from '../../../exception/AppAuthError';
+import AppError from '../../../exception/AppError';
+import Authorizations from '../../../authorization/Authorizations';
+import ChargingStation from '../../../entity/ChargingStation';
+import ConcurConnector from '../../../integration/refund/ConcurConnector';
+import Constants from '../../../utils/Constants';
+import Cypher from '../../../utils/Cypher';
+import TSGlobal from '../../../types/GlobalType';
+import Logging from '../../../utils/Logging';
+import OCPPService from '../../../server/ocpp/services/OCPPService';
+import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import TransactionSecurity from './security/TransactionSecurity';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import ChargingStation from '../../../entity/ChargingStation';
 import User from '../../../entity/User';
-import SettingStorage from "../../../storage/mongodb/SettingStorage";
-import ConcurConnector from "../../../integration/refund/ConcurConnector";
-import OCPPService from "../../../server/ocpp/services/OCPPService";
-import fs from "fs";
-import crypto from 'crypto';
-import TSGlobal from '../../../types/GlobalType';
-import Cypher from '../../../utils/Cypher';
 
 declare const global: TSGlobal;
 
@@ -27,7 +27,7 @@ export default class TransactionService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Transaction IDs must be provided`, Constants.HTTP_GENERAL_ERROR,
+          'Transaction IDs must be provided', Constants.HTTP_GENERAL_ERROR,
           'TransactionService', 'handleRefundTransactions', req.user);
       }
       const transactionsToRefund = [];
@@ -125,7 +125,7 @@ export default class TransactionService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Transaction's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+          'The Transaction\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
           'TransactionService', 'handleDeleteTransaction', req.user);
       }
       // Get Transaction
@@ -189,7 +189,7 @@ export default class TransactionService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Transaction's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+          'The Transaction\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
           'TransactionService', 'handleTransactionSoftStop', req.user);
       }
       // Get Transaction
@@ -274,7 +274,7 @@ export default class TransactionService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Transaction's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+          'The Transaction\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
           'TransactionService', 'handleGetChargingStationConsumptionFromTransaction', req.user);
       }
       // Get Transaction
@@ -333,7 +333,7 @@ export default class TransactionService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Transaction's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+          'The Transaction\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
           'TransactionService', 'handleRefundTransactions', req.user);
       }
       // Get Transaction
@@ -391,7 +391,7 @@ export default class TransactionService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Charging Station's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+          'The Charging Station\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
           'TransactionService', 'handleGetChargingStationTransactions', req.user);
       }
       // Connector Id is mandatory
@@ -399,7 +399,7 @@ export default class TransactionService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Connector's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+          'The Connector\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
           'TransactionService', 'handleGetChargingStationTransactions', req.user);
       }
       // Get Charge Box
@@ -604,8 +604,8 @@ export default class TransactionService {
         transaction.tagID = transaction.tagID ? Cypher.hash(transaction.tagID) : '';
       }
 
-      const filename = "transactions_export.csv";
-      fs.writeFile(filename, this.convertToCSV(transactions.result), (err) => {
+      const filename = 'transactions_export.csv';
+      fs.writeFile(filename, TransactionService.convertToCSV(transactions.result), (err) => {
         if (err) {
           throw err;
         }

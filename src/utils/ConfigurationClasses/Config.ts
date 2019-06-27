@@ -66,7 +66,7 @@ export interface Config {
     debug: boolean;
     tenantEnabled: string[];
     eMI3id: any;
-  };/*
+  }; /*
   "Notification": {
 		"Email": {
 			"enabled": true

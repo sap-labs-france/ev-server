@@ -1,15 +1,15 @@
-import uuid from 'uuid/v4';
-import OCPPService from '../OCPPService';
-import WSClient from '../../../../src/client/WSClient'; // from '../../../../src/client/WSClient');
 import config from '../../../config';
 import { performance } from 'perf_hooks';
+import uuid from 'uuid/v4';
+import OCPPService from '../OCPPService';
+import WSClient from '../../../../src/client/WSClient'; // From '../../../../src/client/WSClient');
 const OCPP_JSON_CALL_MESSAGE = 2;
 const OCPP_JSON_CALL_RESULT_MESSAGE = 3;
 
 export default class OCPPJsonService16 extends OCPPService {
   private _wsSessions: any;
   private requestHandler: any;
-  
+
   public constructor(serverUrl, requestHandler) {
     super(serverUrl);
     this._wsSessions = new Map();
@@ -17,7 +17,7 @@ export default class OCPPJsonService16 extends OCPPService {
   }
 
   public getVersion() {
-    return "1.6";
+    return '1.6';
   }
 
   public openConnection(chargeBoxIdentity) {
@@ -33,7 +33,7 @@ export default class OCPPJsonService16 extends OCPPService {
       const wsConnection = new WSClient(`${this.serverUrl}/${chargeBoxIdentity}`, wsClientOptions, false);
       // Opened
       wsConnection.onopen = () => {
-        // connection is opened and ready to use
+        // Connection is opened and ready to use
         resolve({ connection: wsConnection, requests: sentRequests });
       };
       // Handle Error Message
@@ -72,8 +72,8 @@ export default class OCPPJsonService16 extends OCPPService {
   public async handleRequest(chargeBoxIdentity, messageId, commandName, commandPayload) {
     let result = {};
 
-    if (this.requestHandler && typeof this.requestHandler["handle" + commandName] === 'function') {
-      result = await this.requestHandler["handle" + commandName](commandPayload);
+    if (this.requestHandler && typeof this.requestHandler['handle' + commandName] === 'function') {
+      result = await this.requestHandler['handle' + commandName](commandPayload);
     }
     await this._send(chargeBoxIdentity, this._buildResponse(messageId, result));
 
@@ -82,7 +82,9 @@ export default class OCPPJsonService16 extends OCPPService {
   public closeConnection() {
     // Close
     if (this._wsSessions) {
-      this._wsSessions.forEach(session => session.connection.close());
+      this._wsSessions.forEach((session) => {
+        return session.connection.close();
+      });
       this._wsSessions = null;
     }
   }
@@ -183,5 +185,3 @@ export default class OCPPJsonService16 extends OCPPService {
       payload];
   }
 }
-
-// module.exports = OCPPJsonService16;

@@ -1,14 +1,14 @@
-import Vehicle from '../../entity/Vehicle';
-import VehicleManufacturer from '../../entity/VehicleManufacturer';
+import { ObjectID } from 'mongodb';
+import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
-import Utils from '../../utils/Utils';
-import VehicleStorage from './VehicleStorage';
-import BackendError from '../../exception/BackendError';
-import { ObjectID } from 'mongodb';
 import DatabaseUtils from './DatabaseUtils';
-import Logging from '../../utils/Logging';
 import TSGlobal from '../../types/GlobalType';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
+import Vehicle from '../../entity/Vehicle';
+import VehicleManufacturer from '../../entity/VehicleManufacturer';
+import VehicleStorage from './VehicleStorage';
 
 declare const global: TSGlobal;
 
@@ -72,8 +72,8 @@ export default class VehicleManufacturerStorage {
       // ID must be provided!
       throw new BackendError(
         Constants.CENTRAL_SERVER,
-        `Vehicle Manufacturer Logo has no ID`,
-        "VehicleManufacturerStorage", "saveVehicleManufacturerLogo");
+        'Vehicle Manufacturer Logo has no ID',
+        'VehicleManufacturerStorage', 'saveVehicleManufacturerLogo');
     }
     // Modify
     await global.database.getCollection<any>(tenantID, 'vehiclemanufacturerlogos').findOneAndUpdate(
@@ -123,8 +123,8 @@ export default class VehicleManufacturerStorage {
       // ID must be provided!
       throw new BackendError(
         Constants.CENTRAL_SERVER,
-        `Vehicle Manufacturer has no ID and no Name`,
-        "VehicleManufacturerStorage", "saveVehicleManufacturer");
+        'Vehicle Manufacturer has no ID and no Name',
+        'VehicleManufacturerStorage', 'saveVehicleManufacturer');
     }
     const vehicleManufacturerFilter: any = {};
     // Build Request
@@ -166,7 +166,7 @@ export default class VehicleManufacturerStorage {
     if (params.search) {
       // Build filter
       filters.$or = [
-        { "name": { $regex: params.search, $options: 'i' } }
+        { 'name': { $regex: params.search, $options: 'i' } }
       ];
     }
     // Create Aggregation
@@ -182,17 +182,17 @@ export default class VehicleManufacturerStorage {
       //  Vehicles
       aggregation.push({
         $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, "vehicles"),
-          localField: "_id",
-          foreignField: "vehicleManufacturerID",
-          as: "vehicles"
+          from: DatabaseUtils.getCollectionName(tenantID, 'vehicles'),
+          localField: '_id',
+          foreignField: 'vehicleManufacturerID',
+          as: 'vehicles'
         }
       });
     }
     // Type?
     if (params.vehicleType) {
       aggregation.push({
-        $match: { "vehicles.type": params.vehicleType }
+        $match: { 'vehicles.type': params.vehicleType }
       });
     }
     // Limit records?
@@ -202,7 +202,7 @@ export default class VehicleManufacturerStorage {
     }
     // Count Records
     const vehiclemanufacturersCountMDB = await global.database.getCollection<any>(tenantID, 'vehiclemanufacturers')
-      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {
@@ -240,7 +240,7 @@ export default class VehicleManufacturerStorage {
     });
     // Read DB
     const vehiclemanufacturersMDB = await global.database.getCollection<any>(tenantID, 'vehiclemanufacturers')
-      .aggregate(aggregation,{ collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     const vehicleManufacturers = [];
     // Check
@@ -279,7 +279,7 @@ export default class VehicleManufacturerStorage {
     const vehicles = await VehicleStorage.getVehicles(tenantID, { 'vehicleManufacturerID': id });
     // Delete
     for (const vehicle of vehicles.result) {
-      //	Delete Vehicle
+      // Delete Vehicle
       await vehicle.delete();
     }
     // Delete the Vehicle Manufacturers

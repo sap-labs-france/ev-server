@@ -1,16 +1,16 @@
 import crypto from 'crypto';
+import fs from 'fs';
 import Mustache from 'mustache';
+import BackendError from '../../exception/BackendError';
+import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
-import Configuration from '../../utils/Configuration';
-import Utils from '../../utils/Utils';
-import BackendError from '../../exception/BackendError';
 import DatabaseUtils from './DatabaseUtils';
-import Logging from '../../utils/Logging';
-import fs from 'fs';
 import TSGlobal from '../../types/GlobalType';
-import User from '../../entity/User';
+import Logging from '../../utils/Logging';
 import Site from '../../entity/Site';
+import User from '../../entity/User';
+import Utils from '../../utils/Utils';
 
 declare const global: TSGlobal;
 
@@ -43,7 +43,7 @@ export default class UserStorage {
     return eulaText;
   }
 
-  static async getEndUserLicenseAgreement(tenantID, language = "en") {
+  static async getEndUserLicenseAgreement(tenantID, language = 'en') {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getEndUserLicenseAgreement');
     // Check Tenant
@@ -60,7 +60,7 @@ export default class UserStorage {
       }
     }
     if (!languageFound) {
-      language = "en";
+      language = 'en';
     }
     // Get current eula
     const currentEula = await UserStorage.getLatestEndUserLicenseAgreement(/* TenantID, TODO ? */language);
@@ -77,7 +77,7 @@ export default class UserStorage {
       // Check if eula has changed
       currentEulaHash = crypto.createHash('sha256')
         .update(currentEula)
-        .digest("hex");
+        .digest('hex');
       if (currentEulaHash !== eulaMDB.hash) {
         // New Version
         eula = {};
@@ -113,7 +113,7 @@ export default class UserStorage {
     eula.text = currentEula;
     eula.hash = crypto.createHash('sha256')
       .update(currentEula)
-      .digest("hex");
+      .digest('hex');
     // Create
     const result = await global.database.getCollection<any>(tenantID, 'eulas').insertOne(eula);
     // Update object
@@ -259,8 +259,8 @@ export default class UserStorage {
         for (const siteID of siteIDs) {
           // Execute
           await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
-            "userID": Utils.convertToObjectID(userID),
-            "siteID": Utils.convertToObjectID(siteID)
+            'userID': Utils.convertToObjectID(userID),
+            'siteID': Utils.convertToObjectID(siteID)
           });
         }
       }
@@ -283,9 +283,9 @@ export default class UserStorage {
         for (const siteID of siteIDs) {
           // Add
           siteUsers.push({
-            "_id": crypto.createHash('sha256').update(`${siteID}~${userID}`).digest("hex"),
-            "userID": Utils.convertToObjectID(userID),
-            "siteID": Utils.convertToObjectID(siteID)
+            '_id': crypto.createHash('sha256').update(`${siteID}~${userID}`).digest('hex'),
+            'userID': Utils.convertToObjectID(userID),
+            'siteID': Utils.convertToObjectID(siteID)
           });
         }
         // Execute
@@ -306,8 +306,8 @@ export default class UserStorage {
       // ID must be provided!
       throw new BackendError(
         Constants.CENTRAL_SERVER,
-        `User has no ID and no Email`,
-        "UserStorage", "saveUser");
+        'User has no ID and no Email',
+        'UserStorage', 'saveUser');
     }
     // Build Request
     const userFilter: any = {};
@@ -330,7 +330,7 @@ export default class UserStorage {
     // Create
     const updatedUser = new User(tenantID, result.value);
     // Add tags
-    if (userToSave.hasOwnProperty("tagIDs")) {
+    if (userToSave.hasOwnProperty('tagIDs')) {
       // Delete Tag IDs
       await global.database.getCollection<any>(tenantID, 'tags')
         .deleteMany({ 'userID': Utils.convertToObjectID(updatedUser.getID()) });
@@ -338,7 +338,7 @@ export default class UserStorage {
       if (userToSave.tagIDs.length > 0) {
         // Create the list
         for (const tagID of userToSave.tagIDs) {
-          if (!tagID || tagID === "") {
+          if (!tagID || tagID === '') {
             continue;
           }
           // Modify
@@ -365,8 +365,8 @@ export default class UserStorage {
       // ID must be provided!
       throw new BackendError(
         Constants.CENTRAL_SERVER,
-        `User Image has no ID`,
-        "UserStorage", "saveUserImage");
+        'User Image has no ID',
+        'UserStorage', 'saveUserImage');
     }
     // Modify and return the modified document
     await global.database.getCollection<any>(tenantID, 'userimages').findOneAndUpdate(
@@ -387,12 +387,12 @@ export default class UserStorage {
     // Check Skip
     skip = Utils.checkRecordSkip(skip);
     const filters: any = {
-      "$and": [
+      '$and': [
         {
-          "$or": [
-            { "deleted": { $exists: false } },
-            { "deleted": false },
-            { "deleted": null }
+          '$or': [
+            { 'deleted': { $exists: false } },
+            { 'deleted': false },
+            { 'deleted': null }
           ]
         }
       ]
@@ -401,13 +401,13 @@ export default class UserStorage {
     if (params.search) {
       // Build filter
       filters.$and.push({
-        "$or": [
-          { "_id": { $regex: params.search, $options: 'i' } },
-          { "name": { $regex: params.search, $options: 'i' } },
-          { "firstName": { $regex: params.search, $options: 'i' } },
-          { "tags._id": { $regex: params.search, $options: 'i' } },
-          { "email": { $regex: params.search, $options: 'i' } },
-          { "plateID": { $regex: params.search, $options: 'i' } }
+        '$or': [
+          { '_id': { $regex: params.search, $options: 'i' } },
+          { 'name': { $regex: params.search, $options: 'i' } },
+          { 'firstName': { $regex: params.search, $options: 'i' } },
+          { 'tags._id': { $regex: params.search, $options: 'i' } },
+          { 'email': { $regex: params.search, $options: 'i' } },
+          { 'plateID': { $regex: params.search, $options: 'i' } }
         ]
       });
     }
@@ -438,10 +438,10 @@ export default class UserStorage {
     // Add TagIDs
     aggregation.push({
       $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, "tags"),
-        localField: "_id",
-        foreignField: "userID",
-        as: "tags"
+        from: DatabaseUtils.getCollectionName(tenantID, 'tags'),
+        localField: '_id',
+        foreignField: 'userID',
+        as: 'tags'
       }
     });
     // Filters
@@ -457,21 +457,21 @@ export default class UserStorage {
       // Add Site
       aggregation.push({
         $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, "siteusers"),
-          localField: "_id",
-          foreignField: "userID",
-          as: "siteusers"
+          from: DatabaseUtils.getCollectionName(tenantID, 'siteusers'),
+          localField: '_id',
+          foreignField: 'userID',
+          as: 'siteusers'
         }
       });
 
       // Check which filter to use
       if (params.siteID) {
         aggregation.push({
-          $match: { "siteusers.siteID": Utils.convertToObjectID(params.siteID) }
+          $match: { 'siteusers.siteID': Utils.convertToObjectID(params.siteID) }
         });
       } else if (params.excludeSiteID) {
         aggregation.push({
-          $match: { "siteusers.siteID": { $ne: Utils.convertToObjectID(params.excludeSiteID) } }
+          $match: { 'siteusers.siteID': { $ne: Utils.convertToObjectID(params.excludeSiteID) } }
         });
       }
     }
@@ -482,7 +482,7 @@ export default class UserStorage {
     }
     // Count Records
     const usersCountMDB = await global.database.getCollection<any>(tenantID, 'users')
-      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {
@@ -496,22 +496,22 @@ export default class UserStorage {
     aggregation.pop();
     // Project
     aggregation.push({
-      "$project": {
-        "_id": 1,
-        "name": 1,
-        "firstName": 1,
-        "email": 1,
-        "status": 1,
-        "role": 1,
-        "createdOn": 1,
-        "createdBy": 1,
-        "lastChangedOn": 1,
-        "lastChangedBy": 1,
-        "eulaAcceptedOn": 1,
-        "eulaAcceptedVersion": 1,
-        "tags": 1,
-        "plateID": 1,
-        "notificationsActive":1
+      '$project': {
+        '_id': 1,
+        'name': 1,
+        'firstName': 1,
+        'email': 1,
+        'status': 1,
+        'role': 1,
+        'createdOn': 1,
+        'createdBy': 1,
+        'lastChangedOn': 1,
+        'lastChangedBy': 1,
+        'eulaAcceptedOn': 1,
+        'eulaAcceptedVersion': 1,
+        'tags': 1,
+        'plateID': 1,
+        'notificationsActive': 1
       }
     });
     // Sort
@@ -570,12 +570,12 @@ export default class UserStorage {
     // Check Skip
     skip = Utils.checkRecordSkip(skip);
     const filters: any = {
-      "$and": [
+      '$and': [
         {
-          "$or": [
-            { "deleted": { $exists: false } },
-            { "deleted": false },
-            { "deleted": null }
+          '$or': [
+            { 'deleted': { $exists: false } },
+            { 'deleted': false },
+            { 'deleted': null }
           ]
         }
       ]
@@ -584,12 +584,12 @@ export default class UserStorage {
     if (params.search) {
       // Build filter
       filters.$and.push({
-        "$or": [
-          { "_id": { $regex: params.search, $options: 'i' } },
-          { "name": { $regex: params.search, $options: 'i' } },
-          { "firstName": { $regex: params.search, $options: 'i' } },
-          { "tags._id": { $regex: params.search, $options: 'i' } },
-          { "email": { $regex: params.search, $options: 'i' } }
+        '$or': [
+          { '_id': { $regex: params.search, $options: 'i' } },
+          { 'name': { $regex: params.search, $options: 'i' } },
+          { 'firstName': { $regex: params.search, $options: 'i' } },
+          { 'tags._id': { $regex: params.search, $options: 'i' } },
+          { 'email': { $regex: params.search, $options: 'i' } }
         ]
       });
     }
@@ -616,10 +616,10 @@ export default class UserStorage {
     // Add TagIDs
     aggregation.push({
       $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, "tags"),
-        localField: "_id",
-        foreignField: "userID",
-        as: "tags"
+        from: DatabaseUtils.getCollectionName(tenantID, 'tags'),
+        localField: '_id',
+        foreignField: 'userID',
+        as: 'tags'
       }
     });
     // Filters
@@ -635,14 +635,14 @@ export default class UserStorage {
       // Add Site
       aggregation.push({
         $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, "siteusers"),
-          localField: "_id",
-          foreignField: "userID",
-          as: "siteusers"
+          from: DatabaseUtils.getCollectionName(tenantID, 'siteusers'),
+          localField: '_id',
+          foreignField: 'userID',
+          as: 'siteusers'
         }
       });
       aggregation.push({
-        $match: { "siteusers.siteID": Utils.convertToObjectID(params.siteID) }
+        $match: { 'siteusers.siteID': Utils.convertToObjectID(params.siteID) }
       });
     }
     // Limit records?
@@ -652,7 +652,7 @@ export default class UserStorage {
     }
     // Count Records
     const usersCountMDB = await global.database.getCollection<any>(tenantID, 'users')
-      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {
@@ -666,20 +666,20 @@ export default class UserStorage {
     aggregation.pop();
     // Project
     aggregation.push({
-      "$project": {
-        "_id": 1,
-        "name": 1,
-        "firstName": 1,
-        "email": 1,
-        "status": 1,
-        "role": 1,
-        "createdOn": 1,
-        "createdBy": 1,
-        "lastChangedOn": 1,
-        "lastChangedBy": 1,
-        "eulaAcceptedOn": 1,
-        "eulaAcceptedVersion": 1,
-        "tags": 1
+      '$project': {
+        '_id': 1,
+        'name': 1,
+        'firstName': 1,
+        'email': 1,
+        'status': 1,
+        'role': 1,
+        'createdOn': 1,
+        'createdBy': 1,
+        'lastChangedOn': 1,
+        'lastChangedBy': 1,
+        'eulaAcceptedOn': 1,
+        'eulaAcceptedVersion': 1,
+        'tags': 1
       }
     });
     // Sort
@@ -774,19 +774,19 @@ export default class UserStorage {
     // Get Sites
     aggregation.push({
       $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, "sites"),
-        localField: "siteID",
-        foreignField: "_id",
-        as: "sites"
+        from: DatabaseUtils.getCollectionName(tenantID, 'sites'),
+        localField: 'siteID',
+        foreignField: '_id',
+        as: 'sites'
       }
     });
     // Single Record
     aggregation.push({
-      $unwind: { "path": "$sites", "preserveNullAndEmptyArrays": true }
+      $unwind: { 'path': '$sites', 'preserveNullAndEmptyArrays': true }
     });
     // Count Records
     const usersCountMDB = await global.database.getCollection<any>(tenantID, 'siteusers')
-      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Sort
     if (sort) {
@@ -797,7 +797,7 @@ export default class UserStorage {
     } else {
       // Default
       aggregation.push({
-        $sort: { "sites.name": 1 }
+        $sort: { 'sites.name': 1 }
       });
     }
     // Skip
@@ -842,7 +842,7 @@ export default class UserStorage {
 
       // Get the Tags
       const tagsMDB = await global.database.getCollection<any>(tenantID, 'tags')
-        .find({ "userID": Utils.convertToObjectID(user.getID()) })
+        .find({ 'userID': Utils.convertToObjectID(user.getID()) })
         .toArray();
 
       // Check
