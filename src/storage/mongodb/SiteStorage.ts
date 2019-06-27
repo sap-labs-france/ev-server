@@ -153,13 +153,13 @@ export default class SiteStorage {
     const usersCountMDB = await global.database.getCollection<any>(tenantID, 'siteusers')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
-    // Adjust the sort to match user's collection
-    for (const key in sort) {
-      sort['users.' + key] = sort[key];
-      delete sort[key];
-    }
     // Sort
     if (sort) {
+      // Adjust the sort to match user's collection
+      for (const key in sort) {
+        sort['users.' + key] = sort[key];
+        delete sort[key];
+      }
       aggregation.push({
         $sort: sort
       });
