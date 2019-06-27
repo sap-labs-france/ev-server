@@ -1,20 +1,20 @@
-import AbstractConnector from '../AbstractConnector';
-import Logging from '../../utils/Logging';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
-import querystring from 'querystring';
-import moment from 'moment-timezone';
-import ConnectionStorage from '../../storage/mongodb/ConnectionStorage';
-import TransactionStorage from '../../storage/mongodb/TransactionStorage';
-import ChargingStation from "../../entity/ChargingStation";
-import Constants from '../../utils/Constants';
-import AppError from '../../exception/AppError';
-import InternalError from '../../exception/InternalError';
+import BBPromise from 'bluebird';
 import jwt from 'jsonwebtoken';
-import BBPromise from "bluebird";
-import Transaction from '../../entity/Transaction';
+import moment from 'moment-timezone';
+import querystring from 'querystring';
+import AbstractConnector from '../AbstractConnector';
+import AppError from '../../exception/AppError';
+import ChargingStation from '../../entity/ChargingStation';
+import ConnectionStorage from '../../storage/mongodb/ConnectionStorage';
+import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
+import InternalError from '../../exception/InternalError';
+import Logging from '../../utils/Logging';
 import Site from '../../entity/Site';
+import Transaction from '../../entity/Transaction';
+import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 
 const MODULE_NAME = 'ConcurConnector';
 const CONNECTOR_ID = 'concur';
@@ -41,16 +41,16 @@ const CONNECTOR_ID = 'concur';
         retryDelay: (retryCount, error) => {
           if (error.config.method === 'post') {
             if (error.config.url.endsWith('/token')) {
-              Logging.logException(new InternalError(`Unable to request token, response status ${error.response.status}, attempt ${retryCount}`, error.response.data), "Refund", MODULE_NAME, MODULE_NAME, "AxiosRetry", tenantID);
+              Logging.logException(new InternalError(`Unable to request token, response status ${error.response.status}, attempt ${retryCount}`, error.response.data), 'Refund', MODULE_NAME, MODULE_NAME, 'AxiosRetry', tenantID);
             } else {
               const payload = {
                 error: error.response.data,
                 payload: JSON.parse(error.config.data)
               };
-              Logging.logException(new InternalError(`Unable to post data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`, payload), "Refund", MODULE_NAME, MODULE_NAME, "AxiosRetry", tenantID);
+              Logging.logException(new InternalError(`Unable to post data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`, payload), 'Refund', MODULE_NAME, MODULE_NAME, 'AxiosRetry', tenantID);
             }
           } else {
-            Logging.logException(new InternalError(`Unable to ${error.config.url} data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`, error.response.data), "Refund", MODULE_NAME, MODULE_NAME, "AxiosRetry", tenantID);
+            Logging.logException(new InternalError(`Unable to ${error.config.url} data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`, error.response.data), 'Refund', MODULE_NAME, MODULE_NAME, 'AxiosRetry', tenantID);
           }
           return retryCount * 200;
         },
@@ -187,8 +187,8 @@ const CONNECTOR_ID = 'concur';
       Logging.logDebug({
         tenantID: this.getTenantID(),
         user: userId,
-        source: MODULE_NAME, action: "Refund",
-        module: MODULE_NAME, method: "createQuickExpense",
+        source: MODULE_NAME, action: 'Refund',
+        module: MODULE_NAME, method: 'createQuickExpense',
         message: `Concur access token has been successfully generated in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
       });
       connection.updateData(response.data, new Date(), ConcurConnector.computeValidUntilAt(response));
@@ -254,7 +254,7 @@ const CONNECTOR_ID = 'concur';
           await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
           refundedTransactions.push(transaction);
         } catch (exception) {
-          Logging.logException(exception, "Refund", MODULE_NAME, MODULE_NAME, "refund", this.getTenantID(), user);
+          Logging.logException(exception, 'Refund', MODULE_NAME, MODULE_NAME, 'refund', this.getTenantID(), user);
         }
       },
       { concurrency: 10 });
@@ -262,8 +262,8 @@ const CONNECTOR_ID = 'concur';
     Logging.logInfo({
       tenantID: this.getTenantID(),
       user: user.getID(),
-      source: MODULE_NAME, action: "Refund",
-      module: MODULE_NAME, method: "Refund",
+      source: MODULE_NAME, action: 'Refund',
+      module: MODULE_NAME, method: 'Refund',
       message: `${refundedTransactions.length} transactions have been transferred to Concur in ${moment().diff(startDate, 'milliseconds')} ms`
     });
 
@@ -340,7 +340,7 @@ const CONNECTOR_ID = 'concur';
     try {
       const startDate = moment();
       const response = await axios.post(`${this.getAuthenticationUrl()}/quickexpense/v4/users/${jwt.decode(connection.getData().access_token).sub}/context/TRAVELER/quickexpenses`, {
-        'comment': `Session started the ${moment.tz(transaction.getStartDate(), transaction.getTimezone()).format("YYYY-MM-DD HH:mm:ss")} during ${moment.duration(transaction.getStopTotalDurationSecs(), 'seconds').format(`h[h]mm`, { trim: false })}`,
+        'comment': `Session started the ${moment.tz(transaction.getStartDate(), transaction.getTimezone()).format('YYYY-MM-DD HH:mm:ss')} during ${moment.duration(transaction.getStopTotalDurationSecs(), 'seconds').format('h[h]mm', { trim: false })}`,
         'vendor': this.getReportName(),
         'entryDetails': `Refund of transaction ${transaction.getID}`,
         'expenseTypeID': this.getExpenseTypeCode(),
@@ -351,7 +351,7 @@ const CONNECTOR_ID = 'concur';
           'currencyCode': transaction.getStopPriceUnit(),
           'value': transaction.getStopPrice()
         },
-        'transactionDate': moment.tz(transaction.getStartDate(), transaction.getTimezone()).format("YYYY-MM-DD")
+        'transactionDate': moment.tz(transaction.getStartDate(), transaction.getTimezone()).format('YYYY-MM-DD')
       }, {
         headers: {
           Accept: 'application/json',
@@ -361,8 +361,8 @@ const CONNECTOR_ID = 'concur';
       Logging.logDebug({
         tenantID: this.getTenantID(),
         user: user.getID(),
-        source: MODULE_NAME, action: "Refund",
-        module: MODULE_NAME, method: "createQuickExpense",
+        source: MODULE_NAME, action: 'Refund',
+        module: MODULE_NAME, method: 'createQuickExpense',
         message: `Transaction ${transaction.getID()} has been successfully transferred in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
       });
       return response.data.quickExpenseIdUri;
@@ -370,7 +370,7 @@ const CONNECTOR_ID = 'concur';
       if (e.response) {
         throw new InternalError(`Unable to create quickExpense, response status ${e.response.status}`, e.response.data);
       } else {
-        throw new InternalError(`Unable to create expense report`, e);
+        throw new InternalError('Unable to create expense report', e);
       }
     }
   }
@@ -388,8 +388,8 @@ const CONNECTOR_ID = 'concur';
     try {
       const startDate = moment();
       const response = await axios.post(`${this.getApiUrl()}/api/v3.0/expense/entries`, {
-        'Description': `E-Mobility reimbursement ${moment.tz(transaction.getStartDate(), transaction.getTimezone()).format("YYYY-MM-DD")}`,
-        'Comment': `Session started the ${moment.tz(transaction.getStartDate(), transaction.getTimezone()).format("YYYY-MM-DD HH:mm:ss")} during ${moment.duration(transaction.getStopTotalDurationSecs(), 'seconds').format(`h[h]mm`, { trim: false })}`,
+        'Description': `E-Mobility reimbursement ${moment.tz(transaction.getStartDate(), transaction.getTimezone()).format('YYYY-MM-DD')}`,
+        'Comment': `Session started the ${moment.tz(transaction.getStartDate(), transaction.getTimezone()).format('YYYY-MM-DD HH:mm:ss')} during ${moment.duration(transaction.getStopTotalDurationSecs(), 'seconds').format('h[h]mm', { trim: false })}`,
         'VendorDescription': 'E-Mobility',
         'Custom1': transaction.getID(),
         'ExpenseTypeCode': this.getExpenseTypeCode(),
@@ -400,7 +400,7 @@ const CONNECTOR_ID = 'concur';
         'TaxReceiptType': 'N',
         'TransactionAmount': transaction.getStopPrice(),
         'TransactionCurrencyCode': transaction.getStopPriceUnit(),
-        'TransactionDate': moment.tz(transaction.getStartDate(), transaction.getTimezone()).format("YYYY-MM-DD"),
+        'TransactionDate': moment.tz(transaction.getStartDate(), transaction.getTimezone()).format('YYYY-MM-DD'),
         'SpendCategoryCode': 'COCAR',
         'LocationID': location.ID
 
@@ -413,8 +413,8 @@ const CONNECTOR_ID = 'concur';
       Logging.logDebug({
         tenantID: this.getTenantID(),
         user: user.getID(),
-        source: MODULE_NAME, action: "Refund",
-        module: MODULE_NAME, method: "createExpenseReportEntry",
+        source: MODULE_NAME, action: 'Refund',
+        module: MODULE_NAME, method: 'createExpenseReportEntry',
         message: `Transaction ${transaction.getID()} has been successfully transferred in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
       });
       return response.data.ID;
@@ -422,7 +422,7 @@ const CONNECTOR_ID = 'concur';
       if (e.response) {
         throw new InternalError(`Unable to create expense entry, response status ${e.response.status}`, e.response.data);
       } else {
-        throw new InternalError(`Unable to create expense entry`, e);
+        throw new InternalError('Unable to create expense entry', e);
       }
     }
   }
@@ -437,7 +437,7 @@ const CONNECTOR_ID = 'concur';
     try {
       const startDate = moment();
       const response = await axios.post(`${this.getApiUrl()}/api/v3.0/expense/reports`, {
-        'Name': `${this.getReportName()} - ${moment.tz(timezone).format("DD/MM/YY HH:mm")}`,
+        'Name': `${this.getReportName()} - ${moment.tz(timezone).format('DD/MM/YY HH:mm')}`,
         'PolicyID': this.getPolicyID()
       }, {
         headers: {
@@ -448,8 +448,8 @@ const CONNECTOR_ID = 'concur';
       Logging.logDebug({
         tenantID: this.getTenantID(),
         user: user.getID(),
-        source: MODULE_NAME, action: "Refund",
-        module: MODULE_NAME, method: "createExpenseReport",
+        source: MODULE_NAME, action: 'Refund',
+        module: MODULE_NAME, method: 'createExpenseReport',
         message: `Report has been successfully created in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
       });
       return response.data.ID;
@@ -457,7 +457,7 @@ const CONNECTOR_ID = 'concur';
       if (e.response) {
         throw new InternalError(`Unable to create expense report, response status ${e.response.status}`, e.response.data);
       } else {
-        throw new InternalError(`Unable to create expense report`, e);
+        throw new InternalError('Unable to create expense report', e);
       }
     }
   }

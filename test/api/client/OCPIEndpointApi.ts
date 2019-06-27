@@ -1,5 +1,5 @@
-import CrudApi from './utils/CrudApi';
 import Constants from './utils/Constants';
+import CrudApi from './utils/CrudApi';
 
 export default class OCPIEndpointApi extends CrudApi {
   public constructor(authenticatedApi) {
@@ -26,5 +26,3 @@ export default class OCPIEndpointApi extends CrudApi {
     return super.delete(id, '/client/api/OcpiEndpointDelete');
   }
 }
-
-// module.exports = OCPIEndpointApi;

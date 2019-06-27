@@ -1,13 +1,13 @@
 
+import chai, { expect } from 'chai';
 import path from 'path';
+import CentralServerService from './client/CentralServerService';
+import ContextBuilder from './ContextProvider/ContextBuilder';
+import Factory from '../factories/Factory';
 import TSGlobal from '../../src/types/GlobalType';
+
 declare const global: TSGlobal;
 global.appRoot = path.resolve(__dirname, '../../src');
-import chai from 'chai';
-import {expect} from 'chai';
-import ContextBuilder from './ContextProvider/ContextBuilder';
-import CentralServerService from './client/CentralServerService';
-import Factory from '../factories/Factory';
 
 // For Visual Studio it is recommended to install Mocha sidebar and Chai snippets
 // Mocha is the test framework and chai provides functions to check expectations
@@ -22,7 +22,7 @@ describe('Unit test Context Builder', function() {
     // To be used with care as more than 20 tenants!!!
     const contextBuilder = new ContextBuilder();
     await contextBuilder.prepareContexts();
-    // this.tenantContext = await ContextBuilder.getTenantContext(TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS, SITE_CONTEXTS.SITE_BASIC)
+    // pragma this.tenantContext = await ContextBuilder.getTenantContext(TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS, SITE_CONTEXTS.SITE_BASIC)
     // It will build all tenants except if you provide input arguments to limit to some contexts only.
     // if you want to limit tom some context only
     // await ContextBuilder.prepareContext([TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS with any additional context], [ORGANIZATION_CONTEXTS.SITE_WITH_ACL with any additional context]);
@@ -32,20 +32,20 @@ describe('Unit test Context Builder', function() {
   });
 
   afterEach(async () => {
-    // console.log('Reinitialize content after each test');
+    // pragma console.log('Reinitialize content after each test');
     // await ContextBuilder.initializeAllTenantContents(); //.then(() => done());
   });
 
   after(async () => {
-    // console.log('Reinitialize content after complete test scenario');
+    // pragma console.log('Reinitialize content after complete test scenario');
     // await ContextBuilder.initializeAllTenantContents();
   });
 
   describe('Context builder test case', () => {
     it('Builder dummy test', async () => {
       const test = 2;
-      // const adminUser = this.tenantContextAll.getContextUser(null, 'florent.pernice@sap.com');
-      //startTransaction(chargingStation, connectorId, tagId, meterStart, startDate, expectedStatus = 'Accepted')
+      // pragma const adminUser = this.tenantContextAll.getContextUser(null, 'florent.pernice@sap.com');
+      // startTransaction(chargingStation, connectorId, tagId, meterStart, startDate, expectedStatus = 'Accepted')
       // await this.tenantContextAll.startTransaction(this.tenantContextAll.getOrganizationContext(SITE_CONTEXTS.SITE_BASIC).getChargingStations()[0], 1,
       //   adminUser.tagIDs[0], 0, moment());
       expect(test).to.equal(2);
@@ -57,5 +57,7 @@ describe('Unit test Context Builder', function() {
 
 function timeout(ms) {
   // eslint-disable-next-line no-undef
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => {
+    return setTimeout(resolve, ms);
+  });
 }

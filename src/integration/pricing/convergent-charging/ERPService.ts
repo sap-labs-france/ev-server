@@ -1,8 +1,8 @@
 import { soap } from 'strong-soap';
-import ConnectionStorage from "../../../storage/mongodb/ConnectionStorage";
 import AbstractSoapClient from './AbstractSoapClient';
-import InternalError from '../../../exception/InternalError';
+import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 import TSGlobal from '../../../types/GlobalType';
+import InternalError from '../../../exception/InternalError';
 declare const global: TSGlobal;
 
 export default class ERPService extends AbstractSoapClient {
@@ -38,15 +38,15 @@ export default class ERPService extends AbstractSoapClient {
     const invoiceCreateRequest = new InvoiceCreateRequest(connection.getData().gpart, connection.getData().vkont, 1, 'SDBC', 'YN');
     const result = await this.execute(invoiceCreateRequest);
     if (!result.data.InvoiceDocumentNumber) {
-      if (result.data.status === "error") {
+      if (result.data.status === 'error') {
         throw new InternalError(result.data.message, result.data);
       } else if (result.data.ReturnedMessage) {
         if (result.data.ReturnedMessage.detail && result.data.ReturnedMessage.detail[2].$attributes.value === '115') {
           return null;
         }
-        throw new InternalError("Unable to create invoice", result.data.ReturnedMessage);
+        throw new InternalError('Unable to create invoice', result.data.ReturnedMessage);
       }
-      throw new InternalError("Unable to create invoice", result.data);
+      throw new InternalError('Unable to create invoice', result.data);
     }
     return result.data.InvoiceDocumentNumber;
   }

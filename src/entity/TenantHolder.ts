@@ -1,6 +1,6 @@
-import TenantStorage from '../storage/mongodb/TenantStorage';
-import Tenant from './Tenant';
 import BackendError from '../exception/BackendError';
+import Tenant from './Tenant';
+import TenantStorage from '../storage/mongodb/TenantStorage';
 
 export default abstract class TenantHolder {
   private tenant: Tenant;
@@ -21,7 +21,7 @@ export default abstract class TenantHolder {
     if (!this.tenant) {
       this.tenant = await TenantStorage.getTenant(this.tenantID);
       if (!this.tenant) {
-        throw new BackendError("TenantHolder#getTenant", "TenantStorage.getTenant did not return Tenant");
+        throw new BackendError('TenantHolder#getTenant', 'TenantStorage.getTenant did not return Tenant');
       }
     }
     return this.tenant;

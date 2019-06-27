@@ -1,13 +1,13 @@
-import Tenant from '../../entity/Tenant';
-import OCPIServerError from '../../exception/OCPIServerError';
-import OCPIUtils from './OCPIUtils';
-import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
 import { Request, Response } from 'express';
 import AbstractEndpoint from './ocpi-services-impl/AbstractEndpoint';
 import BackendError from '../../exception/BackendError';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import OCPIServerError from '../../exception/OCPIServerError';
+import OCPIUtils from './OCPIUtils';
+import Tenant from '../../entity/Tenant';
 
-const MODULE_NAME = "AbstractOCPIService";
+const MODULE_NAME = 'AbstractOCPIService';
 
 import SourceMap from 'source-map-support';
 SourceMap.install();
@@ -23,7 +23,7 @@ export default abstract class AbstractOCPIService {
   // Create OCPI Service
   public constructor(
     private readonly ocpiRestConfig: any,
-    private readonly version = "0.0.0") {
+    private readonly version = '0.0.0') {
   }
 
   /**
@@ -50,7 +50,7 @@ export default abstract class AbstractOCPIService {
 
   // Get BaseUrl ${protocol}://${host}
   public getBaseUrl(req: Request): string {
-    const protocol = (this.ocpiRestConfig.externalProtocol ? this.ocpiRestConfig.externalProtocol : "https");
+    const protocol = (this.ocpiRestConfig.externalProtocol ? this.ocpiRestConfig.externalProtocol : 'https');
 
     // Get host from the req
     const host = req.get('host');
@@ -77,7 +77,7 @@ export default abstract class AbstractOCPIService {
     // Parse the action
     const regexResult = /^\/\w*/g.exec(req.url);
     if (!regexResult) {
-      throw new BackendError("AbstractOCPIService.ts#restService", "Regex did not match.");
+      throw new BackendError('AbstractOCPIService.ts#restService', 'Regex did not match.');
     }
     const action = regexResult[0].substring(1);
 
@@ -87,7 +87,7 @@ export default abstract class AbstractOCPIService {
     // Check action
     switch (action) {
       // If empty - return available endpoints
-      case "":
+      case '':
         this.getSupportedEndpoints(req, res, next);
         break;
       default:
@@ -106,11 +106,11 @@ export default abstract class AbstractOCPIService {
     // Build payload
     const supportedEndpoints = registeredEndpointsArray.map((endpoint) => {
       const identifier = endpoint.getIdentifier();
-      return { "identifier": `${identifier}`, "url": `${fullUrl}${identifier}/` };
+      return { 'identifier': `${identifier}`, 'url': `${fullUrl}${identifier}/` };
     });
 
     // Return payload
-    res.json(OCPIUtils.success({ "version": this.getVersion(), "endpoints": supportedEndpoints }));
+    res.json(OCPIUtils.success({ 'version': this.getVersion(), 'endpoints': supportedEndpoints }));
   }
 
   /**
@@ -124,7 +124,7 @@ export default abstract class AbstractOCPIService {
       if (!req.headers || !req.headers.authorization) {
         throw new OCPIServerError(
           'Login',
-          `Missing authorization token`, Constants.HTTP_GENERAL_ERROR,
+          'Missing authorization token', Constants.HTTP_GENERAL_ERROR,
           MODULE_NAME, 'processEndpointAction');
       }
 
@@ -132,34 +132,34 @@ export default abstract class AbstractOCPIService {
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         action: 'Login',
-        message: "Authorization Header",
+        message: 'Authorization Header',
         source: 'OCPI Server',
         module: MODULE_NAME,
-        method: `processEndpointAction`,
-        detailedMessages: { "Authorization": req.headers.authorization }
+        method: 'processEndpointAction',
+        detailedMessages: { 'Authorization': req.headers.authorization }
       });
 
       // Get token
       let decodedToken: {tenant: string; tid: string};
       try {
-        const token = req.headers.authorization.split(" ")[1];
+        const token = req.headers.authorization.split(' ')[1];
 
         // Log token
         Logging.logInfo({
           tenantID: Constants.DEFAULT_TENANT,
           action: 'Login',
-          message: "Authorization Token",
+          message: 'Authorization Token',
           source: 'OCPI Server',
           module: MODULE_NAME,
-          method: `processEndpointAction`,
-          detailedMessages: { "Token": token }
+          method: 'processEndpointAction',
+          detailedMessages: { 'Token': token }
         });
 
         decodedToken = JSON.parse(OCPIUtils.atob(token));
       } catch (error) {
         throw new OCPIServerError(
           'Login',
-          `Invalid authorization token`, Constants.HTTP_GENERAL_ERROR,
+          'Invalid authorization token', Constants.HTTP_GENERAL_ERROR,
           MODULE_NAME, 'processEndpointAction');
       }
 

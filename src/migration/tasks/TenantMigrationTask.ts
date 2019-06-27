@@ -1,10 +1,10 @@
-import MigrationTask from '../MigrationTask';
-import User from '../../entity/User';
-import Tenant from '../../entity/Tenant';
-import Logging from '../../utils/Logging';
 import Constants from '../../utils/Constants';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 import TSGlobal from '../../types/GlobalType';
+import Logging from '../../utils/Logging';
+import MigrationTask from '../MigrationTask';
+import Tenant from '../../entity/Tenant';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import User from '../../entity/User';
 declare const global: TSGlobal;
 
 const SLF_TENANT = {
@@ -38,7 +38,7 @@ export default class TenantMigrationTask extends MigrationTask {
       // Log
       Logging.logWarning({
         tenantID: Constants.DEFAULT_TENANT, module: 'TenantMigrationTask', method: 'createSuperAdmin',
-        actionOnUser: user.getModel(), action: "Migration", source: 'TenantMigrationTask',
+        actionOnUser: user.getModel(), action: 'Migration', source: 'TenantMigrationTask',
         message: `Super Admin user '${user.getEMail()}' created with initial password '${password}'`
       });
     }
@@ -52,7 +52,7 @@ export default class TenantMigrationTask extends MigrationTask {
 
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT, module: 'TenantMigrationTask',
-        method: 'migrateTenant', action: "Migration", source: 'TenantMigrationTask',
+        method: 'migrateTenant', action: 'Migration', source: 'TenantMigrationTask',
         message: `Tenant '${tenant.getID()}' created with subdomain '${tenant.getSubdomain()}'`
       });
     }
@@ -61,7 +61,7 @@ export default class TenantMigrationTask extends MigrationTask {
 
     Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT, module: 'TenantMigrationTask',
-      method: 'migrateTenant', action: "Migration", source: 'TenantMigrationTask',
+      method: 'migrateTenant', action: 'Migration', source: 'TenantMigrationTask',
       message: `Collections migrated to tenant '${tenant.getID()}' with subdomain '${tenant.getSubdomain()}'`
     });
 
@@ -70,11 +70,11 @@ export default class TenantMigrationTask extends MigrationTask {
   }
 
   getVersion() {
-    return "1";
+    return '1';
   }
 
   getName() {
-    return "TenantMigrationTask";
+    return 'TenantMigrationTask';
   }
 }
 

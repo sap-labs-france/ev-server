@@ -1,12 +1,12 @@
-import Logging from '../../../utils/Logging';
+import BackendError from '../../../exception/BackendError';
 import ChargingStation from '../../../entity/ChargingStation';
 import Constants from '../../../utils/Constants';
-import BackendError from '../../../exception/BackendError';
-import WSConnection from './WSConnection';
 import TSGlobal from '../../../types/GlobalType';
+import Logging from '../../../utils/Logging';
+import WSConnection from './WSConnection';
 declare const global: TSGlobal;
 
-const MODULE_NAME = "JsonRestWSConnection";
+const MODULE_NAME = 'JsonRestWSConnection';
 export default class JsonRestWSConnection extends WSConnection {
 
   public getTenantID: any;
@@ -31,9 +31,9 @@ export default class JsonRestWSConnection extends WSConnection {
       // Log
       Logging.logInfo({
         tenantID: this.getTenantID(),
-        module: MODULE_NAME, method: "initialize",
+        module: MODULE_NAME, method: 'initialize',
         source: this.getChargingStationID(),
-        action: "WSRestServerConnectionOpened",
+        action: 'WSRestServerConnectionOpened',
         message: `New Rest connection from '${this.getIP()}', Protocol '${this.getWSConnection().protocol}', URL '${this.getURL()}'`
       });
     }
@@ -44,8 +44,8 @@ export default class JsonRestWSConnection extends WSConnection {
     Logging.logError({
       tenantID: this.getTenantID(),
       module: MODULE_NAME,
-      method: "onError",
-      action: "WSRestServerErrorReceived",
+      method: 'onError',
+      action: 'WSRestServerErrorReceived',
       message: error
     });
   }
@@ -55,9 +55,9 @@ export default class JsonRestWSConnection extends WSConnection {
     Logging.logInfo({
       tenantID: this.getTenantID(),
       module: MODULE_NAME,
-      source: (this.getChargingStationID() ? this.getChargingStationID() : ""),
-      method: "onClose",
-      action: "WSRestServerConnectionClosed",
+      source: (this.getChargingStationID() ? this.getChargingStationID() : ''),
+      method: 'onClose',
+      action: 'WSRestServerConnectionClosed',
       message: `Connection has been closed, Reason '${reason}', Code '${code}'`
     });
     // Remove the connection
@@ -73,14 +73,14 @@ export default class JsonRestWSConnection extends WSConnection {
     if (!chargingStation) {
       // Error
       throw new BackendError(this.getChargingStationID(), `'${commandName}' not found`,
-        "JsonRestWSConnection", "handleRequest", commandName);
+        'JsonRestWSConnection', 'handleRequest', commandName);
     }
     // Get the client from JSon Server
     const chargingStationClient = global.centralSystemJson.getChargingStationClient(chargingStation.getTenantID(), chargingStation.getID());
     if (!chargingStationClient) {
       // Error
-      throw new BackendError(this.getChargingStationID(), `Charger is not connected to the backend`,
-        "JsonRestWSConnection", "handleRequest", commandName);
+      throw new BackendError(this.getChargingStationID(), 'Charger is not connected to the backend',
+        'JsonRestWSConnection', 'handleRequest', commandName);
     }
     // Call the client
     let result;
@@ -93,7 +93,7 @@ export default class JsonRestWSConnection extends WSConnection {
     } else {
       // Error
       throw new BackendError(this.getChargingStationID(), `'${actionMethod}' is not implemented`,
-        "JsonRestWSConnection", "handleRequest", commandName);
+        'JsonRestWSConnection', 'handleRequest', commandName);
     }
     // Log
     Logging.logReturnedAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, result);

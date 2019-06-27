@@ -1,7 +1,7 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import Utils from '../../../../utils/Utils';
 import Constants from '../../../../utils/Constants';
+import Utils from '../../../../utils/Utils';
 
 export default class UtilsSecurity {
   static filterBoolean(value) {
@@ -11,12 +11,12 @@ export default class UtilsSecurity {
       // Sanitize
       value = sanitize(value);
       // Check the type
-      if (typeof value === "boolean") {
+      if (typeof value === 'boolean') {
         // Already a boolean
         result = value;
       } else {
         // Convert
-        result = (value === "true");
+        result = (value === 'true');
       }
     }
     return result;
@@ -41,7 +41,7 @@ export default class UtilsSecurity {
             sortField = '_id';
           }
           // Set
-          filteredRequest.Sort[sortField] = (request.SortDirs[i] === "asc" ? 1 : -1);
+          filteredRequest.Sort[sortField] = (request.SortDirs[i] === 'asc' ? 1 : -1);
         }
       } else {
         // Init
@@ -52,7 +52,7 @@ export default class UtilsSecurity {
           request.SortFields = '_id';
         }
         // Set
-        filteredRequest.Sort[request.SortFields] = (request.SortDirs === "asc" ? 1 : -1);
+        filteredRequest.Sort[request.SortFields] = (request.SortDirs === 'asc' ? 1 : -1);
       }
     }
   }
@@ -119,12 +119,12 @@ export default class UtilsSecurity {
   }
 
   static filterCreatedAndLastChanged(filteredEntity, entity, loggedUser) {
-    if (entity.createdBy && typeof entity.createdBy === "object" &&
+    if (entity.createdBy && typeof entity.createdBy === 'object' &&
       entity.createdBy.id && Authorizations.canReadUser(loggedUser, entity.createdBy.id)) {
       // Build user
       filteredEntity.createdBy = Utils.buildUserFullName(entity.createdBy, false);
     }
-    if (entity.lastChangedBy && typeof entity.lastChangedBy === "object" &&
+    if (entity.lastChangedBy && typeof entity.lastChangedBy === 'object' &&
       entity.lastChangedBy.id && Authorizations.canReadUser(loggedUser, entity.lastChangedBy.id)) {
       // Build user
       filteredEntity.lastChangedBy = Utils.buildUserFullName(entity.lastChangedBy, false);

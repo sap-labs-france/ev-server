@@ -1,14 +1,14 @@
-import email from "emailjs";
 import ejs from 'ejs';
+import email from 'emailjs';
 import fs from 'fs';
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
-import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
 import Constants from '../../utils/Constants';
+import TSGlobal from '../../types/GlobalType';
+import Logging from '../../utils/Logging';
 import NotificationTask from '../NotificationTask';
 import Tenant from '../../entity/Tenant';
-import TSGlobal from '../../types/GlobalType';
+import Utils from '../../utils/Utils';
 
 declare const global: TSGlobal;
 
@@ -103,7 +103,7 @@ export default class EMailNotificationTask extends NotificationTask {
     if (!data.user && !data.users && !data.adminUsers) {
       // Error
       throw new BackendError(null, `No User is provided for '${templateName}'`,
-        "EMailNotificationTask", "_prepareAndSendEmail");
+        'EMailNotificationTask', '_prepareAndSendEmail');
     }
     // Create email
     const emailTemplate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/${locale}/${templateName}.json`, 'utf8'));
@@ -111,7 +111,7 @@ export default class EMailNotificationTask extends NotificationTask {
     if (!emailTemplate) {
       // Error
       throw new BackendError(null, `No Email template found for '${templateName}'`,
-        "EMailNotificationTask", "_prepareAndSendEmail");
+        'EMailNotificationTask', '_prepareAndSendEmail');
     }
 
     // Render the localized template ---------------------------------------
@@ -215,9 +215,9 @@ export default class EMailNotificationTask extends NotificationTask {
         // Error!
         try {
           Logging.logError({
-            tenantID: tenantID, source: (data.hasOwnProperty("chargeBoxID") ? data.chargeBoxID : undefined),
-            module: "EMailNotificationTask", method: "sendEmail",
-            action: "SendEmail", message: err.toString(),
+            tenantID: tenantID, source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
+            module: 'EMailNotificationTask', method: 'sendEmail',
+            action: 'SendEmail', message: err.toString(),
             detailedMessages: {
               email: {
                 from: messageToSend.from,
@@ -236,10 +236,10 @@ export default class EMailNotificationTask extends NotificationTask {
         // Email sent successfully
         Logging.logInfo({
           tenantID: tenantID,
-          source: (data.hasOwnProperty("chargeBoxID") ? data.chargeBoxID : undefined),
-          module: "EMailNotificationTask", method: "_prepareAndSendEmail",
-          action: "SendEmail", actionOnUser: data.user,
-          message: `Email has been sent successfully`,
+          source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
+          module: 'EMailNotificationTask', method: '_prepareAndSendEmail',
+          action: 'SendEmail', actionOnUser: data.user,
+          message: 'Email has been sent successfully',
           detailedMessages: {
             email: {
               from: messageToSend.from,

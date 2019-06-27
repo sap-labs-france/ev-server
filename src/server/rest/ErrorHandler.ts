@@ -1,12 +1,12 @@
-import AppError from '../../exception/AppError';
+import HttpStatus from 'http-status-codes';
 import AppAuthError from '../../exception/AppAuthError';
+import AppError from '../../exception/AppError';
 import BadRequestError from '../../exception/BadRequestError';
 import ConflictError from '../../exception/ConflictError';
+import Constants from '../../utils/Constants';
 import NotFoundError from '../../exception/NotFoundError';
 import UnauthorizedError from '../../exception/UnauthorizedError';
 import Utils from '../../utils/Utils';
-import HttpStatus from 'http-status-codes';
-import Constants from '../../utils/Constants';
 
 export default class ErrorHandler {
   static async errorHandler(err, req, res, next) {
@@ -29,7 +29,7 @@ export default class ErrorHandler {
 
   static _handleAppError(err, res) {
     res.status((err.errorCode ? err.errorCode : Constants.HTTP_GENERAL_ERROR)).send({
-      "message": Utils.hideShowMessage(err.message)
+      'message': Utils.hideShowMessage(err.message)
     });
   }
 
@@ -39,15 +39,15 @@ export default class ErrorHandler {
 
   static _handleBadRequestError(err, res) {
     res.status(HttpStatus.BAD_REQUEST).json({
-      "message": err.message,
-      "details": err.details ? err.details : []
+      'message': err.message,
+      'details': err.details ? err.details : []
     });
   }
 
   static _handleConflictError(err, res) {
     res.status(HttpStatus.CONFLICT).json({
-      "message": err.messageKey,
-      "params": err.messageParams
+      'message': err.messageKey,
+      'params': err.messageParams
     });
   }
 

@@ -1,6 +1,6 @@
 
-import AbstractODataEntities from './AbstractODataEntities';
 import _ from 'lodash';
+import AbstractODataEntities from './AbstractODataEntities';
 
 export default class ODataSites extends AbstractODataEntities {
   public buildParams: any;
@@ -13,11 +13,11 @@ export default class ODataSites extends AbstractODataEntities {
   static async getSites(centralServiceApi, query, req, cb) {
     try {
       // Check limit parameter
-      const params = this.buildParams(query);
+      const params = ODataSites.buildParams(query);
       // Perform rest call
       const response = await centralServiceApi.getSites(params);
       // Return response
-      this.returnResponse(response, query, req, cb);
+      ODataSites.returnResponse(response, query, req, cb);
     } catch (error) {
       cb(error);
     }

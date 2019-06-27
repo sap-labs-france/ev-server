@@ -1,7 +1,7 @@
-import Logging from '../../utils/Logging';
-import Constants from '../../utils/Constants';
-import MongoDBStorage from './MongoDBStorage';
 import SourceMap from 'source-map-support';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import MongoDBStorage from './MongoDBStorage';
 SourceMap.install();
 
 const _pipeline = [];
@@ -34,6 +34,27 @@ export default class MongoDBStorageNotification {
     return null;
   }
 
+  static handleInvalidChange(tenantID, collection, change) {
+    Logging.logError({
+      tenantID: Constants.DEFAULT_TENANT,
+      module: 'MongoDBStorageNotification',
+      method: 'handleInvalidChange',
+      action: 'Watch',
+      message: `Invalid change received on collection ${tenantID}.${collection}`,
+      detailedMessages: change
+    });
+  }
+
+  static handleError(error) { // Log
+    Logging.logError({
+      tenantID: Constants.DEFAULT_TENANT,
+      module: 'MongoDBStorageNotification',
+      method: 'watchCollection', action: 'Watch',
+      message: `Error occurred in watching database: ${error}`,
+      detailedMessages: error
+    });
+  }
+
   async start() {
     if (this.dbConfig.monitorDBChange) {
       this.database = new MongoDBStorage(this.dbConfig);
@@ -45,7 +66,7 @@ export default class MongoDBStorageNotification {
       }
 
       const dbChangeStream = await this.database.watch(_pipeline, _options);
-      dbChangeStream.on("change", (change) => {
+      dbChangeStream.on('change', (change) => {
         const action = MongoDBStorageNotification.getActionFromOperation(change.operationType);
         let tenantID, collection, documentID;
         if (change.ns && change.ns.coll) {
@@ -66,25 +87,25 @@ export default class MongoDBStorageNotification {
         }
       });
 
-      dbChangeStream.on("error", (error) => {
+      dbChangeStream.on('error', (error) => {
         MongoDBStorageNotification.handleError(error);
       });
 
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        module: "MongoDBStorageNotification", method: "start", action: "Startup",
+        module: 'MongoDBStorageNotification', method: 'start', action: 'Startup',
         message: `Starting to monitor changes on database ''${this.dbConfig.implementation}'...`
       });
 
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        module: "MongoDBStorageNotification", method: "start", action: "Startup",
+        module: 'MongoDBStorageNotification', method: 'start', action: 'Startup',
         message: `The monitoring on database '${this.dbConfig.implementation}' is active`
       });
     } else {
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        module: "MongoDBStorageNotification", method: "start", action: "Startup",
+        module: 'MongoDBStorageNotification', method: 'start', action: 'Startup',
         message: `The monitoring on database '${this.dbConfig.implementation}' is disabled`
       });
     }
@@ -152,7 +173,7 @@ export default class MongoDBStorageNotification {
   handleTransactionChange(tenantID, transactionID, action, changeEvent) {
     if (transactionID) {
       const notification: any = {
-        "id": transactionID
+        'id': transactionID
       };
       // Operation
       switch (action) {
@@ -174,7 +195,7 @@ export default class MongoDBStorageNotification {
       // Notify
       this.centralRestServer.notifyTransaction(tenantID, action, notification);
     } else {
-      MongoDBStorageNotification.handleInvalidChange(tenantID, "transactions", changeEvent);
+      MongoDBStorageNotification.handleInvalidChange(tenantID, 'transactions', changeEvent);
     }
   }
 
@@ -191,39 +212,18 @@ export default class MongoDBStorageNotification {
         this.centralRestServer.notifyTransaction(tenantID, Constants.ACTION_UPDATE, notification);
       }
     } else {
-      MongoDBStorageNotification.handleInvalidChange(tenantID, "meterValues", changeEvent);
+      MongoDBStorageNotification.handleInvalidChange(tenantID, 'meterValues', changeEvent);
     }
   }
 
   handleConfigurationChange(tenantID, configurationID, action, changeEvent) {
     if (configurationID) {
       this.centralRestServer.notifyChargingStation(tenantID, action, {
-        "type": Constants.NOTIF_TYPE_CHARGING_STATION_CONFIGURATION,
-        "id": configurationID
+        'type': Constants.NOTIF_TYPE_CHARGING_STATION_CONFIGURATION,
+        'id': configurationID
       });
     } else {
-      MongoDBStorageNotification.handleInvalidChange(tenantID, "configurations", changeEvent);
+      MongoDBStorageNotification.handleInvalidChange(tenantID, 'configurations', changeEvent);
     }
-  }
-
-  static handleInvalidChange(tenantID, collection, change) {
-    Logging.logError({
-      tenantID: Constants.DEFAULT_TENANT,
-      module: "MongoDBStorageNotification",
-      method: "handleInvalidChange",
-      action: `Watch`,
-      message: `Invalid change received on collection ${tenantID}.${collection}`,
-      detailedMessages: change
-    });
-  }
-
-  static handleError(error) { // Log
-    Logging.logError({
-      tenantID: Constants.DEFAULT_TENANT,
-      module: "MongoDBStorageNotification",
-      method: "watchCollection", action: `Watch`,
-      message: `Error occurred in watching database: ${error}`,
-      detailedMessages: error
-    });
   }
 }

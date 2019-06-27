@@ -90,11 +90,11 @@ export default abstract class ChargingStationClient {
         default:
           // Throw error
           throw new BackendError('', `OCPP Command ${commandName} not supported in backend`,
-            "ChargingStationClient", "sendCommand");
+            'ChargingStationClient', 'sendCommand');
       }
     } catch (error) {
-      throw new BackendError('', `OCPP Command ${commandName} error ${JSON.stringify(error, null, " ")}`,
-        "ChargingStationClient", "sendCommand");
+      throw new BackendError('', `OCPP Command ${commandName} error ${JSON.stringify(error, null, ' ')}`,
+        'ChargingStationClient', 'sendCommand');
     }
   }
 }

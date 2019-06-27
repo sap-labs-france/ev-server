@@ -1,5 +1,5 @@
-import BaseApi from './BaseApi';
 import jwt from 'jsonwebtoken';
+import BaseApi from './BaseApi';
 export default class AuthenticatedApi extends BaseApi {
   public user: any;
   public password: any;

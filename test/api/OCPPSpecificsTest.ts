@@ -1,14 +1,13 @@
-import chai from 'chai';
-import {expect} from 'chai';
+import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 chai.use(chaiSubset);
-import moment from 'moment';
 import faker from 'faker';
-import DataHelper from './DataHelper';
+import moment from 'moment';
 import path from 'path';
-import TSGlobal from '../../src/types/GlobalType';
 import CentralServerService from './client/CentralServerService';
+import DataHelper from './DataHelper';
 import Factory from '../factories/Factory';
+import TSGlobal from '../../src/types/GlobalType';
 
 declare const global: TSGlobal;
 global.appRoot = path.resolve(__dirname, '../../src');
@@ -16,9 +15,6 @@ global.appRoot = path.resolve(__dirname, '../../src');
 class TestData {
   public dataHelper: DataHelper;
   public tenantID: string;
-
-  constructor() {
-  }
 
   async init() {
     this.tenantID = await CentralServerService.DefaultInstance.authenticatedApi.getTenantID();

@@ -1,11 +1,10 @@
-import chai from 'chai';
-import {expect} from 'chai';
+import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 chai.use(chaiSubset);
 import path from 'path';
-import TSGlobal from '../../src/types/GlobalType';
 import CentralServerService from './client/CentralServerService';
 import Factory from '../factories/Factory';
+import TSGlobal from '../../src/types/GlobalType';
 import OCPIService from './ocpi/OCPIService';
 
 declare const global: TSGlobal;
@@ -68,7 +67,7 @@ describe('OCPI Service Tests', function() {
         for (const version of versions) {
           return expect(version).to.have.keys('version', 'url');
         }
-      })
+      });
     });
 
     // Check at least version 2.1.1 is implemented
@@ -82,7 +81,7 @@ describe('OCPI Service Tests', function() {
           }
         }
         return version2_1_1_exist;
-      })
+      });
     });
   });
 
@@ -117,7 +116,7 @@ describe('OCPI Service Tests', function() {
     // Check data object for Array of Endpoints
     it('should contains valid data object', () => {
       expect(response.data.data).to.have.keys('version', 'endpoints');
-      expect(response.data.data.version, 'Incorrect Version').equal("2.1.1");
+      expect(response.data.data.version, 'Incorrect Version').equal('2.1.1');
       expect(response.data.data.endpoints).to.be.an('array').that.is.not.empty;
     });
 
@@ -129,7 +128,7 @@ describe('OCPI Service Tests', function() {
           validEndpoints = expect(endpoint).to.have.keys('identifier', 'url') && validEndpoints;
         }
         return validEndpoints;
-      })
+      });
     });
   });
 
@@ -143,7 +142,7 @@ describe('OCPI Service Tests', function() {
     // Check call
     it('should return 501 on url: /ocpi/cpo/2.1.1/invalidEndpoint', async () => {
       // Create
-      response = await testData.ocpiService.accessPath('GET', "/ocpi/cpo/2.1.1/invalidEndpoint");
+      response = await testData.ocpiService.accessPath('GET', '/ocpi/cpo/2.1.1/invalidEndpoint');
       // Check status
       expect(response.status).to.be.eql(501);
     });
@@ -196,9 +195,9 @@ describe('OCPI Service Tests', function() {
       });
 
       // Validate content - scan entities: locations/evses/connectors
-      it("should have valid OCPI Location Entities", async () => {
+      it('should have valid OCPI Location Entities', async () => {
         expect(response.data.data, 'Invalid Location Object').to.satisfy((locations) => {
-          let validLocationsAndSubEntities = true;
+          const validLocationsAndSubEntities = true;
           // Loop through location
           for (const location of locations) {
             // Validate location
@@ -285,7 +284,9 @@ describe('OCPI Service Tests', function() {
         // Create
         response = await testData.ocpiService.getLocations2_1_1();
 
-        if (response.status != 200) { this.skip(); }
+        if (response.status != 200) {
+          this.skip();
+        }
       });
 
       // Check access for each location
@@ -335,34 +336,34 @@ describe('OCPI Service Tests', function() {
       // Invalid location
       it('should not found this non-existing location  /ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e67', async () => {
         // Call
-        const locationResponse = await testData.ocpiService.accessPath('GET', `/ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e67`);
+        const locationResponse = await testData.ocpiService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e67');
         // Check status
         expect(locationResponse.status).to.be.eql(500);
-        expect(locationResponse.data).to.have.property("timestamp");
-        expect(locationResponse.data).to.have.property("status_code", 3000);
-        expect(locationResponse.data).to.have.property("status_message", "Site id '5abeba9e4bae1457eb565e67' not found");
+        expect(locationResponse.data).to.have.property('timestamp');
+        expect(locationResponse.data).to.have.property('status_code', 3000);
+        expect(locationResponse.data).to.have.property('status_message', 'Site id \'5abeba9e4bae1457eb565e67\' not found');
       });
 
       // Invalid evse uid
       it('should not found this non-existing EVSE  /ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e66/NonExistingSite', async () => {
         // Call
-        const locationResponse = await testData.ocpiService.accessPath('GET', `/ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e66/NonExistingSite`);
+        const locationResponse = await testData.ocpiService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e66/NonExistingSite');
         // Check status
         expect(locationResponse.status).to.be.eql(500);
-        expect(locationResponse.data).to.have.property("timestamp");
-        expect(locationResponse.data).to.have.property("status_code", 3000);
-        expect(locationResponse.data).to.have.property("status_message", "EVSE uid not found 'NonExistingSite' on location id '5abeba9e4bae1457eb565e66'");
+        expect(locationResponse.data).to.have.property('timestamp');
+        expect(locationResponse.data).to.have.property('status_code', 3000);
+        expect(locationResponse.data).to.have.property('status_message', 'EVSE uid not found \'NonExistingSite\' on location id \'5abeba9e4bae1457eb565e66\'');
       });
 
       // Invalid connector id
       it('should not found this non-existing Connector  /ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e66/SAP-Caen-01*1/0', async () => {
         // Call
-        const locationResponse = await testData.ocpiService.accessPath('GET', `/ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e66/SAP-Caen-01*1/0`);
+        const locationResponse = await testData.ocpiService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e66/SAP-Caen-01*1/0');
         // Check status
         expect(locationResponse.status).to.be.eql(500);
-        expect(locationResponse.data).to.have.property("timestamp");
-        expect(locationResponse.data).to.have.property("status_code", 3000);
-        expect(locationResponse.data).to.have.property("status_message", "Connector id '0' not found on EVSE uid 'SAP-Caen-01*1' and location id '5abeba9e4bae1457eb565e66'");
+        expect(locationResponse.data).to.have.property('timestamp');
+        expect(locationResponse.data).to.have.property('status_code', 3000);
+        expect(locationResponse.data).to.have.property('status_message', 'Connector id \'0\' not found on EVSE uid \'SAP-Caen-01*1\' and location id \'5abeba9e4bae1457eb565e66\'');
       });
     });
   });
@@ -384,7 +385,7 @@ describe('OCPI Service Tests', function() {
         expect(testData.newOcpiEndpoint).to.not.be.null;
         // Create the entity
         testData.newOcpiEndpoint = await CentralServerService.DefaultInstance.createEntity(
-          CentralServerService.DefaultInstance.ocpiEndpointApi, Factory.ocpiEndpoint.build( { }));
+          CentralServerService.DefaultInstance.ocpiEndpointApi, Factory.ocpiEndpoint.build({ }));
       });
 
 
@@ -400,21 +401,21 @@ describe('OCPI Service Tests', function() {
       it('should be able to self-register', async () => {
         // Define credential object
         const credential = {
-          "url": "http://localhost:9090/ocpi/cpo/versions",
-          "token": "12345",
-          "party_id": "SLF",
-          "country_code": "FR",
-          "business_details": {
-            "name": "SAP Labs France",
-            "logo": {
-              "url": "https://example.sap.com/img/logo.jpg",
-              "thumbnail": "https://example.sap.com/img/logo_thumb.jpg",
-              "category": "CPO",
-              "type": "jpeg",
-              "width": 512,
-              "height": 512
+          'url': 'http://localhost:9090/ocpi/cpo/versions',
+          'token': '12345',
+          'party_id': 'SLF',
+          'country_code': 'FR',
+          'business_details': {
+            'name': 'SAP Labs France',
+            'logo': {
+              'url': 'https://example.sap.com/img/logo.jpg',
+              'thumbnail': 'https://example.sap.com/img/logo_thumb.jpg',
+              'category': 'CPO',
+              'type': 'jpeg',
+              'width': 512,
+              'height': 512
             },
-            "website": "http://sap.com"
+            'website': 'http://sap.com'
           }
         };
 

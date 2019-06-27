@@ -1,12 +1,12 @@
 import moment from 'moment';
-import Database from '../../utils/Database';
-import ChargingStation from '../../entity/ChargingStation';
-import Tenant from '../../entity/Tenant';
-import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
-import MigrationTask from '../MigrationTask';
-import TSGlobal from '../../types/GlobalType';
-import Transaction from '../../entity/Transaction';
 import { deprecate } from 'util';
+import ChargingStation from '../../entity/ChargingStation';
+import Database from '../../utils/Database';
+import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
+import TSGlobal from '../../types/GlobalType';
+import MigrationTask from '../MigrationTask';
+import Tenant from '../../entity/Tenant';
+import Transaction from '../../entity/Transaction';
 declare const global: TSGlobal;
 
 export default class UpdateTransactionInactivityTask extends MigrationTask {
@@ -103,11 +103,11 @@ export default class UpdateTransactionInactivityTask extends MigrationTask {
   }
 
   getVersion() {
-    return "3.1";
+    return '3.1';
   }
 
   getName() {
-    return "TransactionInactivityTask";
+    return 'TransactionInactivityTask';
   }
 }
 

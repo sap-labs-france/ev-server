@@ -1,8 +1,8 @@
-import TenantHolder from './TenantHolder';
-import Database from '../utils/Database';
-import UserStorage from '../storage/mongodb/UserStorage';
 import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
+import Database from '../utils/Database';
 import NotificationStorage from '../storage/mongodb/NotificationStorage';
+import TenantHolder from './TenantHolder';
+import UserStorage from '../storage/mongodb/UserStorage';
 
 export default class Notification extends TenantHolder {
   private _model: any = {};
@@ -10,6 +10,10 @@ export default class Notification extends TenantHolder {
   public constructor(tenantID: any, notification: any) {
     super(tenantID);
     Database.updateNotification(notification, this._model);
+  }
+
+  static getNotifications(tenantID, params, limit, skip, sort) {
+    return NotificationStorage.getNotifications(tenantID, params, limit, skip, sort);
   }
 
   public getModel(): any {
@@ -95,9 +99,5 @@ export default class Notification extends TenantHolder {
 
   save() {
     return NotificationStorage.saveNotification(this.getTenantID(), this.getModel());
-  }
-
-  static getNotifications(tenantID, params, limit, skip, sort) {
-    return NotificationStorage.getNotifications(tenantID, params, limit, skip, sort);
   }
 }

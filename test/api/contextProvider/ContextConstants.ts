@@ -1,33 +1,33 @@
 export default class CONTEXTS {
-  /**************************************
+  /** ************************************
   * Available contexts that can be used in the unit tests
   ***************************************/
   static readonly TENANT_CONTEXTS: any = {
-    TENANT_WITH_ALL_COMPONENTS: "ut-all", // All components are active
-    TENANT_WITH_NO_COMPONENTS: "ut-nothing", // No components are active
-    TENANT_ORGANIZATION: "ut-org", // Only organization component is active
-    TENANT_SIMPLE_PRICING: "ut-pricing", // Only pricing component is active
-    TENANT_CONVERGENT_CHARGING: "ut-convcharg", // Only convergent charging component is active
-    TENANT_OCPI: "ut-ocpi", // Only ocpi component is active
-    TENANT_FUNDING: "ut-refund" // Only organization component is active
+    TENANT_WITH_ALL_COMPONENTS: 'ut-all', // All components are active
+    TENANT_WITH_NO_COMPONENTS: 'ut-nothing', // No components are active
+    TENANT_ORGANIZATION: 'ut-org', // Only organization component is active
+    TENANT_SIMPLE_PRICING: 'ut-pricing', // Only pricing component is active
+    TENANT_CONVERGENT_CHARGING: 'ut-convcharg', // Only convergent charging component is active
+    TENANT_OCPI: 'ut-ocpi', // Only ocpi component is active
+    TENANT_FUNDING: 'ut-refund' // Only organization component is active
   };
 
   static readonly SITE_CONTEXTS: any = {
-    NO_SITE: "No site", // Used for unassigned Charging Station or CS in tenant with no organizations
-    SITE_BASIC: "ut-site", // Default site with no settings
-    SITE_WITH_AUTO_USER_ASSIGNMENT: "ut-site-auto", // Automatic user assignment is active
-    SITE_WITH_OTHER_USER_STOP_AUTHPORIZATION: "ut-site-stop" // Authorization to stop other users transaction is active
+    NO_SITE: 'No site', // Used for unassigned Charging Station or CS in tenant with no organizations
+    SITE_BASIC: 'ut-site', // Default site with no settings
+    SITE_WITH_AUTO_USER_ASSIGNMENT: 'ut-site-auto', // Automatic user assignment is active
+    SITE_WITH_OTHER_USER_STOP_AUTHPORIZATION: 'ut-site-stop' // Authorization to stop other users transaction is active
   };
 
   static readonly SITE_AREA_CONTEXTS: any = {
-    NO_SITE: "No site", // Used for unassigned Charging Station or CS in tenant with no organizations
-    WITH_ACL: "withACL",  // ACL is active
-    WITHOUT_ACL: "withoutACL" // ACL is inactive
+    NO_SITE: 'No site', // Used for unassigned Charging Station or CS in tenant with no organizations
+    WITH_ACL: 'withACL', // ACL is active
+    WITHOUT_ACL: 'withoutACL' // ACL is inactive
   };
 
   static readonly CHARGING_STATION_CONTEXTS: any = {
-    ASSIGNED_OCCP16: "cs-16", // Charging Station is assigned to each site area with OCPP16
-    UNASSIGNED_OCPP16: "cs-notassigned" // Charging station is not assigned and use OCPP16
+    ASSIGNED_OCCP16: 'cs-16', // Charging Station is assigned to each site area with OCPP16
+    UNASSIGNED_OCPP16: 'cs-notassigned' // Charging station is not assigned and use OCPP16
   };
 
   static readonly USER_CONTEXTS: any = {
@@ -57,13 +57,13 @@ export default class CONTEXTS {
     },
   };
 
-// export class CONTEXTS_DEFINITION {
+  // pragma export class CONTEXTS_DEFINITION {
   /*
   * Definition of the different contexts
   */
 
   static readonly TENANT_CONTEXT_LIST: any = [{
-    // contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS,
+    // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS,
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS,
     subdomain: 'utall',
     componentSettings: {
@@ -116,12 +116,12 @@ export default class CONTEXTS {
     },
   },
   {
-    // contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+    // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
     subdomain: 'utnothing',
   },
   {
-    // contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION,
+    // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION,
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION,
     subdomain: 'utorg',
     componentSettings: {
@@ -130,7 +130,7 @@ export default class CONTEXTS {
     }
   },
   {
-    // contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_SIMPLE_PRICING,
+    // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_SIMPLE_PRICING,
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_SIMPLE_PRICING,
     subdomain: 'utprice',
     componentSettings: {
@@ -146,7 +146,7 @@ export default class CONTEXTS {
     },
   },
   {
-    // contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
+    // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
     subdomain: 'utconvcharg',
     componentSettings: {
@@ -164,7 +164,7 @@ export default class CONTEXTS {
     },
   },
   {
-    // contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_OCPI,
+    // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_OCPI,
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_OCPI,
     subdomain: 'utocpi',
     componentSettings: {
@@ -182,31 +182,31 @@ export default class CONTEXTS {
     },
   },
   {
-    // contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_FUNDING,
+    // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_FUNDING,
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_FUNDING,
     subdomain: 'utrefund',
     componentSettings: {
       refund: {
         type: 'concur',
         content: {
-            concur: {
-              authenticationUrl: '',
-              apiUrl: '',
-              clientId: '',
-              clientSecret: '',
-              payementTypeId: '',
-              expenseTypeCode: '',
-              policyId: '',
-              reportName: ''
-            }
+          concur: {
+            authenticationUrl: '',
+            apiUrl: '',
+            clientId: '',
+            clientSecret: '',
+            payementTypeId: '',
+            expenseTypeCode: '',
+            policyId: '',
+            reportName: ''
           }
         }
-      },
+      }
+    },
   }];
 
   // List of users created in a tenant
   static readonly TENANT_USER_LIST: any = [
-    // email and password are taken from config file for all users
+    // Email and password are taken from config file for all users
     { // Default Admin user.
       id: '5ce249a1a39ae1c056c389bd',
       role: CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN.role,
@@ -280,7 +280,7 @@ export default class CONTEXTS {
 
   // List of sites created in a tenant where organization component is active
   static readonly TENANT_SITE_LIST: any = [
-    { // default site
+    { // Default site
       // contextName: CONTEXTS.SITE_CONTEXTS.SITE_BASIC,
       id: '5ce249a2372f0b1c8caf9294',
       name: CONTEXTS.SITE_CONTEXTS.SITE_BASIC,
@@ -288,7 +288,7 @@ export default class CONTEXTS {
       autoUserSiteAssignment: false,
       companyID: '5ce249a2372f0b1c8caf928f'
     },
-    { // site with other user stop
+    { // Site with other user stop
       // contextName: CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHPORIZATION,
       id: '5ce249a2372f0b1c8caf8367',
       name: CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHPORIZATION,
@@ -296,7 +296,7 @@ export default class CONTEXTS {
       autoUserSiteAssignment: false,
       companyID: '5ce249a2372f0b1c8caf928f'
     },
-    { // site with auto user assignment
+    { // Site with auto user assignment
       // contextName: CONTEXTS.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT,
       id: '5ce249a2372f0b1c8caf6532',
       name: CONTEXTS.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT,
@@ -374,4 +374,4 @@ export default class CONTEXTS {
     },
   ];
 
-};
+}

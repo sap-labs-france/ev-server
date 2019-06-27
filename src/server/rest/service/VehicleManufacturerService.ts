@@ -1,10 +1,10 @@
-import User from '../../../entity/User';
-import Logging from '../../../utils/Logging';
-import Database from '../../../utils/Database';
-import AppError from '../../../exception/AppError';
 import AppAuthError from '../../../exception/AppAuthError';
+import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
+import Database from '../../../utils/Database';
+import Logging from '../../../utils/Logging';
+import User from '../../../entity/User';
 import VehicleManufacturer from '../../../entity/VehicleManufacturer';
 import VehicleManufacturerSecurity from './security/VehicleManufacturerSecurity';
 
@@ -19,7 +19,7 @@ export default class VehicleManufacturerService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Vehicle Manufacturer's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+          'The Vehicle Manufacturer\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
           'VehicleManufacturerService', 'handleDeleteVehicleManufacturer', req.user);
       }
       // Get
@@ -68,7 +68,7 @@ export default class VehicleManufacturerService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Vehicle Manufacturer's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+          'The Vehicle Manufacturer\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
           'VehicleManufacturerService', 'handleGetVehicleManufacturer', req.user);
       }
       // Get it
@@ -228,7 +228,7 @@ export default class VehicleManufacturerService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Vehicle Manufacturer's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+          'The Vehicle Manufacturer\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
           'VehicleManufacturerService', 'handleGetVehicleManufacturerLogo', req.user);
       }
       // Get it

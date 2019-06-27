@@ -1,9 +1,9 @@
-import Constants from './Constants';
-import TSGlobal from './../types/GlobalType';
 import cfenv from 'cfenv';
 import fs from 'fs';
 import os from 'os';
 import SourceMap from 'source-map-support';
+import Constants from './Constants';
+import TSGlobal from './../types/GlobalType';
 SourceMap.install();
 
 declare const global: TSGlobal;

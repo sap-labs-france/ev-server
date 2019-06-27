@@ -14,7 +14,7 @@ export default class SiteAreaContext {
   }
 
   async cleanUpCreatedData() {
-    // clean up charging stations
+    // Clean up charging stations
     for (const chargingStation of this.chargingStations) {
       // Delegate
       await chargingStation.cleanUpCreatedData();
@@ -38,13 +38,17 @@ export default class SiteAreaContext {
   }
 
   getChargingStation(chargingStationID) {
-    // search in context list
-    return this.chargingStations.find(chargingStationContext => {return chargingStationContext.getChargingStation().id === chargingStationID;});
+    // Search in context list
+    return this.chargingStations.find((chargingStationContext) => {
+      return chargingStationContext.getChargingStation().id === chargingStationID;
+    });
   }
 
   getChargingStationContext(chargingStationContext) {
-    // search in context list
-    return this.chargingStations.find(chargingStation => {return chargingStation.getChargingStation().id.startsWith(chargingStationContext);});
+    // Search in context list
+    return this.chargingStations.find((chargingStation) => {
+      return chargingStation.getChargingStation().id.startsWith(chargingStationContext);
+    });
   }
 
   addChargingStation(chargingStation) {

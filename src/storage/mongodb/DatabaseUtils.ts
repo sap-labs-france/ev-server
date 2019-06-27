@@ -1,6 +1,6 @@
-import Constants from '../../utils/Constants';
-import { ObjectID } from 'mongodb';
 import { filter } from 'bluebird';
+import { ObjectID } from 'mongodb';
+import Constants from '../../utils/Constants';
 
 const FIXED_COLLECTIONS: string[] = ['tenants', 'migrations'];
 
@@ -13,44 +13,44 @@ export default class DatabaseUtils {
   public static pushCreatedLastChangedInAggregation(tenantID: string, aggregation: any[], fieldOf: string = ''): void {
     // Filter
     const filterUserFields = {
-      "_id": 0,
-      "__v": 0,
-      "email": 0,
-      "phone": 0,
-      "mobile": 0,
-      "notificationsActive": 0,
-      "iNumber": 0,
-      "costCenter": 0,
-      "status": 0,
-      "createdBy": 0,
-      "createdOn": 0,
-      "lastChangedBy": 0,
-      "lastChangedOn": 0,
-      "role": 0,
-      "password": 0,
-      "locale": 0,
-      "deleted": 0,
-      "passwordWrongNbrTrials": 0,
-      "passwordBlockedUntil": 0,
-      "passwordResetHash": 0,
-      "eulaAcceptedOn": 0,
-      "eulaAcceptedVersion": 0,
-      "eulaAcceptedHash": 0,
-      "image": 0,
-      "address": 0
+      '_id': 0,
+      '__v': 0,
+      'email': 0,
+      'phone': 0,
+      'mobile': 0,
+      'notificationsActive': 0,
+      'iNumber': 0,
+      'costCenter': 0,
+      'status': 0,
+      'createdBy': 0,
+      'createdOn': 0,
+      'lastChangedBy': 0,
+      'lastChangedOn': 0,
+      'role': 0,
+      'password': 0,
+      'locale': 0,
+      'deleted': 0,
+      'passwordWrongNbrTrials': 0,
+      'passwordBlockedUntil': 0,
+      'passwordResetHash': 0,
+      'eulaAcceptedOn': 0,
+      'eulaAcceptedVersion': 0,
+      'eulaAcceptedHash': 0,
+      'image': 0,
+      'address': 0
     };
     // Created By
     aggregation.push({
       $lookup: {
         from: DatabaseUtils.getCollectionName(tenantID, 'users'),
-        localField: (fieldOf.length === 0 ? '' : fieldOf + '.') + "createdBy",
-        foreignField: "_id",
-        as: (fieldOf.length === 0 ? '' : fieldOf + '.') + "createdBy"
+        localField: (fieldOf.length === 0 ? '' : fieldOf + '.') + 'createdBy',
+        foreignField: '_id',
+        as: (fieldOf.length === 0 ? '' : fieldOf + '.') + 'createdBy'
       }
     });
     // Single Record
     aggregation.push({
-      $unwind: { "path": `$${(fieldOf.length === 0 ? '' : fieldOf + '.')}createdBy`, "preserveNullAndEmptyArrays": true }
+      $unwind: { 'path': `$${(fieldOf.length === 0 ? '' : fieldOf + '.')}createdBy`, 'preserveNullAndEmptyArrays': true }
     });
     // Rename id & convert to string to fit type schema
     let addFieldsContent: any = {};
@@ -67,14 +67,14 @@ export default class DatabaseUtils {
     aggregation.push({
       $lookup: {
         from: DatabaseUtils.getCollectionName(tenantID, 'users'),
-        localField: (fieldOf.length === 0 ? '' : fieldOf + '.') + "lastChangedBy",
-        foreignField: "_id",
-        as: (fieldOf.length === 0 ? '' : fieldOf + '.') + "lastChangedBy"
+        localField: (fieldOf.length === 0 ? '' : fieldOf + '.') + 'lastChangedBy',
+        foreignField: '_id',
+        as: (fieldOf.length === 0 ? '' : fieldOf + '.') + 'lastChangedBy'
       }
     });
     // Single Record
     aggregation.push({
-      $unwind: { "path": `$${(fieldOf.length === 0 ? '' : fieldOf + '.')}lastChangedBy`, "preserveNullAndEmptyArrays": true }
+      $unwind: { 'path': `$${(fieldOf.length === 0 ? '' : fieldOf + '.')}lastChangedBy`, 'preserveNullAndEmptyArrays': true }
     });
     // Prep for type schema
     addFieldsContent = {};
@@ -106,7 +106,7 @@ export default class DatabaseUtils {
 
 
   public static pushSiteAreaJoinInAggregation(tenantID: string, aggregation: any[], local: string, foreign: string, as: string, includes: string[]) {
-    this.pushTransformedJoinInAggregation(
+    DatabaseUtils.pushTransformedJoinInAggregation(
       tenantID,
       aggregation,
       'siteareas',

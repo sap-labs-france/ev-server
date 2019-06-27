@@ -1,21 +1,21 @@
-import morgan from 'morgan';
 import cluster from 'cluster';
-import expressTools from '../ExpressTools';
-import path from 'path';
 import sanitize from 'express-sanitizer';
-import CentralRestServerAuthentication from './CentralRestServerAuthentication';
-import CentralRestServerService from './CentralRestServerService';
-import Database from '../../utils/Database';
-import Configuration from '../../utils/Configuration';
-import Logging from '../../utils/Logging';
-import Constants from '../../utils/Constants';
-import ErrorHandler from './ErrorHandler';
-import SessionHashService from '../rest/service/SessionHashService';
+import morgan from 'morgan';
+import path from 'path';
 import socketio from 'socket.io';
 import SourceMap from 'source-map-support';
+import CentralRestServerAuthentication from './CentralRestServerAuthentication';
+import CentralRestServerService from './CentralRestServerService';
+import Configuration from '../../utils/Configuration';
+import Constants from '../../utils/Constants';
+import Database from '../../utils/Database';
+import ErrorHandler from './ErrorHandler';
+import expressTools from '../ExpressTools';
+import Logging from '../../utils/Logging';
+import SessionHashService from '../rest/service/SessionHashService';
 SourceMap.install();
 
-const MODULE_NAME = "CentralRestServer";
+const MODULE_NAME = 'CentralRestServer';
 
 export default class CentralRestServer {
 
@@ -54,8 +54,8 @@ export default class CentralRestServer {
               Logging.logDebug({
                 tenantID: Constants.DEFAULT_TENANT,
                 module: MODULE_NAME,
-                method: "constructor",
-                action: "HttpRequestLog",
+                method: 'constructor',
+                action: 'HttpRequestLog',
                 message: message
               });
             }
@@ -116,7 +116,7 @@ export default class CentralRestServer {
     Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
       module: MODULE_NAME,
-      method: "start", action: "Startup",
+      method: 'start', action: 'Startup',
       message: logMsg
     });
     // eslint-disable-next-line no-console
@@ -136,11 +136,11 @@ export default class CentralRestServer {
 
   startSocketIO() {
     // Log
-    const logMsg = `Starting REST SocketIO Server...`;
+    const logMsg = 'Starting REST SocketIO Server...';
     Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
       module: MODULE_NAME,
-      method: "start", action: "Startup",
+      method: 'start', action: 'Startup',
       message: logMsg
     });
     // eslint-disable-next-line no-console
@@ -170,7 +170,7 @@ export default class CentralRestServer {
 
   // Start the server
   start() {
-    expressTools.startServer(CentralRestServer.centralSystemRestConfig, CentralRestServer.restHttpServer, "REST", MODULE_NAME);
+    expressTools.startServer(CentralRestServer.centralSystemRestConfig, CentralRestServer.restHttpServer, 'REST', MODULE_NAME);
   }
 
   notifyUser(tenantID, action, data) {
@@ -180,45 +180,45 @@ export default class CentralRestServer {
     }
     // Add in buffer
     this.addNotificationInBuffer({
-      "tenantID": tenantID,
-      "entity": Constants.ENTITY_USER,
-      "action": action,
-      "data": data
+      'tenantID': tenantID,
+      'entity': Constants.ENTITY_USER,
+      'action': action,
+      'data': data
     });
     // Add in buffer
     this.addNotificationInBuffer({
-      "tenantID": tenantID,
-      "entity": Constants.ENTITY_USERS
+      'tenantID': tenantID,
+      'entity': Constants.ENTITY_USERS
     });
   }
 
   notifyVehicle(tenantID, action, data) {
     // Add in buffer
     this.addNotificationInBuffer({
-      "tenantID": tenantID,
-      "entity": Constants.ENTITY_VEHICLE,
-      "action": action,
-      "data": data
+      'tenantID': tenantID,
+      'entity': Constants.ENTITY_VEHICLE,
+      'action': action,
+      'data': data
     });
     // Add in buffer
     this.addNotificationInBuffer({
-      "tenantID": tenantID,
-      "entity": Constants.ENTITY_VEHICLES
+      'tenantID': tenantID,
+      'entity': Constants.ENTITY_VEHICLES
     });
   }
 
   notifyVehicleManufacturer(tenantID, action, data) {
     // Add in buffer
     this.addNotificationInBuffer({
-      "tenantID": tenantID,
-      "entity": Constants.ENTITY_VEHICLE_MANUFACTURER,
-      "action": action,
-      "data": data
+      'tenantID': tenantID,
+      'entity': Constants.ENTITY_VEHICLE_MANUFACTURER,
+      'action': action,
+      'data': data
     });
     // Add in buffer
     this.addNotificationInBuffer({
-      "tenantID": tenantID,
-      "entity": Constants.ENTITY_VEHICLE_MANUFACTURERS
+      'tenantID': tenantID,
+      'entity': Constants.ENTITY_VEHICLE_MANUFACTURERS
     });
   }
 
@@ -229,99 +229,99 @@ export default class CentralRestServer {
     }
     // Add in buffer
     this.addNotificationInBuffer({
-      "tenantID": tenantID,
-      "entity": Constants.ENTITY_TENANT,
-      "action": action,
-      "data": data
+      'tenantID': tenantID,
+      'entity': Constants.ENTITY_TENANT,
+      'action': action,
+      'data': data
     });
     // Add in buffer
     this.addNotificationInBuffer({
-      "tenantID": tenantID,
-      "entity": Constants.ENTITY_TENANTS
+      'tenantID': tenantID,
+      'entity': Constants.ENTITY_TENANTS
     });
   }
 
   notifySite(tenantID, action, data) {
     // Add in buffer
     this.addNotificationInBuffer({
-      "tenantID": tenantID,
-      "entity": Constants.ENTITY_SITE,
-      "action": action,
-      "data": data
+      'tenantID': tenantID,
+      'entity': Constants.ENTITY_SITE,
+      'action': action,
+      'data': data
     });
     // Add in buffer
     this.addNotificationInBuffer({
-      "tenantID": tenantID,
-      "entity": Constants.ENTITY_SITES
+      'tenantID': tenantID,
+      'entity': Constants.ENTITY_SITES
     });
   }
 
   notifySiteArea(tenantID, action, data) {
     // Add in buffer
     this.addNotificationInBuffer({
-      "tenantID": tenantID,
-      "entity": Constants.ENTITY_SITE_AREA,
-      "action": action,
-      "data": data
+      'tenantID': tenantID,
+      'entity': Constants.ENTITY_SITE_AREA,
+      'action': action,
+      'data': data
     });
     // Add in buffer
     this.addNotificationInBuffer({
-      "tenantID": tenantID,
-      "entity": Constants.ENTITY_SITE_AREAS
+      'tenantID': tenantID,
+      'entity': Constants.ENTITY_SITE_AREAS
     });
   }
 
   notifyCompany(tenantID, action, data) {
     // Add in buffer
     this.addNotificationInBuffer({
-      "tenantID": tenantID,
-      "entity": Constants.ENTITY_COMPANY,
-      "action": action,
-      "data": data
+      'tenantID': tenantID,
+      'entity': Constants.ENTITY_COMPANY,
+      'action': action,
+      'data': data
     });
     // Add in buffer
     this.addNotificationInBuffer({
-      "tenantID": tenantID,
-      "entity": Constants.ENTITY_COMPANIES
+      'tenantID': tenantID,
+      'entity': Constants.ENTITY_COMPANIES
     });
   }
 
   notifyTransaction(tenantID, action, data) {
     // Add in buffer
     this.addNotificationInBuffer({
-      "tenantID": tenantID,
-      "entity": Constants.ENTITY_TRANSACTION,
-      "action": action,
-      "data": data
+      'tenantID': tenantID,
+      'entity': Constants.ENTITY_TRANSACTION,
+      'action': action,
+      'data': data
     });
     // Add in buffer
     this.addNotificationInBuffer({
-      "tenantID": tenantID,
-      "entity": Constants.ENTITY_TRANSACTIONS
+      'tenantID': tenantID,
+      'entity': Constants.ENTITY_TRANSACTIONS
     });
   }
 
   notifyChargingStation(tenantID, action, data) {
     // Add in buffer
     this.addNotificationInBuffer({
-      "tenantID": tenantID,
-      "entity": Constants.ENTITY_CHARGING_STATION,
-      "action": action,
-      "data": data
+      'tenantID': tenantID,
+      'entity': Constants.ENTITY_CHARGING_STATION,
+      'action': action,
+      'data': data
     });
     // Add in buffer
     this.addNotificationInBuffer({
-      "tenantID": tenantID,
-      "entity": Constants.ENTITY_CHARGING_STATIONS
+      'tenantID': tenantID,
+      'entity': Constants.ENTITY_CHARGING_STATIONS
     });
   }
 
   notifyLogging(tenantID, action) {
     // Add in buffer
     this.addNotificationInBuffer({
-      "tenantID": tenantID,
-      "entity": Constants.ENTITY_LOGGINGS,
-      "action": action
+      'tenantID': tenantID,
+      'entity': Constants.ENTITY_LOGGINGS,
+      'action': action
     });
   }
 

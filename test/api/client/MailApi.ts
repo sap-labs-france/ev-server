@@ -10,16 +10,18 @@ export default class MailApi extends CrudApi {
   }
 
   public deleteAllMails() {
-    return super.delete(null,'/email/all');
+    return super.delete(null, '/email/all');
   }
 
 
   public async isMailReceived(receiver, type) {
     const mails = await this.readAllMails();
-    const receivedMails = mails.data.filter(mail => mail.to.length > 0 && mail.to[0].address === receiver);
-    return !!receivedMails.find(mail => mail.html.includes(`id="${type}"`));
+    const receivedMails = mails.data.filter((mail) => {
+      return mail.to.length > 0 && mail.to[0].address === receiver;
+    });
+    return !!receivedMails.find((mail) => {
+      return mail.html.includes(`id="${type}"`);
+    });
   }
 
 }
-
-// module.exports = MailApi;
