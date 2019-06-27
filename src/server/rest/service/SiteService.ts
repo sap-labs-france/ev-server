@@ -121,6 +121,12 @@ export default class SiteService {
           'The Site Admin value must be provided', Constants.HTTP_GENERAL_ERROR,
           'SiteService', 'handleUpdateSiteUserAdmin', req.user, filteredRequest.userID);
       }
+      if (req.user.id === filteredRequest.userID) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          'Cannot change the site Admin on the logged user', Constants.HTTP_GENERAL_ERROR,
+          'SiteService', 'handleUpdateSiteUserAdmin', req.user, filteredRequest.userID);
+      }
       if (!Authorizations.canUpdateSite(req.user, filteredRequest.siteID)) {
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
