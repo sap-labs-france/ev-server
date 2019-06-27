@@ -211,12 +211,17 @@ export default class ChargingStationStorage {
       const chargingStation = new ChargingStation(tenantID, chargingStationMDB);
       // Add the Site Area?
       if (chargingStationMDB.siteArea) {
-        const siteArea = chargingStationMDB.siteArea;
+        const siteArea: SiteArea = chargingStationMDB.siteArea;
+        siteArea.id = siteArea.id.toString();
+        siteArea.siteID = siteArea.siteID.toString();
         // Set
         chargingStation.setSiteArea(siteArea);
         if (chargingStationMDB.site) {
           // Add site
           siteArea.site = chargingStationMDB.site;
+          siteArea.site['id'] = chargingStationMDB.site._id.toString();
+          siteArea.site['companyID'] = chargingStationMDB.site.companyID.toString();
+          delete siteArea.site['_id'];
         }
       }
       // Add

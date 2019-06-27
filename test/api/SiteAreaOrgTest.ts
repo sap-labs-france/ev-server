@@ -33,7 +33,7 @@ describe('Site Area tests', function() {
       // Check
       expect(testData.newSite).to.not.be.null;
     });
-  
+
     after(async () => {
       // Delete the Site
       await CentralServerService.DefaultInstance.deleteEntity(
@@ -42,7 +42,7 @@ describe('Site Area tests', function() {
       await CentralServerService.DefaultInstance.deleteEntity(
         CentralServerService.DefaultInstance.companyApi, testData.newCompany);
     });
-    
+
     it('Should create a new site area', async () => {
       // Check
       expect(testData.newSite).to.not.be.null;

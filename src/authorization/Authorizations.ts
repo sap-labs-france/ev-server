@@ -71,8 +71,12 @@ export default class Authorizations {
     if (!Authorizations.isAdmin(user.getRole())) {
       const companyIDs = [];
       const siteIDs = [];
+      const siteAdminIDs = [];
 
+      // Get User's site
       const sites = await user.getSites();
+
+      // Push only companies related to the allowed sites
       for (const site of sites) {
         siteIDs.push(site.id);
         if (!companyIDs.includes(site.companyID)) {
@@ -80,13 +84,20 @@ export default class Authorizations {
         }
       }
 
+      // Get User's Site Admin
+      const sitesAdmin = (await UserStorage.getSites(
+        user.getTenantID(), { userID: user.getID(), siteAdmin: true }));
+      for (const siteAdmin of sitesAdmin['result']) {
+        siteAdminIDs.push(siteAdmin.getID());
+      }
+
       return {
         companies: companyIDs,
-        sites: siteIDs
+        sites: siteIDs,
+        sitesAdmin: siteAdminIDs
       };
     }
     return {};
-
   }
 
   private static async checkAndGetUserTagIDOnChargingStation(chargingStation: any, tagID: any, action: any) {
@@ -690,36 +701,42 @@ export default class Authorizations {
   }
 
   public static async getUserScopes(user: User): Promise<ReadonlyArray<string>> {
+    // Get the sites where the user is marked Site Admin
     const sitesAdmin = await UserStorage.getSites(user.getTenantID(), { userID: user.getID(), siteAdmin: true });
+    // Get the group from User's role
     const groups = Authorizations.getAuthGroupsFromUser(user.getRole(), sitesAdmin['result']);
+    // Return the scopes
     return AuthorizationsDefinition.getInstance().getScopes(groups);
   }
 
-  private static getAuthGroupsFromUser(userRole: string, sitesAdmin: ReadonlyArray<Site>): ReadonlyArray<string> {
-    const roles: Array<string> = [];
+  private static getAuthGroupsFromUser(userRole: string, sitesAdmins: ReadonlyArray<Site>): ReadonlyArray<string> {
+    const groups: Array<string> = [];
     switch (userRole) {
-      case 'A':
-        roles.push('admin');
+      case Constants.ROLE_ADMIN:
+        groups.push('admin');
         break;
-      case 'S':
-        roles.push('superAdmin');
+      case Constants.ROLE_SUPER_ADMIN:
+        groups.push('superAdmin');
         break;
-      case 'B':
-        roles.push('basic');
+      case Constants.ROLE_BASIC:
+        groups.push('basic');
+        // Check Site Admin
+        if (sitesAdmins && sitesAdmins.length > 0) {
+          groups.push('siteAdmin');
+        }
         break;
-      case 'D':
-        roles.push('demo');
+      case Constants.ROLE_DEMO:
+        groups.push('demo');
         break;
     }
-    if (sitesAdmin && sitesAdmin.length > 0) {
-      roles.push('siteAdmin');
-    }
-    return roles;
+    return groups;
   }
 
   private static canPerformAction(loggedUser, resource, action, context?): boolean {
-    const roles = Authorizations.getAuthGroupsFromUser(loggedUser.role, loggedUser.sitesAdmin);
-    const authorized = AuthorizationsDefinition.getInstance().can(roles, resource, action, context);
+    // Get the groups
+    const groups = Authorizations.getAuthGroupsFromUser(loggedUser.role, loggedUser.sitesAdmin);
+    // Check
+    const authorized = AuthorizationsDefinition.getInstance().can(groups, resource, action, context);
     if (!authorized && Authorizations.getConfiguration().debug) {
       Logging.logSecurityInfo({
         tenantID: loggedUser.tenantID, user: loggedUser,

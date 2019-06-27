@@ -6,11 +6,11 @@ import  {expect} from 'chai';
 import  chai from 'chai';
 import  chaiSubset from 'chai-subset';
 import CentralServerService from './client/CentralServerService';
-import  config from '../config';
-import  UserFactory from '../factories/UserFactory';
-import  jwt from 'jsonwebtoken';
+import config from '../config';
+import UserFactory from '../factories/UserFactory';
+import jwt from 'jsonwebtoken';
 chai.use(chaiSubset);
-
+global.appRoot = path.resolve(__dirname, '../../src');
 const testData: any = {};
 
 describe('Authentication Service', function() {
