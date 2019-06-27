@@ -287,23 +287,8 @@ export default class StatisticService {
       const transactionStatsMDB = await StatisticsStorage[method](req.user.tenantID, filter, groupBy);
 
       // Build the result
-      let locale: string;
-      if (req.user.locale) {
-        locale = req.user.locale;
-      } else {
-        const user = await User.getUser(req.user.tenantID, req.user.id);
-        // Found?
-        if (!user) {
-          // Not Found!
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            `User with ID '${req.user.id}' does not exist`,
-            Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'StatisticService', 'handleGetStatisticsExport');
-        }
-        locale = user.getLocale();
-      }
       const filename = 'export' + filteredRequest.DataType + 'Statistics.csv';
-      fs.writeFile(filename, this.convertToCSV(transactionStatsMDB, locale, filteredRequest.DataCategory,
+      fs.writeFile(filename, this.convertToCSV(transactionStatsMDB, filteredRequest.DataCategory,
         filteredRequest.DataType, filteredRequest.Year, filteredRequest.DataScope), (createError) => {
           if (createError) {
             throw createError;
@@ -392,14 +377,13 @@ export default class StatisticService {
     return transactions;
   }
 
-  static convertToCSV(transactionStatsMDB: any[], locale: string, dataCategory: string,
-    dataType: string, year: number | string, dataScope?: string) {
+  static convertToCSV(transactionStatsMDB: any[], dataCategory: string, dataType: string, year: number | string, dataScope?: string) {
     let csv: string;
     let index: number;
     let number: number;
     let transaction: any;
     const transactions = [];
-    let unknownUser = Utils.buildUserFullName(transaction, false, false, true);
+    let unknownUser = Utils.buildUserFullName(undefined, false, false, true);
     if (!unknownUser) {
       unknownUser = "Unknown";
     }
