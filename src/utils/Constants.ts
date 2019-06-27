@@ -49,6 +49,7 @@ export default {
 
   STATS_GROUP_BY_CONSUMPTION: "C",
   STATS_GROUP_BY_USAGE: "U",
+  STATS_GROUP_BY_INACTIVITY: "I",
 
   ENTITY_SITE: "Site",
   ENTITY_SITES: "Sites",

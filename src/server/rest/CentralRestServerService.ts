@@ -407,7 +407,12 @@ export default {
             // Delegate
             StatisticService.handleGetChargingStationUsageStatistics(action, req, res, next);
             break;
-          // Export the statistics data
+          // Get the inactivity statistics
+          case "ChargingStationInactivityStatistics":
+            // Delegate
+            StatisticService.handleGetChargingStationInactivityStatistics(action, req, res, next);
+            break;
+            // Export the statistics data
           case "StatisticsExport":
             // Delegate
             StatisticService.handleGetStatisticsExport(action, req, res, next);
@@ -427,7 +432,12 @@ export default {
             // Delegate
             StatisticService.handleGetUserUsageStatistics(action, req, res, next);
             break;
-          // Get the active transactions
+          // Get the inactivity statistics
+          case "UserInactivityStatistics":
+            // Delegate
+            StatisticService.handleGetUserInactivityStatistics(action, req, res, next);
+            break;
+            // Get the active transactions
           case "TransactionsActive":
             // Delegate
             TransactionService.handleGetTransactionsActive(action, req, res, next);
