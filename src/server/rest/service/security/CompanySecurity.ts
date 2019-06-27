@@ -18,10 +18,11 @@ export default class CompanySecurity {
     };
   }
 
-  public static filterCompaniesRequest(request: HttpCompaniesRequest): HttpCompaniesRequest {
+  public static filterCompaniesRequest(request: Partial<HttpCompaniesRequest>): HttpCompaniesRequest {
     const filteredRequest: HttpCompaniesRequest = {
       Search: sanitize(request.Search),
-      WithSites: UtilsSecurity.filterBoolean(request.WithSites)
+      WithSites: UtilsSecurity.filterBoolean(request.WithSites),
+      WithLogo: UtilsSecurity.filterBoolean(request.WithLogo)
     } as HttpCompaniesRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);

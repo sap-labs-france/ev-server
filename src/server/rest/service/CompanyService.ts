@@ -9,6 +9,7 @@ import CompanySecurity from './security/CompanySecurity';
 import UtilsService from './UtilsService';
 import { NextFunction, Request, Response } from 'express';
 import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
+import { filter } from 'bluebird';
 
 export default class CompanyService {
 
@@ -153,6 +154,7 @@ export default class CompanyService {
         search: filteredRequest.Search,
         companyIDs: Authorizations.getAuthorizedEntityIDsFromLoggedUser(Constants.ENTITY_COMPANY, req.user),
         withSites: filteredRequest.WithSites,
+        withLogo: filteredRequest.WithLogo,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort }

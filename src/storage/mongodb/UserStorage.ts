@@ -317,8 +317,7 @@ export default class UserStorage {
       userFilter.email = userToSave.email;
     }
     // Check Created/Last Changed By
-    userToSave.createdBy = Utils.convertUserToObjectID(userToSave.createdBy);
-    userToSave.lastChangedBy = Utils.convertUserToObjectID(userToSave.lastChangedBy);
+    DatabaseUtils.optionalMongoCreatedPropsCopy(userToSave, userToSave);
     // Transfer
     const user: any = {};
     Database.updateUser(userToSave, user, false);
@@ -780,11 +779,8 @@ export default class UserStorage {
         as: "sites"
       }
     });
-    DatabaseUtils.pushBasicSiteJoinInAggregation(tenantID, aggregation, 'siteID', '_id', 'sites', ['userID', 'siteID']);
-    // Single Record
-    aggregation.push({
-      $unwind: { "path": "$sites", "preserveNullAndEmptyArrays": true }
-    });
+    DatabaseUtils.pushBasicSiteJoinInAggregation(tenantID, aggregation, 'siteID', '_id', 'sites', ['userID', 'siteID'], 'none', true);
+  
     // Count Records
     const usersCountMDB = await global.database.getCollection<any>(tenantID, 'siteusers')
       .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })

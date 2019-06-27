@@ -320,7 +320,7 @@ export default class AuthService {
         // Nbr trials OK: Check user
         await AuthService.checkUserLogin(action, user, filteredRequest, req, res, next);
       }
-    } catch (err) {
+    } catch (err) {console.log(err);
       // Log
       Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next, (!tenantID ? Constants.DEFAULT_TENANT : tenantID));
     }

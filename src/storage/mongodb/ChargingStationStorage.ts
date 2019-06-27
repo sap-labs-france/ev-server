@@ -12,6 +12,9 @@ import global from '../../types/GlobalType';
 
 export default class ChargingStationStorage {
 
+  private static _chargingStationFields = [ 'siteAreaID', 'chargePointSerialNumber', 'chargePointModel', 'chargeBoxSerialNumber', 'chargePointVendor', 'iccid', 'imsi', 'meterType', 'firmwareVersion',
+  'meterSerialNumber', 'endpoint', 'ocppVersion', 'ocppProtocol', 'lastHeartBeat', 'deleted', 'lastReboot', 'chargingStationURL', 'connectors', 'firmwareVersion', 'maximumPower', 'latitude', 'longitude', 'powerLimitUnit', 'cannotChargeInParallel', 'numberOfConnectedPhase', 'cfApplicationIDAndInstanceIndex'];
+
   static async getChargingStation(tenantID, id): Promise<ChargingStation> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStation');
@@ -27,10 +30,7 @@ export default class ChargingStationStorage {
       }
     });
     // With Site Area, TODO make sure this works
-    DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, aggregation, 'siteAreaID', '_id', 'siteArea', [ 'siteAreaID', 'chargePointSerialNumber', 'chargePointModel', 'chargeBoxSerialNumber', 'chargePointVendor', 'iccid', 'imsi', 'meterType', 'firmwareVersion',
-      'meterSerialNumber', 'endpoint', 'ocppVersion', 'ocppProtocol', 'lastHeartBeat', 'deleted', 'lastReboot', 'chargingStationURL', 'connectors', 'firmwareVersion', 'maximumPower', 'latitude', 'longitude', 'powerLimitUnit', 'cannotChargeInParallel', 'numberOfConnectedPhase', 'cfApplicationIDAndInstanceIndex']);
-
-    aggregation.push({ $unwind: { path: '$siteArea', preserveNullAndEmptyArrays: true } });
+    DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, aggregation, 'siteAreaID', '_id', 'siteArea', this._chargingStationFields, 'include', true);
 
     // Read DB
     const chargingStationMDB = await global.database.getCollection<any>(tenantID, 'chargingstations')
@@ -107,16 +107,8 @@ export default class ChargingStationStorage {
       });
     } else {
       // With Site Area, TODO make sure this works
-      DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, aggregation, 'siteAreaID', '_id', 'siteArea', [ 'siteAreaID', 'chargePointSerialNumber', 'chargePointModel', 'chargeBoxSerialNumber', 'chargePointVendor', 'iccid', 'imsi', 'meterType', 'firmwareVersion',
-        'meterSerialNumber', 'endpoint', 'ocppVersion', 'ocppProtocol', 'lastHeartBeat', 'deleted', 'lastReboot', 'chargingStationURL', 'connectors', 'firmwareVersion', 'maximumPower', 'latitude', 'longitude', 'powerLimitUnit', 'cannotChargeInParallel', 'numberOfConnectedPhase', 'cfApplicationIDAndInstanceIndex']);
+      DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, aggregation, 'siteAreaID', '_id', 'siteArea', this._chargingStationFields, 'manual', true);
 
-      // Single Record
-      aggregation.push({
-        $unwind: {
-          "path": "$siteArea",
-          "preserveNullAndEmptyArrays": true
-        }
-      });
       // With sites
       if (params.siteIDs && params.siteIDs.length > 0) {
         // Build filter
@@ -129,22 +121,7 @@ export default class ChargingStationStorage {
         });
       }
       if (params.withSite) {
-        // Get the site from the sitearea
-        aggregation.push({
-          $lookup: {
-            from: DatabaseUtils.getCollectionName(tenantID, "sites"),
-            localField: "siteArea.siteID",
-            foreignField: "_id",
-            as: "site"
-          }
-        });
-        // Single Record
-        aggregation.push({
-          $unwind: {
-            "path": "$site",
-            "preserveNullAndEmptyArrays": true
-          }
-        });
+        DatabaseUtils.pushBasicSiteJoinInAggregation(tenantID, aggregation, 'siteArea.siteID', '_id', 'site', ['siteArea', ...this._chargingStationFields], 'manual', true);
       }
     }
     if (params.chargeBoxID) {
@@ -212,16 +189,12 @@ export default class ChargingStationStorage {
       // Add the Site Area?
       if (chargingStationMDB.siteArea) {
         const siteArea: SiteArea = chargingStationMDB.siteArea;
-        siteArea.id = siteArea.id.toString();
-        siteArea.siteID = siteArea.siteID.toString();
+
         // Set
         chargingStation.setSiteArea(siteArea);
         if (chargingStationMDB.site) {
           // Add site
           siteArea.site = chargingStationMDB.site;
-          siteArea.site['id'] = chargingStationMDB.site._id.toString();
-          siteArea.site['companyID'] = chargingStationMDB.site.companyID.toString();
-          delete siteArea.site['_id'];
         }
       }
       // Add
@@ -288,8 +261,7 @@ export default class ChargingStationStorage {
       // Always get the Site Area
       const siteAreaIdJoin = [];
       // With Site Area, TODO make sure this works
-      DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, siteAreaIdJoin, 'siteAreaID', '_id', 'siteArea', [ 'siteAreaID', 'chargePointSerialNumber', 'chargePointModel', 'chargeBoxSerialNumber', 'chargePointVendor', 'iccid', 'imsi', 'meterType', 'firmwareVersion',
-        'meterSerialNumber', 'endpoint', 'ocppVersion', 'ocppProtocol', 'lastHeartBeat', 'deleted', 'lastReboot', 'chargingStationURL', 'connectors', 'firmwareVersion', 'maximumPower', 'latitude', 'longitude', 'powerLimitUnit', 'cannotChargeInParallel', 'numberOfConnectedPhase', 'cfApplicationIDAndInstanceIndex']);
+      DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, siteAreaIdJoin, 'siteAreaID', '_id', 'siteArea', this._chargingStationFields, 'manual', true);
 
     }
     // Check Site ID
@@ -302,8 +274,7 @@ export default class ChargingStationStorage {
     if (params.withSite) {
       // Get the site from the sitearea
       siteAreaJoin = [];
-      DatabaseUtils.pushBasicSiteJoinInAggregation(tenantID, siteAreaJoin, 'siteArea.siteID', '_id', 'site', [ 'siteAreaID', 'chargePointSerialNumber', 'chargePointModel', 'chargeBoxSerialNumber', 'chargePointVendor', 'iccid', 'imsi', 'meterType', 'firmwareVersion',
-      'meterSerialNumber', 'endpoint', 'ocppVersion', 'ocppProtocol', 'lastHeartBeat', 'deleted', 'lastReboot', 'chargingStationURL', 'connectors', 'firmwareVersion', 'maximumPower', 'latitude', 'longitude', 'powerLimitUnit', 'cannotChargeInParallel', 'numberOfConnectedPhase', 'cfApplicationIDAndInstanceIndex', 'siteArea']);
+      DatabaseUtils.pushBasicSiteJoinInAggregation(tenantID, siteAreaJoin, 'siteArea.siteID', '_id', 'site', ['siteArea', ...this._chargingStationFields], 'manual', true);
     }
     // Charger
     if (params.chargeBoxID) {

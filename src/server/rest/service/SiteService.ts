@@ -179,10 +179,9 @@ export default class SiteService {
     await UtilsService.assertComponentIsActive(
       req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_UPDATE, Constants.ENTITY_SITE, 'SiteService', 'handleGetUsersFromSite');
-
     const filteredRequest = SiteSecurity.filterSiteUsersRequest(req.query);
     // Check Mandatory fields
-    if (!filteredRequest.ID) {
+    if (!filteredRequest.SiteID) {
       // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
@@ -190,11 +189,11 @@ export default class SiteService {
         'SiteService', 'handleGetUsersFromSite', req.user);
     }
     // Get the Site
-    const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.ID);
+    const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.SiteID);
     if (!site) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The Site with ID '${filteredRequest.ID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        `The Site with ID '${filteredRequest.SiteID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'SiteService', 'handleGetUsersFromSite', req.user);
     }
     // Check auth
@@ -208,13 +207,10 @@ export default class SiteService {
         req.user);
     }
 
-    const users = await SiteStorage.getUsers(req.user.tenantID, filteredRequest.ID,
+    const users = await SiteStorage.getUsers(req.user.tenantID, filteredRequest.SiteID,
       filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
 
-    users.result = users.result.map((user) => {
-      return user.getModel();
-    });
-    UserSecurity.filterUsersResponse(users, req.user);
+    users.result = users.result.map(siteuser => {return {siteID: siteuser.siteID, siteAdmin: siteuser.siteAdmin, user: UserSecurity.filterUserResponse(siteuser.user, req.user)}});
     res.json(users);
     next();
   }
@@ -400,7 +396,6 @@ export default class SiteService {
     await UtilsService.assertComponentIsActive(
       req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_UPDATE, Constants.ENTITY_SITE, 'SiteService', 'handleUpdateSite');
-
     // Filter
     const filteredRequest = SiteSecurity.filterSiteUpdateRequest(req.body, req.user);
     

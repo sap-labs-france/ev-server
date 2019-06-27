@@ -44,6 +44,7 @@ export default class UtilsService {
     // Get the tenant
     let active = false;
     const tenant = await Tenant.getTenant(tenantID);
+
     // Check
     if (tenant) {
       active = tenant.isComponentActive(component);

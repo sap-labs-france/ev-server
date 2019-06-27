@@ -4,7 +4,7 @@ import UtilsSecurity from './UtilsSecurity';
 import CompanySecurity from './CompanySecurity';
 import SiteAreaSecurity from './SiteAreaSecurity';
 import UserSecurity from './UserSecurity';
-import { HttpSiteUserAssignmentRequest, HttpSiteUserRoleChangeRequest, HttpSiteRequest, HttpSitesRequest } from '../../../../types/requests/HttpSiteUserRequest';
+import { HttpSiteUserAssignmentRequest, HttpSiteUserRoleChangeRequest, HttpSiteRequest, HttpSitesRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteUserRequest';
 import AppError from '../../../../exception/AppError';
 import Constants from '../../../../utils/Constants';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
@@ -85,9 +85,9 @@ export default class SiteSecurity {
     return request.ID?sanitize(request.ID):null;
   }
 
-  public static filterSiteUsersRequest(request: Partial<HttpSiteRequest>): HttpSiteRequest {
-    const filteredRequest: HttpSiteRequest = {} as HttpSiteRequest;
-    filteredRequest.ID = sanitize(request.ID);
+  public static filterSiteUsersRequest(request: Partial<HttpSiteUsersRequest>): HttpSiteUsersRequest {
+    const filteredRequest: HttpSiteUsersRequest = {} as HttpSiteUsersRequest;
+    filteredRequest.SiteID = sanitize(request.SiteID);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;

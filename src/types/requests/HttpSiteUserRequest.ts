@@ -17,6 +17,10 @@ export interface HttpSiteRequest extends HttpDatabaseRequest {
     ID: string;
 }
 
+export interface HttpSiteUsersRequest extends HttpDatabaseRequest {
+    SiteID: string;
+}
+
 export interface HttpSitesRequest extends HttpDatabaseRequest {
     WithAvailableChargers: boolean;
     WithCompany: boolean;

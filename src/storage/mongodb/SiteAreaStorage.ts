@@ -69,16 +69,7 @@ export default class SiteAreaStorage {
     if (siteAreaToSave.maximumPower) {
       siteAreaMDB.maximumPower = siteAreaToSave.maximumPower;
     }
-    if (siteAreaToSave.createdBy && siteAreaToSave.createdOn) {
-      siteAreaMDB.createdBy = Utils.convertToObjectID(
-        siteAreaToSave.createdBy.id ? siteAreaToSave.createdBy.id : siteAreaToSave.createdBy.getID()),
-      siteAreaMDB.createdOn = siteAreaToSave.createdOn;
-    }
-    if (siteAreaToSave.lastChangedBy && siteAreaToSave.lastChangedOn) {
-      siteAreaMDB.lastChangedBy = Utils.convertToObjectID(
-        siteAreaToSave.lastChangedBy.id ? siteAreaToSave.lastChangedBy.id : siteAreaToSave.lastChangedBy.getID());
-      siteAreaMDB.lastChangedOn = siteAreaToSave.lastChangedOn;
-    }
+    DatabaseUtils.optionalMongoCreatedPropsCopy(siteAreaMDB, siteAreaToSave);
 
     // Modify
     const result = await global.database.getCollection<SiteArea>(tenantID, 'siteareas').findOneAndUpdate(
@@ -187,11 +178,7 @@ export default class SiteAreaStorage {
     aggregation.pop();
     // Sites
     if (params.withSite) {
-      DatabaseUtils.pushBasicSiteJoinInAggregation(tenantID, aggregation, 'siteID', '_id', 'site', ['image', '_id', 'name', 'address', 'maximumPower', 'siteID', 'accessControl']);
-      // Single Record
-      aggregation.push({
-        $unwind: { "path": "$site", "preserveNullAndEmptyArrays": true }
-      });
+      DatabaseUtils.pushBasicSiteJoinInAggregation(tenantID, aggregation, 'siteID', '_id', 'site', ['image', '_id', 'name', 'address', 'maximumPower', 'siteID', 'accessControl'], 'include', true);
     }
 
     // Charging Stations
@@ -206,6 +193,8 @@ export default class SiteAreaStorage {
         }
       });
     }
+    
+    aggregation.push({$addFields: {id: '$_id'}});
 
     // Add site area image
     if (params.withImage) {
@@ -221,7 +210,6 @@ export default class SiteAreaStorage {
       },
       { $project: {
         image: '$image.image',
-        id: { $toString: '$_id' },
         _id: 0,
         createdBy: 1,
         createdOn: 1,
@@ -233,27 +221,11 @@ export default class SiteAreaStorage {
         siteID: 1,
         accessControl: 1,
         chargingStations: 1,
-        site: 1
+        site: 1,
+        id: 1
       }
       }
       );
-    } else {
-      aggregation.push({ $project: {
-        id: { $toString: '$_id' },
-        _id: 0,
-        createdBy: 1,
-        createdOn: 1,
-        lastChangedBy: 1,
-        lastChangedOn: 1,
-        name: 1,
-        address: 1,
-        maximumPower: 1,
-        siteID: 1,
-        accessControl: 1,
-        chargingStations: 1,
-        site: 1
-      }
-      });
     }
     // Sort
     if (dbParams.sort) {

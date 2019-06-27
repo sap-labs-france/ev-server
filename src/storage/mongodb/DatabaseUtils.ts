@@ -49,6 +49,7 @@ export default class DatabaseUtils {
         as: (fieldOf.length === 0 ? '' : fieldOf + '.') + "createdBy"
       }
     });
+
     // Single Record
     aggregation.push({
       $unwind: { "path": `$${(fieldOf.length === 0 ? '' : fieldOf + '.')}createdBy`, "preserveNullAndEmptyArrays": true }
@@ -106,7 +107,7 @@ export default class DatabaseUtils {
   }
 
 
-  public static pushSiteAreaJoinInAggregation(tenantID: string, aggregation: any[], local: string, foreign: string, as: string, includes: string[]) {
+  public static pushSiteAreaJoinInAggregation(tenantID: string, aggregation: any[], local: string, foreign: string, as: string, includes: string[], topCreatedProps: 'none'|'manual'|'include', single: boolean = false) {
     this.pushTransformedJoinInAggregation(
       tenantID,
       aggregation,
@@ -117,13 +118,14 @@ export default class DatabaseUtils {
       includes,
       {},
       ['address', 'name', 'maximumPower', 'image', 'siteID', 'accessControl'],
-      { id: `$${as}._id` },
+      { siteID: {$toString: `$${as}.siteID`} },
+      topCreatedProps,
       true,
-      true);
+      single);
   }
 
   // WOSWOI = Without Site Without Image, bad name, change... SimpleCompany?
-  public static pushCompanyWOSWOIJoinInAggregation(tenantID: string, aggregation: any[], local: string, foreign: string, as: string, includes: string[]) {
+  public static pushCompanyWOSWOIJoinInAggregation(tenantID: string, aggregation: any[], local: string, foreign: string, as: string, includes: string[], topCreatedProps: 'none'|'manual'|'include') {
     this.pushTransformedJoinInAggregation(
       tenantID,
       aggregation,
@@ -134,19 +136,22 @@ export default class DatabaseUtils {
       includes,
       {},
       ['name', 'address'],
-      {id: `$${as}._id`},
+      {},
+      topCreatedProps,
       true,
       true);
   }
 
-  public static pushBasicSiteJoinInAggregation(tenantID: string, aggregation: any[], local: string, foreign: string, as: string, includes: string[]) {
-    this.pushTransformedJoinInAggregation(tenantID, aggregation, 'sites', local, foreign, as, includes, {}, ['name', 'address', 'companyID', 'allowAllUsersToStopTransactions', 'autoUserSiteAssignment'], {id: `$${as}._id`}, false, true);
+  public static pushBasicSiteJoinInAggregation(tenantID: string, aggregation: any[], local: string, foreign: string, as: string, includes: string[], topCreatedProps: 'none'|'manual'|'include', single: boolean) {
+    this.pushTransformedJoinInAggregation(tenantID, aggregation, 'sites', local, foreign, as, includes, {}, 
+      ['name', 'address', 'companyID', 'allowAllUsersToStopTransactions', 'autoUserSiteAssignment'], 
+      {companyID: {$toString: `$${as}.companyID`}}, topCreatedProps, true, single);
   }
 
   public static pushTransformedJoinInAggregation(tenantID: string, aggregation: any[], joinCollection: string, local: string, foreign: string, intoField: string, topIncludes: string[], topRenames: any, nestedIncludes: string[],
-    nestedRenames: any, topCreatedProps: boolean, joinCreatedProps: boolean) {
+    nestedRenames: any, topCreatedProps: 'none'|'manual'|'include', joinCreatedProps: boolean, single: boolean) {
 
-    if (topCreatedProps) {
+    if (topCreatedProps === 'manual' || topCreatedProps === 'include') {
       topIncludes.push('createdBy', 'createdOn', 'lastChangedBy', 'lastChangedOn');
     }
     if (joinCreatedProps) {
@@ -159,7 +164,8 @@ export default class DatabaseUtils {
       foreignField: foreign,
       as: intoField
     } };
-    const project = { $project: { ...topRenames } };
+    const project = { $project: { 
+      ...topRenames } };
     const group = { $group: { _id: '$_id' } };
     for (const top of topIncludes) {
       project.$project[top] = 1;
@@ -167,7 +173,7 @@ export default class DatabaseUtils {
     }
     group.$group[intoField] = { $push: `$${intoField}` };
     project.$project[intoField] = { ...nestedRenames };
-    project.$project[intoField].id = `$${intoField}._id`;
+    project.$project[intoField].id = {$toString: `$${intoField}._id`};
     for (const nes of nestedIncludes) {
       project.$project[intoField][nes] = 1;
     }
@@ -180,9 +186,13 @@ export default class DatabaseUtils {
     if(joinCreatedProps){
       DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation, intoField);
     }
-    aggregation.push(group);
 
-    if(topCreatedProps) {
+    if(! single){
+      aggregation.push(group);
+    }
+    aggregation.push({$addFields: {id: '$_id'}});
+
+    if(topCreatedProps === 'include') {
       DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     }
   } // TODO: createdBy.id gets set even if user is null, giving illusion that there is a user. Take care
@@ -207,6 +217,18 @@ export default class DatabaseUtils {
       return Utils.convertToObjectID(obj[prop].id);
     }
     return null;
+  }
+
+  //TODO: Can probably be removed once user gets typed. For now use as shortcut.
+  public static optionalMongoCreatedPropsCopy(dest: any, entity: any){
+    if(entity.createdBy && entity.createdOn) {
+      dest.createdBy = this.safeMongoUserId(entity, 'createdBy');
+      dest.createdOn = entity.createdOn;
+    }
+    if(entity.lastChangedBy && entity.lastChangedOn) {
+      dest.lastChangedBy = this.safeMongoUserId(entity, 'lastChangedBy');
+      dest.lastChangedOn = entity.lastChangedOn;
+    }
   }
 
 }

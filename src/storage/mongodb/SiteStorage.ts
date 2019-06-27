@@ -9,6 +9,8 @@ import Site from '../../types/Site';
 import crypto from 'crypto';
 import User from '../../entity/User';
 import global from '../../types/GlobalType';
+import SiteUserWrapper from '../../types/SiteUserWrapper';
+import CreatedUpdatedProps from '../../types/CreatedUpdatedProps';
 
 
 export default class SiteStorage {
@@ -48,7 +50,7 @@ export default class SiteStorage {
     return siteImage;
   }
 
-  public static async removeUsersFromSite(tenantID: string, siteID: string, userIDs: string[]): Promise<void> { //TODO
+  public static async removeUsersFromSite(tenantID: string, siteID: string, userIDs: string[]): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'removeUsersFromSite');
     // Check Tenant
@@ -57,14 +59,11 @@ export default class SiteStorage {
     if (siteID) {
       // At least one User
       if (userIDs && userIDs.length > 0) {
-        // Create the list
-        for (const userID of userIDs) {
-          // Execute
-          await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
-            "userID": Utils.convertToObjectID(userID),
-            "siteID": Utils.convertToObjectID(siteID)
-          });
-        }
+        // Execute
+        await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
+          "userID": { $in: userIDs.map(userID => Utils.convertToObjectID(userID)) },
+          "siteID": Utils.convertToObjectID(siteID)
+        });
       }
     }
     // Debug
@@ -87,7 +86,8 @@ export default class SiteStorage {
           siteUsers.push({
             "_id": crypto.createHash('sha256').update(`${siteID}~${userID}`).digest("hex"),
             "userID": Utils.convertToObjectID(userID),
-            "siteID": Utils.convertToObjectID(siteID)
+            "siteID": Utils.convertToObjectID(siteID),
+            "siteAdmin": false
           });
         }
         // Execute
@@ -98,7 +98,7 @@ export default class SiteStorage {
     Logging.traceEnd('SiteStorage', 'addUsersToSite', uniqueTimerID, { siteID, userIDs });
   }
 
-  public static async getUsers(tenantID: string, siteID: string, limit: number, skip: number, sort:any = null): Promise<{count: number, result: User[]}> {
+  public static async getUsers(tenantID: string, siteID: string, limit: number, skip: number, sort:any = null): Promise<{count: number, result: SiteUserWrapper[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getUsers');
     // Check Tenant
@@ -122,27 +122,27 @@ export default class SiteStorage {
         from: DatabaseUtils.getCollectionName(tenantID, "users"),
         localField: "userID",
         foreignField: "_id",
-        as: "users"
+        as: "user"
       }
     });
     // Single Record
-    aggregation.push({
-      $unwind: { "path": "$users", "preserveNullAndEmptyArrays": true }
-    });
+    //aggregation.push({
+    //  $unwind: { "path": "$user", "preserveNullAndEmptyArrays": true }
+    //});
     // Filter deleted users
     aggregation.push({
       $match: {
         "$or": [
           {
-            "users.deleted": {
+            "user.deleted": {
               "$exists": false
             }
           },
           {
-            "users.deleted": false
+            "user.deleted": false
           },
           {
-            "users.deleted": null
+            "user.deleted": null
           }
         ]
       }
@@ -161,7 +161,7 @@ export default class SiteStorage {
     } else {
       // Default
       aggregation.push({
-        $sort: { "users.name": 1, "users.firstName": 1 }
+        $sort: { "user.name": 1, "user.firstName": 1 }
       });
     }
     // Skip
@@ -176,13 +176,11 @@ export default class SiteStorage {
     const siteusersMDB = await global.database.getCollection<any>(tenantID, 'siteusers')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
-    const users = [];
+    const users: SiteUserWrapper[] = [];
     // Create
     for (const siteuserMDB of siteusersMDB) {
-      if (siteuserMDB.users) {
-        const user = new User(tenantID, siteuserMDB.users);
-        user.setSiteAdmin(siteuserMDB.siteAdmin);
-        users.push(user);
+      if (siteuserMDB.user) {
+        users.push({user: siteuserMDB.user, siteAdmin: !siteuserMDB.siteAdmin?false:siteuserMDB.siteAdmin, siteID: siteID});
       }
     }
 
@@ -201,7 +199,7 @@ export default class SiteStorage {
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'updateSiteUserAdmin');
     await Utils.checkTenant(tenantID);
 
-    await global.database.getCollection<any>(tenantID, 'siteusers').updateMany(
+    await global.database.getCollection<any>(tenantID, 'siteusers').updateOne(
       {
         siteID: Utils.convertToObjectID(siteID),
         userID: Utils.convertToObjectID(userID)
@@ -212,7 +210,7 @@ export default class SiteStorage {
     Logging.traceEnd('SiteStorage', 'updateSiupdateSiteUserAdminteUserRole', uniqueTimerID, { siteID, userID, siteAdmin });
   }
 
-  public static async saveSite(tenantID: string, siteToSave: Optional<Site, 'id'>, saveImage=true): Promise<string> { //TODO: maybe make it Partial<Site>&{requireds}
+  public static async saveSite(tenantID: string, siteToSave: Optional<Site, 'id'>, saveImage=true): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'saveSite');
     // Check Tenant
@@ -233,24 +231,18 @@ export default class SiteStorage {
       siteFilter._id = new ObjectID();
     }
     // Check Created By/On
-    let mongoSite: Omit<Site, 'id'|'createdBy'|'lastChangedBy'>&{_id: string, createdBy: ObjectID, lastChangedBy: ObjectID} = {
+    let createdProps = {} as {createdBy: ObjectID, createdOn: Date, lastChangedBy: ObjectID, lastChangedOn: Date};
+    DatabaseUtils.optionalMongoCreatedPropsCopy(createdProps, siteToSave);
+    let mongoSite: Omit<Site, 'id'|'createdBy'|'lastChangedBy'|'createdOn'|'lastChangedOn'>&{_id: string, createdBy: ObjectID, lastChangedBy: ObjectID} = {
       _id: siteFilter._id,
       address: siteToSave.address,
       companyID: Utils.convertToObjectID(siteToSave.companyID),
-      createdBy: DatabaseUtils.safeMongoUserId(siteToSave, 'createdBy'), //TODO convert user properly + this might give a NPE
-      createdOn: siteToSave.createdOn?siteToSave.createdOn:new Date(),
-      lastChangedBy: DatabaseUtils.safeMongoUserId(siteToSave, 'lastChangedBy'), //TODO convert user properly
-      lastChangedOn: siteToSave.lastChangedOn?siteToSave.lastChangedOn:new Date(),
       allowAllUsersToStopTransactions: siteToSave.allowAllUsersToStopTransactions,
       autoUserSiteAssignment: siteToSave.autoUserSiteAssignment,
       name: siteToSave.name,
+      ...createdProps
     };
-    // TODO: Consider using spread notation instead of setting manually. 
-    //    (+) Easy; can just do mongoSite = {...siteToSave, few others}. Especially useful for ChargingStationStorage.
-    //    (-) unsafe; what if siteToSave has unexpected properties we dont want in db?
-    // Please review
 
-    //siteToSave.image TODO save image
     // Modify
     const result = await global.database.getCollection<any>(tenantID, 'sites').findOneAndUpdate(
       siteFilter,
@@ -390,7 +382,7 @@ export default class SiteStorage {
 
     // Add Chargers
     if (params.withAvailableChargers) {
-      DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, aggregation, '_id', 'siteID', 'siteAreas', ['address', 'allowUsersToStopTransaction, autoUserSiteAssignement', 'companyID', 'name']);
+      DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, aggregation, '_id', 'siteID', 'siteAreas', ['address', 'allowUsersToStopTransaction, autoUserSiteAssignement', 'companyID', 'name'], 'manual', false);
       aggregation.push({
         $lookup: {
           from: DatabaseUtils.getCollectionName(tenantID, "chargingstations"),
@@ -403,14 +395,13 @@ export default class SiteStorage {
 
     // Add Company?
     if (params.withCompany) {
-      DatabaseUtils.pushCompanyWOSWOIJoinInAggregation(tenantID, aggregation, 'companyID', '_id', 'company', ['address', 'allowUsersToStopTransaction, autoUserSiteAssignement', 'companyID', 'name']);
-      // Single Record
-      aggregation.push({
-        $unwind: { "path": "$company", "preserveNullAndEmptyArrays": true }
-      });
+      DatabaseUtils.pushCompanyWOSWOIJoinInAggregation(tenantID, aggregation, 'companyID', '_id', 'company', ['chargeBoxes', 'address', 'allowUsersToStopTransaction, autoUserSiteAssignement', 'companyID', 'name'], 'manual');
     }
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
-    aggregation.push({$addFields: {id: '$_id'}});
+
+    aggregation.push({$addFields: {
+      id: {$toString: '$_id'}
+    }});
 
     // Sort
     if (sort) {
@@ -476,8 +467,6 @@ export default class SiteStorage {
           site.totalConnectors = totalConnectors;
         }
         // Add
-        console.log(site);
-        site.companyID = (site.companyID as unknown as ObjectID).toHexString(); //TODO fix this hack, horrible...
         sites.push(site);
       }
     }

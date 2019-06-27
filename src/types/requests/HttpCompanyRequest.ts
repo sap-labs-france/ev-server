@@ -7,4 +7,5 @@ export interface HttpCompanyRequest {
 export interface HttpCompaniesRequest extends HttpDatabaseRequest {
   Search?: string;
   WithSites?: boolean;
+  WithLogo?: boolean;
 }

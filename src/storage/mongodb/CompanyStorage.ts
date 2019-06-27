@@ -37,22 +37,12 @@ export default class CompanyStorage {
     // Set
     const companyMDB: any = {
       _id: !companyToSave.id ? new ObjectID() : Utils.convertToObjectID(companyToSave.id),
-      name: companyToSave.name,
-      address: companyToSave.address,
+      name: companyToSave.name
     };
     if (companyToSave.address) {
       companyMDB.address = companyToSave.address;
     }
-    if (companyToSave.createdBy && companyToSave.createdOn) {
-      companyMDB.createdBy = Utils.convertToObjectID(
-        companyToSave.createdBy.id ? companyToSave.createdBy.id : companyToSave.createdBy.getID()),
-      companyMDB.createdOn = companyToSave.createdOn;
-    }
-    if (companyToSave.lastChangedBy && companyToSave.lastChangedOn) {
-      companyMDB.lastChangedBy = Utils.convertToObjectID(
-        companyToSave.lastChangedBy.id ? companyToSave.lastChangedBy.id : companyToSave.lastChangedBy.getID());
-      companyMDB.lastChangedOn = companyToSave.lastChangedOn;
-    }
+    DatabaseUtils.optionalMongoCreatedPropsCopy(companyMDB, companyToSave);
 
     // Modify
     const result = await global.database.getCollection<Company>(tenantID, 'companies').findOneAndUpdate(
@@ -98,7 +88,7 @@ export default class CompanyStorage {
 
   // Delegate
   public static async getCompanies(tenantID: string,
-    params: {search?: string; companyIDs?: string[]; onlyRecordCount?: boolean; withSites?: boolean} = {},
+    params: {search?: string; companyIDs?: string[]; onlyRecordCount?: boolean; withSites?: boolean; withLogo?: boolean} = {},
     dbParams?: DbParams): Promise<{count: number; result: Company[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompanies');
@@ -169,43 +159,38 @@ export default class CompanyStorage {
 
     // Site lookup
     if (params.withSites) {
-      // Add Sites
-      aggregation.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, "sites"),
-          localField: "_id",
-          foreignField: "companyID",
-          as: "sites"
-        }
-      });
+      // Add Sites & Created Props
+      DatabaseUtils.pushBasicSiteJoinInAggregation(tenantID, aggregation, '_id', 'companyID', 'sites', ['address', 'name'], 'include', false);
+    }else{
+      // Add Created By / Last Changed By
+      DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     }
 
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
-
-    // Add company logo
-    aggregation.push({ $lookup: {
-      from: tenantID + '.companylogos',
-      localField: '_id',
-      foreignField: '_id',
-      as: 'logo' }
-    },
-    { $unwind: {
-      'path': '$logo',
-      'preserveNullAndEmptyArrays': true }
-    },
-    { $project: {
-      logo: '$logo.logo',
-      id:{ $toString: '$_id' },
+    if(params.withLogo) {
+      // Add company logo
+      aggregation.push({ $lookup: {
+        from: tenantID + '.companylogos',
+        localField: '_id',
+        foreignField: '_id',
+        as: 'tmplogo' }
+      },
+      { $unwind: {
+        'path': '$tmplogo',
+        'preserveNullAndEmptyArrays': true }
+      }
+      );
+    }
+    aggregation.push({ $project: {
+      logo: '$tmplogo.logo',
       _id: 0,
       createdBy: 1,
       createdOn: 1,
       lastChangedBy: 1,
       lastChangedOn: 1,
       name: 1,
-      address: 1 }
-    }
-    );
+      address: 1,
+      sites: 1,
+      id: {$toString: '$_id'} }});
 
     // Sort
     if (dbParams.sort) {
@@ -226,6 +211,7 @@ export default class CompanyStorage {
       $limit: (limit > 0 && limit < Constants.MAX_DB_RECORD_COUNT) ? limit : Constants.MAX_DB_RECORD_COUNT
     });
 
+
     // Read DB
     const companies = await global.database.getCollection<Company>(tenantID, 'companies')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
@@ -234,7 +220,7 @@ export default class CompanyStorage {
     // Debug
     Logging.traceEnd('CompanyStorage', 'getCompanies', uniqueTimerID,
       { params, limit: dbParams.limit, skip: dbParams.skip, sort: dbParams.sort });
-
+    
     // Ok
     return {
       count: (companiesCountMDB.length > 0 ?
