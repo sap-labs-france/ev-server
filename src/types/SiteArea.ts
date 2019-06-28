@@ -1,7 +1,7 @@
-import CreatedUpdatedProps from "./CreatedUpdatedProps";
-import Address from "./Address";
-import ChargingStation from "../entity/ChargingStation";
-import Site from "../entity/Site";
+import Address from './Address';
+import ChargingStation from '../entity/ChargingStation';
+import CreatedUpdatedProps from './CreatedUpdatedProps';
+import Site from '../entity/Site';
 
 export default interface SiteArea extends CreatedUpdatedProps {
   id: string;

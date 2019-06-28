@@ -1,8 +1,8 @@
-import Constants from "../../utils/Constants";
-import JsonRestChargingStationClient from "./json/JsonRestChargingStationClient";
-import SoapChargingStationClient from "./soap/SoapChargingStationClient";
-import BackendError from "../../exception/BackendError";
+import BackendError from '../../exception/BackendError';
+import Constants from '../../utils/Constants';
 import TSGlobal from '../../types/GlobalType';
+import JsonRestChargingStationClient from './json/JsonRestChargingStationClient';
+import SoapChargingStationClient from './soap/SoapChargingStationClient';
 
 declare const global: TSGlobal;
 
@@ -31,8 +31,8 @@ const buildChargingStationClient = async function(chargingStation) {
   }
   // Check
   if (!chargingClient) {
-    throw new BackendError(chargingStation.getID(), "Client has not been found",
-      "ChargingStationClient", "getChargingStationClient");
+    throw new BackendError(chargingStation.getID(), 'Client has not been found',
+      'ChargingStationClient', 'getChargingStationClient');
   }
   return chargingClient;
 };

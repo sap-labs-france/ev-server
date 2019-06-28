@@ -72,68 +72,68 @@ export default class UserSecurity {
 
   static _filterUserRequest(request, loggedUser) {
     const filteredRequest: any = {};
-    if (request.hasOwnProperty("costCenter")) {
+    if (request.hasOwnProperty('costCenter')) {
       filteredRequest.costCenter = sanitize(request.costCenter);
     }
-    if (request.hasOwnProperty("firstName")) {
+    if (request.hasOwnProperty('firstName')) {
       filteredRequest.firstName = sanitize(request.firstName);
     }
-    if (request.hasOwnProperty("iNumber")) {
+    if (request.hasOwnProperty('iNumber')) {
       filteredRequest.iNumber = sanitize(request.iNumber);
     }
-    if (request.hasOwnProperty("image")) {
+    if (request.hasOwnProperty('image')) {
       filteredRequest.image = sanitize(request.image);
     }
-    if (request.hasOwnProperty("mobile")) {
+    if (request.hasOwnProperty('mobile')) {
       filteredRequest.mobile = sanitize(request.mobile);
     }
-    if (request.hasOwnProperty("name")) {
+    if (request.hasOwnProperty('name')) {
       filteredRequest.name = sanitize(request.name);
     }
-    if (request.hasOwnProperty("locale")) {
+    if (request.hasOwnProperty('locale')) {
       filteredRequest.locale = sanitize(request.locale);
     }
-    if (request.hasOwnProperty("address")) {
+    if (request.hasOwnProperty('address')) {
       filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address);
     }
-    if (request.hasOwnProperty("passwords") && request.passwords.hasOwnProperty("password") && request.passwords.password.length > 0) {
+    if (request.hasOwnProperty('passwords') && request.passwords.hasOwnProperty('password') && request.passwords.password.length > 0) {
       filteredRequest.password = sanitize(request.passwords.password);
     }
-    if (request.hasOwnProperty("phone")) {
+    if (request.hasOwnProperty('phone')) {
       filteredRequest.phone = sanitize(request.phone);
     }
     // Admin?
     if (Authorizations.isAdmin(loggedUser.role)) {
       // Ok to set the sensitive data
-      if (request.hasOwnProperty("notificationsActive")) {
+      if (request.hasOwnProperty('notificationsActive')) {
         filteredRequest.notificationsActive = sanitize(request.notificationsActive);
       }
-      if (request.hasOwnProperty("email")) {
+      if (request.hasOwnProperty('email')) {
         filteredRequest.email = sanitize(request.email);
       }
-      if (request.hasOwnProperty("status")) {
+      if (request.hasOwnProperty('status')) {
         filteredRequest.status = sanitize(request.status);
       }
-      if (request.hasOwnProperty("tagIDs")) {
+      if (request.hasOwnProperty('tagIDs')) {
         filteredRequest.tagIDs = sanitize(request.tagIDs);
       }
-      if (request.hasOwnProperty("plateID")) {
+      if (request.hasOwnProperty('plateID')) {
         filteredRequest.plateID = sanitize(request.plateID);
       }
-      if (request.hasOwnProperty("role")) {
+      if (request.hasOwnProperty('role')) {
         filteredRequest.role = sanitize(request.role);
       }
     }
     // Admin?
     if (Authorizations.isSuperAdmin(loggedUser.role)) {
       // Ok to set the sensitive data
-      if (request.hasOwnProperty("email")) {
+      if (request.hasOwnProperty('email')) {
         filteredRequest.email = sanitize(request.email);
       }
-      if (request.hasOwnProperty("role")) {
+      if (request.hasOwnProperty('role')) {
         filteredRequest.role = sanitize(request.role);
       }
-      if (request.hasOwnProperty("status")) {
+      if (request.hasOwnProperty('status')) {
         filteredRequest.status = sanitize(request.status);
       }
     }

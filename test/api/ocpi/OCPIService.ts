@@ -1,8 +1,7 @@
-import BaseApi from '../client/utils/BaseApi';
-import config from '../../config';
-import { expect } from 'chai';
-import chai from 'chai';
+import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
+import config from '../../config';
+import BaseApi from '../client/utils/BaseApi';
 
 // Set
 chai.use(chaiSubset);
@@ -16,11 +15,23 @@ export default class OCPIService {
   constructor() {
     this.baseURL = `${config.get('ocpi.scheme')}://${config.get('ocpi.host')}:${config.get('ocpi.port')}`;
 
-    // build token
+    // Build token
     this.token = `Token ${config.get('ocpi.token')}`;
 
     // Create the Base API
     this.baseApi = new BaseApi(this.baseURL);
+  }
+
+  /**
+   * Check if Configuration Exist
+   */
+  static isConfigAvailable() {
+    return (config.get('ocpi.enabled')) ? true : false;
+
+  }
+
+  static getToken() {
+    return (config.get('ocpi.token'));
   }
 
   /**
@@ -31,18 +42,6 @@ export default class OCPIService {
       method: 'GET',
       url: 'ocpi/cpo/versions'
     });
-  }
-
-  /**
-   * Check if Configuration Exist
-   */
-  static isConfigAvailable() {
-    return (config.get('ocpi.enabled'))?true:false;
-
-  }
-
-  static getToken() {
-    return (config.get('ocpi.token'));
   }
 
   /**
@@ -160,8 +159,6 @@ export default class OCPIService {
     return expect(connector).to.have.property('id') &&
       expect(connector).to.have.property('last_update').that.is.not.empty;
   }
-
-
 
 
 }

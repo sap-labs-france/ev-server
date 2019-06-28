@@ -1,18 +1,23 @@
 {
-    "eslint.validate": [
-        "javascript",
-        "javascriptreact",
-        "typescript",
-        "typescriptreact"
-    ],
-    "mocha.env": { "TS_NODE_PROJECT": "tsconfig-test.json", "TS_NODE_FILES": true },
-    "mocha.requires": [
-      "ts-node/register"
-     ],
-     "mocha.files.glob": "test/**/*Test.ts",
-     "mochaExplorer.files": "test/**/*Test.ts",
-     "mochaExplorer.require": "ts-node/register",
-     "mochaExplorer.env": { "TS_NODE_PROJECT": "tsconfig-test.json", "TS_NODE_FILES": true },
-     "mochaExplorer.exit": true,
-     "mochaExplorer.logpanel": true
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ],
+  "mocha.env": {
+    "TS_NODE_PROJECT": "tsconfig-test.json",
+    "TS_NODE_FILES": true
+  },
+  "mocha.requires": [
+    "ts-node/register"
+  ],
+  "mocha.files.glob": "test/**/*Test.ts",
+  "mochaExplorer.env": {
+    "TS_NODE_PROJECT": "tsconfig-test.json",
+    "TS_NODE_FILES": "true"
+  },
+  "mochaExplorer.files": "test/**/*Test.ts",
+  "mochaExplorer.require": "ts-node/register",
+  "mochaExplorer.exit": true
 }

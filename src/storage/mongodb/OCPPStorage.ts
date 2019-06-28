@@ -1,10 +1,10 @@
-import Constants from '../../utils/Constants';
-import Utils from '../../utils/Utils';
-import Database from '../../utils/Database';
 import crypto from 'crypto';
+import Constants from '../../utils/Constants';
+import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
-import Logging from '../../utils/Logging';
 import TSGlobal from '../../types/GlobalType';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
 
 declare const global: TSGlobal;
 
@@ -18,7 +18,7 @@ export default class OCPPStorage {
     const timestamp = Utils.convertToDate(authorize.timestamp);
     authorize.id = crypto.createHash('sha256')
       .update(`${authorize.chargeBoxID}~${timestamp.toISOString()}`)
-      .digest("hex");
+      .digest('hex');
     // Set the User
     if (authorize.user) {
       authorize.userID = Utils.convertToObjectID(authorize.user.getID());
@@ -75,7 +75,7 @@ export default class OCPPStorage {
     }
     // Count Records
     const statusNotificationsCountMDB = await global.database.getCollection<any>(tenantID, 'statusnotifications')
-      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Sort
     if (sort) {
@@ -130,7 +130,7 @@ export default class OCPPStorage {
     const timestamp = Utils.convertToDate(statusNotificationToSave.timestamp);
     statusNotification._id = crypto.createHash('sha256')
       .update(`${statusNotificationToSave.chargeBoxID}~${statusNotificationToSave.connectorId}~${statusNotificationToSave.status}~${timestamp.toISOString()}`)
-      .digest("hex");
+      .digest('hex');
     // Set
     Database.updateStatusNotification(statusNotificationToSave, statusNotification, false);
     // Insert
@@ -147,7 +147,7 @@ export default class OCPPStorage {
     await Utils.checkTenant(tenantID);
     // Modify
     await global.database.getCollection<any>(tenantID, 'configurations').findOneAndUpdate({
-      "_id": configuration.chargeBoxID
+      '_id': configuration.chargeBoxID
     }, {
       $set: {
         configuration: configuration.configuration,
@@ -170,7 +170,7 @@ export default class OCPPStorage {
     const timestamp = Utils.convertToDate(dataTransfer.timestamp);
     dataTransfer.id = crypto.createHash('sha256')
       .update(`${dataTransfer.chargeBoxID}~${dataTransfer.data}~${timestamp.toISOString()}`)
-      .digest("hex");
+      .digest('hex');
     // Insert
     await global.database.getCollection<any>(tenantID, 'datatransfers')
       .insertOne({
@@ -197,7 +197,7 @@ export default class OCPPStorage {
       .insertOne({
         _id: crypto.createHash('sha256')
           .update(`${bootNotification.chargeBoxID}~${timestamp.toISOString()}`)
-          .digest("hex"),
+          .digest('hex'),
         chargeBoxID: bootNotification.chargeBoxID,
         chargePointVendor: bootNotification.chargePointVendor,
         chargePointModel: bootNotification.chargePointModel,
@@ -227,18 +227,18 @@ export default class OCPPStorage {
     const aggregation = [];
     // Set the filters
     const filters: any = {
-      "$and": [{
-        "$or": [
+      '$and': [{
+        '$or': [
           {
-            "deleted": {
+            'deleted': {
               $exists: false
             }
           },
           {
-            "deleted": null
+            'deleted': null
           },
           {
-            "deleted": false
+            'deleted': false
           }
         ]
       }]
@@ -247,7 +247,7 @@ export default class OCPPStorage {
     // Charger ID
     if (params.chargeBoxID) {
       filters.$and.push({
-        "_id": params.chargeBoxID
+        '_id': params.chargeBoxID
       });
     }
     // Filters
@@ -256,7 +256,7 @@ export default class OCPPStorage {
     });
     // Count Records
     const bootNotificationsCountMDB = await global.database.getCollection<any>(tenantID, 'bootnotifications')
-      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
@@ -282,7 +282,7 @@ export default class OCPPStorage {
     });
     // Read DB
     const bootNotificationsMDB = await global.database.getCollection<any>(tenantID, 'bootnotifications')
-      .aggregate(aggregation,{ collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     const bootNotifications = [];
     // Create
@@ -308,7 +308,7 @@ export default class OCPPStorage {
     const timestamp = Utils.convertToDate(diagnosticsStatusNotification.timestamp);
     diagnosticsStatusNotification.id = crypto.createHash('sha256')
       .update(`${diagnosticsStatusNotification.chargeBoxID}~${timestamp.toISOString()}`)
-      .digest("hex");
+      .digest('hex');
     // Insert
     await global.database.getCollection<any>(tenantID, 'diagnosticsstatusnotifications')
       .insertOne({
@@ -331,7 +331,7 @@ export default class OCPPStorage {
     const timestamp = Utils.convertToDate(firmwareStatusNotification.timestamp);
     firmwareStatusNotification.id = crypto.createHash('sha256')
       .update(`${firmwareStatusNotification.chargeBoxID}~${timestamp.toISOString()}`)
-      .digest("hex");
+      .digest('hex');
     // Insert
     await global.database.getCollection<any>(tenantID, 'firmwarestatusnotifications')
       .insertOne({
@@ -357,12 +357,12 @@ export default class OCPPStorage {
         // Update all chargers
         await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany({
           $and: [{
-            "_id": {
+            '_id': {
               $in: chargingStationIDs
             }
           },
           {
-            "siteAreaID": Utils.convertToObjectID(siteAreaID)
+            'siteAreaID': Utils.convertToObjectID(siteAreaID)
           }
           ]
         }, {
@@ -393,12 +393,12 @@ export default class OCPPStorage {
         // Update all chargers
         await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany({
           $and: [{
-            "_id": {
+            '_id': {
               $in: chargingStationIDs
             }
           },
           {
-            "siteAreaID": null
+            'siteAreaID': null
           }
           ]
         }, {
@@ -430,7 +430,7 @@ export default class OCPPStorage {
       const timestamp = Utils.convertToDate(meterValueToSave.timestamp);
       meterValue._id = crypto.createHash('sha256')
         .update(`${meterValueToSave.chargeBoxID}~${meterValueToSave.connectorId}~${timestamp.toISOString()}~${meterValueToSave.value}~${JSON.stringify(meterValueToSave.attribute)}`)
-        .digest("hex");
+        .digest('hex');
       // Set
       Database.updateMeterValue(meterValueToSave, meterValue, false);
       // Add

@@ -263,7 +263,7 @@ export default class TransactionSecurity {
     } else if (!transaction.getUserJson() && !Authorizations.isAdmin(loggedUser.role)) {
       return null;
     }
-    const filteredTransaction = this.filterTransactionResponse(transaction, loggedUser);
+    const filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser);
     if (consumptions.length === 0) {
       filteredTransaction.values = [];
       return filteredTransaction;

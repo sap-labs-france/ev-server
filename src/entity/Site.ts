@@ -1,19 +1,72 @@
 import AppError from '../exception/AppError';
 import Company from '../types/Company';
+import CompanyStorage from '../storage/mongodb/CompanyStorage';
 import Constants from '../utils/Constants';
 import Database from '../utils/Database';
-import CompanyStorage from '../storage/mongodb/CompanyStorage';
-import SiteStorage from '../storage/mongodb/SiteStorage';
 import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
+import SiteStorage from '../storage/mongodb/SiteStorage';
 import TenantHolder from './TenantHolder';
-import UserStorage from '../storage/mongodb/UserStorage';
 import User from './User';
+import UserStorage from '../storage/mongodb/UserStorage';
 export default class Site extends TenantHolder {
   private _model: any = {};
 
   constructor(tenantID, site) {
     super(tenantID);
     Database.updateSite(site, this._model);
+  }
+
+  static checkIfSiteValid(filteredRequest, req) {
+    // Update model?
+    if (req.method !== 'POST' && !filteredRequest.id) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Site ID is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'Site', 'checkIfSiteValid',
+        req.user.id);
+    }
+    if (!filteredRequest.name) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Site Name is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'Site', 'checkIfSiteValid',
+        req.user.id, filteredRequest.id);
+    }
+    if (!filteredRequest.companyID) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Company ID is mandatory for the Site', Constants.HTTP_GENERAL_ERROR,
+        'Sites', 'checkIfSiteValid',
+        req.user.id, filteredRequest.id);
+    }
+  }
+
+  static getSite(tenantID, id) {
+    return SiteStorage.getSite(tenantID, id);
+  }
+
+  static getSites(tenantID, params, limit?, skip?, sort?) {
+    return SiteStorage.getSites(tenantID, params, limit, skip, sort);
+  }
+
+  static getSiteImage(tenantID, id) {
+    return SiteStorage.getSiteImage(tenantID, id);
+  }
+
+  static addUsersToSite(tenantID, id, userIDs) {
+    return SiteStorage.addUsersToSite(tenantID, id, userIDs);
+  }
+
+  static getUsers(tenantID, id, limit?, skip?, sort?) {
+    return SiteStorage.getUsers(tenantID, { siteID: id }, limit, skip, sort);
+  }
+
+  static updateSiteUserAdmin(tenantID, id, userID, siteAdmin: boolean) {
+    return SiteStorage.updateSiteUserAdmin(tenantID, id, userID, siteAdmin);
+  }
+
+  static removeUsersFromSite(tenantID, id, userIDs) {
+    return SiteStorage.removeUsersFromSite(tenantID, id, userIDs);
   }
 
   public getModel(): any {
@@ -214,64 +267,11 @@ export default class Site extends TenantHolder {
     return SiteStorage.deleteSite(this.getTenantID(), this.getID());
   }
 
-  static checkIfSiteValid(filteredRequest, req) {
-    // Update model?
-    if (req.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Site ID is mandatory`, Constants.HTTP_GENERAL_ERROR,
-        'Site', 'checkIfSiteValid',
-        req.user.id);
-    }
-    if (!filteredRequest.name) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Site Name is mandatory`, Constants.HTTP_GENERAL_ERROR,
-        'Site', 'checkIfSiteValid',
-        req.user.id, filteredRequest.id);
-    }
-    if (!filteredRequest.companyID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Company ID is mandatory for the Site`, Constants.HTTP_GENERAL_ERROR,
-        'Sites', 'checkIfSiteValid',
-        req.user.id, filteredRequest.id);
-    }
-  }
-
-  static getSite(tenantID, id) {
-    return SiteStorage.getSite(tenantID, id);
-  }
-
-  static getSites(tenantID, params, limit?, skip?, sort?) {
-    return SiteStorage.getSites(tenantID, params, limit, skip, sort);
-  }
-
-  static getSiteImage(tenantID, id) {
-    return SiteStorage.getSiteImage(tenantID, id);
-  }
-
-  static addUsersToSite(tenantID, id, userIDs) {
-    return SiteStorage.addUsersToSite(tenantID, id, userIDs);
-  }
-
-  static getUsers(tenantID, id, limit?, skip?, sort?) {
-    return SiteStorage.getUsers(tenantID, { siteID: id }, limit, skip, sort);
-  }
-
   public setSiteAdmin(siteAdmin: boolean) {
     this._model.siteAdmin = siteAdmin;
   }
 
   public isSiteAdmin(): boolean {
     return this._model.siteAdmin;
-  }
-
-  static updateSiteUserAdmin(tenantID, id, userID, siteAdmin: boolean) {
-    return SiteStorage.updateSiteUserAdmin(tenantID, id, userID, siteAdmin);
-  }
-
-  static removeUsersFromSite(tenantID, id, userIDs) {
-    return SiteStorage.removeUsersFromSite(tenantID, id, userIDs);
   }
 }

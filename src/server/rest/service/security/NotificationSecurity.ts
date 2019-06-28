@@ -1,7 +1,7 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import UtilsSecurity from './UtilsSecurity';
 import UserSecurity from './UserSecurity';
+import UtilsSecurity from './UtilsSecurity';
 
 export default class NotificationSecurity {
   // eslint-disable-next-line no-unused-vars

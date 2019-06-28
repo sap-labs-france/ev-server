@@ -1,5 +1,5 @@
-import Utils from '../utils/Utils';
 import Constants from '../utils/Constants';
+import Utils from '../utils/Utils';
 
 export default class AppAuthError extends Error {
   public user: any;
@@ -11,8 +11,8 @@ export default class AppAuthError extends Error {
   public module: any;
   public method: any;
 
-  constructor(action, entity, value, errorCode = Constants.HTTP_GENERAL_ERROR, module = "N/A", method = "N/A", user?, actionOnUser?) {
-    super(`Role ${Utils.getRoleNameFromRoleID(user.role)} is not authorized to perform ${action} on ${entity}${(value ? " '" + value + "'" : "")}`);
+  constructor(action, entity, value, errorCode = Constants.HTTP_GENERAL_ERROR, module = 'N/A', method = 'N/A', user?, actionOnUser?) {
+    super(`Role ${Utils.getRoleNameFromRoleID(user.role)} is not authorized to perform ${action} on ${entity}${(value ? ' \'' + value + '\'' : '')}`);
     this.user = user;
     this.actionOnUser = actionOnUser;
     this.action = action;

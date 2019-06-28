@@ -1,9 +1,7 @@
-import CrudApi from './utils/CrudApi';
+import { expect } from 'chai';
+// pragma import moment from 'moment';
 import Constants from './utils/Constants';
-import moment from 'moment';
-import {
-  expect
-} from 'chai';
+import CrudApi from './utils/CrudApi';
 
 export default class TransactionApi extends CrudApi {
   public constructor(authenticatedApi) {
@@ -40,7 +38,7 @@ export default class TransactionApi extends CrudApi {
 
   public async startTransaction(ocpp, chargingStation, chargingStationConnector, user, meterStart, startTime, withSoC = false) {
     // Start the transaction
-    let responseTransaction = await ocpp.executeStartTransaction(chargingStation.id, {
+    const responseTransaction = await ocpp.executeStartTransaction(chargingStation.id, {
       connectorId: chargingStationConnector.connectorId,
       idTag: user.tagIDs[0],
       meterStart: meterStart,
@@ -57,7 +55,7 @@ export default class TransactionApi extends CrudApi {
     chargingStationConnector.status = 'Occupied';
     chargingStationConnector.timestamp = new Date().toISOString();
     // Update
-    let response = await ocpp.executeStatusNotification(chargingStation.id, chargingStationConnector);
+    const response = await ocpp.executeStatusNotification(chargingStation.id, chargingStationConnector);
     // Check
     expect(response.data).to.eql({});
     return responseTransaction;
@@ -93,7 +91,7 @@ export default class TransactionApi extends CrudApi {
   public async sendTransactionMeterValue(ocpp, transaction, chargingStation, user, meterValue, currentTime, currentConsumption, totalConsumption) {
     let response;
     // OCPP 1.6?
-    if (ocpp.getVersion() === "1.6") {
+    if (ocpp.getVersion() === '1.6') {
       // Yes
       response = await ocpp.executeMeterValues(chargingStation.id, {
         connectorId: transaction.connectorId,
@@ -102,11 +100,11 @@ export default class TransactionApi extends CrudApi {
           timestamp: currentTime.toISOString(),
           sampledValue: [{
             value: meterValue,
-            format: "Raw",
-            measurand: "Energy.Active.Import.Register",
+            format: 'Raw',
+            measurand: 'Energy.Active.Import.Register',
             unit: 'Wh',
-            location: "Outlet",
-            context: "Sample.Periodic"
+            location: 'Outlet',
+            context: 'Sample.Periodic'
           }]
         },
       });
@@ -120,10 +118,10 @@ export default class TransactionApi extends CrudApi {
           value: {
             $attributes: {
               unit: 'Wh',
-              location: "Outlet",
-              measurand: "Energy.Active.Import.Register",
-              format: "Raw",
-              context: "Sample.Periodic"
+              location: 'Outlet',
+              measurand: 'Energy.Active.Import.Register',
+              format: 'Raw',
+              context: 'Sample.Periodic'
             },
             $value: meterValue
           }
@@ -158,7 +156,7 @@ export default class TransactionApi extends CrudApi {
     meterValue, meterSocValue, currentTime, withSoC = false) {
     let response;
     // OCPP 1.6?
-    if (ocpp.getVersion() === "1.6") {
+    if (ocpp.getVersion() === '1.6') {
       // Yes
       if (withSoC) {
         response = await ocpp.executeMeterValues(chargingStation.id, {
@@ -167,15 +165,15 @@ export default class TransactionApi extends CrudApi {
           meterValue: {
             timestamp: currentTime.toISOString(),
             sampledValue: [{
-              "unit": "Wh",
-              "context": "Transaction.Begin",
-              "value": meterValue
+              'unit': 'Wh',
+              'context': 'Transaction.Begin',
+              'value': meterValue
             }, {
-              "unit": "Percent",
-              "context": "Transaction.Begin",
-              "measurand": "SoC",
-              "location": "EV",
-              "value": meterSocValue
+              'unit': 'Percent',
+              'context': 'Transaction.Begin',
+              'measurand': 'SoC',
+              'location': 'EV',
+              'value': meterSocValue
             }]
           },
         });
@@ -186,9 +184,9 @@ export default class TransactionApi extends CrudApi {
           meterValue: {
             timestamp: currentTime.toISOString(),
             sampledValue: [{
-              "unit": "Wh",
-              "context": "Transaction.Begin",
-              "value": meterValue
+              'unit': 'Wh',
+              'context': 'Transaction.Begin',
+              'value': meterValue
             }]
           },
         });
@@ -214,7 +212,7 @@ export default class TransactionApi extends CrudApi {
       //     name: user.name,
       //   }
       // });
-    };
+    }
     return response;
   }
 
@@ -222,7 +220,7 @@ export default class TransactionApi extends CrudApi {
     meterValue, meterSocValue, currentTime, currentConsumption, totalConsumption) {
     let response;
     // OCPP 1.6?
-    if (ocpp.getVersion() === "1.6") {
+    if (ocpp.getVersion() === '1.6') {
       // Yes
       response = await ocpp.executeMeterValues(chargingStation.id, {
         connectorId: transaction.connectorId,
@@ -230,15 +228,15 @@ export default class TransactionApi extends CrudApi {
         meterValue: {
           timestamp: currentTime.toISOString(),
           sampledValue: [{
-            "unit": "Wh",
-            "context": "Sample.Periodic",
-            "value": meterValue
+            'unit': 'Wh',
+            'context': 'Sample.Periodic',
+            'value': meterValue
           }, {
-            "unit": "Percent",
-            "context": "Sample.Periodic",
-            "measurand": "SoC",
-            "location": "EV",
-            "value": meterSocValue
+            'unit': 'Percent',
+            'context': 'Sample.Periodic',
+            'measurand': 'SoC',
+            'location': 'EV',
+            'value': meterSocValue
           }]
         },
       });
@@ -272,7 +270,7 @@ export default class TransactionApi extends CrudApi {
     meterValue, meterSocValue, currentTime, withSoC = false) {
     let response;
     // OCPP 1.6?
-    if (ocpp.getVersion() === "1.6") {
+    if (ocpp.getVersion() === '1.6') {
       if (withSoC) {
         response = await ocpp.executeMeterValues(chargingStation.id, {
           connectorId: transaction.connectorId,
@@ -280,15 +278,15 @@ export default class TransactionApi extends CrudApi {
           meterValue: {
             timestamp: currentTime.toISOString(),
             sampledValue: [{
-              "unit": "Wh",
-              "context": "Transaction.End",
-              "value": meterValue
+              'unit': 'Wh',
+              'context': 'Transaction.End',
+              'value': meterValue
             }, {
-              "unit": "Percent",
-              "context": "Transaction.End",
-              "measurand": "SoC",
-              "location": "EV",
-              "value": meterSocValue
+              'unit': 'Percent',
+              'context': 'Transaction.End',
+              'measurand': 'SoC',
+              'location': 'EV',
+              'value': meterSocValue
             }]
           },
         });
@@ -299,9 +297,9 @@ export default class TransactionApi extends CrudApi {
           meterValue: {
             timestamp: currentTime.toISOString(),
             sampledValue: [{
-              "unit": "Wh",
-              "context": "Transaction.End",
-              "value": meterValue
+              'unit': 'Wh',
+              'context': 'Transaction.End',
+              'value': meterValue
             }]
           },
         });
@@ -396,4 +394,3 @@ export default class TransactionApi extends CrudApi {
   }
 }
 
-// module.exports = TransactionApi;

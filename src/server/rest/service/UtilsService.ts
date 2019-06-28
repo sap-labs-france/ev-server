@@ -1,8 +1,8 @@
-import Logging from '../../../utils/Logging';
-import Tenant from '../../../entity/Tenant';
-import Constants from '../../../utils/Constants';
 import AppError from '../../../exception/AppError';
 import ComponentInactiveError from '../../../exception/ComponentInactiveError';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
+import Tenant from '../../../entity/Tenant';
 
 export default class UtilsService {
   static handleUnknownAction(action, req, res, next) {
@@ -10,7 +10,7 @@ export default class UtilsService {
     if (!action) {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(
-        "N/A", new Error(`No Action has been provided`), req, res, next);
+        'N/A', new Error('No Action has been provided'), req, res, next);
     } else {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(
@@ -23,7 +23,7 @@ export default class UtilsService {
       // Object does not exist
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The ID must be provided`,
+        'The ID must be provided',
         Constants.HTTP_GENERAL_ERROR,
         module, method, userToken);
     }

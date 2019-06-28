@@ -1,8 +1,8 @@
 import Database from '../../utils/Database';
-import Tenant from '../../entity/Tenant';
 import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
-import MigrationTask from '../MigrationTask';
 import TSGlobal from '../../types/GlobalType';
+import MigrationTask from '../MigrationTask';
+import Tenant from '../../entity/Tenant';
 declare const global: TSGlobal;
 
 export default class UpdateTransactionSoCTask extends MigrationTask {
@@ -20,32 +20,32 @@ export default class UpdateTransactionSoCTask extends MigrationTask {
     // Filters
     aggregation.push({
       $match: {
-        "attribute.context": {
+        'attribute.context': {
           $in: ['Transaction.Begin', 'Transaction.End']
         },
-        "attribute.measurand": 'SoC'
+        'attribute.measurand': 'SoC'
       }
     });
     // Add Transaction
     aggregation.push({
       $lookup: {
-        "from": DatabaseUtils.getCollectionName(tenant.getID(), 'transactions'),
-        "localField": "transactionId",
-        "foreignField": "_id",
-        "as": "transaction"
+        'from': DatabaseUtils.getCollectionName(tenant.getID(), 'transactions'),
+        'localField': 'transactionId',
+        'foreignField': '_id',
+        'as': 'transaction'
       }
     });
     aggregation.push({
       $unwind: {
-        path : "$transaction",
+        path : '$transaction',
         preserveNullAndEmptyArrays : false
       }
     });
     // Filters
     aggregation.push({
       $match: {
-        "transaction.stop": {
-          "$exists": true
+        'transaction.stop': {
+          '$exists': true
         }
       }
     });
@@ -82,11 +82,11 @@ export default class UpdateTransactionSoCTask extends MigrationTask {
         foundTransaction = meterValueMDB.transaction;
       }
       // Check Transaction Begin
-      if (meterValueMDB.attribute.context === "Transaction.Begin") {
+      if (meterValueMDB.attribute.context === 'Transaction.Begin') {
         // Set the Start SoC
         foundTransaction.stateOfCharge = meterValueMDB.value;
       // Check Transaction End
-      } else if (meterValueMDB.attribute.context === "Transaction.End") {
+      } else if (meterValueMDB.attribute.context === 'Transaction.End') {
         // Set the End SoC
         foundTransaction.stop.stateOfCharge = meterValueMDB.value;
       }
@@ -95,7 +95,7 @@ export default class UpdateTransactionSoCTask extends MigrationTask {
       Database.updateTransaction(foundTransaction, transaction, false);
       // Save it
       await global.database.getCollection<any>(tenant.getID(), 'transactions').findOneAndUpdate({
-        "_id": meterValueMDB.transaction._id
+        '_id': meterValueMDB.transaction._id
       }, {
         $set: transaction
       }, {
@@ -106,11 +106,11 @@ export default class UpdateTransactionSoCTask extends MigrationTask {
   }
 
   getVersion() {
-    return "1.0";
+    return '1.0';
   }
 
   getName() {
-    return "TransactionSoCTask";
+    return 'TransactionSoCTask';
   }
 }
 

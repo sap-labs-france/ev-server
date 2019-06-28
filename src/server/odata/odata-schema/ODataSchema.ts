@@ -1,17 +1,17 @@
-import fs from 'fs';
 import auth from 'basic-auth';
-import Constants from '../../../utils/Constants';
-import Logging from '../../../utils/Logging';
-import CentralServiceApi from '../client/CentralServiceApi';
+import fs from 'fs';
 import SourceMap from 'source-map-support';
+import CentralServiceApi from '../client/CentralServiceApi';
+import Constants from '../../../utils/Constants';
 import TSGlobal from '../../../types/GlobalType';
+import Logging from '../../../utils/Logging';
 SourceMap.install();
 
 declare const global: TSGlobal;
 
 export default class ODataSchema {
 
-  public static restServerUrl: string = '';
+  public static restServerUrl = '';
 
   static async getSchema(req, res, next) {
     // Read XML schema
@@ -42,10 +42,10 @@ export default class ODataSchema {
       // Add logging: login info
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        module: "ODataServer",
-        source: "ODataServer",
-        method: "securePing",
-        action: "SecurePing",
+        module: 'ODataServer',
+        source: 'ODataServer',
+        method: 'securePing',
+        action: 'SecurePing',
         message: 'Unauthorized Access'
       });
       res.send(401);

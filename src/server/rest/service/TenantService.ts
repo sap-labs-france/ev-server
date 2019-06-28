@@ -1,21 +1,21 @@
-import Logging from '../../../utils/Logging';
-import Database from '../../../utils/Database';
+import { NextFunction, Request, Response } from 'express';
+import HttpStatusCodes from 'http-status-codes';
+import AbstractService from './AbstractService';
 import AppError from '../../../exception/AppError';
-import UnauthorizedError from '../../../exception/UnauthorizedError';
+import Authorizations from '../../../authorization/Authorizations';
 import ConflictError from '../../../exception/ConflictError';
 import Constants from '../../../utils/Constants';
-import Tenant from '../../../entity/Tenant';
-import User from '../../../entity/User';
-import Setting from '../../../entity/Setting';
-import Authorizations from '../../../authorization/Authorizations';
-import TenantSecurity from './security/TenantSecurity';
-import HttpStatusCodes from 'http-status-codes';
-import TenantValidator from '../validation/TenantValidation';
-import AbstractService from './AbstractService';
+import Database from '../../../utils/Database';
+import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
-import Utils from '../../../utils/Utils';
+import Setting from '../../../entity/Setting';
+import Tenant from '../../../entity/Tenant';
+import TenantSecurity from './security/TenantSecurity';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import { NextFunction, Request, Response } from 'express';
+import TenantValidator from '../validation/TenantValidation';
+import UnauthorizedError from '../../../exception/UnauthorizedError';
+import User from '../../../entity/User';
+import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'TenantService';
 
@@ -31,7 +31,7 @@ export default class TenantService extends AbstractService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Tenant's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+          'The Tenant\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
           MODULE_NAME, 'handleDeleteTenant', req.user);
       }
       // Get
@@ -95,7 +95,7 @@ export default class TenantService extends AbstractService {
         // Not Found!
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Tenant's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+          'The Tenant\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
           MODULE_NAME, 'handleGetTenant', req.user);
       }
       // Get it
@@ -208,12 +208,12 @@ export default class TenantService extends AbstractService {
       TenantService.updateSettingsWithComponents(newTenant, req);
       // Create DB collections
       TenantStorage.createTenantDB(newTenant.getID());
-      // Create unser in tenant
+      // Create user in tenant
       const password = User.generatePassword();
       const verificationToken = Utils.generateToken(newTenant.getEmail());
       const tenantUser = new User(newTenant.getID(), {
         name: newTenant.getName(),
-        firstName: "Admin",
+        firstName: 'Admin',
         password: await User.hashPasswordBcrypt(password),
         status: Constants.USER_STATUS_PENDING,
         role: Constants.ROLE_ADMIN,

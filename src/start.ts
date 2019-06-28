@@ -1,24 +1,24 @@
 import path from 'path';
 global.appRoot = path.resolve(__dirname);
-import TSGlobal from './types/GlobalType';
 import BBPromise from 'bluebird';
+import TSGlobal from './types/GlobalType';
 global.Promise = BBPromise;
 import cluster from 'cluster';
+import SourceMap from 'source-map-support';
+import CentralRestServer from './server/rest/CentralRestServer';
+import Configuration from './utils/Configuration';
+import Constants from './utils/Constants';
+import JsonCentralSystemServer from './server/ocpp/json/JsonCentralSystemServer';
 import LockingStorage from './storage/mongodb/LockingStorage';
+import Logging from './utils/Logging';
+import MigrationHandler from './migration/MigrationHandler';
 import MongoDBStorage from './storage/mongodb/MongoDBStorage';
 import MongoDBStorageNotification from './storage/mongodb/MongoDBStorageNotification';
-import Configuration from './utils/Configuration';
-import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer';
-import JsonCentralSystemServer from './server/ocpp/json/JsonCentralSystemServer';
-import CentralRestServer from './server/rest/CentralRestServer';
 import OCPIServer from './server/ocpi/OCPIServer';
 import ODataServer from './server/odata/ODataServer';
 import SchedulerManager from './scheduler/SchedulerManager';
-import MigrationHandler from './migration/MigrationHandler';
-import Logging from './utils/Logging';
-import Constants from './utils/Constants';
+import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer';
 import Utils from './utils/Utils';
-import SourceMap from 'source-map-support';
 SourceMap.install();
 
 declare const global: TSGlobal;
@@ -43,156 +43,6 @@ export default class Bootstrap {
   private static database: any;
   private static migrationDone: boolean;
 
-  private static startServerWorkers(serverName): void {
-    this.numWorkers = Configuration.getClusterConfig().numWorkers;
-    function onlineCb(worker): void {
-      // Log
-      const logMsg = `${serverName} server worker ${worker.id} is online`;
-      Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
-        module: MODULE_NAME,
-        method: "startServerWorkers", action: "Startup",
-        message: logMsg
-      });
-      // eslint-disable-next-line no-console
-      console.log(logMsg);
-    }
-    function exitCb(worker, code, signal?): void {
-      // Log
-      const logMsg = serverName + ' server worker ' + worker.id + ' died with code: ' + code + ', and signal: ' + signal +
-        '.\n Starting new ' + serverName + ' server worker';
-      Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
-        module: MODULE_NAME,
-        method: "startServerWorkers", action: "Startup",
-        message: logMsg
-      });
-      // eslint-disable-next-line no-console
-      console.log(logMsg);
-      cluster.fork();
-    }
-    // Log
-    // eslint-disable-next-line no-console
-    console.log(`Starting ${serverName} server master process: setting up ${this.numWorkers} workers...`);
-    // Create cluster worker processes
-    for (let i = 1; i <= this.numWorkers; i++) {
-      // Invoke cluster fork method to create a cluster worker
-      cluster.fork();
-      // Log
-      const logMsg = `Starting ${serverName} server worker ${i} of ${this.numWorkers}...`;
-      Logging.logInfo({
-        tenantID: Constants.DEFAULT_TENANT,
-        module: MODULE_NAME,
-        method: "startServerWorkers", action: "Startup",
-        message: logMsg
-      });
-      // eslint-disable-next-line no-console
-      console.log(logMsg);
-    }
-    cluster.on('online', onlineCb);
-    cluster.on('exit', exitCb);
-  }
-
-  private static async startMaster(): Promise<void> {
-    try {
-      if (this.isClusterEnabled && Utils.isEmptyArray(cluster.workers)) {
-        await Bootstrap.startServerWorkers("Main");
-      }
-    } catch (error) {
-      // Log
-      // eslint-disable-next-line no-console
-      console.error(error);
-      Logging.logError({
-        tenantID: Constants.DEFAULT_TENANT,
-        source: 'Bootstrap', module: MODULE_NAME, method: 'startMasters', action: 'Start',
-        message: `Unexpected exception ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}: ${error.toString()}`
-      });
-    }
-  }
-
-  private static async startServersListening(): Promise<void> {
-    try {
-      // -------------------------------------------------------------------------
-      // REST Server (Front-End)
-      // -------------------------------------------------------------------------
-      if (this.centralSystemRestConfig) {
-        // Create the server
-        if (!this.centralRestServer) {
-          this.centralRestServer = new CentralRestServer(this.centralSystemRestConfig, this.chargingStationConfig);
-        }
-        // Create database Web Socket notifications
-        if (!this.storageNotification) {
-          this.storageNotification = new MongoDBStorageNotification(this.storageConfig, this.centralRestServer);
-        }
-        // Start database Web Socket notifications
-        this.storageNotification.start();
-        // Start it
-        await this.centralRestServer.start();
-        // pragma if (this.centralSystemRestConfig.socketIO) {
-        //   await this.centralRestServer.startSocketIO();
-        // }
-      }
-
-      // -------------------------------------------------------------------------
-      // Central Server (Charging Stations)
-      // -------------------------------------------------------------------------
-      if (this.centralSystemsConfig) {
-        // Start
-        for (const centralSystemConfig of this.centralSystemsConfig) {
-          // Check implementation
-          switch (centralSystemConfig.implementation) {
-            // SOAP
-            case 'soap':
-              // Create implementation
-              this.SoapCentralSystemServer = new SoapCentralSystemServer(centralSystemConfig, this.chargingStationConfig);
-              // Start
-              await this.SoapCentralSystemServer.start();
-              break;
-            case 'json':
-              // Create implementation
-              this.JsonCentralSystemServer = new JsonCentralSystemServer(centralSystemConfig, this.chargingStationConfig);
-              // Start
-              await this.JsonCentralSystemServer.start();
-              break;
-            // Not Found
-            default:
-              // eslint-disable-next-line no-console
-              console.log(`Central System Server implementation '${centralSystemConfig.implementation}' not found!`);
-          }
-        }
-      }
-
-      // -------------------------------------------------------------------------
-      // OCPI Server
-      // -------------------------------------------------------------------------
-      if (this.ocpiConfig) {
-        // Create server instance
-        this.ocpiServer = new OCPIServer(this.ocpiConfig);
-        // Start server instance
-        await this.ocpiServer.start();
-      }
-
-      // -------------------------------------------------------------------------
-      // OData Server
-      // -------------------------------------------------------------------------
-      if (this.oDataServerConfig) {
-        // Create server instance
-        this.oDataServer = new ODataServer(this.oDataServerConfig);
-        // Start server instance
-        await this.oDataServer.start();
-      }
-    } catch (error) {
-      // Log
-      // eslint-disable-next-line no-console
-      console.error(error);
-      Logging.logError({
-        tenantID: Constants.DEFAULT_TENANT,
-        source: 'Bootstrap', module: MODULE_NAME, method: 'startServersListening', action: 'Start',
-        message: `Unexpected exception ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}: ${error.toString()}`
-      });
-    }
-  }
-
   public static async start(): Promise<void> {
     try {
       if (cluster.isMaster) {
@@ -201,37 +51,37 @@ export default class Bootstrap {
         console.log(`NodeJS is started in '${nodejsEnv}' mode`);
       }
       // Get all configs
-      this.storageConfig = Configuration.getStorageConfig();
-      this.centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
-      this.centralSystemsConfig = Configuration.getCentralSystemsConfig();
-      this.chargingStationConfig = Configuration.getChargingStationConfig();
-      this.ocpiConfig = Configuration.getOCPIServiceConfig();
-      this.oDataServerConfig = Configuration.getODataServiceConfig();
-      this.isClusterEnabled = Configuration.getClusterConfig().enabled;
+      Bootstrap.storageConfig = Configuration.getStorageConfig();
+      Bootstrap.centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
+      Bootstrap.centralSystemsConfig = Configuration.getCentralSystemsConfig();
+      Bootstrap.chargingStationConfig = Configuration.getChargingStationConfig();
+      Bootstrap.ocpiConfig = Configuration.getOCPIServiceConfig();
+      Bootstrap.oDataServerConfig = Configuration.getODataServiceConfig();
+      Bootstrap.isClusterEnabled = Configuration.getClusterConfig().enabled;
       // Init global vars
       global.userHashMapIDs = {};
       global.tenantHashMapIDs = {};
 
       // Start the connection to the Database
-      if (!this.databaseDone) {
+      if (!Bootstrap.databaseDone) {
         // Check database implementation
-        switch (this.storageConfig.implementation) {
+        switch (Bootstrap.storageConfig.implementation) {
           // MongoDB?
           case 'mongodb':
             // Create MongoDB
-            this.database = new MongoDBStorage(this.storageConfig);
+            Bootstrap.database = new MongoDBStorage(Bootstrap.storageConfig);
             break;
           default:
             // eslint-disable-next-line no-console
-            console.log(`Storage Server implementation '${this.storageConfig.implementation}' not supported!`);
+            console.log(`Storage Server implementation '${Bootstrap.storageConfig.implementation}' not supported!`);
         }
         // Connect to the Database
-        await this.database.start();
+        await Bootstrap.database.start();
         let logMsg;
         if (cluster.isMaster) {
-          logMsg = `Database connected to '${this.storageConfig.implementation}' successfully in master`;
+          logMsg = `Database connected to '${Bootstrap.storageConfig.implementation}' successfully in master`;
         } else {
-          logMsg = `Database connected to '${this.storageConfig.implementation}' successfully in worker ${cluster.worker.id}`;
+          logMsg = `Database connected to '${Bootstrap.storageConfig.implementation}' successfully in worker ${cluster.worker.id}`;
         }
         // Log
         Logging.logInfo({
@@ -239,24 +89,24 @@ export default class Bootstrap {
           module: MODULE_NAME, method: 'start', action: 'Start',
           message: logMsg
         });
-        this.databaseDone = true;
+        Bootstrap.databaseDone = true;
       }
-      global.database = this.database;
+      global.database = Bootstrap.database;
       // Clean the locks in DB belonging to the current app/host
-      if (cluster.isMaster && this.databaseDone) {
+      if (cluster.isMaster && Bootstrap.databaseDone) {
         await LockingStorage.cleanLocks();
       }
 
-      if (cluster.isMaster && !this.migrationDone && this.centralSystemRestConfig) {
+      if (cluster.isMaster && !Bootstrap.migrationDone && Bootstrap.centralSystemRestConfig) {
         // Check and trigger migration (only master process can run the migration)
         await MigrationHandler.migrate();
-        this.migrationDone = true;
+        Bootstrap.migrationDone = true;
       }
 
       // Listen to promise failure
       process.on('unhandledRejection', (reason: any, p): void => {
         // eslint-disable-next-line no-console
-        console.log("Unhandled Rejection at Promise: ", p, " reason: ", reason);
+        console.log('Unhandled Rejection at Promise: ', p, ' reason: ', reason);
         Logging.logError({
           tenantID: Constants.DEFAULT_TENANT,
           source: 'Bootstrap', module: MODULE_NAME, method: 'start', action: 'UnhandledRejection',
@@ -267,19 +117,19 @@ export default class Bootstrap {
 
       // FIXME: Attach the socketIO server to the master process for now.
       //        Load balancing between workers needs to make the client session sticky.
-      if (this.centralSystemRestConfig && this.centralSystemRestConfig.socketIO && cluster.isMaster) {
+      if (Bootstrap.centralSystemRestConfig && Bootstrap.centralSystemRestConfig.socketIO && cluster.isMaster) {
         // -------------------------------------------------------------------------
         // REST Server (Front-End)
         // -------------------------------------------------------------------------
         // Create the server
-        if (!this.centralRestServer) {
-          this.centralRestServer = new CentralRestServer(this.centralSystemRestConfig, this.chargingStationConfig);
+        if (!Bootstrap.centralRestServer) {
+          Bootstrap.centralRestServer = new CentralRestServer(Bootstrap.centralSystemRestConfig, Bootstrap.chargingStationConfig);
         }
         // Start Socket IO server
-        await this.centralRestServer.startSocketIO();
+        await Bootstrap.centralRestServer.startSocketIO();
       }
 
-      if (cluster.isMaster && this.isClusterEnabled) {
+      if (cluster.isMaster && Bootstrap.isClusterEnabled) {
         await Bootstrap.startMaster();
       } else {
         await Bootstrap.startServersListening();
@@ -300,6 +150,156 @@ export default class Bootstrap {
         tenantID: Constants.DEFAULT_TENANT,
         source: 'Bootstrap', module: MODULE_NAME, method: 'start', action: 'Start',
         message: `Unexpected exception: ${error.toString()}`
+      });
+    }
+  }
+
+  private static startServerWorkers(serverName): void {
+    Bootstrap.numWorkers = Configuration.getClusterConfig().numWorkers;
+    function onlineCb(worker): void {
+      // Log
+      const logMsg = `${serverName} server worker ${worker.id} is online`;
+      Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
+        module: MODULE_NAME,
+        method: 'startServerWorkers', action: 'Startup',
+        message: logMsg
+      });
+      // eslint-disable-next-line no-console
+      console.log(logMsg);
+    }
+    function exitCb(worker, code, signal?): void {
+      // Log
+      const logMsg = serverName + ' server worker ' + worker.id + ' died with code: ' + code + ', and signal: ' + signal +
+        '.\n Starting new ' + serverName + ' server worker';
+      Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
+        module: MODULE_NAME,
+        method: 'startServerWorkers', action: 'Startup',
+        message: logMsg
+      });
+      // eslint-disable-next-line no-console
+      console.log(logMsg);
+      cluster.fork();
+    }
+    // Log
+    // eslint-disable-next-line no-console
+    console.log(`Starting ${serverName} server master process: setting up ${Bootstrap.numWorkers} workers...`);
+    // Create cluster worker processes
+    for (let i = 1; i <= Bootstrap.numWorkers; i++) {
+      // Invoke cluster fork method to create a cluster worker
+      cluster.fork();
+      // Log
+      const logMsg = `Starting ${serverName} server worker ${i} of ${Bootstrap.numWorkers}...`;
+      Logging.logInfo({
+        tenantID: Constants.DEFAULT_TENANT,
+        module: MODULE_NAME,
+        method: 'startServerWorkers', action: 'Startup',
+        message: logMsg
+      });
+      // eslint-disable-next-line no-console
+      console.log(logMsg);
+    }
+    cluster.on('online', onlineCb);
+    cluster.on('exit', exitCb);
+  }
+
+  private static async startMaster(): Promise<void> {
+    try {
+      if (Bootstrap.isClusterEnabled && Utils.isEmptyArray(cluster.workers)) {
+        await Bootstrap.startServerWorkers('Main');
+      }
+    } catch (error) {
+      // Log
+      // eslint-disable-next-line no-console
+      console.error(error);
+      Logging.logError({
+        tenantID: Constants.DEFAULT_TENANT,
+        source: 'Bootstrap', module: MODULE_NAME, method: 'startMasters', action: 'Start',
+        message: `Unexpected exception ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}: ${error.toString()}`
+      });
+    }
+  }
+
+  private static async startServersListening(): Promise<void> {
+    try {
+      // -------------------------------------------------------------------------
+      // REST Server (Front-End)
+      // -------------------------------------------------------------------------
+      if (Bootstrap.centralSystemRestConfig) {
+        // Create the server
+        if (!Bootstrap.centralRestServer) {
+          Bootstrap.centralRestServer = new CentralRestServer(Bootstrap.centralSystemRestConfig, Bootstrap.chargingStationConfig);
+        }
+        // Create database Web Socket notifications
+        if (!Bootstrap.storageNotification) {
+          Bootstrap.storageNotification = new MongoDBStorageNotification(Bootstrap.storageConfig, Bootstrap.centralRestServer);
+        }
+        // Start database Web Socket notifications
+        Bootstrap.storageNotification.start();
+        // Start it
+        await Bootstrap.centralRestServer.start();
+        // pragma if (this.centralSystemRestConfig.socketIO) {
+        //   await this.centralRestServer.startSocketIO();
+        // }
+      }
+
+      // -------------------------------------------------------------------------
+      // Central Server (Charging Stations)
+      // -------------------------------------------------------------------------
+      if (Bootstrap.centralSystemsConfig) {
+        // Start
+        for (const centralSystemConfig of Bootstrap.centralSystemsConfig) {
+          // Check implementation
+          switch (centralSystemConfig.implementation) {
+            // SOAP
+            case 'soap':
+              // Create implementation
+              Bootstrap.SoapCentralSystemServer = new SoapCentralSystemServer(centralSystemConfig, Bootstrap.chargingStationConfig);
+              // Start
+              await Bootstrap.SoapCentralSystemServer.start();
+              break;
+            case 'json':
+              // Create implementation
+              Bootstrap.JsonCentralSystemServer = new JsonCentralSystemServer(centralSystemConfig, Bootstrap.chargingStationConfig);
+              // Start
+              await Bootstrap.JsonCentralSystemServer.start();
+              break;
+            // Not Found
+            default:
+              // eslint-disable-next-line no-console
+              console.log(`Central System Server implementation '${centralSystemConfig.implementation}' not found!`);
+          }
+        }
+      }
+
+      // -------------------------------------------------------------------------
+      // OCPI Server
+      // -------------------------------------------------------------------------
+      if (Bootstrap.ocpiConfig) {
+        // Create server instance
+        Bootstrap.ocpiServer = new OCPIServer(Bootstrap.ocpiConfig);
+        // Start server instance
+        await Bootstrap.ocpiServer.start();
+      }
+
+      // -------------------------------------------------------------------------
+      // OData Server
+      // -------------------------------------------------------------------------
+      if (Bootstrap.oDataServerConfig) {
+        // Create server instance
+        Bootstrap.oDataServer = new ODataServer(Bootstrap.oDataServerConfig);
+        // Start server instance
+        await Bootstrap.oDataServer.start();
+      }
+    } catch (error) {
+      // Log
+      // eslint-disable-next-line no-console
+      console.error(error);
+      Logging.logError({
+        tenantID: Constants.DEFAULT_TENANT,
+        source: 'Bootstrap', module: MODULE_NAME, method: 'startServersListening', action: 'Start',
+        message: `Unexpected exception ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}: ${error.toString()}`
       });
     }
   }

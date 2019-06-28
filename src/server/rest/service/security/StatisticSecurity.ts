@@ -9,6 +9,9 @@ export interface StatisticsRequest {
   ChargeBoxID?: string|number;
   UserID?: string|number;
   // TODO: Choose single type
+  DataType?: string;
+  DataCategory?: string;
+  DataScope?: string;
 }
 
 export default class StatisticSecurity {
@@ -30,4 +33,14 @@ export default class StatisticSecurity {
     }
     return { PeriodInMonth: sanitize(request.PeriodInMonth) };
   }
+
+  // eslint-disable-next-line no-unused-vars
+  static filterExportStatisticsRequest(request: StatisticsRequest, loggedUser?: any): StatisticsRequest {
+    return { ...StatisticSecurity.filterStatisticsRequest(request, loggedUser),
+      DataType: sanitize(request.DataType),
+      DataCategory: sanitize(request.DataCategory),
+      DataScope: sanitize(request.DataScope)
+    };
+  }
+
 }

@@ -9,8 +9,8 @@ export default class OCPIClientError extends Error {
     readonly action: string,
     readonly message: string,
     readonly httpErrorCode: number = Constants.HTTP_GENERAL_ERROR,
-    readonly module: string = "N/A",
-    readonly method: string = "N/A",
+    readonly module: string = 'N/A',
+    readonly method: string = 'N/A',
     ocpiError?: {status_code: number; status_message: string}) {
     super(message);
     this.ocpiError = (ocpiError) ? ocpiError : Constants.OCPI_STATUS_CODE.CODE_2000_GENERIC_CLIENT_ERROR;

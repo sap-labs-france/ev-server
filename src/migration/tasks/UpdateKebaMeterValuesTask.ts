@@ -1,7 +1,7 @@
-import Tenant from '../../entity/Tenant';
 import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
-import MigrationTask from '../MigrationTask';
 import TSGlobal from '../../types/GlobalType';
+import MigrationTask from '../MigrationTask';
+import Tenant from '../../entity/Tenant';
 declare const global: TSGlobal;
 
 export default class UpdateKebaMeterValuesTask extends MigrationTask {
@@ -19,30 +19,30 @@ export default class UpdateKebaMeterValuesTask extends MigrationTask {
     // Filters
     aggregation.push({
       $match: {
-        "attribute.context": {
+        'attribute.context': {
           $in: ['Sample.Clock']
         },
-        "attribute.measurand": 'Energy.Active.Import.Register'
+        'attribute.measurand': 'Energy.Active.Import.Register'
       }
     });
     aggregation.push({
       $lookup: {
-        "from": DatabaseUtils.getCollectionName(tenant.getID(), 'chargingstations'),
-        "localField": "chargeBoxID",
-        "foreignField": "_id",
-        "as": "chargingStation"
+        'from': DatabaseUtils.getCollectionName(tenant.getID(), 'chargingstations'),
+        'localField': 'chargeBoxID',
+        'foreignField': '_id',
+        'as': 'chargingStation'
       }
     });
     aggregation.push({
       $unwind: {
-        path: "$chargingStation",
+        path: '$chargingStation',
         preserveNullAndEmptyArrays: false
       }
     });
 
     aggregation.push({
       $match: {
-        "chargingStation.chargePointVendor": "Keba AG"
+        'chargingStation.chargePointVendor': 'Keba AG'
       }
     });
     const meterValuesMDB = await global.database.getCollection<any>(tenant.getID(), 'metervalues')
@@ -54,11 +54,11 @@ export default class UpdateKebaMeterValuesTask extends MigrationTask {
   }
 
   getVersion() {
-    return "1.0";
+    return '1.0';
   }
 
   getName() {
-    return "UpdateKebaMeterValuesTask";
+    return 'UpdateKebaMeterValuesTask';
   }
 }
 

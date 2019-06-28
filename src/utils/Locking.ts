@@ -16,12 +16,12 @@ export default class RunLock {
   public constructor(name, onMultipleHosts = true) {
     this._MODULE_NAME = 'RunLock';
     if (!name) {
-      const logMsg = `RunLock must have a unique name`;
+      const logMsg = 'RunLock must have a unique name';
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         module: this._MODULE_NAME,
-        method: "constructor",
-        action: "LockingError",
+        method: 'constructor',
+        action: 'LockingError',
         message: logMsg
       });
       // eslint-disable-next-line no-console
@@ -58,8 +58,8 @@ export default class RunLock {
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         module: this._MODULE_NAME,
-        method: "release",
-        action: "LockingError",
+        method: 'release',
+        action: 'LockingError',
         message: logMsg
       });
       // eslint-disable-next-line no-console

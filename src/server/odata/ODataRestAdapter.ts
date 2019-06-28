@@ -1,19 +1,19 @@
-import ODataTransactions from './odata-entities/ODataTransactions';
+import auth from 'basic-auth';
+import CentralServiceApi from './client/CentralServiceApi';
+import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import oDataBootNotifications from './odata-entities/ODataBootNotifications';
+import oDataChargingStations from './odata-entities/ODataChargingStations';
 import oDataCompanies from './odata-entities/ODataCompanies';
+import oDataModel from './odata-model/ODataModel';
 import oDataSites from './odata-entities/ODataSites';
 import oDataSiteAreas from './odata-entities/ODataSiteAreas';
-import oDataChargingStations from './odata-entities/ODataChargingStations';
 import oDataStatusNotifications from './odata-entities/ODataStatusNotifications';
-import oDataBootNotifications from './odata-entities/ODataBootNotifications';
+import ODataTransactions from './odata-entities/ODataTransactions';
 import oDataUsers from './odata-entities/ODataUsers';
-import oDataModel from './odata-model/ODataModel';
-import auth from 'basic-auth';
-import Constants from '../../utils/Constants';
-import CentralServiceApi from './client/CentralServiceApi';
 import Tenant from '../../entity/Tenant';
-import Logging from '../../utils/Logging';
 
-const MODULE_NAME = "ODataServer";
+const MODULE_NAME = 'ODataServer';
 export default class ODataRestAdapter {
   public static restServerUrl: any;
 
@@ -36,12 +36,12 @@ export default class ODataRestAdapter {
       const tenant = await Tenant.getTenantBySubdomain(subdomain);
       // Check if tenant available
       if (!tenant) {
-        cb(Error("Invalid tenant"));
+        cb(Error('Invalid tenant'));
         return;
       }
       // Check if sac setting is active
       if (!tenant.isComponentActive(Constants.COMPONENTS.ANALYTICS)) {
-        cb(Error("SAP Analytics Cloud Interface not enabled"));
+        cb(Error('SAP Analytics Cloud Interface not enabled'));
         return;
       }
       // Default timezone
@@ -56,7 +56,7 @@ export default class ODataRestAdapter {
       }
 
       // Build AuthenticatedApi
-      const centralServiceApi = new CentralServiceApi(this.restServerUrl, authentication.name, authentication.pass, subdomain);
+      const centralServiceApi = new CentralServiceApi(ODataRestAdapter.restServerUrl, authentication.name, authentication.pass, subdomain);
       // Set tenant
       req.tenant = subdomain;
       req.tenantID = tenant.getID();
@@ -97,8 +97,8 @@ export default class ODataRestAdapter {
         tenantID: req.tenantID,
         module: MODULE_NAME,
         source: MODULE_NAME,
-        method: "query",
-        action: "query",
+        method: 'query',
+        action: 'query',
         message: error.message,
         detailedMessages: error.stack
       });

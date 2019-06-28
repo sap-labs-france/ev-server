@@ -1,7 +1,6 @@
 import axios from 'axios';
+import { performance } from 'perf_hooks';
 import querystring from 'querystring';
-import config from '../../../config';
-import {performance} from 'perf_hooks';
 
 export default class BaseApi {
   private baseURL: string;
@@ -46,5 +45,3 @@ export default class BaseApi {
     return response;
   }
 }
-
-// module.exports = BaseApi;

@@ -1,5 +1,6 @@
 const convict = require('convict');
 const fs = require('fs');
+
 // Define a schema
 const config = convict({
   env: {
@@ -91,7 +92,7 @@ const config = convict({
       arg: 'ocpi_port'
     },
     token: {
-      doc: "OCPI token",
+      doc: 'OCPI token',
       format: String,
       default: 'eyJhayI6NTEsInRpZCI6InNsZiIsInprIjoxMn0=',
       env: 'OCPI_TOKEN'
@@ -198,17 +199,17 @@ const config = convict({
     implementation: {
       doc: 'DB type',
       format: String,
-      default: "mongodb"
+      default: 'mongodb'
     },
     uri: {
       doc: 'URL',
-      // format: String,
+      // pragma format: String,
       default: null
     },
     host: {
       doc: 'host name',
       format: String,
-      default: "localhost"
+      default: 'localhost'
     },
     port: {
       doc: 'port number',
@@ -228,7 +229,7 @@ const config = convict({
     database: {
       doc: 'db name',
       format: String,
-      default: "evse"
+      default: 'evse'
     },
     poolSize: {
       doc: 'pool size',
@@ -238,7 +239,7 @@ const config = convict({
     replicaSet: {
       doc: 'replica set name',
       format: String,
-      default: "rs0"
+      default: 'rs0'
     },
     monitorDBChange: {
       doc: 'monitor changes',

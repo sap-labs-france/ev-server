@@ -1,7 +1,7 @@
 import Constants from '../../utils/Constants';
+import ConvergentChargingPricing from '../pricing/convergent-charging/ConvergentChargingPricing';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
-import ConvergentChargingPricing from "../pricing/convergent-charging/ConvergentChargingPricing";
-import SimplePricing from "../pricing/simple-pricing/SimplePricing";
+import SimplePricing from '../pricing/simple-pricing/SimplePricing';
 
 export default class PricingFactory {
   static async getPricingImpl(transaction) {

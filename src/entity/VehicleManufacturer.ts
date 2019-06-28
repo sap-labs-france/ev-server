@@ -1,9 +1,9 @@
-import TenantHolder from './TenantHolder';
+import AppError from '../exception/AppError';
+import Constants from '../utils/Constants';
 import Database from '../utils/Database';
+import TenantHolder from './TenantHolder';
 import User from './User';
 import Vehicle from './Vehicle';
-import Constants from '../utils/Constants';
-import AppError from '../exception/AppError';
 import VehicleManufacturerStorage from '../storage/mongodb/VehicleManufacturerStorage';
 import VehicleStorage from '../storage/mongodb/VehicleStorage';
 
@@ -13,6 +13,40 @@ export default class VehicleManufacturer extends TenantHolder {
   constructor(tenantID: any, vehicleManufacturer: any) {
     super(tenantID);
     Database.updateVehicleManufacturer(vehicleManufacturer, this._model);
+  }
+
+  static checkIfVehicleManufacturerValid(filteredRequest, req) {
+    // Update model?
+    if (req.method !== 'POST' && !filteredRequest.id) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Vehicle Manufacturer ID is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'VehicleManufacturer', 'checkIfVehicleManufacturerValid',
+        req.user.id);
+    }
+    if (!filteredRequest.name) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Vehicle Manufacturer Name is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'VehicleManufacturer', 'checkIfVehicleManufacturerValid',
+        req.user.id, filteredRequest.id);
+    }
+  }
+
+  static getVehicleManufacturer(tenantID, id) {
+    return VehicleManufacturerStorage.getVehicleManufacturer(tenantID, id);
+  }
+
+  static getVehicleManufacturers(tenantID, params, limit, skip, sort) {
+    return VehicleManufacturerStorage.getVehicleManufacturers(tenantID, params, limit, skip, sort);
+  }
+
+  static getVehicleManufacturerLogo(tenantID, id) {
+    return VehicleManufacturerStorage.getVehicleManufacturerLogo(tenantID, id);
+  }
+
+  static getVehicleManufacturerLogos(tenantID) {
+    return VehicleManufacturerStorage.getVehicleManufacturerLogos(tenantID);
   }
 
   public getModel(): any {
@@ -105,39 +139,5 @@ export default class VehicleManufacturer extends TenantHolder {
 
   delete() {
     return VehicleManufacturerStorage.deleteVehicleManufacturer(this.getTenantID(), this.getID());
-  }
-
-  static checkIfVehicleManufacturerValid(filteredRequest, req) {
-    // Update model?
-    if (req.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Vehicle Manufacturer ID is mandatory`, Constants.HTTP_GENERAL_ERROR,
-        'VehicleManufacturer', 'checkIfVehicleManufacturerValid',
-        req.user.id);
-    }
-    if (!filteredRequest.name) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Vehicle Manufacturer Name is mandatory`, Constants.HTTP_GENERAL_ERROR,
-        'VehicleManufacturer', 'checkIfVehicleManufacturerValid',
-        req.user.id, filteredRequest.id);
-    }
-  }
-
-  static getVehicleManufacturer(tenantID, id) {
-    return VehicleManufacturerStorage.getVehicleManufacturer(tenantID, id);
-  }
-
-  static getVehicleManufacturers(tenantID, params, limit, skip, sort) {
-    return VehicleManufacturerStorage.getVehicleManufacturers(tenantID, params, limit, skip, sort);
-  }
-
-  static getVehicleManufacturerLogo(tenantID, id) {
-    return VehicleManufacturerStorage.getVehicleManufacturerLogo(tenantID, id);
-  }
-
-  static getVehicleManufacturerLogos(tenantID) {
-    return VehicleManufacturerStorage.getVehicleManufacturerLogos(tenantID);
   }
 }

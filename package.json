@@ -99,7 +99,7 @@
     "convict": "^5.0.0",
     "copy-webpack-plugin": "^5.0.3",
     "cross-env": "^5.2.0",
-    "eslint": "^6.0.0",
+    "eslint": "^6.0.1",
     "faker": "^4.1.0",
     "jshint": "^2.10.2",
     "json-schema-faker": "^0.5.0-rc17",
@@ -143,7 +143,7 @@
     "clean-install-win": "rmdir node_modules /S /Q && del package-lock.json && npm cache clear --force && npm install",
     "clean-install-lin": "rm -rf ./node_modules && rm -f ./package-lock.json && npm cache clear --force && npm install",
     "lint": "eslint --ext .js,.ts src test",
-    "lint-fix": "eslint --ext .js,.ts --fix src",
+    "lint-fix": "eslint --ext .js,.ts --fix src test",
     "jshint": "jshint src test",
     "test": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha -r ts-node/register test/**/*Test.ts --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
     "test:parallel": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha-parallel-tests -r ts-node/register test/**/*Test.ts --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
@@ -152,6 +152,7 @@
     "test:tenant": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha -r ts-node/register test/**/TenantTest.ts --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
     "test:org": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha -r ts-node/register test/**/*OrgTest.ts --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
     "test:setting": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha -r ts-node/register test/**/SettingTest.ts --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
+    "test:cypher": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha -r ts-node/register test/**/CypherTest.ts --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
     "test:user": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha -r ts-node/register test/**/UserTest.ts --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
     "test:siteorg": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha -r ts-node/register test/**/SiteOrgTest.ts --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
     "test:transaction": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha -r ts-node/register test/**/TransactionTest.ts --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
@@ -162,9 +163,7 @@
     "test:company": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha -r ts-node/register test/**/CompanyTest.ts --exit --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
     "test:createContext": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha -r ts-node/register test/**/ContextBuilderRunner.ts --exit --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
     "clinic:clean": "clinic clean",
-    "npm-check": "npm-check",
-    "tsc": "tsc",
-    "validate-typescript": "tsc --noEmit"
+    "npm-check": "npm-check"
   },
   "license": "MIT"
 }

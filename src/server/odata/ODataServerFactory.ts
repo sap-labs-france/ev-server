@@ -1,6 +1,6 @@
 import ODataServer from 'simple-odata-server';
-import ODataRestAdapter from './ODataRestAdapter';
 import SourceMap from 'source-map-support';
+import ODataRestAdapter from './ODataRestAdapter';
 SourceMap.install();
 
 export default class ODataServerFactory {

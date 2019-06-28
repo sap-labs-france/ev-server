@@ -1,14 +1,14 @@
-import Constants from '../../utils/Constants';
-import Utils from '../../utils/Utils';
-import BackendError from '../../exception/BackendError';
 import { ObjectID } from 'mongodb';
+import BackendError from '../../exception/BackendError';
+import ChargingStation from '../../entity/ChargingStation';
+import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
+import TSGlobal from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Site from '../../entity/Site';
 import SiteArea from '../../types/SiteArea';
-import ChargingStation from '../../entity/ChargingStation';
-import TSGlobal from '../../types/GlobalType';
-import DbParams from '../../types/database/DbParams';
+import Utils from '../../utils/Utils';
 
 declare const global: TSGlobal;
 
@@ -93,7 +93,7 @@ export default class SiteAreaStorage {
     if (!result.ok) {
       throw new BackendError(
         Constants.CENTRAL_SERVER,
-        `Couldn't update SiteArea`,
+        'Couldn\'t update SiteArea',
         'SiteAreaStorage', 'saveSiteArea');
     }
 
@@ -105,22 +105,6 @@ export default class SiteAreaStorage {
     Logging.traceEnd('SiteAreaStorage', 'saveSiteArea', uniqueTimerID, { siteAreaToSave });
 
     return siteAreaMDB._id.toHexString();
-  }
-
-  private static async _saveSiteAreaImage(tenantID: string, siteAreaID: string, siteAreaImageToSave: string): Promise<void> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'saveSiteAreaImage');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-
-    // Modify
-    await global.database.getCollection<any>(tenantID, 'siteareaimages').findOneAndUpdate(
-      { '_id': Utils.convertToObjectID(siteAreaID) },
-      { $set: { image: siteAreaImageToSave } },
-      { upsert: true, returnOriginal: false });
-
-    // Debug
-    Logging.traceEnd('SiteAreaStorage', 'saveSiteAreaImage', uniqueTimerID);
   }
 
   public static async getSiteAreas(tenantID: string,
@@ -142,7 +126,7 @@ export default class SiteAreaStorage {
         filters._id = Utils.convertToObjectID(params.search);
       } else {
         filters.$or = [
-          { "name": { $regex: params.search, $options: 'i' } }
+          { 'name': { $regex: params.search, $options: 'i' } }
         ];
       }
     }
@@ -176,7 +160,7 @@ export default class SiteAreaStorage {
     }
     // Count Records
     const siteAreasCountMDB = await global.database.getCollection<{count: number}>(tenantID, 'siteareas')
-      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {
@@ -193,15 +177,15 @@ export default class SiteAreaStorage {
       // Add Sites TODO change this when typing sites
       aggregation.push({
         $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, "sites"),
-          localField: "siteID",
-          foreignField: "_id",
-          as: "site"
+          from: DatabaseUtils.getCollectionName(tenantID, 'sites'),
+          localField: 'siteID',
+          foreignField: '_id',
+          as: 'site'
         }
       });
       // Single Record
       aggregation.push({
-        $unwind: { "path": "$site", "preserveNullAndEmptyArrays": true }
+        $unwind: { 'path': '$site', 'preserveNullAndEmptyArrays': true }
       });
     }
 
@@ -210,10 +194,10 @@ export default class SiteAreaStorage {
       // Add Charging Stations TODO change when typing charging stations
       aggregation.push({
         $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, "chargingstations"),
-          localField: "_id",
-          foreignField: "siteAreaID",
-          as: "chargingStations"
+          from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
+          localField: '_id',
+          foreignField: 'siteAreaID',
+          as: 'chargingStations'
         }
       });
     }
@@ -439,5 +423,21 @@ export default class SiteAreaStorage {
 
     // Debug
     Logging.traceEnd('SiteAreaStorage', 'deleteSiteAreasFromSites', uniqueTimerID, { siteIDs });
+  }
+
+  private static async _saveSiteAreaImage(tenantID: string, siteAreaID: string, siteAreaImageToSave: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'saveSiteAreaImage');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+
+    // Modify
+    await global.database.getCollection<any>(tenantID, 'siteareaimages').findOneAndUpdate(
+      { '_id': Utils.convertToObjectID(siteAreaID) },
+      { $set: { image: siteAreaImageToSave } },
+      { upsert: true, returnOriginal: false });
+
+    // Debug
+    Logging.traceEnd('SiteAreaStorage', 'saveSiteAreaImage', uniqueTimerID);
   }
 }

@@ -1,4 +1,4 @@
-import HttpDatabaseRequest from "./HttpDatabaseRequest";
+import HttpDatabaseRequest from './HttpDatabaseRequest';
 
 export interface HttpSiteAreaRequest {
   ID: string;

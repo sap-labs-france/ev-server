@@ -1,16 +1,16 @@
-import Utils from './Utils';
-import Constants from './Constants';
-import Configuration from './Configuration';
 import cfenv from 'cfenv';
+import cluster from 'cluster';
 import os from 'os';
 import SourceMap from 'source-map-support';
-import Company from '../types/Company';
-import cluster from 'cluster';
 import Address from '../types/Address';
+import Company from '../types/Company';
+import Configuration from './Configuration';
+import Constants from './Constants';
+import Utils from './Utils';
 SourceMap.install();
 
 export default class Database {
-  private static heartbeatIntervalSecs: number = -1;
+  private static heartbeatIntervalSecs = -1;
 
   public static updateID(src, dest): void {
     // Set it
@@ -26,7 +26,7 @@ export default class Database {
   public static validateId(id): string {
     let changedID = id;
     // Object?
-    if (changedID && (typeof changedID === "object")) {
+    if (changedID && (typeof changedID === 'object')) {
       // Mongo DB?
       if (changedID instanceof Buffer) {
         changedID = changedID.toString('hex');
@@ -109,20 +109,20 @@ export default class Database {
       for (const connector of src.connectors) {
         if (connector) {
           dest.connectors.push({
-            "connectorId": Utils.convertToInt(connector.connectorId),
-            "currentConsumption": Utils.convertToFloat(connector.currentConsumption),
-            "currentStateOfCharge": Utils.convertToInt(connector.currentStateOfCharge),
-            "totalInactivitySecs": Utils.convertToInt(connector.totalInactivitySecs),
-            "totalConsumption": Utils.convertToFloat(connector.totalConsumption),
-            "status": connector.status,
-            "errorCode": connector.errorCode,
-            "info": connector.info,
-            "vendorErrorCode": connector.vendorErrorCode,
-            "power": Utils.convertToInt(connector.power),
-            "type": connector.type,
-            "voltage": Utils.convertToInt(connector.voltage),
-            "amperage": Utils.convertToInt(connector.amperage),
-            "activeTransactionID": Utils.convertToInt(connector.activeTransactionID)
+            'connectorId': Utils.convertToInt(connector.connectorId),
+            'currentConsumption': Utils.convertToFloat(connector.currentConsumption),
+            'currentStateOfCharge': Utils.convertToInt(connector.currentStateOfCharge),
+            'totalInactivitySecs': Utils.convertToInt(connector.totalInactivitySecs),
+            'totalConsumption': Utils.convertToFloat(connector.totalConsumption),
+            'status': connector.status,
+            'errorCode': connector.errorCode,
+            'info': connector.info,
+            'vendorErrorCode': connector.vendorErrorCode,
+            'power': Utils.convertToInt(connector.power),
+            'type': connector.type,
+            'voltage': Utils.convertToInt(connector.voltage),
+            'amperage': Utils.convertToInt(connector.amperage),
+            'activeTransactionID': Utils.convertToInt(connector.activeTransactionID)
           });
         } else {
           dest.connectors.push(null);
@@ -174,7 +174,7 @@ export default class Database {
     dest.timestamp = Utils.convertToDate(src.timestamp);
     dest.type = src.type;
     dest.name = src.name;
-    if (!src.hasOwnProperty('hostname')) {
+    if (!src.hostname) {
       dest.hostname = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
     } else {
       dest.hostname = src.hostname;
@@ -188,7 +188,7 @@ export default class Database {
     dest.timestamp = Utils.convertToDate(src.timestamp);
     dest.type = 'runLock';
     dest.name = src.name;
-    if (!src.hasOwnProperty('hostname')) {
+    if (!src.hostname) {
       dest.hostname = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
     } else {
       dest.hostname = src.hostname;
@@ -210,7 +210,7 @@ export default class Database {
     dest.chargeBoxID = src.chargeBoxID;
     dest.connectorId = Utils.convertToInt(src.connectorId);
     dest.timestamp = Utils.convertToDate(src.timestamp);
-    if (src.hasOwnProperty('timezone')) {
+    if (src.timezone) {
       dest.timezone = src.timezone;
     }
     dest.status = src.status;
@@ -267,65 +267,65 @@ export default class Database {
         dest.siteAdmin = src.siteAdmin;
       }
     }
-    if (src.hasOwnProperty("name")) {
+    if (src.hasOwnProperty('name')) {
       dest.name = src.name;
     }
-    if (src.hasOwnProperty("firstName")) {
+    if (src.hasOwnProperty('firstName')) {
       dest.firstName = src.firstName;
     }
-    if (src.hasOwnProperty("email")) {
+    if (src.hasOwnProperty('email')) {
       dest.email = src.email;
     }
-    if (src.hasOwnProperty("phone")) {
+    if (src.hasOwnProperty('phone')) {
       dest.phone = src.phone;
     }
-    if (src.hasOwnProperty("mobile")) {
+    if (src.hasOwnProperty('mobile')) {
       dest.mobile = src.mobile;
     }
-    if (src.hasOwnProperty("notificationsActive")) {
+    if (src.hasOwnProperty('notificationsActive')) {
       dest.notificationsActive = src.notificationsActive;
     }
-    if (src.hasOwnProperty("iNumber")) {
+    if (src.hasOwnProperty('iNumber')) {
       dest.iNumber = src.iNumber;
     }
-    if (src.hasOwnProperty("costCenter")) {
+    if (src.hasOwnProperty('costCenter')) {
       dest.costCenter = src.costCenter;
     }
     dest.address = {};
-    if (src.hasOwnProperty("address")) {
+    if (src.hasOwnProperty('address')) {
       Database.updateAddress(src.address, dest.address);
     }
-    if (src.hasOwnProperty("status")) {
+    if (src.hasOwnProperty('status')) {
       dest.status = src.status;
     }
-    if (src.hasOwnProperty("locale")) {
+    if (src.hasOwnProperty('locale')) {
       dest.locale = src.locale;
     }
-    if (src.hasOwnProperty("eulaAcceptedOn")) {
+    if (src.hasOwnProperty('eulaAcceptedOn')) {
       dest.eulaAcceptedOn = Utils.convertToDate(src.eulaAcceptedOn);
       dest.eulaAcceptedVersion = src.eulaAcceptedVersion;
       dest.eulaAcceptedHash = src.eulaAcceptedHash;
     }
     Database.updateCreatedAndLastChanged(src, dest);
     dest.deleted = src.deleted;
-    if (forFrontEnd && src.hasOwnProperty("tagIDs")) {
+    if (forFrontEnd && src.hasOwnProperty('tagIDs')) {
       dest.tagIDs = src.tagIDs;
     }
-    if (src.hasOwnProperty("plateID")) {
+    if (src.hasOwnProperty('plateID')) {
       dest.plateID = src.plateID;
     }
-    if (src.hasOwnProperty("role")) {
+    if (src.hasOwnProperty('role')) {
       dest.role = src.role;
     }
-    if (src.hasOwnProperty("password")) {
+    if (src.hasOwnProperty('password')) {
       dest.password = src.password;
       dest.passwordWrongNbrTrials = Utils.convertToInt(src.passwordWrongNbrTrials);
       dest.passwordBlockedUntil = Utils.convertToDate(src.passwordBlockedUntil);
     }
-    if (src.hasOwnProperty("passwordResetHash")) {
+    if (src.hasOwnProperty('passwordResetHash')) {
       dest.passwordResetHash = src.passwordResetHash;
     }
-    if (src.hasOwnProperty("verifiedAt")) {
+    if (src.hasOwnProperty('verifiedAt')) {
       dest.verifiedAt = Utils.convertToDate(src.verifiedAt);
     }
     // No check of if(src.verificationToken), otherwise we cannot set it back to null (after being verified)
@@ -364,8 +364,8 @@ export default class Database {
       // Set
       dest.createdBy = src.createdBy;
       // User model?
-      if (typeof dest.createdBy === "object" &&
-        dest.createdBy.constructor.name !== "ObjectID") {
+      if (typeof dest.createdBy === 'object' &&
+        dest.createdBy.constructor.name !== 'ObjectID') {
         // Yes
         dest.createdBy = {};
         Database.updateUser(src.createdBy, dest.createdBy);
@@ -386,8 +386,8 @@ export default class Database {
       // Set
       dest.lastChangedBy = src.lastChangedBy;
       // User model?
-      if (typeof dest.lastChangedBy === "object" &&
-        dest.lastChangedBy.constructor.name !== "ObjectID") {
+      if (typeof dest.lastChangedBy === 'object' &&
+        dest.lastChangedBy.constructor.name !== 'ObjectID') {
         // Yes
         dest.lastChangedBy = {};
         Database.updateUser(src.lastChangedBy, dest.lastChangedBy);
@@ -497,10 +497,10 @@ export default class Database {
     if (src.versionUrl) {
       dest.versionUrl = src.versionUrl;
     }
-    if (src.hasOwnProperty("lastPatchJobOn")) {
+    if (src.lastPatchJobOn) {
       dest.lastPatchJobOn = src.lastPatchJobOn;
     }
-    if (src.hasOwnProperty("lastPatchJobOn")) {
+    if (src.lastPatchJobOn) {
       dest.lastPatchJobResult = src.lastPatchJobResult;
     }
 

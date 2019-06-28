@@ -1,5 +1,5 @@
-import CrudApi from './utils/CrudApi';
 import Constants from './utils/Constants';
+import CrudApi from './utils/CrudApi';
 
 export default class SettingApi extends CrudApi {
   public constructor(authenticatedApi) {
@@ -27,4 +27,3 @@ export default class SettingApi extends CrudApi {
   }
 }
 
-// module.exports = SettingApi;

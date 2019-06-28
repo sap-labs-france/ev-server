@@ -1,4 +1,4 @@
-declare module Chai {
+declare namespace Chai {
   interface Assertion {
     transaction(expected: any): Assertion;
     transactionValid(expected: any): Assertion;

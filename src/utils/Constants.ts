@@ -36,56 +36,56 @@ export default {
 
   REST_RESPONSE_SUCCESS: { status: 'Success' },
 
-  CONN_STATUS_AVAILABLE: "Available",
-  CONN_STATUS_OCCUPIED: "Occupied",
-  CONN_STATUS_CHARGING: "Charging",
-  CONN_STATUS_FAULTED: "Faulted",
-  CONN_STATUS_RESERVED: "Reserved",
-  CONN_STATUS_FINISHING: "Finishing",
-  CONN_STATUS_PREPARING: "Preparing",
-  CONN_STATUS_SUSPENDED_EVSE: "SuspendedEVSE",
-  CONN_STATUS_SUSPENDED_EV: "SuspendedEV",
-  CONN_STATUS_UNAVAILABLE: "Unavailable",
+  CONN_STATUS_AVAILABLE: 'Available',
+  CONN_STATUS_OCCUPIED: 'Occupied',
+  CONN_STATUS_CHARGING: 'Charging',
+  CONN_STATUS_FAULTED: 'Faulted',
+  CONN_STATUS_RESERVED: 'Reserved',
+  CONN_STATUS_FINISHING: 'Finishing',
+  CONN_STATUS_PREPARING: 'Preparing',
+  CONN_STATUS_SUSPENDED_EVSE: 'SuspendedEVSE',
+  CONN_STATUS_SUSPENDED_EV: 'SuspendedEV',
+  CONN_STATUS_UNAVAILABLE: 'Unavailable',
 
-  STATS_GROUP_BY_CONSUMPTION: "C",
-  STATS_GROUP_BY_USAGE: "U",
+  STATS_GROUP_BY_CONSUMPTION: 'C',
+  STATS_GROUP_BY_USAGE: 'U',
 
-  ENTITY_SITE: "Site",
-  ENTITY_SITES: "Sites",
-  ENTITY_SITE_AREA: "SiteArea",
-  ENTITY_SITE_AREAS: "SiteAreas",
-  ENTITY_COMPANY: "Company",
-  ENTITY_COMPANIES: "Companies",
-  ENTITY_CHARGING_STATION: "ChargingStation",
-  ENTITY_CHARGING_STATIONS: "ChargingStations",
-  ENTITY_TENANT: "Tenant",
-  ENTITY_TENANTS: "Tenants",
-  ENTITY_TRANSACTION: "Transaction",
-  ENTITY_TRANSACTIONS: "Transactions",
-  ENTITY_TRANSACTION_METER_VALUES: "MeterValues",
-  ENTITY_TRANSACTION_STOP: "Stop",
-  ENTITY_USER: "User",
-  ENTITY_USERS: "Users",
-  ENTITY_VEHICLE_MANUFACTURER: "VehicleManufacturer",
-  ENTITY_VEHICLE_MANUFACTURERS: "VehicleManufacturers",
-  ENTITY_VEHICLES: "Vehicles",
-  ENTITY_VEHICLE: "Vehicle",
-  ENTITY_LOGGINGS: "Loggings",
-  ENTITY_LOGGING: "Logging",
-  ENTITY_PRICING: "Pricing",
-  ENTITY_SETTING: "Setting",
-  ENTITY_SETTINGS: "Settings",
-  ENTITY_OCPI_ENDPOINT: "OcpiEndpoint",
-  ENTITY_OCPI_ENDPOINTS: "OcpiEndpoints",
-  ENTITY_CONNECTION: "Connection",
-  ENTITY_CONNECTIONS: "Connections",
+  ENTITY_SITE: 'Site',
+  ENTITY_SITES: 'Sites',
+  ENTITY_SITE_AREA: 'SiteArea',
+  ENTITY_SITE_AREAS: 'SiteAreas',
+  ENTITY_COMPANY: 'Company',
+  ENTITY_COMPANIES: 'Companies',
+  ENTITY_CHARGING_STATION: 'ChargingStation',
+  ENTITY_CHARGING_STATIONS: 'ChargingStations',
+  ENTITY_TENANT: 'Tenant',
+  ENTITY_TENANTS: 'Tenants',
+  ENTITY_TRANSACTION: 'Transaction',
+  ENTITY_TRANSACTIONS: 'Transactions',
+  ENTITY_TRANSACTION_METER_VALUES: 'MeterValues',
+  ENTITY_TRANSACTION_STOP: 'Stop',
+  ENTITY_USER: 'User',
+  ENTITY_USERS: 'Users',
+  ENTITY_VEHICLE_MANUFACTURER: 'VehicleManufacturer',
+  ENTITY_VEHICLE_MANUFACTURERS: 'VehicleManufacturers',
+  ENTITY_VEHICLES: 'Vehicles',
+  ENTITY_VEHICLE: 'Vehicle',
+  ENTITY_LOGGINGS: 'Loggings',
+  ENTITY_LOGGING: 'Logging',
+  ENTITY_PRICING: 'Pricing',
+  ENTITY_SETTING: 'Setting',
+  ENTITY_SETTINGS: 'Settings',
+  ENTITY_OCPI_ENDPOINT: 'OcpiEndpoint',
+  ENTITY_OCPI_ENDPOINTS: 'OcpiEndpoints',
+  ENTITY_CONNECTION: 'Connection',
+  ENTITY_CONNECTIONS: 'Connections',
 
 
-  NOTIF_TYPE_CHARGING_STATION_CONFIGURATION: "Configuration",
+  NOTIF_TYPE_CHARGING_STATION_CONFIGURATION: 'Configuration',
 
   NO_LIMIT: 0,
 
-  CENTRAL_SERVER: "Central Server",
+  CENTRAL_SERVER: 'Central Server',
 
   WITH_CHARGING_STATIONS: true,
   WITHOUT_CHARGING_STATIONS: false,
@@ -103,30 +103,30 @@ export default {
   USER_STATUS_LOCKED: 'L',
 
   // Roles
-  ROLE_SUPER_ADMIN: "S",
-  ROLE_ADMIN: "A",
-  ROLE_BASIC: "B",
-  ROLE_DEMO: "D",
+  ROLE_SUPER_ADMIN: 'S',
+  ROLE_ADMIN: 'A',
+  ROLE_BASIC: 'B',
+  ROLE_DEMO: 'D',
 
-  ACTION_READ: "Read",
-  ACTION_CREATE: "Create",
-  ACTION_UPDATE: "Update",
-  ACTION_DELETE: "Delete",
-  ACTION_LOGOUT: "Logout",
-  ACTION_LIST: "List",
-  ACTION_RESET: "Reset",
-  ACTION_AUTHORIZE: "Authorize",
-  ACTION_CLEAR_CACHE: "ClearCache",
-  ACTION_DATA_TRANSFER: "DataTransfer",
-  ACTION_REMOTE_STOP_TRANSACTION: "RemoteStopTransaction",
-  ACTION_REMOTE_START_TRANSACTION: "RemoteStartTransaction",
-  ACTION_REFUND_TRANSACTION: "RefundTransaction",
-  ACTION_UNLOCK_CONNECTOR: "UnlockConnector",
-  ACTION_GET_CONFIGURATION: "GetConfiguration",
-  ACTION_PING: "Ping",
-  ACTION_SEND_EVSE_STATUSES: "SendEVSEStatuses",
-  ACTION_REGISTER: "Register",
-  ACTION_GENERATE_LOCAL_TOKEN: "GenerateLocalToken",
+  ACTION_READ: 'Read',
+  ACTION_CREATE: 'Create',
+  ACTION_UPDATE: 'Update',
+  ACTION_DELETE: 'Delete',
+  ACTION_LOGOUT: 'Logout',
+  ACTION_LIST: 'List',
+  ACTION_RESET: 'Reset',
+  ACTION_AUTHORIZE: 'Authorize',
+  ACTION_CLEAR_CACHE: 'ClearCache',
+  ACTION_DATA_TRANSFER: 'DataTransfer',
+  ACTION_REMOTE_STOP_TRANSACTION: 'RemoteStopTransaction',
+  ACTION_REMOTE_START_TRANSACTION: 'RemoteStartTransaction',
+  ACTION_REFUND_TRANSACTION: 'RefundTransaction',
+  ACTION_UNLOCK_CONNECTOR: 'UnlockConnector',
+  ACTION_GET_CONFIGURATION: 'GetConfiguration',
+  ACTION_PING: 'Ping',
+  ACTION_SEND_EVSE_STATUSES: 'SendEVSEStatuses',
+  ACTION_REGISTER: 'Register',
+  ACTION_GENERATE_LOCAL_TOKEN: 'GenerateLocalToken',
 
   // Password constants
   PWD_MIN_LENGTH: 15,
@@ -214,73 +214,74 @@ export default {
   // OCPI Available Response Status
   OCPI_STATUS_CODE: {
     // 1*** SUCCESS
-    CODE_1000_SUCCESS: { status_code: 1000, status_message: "Success" },
+    CODE_1000_SUCCESS: { status_code: 1000, status_message: 'Success' },
 
     // 2*** CLIENT ERROR
-    CODE_2000_GENERIC_CLIENT_ERROR: { status_code: 2000, status_message: "Generic Client Error" },
-    CODE_2001_INVALID_PARAMETER_ERROR: { status_code: 2001, status_message: "Invalid or Missing Parameters" },
-    CODE_2002_NOT_ENOUGH_INFORMATION_ERROR: { status_code: 2002, status_message: "Not enough information" },
-    CODE_2003_UNKNOW_LOCATION_ERROR: { status_code: 2003, status_message: "Unknown Location" },
+    CODE_2000_GENERIC_CLIENT_ERROR: { status_code: 2000, status_message: 'Generic Client Error' },
+    CODE_2001_INVALID_PARAMETER_ERROR: { status_code: 2001, status_message: 'Invalid or Missing Parameters' },
+    CODE_2002_NOT_ENOUGH_INFORMATION_ERROR: { status_code: 2002, status_message: 'Not enough information' },
+    CODE_2003_UNKNOW_LOCATION_ERROR: { status_code: 2003, status_message: 'Unknown Location' },
 
     // 3*** SERVER ERROR
-    CODE_3000_GENERIC_SERVER_ERROR: { status_code: 3000, status_message: "Generic Server Error" },
-    CODE_3001_UNABLE_TO_USE_CLIENT_API_ERROR: { status_code: 3001, status_message: "Unable to Use Client API" },
-    CODE_3002_UNSUPPORTED_VERSION_ERROR: { status_code: 3002, status_message: "Unsupported Version" },
-    CODE_3003_NO_MATCHING_ENDPOINTS_ERROR: { status_code: 3003, status_message: "No Matching Endpoints" }
+    CODE_3000_GENERIC_SERVER_ERROR: { status_code: 3000, status_message: 'Generic Server Error' },
+    CODE_3001_UNABLE_TO_USE_CLIENT_API_ERROR: { status_code: 3001, status_message: 'Unable to Use Client API' },
+    CODE_3002_UNSUPPORTED_VERSION_ERROR: { status_code: 3002, status_message: 'Unsupported Version' },
+    CODE_3003_NO_MATCHING_ENDPOINTS_ERROR: { status_code: 3003, status_message: 'No Matching Endpoints' }
   },
 
   // OCPI EVSE STATUS
   EVSE_STATUS: {
-    AVAILABLE: "AVAILABLE",
-    BLOCKED: "BLOCKED",
-    CHARGING: "CHARGING",
-    INOPERATIVE: "INOPERATIVE",
-    OUTOFORDER: "OUTOFORDER",
-    PLANNED: "PLANNED",
-    REMOVED: "REMOVED",
-    RESERVED: "RESERVED",
-    UNKNOWN: "UNKNOWN"
+    AVAILABLE: 'AVAILABLE',
+    BLOCKED: 'BLOCKED',
+    CHARGING: 'CHARGING',
+    INOPERATIVE: 'INOPERATIVE',
+    OUTOFORDER: 'OUTOFORDER',
+    PLANNED: 'PLANNED',
+    REMOVED: 'REMOVED',
+    RESERVED: 'RESERVED',
+    UNKNOWN: 'UNKNOWN'
   },
 
 
   // OCPI CONNECTOR POWER TYPE
   CONNECTOR_POWER_TYPE: {
-    AC_1_PHASE: "AC_1_PHASE",
-    AC_3_PHASE: "AC_3_PHASE",
-    DC: "DC"
+    AC_1_PHASE: 'AC_1_PHASE',
+    AC_3_PHASE: 'AC_3_PHASE',
+    DC: 'DC'
   },
 
   // CONNECTOR TYPE
   MAPPING_CONNECTOR_TYPE: {
-    "C": "CHADEMO",
-    "T2": "IEC_62196_T2",
-    "CCS": "IEC_62196_T2_COMBO"
+    'C': 'CHADEMO',
+    'T2': 'IEC_62196_T2',
+    'CCS': 'IEC_62196_T2_COMBO'
   },
 
   CONNECTOR_TYPES: {
-    "UNKNOWN": "U",
-    "CHADEMO": "C",
-    "IEC_62196_T2": "T2",
-    "IEC_62196_T2_COMBO": "CCS",
-    "DOMESTIC": "D",
-    "TYPE_1": "T1",
-    "TYPE_1_CCS": "T1CCS",
-    "TYPE_3C": "T3C",
+    'UNKNOWN': 'U',
+    'CHADEMO': 'C',
+    'IEC_62196_T2': 'T2',
+    'IEC_62196_T2_COMBO': 'CCS',
+    'DOMESTIC': 'D',
+    'TYPE_1': 'T1',
+    'TYPE_1_CCS': 'T1CCS',
+    'TYPE_3C': 'T3C',
   },
 
   // Components
   COMPONENTS: {
-    OCPI: "ocpi",
-    REFUND: "refund",
-    PRICING: "pricing",
-    ORGANIZATION: "organization",
-    ANALYTICS: "analytics"
+    OCPI: 'ocpi',
+    REFUND: 'refund',
+    PRICING: 'pricing',
+    ORGANIZATION: 'organization',
+    STATISTICS: 'statistics',
+    ANALYTICS: 'analytics'
   },
 
   // Ocpi Registering status
   OCPI_REGISTERING_STATUS: {
-    OCPI_NEW: "new",
-    OCPI_REGISTERED: "registered",
-    OCPI_UNREGISTERED: "unregistered"
+    OCPI_NEW: 'new',
+    OCPI_REGISTERED: 'registered',
+    OCPI_UNREGISTERED: 'unregistered'
   }
 };

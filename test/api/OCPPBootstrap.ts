@@ -1,15 +1,15 @@
-import path from 'path';
-import TSGlobal from '../../src/types/GlobalType';
-declare const global: TSGlobal;
-global.appRoot = path.resolve(__dirname, '../../src');
-import chai from 'chai';
-import {expect} from 'chai';
+import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import faker from 'faker';
+import path from 'path';
 import CentralServerService from '../api/client/CentralServerService';
+import TSGlobal from '../../src/types/GlobalType';
 chai.use(chaiSubset);
 import Factory from '../factories/Factory';
 import OCPPService from './ocpp/OCPPService';
+
+declare const global: TSGlobal;
+global.appRoot = path.resolve(__dirname, '../../src');
 
 export default class OCPPBootstrap {
   public ocpp: OCPPService;
@@ -18,7 +18,7 @@ export default class OCPPBootstrap {
   }
 
   public async createContext() {
-    const context:any = {};
+    const context: any = {};
     try {
       // // Create
       // this.tenantNoOrg = await CentralServerService.DefaultInstance.createEntity(
@@ -53,7 +53,7 @@ export default class OCPPBootstrap {
       expect(response.data.status).to.eql('Accepted');
       expect(response.data).to.have.property('currentTime');
       // Check according the OCPP version
-      if (this.ocpp.getVersion() === "1.6") {
+      if (this.ocpp.getVersion() === '1.6') {
         // OCPP 1.6
         expect(response.data).to.have.property('interval');
       } else {
@@ -109,7 +109,7 @@ export default class OCPPBootstrap {
   }
 
   public async destroyContext(context) {
-    // if (this.tenantNoOrg) {
+    // pragma if (this.tenantNoOrg) {
     //   // Check if the deleted entity cannot be retrieved with its id
     //   await CentralServerService.DefaultInstance.checkDeletedEntityById(
     //     CentralServerService.DefaultInstance.tenantApi, this.tenantNoOrg);
@@ -149,4 +149,3 @@ export default class OCPPBootstrap {
 
 }
 
-// module.exports = OCPPBootstrap;
