@@ -335,10 +335,10 @@ export default class StatisticService {
       filter.chargeBoxID = filteredRequest.ChargeBoxID;
     }
     // User
-    if (Authorizations.isBasic(loggedUser)) {
+    if (Authorizations.isBasic(loggedUser.role)) {
       // Only for current user
       filter.userID = loggedUser.id;
-    } else if (!Authorizations.isBasic(loggedUser) && filteredRequest.UserID) {
+    } else if (!Authorizations.isBasic(loggedUser.role) && filteredRequest.UserID) {
       filter.userID = filteredRequest.UserID;
     }
     return filter;
