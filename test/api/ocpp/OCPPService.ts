@@ -5,7 +5,11 @@ export default class OCPPService {
   public constructor(serverUrl: string) {
     this.serverUrl = serverUrl;
   }
-  
+
+  public getVersion(): string {
+    throw new Error("Method not implemented!");
+  }
+
   public executeAuthorize(chargeBoxIdentity, data):any {
     throw new Error("Method not implemented!");
   }

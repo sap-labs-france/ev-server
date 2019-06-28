@@ -2,7 +2,7 @@ import chai from 'chai';
 import {expect} from 'chai';
 import chaiSubset from 'chai-subset';
 chai.use(chaiSubset);
-const path = require('path');
+import path from 'path';
 import TSGlobal from '../../src/types/GlobalType';
 declare const global: TSGlobal;
 global.appRoot = path.resolve(__dirname, '../../src');

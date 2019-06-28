@@ -1,4 +1,4 @@
-const path = require('path');
+import path from 'path';
 import TSGlobal from '../../src/types/GlobalType';
 declare const global: TSGlobal;
 global.appRoot = path.resolve(__dirname, '../../src');
@@ -10,13 +10,14 @@ import faker from 'faker';
 import DataHelper from './DataHelper';
 import CentralServerService from '../api/client/CentralServerService';
 import OCPPBootstrap from './OCPPBootstrap';
+import OCPPService from './ocpp/OCPPService';
 
 chai.use(chaiSubset);
 
 export default class OCPPCommonTests {
 
-  public ocpp: any;
-  public bootstrap: any;
+  public ocpp: OCPPService;
+  public bootstrap: OCPPBootstrap;
   public priceKWH = 1;
   public context: any;
   public chargingStationConnector1: any;

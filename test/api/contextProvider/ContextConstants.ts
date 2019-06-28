@@ -16,7 +16,7 @@ export default class CONTEXTS {
     NO_SITE: "No site", // Used for unassigned Charging Station or CS in tenant with no organizations
     SITE_BASIC: "ut-site", // Default site with no settings
     SITE_WITH_AUTO_USER_ASSIGNMENT: "ut-site-auto", // Automatic user assignment is active
-    SITE_WITH_OTHER_USER_STOP_AUTHPORIZATION: "ut-site-stop" // Authorization to stop other users transaction is active
+    SITE_WITH_OTHER_USER_STOP_AUTHORIZATION: "ut-site-stop" // Authorization to stop other users transaction is active
   };
 
   static readonly SITE_AREA_CONTEXTS: any = {
@@ -27,7 +27,9 @@ export default class CONTEXTS {
 
   static readonly CHARGING_STATION_CONTEXTS: any = {
     ASSIGNED_OCCP16: "cs-16", // Charging Station is assigned to each site area with OCPP16
-    UNASSIGNED_OCPP16: "cs-notassigned" // Charging station is not assigned and use OCPP16
+    UNASSIGNED_OCPP16: "cs-notassigned16", // Charging station is not assigned and use OCPP16
+    ASSIGNED_OCCP15: "cs-15", // Charging Station is assigned to each site area with OCPP15
+    UNASSIGNED_OCPP15: "cs-notassigned15" // Charging station is not assigned and use OCPP15
   };
 
   static readonly USER_CONTEXTS: any = {
@@ -99,7 +101,7 @@ export default class CONTEXTS {
             apiUrl: '',
             clientId: '',
             clientSecret: '',
-            payementTypeId: '',
+            paymentTypeId: '',
             expenseTypeCode: '',
             policyId: '',
             reportName: ''
@@ -194,7 +196,7 @@ export default class CONTEXTS {
               apiUrl: '',
               clientId: '',
               clientSecret: '',
-              payementTypeId: '',
+              paymentTypeId: '',
               expenseTypeCode: '',
               policyId: '',
               reportName: ''
@@ -291,7 +293,7 @@ export default class CONTEXTS {
     { // site with other user stop
       // contextName: CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHPORIZATION,
       id: '5ce249a2372f0b1c8caf8367',
-      name: CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHPORIZATION,
+      name: CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION,
       allowAllUsersToStopTransactions: true,
       autoUserSiteAssignment: false,
       companyID: '5ce249a2372f0b1c8caf928f'
@@ -335,15 +337,15 @@ export default class CONTEXTS {
     },
     { // With access control
       id: '5ce249a2372f0b1c8caf5497',
-      name: `${CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHPORIZATION}-${CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL}`,
+      name: `${CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL}`,
       accessControl: true,
-      siteName: CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHPORIZATION
+      siteName: CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION
     },
     { // Without access control
       id: '5ce249a2372f0b1c8caf5432',
-      name: `${CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHPORIZATION}-${CONTEXTS.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+      name: `${CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${CONTEXTS.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
       accessControl: false,
-      siteName: CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHPORIZATION
+      siteName: CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION
     }
   ];
 
@@ -359,19 +361,30 @@ export default class CONTEXTS {
         `${CONTEXTS.SITE_CONTEXTS.SITE_BASIC}-${CONTEXTS.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
         `${CONTEXTS.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL}`,
         `${CONTEXTS.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${CONTEXTS.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
-        `${CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHPORIZATION}-${CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL}`,
-        `${CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHPORIZATION}-${CONTEXTS.SITE_AREA_CONTEXTS.WITHOUT_ACL}`]
+        `${CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL}`,
+        `${CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${CONTEXTS.SITE_AREA_CONTEXTS.WITHOUT_ACL}`]
     },
-    // {
-    //   baseName: 'cs-15',
-    //   ocppVersion: '1.5',
-    //   siteAreaNames: ['ut-site-withACL', 'ut-site-withoutACL', 'ut-site-auto-withACL', 'ut-site-auto-withoutACL', 'ut-site-stop-withACL', 'ut-site-stop-withoutACL']
-    // },
+    {
+      baseName: CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCCP15, // Concatenated with siteAreaName
+      ocppVersion: '1.5',
+      siteAreaNames: [
+        `${CONTEXTS.SITE_CONTEXTS.SITE_BASIC}-${CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL}`,
+        `${CONTEXTS.SITE_CONTEXTS.SITE_BASIC}-${CONTEXTS.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+        `${CONTEXTS.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL}`,
+        `${CONTEXTS.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT}-${CONTEXTS.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+        `${CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL}`,
+        `${CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${CONTEXTS.SITE_AREA_CONTEXTS.WITHOUT_ACL}`]
+    },
     {
       baseName: CONTEXTS.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP16,
       ocppVersion: '1.6',
       siteAreaNames: null,
     },
+    {
+      baseName: CONTEXTS.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP15,
+      ocppVersion: '1.5',
+      siteAreaNames: null,
+    }
   ];
 
 };

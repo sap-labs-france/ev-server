@@ -1,6 +1,6 @@
 import axios from 'axios';
 import querystring from 'querystring';
-const config = require('../../../config');
+import config from '../../../config';
 import {performance} from 'perf_hooks';
 
 export default class BaseApi {
