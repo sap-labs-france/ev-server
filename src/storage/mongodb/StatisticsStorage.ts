@@ -67,17 +67,27 @@ export default class StatisticsStorage {
         });
         break;
 
-      // By usage
+      // By Usage
       case Constants.STATS_GROUP_BY_USAGE:
         aggregation.push({
           $group: {
-            // _id: { chargeBox: "$chargeBoxID", year: { $year: "$timestamp" }, month: { $month: "$timestamp" } },
-            _id: { chargeBox: '$chargeBoxID', month: { $month: '$timestamp' } },
-            total: { $sum: { $divide: [{ $subtract: ['$stop.timestamp', '$timestamp'] }, 60 * 60 * 1000] } }
+            _id: { chargeBox: "$chargeBoxID", month: { $month: "$timestamp" } },
+            total: { $sum: { $divide: [{ $subtract: ["$stop.timestamp", "$timestamp"] }, 60 * 60 * 1000] } }
           }
         });
         break;
-    }
+
+      // By Inactivity
+      case Constants.STATS_GROUP_BY_INACTIVITY:
+        aggregation.push({
+          $group: {
+            _id: { chargeBox: "$chargeBoxID", month: { $month: "$timestamp" } },
+            total: { $sum: { $divide: ["$stop.totalInactivitySecs", 60 * 60] } }
+          }
+        });
+        break;
+      }
+
     // Sort
     aggregation.push({
       $sort: { '_id.month': 1, '_id.chargeBox': 1 }
@@ -150,17 +160,27 @@ export default class StatisticsStorage {
         });
         break;
 
-      // By usage
+      // By Usage
       case Constants.STATS_GROUP_BY_USAGE:
         aggregation.push({
           $group: {
-            // _id: { userID: "$userID", year: { $year: "$timestamp" }, month: { $month: "$timestamp" } },
-            _id: { userID: '$userID', month: { $month: '$timestamp' } },
-            total: { $sum: { $divide: [{ $subtract: ['$stop.timestamp', '$timestamp'] }, 60 * 60 * 1000] } }
+            _id: { userID: "$userID", month: { $month: "$timestamp" } },
+            total: { $sum: { $divide: [{ $subtract: ["$stop.timestamp", "$timestamp"] }, 60 * 60 * 1000] } }
+          }
+        });
+        break;
+
+        // By Inactivity
+      case Constants.STATS_GROUP_BY_INACTIVITY:
+        aggregation.push({
+          $group: {
+            _id: { userID: "$userID", month: { $month: "$timestamp" } },
+            total: { $sum: { $divide: ["$stop.totalInactivitySecs", 60 * 60] } }
           }
         });
         break;
     }
+
     // Resolve Users
     aggregation.push({
       $lookup: {
