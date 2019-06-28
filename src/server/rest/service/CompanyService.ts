@@ -1,15 +1,15 @@
-import Logging from '../../../utils/Logging';
-import AppError from '../../../exception/AppError';
-import AppAuthError from '../../../exception/AppAuthError';
-import Constants from '../../../utils/Constants';
-import Company from '../../../types/Company';
-import User from '../../../entity/User';
-import Authorizations from '../../../authorization/Authorizations';
-import CompanySecurity from './security/CompanySecurity';
-import UtilsService from './UtilsService';
 import { NextFunction, Request, Response } from 'express';
+import AppAuthError from '../../../exception/AppAuthError';
+import AppError from '../../../exception/AppError';
+import Authorizations from '../../../authorization/Authorizations';
+import Company from '../../../types/Company';
+import CompanySecurity from './security/CompanySecurity';
 import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
 import { filter } from 'bluebird';
+import UtilsService from './UtilsService';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
+import User from '../../../entity/User';
 
 export default class CompanyService {
 
@@ -269,14 +269,14 @@ export default class CompanyService {
     if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Company ID is mandatory`, Constants.HTTP_GENERAL_ERROR,
+        'Company ID is mandatory', Constants.HTTP_GENERAL_ERROR,
         'CompanyService', 'checkIfCompanyValid',
         req.user.id);
     }
     if (!filteredRequest.name) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Company Name is mandatory`, Constants.HTTP_GENERAL_ERROR,
+        'Company Name is mandatory', Constants.HTTP_GENERAL_ERROR,
         'CompanyService', 'checkIfCompanyValid',
         req.user.id, filteredRequest.id);
     }

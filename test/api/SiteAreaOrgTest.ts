@@ -1,5 +1,5 @@
 import chai from 'chai';
-import {expect} from 'chai';
+import { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 chai.use(chaiSubset);
 const path = require('path');
@@ -65,7 +65,7 @@ describe('Site Area tests', function() {
 
     it('Should update the site area', async () => {
       // Change entity
-      testData.newSiteArea.name = "New Name";
+      testData.newSiteArea.name = 'New Name';
       // Update
       await CentralServerService.DefaultInstance.updateEntity(
         CentralServerService.DefaultInstance.siteAreaApi, testData.newSiteArea);
@@ -73,7 +73,7 @@ describe('Site Area tests', function() {
 
     it('Should find the updated site area by id', async () => {
       // Check if the updated entity can be retrieved with its id
-      let updatedSiteArea = await CentralServerService.DefaultInstance.getEntityById(
+      const updatedSiteArea = await CentralServerService.DefaultInstance.getEntityById(
         CentralServerService.DefaultInstance.siteAreaApi, testData.newSiteArea);
       // Check
       expect(updatedSiteArea.name).to.equal(testData.newSiteArea.name);
@@ -95,7 +95,7 @@ describe('Site Area tests', function() {
   describe('Error cases', () => {
     it('Should not create a site area without a site', async () => {
       // Create the entity
-      let response = await CentralServerService.DefaultInstance.createEntity(
+      const response = await CentralServerService.DefaultInstance.createEntity(
         CentralServerService.DefaultInstance.siteAreaApi, Factory.siteArea.build(), false);
       expect(response.status).to.equal(500);
     });

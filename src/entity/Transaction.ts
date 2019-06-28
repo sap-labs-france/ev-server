@@ -1,13 +1,13 @@
-import User from './User';
 import moment from 'moment';
-import Database from '../utils/Database';
-import TenantHolder from './TenantHolder';
-import UserStorage from '../storage/mongodb/UserStorage';
-import ConsumptionStorage from '../storage/mongodb/ConsumptionStorage';
-import TransactionStorage from '../storage/mongodb/TransactionStorage';
-import OCPPStorage from '../storage/mongodb/OCPPStorage';
-import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
 import ChargingStation from './ChargingStation';
+import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
+import ConsumptionStorage from '../storage/mongodb/ConsumptionStorage';
+import Database from '../utils/Database';
+import OCPPStorage from '../storage/mongodb/OCPPStorage';
+import TenantHolder from './TenantHolder';
+import TransactionStorage from '../storage/mongodb/TransactionStorage';
+import User from './User';
+import UserStorage from '../storage/mongodb/UserStorage';
 
 export default class Transaction extends TenantHolder {
   private _model: any = {};
@@ -15,6 +15,22 @@ export default class Transaction extends TenantHolder {
   constructor(tenantID: any, transaction: any) {
     super(tenantID);
     Database.updateTransaction(transaction, this._model);
+  }
+
+  static getTransaction(tenantID, id) {
+    return TransactionStorage.getTransaction(tenantID, id);
+  }
+
+  static getTransactions(tenantID, filter, limit) {
+    return TransactionStorage.getTransactions(tenantID, filter, limit);
+  }
+
+  static getActiveTransaction(tenantID, chargeBoxID, connectorId) {
+    return TransactionStorage.getActiveTransaction(tenantID, chargeBoxID, connectorId);
+  }
+
+  static getLastTransaction(tenantID, chargeBoxID, connectorId) {
+    return TransactionStorage.getLastTransaction(tenantID, chargeBoxID, connectorId);
   }
 
   public getModel(): any {
@@ -561,21 +577,5 @@ export default class Transaction extends TenantHolder {
 
   saveConsumption(consumption) {
     return ConsumptionStorage.saveConsumption(this.getTenantID(), consumption);
-  }
-
-  static getTransaction(tenantID, id) {
-    return TransactionStorage.getTransaction(tenantID, id);
-  }
-
-  static getTransactions(tenantID, filter, limit) {
-    return TransactionStorage.getTransactions(tenantID, filter, limit);
-  }
-
-  static getActiveTransaction(tenantID, chargeBoxID, connectorId) {
-    return TransactionStorage.getActiveTransaction(tenantID, chargeBoxID, connectorId);
-  }
-
-  static getLastTransaction(tenantID, chargeBoxID, connectorId) {
-    return TransactionStorage.getLastTransaction(tenantID, chargeBoxID, connectorId);
   }
 }

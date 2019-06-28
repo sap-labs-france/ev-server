@@ -1,13 +1,12 @@
-import chai from 'chai';
-import {expect} from 'chai';
+import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 chai.use(chaiSubset);
 const path = require('path');
 import global from'../../src/types/GlobalType';
- 
-global.appRoot = path.resolve(__dirname, '../../src');
 import CentralServerService from './client/CentralServerService';
 import Factory from '../factories/Factory';
+ 
+global.appRoot = path.resolve(__dirname, '../../src');
 
 class TestData {
   public newOcpiEndpoint: any;
@@ -15,7 +14,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('OCPI Endpoint tests', function () {
+describe('OCPI Endpoint tests', function() {
   this.timeout(30000);
 
   describe('Success cases', () => {
@@ -24,7 +23,7 @@ describe('OCPI Endpoint tests', function () {
       expect(testData.newOcpiEndpoint).to.not.be.null;
       // Create the entity
       testData.newOcpiEndpoint = await CentralServerService.DefaultInstance.createEntity(
-        CentralServerService.DefaultInstance.ocpiEndpointApi, Factory.ocpiEndpoint.build( { }));
+        CentralServerService.DefaultInstance.ocpiEndpointApi, Factory.ocpiEndpoint.build({ }));
     });
 
     it('Should find the created Ocpi Endpoint by id', async () => {
@@ -41,12 +40,12 @@ describe('OCPI Endpoint tests', function () {
 
     it('Should update the Ocpi Endpoint', async () => {
       // Change entity
-      testData.newOcpiEndpoint.name = "NewName";
-      testData.newOcpiEndpoint.baseUrl = "http://new.url/versions";
-      testData.newOcpiEndpoint.countryCode = "AA";
-      testData.newOcpiEndpoint.partyId = "AA";
-      testData.newOcpiEndpoint.localToken = "newlocaltoken";
-      testData.newOcpiEndpoint.token = "newremotetoken";
+      testData.newOcpiEndpoint.name = 'NewName';
+      testData.newOcpiEndpoint.baseUrl = 'http://new.url/versions';
+      testData.newOcpiEndpoint.countryCode = 'AA';
+      testData.newOcpiEndpoint.partyId = 'AA';
+      testData.newOcpiEndpoint.localToken = 'newlocaltoken';
+      testData.newOcpiEndpoint.token = 'newremotetoken';
       // Update
       await CentralServerService.DefaultInstance.updateEntity(
         CentralServerService.DefaultInstance.ocpiEndpointApi, testData.newOcpiEndpoint);
@@ -54,7 +53,7 @@ describe('OCPI Endpoint tests', function () {
 
     it('Should find the updated Ocpi Endpoint by id', async () => {
       // Check if the updated entity can be retrieved with its id
-      let updatedOcpiEndpoint = await CentralServerService.DefaultInstance.getEntityById(
+      const updatedOcpiEndpoint = await CentralServerService.DefaultInstance.getEntityById(
         CentralServerService.DefaultInstance.ocpiEndpointApi, testData.newOcpiEndpoint);
       // Check
       expect(updatedOcpiEndpoint.name).to.equal(testData.newOcpiEndpoint.name);

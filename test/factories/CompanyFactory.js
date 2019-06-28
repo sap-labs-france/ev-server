@@ -3,5 +3,9 @@ const faker = require('faker');
 const address = require('./AddressFactory');
 
 module.exports = Factory.define('company')
-  .attr('name',() =>  faker.company.companyName())
-  .attr('address',() =>  address.build());
+  .attr('name',() => {
+    return faker.company.companyName();
+  })
+  .attr('address',() => {
+    return address.build();
+  });

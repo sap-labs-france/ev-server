@@ -8,11 +8,11 @@ export default class ODataConnectors extends AbstractODataEntities {
   static async getConnectors(centralServiceApi, query, req, cb) {
     try {
       // Check limit parameter
-      const params = this.buildParams(query);
+      const params = ODataConnectors.buildParams(query);
       // Perform rest call
       const response = await centralServiceApi.getChargingStations(params);
       // Return response
-      this.returnResponse(response, query, req, cb);
+      ODataConnectors.returnResponse(response, query, req, cb);
     } catch (error) {
       cb(error);
     }

@@ -1,16 +1,22 @@
 import uuid from 'uuid/v4';
-import Logging from '../../../utils/Logging';
-import Utils from '../../../utils/Utils';
 import { OPEN } from 'ws';
-import Constants from '../../../utils/Constants';
-import OCPPError from '../../../exception/OcppError';
 import BackendError from '../../../exception/BackendError';
-import Configuration from '../../../utils/Configuration';
 import ChargingStation from '../../../entity/ChargingStation';
+import Configuration from '../../../utils/Configuration';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
+import OCPPError from '../../../exception/OcppError';
 import Tenant from '../../../entity/Tenant';
+import Utils from '../../../utils/Utils';
 
-const MODULE_NAME = "WSConnection";
+const MODULE_NAME = 'WSConnection';
 export default class WSConnection {
+  public tenantIsValid: any;
+  public code: any;
+  public message: any;
+  public details: any;
+  protected initialized: any;
+  protected wsServer: any;
   private url: any;
   private ip: any;
   private wsConnection: any;
@@ -18,12 +24,6 @@ export default class WSConnection {
   private _requests: any = {};
   private chargingStationID: any;
   private tenantID: any;
-  protected initialized: any;
-  protected wsServer: any;
-  public tenantIsValid: any;
-  public code: any;
-  public message: any;
-  public details: any;
 
   constructor(wsConnection, req, wsServer) {
     // Init
@@ -48,7 +48,7 @@ export default class WSConnection {
       this.url = this.url.substring(1, this.url.length);
     }
     // Parse URL: should like /OCPP16/TENANTID/CHARGEBOXID
-    const splittedURL = this.getURL().split("/");
+    const splittedURL = this.getURL().split('/');
     // URL with 4 parts?
     if (splittedURL.length === 3) {
       // Yes: Tenant is then provided in the third part
@@ -58,7 +58,7 @@ export default class WSConnection {
     } else {
       // Error
       throw new BackendError(null, `The URL '${req.url}' is invalid (/OCPPxx/TENANT_ID/CHARGEBOX_ID)`,
-        "WSConnection", "constructor");
+        'WSConnection', 'constructor');
     }
     // Handle incoming messages
     this.wsConnection.on('message', this.onMessage.bind(this));
@@ -89,7 +89,7 @@ export default class WSConnection {
     } catch (error) {
       // Custom Error
       throw new BackendError(this.getChargingStationID(), `Invalid Tenant '${this.tenantID}' in URL '${this.getURL()}'`,
-        "WSConnection", "initialize");
+        'WSConnection', 'initialize');
     }
   }
 
@@ -123,12 +123,12 @@ export default class WSConnection {
             [responseCallback] = this._requests[messageId];
           } else {
             throw new BackendError(this.getChargingStationID(), `Response request for unknown message id ${messageId} is not iterable`,
-              "WSConnection", "onMessage", commandName);
+              'WSConnection', 'onMessage', commandName);
           }
           if (!responseCallback) {
             // Error
             throw new BackendError(this.getChargingStationID(), `Response for unknown message id ${messageId}`,
-              "WSConnection", "onMessage", commandName);
+              'WSConnection', 'onMessage', commandName);
           }
           delete this._requests[messageId];
           responseCallback(commandName);
@@ -139,17 +139,17 @@ export default class WSConnection {
           Logging.logError({
             tenantID: this.getTenantID(),
             module: MODULE_NAME,
-            method: "sendMessage",
-            action: "WSError",
+            method: 'sendMessage',
+            action: 'WSError',
             message: {
               messageID: messageId,
-              error: JSON.stringify(message, null, " ")
+              error: JSON.stringify(message, null, ' ')
             }
           });
           if (!this._requests[messageId]) {
             // Error
             throw new BackendError(this.getChargingStationID(), `Error for unknown message id ${messageId}`,
-              "WSConnection", "onMessage", commandName);
+              'WSConnection', 'onMessage', commandName);
           }
           // eslint-disable-next-line no-case-declarations
           let rejectCallback: Function;
@@ -157,7 +157,7 @@ export default class WSConnection {
             [, rejectCallback] = this._requests[messageId];
           } else {
             throw new BackendError(this.getChargingStationID(), `Error request for unknown message id ${messageId} is not iterable`,
-              "WSConnection", "onMessage", commandName);
+              'WSConnection', 'onMessage', commandName);
           }
           delete this._requests[messageId];
           rejectCallback(new OCPPError(commandName, commandPayload, errorDetails));
@@ -166,11 +166,11 @@ export default class WSConnection {
         default:
           // Error
           throw new BackendError(this.getChargingStationID(), `Wrong message type ${messageType}`,
-            "WSConnection", "onMessage", commandName);
+            'WSConnection', 'onMessage', commandName);
       }
     } catch (error) {
       // Log
-      Logging.logException(error, commandName, this.getChargingStationID(), MODULE_NAME, "onMessage", this.getTenantID());
+      Logging.logException(error, commandName, this.getChargingStationID(), MODULE_NAME, 'onMessage', this.getTenantID());
       // Send error
       await this.sendError(messageId, error);
     }
@@ -208,7 +208,7 @@ export default class WSConnection {
     return this.sendMessage(messageId, error, Constants.OCPP_JSON_CALL_ERROR_MESSAGE);
   }
 
-  sendMessage(messageId, command, messageType = Constants.OCPP_JSON_CALL_RESULT_MESSAGE, commandName = "") {
+  sendMessage(messageId, command, messageType = Constants.OCPP_JSON_CALL_RESULT_MESSAGE, commandName = '') {
     // Send a message through WSConnection
     const self = this;
     // Create a promise

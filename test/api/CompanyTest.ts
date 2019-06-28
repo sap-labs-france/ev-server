@@ -40,7 +40,7 @@ describe('Company tests', function() {
 
     it('Should update the company', async () => {
       // Change entity
-      newCompany.name = "New Name";
+      newCompany.name = 'New Name';
       // Update
       await centralServerService.updateEntity(
         centralServerService.companyApi, newCompany);
@@ -48,7 +48,7 @@ describe('Company tests', function() {
 
     it('Should find the updated company by id', async () => {
       // Check if the updated entity can be retrieved with its id
-      let updatedCompany = await centralServerService.getEntityById(
+      const updatedCompany = await centralServerService.getEntityById(
         centralServerService.companyApi, newCompany);
       // Check
       expect(updatedCompany.name).to.equal(newCompany.name);

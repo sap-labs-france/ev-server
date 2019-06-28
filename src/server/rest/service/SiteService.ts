@@ -1,18 +1,17 @@
-import Logging from '../../../utils/Logging';
-import Database from '../../../utils/Database';
-import AppError from '../../../exception/AppError';
 import AppAuthError from '../../../exception/AppAuthError';
+import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
+import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../utils/Constants';
 import Site from '../../../types/Site';
 import User from '../../../entity/User';
 import SiteSecurity from './security/SiteSecurity';
-import UtilsService from './UtilsService';
-import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import UserSecurity from "./security/UserSecurity";
 import { Request, Response, NextFunction } from 'express';
 import Utils from '../../../utils/Utils';
+import UtilsService from './UtilsService';
+import Logging from '../../../utils/Logging';
 
 export default class SiteService {
 

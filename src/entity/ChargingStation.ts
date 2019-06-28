@@ -1,25 +1,25 @@
-import TenantHolder from './TenantHolder';
-import Logging from '../utils/Logging';
-import Utils from '../utils/Utils';
-import User from './User';
-import Transaction from './Transaction';
+import * as moment from 'moment';
+import momentDurationFormatSetup from 'moment-duration-format';
+import SourceMap from 'source-map-support';
+import tzlookup from 'tz-lookup';
+import BackendError from '../exception/BackendError';
+import buildChargingStationClient from '../client/ocpp/ChargingStationClientFactory';
+import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
+import Company from '../types/Company';
 import Constants from '../utils/Constants';
 import Database from '../utils/Database';
-import BackendError from '../exception/BackendError';
-import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
+import Logging from '../utils/Logging';
+import OCPPConstants from '../server/ocpp/utils/OCPPConstants';
 import OCPPStorage from '../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../server/ocpp/utils/OCPPUtils';
-import OCPPConstants from '../server/ocpp/utils/OCPPConstants';
-import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
-import * as moment from "moment";
-import momentDurationFormatSetup from "moment-duration-format";
-import tzlookup from "tz-lookup";
-import buildChargingStationClient from '../client/ocpp/ChargingStationClientFactory';
-import SourceMap from 'source-map-support';
-import Company from '../types/Company';
 import SiteArea from '../types/SiteArea';
+import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../storage/mongodb/SiteStorage';
 import Site from '../types/Site';
+import TenantHolder from './TenantHolder';
+import Transaction from './Transaction';
+import User from './User';
+import Utils from '../utils/Utils';
 SourceMap.install();
 
 momentDurationFormatSetup(moment);
@@ -32,10 +32,6 @@ export default class ChargingStation extends TenantHolder {
   constructor(tenantID, chargingStation) {
     super(tenantID);
     Database.updateChargingStation(chargingStation, this._model);
-  }
-
-  public getModel(): any {
-    return this._model;
   }
 
   static async getChargingStation(tenantID, id): Promise<ChargingStation> {
@@ -58,8 +54,12 @@ export default class ChargingStation extends TenantHolder {
     return ChargingStationStorage.removeChargingStationsFromSiteArea(tenantID, siteAreaID, chargingStationIDs);
   }
 
+  public getModel(): any {
+    return this._model;
+  }
+
   handleAction(action, params = {}) {
-    return this["request" + action](params);
+    return this['request' + action](params);
   }
 
   getID() {
@@ -381,7 +381,7 @@ export default class ChargingStation extends TenantHolder {
       Logging.logInfo({
         tenantID: this.getTenantID(), source: this.getID(), module: 'ChargingStation',
         method: 'requestAndSaveConfiguration', action: 'RequestConfiguration',
-        message: `Command sent with success`, detailedMessages: configuration
+        message: 'Command sent with success', detailedMessages: configuration
       });
       // Override with Conf
       configuration = {
@@ -410,7 +410,7 @@ export default class ChargingStation extends TenantHolder {
       Logging.logInfo({
         tenantID: this.getTenantID(), source: this.getID(), module: 'ChargingStation',
         method: 'requestAndSaveConfiguration', action: 'RequestConfiguration',
-        message: `Configuration has been saved`
+        message: 'Configuration has been saved'
       });
       return { status: 'Accepted' };
     } catch (error) {
@@ -548,7 +548,7 @@ export default class ChargingStation extends TenantHolder {
     Logging.logInfo({
       tenantID: this.getTenantID(), source: this.getID(),
       module: 'ChargingStation', method: 'requestGenericOCPPCommand', action: 'GenericOCPPCommand',
-      message: `Command sent with success`, detailedMessages: result
+      message: 'Command sent with success', detailedMessages: result
     });
     // Return
     return result;
@@ -572,7 +572,7 @@ export default class ChargingStation extends TenantHolder {
     if (result.status !== 'Accepted') {
       // Error
       throw new BackendError(this.getID(), `Cannot set the configuration param ${params.key} with value ${params.value} to ${this.getID()}`,
-        "ChargingStation", "requestChangeConfiguration");
+        'ChargingStation', 'requestChangeConfiguration');
     }
     // Retrieve and Save it in the DB
     await this.requestAndSaveConfiguration();
@@ -596,7 +596,7 @@ export default class ChargingStation extends TenantHolder {
         tenantID: this.getTenantID(), source: this.getID(),
         module: 'ChargingStation', method: '_requestExecuteCommand',
         action: Utils.firstLetterInUpperCase(method),
-        message: `Command sent with success`,
+        message: 'Command sent with success',
         detailedMessages: result
       });
       // Return
@@ -605,8 +605,8 @@ export default class ChargingStation extends TenantHolder {
       // OCPP 1.6?
       if (Array.isArray(error.error)) {
         const response = error.error;
-        throw new BackendError(this.getID(), response[3], "ChargingStation",
-          "_requestExecuteCommand", Utils.firstLetterInUpperCase(method));
+        throw new BackendError(this.getID(), response[3], 'ChargingStation',
+          '_requestExecuteCommand', Utils.firstLetterInUpperCase(method));
       } else {
         throw error;
       }

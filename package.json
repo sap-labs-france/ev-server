@@ -152,6 +152,7 @@
     "test:tenant": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha -r ts-node/register test/**/TenantTest.ts --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
     "test:org": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha -r ts-node/register test/**/*OrgTest.ts --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
     "test:setting": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha -r ts-node/register test/**/SettingTest.ts --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
+    "test:cypher": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha -r ts-node/register test/**/CypherTest.ts --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
     "test:user": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha -r ts-node/register test/**/UserTest.ts --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
     "test:siteorg": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha -r ts-node/register test/**/SiteOrgTest.ts --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
     "test:transaction": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha -r ts-node/register test/**/TransactionTest.ts --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",

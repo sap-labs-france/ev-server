@@ -14,25 +14,25 @@ export default class UsersAddNotificationsFlagTask extends MigrationTask {
     // Read all Users
     const users = await global.database.getCollection<any>(tenant.getID(), 'users')
       .aggregate([
-        { $match: { "notificationsActive": { $exists: false } } }
+        { $match: { 'notificationsActive': { $exists: false } } }
       ])
       .toArray();
     // Process each user
     for (const user of users) {
       // Add
       await global.database.getCollection<any>(tenant.getID(), 'users').findOneAndReplace(
-        { "_id": user._id },
+        { '_id': user._id },
         { $set: { notificationsActive: true } },
         { upsert: true, returnOriginal: false });
     }
   }
 
   getVersion() {
-    return "1.0";
+    return '1.0';
   }
 
   getName() {
-    return "UsersAddNotificationsFlag";
+    return 'UsersAddNotificationsFlag';
   }
 }
 

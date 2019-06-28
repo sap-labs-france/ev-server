@@ -1,11 +1,11 @@
 import uuid from 'uuid/v4';
+import CentralSystemServer from '../CentralSystemServer';
+import global from '../../../types/GlobalType';
 import Logging from '../../../utils/Logging';
 import Constants from '../../../utils/Constants';
 import WSServer from './WSServer';
-import JsonWSConnection from './JsonWSConnection';
 import JsonRestWSConnection from './JsonRestWSConnection';
-import CentralSystemServer from '../CentralSystemServer';
-import global from '../../../types/GlobalType';
+import JsonWSConnection from './JsonWSConnection';
 export default class JsonCentralSystemServer extends CentralSystemServer {
 
   private _serverName: any;
@@ -18,8 +18,8 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
     // Call parent
     super(centralSystemConfig, chargingStationConfig);
     // Keep local
-    this._serverName = "OCPP";
-    this._MODULE_NAME = "JsonCentralSystemServer";
+    this._serverName = 'OCPP';
+    this._MODULE_NAME = 'JsonCentralSystemServer';
     this.jsonChargingStationClients = [];
     this.jsonRestClients = [];
   }
@@ -35,17 +35,17 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
   _createWSServer() {
     const verifyClient = (info) => {
       // Check the URI
-      if (info.req.url.startsWith("/OCPP16")) {
+      if (info.req.url.startsWith('/OCPP16')) {
         return true;
       }
-      if (info.req.url.startsWith("/REST")) {
+      if (info.req.url.startsWith('/REST')) {
         return true;
       }
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         module: this._MODULE_NAME,
-        method: "verifyClient",
-        action: "WSVerifyClient",
+        method: 'verifyClient',
+        action: 'WSVerifyClient',
         message: `Invalid connection URL ${info.req.url}`
       });
       return false;
@@ -56,16 +56,16 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       // Check the protocols
       // Ensure protocol used as ocpp1.6 or nothing (should create an error)
       if (Array.isArray(protocols)) {
-        if (protocols.indexOf("ocpp1.6") >= 0) {
-          return "ocpp1.6";
+        if (protocols.indexOf('ocpp1.6') >= 0) {
+          return 'ocpp1.6';
         }
-        if (protocols.indexOf("rest") >= 0) {
-          return "rest";
+        if (protocols.indexOf('rest') >= 0) {
+          return 'rest';
         }
         return false;
-      } else if (protocols === "ocpp1.6") {
+      } else if (protocols === 'ocpp1.6') {
         return protocols;
-      } else if (protocols === "rest") {
+      } else if (protocols === 'rest') {
         return protocols;
       }
       return false;
@@ -97,7 +97,7 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       } catch (error) {
         // Log
         Logging.logException(
-          error, "WSConnection", "", this._MODULE_NAME, "connection", Constants.DEFAULT_TENANT);
+          error, 'WSConnection', '', this._MODULE_NAME, 'connection', Constants.DEFAULT_TENANT);
         // Respond
         ws.close(Constants.WS_UNSUPPORTED_DATA, error.message);
       }

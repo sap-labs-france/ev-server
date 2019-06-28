@@ -6,6 +6,6 @@ export default class UnauthorizedError extends Error {
     readonly entity: string,
     readonly value: string,
     readonly user: User) {
-    super(`Not authorized to perform '${action}' on '${entity}' ${(value ? "'" + value + "' " : " ")}(Role='${user.getRole()}')`);
+    super(`Not authorized to perform '${action}' on '${entity}' ${(value ? '\'' + value + '\' ' : ' ')}(Role='${user.getRole()}')`);
   }
 }

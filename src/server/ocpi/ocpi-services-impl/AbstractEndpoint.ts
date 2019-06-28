@@ -1,15 +1,15 @@
-import OCPIUtils from '../OCPIUtils';
 import SourceMap from 'source-map-support';
+import OCPIUtils from '../OCPIUtils';
 SourceMap.install();
+import { Request, Response } from 'express';
 import OCPIService from '../OCPIServices';
 import Tenant from '../../../entity/Tenant';
-import { Request, Response } from 'express';
 /**
  * Abstract Endpoint
  */
 export default class AbstractEndpoint {
   // Create OCPI Service
-  constructor(readonly ocpiService: OCPIService, readonly identifier: string = "default", readonly version: string = "0.0.0") {}
+  constructor(readonly ocpiService: OCPIService, readonly identifier: string = 'default', readonly version: string = '0.0.0') {}
 
   // Get Endpoint Identifier
   public getIdentifier(): string {

@@ -5,8 +5,8 @@ export default class SchemaValidator {
   private readonly ajv: Ajv.Ajv;
 
   constructor(readonly moduleName: string,
-    config: {allErrors: boolean; removeAdditional: boolean|"all"|"failing"|undefined;
-      useDefaults: boolean; coerceTypes: boolean;} = {
+    config: {allErrors: boolean; removeAdditional: boolean|'all'|'failing'|undefined;
+      useDefaults: boolean; coerceTypes: boolean; } = {
       allErrors: true,
       removeAdditional: 'all',
       useDefaults: true,
@@ -29,7 +29,7 @@ export default class SchemaValidator {
       });
       const concatenatedError = { path: errors.map((e) => {
         return e.path;
-      }).join(","), message: errors.map((e) => {
+      }).join(','), message: errors.map((e) => {
         return e.message;
       }).join(',') };
       throw new BadRequestError(concatenatedError);

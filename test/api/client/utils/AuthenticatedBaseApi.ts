@@ -1,7 +1,7 @@
-import {expect} from 'chai';
-import BaseApi from './BaseApi';
-import AuthenticationApi from '../AuthenticationApi';
+import { expect } from 'chai';
 import jwt from 'jsonwebtoken';
+import AuthenticationApi from '../AuthenticationApi';
+import BaseApi from './BaseApi';
 
 export default class AuthenticatedBaseApi extends BaseApi {
   private _authenticationApi: AuthenticationApi;
@@ -62,5 +62,3 @@ export default class AuthenticatedBaseApi extends BaseApi {
   }
 
 }
-
-// module.exports = AuthenticatedBaseApi

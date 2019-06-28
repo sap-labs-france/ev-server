@@ -1,16 +1,16 @@
 import AbstractEndpoint from '../AbstractEndpoint';
 import Site from '../../../../types/Site';
 import OCPIMapping from './OCPIMapping';
-import OCPIUtils from '../../OCPIUtils';
 import OCPIServerError from '../../../../exception/OCPIServerError';
+import OCPIUtils from '../../OCPIUtils';
 
 import SourceMap from 'source-map-support';
 import Constants from '../../../../utils/Constants';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 SourceMap.install();
 
-const EP_IDENTIFIER = "locations";
-const EP_VERSION = "2.1.1";
+const EP_IDENTIFIER = 'locations';
+const EP_VERSION = '2.1.1';
 
 const RECORDS_LIMIT = 20;
 
@@ -28,7 +28,7 @@ const RECORDS_LIMIT = 20;
   async process(req, res, next, tenant) { // eslint-disable-line
     try {
       switch (req.method) {
-        case "GET":
+        case 'GET':
           // Call method
           await this.getLocationRequest(req, res, next, tenant);
           break;

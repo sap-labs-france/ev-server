@@ -1,7 +1,7 @@
-import ChargingStation from '../../../entity/ChargingStation';
-import BackendError from '../../../exception/BackendError';
-import Constants from '../../../utils/Constants';
 import SourceMap from 'source-map-support';
+import BackendError from '../../../exception/BackendError';
+import ChargingStation from '../../../entity/ChargingStation';
+import Constants from '../../../utils/Constants';
 SourceMap.install();
 
 export default class OCPPUtils {
@@ -31,7 +31,7 @@ export default class OCPPUtils {
   static isConsumptionMeterValue(meterValue) {
     return !meterValue.attribute ||
       (meterValue.attribute.measurand === 'Energy.Active.Import.Register'
-        && (meterValue.attribute.context === "Sample.Periodic" || meterValue.attribute.context === "Sample.Clock"));
+        && (meterValue.attribute.context === 'Sample.Periodic' || meterValue.attribute.context === 'Sample.Clock'));
   }
 
   static async checkAndGetChargingStation(chargeBoxIdentity, tenantID) {
@@ -40,14 +40,14 @@ export default class OCPPUtils {
     // Found?
     if (!chargingStation) {
       // Error
-      throw new BackendError(chargeBoxIdentity, `Charging Station does not exist`,
-        "OCPPUtils", "_checkAndGetChargingStation");
+      throw new BackendError(chargeBoxIdentity, 'Charging Station does not exist',
+        'OCPPUtils', '_checkAndGetChargingStation');
     }
     // Found?
     if (chargingStation.isDeleted()) {
       // Error
-      throw new BackendError(chargeBoxIdentity, `Charging Station is deleted`,
-        "OCPPUtils", "_checkAndGetChargingStation");
+      throw new BackendError(chargeBoxIdentity, 'Charging Station is deleted',
+        'OCPPUtils', '_checkAndGetChargingStation');
     }
     return chargingStation;
   }

@@ -1,11 +1,11 @@
-import MigrationTask from '../MigrationTask';
-import Tenant from '../../entity/Tenant';
-import Logging from '../../utils/Logging';
+import BBPromise from 'bluebird';
+import moment from 'moment';
 import Constants from '../../utils/Constants';
+import TSGlobal from '../../types/GlobalType';
+import Logging from '../../utils/Logging';
+import MigrationTask from '../MigrationTask';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import SimplePricing from '../../integration/pricing/simple-pricing/SimplePricing';
-import moment from 'moment';
-import BBPromise from "bluebird";
 import global from '../../types/GlobalType';
 
 const SUB_DOMAINS = ['slfcah', 'slf'];
@@ -69,7 +69,7 @@ export default class UpdateTransactionSimplePriceTask extends MigrationTask {
         } else {
           Logging.logWarning({
             tenantID: Constants.DEFAULT_TENANT, module: 'UpdateTransactionSimplePriceTask',
-            method: 'updateTransactionPrice', action: "Migration", source: 'UpdateTransactionSimplePriceTask',
+            method: 'updateTransactionPrice', action: 'Migration', source: 'UpdateTransactionSimplePriceTask',
             message: `Ignoring transaction ${transaction._id} not finished`
           });
         }
@@ -105,11 +105,11 @@ export default class UpdateTransactionSimplePriceTask extends MigrationTask {
   }
 
   getVersion() {
-    return "1.0";
+    return '1.0';
   }
 
   getName() {
-    return "UpdateTransactionSimplePriceTask";
+    return 'UpdateTransactionSimplePriceTask';
   }
 }
 

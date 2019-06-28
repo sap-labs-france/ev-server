@@ -1,22 +1,22 @@
-import Logging from '../utils/Logging';
-import Constants from '../utils/Constants';
-import RunLock from '../utils/Locking';
-import moment from 'moment';
 import cluster from 'cluster';
-import MigrationStorage from '../storage/mongodb/MigrationStorage';
-import UpdateTransactionInactivityTask from './tasks/UpdateTransactionInactivityTask';
-import TenantMigrationTask from './tasks/TenantMigrationTask';
-import UpdateTransactionSoCTask from './tasks/UpdateTransactionSoCTask';
-import UpdateABBMeterValuesTask from './tasks/UpdateKebaMeterValuesTask';
-import NormalizeTransactionsTask from './tasks/NormalizeTransactionsTask';
-import CreateConsumptionsTask from './tasks/CreateConsumptionsTask';
-import CleanupTransactionTask from './tasks/CleanupTransactionTask';
-import TransactionsAddTimezoneTask from './tasks/TransactionsAddTimezoneTask';
-import UsersAddNotificationsFlagTask from './tasks/UsersAddNotificationsFlagTask';
-import UpdateTransactionSimplePriceTask from './tasks/UpdateTransactionSimplePriceTask';
-import MigrateTenantSettingsTask from './tasks/MigrateTenantSettingsTask';
-import UpdateTransactionExtraInactivityTask from './tasks/UpdateTransactionExtraInactivityTask';
+import moment from 'moment';
 import AddSensitiveDataInSettingsTask from './tasks/AddSensitiveDataInSettingsTask';
+import CleanupTransactionTask from './tasks/CleanupTransactionTask';
+import Constants from '../utils/Constants';
+import CreateConsumptionsTask from './tasks/CreateConsumptionsTask';
+import RunLock from '../utils/Locking';
+import Logging from '../utils/Logging';
+import MigrateTenantSettingsTask from './tasks/MigrateTenantSettingsTask';
+import MigrationStorage from '../storage/mongodb/MigrationStorage';
+import NormalizeTransactionsTask from './tasks/NormalizeTransactionsTask';
+import TenantMigrationTask from './tasks/TenantMigrationTask';
+import TransactionsAddTimezoneTask from './tasks/TransactionsAddTimezoneTask';
+import UpdateABBMeterValuesTask from './tasks/UpdateKebaMeterValuesTask';
+import UpdateTransactionExtraInactivityTask from './tasks/UpdateTransactionExtraInactivityTask';
+import UpdateTransactionInactivityTask from './tasks/UpdateTransactionInactivityTask';
+import UpdateTransactionSimplePriceTask from './tasks/UpdateTransactionSimplePriceTask';
+import UpdateTransactionSoCTask from './tasks/UpdateTransactionSoCTask';
+import UsersAddNotificationsFlagTask from './tasks/UsersAddNotificationsFlagTask';
 
 
 export default class MigrationHandler {
@@ -34,9 +34,9 @@ export default class MigrationHandler {
       // Log
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        source: "Migration", action: "Migration",
-        module: "MigrationHandler", method: "migrate",
-        message: `Running migration tasks...`
+        source: 'Migration', action: 'Migration',
+        module: 'MigrationHandler', method: 'migrate',
+        message: 'Running migration tasks...'
       });
 
       // Create tasks
@@ -70,8 +70,8 @@ export default class MigrationHandler {
           // Yes
           Logging.logInfo({
             tenantID: Constants.DEFAULT_TENANT,
-            source: "Migration", action: "Migration",
-            module: "MigrationHandler", method: "migrate",
+            source: 'Migration', action: 'Migration',
+            module: 'MigrationHandler', method: 'migrate',
             message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has already been processed`
           });
           // Continue
@@ -93,8 +93,8 @@ export default class MigrationHandler {
       const totalMigrationTimeSecs = moment.duration(moment().diff(startMigrationTime)).asSeconds();
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        source: "Migration", action: "Migration",
-        module: "MigrationHandler", method: "migrate",
+        source: 'Migration', action: 'Migration',
+        module: 'MigrationHandler', method: 'migrate',
         message: `All synchronous migration tasks have been run with success in ${totalMigrationTimeSecs} secs`
       });
     } catch (error) {
@@ -104,8 +104,8 @@ export default class MigrationHandler {
       // Log
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
-        source: "Migration", action: "Migration",
-        module: "MigrationHandler", method: "migrate",
+        source: 'Migration', action: 'Migration',
+        module: 'MigrationHandler', method: 'migrate',
         message: error.toString(),
         detailedMessages: error
       });
@@ -120,8 +120,8 @@ export default class MigrationHandler {
       // Log Start Task
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        source: "Migration", action: "Migration",
-        module: "MigrationHandler", method: "migrate",
+        source: 'Migration', action: 'Migration',
+        module: 'MigrationHandler', method: 'migrate',
         message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running...`
       });
       // Log in the console also
@@ -149,8 +149,8 @@ export default class MigrationHandler {
 
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        source: "Migration", action: "Migration",
-        module: "MigrationHandler", method: "migrate",
+        source: 'Migration', action: 'Migration',
+        module: 'MigrationHandler', method: 'migrate',
         message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs`
       });
       // Log in the console also

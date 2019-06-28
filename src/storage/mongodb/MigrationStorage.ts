@@ -1,7 +1,7 @@
-import Database from '../../utils/Database';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import global from '../../types/GlobalType';
+import Database from '../../utils/Database';
 
 export default class MigrationStorage {
   static async getMigrations() {
@@ -36,7 +36,7 @@ export default class MigrationStorage {
     const migration: any = {};
     Database.updateMigration(migrationToSave, migration, false);
     // Set the ID
-    migration._id = migration.name + "~" + migration.version;
+    migration._id = migration.name + '~' + migration.version;
     // Create
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'migrations')
       .insertOne(migration);

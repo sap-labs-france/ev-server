@@ -1,22 +1,22 @@
-import Logging from '../utils/Logging';
-import Constants from '../utils/Constants';
-import Configuration from '../utils/Configuration';
-import NotificationHandler from '../notification/NotificationHandler';
-import AppError from '../exception/AppError';
-import AppAuthError from '../exception/AppAuthError';
-import BackendError from '../exception/BackendError';
-import Utils from '../utils/Utils';
-import User from '../entity/User';
-import Tenant from '../entity/Tenant';
-import Transaction from '../entity/Transaction';
-import AuthorizationsDefinition from './AuthorizationsDefinition';
-import ChargingStation from '../entity/ChargingStation';
-import TenantStorage from '../storage/mongodb/TenantStorage';
 import SourceMap from 'source-map-support';
+import AppAuthError from '../exception/AppAuthError';
+import AppError from '../exception/AppError';
+import AuthorizationsDefinition from './AuthorizationsDefinition';
+import BackendError from '../exception/BackendError';
+import ChargingStation from '../entity/ChargingStation';
+import Configuration from '../utils/Configuration';
+import Constants from '../utils/Constants';
+import Logging from '../utils/Logging';
+import NotificationHandler from '../notification/NotificationHandler';
+import Site from '../types/Site';
 import SiteArea from '../types/SiteArea';
 import SiteStorage from '../storage/mongodb/SiteStorage';
-import Site from '../types/Site';
+import Tenant from '../entity/Tenant';
+import TenantStorage from '../storage/mongodb/TenantStorage';
+import Transaction from '../entity/Transaction';
+import User from '../entity/User';
 import UserStorage from '../storage/mongodb/UserStorage';
+import Utils from '../utils/Utils';
 SourceMap.install();
 
 export default class Authorizations {
@@ -29,7 +29,7 @@ export default class Authorizations {
       userId = transaction.getUserJson().id;
     }
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION,
-      Constants.ACTION_REFUND_TRANSACTION, { "UserID": userId });
+      Constants.ACTION_REFUND_TRANSACTION, { 'UserID': userId });
   }
 
   public static canStartTransaction(user: any, chargingStation: ChargingStation) {
@@ -175,7 +175,7 @@ export default class Authorizations {
       throw new AppError(
         chargingStation.getID(),
         `Site area and site not provided for Charging Station '${chargingStation.getID()}'!`, Constants.HTTP_GENERAL_ERROR,
-        "Authorizations", "getConnectorActionAuthorizations",
+        'Authorizations', 'getConnectorActionAuthorizations',
         user.getModel()
       );
     }
@@ -268,7 +268,7 @@ export default class Authorizations {
           chargingStation.getID(),
           `Charging Station '${chargingStation.getID()}' is not assigned to a Site Area!`,
           Constants.HTTP_AUTH_CHARGER_WITH_NO_SITE_AREA_ERROR,
-          "Authorizations", "_checkAndGetUserOnChargingStation");
+          'Authorizations', '_checkAndGetUserOnChargingStation');
       }
 
       // Access Control Enabled?
@@ -286,7 +286,7 @@ export default class Authorizations {
           chargingStation.getID(),
           `Site Area '${siteArea.name}' is not assigned to a Site!`,
           Constants.HTTP_AUTH_SITE_AREA_WITH_NO_SITE_ERROR,
-          "Authorizations", "checkAndGetUserOnChargingStation");
+          'Authorizations', 'checkAndGetUserOnChargingStation');
       }
     }
     // Get user
@@ -340,7 +340,7 @@ export default class Authorizations {
             throw new BackendError(
               chargingStation.getID(),
               `User '${alternateUser.getFullName()}' is not allowed to perform 'Stop Transaction' on User '${user.getFullName()}'!`,
-              'Authorizations', "isTagIDsAuthorizedOnChargingStation", action,
+              'Authorizations', 'isTagIDsAuthorizedOnChargingStation', action,
               (alternateUser ? alternateUser.getModel() : null), (user ? user.getModel() : null));
           }
         }
@@ -360,7 +360,7 @@ export default class Authorizations {
       throw new AppError(
         chargingStation.getID(),
         `${Utils.buildUserFullName(user.getModel())} is '${User.getStatusDescription(user.getStatus())}'`, Constants.HTTP_GENERAL_ERROR,
-        "Authorizations", "_checkAndGetUserOnChargingStation",
+        'Authorizations', '_checkAndGetUserOnChargingStation',
         user.getModel());
     }
 
@@ -375,7 +375,7 @@ export default class Authorizations {
           chargingStation.getID(),
           `User is not assigned to the site '${site.name}'!`,
           Constants.HTTP_AUTH_USER_WITH_NO_SITE_ERROR,
-          "Authorizations", "_checkAndGetUserOnChargingStation",
+          'Authorizations', '_checkAndGetUserOnChargingStation',
           user.getModel());
       }
     }
@@ -386,7 +386,7 @@ export default class Authorizations {
         action,
         Constants.ENTITY_CHARGING_STATION,
         chargingStation.getID(),
-        Constants.HTTP_GENERAL_ERROR, "Authorizations", "_checkAndGetUserOnChargingStation",
+        Constants.HTTP_GENERAL_ERROR, 'Authorizations', '_checkAndGetUserOnChargingStation',
         user.getModel());
     }
   }
@@ -410,7 +410,7 @@ export default class Authorizations {
   public static canReadTransaction(loggedUser: any, transaction: Transaction): boolean {
     if (transaction.getUserJson() && transaction.getUserJson().id) {
       return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION, Constants.ACTION_READ,
-        { "user": transaction.getUserJson().id, "owner": loggedUser.id });
+        { 'user': transaction.getUserJson().id, 'owner': loggedUser.id });
     }
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION, Constants.ACTION_READ);
   }
@@ -449,7 +449,7 @@ export default class Authorizations {
 
   public static canReadUser(loggedUser: any, userId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_USER, Constants.ACTION_READ,
-      { "user": userId, "owner": loggedUser.id });
+      { 'user': userId, 'owner': loggedUser.id });
   }
 
   public static canCreateUser(loggedUser: any): boolean {
@@ -458,12 +458,12 @@ export default class Authorizations {
 
   public static canUpdateUser(loggedUser: any, userId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_USER, Constants.ACTION_UPDATE,
-      { "user": userId, "owner": loggedUser.id });
+      { 'user': userId, 'owner': loggedUser.id });
   }
 
   public static canDeleteUser(loggedUser: any, userId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_USER, Constants.ACTION_DELETE,
-      { "user": userId, "owner": loggedUser.id });
+      { 'user': userId, 'owner': loggedUser.id });
   }
 
   public static canListSites(loggedUser: any): boolean {
@@ -472,7 +472,7 @@ export default class Authorizations {
 
   public static canReadSite(loggedUser: any, siteId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_READ,
-      { "site": siteId, "sites": loggedUser.sites });
+      { 'site': siteId, 'sites': loggedUser.sites });
   }
 
   public static canCreateSite(loggedUser: any): boolean {
@@ -590,7 +590,7 @@ export default class Authorizations {
   public static canReadSiteArea(loggedUser: any, siteAreaID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA, Constants.ACTION_READ) &&
       Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_READ,
-        { "site": siteAreaID, "sites": loggedUser.sites });
+        { 'site': siteAreaID, 'sites': loggedUser.sites });
   }
 
   public static canCreateSiteArea(loggedUser: any): boolean {
@@ -614,7 +614,7 @@ export default class Authorizations {
 
   public static canReadCompany(loggedUser: any, companyId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_COMPANY, Constants.ACTION_READ,
-      { "company": companyId, "companies": loggedUser.companies });
+      { 'company': companyId, 'companies': loggedUser.companies });
   }
 
   public static canCreateCompany(loggedUser: any): boolean {
@@ -651,17 +651,17 @@ export default class Authorizations {
 
   public static canCreateConnection(loggedUser): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CONNECTION, Constants.ACTION_CREATE,
-      { "owner": loggedUser.id });
+      { 'owner': loggedUser.id });
   }
 
   public static canDeleteConnection(loggedUser, userId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CONNECTION, Constants.ACTION_DELETE,
-      { "user": userId, "owner": loggedUser.id });
+      { 'user': userId, 'owner': loggedUser.id });
   }
 
   public static canReadConnection(loggedUser, userId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CONNECTION, Constants.ACTION_READ,
-      { "user": userId, "owner": loggedUser.id });
+      { 'user': userId, 'owner': loggedUser.id });
   }
 
   public static canListConnections(loggedUser: any): boolean {
@@ -692,13 +692,6 @@ export default class Authorizations {
     return userRole === Constants.ROLE_DEMO;
   }
 
-  private static getConfiguration() {
-    if (!this.configuration) {
-      this.configuration = Configuration.getAuthorizationConfig();
-    }
-    return this.configuration;
-  }
-
   public static async getUserScopes(user: User): Promise<ReadonlyArray<string>> {
     // Get the sites where the user is marked Site Admin
     const sitesAdmin = await UserStorage.getSites(user.getTenantID(), { userID: user.getID(), siteAdmin: true });
@@ -706,6 +699,13 @@ export default class Authorizations {
     const groups = Authorizations.getAuthGroupsFromUser(user.getRole(), sitesAdmin['result']);
     // Return the scopes
     return AuthorizationsDefinition.getInstance().getScopes(groups);
+  }
+
+  private static getConfiguration() {
+    if (!Authorizations.configuration) {
+      Authorizations.configuration = Configuration.getAuthorizationConfig();
+    }
+    return Authorizations.configuration;
   }
 
   private static getAuthGroupsFromUser(userRole: string, sitesAdmins: ReadonlyArray<Site>): ReadonlyArray<string> {

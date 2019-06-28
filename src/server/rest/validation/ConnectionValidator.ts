@@ -1,14 +1,14 @@
-import SchemaValidator from './SchemaValidator';
 import fs from 'fs';
 import global from '../../../types/GlobalType';
+import SchemaValidator from './SchemaValidator';
 
 export default class ConnectionValidator extends SchemaValidator {
+  private static instance: ConnectionValidator|null = null;
   public validate: any;
   private connectionCreation: any;
-  private static instance: ConnectionValidator|null = null;
 
   private constructor() {
-    super("TenantValidator");
+    super('TenantValidator');
     this.connectionCreation = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/rest/schemas/connectors/connections/connection-creation.json`, 'utf8'));
   }
 

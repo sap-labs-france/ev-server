@@ -2,9 +2,9 @@ const path = require('path');
  import global from'../../src/types/GlobalType';
  
 global.appRoot = path.resolve(__dirname, '../../src');
+import { expect } from 'chai';
 import CentralServerService from './client/CentralServerService';
 import Factory from '../factories/Factory';
-import {expect} from 'chai';
 
 class TestData {
   public newSetting: any;
@@ -21,7 +21,7 @@ describe('Setting tests', function() {
       expect(testData.newSetting).to.not.be.null;
       // Create the entity
       testData.newSetting = await CentralServerService.DefaultInstance.createEntity(
-        CentralServerService.DefaultInstance.settingApi, Factory.setting.build( { }));
+        CentralServerService.DefaultInstance.settingApi, Factory.setting.build({ }));
     });
 
     it('Should find the created setting by id', async () => {
@@ -44,7 +44,7 @@ describe('Setting tests', function() {
 
     it('Should update the setting', async () => {
       // Change entity
-      testData.newSetting.identifier = "New Identifier";
+      testData.newSetting.identifier = 'New Identifier';
       testData.newSetting.content = JSON.parse('{ "newproperty": "newvalue" }');
       // Update
       await CentralServerService.DefaultInstance.updateEntity(
@@ -53,11 +53,11 @@ describe('Setting tests', function() {
 
     it('Should find the updated setting by id', async () => {
       // Check if the updated entity can be retrieved with its id
-      let updatedSetting = await CentralServerService.DefaultInstance.getEntityById(
+      const updatedSetting = await CentralServerService.DefaultInstance.getEntityById(
         CentralServerService.DefaultInstance.settingApi, testData.newSetting);
       // Check
       expect(updatedSetting.identifier).to.equal(testData.newSetting.identifier);
-      expect(updatedSetting.content).to.have.property('newproperty').to.be.equal("newvalue");
+      expect(updatedSetting.content).to.have.property('newproperty').to.be.equal('newvalue');
     });
 
     it('Should delete the created setting', async () => {

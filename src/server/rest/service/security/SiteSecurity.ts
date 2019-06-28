@@ -1,6 +1,5 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import UtilsSecurity from './UtilsSecurity';
 import CompanySecurity from './CompanySecurity';
 import SiteAreaSecurity from './SiteAreaSecurity';
 import UserSecurity from './UserSecurity';
@@ -11,6 +10,7 @@ import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import AppAuthError from '../../../../exception/AppAuthError';
 import Site from '../../../../types/Site';
 import Utils from '../../../../utils/Utils';
+import UtilsSecurity from './UtilsSecurity';
 
 export default class SiteSecurity {
 
@@ -192,16 +192,16 @@ export default class SiteSecurity {
           return UserSecurity.filterMinimalUserResponse(user, loggedUser);
         });
       }
-      if (site.hasOwnProperty("availableChargers")) {
+      if (site.hasOwnProperty('availableChargers')) {
         filteredSite.availableChargers = site.availableChargers;
       }
-      if (site.hasOwnProperty("totalChargers")) {
+      if (site.hasOwnProperty('totalChargers')) {
         filteredSite.totalChargers = site.totalChargers;
       }
-      if (site.hasOwnProperty("availableConnectors")) {
+      if (site.hasOwnProperty('availableConnectors')) {
         filteredSite.availableConnectors = site.availableConnectors;
       }
-      if (site.hasOwnProperty("totalConnectors")) {
+      if (site.hasOwnProperty('totalConnectors')) {
         filteredSite.totalConnectors = site.totalConnectors;
       }
       // Created By / Last Changed By

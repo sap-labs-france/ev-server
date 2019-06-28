@@ -1,11 +1,11 @@
-import Logging from '../../../../utils/Logging';
 import Constants from '../../../../utils/Constants';
 import global from '../../../../types/GlobalType';
+import Logging from '../../../../utils/Logging';
 
-const MODULE_NAME = "JsonChargingStationService";
+const MODULE_NAME = 'JsonChargingStationService';
 export default class JsonChargingStationService {
-  private chargingStationConfig: any;
   public chargingStationService: any;
+  private chargingStationConfig: any;
 
   constructor(chargingStationConfig) {
     this.chargingStationConfig = chargingStationConfig;
@@ -16,7 +16,7 @@ export default class JsonChargingStationService {
   async _handle(command, headers, payload) {
     try {
       // Handle
-      return await this.chargingStationService["handle" + command](headers, payload);
+      return await this.chargingStationService['handle' + command](headers, payload);
     } catch (error) {
       Logging.logException(error, command, headers.chargeBoxIdentity, MODULE_NAME, command, headers.tenantID);
       throw error;
@@ -25,7 +25,7 @@ export default class JsonChargingStationService {
 
   async handleBootNotification(headers, payload) {
     // Forward
-    const result = await this._handle("BootNotification", headers, payload);
+    const result = await this._handle('BootNotification', headers, payload);
     // Return the response
     return {
       'currentTime': result.currentTime,
@@ -36,7 +36,7 @@ export default class JsonChargingStationService {
 
   async handleHeartbeat(headers, payload) {
     // Forward
-    const result = await this._handle("Heartbeat", headers, payload);
+    const result = await this._handle('Heartbeat', headers, payload);
     // Return the response
     return {
       'currentTime': result.currentTime
@@ -45,21 +45,21 @@ export default class JsonChargingStationService {
 
   async handleStatusNotification(headers, payload) {
     // Forward
-    await this._handle("StatusNotification", headers, payload);
+    await this._handle('StatusNotification', headers, payload);
     // Return the response
     return {};
   }
 
   async handleMeterValues(headers, payload) {
     // Forward
-    await this._handle("MeterValues", headers, payload);
+    await this._handle('MeterValues', headers, payload);
     // Return the response
     return {};
   }
 
   async handleAuthorize(headers, payload) {
     // Forward
-    const result = await this._handle("Authorize", headers, payload);
+    const result = await this._handle('Authorize', headers, payload);
     // Return the response
     return {
       'idTagInfo': {
@@ -70,21 +70,21 @@ export default class JsonChargingStationService {
 
   async handleDiagnosticsStatusNotification(headers, payload) {
     // Forward
-    await this._handle("DiagnosticsStatusNotification", headers, payload);
+    await this._handle('DiagnosticsStatusNotification', headers, payload);
     // Return the response
     return {};
   }
 
   async handleFirmwareStatusNotification(headers, payload) {
     // Forward
-    await this._handle("FirmwareStatusNotification", headers, payload);
+    await this._handle('FirmwareStatusNotification', headers, payload);
     // Return the response
     return {};
   }
 
   async handleStartTransaction(headers, payload) {
     // Forward
-    const result = await this._handle("StartTransaction", headers, payload);
+    const result = await this._handle('StartTransaction', headers, payload);
     // Return the response
     return {
       'transactionId': result.transactionId,
@@ -96,7 +96,7 @@ export default class JsonChargingStationService {
 
   async handleDataTransfer(headers, payload) {
     // Forward
-    const result = await this._handle("DataTransfer", headers, payload);
+    const result = await this._handle('DataTransfer', headers, payload);
     // Return the response
     return {
       'status': result.status
@@ -105,7 +105,7 @@ export default class JsonChargingStationService {
 
   async handleStopTransaction(headers, payload) {
     // Forward
-    const result = await this._handle("StopTransaction", headers, payload);
+    const result = await this._handle('StopTransaction', headers, payload);
     // Return the response
     return {
       'idTagInfo': {

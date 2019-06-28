@@ -1,12 +1,5 @@
-import moment from 'moment';
-import Database from '../../utils/Database';
-import ChargingStation from '../../entity/ChargingStation';
-import Tenant from '../../entity/Tenant';
-import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
 import MigrationTask from '../MigrationTask';
-import global from '../../types/GlobalType';
-import Transaction from '../../entity/Transaction';
-import { deprecate } from 'util';
+import Tenant from '../../entity/Tenant';
 
 export default class UpdateTransactionInactivityTask extends MigrationTask {
   async migrate() {
@@ -102,11 +95,11 @@ export default class UpdateTransactionInactivityTask extends MigrationTask {
   }
 
   getVersion() {
-    return "3.1";
+    return '3.1';
   }
 
   getName() {
-    return "TransactionInactivityTask";
+    return 'TransactionInactivityTask';
   }
 }
 

@@ -1,5 +1,5 @@
-import Constants from './Constants';
 import AuthenticatedBaseApi from './AuthenticatedBaseApi';
+import Constants from './Constants';
 
 /**
  * CRUD API (Create Read Update Delete)
@@ -13,7 +13,7 @@ export default class CrudApi {
   /**
    * Creates an instance of CrudApi.
    * Only deals with secure connection
-   * 
+   *
    * @param {*} this._authenticatedApi The authenticated API to perform the requests
    * @memberof CrudApi
    */
@@ -43,7 +43,7 @@ export default class CrudApi {
     // Execute
     return this.read({ ID: id }, path);
   }
-  
+
   /**
    * Generic Read
    *
@@ -70,7 +70,7 @@ export default class CrudApi {
    * @returns The HTTP response
    * @memberof CrudApi
    */
-  public readAll(params={}, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING, path) {
+  public readAll(params = {}, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING, path) {
     // Build Paging
     this._buildPaging(paging, params);
     // Build Ordering
@@ -164,5 +164,3 @@ export default class CrudApi {
     }
   }
 }
-
-// module.exports = CrudApi;

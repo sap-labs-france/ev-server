@@ -1,11 +1,11 @@
-import Tenant from '../../entity/Tenant';
-import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
 import moment from 'moment';
-import Transaction from '../../entity/Transaction';
-import Logging from '../../utils/Logging';
 import Constants from '../../utils/Constants';
 import MigrationTask from '../MigrationTask';
 import global from'../../types/GlobalType'; 
+import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
+import Logging from '../../utils/Logging';
+import Tenant from '../../entity/Tenant';
+import Transaction from '../../entity/Transaction';
 
 
 export default class CleanupTransactionTask extends MigrationTask {
@@ -30,7 +30,7 @@ export default class CleanupTransactionTask extends MigrationTask {
     // Filters
     aggregation.push({
       $match: {
-        "stop": {
+        'stop': {
           $exists: true
         }
       }
@@ -45,13 +45,13 @@ export default class CleanupTransactionTask extends MigrationTask {
       }
     });
     aggregation.push({
-      "$match": {
-        "$or": [
+      '$match': {
+        '$or': [
           {
-            "chargeBox": { "$eq": [] }
+            'chargeBox': { '$eq': [] }
           },
-          { "siteID": null },
-          { "siteID": { "$exists": false } }
+          { 'siteID': null },
+          { 'siteID': { '$exists': false } }
         ]
       }
     });
@@ -69,19 +69,19 @@ export default class CleanupTransactionTask extends MigrationTask {
     if (transactionsMDB.length > 0) {
       Logging.logWarning({
         tenantID: Constants.DEFAULT_TENANT,
-        source: "CleanupTransactionTask", action: "Migration",
-        module: "CleanupTransactionTask", method: "migrate",
+        source: 'CleanupTransactionTask', action: 'Migration',
+        module: 'CleanupTransactionTask', method: 'migrate',
         message: `Tenant ${tenant.getName()} (${tenant.getID()}): ${transactionsMDB.length} orphan Transactions have been deleted`
       });
     }
   }
 
   getVersion() {
-    return "1.0";
+    return '1.0';
   }
 
   getName() {
-    return "CleanupTransactionTask";
+    return 'CleanupTransactionTask';
   }
 }
 

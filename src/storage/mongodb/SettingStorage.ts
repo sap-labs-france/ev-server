@@ -1,12 +1,12 @@
-import Setting from '../../entity/Setting'; // Avoid circular deps!!!
 import { ObjectID } from 'mongodb';
+import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
-import Utils from '../../utils/Utils';
-import BackendError from '../../exception/BackendError';
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
 import global from '../../types/GlobalType';
+import Utils from '../../utils/Utils';
+import Setting from '../../entity/Setting';
 
 export default class SettingStorage {
   static async getSetting(tenantID, id) {
@@ -68,8 +68,8 @@ export default class SettingStorage {
       // ID must be provided!
       throw new BackendError(
         Constants.CENTRAL_SERVER,
-        "Setting has no ID and no Identifier",
-        "SettingStorage", "saveSetting");
+        'Setting has no ID and no Identifier',
+        'SettingStorage', 'saveSetting');
     }
     const settingFilter: any = {};
     // Build Request
@@ -110,7 +110,7 @@ export default class SettingStorage {
     if (params.search) {
       // Build filter
       filters.$or = [
-        { "identifier": { $regex: params.search, $options: 'i' } }
+        { 'identifier': { $regex: params.search, $options: 'i' } }
       ];
     }
 
@@ -134,7 +134,7 @@ export default class SettingStorage {
 
     // Count Records
     const settingsCountMDB = await global.database.getCollection<any>(tenantID, 'settings')
-      .aggregate([...aggregation, { $count: "count" }])
+      .aggregate([...aggregation, { $count: 'count' }])
       .toArray();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);

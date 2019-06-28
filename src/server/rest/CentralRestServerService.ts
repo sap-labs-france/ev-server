@@ -1,25 +1,25 @@
-import Logging from '../../utils/Logging';
-import ChargingStationService from './service/ChargingStationService';
-import VehicleManufacturerService from './service/VehicleManufacturerService';
 import AuthService from './service/AuthService';
-import UserService from './service/UserService';
+import ChargingStationService from './service/ChargingStationService';
 import CompanyService from './service/CompanyService';
-import SiteService from './service/SiteService';
-import SiteAreaService from './service/SiteAreaService';
-import PricingService from './service/PricingService';
-import VehicleService from './service/VehicleService';
-import UtilsService from './service/UtilsService';
-import LoggingService from './service/LoggingService';
-import TransactionService from './service/TransactionService';
-import StatisticService from './service/StatisticService';
-import TenantService from './service/TenantService';
-import SettingService from './service/SettingService';
-import OCPIEndpointService from './service/OCPIEndpointService';
-import NotificationService from './service/NotificationService';
 import ConnectorService from './service/ConnectorService';
+import Logging from '../../utils/Logging';
+import LoggingService from './service/LoggingService';
+import NotificationService from './service/NotificationService';
+import OCPIEndpointService from './service/OCPIEndpointService';
+import PricingService from './service/PricingService';
 import SessionHashService from './service/SessionHashService';
 import SourceMap from 'source-map-support';
 import { Request, Response, NextFunction } from 'express';
+import UserService from './service/UserService';
+import TenantService from './service/TenantService';
+import VehicleService from './service/VehicleService';
+import VehicleManufacturerService from './service/VehicleManufacturerService';
+import SiteService from './service/SiteService';
+import SiteAreaService from './service/SiteAreaService';
+import TransactionService from './service/TransactionService';
+import SettingService from './service/SettingService';
+import UtilsService from './service/UtilsService';
+import StatisticService from './service/StatisticService';
 
 SourceMap.install();
 
@@ -224,11 +224,11 @@ export default {
     // Check Context
     switch (req.method) {
       // Create Request
-      case "GET":
+      case 'GET':
         // Check Context
         switch (action) {
           // Ping
-          case "Ping":
+          case 'Ping':
             res.sendStatus(200);
             break;
         }

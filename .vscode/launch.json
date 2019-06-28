@@ -5,94 +5,13 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Debug Mocha Tests",
       "type": "node",
-      "request": "launch",
-      "name": "Mocha Tests - Run All",
-      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
-      "args": [
-        "-u",
-        "tdd",
-        "--timeout",
-        "999999",
-        "--colors",
-        "${workspaceFolder}/test/**/*Test.js"
-      ],
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Mocha Tests - Charging Station - OCPP 1.5 (Soap)",
-      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
-      "args": [
-        "-u",
-        "tdd",
-        "--timeout",
-        "999999",
-        "--colors",
-        "${workspaceFolder}/test/**/OCPPSoap15Test.js"
-      ],
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Mocha Tests - Global",
-      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
-      "args": [
-        "-u",
-        "tdd",
-        "--timeout",
-        "999999",
-        "--colors",
-        "${workspaceFolder}/test/**/GlobalTest.js"
-      ],
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Mocha Tests - Transaction",
-      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
-      "args": [
-        "-u",
-        "tdd",
-        "--timeout",
-        "999999",
-        "--colors",
-        "${workspaceFolder}/test/**/TransactionTest.js"
-      ],
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Mocha Tests - Charging Station - OCPP 1.6 (Json)",
-      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
-      "args": [
-        "-u",
-        "tdd",
-        "--timeout",
-        "999999",
-        "--colors",
-        "${workspaceFolder}/test/**/OCPPJson16Test.js"
-      ],
-      "internalConsoleOptions": "openOnSessionStart"
-    },
-    {
-      "type": "node",
-      "request": "launch",
-      "name": "Mocha Tests - Charging Station - Specifics",
-      "program": "${workspaceFolder}/node_modules/mocha/bin/_mocha",
-      "args": [
-        "-u",
-        "tdd",
-        "--timeout",
-        "999999",
-        "--colors",
-        "${workspaceFolder}/test/**/OCPPSpecificsTest.js"
-      ],
-      "internalConsoleOptions": "openOnSessionStart"
+      "request": "attach",
+      "port": 9229,
+      "protocol": "inspector",
+      "timeout": 30000,
+      "stopOnEntry": false
     },
     {
       "type": "node",

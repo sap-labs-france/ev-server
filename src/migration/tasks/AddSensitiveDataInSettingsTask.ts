@@ -1,8 +1,8 @@
-import Tenant from '../../entity/Tenant';
-import MigrationTask from '../MigrationTask';
-import Cypher from '../../utils/Cypher';
 import Constants from '../../utils/Constants';
 import global from '../../types/GlobalType';
+import MigrationTask from '../MigrationTask';
+import Tenant from '../../entity/Tenant';
+import Cypher from '../../utils/Cypher';
 
 export default class AddSensitiveDataInSettingsTask extends MigrationTask {
   public async migrate() {
@@ -18,7 +18,7 @@ export default class AddSensitiveDataInSettingsTask extends MigrationTask {
     const settings: any = await global.database.getCollection(tenant.getID(), 'settings')
       .aggregate([{
         $match: {
-          "sensitiveData": { $exists: false }
+          'sensitiveData': { $exists: false }
         }
       }])
       .toArray();
@@ -46,7 +46,7 @@ export default class AddSensitiveDataInSettingsTask extends MigrationTask {
       }
       // Update
       await global.database.getCollection(tenant.getID(), 'settings').findOneAndUpdate(
-        { "_id": setting._id },
+        { '_id': setting._id },
         { $set: setting },
         { upsert: true, returnOriginal: false }
       );
@@ -54,10 +54,10 @@ export default class AddSensitiveDataInSettingsTask extends MigrationTask {
   }
 
   public getVersion() {
-    return "1.0";
+    return '1.0';
   }
 
   public getName() {
-    return "AddSensitiveDataInSettings";
+    return 'AddSensitiveDataInSettings';
   }
 }

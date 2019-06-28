@@ -1,9 +1,9 @@
-import Database from '../../utils/Database';
-import Utils from '../../utils/Utils';
-import Logging from '../../utils/Logging';
-import Consumption from '../../entity/Consumption';
 import crypto from 'crypto';
 import global from '../../types/GlobalType';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
+import Database from '../../utils/Database';
+import Consumption from '../../entity/Consumption';
 
 
 export default class ConsumptionStorage {
@@ -18,14 +18,14 @@ export default class ConsumptionStorage {
       const timestamp = Utils.convertToDate(consumptionToSave.endedAt);
       consumptionToSave.id = crypto.createHash('sha256')
         .update(`${consumptionToSave.transactionId}~${timestamp.toISOString()}`)
-        .digest("hex");
+        .digest('hex');
     }
     // Transfer
     const consumption: any = {};
     Database.updateConsumption(consumptionToSave, consumption, false);
     // Modify
     const result = await global.database.getCollection<any>(tenantID, 'consumptions').findOneAndUpdate(
-      { "_id": consumptionToSave.id },
+      { '_id': consumptionToSave.id },
       {
         $set: consumption
       },
@@ -92,28 +92,28 @@ export default class ConsumptionStorage {
     aggregation.push({
       $group: {
         _id: {
-          cumulatedConsumption: "$cumulatedConsumption",
-          consumption: "$consumption",
-          cumulatedAmount: "$cumulatedAmount"
+          cumulatedConsumption: '$cumulatedConsumption',
+          consumption: '$consumption',
+          cumulatedAmount: '$cumulatedAmount'
         },
-        userID: { $last: "$userID" },
-        chargeBoxID: { $last: "$chargeBoxID" },
-        siteID: { $last: "$siteID" },
-        siteAreaID: { $last: "$siteAreaID" },
-        connectorId: { $last: "$connectorId" },
-        transactionId: { $last: "$transactionId" },
-        endedAt: { $max: "$endedAt" },
-        startedAt: { $min: "$startedAt" },
-        cumulatedConsumption: { $last: "$cumulatedConsumption" },
-        consumption: { $last: "$consumption" },
-        stateOfCharge: { $last: "$stateOfCharge" },
-        instantPower: { $max: "$instantPower" },
-        totalInactivitySecs: { $max: "$totalInactivitySecs" },
-        pricingSource: { $last: "$pricingSource" },
-        amount: { $last: "$amount" },
-        cumulatedAmount: { $last: "$cumulatedAmount" },
-        roundedAmount: { $last: "$roundedAmount" },
-        currencyCode: { $last: "$currencyCode" }
+        userID: { $last: '$userID' },
+        chargeBoxID: { $last: '$chargeBoxID' },
+        siteID: { $last: '$siteID' },
+        siteAreaID: { $last: '$siteAreaID' },
+        connectorId: { $last: '$connectorId' },
+        transactionId: { $last: '$transactionId' },
+        endedAt: { $max: '$endedAt' },
+        startedAt: { $min: '$startedAt' },
+        cumulatedConsumption: { $last: '$cumulatedConsumption' },
+        consumption: { $last: '$consumption' },
+        stateOfCharge: { $last: '$stateOfCharge' },
+        instantPower: { $max: '$instantPower' },
+        totalInactivitySecs: { $max: '$totalInactivitySecs' },
+        pricingSource: { $last: '$pricingSource' },
+        amount: { $last: '$amount' },
+        cumulatedAmount: { $last: '$cumulatedAmount' },
+        roundedAmount: { $last: '$roundedAmount' },
+        currencyCode: { $last: '$currencyCode' }
       }
     });
     // Sort values

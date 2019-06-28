@@ -3,10 +3,10 @@ import SettingStorage from '../storage/mongodb/SettingStorage';
 import TenantHolder from '../entity/TenantHolder';
 import User from '../entity/User';
 export default class AbstractConnector extends TenantHolder {
-  private setting: any;
-  private connectorId: any;
   public getID: any;
   public getTenantID: any;
+  private setting: any;
+  private connectorId: any;
 
   constructor(tenantID, connectorId, setting) {
     super(tenantID);

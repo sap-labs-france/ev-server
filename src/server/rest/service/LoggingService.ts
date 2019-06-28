@@ -1,9 +1,9 @@
-import Authorizations from '../../../authorization/Authorizations';
-import Logging from '../../../utils/Logging';
-import Constants from '../../../utils/Constants';
-import LoggingSecurity from './security/LoggingSecurity';
+import fs from 'fs';
 import AppAuthError from '../../../exception/AppAuthError';
-import fs from "fs";
+import Authorizations from '../../../authorization/Authorizations';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
+import LoggingSecurity from './security/LoggingSecurity';
 
 export default class LoggingService {
   static async handleGetLoggings(action, req, res, next) {
@@ -59,8 +59,8 @@ export default class LoggingService {
       }, filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
       LoggingSecurity.filterLoggingsResponse(loggings, req.user);
-      const filename = "loggings_export.csv";
-      fs.writeFile(filename, this.convertToCSV(loggings.result), (err) => {
+      const filename = 'loggings_export.csv';
+      fs.writeFile(filename, LoggingService.convertToCSV(loggings.result), (err) => {
         if (err) {
           throw err;
         }

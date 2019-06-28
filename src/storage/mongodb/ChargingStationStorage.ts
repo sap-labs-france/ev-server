@@ -1,14 +1,15 @@
-import Constants from '../../utils/Constants';
-import Utils from '../../utils/Utils';
-import Database from '../../utils/Database';
-import DatabaseUtils from './DatabaseUtils';
-import Logging from '../../utils/Logging';
 import BackendError from '../../exception/BackendError';
 import ChargingStation from '../../entity/ChargingStation';
+import Constants from '../../utils/Constants';
+import Database from '../../utils/Database';
+import DatabaseUtils from './DatabaseUtils';
+import TSGlobal from '../../types/GlobalType';
+import Logging from '../../utils/Logging';
 import SiteArea from '../../types/SiteArea';
 import Site from '../../types/Site';
 import Tenant from '../../entity/Tenant';
 import global from '../../types/GlobalType';
+import Utils from '../../utils/Utils';
 
 export default class ChargingStationStorage {
 
@@ -68,42 +69,42 @@ export default class ChargingStationStorage {
     const aggregation = [];
     // Set the filters
     const filters: any = {
-      "$and": [{
-        "$or": [
-          { "deleted": { $exists: false } },
-          { "deleted": null },
-          { "deleted": false }
+      '$and': [{
+        '$or': [
+          { 'deleted': { $exists: false } },
+          { 'deleted': null },
+          { 'deleted': false }
         ]
       }]
     };
     // Include deleted charging stations if requested
     if (params.includeDeleted) {
       filters.$and[0].$or.push({
-        "deleted": true
+        'deleted': true
       });
     }
     // Source?
     if (params.search) {
       // Build filter
       filters.$and.push({
-        "$or": [
-          { "_id": { $regex: params.search, $options: 'i' } },
-          { "chargePointModel": { $regex: params.search, $options: 'i' } },
-          { "chargePointVendor": { $regex: params.search, $options: 'i' } }
+        '$or': [
+          { '_id': { $regex: params.search, $options: 'i' } },
+          { 'chargePointModel': { $regex: params.search, $options: 'i' } },
+          { 'chargePointVendor': { $regex: params.search, $options: 'i' } }
         ]
       });
     }
     // Site Area
     if (params.siteAreaID) {
       filters.$and.push({
-        "siteAreaID": Utils.convertToObjectID(params.siteAreaID)
+        'siteAreaID': Utils.convertToObjectID(params.siteAreaID)
       });
     }
     // No Site Area
     if (params.withNoSiteArea) {
       // Build filter
       filters.$and.push({
-        "siteAreaID": null
+        'siteAreaID': null
       });
     } else {
       // With Site Area, TODO make sure this works
@@ -113,7 +114,7 @@ export default class ChargingStationStorage {
       if (params.siteIDs && params.siteIDs.length > 0) {
         // Build filter
         filters.$and.push({
-          "siteArea.siteID": {
+          'siteArea.siteID': {
             $in: params.siteIDs.map((siteID) => {
               return Utils.convertToObjectID(siteID);
             })
@@ -127,7 +128,7 @@ export default class ChargingStationStorage {
     if (params.chargeBoxID) {
       // Build filter
       filters.$and.push({
-        "_id": params.chargeBoxID
+        '_id': params.chargeBoxID
       });
     }
     // Filters
@@ -141,7 +142,7 @@ export default class ChargingStationStorage {
     }
     // Count Records
     const chargingStationsCountMDB = await global.database.getCollection<any>(tenantID, 'chargingstations')
-      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {
@@ -227,9 +228,9 @@ export default class ChargingStationStorage {
     const basicFilters: any = {
       $and: [{
         $or: [
-          { "deleted": { $exists: false } },
-          { "deleted": null },
-          { "deleted": false }
+          { 'deleted': { $exists: false } },
+          { 'deleted': null },
+          { 'deleted': false }
         ]
       }]
     };
@@ -237,10 +238,10 @@ export default class ChargingStationStorage {
     if (params.search) {
       // Build filter
       basicFilters.$and.push({
-        "$or": [
-          { "_id": { $regex: params.search, $options: 'i' } },
-          { "chargePointModel": { $regex: params.search, $options: 'i' } },
-          { "chargePointVendor": { $regex: params.search, $options: 'i' } }
+        '$or': [
+          { '_id': { $regex: params.search, $options: 'i' } },
+          { 'chargePointModel': { $regex: params.search, $options: 'i' } },
+          { 'chargePointVendor': { $regex: params.search, $options: 'i' } }
         ]
       });
     }
@@ -248,14 +249,14 @@ export default class ChargingStationStorage {
     if (params.siteAreaID) {
       // Build filter
       basicFilters.$and.push({
-        "siteAreaID": Utils.convertToObjectID(params.siteAreaID)
+        'siteAreaID': Utils.convertToObjectID(params.siteAreaID)
       });
     }
     // With no Site Area
     if (params.withNoSiteArea) {
       // Build filter
       basicFilters.$and.push({
-        "siteAreaID": null
+        'siteAreaID': null
       });
     } else {
       // Always get the Site Area
@@ -268,7 +269,7 @@ export default class ChargingStationStorage {
     if (params.siteID) {
       // Build filter
       basicFilters.$and.push({
-        "siteArea.siteID": Utils.convertToObjectID(params.siteID)
+        'siteArea.siteID': Utils.convertToObjectID(params.siteID)
       });
     }
     if (params.withSite) {
@@ -279,7 +280,7 @@ export default class ChargingStationStorage {
     // Charger
     if (params.chargeBoxID) {
       basicFilters.$and.push({
-        "_id": params.chargeBoxId
+        '_id': params.chargeBoxId
       });
     }
     // Build facets meaning each different error scenario
@@ -287,24 +288,24 @@ export default class ChargingStationStorage {
     if (params.errorType) {
       // Check allowed
       if (!(await Tenant.getTenant(tenantID)).isComponentActive(Constants.COMPONENTS.ORGANIZATION) && params.errorType === 'missingSiteArea') {
-        throw new BackendError(null, `Organization is not active whereas filter is on missing site.`,
-          "ChargingStationStorage", "getChargingStationsInError");
+        throw new BackendError(null, 'Organization is not active whereas filter is on missing site.',
+          'ChargingStationStorage', 'getChargingStationsInError');
       }
       // Build facet only for one error type
       facets.$facet = {};
       facets.$facet[params.errorType] = ChargingStationStorage.builChargerInErrorFacet(params.errorType);
     } else {
       facets = {
-        "$facet":
+        '$facet':
         {
-          "missingSettings": ChargingStationStorage.builChargerInErrorFacet("missingSettings"),
-          "connectionBroken": ChargingStationStorage.builChargerInErrorFacet("connectionBroken"),
-          "connectorError": ChargingStationStorage.builChargerInErrorFacet("connectorError"),
+          'missingSettings': ChargingStationStorage.builChargerInErrorFacet('missingSettings'),
+          'connectionBroken': ChargingStationStorage.builChargerInErrorFacet('connectionBroken'),
+          'connectorError': ChargingStationStorage.builChargerInErrorFacet('connectorError'),
         }
       };
       if ((await Tenant.getTenant(tenantID)).isComponentActive(Constants.COMPONENTS.ORGANIZATION)) {
         // Add facet for missing Site Area ID
-        facets.$facet.missingSiteArea = ChargingStationStorage.builChargerInErrorFacet("missingSiteArea");
+        facets.$facet.missingSiteArea = ChargingStationStorage.builChargerInErrorFacet('missingSiteArea');
       }
     }
     // Merge in each facet the join for sitearea and siteareaid
@@ -324,11 +325,11 @@ export default class ChargingStationStorage {
     }
     aggregation.push(facets);
     // Manipulate the results to convert it to an array of document on root level
-    aggregation.push({ $project: { "allItems": { $concatArrays: project } } });
-    aggregation.push({ $unwind: { "path": "$allItems" } });
-    aggregation.push({ $replaceRoot: { newRoot: "$allItems" } });
+    aggregation.push({ $project: { 'allItems': { $concatArrays: project } } });
+    aggregation.push({ $unwind: { 'path': '$allItems' } });
+    aggregation.push({ $replaceRoot: { newRoot: '$allItems' } });
     // Add a unique identifier as we may have the same charger several time
-    aggregation.push({ $addFields: { "uniqueId": { $concat: ["$_id", "#", "$errorCode"] } } });
+    aggregation.push({ $addFields: { 'uniqueId': { $concat: ['$_id', '#', '$errorCode'] } } });
 
     // Limit records?
     if (!params.onlyRecordCount) {
@@ -337,7 +338,7 @@ export default class ChargingStationStorage {
     }
     // Count Records
     const chargingStationsCountMDB = await global.database.getCollection<any>(tenantID, 'chargingstations')
-      .aggregate([...aggregation, { $count: "count" }])
+      .aggregate([...aggregation, { $count: 'count' }])
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {
@@ -419,37 +420,36 @@ export default class ChargingStationStorage {
         return [{
           $match: {
             $or: [
-              { "maximumPower": { $exists: false } }, { "maximumPower": { $lte: 0 } }, { "maximumPower": null },
-              { "chargePointModel": { $exists: false } }, { "chargePointModel": { $eq: "" } },
-              { "chargePointVendor": { $exists: false } }, { "chargePointVendor": { $eq: "" } },
-              { "numberOfConnectedPhase": { $exists: false } }, { "numberOfConnectedPhase": null }, { "numberOfConnectedPhase": { $nin: [0, 1, 3] } },
-              { "powerLimitUnit": { $exists: false } }, { "powerLimitUnit": null }, { "powerLimitUnit": { $nin: ["A", "W"] } },
-              { "chargingStationURL": { $exists: false } }, { "chargingStationURL": null }, { "chargingStationURL": { $eq: "" } },
-              { "cannotChargeInParallel": { $exists: false } }, { "cannotChargeInParallel": null },
-              { "connectors.type": { $exists: false } }, { "connectors.type": null }, { "connectors.type": { $eq: "" } },
-              { "connectors.power": { $exists: false } }, { "connectors.power": null }, { "connectors.power": { $lte: 0 } }
+              { 'maximumPower': { $exists: false } }, { 'maximumPower': { $lte: 0 } }, { 'maximumPower': null },
+              { 'chargePointModel': { $exists: false } }, { 'chargePointModel': { $eq: '' } },
+              { 'chargePointVendor': { $exists: false } }, { 'chargePointVendor': { $eq: '' } },
+              { 'numberOfConnectedPhase': { $exists: false } }, { 'numberOfConnectedPhase': null }, { 'numberOfConnectedPhase': { $nin: [0, 1, 3] } },
+              { 'powerLimitUnit': { $exists: false } }, { 'powerLimitUnit': null }, { 'powerLimitUnit': { $nin: ['A', 'W'] } },
+              { 'chargingStationURL': { $exists: false } }, { 'chargingStationURL': null }, { 'chargingStationURL': { $eq: '' } },
+              { 'cannotChargeInParallel': { $exists: false } }, { 'cannotChargeInParallel': null },
+              { 'connectors.type': { $exists: false } }, { 'connectors.type': null }, { 'connectors.type': { $eq: '' } },
+              { 'connectors.power': { $exists: false } }, { 'connectors.power': null }, { 'connectors.power': { $lte: 0 } }
             ]
           }
         },
-        { $addFields: { "errorCode": "missingSettings" } }
+        { $addFields: { 'errorCode': 'missingSettings' } }
         ];
-      case 'connectionBroken':
-      {
+      case 'connectionBroken': {
         const inactiveDate = new Date(new Date().getTime() - 3 * 60 * 1000);
         return [
-          { $match: { "lastHeartBeat": { $lte: inactiveDate } } },
-          { $addFields: { "errorCode": "connectionBroken" } }
+          { $match: { 'lastHeartBeat': { $lte: inactiveDate } } },
+          { $addFields: { 'errorCode': 'connectionBroken' } }
         ];
       }
       case 'connectorError':
         return [
-          { $match: { $or: [{ "connectors.errorCode": { $ne: "NoError" } }, { "connectors.status": { $eq: "Faulted" } }] } },
-          { $addFields: { "errorCode": "connectorError" } }
+          { $match: { $or: [{ 'connectors.errorCode': { $ne: 'NoError' } }, { 'connectors.status': { $eq: 'Faulted' } }] } },
+          { $addFields: { 'errorCode': 'connectorError' } }
         ];
       case 'missingSiteArea':
         return [
-          { $match: { $or: [{ "siteAreaID": { $exists: false } }, { "siteAreaID": null }] } },
-          { $addFields: { "errorCode": "missingSiteArea" } }
+          { $match: { $or: [{ 'siteAreaID': { $exists: false } }, { 'siteAreaID': null }] } },
+          { $addFields: { 'errorCode': 'missingSiteArea' } }
         ];
       default:
         return [];
@@ -475,7 +475,7 @@ export default class ChargingStationStorage {
     Database.updateChargingStation(chargingStationToSave, chargingStation, false);
     // Modify and return the modified document
     const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate({
-      "_id": chargingStationToSave.id
+      '_id': chargingStationToSave.id
     }, {
       $set: chargingStation
     }, {
@@ -493,10 +493,10 @@ export default class ChargingStationStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const updatedFields: any = {};
-    updatedFields["connectors." + (connector.connectorId - 1)] = connector;
+    updatedFields['connectors.' + (connector.connectorId - 1)] = connector;
     // Modify and return the modified document
     const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate({
-      "_id": chargingStation.id
+      '_id': chargingStation.id
     }, {
       $set: updatedFields
     }, {
@@ -514,10 +514,10 @@ export default class ChargingStationStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const updatedFields: any = {};
-    updatedFields["lastHeartBeat"] = Utils.convertToDate(chargingStation.lastHeartBeat);
+    updatedFields['lastHeartBeat'] = Utils.convertToDate(chargingStation.lastHeartBeat);
     // Modify and return the modified document
     const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate({
-      "_id": chargingStation.id
+      '_id': chargingStation.id
     }, {
       $set: updatedFields
     }, {
@@ -535,16 +535,16 @@ export default class ChargingStationStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const updatedFields: any = {};
-    updatedFields["siteAreaID"] = (chargingStation.siteArea ? Utils.convertToObjectID(chargingStation.siteArea.id) : null);
+    updatedFields['siteAreaID'] = (chargingStation.siteArea ? Utils.convertToObjectID(chargingStation.siteArea.id) : null);
     // Check Last Changed By
-    if (chargingStation.lastChangedBy && typeof chargingStation.lastChangedBy === "object") {
+    if (chargingStation.lastChangedBy && typeof chargingStation.lastChangedBy === 'object') {
       // This is the User Model
-      updatedFields["lastChangedBy"] = Utils.convertToObjectID(chargingStation.lastChangedBy.id);
-      updatedFields["lastChangedOn"] = Utils.convertToDate(chargingStation.lastChangedOn);
+      updatedFields['lastChangedBy'] = Utils.convertToObjectID(chargingStation.lastChangedBy.id);
+      updatedFields['lastChangedOn'] = Utils.convertToDate(chargingStation.lastChangedOn);
     }
     // Modify and return the modified document
     const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate({
-      "_id": chargingStation.id
+      '_id': chargingStation.id
     }, {
       $set: updatedFields
     }, {
@@ -609,7 +609,7 @@ export default class ChargingStationStorage {
     // Read DB
     const configurationsMDB = await global.database.getCollection<any>(tenantID, 'configurations')
       .find({
-        "_id": chargeBoxID
+        '_id': chargeBoxID
       })
       .limit(1)
       .toArray();
@@ -637,8 +637,8 @@ export default class ChargingStationStorage {
         // Update all chargers
         await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany({
           $and: [
-            { "_id": { $in: chargingStationIDs } },
-            { "siteAreaID": Utils.convertToObjectID(siteAreaID) }
+            { '_id': { $in: chargingStationIDs } },
+            { 'siteAreaID': Utils.convertToObjectID(siteAreaID) }
           ]
         }, {
           $set: { siteAreaID: null }
@@ -666,8 +666,8 @@ export default class ChargingStationStorage {
         // Update all chargers
         await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany({
           $and: [
-            { "_id": { $in: chargingStationIDs } },
-            { "siteAreaID": null }
+            { '_id': { $in: chargingStationIDs } },
+            { 'siteAreaID': null }
           ]
         }, {
           $set: { siteAreaID: Utils.convertToObjectID(siteAreaID) }

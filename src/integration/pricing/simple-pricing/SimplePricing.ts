@@ -1,5 +1,5 @@
-import Pricing, { PricedConsumption, PricingSettings } from '../Pricing';
 import Consumption from '../../../entity/Consumption';
+import Pricing, { PricedConsumption, PricingSettings } from '../Pricing';
 import Transaction from '../../../entity/Transaction';
 
 export class SimplePricingSettings extends PricingSettings {
@@ -12,10 +12,6 @@ export default class SimplePricing extends Pricing {
 
   constructor(tenantId: string, readonly settings: SimplePricingSettings, transaction: Transaction) {
     super(tenantId, settings, transaction);
-  }
-
-  protected getSettings(): SimplePricingSettings {
-    return this.settings;
   }
 
   async startSession(consumptionData: {consumption: any}): Promise<PricedConsumption> {
@@ -41,5 +37,9 @@ export default class SimplePricing extends Pricing {
       currencyCode: s.currency,
       cumulatedAmount: 0 // TODO: handle this using NULLs instead?
     };
+  }
+
+  protected getSettings(): SimplePricingSettings {
+    return this.settings;
   }
 }

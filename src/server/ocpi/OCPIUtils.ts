@@ -1,7 +1,7 @@
-import Constants from "../../utils/Constants";
-import OCPIClientError from "../../exception/OCPIClientError";
-import OCPIServerError from "../../exception/OCPIServerError";
 import SourceMap from 'source-map-support';
+import Constants from '../../utils/Constants';
+import OCPIClientError from '../../exception/OCPIClientError';
+import OCPIServerError from '../../exception/OCPIServerError';
 SourceMap.install();
 import { Request } from 'express';
 
@@ -16,10 +16,10 @@ export default class OCPIUtils {
    */
   public static success(data?: any): {data: any; status_code: number; status_message: string; timestamp: string} { // TODO: restrict any
     return {
-      "data": data,
-      "status_code": Constants.OCPI_STATUS_CODE.CODE_1000_SUCCESS.status_code,
-      "status_message": Constants.OCPI_STATUS_CODE.CODE_1000_SUCCESS.status_message,
-      "timestamp": new Date().toISOString()
+      'data': data,
+      'status_code': Constants.OCPI_STATUS_CODE.CODE_1000_SUCCESS.status_code,
+      'status_message': Constants.OCPI_STATUS_CODE.CODE_1000_SUCCESS.status_message,
+      'timestamp': new Date().toISOString()
     };
   }
 

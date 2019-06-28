@@ -1,9 +1,7 @@
-import chai from 'chai';
-import {expect} from 'chai';
+import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 chai.use(require('chai-datetime'));
 chai.use(chaiSubset);
-import moment from 'moment';
 import faker from 'faker';
 import DataHelper from './DataHelper';
 const path = require('path');
@@ -12,6 +10,7 @@ const path = require('path');
 global.appRoot = path.resolve(__dirname, '../../src');
 import CentralServerService from './client/CentralServerService';
 import Factory from '../factories/Factory';
+import moment = require('moment');
 
 class TestData {
   public dataHelper: DataHelper;
@@ -27,9 +26,6 @@ class TestData {
   public defaultMeterStart: any;
   public defaultChargingStation: any;
   public defaultChargingStation15: any;
-
-  constructor() {
-  }
 
   async init() {
     this.tenantID = await CentralServerService.DefaultInstance.authenticatedApi.getTenantID();
@@ -50,7 +46,7 @@ describe('OCPP Validation tests', function() {
     testData.validTag = faker.random.alphaNumeric(20).toString();
     testData.invalidTag = faker.random.alphaNumeric(21).toString();
     testData.numberTag = faker.random.number(10000);
-    testData.defaultUser = await testData.dataHelper.createUser(Factory.user.build({tagIDs: [testData.validTag, testData.invalidTag, testData.numberTag.toString()]}));
+    testData.defaultUser = await testData.dataHelper.createUser(Factory.user.build({ tagIDs: [testData.validTag, testData.invalidTag, testData.numberTag.toString()] }));
 
     testData.defaultCompany = await testData.dataHelper.createCompany();
     testData.defaultSite = await testData.dataHelper.createSite(testData.defaultCompany, [testData.defaultUser]);
@@ -81,13 +77,13 @@ describe('OCPP Validation tests', function() {
   });
 
   it('Should not be possible to authorize a user with a invalid tags', async () => {
-    await testData.dataHelper.authorize(testData.defaultChargingStation, testData.invalidTag, "Invalid");
-    await testData.dataHelper.authorize(testData.defaultChargingStation, '', "Invalid");
-    await testData.dataHelper.authorize(testData.defaultChargingStation, undefined, "Invalid");
+    await testData.dataHelper.authorize(testData.defaultChargingStation, testData.invalidTag, 'Invalid');
+    await testData.dataHelper.authorize(testData.defaultChargingStation, '', 'Invalid');
+    await testData.dataHelper.authorize(testData.defaultChargingStation, undefined, 'Invalid');
 
-    await testData.dataHelper15.authorize(testData.defaultChargingStation15, testData.invalidTag, "Invalid");
-    await testData.dataHelper15.authorize(testData.defaultChargingStation15, '', "Invalid");
-    await testData.dataHelper15.authorize(testData.defaultChargingStation15, undefined, "Invalid");
+    await testData.dataHelper15.authorize(testData.defaultChargingStation15, testData.invalidTag, 'Invalid');
+    await testData.dataHelper15.authorize(testData.defaultChargingStation15, '', 'Invalid');
+    await testData.dataHelper15.authorize(testData.defaultChargingStation15, undefined, 'Invalid');
   });
 
   it('Should be possible to start a transaction with tag as integer', async () => {
@@ -121,35 +117,35 @@ describe('OCPP Validation tests', function() {
   });
 
   it('Should not be possible to start a transaction with a invalid tags', async () => {
-    await testData.dataHelper.startTransaction(testData.defaultChargingStation, testData.defaultConnectorId, testData.invalidTag, testData.defaultMeterStart, moment(), "Invalid");
-    await testData.dataHelper.startTransaction(testData.defaultChargingStation, testData.defaultConnectorId, '', testData.defaultMeterStart, moment(), "Invalid");
-    await testData.dataHelper.startTransaction(testData.defaultChargingStation, testData.defaultConnectorId, undefined, testData.defaultMeterStart, moment(), "Invalid");
+    await testData.dataHelper.startTransaction(testData.defaultChargingStation, testData.defaultConnectorId, testData.invalidTag, testData.defaultMeterStart, moment(), 'Invalid');
+    await testData.dataHelper.startTransaction(testData.defaultChargingStation, testData.defaultConnectorId, '', testData.defaultMeterStart, moment(), 'Invalid');
+    await testData.dataHelper.startTransaction(testData.defaultChargingStation, testData.defaultConnectorId, undefined, testData.defaultMeterStart, moment(), 'Invalid');
 
-    await testData.dataHelper15.startTransaction(testData.defaultChargingStation15, testData.defaultConnectorId, testData.invalidTag, testData.defaultMeterStart, moment(), "Invalid");
-    await testData.dataHelper15.startTransaction(testData.defaultChargingStation15, testData.defaultConnectorId, '', testData.defaultMeterStart, moment(), "Invalid");
-    await testData.dataHelper15.startTransaction(testData.defaultChargingStation15, testData.defaultConnectorId, undefined, testData.defaultMeterStart, moment(), "Invalid");
+    await testData.dataHelper15.startTransaction(testData.defaultChargingStation15, testData.defaultConnectorId, testData.invalidTag, testData.defaultMeterStart, moment(), 'Invalid');
+    await testData.dataHelper15.startTransaction(testData.defaultChargingStation15, testData.defaultConnectorId, '', testData.defaultMeterStart, moment(), 'Invalid');
+    await testData.dataHelper15.startTransaction(testData.defaultChargingStation15, testData.defaultConnectorId, undefined, testData.defaultMeterStart, moment(), 'Invalid');
   });
 
   it('Should not be possible to start a transaction with invalid connectorId', async () => {
-    await testData.dataHelper.startTransaction(testData.defaultChargingStation, 'bla', testData.numberTag, testData.defaultMeterStart, moment(), "Invalid");
-    await testData.dataHelper.startTransaction(testData.defaultChargingStation, '', testData.numberTag.toString(), testData.defaultMeterStart, moment(), "Invalid");
-    await testData.dataHelper.startTransaction(testData.defaultChargingStation, -1, testData.numberTag.toString(), testData.defaultMeterStart, moment(), "Invalid");
-    await testData.dataHelper.startTransaction(testData.defaultChargingStation, undefined, testData.numberTag.toString(), testData.defaultMeterStart, moment(), "Invalid");
+    await testData.dataHelper.startTransaction(testData.defaultChargingStation, 'bla', testData.numberTag, testData.defaultMeterStart, moment(), 'Invalid');
+    await testData.dataHelper.startTransaction(testData.defaultChargingStation, '', testData.numberTag.toString(), testData.defaultMeterStart, moment(), 'Invalid');
+    await testData.dataHelper.startTransaction(testData.defaultChargingStation, -1, testData.numberTag.toString(), testData.defaultMeterStart, moment(), 'Invalid');
+    await testData.dataHelper.startTransaction(testData.defaultChargingStation, undefined, testData.numberTag.toString(), testData.defaultMeterStart, moment(), 'Invalid');
 
-    await testData.dataHelper15.startTransaction(testData.defaultChargingStation15, 'bla', testData.numberTag, testData.defaultMeterStart, moment(), "Invalid");
-    await testData.dataHelper15.startTransaction(testData.defaultChargingStation15, '', testData.numberTag.toString(), testData.defaultMeterStart, moment(), "Invalid");
-    await testData.dataHelper15.startTransaction(testData.defaultChargingStation15, -1, testData.numberTag.toString(), testData.defaultMeterStart, moment(), "Invalid");
-    await testData.dataHelper15.startTransaction(testData.defaultChargingStation15, undefined, testData.numberTag.toString(), testData.defaultMeterStart, moment(), "Invalid");
+    await testData.dataHelper15.startTransaction(testData.defaultChargingStation15, 'bla', testData.numberTag, testData.defaultMeterStart, moment(), 'Invalid');
+    await testData.dataHelper15.startTransaction(testData.defaultChargingStation15, '', testData.numberTag.toString(), testData.defaultMeterStart, moment(), 'Invalid');
+    await testData.dataHelper15.startTransaction(testData.defaultChargingStation15, -1, testData.numberTag.toString(), testData.defaultMeterStart, moment(), 'Invalid');
+    await testData.dataHelper15.startTransaction(testData.defaultChargingStation15, undefined, testData.numberTag.toString(), testData.defaultMeterStart, moment(), 'Invalid');
   });
 
   it('Should not be possible to start a transaction with invalid meterStart', async () => {
-    await testData.dataHelper.startTransaction(testData.defaultChargingStation, testData.defaultConnectorId, testData.numberTag, 'bla', moment(), "Invalid");
-    await testData.dataHelper.startTransaction(testData.defaultChargingStation, testData.defaultConnectorId, testData.numberTag.toString(), '', moment(), "Invalid");
-    await testData.dataHelper.startTransaction(testData.defaultChargingStation, testData.defaultConnectorId, testData.numberTag.toString(), undefined, moment(), "Invalid");
+    await testData.dataHelper.startTransaction(testData.defaultChargingStation, testData.defaultConnectorId, testData.numberTag, 'bla', moment(), 'Invalid');
+    await testData.dataHelper.startTransaction(testData.defaultChargingStation, testData.defaultConnectorId, testData.numberTag.toString(), '', moment(), 'Invalid');
+    await testData.dataHelper.startTransaction(testData.defaultChargingStation, testData.defaultConnectorId, testData.numberTag.toString(), undefined, moment(), 'Invalid');
 
-    await testData.dataHelper15.startTransaction(testData.defaultChargingStation15, testData.defaultConnectorId, testData.numberTag, 'bla', moment(), "Invalid");
-    await testData.dataHelper15.startTransaction(testData.defaultChargingStation15, testData.defaultConnectorId, testData.numberTag.toString(), '', moment(), "Invalid");
-    await testData.dataHelper15.startTransaction(testData.defaultChargingStation15, testData.defaultConnectorId, testData.numberTag.toString(), undefined, moment(), "Invalid");
+    await testData.dataHelper15.startTransaction(testData.defaultChargingStation15, testData.defaultConnectorId, testData.numberTag, 'bla', moment(), 'Invalid');
+    await testData.dataHelper15.startTransaction(testData.defaultChargingStation15, testData.defaultConnectorId, testData.numberTag.toString(), '', moment(), 'Invalid');
+    await testData.dataHelper15.startTransaction(testData.defaultChargingStation15, testData.defaultConnectorId, testData.numberTag.toString(), undefined, moment(), 'Invalid');
   });
 
   it('Should be possible to stop a transaction without transactionData', async () => {
@@ -168,28 +164,28 @@ describe('OCPP Validation tests', function() {
     const stopValue = faker.random.number(100000);
     const transacData = [
       {
-        "timestamp": startDate.toISOString(),
-        "sampledValue": [
+        'timestamp': startDate.toISOString(),
+        'sampledValue': [
           {
-            "value": testData.defaultMeterStart,
-            "context": "Transaction.Begin",
-            "format": "Raw",
-            "measurand": "Energy.Active.Import.Register",
-            "location": "Outlet",
-            "unit": "Wh"
+            'value': testData.defaultMeterStart,
+            'context': 'Transaction.Begin',
+            'format': 'Raw',
+            'measurand': 'Energy.Active.Import.Register',
+            'location': 'Outlet',
+            'unit': 'Wh'
           }
         ]
       },
       {
-        "timestamp": stopDate.toISOString(),
-        "sampledValue": [
+        'timestamp': stopDate.toISOString(),
+        'sampledValue': [
           {
-            "value": stopValue,
-            "context": "Transaction.End",
-            "format": "Raw",
-            "measurand": "Energy.Active.Import.Register",
-            "location": "Outlet",
-            "unit": "Wh"
+            'value': stopValue,
+            'context': 'Transaction.End',
+            'format': 'Raw',
+            'measurand': 'Energy.Active.Import.Register',
+            'location': 'Outlet',
+            'unit': 'Wh'
           }
         ]
       }
@@ -203,31 +199,31 @@ describe('OCPP Validation tests', function() {
     const stopDate15 = moment();
     const stopValue15 = faker.random.number(100000);
     const transacData15 = {
-      "values": [
+      'values': [
         {
-          "timestamp": startDate15.toISOString(),
-          "value": {
-            "attributes": {
-              "context": "Transaction.Begin",
-              "format": "Raw",
-              "location": "Outlet",
-              "measurand": "Energy.Active.Import.Register",
-              "unit": "Wh"
+          'timestamp': startDate15.toISOString(),
+          'value': {
+            'attributes': {
+              'context': 'Transaction.Begin',
+              'format': 'Raw',
+              'location': 'Outlet',
+              'measurand': 'Energy.Active.Import.Register',
+              'unit': 'Wh'
             },
-            "$value": testData.defaultMeterStart,
+            '$value': testData.defaultMeterStart,
           }
         },
         {
-          "timestamp": stopDate15.toISOString(),
-          "value": {
-            "attributes": {
-              "context": "Transaction.End",
-              "format": "Raw",
-              "location": "Outlet",
-              "measurand": "Energy.Active.Import.Register",
-              "unit": "Wh"
+          'timestamp': stopDate15.toISOString(),
+          'value': {
+            'attributes': {
+              'context': 'Transaction.End',
+              'format': 'Raw',
+              'location': 'Outlet',
+              'measurand': 'Energy.Active.Import.Register',
+              'unit': 'Wh'
             },
-            "$value": stopValue15
+            '$value': stopValue15
           }
         }
       ]
@@ -241,28 +237,28 @@ describe('OCPP Validation tests', function() {
     const stopValue = faker.random.number(100000);
     const transacData = [
       {
-        "timestamp": startDate.toISOString(),
-        "sampledValue": [
+        'timestamp': startDate.toISOString(),
+        'sampledValue': [
           {
-            "value": testData.defaultMeterStart,
-            "context": "Transaction.Begin",
-            "format": "Raw",
-            "measurand": "Energy.Active.Import.Register",
-            "location": "Outlet",
-            "unit": "Wh"
+            'value': testData.defaultMeterStart,
+            'context': 'Transaction.Begin',
+            'format': 'Raw',
+            'measurand': 'Energy.Active.Import.Register',
+            'location': 'Outlet',
+            'unit': 'Wh'
           }
         ]
       },
       {
-        "timestamp": stopDate.toISOString(),
-        "sampledValue": [
+        'timestamp': stopDate.toISOString(),
+        'sampledValue': [
           {
-            "value": stopValue,
-            "context": "Transaction.End",
-            "format": "Raw",
-            "measurand": "Energy.Active.Import.Register",
-            "location": "Outlet",
-            "unit": "Wh"
+            'value': stopValue,
+            'context': 'Transaction.End',
+            'format': 'Raw',
+            'measurand': 'Energy.Active.Import.Register',
+            'location': 'Outlet',
+            'unit': 'Wh'
           }
         ]
       }
@@ -272,31 +268,31 @@ describe('OCPP Validation tests', function() {
     const stopDate15 = moment();
     const stopValue15 = faker.random.number(100000);
     const transacData15 = {
-      "values": [
+      'values': [
         {
-          "timestamp": startDate15.toISOString(),
-          "value": {
-            "attributes": {
-              "context": "Transaction.Begin",
-              "format": "Raw",
-              "location": "Outlet",
-              "measurand": "Energy.Active.Import.Register",
-              "unit": "Wh"
+          'timestamp': startDate15.toISOString(),
+          'value': {
+            'attributes': {
+              'context': 'Transaction.Begin',
+              'format': 'Raw',
+              'location': 'Outlet',
+              'measurand': 'Energy.Active.Import.Register',
+              'unit': 'Wh'
             },
-            "$value": testData.defaultMeterStart,
+            '$value': testData.defaultMeterStart,
           }
         },
         {
-          "timestamp": stopDate15.toISOString(),
-          "value": {
-            "attributes": {
-              "context": "Transaction.End",
-              "format": "Raw",
-              "location": "Outlet",
-              "measurand": "Energy.Active.Import.Register",
-              "unit": "Wh"
+          'timestamp': stopDate15.toISOString(),
+          'value': {
+            'attributes': {
+              'context': 'Transaction.End',
+              'format': 'Raw',
+              'location': 'Outlet',
+              'measurand': 'Energy.Active.Import.Register',
+              'unit': 'Wh'
             },
-            "$value": stopValue15
+            '$value': stopValue15
           }
         }
       ]
@@ -304,13 +300,13 @@ describe('OCPP Validation tests', function() {
 
     const transacId = await testData.dataHelper.startTransaction(testData.defaultChargingStation, testData.defaultConnectorId, testData.numberTag, testData.defaultMeterStart, startDate);
 
-    await testData.dataHelper.stopTransaction(testData.defaultChargingStation, transacId, testData.numberTag, stopValue, stopDate, transacData15,  'Invalid');
+    await testData.dataHelper.stopTransaction(testData.defaultChargingStation, transacId, testData.numberTag, stopValue, stopDate, transacData15, 'Invalid');
 
     await testData.dataHelper.stopTransaction(testData.defaultChargingStation, transacId, testData.numberTag, stopValue, stopDate, []);
 
     const transacId15 = await testData.dataHelper15.startTransaction(testData.defaultChargingStation15, testData.defaultConnectorId, testData.numberTag, testData.defaultMeterStart, startDate15);
 
-    await testData.dataHelper15.stopTransaction(testData.defaultChargingStation15, transacId15, testData.numberTag, stopValue15, stopDate15, transacData,  'Invalid');
+    await testData.dataHelper15.stopTransaction(testData.defaultChargingStation15, transacId15, testData.numberTag, stopValue15, stopDate15, transacData, 'Invalid');
 
     await testData.dataHelper.stopTransaction(testData.defaultChargingStation15, transacId15, testData.numberTag, stopValue15, stopDate15, {});
   });

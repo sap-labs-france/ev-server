@@ -1,7 +1,7 @@
-import Tenant from '../../entity/Tenant';
-import MigrationTask from '../MigrationTask';
 import tzlookup from 'tz-lookup';
 import global from '../../types/GlobalType';
+import Tenant from '../../entity/Tenant';
+import MigrationTask from '../MigrationTask';
 
 export default class TransactionsAddTimezoneTask extends MigrationTask {
   async migrate() {
@@ -50,11 +50,11 @@ export default class TransactionsAddTimezoneTask extends MigrationTask {
   }
 
   getVersion() {
-    return "1.0";
+    return '1.0';
   }
 
   getName() {
-    return "TransactionsAddTimezoneTask";
+    return 'TransactionsAddTimezoneTask';
   }
 }
 

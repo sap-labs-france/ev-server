@@ -7,8 +7,8 @@ import  chai from 'chai';
 import  chaiSubset from 'chai-subset';
 import CentralServerService from './client/CentralServerService';
 import config from '../config';
-import UserFactory from '../factories/UserFactory';
 import jwt from 'jsonwebtoken';
+import UserFactory from '../factories/UserFactory';
 chai.use(chaiSubset);
 global.appRoot = path.resolve(__dirname, '../../src');
 const testData: any = {};
@@ -46,7 +46,7 @@ describe('Authentication Service', function() {
       let response = await CentralServerService.DefaultInstance.authenticationApi.registerUser(newUser, testData.adminTenant);
       // Check
       expect(response.status).to.be.eql(200);
-      expect(response.data).to.have.property('status', "Success");
+      expect(response.data).to.have.property('status', 'Success');
 
       response = await CentralServerService.DefaultInstance.userApi.getByEmail(newUser.email);
       expect(response.status).to.be.eql(200);
@@ -64,7 +64,7 @@ describe('Authentication Service', function() {
       let response = await CentralServerService.DefaultInstance.authenticationApi.registerUser(newUser, testData.adminTenant);
       // Check
       expect(response.status).to.be.eql(200);
-      expect(response.data).to.have.property('status', "Success");
+      expect(response.data).to.have.property('status', 'Success');
 
       response = await CentralServerService.DefaultInstance.userApi.getByEmail(newUser.email);
       expect(response.status).to.be.eql(200);
@@ -84,7 +84,7 @@ describe('Authentication Service', function() {
       const response = await CentralServerService.DefaultInstance.authenticationApi.resetUserPassword(newUser.email, testData.adminTenant);
       // Check
       expect(response.status).to.be.eql(200);
-      expect(response.data).to.have.property('status', "Success");
+      expect(response.data).to.have.property('status', 'Success');
     });
   });
 

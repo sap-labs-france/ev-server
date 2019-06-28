@@ -1,5 +1,5 @@
-import moment from 'moment-timezone';
 import _ from 'lodash';
+import moment from 'moment-timezone';
 
 export default class AbstractODataEntities {
   static buildParams(query) {
@@ -14,7 +14,7 @@ export default class AbstractODataEntities {
   static convert(object, req) {
     // This implementation is necessary as the OData-imple-server do not support multiple key
     // We have to build a unique key based on tenant and object real key
-    const uniqueID = this.getObjectKey(object);
+    const uniqueID = AbstractODataEntities.getObjectKey(object);
 
     // Set tenant
     return _.merge({ uniqueID: `${req.tenant}-${uniqueID}`, tenant: req.tenant }, object);
@@ -22,7 +22,7 @@ export default class AbstractODataEntities {
 
   // eslint-disable-next-line no-unused-vars
   static getObjectKey(object) {
-    throw new Error("Abstract Implementation");
+    throw new Error('Abstract Implementation');
   }
 
   static convertTimestamp(timestampUTC, req) {
@@ -37,9 +37,9 @@ export default class AbstractODataEntities {
     const date = moment(timestamp).tz(req.timezone);
     return {
       date: date.format('YYYY-MM-DD'),
-      dayOfTheWeek: parseInt(date.format("d")),
+      dayOfTheWeek: parseInt(date.format('d')),
       hourOfTheDay: date.hours(),
-      weekOfTheYear: parseInt(date.format("W"))
+      weekOfTheYear: parseInt(date.format('W'))
     };
   }
 
@@ -63,19 +63,19 @@ export default class AbstractODataEntities {
       if (fields.length !== 0) {
         if (Array.isArray(result)) {
           result = result.map((object) => {
-            return _.pick(this.convert(object, req), fields);
+            return _.pick(AbstractODataEntities.convert(object, req), fields);
           });
         } else {
-          result = [_.pick(this.convert(result, req), fields)];
+          result = [_.pick(AbstractODataEntities.convert(result, req), fields)];
         }
       } else {
         // eslint-disable-next-line no-lonely-if
         if (Array.isArray(result)) {
           result = result.map((object) => {
-            return this.convert(object, req);
+            return AbstractODataEntities.convert(object, req);
           });
         } else {
-          result = this.convert(result, req);
+          result = AbstractODataEntities.convert(result, req);
         }
       }
     }

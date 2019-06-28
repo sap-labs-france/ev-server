@@ -1,14 +1,16 @@
-import Tenant from '../../entity/Tenant';
-import PricingStorage from '../../storage/mongodb/PricingStorage';
-import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
 import moment from 'moment';
-import Transaction from '../../entity/Transaction';
-import Logging from '../../utils/Logging';
+import pLimit from 'p-limit';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
-import pLimit from 'p-limit';
 import MigrationTask from '../MigrationTask';
 import global from'../../types/GlobalType';
+import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
+import TSGlobal from '../../types/GlobalType';
+import Logging from '../../utils/Logging';
+import PricingStorage from '../../storage/mongodb/PricingStorage';
+import Tenant from '../../entity/Tenant';
+import Transaction from '../../entity/Transaction';
+
 
 
 const DEFAULT_CONSUMPTION_ATTRIBUTE = {
@@ -40,7 +42,7 @@ export default class CreateConsumptionsTask extends MigrationTask {
     // Filters
     aggregation.push({
       $match: {
-        "stop": {
+        'stop': {
           $exists: true
         }
       }
@@ -55,7 +57,7 @@ export default class CreateConsumptionsTask extends MigrationTask {
       }
     });
     aggregation.push({
-      $unwind: { "path": "$chargeBox", "preserveNullAndEmptyArrays": true }
+      $unwind: { 'path': '$chargeBox', 'preserveNullAndEmptyArrays': true }
     });
     // Add Site Area
     aggregation.push({
@@ -67,7 +69,7 @@ export default class CreateConsumptionsTask extends MigrationTask {
       }
     });
     aggregation.push({
-      $unwind: { "path": "$siteArea", "preserveNullAndEmptyArrays": true }
+      $unwind: { 'path': '$siteArea', 'preserveNullAndEmptyArrays': true }
     });
     // Add Consumption
     aggregation.push({
@@ -79,7 +81,7 @@ export default class CreateConsumptionsTask extends MigrationTask {
       }
     });
     aggregation.push({
-      $match: { "consumptions": { $eq: [] } }
+      $match: { 'consumptions': { $eq: [] } }
     });
     // Read all transactions
     const transactionsMDB = await global.database.getCollection<any>(tenant.getID(), 'transactions')
@@ -104,8 +106,8 @@ export default class CreateConsumptionsTask extends MigrationTask {
           } catch (error) {
             Logging.logError({
               tenantID: Constants.DEFAULT_TENANT,
-              source: "CreateConsumptionsTask", action: "Migration",
-              module: "CreateConsumptionsTask", method: "migrate",
+              source: 'CreateConsumptionsTask', action: 'Migration',
+              module: 'CreateConsumptionsTask', method: 'migrate',
               message: `Tenant ${tenant.getName()} (${tenant.getID()}): Transaction ID '${transaction.getID()}' failed to migrate`
             });
           }
@@ -121,9 +123,9 @@ export default class CreateConsumptionsTask extends MigrationTask {
     if (transactions.length > 0) {
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        source: "CreateConsumptionsTask", action: "Migration",
-        module: "CreateConsumptionsTask", method: "migrate",
-        message: `Tenant ${tenant.getName()} (${tenant.getID()}): ${transactions.length} transactions migrated after ${moment.duration(endTime.diff(this.startTime)).format("mm:ss.SS", { trim: false })}`
+        source: 'CreateConsumptionsTask', action: 'Migration',
+        module: 'CreateConsumptionsTask', method: 'migrate',
+        message: `Tenant ${tenant.getName()} (${tenant.getID()}): ${transactions.length} transactions migrated after ${moment.duration(endTime.diff(this.startTime)).format('mm:ss.SS', { trim: false })}`
       });
     }
   }
@@ -137,19 +139,19 @@ export default class CreateConsumptionsTask extends MigrationTask {
     for (const consumption of consumptions) {
       // Create the consumption
       const newConsumption: any = {
-        "userID" : transaction.getUserID(),
-        "chargeBoxID" : transaction.getChargeBoxID(),
-        "siteID" : transaction.getSiteID(),
-        "siteAreaID" : transaction.getSiteAreaID(),
-        "connectorId" : transaction.getConnectorId(),
-        "transactionId" : transaction.getID(),
-        "startedAt" : (lastConsumption ? lastConsumption.endedAt : transaction.getStartDate()),
-        "endedAt" : consumption.date,
-        "cumulatedConsumption" : consumption.cumulated,
-        "stateOfCharge": consumption.stateOfCharge,
-        "consumption" : consumption.valueWh,
-        "instantPower" : Math.round(consumption.value),
-        "totalInactivitySecs": (lastConsumption ? lastConsumption.totalInactivitySecs : 0)
+        'userID' : transaction.getUserID(),
+        'chargeBoxID' : transaction.getChargeBoxID(),
+        'siteID' : transaction.getSiteID(),
+        'siteAreaID' : transaction.getSiteAreaID(),
+        'connectorId' : transaction.getConnectorId(),
+        'transactionId' : transaction.getID(),
+        'startedAt' : (lastConsumption ? lastConsumption.endedAt : transaction.getStartDate()),
+        'endedAt' : consumption.date,
+        'cumulatedConsumption' : consumption.cumulated,
+        'stateOfCharge': consumption.stateOfCharge,
+        'consumption' : consumption.valueWh,
+        'instantPower' : Math.round(consumption.value),
+        'totalInactivitySecs': (lastConsumption ? lastConsumption.totalInactivitySecs : 0)
       };
       // Check that there is a duration
       if (newConsumption.startedAt.toString() === newConsumption.endedAt.toString()) {
@@ -163,7 +165,7 @@ export default class CreateConsumptionsTask extends MigrationTask {
       // Check Pricing
       if (pricing) {
         // Compute
-        newConsumption.pricingSource = "simple";
+        newConsumption.pricingSource = 'simple';
         newConsumption.amount = ((consumption.valueWh / 1000) * pricing.priceKWH).toFixed(6);
         newConsumption.roundedAmount = (parseFloat(newConsumption.amount)).toFixed(2);
         newConsumption.currencyCode = pricing.priceUnit;
@@ -298,11 +300,11 @@ export default class CreateConsumptionsTask extends MigrationTask {
   }
 
   getVersion() {
-    return "1.2";
+    return '1.2';
   }
 
   getName() {
-    return "CreateConsumptionsTask";
+    return 'CreateConsumptionsTask';
   }
 }
 

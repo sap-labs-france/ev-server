@@ -1,15 +1,63 @@
-import TenantHolder from './TenantHolder';
-import Database from '../utils/Database';
-import Constants from '../utils/Constants';
 import AppError from '../exception/AppError';
-import VehicleStorage from '../storage/mongodb/VehicleStorage';
+import Constants from '../utils/Constants';
+import Database from '../utils/Database';
+import TenantHolder from './TenantHolder';
 import User from './User';
+import VehicleStorage from '../storage/mongodb/VehicleStorage';
 export default class Vehicle extends TenantHolder {
   private _model: any = {};
 
   constructor(tenantID: any, vehicle: any) {
     super(tenantID);
     Database.updateVehicle(vehicle, this._model);
+  }
+
+  static checkIfVehicleValid(filteredRequest, req) {
+    // Update model?
+    if (req.method !== 'POST' && !filteredRequest.id) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Vehicle ID is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'Vehicle', 'checkIfVehicleValid',
+        req.user.id);
+    }
+    if (!filteredRequest.type) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Vehicle Type is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'Vehicle', 'checkIfVehicleValid',
+        req.user.id, filteredRequest.id);
+    }
+    if (!filteredRequest.model) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Vehicle Model is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'Vehicle', 'checkIfVehicleValid',
+        req.user.id, filteredRequest.id);
+    }
+    if (!filteredRequest.vehicleManufacturerID) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Vehicle Manufacturer is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'Vehicle', 'checkIfVehicleValid',
+        req.user.id, filteredRequest.id);
+    }
+  }
+
+  static getVehicle(tenantID, id) {
+    return VehicleStorage.getVehicle(tenantID, id);
+  }
+
+  static getVehicles(tenantID, params, limit, skip, sort) {
+    return VehicleStorage.getVehicles(tenantID, params, limit, skip, sort);
+  }
+
+  static getVehicleImage(tenantID, id) {
+    return VehicleStorage.getVehicleImage(tenantID, id);
+  }
+
+  static getVehicleImages(tenantID) {
+    return VehicleStorage.getVehicleImages(tenantID);
   }
 
   public getModel(): any {
@@ -192,53 +240,5 @@ export default class Vehicle extends TenantHolder {
 
   delete() {
     return VehicleStorage.deleteVehicle(this.getTenantID(), this.getID());
-  }
-
-  static checkIfVehicleValid(filteredRequest, req) {
-    // Update model?
-    if (req.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Vehicle ID is mandatory`, Constants.HTTP_GENERAL_ERROR,
-        'Vehicle', 'checkIfVehicleValid',
-        req.user.id);
-    }
-    if (!filteredRequest.type) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Vehicle Type is mandatory`, Constants.HTTP_GENERAL_ERROR,
-        'Vehicle', 'checkIfVehicleValid',
-        req.user.id, filteredRequest.id);
-    }
-    if (!filteredRequest.model) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Vehicle Model is mandatory`, Constants.HTTP_GENERAL_ERROR,
-        'Vehicle', 'checkIfVehicleValid',
-        req.user.id, filteredRequest.id);
-    }
-    if (!filteredRequest.vehicleManufacturerID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Vehicle Manufacturer is mandatory`, Constants.HTTP_GENERAL_ERROR,
-        'Vehicle', 'checkIfVehicleValid',
-        req.user.id, filteredRequest.id);
-    }
-  }
-
-  static getVehicle(tenantID, id) {
-    return VehicleStorage.getVehicle(tenantID, id);
-  }
-
-  static getVehicles(tenantID, params, limit, skip, sort) {
-    return VehicleStorage.getVehicles(tenantID, params, limit, skip, sort);
-  }
-
-  static getVehicleImage(tenantID, id) {
-    return VehicleStorage.getVehicleImage(tenantID, id);
-  }
-
-  static getVehicleImages(tenantID) {
-    return VehicleStorage.getVehicleImages(tenantID);
   }
 }

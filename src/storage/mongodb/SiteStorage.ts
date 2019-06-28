@@ -1,16 +1,15 @@
-import Constants from '../../utils/Constants';
-import Utils from '../../utils/Utils';
-import SiteAreaStorage from './SiteAreaStorage';
-import BackendError from '../../exception/BackendError';
+import crypto from 'crypto';
 import { ObjectID } from 'mongodb';
+import BackendError from '../../exception/BackendError';
+import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
+import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Site from '../../types/Site';
-import crypto from 'crypto';
+import SiteAreaStorage from './SiteAreaStorage';
 import User from '../../entity/User';
-import global from '../../types/GlobalType';
+import Utils from '../../utils/Utils';
 import SiteUserWrapper from '../../types/SiteUserWrapper';
-import CreatedUpdatedProps from '../../types/CreatedUpdatedProps';
 
 
 export default class SiteStorage {
@@ -130,7 +129,7 @@ export default class SiteStorage {
     // Filter deleted users
     aggregation.push({
       $match: {
-        "$or": [
+        '$or': [
           {
             "user.deleted": {
               "$exists": false
@@ -148,16 +147,19 @@ export default class SiteStorage {
 
     // Count Records
     const usersCountMDB = await global.database.getCollection<any>(tenantID, 'siteusers')
-      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Sort
     if (sort) {
-      // Sort
+      // Adjust the sort to match user's collection
+      for (const key in sort) {
+        sort['users.' + key] = sort[key];
+        delete sort[key];
+      }
       aggregation.push({
         $sort: sort
       });
     } else {
-      // Default
       aggregation.push({
         $sort: { "user.name": 1, "user.firstName": 1 }
       });
@@ -275,8 +277,8 @@ export default class SiteStorage {
       // ID must be provided!
       throw new BackendError(
         Constants.CENTRAL_SERVER,
-        `Site Image has no ID`,
-        "SiteStorage", "saveSiteImage");
+        'Site Image has no ID',
+        'SiteStorage', 'saveSiteImage');
     }
     // Modify
     await global.database.getCollection<{_id: string, image: string}>(tenantID, 'siteimages').findOneAndUpdate(
@@ -306,7 +308,7 @@ export default class SiteStorage {
         filters._id = Utils.convertToObjectID(params.search);
       } else {
         filters.$or = [
-          { "name": { $regex: params.search, $options: 'i' } }
+          { 'name': { $regex: params.search, $options: 'i' } }
         ];
       }
     }
@@ -344,11 +346,11 @@ export default class SiteStorage {
       });
       // User ID filter
       if (params.userID) {
-        filters["siteusers.userID"] = Utils.convertToObjectID(params.userID);
+        filters['siteusers.userID'] = Utils.convertToObjectID(params.userID);
       }
       // Exclude User ID filter
       if (params.excludeSitesOfUserID) {
-        filters["siteusers.userID"] = { $ne: Utils.convertToObjectID(params.excludeSitesOfUserID) };
+        filters['siteusers.userID'] = { $ne: Utils.convertToObjectID(params.excludeSitesOfUserID) };
       }
 
     }
@@ -365,7 +367,7 @@ export default class SiteStorage {
     }
     // Count Records
     const sitesCountMDB = await global.database.getCollection<any>(tenantID, 'sites')
-      .aggregate([...aggregation, { $count: "count" }], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {
@@ -383,10 +385,10 @@ export default class SiteStorage {
       DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, aggregation, '_id', 'siteID', 'siteAreas', ['address', 'allowAllUsersToStopTransactions', 'autoUserSiteAssignement', 'companyID', 'name'], 'manual', false);
       aggregation.push({
         $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, "chargingstations"),
-          localField: "siteAreas.id",
-          foreignField: "siteAreaID",
-          as: "chargeBoxes"
+          from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
+          localField: 'siteAreas.id',
+          foreignField: 'siteAreaID',
+          as: 'chargeBoxes'
         }
       });//TODO change when typed
     }

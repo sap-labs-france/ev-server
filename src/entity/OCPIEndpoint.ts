@@ -1,9 +1,9 @@
-import TenantHolder from './TenantHolder';
-import Database from '../utils/Database';
-import Constants from '../utils/Constants';
 import AppError from '../exception/AppError';
+import Constants from '../utils/Constants';
+import Database from '../utils/Database';
 import OCPIEndpointStorage from '../storage/mongodb/OCPIEndpointStorage';
 import OCPIUtils from '../server/ocpi/OCPIUtils';
+import TenantHolder from './TenantHolder';
 import User from './User';
 
 export default class OCPIEndpoint extends TenantHolder {
@@ -12,6 +12,45 @@ export default class OCPIEndpoint extends TenantHolder {
   constructor(tenantID: any, ocpiEndpoint: any) {
     super(tenantID);
     Database.updateOcpiEndpoint(ocpiEndpoint, this._model);
+  }
+
+  static checkIfOcpiEndpointValid(filteredRequest, req) {
+    // Update model?
+    if (req.method !== 'POST' && !filteredRequest.id) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'The OCPI Endpoint ID is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'OCPIEndpoint', 'checkIfOcpiEndpointValid',
+        req.user.id);
+    }
+  }
+
+  static getOcpiEndpoint(tenantID, id) {
+    return OCPIEndpointStorage.getOcpiEndpoint(tenantID, id);
+  }
+
+  static getOcpiEndpoints(tenantID, params?, limit?, skip?, sort?) {
+    return OCPIEndpointStorage.getOcpiEndpoints(tenantID, params, limit, skip, sort);
+  }
+
+  static getOcpiEndpointWithToken(tenantID, token) {
+    return OCPIEndpointStorage.getOcpiEndpointWithToken(tenantID, token);
+  }
+
+  static async getDefaultOcpiEndpoint(tenantID) {
+    // Check if default endpoint exist
+    let ocpiendpoint = await OCPIEndpointStorage.getDefaultOcpiEndpoint(tenantID);
+
+    if (!ocpiendpoint) {
+      // Create new endpoint
+      ocpiendpoint = new OCPIEndpoint(tenantID, {});
+      ocpiendpoint.setName('default');
+      ocpiendpoint.setStatus(Constants.OCPI_REGISTERING_STATUS.OCPI_NEW);
+      ocpiendpoint.setLocalToken('eyAiYSI6IDEgLCAidGVuYW50IjogInNsZiIgfQ==');
+      ocpiendpoint = await ocpiendpoint.save();
+    }
+
+    return ocpiendpoint;
   }
 
   public getModel(): any {
@@ -71,7 +110,7 @@ export default class OCPIEndpoint extends TenantHolder {
   }
 
   setLastPatchJobResult(successNbr, failureNbr, totalNbr, chargeBoxIDsInFailure = [], chargeBoxIDsInSuccess = []) {
-    this._model.lastPatchJobResult = { "successNbr": successNbr, "failureNbr": failureNbr, "totalNbr": totalNbr, "chargeBoxIDsInFailure": chargeBoxIDsInFailure, "chargeBoxIDsInSuccess": chargeBoxIDsInSuccess };
+    this._model.lastPatchJobResult = { 'successNbr': successNbr, 'failureNbr': failureNbr, 'totalNbr': totalNbr, 'chargeBoxIDsInFailure': chargeBoxIDsInFailure, 'chargeBoxIDsInSuccess': chargeBoxIDsInSuccess };
   }
 
   getLastPatchJobResult() {
@@ -203,44 +242,5 @@ export default class OCPIEndpoint extends TenantHolder {
 
   delete() {
     return OCPIEndpointStorage.deleteOcpiEndpoint(this.getTenantID(), this.getID());
-  }
-
-  static checkIfOcpiEndpointValid(filteredRequest, req) {
-    // Update model?
-    if (req.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The OCPI Endpoint ID is mandatory`, Constants.HTTP_GENERAL_ERROR,
-        'OCPIEndpoint', 'checkIfOcpiEndpointValid',
-        req.user.id);
-    }
-  }
-
-  static getOcpiEndpoint(tenantID, id) {
-    return OCPIEndpointStorage.getOcpiEndpoint(tenantID, id);
-  }
-
-  static getOcpiEndpoints(tenantID, params?, limit?, skip?, sort?) {
-    return OCPIEndpointStorage.getOcpiEndpoints(tenantID, params, limit, skip, sort);
-  }
-
-  static getOcpiEndpointWithToken(tenantID, token) {
-    return OCPIEndpointStorage.getOcpiEndpointWithToken(tenantID, token);
-  }
-
-  static async getDefaultOcpiEndpoint(tenantID) {
-    // Check if default endpoint exist
-    let ocpiendpoint = await OCPIEndpointStorage.getDefaultOcpiEndpoint(tenantID);
-
-    if (!ocpiendpoint) {
-      // Create new endpoint
-      ocpiendpoint = new OCPIEndpoint(tenantID, {});
-      ocpiendpoint.setName('default');
-      ocpiendpoint.setStatus(Constants.OCPI_REGISTERING_STATUS.OCPI_NEW);
-      ocpiendpoint.setLocalToken("eyAiYSI6IDEgLCAidGVuYW50IjogInNsZiIgfQ==");
-      ocpiendpoint = await ocpiendpoint.save();
-    }
-
-    return ocpiendpoint;
   }
 }

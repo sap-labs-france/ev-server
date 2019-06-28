@@ -1,5 +1,5 @@
-import { soap } from 'strong-soap';
 import { performance } from 'perf_hooks';
+import { soap } from 'strong-soap';
 import SoapRequest from './SoapRequest';
 
 export default abstract class AbstractSoapClient {

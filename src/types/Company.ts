@@ -1,6 +1,6 @@
-import Site from "../entity/Site";
-import CreatedUpdatedProps from "./CreatedUpdatedProps";
-import Address from "./Address";
+import Address from './Address';
+import CreatedUpdatedProps from './CreatedUpdatedProps';
+import Site from '../entity/Site';
 
 export default interface Company extends CreatedUpdatedProps {
   id: string;

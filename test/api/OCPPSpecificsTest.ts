@@ -1,13 +1,12 @@
-import chai from 'chai';
-import {expect} from 'chai';
+import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 chai.use(chaiSubset);
-import moment from 'moment';
 import faker from 'faker';
-import DataHelper from './DataHelper';
+import moment from 'moment';
 import path from 'path';
  import global from'../../src/types/GlobalType';
 import CentralServerService from './client/CentralServerService';
+import DataHelper from './DataHelper';
 import Factory from '../factories/Factory';
 
  
@@ -16,9 +15,6 @@ global.appRoot = path.resolve(__dirname, '../../src');
 class TestData {
   public dataHelper: DataHelper;
   public tenantID: string;
-
-  constructor() {
-  }
 
   async init() {
     this.tenantID = await CentralServerService.DefaultInstance.authenticatedApi.getTenantID();

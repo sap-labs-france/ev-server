@@ -29,8 +29,8 @@ const buildChargingStationClient = async function(chargingStation) {
   }
   // Check
   if (!chargingClient) {
-    throw new BackendError(chargingStation.getID(), "Client has not been found",
-      "ChargingStationClient", "getChargingStationClient");
+    throw new BackendError(chargingStation.getID(), 'Client has not been found',
+      'ChargingStationClient', 'getChargingStationClient');
   }
   return chargingClient;
 };

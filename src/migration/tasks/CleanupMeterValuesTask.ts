@@ -1,10 +1,10 @@
-import Tenant from '../../entity/Tenant';
-import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
 import moment from 'moment';
-import Logging from '../../utils/Logging';
 import Constants from '../../utils/Constants';
 import MigrationTask from '../MigrationTask';
-import global from '../types/GlobalType';
+import global from '../../types/GlobalType';
+import Tenant from '../../entity/Tenant';
+import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
+import Logging from '../../utils/Logging';
 
 export default class CleanupMeterValuesTask extends MigrationTask {
   public totalCount: any;
@@ -35,7 +35,7 @@ export default class CleanupMeterValuesTask extends MigrationTask {
       }
     });
     aggregation.push({
-      "$match": { "transactions": { "$eq": [] } }
+      '$match': { 'transactions': { '$eq': [] } }
     });
     // Read all transactions
     const meterValuesMDB = await global.database.getCollection<any>(tenant.getID(), 'metervalues')
@@ -50,19 +50,19 @@ export default class CleanupMeterValuesTask extends MigrationTask {
     if (meterValuesMDB.length > 0) {
       Logging.logWarning({
         tenantID: Constants.DEFAULT_TENANT,
-        source: "CleanupMeterValuesTask", action: "Migration",
-        module: "CleanupMeterValuesTask", method: "migrate",
+        source: 'CleanupMeterValuesTask', action: 'Migration',
+        module: 'CleanupMeterValuesTask', method: 'migrate',
         message: `Tenant ${tenant.getName()} (${tenant.getID()}): ${meterValuesMDB.length} orphan Meter Values have been deleted`
       });
     }
   }
 
   getVersion() {
-    return "1.0";
+    return '1.0';
   }
 
   getName() {
-    return "CleanupMeterValuesTask";
+    return 'CleanupMeterValuesTask';
   }
 
   isAsynchronous() {

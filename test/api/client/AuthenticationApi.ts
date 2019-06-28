@@ -1,4 +1,4 @@
-import AuthenticatedBaseApi from "./utils/AuthenticatedBaseApi";
+// pragma import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
 
 export default class AuthenticationApi {
   private _baseApi: any;
@@ -7,7 +7,7 @@ export default class AuthenticationApi {
   }
 
   public async login(email, password, acceptEula = true, tenant = '') {
-    let data: any = {};
+    const data: any = {};
     // Allow caller to not pass param for the tests
     if (email) {
       data.email = email;
@@ -18,7 +18,7 @@ export default class AuthenticationApi {
     if (acceptEula) {
       data.acceptEula = acceptEula;
     }
-    if (tenant != null) {
+    if (tenant) {
       data.tenant = tenant;
     }
     // Send
@@ -68,4 +68,3 @@ export default class AuthenticationApi {
   }
 }
 
-// module.exports = AuthenticationApi;

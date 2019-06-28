@@ -1,11 +1,11 @@
-import Logging from '../../../utils/Logging';
-import Constants from '../../../utils/Constants';
-import AppError from '../../../exception/AppError';
-import User from '../../../entity/User';
-import Tenant from '../../../entity/Tenant';
 import crypto from 'crypto';
 import HttpStatus from 'http-status-codes';
 import global from '../../../types/GlobalType';
+import AppError from '../../../exception/AppError';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
+import User from '../../../entity/User';
+import Tenant from '../../../entity/Tenant';
 
 export default class SessionHashService {
   // Check if Session has been updated and require new login
@@ -22,7 +22,7 @@ export default class SessionHashService {
           global.userHashMapIDs[`${tenantID}#${userID}`] !== userHashID) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `User has been updated and will be logged off`,
+          'User has been updated and will be logged off',
           HttpStatus.FORBIDDEN,
           'SessionHashService', 'isSessionHashUpdated',
           req.user
@@ -32,7 +32,7 @@ export default class SessionHashService {
           global.tenantHashMapIDs[`${tenantID}`] !== tenantHashID) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Tenant has been updated and all users will be logged off`,
+          'Tenant has been updated and all users will be logged off',
           HttpStatus.FORBIDDEN,
           'SessionHashService', 'isSessionHashUpdated',
           req.user
@@ -53,14 +53,14 @@ export default class SessionHashService {
       user.getLanguage() + '/' +
       user.getRole() + '/' +
       user.getStatus();
-    return crypto.createHash('sha256').update(data).digest("hex");
+    return crypto.createHash('sha256').update(data).digest('hex');
   }
 
   // Build Tenant Hash ID
   static buildTenantHashID(tenant) {
     // Get all field that need to be hashed
     const data = JSON.stringify(tenant.getActiveComponents());
-    return crypto.createHash('sha256').update(data).digest("hex");
+    return crypto.createHash('sha256').update(data).digest('hex');
   }
 
   // Rebuild and store User Hash ID

@@ -1,33 +1,31 @@
-import {expect} from 'chai';
-import BaseApi from './utils/BaseApi';
-import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
-import config from '../../config';
-import Constants from './utils/Constants';
-import chai from 'chai';
+import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
+import config from '../../config';
+import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
+import AuthenticationApi from './AuthenticationApi';
+import BaseApi from './utils/BaseApi';
+import ChargingStationApi from './ChargingStationApi';
 import CompanyApi from './CompanyApi';
+import Constants from './utils/Constants';
+import MailApi from './MailApi';
+import OCPIEndpointApi from './OCPIEndpointApi';
+import SettingApi from './SettingApi';
 import SiteApi from './SiteApi';
 import SiteAreaApi from './SiteAreaApi';
-import UserApi from './UserApi';
-import AuthenticationApi from './AuthenticationApi';
 import TenantApi from './TenantApi';
-import ChargingStationApi from './ChargingStationApi';
 import TransactionApi from './TransactionApi';
-import MailApi from './MailApi';
-import SettingApi from './SettingApi';
-import OCPIEndpointApi from './OCPIEndpointApi';
+import UserApi from './UserApi';
 
 // Set
 chai.use(chaiSubset);
 
 export default class CentralServerService {
 
-  private static _defaultInstance = new CentralServerService();
+  public static get DefaultInstance(): CentralServerService {
+    return CentralServerService._defaultInstance || (CentralServerService._defaultInstance = new CentralServerService());
+  }
 
-  private _tenantSubdomain: string;
-  private _baseURL: string;
-  private _baseApi: BaseApi;
-  private _authenticatedUser: any;
+  private static _defaultInstance = new CentralServerService();
   public authenticatedApi: AuthenticatedBaseApi;
   public companyApi: CompanyApi;
   public siteApi: SiteApi;
@@ -42,9 +40,10 @@ export default class CentralServerService {
   public tenantApi: TenantApi;
   public mailApi: MailApi;
 
-  public static get DefaultInstance(): CentralServerService {
-    return this._defaultInstance || (this._defaultInstance = new this());
-  }
+  private _tenantSubdomain: string;
+  private _baseURL: string;
+  private _baseApi: BaseApi;
+  private _authenticatedUser: any;
 
   public constructor(tenantSubdomain = null, user = null, superAdminUser = null) {
     this._tenantSubdomain = tenantSubdomain;
@@ -75,9 +74,9 @@ export default class CentralServerService {
     this.settingApi = new SettingApi(this.authenticatedApi);
     this.ocpiEndpointApi = new OCPIEndpointApi(this.authenticatedApi);
     if (superAdminUser) {
-      this.authenticatedSuperAdminApi = new AuthenticatedBaseApi(this._baseURL, superAdminUser.email, superAdminUser.password, "");
+      this.authenticatedSuperAdminApi = new AuthenticatedBaseApi(this._baseURL, superAdminUser.email, superAdminUser.password, '');
     } else {
-      this.authenticatedSuperAdminApi = new AuthenticatedBaseApi(this._baseURL, this._authenticatedUser.email, this._authenticatedUser.password, "");
+      this.authenticatedSuperAdminApi = new AuthenticatedBaseApi(this._baseURL, this._authenticatedUser.email, this._authenticatedUser.password, '');
     }
     this.authenticationApi = new AuthenticationApi(this._baseApi);
     this.tenantApi = new TenantApi(this.authenticatedSuperAdminApi, this._baseApi);
@@ -87,10 +86,12 @@ export default class CentralServerService {
   public async updatePriceSetting(priceKWH, priceUnit) {
     const settings = await this.settingApi.readAll({});
     let newSetting = false;
-    let setting = settings.data.result.find(s => s.identifier == 'pricing');
+    let setting = settings.data.result.find((s) => {
+      return s.identifier == 'pricing';
+    });
     if (!setting) {
       setting = {};
-      setting.identifier = "pricing";
+      setting.identifier = 'pricing';
       newSetting = true;
     }
     setting.content = {
@@ -101,9 +102,8 @@ export default class CentralServerService {
     };
     if (newSetting) {
       return this.settingApi.create(setting);
-    } else {
-      return this.settingApi.update(setting);
     }
+    return this.settingApi.update(setting);
   }
 
   public async createEntity(entityApi, entity, performCheck = true) {
@@ -119,10 +119,9 @@ export default class CentralServerService {
       // Set the id
       entity.id = response.data.id;
       return entity;
-    } else {
-      // Let the caller to handle response
-      return response;
     }
+    // Let the caller to handle response
+    return response;
   }
 
   public async getEntityById(entityApi, entity, performCheck = true) {
@@ -139,10 +138,9 @@ export default class CentralServerService {
       expect(response.data).to.deep.include(entity);
       // Return the entity
       return response.data;
-    } else {
-      // Let the caller to handle response
-      return response;
     }
+    // Let the caller to handle response
+    return response;
   }
 
   public async checkEntityInList(entityApi, entity, performCheck = true) {
@@ -207,10 +205,10 @@ export default class CentralServerService {
       expect(response.status).to.equal(200);
       expect(response.data.status).to.eql('Success');
       return response;
-    } else {
-      // Let the caller to handle response
-      return response;
     }
+    // Let the caller to handle response
+    return response;
+
   }
 
   public async updateEntity(entityApi, entity, performCheck = true) {
@@ -224,10 +222,10 @@ export default class CentralServerService {
       expect(response.status).to.equal(200);
       expect(response.data.status).to.eql('Success');
       return response;
-    } else {
-      // Let the caller to handle response
-      return response;
     }
+    // Let the caller to handle response
+    return response;
+
   }
 
   public async checkDeletedEntityById(entityApi, entity, performCheck = true) {
@@ -247,4 +245,3 @@ export default class CentralServerService {
 }
 
 const DefaultCentralServerService = CentralServerService.DefaultInstance;
-// module.exports = CentralServerService;

@@ -1,5 +1,5 @@
 import chai from 'chai';
-import {expect} from 'chai';
+import { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 chai.use(chaiSubset);
 const path = require('path');
@@ -19,7 +19,7 @@ class TestData {
 const testData: TestData = new TestData();
 
 
-describe('Site tests', function () {
+describe('Site tests', function() {
   this.timeout(30000);
 
   describe('Success cases', () => {
@@ -66,7 +66,7 @@ describe('Site tests', function () {
 
     it('Should update the site', async () => {
       // Change entity
-      testData.newSite.name = "New Name";
+      testData.newSite.name = 'New Name';
       // Update
       await CentralServerService.DefaultInstance.updateEntity(
         CentralServerService.DefaultInstance.siteApi, testData.newSite);
@@ -74,7 +74,7 @@ describe('Site tests', function () {
 
     it('Should find the updated site by id', async () => {
       // Check if the updated entity can be retrieved with its id
-      let updatedSite = await CentralServerService.DefaultInstance.getEntityById(
+      const updatedSite = await CentralServerService.DefaultInstance.getEntityById(
         CentralServerService.DefaultInstance.siteApi, testData.newSite);
       // Check
       expect(updatedSite.name).to.equal(testData.newSite.name);
@@ -96,7 +96,7 @@ describe('Site tests', function () {
   describe('Error cases', () => {
     it('Should not create a site area without a site', async () => {
       // Create the entity
-      let response = await CentralServerService.DefaultInstance.createEntity(
+      const response = await CentralServerService.DefaultInstance.createEntity(
         CentralServerService.DefaultInstance.siteApi, Factory.site.build(), false);
       expect(response.status).to.equal(500);
     });

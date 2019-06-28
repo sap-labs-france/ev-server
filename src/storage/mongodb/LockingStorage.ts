@@ -2,6 +2,7 @@ import cfenv from 'cfenv';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
+import TSGlobal from '../../types/GlobalType';
 import Lock from '../../types/Lock';
 import Logging from '../../utils/Logging';
 import global from '../../types/GlobalType';
@@ -90,7 +91,7 @@ export default class LockingStorage {
     const runLock: Lock = { _id: '', name: '', type: '', timestamp: null, hostname: '' };
     Database.updateRunLock(runLockToSave, runLock, false);
     // Set the ID
-    runLock._id = runLock.name + "~" + runLock.type;
+    runLock._id = runLock.name + '~' + runLock.type;
     // Create
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
       .insertOne(runLock);
@@ -105,7 +106,7 @@ export default class LockingStorage {
     const runLock: Lock = { _id: '', name: '', type: '', timestamp: null, hostname: '' };
     Database.updateRunLock(runLockToDelete, runLock, false);
     // Set the ID
-    runLock._id = runLock.name + "~" + runLock.type;
+    runLock._id = runLock.name + '~' + runLock.type;
     // Delete
     await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
       .deleteOne(runLock);

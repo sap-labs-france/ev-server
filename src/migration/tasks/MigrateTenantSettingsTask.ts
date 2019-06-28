@@ -35,7 +35,7 @@ export default class MigrateTenantSettingsTask extends MigrationTask {
         if (changed) {
           // Save it
           await global.database.getCollection<any>('default', 'tenants').findOneAndUpdate({
-            "_id": tenantMDB._id
+            '_id': tenantMDB._id
           }, {
             $set: tenantMDB
           }, { upsert: true, /* pragma new: true, */ returnOriginal: false }); // TODO: Typescript complains about new parameter. Please check.
@@ -50,7 +50,7 @@ export default class MigrateTenantSettingsTask extends MigrationTask {
       for (const tenantSettingMDB of tenantSettingsMDB) {
         let settingsChanged = false;
         // Check
-        if (tenantSettingMDB.identifier === "ocpi" && !tenantSettingMDB.content.type) {
+        if (tenantSettingMDB.identifier === 'ocpi' && !tenantSettingMDB.content.type) {
           // Update properties
           if (tenantSettingMDB.content) {
             // Migrate properties
@@ -62,38 +62,38 @@ export default class MigrateTenantSettingsTask extends MigrationTask {
             delete tenantSettingMDB.content.business_details;
             // Set the new content
             tenantSettingMDB.content = {
-              "type" : "gireve",
-              "ocpi" : tenantSettingMDB.content
+              'type' : 'gireve',
+              'ocpi' : tenantSettingMDB.content
             };
             settingsChanged = true;
           }
         }
-        if (tenantSettingMDB.identifier === "sac" && !tenantSettingMDB.content.type) {
+        if (tenantSettingMDB.identifier === 'sac' && !tenantSettingMDB.content.type) {
           // Set the new content
           tenantSettingMDB.content = {
-            "type" : "sac",
-            "sac" : tenantSettingMDB.content
+            'type' : 'sac',
+            'sac' : tenantSettingMDB.content
           };
           settingsChanged = true;
         }
-        if (tenantSettingMDB.identifier === "pricing" && !tenantSettingMDB.content.type) {
+        if (tenantSettingMDB.identifier === 'pricing' && !tenantSettingMDB.content.type) {
           // Set the type
           if (tenantSettingMDB.content.simple) {
-            tenantSettingMDB.content.type = "simple";
+            tenantSettingMDB.content.type = 'simple';
           } else if (tenantSettingMDB.content.convergentCharging) {
-            tenantSettingMDB.content.type = "convergentCharging";
+            tenantSettingMDB.content.type = 'convergentCharging';
           }
           settingsChanged = true;
         }
-        if (tenantSettingMDB.identifier === "refund" && !tenantSettingMDB.content.type) {
+        if (tenantSettingMDB.identifier === 'refund' && !tenantSettingMDB.content.type) {
           // Set the type
-          tenantSettingMDB.content.type = "concur";
+          tenantSettingMDB.content.type = 'concur';
           settingsChanged = true;
         }
         if (settingsChanged) {
           // Save it
           await global.database.getCollection<any>(tenantMDB._id, 'settings').findOneAndUpdate({
-            "_id": tenantSettingMDB._id
+            '_id': tenantSettingMDB._id
           }, {
             $set: tenantSettingMDB
           }, { upsert: true, /* pragma new: true, TODO check why typescript complains */ returnOriginal: false });
@@ -109,10 +109,10 @@ export default class MigrateTenantSettingsTask extends MigrationTask {
   }
 
   public getVersion(): string {
-    return "1.1";
+    return '1.1';
   }
 
   public getName(): string {
-    return "MigrateTenantSettingsTask";
+    return 'MigrateTenantSettingsTask';
   }
 }

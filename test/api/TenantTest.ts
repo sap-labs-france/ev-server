@@ -1,14 +1,14 @@
 import chai from 'chai';
-import {expect} from 'chai';
+import { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 chai.use(chaiSubset);
 const path = require('path');
  import global from'../../src/types/GlobalType';
  
 global.appRoot = path.resolve(__dirname, '../../src');
+import HttpStatus from 'http-status-codes';
 import CentralServerService from './client/CentralServerService';
 import Factory from '../factories/Factory';
-import HttpStatus from 'http-status-codes';
 
 class TestData {
   public newTenant: any;
@@ -17,10 +17,10 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('Tenant tests', function () {
+describe('Tenant tests', function() {
   this.timeout(30000);
   before(async () => {
-    testData.superAdminCentralService = new CentralServerService("");
+    testData.superAdminCentralService = new CentralServerService('');
   });
 
   describe('Success cases', () => {
@@ -44,7 +44,7 @@ describe('Tenant tests', function () {
 
     it('Should update the tenant', async () => {
       // Change entity
-      testData.newTenant.name = "New Name";
+      testData.newTenant.name = 'New Name';
       // Update
       await CentralServerService.DefaultInstance.updateEntity(
         CentralServerService.DefaultInstance.tenantApi, testData.newTenant);
@@ -74,34 +74,34 @@ describe('Tenant tests', function () {
   describe('Error cases', () => {
     it('Should not be possible to read an empty tenant', async () => {
       // Exec
-      let response = await CentralServerService.DefaultInstance.getEntityById(
-        CentralServerService.DefaultInstance.tenantApi, {id: ''}, false);
+      const response = await CentralServerService.DefaultInstance.getEntityById(
+        CentralServerService.DefaultInstance.tenantApi, { id: '' }, false);
       // Check
       expect(response.status).to.equal(500);
     });
 
     it('Should not be possible to read an invalid tenant', async () => {
       // Exec
-      let response = await CentralServerService.DefaultInstance.getEntityById(
-        CentralServerService.DefaultInstance.tenantApi, {id: 'youAreInvalid'}, false);
+      const response = await CentralServerService.DefaultInstance.getEntityById(
+        CentralServerService.DefaultInstance.tenantApi, { id: 'youAreInvalid' }, false);
       // Check
       expect(response.status).to.equal(500);
     });
 
     it('Should not be possible to read an unknown tenant', async () => {
       // Exec
-      let response = await CentralServerService.DefaultInstance.getEntityById(
-        CentralServerService.DefaultInstance.tenantApi, {id: '123456789012345678901234'}, false);
+      const response = await CentralServerService.DefaultInstance.getEntityById(
+        CentralServerService.DefaultInstance.tenantApi, { id: '123456789012345678901234' }, false);
       // Check
       expect(response.status).to.equal(550);
     });
 
     it('Should not be possible to create a tenant without email', async () => {
       // Create
-      let tenant = Factory.tenant.buildTenantCreate();
+      const tenant = Factory.tenant.buildTenantCreate();
       delete tenant.email;
       // Call
-      let response = await CentralServerService.DefaultInstance.createEntity(
+      const response = await CentralServerService.DefaultInstance.createEntity(
         CentralServerService.DefaultInstance.tenantApi, tenant, false);
       // Check
       expect(response.status).to.equal(HttpStatus.BAD_REQUEST);
@@ -109,10 +109,10 @@ describe('Tenant tests', function () {
 
     it('Should not be possible to create a tenant without a name', async () => {
       // Create
-      let tenant = Factory.tenant.buildTenantCreate();
+      const tenant = Factory.tenant.buildTenantCreate();
       delete tenant.name;
       // Call
-      let response = await CentralServerService.DefaultInstance.createEntity(
+      const response = await CentralServerService.DefaultInstance.createEntity(
         CentralServerService.DefaultInstance.tenantApi, tenant, false);
       // Check
       expect(response.status).to.equal(HttpStatus.BAD_REQUEST);
@@ -120,10 +120,10 @@ describe('Tenant tests', function () {
 
     it('Should not be possible to create a tenant without a name', async () => {
       // Create
-      let tenant = Factory.tenant.buildTenantCreate();
+      const tenant = Factory.tenant.buildTenantCreate();
       delete tenant.subdomain;
       // Call
-      let response = await CentralServerService.DefaultInstance.createEntity(
+      const response = await CentralServerService.DefaultInstance.createEntity(
         CentralServerService.DefaultInstance.tenantApi, tenant, false);
       // Check
       expect(response.status).to.equal(HttpStatus.BAD_REQUEST);
@@ -131,10 +131,10 @@ describe('Tenant tests', function () {
 
     it('Should not be possible to create a tenant with an empty email', async () => {
       // Create
-      let tenant = Factory.tenant.buildTenantCreate();
+      const tenant = Factory.tenant.buildTenantCreate();
       tenant.email = '';
       // Call
-      let response = await CentralServerService.DefaultInstance.createEntity(
+      const response = await CentralServerService.DefaultInstance.createEntity(
         CentralServerService.DefaultInstance.tenantApi, tenant, false);
       // Check
       expect(response.status).to.equal(HttpStatus.BAD_REQUEST);
@@ -142,10 +142,10 @@ describe('Tenant tests', function () {
 
     it('Should not be possible to create a tenant with an empty name', async () => {
       // Create
-      let tenant = Factory.tenant.buildTenantCreate();
+      const tenant = Factory.tenant.buildTenantCreate();
       tenant.name = '';
       // Call
-      let response = await CentralServerService.DefaultInstance.createEntity(
+      const response = await CentralServerService.DefaultInstance.createEntity(
         CentralServerService.DefaultInstance.tenantApi, tenant, false);
       // Check
       expect(response.status).to.equal(HttpStatus.BAD_REQUEST);
@@ -153,10 +153,10 @@ describe('Tenant tests', function () {
 
     it('Should not be possible to create a tenant with an empty subdomain', async () => {
       // Create
-      let tenant = Factory.tenant.buildTenantCreate();
+      const tenant = Factory.tenant.buildTenantCreate();
       tenant.subdomain = '';
       // Call
-      let response = await CentralServerService.DefaultInstance.createEntity(
+      const response = await CentralServerService.DefaultInstance.createEntity(
         CentralServerService.DefaultInstance.tenantApi, tenant, false);
       // Check
       expect(response.status).to.equal(HttpStatus.BAD_REQUEST);
@@ -164,10 +164,10 @@ describe('Tenant tests', function () {
 
     it('Should not be possible to create a tenant with an invalid email', async () => {
       // Create
-      let tenant = Factory.tenant.buildTenantCreate();
+      const tenant = Factory.tenant.buildTenantCreate();
       tenant.email = 'missingAt';
       // Call
-      let response = await CentralServerService.DefaultInstance.createEntity(
+      const response = await CentralServerService.DefaultInstance.createEntity(
         CentralServerService.DefaultInstance.tenantApi, tenant, false);
       // Check
       expect(response.status).to.equal(HttpStatus.BAD_REQUEST);
@@ -175,10 +175,10 @@ describe('Tenant tests', function () {
 
     it('Should not be possible to create a tenant with an invalid name', async () => {
       // Create
-      let tenant = Factory.tenant.buildTenantCreate();
+      const tenant = Factory.tenant.buildTenantCreate();
       tenant.name = 'A very long name impossible to store in database - A very long name impossible to store in database - A very long name impossible to store in database';
       // Call
-      let response = await CentralServerService.DefaultInstance.createEntity(
+      const response = await CentralServerService.DefaultInstance.createEntity(
         CentralServerService.DefaultInstance.tenantApi, tenant, false);
       // Check
       expect(response.status).to.equal(HttpStatus.BAD_REQUEST);
@@ -186,10 +186,10 @@ describe('Tenant tests', function () {
 
     it('Should not be possible to create a tenant with an invalid subdomain', async () => {
       // Create
-      let tenant = Factory.tenant.buildTenantCreate();
+      const tenant = Factory.tenant.buildTenantCreate();
       tenant.subdomain = 'Sub domain';
       // Call
-      let response = await CentralServerService.DefaultInstance.createEntity(
+      const response = await CentralServerService.DefaultInstance.createEntity(
         CentralServerService.DefaultInstance.tenantApi, tenant, false);
       // Check
       expect(response.status).to.equal(HttpStatus.BAD_REQUEST);
