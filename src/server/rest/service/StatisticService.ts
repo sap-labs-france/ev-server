@@ -1,21 +1,21 @@
-import fs from 'fs';
-import moment from 'moment';
 import AppAuthError from '../../../exception/AppAuthError';
 import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import StatisticsStorage from '../../../storage/mongodb/StatisticsStorage';
 import StatisticSecurity from './security/StatisticSecurity';
+import StatisticsStorage from '../../../storage/mongodb/StatisticsStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
+import fs from 'fs';
+import moment from 'moment';
 
 export default class StatisticService {
-  static async handleGetUserUsageStatistics(action, req, res, next) {
+  static async handleGetChargingStationConsumptionStatistics(action, req, res, next) {
     try {
       // Check if component is active
       await UtilsService.assertComponentIsActive(
         req.user.tenantID, Constants.COMPONENTS.STATISTICS,
-        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserUsageStatistics');
+        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationConsumptionStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
         // Not Authorized!
@@ -23,7 +23,7 @@ export default class StatisticService {
           Constants.ACTION_LIST,
           Constants.ENTITY_TRANSACTIONS,
           null, 560,
-          'StatisticService', 'handleGetUserUsageStatistics',
+          'StatisticService', 'handleGetChargingStationConsumptionStatistics',
           req.user);
       }
       // Filter
@@ -31,44 +31,10 @@ export default class StatisticService {
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
-      const transactionStatsMDB = await StatisticsStorage.getUserStats(
-        req.user.tenantID, filter, Constants.STATS_GROUP_BY_USAGE);
-      // Convert
-      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
-      // Return
-      res.json(transactions);
-      next();
-    } catch (error) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
-    }
-  }
-
-  static async handleGetUserConsumptionStatistics(action, req, res, next) {
-    try {
-      // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
-        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserConsumptionStatistics');
-      // Check auth
-      if (!Authorizations.canListTransactions(req.user)) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_LIST,
-          Constants.ENTITY_TRANSACTIONS,
-          null, 560,
-          'StatisticService', 'handleGetUserConsumptionStatistics',
-          req.user);
-      }
-      // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
-      // Build filter
-      const filter = StatisticService.buildFilter(filteredRequest, req.user);
-      // Get Stats
-      const transactionStatsMDB = await StatisticsStorage.getUserStats(
+      const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
         req.user.tenantID, filter, Constants.STATS_GROUP_BY_CONSUMPTION);
       // Convert
-      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
+      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'C');
       // Return
       res.json(transactions);
       next();
@@ -112,6 +78,142 @@ export default class StatisticService {
     }
   }
 
+  static async handleGetChargingStationInactivityStatistics(action, req, res, next) {
+    try {
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationInactivityStatistics');
+      // Check auth
+      if (!Authorizations.canListTransactions(req.user)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_LIST,
+          Constants.ENTITY_TRANSACTIONS,
+          null, 560,
+          'StatisticService', 'handleGetChargingStationInactivityStatistics',
+          req.user);
+      }
+      // Filter
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
+      // Build filter
+      const filter = StatisticService.buildFilter(filteredRequest, req.user);
+      // Get Stats
+      const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
+        req.user.tenantID, filter, Constants.STATS_GROUP_BY_INACTIVITY);
+      // Convert
+      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'C');
+      // Return
+      res.json(transactions);
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
+  static async handleGetUserConsumptionStatistics(action, req, res, next) {
+    try {
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserConsumptionStatistics');
+      // Check auth
+      if (!Authorizations.canListTransactions(req.user)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_LIST,
+          Constants.ENTITY_TRANSACTIONS,
+          null, 560,
+          'StatisticService', 'handleGetUserConsumptionStatistics',
+          req.user);
+      }
+      // Filter
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
+      // Build filter
+      const filter = StatisticService.buildFilter(filteredRequest, req.user);
+      // Get Stats
+      const transactionStatsMDB = await StatisticsStorage.getUserStats(
+        req.user.tenantID, filter, Constants.STATS_GROUP_BY_CONSUMPTION);
+      // Convert
+      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
+      // Return
+      res.json(transactions);
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
+  static async handleGetUserUsageStatistics(action, req, res, next) {
+    try {
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserUsageStatistics');
+      // Check auth
+      if (!Authorizations.canListTransactions(req.user)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_LIST,
+          Constants.ENTITY_TRANSACTIONS,
+          null, 560,
+          'StatisticService', 'handleGetUserUsageStatistics',
+          req.user);
+      }
+      // Filter
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
+      // Build filter
+      const filter = StatisticService.buildFilter(filteredRequest, req.user);
+      // Get Stats
+      const transactionStatsMDB = await StatisticsStorage.getUserStats(
+        req.user.tenantID, filter, Constants.STATS_GROUP_BY_USAGE);
+      // Convert
+      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
+      // Return
+      res.json(transactions);
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
+  static async handleGetUserInactivityStatistics(action, req, res, next) {
+    try {
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserInactivityStatistics');
+      // Check auth
+      if (!Authorizations.canListTransactions(req.user)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_LIST,
+          Constants.ENTITY_TRANSACTIONS,
+          null, 560,
+          'StatisticService', 'handleGetUserInactivityStatistics',
+          req.user);
+      }
+      // Filter
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
+      // Build filter
+      const filter = StatisticService.buildFilter(filteredRequest, req.user);
+      // Get Stats
+      const transactionStatsMDB = await StatisticsStorage.getUserStats(
+        req.user.tenantID, filter, Constants.STATS_GROUP_BY_INACTIVITY);
+      // Convert
+      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
+      // Return
+      res.json(transactions);
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
   static async handleGetCurrentMetrics(action, req, res, next) {
     try {
       // Check auth
@@ -130,40 +232,6 @@ export default class StatisticService {
       const metrics = await StatisticsStorage.getCurrentMetrics(req.user.tenantID, filteredRequest);
       // Return
       res.json(metrics);
-      next();
-    } catch (error) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
-    }
-  }
-
-  static async handleGetChargingStationConsumptionStatistics(action, req, res, next) {
-    try {
-      // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
-        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationConsumptionStatistics');
-      // Check auth
-      if (!Authorizations.canListTransactions(req.user)) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_LIST,
-          Constants.ENTITY_TRANSACTIONS,
-          null, 560,
-          'StatisticService', 'handleGetChargingStationConsumptionStatistics',
-          req.user);
-      }
-      // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
-      // Build filter
-      const filter = StatisticService.buildFilter(filteredRequest, req.user);
-      // Get Stats
-      const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
-        req.user.tenantID, filter, Constants.STATS_GROUP_BY_CONSUMPTION);
-      // Convert
-      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'C');
-      // Return
-      res.json(transactions);
       next();
     } catch (error) {
       // Log
@@ -200,8 +268,11 @@ export default class StatisticService {
         case 'Usage':
           groupBy = Constants.STATS_GROUP_BY_USAGE;
           break;
+        case 'Inactivity':
+          groupBy = Constants.STATS_GROUP_BY_INACTIVITY;
+          break;
         default:
-          groupBy = Constants.STATS_GROUP_BY_USAGE;
+          groupBy = Constants.STATS_GROUP_BY_CONSUMPTION;
       }
       let method: string;
       if (filteredRequest.DataCategory === 'C') {
@@ -217,20 +288,20 @@ export default class StatisticService {
       const filename = 'export' + filteredRequest.DataType + 'Statistics.csv';
       fs.writeFile(filename, StatisticService.convertToCSV(transactionStatsMDB, filteredRequest.DataCategory,
         filteredRequest.DataType, filteredRequest.Year, filteredRequest.DataScope), (createError) => {
-        if (createError) {
-          throw createError;
-        }
-        res.download(filename, (downloadError) => {
-          if (downloadError) {
-            throw downloadError;
+          if (createError) {
+            throw createError;
           }
-          fs.unlink(filename, (unlinkError) => {
-            if (unlinkError) {
-              throw unlinkError;
+          res.download(filename, (downloadError) => {
+            if (downloadError) {
+              throw downloadError;
             }
+            fs.unlink(filename, (unlinkError) => {
+              if (unlinkError) {
+                throw unlinkError;
+              }
+            });
           });
         });
-      });
     } catch (error) {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
@@ -264,10 +335,10 @@ export default class StatisticService {
       filter.chargeBoxID = filteredRequest.ChargeBoxID;
     }
     // User
-    if (Authorizations.isBasic(loggedUser)) {
+    if (Authorizations.isBasic(loggedUser.role)) {
       // Only for current user
       filter.userID = loggedUser.id;
-    } else if (!Authorizations.isBasic(loggedUser) && filteredRequest.UserID) {
+    } else if (!Authorizations.isBasic(loggedUser.role) && filteredRequest.UserID) {
       filter.userID = filteredRequest.UserID;
     }
     return filter;
@@ -304,15 +375,13 @@ export default class StatisticService {
     return transactions;
   }
 
-  static convertToCSV(transactionStatsMDB: any[], dataCategory, dataType, year, dataScope?) {
-    let csv: string;
-    let index: number;
-    let transaction: any;
-    const transactions = [];
-    let unknownUser = Utils.buildUserFullName(transaction, false, false, true);
+  static convertToCSV(transactionStatsMDB: any[], dataCategory: string, dataType: string, year: number | string, dataScope?: string) {
+    let user: any;
+    let unknownUser = Utils.buildUserFullName(user, false, false, true);
     if (!unknownUser) {
       unknownUser = 'Unknown';
     }
+    let csv: string;
     if (dataCategory === 'C') {
       csv = 'chargeBoxId,';
     } else {
@@ -331,9 +400,15 @@ export default class StatisticService {
       case 'Usage':
         csv += 'usageHours\r\n';
         break;
+      case 'Inactivity':
+        csv += 'inactivityHours\r\n';
+        break;
       default:
         return csv;
     }
+    let index: number;
+    let transaction: any;
+    const transactions = [];
     if (transactionStatsMDB && transactionStatsMDB.length > 0) {
       for (const transactionStatMDB of transactionStatsMDB) {
         transaction = transactionStatMDB;
@@ -372,13 +447,17 @@ export default class StatisticService {
           transactions.push(transaction);
         }
       }
-
+      let number: number;
       for (transaction of transactions) {
         csv += (dataCategory === 'C') ? `${transaction._id.chargeBox},` :
           `${transaction.user.name},${transaction.user.firstName},`;
         csv += (year && year !== '0') ? `${year},` : '';
         csv += (transaction._id.month > 0) ? `${transaction._id.month},` : '';
-        csv += `${Math.round(transaction.total * 100) / 100}\r\n`;
+        number = Math.round(transaction.total * 100) / 100;
+        // Use raw numbers - it makes no sense to format numbers here,
+        // anyway only locale 'en-US' is supported here as could be seen by:
+        // const supportedLocales = Intl.NumberFormat.supportedLocalesOf(['fr-FR', 'en-US', 'de-DE']);
+        csv += number + '\r\n';
       }
     }
     return csv;
