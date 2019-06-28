@@ -1,5 +1,7 @@
+import Site from "./Site";
+
 export default interface SiteUser {
-    userID: string;
-    siteID: string;
-    siteAdmin: boolean;
+  site: Site;
+  userID: string;
+  siteAdmin: boolean;
 }

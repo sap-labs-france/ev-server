@@ -321,7 +321,7 @@ export default class AuthService {
         // Nbr trials OK: Check user
         await AuthService.checkUserLogin(action, user, filteredRequest, req, res, next);
       }
-    } catch (err) {console.log(err);
+    } catch (err) {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next, (!tenantID ? Constants.DEFAULT_TENANT : tenantID));
     }
@@ -408,7 +408,9 @@ export default class AuthService {
       // Set BadgeID (eg.: 'SF20170131')
       newUser.setTagIDs([newUser.getName()[0] + newUser.getFirstName()[0] + Utils.getRandomInt()]);
       // Assign user to all sites
-      const sites = await SiteStorage.getSites(tenantID, { withAutoUserAssignment: true });
+      const sites = await SiteStorage.getSites(tenantID,
+        { withAutoUserAssignment: true },
+        { limit: Constants.NO_LIMIT, skip: 0 });
       // Set
       newUser.setSites(sites.result);
       // Get EULA

@@ -4,12 +4,12 @@ import ChargingStation from '../../entity/ChargingStation';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
-import TSGlobal from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Site from '../../types/Site';
 import SiteArea from '../../types/SiteArea';
 import global from '../../types/GlobalType';
 import Utils from '../../utils/Utils';
+
 export default class SiteAreaStorage {
 
   public static async getSiteAreaImage(tenantID: string, id: string): Promise<{id: string; image: string}> {
@@ -70,7 +70,8 @@ export default class SiteAreaStorage {
     if (siteAreaToSave.maximumPower) {
       siteAreaMDB.maximumPower = siteAreaToSave.maximumPower;
     }
-    DatabaseUtils.optionalMongoCreatedPropsCopy(siteAreaMDB, siteAreaToSave);
+    // Add Last Changed/Created props
+    DatabaseUtils.mongoConvertLastChangedCreatedProps(siteAreaMDB, siteAreaToSave);
 
     // Modify
     const result = await global.database.getCollection<SiteArea>(tenantID, 'siteareas').findOneAndUpdate(
@@ -92,7 +93,6 @@ export default class SiteAreaStorage {
 
     // Debug
     Logging.traceEnd('SiteAreaStorage', 'saveSiteArea', uniqueTimerID, { siteAreaToSave });
-
     return siteAreaMDB._id.toHexString();
   }
 
@@ -178,7 +178,7 @@ export default class SiteAreaStorage {
         }
       });
     }
-    
+
     aggregation.push({$addFields: {id: '$_id'}});
 
     // Add site area image
@@ -233,7 +233,7 @@ export default class SiteAreaStorage {
       $limit: limit
     });
     // Read DB
-    const incompleteSiteAreas = await global.database.getCollection<Omit<SiteArea, 'chargingStations'|'site'>&{chargingStations: any; site: Site}>(tenantID, 'siteareas')
+    const incompleteSiteAreas = await global.database.getCollection<any>(tenantID, 'siteareas')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
 

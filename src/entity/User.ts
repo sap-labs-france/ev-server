@@ -414,9 +414,9 @@ export default class User extends TenantHolder {
   }
 
   async getSites(): Promise<Site[]> {
-    const sites = await SiteStorage.getSites(this.getTenantID(), {
-      'userID': this.getID()
-    });
+    const sites = await SiteStorage.getSites(this.getTenantID(),
+      { userID: this.getID() },
+      { limit: Constants.NO_LIMIT, skip: 0 });
     return sites.result;
   }
 

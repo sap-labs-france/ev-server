@@ -9,8 +9,7 @@ import Logging from '../../utils/Logging';
 import fs from 'fs';
 import global from '../../types/GlobalType';
 import User from '../../entity/User';
-import Site from '../../types/Site';
-import UserSiteWrapper from '../../types/UserSiteWrapper';
+import SiteUser from '../../types/SiteUser';
 import Utils from '../../utils/Utils';
 
 
@@ -317,7 +316,7 @@ export default class UserStorage {
       userFilter.email = userToSave.email;
     }
     // Check Created/Last Changed By
-    DatabaseUtils.optionalMongoCreatedPropsCopy(userToSave, userToSave);
+    DatabaseUtils.mongoConvertLastChangedCreatedProps(userToSave, userToSave);
     // Transfer
     const user: any = {};
     Database.updateUser(userToSave, user, false);
@@ -780,7 +779,7 @@ export default class UserStorage {
       }
     });
     DatabaseUtils.pushBasicSiteJoinInAggregation(tenantID, aggregation, 'siteID', '_id', 'sites', ['userID', 'siteID'], 'none', true);
-  
+
     // Count Records
     const usersCountMDB = await global.database.getCollection<any>(tenantID, 'siteusers')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
@@ -813,7 +812,7 @@ export default class UserStorage {
     // Create
     for (const siteuserMDB of siteusersMDB) {
       if (siteuserMDB.sites) {
-        const usersitewrapper: UserSiteWrapper = {siteAdmin: siteuserMDB.siteAdmin, userID: siteuserMDB.userID, site: siteuserMDB.sites};
+        const usersitewrapper: SiteUser = {siteAdmin: siteuserMDB.siteAdmin, userID: siteuserMDB.userID, site: siteuserMDB.sites};
         sites.push(usersitewrapper);
       }
     }//TODO This might be flawed, check thoroughly

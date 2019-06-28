@@ -143,8 +143,8 @@ export default class DatabaseUtils {
   }
 
   public static pushBasicSiteJoinInAggregation(tenantID: string, aggregation: any[], local: string, foreign: string, as: string, includes: string[], topCreatedProps: 'none'|'manual'|'include', single: boolean) {
-    this.pushTransformedJoinInAggregation(tenantID, aggregation, 'sites', local, foreign, as, includes, {}, 
-      ['name', 'address', 'companyID', 'allowAllUsersToStopTransactions', 'autoUserSiteAssignment'], 
+    this.pushTransformedJoinInAggregation(tenantID, aggregation, 'sites', local, foreign, as, includes, {},
+      ['name', 'address', 'companyID', 'allowAllUsersToStopTransactions', 'autoUserSiteAssignment'],
       {companyID: {$toString: `$${as}.companyID`}}, topCreatedProps, true, single);
   }
 
@@ -164,7 +164,7 @@ export default class DatabaseUtils {
       foreignField: foreign,
       as: intoField
     } };
-    const project = { $project: { 
+    const project = { $project: {
       ...topRenames } };
     const group = { $group: { _id: '$_id' } };
     for (const top of topIncludes) {
@@ -206,7 +206,7 @@ export default class DatabaseUtils {
   }
 
   //Temporary hack to fix user Id saving. fix all this when user is typed...
-  public static safeMongoUserId(obj: any, prop: string): ObjectID|null {
+  public static mongoConvertUserID(obj: any, prop: string): ObjectID|null {
     if(!obj || !obj[prop]) {
       return null;
     }
@@ -220,13 +220,13 @@ export default class DatabaseUtils {
   }
 
   //TODO: Can probably be removed once user gets typed. For now use as shortcut.
-  public static optionalMongoCreatedPropsCopy(dest: any, entity: any){
+  public static mongoConvertLastChangedCreatedProps(dest: any, entity: any){
     if(entity.createdBy && entity.createdOn) {
-      dest.createdBy = this.safeMongoUserId(entity, 'createdBy');
+      dest.createdBy = this.mongoConvertUserID(entity, 'createdBy');
       dest.createdOn = entity.createdOn;
     }
     if(entity.lastChangedBy && entity.lastChangedOn) {
-      dest.lastChangedBy = this.safeMongoUserId(entity, 'lastChangedBy');
+      dest.lastChangedBy = this.mongoConvertUserID(entity, 'lastChangedBy');
       dest.lastChangedOn = entity.lastChangedOn;
     }
   }

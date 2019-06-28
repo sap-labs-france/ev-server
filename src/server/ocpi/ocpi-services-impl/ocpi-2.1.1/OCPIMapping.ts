@@ -92,7 +92,7 @@ export default class OCPIMapping {
     const result: any = { count: 0, locations: [] };
 
     // Get all sites
-    const sites = await SiteStorage.getSites(tenant.getID(), {}, limit, skip, null); //GOHERE
+    const sites = await SiteStorage.getSites(tenant.getID(), {}, { limit, skip }); //GOHERE
 
     // Convert Sites to Locations
     for (const site of sites.result) {

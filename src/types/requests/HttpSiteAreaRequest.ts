@@ -1,7 +1,7 @@
 import HttpDatabaseRequest from './HttpDatabaseRequest';
+import HttpByIDRequest from './HttpByIDRequest';
 
-export interface HttpSiteAreaRequest {
-  ID: string;
+export interface HttpSiteAreaRequest extends HttpByIDRequest {
   WithSite?: boolean;
   WithChargeBoxes?: boolean;
 }

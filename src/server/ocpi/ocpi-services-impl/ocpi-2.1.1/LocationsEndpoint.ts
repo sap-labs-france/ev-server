@@ -129,7 +129,7 @@ const RECORDS_LIMIT = 20;
     const result = { count: 0, locations: [] };
 
     // Get all sites
-    const sites = await SiteStorage.getSites(tenant.getID(), {}, limit, skip, null);
+    const sites = await SiteStorage.getSites(tenant.getID(), {}, { limit, skip });
 
     // Convert Sites to Locations
     for (const site of sites.result) {

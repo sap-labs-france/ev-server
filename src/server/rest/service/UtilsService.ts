@@ -41,10 +41,9 @@ export default class UtilsService {
   }
 
   public static async assertComponentIsActive(tenantID: string, component: string, action: string, entity: string, module: string, method: string) {
-    // Get the tenant
     let active = false;
+    // Get the tenant
     const tenant = await Tenant.getTenant(tenantID);
-
     // Check
     if (tenant) {
       active = tenant.isComponentActive(component);

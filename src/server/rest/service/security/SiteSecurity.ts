@@ -3,86 +3,42 @@ import Authorizations from '../../../../authorization/Authorizations';
 import CompanySecurity from './CompanySecurity';
 import SiteAreaSecurity from './SiteAreaSecurity';
 import UserSecurity from './UserSecurity';
-import { HttpSiteUserAssignmentRequest, HttpSiteUserRoleChangeRequest, HttpSiteRequest, HttpSitesRequest, HttpSiteUsersRequest } from '../../../../types/requests/HttpSiteUserRequest';
-import AppError from '../../../../exception/AppError';
-import Constants from '../../../../utils/Constants';
+import { HttpSiteAssignUsersRequest, HttpSitesRequest, HttpSiteUsersRequest, HttpSiteUserAdminRequest, HttpSiteRequest } from '../../../../types/requests/HttpSiteRequest';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import AppAuthError from '../../../../exception/AppAuthError';
 import Site from '../../../../types/Site';
-import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
 
 export default class SiteSecurity {
 
-  public static filterUpdateSiteUsersRoleRequest(request: Partial<HttpSiteUserRoleChangeRequest>, userToken): HttpSiteUserRoleChangeRequest {
-    if (!request.siteAdmin) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Must provide whether is admin or not`, 500,
-        'SiteSecurity', 'filterUpdateSiteUsersRoleRequest', userToken);
+  public static filterUpdateSiteUserAdminRequest(request: Partial<HttpSiteUserAdminRequest>): HttpSiteUserAdminRequest {
+    const filteredRequest: HttpSiteUserAdminRequest = {
+      siteID: sanitize(request.siteID),
+      userID: sanitize(request.userID)
+    } as HttpSiteUserAdminRequest;
+    if ('siteAdmin' in request) {
+      filteredRequest.siteAdmin = UtilsSecurity.filterBoolean(request.siteAdmin);
     }
-    if(!request.siteID){
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Site's ID must be provided`, 500,
-        'SiteSecurity', 'filterUpdateSiteUsersRoleRequest', userToken);
-    }
-    if(!request.userID){
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The User's ID must be provided`, 500,
-        'SiteSecurity', 'filterUpdateSiteUsersRoleRequest', userToken);
-    }
-
-    
-    return {siteAdmin: sanitize(request.siteAdmin), userID: sanitize(request.userID), siteID: sanitize(request.siteID)};
+    return filteredRequest;
   }
 
-  public static filterAssignSiteUsers(request: Partial<HttpSiteUserAssignmentRequest>, userToken): HttpSiteUserAssignmentRequest {
-    if (!Authorizations.canUpdateSite(userToken)) {
-      throw new AppAuthError(
-        Constants.ACTION_UPDATE,
-        Constants.ENTITY_SITE,
-        request.siteID,
-        Constants.HTTP_AUTH_ERROR,
-        'SiteService', 'handleRemoveUsersFromSite',
-        userToken);
-    }
-    if (!request.siteID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Site's ID must be provided`, 500,
-        'SiteSecurity', 'filterAssignSiteUsers', userToken);
-    }
-    if (!request.userIDs || (request.userIDs && request.userIDs.length <= 0)) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The User's IDs must be provided`, 500,
-        'SiteScurity', 'filterAssignSiteUsers', userToken);
-    }
-    const filteredRequest: HttpSiteUserAssignmentRequest = {} as HttpSiteUserAssignmentRequest;
-    filteredRequest.siteID = sanitize(request.siteID);
+  public static filterAssignSiteUsers(request: Partial<HttpSiteAssignUsersRequest>): HttpSiteAssignUsersRequest {
+    const filteredRequest: HttpSiteAssignUsersRequest = {
+      siteID: sanitize(request.siteID)
+    } as HttpSiteAssignUsersRequest;
     filteredRequest.userIDs = request.userIDs.map((userID) => {
       return sanitize(userID);
     });
     return filteredRequest;
   }
 
-  public static filterSiteDeleteRequest(request: Partial<HttpByIDRequest>, userToken): string {
-    if (!Authorizations.canDeleteSite(userToken)) {
-      throw new AppAuthError(
-        Constants.ACTION_DELETE,
-        Constants.ENTITY_SITE,
-        request.ID,
-        Constants.HTTP_AUTH_ERROR,
-        'SiteService', 'handleDeleteSite',
-        userToken);
-    }
-    return this.filterSiteRequest(request);
+  public static filterSiteRequest(request: HttpByIDRequest): HttpSiteRequest {
+    return {
+      ID: sanitize(request.ID)
+    };
   }
 
-  public static filterSiteRequest(request: Partial<HttpByIDRequest>): string {
-    return request.ID?sanitize(request.ID):null;
+  public static filterSiteRequestByID(request: HttpByIDRequest): string {
+    return sanitize(request.ID);
   }
 
   public static filterSiteUsersRequest(request: Partial<HttpSiteUsersRequest>): HttpSiteUsersRequest {
@@ -106,56 +62,27 @@ export default class SiteSecurity {
     return filteredRequest;
   }
 
-  public static filterSiteUpdateRequest(request: Partial<Site>, userToken): Partial<Site> {
-    if (!request.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Site ID is mandatory`, Constants.HTTP_GENERAL_ERROR,
-        'Site', 'checkIfSiteValid',
-        userToken.id);
-    }
-    if (!request.name) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Site Name is mandatory`, Constants.HTTP_GENERAL_ERROR,
-        'Site', 'checkIfSiteValid',
-        userToken.id, request.id);
-    }
-    if (!request.companyID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Company ID is mandatory for the Site`, Constants.HTTP_GENERAL_ERROR,
-        'Sites', 'checkIfSiteValid',
-        userToken.id, request.id);
-    }    
-    const filteredRequest = SiteSecurity._filterSiteRequest<Partial<Site>>(request, userToken);
+  public static filterSiteUpdateRequest(request: Partial<Site>): Partial<Site> {
+    const filteredRequest = SiteSecurity._filterSiteRequest(request);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  public static filterSiteCreateRequest(request: Optional<Site, 'id'>, userToken): Optional<Site, 'id'> {
-    if (!request.name) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Site Name is mandatory`, Constants.HTTP_GENERAL_ERROR,
-        'Site', 'checkIfSiteValid',
-        userToken.id, request.id);
-    }
-    if (!request.companyID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Company ID is mandatory for the Site`, Constants.HTTP_GENERAL_ERROR,
-        'Sites', 'checkIfSiteValid',
-        userToken.id, request.id);
-    }
-    return SiteSecurity._filterSiteRequest<Optional<Site, 'id'>>(request, userToken);
+  public static filterSiteCreateRequest(request: Partial<Site>): Partial<Site> {
+    return SiteSecurity._filterSiteRequest(request);
   }
 
-  public static _filterSiteRequest<K extends Partial<Site>>(request: K, userToken): K {
-    const filtered: K = {} as K;
-    Utils.conditionalCopies(request, filtered, ['name', 'address', 'image', 'companyID'], [sanitize]);
-    Utils.conditionalCopies(request, filtered, ['allowAllUsersToStopTransactions', 'autoUserSiteAssignment'], [UtilsSecurity.filterBoolean]);
-    return filtered;
+  public static _filterSiteRequest(request: Partial<Site>): Partial<Site> {
+    const filteredRequest: any = {};
+    filteredRequest.name = sanitize(request.name);
+    filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address);
+    filteredRequest.image = sanitize(request.image);
+    filteredRequest.allowAllUsersToStopTransactions =
+      UtilsSecurity.filterBoolean(request.allowAllUsersToStopTransactions);
+    filteredRequest.autoUserSiteAssignment =
+      UtilsSecurity.filterBoolean(request.autoUserSiteAssignment);
+    filteredRequest.companyID = sanitize(request.companyID);
+    return filteredRequest;
   }
 
   static filterSiteResponse(site, loggedUser) {
@@ -223,9 +150,7 @@ export default class SiteSecurity {
     for (const site of sites.result) {
       // Filter
       const filteredSite = SiteSecurity.filterSiteResponse(site, loggedUser);
-      // Ok?
       if (filteredSite) {
-        // Add
         filteredSites.push(filteredSite);
       }
     }

@@ -24,45 +24,54 @@ import StatisticService from './service/StatisticService';
 SourceMap.install();
 
 class RequestMapper {
-  
+
   private paths = new Map<string, number>();
   private actions = new Array<Function>();
   private static instances = new Map<string, RequestMapper>();
 
-  private constructor(method: string){
-    switch(method) {
+  private constructor(httpVerb: string) {
+    switch(httpVerb) {
+      // Create
       case 'POST':
-        this.registerRequest((action: string, req: Request, res: Response, next: NextFunction)=>{
-          action = action.slice(15);
-          ChargingStationService.handleActionSetMaxIntensitySocket(action, req, res, next);
-        }, 'ChargingStationSetMaxIntensitySocket');
-        this.registerRequest((action: string, req: Request, res: Response, next: NextFunction)=>{
-           // Keep the action (remove ChargingStation)
-           action = action.slice(15);
-           // TODO: To Remove
-           // Hack for mobile app not sending the RemoteStopTransaction yet
-           if (action === "StartTransaction") {
-             action = "RemoteStartTransaction";
-           }
-           if (action === "StopTransaction") {
-             action = "RemoteStopTransaction";
-           }
-           // Delegate
-           ChargingStationService.handleAction(action, req, res, next);
-        },  "ChargingStationClearCache", 
-            "ChargingStationGetConfiguration", 
-            "ChargingStationChangeConfiguration", 
-            "ChargingStationStopTransaction", 
-            "ChargingStationStartTransaction", 
-            "ChargingStationUnlockConnector", 
-            "ChargingStationReset", 
-            "ChargingStationSetChargingProfile", 
-            "ChargingStationGetCompositeSchedule", 
-            "ChargingStationClearChargingProfile", 
-            "ChargingStationGetDiagnostics", 
-            "ChargingStationChangeAvailability", 
-            "ChargingStationUpdateFirmware")
-        this.registerRequests1To1Shortcut({
+        // Register Charging Stations actions
+        this.registerOneActionManyPaths(
+          (action: string, req: Request, res: Response, next: NextFunction) => {
+            action = action.slice(15);
+            ChargingStationService.handleActionSetMaxIntensitySocket(action, req, res, next);
+          },
+          'ChargingStationSetMaxIntensitySocket'
+        );
+        this.registerOneActionManyPaths(
+          (action: string, req: Request, res: Response, next: NextFunction) => {
+            // Keep the action (remove ChargingStation)
+            action = action.slice(15);
+            // TODO: To Remove
+            // Hack for mobile app not sending the RemoteStopTransaction yet
+            if (action === "StartTransaction") {
+              action = "RemoteStartTransaction";
+            }
+            if (action === "StopTransaction") {
+              action = "RemoteStopTransaction";
+            }
+            // Delegate
+            ChargingStationService.handleAction(action, req, res, next);
+          },
+          "ChargingStationClearCache",
+          "ChargingStationGetConfiguration",
+          "ChargingStationChangeConfiguration",
+          "ChargingStationStopTransaction",
+          "ChargingStationStartTransaction",
+          "ChargingStationUnlockConnector",
+          "ChargingStationReset",
+          "ChargingStationSetChargingProfile",
+          "ChargingStationGetCompositeSchedule",
+          "ChargingStationClearChargingProfile",
+          "ChargingStationGetDiagnostics",
+          "ChargingStationChangeAvailability",
+          "ChargingStationUpdateFirmware"
+        );
+        // Register REST actions
+        this.registerJsonActionsPaths({
           AddChargingStationsToSiteArea: ChargingStationService.handleAddChargingStationsToSiteArea,
           RemoveChargingStationsFromSiteArea: ChargingStationService.handleRemoveChargingStationsFromSiteArea,
           UserCreate: UserService.handleCreateUser,
@@ -85,10 +94,14 @@ class RequestMapper {
           IntegrationConnectionCreate: ConnectorService.handleCreateConnection,
           _default: UtilsService.handleUnknownAction
         });
+
+      // Read
       case 'GET':
-        this.registerRequests1To1Shortcut({
+        // Register REST actions
+        this.registerJsonActionsPaths({
           Pricing: PricingService.handleGetPricing,
           Loggings: LoggingService.handleGetLoggings,
+          Logging: LoggingService.handleGetLogging,
           LoggingsExport: LoggingService.handleGetLoggingsExport,
           ChargingStations: ChargingStationService.handleGetChargingStations,
           ChargingStationsExport: ChargingStationService.handleGetChargingStationsExport,
@@ -148,8 +161,11 @@ class RequestMapper {
           _default: UtilsService.handleUnknownAction,
           Ping: (action: string, req: Request, res: Response, next: NextFunction) => res.sendStatus(200)
         });
+
+      // Update
       case 'PUT':
-        this.registerRequests1To1Shortcut({
+        // Register REST actions
+        this.registerJsonActionsPaths({
           PricingUpdate: PricingService.handleUpdatePricing,
           UserUpdate: UserService.handleUpdateUser,
           ChargingStationUpdateParams: ChargingStationService.handleUpdateChargingStationParams,
@@ -166,8 +182,11 @@ class RequestMapper {
           OcpiEndpointRegister: OCPIEndpointService.handleRegisterOcpiEndpoint,
           _default: UtilsService.handleUnknownAction
         });
+
+      // Delete
       case 'DELETE':
-        this.registerRequests1To1Shortcut({
+        // Register REST actions
+        this.registerJsonActionsPaths({
           UserDelete: UserService.handleDeleteUser,
           TenantDelete: TenantService.handleDeleteTenant,
           SiteDelete: SiteService.handleDeleteSite,
@@ -185,34 +204,32 @@ class RequestMapper {
     }
   }
 
-  public static instance(method: string): RequestMapper {
+  public static getInstanceFromHTTPVerb(method: string): RequestMapper {
     if(! this.instances.has(method)) {
       this.instances.set(method, new RequestMapper(method));
     }
     return this.instances.get(method);
   }
 
-  public registerRequest(action: Function, ...paths: string[]) {
+  public registerOneActionManyPaths(action: Function, ...paths: string[]) {
     let index = this.actions.push(action) - 1;
-    for(let path of paths) {
+    for(const path of paths) {
       this.paths.set(path, index);
     }
   }
 
-  public registerRequests1To1Shortcut(dict: any) {
+  public registerJsonActionsPaths(dict: any) {
     for(let key in dict) {
-      this.registerRequest(dict[key], key);
+      this.registerOneActionManyPaths(dict[key], key);
     }
   }
 
-  public getAction(path: string): Function {
+  public getActionFromPath(path: string): Function {
     if(!this.paths.has(path)){
       path = '_default';
     }
     return this.actions[this.paths.get(path)];
   }
-
-  //TODO: no static servics; instantiate them & let them register their own actions
 }
 
 export default {
@@ -238,23 +255,26 @@ export default {
 
   async restServiceSecured(req, res, next) {
     // Parse the action
-    let action = /^\/\w*/g.exec(req.url)[0].substring(1);
+    const action = /^\/\w*/g.exec(req.url)[0].substring(1);
 
     // Check if User has been updated and require new login
     if (await SessionHashService.isSessionHashUpdated(req, res, next)) {
       return;
     }
+
+    // Check HTTP Verbs
     if(! ['POST', 'GET', 'PUT', 'DELETE'].includes(req.method)){
       Logging.logActionExceptionMessageAndSendResponse(
         "N/A", new Error(`Unsupported request method ${req.method}`), req, res, next);
       return;
     }
 
-    try{
-      console.log(req.method + ' ' + action);
-      await RequestMapper.instance(req.method).getAction(action)(action, req, res, next); //TODO
-    
-    }catch(error){
+    try {
+      // Get the action
+      const handleRequest = RequestMapper.getInstanceFromHTTPVerb(req.method).getActionFromPath(action);
+      // Execute
+      await handleRequest(action, req, res, next);
+    } catch(error){
       // Log
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
