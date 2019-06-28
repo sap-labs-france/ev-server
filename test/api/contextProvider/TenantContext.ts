@@ -125,19 +125,19 @@ export default class TenantContext {
           return userList.id === user.id;
         });
         if (user.hasOwnProperty(key)) {
-          if (conditionMet !== null) {
+          if (conditionMet) {
             conditionMet = conditionMet && user[key] === params[key];
           } else {
             conditionMet = user[key] === params[key];
           }
         } else if (key === 'assignedToSite') {
-          if (conditionMet !== null) {
+          if (conditionMet) {
             conditionMet = conditionMet && (userContextDef ? params[key] === userContextDef.assignedToSite : false);
           } else {
             conditionMet = (userContextDef ? params[key] === userContextDef.assignedToSite : false);
           }
         } else if (key === 'withTagIDs') {
-          if (conditionMet !== null) {
+          if (conditionMet) {
             conditionMet = conditionMet && (params[key] ? user.hasOwnProperty('tagIDs') && Array.isArray(user.tagIDs) && user.tagIDs.length > 0 :
               (user.hasOwnProperty('tagIDs') ? user.tagIDs.length === 0 : true));
           } else {
