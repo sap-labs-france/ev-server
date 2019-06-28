@@ -132,7 +132,7 @@ export default class ContextProvider {
     const siteContext = new SiteContext({ id: 1, name: CONTEXTS.SITE_CONTEXTS.NO_SITE }, newTenantContext);
     const emptySiteAreaContext = siteContext.addSiteArea({ id: 1, name: CONTEXTS.SITE_AREA_CONTEXTS.NO_SITE });
     const chargingStations = chargingStationList.filter((chargingStation) => {
-      return !chargingStation.siteAreaID || chargingStation.siteAreaID === null || chargingStation.siteAreaID === undefined;
+      return !chargingStation.siteAreaID;
     });
     for (const chargingStation of chargingStations) {
       emptySiteAreaContext.addChargingStation(chargingStation);
