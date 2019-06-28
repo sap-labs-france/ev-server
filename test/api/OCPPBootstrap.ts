@@ -6,12 +6,13 @@ import CentralServerService from '../api/client/CentralServerService';
 import TSGlobal from '../../src/types/GlobalType';
 chai.use(chaiSubset);
 import Factory from '../factories/Factory';
+import OCPPService from './ocpp/OCPPService';
 
 declare const global: TSGlobal;
 global.appRoot = path.resolve(__dirname, '../../src');
 
 export default class OCPPBootstrap {
-  public ocpp: any;
+  public ocpp: OCPPService;
   public constructor(ocpp) {
     this.ocpp = ocpp;
   }

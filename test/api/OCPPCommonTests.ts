@@ -7,6 +7,7 @@ import CentralServerService from '../api/client/CentralServerService';
 import DataHelper from './DataHelper';
 import TSGlobal from '../../src/types/GlobalType';
 import OCPPBootstrap from './OCPPBootstrap';
+import OCPPService from './ocpp/OCPPService';
 
 declare const global: TSGlobal;
 global.appRoot = path.resolve(__dirname, '../../src');
@@ -15,8 +16,8 @@ chai.use(chaiSubset);
 
 export default class OCPPCommonTests {
 
-  public ocpp: any;
-  public bootstrap: any;
+  public ocpp: OCPPService;
+  public bootstrap: OCPPBootstrap;
   public priceKWH = 1;
   public context: any;
   public chargingStationConnector1: any;

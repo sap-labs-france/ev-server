@@ -137,7 +137,7 @@ export default class OCPPSoapService15 extends OCPPService {
       // Create the Promise
       this.client = await new Promise(function(resolve, reject) {
         // Create the client
-        soap.soap.createClient('test/api/ocpp/soap/OCPPCentralSystemService1.5.wsdl', options, (err, client) => {
+        soap.soap.createClient('src/assets/server/ocpp/OCPPCentralSystemService15.wsdl', options, (err, client) => {
           if (err) {
             reject(err);
           } else {
