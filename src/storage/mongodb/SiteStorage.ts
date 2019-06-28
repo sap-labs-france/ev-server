@@ -124,9 +124,9 @@ export default class SiteStorage {
       }
     });
     // Single Record
-    //aggregation.push({
-    //  $unwind: { "path": "$user", "preserveNullAndEmptyArrays": true }
-    //});
+    aggregation.push({
+      $unwind: { "path": "$user", "preserveNullAndEmptyArrays": true }
+    });
     // Filter deleted users
     aggregation.push({
       $match: {
@@ -184,7 +184,7 @@ export default class SiteStorage {
 
     // Debug
     Logging.traceEnd('SiteStorage', 'getUsers', uniqueTimerID, { siteID: siteID });
-
+    console.log(users);
     // Ok
     return {
       count: (usersCountMDB.length > 0 ?
