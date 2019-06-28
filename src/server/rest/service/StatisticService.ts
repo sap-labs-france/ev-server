@@ -1,14 +1,13 @@
-import fs from 'fs';
-import moment from 'moment';
 import AppAuthError from '../../../exception/AppAuthError';
-import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import StatisticsStorage from '../../../storage/mongodb/StatisticsStorage';
 import StatisticSecurity from './security/StatisticSecurity';
+import StatisticsStorage from '../../../storage/mongodb/StatisticsStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
+import fs from 'fs';
+import moment from 'moment';
 
 export default class StatisticService {
   static async handleGetChargingStationConsumptionStatistics(action, req, res, next) {
@@ -35,7 +34,7 @@ export default class StatisticService {
       const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
         req.user.tenantID, filter, Constants.STATS_GROUP_BY_CONSUMPTION);
       // Convert
-      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
+      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'C');
       // Return
       res.json(transactions);
       next();
@@ -69,7 +68,7 @@ export default class StatisticService {
       const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
         req.user.tenantID, filter, Constants.STATS_GROUP_BY_USAGE);
       // Convert
-      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
+      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'C');
       // Return
       res.json(transactions);
       next();
@@ -377,15 +376,12 @@ export default class StatisticService {
   }
 
   static convertToCSV(transactionStatsMDB: any[], dataCategory: string, dataType: string, year: number | string, dataScope?: string) {
-    let csv: string;
-    let index: number;
-    let number: number;
-    let transaction: any;
-    const transactions = [];
-    let unknownUser = Utils.buildUserFullName(undefined, false, false, true);
+    let user: any;
+    let unknownUser = Utils.buildUserFullName(user, false, false, true);
     if (!unknownUser) {
       unknownUser = 'Unknown';
     }
+    let csv: string;
     if (dataCategory === 'C') {
       csv = 'chargeBoxId,';
     } else {
@@ -410,6 +406,9 @@ export default class StatisticService {
       default:
         return csv;
     }
+    let index: number;
+    let transaction: any;
+    const transactions = [];
     if (transactionStatsMDB && transactionStatsMDB.length > 0) {
       for (const transactionStatMDB of transactionStatsMDB) {
         transaction = transactionStatMDB;
@@ -448,18 +447,16 @@ export default class StatisticService {
           transactions.push(transaction);
         }
       }
-
-      // At the moment only locale = 'en-US' is supported here, proven by:
-      const supportedLocales = Intl.NumberFormat.supportedLocalesOf(['fr-FR', 'en-US']);
-      // It makes no sense to format numbers (with toLocaleString or Intl.NumberFormat) for output
-
+      let number: number;
       for (transaction of transactions) {
         csv += (dataCategory === 'C') ? `${transaction._id.chargeBox},` :
           `${transaction.user.name},${transaction.user.firstName},`;
         csv += (year && year !== '0') ? `${year},` : '';
         csv += (transaction._id.month > 0) ? `${transaction._id.month},` : '';
         number = Math.round(transaction.total * 100) / 100;
-        // Use raw numbers
+        // Use raw numbers - it makes no sense to format numbers here,
+        // anyway only locale 'en-US' is supported here as could be seen by:
+        // const supportedLocales = Intl.NumberFormat.supportedLocalesOf(['fr-FR', 'en-US', 'de-DE']);
         csv += number + '\r\n';
       }
     }
