@@ -151,6 +151,9 @@ const RECORDS_LIMIT = 20;
   async getLocation(tenant, locationId) {
     // Get site
     const site = await SiteStorage.getSite(tenant.getID(), locationId);
+    if(!site) {
+      return null;
+    }
 
     // Convert
     return await OCPIMapping.convertSite2Location(tenant, site);

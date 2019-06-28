@@ -1,7 +1,7 @@
 import CentralServerService from '../client/CentralServerService';
 import Factory from '../../factories/Factory';
 import TenantFactory from '../../factories/TenantFactory';
-import UserFactory from '../../factories/UserFactory';
+import UserFactory, { build } from '../../factories/UserFactory';
 import CONTEXTS from './ContextConstants';
 import User from '../../../src/entity/User';
 import Company from '../../../src/types/Company';
@@ -20,6 +20,7 @@ import Constants from '../../../src/utils/Constants';
 // import * as mongo from 'mongodb';
  import global from'../../../src/types/GlobalType';
 import moment from 'moment';
+import Site from '../../../src/types/Site';
 
 // declare module 'mongodb' {
 //   interface Db {
@@ -238,7 +239,7 @@ export default class ContextBuilder {
       }
       // Build sites/sitearea according to tenant definition
       for (const siteContextDef of CONTEXTS.TENANT_SITE_LIST) {
-        let site = null;
+        let site: Site = null;
         // Create site
         const siteTemplate = Factory.site.build({
           companyID: siteContextDef.companyID,
@@ -249,7 +250,7 @@ export default class ContextBuilder {
         siteTemplate.autoUserSiteAssignment = siteContextDef.autoUserSiteAssignment;
         siteTemplate.id = siteContextDef.id;
         site = siteTemplate;
-        site = (await site.save()).getModel();
+        site.id = await SiteStorage.saveSite(buildTenant.id, siteTemplate, true);
         await SiteStorage.addUsersToSite(buildTenant.id, site.id, userListToAssign.map(user => user.id));
         const siteContext = new SiteContext(site, newTenantContext);
         newTenantContext.addSiteContext(siteContext);

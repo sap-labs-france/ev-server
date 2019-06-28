@@ -19,6 +19,7 @@ import AuthSecurity from './security/AuthSecurity';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import SessionHashService from './SessionHashService';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
+import SiteArea from '../../../types/SiteArea';
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
@@ -151,8 +152,8 @@ export default class AuthService {
     // Check if organization component is active
     const tenant = await Tenant.getTenant(tenantID);
     const isOrganizationComponentActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
-    let siteArea;
-    let site;
+    let siteArea: SiteArea;
+    let site: Site;
     if (isOrganizationComponentActive) {
       // Get charging station site
       // Site Area -----------------------------------------------
@@ -169,12 +170,12 @@ export default class AuthService {
         }
 
         // Site -----------------------------------------------------
-        site = await siteArea.getSite();
+        site = await siteArea.site;
         if (!site) {
           // Reject Site Not Found
           throw new AppError(
             chargingStation.getID(),
-            `Site Area '${siteArea.getName()}' is not assigned to a Site!`,
+            `Site Area '${siteArea.name}' is not assigned to a Site!`,
             Constants.HTTP_AUTH_SITE_AREA_WITH_NO_SITE_ERROR,
             "AuthService", "checkConnectorsActionAuthorizations",
             user.getModel());

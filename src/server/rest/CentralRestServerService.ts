@@ -65,7 +65,7 @@ class RequestMapper {
         this.registerRequests1To1Shortcut({
           AddChargingStationsToSiteArea: ChargingStationService.handleAddChargingStationsToSiteArea,
           RemoveChargingStationsFromSiteArea: ChargingStationService.handleRemoveChargingStationsFromSiteArea,
-          CreateUser: UserService.handleCreateUser,
+          UserCreate: UserService.handleCreateUser,
           CompanyCreate: CompanyService.handleCreateCompany,
           TenantCreate: TenantService.handleCreateTenant,
           VehicleCreate: VehicleService.handleCreateVehicle,
@@ -252,10 +252,9 @@ export default {
 
     try{
       console.log(req.method + ' ' + action);
-      RequestMapper.instance(req.method).getAction(action)(action, req, res, next); //TODO
+      await RequestMapper.instance(req.method).getAction(action)(action, req, res, next); //TODO
     
     }catch(error){
-      console.log(error);
       // Log
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }

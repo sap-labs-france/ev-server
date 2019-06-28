@@ -15,12 +15,10 @@ import CreatedUpdatedProps from '../../types/CreatedUpdatedProps';
 
 export default class SiteStorage {
 
-  public static async getSite(tenantID: string, id: string): Promise<Site> {
+  public static async getSite(tenantID: string, id: string, withAvailableChargers = false): Promise<Site> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getSite');
-
-    const sitesMDB = await SiteStorage.getSites(tenantID, {search: id}, 1, 0, null); //TODO care about whether SiteAreas are already there or not
-    
+    const sitesMDB = await SiteStorage.getSites(tenantID, {search: id, withCompany: true, withAvailableChargers}, 1, 0, null); //TODO care about whether SiteAreas are already there or not
     // Debug
     Logging.traceEnd('SiteStorage', 'getSite', uniqueTimerID, { id });
     return sitesMDB.result[0];
@@ -61,7 +59,7 @@ export default class SiteStorage {
       if (userIDs && userIDs.length > 0) {
         // Execute
         await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
-          "userID": { $in: userIDs.map(userID => Utils.convertToObjectID(userID)) },
+          "userID": { $in: userIDs.map(userID => Utils.convertToObjectID(userID)) }, //FIXME
           "siteID": Utils.convertToObjectID(siteID)
         });
       }
@@ -382,7 +380,7 @@ export default class SiteStorage {
 
     // Add Chargers
     if (params.withAvailableChargers) {
-      DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, aggregation, '_id', 'siteID', 'siteAreas', ['address', 'allowUsersToStopTransaction, autoUserSiteAssignement', 'companyID', 'name'], 'manual', false);
+      DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, aggregation, '_id', 'siteID', 'siteAreas', ['address', 'allowAllUsersToStopTransactions', 'autoUserSiteAssignement', 'companyID', 'name'], 'manual', false);
       aggregation.push({
         $lookup: {
           from: DatabaseUtils.getCollectionName(tenantID, "chargingstations"),
@@ -395,7 +393,7 @@ export default class SiteStorage {
 
     // Add Company?
     if (params.withCompany) {
-      DatabaseUtils.pushCompanyWOSWOIJoinInAggregation(tenantID, aggregation, 'companyID', '_id', 'company', ['chargeBoxes', 'address', 'allowUsersToStopTransaction, autoUserSiteAssignement', 'companyID', 'name'], 'manual');
+      DatabaseUtils.pushCompanyWOSWOIJoinInAggregation(tenantID, aggregation, 'companyID', '_id', 'company', ['chargeBoxes', 'siteAreas', 'address', 'allowAllUsersToStopTransactions', 'autoUserSiteAssignement', 'companyID', 'name'], 'manual');
     }
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
 
@@ -423,6 +421,7 @@ export default class SiteStorage {
     aggregation.push({
       $limit: limit
     });
+
     // Read DB
     const sitesMDB = await global.database.getCollection<Site&{chargeBoxes: any}>(tenantID, 'sites')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true }) //TODO change this method when typed ChargingStation...
@@ -466,6 +465,10 @@ export default class SiteStorage {
           site.availableConnectors = availableConnectors;
           site.totalConnectors = totalConnectors;
         }
+        if(!site.allowAllUsersToStopTransactions)
+          site.allowAllUsersToStopTransactions = false;
+        if(!site.autoUserSiteAssignment)
+          site.autoUserSiteAssignment = false;
         // Add
         sites.push(site);
       }
@@ -545,6 +548,21 @@ export default class SiteStorage {
     await Utils.checkTenant(tenantID);
 
     const result = await global.database.getCollection<any>(tenantID, 'sites').findOne({ _id: Utils.convertToObjectID(siteID) });
+    if (!result) {
+      return false;
+    }
+    // Debug
+    Logging.traceEnd('SiteStorage', 'deleteCompanySites', uniqueTimerID, { siteID });
+    return true;
+  }
+
+  public static async siteHasUser(tenantID: string, siteID: string, userID: string): Promise<boolean> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('SiteStorage', 'siteHasUser');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+
+    const result = await global.database.getCollection<any>(tenantID, 'siteusers').findOne({ siteID: Utils.convertToObjectID(siteID), userID: Utils.convertToObjectID(userID) });
     if (!result) {
       return false;
     }

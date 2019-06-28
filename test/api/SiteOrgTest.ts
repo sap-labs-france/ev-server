@@ -31,7 +31,7 @@ describe('Site tests', function () {
       // Create User
       testData.newUser = await CentralServerService.DefaultInstance.createEntity(
         CentralServerService.DefaultInstance.userApi, Factory.user.build());
-      expect(testData.newUser).to.not.be.null;
+        expect(testData.newUser).to.not.be.null;
     });
 
     after(async () => {

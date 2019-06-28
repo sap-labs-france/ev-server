@@ -4,6 +4,7 @@ import Site from "../../../../types/Site";
 import SourceMap from 'source-map-support';
 import SiteArea from "../../../../types/SiteArea";
 import SiteStorage from "../../../../storage/mongodb/SiteStorage";
+import SiteAreaStorage from "../../../../storage/mongodb/SiteAreaStorage";
 SourceMap.install();
 
 /**
@@ -69,12 +70,11 @@ export default class OCPIMapping {
  * @param options
  * @return Array of OCPI EVSES
  */
-  static async getEvsesFromSite(tenant: any, site: any, options: any) {
+  static async getEvsesFromSite(tenant: any, site: Site, options: any) {
     // Build evses array
     const evses = [];
-    const siteAreas = await site.getSiteAreas();
-
-    for (const siteArea of siteAreas) {
+    const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.getID(), {withChargeBoxes: true, siteID: site.id}, {limit: 0, skip: 0});
+    for (const siteArea of siteAreas.result) {
       // Get charging stations from SiteArea
       evses.push(...await this.getEvsesFromSiteaArea(tenant, siteArea, options));
     }
@@ -92,7 +92,7 @@ export default class OCPIMapping {
     const result: any = { count: 0, locations: [] };
 
     // Get all sites
-    const sites = await SiteStorage.getSites(tenant.getID(), {}, limit, skip, null);
+    const sites = await SiteStorage.getSites(tenant.getID(), {}, limit, skip, null); //GOHERE
 
     // Convert Sites to Locations
     for (const site of sites.result) {

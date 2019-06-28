@@ -165,7 +165,7 @@ export default class Authorizations {
     return user;
   }
 
-  public static async getConnectorActionAuthorizations(tenantID: string, user: any, chargingStation: any, connector: any, siteArea: SiteArea, site: any) {
+  public static async getConnectorActionAuthorizations(tenantID: string, user: any, chargingStation: any, connector: any, siteArea: SiteArea, site: Site) {
     const tenant: Tenant|null = await Tenant.getTenant(tenantID);
     if (!tenant) {
       throw new BackendError('Authorizations.ts#getConnectorActionAuthorizations', 'Tenant null');
@@ -188,10 +188,9 @@ export default class Authorizations {
       // Acces Control Enabled?
       accessControlEnable = siteArea.accessControl;
       // Allow to stop all transactions
-      userAllowedToStopAllTransactions = site.isAllowAllUsersToStopTransactionsEnabled();
+      userAllowedToStopAllTransactions = site.allowAllUsersToStopTransactions;
       // Check if User belongs to the charging station Site
-      const foundUser = await site.getUser(user.getID());
-      isUserAssignedToSite = (foundUser ? true : false);
+      isUserAssignedToSite = await SiteStorage.siteHasUser(tenantID, site.id, user.getID());
     }
     if (connector.activeTransactionID > 0) {
       // Get Transaction
@@ -254,7 +253,7 @@ export default class Authorizations {
   }
 
   public static async isTagIDAuthorizedOnChargingStation(chargingStation: ChargingStation, tagID: any, action: any) {
-    let site, siteArea: SiteArea;
+    let site: Site, siteArea: SiteArea;
     // Get the Organization component
     const tenant = await TenantStorage.getTenant(chargingStation.getTenantID());
     const isOrgCompActive = await tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
@@ -323,14 +322,14 @@ export default class Authorizations {
         const isOrgCompActive = await tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
         if (isOrgCompActive) {
           // Get the site (site existence is already checked by isTagIDAuthorizedOnChargingStation())
-          const site = await chargingStation.getSite();
+          const site: Site = await chargingStation.getSite();
           // Check if the site allows to stop the transaction of another user
           if (!Authorizations.isAdmin(alternateUser.getRole()) &&
-            !site.isAllowAllUsersToStopTransactionsEnabled()) {
+            !site.allowAllUsersToStopTransactions) {
             // Reject the User
             throw new BackendError(
               chargingStation.getID(),
-              `User '${alternateUser.getFullName()}' is not allowed to perform 'Stop Transaction' on User '${user.getFullName()}' on Site '${site.getName()}'!`,
+              `User '${alternateUser.getFullName()}' is not allowed to perform 'Stop Transaction' on User '${user.getFullName()}' on Site '${site.name}'!`,
               'Authorizations', "isTagIDsAuthorizedOnChargingStation", action,
               (alternateUser ? alternateUser.getModel() : null), (user ? user.getModel() : null));
           }
@@ -354,7 +353,7 @@ export default class Authorizations {
     return { user, alternateUser };
   }
 
-  public static async _checkAndGetUserOnChargingStation(chargingStation: any, user: any, isOrgCompActive: boolean, site: any, action: string) {
+  public static async _checkAndGetUserOnChargingStation(chargingStation: any, user: any, isOrgCompActive: boolean, site: Site, action: string) {
     // Check User status
     if (user.getStatus() !== Constants.USER_STATUS_ACTIVE) {
       // Reject but save ok
@@ -368,13 +367,13 @@ export default class Authorizations {
     // Check if User belongs to a Site ------------------------------------------
     // Org component enabled?
     if (isOrgCompActive) {
-      const foundUser = await site.getUser(user.getID());
+      const foundUser = await SiteStorage.siteHasUser(chargingStation.getTenantID(), site.id, user.getID());
       // User not found and Access Control Enabled?
       if (!foundUser) {
         // Yes: Reject the User
         throw new AppError(
           chargingStation.getID(),
-          `User is not assigned to the site '${site.getName()}'!`,
+          `User is not assigned to the site '${site.name}'!`,
           Constants.HTTP_AUTH_USER_WITH_NO_SITE_ERROR,
           "Authorizations", "_checkAndGetUserOnChargingStation",
           user.getModel());

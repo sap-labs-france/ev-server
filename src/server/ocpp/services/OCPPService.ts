@@ -979,7 +979,7 @@ export default class OCPPService {
         // Set the Site ID
         const site = await chargingStation.getSite();
         if (site) {
-          startTransaction.siteID = site.getID();
+          startTransaction.siteID = site.id;
         }
       }
       // Cleanup ongoing transactions

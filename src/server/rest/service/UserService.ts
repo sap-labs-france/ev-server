@@ -205,10 +205,9 @@ export default class UserService {
         'UserService', 'handleDeleteUser', req.user);
     }
     // Delete from site
-    const sites = await user.getSites();
+    const sites: Site[] = await user.getSites();
     for (const site of sites) {
-      site.removeUser(user);
-      await site.save();
+      SiteStorage.removeUsersFromSite(req.user.tenantID, site.id, [user.getID()]);
     }
     // Delete User
     await user.delete();

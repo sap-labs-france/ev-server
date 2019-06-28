@@ -113,7 +113,7 @@ export default class SiteAreaStorage {
 
   public static async getSiteAreas(tenantID: string,
     params: {search?: string; withImage?: boolean; siteID?: string; siteIDs?: string[]; onlyRecordCount?: boolean; withSite?: boolean; withChargeBoxes?: boolean; withAvailableChargers?: boolean} = {},
-    dbParams?: DbParams): Promise<{count: number; result: SiteArea[]}> {
+    dbParams: DbParams): Promise<{count: number; result: SiteArea[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'getSiteAreas');
     // Check Tenant
@@ -248,7 +248,7 @@ export default class SiteAreaStorage {
       $limit: limit
     });
     // Read DB
-    const incompleteSiteAreas = await global.database.getCollection<Omit<SiteArea, 'chargingStations'|'site'>&{chargingStations: any; site: any}>(tenantID, 'siteareas')
+    const incompleteSiteAreas = await global.database.getCollection<Omit<SiteArea, 'chargingStations'|'site'>&{chargingStations: any; site: Site}>(tenantID, 'siteareas')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
 

@@ -68,8 +68,6 @@ export default abstract class AbstractSoapClient {
       // Return response
       return response;
     } catch (error) {
-      // eslint-disable-next-line no-console
-      console.log(error);
       return {
         executionTime: -1,
         headers: false,

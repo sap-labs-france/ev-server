@@ -10,6 +10,7 @@ import Utils from '../utils/Utils';
 import UserStorage from '../storage/mongodb/UserStorage';
 import TransactionStorage from '../storage/mongodb/TransactionStorage';
 import SiteStorage from '../storage/mongodb/SiteStorage';
+import Site from '../types/Site';
 
 export default class User extends TenantHolder {
   private _model: any = {};
@@ -301,13 +302,11 @@ export default class User extends TenantHolder {
     return transactions;
   }
 
-  setSites(sites) {
-    this._model.sites = sites.map((site) => {
-      return site.getModel();
-    });
+  setSites(sites: Site[]) {
+    this._model.sites = sites;
   }
 
-  async getSites() {
+  async getSites(): Promise<Site[]> {
     const sites = await SiteStorage.getSites(this.getTenantID(), {
       'userID': this.getID()
     });

@@ -18,7 +18,8 @@ export default interface Site extends CreatedUpdatedProps {
     totalChargers?: number;
     availableConnectors?: number;
     totalConnectors?: number;
-    siteAreas?: SiteArea;
+    siteAreas?: SiteArea[];
+    //chargeBoxes?: ChargingStation[];
     company?: Company;
 
 
