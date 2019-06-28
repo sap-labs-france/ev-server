@@ -2,7 +2,6 @@ import moment from 'moment';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import Logging from '../../utils/Logging';
-import moment from 'moment';
 import global from '../../types/GlobalType';
 import Utils from '../../utils/Utils';
 

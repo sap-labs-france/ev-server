@@ -345,6 +345,10 @@ export default class User extends TenantHolder {
     return this._model.name;
   }
 
+  getFirstName() {
+    return this._model.firstName;
+  }
+
   setName(name) {
     this._model.name = name;
   }

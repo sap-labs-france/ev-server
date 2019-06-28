@@ -37,6 +37,7 @@ module.exports = function(chai, utils) {
   utils.addProperty(Assertion.prototype, 'transactionAccepted', function() {
     const obj = this._obj;
     // First, our instanceof check, shortcut
+    //console.log(obj);
     new Assertion(this._obj).to.be.transaction;
     // Second, our type check
     this.assert(
