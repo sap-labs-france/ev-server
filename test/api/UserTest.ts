@@ -6,7 +6,7 @@ import Factory from '../factories/Factory';
 import TSGlobal from '../../src/types/GlobalType';
 
 declare const global: TSGlobal;
-global.appRoot = path.resolve(__dirname, '../../src'); \
+global.appRoot = path.resolve(__dirname, '../../src');
 
 chai.use(chaiSubset);
 

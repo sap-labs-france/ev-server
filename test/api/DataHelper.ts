@@ -7,7 +7,6 @@ import { mergeMap } from 'rxjs/operators';
 import CentralServerService from './client/CentralServerService';
 import Factory from '../factories/Factory';
 import OCPPJsonService16 from './ocpp/json/OCPPJsonService16';
-// pragma import OCPPService from './ocpp/OCPPService';
 import OCPPSoapService15 from './ocpp/soap/OCPPSoapService15';
 import Utils from '../../src/utils/Utils';
 

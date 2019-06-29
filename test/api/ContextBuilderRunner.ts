@@ -1,9 +1,7 @@
 
 import chai, { expect } from 'chai';
 import path from 'path';
-// pragma import CentralServerService from './client/CentralServerService';
 import ContextBuilder from './ContextProvider/ContextBuilder';
-// pragma import Factory from '../factories/Factory';
 import TSGlobal from '../../src/types/GlobalType';
 
 declare const global: TSGlobal;
