@@ -3,6 +3,7 @@ import AbstractSoapClient from './AbstractSoapClient';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 import TSGlobal from '../../../types/GlobalType';
 import InternalError from '../../../exception/InternalError';
+
 declare const global: TSGlobal;
 
 export default class ERPService extends AbstractSoapClient {

@@ -1,11 +1,12 @@
-import path from 'path';
-import TSGlobal from '../../src/types/GlobalType';
-declare const global: TSGlobal;
-global.appRoot = path.resolve(__dirname, '../../src');
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
+import path from 'path';
 import CentralServerService from './client/CentralServerService';
 import Factory from '../factories/Factory';
+import TSGlobal from '../../src/types/GlobalType';
+
+declare const global: TSGlobal;
+global.appRoot = path.resolve(__dirname, '../../src');
 
 chai.use(chaiSubset);
 

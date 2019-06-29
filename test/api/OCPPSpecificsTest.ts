@@ -1,6 +1,5 @@
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
-chai.use(chaiSubset);
 import faker from 'faker';
 import moment from 'moment';
 import path from 'path';
@@ -11,6 +10,8 @@ import TSGlobal from '../../src/types/GlobalType';
 
 declare const global: TSGlobal;
 global.appRoot = path.resolve(__dirname, '../../src');
+
+chai.use(chaiSubset);
 
 class TestData {
   public dataHelper: DataHelper;

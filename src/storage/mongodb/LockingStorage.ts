@@ -1,4 +1,5 @@
 import cfenv from 'cfenv';
+import os from 'os';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
@@ -51,7 +52,7 @@ export default class LockingStorage {
     return lockStatus;
   }
 
-  public static async cleanLocks(hostname = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : require('os').hostname()): Promise<void> {
+  public static async cleanLocks(hostname = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname()): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('LockingStorage', 'cleanLocks');
     // Delete

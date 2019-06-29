@@ -19,8 +19,8 @@ import TenantHolder from './TenantHolder';
 import Transaction from './Transaction';
 import User from './User';
 import Utils from '../utils/Utils';
-SourceMap.install();
 
+SourceMap.install();
 momentDurationFormatSetup(moment);
 
 export default class ChargingStation extends TenantHolder {

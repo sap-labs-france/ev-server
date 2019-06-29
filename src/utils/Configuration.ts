@@ -4,7 +4,6 @@ import os from 'os';
 import SourceMap from 'source-map-support';
 import Constants from './Constants';
 import TSGlobal from './../types/GlobalType';
-SourceMap.install();
 
 declare const global: TSGlobal;
 const {
@@ -13,6 +12,8 @@ const {
 } = {};
 const _appEnv = cfenv.getAppEnv();
 let config = null;
+
+SourceMap.install();
 
 export default class Configuration {
   // Read the config file
@@ -247,10 +248,10 @@ export default class Configuration {
     if (!Configuration.getConfig().WSClient) {
       Configuration.getConfig().WSClient = {};
     }
-    if (!Configuration.getConfig().WSClient.hasOwnProperty('autoReconnectMaxRetries')) {
+    if (!Configuration.getConfig().WSClient.autoReconnectMaxRetries) {
       Configuration.getConfig().WSClient.autoReconnectMaxRetries = WS_DEFAULT_RECONNECT_MAX_RETRIES;
     }
-    if (!Configuration.getConfig().WSClient.hasOwnProperty('autoReconnectTimeout')) {
+    if (!Configuration.getConfig().WSClient.autoReconnectTimeout) {
       Configuration.getConfig().WSClient.autoReconnectTimeout = WS_DEFAULT_RECONNECT_TIMEOUT;
     }
     return Configuration.getConfig().WSClient;

@@ -1,3 +1,4 @@
+import SourceMap from 'source-map-support';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import EMailNotificationTask from './email/EMailNotificationTask';
@@ -6,7 +7,6 @@ import Notification from '../entity/Notification';
 import NotificationStorage from '../storage/mongodb/NotificationStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
 
-import SourceMap from 'source-map-support';
 SourceMap.install();
 
 const _notificationConfig = Configuration.getNotificationConfig();

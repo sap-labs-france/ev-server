@@ -4,6 +4,7 @@ import Constants from '../../../utils/Constants';
 import TSGlobal from '../../../types/GlobalType';
 import Logging from '../../../utils/Logging';
 import WSConnection from './WSConnection';
+
 declare const global: TSGlobal;
 
 const MODULE_NAME = 'JsonRestWSConnection';

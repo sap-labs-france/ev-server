@@ -1,10 +1,10 @@
 import fs from 'fs';
 import TSGlobal from '../../../types/GlobalType';
 import SchemaValidator from './SchemaValidator';
+
 declare const global: TSGlobal;
 
 export default class TenantValidator extends SchemaValidator {
-
   private static _instance: TenantValidator | undefined;
   private _tenantCreation: any;
   private _tenantUpdate: any;

@@ -1,8 +1,8 @@
+import SourceMap from 'source-map-support';
 import Constants from '../../../../utils/Constants';
 import Site from '../../../../entity/Site';
-
-import SourceMap from 'source-map-support';
 import SiteArea from '../../../../types/SiteArea';
+
 SourceMap.install();
 
 /**

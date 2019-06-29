@@ -5,9 +5,10 @@ import CentralServiceApi from '../client/CentralServiceApi';
 import Constants from '../../../utils/Constants';
 import TSGlobal from '../../../types/GlobalType';
 import Logging from '../../../utils/Logging';
-SourceMap.install();
 
 declare const global: TSGlobal;
+
+SourceMap.install();
 
 export default class ODataSchema {
 

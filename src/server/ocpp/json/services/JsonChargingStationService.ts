@@ -1,6 +1,7 @@
 import Constants from '../../../../utils/Constants';
 import TSGlobal from '../../../../types/GlobalType';
 import Logging from '../../../../utils/Logging';
+
 declare const global: TSGlobal;
 
 const MODULE_NAME = 'JsonChargingStationService';

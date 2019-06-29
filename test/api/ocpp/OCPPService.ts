@@ -9,7 +9,7 @@ export default class OCPPService {
     throw new Error('Method not implemented!');
   }
 
-  public executeAuthorize(chargeBoxIdentity, data):any {
+  public executeAuthorize(chargeBoxIdentity, data): any {
     throw new Error('Method not implemented!');
   }
 

@@ -9,6 +9,7 @@ import Site from '../../entity/Site';
 import SiteArea from '../../types/SiteArea';
 import Tenant from '../../entity/Tenant';
 import Utils from '../../utils/Utils';
+
 declare const global: TSGlobal;
 
 export default class ChargingStationStorage {
@@ -213,8 +214,13 @@ export default class ChargingStationStorage {
       // Add the Site Area?
       if (chargingStationMDB.siteArea) {
         const siteArea: SiteArea = chargingStationMDB.siteArea;
-        siteArea.id = siteArea.id.toString();
-        siteArea.siteID = siteArea.siteID.toString();
+        // Handle empty SiteArea
+        if (siteArea.id) {
+          siteArea.id = siteArea.id.toString();
+        }
+        if (siteArea.siteID) {
+          siteArea.siteID = siteArea.siteID.toString();
+        }
         // Set
         chargingStation.setSiteArea(siteArea);
         if (chargingStationMDB.site) {

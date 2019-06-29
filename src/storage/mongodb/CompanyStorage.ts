@@ -7,7 +7,6 @@ import DbParams from '../../types/database/DbParams';
 import TSGlobal from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import SiteStorage from './SiteStorage';
-import User from '../../entity/User';
 import Utils from '../../utils/Utils';
 
 declare const global: TSGlobal;

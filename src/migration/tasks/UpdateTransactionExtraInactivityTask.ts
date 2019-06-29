@@ -4,6 +4,7 @@ import TSGlobal from '../../types/GlobalType';
 import MigrationTask from '../MigrationTask';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
 import Tenant from '../../entity/Tenant';
+
 declare const global: TSGlobal;
 
 export default class UpdateTransactionExtraInactivityTask extends MigrationTask {

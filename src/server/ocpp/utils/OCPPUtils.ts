@@ -2,6 +2,7 @@ import SourceMap from 'source-map-support';
 import BackendError from '../../../exception/BackendError';
 import ChargingStation from '../../../entity/ChargingStation';
 import Constants from '../../../utils/Constants';
+
 SourceMap.install();
 
 export default class OCPPUtils {

@@ -6,11 +6,12 @@ import path from 'path';
 import CentralServerService from './client/CentralServerService';
 import TSGlobal from '../../src/types/GlobalType';
 import UserFactory from '../factories/UserFactory';
-chai.use(chaiSubset);
 
 declare const global: TSGlobal;
 global.appRoot = path.resolve(__dirname, '../../src');
 const testData: any = {};
+
+chai.use(chaiSubset);
 
 describe('Authentication Service', function() {
   this.timeout(5000);

@@ -17,6 +17,7 @@ import Transaction from '../entity/Transaction';
 import User from '../entity/User';
 import UserStorage from '../storage/mongodb/UserStorage';
 import Utils from '../utils/Utils';
+
 SourceMap.install();
 
 export default class Authorizations {

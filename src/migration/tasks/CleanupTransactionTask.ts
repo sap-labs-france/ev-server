@@ -6,8 +6,8 @@ import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 import Tenant from '../../entity/Tenant';
 import Transaction from '../../entity/Transaction';
-declare const global: TSGlobal;
 
+declare const global: TSGlobal;
 
 export default class CleanupTransactionTask extends MigrationTask {
   public totalCount: any;

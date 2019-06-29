@@ -3,6 +3,7 @@ import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
 import Global from './../../types/GlobalType';
 import Utils from '../../utils/Utils';
+
 declare const global: Global;
 
 export default class LoggingStorage {

@@ -1,6 +1,7 @@
 import ejs from 'ejs';
 import email from 'emailjs';
 import fs from 'fs';
+import SourceMap from 'source-map-support';
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
@@ -12,7 +13,6 @@ import Utils from '../../utils/Utils';
 
 declare const global: TSGlobal;
 
-import SourceMap from 'source-map-support';
 SourceMap.install();
 
 // Email

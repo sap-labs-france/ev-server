@@ -4,6 +4,7 @@ import OCPIClient from '../../client/ocpi/OCPIClient';
 import OCPIEndpoint from '../../entity/OCPIEndpoint';
 import SchedulerTask from '../SchedulerTask';
 import Tenant from '../../entity/Tenant';
+
 export default class OCPIPatchLocationsTask implements SchedulerTask {
 
   static async processTenant(tenant, config) {

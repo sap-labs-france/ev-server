@@ -3,6 +3,7 @@ import Cypher from '../../utils/Cypher';
 import TSGlobal from '../../types/GlobalType';
 import MigrationTask from '../MigrationTask';
 import Tenant from '../../entity/Tenant';
+
 declare const global: TSGlobal;
 
 export default class AddSensitiveDataInSettingsTask extends MigrationTask {

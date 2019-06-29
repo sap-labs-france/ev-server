@@ -1,11 +1,11 @@
+import SourceMap from 'source-map-support';
 import AbstractEndpoint from '../AbstractEndpoint';
+import Constants from '../../../../utils/Constants';
 import OCPIMapping from './OCPIMapping';
 import OCPIServerError from '../../../../exception/OCPIServerError';
 import OCPIUtils from '../../OCPIUtils';
 import Site from '../../../../entity/Site';
 
-import SourceMap from 'source-map-support';
-import Constants from '../../../../utils/Constants';
 SourceMap.install();
 
 const EP_IDENTIFIER = 'locations';

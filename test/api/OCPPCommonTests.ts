@@ -4,7 +4,6 @@ import faker from 'faker';
 import moment from 'moment';
 import path from 'path';
 import CentralServerService from '../api/client/CentralServerService';
-import DataHelper from './DataHelper';
 import TSGlobal from '../../src/types/GlobalType';
 import OCPPBootstrap from './OCPPBootstrap';
 import OCPPService from './ocpp/OCPPService';

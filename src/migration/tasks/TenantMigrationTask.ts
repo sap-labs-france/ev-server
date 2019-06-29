@@ -5,6 +5,7 @@ import MigrationTask from '../MigrationTask';
 import Tenant from '../../entity/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import User from '../../entity/User';
+
 declare const global: TSGlobal;
 
 const SLF_TENANT = {

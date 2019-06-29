@@ -5,6 +5,7 @@ import TSGlobal from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 import Tenant from '../../entity/Tenant';
+
 declare const global: TSGlobal;
 
 export default class CleanupMeterValuesTask extends MigrationTask {

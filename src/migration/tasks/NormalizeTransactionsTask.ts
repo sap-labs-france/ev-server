@@ -6,6 +6,7 @@ import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 import PricingStorage from '../../storage/mongodb/PricingStorage';
 import Tenant from '../../entity/Tenant';
+
 declare const global: TSGlobal;
 
 export default class NormalizeTransactionsTask extends MigrationTask {

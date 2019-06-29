@@ -1,6 +1,7 @@
 import { soap } from 'strong-soap';
 import AbstractSoapClient from './AbstractSoapClient';
 import TSGlobal from '../../../types/GlobalType';
+
 declare const global: TSGlobal;
 
 export default class RatingService extends AbstractSoapClient {
