@@ -8,9 +8,8 @@ import Logging from '../../utils/Logging';
 import Site from '../../types/Site';
 import SiteAreaStorage from './SiteAreaStorage';
 import Utils from '../../utils/Utils';
-import UserSite from '../../types/UserSite';
 import DbParams from '../../types/database/DbParams';
-
+import UserSite from '../../types/User';
 
 export default class SiteStorage {
 
@@ -134,32 +133,18 @@ export default class SiteStorage {
     aggregation.push({
       $match: {
         '$or': [
-          {
-            "user.deleted": {
-              "$exists": false
-            }
-          },
-          {
-            "user.deleted": false
-          },
-          {
-            "user.deleted": null
-          }
+          { "user.deleted": { "$exists": false } },
+          { "user.deleted": false },
+          { "user.deleted": null }
         ]
       }
     });
-
     // Count Records
     const usersCountMDB = await global.database.getCollection<{count: number}>(tenantID, 'siteusers')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Sort
     if (dbParams.sort) {
-      // Adjust the sort to match user's collection
-      for (const key in dbParams.sort) {
-        dbParams.sort['users.' + key] = dbParams.sort[key];
-        delete dbParams.sort[key];
-      }
       aggregation.push({
         $sort: dbParams.sort
       });
@@ -177,20 +162,19 @@ export default class SiteStorage {
       $limit: limit
     });
     // Read DB
-    const siteusersMDB = await global.database.getCollection<any>(tenantID, 'siteusers')
+    const siteUsersMDB = await global.database.getCollection<any>(tenantID, 'siteusers')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     const users: UserSite[] = [];
     // Create
-    for (const siteuserMDB of siteusersMDB) {
-      if (siteuserMDB.user) {
-        users.push({user: siteuserMDB.user, siteAdmin: !siteuserMDB.siteAdmin?false:siteuserMDB.siteAdmin, siteID: siteID});
+    for (const siteUserMDB of siteUsersMDB) {
+      if (siteUserMDB.user) {
+        siteUserMDB.user.id = siteUserMDB.user._id;
+        users.push({user: siteUserMDB.user, siteAdmin: !siteUserMDB.siteAdmin ? false : siteUserMDB.siteAdmin, siteID: siteID});
       }
     }
-
     // Debug
     Logging.traceEnd('SiteStorage', 'getUsers', uniqueTimerID, { siteID: siteID });
-    console.log(users);
     // Ok
     return {
       count: (usersCountMDB.length > 0 ?

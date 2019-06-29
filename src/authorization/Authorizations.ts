@@ -85,10 +85,12 @@ export default class Authorizations {
       }
 
       // Get User's Site Admin
-      const sitesAdmin = (await UserStorage.getSites(
-        user.getTenantID(), { userID: user.getID(), siteAdmin: true }));
-      for (const siteAdmin of sitesAdmin['result']) {
-        siteAdminIDs.push(siteAdmin.getID());
+      const sitesAdmin = await UserStorage.getSites(
+        user.getTenantID(), { userID: user.getID(), siteAdmin: true },
+        { limit: Constants.NO_LIMIT, skip: 0 }
+      );
+      for (const siteAdmin of sitesAdmin.result) {
+        siteAdminIDs.push(siteAdmin.site.id);
       }
 
       return {
@@ -694,7 +696,10 @@ export default class Authorizations {
 
   public static async getUserScopes(user: User): Promise<ReadonlyArray<string>> {
     // Get the sites where the user is marked Site Admin
-    const sitesAdmin = await UserStorage.getSites(user.getTenantID(), { userID: user.getID(), siteAdmin: true });
+    const sitesAdmin = await UserStorage.getSites(user.getTenantID(),
+      { userID: user.getID(), siteAdmin: true },
+      { limit: Constants.NO_LIMIT, skip: 0 }
+    );
     // Get the group from User's role
     const groups = Authorizations.getAuthGroupsFromUser(user.getRole(), sitesAdmin['result']);
     // Return the scopes

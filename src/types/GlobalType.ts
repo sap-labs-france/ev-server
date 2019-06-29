@@ -11,17 +11,6 @@ interface TSGlobal extends Global {
   Promise: any;
 }
 
-// 
+//
 declare var global: TSGlobal;
 export default global;
-
-/*
-declare module NodeJS {
-  
-  //import MongoDBStorage from '../storage/mongodb/MongoDBStorage';
-  interface Global {
-    appRoot: string;
-    database:MongoDBStorage;
-  }
-}
-import MongoDBStorage from '../storage/mongodb/MongoDBStorage';*/

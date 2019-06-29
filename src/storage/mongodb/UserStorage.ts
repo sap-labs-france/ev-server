@@ -9,8 +9,9 @@ import Logging from '../../utils/Logging';
 import fs from 'fs';
 import global from '../../types/GlobalType';
 import User from '../../entity/User';
-import SiteUser from '../../types/SiteUser';
 import Utils from '../../utils/Utils';
+import SiteUser from '../../types/Site';
+import DbParams from '../../types/database/DbParams';
 
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
@@ -747,15 +748,15 @@ export default class UserStorage {
     Logging.traceEnd('UserStorage', 'deleteUser', uniqueTimerID, { id });
   }
 
-  static async getSites(tenantID, params: { userID: string; siteAdmin?: boolean }, limit?, skip?, sort?): Promise<object> {
+  static async getSites(tenantID, params: { userID: string; siteAdmin?: boolean }, dbParams: DbParams): Promise<{count: number; result: SiteUser[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getSites');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
-    limit = Utils.checkRecordLimit(limit);
+    const limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    skip = Utils.checkRecordSkip(skip);
+    const skip = Utils.checkRecordSkip(dbParams.skip);
     // Filter
     const filter: any = {
       userID: Utils.convertToObjectID(params.userID)
@@ -779,19 +780,16 @@ export default class UserStorage {
       }
     });
     DatabaseUtils.pushBasicSiteJoinInAggregation(tenantID, aggregation, 'siteID', '_id', 'sites', ['userID', 'siteID'], 'none', true);
-
     // Count Records
     const usersCountMDB = await global.database.getCollection<any>(tenantID, 'siteusers')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Sort
-    if (sort) {
-      // Sort
+    if (dbParams.sort) {
       aggregation.push({
-        $sort: sort
+        $sort: dbParams.sort
       });
     } else {
-      // Default
       aggregation.push({
         $sort: { 'sites.name': 1 }
       });
@@ -805,17 +803,17 @@ export default class UserStorage {
       $limit: limit
     });
     // Read DB
-    const siteusersMDB = await global.database.getCollection<any>(tenantID, 'siteusers')
+    const siteUsersMDB = await global.database.getCollection<any>(tenantID, 'siteusers')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
-    const sites = [];
     // Create
-    for (const siteuserMDB of siteusersMDB) {
-      if (siteuserMDB.sites) {
-        const usersitewrapper: SiteUser = {siteAdmin: siteuserMDB.siteAdmin, userID: siteuserMDB.userID, site: siteuserMDB.sites};
-        sites.push(usersitewrapper);
+    const sites: SiteUser[] = [];
+    for (const siteUserMDB of siteUsersMDB) {
+      if (siteUserMDB.sites) {
+        const siteUser: SiteUser = {siteAdmin: siteUserMDB.siteAdmin, userID: siteUserMDB.userID, site: siteUserMDB.sites} as SiteUser;
+        sites.push(siteUser);
       }
-    }//TODO This might be flawed, check thoroughly
+    }
 
     // Debug
     Logging.traceEnd('UserStorage', 'UserStorage', uniqueTimerID, { userID: params.userID });

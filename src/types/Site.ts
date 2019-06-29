@@ -18,3 +18,10 @@ export default interface Site extends CreatedUpdatedProps {
   siteAreas?: SiteArea[];
   company?: Company;
 }
+
+export default interface SiteUser {
+  site: Site;
+  userID: string;
+  siteAdmin: boolean;
+}
+
