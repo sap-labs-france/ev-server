@@ -123,7 +123,6 @@ export default class SiteAreaSecurity {
       const filteredSiteArea = SiteAreaSecurity.filterSiteAreaResponse(siteArea, loggedUser);
       // Ok?
       if (filteredSiteArea) {
-        // Add
         filteredSiteAreas.push(filteredSiteArea);
       }
     }

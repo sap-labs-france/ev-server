@@ -1,14 +1,14 @@
-import { expect } from 'chai';
-import path from 'path';
+const path = require('path');
+import global from'../../src/types/GlobalType';
+const util = require('util');
+global.appRoot = path.resolve(__dirname, '../../src');
 import CentralServerService from './client/CentralServerService';
 import Factory from '../factories/Factory';
-import TSGlobal from '../../src/types/GlobalType';
-
-declare const global: TSGlobal;
-global.appRoot = path.resolve(__dirname, '../../src');
+import {expect} from 'chai';
+import Constants from './client/utils/Constants';
 
 let newCompany;
-let centralServerService;
+let centralServerService: CentralServerService;
 
 describe('Company tests', function() {
   this.timeout(30000);
@@ -19,6 +19,7 @@ describe('Company tests', function() {
 
 
   describe('Success cases', () => {
+
     it('Should create a new company', async () => {
       // Create
       newCompany = await centralServerService.createEntity(

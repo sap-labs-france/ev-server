@@ -1,12 +1,11 @@
+import Constants from './Constants';
+import global from './../types/GlobalType';
 import cfenv from 'cfenv';
 import fs from 'fs';
 import os from 'os';
 import SourceMap from 'source-map-support';
-import Constants from './Constants';
-import TSGlobal from './../types/GlobalType';
 SourceMap.install();
 
-declare const global: TSGlobal;
 const {
   WS_DEFAULT_RECONNECT_MAX_RETRIES = Constants.WS_DEFAULT_RECONNECT_MAX_RETRIES,
   WS_DEFAULT_RECONNECT_TIMEOUT = Constants.WS_DEFAULT_RECONNECT_TIMEOUT

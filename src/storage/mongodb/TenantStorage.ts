@@ -6,9 +6,9 @@ import DatabaseUtils from './DatabaseUtils';
 import TSGlobal from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Tenant from '../../entity/Tenant';
+import global from '../../types/GlobalType';
 import Utils from '../../utils/Utils';
 
-declare const global: TSGlobal;
 
 export default class TenantStorage {
   static async getTenant(id: string): Promise<Tenant|null> {

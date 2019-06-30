@@ -6,8 +6,7 @@ import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import SimplePricing from '../../integration/pricing/simple-pricing/SimplePricing';
-import Tenant from '../../entity/Tenant';
-declare const global: TSGlobal;
+import global from '../../types/GlobalType';
 
 const SUB_DOMAINS = ['slfcah', 'slf'];
 export default class UpdateTransactionSimplePriceTask extends MigrationTask {
@@ -85,7 +84,7 @@ export default class UpdateTransactionSimplePriceTask extends MigrationTask {
       { $sort: { endedAt: 1 } }
     ]).toArray();
     await BBPromise.map(consumptions,
-      async (consumption) => {
+      async (consumption: any) => {
         const updatedField = await simplePricing.computePrice({ consumption: consumption.consumption });
         const cumulatedField = await simplePricing.computePrice({ consumption: consumption.cumulatedConsumption });
 

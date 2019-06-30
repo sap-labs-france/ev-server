@@ -10,9 +10,9 @@ import ChargingStation from '../../entity/ChargingStation';
 import ConnectionStorage from '../../storage/mongodb/ConnectionStorage';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
+import Site from '../../types/Site';
 import InternalError from '../../exception/InternalError';
 import Logging from '../../utils/Logging';
-import Site from '../../entity/Site';
 import Transaction from '../../entity/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 
@@ -301,7 +301,7 @@ const CONNECTOR_ID = 'concur';
   }
 
   async getLocation(connection, site: Site) {
-    let response = await axios.get(`${this.getApiUrl()}/api/v3.0/common/locations?city=${site.getAddress().city}`, {
+    let response = await axios.get(`${this.getApiUrl()}/api/v3.0/common/locations?city=${site.address.city}`, {
       headers: {
         Accept: 'application/json',
         Authorization: `Bearer ${connection.getData().access_token}`
@@ -310,7 +310,7 @@ const CONNECTOR_ID = 'concur';
     if (response.data && response.data.Items && response.data.Items.length > 0) {
       return response.data.Items[0];
     }
-    const company = await site.getCompany();
+    const company = await site.company;
     response = await axios.get(`${this.getApiUrl()}/api/v3.0/common/locations?city=${company.address.city}`, {
       headers: {
         Accept: 'application/json',
@@ -323,7 +323,7 @@ const CONNECTOR_ID = 'concur';
 
     throw new AppError(
       MODULE_NAME,
-      `The city '${site.getAddress().city}' of the station is unknown to Concur`,
+      `The city '${site.address.city}' of the station is unknown to Concur`,
       Constants.HTTP_CONCUR_CITY_UNKNOWN_ERROR,
       MODULE_NAME, 'getLocation');
   }

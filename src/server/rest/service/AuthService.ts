@@ -8,16 +8,18 @@ import Authorizations from '../../../authorization/Authorizations';
 import AuthSecurity from './security/AuthSecurity';
 import BadRequestError from '../../../exception/BadRequestError';
 import ChargingStation from '../../../entity/ChargingStation';
+import Site from '../../../types/Site';
+import Utils from '../../../utils/Utils';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import SessionHashService from './SessionHashService';
-import Site from '../../../entity/Site';
+import SiteStorage from '../../../storage/mongodb/SiteStorage';
+import SiteArea from '../../../types/SiteArea';
+import User from '../../../entity/User';
 import Tenant from '../../../entity/Tenant';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import User from '../../../entity/User';
-import Utils from '../../../utils/Utils';
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
@@ -150,8 +152,8 @@ export default class AuthService {
     // Check if organization component is active
     const tenant = await Tenant.getTenant(tenantID);
     const isOrganizationComponentActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
-    let siteArea;
-    let site;
+    let siteArea: SiteArea;
+    let site: Site;
     if (isOrganizationComponentActive) {
       // Get charging station site
       // Site Area -----------------------------------------------
@@ -168,12 +170,12 @@ export default class AuthService {
         }
 
         // Site -----------------------------------------------------
-        site = await siteArea.getSite();
+        site = await siteArea.site;
         if (!site) {
           // Reject Site Not Found
           throw new AppError(
             chargingStation.getID(),
-            `Site Area '${siteArea.getName()}' is not assigned to a Site!`,
+            `Site Area '${siteArea.name}' is not assigned to a Site!`,
             Constants.HTTP_AUTH_SITE_AREA_WITH_NO_SITE_ERROR,
             'AuthService', 'checkConnectorsActionAuthorizations',
             user.getModel());
@@ -406,7 +408,9 @@ export default class AuthService {
       // Set BadgeID (eg.: 'SF20170131')
       newUser.setTagIDs([newUser.getName()[0] + newUser.getFirstName()[0] + Utils.getRandomInt()]);
       // Assign user to all sites
-      const sites = await Site.getSites(tenantID, { withAutoUserAssignment: true });
+      const sites = await SiteStorage.getSites(tenantID,
+        { withAutoUserAssignment: true },
+        { limit: Constants.NO_LIMIT, skip: 0 });
       // Set
       newUser.setSites(sites.result);
       // Get EULA

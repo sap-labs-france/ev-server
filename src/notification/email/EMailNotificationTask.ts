@@ -8,11 +8,11 @@ import TSGlobal from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import NotificationTask from '../NotificationTask';
 import Tenant from '../../entity/Tenant';
-import Utils from '../../utils/Utils';
+import global from '../../types/GlobalType';
 
-declare const global: TSGlobal;
 
 import SourceMap from 'source-map-support';
+import Utils from '../../utils/Utils';
 SourceMap.install();
 
 // Email

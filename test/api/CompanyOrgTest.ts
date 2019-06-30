@@ -1,11 +1,9 @@
-import { expect } from 'chai';
-import path from 'path';
+const path = require('path');
+import global from'../../src/types/GlobalType';
+global.appRoot = path.resolve(__dirname, '../../src');
 import CentralServerService from './client/CentralServerService';
 import Factory from '../factories/Factory';
-import TSGlobal from '../../src/types/GlobalType';
-
-declare const global: TSGlobal;
-global.appRoot = path.resolve(__dirname, '../../src');
+import { expect } from 'chai';
 
 class TestData {
   newCompany: any;

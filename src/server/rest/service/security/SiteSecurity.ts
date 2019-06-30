@@ -3,71 +3,54 @@ import Authorizations from '../../../../authorization/Authorizations';
 import CompanySecurity from './CompanySecurity';
 import SiteAreaSecurity from './SiteAreaSecurity';
 import UserSecurity from './UserSecurity';
+import { HttpSiteAssignUsersRequest, HttpSitesRequest, HttpSiteUsersRequest, HttpSiteUserAdminRequest, HttpSiteRequest } from '../../../../types/requests/HttpSiteRequest';
+import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import Site from '../../../../types/Site';
 import UtilsSecurity from './UtilsSecurity';
 
 export default class SiteSecurity {
-  // eslint-disable-next-line no-unused-vars
-  static filterAddUsersToSiteRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.siteID = sanitize(request.siteID);
-    if (request.userIDs) {
-      filteredRequest.userIDs = request.userIDs.map((userID) => {
-        return sanitize(userID);
-      });
-    }
-    return filteredRequest;
-  }
 
-  static filterUpdateSiteUserRoleRequest(request) {
-    const filteredRequest: any = {};
-    filteredRequest.siteID = sanitize(request.siteID);
-    filteredRequest.userID = sanitize(request.userID);
+  public static filterUpdateSiteUserAdminRequest(request: Partial<HttpSiteUserAdminRequest>): HttpSiteUserAdminRequest {
+    const filteredRequest: HttpSiteUserAdminRequest = {
+      siteID: sanitize(request.siteID),
+      userID: sanitize(request.userID)
+    } as HttpSiteUserAdminRequest;
     if ('siteAdmin' in request) {
       filteredRequest.siteAdmin = UtilsSecurity.filterBoolean(request.siteAdmin);
     }
     return filteredRequest;
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterRemoveUsersFromSiteRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.siteID = sanitize(request.siteID);
-    if (request.userIDs) {
-      filteredRequest.userIDs = request.userIDs.map((userID) => {
-        return sanitize(userID);
-      });
-    }
+  public static filterAssignSiteUsers(request: Partial<HttpSiteAssignUsersRequest>): HttpSiteAssignUsersRequest {
+    const filteredRequest: HttpSiteAssignUsersRequest = {
+      siteID: sanitize(request.siteID)
+    } as HttpSiteAssignUsersRequest;
+    filteredRequest.userIDs = request.userIDs.map((userID) => {
+      return sanitize(userID);
+    });
     return filteredRequest;
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterSiteDeleteRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.ID = sanitize(request.ID);
-    return filteredRequest;
+  public static filterSiteRequest(request: HttpByIDRequest): HttpSiteRequest {
+    return {
+      ID: sanitize(request.ID)
+    };
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterSiteRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    filteredRequest.ID = sanitize(request.ID);
-    return filteredRequest;
+  public static filterSiteRequestByID(request: HttpByIDRequest): string {
+    return sanitize(request.ID);
   }
 
-  static filterSiteUsersRequest(request) {
-    const filteredRequest: any = {};
-    filteredRequest.siteID = sanitize(request.SiteID);
+  public static filterSiteUsersRequest(request: Partial<HttpSiteUsersRequest>): HttpSiteUsersRequest {
+    const filteredRequest: HttpSiteUsersRequest = {} as HttpSiteUsersRequest;
+    filteredRequest.SiteID = sanitize(request.SiteID);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterSitesRequest(request, loggedUser) {
-    const filteredRequest: any = {};
+  public static filterSitesRequest(request: Partial<HttpSitesRequest>, userToken): HttpSitesRequest {
+    const filteredRequest: HttpSitesRequest = {} as HttpSitesRequest;
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.UserID = sanitize(request.UserID);
     filteredRequest.CompanyID = sanitize(request.CompanyID);
@@ -79,18 +62,17 @@ export default class SiteSecurity {
     return filteredRequest;
   }
 
-  static filterSiteUpdateRequest(request, loggedUser) {
-    // SetSites
-    const filteredRequest = SiteSecurity._filterSiteRequest(request, loggedUser);
+  public static filterSiteUpdateRequest(request: Partial<Site>): Partial<Site> {
+    const filteredRequest = SiteSecurity._filterSiteRequest(request);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  static filterSiteCreateRequest(request, loggedUser) {
-    return SiteSecurity._filterSiteRequest(request, loggedUser);
+  public static filterSiteCreateRequest(request: Partial<Site>): Partial<Site> {
+    return SiteSecurity._filterSiteRequest(request);
   }
 
-  static _filterSiteRequest(request, loggedUser) {
+  public static _filterSiteRequest(request: Partial<Site>): Partial<Site> {
     const filteredRequest: any = {};
     filteredRequest.name = sanitize(request.name);
     filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address);
@@ -99,20 +81,6 @@ export default class SiteSecurity {
       UtilsSecurity.filterBoolean(request.allowAllUsersToStopTransactions);
     filteredRequest.autoUserSiteAssignment =
       UtilsSecurity.filterBoolean(request.autoUserSiteAssignment);
-    filteredRequest.gps = sanitize(request.gps);
-    if (request.userIDs) {
-      // Handle Users
-      filteredRequest.userIDs = request.userIDs.map((userID) => {
-        return sanitize(userID);
-      });
-      filteredRequest.userIDs = request.userIDs.filter((userID) => {
-        // Check auth
-        if (Authorizations.canReadUser(loggedUser, userID)) {
-          return true;
-        }
-        return false;
-      });
-    }
     filteredRequest.companyID = sanitize(request.companyID);
     return filteredRequest;
   }
@@ -141,7 +109,7 @@ export default class SiteSecurity {
         filteredSite.address = UtilsSecurity.filterAddressRequest(site.address);
       }
       if (site.company) {
-        filteredSite.company = CompanySecurity.filterCompanyResponse({ id: site.company._id.toHexString(), ...site.company }, loggedUser);
+        filteredSite.company = CompanySecurity.filterCompanyResponse(site.company, loggedUser);//TODO change
       }
       if (site.siteAreas) {
         filteredSite.siteAreas = SiteAreaSecurity.filterSiteAreasResponse(site.siteAreas, loggedUser);
@@ -182,9 +150,7 @@ export default class SiteSecurity {
     for (const site of sites.result) {
       // Filter
       const filteredSite = SiteSecurity.filterSiteResponse(site, loggedUser);
-      // Ok?
       if (filteredSite) {
-        // Add
         filteredSites.push(filteredSite);
       }
     }

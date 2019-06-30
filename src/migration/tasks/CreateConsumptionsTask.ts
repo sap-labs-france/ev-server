@@ -2,14 +2,15 @@ import moment from 'moment';
 import pLimit from 'p-limit';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
+import MigrationTask from '../MigrationTask';
+import global from'../../types/GlobalType';
 import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
 import TSGlobal from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
-import MigrationTask from '../MigrationTask';
 import PricingStorage from '../../storage/mongodb/PricingStorage';
 import Tenant from '../../entity/Tenant';
 import Transaction from '../../entity/Transaction';
-declare const global: TSGlobal;
+
 
 
 const DEFAULT_CONSUMPTION_ATTRIBUTE = {

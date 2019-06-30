@@ -3,12 +3,10 @@ import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
-import TSGlobal from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
+import global from '../../types/GlobalType';
 import Utils from '../../utils/Utils';
 import Vehicle from '../../entity/Vehicle';
-
-declare const global: TSGlobal;
 
 export default class VehicleStorage {
 

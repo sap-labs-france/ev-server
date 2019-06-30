@@ -4,13 +4,11 @@ import ChargingStation from '../../entity/ChargingStation';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
-import TSGlobal from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
-import Site from '../../entity/Site';
+import Site from '../../types/Site';
 import SiteArea from '../../types/SiteArea';
+import global from '../../types/GlobalType';
 import Utils from '../../utils/Utils';
-
-declare const global: TSGlobal;
 
 export default class SiteAreaStorage {
 
@@ -72,16 +70,8 @@ export default class SiteAreaStorage {
     if (siteAreaToSave.maximumPower) {
       siteAreaMDB.maximumPower = siteAreaToSave.maximumPower;
     }
-    if (siteAreaToSave.createdBy && siteAreaToSave.createdOn) {
-      siteAreaMDB.createdBy = Utils.convertToObjectID(
-        siteAreaToSave.createdBy.id ? siteAreaToSave.createdBy.id : siteAreaToSave.createdBy.getID()),
-      siteAreaMDB.createdOn = siteAreaToSave.createdOn;
-    }
-    if (siteAreaToSave.lastChangedBy && siteAreaToSave.lastChangedOn) {
-      siteAreaMDB.lastChangedBy = Utils.convertToObjectID(
-        siteAreaToSave.lastChangedBy.id ? siteAreaToSave.lastChangedBy.id : siteAreaToSave.lastChangedBy.getID());
-      siteAreaMDB.lastChangedOn = siteAreaToSave.lastChangedOn;
-    }
+    // Add Last Changed/Created props
+    DatabaseUtils.mongoConvertLastChangedCreatedProps(siteAreaMDB, siteAreaToSave);
 
     // Modify
     const result = await global.database.getCollection<SiteArea>(tenantID, 'siteareas').findOneAndUpdate(
@@ -103,13 +93,12 @@ export default class SiteAreaStorage {
 
     // Debug
     Logging.traceEnd('SiteAreaStorage', 'saveSiteArea', uniqueTimerID, { siteAreaToSave });
-
     return siteAreaMDB._id.toHexString();
   }
 
   public static async getSiteAreas(tenantID: string,
     params: {search?: string; withImage?: boolean; siteID?: string; siteIDs?: string[]; onlyRecordCount?: boolean; withSite?: boolean; withChargeBoxes?: boolean; withAvailableChargers?: boolean} = {},
-    dbParams?: DbParams): Promise<{count: number; result: SiteArea[]}> {
+    dbParams: DbParams): Promise<{count: number; result: SiteArea[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'getSiteAreas');
     // Check Tenant
@@ -174,19 +163,7 @@ export default class SiteAreaStorage {
     aggregation.pop();
     // Sites
     if (params.withSite) {
-      // Add Sites TODO change this when typing sites
-      aggregation.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, 'sites'),
-          localField: 'siteID',
-          foreignField: '_id',
-          as: 'site'
-        }
-      });
-      // Single Record
-      aggregation.push({
-        $unwind: { 'path': '$site', 'preserveNullAndEmptyArrays': true }
-      });
+      DatabaseUtils.pushBasicSiteJoinInAggregation(tenantID, aggregation, 'siteID', '_id', 'site', ['image', '_id', 'name', 'address', 'maximumPower', 'siteID', 'accessControl'], 'include', true);
     }
 
     // Charging Stations
@@ -202,8 +179,7 @@ export default class SiteAreaStorage {
       });
     }
 
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
+    aggregation.push({$addFields: {id: '$_id'}});
 
     // Add site area image
     if (params.withImage) {
@@ -219,7 +195,6 @@ export default class SiteAreaStorage {
       },
       { $project: {
         image: '$image.image',
-        id: { $toString: '$_id' },
         _id: 0,
         createdBy: 1,
         createdOn: 1,
@@ -231,27 +206,11 @@ export default class SiteAreaStorage {
         siteID: 1,
         accessControl: 1,
         chargingStations: 1,
-        site: 1
+        site: 1,
+        id: 1
       }
       }
       );
-    } else {
-      aggregation.push({ $project: {
-        id: { $toString: '$_id' },
-        _id: 0,
-        createdBy: 1,
-        createdOn: 1,
-        lastChangedBy: 1,
-        lastChangedOn: 1,
-        name: 1,
-        address: 1,
-        maximumPower: 1,
-        siteID: 1,
-        accessControl: 1,
-        chargingStations: 1,
-        site: 1
-      }
-      });
     }
     // Sort
     if (dbParams.sort) {
@@ -274,7 +233,7 @@ export default class SiteAreaStorage {
       $limit: limit
     });
     // Read DB
-    const incompleteSiteAreas = await global.database.getCollection<Omit<SiteArea, 'chargingStations'|'site'>&{chargingStations: any; site: any}>(tenantID, 'siteareas')
+    const incompleteSiteAreas = await global.database.getCollection<any>(tenantID, 'siteareas')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
 
@@ -326,7 +285,7 @@ export default class SiteAreaStorage {
         }
         // Set Site
         if (params.withSite && incompleteSiteArea.site) {
-          site = new Site(tenantID, incompleteSiteArea.site);
+          site = incompleteSiteArea.site;
         }
         // Add
         siteAreas.push({

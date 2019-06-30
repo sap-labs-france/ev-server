@@ -1,5 +1,4 @@
 import crypto from 'crypto';
-import fs from 'fs';
 import moment from 'moment';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
@@ -15,9 +14,8 @@ import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import TransactionSecurity from './security/TransactionSecurity';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../entity/User';
-
-declare const global: TSGlobal;
-
+import fs from "fs";
+import global from '../../../types/GlobalType';
 export default class TransactionService {
   static async handleRefundTransactions(action, req, res, next) {
     try {

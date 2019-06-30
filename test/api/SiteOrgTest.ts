@@ -2,9 +2,9 @@ import chai from 'chai';
 import { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 chai.use(chaiSubset);
-import path from 'path';
-import TSGlobal from '../../src/types/GlobalType';
-declare const global: TSGlobal;
+const path = require('path');
+ import global from'../../src/types/GlobalType';
+ 
 global.appRoot = path.resolve(__dirname, '../../src');
 import CentralServerService from './client/CentralServerService';
 import Factory from '../factories/Factory';
@@ -31,7 +31,7 @@ describe('Site tests', function() {
       // Create User
       testData.newUser = await CentralServerService.DefaultInstance.createEntity(
         CentralServerService.DefaultInstance.userApi, Factory.user.build());
-      expect(testData.newUser).to.not.be.null;
+        expect(testData.newUser).to.not.be.null;
     });
 
     after(async () => {

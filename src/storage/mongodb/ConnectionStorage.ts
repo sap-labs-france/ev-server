@@ -1,11 +1,9 @@
 import Connection from '../../integration/Connection';
 import Constants from '../../utils/Constants';
-import Database from '../../utils/Database';
-import TSGlobal from '../../types/GlobalType';
+import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-
-declare const global: TSGlobal;
+import Database from '../../utils/Database';
 
 export default class ConnectionStorage {
 

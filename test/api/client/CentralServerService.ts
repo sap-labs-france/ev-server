@@ -107,6 +107,7 @@ export default class CentralServerService {
   }
 
   public async createEntity(entityApi, entity, performCheck = true) {
+
     // Create
     const response = await entityApi.create(entity);
     // Check
@@ -128,6 +129,7 @@ export default class CentralServerService {
     expect(entity).to.not.be.null;
     // Retrieve it from the backend
     const response = await entityApi.readById(entity.id);
+
     // Check
     if (performCheck) {
       // Check if ok

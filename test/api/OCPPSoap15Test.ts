@@ -1,11 +1,11 @@
-import config from '../config';
-import path from 'path';
-import CentralServerService from './client/CentralServerService';
-import TSGlobal from '../../src/types/GlobalType';
+const path = require('path');
+ import global from'../../src/types/GlobalType';
+ 
+global.appRoot = path.resolve(__dirname, '../../src');
 import OCPPCommonTests from './OCPPCommonTests';
 import OCPPSoapService15 from './ocpp/soap/OCPPSoapService15';
-
-declare const global: TSGlobal;
+import CentralServerService from './client/CentralServerService';
+import config from '../config';
 global.appRoot = path.resolve(__dirname, '../../src');
 
 class TestData {

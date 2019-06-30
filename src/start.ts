@@ -1,4 +1,5 @@
 import path from 'path';
+import global from './types/GlobalType';
 global.appRoot = path.resolve(__dirname);
 import BBPromise from 'bluebird';
 import TSGlobal from './types/GlobalType';
@@ -20,8 +21,6 @@ import SchedulerManager from './scheduler/SchedulerManager';
 import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer';
 import Utils from './utils/Utils';
 SourceMap.install();
-
-declare const global: TSGlobal;
 const MODULE_NAME = 'Bootstrap';
 
 export default class Bootstrap {
