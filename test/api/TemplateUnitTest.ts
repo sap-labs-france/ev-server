@@ -34,26 +34,32 @@ describe('Template for Dev Unit Test', function() {
     // ContextProvider.cleanUpCreatedContent();
   });
 
-  describe('Unit test global description level 1', () => {
-    it('Usage of context with all components', async () => {
+  describe('Usage of tenant context with all components', () => {
+    it('Basic charging station transaction', async () => {
       const tenantContextAll = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
       const user = tenantContextAll.getContextUser(CONTEXTS.USER_CONTEXTS.BASIC_USER);
       const siteContext = tenantContextAll.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_BASIC);
       const siteAreaContext = siteContext.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
-      const chargingStationContext = siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCCP16);
+      const chargingStationContext = siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCCP15);
       const response = await chargingStationContext.startTransaction(1, user.tagIDs[0], 0, moment());
       expect(response).to.be.transactionValid;
       const userCentralService = tenantContextAll.getUserCentralServerService(CONTEXTS.USER_CONTEXTS.BASIC_USER);
       const tenantListResponse = await userCentralService.transactionApi.readAllActive({});
     });
 
+    it('usage of non assigned CS', async () => {
+      const tenantContextAll = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
+      const user = tenantContextAll.getContextUser(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+      const siteContext = tenantContextAll.getSiteContext(CONTEXTS.SITE_CONTEXTS.NO_SITE);
+      const siteAreaContext = siteContext.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.NO_SITE);
+      const chargingStationContext = siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP16);
+      const response = await chargingStationContext.startTransaction(1, user.tagIDs[0], 0, moment());
+      expect(response).to.be.transactionStatus('Rejected');
+    });
+
   });
 
-  describe('Unit test 2 global description  level 1', () => {
-    it('simple unit test 1', () => {
-      const test = 2;
-      expect(test).to.equal(2);
-    });
+  describe('usage of non assigned CS', () => {
   });
 });
 

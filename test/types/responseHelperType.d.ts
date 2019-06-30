@@ -1,6 +1,8 @@
 declare namespace Chai {
   interface Assertion {
-    isTransaction(expected: any): Assertion;
+    transaction(expected: any): Assertion;
     transactionValid(expected: any): Assertion;
+
+    transactionStatus(expectedStatus: string): void;
   }
 }

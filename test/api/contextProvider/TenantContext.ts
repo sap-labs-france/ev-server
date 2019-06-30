@@ -23,7 +23,7 @@ export default class TenantContext {
     this.tenant = tenant;
     this.centralAdminServerService = centralService;
     this.ocpp16 = new OCPPJsonService16(`${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP16/${this.tenant.id}`, ocppRequestHandler);
-    this.ocpp15 = new OCPPJsonService15(`${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP15/${this.tenant.id}`);
+    this.ocpp15 = new OCPPJsonService15(`${config.get('ocpp.soap.scheme')}://${config.get('ocpp.soap.host')}:${config.get('ocpp.soap.port')}/OCPP15?TenantID=${this.tenant.id}`);
     this.context = {
       companies: [],
       users: [],

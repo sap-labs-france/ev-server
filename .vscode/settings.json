@@ -19,5 +19,6 @@
   },
   "mochaExplorer.files": "test/**/*Test.ts",
   "mochaExplorer.require": "ts-node/register",
+  "mochaExplorer.exit": true,
   "mochaExplorer.debuggerConfig": "Debug Mocha Tests"
 }

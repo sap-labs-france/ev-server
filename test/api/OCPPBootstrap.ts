@@ -8,11 +8,12 @@ import faker from 'faker';
 import CentralServerService from '../api/client/CentralServerService';
 chai.use(chaiSubset);
 import Factory from '../factories/Factory';
+import OCPPService from './ocpp/OCPPService';
 
 global.appRoot = path.resolve(__dirname, '../../src');
 
 export default class OCPPBootstrap {
-  public ocpp: any;
+  public ocpp: OCPPService;
   public constructor(ocpp) {
     this.ocpp = ocpp;
   }

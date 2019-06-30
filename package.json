@@ -109,6 +109,7 @@
     "mocha-parallel-tests": "^2.1.2",
     "mochawesome": "^3.1.2",
     "npm-check": "^5.9.0",
+    "nyc": "^14.1.1",
     "querystring": "^0.2.0",
     "rosie": "^2.0.1",
     "rxjs": "^6.5.2",
