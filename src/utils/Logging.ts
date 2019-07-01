@@ -291,7 +291,7 @@ export default class Logging {
   private static _logActionExceptionMessage(tenantID, action, exception): void {
     Logging.logError({
       tenantID: tenantID,
-      user: exception.user, // TODO Added this to remove exception while logging, careful
+      user: exception.user, // TODO: Added this to remove exception while logging, careful
       source: exception.source,
       module: exception.module,
       method: exception.method,
