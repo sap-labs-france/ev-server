@@ -1,12 +1,12 @@
-const SiteFactory = require('./SiteFactory');
-const CompanyFactory = require('./CompanyFactory');
-const UserFactory = require('./UserFactory');
-const ChargingStationFactory = require('./ChargingStationFactory');
-const AddressFactory = require('./AddressFactory');
-const SiteAreaFactory = require('./SiteAreaFactory');
-const TenantFactory = require('./TenantFactory');
-const SettingFactory = require('./SettingFactory');
-const OcpiEndpointsFactory = require('./OcpiEndpointsFactory');
+import AddressFactory from './AddressFactory';
+import ChargingStationFactory from './ChargingStationFactory';
+import CompanyFactory from './CompanyFactory';
+import OcpiEndpointsFactory from './OcpiEndpointsFactory';
+import SettingFactory from './SettingFactory';
+import SiteAreaFactory from './SiteAreaFactory';
+import SiteFactory from './SiteFactory';
+import TenantFactory from './TenantFactory';
+import UserFactory from './UserFactory';
 
 export default abstract class Factory {
   public static site = SiteFactory;

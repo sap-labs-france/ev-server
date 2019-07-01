@@ -10,9 +10,9 @@ import ChargingStation from '../../entity/ChargingStation';
 import ConnectionStorage from '../../storage/mongodb/ConnectionStorage';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
-import Site from '../../types/Site';
 import InternalError from '../../exception/InternalError';
 import Logging from '../../utils/Logging';
+import Site from '../../types/Site';
 import Transaction from '../../entity/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 

@@ -1,9 +1,9 @@
 import crypto from 'crypto';
+import Consumption from '../../entity/Consumption';
+import Database from '../../utils/Database';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import Database from '../../utils/Database';
-import Consumption from '../../entity/Consumption';
 
 
 export default class ConsumptionStorage {

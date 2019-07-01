@@ -1,11 +1,11 @@
 import { Request, Response } from 'express';
+import SourceMap from 'source-map-support';
 import AbstractOCPIService from './AbstractOCPIService';
 import { Config } from '../../utils/ConfigurationClasses/Config';
 import OCPIService2_0 from './ocpi-services-impl/ocpi-2.0/OCPIService';
 import OCPIService2_1_1 from './ocpi-services-impl/ocpi-2.1.1/OCPIService';
 import OCPIUtils from '../ocpi/OCPIUtils';
 
-import SourceMap from 'source-map-support';
 SourceMap.install();
 
 export default class OCPIServices {

@@ -1,16 +1,14 @@
-const path = require('path');
- import global from'../../src/types/GlobalType';
- 
-global.appRoot = path.resolve(__dirname, '../../src');
-import chai from 'chai';
-import { expect } from 'chai';
+import chai, { expect } from 'chai';
+import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
+import moment from 'moment';
+import responseHelper from '../helpers/responseHelper';
 import CONTEXTS from './contextProvider/ContextConstants';
 import ContextProvider from './contextProvider/ContextProvider';
-chai.use(require('chai-datetime'));
+
+chai.use(chaiDatetime);
 chai.use(chaiSubset);
-chai.use(require('../helpers/responseHelper'));
-import moment from 'moment';
+chai.use(responseHelper);
 
 // For Visual Studio it is recommended to install Mocha sidebar and Chai snippets
 // Mocha is the test framework and chai provides functions to check expectations

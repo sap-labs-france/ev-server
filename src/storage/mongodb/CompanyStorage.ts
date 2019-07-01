@@ -3,11 +3,11 @@ import BackendError from '../../exception/BackendError';
 import Company from '../../types/Company';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
-import Logging from '../../utils/Logging';
-import global from '../../types/GlobalType';
-import Utils from '../../utils/Utils';
 import DbParams from '../../types/database/DbParams';
+import global from '../../types/GlobalType';
+import Logging from '../../utils/Logging';
 import SiteStorage from './SiteStorage';
+import Utils from '../../utils/Utils';
 
 export default class CompanyStorage {
 
@@ -144,12 +144,12 @@ export default class CompanyStorage {
     if (params.withSites) {
       // Add Sites & Created Props
       DatabaseUtils.pushBasicSiteJoinInAggregation(tenantID, aggregation, '_id', 'companyID', 'sites', ['address', 'name'], 'include', false);
-    }else{
+    } else {
       // Add Created By / Last Changed By
       DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     }
 
-    if(params.withLogo) {
+    if (params.withLogo) {
       // Add company logo
       aggregation.push({ $lookup: {
         from: tenantID + '.companylogos',
@@ -173,7 +173,7 @@ export default class CompanyStorage {
       name: 1,
       address: 1,
       sites: 1,
-      id: {$toString: '$_id'} }});
+      id: { $toString: '$_id' } } });
 
     // Sort
     if (dbParams.sort) {

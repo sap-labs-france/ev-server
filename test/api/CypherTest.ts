@@ -1,13 +1,13 @@
 import chai, { expect } from 'chai';
+import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
-import path from 'path';
-import global from '../../src/types/GlobalType';
-chai.use(require('chai-datetime'));
-chai.use(chaiSubset);
-chai.use(require('../helpers/responseHelper'));
+import responseHelper from '../helpers/responseHelper';
 import cypher from '../../src/utils/Cypher';
 import CypherJSON from './client/utils/CypherJSON';
-global.appRoot = path.resolve(__dirname, '../../src');
+
+chai.use(chaiDatetime);
+chai.use(chaiSubset);
+chai.use(responseHelper);
 
 // For Visual Studio it is recommended to install Mocha sidebar and Chai snippets
 // Mocha is the test framework and chai provides functions to check expectations

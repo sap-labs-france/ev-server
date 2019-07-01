@@ -1,5 +1,5 @@
 export default class CONTEXTS {
-  /** ************************************
+  /**************************************
   * Available contexts that can be used in the unit tests
   ***************************************/
   static readonly TENANT_CONTEXTS: any = {
@@ -191,19 +191,19 @@ export default class CONTEXTS {
       refund: {
         type: 'concur',
         content: {
-            concur: {
-              authenticationUrl: '',
-              apiUrl: '',
-              clientId: '',
-              clientSecret: '',
-              paymentTypeId: '',
-              expenseTypeCode: '',
-              policyId: '',
-              reportName: ''
-            }
+          concur: {
+            authenticationUrl: '',
+            apiUrl: '',
+            clientId: '',
+            clientSecret: '',
+            paymentTypeId: '',
+            expenseTypeCode: '',
+            policyId: '',
+            reportName: ''
           }
         }
       }
+    }
   }];
 
   // List of users created in a tenant

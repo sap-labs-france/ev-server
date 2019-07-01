@@ -1,5 +1,5 @@
-import HttpDatabaseRequest from './HttpDatabaseRequest';
 import HttpByIDRequest from './HttpByIDRequest';
+import HttpDatabaseRequest from './HttpDatabaseRequest';
 
 export interface HttpSiteAreaRequest extends HttpByIDRequest {
   WithSite?: boolean;

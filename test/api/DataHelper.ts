@@ -1,6 +1,5 @@
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
-chai.use(chaiSubset);
 import config from '../config';
 import faker from 'faker';
 import { from } from 'rxjs';
@@ -8,9 +7,10 @@ import { mergeMap } from 'rxjs/operators';
 import CentralServerService from './client/CentralServerService';
 import Factory from '../factories/Factory';
 import OCPPJsonService16 from './ocpp/json/OCPPJsonService16';
-// pragma import OCPPService from './ocpp/OCPPService';
 import OCPPSoapService15 from './ocpp/soap/OCPPSoapService15';
 import Utils from '../../src/utils/Utils';
+
+chai.use(chaiSubset);
 
 export default class DataHelper {
   private ocpp: any;

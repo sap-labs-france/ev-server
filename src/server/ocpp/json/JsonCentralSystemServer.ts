@@ -1,11 +1,12 @@
 import uuid from 'uuid/v4';
 import CentralSystemServer from '../CentralSystemServer';
-import global from '../../../types/GlobalType';
-import Logging from '../../../utils/Logging';
 import Constants from '../../../utils/Constants';
-import WSServer from './WSServer';
+import global from '../../../types/GlobalType';
 import JsonRestWSConnection from './JsonRestWSConnection';
 import JsonWSConnection from './JsonWSConnection';
+import Logging from '../../../utils/Logging';
+import WSServer from './WSServer';
+
 export default class JsonCentralSystemServer extends CentralSystemServer {
 
   private _serverName: any;

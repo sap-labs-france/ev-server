@@ -1,12 +1,8 @@
-const path = require('path');
- import global from'../../src/types/GlobalType';
- 
-global.appRoot = path.resolve(__dirname, '../../src');
+import config from '../config';
+import CentralServerService from './client/CentralServerService';
 import OCPPCommonTests from './OCPPCommonTests';
 import OCPPSoapService15 from './ocpp/soap/OCPPSoapService15';
-import CentralServerService from './client/CentralServerService';
-import config from '../config';
-global.appRoot = path.resolve(__dirname, '../../src');
+
 
 class TestData {
   public ocpp: OCPPSoapService15;

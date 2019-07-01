@@ -1,7 +1,7 @@
 import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
-import global from '../../types/GlobalType';
 import Database from '../../utils/Database';
+import global from '../../types/GlobalType';
+import Logging from '../../utils/Logging';
 
 export default class MigrationStorage {
   static async getMigrations() {

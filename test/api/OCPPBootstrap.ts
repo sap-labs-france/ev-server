@@ -1,16 +1,11 @@
-const path = require('path');
-import global from'../../src/types/GlobalType';
-global.appRoot = path.resolve(__dirname, '../../src');
-import chai from 'chai';
-import {expect} from 'chai';
+import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import faker from 'faker';
 import CentralServerService from '../api/client/CentralServerService';
-chai.use(chaiSubset);
 import Factory from '../factories/Factory';
 import OCPPService from './ocpp/OCPPService';
 
-global.appRoot = path.resolve(__dirname, '../../src');
+chai.use(chaiSubset);
 
 export default class OCPPBootstrap {
   public ocpp: OCPPService;

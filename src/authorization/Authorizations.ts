@@ -17,6 +17,7 @@ import Transaction from '../entity/Transaction';
 import User from '../entity/User';
 import UserStorage from '../storage/mongodb/UserStorage';
 import Utils from '../utils/Utils';
+
 SourceMap.install();
 
 export default class Authorizations {
@@ -100,71 +101,6 @@ export default class Authorizations {
       };
     }
     return {};
-  }
-
-  private static async checkAndGetUserTagIDOnChargingStation(chargingStation: any, tagID: any, action: any) {
-    // Get the user
-    let user: any = await User.getUserByTagId(chargingStation.getTenantID(), tagID);
-    // Found?
-    if (!user) {
-      // Create an empty user
-      const newUser = new User(chargingStation.getTenantID(), {
-        name: "Unknown",
-        firstName: "User",
-        status: Constants.USER_STATUS_INACTIVE,
-        role: Constants.ROLE_BASIC,
-        email: tagID + "@chargeangels.fr",
-        tagIDs: [tagID],
-        createdOn: new Date().toISOString()
-      });
-      // Save the user
-      user = await newUser.save();
-      // Notify
-      NotificationHandler.sendUnknownUserBadged(
-        chargingStation.getTenantID(),
-        Utils.generateGUID(),
-        chargingStation.getModel(),
-        {
-          "chargeBoxID": chargingStation.getID(),
-          "badgeId": tagID,
-          "evseDashboardURL": Utils.buildEvseURL((await chargingStation.getTenant()).getSubdomain()),
-          "evseDashboardUserURL": await Utils.buildEvseUserURL(user, '#inerror')
-        }
-      );
-      // Not authorized
-      throw new AppError(
-        chargingStation.getID(),
-        `User with Tag ID '${tagID}' not found but saved as inactive user`, Constants.HTTP_GENERAL_ERROR,
-        "Authorizations", "_checkAndGetUserTagIDOnChargingStation", user.getModel()
-      );
-    } else {
-      // USer Exists: Check User Deleted?
-      if (user.getStatus() === Constants.USER_STATUS_DELETED) {
-        // Yes: Restore it!
-        user.setDeleted(false);
-        // Set default user's value
-        user.setStatus(Constants.USER_STATUS_INACTIVE);
-        user.setName("Unknown");
-        user.setFirstName("User");
-        user.setEMail(tagID + "@chargeangels.fr");
-        user.setPhone("");
-        user.setMobile("");
-        user.setNotificationsActive(true);
-        user.setImage("");
-        user.setINumber("");
-        user.setCostCenter("");
-        // Log
-        Logging.logSecurityInfo({
-          tenantID: user.getTenantID(), user: user,
-          module: "Authorizations", method: "_checkAndGetUserTagIDOnChargingStation",
-          message: `User with ID '${user.getID()}' has been restored`,
-          action: action
-        });
-        // Save
-        user = user.save();
-      }
-    }
-    return user;
   }
 
   public static async getConnectorActionAuthorizations(tenantID: string, user: any, chargingStation: any, connector: any, siteArea: SiteArea, site: Site) {
@@ -332,7 +268,7 @@ export default class Authorizations {
             throw new BackendError(
               chargingStation.getID(),
               `User '${alternateUser.getFullName()}' is not allowed to perform 'Stop Transaction' on User '${user.getFullName()}' on Site '${site.name}'!`,
-              'Authorizations', "isTagIDsAuthorizedOnChargingStation", action,
+              'Authorizations', 'isTagIDsAuthorizedOnChargingStation', action,
               (alternateUser ? alternateUser.getModel() : null), (user ? user.getModel() : null));
           }
         } else {
@@ -704,6 +640,71 @@ export default class Authorizations {
     const groups = Authorizations.getAuthGroupsFromUser(user.getRole(), sitesAdmin['result']);
     // Return the scopes
     return AuthorizationsDefinition.getInstance().getScopes(groups);
+  }
+
+  private static async checkAndGetUserTagIDOnChargingStation(chargingStation: any, tagID: any, action: any) {
+    // Get the user
+    let user: any = await User.getUserByTagId(chargingStation.getTenantID(), tagID);
+    // Found?
+    if (!user) {
+      // Create an empty user
+      const newUser = new User(chargingStation.getTenantID(), {
+        name: 'Unknown',
+        firstName: 'User',
+        status: Constants.USER_STATUS_INACTIVE,
+        role: Constants.ROLE_BASIC,
+        email: tagID + '@chargeangels.fr',
+        tagIDs: [tagID],
+        createdOn: new Date().toISOString()
+      });
+      // Save the user
+      user = await newUser.save();
+      // Notify
+      NotificationHandler.sendUnknownUserBadged(
+        chargingStation.getTenantID(),
+        Utils.generateGUID(),
+        chargingStation.getModel(),
+        {
+          'chargeBoxID': chargingStation.getID(),
+          'badgeId': tagID,
+          'evseDashboardURL': Utils.buildEvseURL((await chargingStation.getTenant()).getSubdomain()),
+          'evseDashboardUserURL': await Utils.buildEvseUserURL(user, '#inerror')
+        }
+      );
+      // Not authorized
+      throw new AppError(
+        chargingStation.getID(),
+        `User with Tag ID '${tagID}' not found but saved as inactive user`, Constants.HTTP_GENERAL_ERROR,
+        'Authorizations', '_checkAndGetUserTagIDOnChargingStation', user.getModel()
+      );
+    } else {
+      // USer Exists: Check User Deleted?
+      if (user.getStatus() === Constants.USER_STATUS_DELETED) {
+        // Yes: Restore it!
+        user.setDeleted(false);
+        // Set default user's value
+        user.setStatus(Constants.USER_STATUS_INACTIVE);
+        user.setName('Unknown');
+        user.setFirstName('User');
+        user.setEMail(tagID + '@chargeangels.fr');
+        user.setPhone('');
+        user.setMobile('');
+        user.setNotificationsActive(true);
+        user.setImage('');
+        user.setINumber('');
+        user.setCostCenter('');
+        // Log
+        Logging.logSecurityInfo({
+          tenantID: user.getTenantID(), user: user,
+          module: 'Authorizations', method: '_checkAndGetUserTagIDOnChargingStation',
+          message: `User with ID '${user.getID()}' has been restored`,
+          action: action
+        });
+        // Save
+        user = user.save();
+      }
+    }
+    return user;
   }
 
   private static getConfiguration() {

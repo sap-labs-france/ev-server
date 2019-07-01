@@ -1,3 +1,5 @@
+import { NextFunction, Request, Response } from 'express';
+import SourceMap from 'source-map-support';
 import AuthService from './service/AuthService';
 import ChargingStationService from './service/ChargingStationService';
 import CompanyService from './service/CompanyService';
@@ -8,29 +10,27 @@ import NotificationService from './service/NotificationService';
 import OCPIEndpointService from './service/OCPIEndpointService';
 import PricingService from './service/PricingService';
 import SessionHashService from './service/SessionHashService';
-import SourceMap from 'source-map-support';
-import { Request, Response, NextFunction } from 'express';
-import UserService from './service/UserService';
-import TenantService from './service/TenantService';
-import VehicleService from './service/VehicleService';
-import VehicleManufacturerService from './service/VehicleManufacturerService';
-import SiteService from './service/SiteService';
-import SiteAreaService from './service/SiteAreaService';
-import TransactionService from './service/TransactionService';
 import SettingService from './service/SettingService';
-import UtilsService from './service/UtilsService';
+import SiteAreaService from './service/SiteAreaService';
+import SiteService from './service/SiteService';
 import StatisticService from './service/StatisticService';
+import TenantService from './service/TenantService';
+import TransactionService from './service/TransactionService';
+import UserService from './service/UserService';
+import UtilsService from './service/UtilsService';
+import VehicleManufacturerService from './service/VehicleManufacturerService';
+import VehicleService from './service/VehicleService';
 
 SourceMap.install();
 
 class RequestMapper {
+  private static instances = new Map<string, RequestMapper>();
 
   private paths = new Map<string, number>();
   private actions = new Array<Function>();
-  private static instances = new Map<string, RequestMapper>();
 
   private constructor(httpVerb: string) {
-    switch(httpVerb) {
+    switch (httpVerb) {
       // Create
       case 'POST':
         // Register Charging Stations actions
@@ -47,28 +47,28 @@ class RequestMapper {
             action = action.slice(15);
             // TODO: To Remove
             // Hack for mobile app not sending the RemoteStopTransaction yet
-            if (action === "StartTransaction") {
-              action = "RemoteStartTransaction";
+            if (action === 'StartTransaction') {
+              action = 'RemoteStartTransaction';
             }
-            if (action === "StopTransaction") {
-              action = "RemoteStopTransaction";
+            if (action === 'StopTransaction') {
+              action = 'RemoteStopTransaction';
             }
             // Delegate
             ChargingStationService.handleAction(action, req, res, next);
           },
-          "ChargingStationClearCache",
-          "ChargingStationGetConfiguration",
-          "ChargingStationChangeConfiguration",
-          "ChargingStationStopTransaction",
-          "ChargingStationStartTransaction",
-          "ChargingStationUnlockConnector",
-          "ChargingStationReset",
-          "ChargingStationSetChargingProfile",
-          "ChargingStationGetCompositeSchedule",
-          "ChargingStationClearChargingProfile",
-          "ChargingStationGetDiagnostics",
-          "ChargingStationChangeAvailability",
-          "ChargingStationUpdateFirmware"
+          'ChargingStationClearCache',
+          'ChargingStationGetConfiguration',
+          'ChargingStationChangeConfiguration',
+          'ChargingStationStopTransaction',
+          'ChargingStationStartTransaction',
+          'ChargingStationUnlockConnector',
+          'ChargingStationReset',
+          'ChargingStationSetChargingProfile',
+          'ChargingStationGetCompositeSchedule',
+          'ChargingStationClearChargingProfile',
+          'ChargingStationGetDiagnostics',
+          'ChargingStationChangeAvailability',
+          'ChargingStationUpdateFirmware'
         );
         // Register REST actions
         this.registerJsonActionsPaths({
@@ -162,7 +162,9 @@ class RequestMapper {
           IntegrationConnections: ConnectorService.handleGetConnections,
           IntegrationConnection: ConnectorService.handleGetConnection,
           _default: UtilsService.handleUnknownAction,
-          Ping: (action: string, req: Request, res: Response, next: NextFunction) => res.sendStatus(200)
+          Ping: (action: string, req: Request, res: Response, next: NextFunction) => {
+            return res.sendStatus(200);
+          }
         });
 
       // Update
@@ -208,27 +210,27 @@ class RequestMapper {
   }
 
   public static getInstanceFromHTTPVerb(method: string): RequestMapper {
-    if(! this.instances.has(method)) {
-      this.instances.set(method, new RequestMapper(method));
+    if (!RequestMapper.instances.has(method)) {
+      RequestMapper.instances.set(method, new RequestMapper(method));
     }
-    return this.instances.get(method);
+    return RequestMapper.instances.get(method);
   }
 
   public registerOneActionManyPaths(action: Function, ...paths: string[]) {
-    let index = this.actions.push(action) - 1;
-    for(const path of paths) {
+    const index = this.actions.push(action) - 1;
+    for (const path of paths) {
       this.paths.set(path, index);
     }
   }
 
   public registerJsonActionsPaths(dict: any) {
-    for(let key in dict) {
+    for (const key in dict) {
       this.registerOneActionManyPaths(dict[key], key);
     }
   }
 
   public getActionFromPath(path: string): Function {
-    if(!this.paths.has(path)){
+    if (!this.paths.has(path)) {
       path = '_default';
     }
     return this.actions[this.paths.get(path)];
@@ -266,9 +268,9 @@ export default {
     }
 
     // Check HTTP Verbs
-    if(! ['POST', 'GET', 'PUT', 'DELETE'].includes(req.method)){
+    if (!['POST', 'GET', 'PUT', 'DELETE'].includes(req.method)) {
       Logging.logActionExceptionMessageAndSendResponse(
-        "N/A", new Error(`Unsupported request method ${req.method}`), req, res, next);
+        'N/A', new Error(`Unsupported request method ${req.method}`), req, res, next);
       return;
     }
 
@@ -277,7 +279,7 @@ export default {
       const handleRequest = RequestMapper.getInstanceFromHTTPVerb(req.method).getActionFromPath(action);
       // Execute
       await handleRequest(action, req, res, next);
-    } catch(error){
+    } catch (error) {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }

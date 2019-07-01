@@ -1,4 +1,3 @@
-// pragma import AuthenticatedBaseApi from './utils/AuthenticatedBaseApi';
 
 export default class AuthenticationApi {
   private _baseApi: any;

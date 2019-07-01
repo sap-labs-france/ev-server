@@ -1,11 +1,11 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import CompanySecurity from './CompanySecurity';
+import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUserAdminRequest, HttpSiteUsersRequest, HttpSitesRequest } from '../../../../types/requests/HttpSiteRequest';
+import Site from '../../../../types/Site';
 import SiteAreaSecurity from './SiteAreaSecurity';
 import UserSecurity from './UserSecurity';
-import { HttpSiteAssignUsersRequest, HttpSitesRequest, HttpSiteUsersRequest, HttpSiteUserAdminRequest, HttpSiteRequest } from '../../../../types/requests/HttpSiteRequest';
-import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import Site from '../../../../types/Site';
 import UtilsSecurity from './UtilsSecurity';
 
 export default class SiteSecurity {
@@ -109,7 +109,7 @@ export default class SiteSecurity {
         filteredSite.address = UtilsSecurity.filterAddressRequest(site.address);
       }
       if (site.company) {
-        filteredSite.company = CompanySecurity.filterCompanyResponse(site.company, loggedUser);//TODO change
+        filteredSite.company = CompanySecurity.filterCompanyResponse(site.company, loggedUser); // TODO: change
       }
       if (site.siteAreas) {
         filteredSite.siteAreas = SiteAreaSecurity.filterSiteAreasResponse(site.siteAreas, loggedUser);

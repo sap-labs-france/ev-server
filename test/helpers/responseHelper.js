@@ -1,7 +1,7 @@
 module.exports = function(chai, utils) {
   const Assertion = chai.Assertion;
 
-  utils.addProperty(Assertion.prototype, 'transaction', function () {
+  utils.addProperty(Assertion.prototype, 'transaction', function() {
     const obj = this._obj;
     // First, our instanceof check, shortcut
     new Assertion(this._obj).to.be.instanceof(Object);
@@ -17,7 +17,7 @@ module.exports = function(chai, utils) {
     );
   });
 
-  utils.addProperty(Assertion.prototype, 'transactionValid', function () {
+  utils.addProperty(Assertion.prototype, 'transactionValid', function() {
     const obj = this._obj;
     // First, our instanceof check, shortcut
     new Assertion(this._obj).to.be.transactionStatus('Accepted');
@@ -31,19 +31,18 @@ module.exports = function(chai, utils) {
     );
   });
 
-  Assertion.addMethod('transactionStatus', function (expectedStatus) {
+  Assertion.addMethod('transactionStatus', function(expectedStatus) {
     const obj = this._obj;
-    // first, our instanceof check, shortcut
+    // First, our instanceof check, shortcut
     new Assertion(this._obj).to.be.transaction;
-    // second, our type check
+    // Second, our type check
     this.assert(
       obj.data.idTagInfo.status === expectedStatus
-      , "expected idTagInfo.status to be #{exp} but got #{act}"
-      , "expected idTagInfo to not be #{act}"
+      , 'expected idTagInfo.status to be #{exp} but got #{act}'
+      , 'expected idTagInfo to not be #{act}'
       , expectedStatus
       , obj.data.idTagInfo.status
     );
-
   });
 
 };

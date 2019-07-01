@@ -6,6 +6,7 @@ import LoggingDatabaseTableCleanupTask from './tasks/LoggingDatabaseTableCleanup
 import OCPIPatchLocationsTask from './tasks/OCPIPatchLocationsTask';
 
 const _schedulerConfig = Configuration.getSchedulerConfig();
+
 export default class SchedulerManager {
   static init() {
     // Active?

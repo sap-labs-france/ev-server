@@ -1,4 +1,7 @@
 import CFLog from 'cf-nodejs-logging-support';
+import cfenv from 'cfenv';
+import cluster from 'cluster';
+import os from 'os';
 import { PerformanceObserver, performance } from 'perf_hooks';
 import SourceMap from 'source-map-support';
 import uuid from 'uuid/v4';
@@ -12,10 +15,8 @@ import Constants from './Constants';
 import LoggingStorage from '../storage/mongodb/LoggingStorage';
 import NotFoundError from '../exception/NotFoundError';
 import Utils from './Utils';
+
 SourceMap.install();
-import cfenv from 'cfenv';
-import cluster from 'cluster';
-import os from 'os';
 
 const _loggingConfig = Configuration.getLoggingConfig();
 let _traceStatistics = null;

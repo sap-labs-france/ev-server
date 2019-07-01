@@ -1,8 +1,8 @@
-import Constants from "../../utils/Constants";
-import JsonRestChargingStationClient from "./json/JsonRestChargingStationClient";
-import SoapChargingStationClient from "./soap/SoapChargingStationClient";
-import BackendError from "../../exception/BackendError";
+import BackendError from '../../exception/BackendError';
+import Constants from '../../utils/Constants';
 import global from '../../types/GlobalType';
+import JsonRestChargingStationClient from './json/JsonRestChargingStationClient';
+import SoapChargingStationClient from './soap/SoapChargingStationClient';
 
 const buildChargingStationClient = async function(chargingStation) {
   let chargingClient = null;

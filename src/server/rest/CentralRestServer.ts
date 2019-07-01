@@ -13,10 +13,10 @@ import ErrorHandler from './ErrorHandler';
 import expressTools from '../ExpressTools';
 import Logging from '../../utils/Logging';
 import SessionHashService from '../rest/service/SessionHashService';
+
 SourceMap.install();
 
 const MODULE_NAME = 'CentralRestServer';
-
 export default class CentralRestServer {
 
   private static centralSystemRestConfig;

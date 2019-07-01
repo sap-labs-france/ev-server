@@ -1,7 +1,3 @@
-const path = require('path');
-import global from'../../src/types/GlobalType';
- 
-global.appRoot = path.resolve(__dirname, '../../src');
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import CentralServerService from './client/CentralServerService';

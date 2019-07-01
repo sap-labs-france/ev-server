@@ -3,10 +3,10 @@ import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
-import Logging from '../../utils/Logging';
 import global from '../../types/GlobalType';
-import Utils from '../../utils/Utils';
+import Logging from '../../utils/Logging';
 import OCPIEndpoint from '../../entity/OCPIEndpoint';
+import Utils from '../../utils/Utils';
 
 export default class OCPIEndpointStorage {
 

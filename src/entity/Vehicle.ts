@@ -4,6 +4,7 @@ import Database from '../utils/Database';
 import TenantHolder from './TenantHolder';
 import User from './User';
 import VehicleStorage from '../storage/mongodb/VehicleStorage';
+
 export default class Vehicle extends TenantHolder {
   private _model: any = {};
 

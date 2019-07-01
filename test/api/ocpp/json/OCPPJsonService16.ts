@@ -2,7 +2,8 @@ import config from '../../../config';
 import { performance } from 'perf_hooks';
 import uuid from 'uuid/v4';
 import OCPPService from '../OCPPService';
-import WSClient from '../../../../src/client/WSClient'; // From '../../../../src/client/WSClient');
+import WSClient from '../../../../src/client/WSClient';
+
 const OCPP_JSON_CALL_MESSAGE = 2;
 const OCPP_JSON_CALL_RESULT_MESSAGE = 3;
 
