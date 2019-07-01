@@ -1,5 +1,6 @@
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
+
 export default class AbstractService {
   static _handleError(error, req, next, action, module, method) {
     // Get tenant

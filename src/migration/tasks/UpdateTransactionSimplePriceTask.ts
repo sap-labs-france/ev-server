@@ -1,12 +1,12 @@
 import BBPromise from 'bluebird';
 import moment from 'moment';
 import Constants from '../../utils/Constants';
-import TSGlobal from '../../types/GlobalType';
+import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import SimplePricing from '../../integration/pricing/simple-pricing/SimplePricing';
-import global from '../../types/GlobalType';
+
 
 const SUB_DOMAINS = ['slfcah', 'slf'];
 export default class UpdateTransactionSimplePriceTask extends MigrationTask {

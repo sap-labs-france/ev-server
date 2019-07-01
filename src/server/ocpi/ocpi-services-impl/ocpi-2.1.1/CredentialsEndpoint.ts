@@ -1,4 +1,5 @@
 import axios from 'axios';
+import SourceMap from 'source-map-support';
 import AbstractEndpoint from '../AbstractEndpoint';
 import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
@@ -8,7 +9,6 @@ import OCPIMapping from './OCPIMapping';
 import OCPIServerError from '../../../../exception/OCPIServerError';
 import OCPIUtils from '../../OCPIUtils';
 
-import SourceMap from 'source-map-support';
 SourceMap.install();
 
 const EP_IDENTIFIER = 'credentials';

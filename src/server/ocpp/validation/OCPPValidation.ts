@@ -1,13 +1,14 @@
+import fs from 'fs';
+import SourceMap from 'source-map-support';
 import BackendError from '../../../exception/BackendError';
 import Constants from '../../../utils/Constants';
-import TSGlobal from '../../../types/GlobalType';
+import global from '../../../types/GlobalType';
 import Logging from '../../../utils/Logging';
 import SchemaValidator from '../../rest/validation/SchemaValidator';
-import fs from 'fs';
-import global from '../../../types/GlobalType';
-import SourceMap from 'source-map-support';
 import Utils from '../../../utils/Utils';
+
 SourceMap.install();
+
 export default class OCPPValidation extends SchemaValidator {
   private static instance: OCPPValidation|null = null;
 

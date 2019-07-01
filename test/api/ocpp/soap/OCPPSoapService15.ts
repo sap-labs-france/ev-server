@@ -1,4 +1,3 @@
-import config from '../../../config';
 import { performance } from 'perf_hooks';
 import soap from 'strong-soap';
 import OCPPService from '../OCPPService';

@@ -13,7 +13,6 @@ export default class MailApi extends CrudApi {
     return super.delete(null, '/email/all');
   }
 
-
   public async isMailReceived(receiver, type) {
     const mails = await this.readAllMails();
     const receivedMails = mails.data.filter((mail) => {

@@ -4,10 +4,10 @@ import ChargingStation from '../../entity/ChargingStation';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
+import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Site from '../../types/Site';
 import SiteArea from '../../types/SiteArea';
-import global from '../../types/GlobalType';
 import Utils from '../../utils/Utils';
 
 export default class SiteAreaStorage {
@@ -168,7 +168,8 @@ export default class SiteAreaStorage {
 
     // Charging Stations
     if (params.withChargeBoxes || params.withAvailableChargers) {
-      // Add Charging Stations TODO change when typing charging stations
+      // Add Charging Stations
+      // TODO: change when typing charging stations
       aggregation.push({
         $lookup: {
           from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
@@ -179,7 +180,7 @@ export default class SiteAreaStorage {
       });
     }
 
-    aggregation.push({$addFields: {id: '$_id'}});
+    aggregation.push({ $addFields: { id: '$_id' } });
 
     // Add site area image
     if (params.withImage) {

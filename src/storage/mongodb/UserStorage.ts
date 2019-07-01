@@ -1,20 +1,20 @@
 import crypto from 'crypto';
+import fs from 'fs';
 import Mustache from 'mustache';
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
-import Logging from '../../utils/Logging';
-import fs from 'fs';
+import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
+import Logging from '../../utils/Logging';
+import SiteUser from '../../types/Site';
 import User from '../../entity/User';
 import Utils from '../../utils/Utils';
-import SiteUser from '../../types/Site';
-import DbParams from '../../types/database/DbParams';
-
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
+
 export default class UserStorage {
   static getLatestEndUserLicenseAgreement(language = 'en') {
     // Debug
@@ -810,7 +810,7 @@ export default class UserStorage {
     const sites: SiteUser[] = [];
     for (const siteUserMDB of siteUsersMDB) {
       if (siteUserMDB.sites) {
-        const siteUser: SiteUser = {siteAdmin: siteUserMDB.siteAdmin, userID: siteUserMDB.userID, site: siteUserMDB.sites} as SiteUser;
+        const siteUser: SiteUser = { siteAdmin: siteUserMDB.siteAdmin, userID: siteUserMDB.userID, site: siteUserMDB.sites } as SiteUser;
         sites.push(siteUser);
       }
     }

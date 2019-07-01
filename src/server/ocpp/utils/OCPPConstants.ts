@@ -1,4 +1,5 @@
 import SourceMap from 'source-map-support';
+
 SourceMap.install();
 
 const OCPPConstants = {

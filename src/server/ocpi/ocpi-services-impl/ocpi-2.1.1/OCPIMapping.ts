@@ -1,10 +1,10 @@
-import Constants from "../../../../utils/Constants";
-import Site from "../../../../types/Site";
-
 import SourceMap from 'source-map-support';
-import SiteArea from "../../../../types/SiteArea";
-import SiteStorage from "../../../../storage/mongodb/SiteStorage";
-import SiteAreaStorage from "../../../../storage/mongodb/SiteAreaStorage";
+import Constants from '../../../../utils/Constants';
+import Site from '../../../../types/Site';
+import SiteArea from '../../../../types/SiteArea';
+import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
+import SiteStorage from '../../../../storage/mongodb/SiteStorage';
+
 SourceMap.install();
 
 /**
@@ -20,21 +20,21 @@ export default class OCPIMapping {
    * @return OCPI Location
    */
   static async convertSite2Location(tenant: any, site: Site, options: any = {}) {
-      // Build object
-      return {
-        "id": site.id,
-        "name": site.name,
-        "address": `${site.address.address1} ${site.address.address2}`,
-        "city": site.address.city,
-        "postal_code": site.address.postalCode,
-        "country": site.address.country,
-        "coordinates": {
-          "latitude": site.address.latitude,
-          "longitude": site.address.longitude
-        },
-        "evses": await this.getEvsesFromSite(tenant, site, options),
-        "last_updated": site.lastChangedOn
-      };
+    // Build object
+    return {
+      'id': site.id,
+      'name': site.name,
+      'address': `${site.address.address1} ${site.address.address2}`,
+      'city': site.address.city,
+      'postal_code': site.address.postalCode,
+      'country': site.address.country,
+      'coordinates': {
+        'latitude': site.address.latitude,
+        'longitude': site.address.longitude
+      },
+      'evses': await OCPIMapping.getEvsesFromSite(tenant, site, options),
+      'last_updated': site.lastChangedOn
+    };
   }
 
   /**
@@ -73,7 +73,7 @@ export default class OCPIMapping {
   static async getEvsesFromSite(tenant: any, site: Site, options: any) {
     // Build evses array
     const evses = [];
-    const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.getID(), {withChargeBoxes: true, siteID: site.id}, {limit: 0, skip: 0});
+    const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.getID(), { withChargeBoxes: true, siteID: site.id }, { limit: 0, skip: 0 });
     for (const siteArea of siteAreas.result) {
       // Get charging stations from SiteArea
       evses.push(...await OCPIMapping.getEvsesFromSiteaArea(tenant, siteArea, options));
@@ -92,7 +92,7 @@ export default class OCPIMapping {
     const result: any = { count: 0, locations: [] };
 
     // Get all sites
-    const sites = await SiteStorage.getSites(tenant.getID(), {}, { limit, skip }); //GOHERE
+    const sites = await SiteStorage.getSites(tenant.getID(), {}, { limit, skip });
 
     // Convert Sites to Locations
     for (const site of sites.result) {

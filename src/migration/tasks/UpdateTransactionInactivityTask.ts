@@ -60,7 +60,7 @@ export default class UpdateTransactionInactivityTask extends MigrationTask {
       const chargingStation = new ChargingStation(tenant.getID, transactionMDB.chargeBox);
       // Get Consumption
       const trans = await Transaction.getTransaction(tenant.getID(), transaction.id);
-      const consumption = trans.getConsumption();//chargingStation.getConsumptionsFromTransaction(transaction);
+      const consumption = trans.getConsumption(); // chargingStation.getConsumptionsFromTransaction(transaction);
       // Set the total consumption
       transaction.stop.totalConsumption = consumption.totalConsumption;
       // Compute total inactivity seconds

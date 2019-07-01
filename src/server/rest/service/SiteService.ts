@@ -1,18 +1,18 @@
+import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../utils/Constants';
+import { HttpSiteUserAdminRequest } from '../../../types/requests/HttpSiteRequest';
+import Logging from '../../../utils/Logging';
 import Site from '../../../types/Site';
-import User from '../../../entity/User';
 import SiteSecurity from './security/SiteSecurity';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
-import UserSecurity from "./security/UserSecurity";
-import { Request, Response, NextFunction } from 'express';
+import User from '../../../entity/User';
+import UserSecurity from './security/UserSecurity';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
-import Logging from '../../../utils/Logging';
-import { HttpSiteUserAdminRequest } from '../../../types/requests/HttpSiteRequest';
 
 export default class SiteService {
 
@@ -37,13 +37,13 @@ export default class SiteService {
     if (!filteredRequest.siteID) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The Site's ID must be provided`, 500,
+        'The Site\'s ID must be provided', 500,
         'SiteSecurity', 'filterAssignSiteUsers', req.user);
     }
     if (!filteredRequest.userIDs || (filteredRequest.userIDs && filteredRequest.userIDs.length <= 0)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The User's IDs must be provided`, 500,
+        'The User\'s IDs must be provided', 500,
         'SiteScurity', 'filterAssignSiteUsers', req.user);
     }
 
@@ -69,7 +69,7 @@ export default class SiteService {
     }
 
     // Get Sites
-    //const users = UserStorage.getUsers(req.user.tokenID, {}, Constants.MAX_DB_RECORD_COUNT, 0, null); TODO: change getUsers to accept array of userIDs so we can do only one request instead of many
+    // const users = UserStorage.getUsers(req.user.tokenID, {}, Constants.MAX_DB_RECORD_COUNT, 0, null); TODO: change getUsers to accept array of userIDs so we can do only one request instead of many
     for (const userID of filteredRequest.userIDs) {
       // Check the user
       const user = await User.getUser(req.user.tenantID, userID);
@@ -98,7 +98,7 @@ export default class SiteService {
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: 'SiteService', method: 'handleAddUsersToSite',
-      message: `Site's Users have been added successfully`, action: action
+      message: 'Site\'s Users have been added successfully', action: action
     });
 
     // Ok
@@ -181,7 +181,7 @@ export default class SiteService {
     if (!Authorizations.isBasic(user.getRole())) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Only Users with Basic role can be Site Admin`, Constants.HTTP_GENERAL_ERROR,
+        'Only Users with Basic role can be Site Admin', Constants.HTTP_GENERAL_ERROR,
         'SiteService', 'handleUpdateSiteUserAdmin', req.user, filteredRequest.userID);
     }
 
@@ -246,7 +246,7 @@ export default class SiteService {
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: 'SiteService', method: 'handleRemoveUsersFromSite',
-      message: `Site's Users have been removed successfully`, action: action
+      message: 'Site\'s Users have been removed successfully', action: action
     });
 
     // Ok
@@ -268,7 +268,7 @@ export default class SiteService {
       // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The Site's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+        'The Site\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
         'SiteService', 'handleGetUsersFromSite', req.user);
     }
 
@@ -297,12 +297,12 @@ export default class SiteService {
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort });
 
     // Filter
-    users.result = users.result.map(siteuser => {
+    users.result = users.result.map((siteuser) => {
       return {
         siteID: siteuser.siteID,
         siteAdmin: siteuser.siteAdmin,
         user: UserSecurity.filterUserResponse(siteuser.user, req.user)
-      }
+      };
     });
 
     res.json(users);
@@ -481,8 +481,8 @@ export default class SiteService {
     UtilsService.assertObjectExists(company, `The Company ID '${filteredRequest.companyID}' does not exist`, 'SiteService', 'handleCreateSite', req.user);
 
     // Create site
-    let usr = new User(req.user.tenantID, {id: req.user.id});
-    let date = new Date();
+    const usr = new User(req.user.tenantID, { id: req.user.id });
+    const date = new Date();
     const newSite: Site = {
       ...filteredRequest,
       createdBy: usr,
@@ -513,7 +513,7 @@ export default class SiteService {
       req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_UPDATE, Constants.ENTITY_SITE, 'SiteService', 'handleUpdateSite');
 
-      // Filter
+    // Filter
     const filteredRequest = SiteSecurity.filterSiteUpdateRequest(req.body);
 
     // Check
@@ -536,11 +536,11 @@ export default class SiteService {
     }
 
     // Update
-    site.lastChangedBy = new User(req.user.tenantID, {'id': req.user.id});
+    site.lastChangedBy = new User(req.user.tenantID, { 'id': req.user.id });
     site.lastChangedOn = new Date();
 
     // Save
-    await SiteStorage.saveSite(req.user.tenantID, {...site, ...filteredRequest}, true);
+    await SiteStorage.saveSite(req.user.tenantID, { ...site, ...filteredRequest }, true);
 
     // Log
     Logging.logSecurityInfo({
@@ -566,7 +566,7 @@ export default class SiteService {
     if (!filteredRequest.name) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Site Name is mandatory`,
+        'Site Name is mandatory',
         Constants.HTTP_GENERAL_ERROR,
         'SiteService', '_checkIfSiteValid',
         req.user.id, filteredRequest.id);
@@ -574,7 +574,7 @@ export default class SiteService {
     if (!filteredRequest.companyID) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Company ID is mandatory for the Site`,
+        'Company ID is mandatory for the Site',
         Constants.HTTP_GENERAL_ERROR,
         'SiteService', '_checkIfSiteValid',
         req.user.id, filteredRequest.id);

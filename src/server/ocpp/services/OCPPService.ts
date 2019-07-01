@@ -1,3 +1,5 @@
+import momentDurationFormatSetup from 'moment-duration-format'; // TODO: what?
+import SourceMap from 'source-map-support';
 import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
 import ChargingStation from '../../../entity/ChargingStation';
@@ -9,19 +11,16 @@ import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../utils/OCPPUtils';
 import OCPPValidation from '../validation/OCPPValidation';
 import PricingFactory from '../../../integration/pricing/PricingFactory';
-import SiteArea from '../../../types/SiteArea';
+import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Transaction from '../../../entity/Transaction';
 import User from '../../../entity/User';
 import Utils from '../../../utils/Utils';
-const moment = require('moment-timezone');
-import momentDurationFormatSetup from 'moment-duration-format'; // TODO what
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
-// pragma const momentDurationFormatSetup = require("moment-duration-format");
 
-import SourceMap from 'source-map-support';
-import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 SourceMap.install();
 
+// FIXME
+const moment = require('moment');
 momentDurationFormatSetup(moment);
 const _configChargingStation = Configuration.getChargingStationConfig();
 

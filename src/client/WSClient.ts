@@ -70,7 +70,7 @@ export default class WSClient {
     this.reinstantiateCbs();
   }
 
-  public reconnect(error?) {
+  public reconnect(error) {
     if (this.autoReconnectTimeout !== Constants.WS_RECONNECT_DISABLED &&
       (this.autoReconnectRetryCount < this.autoReconnectMaxRetries || this.autoReconnectMaxRetries === Constants.WS_RECONNECT_UNLIMITED)) {
       this.autoReconnectRetryCount++;
@@ -198,7 +198,7 @@ export default class WSClient {
   }
 
   private onError(error) {
-    switch (error.code) {
+    switch (error) {
       case 'ECONNREFUSED':
         if (this.dbLogging) {
           // Error message
@@ -213,7 +213,7 @@ export default class WSClient {
           // eslint-disable-next-line no-console
           console.log(`Connection refused to '${this.url}':`, error);
         }
-        this.reconnect();
+        this.reconnect(error);
         break;
       default:
         if (this.dbLogging) {
@@ -234,7 +234,7 @@ export default class WSClient {
   }
 
   private onClose(error) {
-    switch (error.code) {
+    switch (error) {
       case 1000: // Normal close
       case 1005:
         this.autoReconnectRetryCount = 0;
@@ -253,7 +253,7 @@ export default class WSClient {
           // eslint-disable-next-line no-console
           console.log(`Connection closing error to '${this.url}':`, error);
         }
-        this.reconnect();
+        this.reconnect(error);
         break;
     }
   }

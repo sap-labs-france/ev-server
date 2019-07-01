@@ -2,10 +2,9 @@ import crypto from 'crypto';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
-import Logging from '../../utils/Logging';
 import global from '../../types/GlobalType';
+import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-
 
 export default class OCPPStorage {
   static async saveAuthorize(tenantID, authorize) {

@@ -1,19 +1,20 @@
 import bodyParser from 'body-parser';
 import bodyParserXml from 'body-parser-xml';
-import cors from 'cors';
-import express from 'express';
-import helmet from 'helmet';
-import hpp from 'hpp';
-bodyParserXml(bodyParser);
 import CFLog from 'cf-nodejs-logging-support';
 import cluster from 'cluster';
+import cors from 'cors';
+import express from 'express';
 import fs from 'fs';
+import helmet from 'helmet';
+import hpp from 'hpp';
 import http from 'http';
 import https from 'https';
 import locale from 'locale';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
+
+bodyParserXml(bodyParser);
 
 export default {
   init: function(bodyLimit: string = '1mb'): express.Application {

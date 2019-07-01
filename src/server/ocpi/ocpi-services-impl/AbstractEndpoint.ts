@@ -1,9 +1,11 @@
-import SourceMap from 'source-map-support';
-import OCPIUtils from '../OCPIUtils';
-SourceMap.install();
 import { Request, Response } from 'express';
+import SourceMap from 'source-map-support';
 import OCPIService from '../OCPIServices';
+import OCPIUtils from '../OCPIUtils';
 import Tenant from '../../../entity/Tenant';
+
+SourceMap.install();
+
 /**
  * Abstract Endpoint
  */

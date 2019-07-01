@@ -1,12 +1,13 @@
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
+import config from '../../config';
 import CentralServerService from '../client/CentralServerService';
 import Constants from '../../../src/utils/Constants';
-chai.use(chaiSubset);
-import config from '../../config';
 import CONTEXTS from './ContextConstants';
 import SiteContext from './SiteContext';
 import TenantContext from './TenantContext';
+
+chai.use(chaiSubset);
 
 export default class ContextProvider {
 

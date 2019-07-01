@@ -1,11 +1,5 @@
-import global from'../../src/types/GlobalType';
- 
 import chai, { expect } from 'chai';
-import path from 'path';
-import CentralServerService from './client/CentralServerService';
 import ContextBuilder from './ContextProvider/ContextBuilder';
-import Factory from '../factories/Factory';
-global.appRoot = path.resolve(__dirname, '../../src');
 
 // For Visual Studio it is recommended to install Mocha sidebar and Chai snippets
 // Mocha is the test framework and chai provides functions to check expectations
@@ -45,7 +39,7 @@ describe('Unit test Context Builder', function() {
       // pragma const adminUser = this.tenantContextAll.getContextUser(null, 'florent.pernice@sap.com');
       // startTransaction(chargingStation, connectorId, tagId, meterStart, startDate, expectedStatus = 'Accepted')
       // await this.tenantContextAll.startTransaction(this.tenantContextAll.getOrganizationContext(SITE_CONTEXTS.SITE_BASIC).getChargingStations()[0], 1,
-      //   adminUser.tagIDs[0], 0, moment());
+      // adminUser.tagIDs[0], 0, moment());
       expect(test).to.equal(2);
     });
 

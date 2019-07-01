@@ -1,13 +1,11 @@
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
-import TSGlobal from './../../types/GlobalType';
+import global from './../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import PricingStorage from './PricingStorage';
-import global from './../../types/GlobalType';
 import Transaction from '../../entity/Transaction';
 import Utils from '../../utils/Utils';
-
 
 export default class TransactionStorage {
   static async deleteTransaction(tenantID, transaction) {

@@ -3,6 +3,7 @@ import Logging from '../../utils/Logging';
 import LoggingStorage from '../../storage/mongodb/LoggingStorage';
 import SchedulerTask from '../SchedulerTask';
 import Tenant from '../../entity/Tenant';
+
 export default class LoggingDatabaseTableCleanupTask implements SchedulerTask {
 
   static async processTenant(tenant, config) {

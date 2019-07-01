@@ -1,10 +1,9 @@
 import Constants from '../../../../utils/Constants';
-import Utils from '../../../../utils/Utils';
 import global from '../../../../types/GlobalType';
 import Logging from '../../../../utils/Logging';
+import Utils from '../../../../utils/Utils';
 
 const MODULE_NAME = 'SoapCentralSystemService15';
-
 export default { /* Services */
   CentralSystemService: { /* Ports */
     CentralSystemServiceSoap12: { /* Methods */

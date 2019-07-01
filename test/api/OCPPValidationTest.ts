@@ -1,16 +1,14 @@
 import chai, { expect } from 'chai';
+import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
-chai.use(require('chai-datetime'));
-chai.use(chaiSubset);
 import faker from 'faker';
-import DataHelper from './DataHelper';
-const path = require('path');
- import global from'../../src/types/GlobalType';
- 
-global.appRoot = path.resolve(__dirname, '../../src');
+import moment from 'moment';
 import CentralServerService from './client/CentralServerService';
+import DataHelper from './DataHelper';
 import Factory from '../factories/Factory';
-import moment = require('moment');
+
+chai.use(chaiDatetime);
+chai.use(chaiSubset);
 
 class TestData {
   public dataHelper: DataHelper;

@@ -1,12 +1,7 @@
 import config from '../config';
-import path from 'path';
-import global from'../../src/types/GlobalType';
-global.appRoot = path.resolve(__dirname, '../../src');
+import CentralServerService from './client/CentralServerService';
 import OCPPCommonTests from './OCPPCommonTests';
 import OCPPJsonService16 from './ocpp/json/OCPPJsonService16';
-import CentralServerService from './client/CentralServerService';
-
-global.appRoot = path.resolve(__dirname, '../../src');
 
 class TestData {
   public ocpp: OCPPJsonService16;

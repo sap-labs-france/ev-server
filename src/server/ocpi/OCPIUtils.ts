@@ -1,9 +1,10 @@
+import { Request } from 'express';
 import SourceMap from 'source-map-support';
 import Constants from '../../utils/Constants';
 import OCPIClientError from '../../exception/OCPIClientError';
 import OCPIServerError from '../../exception/OCPIServerError';
+
 SourceMap.install();
-import { Request } from 'express';
 
 /**
  * OCPI Utils

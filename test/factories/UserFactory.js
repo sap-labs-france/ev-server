@@ -1,5 +1,6 @@
 const Factory = require('rosie').Factory;
 const faker = require('faker');
+
 const userFactory = Factory.define('user')
   .attr('firstName', () => {
     return faker.name.firstName();
