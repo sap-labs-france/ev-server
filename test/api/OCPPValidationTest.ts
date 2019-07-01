@@ -4,13 +4,13 @@ chai.use(require('chai-datetime'));
 chai.use(chaiSubset);
 import faker from 'faker';
 import DataHelper from './DataHelper';
-const path = require('path');
- import global from'../../src/types/GlobalType';
- 
-global.appRoot = path.resolve(__dirname, '../../src');
+import path from 'path';
+import global from '../../src/types/GlobalType';
 import CentralServerService from './client/CentralServerService';
 import Factory from '../factories/Factory';
 import moment = require('moment');
+
+global.appRoot = path.resolve(__dirname, '../../src');
 
 class TestData {
   public dataHelper: DataHelper;
