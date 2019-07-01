@@ -148,6 +148,12 @@ export default class DatabaseUtils {
       {companyID: {$toString: `$${as}.companyID`}}, topCreatedProps, true, single);
   }
 
+  public static pushBasicUserJoinInAggregation(tenantID: string, aggregation: any[], local: string, foreign: string, as: string, includes: string[], topCreatedProps: 'none'|'manual'|'include', single: boolean) {
+    this.pushTransformedJoinInAggregation(tenantID, aggregation, 'users', local, foreign, as, includes, {},
+    [],
+    {}, topCreatedProps, true, single);
+  }
+
   public static pushTransformedJoinInAggregation(tenantID: string, aggregation: any[], joinCollection: string, local: string, foreign: string, intoField: string, topIncludes: string[], topRenames: any, nestedIncludes: string[],
     nestedRenames: any, topCreatedProps: 'none'|'manual'|'include', joinCreatedProps: boolean, single: boolean) {
 

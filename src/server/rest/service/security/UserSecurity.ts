@@ -3,8 +3,8 @@ import Authorizations from '../../../../authorization/Authorizations';
 import UtilsSecurity from './UtilsSecurity';
 
 export default class UserSecurity {
-  // eslint-disable-next-line no-unused-vars
-  static filterAddSitesToUserRequest(request, loggedUser) {
+
+  public static filterAddSitesToUserRequest(request, loggedUser) {
     const filteredRequest: any = {};
     // Set
     filteredRequest.userID = sanitize(request.userID);

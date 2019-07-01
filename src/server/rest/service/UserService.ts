@@ -14,6 +14,7 @@ import Site from '../../../types/Site';
 import User from '../../../entity/User';
 import UserSecurity from './security/UserSecurity';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
+import { Request, Response, NextFunction } from 'express';
 
 export default class UserService {
   static async handleAddSitesToUser(action, req, res, next) {
@@ -501,7 +502,7 @@ export default class UserService {
     next();
   }
 
-  static async handleCreateUser(action, req, res, next) {
+  public static async handleCreateUser(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canCreateUser(req.user)) {
       // Not Authorized!
@@ -513,6 +514,7 @@ export default class UserService {
         'UserService', 'handleCreateUser',
         req.user);
     }
+
     // Filter
     const filteredRequest = UserSecurity.filterUserCreateRequest(req.body, req.user);
     // Check Mandatory fields

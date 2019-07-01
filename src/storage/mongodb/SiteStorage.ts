@@ -9,7 +9,7 @@ import Site from '../../types/Site';
 import SiteAreaStorage from './SiteAreaStorage';
 import Utils from '../../utils/Utils';
 import DbParams from '../../types/database/DbParams';
-import UserSite from '../../types/User';
+import UserSite from '../../types/UserSite';
 
 export default class SiteStorage {
 
@@ -61,7 +61,7 @@ export default class SiteStorage {
       if (userIDs && userIDs.length > 0) {
         // Execute
         await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
-          "userID": { $in: userIDs.map(userID => Utils.convertToObjectID(userID)) }, //FIXME
+          "userID": { $in: userIDs.map(userID => Utils.convertToObjectID(userID)) },
           "siteID": Utils.convertToObjectID(siteID)
         });
       }
