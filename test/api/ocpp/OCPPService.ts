@@ -1,3 +1,6 @@
+import global from '../../../src/types/GlobalType';
+import path from 'path';
+global.appRoot = path.resolve(__dirname, '../../../src');
 
 export default class OCPPService {
   public serverUrl: string;

@@ -80,7 +80,7 @@ export default class StatisticsStorage {
         aggregation.push({
           $group: {
             _id: { chargeBox: '$chargeBoxID', month: { $month: '$timestamp' } },
-            total: { $sum: { $divide: ['$stop.totalInactivitySecs', 60 * 60] } }
+            total: { $sum: { $divide: [{ $add: ["$stop.totalInactivitySecs", "$stop.extraInactivitySecs"] }, 60 * 60] } }
           }
         });
         break;
@@ -173,7 +173,7 @@ export default class StatisticsStorage {
         aggregation.push({
           $group: {
             _id: { userID: '$userID', month: { $month: '$timestamp' } },
-            total: { $sum: { $divide: ['$stop.totalInactivitySecs', 60 * 60] } }
+            total: { $sum: { $divide: [{ $add: ["$stop.totalInactivitySecs", "$stop.extraInactivitySecs"] }, 60 * 60] } }
           }
         });
         break;
