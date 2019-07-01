@@ -1,7 +1,6 @@
 import MigrationTask from '../MigrationTask';
 import Tenant from '../../entity/Tenant';
 
-
 export default class UpdateTransactionInactivityTask extends MigrationTask {
   async migrate() {
     const tenants = await Tenant.getTenants();

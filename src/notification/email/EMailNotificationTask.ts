@@ -5,10 +5,10 @@ import SourceMap from 'source-map-support';
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
+import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import NotificationTask from '../NotificationTask';
 import Tenant from '../../entity/Tenant';
-import global from '../../types/GlobalType';
 import Utils from '../../utils/Utils';
 
 SourceMap.install();

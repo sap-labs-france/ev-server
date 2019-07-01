@@ -1,25 +1,23 @@
 import config from '../../config';
-import UserFactory from '../../factories/UserFactory';
 import faker from 'faker';
+import moment from 'moment';
 import CentralServerService from '../client/CentralServerService';
-import Factory from '../../factories/Factory';
-import TenantFactory from '../../factories/TenantFactory';
-import CONTEXTS from './ContextConstants';
-import User from '../../../src/entity/User';
-import Company from '../../../src/types/Company';
 import CompanyStorage from '../../../src/storage/mongodb/CompanyStorage';
+import Constants from '../../../src/utils/Constants';
+import CONTEXTS from './ContextConstants';
+import Factory from '../../factories/Factory';
+import global from '../../../src/types/GlobalType';
+import MongoDBStorage from '../../../src/storage/mongodb/MongoDBStorage';
+import Site from '../../../src/types/Site';
+import SiteAreaContext from './SiteAreaContext';
 import SiteAreaStorage from '../../../src/storage/mongodb/SiteAreaStorage';
+import SiteContext from './SiteContext';
 import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
 import Tenant from '../../../src/entity/Tenant';
 import TenantContext from './TenantContext';
-import SiteContext from './SiteContext';
-import SiteAreaContext from './SiteAreaContext';
-import ChargingStationContext from './ChargingStationContext';
-import Constants from '../../../src/utils/Constants';
- import global from'../../../src/types/GlobalType';
-import moment from 'moment';
-import Site from '../../../src/types/Site';
-import MongoDBStorage from '../../../src/storage/mongodb/MongoDBStorage';
+import TenantFactory from '../../factories/TenantFactory';
+import User from '../../../src/entity/User';
+import UserFactory from '../../factories/UserFactory';
 
 export default class ContextBuilder {
 
@@ -244,7 +242,9 @@ export default class ContextBuilder {
         siteTemplate.id = siteContextDef.id;
         site = siteTemplate;
         site.id = await SiteStorage.saveSite(buildTenant.id, siteTemplate, true);
-        await SiteStorage.addUsersToSite(buildTenant.id, site.id, userListToAssign.map(user => user.id));
+        await SiteStorage.addUsersToSite(buildTenant.id, site.id, userListToAssign.map((user) => {
+          return user.id;
+        }));
         const siteContext = new SiteContext(site, newTenantContext);
         newTenantContext.addSiteContext(siteContext);
         // Create site areas of current site

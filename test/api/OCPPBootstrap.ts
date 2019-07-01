@@ -1,13 +1,9 @@
-import path from 'path';
-import global from'../../src/types/GlobalType';
-import chai, {expect} from 'chai';
+import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import faker from 'faker';
 import CentralServerService from '../api/client/CentralServerService';
 import Factory from '../factories/Factory';
 import OCPPService from './ocpp/OCPPService';
-
-global.appRoot = path.resolve(__dirname, '../../src');
 
 chai.use(chaiSubset);
 

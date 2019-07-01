@@ -1,12 +1,8 @@
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import HttpStatus from 'http-status-codes';
-import path from 'path';
 import CentralServerService from '../api/client/CentralServerService';
 import Factory from '../factories/Factory';
-import global from'../../src/types/GlobalType';
-
-global.appRoot = path.resolve(__dirname, '../../src');
 
 chai.use(chaiSubset);
 

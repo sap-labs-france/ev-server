@@ -1,12 +1,8 @@
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
-import path from 'path';
- import global from'../../src/types/GlobalType';
 import CentralServerService from './client/CentralServerService';
 import Factory from '../factories/Factory';
 import OCPIService from './ocpi/OCPIService';
-
-global.appRoot = path.resolve(__dirname, '../../src');
 
 chai.use(chaiSubset);
 

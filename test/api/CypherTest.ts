@@ -1,13 +1,9 @@
 import chai, { expect } from 'chai';
 import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
-import path from 'path';
-import global from '../../src/types/GlobalType';
+import responseHelper from '../helpers/responseHelper';
 import cypher from '../../src/utils/Cypher';
 import CypherJSON from './client/utils/CypherJSON';
-import responseHelper from '../helpers/responseHelper';
-
-global.appRoot = path.resolve(__dirname, '../../src');
 
 chai.use(chaiDatetime);
 chai.use(chaiSubset);

@@ -1,5 +1,6 @@
 import SourceMap from 'source-map-support';
 import AbstractEndpoint from '../AbstractEndpoint';
+import Constants from '../../../../utils/Constants';
 import OCPIMapping from './OCPIMapping';
 import OCPIServerError from '../../../../exception/OCPIServerError';
 import OCPIUtils from '../../OCPIUtils';
@@ -23,7 +24,7 @@ const RECORDS_LIMIT = 20;
   /**
    * Main Process Method for the endpoint
    */
-  async process(req, res, next, tenant) { // eslint-disable-line
+  async process(req, res, next, tenant) {
     try {
       switch (req.method) {
         case 'GET':
@@ -40,9 +41,9 @@ const RECORDS_LIMIT = 20;
   }
 
   /**
-   * Get Locations according to the requested url Segement
+   * Get Locations according to the requested url Segment
    */
-  async getLocationRequest(req, res, next, tenant) { // eslint-disable-line
+  async getLocationRequest(req, res, next, tenant) {
     // Split URL Segments
     //    /ocpi/cpo/2.0/locations/{location_id}
     //    /ocpi/cpo/2.0/locations/{location_id}/{evse_uid}
@@ -149,7 +150,7 @@ const RECORDS_LIMIT = 20;
   async getLocation(tenant, locationId) {
     // Get site
     const site = await SiteStorage.getSite(tenant.getID(), locationId);
-    if(!site) {
+    if (!site) {
       return null;
     }
 

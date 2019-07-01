@@ -3,16 +3,16 @@ import ChargingStation from '../../entity/ChargingStation';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
+import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import SiteArea from '../../types/SiteArea';
 import Tenant from '../../entity/Tenant';
-import global from '../../types/GlobalType';
 import Utils from '../../utils/Utils';
 
 export default class ChargingStationStorage {
 
   private static _chargingStationFields = [ 'siteAreaID', 'chargePointSerialNumber', 'chargePointModel', 'chargeBoxSerialNumber', 'chargePointVendor', 'iccid', 'imsi', 'meterType', 'firmwareVersion',
-  'meterSerialNumber', 'endpoint', 'ocppVersion', 'ocppProtocol', 'lastHeartBeat', 'deleted', 'lastReboot', 'chargingStationURL', 'connectors', 'firmwareVersion', 'maximumPower', 'latitude', 'longitude', 'powerLimitUnit', 'cannotChargeInParallel', 'numberOfConnectedPhase', 'cfApplicationIDAndInstanceIndex'];
+    'meterSerialNumber', 'endpoint', 'ocppVersion', 'ocppProtocol', 'lastHeartBeat', 'deleted', 'lastReboot', 'chargingStationURL', 'connectors', 'firmwareVersion', 'maximumPower', 'latitude', 'longitude', 'powerLimitUnit', 'cannotChargeInParallel', 'numberOfConnectedPhase', 'cfApplicationIDAndInstanceIndex'];
 
   static async getChargingStation(tenantID, id): Promise<ChargingStation> {
     // Debug
@@ -29,7 +29,7 @@ export default class ChargingStationStorage {
       }
     });
     // With Site Area, TODO make sure this works
-    DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, aggregation, 'siteAreaID', '_id', 'siteArea', this._chargingStationFields, 'include', true);
+    DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, aggregation, 'siteAreaID', '_id', 'siteArea', ChargingStationStorage._chargingStationFields, 'include', true);
 
     // Read DB
     const chargingStationMDB = await global.database.getCollection<any>(tenantID, 'chargingstations')
@@ -106,7 +106,7 @@ export default class ChargingStationStorage {
       });
     } else {
       // With Site Area, TODO make sure this works
-      DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, aggregation, 'siteAreaID', '_id', 'siteArea', this._chargingStationFields, 'manual', true);
+      DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, aggregation, 'siteAreaID', '_id', 'siteArea', ChargingStationStorage._chargingStationFields, 'manual', true);
 
       // With sites
       if (params.siteIDs && params.siteIDs.length > 0) {
@@ -120,7 +120,7 @@ export default class ChargingStationStorage {
         });
       }
       if (params.withSite) {
-        DatabaseUtils.pushBasicSiteJoinInAggregation(tenantID, aggregation, 'siteArea.siteID', '_id', 'site', ['siteArea', ...this._chargingStationFields], 'manual', true);
+        DatabaseUtils.pushBasicSiteJoinInAggregation(tenantID, aggregation, 'siteArea.siteID', '_id', 'site', ['siteArea', ...ChargingStationStorage._chargingStationFields], 'manual', true);
       }
     }
     if (params.chargeBoxID) {
@@ -266,7 +266,7 @@ export default class ChargingStationStorage {
       // Always get the Site Area
       const siteAreaIdJoin = [];
       // With Site Area, TODO make sure this works
-      DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, siteAreaIdJoin, 'siteAreaID', '_id', 'siteArea', this._chargingStationFields, 'manual', true);
+      DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, siteAreaIdJoin, 'siteAreaID', '_id', 'siteArea', ChargingStationStorage._chargingStationFields, 'manual', true);
 
     }
     // Check Site ID
@@ -279,7 +279,7 @@ export default class ChargingStationStorage {
     if (params.withSite) {
       // Get the site from the sitearea
       siteAreaJoin = [];
-      DatabaseUtils.pushBasicSiteJoinInAggregation(tenantID, siteAreaJoin, 'siteArea.siteID', '_id', 'site', ['siteArea', ...this._chargingStationFields], 'manual', true);
+      DatabaseUtils.pushBasicSiteJoinInAggregation(tenantID, siteAreaJoin, 'siteArea.siteID', '_id', 'site', ['siteArea', ...ChargingStationStorage._chargingStationFields], 'manual', true);
     }
     // Charger
     if (params.chargeBoxID) {

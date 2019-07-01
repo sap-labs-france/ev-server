@@ -1,9 +1,9 @@
 import BackendError from '../../../exception/BackendError';
 import ChargingStation from '../../../entity/ChargingStation';
 import Constants from '../../../utils/Constants';
-import WSConnection from './WSConnection';
 import global from '../../../types/GlobalType';
 import Logging from '../../../utils/Logging';
+import WSConnection from './WSConnection';
 
 const MODULE_NAME = 'JsonRestWSConnection';
 export default class JsonRestWSConnection extends WSConnection {

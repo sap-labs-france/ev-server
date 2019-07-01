@@ -1,13 +1,9 @@
-import path from 'path';
-import chai, {expect} from 'chai';
-import global from '../../src/types/GlobalType';
+import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
-import CentralServerService from './client/CentralServerService';
 import config from '../config';
 import jwt from 'jsonwebtoken';
+import CentralServerService from './client/CentralServerService';
 import UserFactory from '../factories/UserFactory';
-
-global.appRoot = path.resolve(__dirname, '../../src');
 
 const testData: any = {};
 
@@ -34,9 +30,9 @@ describe('Authentication Service', function() {
       expect(response.status).to.be.eql(200);
       expect(response.data).to.have.property('token');
       expect(response.data.token).to.be.a('string');
-      const centralServiceSuperAdmin = new CentralServerService(testData.adminEmail, {email: testData.superAdminEmail, password: testData.superAdminPassword})
+      const centralServiceSuperAdmin = new CentralServerService(testData.adminEmail, { email: testData.superAdminEmail, password: testData.superAdminPassword });
       const tenantID = jwt.decode(response.data.token)['tenantID'];
-      const tenant = await centralServiceSuperAdmin.getEntityById(centralServiceSuperAdmin.tenantApi, {id: tenantID});
+      const tenant = await centralServiceSuperAdmin.getEntityById(centralServiceSuperAdmin.tenantApi, { id: tenantID });
       expect(tenant).to.have.property('subdomain', testData.adminTenant);
     });
 

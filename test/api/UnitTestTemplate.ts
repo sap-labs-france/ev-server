@@ -1,10 +1,10 @@
-import global from'../../src/types/GlobalType';
+import chai, { expect } from 'chai';
+import chaiDatetime from 'chai-datetime';
+import chaiSubset from 'chai-subset';
 import moment from 'moment';
+import responseHelper from '../helpers/responseHelper';
 import CONTEXTS from './contextProvider/ContextConstants';
 import ContextProvider from './contextProvider/ContextProvider';
-import responseHelper from '../helpers/responseHelper';
-
-global.appRoot = path.resolve(__dirname, '../../src');
 
 chai.use(chaiDatetime);
 chai.use(chaiSubset);

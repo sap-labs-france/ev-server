@@ -3,11 +3,11 @@ import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
-import Logging from '../../utils/Logging';
 import global from '../../types/GlobalType';
+import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import VehicleManufacturer from '../../entity/VehicleManufacturer';
 import Vehicle from '../../entity/Vehicle';
+import VehicleManufacturer from '../../entity/VehicleManufacturer';
 import VehicleStorage from './VehicleStorage';
 
 

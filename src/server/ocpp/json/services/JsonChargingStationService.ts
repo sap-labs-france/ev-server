@@ -2,7 +2,6 @@ import Constants from '../../../../utils/Constants';
 import global from '../../../../types/GlobalType';
 import Logging from '../../../../utils/Logging';
 
-
 const MODULE_NAME = 'JsonChargingStationService';
 export default class JsonChargingStationService {
   public chargingStationService: any;

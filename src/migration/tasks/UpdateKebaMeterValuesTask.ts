@@ -1,6 +1,6 @@
 import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
-import MigrationTask from '../MigrationTask';
 import global from '../../types/GlobalType';
+import MigrationTask from '../MigrationTask';
 import Tenant from '../../entity/Tenant';
 
 export default class UpdateKebaMeterValuesTask extends MigrationTask {

@@ -1,9 +1,9 @@
-import Constants from './Constants';
-import global from './../types/GlobalType';
 import cfenv from 'cfenv';
 import fs from 'fs';
 import os from 'os';
 import SourceMap from 'source-map-support';
+import Constants from './Constants';
+import global from './../types/GlobalType';
 
 const {
   WS_DEFAULT_RECONNECT_MAX_RETRIES = Constants.WS_DEFAULT_RECONNECT_MAX_RETRIES,

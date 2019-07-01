@@ -1,5 +1,5 @@
-import MigrationTask from '../MigrationTask';
 import global from '../../types/GlobalType';
+import MigrationTask from '../MigrationTask';
 
 export default class MigrateTenantSettingsTask extends MigrationTask {
 

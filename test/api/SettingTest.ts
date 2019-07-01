@@ -1,10 +1,6 @@
-import path from 'path';
 import { expect } from 'chai';
- import global from'../../src/types/GlobalType';
-import Factory from '../factories/Factory';
 import CentralServerService from '../api/client/CentralServerService';
-
-global.appRoot = path.resolve(__dirname, '../../src');
+import Factory from '../factories/Factory';
 
 class TestData {
   public newSetting: any;
