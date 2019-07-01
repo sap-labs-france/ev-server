@@ -306,8 +306,10 @@ export default class AuthService {
           } else {
             // Return data
             throw new AppError(
-              Constants.CENTRAL_SERVER, 'User is locked',
-              Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleLogIn',
+              Constants.CENTRAL_SERVER,
+              'User is locked',
+              Constants.HTTP_USER_LOCKED_ERROR,
+              'AuthService', 'handleLogIn',
               user.getModel());
           }
         } else {
@@ -900,7 +902,9 @@ export default class AuthService {
       // Log
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        'User is locked', Constants.HTTP_USER_LOCKED_ERROR, 'AuthService', 'checkUserLogin',
+        'User is locked',
+        Constants.HTTP_USER_LOCKED_ERROR,
+        'AuthService', 'checkUserLogin',
         user.getModel()
       );
     } else {
