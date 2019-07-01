@@ -3,11 +3,9 @@ import os from 'os';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
-import TSGlobal from '../../types/GlobalType';
 import Lock from '../../types/Lock';
 import Logging from '../../utils/Logging';
-
-declare const global: TSGlobal;
+import global from '../../types/GlobalType';
 
 export default class LockingStorage {
   public static async getLocks(): Promise<any[]> {

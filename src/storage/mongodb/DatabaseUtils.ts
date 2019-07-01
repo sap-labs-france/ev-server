@@ -1,4 +1,5 @@
 import { filter } from 'bluebird';
+import Utils from '../../utils/Utils';
 import { ObjectID } from 'mongodb';
 import Constants from '../../utils/Constants';
 
@@ -48,6 +49,7 @@ export default class DatabaseUtils {
         as: (fieldOf.length === 0 ? '' : fieldOf + '.') + 'createdBy'
       }
     });
+
     // Single Record
     aggregation.push({
       $unwind: { 'path': `$${(fieldOf.length === 0 ? '' : fieldOf + '.')}createdBy`, 'preserveNullAndEmptyArrays': true }
@@ -105,8 +107,8 @@ export default class DatabaseUtils {
   }
 
 
-  public static pushSiteAreaJoinInAggregation(tenantID: string, aggregation: any[], local: string, foreign: string, as: string, includes: string[]) {
-    DatabaseUtils.pushTransformedJoinInAggregation(
+  public static pushSiteAreaJoinInAggregation(tenantID: string, aggregation: any[], local: string, foreign: string, as: string, includes: string[], topCreatedProps: 'none'|'manual'|'include', single: boolean = false) {
+    this.pushTransformedJoinInAggregation(
       tenantID,
       aggregation,
       'siteareas',
@@ -116,15 +118,40 @@ export default class DatabaseUtils {
       includes,
       {},
       ['address', 'name', 'maximumPower', 'image', 'siteID', 'accessControl'],
-      { id: `$${as}._id` },
+      { siteID: {$toString: `$${as}.siteID`} },
+      topCreatedProps,
+      true,
+      single);
+  }
+
+  // WOSWOI = Without Site Without Image, bad name, change... SimpleCompany?
+  public static pushCompanyWOSWOIJoinInAggregation(tenantID: string, aggregation: any[], local: string, foreign: string, as: string, includes: string[], topCreatedProps: 'none'|'manual'|'include') {
+    this.pushTransformedJoinInAggregation(
+      tenantID,
+      aggregation,
+      'companies',
+      local,
+      foreign,
+      as,
+      includes,
+      {},
+      ['name', 'address'],
+      {},
+      topCreatedProps,
       true,
       true);
   }
 
-  public static pushTransformedJoinInAggregation(tenantID: string, aggregation: any[], joinCollection: string, local: string, foreign: string, intoField: string, topIncludes: string[], topRenames: any, nestedIncludes: string[],
-    nestedRenames: any, topCreatedProps: boolean, joinCreatedProps: boolean) {
+  public static pushBasicSiteJoinInAggregation(tenantID: string, aggregation: any[], local: string, foreign: string, as: string, includes: string[], topCreatedProps: 'none'|'manual'|'include', single: boolean) {
+    this.pushTransformedJoinInAggregation(tenantID, aggregation, 'sites', local, foreign, as, includes, {},
+      ['name', 'address', 'companyID', 'allowAllUsersToStopTransactions', 'autoUserSiteAssignment'],
+      {companyID: {$toString: `$${as}.companyID`}}, topCreatedProps, true, single);
+  }
 
-    if (topCreatedProps) {
+  public static pushTransformedJoinInAggregation(tenantID: string, aggregation: any[], joinCollection: string, local: string, foreign: string, intoField: string, topIncludes: string[], topRenames: any, nestedIncludes: string[],
+    nestedRenames: any, topCreatedProps: 'none'|'manual'|'include', joinCreatedProps: boolean, single: boolean) {
+
+    if (topCreatedProps === 'manual' || topCreatedProps === 'include') {
       topIncludes.push('createdBy', 'createdOn', 'lastChangedBy', 'lastChangedOn');
     }
     if (joinCreatedProps) {
@@ -137,7 +164,8 @@ export default class DatabaseUtils {
       foreignField: foreign,
       as: intoField
     } };
-    const project = { $project: { ...topRenames } };
+    const project = { $project: {
+      ...topRenames } };
     const group = { $group: { _id: '$_id' } };
     for (const top of topIncludes) {
       project.$project[top] = 1;
@@ -145,21 +173,26 @@ export default class DatabaseUtils {
     }
     group.$group[intoField] = { $push: `$${intoField}` };
     project.$project[intoField] = { ...nestedRenames };
-    project.$project[intoField].id = `$${intoField}._id`;
+    project.$project[intoField].id = {$toString: `$${intoField}._id`};
     for (const nes of nestedIncludes) {
       project.$project[intoField][nes] = 1;
     }
-    // Need to group, push users, then project to remove id
-    if (joinCreatedProps) {
-      aggregation.push(
-        initialJoin,
-        { $unwind: { path: `$${intoField}`, preserveNullAndEmptyArrays: true } },
-        project
-      );
+    //Need to group, push users, then project to remove id
+    aggregation.push(
+      initialJoin,
+      {$unwind: {path: `$${intoField}`, preserveNullAndEmptyArrays: true}},
+      project
+    );
+    if(joinCreatedProps){
       DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation, intoField);
+    }
+
+    if(! single){
       aggregation.push(group);
     }
-    if (topCreatedProps) {
+    aggregation.push({$addFields: {id: '$_id'}});
+
+    if(topCreatedProps === 'include') {
       DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     }
   } // TODO: createdBy.id gets set even if user is null, giving illusion that there is a user. Take care
@@ -170,6 +203,32 @@ export default class DatabaseUtils {
     obj.createdOn = 1;
     obj.lastChangedBy = 1;
     obj.lastChangedOn = 1;
+  }
+
+  //Temporary hack to fix user Id saving. fix all this when user is typed...
+  public static mongoConvertUserID(obj: any, prop: string): ObjectID|null {
+    if(!obj || !obj[prop]) {
+      return null;
+    }
+    if(obj[prop].getID === 'function'){
+      return Utils.convertToObjectID(obj[prop].getID());
+    }
+    if(obj[prop].id) {
+      return Utils.convertToObjectID(obj[prop].id);
+    }
+    return null;
+  }
+
+  //TODO: Can probably be removed once user gets typed. For now use as shortcut.
+  public static mongoConvertLastChangedCreatedProps(dest: any, entity: any){
+    if(entity.createdBy && entity.createdOn) {
+      dest.createdBy = this.mongoConvertUserID(entity, 'createdBy');
+      dest.createdOn = entity.createdOn;
+    }
+    if(entity.lastChangedBy && entity.lastChangedOn) {
+      dest.lastChangedBy = this.mongoConvertUserID(entity, 'lastChangedBy');
+      dest.lastChangedOn = entity.lastChangedOn;
+    }
   }
 
 }

@@ -1,18 +1,17 @@
 import Constants from '../../utils/Constants';
-import TSGlobal from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 import Tenant from '../../entity/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
+import global from '../../types/GlobalType';
 import User from '../../entity/User';
-
-declare const global: TSGlobal;
 
 const SLF_TENANT = {
   'name': 'SAP Labs France',
   'email': 'slf@sap.com',
   'subdomain': 'slf'
 };
+
 export default class TenantMigrationTask extends MigrationTask {
   async migrate() {
     await this.createSuperAdmin();

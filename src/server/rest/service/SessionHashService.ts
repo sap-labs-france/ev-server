@@ -1,13 +1,11 @@
 import crypto from 'crypto';
 import HttpStatus from 'http-status-codes';
+import global from '../../../types/GlobalType';
 import AppError from '../../../exception/AppError';
 import Constants from '../../../utils/Constants';
-import TSGlobal from '../../../types/GlobalType';
 import Logging from '../../../utils/Logging';
-import Tenant from '../../../entity/Tenant';
 import User from '../../../entity/User';
-
-declare const global: TSGlobal;
+import Tenant from '../../../entity/Tenant';
 
 export default class SessionHashService {
   // Check if Session has been updated and require new login

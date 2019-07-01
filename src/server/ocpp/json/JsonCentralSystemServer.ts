@@ -1,13 +1,11 @@
 import uuid from 'uuid/v4';
 import CentralSystemServer from '../CentralSystemServer';
+import global from '../../../types/GlobalType';
+import Logging from '../../../utils/Logging';
 import Constants from '../../../utils/Constants';
-import TSGlobal from '../../../types/GlobalType';
+import WSServer from './WSServer';
 import JsonRestWSConnection from './JsonRestWSConnection';
 import JsonWSConnection from './JsonWSConnection';
-import Logging from '../../../utils/Logging';
-import WSServer from './WSServer';
-
-declare const global: TSGlobal;
 
 export default class JsonCentralSystemServer extends CentralSystemServer {
 

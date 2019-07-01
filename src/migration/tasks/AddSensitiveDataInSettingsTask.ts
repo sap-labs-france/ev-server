@@ -1,10 +1,8 @@
 import Constants from '../../utils/Constants';
-import Cypher from '../../utils/Cypher';
-import TSGlobal from '../../types/GlobalType';
+import global from '../../types/GlobalType';
 import MigrationTask from '../MigrationTask';
 import Tenant from '../../entity/Tenant';
-
-declare const global: TSGlobal;
+import Cypher from '../../utils/Cypher';
 
 export default class AddSensitiveDataInSettingsTask extends MigrationTask {
   public async migrate() {

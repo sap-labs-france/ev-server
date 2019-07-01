@@ -3,12 +3,10 @@ import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
-import TSGlobal from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
-import Setting from '../../entity/Setting'; // Avoid circular deps!!!
+import global from '../../types/GlobalType';
 import Utils from '../../utils/Utils';
-
-declare const global: TSGlobal;
+import Setting from '../../entity/Setting';
 
 export default class SettingStorage {
   static async getSetting(tenantID, id) {

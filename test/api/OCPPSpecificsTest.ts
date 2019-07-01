@@ -3,12 +3,11 @@ import chaiSubset from 'chai-subset';
 import faker from 'faker';
 import moment from 'moment';
 import path from 'path';
+ import global from'../../src/types/GlobalType';
 import CentralServerService from './client/CentralServerService';
 import DataHelper from './DataHelper';
 import Factory from '../factories/Factory';
-import TSGlobal from '../../src/types/GlobalType';
 
-declare const global: TSGlobal;
 global.appRoot = path.resolve(__dirname, '../../src');
 
 chai.use(chaiSubset);

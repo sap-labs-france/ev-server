@@ -1,5 +1,5 @@
 export default class CONTEXTS {
-  /** ************************************
+  /**************************************
   * Available contexts that can be used in the unit tests
   ***************************************/
   static readonly TENANT_CONTEXTS: any = {

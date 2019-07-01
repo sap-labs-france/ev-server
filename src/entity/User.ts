@@ -6,6 +6,7 @@ import Authorizations from '../authorization/Authorizations';
 import Constants from '../utils/Constants';
 import Database from '../utils/Database';
 import SiteStorage from '../storage/mongodb/SiteStorage';
+import Site from '../types/Site';
 import TenantHolder from './TenantHolder';
 import TransactionStorage from '../storage/mongodb/TransactionStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
@@ -344,6 +345,10 @@ export default class User extends TenantHolder {
     return this._model.name;
   }
 
+  getFirstName() {
+    return this._model.firstName;
+  }
+
   setName(name) {
     this._model.name = name;
   }
@@ -404,12 +409,15 @@ export default class User extends TenantHolder {
     this._model.siteAdmin = siteAdmin;
   }
 
-  public isSiteAdmin(): boolean {
-    return this._model.siteAdmin;
+  setSites(sites: Site[]) {
+    this._model.sites = sites;
   }
 
-  getFirstName() {
-    return this._model.firstName;
+  async getSites(): Promise<Site[]> {
+    const sites = await SiteStorage.getSites(this.getTenantID(),
+      { userID: this.getID() },
+      { limit: Constants.NO_LIMIT, skip: 0 });
+    return sites.result;
   }
 
   setFirstName(firstName) {
@@ -587,19 +595,6 @@ export default class User extends TenantHolder {
     const transactions = await TransactionStorage.getTransactions(this.getTenantID(), filter, Constants.NO_LIMIT);
     // Return
     return transactions;
-  }
-
-  setSites(sites) {
-    this._model.sites = sites.map((site) => {
-      return site.getModel();
-    });
-  }
-
-  async getSites() {
-    const sites = await SiteStorage.getSites(this.getTenantID(), {
-      'userID': this.getID()
-    });
-    return sites.result;
   }
 
   save() {

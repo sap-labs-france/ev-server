@@ -8,7 +8,7 @@ import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import NotificationHandler from '../notification/NotificationHandler';
-import Site from '../entity/Site';
+import Site from '../types/Site';
 import SiteArea from '../types/SiteArea';
 import SiteStorage from '../storage/mongodb/SiteStorage';
 import Tenant from '../entity/Tenant';
@@ -79,17 +79,19 @@ export default class Authorizations {
 
       // Push only companies related to the allowed sites
       for (const site of sites) {
-        siteIDs.push(site.getID());
-        if (!companyIDs.includes(site.getCompanyID())) {
-          companyIDs.push(site.getCompanyID());
+        siteIDs.push(site.id);
+        if (!companyIDs.includes(site.companyID)) {
+          companyIDs.push(site.companyID);
         }
       }
 
       // Get User's Site Admin
-      const sitesAdmin = (await UserStorage.getSites(
-        user.getTenantID(), { userID: user.getID(), siteAdmin: true }));
-      for (const siteAdmin of sitesAdmin['result']) {
-        siteAdminIDs.push(siteAdmin.getID());
+      const sitesAdmin = await UserStorage.getSites(
+        user.getTenantID(), { userID: user.getID(), siteAdmin: true },
+        { limit: Constants.NO_LIMIT, skip: 0 }
+      );
+      for (const siteAdmin of sitesAdmin.result) {
+        siteAdminIDs.push(siteAdmin.site.id);
       }
 
       return {
@@ -101,7 +103,72 @@ export default class Authorizations {
     return {};
   }
 
-  public static async getConnectorActionAuthorizations(tenantID: string, user: any, chargingStation: any, connector: any, siteArea: SiteArea, site: any) {
+  private static async checkAndGetUserTagIDOnChargingStation(chargingStation: any, tagID: any, action: any) {
+    // Get the user
+    let user: any = await User.getUserByTagId(chargingStation.getTenantID(), tagID);
+    // Found?
+    if (!user) {
+      // Create an empty user
+      const newUser = new User(chargingStation.getTenantID(), {
+        name: "Unknown",
+        firstName: "User",
+        status: Constants.USER_STATUS_INACTIVE,
+        role: Constants.ROLE_BASIC,
+        email: tagID + "@chargeangels.fr",
+        tagIDs: [tagID],
+        createdOn: new Date().toISOString()
+      });
+      // Save the user
+      user = await newUser.save();
+      // Notify
+      NotificationHandler.sendUnknownUserBadged(
+        chargingStation.getTenantID(),
+        Utils.generateGUID(),
+        chargingStation.getModel(),
+        {
+          "chargeBoxID": chargingStation.getID(),
+          "badgeId": tagID,
+          "evseDashboardURL": Utils.buildEvseURL((await chargingStation.getTenant()).getSubdomain()),
+          "evseDashboardUserURL": await Utils.buildEvseUserURL(user, '#inerror')
+        }
+      );
+      // Not authorized
+      throw new AppError(
+        chargingStation.getID(),
+        `User with Tag ID '${tagID}' not found but saved as inactive user`, Constants.HTTP_GENERAL_ERROR,
+        "Authorizations", "_checkAndGetUserTagIDOnChargingStation", user.getModel()
+      );
+    } else {
+      // USer Exists: Check User Deleted?
+      if (user.getStatus() === Constants.USER_STATUS_DELETED) {
+        // Yes: Restore it!
+        user.setDeleted(false);
+        // Set default user's value
+        user.setStatus(Constants.USER_STATUS_INACTIVE);
+        user.setName("Unknown");
+        user.setFirstName("User");
+        user.setEMail(tagID + "@chargeangels.fr");
+        user.setPhone("");
+        user.setMobile("");
+        user.setNotificationsActive(true);
+        user.setImage("");
+        user.setINumber("");
+        user.setCostCenter("");
+        // Log
+        Logging.logSecurityInfo({
+          tenantID: user.getTenantID(), user: user,
+          module: "Authorizations", method: "_checkAndGetUserTagIDOnChargingStation",
+          message: `User with ID '${user.getID()}' has been restored`,
+          action: action
+        });
+        // Save
+        user = user.save();
+      }
+    }
+    return user;
+  }
+
+  public static async getConnectorActionAuthorizations(tenantID: string, user: any, chargingStation: any, connector: any, siteArea: SiteArea, site: Site) {
     const tenant: Tenant|null = await Tenant.getTenant(tenantID);
     if (!tenant) {
       throw new BackendError('Authorizations.ts#getConnectorActionAuthorizations', 'Tenant null');
@@ -124,10 +191,9 @@ export default class Authorizations {
       // Acces Control Enabled?
       accessControlEnable = siteArea.accessControl;
       // Allow to stop all transactions
-      userAllowedToStopAllTransactions = site.isAllowAllUsersToStopTransactionsEnabled();
+      userAllowedToStopAllTransactions = site.allowAllUsersToStopTransactions;
       // Check if User belongs to the charging station Site
-      const foundUser = await site.getUser(user.getID());
-      isUserAssignedToSite = (foundUser ? true : false);
+      isUserAssignedToSite = await SiteStorage.siteHasUser(tenantID, site.id, user.getID());
     }
     if (connector.activeTransactionID > 0) {
       // Get Transaction
@@ -190,7 +256,7 @@ export default class Authorizations {
   }
 
   public static async isTagIDAuthorizedOnChargingStation(chargingStation: ChargingStation, tagID: any, action: any) {
-    let site, siteArea: SiteArea;
+    let site: Site, siteArea: SiteArea;
     // Get the Organization component
     const tenant = await TenantStorage.getTenant(chargingStation.getTenantID());
     const isOrgCompActive = await tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
@@ -259,15 +325,15 @@ export default class Authorizations {
         const isOrgCompActive = await tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
         if (isOrgCompActive) {
           // Get the site (site existence is already checked by isTagIDAuthorizedOnChargingStation())
-          const site = await chargingStation.getSite();
+          const site: Site = await chargingStation.getSite();
           // Check if the site allows to stop the transaction of another user
           if (!Authorizations.isAdmin(alternateUser.getRole()) &&
-            !site.isAllowAllUsersToStopTransactionsEnabled()) {
+            !site.allowAllUsersToStopTransactions) {
             // Reject the User
             throw new BackendError(
               chargingStation.getID(),
-              `User '${alternateUser.getFullName()}' is not allowed to perform 'Stop Transaction' on User '${user.getFullName()}' on Site '${site.getName()}'!`,
-              'Authorizations', 'isTagIDsAuthorizedOnChargingStation', action,
+              `User '${alternateUser.getFullName()}' is not allowed to perform 'Stop Transaction' on User '${user.getFullName()}' on Site '${site.name}'!`,
+              'Authorizations', "isTagIDsAuthorizedOnChargingStation", action,
               (alternateUser ? alternateUser.getModel() : null), (user ? user.getModel() : null));
           }
         } else {
@@ -290,7 +356,7 @@ export default class Authorizations {
     return { user, alternateUser };
   }
 
-  public static async _checkAndGetUserOnChargingStation(chargingStation: any, user: any, isOrgCompActive: boolean, site: any, action: string) {
+  public static async _checkAndGetUserOnChargingStation(chargingStation: any, user: any, isOrgCompActive: boolean, site: Site, action: string) {
     // Check User status
     if (user.getStatus() !== Constants.USER_STATUS_ACTIVE) {
       // Reject but save ok
@@ -304,13 +370,13 @@ export default class Authorizations {
     // Check if User belongs to a Site ------------------------------------------
     // Org component enabled?
     if (isOrgCompActive) {
-      const foundUser = await site.getUser(user.getID());
+      const foundUser = await SiteStorage.siteHasUser(chargingStation.getTenantID(), site.id, user.getID());
       // User not found and Access Control Enabled?
       if (!foundUser) {
         // Yes: Reject the User
         throw new AppError(
           chargingStation.getID(),
-          `User is not assigned to the site '${site.getName()}'!`,
+          `User is not assigned to the site '${site.name}'!`,
           Constants.HTTP_AUTH_USER_WITH_NO_SITE_ERROR,
           'Authorizations', '_checkAndGetUserOnChargingStation',
           user.getModel());
@@ -416,11 +482,11 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_CREATE);
   }
 
-  public static canUpdateSite(loggedUser: any, siteId: string): boolean {
+  public static canUpdateSite(loggedUser: any): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_UPDATE);
   }
 
-  public static canDeleteSite(loggedUser: any, siteId: string): boolean {
+  public static canDeleteSite(loggedUser: any): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_DELETE);
   }
 
@@ -631,76 +697,14 @@ export default class Authorizations {
 
   public static async getUserScopes(user: User): Promise<ReadonlyArray<string>> {
     // Get the sites where the user is marked Site Admin
-    const sitesAdmin = await UserStorage.getSites(user.getTenantID(), { userID: user.getID(), siteAdmin: true });
+    const sitesAdmin = await UserStorage.getSites(user.getTenantID(),
+      { userID: user.getID(), siteAdmin: true },
+      { limit: Constants.NO_LIMIT, skip: 0 }
+    );
     // Get the group from User's role
     const groups = Authorizations.getAuthGroupsFromUser(user.getRole(), sitesAdmin['result']);
     // Return the scopes
     return AuthorizationsDefinition.getInstance().getScopes(groups);
-  }
-
-  private static async checkAndGetUserTagIDOnChargingStation(chargingStation: any, tagID: any, action: any) {
-    // Get the user
-    let user: any = await User.getUserByTagId(chargingStation.getTenantID(), tagID);
-    // Found?
-    if (!user) {
-      // Create an empty user
-      const newUser = new User(chargingStation.getTenantID(), {
-        name: 'Unknown',
-        firstName: 'User',
-        status: Constants.USER_STATUS_INACTIVE,
-        role: Constants.ROLE_BASIC,
-        email: tagID + '@chargeangels.fr',
-        tagIDs: [tagID],
-        createdOn: new Date().toISOString()
-      });
-      // Save the user
-      user = await newUser.save();
-      // Notify
-      NotificationHandler.sendUnknownUserBadged(
-        chargingStation.getTenantID(),
-        Utils.generateGUID(),
-        chargingStation.getModel(),
-        {
-          'chargeBoxID': chargingStation.getID(),
-          'badgeId': tagID,
-          'evseDashboardURL': Utils.buildEvseURL((await chargingStation.getTenant()).getSubdomain()),
-          'evseDashboardUserURL': await Utils.buildEvseUserURL(user, '#inerror')
-        }
-      );
-      // Not authorized
-      throw new AppError(
-        chargingStation.getID(),
-        `User with Tag ID '${tagID}' not found but saved as inactive user`, Constants.HTTP_GENERAL_ERROR,
-        'Authorizations', '_checkAndGetUserTagIDOnChargingStation', user.getModel()
-      );
-    } else {
-      // USer Exists: Check User Deleted?
-      if (user.getStatus() === Constants.USER_STATUS_DELETED) {
-        // Yes: Restore it!
-        user.setDeleted(false);
-        // Set default user's value
-        user.setStatus(Constants.USER_STATUS_INACTIVE);
-        user.setName('Unknown');
-        user.setFirstName('User');
-        user.setEMail(tagID + '@chargeangels.fr');
-        user.setPhone('');
-        user.setMobile('');
-        user.setNotificationsActive(true);
-        user.setImage('');
-        user.setINumber('');
-        user.setCostCenter('');
-        // Log
-        Logging.logSecurityInfo({
-          tenantID: user.getTenantID(), user: user,
-          module: 'Authorizations', method: '_checkAndGetUserTagIDOnChargingStation',
-          message: `User with ID '${user.getID()}' has been restored`,
-          action: action
-        });
-        // Save
-        user = user.save();
-      }
-    }
-    return user;
   }
 
   private static getConfiguration() {

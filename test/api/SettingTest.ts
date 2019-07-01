@@ -1,10 +1,9 @@
-import { expect } from 'chai';
 import path from 'path';
-import CentralServerService from './client/CentralServerService';
+import { expect } from 'chai';
+ import global from'../../src/types/GlobalType';
 import Factory from '../factories/Factory';
-import TSGlobal from '../../src/types/GlobalType';
+import CentralServerService from '../api/client/CentralServerService';
 
-declare const global: TSGlobal;
 global.appRoot = path.resolve(__dirname, '../../src');
 
 class TestData {

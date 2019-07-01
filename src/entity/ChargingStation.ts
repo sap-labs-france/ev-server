@@ -15,6 +15,7 @@ import OCPPUtils from '../server/ocpp/utils/OCPPUtils';
 import SiteArea from '../types/SiteArea';
 import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../storage/mongodb/SiteStorage';
+import Site from '../types/Site';
 import TenantHolder from './TenantHolder';
 import Transaction from './Transaction';
 import User from './User';
@@ -24,7 +25,7 @@ SourceMap.install();
 momentDurationFormatSetup(moment);
 
 export default class ChargingStation extends TenantHolder {
-  public site: any;
+  public site: Site;
   public company: Company;
   private _model: any = {};
 
@@ -442,7 +443,7 @@ export default class ChargingStation extends TenantHolder {
     }
   }
 
-  async getSite() {
+  async getSite(): Promise<Site> {
     if (!this.site) {
       // Get Site Area
       const siteArea = await this.getSiteArea();
@@ -466,7 +467,7 @@ export default class ChargingStation extends TenantHolder {
       // Check Site
       if (site) {
         // Get the Company
-        this.company = await site.getCompany();
+        this.company = await site.company;
       }
     }
     return this.company;

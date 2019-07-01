@@ -1,11 +1,9 @@
 import BackendError from '../../../exception/BackendError';
 import ChargingStation from '../../../entity/ChargingStation';
 import Constants from '../../../utils/Constants';
-import TSGlobal from '../../../types/GlobalType';
-import Logging from '../../../utils/Logging';
 import WSConnection from './WSConnection';
-
-declare const global: TSGlobal;
+import global from '../../../types/GlobalType';
+import Logging from '../../../utils/Logging';
 
 const MODULE_NAME = 'JsonRestWSConnection';
 export default class JsonRestWSConnection extends WSConnection {

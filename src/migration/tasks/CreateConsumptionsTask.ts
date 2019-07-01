@@ -2,16 +2,13 @@ import moment from 'moment';
 import pLimit from 'p-limit';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
-import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
-import TSGlobal from '../../types/GlobalType';
-import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
+import global from'../../types/GlobalType';
+import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
+import Logging from '../../utils/Logging';
 import PricingStorage from '../../storage/mongodb/PricingStorage';
 import Tenant from '../../entity/Tenant';
 import Transaction from '../../entity/Transaction';
-
-declare const global: TSGlobal;
-
 
 const DEFAULT_CONSUMPTION_ATTRIBUTE = {
   unit: 'Wh',
@@ -20,6 +17,7 @@ const DEFAULT_CONSUMPTION_ATTRIBUTE = {
   format: 'Raw',
   context: 'Sample.Periodic'
 };
+
 export default class CreateConsumptionsTask extends MigrationTask {
   public totalCount: any;
   public done: any;

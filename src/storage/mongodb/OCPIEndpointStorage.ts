@@ -3,12 +3,10 @@ import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
-import TSGlobal from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
-import OCPIEndpoint from '../../entity/OCPIEndpoint'; // Avoid circular deps!!!
+import global from '../../types/GlobalType';
 import Utils from '../../utils/Utils';
-
-declare const global: TSGlobal;
+import OCPIEndpoint from '../../entity/OCPIEndpoint';
 
 export default class OCPIEndpointStorage {
 

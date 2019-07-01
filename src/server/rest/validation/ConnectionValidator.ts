@@ -1,8 +1,6 @@
 import fs from 'fs';
-import TSGlobal from '../../../types/GlobalType';
+import global from '../../../types/GlobalType';
 import SchemaValidator from './SchemaValidator';
-
-declare const global: TSGlobal;
 
 export default class ConnectionValidator extends SchemaValidator {
   private static instance: ConnectionValidator|null = null;

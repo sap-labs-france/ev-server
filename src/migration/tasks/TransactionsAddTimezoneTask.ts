@@ -1,9 +1,7 @@
 import tzlookup from 'tz-lookup';
-import TSGlobal from '../../types/GlobalType';
-import MigrationTask from '../MigrationTask';
+import global from '../../types/GlobalType';
 import Tenant from '../../entity/Tenant';
-
-declare const global: TSGlobal;
+import MigrationTask from '../MigrationTask';
 
 export default class TransactionsAddTimezoneTask extends MigrationTask {
   async migrate() {

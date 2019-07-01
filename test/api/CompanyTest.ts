@@ -1,14 +1,13 @@
-import { expect } from 'chai';
 import path from 'path';
+import global from'../../src/types/GlobalType';
 import CentralServerService from './client/CentralServerService';
 import Factory from '../factories/Factory';
-import TSGlobal from '../../src/types/GlobalType';
+import {expect} from 'chai';
 
-declare const global: TSGlobal;
 global.appRoot = path.resolve(__dirname, '../../src');
 
 let newCompany;
-let centralServerService;
+let centralServerService: CentralServerService;
 
 describe('Company tests', function() {
   this.timeout(30000);
@@ -19,6 +18,7 @@ describe('Company tests', function() {
 
 
   describe('Success cases', () => {
+
     it('Should create a new company', async () => {
       // Create
       newCompany = await centralServerService.createEntity(

@@ -1,10 +1,8 @@
-
+import global from'../../src/types/GlobalType';
 import chai, { expect } from 'chai';
 import path from 'path';
 import ContextBuilder from './ContextProvider/ContextBuilder';
-import TSGlobal from '../../src/types/GlobalType';
 
-declare const global: TSGlobal;
 global.appRoot = path.resolve(__dirname, '../../src');
 
 // For Visual Studio it is recommended to install Mocha sidebar and Chai snippets

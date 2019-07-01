@@ -1,8 +1,6 @@
-import TSGlobal from '../../types/GlobalType';
-import MigrationTask from '../MigrationTask';
 import Tenant from '../../entity/Tenant';
-
-declare const global: TSGlobal;
+import MigrationTask from '../MigrationTask';
+import global from '../../types/GlobalType';
 
 export default class UsersAddNotificationsFlagTask extends MigrationTask {
   async migrate() {

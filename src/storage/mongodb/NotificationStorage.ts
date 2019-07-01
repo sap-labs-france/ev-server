@@ -2,12 +2,10 @@ import crypto from 'crypto';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
-import TSGlobal from '../../types/GlobalType';
-import Logging from '../../utils/Logging';
 import Notification from '../../entity/Notification';
+import global from '../../types/GlobalType';
+import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-
-declare const global: TSGlobal;
 
 export default class NotificationStorage {
 

@@ -1,17 +1,17 @@
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
+import chaiDatetime from 'chai-datetime';
 import faker from 'faker';
-import moment from 'moment';
 import path from 'path';
+import global from'../../src/types/GlobalType';
 import CentralServerService from './client/CentralServerService';
 import DataHelper from './DataHelper';
 import Factory from '../factories/Factory';
-import TSGlobal from '../../src/types/GlobalType';
+import moment from 'moment';
 
-declare const global: TSGlobal;
 global.appRoot = path.resolve(__dirname, '../../src');
 
-chai.use(require('chai-datetime'));
+chai.use(chaiDatetime);
 chai.use(chaiSubset);
 
 class TestData {
