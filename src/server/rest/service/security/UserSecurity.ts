@@ -150,7 +150,7 @@ export default class UserSecurity {
     // Check auth
     if (Authorizations.canReadUser(loggedUser, user.id)) {
       // Admin?
-      if (Authorizations.isAdmin(loggedUser.role) || Authorizations.isSuperAdmin(loggedUser.role)) {
+      if (Authorizations.canUpdateUser(loggedUser, user.id)) {
         filteredUser.id = user.id;
         filteredUser.name = user.name;
         filteredUser.firstName = user.firstName;
@@ -206,17 +206,9 @@ export default class UserSecurity {
     }
     // Check auth
     if (Authorizations.canReadUser(loggedUser, user.id)) {
-      // Admin?
-      if (Authorizations.isAdmin(loggedUser.role)) {
-        filteredUser.id = user.id;
-        filteredUser.name = user.name;
-        filteredUser.firstName = user.firstName;
-      } else {
-        // Set only necessary info
-        filteredUser.id = user.id;
-        filteredUser.name = user.name;
-        filteredUser.firstName = user.firstName;
-      }
+      filteredUser.id = user.id;
+      filteredUser.name = user.name;
+      filteredUser.firstName = user.firstName;
     }
     return filteredUser;
   }
