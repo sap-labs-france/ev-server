@@ -25,7 +25,7 @@ export default class SiteService {
     // Filter
     const filteredRequest = SiteSecurity.filterAssignSiteUsers(req.body);
 
-    if (!Authorizations.canUpdateSite(req.user)) {
+    if (!Authorizations.canUpdateSite(req.user, filteredRequest.siteID)) {
       throw new AppAuthError(
         Constants.ACTION_UPDATE,
         Constants.ENTITY_SITE,
@@ -48,7 +48,7 @@ export default class SiteService {
     }
 
     // Check auth
-    if (!Authorizations.canUpdateSite(req.user)) {
+    if (!Authorizations.canUpdateSite(req.user, filteredRequest.siteID)) {
       throw new AppAuthError(
         Constants.ACTION_UPDATE,
         Constants.ENTITY_SITE,
@@ -140,7 +140,7 @@ export default class SiteService {
         'Cannot change the site Admin on the logged user', Constants.HTTP_GENERAL_ERROR,
         'SiteService', 'handleUpdateSiteUserAdmin', req.user, filteredRequest.userID);
     }
-    if (!Authorizations.canUpdateSite(req.user)) {
+    if (!Authorizations.canUpdateSite(req.user, filteredRequest.siteID)) {
       throw new AppAuthError(
         Constants.ACTION_UPDATE,
         Constants.ENTITY_SITE,
@@ -282,7 +282,7 @@ export default class SiteService {
     }
 
     // Check auth
-    if (!Authorizations.canUpdateSite(req.user)) {
+    if (!Authorizations.canUpdateSite(req.user, filteredRequest.SiteID)) {
       throw new AppAuthError(
         Constants.ACTION_UPDATE,
         Constants.ENTITY_SITE,
@@ -318,8 +318,11 @@ export default class SiteService {
     // Filter
     const id = SiteSecurity.filterSiteRequestByID(req.query);
 
+    // Check Mandatory fields
+    UtilsService.assertIdIsProvided(id, 'SiteService', 'handleDeleteSite', req.user);
+
     // Check
-    if (!Authorizations.canDeleteSite(req.user)) {
+    if (!Authorizations.canDeleteSite(req.user, id)) {
       throw new AppAuthError(
         Constants.ACTION_DELETE,
         Constants.ENTITY_SITE,
@@ -328,9 +331,6 @@ export default class SiteService {
         'SiteService', 'handleDeleteSite',
         req.user);
     }
-
-    // Check Mandatory fields
-    UtilsService.assertIdIsProvided(id, 'SiteService', 'handleDeleteSite', req.user);
 
     // Get
     const site = await SiteStorage.getSite(req.user.tenantID, id);
@@ -519,12 +519,8 @@ export default class SiteService {
     // Check
     SiteService._checkIfSiteValid(filteredRequest, req);
 
-    // Get Site
-    const site: Site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.id);
-    UtilsService.assertObjectExists(site, `Site with ID '${filteredRequest.id}' does not exist`, 'SiteService', 'handleUpdateSite', req.user);
-
     // Check auth
-    if (!Authorizations.canUpdateSite(req.user)) {
+    if (!Authorizations.canUpdateSite(req.user, filteredRequest.id)) {
       // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_UPDATE,
@@ -534,6 +530,10 @@ export default class SiteService {
         'SiteService', 'handleUpdateSite',
         req.user);
     }
+
+    // Get Site
+    const site: Site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.id);
+    UtilsService.assertObjectExists(site, `Site with ID '${filteredRequest.id}' does not exist`, 'SiteService', 'handleUpdateSite', req.user);
 
     // Update
     site.lastChangedBy = new User(req.user.tenantID, { 'id': req.user.id });
