@@ -92,9 +92,9 @@ export default class Utils {
     Utils._normalizeOneSOAPParam(headers, 'To');
     Utils._normalizeOneSOAPParam(headers, 'From.Address');
     Utils._normalizeOneSOAPParam(headers, 'ReplyTo.Address');
-    // Parse the request
-    const urlParts = url.parse(req.url, true);
-    const tenantID = urlParts.query.TenantID;
+    // Parse the request (lower case for fucking charging station DBT URL registration)
+    const urlParts = url.parse(req.url.toLowerCase(), true);
+    const tenantID = urlParts.query.tenantid;
     // Check
     await Utils.checkTenant(tenantID);
     // Set the Tenant ID
