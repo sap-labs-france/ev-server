@@ -373,8 +373,11 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION, Constants.ACTION_READ);
   }
 
-  public static canUpdateChargingStation(loggedUser: any): boolean {
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION, Constants.ACTION_UPDATE);
+  public static canUpdateChargingStation(loggedUser: any, siteID: string): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION, Constants.ACTION_UPDATE, {
+      'site': siteID,
+      'sites': loggedUser.sitesAdmin
+    });
   }
 
   public static canDeleteChargingStation(loggedUser: any): boolean {
