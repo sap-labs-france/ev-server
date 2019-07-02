@@ -64,7 +64,7 @@ export default class SiteAreaSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadSiteArea(loggedUser, siteArea)) {
+    if (Authorizations.canReadSiteArea(loggedUser, siteArea.siteID.toString())) {
       // Admin?
       if (Authorizations.isAdmin(loggedUser.role)) {
         // Yes: set all params
@@ -97,7 +97,7 @@ export default class SiteAreaSecurity {
       }
       if (siteArea.site) {
         // Site
-        filteredSiteArea.site = SiteSecurity.filterSiteResponse(siteArea.site._model, loggedUser);
+        filteredSiteArea.site = SiteSecurity.filterSiteResponse(siteArea.site, loggedUser);
       }
       if (siteArea.chargeBoxes) {
         filteredSiteArea.chargeBoxes = ChargingStationSecurity

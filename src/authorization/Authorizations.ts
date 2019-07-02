@@ -30,7 +30,7 @@ export default class Authorizations {
       userId = transaction.getUserJson().id;
     }
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION,
-      Constants.ACTION_REFUND_TRANSACTION, { 'UserID': userId });
+      Constants.ACTION_REFUND_TRANSACTION, {'UserID': userId});
   }
 
   public static canStartTransaction(user: any, chargingStation: ChargingStation) {
@@ -87,8 +87,8 @@ export default class Authorizations {
 
       // Get User's Site Admin
       const sitesAdmin = await UserStorage.getSites(
-        user.getTenantID(), { userID: user.getID(), siteAdmin: true },
-        { limit: Constants.NO_LIMIT, skip: 0 }
+        user.getTenantID(), {userID: user.getID(), siteAdmin: true},
+        {limit: Constants.NO_LIMIT, skip: 0}
       );
       for (const siteAdmin of sitesAdmin.result) {
         siteAdminIDs.push(siteAdmin.site.id);
@@ -104,7 +104,7 @@ export default class Authorizations {
   }
 
   public static async getConnectorActionAuthorizations(tenantID: string, user: any, chargingStation: any, connector: any, siteArea: SiteArea, site: Site) {
-    const tenant: Tenant|null = await Tenant.getTenant(tenantID);
+    const tenant: Tenant | null = await Tenant.getTenant(tenantID);
     if (!tenant) {
       throw new BackendError('Authorizations.ts#getConnectorActionAuthorizations', 'Tenant null');
     }
@@ -288,7 +288,7 @@ export default class Authorizations {
       user = await Authorizations.isTagIDAuthorizedOnChargingStation(
         chargingStation, transactionTagId, action);
     }
-    return { user, alternateUser };
+    return {user, alternateUser};
   }
 
   public static async _checkAndGetUserOnChargingStation(chargingStation: any, user: any, isOrgCompActive: boolean, site: Site, action: string) {
@@ -348,7 +348,7 @@ export default class Authorizations {
   public static canReadTransaction(loggedUser: any, transaction: Transaction): boolean {
     if (transaction.getUserJson() && transaction.getUserJson().id) {
       return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION, Constants.ACTION_READ,
-        { 'user': transaction.getUserJson().id, 'owner': loggedUser.id });
+        {'user': transaction.getUserJson().id, 'owner': loggedUser.id});
     }
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION, Constants.ACTION_READ);
   }
@@ -373,8 +373,11 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION, Constants.ACTION_READ);
   }
 
-  public static canUpdateChargingStation(loggedUser: any): boolean {
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION, Constants.ACTION_UPDATE);
+  public static canUpdateChargingStation(loggedUser: any, siteID: string): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION, Constants.ACTION_UPDATE, {
+      'site': siteID,
+      'sites': loggedUser.sitesAdmin
+    });
   }
 
   public static canDeleteChargingStation(loggedUser: any): boolean {
@@ -387,7 +390,7 @@ export default class Authorizations {
 
   public static canReadUser(loggedUser: any, userId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_USER, Constants.ACTION_READ,
-      { 'user': userId, 'owner': loggedUser.id });
+      {'user': userId, 'owner': loggedUser.id});
   }
 
   public static canCreateUser(loggedUser: any): boolean {
@@ -396,12 +399,12 @@ export default class Authorizations {
 
   public static canUpdateUser(loggedUser: any, userId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_USER, Constants.ACTION_UPDATE,
-      { 'user': userId, 'owner': loggedUser.id });
+      {'user': userId, 'owner': loggedUser.id});
   }
 
   public static canDeleteUser(loggedUser: any, userId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_USER, Constants.ACTION_DELETE,
-      { 'user': userId, 'owner': loggedUser.id });
+      {'user': userId, 'owner': loggedUser.id});
   }
 
   public static canListSites(loggedUser: any): boolean {
@@ -410,19 +413,21 @@ export default class Authorizations {
 
   public static canReadSite(loggedUser: any, siteId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_READ,
-      { 'site': siteId, 'sites': loggedUser.sites });
+      {'site': siteId, 'sites': loggedUser.sites});
   }
 
   public static canCreateSite(loggedUser: any): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_CREATE);
   }
 
-  public static canUpdateSite(loggedUser: any): boolean {
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_UPDATE);
+  public static canUpdateSite(loggedUser: any, siteID: string): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_UPDATE,
+      {'site': siteID, 'sites': loggedUser.sitesAdmin});
   }
 
-  public static canDeleteSite(loggedUser: any): boolean {
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_DELETE);
+  public static canDeleteSite(loggedUser: any, siteID: string): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_DELETE,
+      {'site': siteID, 'sites': loggedUser.sitesAdmin});
   }
 
   public static canListSettings(loggedUser: any): boolean {
@@ -525,25 +530,26 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREAS, Constants.ACTION_LIST);
   }
 
-  public static canReadSiteArea(loggedUser: any, siteAreaID: string): boolean {
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA, Constants.ACTION_READ) &&
-      Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_READ,
-        { 'site': siteAreaID, 'sites': loggedUser.sites });
+  public static canReadSiteArea(loggedUser: any, siteID: string): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA, Constants.ACTION_READ,
+      {'site': siteID, 'sites': loggedUser.sites});
   }
 
-  public static canCreateSiteArea(loggedUser: any): boolean {
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA, Constants.ACTION_CREATE) &&
-      Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_CREATE);
+  public static canCreateSiteArea(loggedUser: any, siteID: string): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA, Constants.ACTION_CREATE,
+      {'site': siteID, 'sites': loggedUser.sitesAdmin});
   }
 
-  public static canUpdateSiteArea(loggedUser: any): boolean {
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA, Constants.ACTION_UPDATE) &&
-      Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_UPDATE);
+  public static canUpdateSiteArea(loggedUser: any, siteID: string): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA, Constants.ACTION_UPDATE, {
+      'site': siteID,
+      'sites': loggedUser.sitesAdmin
+    });
   }
 
-  public static canDeleteSiteArea(loggedUser: any): boolean {
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA, Constants.ACTION_DELETE) &&
-      Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_DELETE);
+  public static canDeleteSiteArea(loggedUser: any, siteID: string): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE_AREA, Constants.ACTION_DELETE,
+      {'site': siteID, 'sites': loggedUser.sitesAdmin});
   }
 
   public static canListCompanies(loggedUser: any): boolean {
@@ -552,7 +558,7 @@ export default class Authorizations {
 
   public static canReadCompany(loggedUser: any, companyId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_COMPANY, Constants.ACTION_READ,
-      { 'company': companyId, 'companies': loggedUser.companies });
+      {'company': companyId, 'companies': loggedUser.companies});
   }
 
   public static canCreateCompany(loggedUser: any): boolean {
@@ -589,17 +595,17 @@ export default class Authorizations {
 
   public static canCreateConnection(loggedUser): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CONNECTION, Constants.ACTION_CREATE,
-      { 'owner': loggedUser.id });
+      {'owner': loggedUser.id});
   }
 
   public static canDeleteConnection(loggedUser, userId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CONNECTION, Constants.ACTION_DELETE,
-      { 'user': userId, 'owner': loggedUser.id });
+      {'user': userId, 'owner': loggedUser.id});
   }
 
   public static canReadConnection(loggedUser, userId: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CONNECTION, Constants.ACTION_READ,
-      { 'user': userId, 'owner': loggedUser.id });
+      {'user': userId, 'owner': loggedUser.id});
   }
 
   public static canListConnections(loggedUser: any): boolean {
@@ -633,8 +639,8 @@ export default class Authorizations {
   public static async getUserScopes(user: User): Promise<ReadonlyArray<string>> {
     // Get the sites where the user is marked Site Admin
     const sitesAdmin = await UserStorage.getSites(user.getTenantID(),
-      { userID: user.getID(), siteAdmin: true },
-      { limit: Constants.NO_LIMIT, skip: 0 }
+      {userID: user.getID(), siteAdmin: true},
+      {limit: Constants.NO_LIMIT, skip: 0}
     );
     // Get the group from User's role
     const groups = Authorizations.getAuthGroupsFromUser(user.getRole(), sitesAdmin['result']);
