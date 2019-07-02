@@ -360,7 +360,7 @@ export default class SiteStorage {
 
     // Add Chargers
     if (params.withAvailableChargers) {
-      DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, aggregation, '_id', 'siteID', 'siteAreas', ['address', 'allowAllUsersToStopTransactions', 'autoUserSiteAssignement', 'companyID', 'name'], 'manual', false);
+      DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, aggregation, '_id', 'siteID', 'siteAreas', ['address', 'allowAllUsersToStopTransactions', 'autoUserSiteAssignment', 'companyID', 'name'], 'manual', false);
       aggregation.push({
         $lookup: {
           from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
@@ -373,7 +373,7 @@ export default class SiteStorage {
 
     // Add Company?
     if (params.withCompany) {
-      DatabaseUtils.pushCompanyWOSWOIJoinInAggregation(tenantID, aggregation, 'companyID', '_id', 'company', ['chargeBoxes', 'siteAreas', 'address', 'allowAllUsersToStopTransactions', 'autoUserSiteAssignement', 'companyID', 'name'], 'manual');
+      DatabaseUtils.pushCompanyWOSWOIJoinInAggregation(tenantID, aggregation, 'companyID', '_id', 'company', ['chargeBoxes', 'siteAreas', 'address', 'allowAllUsersToStopTransactions', 'autoUserSiteAssignment', 'companyID', 'name'], 'manual');
     }
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
 
