@@ -45,7 +45,7 @@ export default class TenantContext {
   }
 
   getUserCentralServerService(params) {
-    const user = this.getContextUser(params);
+    const user = this.getUserContext(params);
     return user.centralServerService;
   }
 
@@ -112,7 +112,7 @@ export default class TenantContext {
     }
   }
 
-  getContextUser(params) { // Structure { id = user ID, email = user mail, role = user role, status = user status, assignedToSite = boolean) {
+  getUserContext(params) { // Structure { id = user ID, email = user mail, role = user role, status = user status, assignedToSite = boolean) {
     if (params.id || params.email) {
       return this.context.users.find((user) => {
         return user.id === params.id || user.email === params.email;
