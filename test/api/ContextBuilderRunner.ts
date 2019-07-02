@@ -36,7 +36,7 @@ describe('Unit test Context Builder', function() {
   describe('Context builder test case', () => {
     it('Builder dummy test', async () => {
       const test = 2;
-      // pragma const adminUser = this.tenantContextAll.getContextUser(null, 'florent.pernice@sap.com');
+      // pragma const adminUser = this.tenantContextAll.getUserContext(null, 'florent.pernice@sap.com');
       // startTransaction(chargingStation, connectorId, tagId, meterStart, startDate, expectedStatus = 'Accepted')
       // await this.tenantContextAll.startTransaction(this.tenantContextAll.getOrganizationContext(SITE_CONTEXTS.SITE_BASIC).getChargingStations()[0], 1,
       // adminUser.tagIDs[0], 0, moment());

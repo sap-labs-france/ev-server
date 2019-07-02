@@ -16,7 +16,7 @@ export default class CONTEXTS {
     NO_SITE: 'No site', // Used for unassigned Charging Station or CS in tenant with no organizations
     SITE_BASIC: 'ut-site', // Default site with no settings
     SITE_WITH_AUTO_USER_ASSIGNMENT: 'ut-site-auto', // Automatic user assignment is active
-    SITE_WITH_OTHER_USER_STOP_AUTHPORIZATION: 'ut-site-stop' // Authorization to stop other users transaction is active
+    SITE_WITH_OTHER_USER_STOP_AUTHORIZATION: 'ut-site-stop' // Authorization to stop other users transaction is active
   };
 
   static readonly SITE_AREA_CONTEXTS: any = {
@@ -26,9 +26,9 @@ export default class CONTEXTS {
   };
 
   static readonly CHARGING_STATION_CONTEXTS: any = {
-    ASSIGNED_OCCP16: 'cs-16', // Charging Station is assigned to each site area with OCPP16
+    ASSIGNED_OCPP16: 'cs-16', // Charging Station is assigned to each site area with OCPP16
     UNASSIGNED_OCPP16: 'cs-notassigned16', // Charging station is not assigned and use OCPP16
-    ASSIGNED_OCCP15: 'cs-15', // Charging Station is assigned to each site area with OCPP15
+    ASSIGNED_OCPP15: 'cs-15', // Charging Station is assigned to each site area with OCPP15
     UNASSIGNED_OCPP15: 'cs-notassigned15' // Charging station is not assigned and use OCPP15
   };
 
@@ -291,7 +291,7 @@ export default class CONTEXTS {
       companyID: '5ce249a2372f0b1c8caf928f'
     },
     { // Site with other user stop
-      // contextName: CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHPORIZATION,
+      // contextName: CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION,
       id: '5ce249a2372f0b1c8caf8367',
       name: CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION,
       allowAllUsersToStopTransactions: true,
@@ -354,7 +354,7 @@ export default class CONTEXTS {
   // if siteAreaNames is null then the CS will not be assigned or created in tenant with no porganization, so the baseName MUST be unique
   static readonly TENANT_CHARGINGSTATION_LIST: any = [
     {
-      baseName: CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCCP16, // Concatenated with siteAreaName
+      baseName: CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16, // Concatenated with siteAreaName
       ocppVersion: '1.6',
       siteAreaNames: [
         `${CONTEXTS.SITE_CONTEXTS.SITE_BASIC}-${CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL}`,
@@ -365,7 +365,7 @@ export default class CONTEXTS {
         `${CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION}-${CONTEXTS.SITE_AREA_CONTEXTS.WITHOUT_ACL}`]
     },
     {
-      baseName: CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCCP15, // Concatenated with siteAreaName
+      baseName: CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15, // Concatenated with siteAreaName
       ocppVersion: '1.5',
       siteAreaNames: [
         `${CONTEXTS.SITE_CONTEXTS.SITE_BASIC}-${CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL}`,

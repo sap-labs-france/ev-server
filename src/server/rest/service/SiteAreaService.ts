@@ -25,8 +25,14 @@ export default class SiteAreaService {
     // Check Mandatory fields
     UtilsService.assertIdIsProvided(siteAreaID, 'SiteAreaService', 'handleDeleteSiteArea', req.user);
 
+    // Get
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, siteAreaID);
+
+    // Found?
+    UtilsService.assertObjectExists(siteArea, `Site Area with ID '${siteAreaID}' does not exist`, 'SiteAreaService', 'handleDeleteSiteArea', req.user);
+
     // Check auth
-    if (!Authorizations.canDeleteSiteArea(req.user)) {
+    if (!Authorizations.canDeleteSiteArea(req.user, siteArea.siteID.toString())) {
       // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_DELETE,
@@ -36,12 +42,6 @@ export default class SiteAreaService {
         'SiteAreaService', 'handleDeleteSiteArea',
         req.user);
     }
-
-    // Get
-    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, siteAreaID);
-
-    // Found?
-    UtilsService.assertObjectExists(siteArea, `Site Area with ID '${siteAreaID}' does not exist`, 'SiteAreaService', 'handleDeleteSiteArea', req.user);
 
     // Delete
     await SiteAreaStorage.deleteSiteArea(req.user.tenantID, siteArea.id);
@@ -71,8 +71,12 @@ export default class SiteAreaService {
     // ID is mandatory
     UtilsService.assertIdIsProvided(filteredRequest.ID, 'SiteAreaService', 'handleGetSiteArea', req.user);
 
+    // Get it
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.ID,
+      { withSite: filteredRequest.WithSite, withChargeBoxes: filteredRequest.WithChargeBoxes, withImage: true });
+
     // Check auth
-    if (!Authorizations.canReadSiteArea(req.user, filteredRequest.ID)) {
+    if (!Authorizations.canReadSiteArea(req.user, siteArea.siteID.toString())) {
       // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_READ,
@@ -82,10 +86,6 @@ export default class SiteAreaService {
         'SiteAreaService', 'handleGetSiteAreaImage',
         req.user);
     }
-
-    // Get it
-    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.ID,
-      { withSite: filteredRequest.WithSite, withChargeBoxes: filteredRequest.WithChargeBoxes, withImage: true });
 
     // Found?
     UtilsService.assertObjectExists(siteArea, `The Site Area with ID '${filteredRequest.ID}' does not exist`, 'SiteAreaService', 'handleGetSiteArea', req.user);
@@ -110,8 +110,11 @@ export default class SiteAreaService {
     // Charge Box is mandatory
     UtilsService.assertIdIsProvided(siteAreaID, 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
 
+    // Get it
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, siteAreaID, { withImage: true });
+
     // Check auth
-    if (!Authorizations.canReadSiteArea(req.user, siteAreaID)) {
+    if (!Authorizations.canReadSiteArea(req.user, siteArea.siteID.toString())) {
       // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_READ,
@@ -120,9 +123,6 @@ export default class SiteAreaService {
         Constants.HTTP_AUTH_ERROR, 'SiteAreaService', 'handleGetSiteAreaImage',
         req.user);
     }
-
-    // Get it
-    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, siteAreaID, { withImage: true });
 
     // Check
     UtilsService.assertObjectExists(siteArea, 'Site Area does not exist.', 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
@@ -180,8 +180,14 @@ export default class SiteAreaService {
       req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_CREATE, Constants.ENTITY_SITE_AREAS, 'SiteAreaService', 'handleCreateSiteArea');
 
+    // Filter
+    const filteredRequest = SiteAreaSecurity.filterSiteAreaCreateRequest(req.body);
+
+    // Check
+    SiteAreaService._checkIfSiteAreaValid(filteredRequest, req);//WIPTODO: remove/migrate
+
     // Check auth
-    if (!Authorizations.canCreateSiteArea(req.user)) {
+    if (!Authorizations.canCreateSiteArea(req.user, filteredRequest.siteID)) {
       // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_CREATE,
@@ -190,12 +196,6 @@ export default class SiteAreaService {
         Constants.HTTP_AUTH_ERROR, 'SiteAreaService', 'handleCreateSiteArea',
         req.user);
     }
-
-    // Filter
-    const filteredRequest = SiteAreaSecurity.filterSiteAreaCreateRequest(req.body);
-
-    // Check
-    SiteAreaService._checkIfSiteAreaValid(filteredRequest, req); // TODO: remove/migrate
 
     // Create site
     const usr = new User(req.user.tenantID, { id: req.user.id });
@@ -232,7 +232,7 @@ export default class SiteAreaService {
     const filteredRequest = SiteAreaSecurity.filterSiteAreaUpdateRequest(req.body);
 
     // Check auth
-    if (!Authorizations.canUpdateSiteArea(req.user)) {
+    if (!Authorizations.canUpdateSiteArea(req.user, filteredRequest.siteID)) {
       // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_UPDATE,
