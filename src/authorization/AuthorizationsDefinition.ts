@@ -121,6 +121,8 @@ const GRANTS = {
       'basic': {}
     },
     grants: [
+      {resource: 'Users', action: 'List', attributes: ['*']},
+      {resource: 'User', action: ['Read', 'Update'], attributes: ['*']},
       {
         resource: 'Site', action: ['Update', 'Delete'], attributes: ['*'],
         condition: {Fn: 'LIST_CONTAINS', args: {'sites': '$.site'}}
