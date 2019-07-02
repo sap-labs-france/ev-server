@@ -45,4 +45,21 @@ module.exports = function(chai, utils) {
     );
   });
 
+  Assertion.addMethod('validatedSetting', function(identifier, type) {
+    // First, our instanceof check, shortcut
+    new Assertion(this._obj).to.be.instanceof(Object);
+    new Assertion(this._obj).to.be.not.null;
+    // Second, our type check
+    // To be completed
+    new Assertion(this._obj).to.have.property('id');
+    new Assertion(this._obj).to.have.property('identifier');
+    new Assertion(this._obj).to.have.property('sensitiveData');
+    new Assertion(this._obj).to.have.property('content');
+    new Assertion(this._obj.identifier).to.equal(identifier);
+    if (type) {
+      new Assertion(this._obj.content).to.have.property('type');
+      new Assertion(this._obj.content.type).to.equal(type);
+    }
+  });
+
 };
