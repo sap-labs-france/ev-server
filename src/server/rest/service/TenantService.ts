@@ -205,9 +205,9 @@ export default class TenantService extends AbstractService {
       // Save
       const newTenant = await TenantStorage.saveTenant(tenant.getModel());
       // Update with components
-      TenantService.updateSettingsWithComponents(newTenant, req);
+      await TenantService.updateSettingsWithComponents(newTenant, req);
       // Create DB collections
-      TenantStorage.createTenantDB(newTenant.getID());
+      await TenantStorage.createTenantDB(newTenant.getID());
       // Create user in tenant
       const password = User.generatePassword();
       const verificationToken = Utils.generateToken(newTenant.getEmail());
@@ -300,7 +300,7 @@ export default class TenantService extends AbstractService {
       // Update Tenant
       const updatedTenant = await TenantStorage.saveTenant(tenant.getModel());
       // Update with components
-      TenantService.updateSettingsWithComponents(tenant, req);
+      await TenantService.updateSettingsWithComponents(tenant, req);
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID, user: req.user,
