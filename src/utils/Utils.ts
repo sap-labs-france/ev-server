@@ -2,7 +2,6 @@ import axios from 'axios';
 import ClientOAuth2 from 'client-oauth2';
 import crypto from 'crypto';
 import fs from 'fs';
-// pragma import AppError from '../exception/AppError';
 import _ from 'lodash';
 import { ObjectID } from 'mongodb';
 import path from 'path';

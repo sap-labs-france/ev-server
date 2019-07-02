@@ -1,13 +1,9 @@
-import chai from 'chai';
-import { expect } from 'chai';
+import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
-chai.use(chaiSubset);
-const path = require('path');
- import global from'../../src/types/GlobalType';
- 
-global.appRoot = path.resolve(__dirname, '../../src');
-import CentralServerService from './client/CentralServerService';
+import CentralServerService from '../api/client/CentralServerService';
 import Factory from '../factories/Factory';
+
+chai.use(chaiSubset);
 
 class TestData {
   public newCompany: any;
@@ -17,7 +13,6 @@ class TestData {
 }
 
 const testData: TestData = new TestData();
-
 
 describe('Site tests', function() {
   this.timeout(30000);
@@ -31,7 +26,7 @@ describe('Site tests', function() {
       // Create User
       testData.newUser = await CentralServerService.DefaultInstance.createEntity(
         CentralServerService.DefaultInstance.userApi, Factory.user.build());
-        expect(testData.newUser).to.not.be.null;
+      expect(testData.newUser).to.not.be.null;
     });
 
     after(async () => {

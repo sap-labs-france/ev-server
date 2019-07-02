@@ -1,10 +1,10 @@
 import moment from 'moment';
 import Constants from '../../utils/Constants';
-import MigrationTask from '../MigrationTask';
-import global from '../../types/GlobalType';
-import Tenant from '../../entity/Tenant';
 import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
+import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
+import MigrationTask from '../MigrationTask';
+import Tenant from '../../entity/Tenant';
 
 export default class CleanupMeterValuesTask extends MigrationTask {
   public totalCount: any;

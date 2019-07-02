@@ -1,20 +1,22 @@
 import crypto from 'crypto';
+import fs from 'fs';
 import Mustache from 'mustache';
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
-import Logging from '../../utils/Logging';
-import fs from 'fs';
+import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
+import Logging from '../../utils/Logging';
 import User from '../../types/User';
 import Utils from '../../utils/Utils';
-import DbParams from '../../types/database/DbParams';
 import Eula from '../../types/Eula';
 import Tag from '../../types/Tag';
-import { ObjectID } from 'mongodb';
+import { ObjectID } from 'bson';
 import Site, { SiteUser } from '../../types/Site';
+
+const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 
 export default class UserStorage {
 

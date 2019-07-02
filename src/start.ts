@@ -1,14 +1,10 @@
-import path from 'path';
-import global from './types/GlobalType';
-global.appRoot = path.resolve(__dirname);
 import BBPromise from 'bluebird';
-import TSGlobal from './types/GlobalType';
-global.Promise = BBPromise;
 import cluster from 'cluster';
 import SourceMap from 'source-map-support';
 import CentralRestServer from './server/rest/CentralRestServer';
 import Configuration from './utils/Configuration';
 import Constants from './utils/Constants';
+import global from './types/GlobalType';
 import JsonCentralSystemServer from './server/ocpp/json/JsonCentralSystemServer';
 import LockingStorage from './storage/mongodb/LockingStorage';
 import Logging from './utils/Logging';
@@ -20,9 +16,13 @@ import ODataServer from './server/odata/ODataServer';
 import SchedulerManager from './scheduler/SchedulerManager';
 import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer';
 import Utils from './utils/Utils';
-SourceMap.install();
-const MODULE_NAME = 'Bootstrap';
 
+// FIXME: Move to global variables initialization
+global.Promise = BBPromise;
+
+SourceMap.install();
+
+const MODULE_NAME = 'Bootstrap';
 export default class Bootstrap {
   private static numWorkers: number;
   private static isClusterEnabled: boolean;

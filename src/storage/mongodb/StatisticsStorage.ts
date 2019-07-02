@@ -1,10 +1,9 @@
 import moment from 'moment';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
-import Logging from '../../utils/Logging';
 import global from '../../types/GlobalType';
+import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-
 
 export default class StatisticsStorage {
   static async getChargingStationStats(tenantID, filter, groupBy) {
@@ -70,8 +69,8 @@ export default class StatisticsStorage {
       case Constants.STATS_GROUP_BY_USAGE:
         aggregation.push({
           $group: {
-            _id: { chargeBox: "$chargeBoxID", month: { $month: "$timestamp" } },
-            total: { $sum: { $divide: [{ $subtract: ["$stop.timestamp", "$timestamp"] }, 60 * 60 * 1000] } }
+            _id: { chargeBox: '$chargeBoxID', month: { $month: '$timestamp' } },
+            total: { $sum: { $divide: [{ $subtract: ['$stop.timestamp', '$timestamp'] }, 60 * 60 * 1000] } }
           }
         });
         break;
@@ -80,12 +79,12 @@ export default class StatisticsStorage {
       case Constants.STATS_GROUP_BY_INACTIVITY:
         aggregation.push({
           $group: {
-            _id: { chargeBox: "$chargeBoxID", month: { $month: "$timestamp" } },
-            total: { $sum: { $divide: ["$stop.totalInactivitySecs", 60 * 60] } }
+            _id: { chargeBox: '$chargeBoxID', month: { $month: '$timestamp' } },
+            total: { $sum: { $divide: [{ $add: ['$stop.totalInactivitySecs', '$stop.extraInactivitySecs'] }, 60 * 60] } }
           }
         });
         break;
-      }
+    }
 
     // Sort
     aggregation.push({
@@ -163,8 +162,8 @@ export default class StatisticsStorage {
       case Constants.STATS_GROUP_BY_USAGE:
         aggregation.push({
           $group: {
-            _id: { userID: "$userID", month: { $month: "$timestamp" } },
-            total: { $sum: { $divide: [{ $subtract: ["$stop.timestamp", "$timestamp"] }, 60 * 60 * 1000] } }
+            _id: { userID: '$userID', month: { $month: '$timestamp' } },
+            total: { $sum: { $divide: [{ $subtract: ['$stop.timestamp', '$timestamp'] }, 60 * 60 * 1000] } }
           }
         });
         break;
@@ -173,8 +172,8 @@ export default class StatisticsStorage {
       case Constants.STATS_GROUP_BY_INACTIVITY:
         aggregation.push({
           $group: {
-            _id: { userID: "$userID", month: { $month: "$timestamp" } },
-            total: { $sum: { $divide: ["$stop.totalInactivitySecs", 60 * 60] } }
+            _id: { userID: '$userID', month: { $month: '$timestamp' } },
+            total: { $sum: { $divide: [{ $add: ['$stop.totalInactivitySecs', '$stop.extraInactivitySecs'] }, 60 * 60] } }
           }
         });
         break;

@@ -1,13 +1,13 @@
+import fs from 'fs';
+import moment from 'moment';
 import AppAuthError from '../../../exception/AppAuthError';
 import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import StatisticSecurity from './security/StatisticSecurity';
 import StatisticsStorage from '../../../storage/mongodb/StatisticsStorage';
+import StatisticSecurity from './security/StatisticSecurity';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
-import fs from 'fs';
-import moment from 'moment';
 
 export default class StatisticService {
   static async handleGetChargingStationConsumptionStatistics(action, req, res, next) {
@@ -288,20 +288,20 @@ export default class StatisticService {
       const filename = 'export' + filteredRequest.DataType + 'Statistics.csv';
       fs.writeFile(filename, StatisticService.convertToCSV(transactionStatsMDB, filteredRequest.DataCategory,
         filteredRequest.DataType, filteredRequest.Year, filteredRequest.DataScope), (createError) => {
-          if (createError) {
-            throw createError;
+        if (createError) {
+          throw createError;
+        }
+        res.download(filename, (downloadError) => {
+          if (downloadError) {
+            throw downloadError;
           }
-          res.download(filename, (downloadError) => {
-            if (downloadError) {
-              throw downloadError;
+          fs.unlink(filename, (unlinkError) => {
+            if (unlinkError) {
+              throw unlinkError;
             }
-            fs.unlink(filename, (unlinkError) => {
-              if (unlinkError) {
-                throw unlinkError;
-              }
-            });
           });
         });
+      });
     } catch (error) {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);

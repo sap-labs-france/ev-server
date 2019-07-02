@@ -1,10 +1,11 @@
 import auth from 'basic-auth';
 import fs from 'fs';
 import SourceMap from 'source-map-support';
-import global from '../../../types/GlobalType';
 import CentralServiceApi from '../client/CentralServiceApi';
-import Logging from '../../../utils/Logging';
 import Constants from '../../../utils/Constants';
+import global from '../../../types/GlobalType';
+import Logging from '../../../utils/Logging';
+
 SourceMap.install();
 
 export default class ODataSchema {

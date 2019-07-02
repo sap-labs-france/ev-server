@@ -3,7 +3,6 @@ import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
-import Utils from '../../../utils/Utils';
 import Database from '../../../utils/Database';
 import ERPService from '../../../integration/pricing/convergent-charging/ERPService';
 import Logging from '../../../utils/Logging';
@@ -11,28 +10,28 @@ import NotificationHandler from '../../../notification/NotificationHandler';
 import RatingService from '../../../integration/pricing/convergent-charging/RatingService';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import Site from '../../../types/Site';
+import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import User from '../../../entity/User';
 import UserSecurity from './security/UserSecurity';
-import SiteStorage from '../../../storage/mongodb/SiteStorage';
-import { Request, Response, NextFunction } from 'express';
+import Utils from '../../../utils/Utils';
 
 export default class UserService {
   static async handleAddSitesToUser(action, req, res, next) {
     // Filter
-    const filteredRequest = UserSecurity.filterAddSitesToUserRequest(req.body, req.user);
+    const filteredRequest = UserSecurity.filterAssignSitesToUserRequest(req.body, req.user);
     // Check Mandatory fields
     if (!filteredRequest.userID) {
       // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `User's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+        'User\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
         'UserService', 'handleAddSitesToUser', req.user);
     }
     if (!filteredRequest.siteIDs || (filteredRequest.siteIDs && filteredRequest.siteIDs.length <= 0)) {
       // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Site's IDs must be provided`, Constants.HTTP_GENERAL_ERROR,
+        'Site\'s IDs must be provided', Constants.HTTP_GENERAL_ERROR,
         'UserService', 'handleAddSitesToUser', req.user);
     }
     // Check auth
@@ -80,7 +79,7 @@ export default class UserService {
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: 'UserService', method: 'handleAddSitesToUser',
-      message: `User's Sites have been added successfully`, action: action
+      message: 'User\'s Sites have been added successfully', action: action
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -89,20 +88,20 @@ export default class UserService {
 
   static async handleRemoveSitesFromUser(action, req, res, next) {
     // Filter
-    const filteredRequest = UserSecurity.filterRemoveSitesFromUserRequest(req.body, req.user);
+    const filteredRequest = UserSecurity.filterAssignSitesToUserRequest(req.body, req.user);
     // Check Mandatory fields
     if (!filteredRequest.userID) {
       // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `User's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+        'User\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
         'UserService', 'handleAddSitesToUser', req.user);
     }
     if (!filteredRequest.siteIDs || (filteredRequest.siteIDs && filteredRequest.siteIDs.length <= 0)) {
       // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Site's IDs must be provided`, Constants.HTTP_GENERAL_ERROR,
+        'Site\'s IDs must be provided', Constants.HTTP_GENERAL_ERROR,
         'UserService', 'handleAddSitesToUser', req.user);
     }
     // Check auth
@@ -151,7 +150,7 @@ export default class UserService {
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: 'UserService', method: 'handleAddSitesToUser',
-      message: `User's Sites have been removed successfully`, action: action
+      message: 'User\'s Sites have been removed successfully', action: action
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -166,7 +165,7 @@ export default class UserService {
       // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `User's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+        'User\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
         'UserService', 'handleDeleteUser', req.user);
     }
 
@@ -187,7 +186,7 @@ export default class UserService {
       // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `User cannot delete himself`, Constants.HTTP_GENERAL_ERROR,
+        'User cannot delete himself', Constants.HTTP_GENERAL_ERROR,
         'UserService', 'handleDeleteUser', req.user);
     }
     // Check email
@@ -234,7 +233,7 @@ export default class UserService {
       // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `User's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+        'User\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
         'UserService', 'handleDeleteUser', req.user);
     }
     // Check auth
@@ -303,7 +302,7 @@ export default class UserService {
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: updatedUser.getModel(),
       module: 'UserService', method: 'handleUpdateUser',
-      message: `User has been updated successfully`,
+      message: 'User has been updated successfully',
       action: action
     });
     // Notify
@@ -333,7 +332,7 @@ export default class UserService {
       // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `User's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+        'User\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
         'UserService', 'handleGetUser', req.user);
     }
     // Check auth
@@ -378,7 +377,7 @@ export default class UserService {
       // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `User's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+        'User\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
         'UserService', 'handleGetUser', req.user);
     }
     // Check auth
@@ -571,7 +570,7 @@ export default class UserService {
       // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `User's ID must be provided`, Constants.HTTP_GENERAL_ERROR,
+        'User\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
         'UserService', 'handleGetUserInvoice', req.user);
     }
     // Check auth
@@ -603,10 +602,10 @@ export default class UserService {
     setting = setting.getContent().convergentCharging;
 
     if (!setting) {
-      Logging.logException({ "message": "Convergent Charging setting is missing" }, "UserInvoice", Constants.CENTRAL_SERVER, "UserService", "handleGetUserInvoice", req.user.tenantID, req.user);
+      Logging.logException({ 'message': 'Convergent Charging setting is missing' }, 'UserInvoice', Constants.CENTRAL_SERVER, 'UserService', 'handleGetUserInvoice', req.user.tenantID, req.user);
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `An issue occurred while creating the invoice`, Constants.HTTP_AUTH_ERROR,
+        'An issue occurred while creating the invoice', Constants.HTTP_AUTH_ERROR,
         'UserService', 'handleGetUserInvoice', req.user);
     }
     const ratingService = new RatingService(setting.url, setting.user, setting.password);
@@ -616,16 +615,16 @@ export default class UserService {
       await ratingService.loadChargedItemsToInvoicing();
       invoiceNumber = await erpService.createInvoice(req.user.tenantID, user);
     } catch (exception) {
-      Logging.logException(exception, "UserInvoice", Constants.CENTRAL_SERVER, "UserService", "handleGetUserInvoice", req.user.tenantID, req.user);
+      Logging.logException(exception, 'UserInvoice', Constants.CENTRAL_SERVER, 'UserService', 'handleGetUserInvoice', req.user.tenantID, req.user);
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `An issue occurred while creating the invoice`, Constants.HTTP_AUTH_ERROR,
+        'An issue occurred while creating the invoice', Constants.HTTP_AUTH_ERROR,
         'UserService', 'handleGetUserInvoice', req.user);
     }
     if (!invoiceNumber) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `No invoices available`, 404,
+        'No invoices available', 404,
         'UserService', 'handleGetUserInvoice', req.user);
     }
     try {

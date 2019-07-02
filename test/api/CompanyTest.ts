@@ -1,11 +1,6 @@
-const path = require('path');
-import global from'../../src/types/GlobalType';
-const util = require('util');
-global.appRoot = path.resolve(__dirname, '../../src');
+import { expect } from 'chai';
 import CentralServerService from './client/CentralServerService';
 import Factory from '../factories/Factory';
-import {expect} from 'chai';
-import Constants from './client/utils/Constants';
 
 let newCompany;
 let centralServerService: CentralServerService;

@@ -1,13 +1,9 @@
-import chai from 'chai';
-import { expect } from 'chai';
+import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
-chai.use(chaiSubset);
-const path = require('path');
- import global from'../../src/types/GlobalType';
- 
-global.appRoot = path.resolve(__dirname, '../../src');
-import CentralServerService from './client/CentralServerService';
+import CentralServerService from '../api/client/CentralServerService';
 import Factory from '../factories/Factory';
+
+chai.use(chaiSubset);
 
 class TestData {
   public newCompany: any;

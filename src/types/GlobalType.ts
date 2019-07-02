@@ -1,3 +1,4 @@
+import path from 'path';
 import MongoDBStorage from '../storage/mongodb/MongoDBStorage';
 import Global = NodeJS.Global;
 
@@ -11,6 +12,8 @@ interface TSGlobal extends Global {
   Promise: any;
 }
 
-//
-declare var global: TSGlobal;
+// Export global variables
+declare const global: TSGlobal;
+// AppRoot full path
+global.appRoot = path.resolve(__dirname, '../');
 export default global;

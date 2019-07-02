@@ -1,7 +1,7 @@
-import CreatedUpdatedProps from "./CreatedUpdatedProps";
-import Address from "./Address";
-import SiteArea from "./SiteArea";
-import Company from "./Company";
+import Address from './Address';
+import Company from './Company';
+import CreatedUpdatedProps from './CreatedUpdatedProps';
+import SiteArea from './SiteArea';
 
 export default interface Site extends CreatedUpdatedProps {
   id: string;

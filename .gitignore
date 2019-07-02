@@ -76,3 +76,4 @@ build/config.gypi
  mochawesome-report/*
 
  *.orig
+/yarn.lock

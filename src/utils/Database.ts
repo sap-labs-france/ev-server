@@ -7,6 +7,7 @@ import Company from '../types/Company';
 import Configuration from './Configuration';
 import Constants from './Constants';
 import Utils from './Utils';
+
 SourceMap.install();
 
 export default class Database {

@@ -1,16 +1,14 @@
-const path = require('path');
- import global from'../../src/types/GlobalType';
- 
-global.appRoot = path.resolve(__dirname, '../../src');
-import chai from 'chai';
-import { expect } from 'chai';
+import chai, { expect } from 'chai';
+import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
+import moment from 'moment';
+import responseHelper from '../helpers/responseHelper';
 import CONTEXTS from './contextProvider/ContextConstants';
 import ContextProvider from './contextProvider/ContextProvider';
-chai.use(require('chai-datetime'));
+
+chai.use(chaiDatetime);
 chai.use(chaiSubset);
-chai.use(require('../helpers/responseHelper'));
-import moment from 'moment';
+chai.use(responseHelper);
 
 // For Visual Studio it is recommended to install Mocha sidebar and Chai snippets
 // Mocha is the test framework and chai provides functions to check expectations
@@ -40,7 +38,7 @@ describe('Template for Dev Unit Test', function() {
       const user = tenantContextAll.getContextUser(CONTEXTS.USER_CONTEXTS.BASIC_USER);
       const siteContext = tenantContextAll.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_BASIC);
       const siteAreaContext = siteContext.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
-      const chargingStationContext = siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCCP15);
+      const chargingStationContext = siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
       const response = await chargingStationContext.startTransaction(1, user.tagIDs[0], 0, moment());
       expect(response).to.be.transactionValid;
       const userCentralService = tenantContextAll.getUserCentralServerService(CONTEXTS.USER_CONTEXTS.BASIC_USER);

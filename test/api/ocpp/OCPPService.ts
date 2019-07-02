@@ -1,3 +1,6 @@
+import global from '../../../src/types/GlobalType';
+import path from 'path';
+global.appRoot = path.resolve(__dirname, '../../../src');
 
 export default class OCPPService {
   public serverUrl: string;
@@ -9,7 +12,7 @@ export default class OCPPService {
     throw new Error('Method not implemented!');
   }
 
-  public executeAuthorize(chargeBoxIdentity, data):any {
+  public executeAuthorize(chargeBoxIdentity, data): any {
     throw new Error('Method not implemented!');
   }
 

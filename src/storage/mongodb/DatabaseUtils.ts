@@ -1,7 +1,7 @@
 import { filter } from 'bluebird';
-import Utils from '../../utils/Utils';
 import { ObjectID } from 'mongodb';
 import Constants from '../../utils/Constants';
+import Utils from '../../utils/Utils';
 
 const FIXED_COLLECTIONS: string[] = ['tenants', 'migrations'];
 
@@ -108,7 +108,7 @@ export default class DatabaseUtils {
 
 
   public static pushSiteAreaJoinInAggregation(tenantID: string, aggregation: any[], local: string, foreign: string, as: string, includes: string[], topCreatedProps: 'none'|'manual'|'include', single: boolean = false) {
-    this.pushTransformedJoinInAggregation(
+    DatabaseUtils.pushTransformedJoinInAggregation(
       tenantID,
       aggregation,
       'siteareas',
@@ -118,7 +118,7 @@ export default class DatabaseUtils {
       includes,
       {},
       ['address', 'name', 'maximumPower', 'image', 'siteID', 'accessControl'],
-      { siteID: {$toString: `$${as}.siteID`} },
+      { siteID: { $toString: `$${as}.siteID` } },
       topCreatedProps,
       true,
       single);
@@ -126,7 +126,7 @@ export default class DatabaseUtils {
 
   // WOSWOI = Without Site Without Image, bad name, change... SimpleCompany?
   public static pushCompanyWOSWOIJoinInAggregation(tenantID: string, aggregation: any[], local: string, foreign: string, as: string, includes: string[], topCreatedProps: 'none'|'manual'|'include') {
-    this.pushTransformedJoinInAggregation(
+    DatabaseUtils.pushTransformedJoinInAggregation(
       tenantID,
       aggregation,
       'companies',
@@ -143,9 +143,9 @@ export default class DatabaseUtils {
   }
 
   public static pushBasicSiteJoinInAggregation(tenantID: string, aggregation: any[], local: string, foreign: string, as: string, includes: string[], topCreatedProps: 'none'|'manual'|'include', single: boolean) {
-    this.pushTransformedJoinInAggregation(tenantID, aggregation, 'sites', local, foreign, as, includes, {},
+    DatabaseUtils.pushTransformedJoinInAggregation(tenantID, aggregation, 'sites', local, foreign, as, includes, {},
       ['name', 'address', 'companyID', 'allowAllUsersToStopTransactions', 'autoUserSiteAssignment'],
-      {companyID: {$toString: `$${as}.companyID`}}, topCreatedProps, true, single);
+      { companyID: { $toString: `$${as}.companyID` } }, topCreatedProps, true, single);
   }
 
   public static pushBasicUserJoinInAggregation(tenantID: string, aggregation: any[], local: string, foreign: string, as: string, includes: string[], topCreatedProps: 'none'|'manual'|'include', single: boolean) {
@@ -179,26 +179,26 @@ export default class DatabaseUtils {
     }
     group.$group[intoField] = { $push: `$${intoField}` };
     project.$project[intoField] = { ...nestedRenames };
-    project.$project[intoField].id = {$toString: `$${intoField}._id`};
+    project.$project[intoField].id = { $toString: `$${intoField}._id` };
     for (const nes of nestedIncludes) {
       project.$project[intoField][nes] = 1;
     }
-    //Need to group, push users, then project to remove id
+    // Need to group, push users, then project to remove id
     aggregation.push(
       initialJoin,
-      {$unwind: {path: `$${intoField}`, preserveNullAndEmptyArrays: true}},
+      { $unwind: { path: `$${intoField}`, preserveNullAndEmptyArrays: true } },
       project
     );
-    if(joinCreatedProps){
+    if (joinCreatedProps) {
       DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation, intoField);
     }
 
-    if(! single){
+    if (!single) {
       aggregation.push(group);
     }
-    aggregation.push({$addFields: {id: '$_id'}});
+    aggregation.push({ $addFields: { id: '$_id' } });
 
-    if(topCreatedProps === 'include') {
+    if (topCreatedProps === 'include') {
       DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     }
   } // TODO: createdBy.id gets set even if user is null, giving illusion that there is a user. Take care
@@ -211,28 +211,28 @@ export default class DatabaseUtils {
     obj.lastChangedOn = 1;
   }
 
-  //Temporary hack to fix user Id saving. fix all this when user is typed...
+  // Temporary hack to fix user Id saving. fix all this when user is typed...
   public static mongoConvertUserID(obj: any, prop: string): ObjectID|null {
-    if(!obj || !obj[prop]) {
+    if (!obj || !obj[prop]) {
       return null;
     }
-    if(obj[prop].getID === 'function'){
+    if (obj[prop].getID === 'function') {
       return Utils.convertToObjectID(obj[prop].getID());
     }
-    if(obj[prop].id) {
+    if (obj[prop].id) {
       return Utils.convertToObjectID(obj[prop].id);
     }
     return null;
   }
 
-  //TODO: Can probably be removed once user gets typed. For now use as shortcut.
-  public static mongoConvertLastChangedCreatedProps(dest: any, entity: any){
-    if(entity.createdBy && entity.createdOn) {
-      dest.createdBy = this.mongoConvertUserID(entity, 'createdBy');
+  // TODO: Can probably be removed once user gets typed. For now use as shortcut.
+  public static mongoConvertLastChangedCreatedProps(dest: any, entity: any) {
+    if (entity.createdBy && entity.createdOn) {
+      dest.createdBy = DatabaseUtils.mongoConvertUserID(entity, 'createdBy');
       dest.createdOn = entity.createdOn;
     }
-    if(entity.lastChangedBy && entity.lastChangedOn) {
-      dest.lastChangedBy = this.mongoConvertUserID(entity, 'lastChangedBy');
+    if (entity.lastChangedBy && entity.lastChangedOn) {
+      dest.lastChangedBy = DatabaseUtils.mongoConvertUserID(entity, 'lastChangedBy');
       dest.lastChangedOn = entity.lastChangedOn;
     }
   }

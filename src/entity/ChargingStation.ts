@@ -12,16 +12,16 @@ import Logging from '../utils/Logging';
 import OCPPConstants from '../server/ocpp/utils/OCPPConstants';
 import OCPPStorage from '../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../server/ocpp/utils/OCPPUtils';
+import Site from '../types/Site';
 import SiteArea from '../types/SiteArea';
 import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../storage/mongodb/SiteStorage';
-import Site from '../types/Site';
 import TenantHolder from './TenantHolder';
 import Transaction from './Transaction';
 import User from './User';
 import Utils from '../utils/Utils';
-SourceMap.install();
 
+SourceMap.install();
 momentDurationFormatSetup(moment);
 
 export default class ChargingStation extends TenantHolder {
