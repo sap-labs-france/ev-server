@@ -13,7 +13,6 @@ import Tenant from '../../../entity/Tenant';
 import TenantSecurity from './security/TenantSecurity';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TenantValidator from '../validation/TenantValidation';
-import UnauthorizedError from '../../../exception/UnauthorizedError';
 import User from '../../../entity/User';
 import Utils from '../../../utils/Utils';
 import AppAuthError from '../../../exception/AppAuthError';
@@ -23,150 +22,136 @@ const MODULE_NAME = 'TenantService';
 export default class TenantService extends AbstractService {
 
   static async handleDeleteTenant(action, req, res, next) {
-    try {
-      // Filter
-      const filteredRequest = TenantSecurity.filterTenantDeleteRequest(
-        req.query, req.user);
-      // Check Mandatory fields
-      if (!filteredRequest.ID) {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          'The Tenant\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
-          MODULE_NAME, 'handleDeleteTenant', req.user);
-      }
-      // Get
-      const tenant = await Tenant.getTenant(filteredRequest.ID);
-      // Found?
-      if (!tenant) {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `Tenant with ID '${filteredRequest.ID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-          MODULE_NAME, 'handleDeleteTenant', req.user);
-      }
-      // Check auth
-      if (!Authorizations.canDeleteTenant(req.user)) {
-        // Not Authorized!
-        throw new UnauthorizedError(
-          Constants.ACTION_DELETE,
-          Constants.ENTITY_TENANT,
-          tenant.getID(),
-          req.user);
-      }
-      if (tenant.getID() === req.user.tenantID) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `Your own tenant with id '${tenant.getID()}' cannot be deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-          MODULE_NAME, 'handleDeleteTenant', req.user);
-      }
-      // Delete
-      await TenantStorage.deleteTenant(tenant.getID());
-      if (filteredRequest.forced && !Utils.isServerInProductionMode()) {
-        Logging.logWarning({
-          tenantID: req.user.tenantID,
-          module: 'MongoDBStorage', method: 'deleteTenantDatabase',
-          message: `Deleting collections for tenant ${tenant.getID()}`
-        });
-        TenantStorage.deleteTenantDB(tenant.getID());
-      }
-      // Log
-      Logging.logSecurityInfo({
-        tenantID: req.user.tenantID, user: req.user,
-        module: MODULE_NAME, method: 'handleDeleteTenant',
-        message: `Tenant '${tenant.getName()}' has been deleted successfully`,
-        action: action,
-        detailedMessages: tenant
-      });
-      // Ok
-      res.json(Constants.REST_RESPONSE_SUCCESS);
-      next();
-    } catch (error) {
-      AbstractService._handleError(error, req, next, action, MODULE_NAME, 'handleDeleteTenant');
+    // Filter
+    const filteredRequest = TenantSecurity.filterTenantDeleteRequest(req.query, req.user);
+    // Check Mandatory fields
+    if (!filteredRequest.ID) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'The Tenant\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
+        MODULE_NAME, 'handleDeleteTenant', req.user);
     }
+    // Get
+    const tenant = await Tenant.getTenant(filteredRequest.ID);
+    // Found?
+    if (!tenant) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `Tenant with ID '${filteredRequest.ID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        MODULE_NAME, 'handleDeleteTenant', req.user);
+    }
+    // Check auth
+    if (!Authorizations.canDeleteTenant(req.user)) {
+      throw new AppAuthError(
+        Constants.ACTION_DELETE,
+        Constants.ENTITY_TENANT,
+        filteredRequest.ID,
+        Constants.HTTP_AUTH_ERROR,
+        'TenantService', 'handleDeleteTenant',
+        req.user);
+    }
+    if (tenant.getID() === req.user.tenantID) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `Your own tenant with id '${tenant.getID()}' cannot be deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        MODULE_NAME, 'handleDeleteTenant', req.user);
+    }
+    // Delete
+    await TenantStorage.deleteTenant(tenant.getID());
+    if (filteredRequest.forced && !Utils.isServerInProductionMode()) {
+      Logging.logWarning({
+        tenantID: req.user.tenantID,
+        module: 'MongoDBStorage', method: 'deleteTenantDatabase',
+        message: `Deleting collections for tenant ${tenant.getID()}`
+      });
+      TenantStorage.deleteTenantDB(tenant.getID());
+    }
+    // Log
+    Logging.logSecurityInfo({
+      tenantID: req.user.tenantID, user: req.user,
+      module: MODULE_NAME, method: 'handleDeleteTenant',
+      message: `Tenant '${tenant.getName()}' has been deleted successfully`,
+      action: action,
+      detailedMessages: tenant
+    });
+    // Ok
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
   }
 
   static async handleGetTenant(action, req, res, next) {
-    try {
-      // Filter
-      const filteredRequest = TenantSecurity.filterTenantRequest(req.query, req.user);
+    // Filter
+    const filteredRequest = TenantSecurity.filterTenantRequest(req.query, req.user);
 
-      // Charge Box is mandatory
-      if (!filteredRequest.ID) {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          'The Tenant\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
-          MODULE_NAME, 'handleGetTenant', req.user);
-      }
-      // Get it
-      const tenant = await Tenant.getTenant(filteredRequest.ID);
-
-      if (!tenant) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `Tenant with ID '${filteredRequest.ID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-          MODULE_NAME, 'handleGetTenant', req.user);
-      }
-      // Check auth
-      if (!Authorizations.canReadTenant(req.user)) {
-        // Not Authorized!
-        throw new UnauthorizedError(
-          Constants.ACTION_READ,
-          Constants.ENTITY_TENANT,
-          tenant.getID(),
-          req.user);
-      }
-
-      // Return
-      res.json(
-        // Filter
-        TenantSecurity.filterTenantResponse(
-          tenant.getModel(), req.user)
-      );
-      next();
-    } catch (error) {
-      AbstractService._handleError(error, req, next, action, MODULE_NAME, 'handleGetTenant');
+    // Charge Box is mandatory
+    if (!filteredRequest.ID) {
+      // Not Found!
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'The Tenant\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
+        MODULE_NAME, 'handleGetTenant', req.user);
     }
+    // Get it
+    const tenant = await Tenant.getTenant(filteredRequest.ID);
+    if (!tenant) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `Tenant with ID '${filteredRequest.ID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        MODULE_NAME, 'handleGetTenant', req.user);
+    }
+    // Check auth
+    if (!Authorizations.canReadTenant(req.user)) {
+      throw new AppAuthError(
+        Constants.ACTION_READ,
+        Constants.ENTITY_TENANT,
+        filteredRequest.ID,
+        Constants.HTTP_AUTH_ERROR,
+        'TenantService', 'handleGetTenant',
+        req.user);
+    }
+
+    // Return
+    res.json(
+      // Filter
+      TenantSecurity.filterTenantResponse(
+        tenant.getModel(), req.user)
+    );
+    next();
   }
 
   static async handleGetTenants(action, req, res, next) {
-    try {
-      // Check auth
-      if (!Authorizations.canListTenants(req.user)) {
-        // Not Authorized!
-        throw new UnauthorizedError(
-          Constants.ACTION_LIST,
-          Constants.ENTITY_TENANTS,
-          null,
-          req.user);
-      }
-      // Filter
-      const filteredRequest = TenantSecurity.filterTenantsRequest(req.query, req.user);
-      // Get the tenants
-      const tenants = await Tenant.getTenants(
-        {
-          search: filteredRequest.Search
-        },
-        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
-      // Set
-      tenants.result = tenants.result.map((tenant) => {
-        return tenant.getModel();
-      });
-      // Filter
-      TenantSecurity.filterTenantsResponse(tenants, req.user);
-      // Return
-      res.json(tenants);
-      next();
-    } catch (error) {
-      AbstractService._handleError(error, req, next, action, MODULE_NAME, 'handleGetTenants');
+    // Check auth
+    if (!Authorizations.canListTenants(req.user)) {
+      throw new AppAuthError(
+        Constants.ACTION_LIST,
+        Constants.ENTITY_TENANTS,
+        null,
+        Constants.HTTP_AUTH_ERROR,
+        'TenantService', 'handleGetTenants',
+        req.user);
     }
+    // Filter
+    const filteredRequest = TenantSecurity.filterTenantsRequest(req.query, req.user);
+    // Get the tenants
+    const tenants = await Tenant.getTenants(
+      {
+        search: filteredRequest.Search
+      },
+      filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+    // Set
+    tenants.result = tenants.result.map((tenant) => {
+      return tenant.getModel();
+    });
+    // Filter
+    TenantSecurity.filterTenantsResponse(tenants, req.user);
+    // Return
+    res.json(tenants);
+    next();
   }
 
   public static async handleCreateTenant(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canCreateTenant(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_CREATE,
         Constants.ENTITY_TENANT,
@@ -208,7 +193,7 @@ export default class TenantService extends AbstractService {
     // Save
     const newTenant = await TenantStorage.saveTenant(tenant.getModel());
     // Update with components
-    await TenantService.updateSettingsWithComponents(newTenant, req);
+    await TenantService._updateSettingsWithComponents(newTenant, req);
     // Create DB collections
     await TenantStorage.createTenantDB(newTenant.getID());
     // Create user in tenant
@@ -268,56 +253,53 @@ export default class TenantService extends AbstractService {
   }
 
   static async handleUpdateTenant(action, req, res, next) {
-    try {
-      // Check
-      TenantValidator.getInstance().validateTenantUpdate(req.body);
-      // Filter
-      const filteredRequest = TenantSecurity.filterTenantUpdateRequest(req.body, req.user);
-      // Check email
-      const tenant = await Tenant.getTenant(filteredRequest.id);
-      if (!tenant) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `Tenant with ID '${filteredRequest.ID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-          MODULE_NAME, 'handleUpdateTenant', req.user);
-      }
-      // Check auth
-      if (!Authorizations.canUpdateTenant(req.user)) {
-        // Not Authorized!
-        throw new UnauthorizedError(
-          Constants.ACTION_UPDATE,
-          Constants.ENTITY_TENANT,
-          tenant.getID(),
-          req.user);
-      }
-      // Update
-      Database.updateTenant(filteredRequest, tenant.getModel());
-      // Update timestamp
-      tenant.setLastChangedBy(new User(req.user.tenantID, {
-        'id': req.user.id
-      }));
-      tenant.setLastChangedOn(new Date());
-      // Update Tenant
-      const updatedTenant = await TenantStorage.saveTenant(tenant.getModel());
-      // Update with components
-      await TenantService.updateSettingsWithComponents(tenant, req);
-      // Log
-      Logging.logSecurityInfo({
-        tenantID: req.user.tenantID, user: req.user,
-        module: MODULE_NAME, method: 'handleUpdateTenant',
-        message: `Tenant '${updatedTenant.getName()}' has been updated successfully`,
-        action: action,
-        detailedMessages: updatedTenant
-      });
-      // Ok
-      res.json(Constants.REST_RESPONSE_SUCCESS);
-      next();
-    } catch (error) {
-      AbstractService._handleError(error, req, next, action, MODULE_NAME, 'handleUpdateTenant');
+    // Check
+    TenantValidator.getInstance().validateTenantUpdate(req.body);
+    // Filter
+    const filteredRequest = TenantSecurity.filterTenantUpdateRequest(req.body, req.user);
+    // Check email
+    const tenant = await Tenant.getTenant(filteredRequest.id);
+    if (!tenant) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `Tenant with ID '${filteredRequest.ID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        MODULE_NAME, 'handleUpdateTenant', req.user);
     }
+    // Check auth
+    if (!Authorizations.canUpdateTenant(req.user)) {
+      throw new AppAuthError(
+        Constants.ACTION_UPDATE,
+        Constants.ENTITY_TENANT,
+        filteredRequest.ID,
+        Constants.HTTP_AUTH_ERROR,
+        'TenantService', 'handleUpdateTenant',
+        req.user);
+    }
+    // Update
+    Database.updateTenant(filteredRequest, tenant.getModel());
+    // Update timestamp
+    tenant.setLastChangedBy(new User(req.user.tenantID, {
+      'id': req.user.id
+    }));
+    tenant.setLastChangedOn(new Date());
+    // Update Tenant
+    const updatedTenant = await TenantStorage.saveTenant(tenant.getModel());
+    // Update with components
+    await TenantService._updateSettingsWithComponents(tenant, req);
+    // Log
+    Logging.logSecurityInfo({
+      tenantID: req.user.tenantID, user: req.user,
+      module: MODULE_NAME, method: 'handleUpdateTenant',
+      message: `Tenant '${updatedTenant.getName()}' has been updated successfully`,
+      action: action,
+      detailedMessages: updatedTenant
+    });
+    // Ok
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
   }
 
-  static async updateSettingsWithComponents(tenant, req) {
+  private static async _updateSettingsWithComponents(tenant, req) {
     // Get the user
     const user = await User.getUser(req.user.tenantID, req.user.id);
     // Create settings
