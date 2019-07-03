@@ -85,8 +85,8 @@ class Utils {
     Utils._normalizeOneSOAPParam(headers, 'From.Address');
     Utils._normalizeOneSOAPParam(headers, 'ReplyTo.Address');
     // Parse the request
-    const urlParts = url.parse(req.url, true);
-    const tenantID = urlParts.query.TenantID;
+    const urlParts = url.parse(req.url.toLowerCase(), true);
+    const tenantID = urlParts.query.tenantid;
     // Check
     await Utils.checkTenant(tenantID);
     // Set the Tenant ID
