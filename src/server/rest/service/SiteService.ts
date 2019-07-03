@@ -9,10 +9,11 @@ import Logging from '../../../utils/Logging';
 import Site from '../../../types/Site';
 import SiteSecurity from './security/SiteSecurity';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
-import User from '../../../entity/User';
+import User from '../../../types/User';
 import UserSecurity from './security/UserSecurity';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 
 export default class SiteService {
 
@@ -72,7 +73,7 @@ export default class SiteService {
     // const users = UserStorage.getUsers(req.user.tokenID, {}, Constants.MAX_DB_RECORD_COUNT, 0, null); TODO: change getUsers to accept array of userIDs so we can do only one request instead of many
     for (const userID of filteredRequest.userIDs) {
       // Check the user
-      const user = await User.getUser(req.user.tenantID, userID);
+      const user = await UserStorage.getUser(req.user.tenantID, userID);
       if (!user) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -169,7 +170,7 @@ export default class SiteService {
     }
 
     // Get the User
-    const user = await User.getUser(req.user.tenantID, filteredRequest.userID);
+    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
     if (!user) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
@@ -178,7 +179,7 @@ export default class SiteService {
     }
 
     // Check user
-    if (!Authorizations.isBasic(user.getRole())) {
+    if (!Authorizations.isBasic(user.role)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         'Only Users with Basic role can be Site Admin', Constants.HTTP_GENERAL_ERROR,
@@ -220,7 +221,7 @@ export default class SiteService {
     // Get Users
     for (const userID of filteredRequest.userIDs) {
       // Check the user
-      const user = await User.getUser(req.user.tenantID, userID);
+      const user = await UserStorage.getUser(req.user.tenantID, userID);
       if (!user) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -481,7 +482,7 @@ export default class SiteService {
     UtilsService.assertObjectExists(company, `The Company ID '${filteredRequest.companyID}' does not exist`, 'SiteService', 'handleCreateSite', req.user);
 
     // Create site
-    const usr = new User(req.user.tenantID, { id: req.user.id });
+    const usr = { id: req.user.id };
     const date = new Date();
     const newSite: Site = {
       ...filteredRequest,
@@ -536,7 +537,7 @@ export default class SiteService {
     }
 
     // Update
-    site.lastChangedBy = new User(req.user.tenantID, { 'id': req.user.id });
+    site.lastChangedBy = { 'id': req.user.id };
     site.lastChangedOn = new Date();
 
     // Save

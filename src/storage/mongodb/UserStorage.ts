@@ -268,7 +268,7 @@ export default class UserStorage {
     Logging.traceEnd('UserStorage', 'addSitesToUser', uniqueTimerID, { userID, siteIDs });
   }
 
-  public static async saveUser(tenantID: string, userToSave: User): Promise<string> {
+  public static async saveUser(tenantID: string, userToSave: Partial<User>, saveImage: boolean = false): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUser');
     // Check Tenant
@@ -297,6 +297,7 @@ export default class UserStorage {
       ...userToSave
     };
     delete userMDB.id;
+    delete userMDB.image;
     // Check Created/Last Changed By
     //DatabaseUtils.mongoConvertLastChangedCreatedProps(userToSave, userToSave);
 
@@ -315,6 +316,10 @@ export default class UserStorage {
       // Insert new Tag IDs
         await global.database.getCollection<any>(tenantID, 'tags')
         .insertMany(userToSave.tagIDs.map(tid => ({_id: tid, userID: userMDB._id}) ));
+    }
+
+    if(saveImage) {
+      this.saveUserImage(tenantID, { id: userMDB._id.toHexString(), image: userToSave.image });
     }
 
     // Debug
@@ -344,7 +349,7 @@ export default class UserStorage {
     Logging.traceEnd('UserStorage', 'saveUserImage', uniqueTimerID, { userImageToSave });
   }
 
-  public static async getUsers(tenantID: string, params: {notificationsActive?: boolean, email?:string, id?:string, search?:string, userID?:string,role?:string, statuses?:string[]}, {limit, skip, onlyRecordCount, sort}: DbParams) {
+  public static async getUsers(tenantID: string, params: {notificationsActive?: boolean, siteID?: string, excludeSiteID?: string, email?:string, id?:string, search?:string, userID?:string,role?:string, statuses?:string[], withImage?:boolean}, {limit, skip, onlyRecordCount, sort}: DbParams) {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
     // Check Tenant
@@ -402,6 +407,7 @@ export default class UserStorage {
     }
     // Create Aggregation
     const aggregation = [];
+  
     // Add TagIDs
     aggregation.push({
       $lookup: {
@@ -440,6 +446,31 @@ export default class UserStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     
+    // Site ID? or ExcludeSiteID - cannot be used together
+    if (params.siteID || params.excludeSiteID) {
+      // Add Site
+      aggregation.push({
+        $lookup: {
+          from: DatabaseUtils.getCollectionName(tenantID, 'siteusers'),
+          localField: 'id',
+          foreignField: 'userID',
+          as: 'siteusers'
+        }
+      });
+
+      // Check which filter to use
+      if (params.siteID) {
+        aggregation.push({
+          $match: { 'siteusers.siteID': Utils.convertToObjectID(params.siteID) }
+        });
+      } else if (params.excludeSiteID) {
+        aggregation.push({
+          $match: { 'siteusers.siteID': { $ne: Utils.convertToObjectID(params.excludeSiteID) } }
+        });
+      }
+    }
+
+
     // Limit records?
     if (!onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -485,6 +516,10 @@ export default class UserStorage {
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
 
+    for(let userMDB of usersMDB) {
+      delete (usersMDB as any).siteusers;
+    }
+    
     // Debug
     Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID, { params, limit, skip, sort });
     // Ok
@@ -585,5 +620,40 @@ export default class UserStorage {
         (usersCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : usersCountMDB[0].count) : 0),
       result: sites
     };
+  }
+
+  public static getEmptyUser(): User {
+    return {
+      id: new ObjectID().toHexString(),
+      address: null,
+      costCenter: '',
+      createdBy: null,
+      createdOn: new Date(),
+      lastChangedBy: null,
+      lastChangedOn: new Date(),
+      deleted: false,
+      email: '',
+      eulaAcceptedHash: null,
+      eulaAcceptedOn: null,
+      eulaAcceptedVersion: 0,
+      firstName: 'Unkown',
+      lastName: 'User',
+      iNumber: null,
+      image: null,
+      locale: 'en',
+      mobile: '',
+      notificationsActive: true,
+      password: '',
+      passwordBlockedUntil: null,
+      passwordResetHash: '',
+      passwordWrongNbrTrials: 0,
+      phone: '',
+      plateID: '',
+      role: Constants.ROLE_BASIC,
+      status: Constants.USER_STATUS_PENDING,
+      tagIDs: [],
+      verificationToken: '',
+      verifiedAt: null
+    }
   }
 }

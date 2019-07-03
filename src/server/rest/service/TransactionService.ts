@@ -14,7 +14,8 @@ import OCPPService from '../../../server/ocpp/services/OCPPService';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import TransactionSecurity from './security/TransactionSecurity';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import User from '../../../entity/User';
+import User from '../../../types/User';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 export default class TransactionService {
   static async handleRefundTransactions(action, req, res, next) {
     try {
@@ -72,7 +73,7 @@ export default class TransactionService {
         return;
       }
       // Get Transaction User
-      const user = await User.getUser(req.user.tenantID, req.user.id);
+      const user = await UserStorage.getUser(req.user.tenantID, req.user.id);
       // Check
       if (!user) {
         // Not Found!
@@ -219,10 +220,10 @@ export default class TransactionService {
           'TransactionService', 'handleTransactionSoftStop', req.user);
       }
       // Check User
-      let user;
+      let user: User;
       if (transaction.getUserID()) {
         // Get Transaction User
-        user = await User.getUser(req.user.tenantID, transaction.getUserID());
+        user = await UserStorage.getUser(req.user.tenantID, transaction.getUserID());
         // Check
         if (!user) {
           // Not Found!
@@ -248,7 +249,7 @@ export default class TransactionService {
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID, source: chargingStation.getID(),
-        user: req.user, actionOnUser: (user ? user.getModel() : null),
+        user: req.user, actionOnUser: user,
         module: 'TransactionService', method: 'handleTransactionSoftStop',
         message: `Transaction ID '${transaction.getID()}' on '${transaction.getChargeBoxID()}'-'${transaction.getConnectorId()}' has been stopped successfully`,
         action: action, detailedMessages: result

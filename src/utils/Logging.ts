@@ -15,6 +15,7 @@ import Constants from './Constants';
 import LoggingStorage from '../storage/mongodb/LoggingStorage';
 import NotFoundError from '../exception/NotFoundError';
 import Utils from './Utils';
+import User from '../types/User';
 
 SourceMap.install();
 
@@ -211,7 +212,7 @@ export default class Logging {
   }
 
   // Used to log exception in catch(...) only
-  public static logException(error, action, source, module, method, tenantID, user?): void {
+  public static logException(error, action, source, module, method, tenantID, user?: User): void {
     const log = Logging._buildLog(error, action, source, module, method, tenantID, user);
     if (error instanceof AppAuthError) {
       Logging.logSecurityError(log);
@@ -369,16 +370,9 @@ export default class Logging {
     });
   }
 
-  private static _buildLog(error, action, source, module, method, tenantID, user): object {
+  private static _buildLog(error, action, source, module, method, tenantID, user: User): object {
     let tenant = tenantID ? tenantID : Constants.DEFAULT_TENANT;
-    if (!tenantID && user) {
-      // Check if the log can be attached to a tenant
-      if (user.hasOwnProperty('tenantID')) {
-        tenant = user.tenantID;
-      } else if (user.hasOwnProperty('_tenantID')) {
-        tenant = user._tenantID;
-      }
-    }
+
     return {
       source: source,
       user: user,

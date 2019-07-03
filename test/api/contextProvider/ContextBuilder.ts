@@ -125,20 +125,20 @@ export default class ContextBuilder {
     if (existingUserList && Array.isArray(existingUserList)) {
       defaultAdminUser = existingUserList.find((user) => {
         return user.getModel().id === CONTEXTS.TENANT_USER_LIST[0].id || user.getEMail() === config.get('admin.username') ||
-          user.getRole() === 'A';
+          user.role === 'A';
       });
     }
-    if ((defaultAdminUser.getID() !== CONTEXTS.TENANT_USER_LIST[0].id) || (defaultAdminUser.getStatus() !== 'A')) {
+    if ((defaultAdminUser.id !== CONTEXTS.TENANT_USER_LIST[0].id) || (defaultAdminUser.status !== 'A')) {
       // It is a different default user so firt delete it
       await defaultAdminUser.delete();
       // Activate user
-      defaultAdminUser.setStatus(CONTEXTS.TENANT_USER_LIST[0].status);
+      defaultAdminUser.status = CONTEXTS.TENANT_USER_LIST[0].status;
       // Generate the password hash
       const newPasswordHashed = await User.hashPasswordBcrypt(config.get('admin.password'));
       // Update the password
       defaultAdminUser.setPassword(newPasswordHashed);
       // Update the email
-      defaultAdminUser.setEMail(config.get('admin.username'));
+      defaultAdminUser.email = config.get('admin.username');
       // Add a Tag ID
       defaultAdminUser.setTagIDs(CONTEXTS.TENANT_USER_LIST[0].tagIDs ? CONTEXTS.TENANT_USER_LIST[0].tagIDs : [faker.random.alphaNumeric(8).toUpperCase()]);
       // Fix id

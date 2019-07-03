@@ -1,8 +1,8 @@
-import User from '../entity/User';
+import User from '../types/User';
 
 export default interface CreatedUpdatedProps {
-  createdBy: User;
+  createdBy: Partial<User>;
   createdOn: Date;
-  lastChangedBy?: User;
+  lastChangedBy?: Partial<User>;
   lastChangedOn?: Date;
 }

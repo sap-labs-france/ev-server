@@ -1,7 +1,7 @@
 import ConnectionStorage from '../storage/mongodb/ConnectionStorage';
 import SettingStorage from '../storage/mongodb/SettingStorage';
 import TenantHolder from '../entity/TenantHolder';
-import User from '../entity/User';
+import User from '../types/User';
 export default class AbstractConnector extends TenantHolder {
   public getID: any;
   public getTenantID: any;
@@ -40,13 +40,13 @@ export default class AbstractConnector extends TenantHolder {
 
   getCreatedBy() {
     if (this.setting.createdBy) {
-      return new User(this.getID(), this.setting.createdBy);
+      return this.setting.createdBy;
     }
     return null;
   }
 
-  setCreatedBy(user) {
-    this.setting.createdBy = user.getModel();
+  setCreatedBy(user: User) {
+    this.setting.createdBy = user;
   }
 
   getCreatedOn() {
@@ -59,13 +59,13 @@ export default class AbstractConnector extends TenantHolder {
 
   getLastChangedBy() {
     if (this.setting.lastChangedBy) {
-      return new User(this.getID(), this.setting.lastChangedBy);
+      return this.setting.lastChangedBy;
     }
     return null;
   }
 
-  setLastChangedBy(user) {
-    this.setting.lastChangedBy = user.getModel();
+  setLastChangedBy(user: User) {
+    this.setting.lastChangedBy = user;
   }
 
   getLastChangedOn() {

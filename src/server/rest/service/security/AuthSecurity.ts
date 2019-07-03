@@ -1,26 +1,25 @@
 import sanitize from 'mongo-sanitize';
 import Constants from '../../../../utils/Constants';
 import UtilsSecurity from './UtilsSecurity';
+import { HttpIsAuthorizedRequest, HttpLoginRequest, HttpResetPasswordRequest, HttpRegisterUserRequest, HttpVerifyEmailRequest, HttpResendVerificationMailRequest } from '../../../../types/requests/HttpUserRequest';
+import { Request } from 'express';
 
 export default class AuthSecurity {
-  // eslint-disable-next-line no-unused-vars
-  static filterIsAuthorizedRequest(request, loggedUser?) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.Action = sanitize(request.Action);
-    // TODO: To Remove
-    // Hack for mobile app not sending the RemoteStopTransaction yet
+  
+  public static filterIsAuthorizedRequest(request: Partial<HttpIsAuthorizedRequest>): HttpIsAuthorizedRequest {
+    let filteredRequest: HttpIsAuthorizedRequest = {
+      Action: sanitize(request.Action),
+      Arg1: sanitize(request.Arg1),
+      Arg2: sanitize(request.Arg2),
+      Arg3: sanitize(request.Arg3)
+    };
     if (filteredRequest.Action === 'StopTransaction') {
       filteredRequest.Action = 'RemoteStopTransaction';
     }
-    filteredRequest.Arg1 = sanitize(request.Arg1);
-    filteredRequest.Arg2 = sanitize(request.Arg2);
-    filteredRequest.Arg3 = sanitize(request.Arg3);
     return filteredRequest;
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterResetPasswordRequest(request, loggedUser?) {
+  public static filterResetPasswordRequest(request: Partial<HttpResetPasswordRequest>): Partial<HttpResetPasswordRequest> {
     const filteredRequest: any = {};
     // Set
     filteredRequest.email = sanitize(request.email);
@@ -30,50 +29,45 @@ export default class AuthSecurity {
     return filteredRequest;
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterRegisterUserRequest(request, loggedUser?) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.name = sanitize(request.name);
-    filteredRequest.tenant = sanitize(request.tenant);
-    filteredRequest.firstName = sanitize(request.firstName);
-    filteredRequest.email = sanitize(request.email);
-    filteredRequest.password = sanitize(request.passwords.password);
-    filteredRequest.captcha = sanitize(request.captcha);
-    filteredRequest.acceptEula = UtilsSecurity.filterBoolean(request.acceptEula);
-    filteredRequest.status = Constants.USER_STATUS_PENDING;
-    return filteredRequest;
+  public static filterRegisterUserRequest(request: Partial<HttpRegisterUserRequest>): Partial<HttpRegisterUserRequest> {
+    return {
+      lastName: sanitize(request.name),
+      acceptEula: sanitize(request.acceptEula),
+      captcha: sanitize(request.captcha),
+      status: Constants.USER_STATUS_PENDING,
+      password: sanitize(request.passwords.password),
+      email: sanitize(request.email),
+      firstName: sanitize(request.firstName),
+      tenant: sanitize(request.tenant)
+    };
   }
 
-  static filterLoginRequest(request) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.email = sanitize(request.email);
-    filteredRequest.password = sanitize(request.password);
-    filteredRequest.tenant = sanitize(request.tenant);
-    filteredRequest.acceptEula = UtilsSecurity.filterBoolean(request.acceptEula);
-    return filteredRequest;
+  public static filterLoginRequest(request: Partial<HttpLoginRequest>): Partial<HttpLoginRequest> {
+    return {
+      email: sanitize(request.email),
+      password: sanitize(request.password),
+      tenant: sanitize(request.tenant),
+      acceptEula: UtilsSecurity.filterBoolean(request.acceptEula)
+    };
   }
 
-  static filterVerifyEmailRequest(request) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.Email = sanitize(request.Email);
-    filteredRequest.tenant = sanitize(request.tenant);
-    filteredRequest.VerificationToken = sanitize(request.VerificationToken);
-    return filteredRequest;
+  public static filterVerifyEmailRequest(request: Partial<HttpVerifyEmailRequest>): Partial<HttpVerifyEmailRequest> {
+    return {
+      Email: sanitize(request.Email),
+      tenant: sanitize(request.tenant),
+      VerificationToken: sanitize(request.VerificationToken)
+    };
   }
 
-  static filterResendVerificationEmail(request) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.email = sanitize(request.email);
-    filteredRequest.tenant = sanitize(request.tenant);
-    filteredRequest.captcha = sanitize(request.captcha);
-    return filteredRequest;
+  public static filterResendVerificationEmail(request: Partial<HttpResendVerificationMailRequest>): Partial<HttpResendVerificationMailRequest> {
+    return {
+      email: sanitize(request.email),
+      tenant: sanitize(request.tenant),
+      captcha: sanitize(request.captcha)
+    };
   }
 
-  static filterEndUserLicenseAgreementRequest(request) {
+  public static filterEndUserLicenseAgreementRequest(request: Request): {Language: string, tenant: string} {
     const filteredRequest: any = {};
     // Set
     if (request.query) {

@@ -8,6 +8,7 @@ import StatisticsStorage from '../../../storage/mongodb/StatisticsStorage';
 import StatisticSecurity from './security/StatisticSecurity';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
+import User from '../../../types/User';
 
 export default class StatisticService {
   static async handleGetChargingStationConsumptionStatistics(action, req, res, next) {
@@ -376,7 +377,7 @@ export default class StatisticService {
   }
 
   static convertToCSV(transactionStatsMDB: any[], dataCategory: string, dataType: string, year: number | string, dataScope?: string) {
-    let user: any;
+    let user: User;
     let unknownUser = Utils.buildUserFullName(user, false, false, true);
     if (!unknownUser) {
       unknownUser = 'Unknown';
@@ -414,10 +415,10 @@ export default class StatisticService {
         transaction = transactionStatMDB;
         if (dataCategory !== 'C') {
           if (!transaction.user) {
-            transaction.user = { 'name': unknownUser, 'firstName': ' ' };
+            transaction.user = { 'lastName': unknownUser, 'firstName': ' ' };
           }
-          if (!transaction.user.name) {
-            transaction.user.name = unknownUser;
+          if (!transaction.user.lastName) {
+            transaction.user.lastName = unknownUser;
           }
           if (!transaction.user.firstName) {
             transaction.user.firstName = ' ';
@@ -433,7 +434,7 @@ export default class StatisticService {
               });
             } else {
               index = transactions.findIndex((record) => {
-                return ((record.user.name === transaction.user.name)
+                return ((record.user.lastName === transaction.user.lastName)
                   && (record.user.firstName === transaction.user.firstName));
               });
             }
@@ -450,7 +451,7 @@ export default class StatisticService {
       let number: number;
       for (transaction of transactions) {
         csv += (dataCategory === 'C') ? `${transaction._id.chargeBox},` :
-          `${transaction.user.name},${transaction.user.firstName},`;
+          `${transaction.user.lastName},${transaction.user.firstName},`;
         csv += (year && year !== '0') ? `${year},` : '';
         csv += (transaction._id.month > 0) ? `${transaction._id.month},` : '';
         number = Math.round(transaction.total * 100) / 100;

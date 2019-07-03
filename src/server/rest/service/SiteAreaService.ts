@@ -7,7 +7,7 @@ import Logging from '../../../utils/Logging';
 import SiteArea from '../../../types/SiteArea';
 import SiteAreaSecurity from './security/SiteAreaSecurity';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
-import User from '../../../entity/User';
+import User from '../../../types/User';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 
@@ -198,7 +198,7 @@ export default class SiteAreaService {
     SiteAreaService._checkIfSiteAreaValid(filteredRequest, req); // TODO: remove/migrate
 
     // Create site
-    const usr = new User(req.user.tenantID, { id: req.user.id });
+    const usr = { id: req.user.id };
     const date = new Date();
     const newSiteArea: SiteArea = {
       ...filteredRequest,
@@ -258,7 +258,7 @@ export default class SiteAreaService {
     siteArea.maximumPower = filteredRequest.maximumPower;
     siteArea.accessControl = filteredRequest.accessControl;
     siteArea.siteID = filteredRequest.siteID;
-    siteArea.lastChangedBy = new User(req.user.tenantID, { 'id': req.user.id });
+    siteArea.lastChangedBy = { 'id': req.user.id };
     siteArea.lastChangedOn = new Date();
 
     // Update Site Area

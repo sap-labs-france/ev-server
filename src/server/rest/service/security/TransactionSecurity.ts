@@ -2,6 +2,7 @@ import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import UtilsSecurity from './UtilsSecurity';
+import User from '../../../../types/User';
 
 export default class TransactionSecurity {
   // eslint-disable-next-line no-unused-vars
@@ -199,7 +200,7 @@ export default class TransactionSecurity {
     transactions.result = filteredTransactions;
   }
 
-  static _filterUserInTransactionResponse(user, loggedUser) {
+  static _filterUserInTransactionResponse(user: User, loggedUser) {
     const filteredUser: any = {};
 
     if (!user) {
@@ -214,7 +215,7 @@ export default class TransactionSecurity {
         filteredUser.firstName = Constants.ANONIMIZED_VALUE;
       } else {
         filteredUser.id = user.id;
-        filteredUser.name = user.name;
+        filteredUser.name = user.lastName;
         filteredUser.firstName = user.firstName;
       }
     }

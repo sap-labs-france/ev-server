@@ -216,9 +216,6 @@ export default class DatabaseUtils {
     if (!obj || !obj[prop]) {
       return null;
     }
-    if (obj[prop].getID === 'function') {
-      return Utils.convertToObjectID(obj[prop].getID());
-    }
     if (obj[prop].id) {
       return Utils.convertToObjectID(obj[prop].id);
     }

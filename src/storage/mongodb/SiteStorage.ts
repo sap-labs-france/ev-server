@@ -205,7 +205,7 @@ export default class SiteStorage {
     const siteFilter: any = {};
     // Build Request
     if (siteToSave.id) {
-      siteFilter._id = Utils.convertUserToObjectID(siteToSave.id);
+      siteFilter._id = Utils.convertToObjectID(siteToSave.id);
     } else {
       siteFilter._id = new ObjectID();
     }

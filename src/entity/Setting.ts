@@ -4,7 +4,7 @@ import Database from '../utils/Database';
 import OCPIEndpointStorage from '../storage/mongodb/OCPIEndpointStorage';
 import SettingStorage from '../storage/mongodb/SettingStorage';
 import TenantHolder from './TenantHolder';
-import User from './User';
+import User from '../types/User';
 
 export default class Setting extends TenantHolder {
   private _model: any = {};
@@ -140,13 +140,13 @@ export default class Setting extends TenantHolder {
 
   getCreatedBy() {
     if (this._model.createdBy) {
-      return new User(this.getTenantID(), this._model.createdBy);
+      return this._model.createdBy;
     }
     return null;
   }
 
-  setCreatedBy(user) {
-    this._model.createdBy = user.getModel();
+  setCreatedBy(user: Partial<User>) {
+    this._model.createdBy = user;
   }
 
   getCreatedOn() {
@@ -159,13 +159,13 @@ export default class Setting extends TenantHolder {
 
   getLastChangedBy() {
     if (this._model.lastChangedBy) {
-      return new User(this.getTenantID(), this._model.lastChangedBy);
+      return this._model.lastChangedBy;
     }
     return null;
   }
 
-  setLastChangedBy(user) {
-    this._model.lastChangedBy = user.getModel();
+  setLastChangedBy(user: Partial<User>) {
+    this._model.lastChangedBy = user;
   }
 
   getLastChangedOn() {

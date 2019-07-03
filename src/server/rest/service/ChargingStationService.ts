@@ -11,7 +11,7 @@ import SiteArea from '../../../types/SiteArea';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import Tenant from '../../../entity/Tenant';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import User from '../../../entity/User';
+import User from '../../../types/User';
 
 export default class ChargingStationService {
   static async handleAddChargingStationsToSiteArea(action, req, res, next) {
@@ -230,7 +230,7 @@ export default class ChargingStationService {
         }
       }
       // Update timestamp
-      chargingStation.setLastChangedBy(new User(req.user.tenantID, { 'id': req.user.id }));
+      chargingStation.setLastChangedBy({ 'id': req.user.id });
       chargingStation.setLastChangedOn(new Date());
       // Update
       const updatedChargingStation = await chargingStation.save();

@@ -20,7 +20,7 @@ export default interface User extends CreatedUpdatedProps {
   deleted: boolean;
 
   eulaAcceptedHash: string;
-  eulaAcceptedVersion: string;
+  eulaAcceptedVersion: number;
   eulaAcceptedOn: Date;
   
   lastName: string;
@@ -33,6 +33,12 @@ export default interface User extends CreatedUpdatedProps {
   verificationToken: string;
   verifiedAt: Date;
 
-  tagIDs?: string[]; //TODO whats this
+  tagIDs?: string[];
 
+}
+
+export interface UserSite {
+  user: User;
+  siteID: string;
+  siteAdmin: boolean;
 }

@@ -1,5 +1,5 @@
 import Constants from '../utils/Constants';
-import User from '../entity/User';
+import User from '../types/User';
 
 export default class AppError extends Error {
   constructor(
@@ -9,7 +9,7 @@ export default class AppError extends Error {
     readonly module: string = 'N/A',
     readonly method: string = 'N/A',
     readonly user?: User,
-    readonly actionOnUser?: any,
+    readonly actionOnUser?: User|string,
     readonly action?: any) {
     super(message);
   }

@@ -14,8 +14,10 @@ import TenantSecurity from './security/TenantSecurity';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TenantValidator from '../validation/TenantValidation';
 import UnauthorizedError from '../../../exception/UnauthorizedError';
-import User from '../../../entity/User';
+import User from '../../../types/User';
 import Utils from '../../../utils/Utils';
+import UserService from './UserService';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 
 const MODULE_NAME = 'TenantService';
 
@@ -198,9 +200,9 @@ export default class TenantService extends AbstractService {
       // Create
       const tenant = new Tenant(filteredRequest);
       // Update timestamp
-      tenant.setCreatedBy(new User(req.user.tenantID, {
+      tenant.setCreatedBy({
         'id': req.user.id
-      }));
+      });
       tenant.setCreatedOn(new Date());
       // Save
       const newTenant = await TenantStorage.saveTenant(tenant.getModel());
@@ -209,47 +211,45 @@ export default class TenantService extends AbstractService {
       // Create DB collections
       TenantStorage.createTenantDB(newTenant.getID());
       // Create user in tenant
-      const password = User.generatePassword();
+      const password = UserService.generatePassword();
       const verificationToken = Utils.generateToken(newTenant.getEmail());
-      const tenantUser = new User(newTenant.getID(), {
-        name: newTenant.getName(),
-        firstName: 'Admin',
-        password: await User.hashPasswordBcrypt(password),
-        status: Constants.USER_STATUS_PENDING,
-        role: Constants.ROLE_ADMIN,
-        email: newTenant.getEmail(),
-        createdOn: new Date().toISOString(),
-        verificationToken: verificationToken
-      });
+      let tenantUser: User = UserStorage.getEmptyUser();
+      tenantUser.lastName = newTenant.getName();
+      tenantUser.firstName = 'Admin';
+      tenantUser.password = await UserService.hashPasswordBcrypt(password);
+      tenantUser.role = Constants.ROLE_ADMIN;
+      tenantUser.email = newTenant.getEmail();
+      tenantUser.verificationToken = verificationToken;
+
       // Save
-      const newUser = await tenantUser.save();
+      const newUserId = await UserStorage.saveUser(tenant.getID(), tenantUser);
       // Send activation link
       const evseDashboardVerifyEmailURL = Utils.buildEvseURL(newTenant.getSubdomain()) +
         '/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
-        newUser.getEMail();
+        tenantUser.email;
       NotificationHandler.sendNewRegisteredUser(
-        newUser.getTenantID(),
+        newTenant.getID(),
         Utils.generateGUID(),
-        newUser.getModel(),
+        tenantUser,
         {
-          'user': newUser.getModel(),
+          'user': tenantUser,
           'evseDashboardURL': Utils.buildEvseURL(newTenant.getSubdomain()),
           'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
         },
-        newUser.getLocale()
+        tenantUser.locale
       );
       // Send temporary password
       NotificationHandler.sendNewPassword(
-        newUser.getTenantID(),
+        newTenant.getID(),
         Utils.generateGUID(),
-        newUser.getModel(),
+        tenantUser,
         {
-          'user': newUser.getModel(),
+          'user': tenantUser,
           'hash': null,
           'newPassword': password,
           'evseDashboardURL': Utils.buildEvseURL(newTenant.getSubdomain())
         },
-        newUser.getLocale()
+        tenantUser.locale
       );
       // Log
       Logging.logSecurityInfo({
@@ -293,9 +293,9 @@ export default class TenantService extends AbstractService {
       // Update
       Database.updateTenant(filteredRequest, tenant.getModel());
       // Update timestamp
-      tenant.setLastChangedBy(new User(req.user.tenantID, {
+      tenant.setLastChangedBy({
         'id': req.user.id
-      }));
+      });
       tenant.setLastChangedOn(new Date());
       // Update Tenant
       const updatedTenant = await TenantStorage.saveTenant(tenant.getModel());
@@ -319,7 +319,7 @@ export default class TenantService extends AbstractService {
 
   static async updateSettingsWithComponents(tenant, req) {
     // Get the user
-    const user = await User.getUser(req.user.tenantID, req.user.id);
+    const user = await UserStorage.getUser(req.user.tenantID, req.user.id);
     // Create settings
     for (const component of tenant.getComponents()) {
       // Get the settings

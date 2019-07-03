@@ -13,6 +13,9 @@ import ErrorHandler from './ErrorHandler';
 import expressTools from '../ExpressTools';
 import Logging from '../../utils/Logging';
 import SessionHashService from '../rest/service/SessionHashService';
+import { NextFunction, Request, Response } from 'express';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import AuthService from './service/AuthService';
 
 SourceMap.install();
 
@@ -66,6 +69,11 @@ export default class CentralRestServer {
 
     // Authentication
     this.express.use(CentralRestServerAuthentication.initialize());
+
+    // Set tenant
+    this.express.use(async (req: Request, res: Response, next: NextFunction) => {
+      req.tenantID = await AuthService.getTenantID(req.subdomains.length===0?null:req.subdomains[0]);
+    });
 
     // Auth services
     this.express.use('/client/auth', CentralRestServerAuthentication.authService);

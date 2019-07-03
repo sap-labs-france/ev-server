@@ -8,7 +8,7 @@ import Database from '../../../utils/Database';
 import Logging from '../../../utils/Logging';
 import Setting from '../../../entity/Setting';
 import SettingSecurity from './security/SettingSecurity';
-import User from '../../../entity/User';
+import User from '../../../types/User';
 
 export default class SettingService {
   public static async handleDeleteSetting(action, req, res, next) {
@@ -162,7 +162,7 @@ export default class SettingService {
       // Create setting
       const setting = new Setting(req.user.tenantID, filteredRequest);
       // Update timestamp
-      setting.setCreatedBy(new User(req.user.tenantID, { 'id': req.user.id }));
+      setting.setCreatedBy({ 'id': req.user.id });
       setting.setCreatedOn(new Date());
       // Save Setting
       const newSetting = await setting.save();
@@ -243,7 +243,7 @@ export default class SettingService {
       // Update
       Database.updateSetting(filteredRequest, setting.getModel());
       // Update timestamp
-      setting.setLastChangedBy(new User(req.user.tenantID, { 'id': req.user.id }));
+      setting.setLastChangedBy({ 'id': req.user.id });
       setting.setLastChangedOn(new Date());
       // Update Setting
       const updatedSetting = await setting.save();
