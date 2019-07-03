@@ -22,7 +22,7 @@ export default class SettingSecurity {
   static filterSettingsRequest(request, loggedUser) {
     const filteredRequest: any = {};
     filteredRequest.Search = sanitize(request.Search);
-    filteredRequest.Identifier = sanitize(request.Identifier);
+    filteredRequest.identifier = sanitize(request.identifier);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
