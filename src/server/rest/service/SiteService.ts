@@ -4,7 +4,6 @@ import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../utils/Constants';
-import { HttpSiteUserAdminRequest } from '../../../types/requests/HttpSiteRequest';
 import Logging from '../../../utils/Logging';
 import Site from '../../../types/Site';
 import SiteSecurity from './security/SiteSecurity';
@@ -31,7 +30,7 @@ export default class SiteService {
         Constants.ENTITY_SITE,
         filteredRequest.siteID,
         Constants.HTTP_AUTH_ERROR,
-        'SiteService', 'handleRemoveUsersFromSite',
+        'SiteService', 'handleAddUsersToSite',
         req.user);
     }
     if (!filteredRequest.siteID) {
@@ -208,6 +207,16 @@ export default class SiteService {
 
     // Filter
     const filteredRequest = SiteSecurity.filterAssignSiteUsers(req.body);
+
+    if (!Authorizations.canUpdateSite(req.user, filteredRequest.siteID)) {
+      throw new AppAuthError(
+        Constants.ACTION_UPDATE,
+        Constants.ENTITY_SITE,
+        filteredRequest.siteID,
+        Constants.HTTP_AUTH_ERROR,
+        'SiteService', 'handleRemoveUsersFromSite',
+        req.user);
+    }
 
     // Get the Site
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
