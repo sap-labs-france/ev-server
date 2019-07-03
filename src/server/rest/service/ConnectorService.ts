@@ -1,6 +1,5 @@
 import HttpStatusCodes from 'http-status-codes';
 import AbstractConnector from '../../../integration/AbstractConnector';
-import AbstractService from './AbstractService';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import ConcurConnector from '../../../integration/refund/ConcurConnector';
@@ -12,7 +11,7 @@ import AppAuthError from '../../../exception/AppAuthError';
 
 const MODULE_NAME = 'ConnectorService';
 
-export default class ConnectorService extends AbstractService {
+export default class ConnectorService {
   public static async handleGetConnection(action, req, res, next) {
     // Filter
     const filteredRequest = ConnectorSecurity.filterConnectionRequest(req.query, req.user);
