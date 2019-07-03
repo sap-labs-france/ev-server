@@ -62,7 +62,7 @@ describe('Company, Site, Site Area tests', function() {
         CentralServerService.DefaultInstance.siteAreaApi, testData.newSiteArea);
     });
 
-    it('Should delete company which will delete the site area and the site area', async () => {
+    it('Should delete company which will delete the site and the site area', async () => {
       // Delete the Site
       await CentralServerService.DefaultInstance.deleteEntity(
         CentralServerService.DefaultInstance.companyApi, testData.newCompany);
