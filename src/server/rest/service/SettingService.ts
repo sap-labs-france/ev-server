@@ -116,7 +116,7 @@ export default class SettingService {
       const settings = await Setting.getSettings(req.user.tenantID,
         {
           'search': filteredRequest.Search,
-          'identifier': filteredRequest.identifier
+          'identifier': filteredRequest.Identifier
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
