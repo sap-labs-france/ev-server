@@ -1,5 +1,5 @@
 // Goal : Check that the cypher class (which is mainly used to encrypt/decrypt and hash sensitive data used in settings)
-//        works as intended. Store the encrypted global key in variable OLD_ENCRYPTED_KEY in order to try to detect
+//        works as intended. Store the encrypted FAKE_WORD in variable OLD_ENCRYPTED_KEY in order to try to detect
 //        a change in this key.
 
 import chai, { expect } from 'chai';
@@ -14,8 +14,8 @@ chai.use(chaiSubset);
 chai.use(responseHelper);
 
 const FAKE_JSON: CypherJSON = { 'sensitiveData': ['content.secret1', 'content.secret2'], 'content': { 'secret1': 'Harry', 'secret2': 'Potter' } };
-const FAKE_WORD = 'Expelliarmus';
-const OLD_ENCRYPTED_KEY = "74e0ef8fcb63d3c00ae8984df3b702a7:2c67959cc2c7dca52ebb66d93e98d72260b4199ef03e44a4efe2f3591e9fb2e0";
+const FAKE_WORD = 'Wingardium Leviosa';
+const OLD_ENCRYPTED_KEY = "73d49673e8f70de6e16ba99bc0c273da:8b9cb41f960d2b50604921a68d7d0382472d";
 
 describe('Cypher Tests', function() {
   this.timeout(30000);
@@ -48,7 +48,7 @@ describe('Cypher Tests', function() {
     it('Check that the global encryption key is unchanged', () => {
       const decrypted = cypher.decrypt(OLD_ENCRYPTED_KEY);
       // Check
-      expect(cypher.getConfiguration().key).to.equal(decrypted);
+      expect(FAKE_WORD).to.equal(decrypted);
     });
 
   });
