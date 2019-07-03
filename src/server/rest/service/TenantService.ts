@@ -16,6 +16,7 @@ import TenantValidator from '../validation/TenantValidation';
 import UnauthorizedError from '../../../exception/UnauthorizedError';
 import User from '../../../entity/User';
 import Utils from '../../../utils/Utils';
+import AppAuthError from '../../../exception/AppAuthError';
 
 const MODULE_NAME = 'TenantService';
 
@@ -163,108 +164,107 @@ export default class TenantService extends AbstractService {
   }
 
   public static async handleCreateTenant(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      // Check auth
-      if (!Authorizations.canCreateTenant(req.user)) {
-        // Not Authorized!
-        throw new UnauthorizedError(
-          Constants.ACTION_CREATE,
-          Constants.ENTITY_TENANT,
-          null,
-          req.user);
-      }
-      TenantValidator.getInstance().validateTenantCreation(req.body);
-      // Filter
-      const filteredRequest = TenantSecurity.filterTenantCreateRequest(req.body, req.user);
-      // Check the Tenant's name
-      let foundTenant = await Tenant.getTenantByName(filteredRequest.name);
-      if (foundTenant) {
-        throw new ConflictError(`The tenant with name '${filteredRequest.name}' already exists`, 'tenants.name_already_used',
-          {
-            'name': filteredRequest.name,
-            'module': MODULE_NAME,
-            'source': 'handleCreateTenant',
-            'user': req.user,
-            'action': action
-          });
-      }
-      // Get the Tenant with ID (subdomain)
-      foundTenant = await Tenant.getTenantBySubdomain(filteredRequest.subdomain);
-      if (foundTenant) {
-        throw new ConflictError(`The tenant with subdomain '${filteredRequest.subdomain}' already exists`, 'tenants.subdomain_already_used', {
-          'subdomain': filteredRequest.subdomain
-        });
-      }
-      // Create
-      const tenant = new Tenant(filteredRequest);
-      // Update timestamp
-      tenant.setCreatedBy(new User(req.user.tenantID, {
-        'id': req.user.id
-      }));
-      tenant.setCreatedOn(new Date());
-      // Save
-      const newTenant = await TenantStorage.saveTenant(tenant.getModel());
-      // Update with components
-      await TenantService.updateSettingsWithComponents(newTenant, req);
-      // Create DB collections
-      await TenantStorage.createTenantDB(newTenant.getID());
-      // Create user in tenant
-      const password = User.generatePassword();
-      const verificationToken = Utils.generateToken(newTenant.getEmail());
-      const tenantUser = new User(newTenant.getID(), {
-        name: newTenant.getName(),
-        firstName: 'Admin',
-        password: await User.hashPasswordBcrypt(password),
-        status: Constants.USER_STATUS_PENDING,
-        role: Constants.ROLE_ADMIN,
-        email: newTenant.getEmail(),
-        createdOn: new Date().toISOString(),
-        verificationToken: verificationToken
-      });
-      // Save
-      const newUser = await tenantUser.save();
-      // Send activation link
-      const evseDashboardVerifyEmailURL = Utils.buildEvseURL(newTenant.getSubdomain()) +
-        '/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
-        newUser.getEMail();
-      NotificationHandler.sendNewRegisteredUser(
-        newUser.getTenantID(),
-        Utils.generateGUID(),
-        newUser.getModel(),
-        {
-          'user': newUser.getModel(),
-          'evseDashboardURL': Utils.buildEvseURL(newTenant.getSubdomain()),
-          'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
-        },
-        newUser.getLocale()
-      );
-      // Send temporary password
-      NotificationHandler.sendNewPassword(
-        newUser.getTenantID(),
-        Utils.generateGUID(),
-        newUser.getModel(),
-        {
-          'user': newUser.getModel(),
-          'hash': null,
-          'newPassword': password,
-          'evseDashboardURL': Utils.buildEvseURL(newTenant.getSubdomain())
-        },
-        newUser.getLocale()
-      );
-      // Log
-      Logging.logSecurityInfo({
-        tenantID: req.user.tenantID, user: req.user,
-        module: MODULE_NAME, method: 'handleCreateTenant',
-        message: `Tenant '${newTenant.getName()}' has been created successfully`,
-        action: action,
-        detailedMessages: newTenant
-      });
-      // Ok
-      res.status(HttpStatusCodes.OK).json(Object.assign({ id: newTenant.getID() }, Constants.REST_RESPONSE_SUCCESS));
-      next();
-    } catch (error) {
-      AbstractService._handleError(error, req, next, action, MODULE_NAME, 'handleCreateTenant');
+    // Check auth
+    if (!Authorizations.canCreateTenant(req.user)) {
+      // Not Authorized!
+      throw new AppAuthError(
+        Constants.ACTION_CREATE,
+        Constants.ENTITY_TENANT,
+        null,
+        Constants.HTTP_AUTH_ERROR,
+        'TenantService', 'handleCreateTenant',
+        req.user);
     }
+    // Check
+    TenantValidator.getInstance().validateTenantCreation(req.body);
+    // Filter
+    const filteredRequest = TenantSecurity.filterTenantCreateRequest(req.body, req.user);
+    // Check the Tenant's name
+    let foundTenant = await Tenant.getTenantByName(filteredRequest.name);
+    if (foundTenant) {
+      throw new ConflictError(`The tenant with name '${filteredRequest.name}' already exists`, 'tenants.name_already_used',
+        {
+          'name': filteredRequest.name,
+          'module': MODULE_NAME,
+          'source': 'handleCreateTenant',
+          'user': req.user,
+          'action': action
+        });
+    }
+    // Get the Tenant with ID (subdomain)
+    foundTenant = await Tenant.getTenantBySubdomain(filteredRequest.subdomain);
+    if (foundTenant) {
+      throw new ConflictError(`The tenant with subdomain '${filteredRequest.subdomain}' already exists`, 'tenants.subdomain_already_used', {
+        'subdomain': filteredRequest.subdomain
+      });
+    }
+    // Create
+    const tenant = new Tenant(filteredRequest);
+    // Update timestamp
+    tenant.setCreatedBy(new User(req.user.tenantID, {
+      'id': req.user.id
+    }));
+    tenant.setCreatedOn(new Date());
+    // Save
+    const newTenant = await TenantStorage.saveTenant(tenant.getModel());
+    // Update with components
+    await TenantService.updateSettingsWithComponents(newTenant, req);
+    // Create DB collections
+    await TenantStorage.createTenantDB(newTenant.getID());
+    // Create user in tenant
+    const password = User.generatePassword();
+    const verificationToken = Utils.generateToken(newTenant.getEmail());
+    const tenantUser = new User(newTenant.getID(), {
+      name: newTenant.getName(),
+      firstName: 'Admin',
+      password: await User.hashPasswordBcrypt(password),
+      status: Constants.USER_STATUS_PENDING,
+      role: Constants.ROLE_ADMIN,
+      email: newTenant.getEmail(),
+      createdOn: new Date().toISOString(),
+      verificationToken: verificationToken
+    });
+    // Save
+    const newUser = await tenantUser.save();
+    // Send activation link
+    const evseDashboardVerifyEmailURL = Utils.buildEvseURL(newTenant.getSubdomain()) +
+      '/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
+      newUser.getEMail();
+    NotificationHandler.sendNewRegisteredUser(
+      newUser.getTenantID(),
+      Utils.generateGUID(),
+      newUser.getModel(),
+      {
+        'user': newUser.getModel(),
+        'evseDashboardURL': Utils.buildEvseURL(newTenant.getSubdomain()),
+        'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
+      },
+      newUser.getLocale()
+    );
+    // Send temporary password
+    NotificationHandler.sendNewPassword(
+      newUser.getTenantID(),
+      Utils.generateGUID(),
+      newUser.getModel(),
+      {
+        'user': newUser.getModel(),
+        'hash': null,
+        'newPassword': password,
+        'evseDashboardURL': Utils.buildEvseURL(newTenant.getSubdomain())
+      },
+      newUser.getLocale()
+    );
+    // Log
+    Logging.logSecurityInfo({
+      tenantID: req.user.tenantID, user: req.user,
+      module: MODULE_NAME, method: 'handleCreateTenant',
+      message: `Tenant '${newTenant.getName()}' has been created successfully`,
+      action: action,
+      detailedMessages: newTenant
+    });
+    // Ok
+    res.status(HttpStatusCodes.OK).json(Object.assign({ id: newTenant.getID() }, Constants.REST_RESPONSE_SUCCESS));
+    next();
   }
 
   static async handleUpdateTenant(action, req, res, next) {
