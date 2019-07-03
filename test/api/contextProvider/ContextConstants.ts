@@ -67,6 +67,7 @@ export default class CONTEXTS {
   static readonly TENANT_CONTEXT_LIST: any = [{
     // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS,
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS,
+    id: 'aaaaaaaaaaaaaaaaaaaaaaa1',
     subdomain: 'utall',
     componentSettings: {
       pricing: {
@@ -120,11 +121,13 @@ export default class CONTEXTS {
   {
     // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+    id: 'aaaaaaaaaaaaaaaaaaaaaaa2',
     subdomain: 'utnothing',
   },
   {
     // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION,
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION,
+    id: 'aaaaaaaaaaaaaaaaaaaaaaa3',
     subdomain: 'utorg',
     componentSettings: {
       organization: {
@@ -134,6 +137,7 @@ export default class CONTEXTS {
   {
     // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_SIMPLE_PRICING,
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_SIMPLE_PRICING,
+    id: 'aaaaaaaaaaaaaaaaaaaaaaa4',
     subdomain: 'utprice',
     componentSettings: {
       pricing: {
@@ -150,6 +154,7 @@ export default class CONTEXTS {
   {
     // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
+    id: 'aaaaaaaaaaaaaaaaaaaaaaa5',
     subdomain: 'utconvcharg',
     componentSettings: {
       pricing: {
@@ -168,6 +173,7 @@ export default class CONTEXTS {
   {
     // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_OCPI,
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_OCPI,
+    id: 'aaaaaaaaaaaaaaaaaaaaaaa6',
     subdomain: 'utocpi',
     componentSettings: {
       ocpi: {
@@ -186,6 +192,7 @@ export default class CONTEXTS {
   {
     // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_FUNDING,
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_FUNDING,
+    id: 'aaaaaaaaaaaaaaaaaaaaaaa7',
     subdomain: 'utrefund',
     componentSettings: {
       refund: {
