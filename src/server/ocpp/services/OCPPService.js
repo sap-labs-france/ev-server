@@ -64,6 +64,11 @@ class OCPPService {
         bootNotification.endpoint = headers.From.Address;
       }
       // Set the ChargeBox ID
+      if (!headers.chargeBoxIdentity) {
+        throw new BackendError(Constants.CENTRAL_SERVER,
+          `Should have the required property 'chargeBoxIdentity'!`,
+          'OCPPUtils', '_checkAndGetChargingStation');
+      }
       bootNotification.id = headers.chargeBoxIdentity;
       // Set the default Heart Beat
       bootNotification.lastReboot = new Date();
@@ -156,14 +161,13 @@ class OCPPService {
         'heartbeatInterval': this._chargingStationConfig.heartbeatIntervalSecs
       };
     } catch (error) {
-      // Set the source
-      error.source = headers.chargeBoxIdentity;
       // Log error
+      error.source = headers.chargeBoxIdentity;
       Logging.logActionExceptionMessage(headers.tenantID, 'BootNotification', error);
       // Reject
       return {
         'status': 'Rejected',
-        'currentTime': bootNotification.timestamp.toISOString(),
+        'currentTime': bootNotification.timestamp ? bootNotification.timestamp.toISOString() : new Date().toISOString(),
         'heartbeatInterval': this._chargingStationConfig.heartbeatIntervalSecs
       };
     }
