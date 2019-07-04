@@ -144,7 +144,9 @@ class LoggingStorage {
     if (params.search) {
       // Set
       const searchArray = [
+        { 'source': { $regex: params.search, $options: 'i' } },
         { 'message': { $regex: params.search, $options: 'i' } },
+        { 'detailedMessages': { $regex: params.search, $options: 'i' } },
         { 'action': { $regex: params.search, $options: 'i' } }
       ];
       // Already exists?
