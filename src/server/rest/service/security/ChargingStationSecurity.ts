@@ -51,7 +51,7 @@ export default class ChargingStationSecurity {
         // Yes: set all params
         filteredChargingStation = chargingStation;
         for (const connector of filteredChargingStation.connectors) {
-          if (filteredChargingStation.inactive) {
+          if (filteredChargingStation.inactive && connector) {
             connector.status = Constants.CONN_STATUS_UNAVAILABLE;
             connector.currentConsumption = 0;
             connector.totalConsumption = 0;
@@ -66,6 +66,9 @@ export default class ChargingStationSecurity {
         filteredChargingStation.chargeBoxID = chargingStation.chargeBoxID;
         filteredChargingStation.inactive = chargingStation.inactive;
         filteredChargingStation.connectors = chargingStation.connectors.map((connector) => {
+          if (!connector) {
+            return connector;
+          }
           return {
             'connectorId': connector.connectorId,
             'status': (filteredChargingStation.inactive ? Constants.CONN_STATUS_UNAVAILABLE : connector.status),
@@ -236,6 +239,9 @@ export default class ChargingStationSecurity {
     if (request.connectors) {
       // Filter
       filteredRequest.connectors = request.connectors.map((connector) => {
+        if (!connector) {
+          return connector;
+        }
         return {
           connectorId: sanitize(connector.connectorId),
           power: sanitize(connector.power),
