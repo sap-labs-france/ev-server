@@ -127,15 +127,14 @@ class TenantStorage {
     skip = Utils.checkRecordSkip(skip);
     // Set the filters
     const filters = {};
-    // Source?
     if (params.search) {
-      // Build filter
-      filters.$or = [{
-        "name": {
-          $regex: params.search,
-          $options: 'i'
-        }
-      }];
+      if (ObjectID.isValid(params.search)) {
+        filters._id = Utils.convertToObjectID(params.search);
+      } else {
+        filters.$or = [
+          { 'name': { $regex: params.search, $options: 'i' } }
+        ];
+      }
     }
     // Create Aggregation
     const aggregation = [];
