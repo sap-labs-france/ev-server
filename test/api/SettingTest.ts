@@ -69,5 +69,12 @@ describe('Setting tests', function() {
       expect(read.status).to.equal(200);
       expect(read.data.count).to.equal(1);
     });
+    it('Check that retrieving setting by id is working', async () => {
+      // Retrieve the setting id
+      let read = await testData.centralService.settingApi.readAll({ "Identifier" : "pricing" },{ limit: Constants.UNLIMITED, skip: 0 });
+      expect(read.status).to.equal(200);
+      let response = await testData.centralService.settingApi.readById(read.data.result[0].id);
+      expect(response.status).to.equal(200);
+    });
   });
 });
