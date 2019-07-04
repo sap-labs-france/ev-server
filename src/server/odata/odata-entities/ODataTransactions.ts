@@ -36,7 +36,7 @@ export default class ODataTransactions extends AbstractODataEntities {
     // Rename User
     if (transaction.user) {
       transaction.startUser = transaction.user;
-      transaction.startUser.fullName = `${transaction.startUser.lastName}, ${transaction.startUser.firstName}`;
+      transaction.startUser.fullName = `${transaction.startUser.name}, ${transaction.startUser.firstName}`;
       delete transaction['user'];
     }
     // Rename TagID
@@ -53,7 +53,7 @@ export default class ODataTransactions extends AbstractODataEntities {
       // Rename User and move to transaction root
       if (transaction.stop.user) {
         transaction.stopUser = transaction.stop.user;
-        transaction.stopUser.fullName = `${transaction.stopUser.lastName}, ${transaction.stopUser.firstName}`;
+        transaction.stopUser.fullName = `${transaction.stopUser.name}, ${transaction.stopUser.firstName}`;
         delete transaction.stop['user'];
       }
       // Rename TagID and move to transaction root

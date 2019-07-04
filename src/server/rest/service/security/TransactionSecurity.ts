@@ -215,7 +215,7 @@ export default class TransactionSecurity {
         filteredUser.firstName = Constants.ANONIMIZED_VALUE;
       } else {
         filteredUser.id = user.id;
-        filteredUser.name = user.lastName;
+        filteredUser.name = user.name;
         filteredUser.firstName = user.firstName;
       }
     }

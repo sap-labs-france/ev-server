@@ -214,7 +214,7 @@ export default class TenantService extends AbstractService {
       const password = UserService.generatePassword();
       const verificationToken = Utils.generateToken(newTenant.getEmail());
       let tenantUser: User = UserStorage.getEmptyUser();
-      tenantUser.lastName = newTenant.getName();
+      tenantUser.name = newTenant.getName();
       tenantUser.firstName = 'Admin';
       tenantUser.password = await UserService.hashPasswordBcrypt(password);
       tenantUser.role = Constants.ROLE_ADMIN;

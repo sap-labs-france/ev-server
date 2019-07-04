@@ -70,13 +70,14 @@ export default class CentralRestServer {
     // Authentication
     this.express.use(CentralRestServerAuthentication.initialize());
 
-    // Set tenant
-    this.express.use(async (req: Request, res: Response, next: NextFunction) => {
-      req.tenantID = await AuthService.getTenantID(req.subdomains.length===0?null:req.subdomains[0]);
-    });
-
     // Auth services
     this.express.use('/client/auth', CentralRestServerAuthentication.authService);
+
+    // Set tenant
+    this.express.use(async (req: Request, res: Response, next: NextFunction) => {
+      //req.user.tenantID = await AuthService.getTenantID(req.user.tenantID);
+      next();
+    });
 
     // Secured API
     this.express.use('/client/api', CentralRestServerAuthentication.authenticate(), CentralRestServerService.restServiceSecured);

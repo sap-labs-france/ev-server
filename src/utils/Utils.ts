@@ -249,16 +249,16 @@ export default class Utils {
     }
     if (inversedName) {
       if (user.firstName) {
-        fullName = `${user.lastName}, ${user.firstName}`;
+        fullName = `${user.name}, ${user.firstName}`;
       } else {
-        fullName = user.lastName;
+        fullName = user.name;
       }
     } else {
       // eslint-disable-next-line no-lonely-if
       if (user.firstName) {
-        fullName = `${user.firstName} ${user.lastName}`;
+        fullName = `${user.firstName} ${user.name}`;
       } else {
-        fullName = user.lastName;
+        fullName = user.name;
       }
     }
     if (withID && user.iNumber) {

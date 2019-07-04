@@ -59,7 +59,7 @@ export default class ODataRestAdapter {
       const centralServiceApi = new CentralServiceApi(ODataRestAdapter.restServerUrl, authentication.name, authentication.pass, subdomain);
       // Set tenant
       req.tenant = subdomain;
-      req.tenantID = tenant.getID();
+      req.user.tenantID = tenant.getID();
       switch (collection) {
         case 'Transactions':
           ODataTransactions.getTransactionsCompleted(centralServiceApi, query, req, cb);
@@ -94,7 +94,7 @@ export default class ODataRestAdapter {
     } catch (error) {
       // Add logging
       Logging.logError({
-        tenantID: req.tenantID,
+        tenantID: req.user.tenantID,
         module: MODULE_NAME,
         source: MODULE_NAME,
         method: 'query',

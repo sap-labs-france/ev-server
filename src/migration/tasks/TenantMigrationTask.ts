@@ -27,7 +27,7 @@ export default class TenantMigrationTask extends MigrationTask {
       // First, create a super admin user
       const password = UserService.generatePassword();
       let user: Partial<User> = {
-        lastName: 'Super',
+        name: 'Super',
         firstName: 'Admin',
         password: await UserService.hashPasswordBcrypt(password),
         status: Constants.USER_STATUS_ACTIVE,

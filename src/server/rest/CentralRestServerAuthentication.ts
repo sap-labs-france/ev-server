@@ -18,6 +18,7 @@ export default {
     // Parse the action
     const action = /^\/\w*/g.exec(req.url)[0].substring(1);
     // Check Context
+    try{
     switch (req.method) {
       // Create Request
       case 'POST':
@@ -81,5 +82,8 @@ export default {
         }
         break;
     }
+  }catch(err){
+    console.log(err);
+  }
   }
 };

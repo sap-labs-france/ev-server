@@ -23,7 +23,7 @@ export default class OCPIErrorHandler {
 
     // Add logging
     Logging.logError({
-      tenantID: req.tenantID,
+      tenantID: req.user.tenantID,
       action: error.action,
       message: error.message,
       source: error.source,

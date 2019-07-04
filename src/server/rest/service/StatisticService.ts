@@ -415,10 +415,10 @@ export default class StatisticService {
         transaction = transactionStatMDB;
         if (dataCategory !== 'C') {
           if (!transaction.user) {
-            transaction.user = { 'lastName': unknownUser, 'firstName': ' ' };
+            transaction.user = { 'name': unknownUser, 'firstName': ' ' };
           }
-          if (!transaction.user.lastName) {
-            transaction.user.lastName = unknownUser;
+          if (!transaction.user.name) {
+            transaction.user.name = unknownUser;
           }
           if (!transaction.user.firstName) {
             transaction.user.firstName = ' ';
@@ -434,7 +434,7 @@ export default class StatisticService {
               });
             } else {
               index = transactions.findIndex((record) => {
-                return ((record.user.lastName === transaction.user.lastName)
+                return ((record.user.name === transaction.user.name)
                   && (record.user.firstName === transaction.user.firstName));
               });
             }
@@ -451,7 +451,7 @@ export default class StatisticService {
       let number: number;
       for (transaction of transactions) {
         csv += (dataCategory === 'C') ? `${transaction._id.chargeBox},` :
-          `${transaction.user.lastName},${transaction.user.firstName},`;
+          `${transaction.user.name},${transaction.user.firstName},`;
         csv += (year && year !== '0') ? `${year},` : '';
         csv += (transaction._id.month > 0) ? `${transaction._id.month},` : '';
         number = Math.round(transaction.total * 100) / 100;

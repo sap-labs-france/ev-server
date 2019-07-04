@@ -155,7 +155,7 @@ export default class UserStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserByEmail');
 
-    const user = await UserStorage.getUsers(tenantID, {email: email}, {limit: 1, skip: 0});
+    const user = await UserStorage.getUsers(tenantID, {search: email}, {limit: 1, skip: 0});
     //TODO: error handling if no user returned
     
     // Debug
@@ -167,7 +167,7 @@ export default class UserStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUser');
    
-    const user = await UserStorage.getUsers(tenantID, {id: userID}, {limit: 1, skip: 0});
+    const user = await UserStorage.getUsers(tenantID, {userID: userID}, {limit: 1, skip: 0});
     
     // Debug
     Logging.traceEnd('UserStorage', 'getUser', uniqueTimerID, { userID });
@@ -299,7 +299,7 @@ export default class UserStorage {
     delete userMDB.id;
     delete userMDB.image;
     // Check Created/Last Changed By
-    //DatabaseUtils.mongoConvertLastChangedCreatedProps(userToSave, userToSave);
+    DatabaseUtils.mongoConvertLastChangedCreatedProps(userToSave, userToSave);
 
     // Modify and return the modified document
     const result = await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
@@ -349,7 +349,7 @@ export default class UserStorage {
     Logging.traceEnd('UserStorage', 'saveUserImage', uniqueTimerID, { userImageToSave });
   }
 
-  public static async getUsers(tenantID: string, params: {notificationsActive?: boolean, siteID?: string, excludeSiteID?: string, email?:string, id?:string, search?:string, userID?:string,role?:string, statuses?:string[], withImage?:boolean}, {limit, skip, onlyRecordCount, sort}: DbParams) {
+  public static async getUsers(tenantID: string, params: {notificationsActive?: boolean, siteID?: string, excludeSiteID?: string, search?:string, userID?:string,role?:string, statuses?:string[], withImage?:boolean}, {limit, skip, onlyRecordCount, sort}: DbParams) {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
     // Check Tenant
@@ -387,7 +387,7 @@ export default class UserStorage {
     if (params.userID) {
       // Build filter
       filters.$and.push({
-        '_id': Utils.convertToObjectID(params.userID)
+        'id': params.userID
       });
     }
     if (params.role) {
@@ -395,7 +395,7 @@ export default class UserStorage {
         'role': params.role
       });
     }
-    if (params.statuses) {
+    if (params.statuses && params.statuses.filter(status => status).length > 0) {
       filters.$and.push({
         'status': { $in: params.statuses }
       });
@@ -425,9 +425,7 @@ export default class UserStorage {
           $map: {
             input: '$tagIDs',
             as: 't',
-            in: {
-              id: '$$t._id'
-            }
+            in: '$$t._id'
           }
         }
       }
@@ -511,6 +509,7 @@ export default class UserStorage {
     aggregation.push({
       $limit: limit
     });
+
     // Read DB
     const usersMDB = await global.database.getCollection<User>(tenantID, 'users')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
@@ -519,7 +518,7 @@ export default class UserStorage {
     for(let userMDB of usersMDB) {
       delete (usersMDB as any).siteusers;
     }
-    
+
     // Debug
     Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID, { params, limit, skip, sort });
     // Ok
@@ -637,7 +636,7 @@ export default class UserStorage {
       eulaAcceptedOn: null,
       eulaAcceptedVersion: 0,
       firstName: 'Unkown',
-      lastName: 'User',
+      name: 'User',
       iNumber: null,
       image: null,
       locale: 'en',

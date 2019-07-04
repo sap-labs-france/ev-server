@@ -31,7 +31,7 @@ export default class AuthSecurity {
 
   public static filterRegisterUserRequest(request: Partial<HttpRegisterUserRequest>): Partial<HttpRegisterUserRequest> {
     return {
-      lastName: sanitize(request.name),
+      name: sanitize(request.name),
       acceptEula: sanitize(request.acceptEula),
       captcha: sanitize(request.captcha),
       status: Constants.USER_STATUS_PENDING,

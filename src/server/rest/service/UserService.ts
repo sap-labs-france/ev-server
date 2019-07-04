@@ -235,6 +235,7 @@ export default class UserService {
     // Update timestamp
     user.lastChangedBy = { id: req.user.id } as User; //TODO do we really need to query the full user here?
     user.lastChangedOn = new Date();
+    if(Array.isArray(filteredRequest.tagIDs)) user.tagIDs = filteredRequest.tagIDs;
 
     // Update User
     const updatedUserId = await UserStorage.saveUser(req.user.tenantID, user, true); //Careful: Last changed by is not a proper user here! TODO (it wasnt before either tho)
@@ -256,7 +257,7 @@ export default class UserService {
         user,
         {
           'user': user,
-          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(req.user.id)).getSubdomain())
+          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(req.user.tenantID)).getSubdomain())
         },
         user.locale
       );
@@ -393,7 +394,7 @@ export default class UserService {
         search: filteredRequest.Search,
         siteID: filteredRequest.SiteID,
         role: filteredRequest.Role,
-        statuses: [filteredRequest.Status],
+        statuses: filteredRequest.Status?[filteredRequest.Status]:null,
         excludeSiteID: filteredRequest.ExcludeSiteID,
       },
       {
@@ -495,7 +496,13 @@ export default class UserService {
     filteredRequest.createdOn = new Date();
 
     // Save User
-    const newUserId = await UserStorage.saveUser(req.user.tenantID, filteredRequest, true);
+    let newTagIDs: string[];
+    if(typeof filteredRequest.tagIDs === 'string') {
+      newTagIDs = [];
+    }else{
+      newTagIDs = filteredRequest.tagIDs;
+    }
+    const newUserId = await UserStorage.saveUser(req.user.tenantID, {...filteredRequest, tagIDs: newTagIDs}, true);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -724,6 +731,11 @@ export default class UserService {
     }
     if (filteredRequest.tagIDs) {
       // Check
+      if(!Array.isArray(filteredRequest.tagIDs)) { //TODO this piece is not very robust, and mutates filteredRequest even tho it's named "check". Should be changed, honestly
+        if(filteredRequest.tagIDs !== '') {
+          filteredRequest.tagIDs = filteredRequest.tagIDs.split(',');
+        }
+      }
       if (!UserService.areTagIDsValid(filteredRequest.tagIDs)) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -752,7 +764,10 @@ export default class UserService {
     return /^(([^<>()\[\]\\.,;:\s@']+(\.[^<>()\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email);
   }
 
-  public static areTagIDsValid(tagIDs: string[]) {
+  public static areTagIDsValid(tagIDs: string[]|string) {
+    if(typeof tagIDs === 'string') {
+      return /^[A-Za-z0-9,]*$/.test(tagIDs);
+    }
     return tagIDs.filter(tagID => /^[A-Za-z0-9,]*$/.test(tagID)).length === tagIDs.length;
   }
 

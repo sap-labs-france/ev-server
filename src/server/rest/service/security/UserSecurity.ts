@@ -67,8 +67,7 @@ export default class UserSecurity {
       filteredRequest.mobile = sanitize(request.mobile);
     }
     if (request.name) {
-      filteredRequest.lastName = sanitize(request[name]);
-      filteredRequest.name = filteredRequest.lastName;
+      filteredRequest.name = sanitize(request.name);
     }
     if (request.locale) {
       filteredRequest.locale = sanitize(request.locale);
@@ -119,7 +118,7 @@ export default class UserSecurity {
       // Admin?
       if (Authorizations.isAdmin(loggedUser.role) || Authorizations.isSuperAdmin(loggedUser.role)) {
         filteredUser.id = user.id;
-        filteredUser.name = user.lastName;
+        filteredUser.name = user.name;
         filteredUser.firstName = user.firstName;
         filteredUser.email = user.email;
         filteredUser.locale = user.locale;
@@ -140,7 +139,7 @@ export default class UserSecurity {
       } else {
         // Set only necessary info
         filteredUser.id = user.id;
-        filteredUser.name = user.lastName;
+        filteredUser.name = user.name;
         filteredUser.firstName = user.firstName;
         filteredUser.email = user.email;
         filteredUser.locale = user.locale;
@@ -173,10 +172,11 @@ export default class UserSecurity {
       // Admin?
       if (Authorizations.isAdmin(loggedUser.role)) {
         filteredUser = user;
+        filteredUser.name = user.name;
       } else {
         // Set only necessary info
         filteredUser.id = user.id;
-        filteredUser.name = user.lastName;
+        filteredUser.name = user.name;
         filteredUser.firstName = user.firstName;
       }
     }

@@ -233,100 +233,95 @@ export default class AuthService {
 
   public static async handleLogIn(action: string, req: Request, res: Response, next: NextFunction) {
     let tenantID: string;
-    try {
-      // Filter
-      const filteredRequest = AuthSecurity.filterLoginRequest(req.body);
-      // Get Tenant
-      tenantID = await AuthService.getTenantID(filteredRequest.tenant);
-      if (!tenantID) {
-        tenantID = Constants.DEFAULT_TENANT;
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `User with email '${filteredRequest.email}' tried to log in with an unknown tenant '${filteredRequest.tenant}'!`,
-          Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-          'AuthService', 'handleLogIn', null, null, action);
-      }
-      // Check
-      if (!filteredRequest.email) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          'The Email is mandatory',
-          Constants.HTTP_GENERAL_ERROR,
-          'AuthService', 'handleLogIn');
-      }
-      if (!filteredRequest.password) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          'The Password is mandatory',
-          Constants.HTTP_GENERAL_ERROR,
-          'AuthService', 'handleLogIn');
-      }
-      if (!filteredRequest.acceptEula) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          'The End-user License Agreement is mandatory',
-          Constants.HTTP_USER_EULA_ERROR,
-          'AuthService', 'handleLogIn');
-      }
+    // Filter
+    const filteredRequest = AuthSecurity.filterLoginRequest(req.body);
+    // Get Tenant
+    tenantID = await AuthService.getTenantID(filteredRequest.tenant);
+    if (!tenantID) {
+      tenantID = Constants.DEFAULT_TENANT;
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `User with email '${filteredRequest.email}' tried to log in with an unknown tenant '${filteredRequest.tenant}'!`,
+        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        'AuthService', 'handleLogIn', null, null, action);
+    }
+    // Check
+    if (!filteredRequest.email) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'The Email is mandatory',
+        Constants.HTTP_GENERAL_ERROR,
+        'AuthService', 'handleLogIn');
+    }
+    if (!filteredRequest.password) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'The Password is mandatory',
+        Constants.HTTP_GENERAL_ERROR,
+        'AuthService', 'handleLogIn');
+    }
+    if (!filteredRequest.acceptEula) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'The End-user License Agreement is mandatory',
+        Constants.HTTP_USER_EULA_ERROR,
+        'AuthService', 'handleLogIn');
+    }
 
-      const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
+    const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
 
-      if (!user) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The user with email '${filteredRequest.email}' does not exist for tenant '${(filteredRequest.tenant ? filteredRequest.tenant : tenantID)}'`,
-          Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleLogIn');
-      }
-      if (user.deleted) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The user with email '${filteredRequest.email}' is logically deleted`,
-          Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleLogIn');
-      }
-      // Check if the number of trials is reached
-      if (user.passwordWrongNbrTrials >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
-        // Check if the user is still locked
-        if (user.status === Constants.USER_STATUS_LOCKED) {
-          // Yes: Check date to reset pass
-          if (moment(user.passwordBlockedUntil).isBefore(moment())) {
-            // Time elapsed: activate the account again
-            Logging.logSecurityInfo({
-              tenantID: filteredRequest.tenant,
-              actionOnUser: user,
-              module: 'AuthService', method: 'handleLogIn', action: action,
-              message: 'User has been unlocked and can try to login again'
-            });
-            // Reinit nbr of trial and status
-            user.passwordWrongNbrTrials = 0;
-            user.passwordBlockedUntil = null;
-            user.status = Constants.USER_STATUS_ACTIVE;
-            // Save
-            await UserStorage.saveUser(filteredRequest.tenant, user);
-            // Check user
-            await AuthService.checkUserLogin(action, user, filteredRequest, req, res, next);
-          } else {
-            // Return data
-            throw new AppError(
-              Constants.CENTRAL_SERVER,
-              'User is locked',
-              Constants.HTTP_USER_LOCKED_ERROR,
-              'AuthService', 'handleLogIn',
-              user);
-          }
-        } else {
-          // An admin has reactivated the account
+    if (!user) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `The user with email '${filteredRequest.email}' does not exist for tenant '${(filteredRequest.tenant ? filteredRequest.tenant : tenantID)}'`,
+        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleLogIn');
+    }
+    if (user.deleted) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `The user with email '${filteredRequest.email}' is logically deleted`,
+        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleLogIn');
+    }
+    // Check if the number of trials is reached
+    if (user.passwordWrongNbrTrials >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
+      // Check if the user is still locked
+      if (user.status === Constants.USER_STATUS_LOCKED) {
+        // Yes: Check date to reset pass
+        if (moment(user.passwordBlockedUntil).isBefore(moment())) {
+          // Time elapsed: activate the account again
+          Logging.logSecurityInfo({
+            tenantID: filteredRequest.tenant,
+            actionOnUser: user,
+            module: 'AuthService', method: 'handleLogIn', action: action,
+            message: 'User has been unlocked and can try to login again'
+          });
+          // Reinit nbr of trial and status
           user.passwordWrongNbrTrials = 0;
           user.passwordBlockedUntil = null;
+          user.status = Constants.USER_STATUS_ACTIVE;
+          // Save
+          await UserStorage.saveUser(filteredRequest.tenant, user);
           // Check user
-          await AuthService.checkUserLogin(action, user, filteredRequest, req, res, next);
+          await AuthService.checkUserLogin(action, tenantID, user, filteredRequest, req, res, next);
+        } else {
+          // Return data
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            'User is locked',
+            Constants.HTTP_USER_LOCKED_ERROR,
+            'AuthService', 'handleLogIn',
+            user);
         }
       } else {
-        // Nbr trials OK: Check user
-        await AuthService.checkUserLogin(action, user, filteredRequest, req, res, next);
+        // An admin has reactivated the account
+        user.passwordWrongNbrTrials = 0;
+        user.passwordBlockedUntil = null;
+        // Check user
+        await AuthService.checkUserLogin(action, tenantID, user, filteredRequest, req, res, next);
       }
-    } catch (err) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, err, req, res, next, (!tenantID ? Constants.DEFAULT_TENANT : tenantID));
+    } else {
+      // Nbr trials OK: Check user
+      await AuthService.checkUserLogin(action, tenantID, user, filteredRequest, req, res, next);
     }
   }
 
@@ -403,11 +398,11 @@ export default class AuthService {
     let newUser = UserStorage.getEmptyUser();
     
     newUser.password = newPasswordHashed;
-    newUser.lastName = filteredRequest.lastName;
+    newUser.name = filteredRequest.name;
     newUser.firstName = filteredRequest.firstName
     newUser.role = Constants.ROLE_BASIC;
     newUser.status = Constants.USER_STATUS_PENDING;
-    newUser.tagIDs = [newUser.lastName[0] + newUser.firstName[0] + Utils.getRandomInt()];
+    newUser.tagIDs = [newUser.name[0] + newUser.firstName[0] + Utils.getRandomInt()];
     newUser.locale = req.locale.substring(0, 5);
     newUser.verificationToken = Utils.generateToken(req.body.email);
     
@@ -844,7 +839,7 @@ export default class AuthService {
     res.status(200).send({});
   }
 
-  public static async userLoginWrongPassword(action: string, user: User, req: Request, res: Response, next: NextFunction) {
+  public static async userLoginWrongPassword(action: string, tenantID: string, user: User, req: Request, res: Response, next: NextFunction) {
     // Add wrong trial + 1
     user.passwordWrongNbrTrials = user.passwordWrongNbrTrials + 1;
     // Check if the number of trial is reached
@@ -855,7 +850,7 @@ export default class AuthService {
       // Set blocking date
       user.passwordBlockedUntil = moment().add(_centralSystemRestConfig.passwordBlockedWaitTimeMin, 'm').toDate();
       // Save nbr of trials
-      await UserStorage.saveUser(req.tenantID, user);
+      await UserStorage.saveUser(tenantID, user);
       // Log
       throw new AppError(
         Constants.CENTRAL_SERVER,
@@ -866,7 +861,7 @@ export default class AuthService {
       );
     } else {
       // Wrong logon
-      await UserStorage.saveUser(req.tenantID, user);
+      await UserStorage.saveUser(tenantID, user);
       // Log
       throw new AppError(
         Constants.CENTRAL_SERVER,
@@ -877,16 +872,16 @@ export default class AuthService {
     }
   }
 
-  public static async userLoginSucceeded(action: string, user: User, req: Request, res: Response, next: NextFunction) {
+  public static async userLoginSucceeded(action: string, tenantID: string, user: User, req: Request, res: Response, next: NextFunction) {
     // Password / Login OK
     Logging.logSecurityInfo({
-      tenantID: req.tenantID,
+      tenantID: tenantID,
       user: user,
       module: 'AuthService', method: 'checkUserLogin',
       action: action, message: 'User logged in successfully'
     });
     // Get EULA
-    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(req.tenantID, user.locale.substring(0,2));
+    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, user.locale.substring(0,2));
     // Set Eula Info on Login Only
     if (action === 'Login') {
       user.eulaAcceptedOn = new Date();
@@ -898,14 +893,14 @@ export default class AuthService {
     user.passwordBlockedUntil = null;
     user.passwordResetHash = null;
     // Save
-    await UserStorage.saveUser(req.tenantID, user);
+    await UserStorage.saveUser(tenantID, user);
     // Build Authorization
-    const scopes = await Authorizations.getUserScopes(req.tenantID, user);
-    const authorizedEntities = await Authorizations.getAuthorizedEntities(req.tenantID, user);
+    const scopes = await Authorizations.getUserScopes(tenantID, user);
+    const authorizedEntities = await Authorizations.getAuthorizedEntities(tenantID, user);
     const userHashID = SessionHashService.buildUserHashID(user);
     let tenantHashID;
-    if (req.tenantID !== Constants.DEFAULT_TENANT) {
-      const tenant = await TenantStorage.getTenant(req.tenantID);
+    if (tenantID !== Constants.DEFAULT_TENANT) {
+      const tenant = await TenantStorage.getTenant(tenantID);
       tenantHashID = SessionHashService.buildTenantHashID(tenant);
     } else {
       tenantHashID = Constants.DEFAULT_TENANT;
@@ -915,12 +910,12 @@ export default class AuthService {
     const payload = {
       'id': user.id,
       'role': user.role,
-      'name': user.lastName,
+      'name': user.name,
       'tagIDs': user.tagIDs,
       'firstName': user.firstName,
       'locale': user.locale,
       'language': user.locale.substring(0,2),
-      'tenantID': req.tenantID,
+      'tenantID': tenantID,
       'userHashID': userHashID,
       'tenantHashID': tenantHashID,
       'scopes': scopes,
@@ -931,8 +926,8 @@ export default class AuthService {
     };
 
     // Get active components from tenant if not default
-    if (req.tenantID !== Constants.DEFAULT_TENANT) {
-      const tenant = await TenantStorage.getTenant(req.tenantID);
+    if (tenantID !== Constants.DEFAULT_TENANT) {
+      const tenant = await TenantStorage.getTenant(tenantID);
       payload.activeComponents = tenant.getActiveComponents();
     }
 
@@ -965,7 +960,7 @@ export default class AuthService {
     return (tenant ? tenant.getID() : null);
   }
 
-  public static async checkUserLogin(action: string, user: User, filteredRequest: Partial<HttpLoginRequest>, req: Request, res: Response, next: NextFunction) {
+  public static async checkUserLogin(action: string, tenantID: string, user: User, filteredRequest: Partial<HttpLoginRequest>, req: Request, res: Response, next: NextFunction) {
     // User Found?
     if (!user) {
       throw new AppError(
@@ -998,10 +993,10 @@ export default class AuthService {
           user);
       }
       // Login OK
-      await AuthService.userLoginSucceeded(action, user, req, res, next);
+      await AuthService.userLoginSucceeded(action, tenantID, user, req, res, next);
     } else {
       // Login KO
-      await AuthService.userLoginWrongPassword(action, user, req, res, next);
+      await AuthService.userLoginWrongPassword(action, tenantID, user, req, res, next);
     }
   }
 }

@@ -23,7 +23,7 @@ export default interface User extends CreatedUpdatedProps {
   eulaAcceptedVersion: number;
   eulaAcceptedOn: Date;
   
-  lastName: string;
+  name: string;
   firstName: string;
   
   password: string;

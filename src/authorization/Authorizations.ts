@@ -641,7 +641,7 @@ export default class Authorizations {
       // Create an empty user
 
       const newUser: User = {
-        lastName: 'Unknown',
+        name: 'Unknown',
         firstName: 'User',
         status: Constants.USER_STATUS_INACTIVE,
         role: Constants.ROLE_BASIC,
@@ -678,7 +678,7 @@ export default class Authorizations {
         user.deleted = false;
         // Set default user's value
         user.status = Constants.USER_STATUS_INACTIVE;
-        user.lastName = 'Unknown';
+        user.name = 'Unknown';
         user.firstName = 'User';
         user.email = tagID + '@chargeangels.fr';
         user.phone = '';

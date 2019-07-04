@@ -2,9 +2,9 @@ import HttpByIDRequest from "./HttpByIDRequest";
 import HttpDatabaseRequest from "./HttpDatabaseRequest";
 import User from "../User";
 
-export interface HttpUserRequest extends Partial<User> {
-  name: string;
+export interface HttpUserRequest extends Partial<Omit<User, 'tagIDs'>> {
   passwords: {password?: string}
+  tagIDs: string|string[];
 }
 
 export interface HttpSitesAssignUserRequest {
@@ -42,8 +42,7 @@ export interface HttpResetPasswordRequest {
 }
 
 export interface HttpRegisterUserRequest extends HttpLoginRequest {
-  name: string;//Used in frontend thus in request
-  lastName: string;//Used in backend
+  name: string;
   firstName: string;
   captcha: string;
   status: string;
