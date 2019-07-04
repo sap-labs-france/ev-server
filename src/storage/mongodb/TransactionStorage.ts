@@ -172,33 +172,55 @@ export default class TransactionStorage {
       // Always limit the nbr of record to avoid perfs issues
       aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
     }
+    let statsQuery = null;
+    if (params.statistics) {
+      switch (params.statistics) {
+        case 'history':
+          statsQuery = {
+            $group: {
+              _id: null,
+              totalConsumptionWattHours: { $sum: '$stop.totalConsumption' },
+              totalDurationSecs: { $sum: '$stop.totalDurationSecs' },
+              totalPrice: { $sum: '$stop.price' },
+              totalInactivitySecs: { '$sum': { $add: ['$stop.totalInactivitySecs', '$stop.extraInactivitySecs'] } },
+              count: { $sum: 1 }
+            }
+          };
+          break;
+        case 'refund':
+          statsQuery = {
+            $group: {
+              _id: null,
+              totalConsumptionWattHours: { $sum: '$stop.totalConsumption' },
+              totalPriceRefund: { $sum: { $cond: [{ "$eq": [ "$refundData", null ] }, '$stop.price', 0 ] } },
+              totalPricePending: { $sum: { $cond: [{ "$eq": [ "$refundData", null ] }, 0, '$stop.price' ] } },
+              countRefundedReports: { $addToSet: "$refundData.reportId" },
+              count: { $sum: 1 }
+            }
+          };
+          break;
+        default:
+          break;
+      }
+
+    }
     // Count Records
     const transactionsCountMDB = await global.database.getCollection<any>(tenantID, 'transactions')
-      .aggregate([...aggregation, {
-        $group: {
-          _id: null,
-          totalConsumptionWattHours: { $sum: '$stop.totalConsumption' },
-          totalDurationSecs: { $sum: '$stop.totalDurationSecs' },
-          totalPrice: { $sum: '$stop.price' },
-          totalInactivitySecs: { '$sum': { $add: ['$stop.totalInactivitySecs', '$stop.extraInactivitySecs'] } },
-          count: { $sum: 1 }
-        }
-      }],
+      .aggregate([...aggregation, statsQuery],
       {
         allowDiskUse: true
       })
       .toArray();
     const transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ? transactionsCountMDB[0] : null;
+    if (transactionCountMDB && transactionCountMDB.countRefundedReports) {
+      // Translate array response to number
+      transactionCountMDB.countRefundedReports = transactionCountMDB.countRefundedReports.length
+    }
     // Check if only the total count is requested
     if (params.onlyRecordCount) {
       return {
         count: transactionCountMDB ? transactionCountMDB.count : 0,
-        stats: {
-          totalConsumptionWattHours: transactionCountMDB ? Math.round(transactionCountMDB.totalConsumptionWattHours) : 0,
-          totalInactivitySecs: transactionCountMDB ? Math.round(transactionCountMDB.totalInactivitySecs) : 0,
-          totalPrice: transactionCountMDB ? Math.round(transactionCountMDB.totalPrice) : 0,
-          totalDurationSecs: transactionCountMDB ? Math.round(transactionCountMDB.totalDurationSecs) : 0
-        },
+        stats: transactionCountMDB ? transactionCountMDB : {},
         result: []
       };
     }
@@ -273,12 +295,7 @@ export default class TransactionStorage {
     Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, { params, limit, skip, sort });
     return {
       count: transactionCountMDB ? (transactionCountMDB.count === Constants.MAX_DB_RECORD_COUNT ? -1 : transactionCountMDB.count) : 0,
-      stats: {
-        totalConsumptionWattHours: transactionCountMDB ? Math.round(transactionCountMDB.totalConsumptionWattHours) : 0,
-        totalInactivitySecs: transactionCountMDB ? Math.round(transactionCountMDB.totalInactivitySecs) : 0,
-        totalPrice: transactionCountMDB ? Math.round(transactionCountMDB.totalPrice) : 0,
-        totalDurationSecs: transactionCountMDB ? Math.round(transactionCountMDB.totalDurationSecs) : 0
-      },
+      stats: transactionCountMDB ? transactionCountMDB : {},
       result: transactions
     };
   }
