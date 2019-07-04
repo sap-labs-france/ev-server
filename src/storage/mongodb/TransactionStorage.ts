@@ -172,38 +172,45 @@ export default class TransactionStorage {
       // Always limit the nbr of record to avoid perfs issues
       aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
     }
+    // Prepare statistics query
     let statsQuery = null;
-    if (params.statistics) {
-      switch (params.statistics) {
-        case 'history':
-          statsQuery = {
-            $group: {
-              _id: null,
-              totalConsumptionWattHours: { $sum: '$stop.totalConsumption' },
-              totalDurationSecs: { $sum: '$stop.totalDurationSecs' },
-              totalPrice: { $sum: '$stop.price' },
-              totalInactivitySecs: { '$sum': { $add: ['$stop.totalInactivitySecs', '$stop.extraInactivitySecs'] } },
-              count: { $sum: 1 }
-            }
-          };
-          break;
-        case 'refund':
-          statsQuery = {
-            $group: {
-              _id: null,
-              totalConsumptionWattHours: { $sum: '$stop.totalConsumption' },
-              totalPriceRefund: { $sum: { $cond: [{ "$eq": [ "$refundData", null ] }, '$stop.price', 0 ] } },
-              totalPricePending: { $sum: { $cond: [{ "$eq": [ "$refundData", null ] }, 0, '$stop.price' ] } },
-              countRefundedReports: { $addToSet: "$refundData.reportId" },
-              count: { $sum: 1 }
-            }
-          };
-          break;
-        default:
-          break;
+    switch (params.statistics) {
+      case 'history': // For historical case
+        statsQuery = {
+          $group: {
+            _id: null,
+            totalConsumptionWattHours: { $sum: '$stop.totalConsumption' },
+            totalDurationSecs: { $sum: '$stop.totalDurationSecs' },
+            totalPrice: { $sum: '$stop.price' },
+            totalInactivitySecs: { '$sum': { $add: ['$stop.totalInactivitySecs', '$stop.extraInactivitySecs'] } },
+            count: { $sum: 1 }
+          }
+        };
+        break;
+      case 'refund': // For refund case
+        statsQuery = {
+          $group: {
+            _id: null,
+            totalConsumptionWattHours: { $sum: '$stop.totalConsumption' },
+            totalPriceRefund: { $sum: { $cond: [ { '$eq': [ { $type : "$refundData" }, 'missing' ] }, 0, '$stop.price' ] } },
+            totalPricePending: { $sum: { $cond: [ { '$eq': [ { $type : "$refundData" }, 'missing' ] }, '$stop.price', 0 ] } },
+            countRefundTransactions: { $sum: { $cond: [ { '$eq': [ { $type : "$refundData" }, 'missing' ] }, 0, 1 ] } },
+            countPendingTransactions: { $sum: { $cond: [ { '$eq': [ { $type : "$refundData" }, 'missing' ] }, 1, 0 ] } },
+            currency: { $addToSet: '$stop.priceUnit' },
+            countRefundedReports: { $addToSet: '$refundData.reportId' },
+            count: { $sum: 1 }
+          }
+        };
+        break;
+      default: // Default case only count
+        statsQuery = {
+          $group: {
+            _id: null,
+            count: { $sum: 1 }
+          }
+        };
+        break;
       }
-
-    }
     // Count Records
     const transactionsCountMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate([...aggregation, statsQuery],
@@ -211,10 +218,44 @@ export default class TransactionStorage {
         allowDiskUse: true
       })
       .toArray();
-    const transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ? transactionsCountMDB[0] : null;
+    let transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ? transactionsCountMDB[0] : null;
+    // Initialize statistics
+    if (!transactionCountMDB) {
+      switch (params.statistics) {
+        case 'history':
+          transactionCountMDB = {
+              totalConsumptionWattHours: 0,
+              totalDurationSecs: 0,
+              totalPrice: 0,
+              totalInactivitySecs: 0,
+              count: 0
+            }
+          break;
+        case 'refund':
+          transactionCountMDB = {
+              totalConsumptionWattHours: 0,
+              totalPriceRefund: 0,
+              totalPricePending: 0,
+              countRefundTransactions: 0,
+              countPendingTransactions: 0,
+              countRefundedReports: 0,
+              count: 0
+            }
+          break;
+        default:
+          transactionCountMDB = {
+            count: 0
+          }
+          break;
+      }
+    }
     if (transactionCountMDB && transactionCountMDB.countRefundedReports) {
       // Translate array response to number
       transactionCountMDB.countRefundedReports = transactionCountMDB.countRefundedReports.length
+    }
+    if (transactionCountMDB && transactionCountMDB.currency) {
+      // Take first entry as reference currency. Expectation is that we have only one currency for all transaction
+      transactionCountMDB.currency = transactionCountMDB.currency[0];
     }
     // Check if only the total count is requested
     if (params.onlyRecordCount) {
