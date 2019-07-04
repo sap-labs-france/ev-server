@@ -64,7 +64,7 @@ export default class SiteAreaSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadSiteArea(loggedUser, siteArea.siteID.toString())) {
+    if (Authorizations.canReadSiteArea(loggedUser, siteArea.siteID)) {
       // Admin?
       if (Authorizations.isAdmin(loggedUser.role)) {
         // Yes: set all params

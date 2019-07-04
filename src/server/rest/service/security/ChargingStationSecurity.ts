@@ -40,7 +40,7 @@ export default class ChargingStationSecurity {
     }
 
     if (organizationIsActive) {
-      if (chargingStation.siteArea && !Authorizations.canReadSiteArea(loggedUser, chargingStation.siteArea.siteID.toString())) {
+      if (chargingStation.siteAreaID && !Authorizations.canReadSiteArea(loggedUser, chargingStation.siteArea.siteID)) {
         return null;
       }
     }

@@ -35,9 +35,7 @@ export default class TenantSecurity {
   }
 
   static filterTenantUpdateRequest(request, loggedUser) {
-    const filteredRequest = TenantSecurity._filterTenantRequest(request, loggedUser);
-    filteredRequest.id = sanitize(request.id);
-    return filteredRequest;
+    return TenantSecurity._filterTenantRequest(request, loggedUser);
   }
 
   static filterTenantCreateRequest(request, loggedUser) {
@@ -47,6 +45,9 @@ export default class TenantSecurity {
   // eslint-disable-next-line no-unused-vars
   static _filterTenantRequest(request, loggedUser) {
     const filteredRequest: any = {};
+    if ('id' in request) {
+      filteredRequest.id = sanitize(request.id);
+    }
     filteredRequest.name = sanitize(request.name);
     filteredRequest.subdomain = sanitize(request.subdomain);
     filteredRequest.email = sanitize(request.email);
