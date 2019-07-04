@@ -409,12 +409,6 @@ export default class AuthService {
       newUser.setCreatedOn(new Date());
       // Set BadgeID (eg.: 'SF20170131')
       newUser.setTagIDs([newUser.getName()[0] + newUser.getFirstName()[0] + Utils.getRandomInt()]);
-      // Assign user to all sites
-      const sites = await SiteStorage.getSites(tenantID,
-        { withAutoUserAssignment: true },
-        { limit: Constants.NO_LIMIT, skip: 0 });
-      // Set
-      newUser.setSites(sites.result);
       // Get EULA
       const endUserLicenseAgreement = await User.getEndUserLicenseAgreement(tenantID, newUser.getLanguage());
       // Set Eula Info on Login Only
@@ -426,6 +420,17 @@ export default class AuthService {
       newUser.setVerificationToken(verificationToken);
       // Save
       newUser = await newUser.save();
+      // Assign user to all sites with auto-assign flag set
+      const sites = await SiteStorage.getSites(tenantID,
+        { withAutoUserAssignment: true },
+        { limit: Constants.NO_LIMIT, skip: 0 }
+      );
+      if (sites.count > 0) {
+        const siteIDs = sites.result.map((site) => site.id);
+        if (siteIDs && siteIDs.length > 0) {
+          await User.addSitesToUser(tenantID, newUser.getID(), siteIDs);
+        }
+      }
       // Log
       Logging.logSecurityInfo({
         tenantID: newUser.getTenantID(),
