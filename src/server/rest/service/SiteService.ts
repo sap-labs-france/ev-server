@@ -439,7 +439,6 @@ export default class SiteService {
 
     // Check auth
     if (!Authorizations.canReadSite(req.user, id)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_READ,
         Constants.ENTITY_SITE,
@@ -469,7 +468,6 @@ export default class SiteService {
 
     // Check auth
     if (!Authorizations.canCreateSite(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_CREATE,
         Constants.ENTITY_SITE,
@@ -530,7 +528,6 @@ export default class SiteService {
 
     // Check auth
     if (!Authorizations.canUpdateSite(req.user, filteredRequest.id)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_UPDATE,
         Constants.ENTITY_SITE,

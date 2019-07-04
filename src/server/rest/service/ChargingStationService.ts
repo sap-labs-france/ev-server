@@ -7,15 +7,20 @@ import ChargingStationSecurity from './security/ChargingStationSecurity';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
-import SiteArea from '../../../types/SiteArea';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import Tenant from '../../../entity/Tenant';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../entity/User';
+import UtilsService from './UtilsService';
 
 export default class ChargingStationService {
   static async handleAddChargingStationsToSiteArea(action, req, res, next) {
     try {
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+        Constants.ACTION_UPDATE, Constants.ENTITY_CHARGING_STATION,
+        'ChargingStationService', 'handleAddChargingStationsToSiteArea');
       // Filter
       const filteredRequest = ChargingStationSecurity.filterAddChargingStationsToSiteAreaRequest(req.body, req.user);
       // Check Mandatory fields
@@ -42,7 +47,7 @@ export default class ChargingStationService {
           'ChargingStationService', 'handleAddChargingStationsToSiteArea', req.user);
       }
       // Check auth
-      if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID.toString())) {
+      if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
           Constants.ENTITY_SITE_AREA,
@@ -62,7 +67,7 @@ export default class ChargingStationService {
             'ChargingStationService', 'handleAddChargingStationsToSiteArea', req.user);
         }
         // Check auth
-        if (!Authorizations.canUpdateChargingStation(req.user, siteArea.siteID.toString())) {
+        if (!Authorizations.canUpdateChargingStation(req.user, siteArea.siteID)) {
           throw new AppAuthError(
             Constants.ACTION_UPDATE,
             Constants.ENTITY_CHARGING_STATION,
@@ -91,6 +96,11 @@ export default class ChargingStationService {
 
   static async handleRemoveChargingStationsFromSiteArea(action, req, res, next) {
     try {
+      // Check if component is active
+      await UtilsService.assertComponentIsActive(
+        req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+        Constants.ACTION_UPDATE, Constants.ENTITY_CHARGING_STATION,
+        'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea');
       // Filter
       const filteredRequest = ChargingStationSecurity.filterRemoveChargingStationsFromSiteAreaRequest(req.body, req.user);
       // Check Mandatory fields
@@ -117,7 +127,7 @@ export default class ChargingStationService {
           'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea', req.user);
       }
       // Check auth
-      if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID.toString())) {
+      if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
           Constants.ENTITY_SITE_AREA,
@@ -138,7 +148,7 @@ export default class ChargingStationService {
         }
         // Check auth
         const chargingStationSiteArea = await chargingStation.getSiteArea();
-        if (!Authorizations.canUpdateChargingStation(req.user, chargingStationSiteArea.siteID.toString())) {
+        if (!Authorizations.canUpdateChargingStation(req.user, chargingStationSiteArea.siteID)) {
           throw new AppAuthError(
             Constants.ACTION_UPDATE,
             Constants.ENTITY_CHARGING_STATION,
@@ -179,7 +189,7 @@ export default class ChargingStationService {
       }
       const siteArea = await chargingStation.getSiteArea();
       // Check Auth
-      if (!Authorizations.canUpdateChargingStation(req.user, siteArea ? siteArea.siteID.toString() : null)) {
+      if (!Authorizations.canUpdateChargingStation(req.user, siteArea ? siteArea.siteID : null)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_UPDATE, Constants.ENTITY_CHARGING_STATION,

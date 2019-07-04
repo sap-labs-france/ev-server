@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
 import HttpStatusCodes from 'http-status-codes';
-import AbstractService from './AbstractService';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import ConflictError from '../../../exception/ConflictError';
@@ -19,7 +18,7 @@ import AppAuthError from '../../../exception/AppAuthError';
 
 const MODULE_NAME = 'TenantService';
 
-export default class TenantService extends AbstractService {
+export default class TenantService {
 
   static async handleDeleteTenant(action, req, res, next) {
     // Filter

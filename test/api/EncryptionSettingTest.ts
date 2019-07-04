@@ -36,7 +36,7 @@ describe('Setting tests', function() {
   describe('Success cases', () => {
     it('Check that updating the refund/concur setting works with sensitive data encryption', async () => {
       // Retrieve the setting id
-      let read = await testData.centralService.settingApi.readAll({ "identifier" : "refund" },{ limit: Constants.UNLIMITED, skip: 0 });
+      let read = await testData.centralService.settingApi.readAll({ "Identifier" : "refund" },{ limit: Constants.UNLIMITED, skip: 0 });
       expect(read.status).to.equal(200);
       expect(read.data.count).to.equal(1);
       // Update the setting
@@ -61,7 +61,7 @@ describe('Setting tests', function() {
       const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
       expect(update.status).to.equal(200);
       // Retrieve the updated setting and check
-      read = await testData.centralService.settingApi.readAll({ "identifier" : "refund" },{ limit: Constants.UNLIMITED, skip: 0 });
+      read = await testData.centralService.settingApi.readAll({ "Identifier" : "refund" },{ limit: Constants.UNLIMITED, skip: 0 });
       expect(read.status).to.equal(200);
       expect(read.data.count).to.equal(1);
       expect(read.data.result[0].sensitiveData[0]).to.equal("content.concur.clientSecret");
@@ -70,7 +70,7 @@ describe('Setting tests', function() {
 
     it('Check that updating the pricing/convergent charging setting works with sensitive data encryption', async () => {
         // Retrieve the setting id
-        let read = await testData.centralService.settingApi.readAll({ "identifier" : "pricing" },{ limit: Constants.UNLIMITED, skip: 0 });
+        let read = await testData.centralService.settingApi.readAll({ "Identifier" : "pricing" },{ limit: Constants.UNLIMITED, skip: 0 });
         expect(read.status).to.equal(200);
         expect(read.data.count).to.equal(1);
         // Update the setting
@@ -91,7 +91,7 @@ describe('Setting tests', function() {
         const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
         expect(update.status).to.equal(200);
         // Retrieve the updated setting and check
-        read = await testData.centralService.settingApi.readAll({ "identifier" : "pricing" },{ limit: Constants.UNLIMITED, skip: 0 });
+        read = await testData.centralService.settingApi.readAll({ "Identifier" : "pricing" },{ limit: Constants.UNLIMITED, skip: 0 });
         expect(read.status).to.equal(200);
         expect(read.data.count).to.equal(1);
         expect(read.data.result[0].sensitiveData[0]).to.equal("content.convergentCharging.password");
