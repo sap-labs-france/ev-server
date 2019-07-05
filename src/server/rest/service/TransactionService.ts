@@ -530,6 +530,9 @@ export default class TransactionService {
       if (filteredRequest.MinimalPrice) {
         filter.minimalPrice = filteredRequest.MinimalPrice;
       }
+      if (filteredRequest.Statistics) {
+        filter.statistics = filteredRequest.Statistics;
+      }
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
         {
           ...filter,
