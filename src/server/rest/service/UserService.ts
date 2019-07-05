@@ -203,8 +203,6 @@ export default class UserService {
         `User with ID '${filteredRequest.id}' is logically deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'UserService', 'handleUpdateUser', req.user);
     }
-    // Check Mandatory fields
-    UserService.checkIfUserValid(filteredRequest, user, req);
     
     // Check email
     const userWithEmail = await UserStorage.getUserByEmail(req.user.tenantID, filteredRequest.email);
@@ -224,21 +222,24 @@ export default class UserService {
       // Status changed
       statusHasChanged = true;
     }
-
     // Check the password
     if (filteredRequest.password && filteredRequest.password.length > 0) {
       // Generate the password hash
       const newPasswordHashed = await UserService.hashPasswordBcrypt(filteredRequest.password);
       // Update the password
-      user.password = newPasswordHashed;
+      filteredRequest.password = newPasswordHashed;
     }
     // Update timestamp
-    user.lastChangedBy = { id: req.user.id } as User; //TODO do we really need to query the full user here?
-    user.lastChangedOn = new Date();
-    if(Array.isArray(filteredRequest.tagIDs)) user.tagIDs = filteredRequest.tagIDs;
+    filteredRequest.lastChangedBy = { id: req.user.id } as User; //TODO do we really need to query the full user here?
+    filteredRequest.lastChangedOn = new Date();
+    delete filteredRequest.passwords;
+
+    // Check Mandatory fields
+    UserService.checkIfUserValid(filteredRequest, user, req);
 
     // Update User
-    const updatedUserId = await UserStorage.saveUser(req.user.tenantID, user, true); //Careful: Last changed by is not a proper user here! TODO (it wasnt before either tho)
+    const newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? [] : filteredRequest.tagIDs;
+    const updatedUserId = await UserStorage.saveUser(req.user.tenantID, {...filteredRequest, tagIDs: newTagIDs}, true); //Careful: Last changed by is not a proper user here! TODO (it wasnt before either tho)
 
     // Log
     Logging.logSecurityInfo({
@@ -407,6 +408,7 @@ export default class UserService {
 
     // Filter
     UserSecurity.filterUsersResponse(users, req.user);
+    
     // Return
     res.json(users);
     next();
@@ -475,7 +477,6 @@ export default class UserService {
         'UserService', 'handleCreateUser', req.user);
     }
     // Create user
-    delete filteredRequest.name;
     delete filteredRequest.passwords;
 
     // Set the password

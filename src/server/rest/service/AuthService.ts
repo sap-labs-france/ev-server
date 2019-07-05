@@ -237,6 +237,7 @@ export default class AuthService {
     const filteredRequest = AuthSecurity.filterLoginRequest(req.body);
     // Get Tenant
     tenantID = await AuthService.getTenantID(filteredRequest.tenant);
+    req.user = {tenantID: tenantID};
     if (!tenantID) {
       tenantID = Constants.DEFAULT_TENANT;
       throw new AppError(
@@ -282,6 +283,9 @@ export default class AuthService {
         `The user with email '${filteredRequest.email}' is logically deleted`,
         Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleLogIn');
     }
+    //TODO: Might be unnecessary
+    //UserService.checkIfUserValid(filteredRequest, user, req);
+
     // Check if the number of trials is reached
     if (user.passwordWrongNbrTrials >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
       // Check if the user is still locked
@@ -290,7 +294,7 @@ export default class AuthService {
         if (moment(user.passwordBlockedUntil).isBefore(moment())) {
           // Time elapsed: activate the account again
           Logging.logSecurityInfo({
-            tenantID: filteredRequest.tenant,
+            tenantID: req.user.tenantID,
             actionOnUser: user,
             module: 'AuthService', method: 'handleLogIn', action: action,
             message: 'User has been unlocked and can try to login again'
@@ -300,7 +304,7 @@ export default class AuthService {
           user.passwordBlockedUntil = null;
           user.status = Constants.USER_STATUS_ACTIVE;
           // Save
-          await UserStorage.saveUser(filteredRequest.tenant, user);
+          await UserStorage.saveUser(req.user.tenantID, user);
           // Check user
           await AuthService.checkUserLogin(action, tenantID, user, filteredRequest, req, res, next);
         } else {
@@ -351,6 +355,7 @@ export default class AuthService {
       next(error);
       return;
     }
+    req.user = {tenantID: tenantID};
     // Check EULA
     if (!filteredRequest.acceptEula) {
       throw new AppError(
@@ -396,8 +401,9 @@ export default class AuthService {
     const newPasswordHashed = await UserService.hashPasswordBcrypt(filteredRequest.password);
     // Create the user
     let newUser = UserStorage.getEmptyUser();
-    
+
     newUser.password = newPasswordHashed;
+    newUser.email = filteredRequest.email;
     newUser.name = filteredRequest.name;
     newUser.firstName = filteredRequest.firstName
     newUser.role = Constants.ROLE_BASIC;

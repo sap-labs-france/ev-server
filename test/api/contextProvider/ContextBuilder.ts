@@ -16,8 +16,10 @@ import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
 import Tenant from '../../../src/entity/Tenant';
 import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
-import User from '../../../src/entity/User';
+import User from '../../../src/types/User';
 import UserFactory from '../../factories/UserFactory';
+import UserStorage from '../../../src/storage/mongodb/UserStorage';
+import UserService from '../../../src/server/rest/service/UserService';
 
 export default class ContextBuilder {
 
@@ -119,31 +121,31 @@ export default class ContextBuilder {
     console.log('CREATE tenant context ' + buildTenant.id +
       ' ' + buildTenant.subdomain);
     // Retrieve default admin
-    const existingUserList = (await User.getUsers(buildTenant.id)).result;
-    let defaultAdminUser = null;
+    const existingUserList = (await UserStorage.getUsers(buildTenant.id, {}, {limit: 0, skip: 0})).result;
+    let defaultAdminUser: User = null;
     // Search existing admin
     if (existingUserList && Array.isArray(existingUserList)) {
       defaultAdminUser = existingUserList.find((user) => {
-        return user.getModel().id === CONTEXTS.TENANT_USER_LIST[0].id || user.getEMail() === config.get('admin.username') ||
+        return user.id === CONTEXTS.TENANT_USER_LIST[0].id || user.email === config.get('admin.username') ||
           user.role === 'A';
       });
     }
     if ((defaultAdminUser.id !== CONTEXTS.TENANT_USER_LIST[0].id) || (defaultAdminUser.status !== 'A')) {
       // It is a different default user so firt delete it
-      await defaultAdminUser.delete();
+      await UserStorage.deleteUser(buildTenant.id, defaultAdminUser.id);
       // Activate user
       defaultAdminUser.status = CONTEXTS.TENANT_USER_LIST[0].status;
       // Generate the password hash
-      const newPasswordHashed = await User.hashPasswordBcrypt(config.get('admin.password'));
+      const newPasswordHashed = await UserService.hashPasswordBcrypt(config.get('admin.password'));
       // Update the password
-      defaultAdminUser.setPassword(newPasswordHashed);
+      defaultAdminUser.password = newPasswordHashed;
       // Update the email
       defaultAdminUser.email = config.get('admin.username');
       // Add a Tag ID
-      defaultAdminUser.setTagIDs(CONTEXTS.TENANT_USER_LIST[0].tagIDs ? CONTEXTS.TENANT_USER_LIST[0].tagIDs : [faker.random.alphaNumeric(8).toUpperCase()]);
+      defaultAdminUser.tagIDs = CONTEXTS.TENANT_USER_LIST[0].tagIDs ? CONTEXTS.TENANT_USER_LIST[0].tagIDs : [faker.random.alphaNumeric(8).toUpperCase()];
       // Fix id
-      defaultAdminUser.getModel().id = CONTEXTS.TENANT_USER_LIST[0].id;
-      await defaultAdminUser.save();
+      defaultAdminUser.id = CONTEXTS.TENANT_USER_LIST[0].id;
+      await UserStorage.saveUser(buildTenant.id, defaultAdminUser);
     }
 
     // Create Central Server Service
@@ -177,11 +179,11 @@ export default class ContextBuilder {
         }
       }
     }
-    let userListToAssign = null;
-    let userList = null;
+    let userListToAssign: User[] = null;
+    let userList: User[] = null;
     // Read admin user
-    const adminUser = (await localCentralServiceService.getEntityById(
-      localCentralServiceService.userApi, defaultAdminUser.getModel(), false)).data;
+    const adminUser: User = (await localCentralServiceService.getEntityById(
+      localCentralServiceService.userApi, defaultAdminUser, false)).data;
     userListToAssign = [adminUser]; // Default admin is always assigned to site
     userList = [adminUser]; // Default admin is always assigned to site
     // Prepare users
@@ -189,9 +191,9 @@ export default class ContextBuilder {
     for (let index = 1; index < CONTEXTS.TENANT_USER_LIST.length; index++) {
       const userDef = CONTEXTS.TENANT_USER_LIST[index];
       const createUser = UserFactory.build();
-      createUser.email = userDef.emailPrefix + defaultAdminUser.getEMail();
+      createUser.email = userDef.emailPrefix + defaultAdminUser.email;
       // Update the password
-      const newPasswordHashed = await User.hashPasswordBcrypt(config.get('admin.password'));
+      const newPasswordHashed = await UserService.hashPasswordBcrypt(config.get('admin.password'));
       createUser.password = newPasswordHashed;
       createUser.role = userDef.role;
       createUser.status = userDef.status;
@@ -199,14 +201,14 @@ export default class ContextBuilder {
       if (userDef.tagIDs) {
         createUser.tagIDs = userDef.tagIDs;
       }
-      const user = new User(buildTenant.id, createUser);
-      user.save();
+      const user: User = createUser;
+      UserStorage.saveUser(buildTenant.id, user);
       if (userDef.assignedToSite) {
-        userListToAssign.push(user.getModel());
+        userListToAssign.push(user);
       }
       // Set back password to clear value for login/logout
-      const userModel = user.getModel();
-      userModel.passwordClear = config.get('admin.password');
+      const userModel = user;
+      (userModel as any).passwordClear = config.get('admin.password'); // TODO ?
       userList.push(userModel);
     }
     // Persist tenant context

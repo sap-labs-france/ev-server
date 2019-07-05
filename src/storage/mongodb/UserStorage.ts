@@ -306,16 +306,19 @@ export default class UserStorage {
       userFilter,
       { $set: userMDB },
       { upsert: true, returnOriginal: false });
-    
+
     // Add tags
     if (userToSave.tagIDs) {
       userToSave.tagIDs = userToSave.tagIDs.filter(tid => tid && tid !== '');
       // Delete Tag IDs
       await global.database.getCollection<any>(tenantID, 'tags')
         .deleteMany({ 'userID': userMDB._id });
-      // Insert new Tag IDs
+
+      if(userToSave.tagIDs.length !== 0) {
+        // Insert new Tag IDs
         await global.database.getCollection<any>(tenantID, 'tags')
         .insertMany(userToSave.tagIDs.map(tid => ({_id: tid, userID: userMDB._id}) ));
+      }
     }
 
     if(saveImage) {
@@ -429,11 +432,6 @@ export default class UserStorage {
           }
         }
       }
-    },
-    {
-      $project: {
-        _id: 0
-      }
     });
     // Filters
     if (filters) {
@@ -450,7 +448,7 @@ export default class UserStorage {
       aggregation.push({
         $lookup: {
           from: DatabaseUtils.getCollectionName(tenantID, 'siteusers'),
-          localField: 'id',
+          localField: '_id',
           foreignField: 'userID',
           as: 'siteusers'
         }
@@ -508,6 +506,11 @@ export default class UserStorage {
     // Limit
     aggregation.push({
       $limit: limit
+    },
+    {
+      $project: {
+        _id: 0
+      }
     });
 
     // Read DB

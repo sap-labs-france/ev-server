@@ -281,7 +281,7 @@ export default {
       await handleRequest(action, req, res, next);
     } catch (error) {
       // Log
-      console.log(error);
+      console.trace(error);
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
   }

@@ -15,6 +15,7 @@ import SiteAreaApi from './SiteAreaApi';
 import TenantApi from './TenantApi';
 import TransactionApi from './TransactionApi';
 import UserApi from './UserApi';
+import User from '../../../src/types/User';
 
 // Set
 chai.use(chaiSubset);
@@ -45,7 +46,7 @@ export default class CentralServerService {
   private _baseApi: BaseApi;
   private _authenticatedUser: any;
 
-  public constructor(tenantSubdomain = null, user = null, superAdminUser = null) {
+  public constructor(tenantSubdomain = null, user: Partial<User> = null, superAdminUser = null) {
     this._tenantSubdomain = tenantSubdomain;
     this._baseURL = `${config.get('server.scheme')}://${config.get('server.host')}:${config.get('server.port')}`;
     // Create the Base API

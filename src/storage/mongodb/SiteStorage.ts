@@ -60,7 +60,7 @@ export default class SiteStorage {
       // At least one User
       if (userIDs && userIDs.length > 0) {
         // Execute
-        await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
+        let res = await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
           "userID": { $in: userIDs.map(userID => Utils.convertToObjectID(userID)) },
           "siteID": Utils.convertToObjectID(siteID)
         });
@@ -139,6 +139,18 @@ export default class SiteStorage {
         ]
       }
     });
+
+    aggregation.push({
+      $addFields: {
+        'user.id': { $toString: '$user._id' }
+      }
+    },
+    {
+      $project: {
+        'user._id': 0
+      }
+    });
+
     // Count Records
     const usersCountMDB = await global.database.getCollection<{count: number}>(tenantID, 'siteusers')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })

@@ -222,7 +222,7 @@ export default class TenantService extends AbstractService {
       tenantUser.verificationToken = verificationToken;
 
       // Save
-      const newUserId = await UserStorage.saveUser(tenant.getID(), tenantUser);
+      const newUserId = await UserStorage.saveUser(newTenant.getID(), tenantUser);
       // Send activation link
       const evseDashboardVerifyEmailURL = Utils.buildEvseURL(newTenant.getSubdomain()) +
         '/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
