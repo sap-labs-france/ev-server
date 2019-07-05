@@ -32,76 +32,72 @@ export default class ChargingStationSecurity {
   }
 
   // Charging Station
-  static filterChargingStationResponse(chargingStation, loggedUser, organizationIsActive) {
+  static filterChargingStationResponse(chargingStation, loggedUser, organizationIsActive: boolean) {
     let filteredChargingStation;
 
-    if (!chargingStation) {
+    if (!chargingStation || !Authorizations.canReadChargingStation(loggedUser)) {
       return null;
     }
 
-    if (organizationIsActive) {
-      if (chargingStation.siteAreaID && !Authorizations.canReadSiteArea(loggedUser, chargingStation.siteArea.siteID)) {
-        return null;
-      }
+    if (organizationIsActive && chargingStation.siteAreaID
+      && !Authorizations.canReadSiteArea(loggedUser, chargingStation.siteArea.siteID)) {
+      return null;
     }
-    // Check auth
-    if (Authorizations.canReadChargingStation(loggedUser)) {
-      // Admin?
-      if (Authorizations.isAdmin(loggedUser.role)) {
-        // Yes: set all params
-        filteredChargingStation = chargingStation;
-        for (const connector of filteredChargingStation.connectors) {
-          if (filteredChargingStation.inactive && connector) {
-            connector.status = Constants.CONN_STATUS_UNAVAILABLE;
-            connector.currentConsumption = 0;
-            connector.totalConsumption = 0;
-            connector.totalInactivitySecs = 0;
-            connector.currentStateOfCharge = 0;
-          }
-        }
-      } else {
-        // Set only necessary info
-        filteredChargingStation = {};
-        filteredChargingStation.id = chargingStation.id;
-        filteredChargingStation.chargeBoxID = chargingStation.chargeBoxID;
-        filteredChargingStation.inactive = chargingStation.inactive;
-        filteredChargingStation.connectors = chargingStation.connectors.map((connector) => {
-          if (!connector) {
-            return connector;
-          }
-          return {
-            'connectorId': connector.connectorId,
-            'status': (filteredChargingStation.inactive ? Constants.CONN_STATUS_UNAVAILABLE : connector.status),
-            'currentConsumption': (filteredChargingStation.inactive ? 0 : connector.currentConsumption),
-            'currentStateOfCharge': (filteredChargingStation.inactive ? 0 : connector.currentStateOfCharge),
-            'totalConsumption': (filteredChargingStation.inactive ? 0 : connector.totalConsumption),
-            'totalInactivitySecs': (filteredChargingStation.inactive ? 0 : connector.totalInactivitySecs),
-            'activeTransactionID': connector.activeTransactionID,
-            'errorCode': connector.errorCode,
-            'type': connector.type,
-            'power': connector.power,
-            'voltage': connector.voltage,
-            'amperage': connector.amperage
-          };
-        });
-        filteredChargingStation.lastHeartBeat = chargingStation.lastHeartBeat;
-        filteredChargingStation.maximumPower = chargingStation.maximumPower;
-        filteredChargingStation.chargePointVendor = chargingStation.chargePointVendor;
-        filteredChargingStation.siteAreaID = chargingStation.siteAreaID;
-        filteredChargingStation.latitude = chargingStation.latitude;
-        filteredChargingStation.longitude = chargingStation.longitude;
-        if (chargingStation.siteArea) {
-          filteredChargingStation.siteArea = chargingStation.siteArea;
+    if (Authorizations.canUpdateChargingStation(loggedUser,
+      chargingStation.siteArea ? chargingStation.siteArea.siteID : null)) {
+      // Yes: set all params
+      filteredChargingStation = chargingStation;
+      for (const connector of filteredChargingStation.connectors) {
+        if (filteredChargingStation.inactive && connector) {
+          connector.status = Constants.CONN_STATUS_UNAVAILABLE;
+          connector.currentConsumption = 0;
+          connector.totalConsumption = 0;
+          connector.totalInactivitySecs = 0;
+          connector.currentStateOfCharge = 0;
         }
       }
-      // Created By / Last Changed By
-      UtilsSecurity.filterCreatedAndLastChanged(
-        filteredChargingStation, chargingStation, loggedUser);
+    } else {
+      // Set only necessary info
+      filteredChargingStation = {};
+      filteredChargingStation.id = chargingStation.id;
+      filteredChargingStation.chargeBoxID = chargingStation.chargeBoxID;
+      filteredChargingStation.inactive = chargingStation.inactive;
+      filteredChargingStation.connectors = chargingStation.connectors.map((connector) => {
+        if (!connector) {
+          return connector;
+        }
+        return {
+          'connectorId': connector.connectorId,
+          'status': (filteredChargingStation.inactive ? Constants.CONN_STATUS_UNAVAILABLE : connector.status),
+          'currentConsumption': (filteredChargingStation.inactive ? 0 : connector.currentConsumption),
+          'currentStateOfCharge': (filteredChargingStation.inactive ? 0 : connector.currentStateOfCharge),
+          'totalConsumption': (filteredChargingStation.inactive ? 0 : connector.totalConsumption),
+          'totalInactivitySecs': (filteredChargingStation.inactive ? 0 : connector.totalInactivitySecs),
+          'activeTransactionID': connector.activeTransactionID,
+          'errorCode': connector.errorCode,
+          'type': connector.type,
+          'power': connector.power,
+          'voltage': connector.voltage,
+          'amperage': connector.amperage
+        };
+      });
+      filteredChargingStation.lastHeartBeat = chargingStation.lastHeartBeat;
+      filteredChargingStation.maximumPower = chargingStation.maximumPower;
+      filteredChargingStation.chargePointVendor = chargingStation.chargePointVendor;
+      filteredChargingStation.siteAreaID = chargingStation.siteAreaID;
+      filteredChargingStation.latitude = chargingStation.latitude;
+      filteredChargingStation.longitude = chargingStation.longitude;
+      if (chargingStation.siteArea) {
+        filteredChargingStation.siteArea = chargingStation.siteArea;
+      }
     }
+    // Created By / Last Changed By
+    UtilsSecurity.filterCreatedAndLastChanged(
+      filteredChargingStation, chargingStation, loggedUser);
     return filteredChargingStation;
   }
 
-  static filterChargingStationsResponse(chargingStations, loggedUser, organizationIsActive) {
+  static filterChargingStationsResponse(chargingStations, loggedUser, organizationIsActive: boolean) {
     const filteredChargingStations = [];
     // Check
     if (!chargingStations.result) {

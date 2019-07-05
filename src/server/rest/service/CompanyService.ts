@@ -152,7 +152,7 @@ export default class CompanyService {
     const companies = await CompanyStorage.getCompanies(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        companyIDs: Authorizations.getAuthorizedEntityIDsFromLoggedUser(Constants.ENTITY_COMPANY, req.user),
+        companyIDs: Authorizations.getAuthorizedCompanyIDs(req.user),
         withSites: filteredRequest.WithSites,
         withLogo: filteredRequest.WithLogo,
         onlyRecordCount: filteredRequest.OnlyRecordCount

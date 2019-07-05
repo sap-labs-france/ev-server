@@ -151,7 +151,7 @@ export default class SiteAreaService {
     const siteAreas = await SiteAreaStorage.getSiteAreas(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        siteIDs: Authorizations.getAuthorizedEntityIDsFromLoggedUser(Constants.ENTITY_SITE, req.user),
+        siteIDs: Authorizations.getAuthorizedSiteIDs(req.user),
         withSite: filteredRequest.WithSite,
         withChargeBoxes: filteredRequest.WithChargeBoxes,
         withAvailableChargers: filteredRequest.WithAvailableChargers,

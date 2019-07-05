@@ -411,7 +411,7 @@ export default class SiteService {
         'search': filteredRequest.Search,
         'userID': filteredRequest.UserID,
         'companyID': filteredRequest.CompanyID,
-        'siteIDs': Authorizations.getAuthorizedEntityIDsFromLoggedUser(Constants.ENTITY_SITE, req.user),
+        'siteIDs': Authorizations.getAuthorizedSiteIDs(req.user),
         'withCompany': filteredRequest.WithCompany,
         'excludeSitesOfUserID': filteredRequest.ExcludeSitesOfUserID,
         'withAvailableChargers': filteredRequest.WithAvailableChargers,

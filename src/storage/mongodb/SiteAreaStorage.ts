@@ -293,13 +293,13 @@ export default class SiteAreaStorage {
         }
         // Add
         siteAreas.push({
-          id: incompleteSiteArea.id,
+          id: incompleteSiteArea.id ? incompleteSiteArea.id.toString() : null,
           address: incompleteSiteArea.address,
           accessControl: incompleteSiteArea.accessControl,
           maximumPower: incompleteSiteArea.maximumPower,
           image: incompleteSiteArea.image,
           name: incompleteSiteArea.name,
-          siteID: incompleteSiteArea.siteID,
+          siteID: incompleteSiteArea.siteID ? incompleteSiteArea.siteID.toString() : null,
           site: site,
           chargingStations: chargingStations,
           availableChargers: availableChargers,
