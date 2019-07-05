@@ -326,7 +326,6 @@ export default class ContextBuilder {
             //siteAreaTemplate.name = siteAreaDef.name;
             siteAreaTemplate.accessControl = siteAreaDef.accessControl;
             siteAreaTemplate.siteID = site.id;
-            console.log(siteAreaTemplate.name);
             const sireAreaID = await SiteAreaStorage.saveSiteArea(buildTenant.id, siteAreaTemplate);
             const siteAreaModel = await SiteAreaStorage.getSiteArea(buildTenant.id, sireAreaID);
             const siteAreaContext = new SiteAreaContext(siteAreaModel, newTenantContext);
@@ -340,7 +339,6 @@ export default class ContextBuilder {
               }
               const chargingStationTemplate = Factory.chargingStation.build();
               chargingStationTemplate.id = chargingStationDef.baseName;
-              console.log(chargingStationTemplate.id);
               await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
             }
           }
