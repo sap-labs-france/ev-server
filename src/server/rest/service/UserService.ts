@@ -4,13 +4,11 @@ import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import bcrypt from 'bcrypt';
 import Constants from '../../../utils/Constants';
-import Database from '../../../utils/Database';
 import ERPService from '../../../integration/pricing/convergent-charging/ERPService';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import RatingService from '../../../integration/pricing/convergent-charging/RatingService';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
-import Site, { SiteUser } from '../../../types/Site';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import User from '../../../types/User';
 import UserSecurity from './security/UserSecurity';
@@ -19,7 +17,6 @@ import { NextFunction, Request, Response } from 'express';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import { HttpUserRequest } from '../../../types/requests/HttpUserRequest';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import { filter } from 'bluebird';
 import passwordGenerator = require('password-generator');
 import crypto from 'crypto';
 
@@ -408,7 +405,7 @@ export default class UserService {
 
     // Filter
     UserSecurity.filterUsersResponse(users, req.user);
-    
+
     // Return
     res.json(users);
     next();

@@ -4,18 +4,25 @@ import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../utils/Constants';
-import { HttpSiteUserAdminRequest } from '../../../types/requests/HttpSiteRequest';
 import Logging from '../../../utils/Logging';
 import Site from '../../../types/Site';
 import SiteSecurity from './security/SiteSecurity';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
-import User from '../../../types/User';
 import UserSecurity from './security/UserSecurity';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 
 export default class SiteService {
+
+  public static async handleAssignUsersToSites(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    await UtilsService.assertComponentIsActive(
+      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+      Constants.ACTION_UPDATE, Constants.ENTITY_SITE, 'SiteService', 'handleAssignUsersToSites');
+  
+    
+  }
 
   public static async handleAddUsersToSite(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
@@ -318,6 +325,7 @@ export default class SiteService {
 
     // Filter
     const id = SiteSecurity.filterSiteRequestByID(req.query);
+      
 
     // Check
     if (!Authorizations.canDeleteSite(req.user)) {
