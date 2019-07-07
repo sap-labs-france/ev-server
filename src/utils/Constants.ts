@@ -285,5 +285,36 @@ export default {
     OCPI_NEW: 'new',
     OCPI_REGISTERED: 'registered',
     OCPI_UNREGISTERED: 'unregistered'
+  },
+
+  MONGO_USER_MASK: {
+    '_id': 0,
+    '__v': 0,
+    'email': 0,
+    'phone': 0,
+    'mobile': 0,
+    'notificationsActive': 0,
+    'iNumber': 0,
+    'costCenter': 0,
+    'status': 0,
+    'createdBy': 0,
+    'createdOn': 0,
+    'lastChangedBy': 0,
+    'lastChangedOn': 0,
+    'role': 0,
+    'password': 0,
+    'locale': 0,
+    'deleted': 0,
+    'passwordWrongNbrTrials': 0,
+    'passwordBlockedUntil': 0,
+    'passwordResetHash': 0,
+    'eulaAcceptedOn': 0,
+    'eulaAcceptedVersion': 0,
+    'eulaAcceptedHash': 0,
+    'image': 0,
+    'address': 0,
+    'plateID': 0,
+    'tagIDs': 0,
+    'verificationToken': 0
   }
 };
