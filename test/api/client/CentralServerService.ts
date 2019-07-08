@@ -160,9 +160,9 @@ export default class CentralServerService {
       expect(response.data).to.have.property('result');
       // All record retrieved
       expect(response.data.count).to.eql(response.data.result.length);
-      // Check created company
+      // Check created entity
       delete entity.locale;
-      expect(response.data.result).to.containSubset([entity]);
+      expect(response.data.result).to.containSubset([{id: entity.id}]);
     } else {
       // Let the caller to handle response
       return response;
