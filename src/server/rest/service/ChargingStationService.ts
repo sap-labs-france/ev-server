@@ -7,11 +7,11 @@ import ChargingStationSecurity from './security/ChargingStationSecurity';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
-import SiteArea from '../../../types/SiteArea';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import Tenant from '../../../entity/Tenant';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
+import { filter } from 'bluebird';
 
 export default class ChargingStationService {
   static async handleAddChargingStationsToSiteArea(action, req, res, next) {
@@ -33,7 +33,7 @@ export default class ChargingStationService {
         'ChargingStationService', 'handleAddChargingStationsToSiteArea', req.user);
     }
     // Check auth
-    if (!Authorizations.canUpdateSiteArea(req.user)) {
+    if (!Authorizations.canUpdateSiteArea(req.user, filteredRequest.siteID)) {
       throw new AppAuthError(
         Constants.ACTION_UPDATE,
         Constants.ENTITY_SITE_AREA,
@@ -60,8 +60,16 @@ export default class ChargingStationService {
           `The Charging Station with ID '${chargingStationID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'ChargingStationService', 'handleAddChargingStationsToSiteArea', req.user);
       }
+      // Get the Site Area
+      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
+      if (!siteArea) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Site Area with ID '${filteredRequest.siteAreaID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+          'ChargingStationService', 'handleAddChargingStationsToSiteArea', req.user);
+      }
       // Check auth
-      if (!Authorizations.canUpdateChargingStation(req.user)) {
+      if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
           Constants.ENTITY_CHARGING_STATION,
@@ -102,16 +110,6 @@ export default class ChargingStationService {
         'The Site Area\'s IDs must be provided', Constants.HTTP_GENERAL_ERROR,
         'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea', req.user);
     }
-    // Check auth
-    if (!Authorizations.canUpdateSiteArea(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_UPDATE,
-        Constants.ENTITY_SITE_AREA,
-        filteredRequest.siteAreaID,
-        Constants.HTTP_AUTH_ERROR,
-        'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea',
-        req.user);
-    }
     // Get the Site Area
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
     if (!siteArea) {
@@ -119,6 +117,16 @@ export default class ChargingStationService {
         Constants.CENTRAL_SERVER,
         `The Site Area with ID '${filteredRequest.siteAreaID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea', req.user);
+    }
+    // Check auth
+    if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
+      throw new AppAuthError(
+        Constants.ACTION_UPDATE,
+        Constants.ENTITY_SITE_AREA,
+        filteredRequest.siteAreaID,
+        Constants.HTTP_AUTH_ERROR,
+        'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea',
+        req.user);
     }
     // Get Charging Stations
     for (const chargingStationID of filteredRequest.chargingStationIDs) {
@@ -130,8 +138,16 @@ export default class ChargingStationService {
           `The Charging Station with ID '${chargingStationID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea', req.user);
       }
+      // Get the Site Area
+      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
+      if (!siteArea) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `The Site Area with ID '${filteredRequest.siteAreaID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+          'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea', req.user);
+      }
       // Check auth
-      if (!Authorizations.canUpdateChargingStation(req.user)) {
+      if (!Authorizations.canUpdateChargingStation(req.user, siteArea.siteID)) {
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
           Constants.ENTITY_CHARGING_STATION,
@@ -165,8 +181,9 @@ export default class ChargingStationService {
         `The Charging Station with ID '${filteredRequest.id}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'ChargingStationService', 'handleUpdateChargingStationParams', req.user);
     }
+    const siteArea = await chargingStation.getSiteArea();
     // Check Auth
-    if (!Authorizations.canUpdateChargingStation(req.user)) {
+    if (!Authorizations.canUpdateChargingStation(req.user, siteArea ? siteArea.siteID : null)) {
       // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_UPDATE, Constants.ENTITY_CHARGING_STATION,

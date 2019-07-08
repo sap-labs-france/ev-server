@@ -48,6 +48,11 @@ export default class OCPPService {
         bootNotification.endpoint = headers.From.Address;
       }
       // Set the ChargeBox ID
+      if (!headers.chargeBoxIdentity) {
+        throw new BackendError(Constants.CENTRAL_SERVER,
+          `Should have the required property 'chargeBoxIdentity'!`,
+          'OCPPUtils', '_checkAndGetChargingStation');
+      }
       bootNotification.id = headers.chargeBoxIdentity;
       // Set the default Heart Beat
       bootNotification.lastReboot = new Date();
@@ -124,7 +129,6 @@ export default class OCPPService {
       // Check if charger will be automatically assigned
       if (Configuration.getTestConfig() && Configuration.getTestConfig().automaticChargerAssignment) {
         // Get all the site areas
-        // FIXME: Please reviews; withSite etc params have been inferred more or less arbitrarily. What is really needed?
         const siteAreas = await SiteAreaStorage.getSiteAreas(headers.tenantID, null,
           { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 }
         );
@@ -143,15 +147,13 @@ export default class OCPPService {
         'heartbeatInterval': this.chargingStationConfig.heartbeatIntervalSecs
       };
     } catch (error) {
-
-      // Set the source
-      error.source = headers.chargeBoxIdentity;
       // Log error
+      error.source = headers.chargeBoxIdentity;
       Logging.logActionExceptionMessage(headers.tenantID, 'BootNotification', error);
       // Reject
       return {
         'status': 'Rejected',
-        'currentTime': bootNotification.timestamp.toISOString(),
+        'currentTime': bootNotification.timestamp ? bootNotification.timestamp.toISOString() : new Date().toISOString(),
         'heartbeatInterval': this.chargingStationConfig.heartbeatIntervalSecs
       };
     }

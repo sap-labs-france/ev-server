@@ -9,8 +9,10 @@ const GRANTS = {
     grants: [
       { resource: 'Users', action: 'List', attributes: ['*'] },
       { resource: 'User', action: ['Create', 'Read', 'Update'], attributes: ['*'] },
-      { resource: 'User', action: 'Delete', attributes: ['*'],
-        condition: { Fn: 'NOT_EQUALS', args: { 'user': '$.owner' } } },
+      {
+        resource: 'User', action: 'Delete', attributes: ['*'],
+        condition: { Fn: 'NOT_EQUALS', args: { 'user': '$.owner' } }
+      },
       { resource: 'Loggings', action: 'List', attributes: ['*'] },
       { resource: 'Logging', action: 'Read', attributes: ['*'] },
       { resource: 'Tenants', action: 'List', attributes: ['*'] },
@@ -21,8 +23,10 @@ const GRANTS = {
     grants: [
       { resource: 'Users', action: 'List', attributes: ['*'] },
       { resource: 'User', action: ['Create', 'Read', 'Update'], attributes: ['*'] },
-      { resource: 'User', action: 'Delete', attributes: ['*'],
-        condition: { Fn: 'NOT_EQUALS', args: { 'user': '$.owner' } } },
+      {
+        resource: 'User', action: 'Delete', attributes: ['*'],
+        condition: { Fn: 'NOT_EQUALS', args: { 'user': '$.owner' } }
+      },
       { resource: 'Companies', action: 'List', attributes: ['*'] },
       { resource: 'Company', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
       { resource: 'Sites', action: 'List', attributes: ['*'] },
@@ -70,8 +74,13 @@ const GRANTS = {
         resource: 'Site', action: ['Read'], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
       },
-      { resource: 'SiteAreas', action: 'List', attributes: ['*'] },
-      { resource: 'SiteArea', action: ['Read'], attributes: ['*'] },
+      {
+        resource: 'SiteAreas', action: 'List', attributes: ['*']
+      },
+      {
+        resource: 'SiteArea', action: ['Read'], attributes: ['*'],
+        condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
+      },
       { resource: 'ChargingStations', action: 'List', attributes: ['*'] },
       {
         resource: 'ChargingStation',
@@ -112,12 +121,14 @@ const GRANTS = {
       'basic': {}
     },
     grants: [
+      { resource: 'Users', action: 'List', attributes: ['*'] },
+      { resource: 'User', action: ['Read', 'Update'], attributes: ['*'] },
       {
-        resource: 'Site', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'],
+        resource: 'Site', action: ['Update', 'Delete'], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
       },
       {
-        resource: 'SiteArea', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'],
+        resource: 'SiteArea', action: ['Create', 'Update', 'Delete'], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
       },
       {

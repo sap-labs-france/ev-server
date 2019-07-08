@@ -107,11 +107,18 @@ export default class ContextBuilder {
       }
     }
     // Check if tenant exist
+    const existingTenant = await Tenant.getTenant(tenantContextDef.id);
+    if (existingTenant) {
+      console.log(`Tenant ${tenantContextDef.id} already exist with name ${existingTenant.getName()}. Please run a destroy context`);
+      throw 'Tenant id exist already';
+
+    }
     let buildTenant: any = {};
     // Create Tenant
     const dummyTenant = TenantFactory.buildTenantCreate();
     dummyTenant.name = tenantContextDef.tenantName;
     dummyTenant.subdomain = tenantContextDef.subdomain;
+    dummyTenant.id = tenantContextDef.id;
     buildTenant = await this.superAdminCentralServerService.createEntity(
       this.superAdminCentralServerService.tenantApi, dummyTenant);
     // Update components

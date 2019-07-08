@@ -68,7 +68,7 @@ export default class UserService {
           'UserService', 'handleAssignSitesToUser', req.user);
       }
       // Check auth
-      if (!Authorizations.canUpdateSite(req.user)) {
+      if (!Authorizations.canUpdateSite(req.user, siteID)) {
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
           Constants.ENTITY_SITE,

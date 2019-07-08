@@ -5,13 +5,12 @@ import BadRequestError from '../../exception/BadRequestError';
 import ConflictError from '../../exception/ConflictError';
 import Constants from '../../utils/Constants';
 import NotFoundError from '../../exception/NotFoundError';
-import UnauthorizedError from '../../exception/UnauthorizedError';
 import Utils from '../../utils/Utils';
 
 export default class ErrorHandler {
   static async errorHandler(err, req, res, next) {
     // Logging.logException(err, 'N/A', Constants.CENTRAL_SERVER, 'ErrorHandler', 'errorHandler', req.user.tenantID, req.user);
-    if (err instanceof AppAuthError || err instanceof UnauthorizedError) {
+    if (err instanceof AppAuthError) {
       await ErrorHandler._handleUnauthorizedError(err, res);
     } else if (err instanceof BadRequestError) {
       await ErrorHandler._handleBadRequestError(err, res);

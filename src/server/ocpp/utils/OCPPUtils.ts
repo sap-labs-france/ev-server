@@ -36,11 +36,16 @@ export default class OCPPUtils {
   }
 
   static async checkAndGetChargingStation(chargeBoxIdentity, tenantID) {
+    // Check
+    if (!chargeBoxIdentity) {
+      throw new BackendError(Constants.CENTRAL_SERVER,
+        `Should have the required property 'chargeBoxIdentity'!`,
+        'OCPPUtils', '_checkAndGetChargingStation');
+    }
     // Get the charging station
     const chargingStation = await ChargingStation.getChargingStation(tenantID, chargeBoxIdentity);
     // Found?
     if (!chargingStation) {
-      // Error
       throw new BackendError(chargeBoxIdentity, 'Charging Station does not exist',
         'OCPPUtils', '_checkAndGetChargingStation');
     }

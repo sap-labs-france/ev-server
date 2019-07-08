@@ -38,9 +38,11 @@ export default class ChargingStationSecurity {
     if (!chargingStation) {
       return null;
     }
-    // Check organization
-    if (organizationIsActive && !Authorizations.isAdmin(loggedUser.role) && (!chargingStation.siteArea || !Authorizations.canReadSite(loggedUser, chargingStation.siteArea.siteID))) {
-      return null;
+
+    if (organizationIsActive) {
+      if (chargingStation.siteAreaID && !Authorizations.canReadSiteArea(loggedUser, chargingStation.siteArea.siteID)) {
+        return null;
+      }
     }
     // Check auth
     if (Authorizations.canReadChargingStation(loggedUser)) {
@@ -49,7 +51,7 @@ export default class ChargingStationSecurity {
         // Yes: set all params
         filteredChargingStation = chargingStation;
         for (const connector of filteredChargingStation.connectors) {
-          if (filteredChargingStation.inactive) {
+          if (filteredChargingStation.inactive && connector) {
             connector.status = Constants.CONN_STATUS_UNAVAILABLE;
             connector.currentConsumption = 0;
             connector.totalConsumption = 0;
@@ -64,6 +66,9 @@ export default class ChargingStationSecurity {
         filteredChargingStation.chargeBoxID = chargingStation.chargeBoxID;
         filteredChargingStation.inactive = chargingStation.inactive;
         filteredChargingStation.connectors = chargingStation.connectors.map((connector) => {
+          if (!connector) {
+            return connector;
+          }
           return {
             'connectorId': connector.connectorId,
             'status': (filteredChargingStation.inactive ? Constants.CONN_STATUS_UNAVAILABLE : connector.status),
@@ -234,6 +239,9 @@ export default class ChargingStationSecurity {
     if (request.connectors) {
       // Filter
       filteredRequest.connectors = request.connectors.map((connector) => {
+        if (!connector) {
+          return connector;
+        }
         return {
           connectorId: sanitize(connector.connectorId),
           power: sanitize(connector.power),

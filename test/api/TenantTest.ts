@@ -100,7 +100,7 @@ describe('Tenant tests', function() {
       const response = await CentralServerService.DefaultInstance.createEntity(
         CentralServerService.DefaultInstance.tenantApi, tenant, false);
       // Check
-      expect(response.status).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.status).to.equal(500);
     });
 
     it('Should not be possible to create a tenant without a name', async () => {
@@ -111,7 +111,7 @@ describe('Tenant tests', function() {
       const response = await CentralServerService.DefaultInstance.createEntity(
         CentralServerService.DefaultInstance.tenantApi, tenant, false);
       // Check
-      expect(response.status).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.status).to.equal(500);
     });
 
     it('Should not be possible to create a tenant without a name', async () => {
@@ -122,7 +122,7 @@ describe('Tenant tests', function() {
       const response = await CentralServerService.DefaultInstance.createEntity(
         CentralServerService.DefaultInstance.tenantApi, tenant, false);
       // Check
-      expect(response.status).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.status).to.equal(500);
     });
 
     it('Should not be possible to create a tenant with an empty email', async () => {
@@ -133,7 +133,7 @@ describe('Tenant tests', function() {
       const response = await CentralServerService.DefaultInstance.createEntity(
         CentralServerService.DefaultInstance.tenantApi, tenant, false);
       // Check
-      expect(response.status).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.status).to.equal(500);
     });
 
     it('Should not be possible to create a tenant with an empty name', async () => {
@@ -144,7 +144,7 @@ describe('Tenant tests', function() {
       const response = await CentralServerService.DefaultInstance.createEntity(
         CentralServerService.DefaultInstance.tenantApi, tenant, false);
       // Check
-      expect(response.status).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.status).to.equal(500);
     });
 
     it('Should not be possible to create a tenant with an empty subdomain', async () => {
@@ -155,7 +155,7 @@ describe('Tenant tests', function() {
       const response = await CentralServerService.DefaultInstance.createEntity(
         CentralServerService.DefaultInstance.tenantApi, tenant, false);
       // Check
-      expect(response.status).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.status).to.equal(500);
     });
 
     it('Should not be possible to create a tenant with an invalid email', async () => {
@@ -166,7 +166,7 @@ describe('Tenant tests', function() {
       const response = await CentralServerService.DefaultInstance.createEntity(
         CentralServerService.DefaultInstance.tenantApi, tenant, false);
       // Check
-      expect(response.status).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.status).to.equal(500);
     });
 
     it('Should not be possible to create a tenant with an invalid name', async () => {
@@ -177,7 +177,7 @@ describe('Tenant tests', function() {
       const response = await CentralServerService.DefaultInstance.createEntity(
         CentralServerService.DefaultInstance.tenantApi, tenant, false);
       // Check
-      expect(response.status).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.status).to.equal(500);
     });
 
     it('Should not be possible to create a tenant with an invalid subdomain', async () => {
@@ -188,7 +188,7 @@ describe('Tenant tests', function() {
       const response = await CentralServerService.DefaultInstance.createEntity(
         CentralServerService.DefaultInstance.tenantApi, tenant, false);
       // Check
-      expect(response.status).to.equal(HttpStatus.BAD_REQUEST);
+      expect(response.status).to.equal(500);
     });
   });
 });

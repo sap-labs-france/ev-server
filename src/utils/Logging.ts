@@ -513,11 +513,13 @@ export default class Logging {
     // Process
     log.process = cluster.isWorker ? 'worker ' + cluster.worker.id : 'master';
 
+    // Anonimize message
+    Logging._anonimizeSensitiveData(log.detailedMessages);
+
     // Check
     if (log.detailedMessages) {
       // Array?
       if (!Array.isArray(log.detailedMessages)) {
-        // Set array
         log.detailedMessages = [log.detailedMessages];
       }
       // Format
@@ -536,6 +538,40 @@ export default class Logging {
     if (Configuration.isCloudFoundry()) {
       // Bind to express app
       CFLog.logMessage(Logging.getCFLogLevel(log.level), log.message);
+    }
+  }
+
+  private static _anonimizeSensitiveData(message: any) {
+    if (!message) {
+      return;
+    }
+    if (typeof message === 'object') {
+      for (const key in message) {
+        if (message.hasOwnProperty(key)) {
+          const value = message[key];
+          // Another JSon?
+          if (typeof value === 'object') {
+            Logging._anonimizeSensitiveData(message[key]);
+          }
+          // Array?
+          if (Array.isArray(value)) {
+            Logging._anonimizeSensitiveData(value);
+          }
+          // String?
+          if (typeof value === 'string') {
+            if (key === 'password' ||
+                key === 'repeatPassword' ||
+                key === 'captcha') {
+              // Anonimize
+              message[key] = Constants.ANONIMIZED_VALUE;
+            }
+          }
+        }
+      }
+    } else if (Array.isArray(message)) {
+      for (const item of message) {
+        Logging._anonimizeSensitiveData(item);
+      }
     }
   }
 
