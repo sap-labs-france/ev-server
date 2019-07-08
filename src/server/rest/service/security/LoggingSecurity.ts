@@ -38,7 +38,7 @@ export default class LoggingSecurity {
     if (!logging) {
       return null;
     }
-    if (!Authorizations.isAdmin(loggedUser.role) && !Authorizations.isSuperAdmin(loggedUser.role)) {
+    if (!Authorizations.canReadLogging(loggedUser)) {
       return null;
     }
     filteredLogging.id = logging.id;

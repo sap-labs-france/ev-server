@@ -38,10 +38,11 @@ export default class SiteAreaService {
     await SiteAreaStorage.deleteSiteArea(req.user.tenantID, siteArea.id);
     // Log
     Logging.logSecurityInfo({
-      tenantID: req.user.tenantID,
-      user: req.user, module: 'SiteAreaService', method: 'handleDeleteSiteArea',
-      message: `Site Area '${siteArea.name}' has been deleted successfully`,
-      action: action, detailedMessages: siteArea }
+        tenantID: req.user.tenantID,
+        user: req.user, module: 'SiteAreaService', method: 'handleDeleteSiteArea',
+        message: `Site Area '${siteArea.name}' has been deleted successfully`,
+        action: action, detailedMessages: siteArea
+      }
     );
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -89,8 +90,14 @@ export default class SiteAreaService {
     const siteAreaID = SiteAreaSecurity.filterSiteAreaRequestByID(req.query);
     // Charge Box is mandatory
     UtilsService.assertIdIsProvided(siteAreaID, 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
+
+    // Get it
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, siteAreaID);
+    // Check
+    UtilsService.assertObjectExists(siteArea, 'Site Area does not exist.', 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
+
     // Check auth
-    if (!Authorizations.canReadSiteArea(req.user, siteAreaID)) {
+    if (siteArea.site || !Authorizations.canReadSiteArea(req.user, siteArea.site.id)) {
       throw new AppAuthError(
         Constants.ACTION_READ,
         Constants.ENTITY_SITE_AREA,
@@ -99,11 +106,11 @@ export default class SiteAreaService {
         req.user);
     }
     // Get it
-    const siteArea = await SiteAreaStorage.getSiteAreaImage(req.user.tenantID, siteAreaID);
+    const siteAreaImage = await SiteAreaStorage.getSiteAreaImage(req.user.tenantID, siteAreaID);
     // Check
-    UtilsService.assertObjectExists(siteArea, 'Site Area does not exist.', 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
+    UtilsService.assertObjectExists(siteAreaImage, 'Site Area Image does not exist.', 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
     // Return
-    res.json({ id: siteArea.id, image: siteArea.image });
+    res.json({ id: siteAreaImage.id, image: siteAreaImage.image });
     next();
   }
 
@@ -127,7 +134,7 @@ export default class SiteAreaService {
     const siteAreas = await SiteAreaStorage.getSiteAreas(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        siteIDs: Authorizations.getAuthorizedEntityIDsFromLoggedUser(Constants.ENTITY_SITE, req.user),
+        siteIDs: Authorizations.getAuthorizedSiteIDs(req.user),
         withSite: filteredRequest.WithSite,
         withChargeBoxes: filteredRequest.WithChargeBoxes,
         withAvailableChargers: filteredRequest.WithAvailableChargers,
@@ -135,7 +142,7 @@ export default class SiteAreaService {
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort },
-      [ 'id', 'name', 'address.latitude', 'address.longitude', 'address.city', 'address.country', 'site.id', 'site.name',
+      ['id', 'name', 'address.latitude', 'address.longitude', 'address.city', 'address.country', 'site.id', 'site.name',
         'chargingStations.id', 'chargingStations.connectors']
     );
     // Filter
@@ -180,7 +187,8 @@ export default class SiteAreaService {
       tenantID: req.user.tenantID,
       user: req.user, module: 'SiteAreaService', method: 'handleCreateSiteArea',
       message: `Site Area '${newSiteArea.name}' has been created successfully`,
-      action: action, detailedMessages: newSiteArea });
+      action: action, detailedMessages: newSiteArea
+    });
     // Ok
     res.json(Object.assign({ id: newSiteArea.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
