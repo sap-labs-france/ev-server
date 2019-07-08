@@ -91,8 +91,8 @@ export default class Authorizations {
       // Get User's Site Admin
       const sitesAdmin = await UserStorage.getSites(
         user.getTenantID(), { userID: user.getID(), siteAdmin: true },
-        {limit: Constants.NO_LIMIT, skip: 0},
-        ["site.id"]
+        { limit: Constants.NO_LIMIT, skip: 0 },
+        ['site.id']
       );
       for (const siteAdmin of sitesAdmin.result) {
         siteAdminIDs.push(siteAdmin.site.id);
@@ -645,7 +645,7 @@ export default class Authorizations {
     const sitesAdmin = await UserStorage.getSites(user.getTenantID(),
       { userID: user.getID(), siteAdmin: true },
       { limit: Constants.NO_LIMIT, skip: 0 },
-      ["userID", "siteAdmin"]
+      ['userID', 'siteAdmin']
     );
     // Get the group from User's role
     const groups = Authorizations.getAuthGroupsFromUser(user.getRole(), sitesAdmin['result']);
@@ -689,7 +689,7 @@ export default class Authorizations {
         'Authorizations', '_checkAndGetUserTagIDOnChargingStation', user.getModel()
       );
     } else {
-      // USer Exists: Check User Deleted?
+      // User Exists: Check User Deleted?
       if (user.getStatus() === Constants.USER_STATUS_DELETED) {
         // Yes: Restore it!
         user.setDeleted(false);

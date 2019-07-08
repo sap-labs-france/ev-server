@@ -93,7 +93,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     return this._sendMessage(this._buildRequest('UpdateFirmware', params));
   }
 
-  _openConnection() {
+  async _openConnection(): Promise<any> {
     // Log
     Logging.logInfo({
       tenantID: this.chargingStation.getTenantID(),
@@ -105,7 +105,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     });
     // Create Promise
     // eslint-disable-next-line no-undef
-    return new Promise((resolve, reject) => {
+    return await new Promise((resolve, reject) => {
       // Create WS
       let WSOptions = {};
       if (Configuration.isCloudFoundry()) {
@@ -157,7 +157,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         Logging.logException(error, 'WSRestConnectionClosed', this.chargingStation.getID(), MODULE_NAME, 'onError', this.chargingStation.getTenantID());
       };
       // Handle Server Message
-      this.wsConnection.onmessage = async (message) => {
+      this.wsConnection.onmessage = (message) => {
         try {
           // Parse the message
           const messageJson = JSON.parse(message.data);
@@ -193,7 +193,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
               this.requests[messageJson[1]].resolve(messageJson[2]);
             }
             // Close WS
-            await this._closeConnection();
+            this._closeConnection();
           }
         } catch (error) {
           // Log

@@ -47,9 +47,8 @@ describe('Unit test Context Builder', function() {
 
 });
 
-function timeout(ms) {
-  // eslint-disable-next-line no-undef
-  return new Promise((resolve) => {
+async function timeout(ms) {
+  return await new Promise((resolve) => {
     return setTimeout(resolve, ms);
   });
 }

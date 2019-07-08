@@ -118,7 +118,9 @@ export default class OCPIMapping {
     const evse_id = OCPIMapping.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.getID()}`);
 
     // Loop through connectors and send one evse per connector
-    const connectors = chargingStation.getConnectors().filter((connector) => connector !== null )
+    const connectors = chargingStation.getConnectors().filter((connector) => {
+      return connector !== null;
+    });
     const evses = connectors.map((connector: any) => {
       const evse: any = {
         'uid': `${chargingStation.getID()}*${connector.connectorId}`,

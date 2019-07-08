@@ -25,8 +25,8 @@ export default class RatingService extends AbstractSoapClient {
     return this.timeout(3000);
   }
 
-  public timeout(delayms: number): Promise<number> {
-    return new Promise((resolve) => {
+  public async timeout(delayms: number): Promise<number> {
+    return await new Promise((resolve) => {
       return setTimeout(resolve, delayms);
     });
   }

@@ -373,9 +373,9 @@ export default class Logging {
     let tenant = tenantID ? tenantID : Constants.DEFAULT_TENANT;
     if (!tenantID && user) {
       // Check if the log can be attached to a tenant
-      if (user.hasOwnProperty('tenantID')) {
+      if (user.tenantID) {
         tenant = user.tenantID;
-      } else if (user.hasOwnProperty('_tenantID')) {
+      } else if (user._tenantID) {
         tenant = user._tenantID;
       }
     }

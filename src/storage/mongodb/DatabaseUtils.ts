@@ -1,6 +1,6 @@
+import { ObjectID } from 'mongodb';
 import Constants from '../../utils/Constants';
 import DbLookup from '../../types/database/DBLookup';
-import { ObjectID } from 'mongodb';
 import Utils from '../../utils/Utils';
 
 const FIXED_COLLECTIONS: string[] = ['tenants', 'migrations'];
@@ -43,35 +43,35 @@ export default class DatabaseUtils {
 
   public static pushSiteLookupInAggregation(lookupParams: DbLookup) {
     DatabaseUtils.pushCollectionLookupInAggregation('sites', {
-      objectIDFields: ['createdBy','lastChangedBy'],
+      objectIDFields: ['createdBy', 'lastChangedBy'],
       ...lookupParams
     });
   }
 
   public static pushUserLookupInAggregation(lookupParams: DbLookup) {
-    this.pushCollectionLookupInAggregation('users', {
-      objectIDFields: ['createdBy','lastChangedBy'],
+    DatabaseUtils.pushCollectionLookupInAggregation('users', {
+      objectIDFields: ['createdBy', 'lastChangedBy'],
       ...lookupParams
     });
   }
 
   public static pushCompanyLookupInAggregation(lookupParams: DbLookup) {
-    this.pushCollectionLookupInAggregation('companies', {
-      objectIDFields: ['createdBy','lastChangedBy'],
+    DatabaseUtils.pushCollectionLookupInAggregation('companies', {
+      objectIDFields: ['createdBy', 'lastChangedBy'],
       ...lookupParams
     });
   }
 
   public static pushSiteAreaLookupInAggregation(lookupParams: DbLookup) {
-    this.pushCollectionLookupInAggregation('siteareas', {
-      objectIDFields: ['siteID','createdBy','lastChangedBy'],
+    DatabaseUtils.pushCollectionLookupInAggregation('siteareas', {
+      objectIDFields: ['siteID', 'createdBy', 'lastChangedBy'],
       ...lookupParams
     });
   }
 
   public static pushChargingStationLookupInAggregation(lookupParams: DbLookup) {
-    this.pushCollectionLookupInAggregation('chargingstations', {
-      objectIDFields: ['siteAreaID','createdBy','lastChangedBy'],
+    DatabaseUtils.pushCollectionLookupInAggregation('chargingstations', {
+      objectIDFields: ['siteAreaID', 'createdBy', 'lastChangedBy'],
       ...lookupParams
     });
   }

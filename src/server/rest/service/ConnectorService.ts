@@ -1,5 +1,6 @@
 import HttpStatusCodes from 'http-status-codes';
 import AbstractConnector from '../../../integration/AbstractConnector';
+import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import ConcurConnector from '../../../integration/refund/ConcurConnector';
@@ -7,7 +8,6 @@ import ConnectionValidator from '../validation/ConnectionValidator';
 import ConnectorSecurity from './security/ConnectorSecurity';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import AppAuthError from '../../../exception/AppAuthError';
 
 const MODULE_NAME = 'ConnectorService';
 

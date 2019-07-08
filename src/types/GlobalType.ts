@@ -9,11 +9,17 @@ interface TSGlobal extends Global {
   centralSystemSoap: any;
   userHashMapIDs: any;
   tenantHashMapIDs: any;
-  Promise: any;
 }
 
 // Export global variables
 declare const global: TSGlobal;
 // AppRoot full path
-global.appRoot = path.resolve(__dirname, '../');
+if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+  global.appRoot = path.resolve(__dirname, '../');
+} else if (process.env.NODE_ENV === 'production') {
+  global.appRoot = path.resolve(__dirname, '../dist');
+} else {
+  console.log('Unknown NODE_ENV defined, exiting');
+  process.exit();
+}
 export default global;

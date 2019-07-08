@@ -31,7 +31,6 @@ describe('ChargingStation Keba tests', function() {
     await testData.dataHelper.destroyData();
   });
 
-
   it('Should not take care about keba clock meterValues', async () => {
     const user = await testData.dataHelper.createUser();
     const company = await testData.dataHelper.createCompany();

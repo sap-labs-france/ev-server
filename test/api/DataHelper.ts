@@ -253,7 +253,7 @@ export default class DataHelper {
     let response;
     // OCPP 1.6?
     if (this.ocpp.getVersion() === '1.6') {
-      const response = await this.ocpp.executeMeterValues(chargingStation.id, {
+      response = await this.ocpp.executeMeterValues(chargingStation.id, {
         connectorId: connectorId,
         transactionId: transactionId,
         meterValue: {
