@@ -870,6 +870,7 @@ export default class OCPPService {
       };
     } catch (error) {
       // Set the source
+      console.log(error);
       error.source = headers.chargeBoxIdentity;
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, 'Authorize', error);

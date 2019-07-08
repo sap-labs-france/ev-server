@@ -144,6 +144,7 @@ export default class UserStorage {
     // Check
     if (tagsMDB && tagsMDB.length > 0) {
       // Ok
+      console.log(tagsMDB[0].userID);
       user = await UserStorage.getUser(tenantID, tagsMDB[0].userID);
     }
     // Debug
@@ -155,7 +156,7 @@ export default class UserStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserByEmail');
 
-    const user = await UserStorage.getUsers(tenantID, {search: email}, {limit: 1, skip: 0});
+    const user = await UserStorage.getUsers(tenantID, {email: email}, {limit: 1, skip: 0});
     //TODO: error handling if no user returned
     
     // Debug
@@ -312,12 +313,12 @@ export default class UserStorage {
       userToSave.tagIDs = userToSave.tagIDs.filter(tid => tid && tid !== '');
       // Delete Tag IDs
       await global.database.getCollection<any>(tenantID, 'tags')
-        .deleteMany({ 'userID': userMDB._id });
+        .deleteMany({ 'userID': userFilter._id });
 
       if(userToSave.tagIDs.length !== 0) {
         // Insert new Tag IDs
         await global.database.getCollection<any>(tenantID, 'tags')
-        .insertMany(userToSave.tagIDs.map(tid => ({_id: tid, userID: userMDB._id}) ));
+        .insertMany(userToSave.tagIDs.map(tid => ({_id: tid, userID: userFilter._id}) ));
       }
     }
 
@@ -352,7 +353,7 @@ export default class UserStorage {
     Logging.traceEnd('UserStorage', 'saveUserImage', uniqueTimerID, { userImageToSave });
   }
 
-  public static async getUsers(tenantID: string, params: {notificationsActive?: boolean, siteID?: string, excludeSiteID?: string, search?:string, userID?:string,role?:string, statuses?:string[], withImage?:boolean}, {limit, skip, onlyRecordCount, sort}: DbParams) {
+  public static async getUsers(tenantID: string, params: {notificationsActive?: boolean, siteID?: string, excludeSiteID?: string, search?:string, userID?:string,email?:string,role?:string, statuses?:string[], withImage?:boolean}, {limit, skip, onlyRecordCount, sort}: DbParams) {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
     // Check Tenant
@@ -387,10 +388,15 @@ export default class UserStorage {
       });
     }
     // UserID: Used only with SiteID
+    if(params.email) {
+      filters.$and.push({
+        'email': params.email
+      });
+    }
     if (params.userID) {
       // Build filter
       filters.$and.push({
-        'id': params.userID
+        '_id': Utils.convertToObjectID(params.userID)
       });
     }
     if (params.role) {
@@ -410,7 +416,13 @@ export default class UserStorage {
     }
     // Create Aggregation
     const aggregation = [];
-  
+    // Filters
+    if (filters) {
+      aggregation.push({
+        $match: filters
+      });
+    }
+
     // Add TagIDs
     aggregation.push({
       $lookup: {
@@ -433,12 +445,7 @@ export default class UserStorage {
         }
       }
     });
-    // Filters
-    if (filters) {
-      aggregation.push({
-        $match: filters
-      });
-    }
+    
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     
@@ -513,10 +520,13 @@ export default class UserStorage {
       }
     });
 
+    console.log(JSON.stringify(aggregation));
     // Read DB
     const usersMDB = await global.database.getCollection<User>(tenantID, 'users')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
+
+    if(usersMDB.length > 0) console.log(JSON.stringify(usersMDB[0].id));
 
     for(let userMDB of usersMDB) {
       delete (usersMDB as any).siteusers;

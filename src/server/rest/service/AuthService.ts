@@ -268,9 +268,7 @@ export default class AuthService {
         Constants.HTTP_USER_EULA_ERROR,
         'AuthService', 'handleLogIn');
     }
-
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
-
     if (!user) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
@@ -283,9 +281,6 @@ export default class AuthService {
         `The user with email '${filteredRequest.email}' is logically deleted`,
         Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleLogIn');
     }
-    //TODO: Might be unnecessary
-    //UserService.checkIfUserValid(filteredRequest, user, req);
-
     // Check if the number of trials is reached
     if (user.passwordWrongNbrTrials >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
       // Check if the user is still locked
