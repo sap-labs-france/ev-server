@@ -108,7 +108,7 @@ export default class ContextBuilder {
     const existingTenant = await Tenant.getTenant(tenantContextDef.id);
     if (existingTenant) {
       console.log(`Tenant ${tenantContextDef.id} already exist with name ${existingTenant.getName()}. Please run a destroy context`);
-      throw 'Tenant id exist already';
+      throw new Error('Tenant id exist already');
 
     }
     let buildTenant: any = {};

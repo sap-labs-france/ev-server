@@ -38,11 +38,11 @@ export default class SiteAreaService {
     await SiteAreaStorage.deleteSiteArea(req.user.tenantID, siteArea.id);
     // Log
     Logging.logSecurityInfo({
-        tenantID: req.user.tenantID,
-        user: req.user, module: 'SiteAreaService', method: 'handleDeleteSiteArea',
-        message: `Site Area '${siteArea.name}' has been deleted successfully`,
-        action: action, detailedMessages: siteArea
-      }
+      tenantID: req.user.tenantID,
+      user: req.user, module: 'SiteAreaService', method: 'handleDeleteSiteArea',
+      message: `Site Area '${siteArea.name}' has been deleted successfully`,
+      action: action, detailedMessages: siteArea
+    }
     );
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);

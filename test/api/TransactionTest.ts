@@ -248,7 +248,7 @@ describe('Transaction tests', function() {
       const response = await testData.centralServerService.transactionApi.readAllCompleted({ ChargeBoxID: chargingStation.id });
       expect(response.status).to.equal(200);
       expect(response.data.count).to.equal(2);
-      expect(response.data.stats).to.containSubset({count: 2});
+      expect(response.data.stats).to.containSubset({ count: 2 });
       expect(response.data.result).to.containSubset([{
         id: transactionId1,
         meterStart: meterStart,
@@ -292,12 +292,12 @@ describe('Transaction tests', function() {
       expect(response.status).to.equal(200);
       expect(response.data.count).to.equal(2);
       expect(response.data.stats).to.containSubset({
-          totalConsumptionWattHours: 2000,
-          totalDurationSecs: 7200,
-          totalPrice: 2,
-          totalInactivitySecs: 0,
-          count: 2
-        }
+        totalConsumptionWattHours: 2000,
+        totalDurationSecs: 7200,
+        totalPrice: 2,
+        totalInactivitySecs: 0,
+        count: 2
+      }
       );
       expect(response.data.result).to.containSubset([{
         id: transactionId1,
@@ -343,15 +343,15 @@ describe('Transaction tests', function() {
       expect(response.status).to.equal(200);
       expect(response.data.count).to.equal(2);
       expect(response.data.stats).to.containSubset({
-          totalConsumptionWattHours: 2000,
-          totalPriceRefund: 0,
-          totalPricePending: 2,
-          currency: 'EUR',
-          countRefundTransactions: 0,
-          countPendingTransactions: 2,
-          countRefundedReports: 0,
-          count: 2
-        }
+        totalConsumptionWattHours: 2000,
+        totalPriceRefund: 0,
+        totalPricePending: 2,
+        currency: 'EUR',
+        countRefundTransactions: 0,
+        countPendingTransactions: 2,
+        countRefundedReports: 0,
+        count: 2
+      }
       );
       expect(response.data.result).to.containSubset([{
         id: transactionId1,
@@ -1057,9 +1057,9 @@ describe('Transaction tests', function() {
 });
 
 
-function timeout(ms) {
+async function timeout(ms) {
   // eslint-disable-next-line no-undef
-  return new Promise((resolve) => {
+  return await new Promise((resolve) => {
     return setTimeout(resolve, ms);
   });
 }

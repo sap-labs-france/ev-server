@@ -219,7 +219,7 @@ export default class Authorizations {
         return;
       }
       // Site -----------------------------------------------------
-      // TODO consider changing structure of CS->SA->S entirely; It's a little inconvenient that sometimes CS includes SA with includes S, which can also include SA, but not always
+      // TODO: consider changing structure of CS->SA->S entirely; It's a little inconvenient that sometimes CS includes SA with includes S, which can also include SA, but not always
       site = siteArea.site ? siteArea.site : (siteArea.siteID ? await SiteStorage.getSite(chargingStation.getTenantID(), siteArea.siteID) : null);
 
       if (!site) {
@@ -688,7 +688,7 @@ export default class Authorizations {
         'Authorizations', '_checkAndGetUserTagIDOnChargingStation', user.getModel()
       );
     } else {
-      // USer Exists: Check User Deleted?
+      // User Exists: Check User Deleted?
       if (user.getStatus() === Constants.USER_STATUS_DELETED) {
         // Yes: Restore it!
         user.setDeleted(false);

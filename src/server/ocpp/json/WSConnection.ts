@@ -11,7 +11,7 @@ import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'WSConnection';
 export default class WSConnection {
-  public tenantIsValid: any;
+  public tenantIsValid: boolean;
   public code: any;
   public message: any;
   public details: any;
@@ -208,12 +208,12 @@ export default class WSConnection {
     return this.sendMessage(messageId, error, Constants.OCPP_JSON_CALL_ERROR_MESSAGE);
   }
 
-  sendMessage(messageId, command, messageType = Constants.OCPP_JSON_CALL_RESULT_MESSAGE, commandName = '') {
+  async sendMessage(messageId, command, messageType = Constants.OCPP_JSON_CALL_RESULT_MESSAGE, commandName = '') {
     // Send a message through WSConnection
     const self = this;
     // Create a promise
     // eslint-disable-next-line no-undef
-    return new Promise((resolve, reject) => {
+    return await new Promise((resolve, reject) => {
       let messageToSend;
       // Type of message
       switch (messageType) {
@@ -292,7 +292,6 @@ export default class WSConnection {
     }
     // No go to the master tenant
     return Constants.DEFAULT_TENANT;
-
   }
 
   setTenantID(tenantID) {
@@ -307,7 +306,7 @@ export default class WSConnection {
     this.tenantIsValid = valid;
   }
 
-  isTenantValid() {
+  isTenantValid(): boolean {
     return this.tenantIsValid;
   }
 

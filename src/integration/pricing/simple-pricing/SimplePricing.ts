@@ -1,4 +1,3 @@
-import Consumption from '../../../entity/Consumption';
 import Pricing, { PricedConsumption, PricingSettings } from '../Pricing';
 import Transaction from '../../../entity/Transaction';
 

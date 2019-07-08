@@ -2,17 +2,13 @@
 // Note : These unit tests use the tenant utall. This tenant should exist prior running these tests.
 //        Run npm run test:createContext to create the needed utall if not present.
 
-import path from 'path';
-import global from '../../src/types/GlobalType';
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
-import CentralServerService from './client/CentralServerService';
-import Constants from './client/utils/Constants';
 import config from '../config';
 import responseHelper from '../helpers/responseHelper';
+import CentralServerService from './client/CentralServerService';
+import Constants from './client/utils/Constants';
 import TestData from './client/utils/TestData';
-
-global.appRoot = path.resolve(__dirname, '../../src');
 
 chai.use(chaiSubset);
 chai.use(responseHelper);

@@ -86,8 +86,8 @@ export default class CompanyStorage {
   }
 
   public static async getCompanies(tenantID: string,
-      params: {search?: string; companyIDs?: string[]; onlyRecordCount?: boolean; withSites?: boolean; withLogo?: boolean} = {},
-      dbParams?: DbParams, projectFields?: string[]): Promise<{count: number; result: Company[]}> {
+    params: {search?: string; companyIDs?: string[]; onlyRecordCount?: boolean; withSites?: boolean; withLogo?: boolean} = {},
+    dbParams?: DbParams, projectFields?: string[]): Promise<{count: number; result: Company[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompanies');
     // Check Tenant
@@ -97,7 +97,7 @@ export default class CompanyStorage {
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    let filters: ({_id?: string; $or?: any[]}|undefined);
+    let filters: ({_id?: ObjectID; $or?: any[]}|undefined);
     // Build filter
     if (params.search) {
       filters = {};

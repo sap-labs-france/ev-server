@@ -21,9 +21,8 @@ export default class OCPPJsonService16 extends OCPPService {
     return '1.6';
   }
 
-  public openConnection(chargeBoxIdentity) {
-    // eslint-disable-next-line no-undef
-    return new Promise((resolve, reject) => {
+  public async openConnection(chargeBoxIdentity) {
+    return await new Promise((resolve, reject) => {
       // Create WS
       const sentRequests = [];
       const wsClientOptions = {
@@ -43,7 +42,7 @@ export default class OCPPJsonService16 extends OCPPService {
         reject(error);
       };
       // Handle Server Message
-      wsConnection.onmessage = (message) => {
+      wsConnection.onmessage = async (message) => {
         const t1 = performance.now();
         try {
           // Parse the message
@@ -59,8 +58,7 @@ export default class OCPPJsonService16 extends OCPPService {
             sentRequests[messageJson[1]].resolve(response);
           } else if (messageJson[0] === OCPP_JSON_CALL_MESSAGE) {
             const [messageType, messageId, commandName, commandPayload] = messageJson;
-            this.handleRequest(chargeBoxIdentity, messageId, commandName, commandPayload);
-
+            await this.handleRequest(chargeBoxIdentity, messageId, commandName, commandPayload);
           }
         } catch (error) {
           // eslint-disable-next-line no-console
@@ -77,7 +75,6 @@ export default class OCPPJsonService16 extends OCPPService {
       result = await this.requestHandler['handle' + commandName](commandPayload);
     }
     await this._send(chargeBoxIdentity, this._buildResponse(messageId, result));
-
   }
 
   public closeConnection() {
@@ -162,7 +159,7 @@ export default class OCPPJsonService16 extends OCPPService {
     await this._wsSessions.get(chargeBoxIdentity).connection.send(JSON.stringify(message));
     if (message[0] === OCPP_JSON_CALL_MESSAGE) {
       // Return a promise
-      return new Promise((resolve, reject) => {
+      return await new Promise((resolve, reject) => {
         // Set the resolve function
         this._wsSessions.get(chargeBoxIdentity).requests[message[1]] = { resolve, reject, t0: t0 };
       });
