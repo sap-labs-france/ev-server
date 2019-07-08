@@ -610,17 +610,17 @@ export default class User extends TenantHolder {
     if (transactions.count > 0) {
       this.setDeleted(true);
       this.setStatus(Constants.USER_STATUS_DELETED);
-      this.setName(Constants.ANONIMIZED_VALUE);
-      this.setFirstName(Constants.ANONIMIZED_VALUE);
+      this.setName(Constants.ANONYMIZED_VALUE);
+      this.setFirstName(Constants.ANONYMIZED_VALUE);
       this.setAddress(null);
       this.setEMail(this.getID());
-      this.setPassword(Constants.ANONIMIZED_VALUE);
-      this.setPasswordResetHash(Constants.ANONIMIZED_VALUE);
-      this.setPhone(Constants.ANONIMIZED_VALUE);
-      this.setMobile(Constants.ANONIMIZED_VALUE);
+      this.setPassword(Constants.ANONYMIZED_VALUE);
+      this.setPasswordResetHash(Constants.ANONYMIZED_VALUE);
+      this.setPhone(Constants.ANONYMIZED_VALUE);
+      this.setMobile(Constants.ANONYMIZED_VALUE);
       this.setNotificationsActive(true);
-      this.setINumber(Constants.ANONIMIZED_VALUE);
-      this.setCostCenter(Constants.ANONIMIZED_VALUE);
+      this.setINumber(Constants.ANONYMIZED_VALUE);
+      this.setCostCenter(Constants.ANONYMIZED_VALUE);
       this.setImage(null);
       // Save User Image
       await this.saveImage();

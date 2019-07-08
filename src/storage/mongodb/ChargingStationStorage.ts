@@ -595,7 +595,6 @@ export default class ChargingStationStorage {
         }
         // Continue
         return true;
-
       });
     }
     // Debug
