@@ -109,31 +109,24 @@ export default class Utils {
   }
 
   static async checkTenant(tenantID) {
+    if (!tenantID) {
+      throw new BackendError(null, 'The Tenant ID is mandatory');
+    }
     // Check in cache
     if (_tenants.indexOf(tenantID) >= 0) {
       return;
     }
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, 'The Tenant ID is mandatory');
-    }
-    // Check if not default tenant?
     if (tenantID !== Constants.DEFAULT_TENANT) {
-      // Check if object id is valid
+      // Valid Object ID?
       if (!ObjectID.isValid(tenantID)) {
-        // Error
         throw new BackendError(null, `Invalid Tenant ID '${tenantID}'`);
       }
-      // Check if the Tenant exists
+      // Get the Tenant
       const tenant = await Tenant.getTenant(tenantID);
-      // Found?
       if (!tenant) {
-        // Error
         throw new BackendError(null, `Invalid Tenant ID '${tenantID}'`);
       }
     }
-    // Ok
     _tenants.push(tenantID);
   }
 
