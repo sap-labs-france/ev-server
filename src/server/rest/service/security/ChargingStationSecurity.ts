@@ -39,12 +39,11 @@ export default class ChargingStationSecurity {
       return null;
     }
 
-    if (organizationIsActive && chargingStation.siteAreaID
-      && !Authorizations.canReadSiteArea(loggedUser, chargingStation.siteArea.siteID)) {
+    const siteID = chargingStation.siteArea ? chargingStation.siteArea.siteID : null;
+    if (organizationIsActive && !Authorizations.canReadSiteArea(loggedUser, siteID)) {
       return null;
     }
-    if (Authorizations.canUpdateChargingStation(loggedUser,
-      chargingStation.siteArea ? chargingStation.siteArea.siteID : null)) {
+    if (Authorizations.canUpdateChargingStation(loggedUser, siteID)) {
       // Yes: set all params
       filteredChargingStation = chargingStation;
       for (const connector of filteredChargingStation.connectors) {
