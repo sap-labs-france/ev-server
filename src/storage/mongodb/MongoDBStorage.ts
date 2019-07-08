@@ -75,7 +75,7 @@ export default class MongoDBStorage {
       // Check each index that should be dropped
       for (const databaseIndex of databaseIndexes) {
         // Bypass ID
-        if (databaseIndex.key.hasOwnProperty('_id')) {
+        if (databaseIndex.key._id) {
           continue;
         }
         // Exists?
@@ -250,7 +250,7 @@ export default class MongoDBStorage {
     }
   }
 
-  async start() {
+  async start(): Promise<void> {
     // Log
     // eslint-disable-next-line no-console
     console.log(`Connecting to '${this.dbConfig.implementation}' ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`);

@@ -5,9 +5,9 @@ const fs = require('fs');
 const config = convict({
   env: {
     doc: 'The test environment.',
-    format: ['local', 'production'],
+    format: ['local', 'production', 'development'],
     default: 'local',
-    env: 'NODE_ENV'
+    env: 'TEST_ENV'
   },
   trace_logs: {
     doc: 'true to trace communication with servers',

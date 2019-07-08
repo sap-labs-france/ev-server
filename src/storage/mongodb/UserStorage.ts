@@ -16,7 +16,7 @@ import Utils from '../../utils/Utils';
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 
 export default class UserStorage {
-  static getLatestEndUserLicenseAgreement(language = 'en') {
+  static getLatestEndUserLicenseAgreement(language = 'en'): string {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getLatestEndUserLicenseAgreement');
 
@@ -329,7 +329,7 @@ export default class UserStorage {
     // Create
     const updatedUser = new User(tenantID, result.value);
     // Add tags
-    if (userToSave.hasOwnProperty('tagIDs')) {
+    if (userToSave.tagIDs) {
       // Delete Tag IDs
       await global.database.getCollection<any>(tenantID, 'tags')
         .deleteMany({ 'userID': Utils.convertToObjectID(updatedUser.getID()) });
@@ -741,8 +741,8 @@ export default class UserStorage {
   }
 
   static async getSites(tenantID,
-      params: { userID: string; siteAdmin?: boolean; onlyRecordCount?: boolean },
-      dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: SiteUser[]}> {
+    params: { userID: string; siteAdmin?: boolean; onlyRecordCount?: boolean },
+    dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: SiteUser[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getSites');
     // Check Tenant
@@ -769,8 +769,8 @@ export default class UserStorage {
       { tenantID, aggregation, localField: 'siteID', foreignField: '_id',
         asField: 'site', oneToOneCardinality: true, oneToOneCardinalityNotNull: true });
     // Convert IDs to String
-    DatabaseUtils.convertObjectIDToString(aggregation, "userID");
-    DatabaseUtils.convertObjectIDToString(aggregation, "siteID");
+    DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
     // Limit records?
     if (!params.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues

@@ -15,7 +15,7 @@ chai.use(responseHelper);
 
 const FAKE_JSON: CypherJSON = { 'sensitiveData': ['content.secret1', 'content.secret2'], 'content': { 'secret1': 'Harry', 'secret2': 'Potter' } };
 const FAKE_WORD = 'Wingardium Leviosa';
-const FAKE_WORD_ENCRYPTED = "73d49673e8f70de6e16ba99bc0c273da:8b9cb41f960d2b50604921a68d7d0382472d";
+const FAKE_WORD_ENCRYPTED = '73d49673e8f70de6e16ba99bc0c273da:8b9cb41f960d2b50604921a68d7d0382472d';
 
 describe('Cypher Tests', function() {
   this.timeout(30000);
@@ -27,6 +27,7 @@ describe('Cypher Tests', function() {
     });
 
     it('Check that hashing works', () => {
+      // FIXME: check against the expected hashed value
       const hashed = cypher.hash(FAKE_WORD);
       expect(FAKE_WORD).to.not.equal(hashed);
     });

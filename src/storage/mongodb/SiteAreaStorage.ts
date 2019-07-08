@@ -207,7 +207,7 @@ export default class SiteAreaStorage {
     if (siteAreasMDB && siteAreasMDB.length > 0) {
       // Create
       for (const siteAreaMDB of siteAreasMDB) {
-        let chargingStations: ChargingStation[];
+        // let chargingStations: ChargingStation[];
         let availableChargers = 0, totalChargers = 0, availableConnectors = 0, totalConnectors = 0;
         // Count Available/Occupied Chargers/Connectors
         if (params.withAvailableChargers) {

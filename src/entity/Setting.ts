@@ -28,7 +28,8 @@ export default class Setting extends TenantHolder {
           }
         } else {
           // Changed?
-          if (!currentSettingContent.hasOwnProperty(activeComponent.type)) {
+          // eslint-disable-next-line no-lonely-if
+          if (!currentSettingContent.activeComponent.type) {
             // Create new settings
             if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE) {
               return { 'type': 'simple', 'simple': {} };
@@ -47,7 +48,7 @@ export default class Setting extends TenantHolder {
           return { 'type': 'concur', 'concur': {} };
         }
         // Changed?
-        if (!currentSettingContent.hasOwnProperty(activeComponent.type)) {
+        if (!currentSettingContent.activeComponent.type) {
           return { 'type': 'concur', 'concur': {} };
         }
 
@@ -61,7 +62,7 @@ export default class Setting extends TenantHolder {
           return { 'type': 'gireve', 'ocpi': {} };
         }
         // Changed?
-        if (!currentSettingContent.hasOwnProperty(activeComponent.type)) {
+        if (!currentSettingContent.activeComponent.type) {
           return { 'type': 'gireve', 'ocpi': {} };
         }
 
@@ -75,7 +76,7 @@ export default class Setting extends TenantHolder {
           return { 'type': 'sac', 'sac': {} };
         }
         // Changed?
-        if (!currentSettingContent.hasOwnProperty(activeComponent.type)) {
+        if (!currentSettingContent.activeComponent.type) {
           return { 'type': 'sac', 'sac': {} };
         }
 

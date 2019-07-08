@@ -15,62 +15,62 @@ export default class OCPPSoapService15 extends OCPPService {
     return '1.5';
   }
 
-  public executeAuthorize(chargeBoxIdentity, payload) {
-    return this._execute(
+  public async executeAuthorize(chargeBoxIdentity, payload) {
+    return await this._execute(
       this._buildSOAPRequest(chargeBoxIdentity, 'Authorize', payload)
     );
   }
 
-  public executeStartTransaction(chargeBoxIdentity, payload) {
-    return this._execute(
+  public async executeStartTransaction(chargeBoxIdentity, payload) {
+    return await this._execute(
       this._buildSOAPRequest(chargeBoxIdentity, 'StartTransaction', payload)
     );
   }
 
-  public executeStopTransaction(chargeBoxIdentity, payload) {
-    return this._execute(
+  public async executeStopTransaction(chargeBoxIdentity, payload) {
+    return await this._execute(
       this._buildSOAPRequest(chargeBoxIdentity, 'StopTransaction', payload)
     );
   }
 
-  public executeHeartbeat(chargeBoxIdentity, payload) {
-    return this._execute(
+  public async executeHeartbeat(chargeBoxIdentity, payload) {
+    return await this._execute(
       this._buildSOAPRequest(chargeBoxIdentity, 'Heartbeat', payload)
     );
   }
 
-  public executeMeterValues(chargeBoxIdentity, payload) {
-    return this._execute(
+  public async executeMeterValues(chargeBoxIdentity, payload) {
+    return await this._execute(
       this._buildSOAPRequest(chargeBoxIdentity, 'MeterValues', payload)
     );
   }
 
-  public executeBootNotification(chargeBoxIdentity, payload) {
-    return this._execute(
+  public async executeBootNotification(chargeBoxIdentity, payload) {
+    return await this._execute(
       this._buildSOAPRequest(chargeBoxIdentity, 'BootNotification', payload)
     );
   }
 
-  public executeStatusNotification(chargeBoxIdentity, payload) {
-    return this._execute(
+  public async executeStatusNotification(chargeBoxIdentity, payload) {
+    return await this._execute(
       this._buildSOAPRequest(chargeBoxIdentity, 'StatusNotification', payload)
     );
   }
 
-  public executeFirmwareStatusNotification(chargeBoxIdentity, payload) {
-    return this._execute(
+  public async executeFirmwareStatusNotification(chargeBoxIdentity, payload) {
+    return await this._execute(
       this._buildSOAPRequest(chargeBoxIdentity, 'FirmwareStatusNotification', payload)
     );
   }
 
-  public executeDiagnosticsStatusNotification(chargeBoxIdentity, payload) {
-    return this._execute(
+  public async executeDiagnosticsStatusNotification(chargeBoxIdentity, payload) {
+    return await this._execute(
       this._buildSOAPRequest(chargeBoxIdentity, 'DiagnosticsStatusNotification', payload)
     );
   }
 
-  public executeDataTransfer(chargeBoxIdentity, payload) {
-    return this._execute(
+  public async executeDataTransfer(chargeBoxIdentity, payload) {
+    return await this._execute(
       this._buildSOAPRequest(chargeBoxIdentity, 'DataTransfer', payload)
     );
   }
