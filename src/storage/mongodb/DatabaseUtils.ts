@@ -1,6 +1,6 @@
-import { filter } from 'bluebird';
-import { ObjectID } from 'mongodb';
 import Constants from '../../utils/Constants';
+import DbLookup from '../../types/database/DBLookup';
+import { ObjectID } from 'mongodb';
 import Utils from '../../utils/Utils';
 
 const FIXED_COLLECTIONS: string[] = ['tenants', 'migrations'];
@@ -11,93 +11,13 @@ export default class DatabaseUtils {
     return FIXED_COLLECTIONS;
   }
 
-  public static pushCreatedLastChangedInAggregation(tenantID: string, aggregation: any[], fieldOf: string = ''): void {
-    // Filter
-    const filterUserFields = {
-      '_id': 0,
-      '__v': 0,
-      'email': 0,
-      'phone': 0,
-      'mobile': 0,
-      'notificationsActive': 0,
-      'iNumber': 0,
-      'costCenter': 0,
-      'status': 0,
-      'createdBy': 0,
-      'createdOn': 0,
-      'lastChangedBy': 0,
-      'lastChangedOn': 0,
-      'role': 0,
-      'password': 0,
-      'locale': 0,
-      'deleted': 0,
-      'passwordWrongNbrTrials': 0,
-      'passwordBlockedUntil': 0,
-      'passwordResetHash': 0,
-      'eulaAcceptedOn': 0,
-      'eulaAcceptedVersion': 0,
-      'eulaAcceptedHash': 0,
-      'image': 0,
-      'address': 0
-    };
-    // Created By
-    aggregation.push({
-      $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
-        localField: (fieldOf.length === 0 ? '' : fieldOf + '.') + 'createdBy',
-        foreignField: '_id',
-        as: (fieldOf.length === 0 ? '' : fieldOf + '.') + 'createdBy'
-      }
-    });
-
-    // Single Record
-    aggregation.push({
-      $unwind: { 'path': `$${(fieldOf.length === 0 ? '' : fieldOf + '.')}createdBy`, 'preserveNullAndEmptyArrays': true }
-    });
-    // Rename id & convert to string to fit type schema
-    let addFieldsContent: any = {};
-    addFieldsContent[(fieldOf.length === 0 ? '' : fieldOf + '.') + 'createdBy.id'] = { $toString: `$${(fieldOf.length === 0 ? '' : fieldOf + '.')}createdBy._id` };
-    aggregation.push({ $addFields: addFieldsContent });
-
-    let projectContent: any = {};
-    projectContent[(fieldOf.length === 0 ? '' : fieldOf + '.') + 'createdBy'] = filterUserFields;
-    // Filter
-    aggregation.push({
-      $project: projectContent
-    });
-    // Last Changed By
-    aggregation.push({
-      $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
-        localField: (fieldOf.length === 0 ? '' : fieldOf + '.') + 'lastChangedBy',
-        foreignField: '_id',
-        as: (fieldOf.length === 0 ? '' : fieldOf + '.') + 'lastChangedBy'
-      }
-    });
-    // Single Record
-    aggregation.push({
-      $unwind: { 'path': `$${(fieldOf.length === 0 ? '' : fieldOf + '.')}lastChangedBy`, 'preserveNullAndEmptyArrays': true }
-    });
-    // Prep for type schema
-    addFieldsContent = {};
-    addFieldsContent[(fieldOf.length === 0 ? '' : fieldOf + '.') + 'lastChangedBy.id'] = { $toString: `$${(fieldOf.length === 0 ? '' : fieldOf + '.')}lastChangedBy._id` };
-    aggregation.push({ $addFields: addFieldsContent });
-
-    // Filter
-    projectContent = {};
-    projectContent[(fieldOf.length === 0 ? '' : fieldOf + '.') + 'lastChangedBy'] = filterUserFields;
-    aggregation.push({
-      $project: projectContent
-    });
+  public static pushCreatedLastChangedInAggregation(tenantID: string, aggregation: any[]): void {
+    // Add Created By
+    DatabaseUtils._pushUserInAggregation(tenantID, aggregation, 'createdBy');
+    // Add Last Changed By
+    DatabaseUtils._pushUserInAggregation(tenantID, aggregation, 'lastChangedBy');
   }
 
-  /**
-   * Computes and returns the name of a collection.
-   *
-   * @param tenantID the tenant identifier of the collection
-   * @param collectionNameSuffix the collection name suffix
-   * @returns {String} the collection name prefixed by the tenant identifier if the collection is specific to a tenant. Returns the collection name suffix elsewhere.
-   */
   public static getCollectionName(tenantID: string, collectionNameSuffix: string): string {
     let prefix = Constants.DEFAULT_TENANT;
     if (!FIXED_COLLECTIONS.includes(collectionNameSuffix) && ObjectID.isValid(tenantID)) {
@@ -106,107 +26,169 @@ export default class DatabaseUtils {
     return `${prefix}.${collectionNameSuffix}`;
   }
 
-
-  public static pushSiteAreaJoinInAggregation(tenantID: string, aggregation: any[], local: string, foreign: string, as: string, includes: string[], topCreatedProps: 'none'|'manual'|'include', single: boolean = false) {
-    DatabaseUtils.pushTransformedJoinInAggregation(
-      tenantID,
-      aggregation,
-      'siteareas',
-      local,
-      foreign,
-      as,
-      includes,
-      {},
-      ['address', 'name', 'maximumPower', 'image', 'siteID', 'accessControl'],
-      { siteID: { $toString: `$${as}.siteID` } },
-      topCreatedProps,
-      true,
-      single);
+  public static getNotDeletedFilter(fieldName?: string) {
+    if (fieldName) {
+      return JSON.parse(`[
+        { "${fieldName}.deleted": { "$exists": false } },
+        { "${fieldName}.deleted": false },
+        { "${fieldName}.deleted": null }
+      ]`);
+    }
+    return [
+      { 'deleted': { $exists: false } },
+      { 'deleted': null },
+      { 'deleted': false }
+    ];
   }
 
-  // WOSWOI = Without Site Without Image, bad name, change... SimpleCompany?
-  public static pushCompanyWOSWOIJoinInAggregation(tenantID: string, aggregation: any[], local: string, foreign: string, as: string, includes: string[], topCreatedProps: 'none'|'manual'|'include') {
-    DatabaseUtils.pushTransformedJoinInAggregation(
-      tenantID,
-      aggregation,
-      'companies',
-      local,
-      foreign,
-      as,
-      includes,
-      {},
-      ['name', 'address'],
-      {},
-      topCreatedProps,
-      true,
-      true);
+  public static pushSiteLookupInAggregation(lookupParams: DbLookup) {
+    DatabaseUtils.pushCollectionLookupInAggregation('sites', {
+      objectIDFields: ['createdBy','lastChangedBy'],
+      ...lookupParams
+    });
   }
 
-  public static pushBasicSiteJoinInAggregation(tenantID: string, aggregation: any[], local: string, foreign: string, as: string, includes: string[], topCreatedProps: 'none'|'manual'|'include', single: boolean) {
-    DatabaseUtils.pushTransformedJoinInAggregation(tenantID, aggregation, 'sites', local, foreign, as, includes, {},
-      ['name', 'address', 'companyID', 'allowAllUsersToStopTransactions', 'autoUserSiteAssignment'],
-      { companyID: { $toString: `$${as}.companyID` } }, topCreatedProps, true, single);
+  public static pushUserLookupInAggregation(lookupParams: DbLookup) {
+    this.pushCollectionLookupInAggregation('users', {
+      objectIDFields: ['createdBy','lastChangedBy'],
+      ...lookupParams
+    });
   }
 
-  public static pushTransformedJoinInAggregation(tenantID: string, aggregation: any[], joinCollection: string, local: string, foreign: string, intoField: string, topIncludes: string[], topRenames: any, nestedIncludes: string[],
-    nestedRenames: any, topCreatedProps: 'none'|'manual'|'include', joinCreatedProps: boolean, single: boolean) {
+  public static pushCompanyLookupInAggregation(lookupParams: DbLookup) {
+    this.pushCollectionLookupInAggregation('companies', {
+      objectIDFields: ['createdBy','lastChangedBy'],
+      ...lookupParams
+    });
+  }
 
-    if (topCreatedProps === 'manual' || topCreatedProps === 'include') {
-      topIncludes.push('createdBy', 'createdOn', 'lastChangedBy', 'lastChangedOn');
-    }
-    if (joinCreatedProps) {
-      nestedIncludes.push('createdBy', 'createdOn', 'lastChangedBy', 'lastChangedOn');
-    }
+  public static pushSiteAreaLookupInAggregation(lookupParams: DbLookup) {
+    this.pushCollectionLookupInAggregation('siteareas', {
+      objectIDFields: ['siteID','createdBy','lastChangedBy'],
+      ...lookupParams
+    });
+  }
 
-    const initialJoin = { $lookup: {
-      from: DatabaseUtils.getCollectionName(tenantID, joinCollection),
-      localField: local,
-      foreignField: foreign,
-      as: intoField
-    } };
-    const project = { $project: {
-      ...topRenames } };
-    const group = { $group: { _id: '$_id' } };
-    for (const top of topIncludes) {
-      project.$project[top] = 1;
-      group.$group[top] = { $first: `$${top}` };
-    }
-    group.$group[intoField] = { $push: `$${intoField}` };
-    project.$project[intoField] = { ...nestedRenames };
-    project.$project[intoField].id = { $toString: `$${intoField}._id` };
-    for (const nes of nestedIncludes) {
-      project.$project[intoField][nes] = 1;
-    }
-    // Need to group, push users, then project to remove id
-    aggregation.push(
-      initialJoin,
-      { $unwind: { path: `$${intoField}`, preserveNullAndEmptyArrays: true } },
-      project
-    );
-    if (joinCreatedProps) {
-      DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation, intoField);
-    }
+  public static pushChargingStationLookupInAggregation(lookupParams: DbLookup) {
+    this.pushCollectionLookupInAggregation('chargingstations', {
+      objectIDFields: ['siteAreaID','createdBy','lastChangedBy'],
+      ...lookupParams
+    });
+  }
 
-    if (!single) {
-      aggregation.push(group);
+  public static pushCollectionLookupInAggregation(collection: string, lookupParams: DbLookup) {
+    // Build Lookup's pipeline
+    const pipeline: any[] = [
+      { '$match': { '$expr': { '$eq': [`$${lookupParams.foreignField}`, '$$fieldVar'] } } }
+    ];
+    // Replace ID field
+    DatabaseUtils.renameDatabaseID(pipeline);
+    // Convert ObjectID fields to String
+    if (lookupParams.objectIDFields) {
+      for (const foreignField of lookupParams.objectIDFields) {
+        DatabaseUtils.convertObjectIDToString(pipeline, foreignField);
+      }
     }
-    aggregation.push({ $addFields: { id: '$_id' } });
-
-    if (topCreatedProps === 'include') {
-      DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
+    // Add Projected fields
+    DatabaseUtils.projectFields(pipeline, lookupParams.projectedFields);
+    // Create Lookup
+    lookupParams.aggregation.push({
+      $lookup: {
+        from: DatabaseUtils.getCollectionName(lookupParams.tenantID, collection),
+        'let': { 'fieldVar': `$${lookupParams.localField}` },
+        pipeline,
+        'as': lookupParams.asField
+      }
+    });
+    // One record?
+    if (lookupParams.oneToOneCardinality) {
+      lookupParams.aggregation.push({
+        $unwind: { path: `$${lookupParams.asField}`, preserveNullAndEmptyArrays: !lookupParams.oneToOneCardinalityNotNull }
+      });
     }
-  } // TODO: createdBy.id gets set even if user is null, giving illusion that there is a user. Take care
+  }
 
+  static projectFields(aggregation: any[], projectedFields: string[]) {
+    if (projectedFields) {
+      const project = {
+        $project: {}
+      };
+      for (const projectedField of projectedFields) {
+        project.$project[projectedField] = 1;
+      }
+      aggregation.push(project);
+    }
+  }
 
-  public static includeCreatedProps(obj: any) {
-    obj.createdBy = 1;
-    obj.createdOn = 1;
-    obj.lastChangedBy = 1;
-    obj.lastChangedOn = 1;
+  public static convertObjectIDToString(aggregation: any[], fieldName: string, renamedFieldName?: string) {
+    if (!renamedFieldName) {
+      renamedFieldName = fieldName;
+    }
+    // Convert to string
+    aggregation.push(JSON.parse(`{
+      "$addFields": {
+        "${renamedFieldName}": { "$toString": "$${fieldName}" }
+      }
+    }`));
+  }
+
+  public static renameField(aggregation: any[], fieldName: string, renamedFieldName: string) {
+    // Rename
+    aggregation.push(JSON.parse(`{
+      "$addFields": {
+        "${renamedFieldName}": "$${fieldName}"
+      }
+    }`));
+    // Delete
+    aggregation.push(JSON.parse(`{
+      "$project": {
+        "${fieldName}": 0
+      }
+    }`));
+  }
+
+  // TODO: Can probably be removed once user gets typed. For now use as shortcut.
+  public static addLastChangedCreatedProps(dest: any, entity: any) {
+    if (entity.createdBy && entity.createdOn) {
+      dest.createdBy = DatabaseUtils._mongoConvertUserID(entity, 'createdBy');
+      dest.createdOn = entity.createdOn;
+    }
+    if (entity.lastChangedBy && entity.lastChangedOn) {
+      dest.lastChangedBy = DatabaseUtils._mongoConvertUserID(entity, 'lastChangedBy');
+      dest.lastChangedOn = entity.lastChangedOn;
+    }
+  }
+
+  public static renameDatabaseID(aggregation: any[], nestedField?: string) {
+    // Root document?
+    if (!nestedField) {
+      // Convert ID to string
+      DatabaseUtils.convertObjectIDToString(aggregation, '_id', 'id');
+      // Remove IDs
+      aggregation.push({
+        $project: {
+          '_id': 0,
+          '__v': 0
+        }
+      });
+    } else {
+      // Convert ID to string
+      DatabaseUtils.convertObjectIDToString(
+        aggregation, `${nestedField}._id`, `${nestedField}.id`);
+      // Remove IDs
+      const project = {
+        $project: {}
+      };
+      project.$project[nestedField] = {
+        '__v': 0,
+        '_id': 0
+      };
+      aggregation.push(project);
+    }
   }
 
   // Temporary hack to fix user Id saving. fix all this when user is typed...
-  public static mongoConvertUserID(obj: any, prop: string): ObjectID|null {
+  private static _mongoConvertUserID(obj: any, prop: string): ObjectID|null {
     if (!obj || !obj[prop]) {
       return null;
     }
@@ -219,16 +201,31 @@ export default class DatabaseUtils {
     return null;
   }
 
-  // TODO: Can probably be removed once user gets typed. For now use as shortcut.
-  public static mongoConvertLastChangedCreatedProps(dest: any, entity: any) {
-    if (entity.createdBy && entity.createdOn) {
-      dest.createdBy = DatabaseUtils.mongoConvertUserID(entity, 'createdBy');
-      dest.createdOn = entity.createdOn;
-    }
-    if (entity.lastChangedBy && entity.lastChangedOn) {
-      dest.lastChangedBy = DatabaseUtils.mongoConvertUserID(entity, 'lastChangedBy');
-      dest.lastChangedOn = entity.lastChangedOn;
-    }
+  private static _pushUserInAggregation(tenantID: string, aggregation: any[], fieldName: string) {
+    // Created By Lookup
+    aggregation.push({
+      $lookup: {
+        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
+        localField: fieldName,
+        foreignField: '_id',
+        as: fieldName
+      }
+    });
+    // Single Record
+    aggregation.push({
+      $unwind: { 'path': `$${fieldName}`, 'preserveNullAndEmptyArrays': true }
+    });
+    // Replace nested ID field
+    DatabaseUtils.renameDatabaseID(aggregation, fieldName);
+    // Handle null
+    const addNullFields: any = {};
+    addNullFields[`${fieldName}`] = { $cond : { if: { $gt: [`$${fieldName}.id`, null] }, then: `$${fieldName}`, else: null } };
+    aggregation.push({ $addFields: addNullFields });
+    // Project
+    const projectFields: any = {};
+    projectFields[`${fieldName}`] = Constants.MONGO_USER_MASK;
+    aggregation.push({
+      $project: projectFields
+    });
   }
-
 }
