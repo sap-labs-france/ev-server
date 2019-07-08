@@ -47,9 +47,6 @@ export default class SiteAreaStorage {
     );
     // Debug
     Logging.traceEnd('SiteAreaStorage', 'getSiteArea', uniqueTimerID, { id, withChargeBoxes: params.withChargeBoxes, withSite: params.withSite });
-    if (siteAreaResult.result && siteAreaResult.result.length > 0 && siteAreaResult.result[0].siteID) {
-      siteAreaResult.result[0].siteID = siteAreaResult.result[0].siteID.toString();
-    }
     return siteAreaResult.result[0];
   }
 
