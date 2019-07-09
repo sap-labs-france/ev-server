@@ -159,8 +159,8 @@ export default class EMailNotificationTask extends NotificationTask {
     // Remove extra empty lines
     Utils.removeExtraEmptyLines(emailTemplate.body.afterActionLines);
     // Render the final HTML -----------------------------------------------
-    const subject = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/subject.mustache`, 'utf8'), emailTemplate);
-    const html = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/template.html`, 'utf8'), emailTemplate);
+    const subject = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/subject.template`, 'utf8'), emailTemplate);
+    const html = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/body.template`, 'utf8'), emailTemplate);
     // Add Admins in BCC from Configuration
     let adminEmails = null;
     if (data.adminUsers && data.adminUsers.length > 0) {
