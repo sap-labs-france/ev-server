@@ -10,5 +10,6 @@
   "reporter-options": "reportDir=outputs/mochawesome-report,json=false",
   "slow": 75,
   "timeout": 2000,
-  "ui": "bdd"
+  "ui": "bdd",
+  "fullStackTrace": true
 }

@@ -25,7 +25,7 @@ class TestData {
 let testData: TestData;
 
 describe('Transaction tests', function() {
-  this.timeout(10000);
+  this.timeout(1000000);
   before(async () => {
     testData = new TestData();
     await testData.init();

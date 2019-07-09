@@ -204,7 +204,6 @@ export default class CentralServerService {
     const response = await entityApi.delete(entity.id);
     // Check
     if (performCheck) {
-      // Check
       expect(response.status).to.equal(200);
       expect(response.data.status).to.eql('Success');
       return response;
