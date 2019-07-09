@@ -125,7 +125,17 @@ export default class LoggingStorage {
     // Charging Station
     if (params.source) {
       // Yes, add in filter
-      filters.source = params.source;
+      // Parse source with the | delimiter
+      const sourceSplitted = params.source.split('|');
+      if(sourceSplitted.length > 1) {
+        const sourceArray = [];
+        sourceSplitted.forEach((source)=>{
+          sourceArray.push({"action": source});
+        });
+        filters.$or = sourceArray;
+      } else {
+        filters.source = params.source;
+      }
     }
     // Type
     if (params.type) {
@@ -135,15 +145,29 @@ export default class LoggingStorage {
     // Action
     if (params.action) {
       // Yes, add in filter
-      filters.action = params.action;
+      // Parse action with the | delimiter for multiple values
+      const actionSplitted = params.action.split('|');
+      if(actionSplitted.length > 1) {
+        const actionArray = [];
+        actionSplitted.forEach((action)=>{
+          actionArray.push({"action": action});
+        });
+        filters.$or = actionArray;
+      } else {
+        filters.action = params.action;
+      }
     }
     // User ID
     if (params.userID) {
       // Yes, add in filter
-      filters.$or = [
-        { 'userID': Utils.convertToObjectID(params.userID) },
-        { 'actionOnUserID': Utils.convertToObjectID(params.userID) }
-      ];
+      // Parse action with the | delimiter for multiple values
+      const userSplitted = params.userID.split('|');
+      const userArray = [];
+      userSplitted.forEach((user)=>{
+        userArray.push({"userID": Utils.convertToObjectID(user)});
+        userArray.push({"actionOnUserID": Utils.convertToObjectID(user)});
+      });
+      filters.$or = userArray;
     }
     // Source?
     if (params.search) {

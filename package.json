@@ -162,6 +162,9 @@
     "test:authentication": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha -r ts-node/register test/**/AuthenticationTest.ts --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
     "test:company": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha -r ts-node/register test/**/CompanyTest.ts --exit --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
     "test:createContext": "ts-mocha -p tsconfig-test.json test/**/ContextBuilderRunner.ts --exit --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
+    "test:logs": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha -r ts-node/register test/**/*LoggingTest.ts --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
+    "test:encryptionSetting": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha -r ts-node/register test/**/*EncryptionSettingTest.ts --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
+    "test:big": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha -r ts-node/register test/**/BigBuilderRunner.ts --exit --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
     "clinic:clean": "clinic clean",
     "npm-check": "npm-check"
   },

@@ -15,6 +15,7 @@ import SiteAreaApi from './SiteAreaApi';
 import TenantApi from './TenantApi';
 import TransactionApi from './TransactionApi';
 import UserApi from './UserApi';
+import LogsApi from './LogsApi';
 
 // Set
 chai.use(chaiSubset);
@@ -38,6 +39,7 @@ export default class CentralServerService {
   public authenticatedSuperAdminApi: AuthenticatedBaseApi;
   public authenticationApi: AuthenticationApi;
   public tenantApi: TenantApi;
+  public logsApi: LogsApi;
   public mailApi: MailApi;
 
   private _tenantSubdomain: string;
@@ -72,6 +74,7 @@ export default class CentralServerService {
     this.chargingStationApi = new ChargingStationApi(this.authenticatedApi, this._baseApi);
     this.transactionApi = new TransactionApi(this.authenticatedApi);
     this.settingApi = new SettingApi(this.authenticatedApi);
+    this.logsApi = new LogsApi(this.authenticatedApi);
     this.ocpiEndpointApi = new OCPIEndpointApi(this.authenticatedApi);
     if (superAdminUser) {
       this.authenticatedSuperAdminApi = new AuthenticatedBaseApi(this._baseURL, superAdminUser.email, superAdminUser.password, '');

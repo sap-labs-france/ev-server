@@ -126,7 +126,7 @@ const config = convict({
     port: {
       doc: 'The SERVER server port to bind.',
       format: 'port',
-      default: 8081,
+      default: 80,
       env: 'SERVER_PORT',
       arg: 'server_port'
     },
@@ -141,7 +141,7 @@ const config = convict({
     username: {
       doc: 'The admin username',
       format: String,
-      default: 'admin@ev.com',
+      default: 'jean.pierre.demessant@sap.com',
       env: 'ADMIN_USERNAME'
     },
     password: {
