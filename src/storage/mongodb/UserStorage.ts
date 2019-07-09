@@ -300,8 +300,7 @@ export default class UserStorage {
     delete userMDB.id;
     delete userMDB.image;
     // Check Created/Last Changed By
-    DatabaseUtils.mongoConvertLastChangedCreatedProps(userToSave, userToSave);
-
+    DatabaseUtils.addLastChangedCreatedProps(userToSave, userToSave);
     // Modify and return the modified document
     const result = await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
       userFilter,
@@ -365,11 +364,7 @@ export default class UserStorage {
     const filters: any = {
       '$and': [
         {
-          '$or': [
-            { 'deleted': { $exists: false } },
-            { 'deleted': false },
-            { 'deleted': null }
-          ]
+          '$or': DatabaseUtils.getNotDeletedFilter()
         }
       ]
     };
@@ -493,7 +488,6 @@ export default class UserStorage {
     }
     // Remove the limit
     aggregation.pop();
-
     // Sort
     if (sort) {
       // Sort
@@ -519,19 +513,14 @@ export default class UserStorage {
         _id: 0
       }
     });
-
-    console.log(JSON.stringify(aggregation));
     // Read DB
     const usersMDB = await global.database.getCollection<User>(tenantID, 'users')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
-
-    if(usersMDB.length > 0) console.log(JSON.stringify(usersMDB[0].id));
-
+    //Clean user object
     for(let userMDB of usersMDB) {
       delete (usersMDB as any).siteusers;
     }
-
     // Debug
     Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID, { params, limit, skip, sort });
     // Ok
@@ -563,7 +552,7 @@ export default class UserStorage {
     Logging.traceEnd('UserStorage', 'deleteUser', uniqueTimerID, { id });
   }
 
-  public static async getSites(tenantID: string, params: { userID: string; siteAdmin?: boolean }, dbParams: DbParams): Promise<{count: number; result: SiteUser[]}> {
+  public static async getSites(tenantID: string, params: { userID: string; siteAdmin?: boolean }, dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: SiteUser[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getSites');
     // Check Tenant
@@ -587,12 +576,30 @@ export default class UserStorage {
     });
 
     // Get Sites
-    DatabaseUtils.pushBasicSiteJoinInAggregation(tenantID, aggregation, 'siteID', '_id', 'site', ['userID', 'siteID'], 'none', true);
-
+    DatabaseUtils.pushSiteLookupInAggregation(
+      { tenantID, aggregation, localField: 'siteID', foreignField: '_id',
+        asField: 'site', oneToOneCardinality: true, oneToOneCardinalityNotNull: true });
+    // Convert IDs to String
+    DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
+    // Limit records?
+    if (!dbParams.onlyRecordCount) {
+      // Always limit the nbr of record to avoid perfs issues
+      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+    }
     // Count Records
-    const usersCountMDB = await global.database.getCollection<any>(tenantID, 'siteusers')
+    const sitesCountMDB = await global.database.getCollection<any>(tenantID, 'siteusers')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
+    // Check if only the total count is requested
+    if (dbParams.onlyRecordCount) {
+      return {
+        count: (sitesCountMDB.length > 0 ? sitesCountMDB[0].count : 0),
+        result: []
+      };
+    }
+    // Remove the limit
+    aggregation.pop();
     // Sort
     if (dbParams.sort) {
       aggregation.push({
@@ -611,6 +618,8 @@ export default class UserStorage {
     aggregation.push({
       $limit: limit
     });
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const siteUsersMDB = await global.database.getCollection<{userID: string, siteID: string, siteAdmin: boolean, site: Site}>(tenantID, 'siteusers')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
@@ -622,14 +631,12 @@ export default class UserStorage {
         sites.push({siteAdmin: siteUserMDB.siteAdmin, userID: siteUserMDB.userID, site: siteUserMDB.site});
       }
     }
-
     // Debug
     Logging.traceEnd('UserStorage', 'UserStorage', uniqueTimerID, { userID: params.userID });
-
     // Ok
     return {
-      count: (usersCountMDB.length > 0 ?
-        (usersCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : usersCountMDB[0].count) : 0),
+      count: (sitesCountMDB.length > 0 ?
+        (sitesCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : sitesCountMDB[0].count) : 0),
       result: sites
     };
   }

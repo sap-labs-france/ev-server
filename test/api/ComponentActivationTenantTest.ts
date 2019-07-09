@@ -1,12 +1,9 @@
-import path from 'path';
-import global from '../../src/types/GlobalType';
-global.appRoot = path.resolve(__dirname, '../../src');
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
-import CentralServerService from './client/CentralServerService';
-import Constants from './client/utils/Constants';
 import config from '../config';
 import responseHelper from '../helpers/responseHelper';
+import CentralServerService from './client/CentralServerService';
+import Constants from './client/utils/Constants';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -26,17 +23,17 @@ const testData: TestData = new TestData();
 describe('Tenant Settings test', function() {
   this.timeout(10000); // Not mandatory will automatically stop the unit test after that period of time
 
-  before( async function() {
+  before(async function() {
     // Init values
     testData.superAdminCentralService = new CentralServerService(null, { email: config.get('superadmin.username'), password: config.get('superadmin.password') });
     testData.centralService = new CentralServerService('utnothing', { email: config.get('admin.username'), password: config.get('admin.password') });
     testData.credentials.email = config.get('admin.username');
     // Retrieve the tenant id from the name
-    const response = await testData.superAdminCentralService.tenantApi.readAll({ "Search" : "ut-nothing" },{ limit: Constants.UNLIMITED, skip: 0 })
+    const response = await testData.superAdminCentralService.tenantApi.readAll({ 'Search' : 'ut-nothing' }, { limit: Constants.UNLIMITED, skip: 0 });
     testData.credentials.tenantId = response ? response.data.result[0].id : '';
   });
 
-  after( async function() {
+  after(async function() {
     // Reset components before leaving
     testData.data = JSON.parse(`{"id":"${testData.credentials.tenantId}","name":"ut-nothing","email":"${testData.credentials.email}","subdomain":"utnothing","components":{"ocpi":{"active":false,"type":null},"organization":{"active":false,"type":null},"pricing":{"active":false,"type":null},"refund":{"active":false,"type":null},"statistics":{"active":false,"type":null},"analytics":{"active":false,"type":null}}}`);
     const res = await testData.superAdminCentralService.updateEntity(
@@ -57,7 +54,7 @@ describe('Tenant Settings test', function() {
       expect(res.status).to.equal(200);
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.data.count).to.equal(1);
-      expect(settings.data.result[0]).to.be.validatedSetting('ocpi','gireve');
+      expect(settings.data.result[0]).to.be.validatedSetting('ocpi', 'gireve');
     });
 
     it('Pricing/Simple : Check that the setting has been created in the tenant after activation', async function() {
@@ -67,7 +64,7 @@ describe('Tenant Settings test', function() {
       expect(res.status).to.equal(200);
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.data.count).to.equal(1);
-      expect(settings.data.result[0]).to.be.validatedSetting('pricing','simple');
+      expect(settings.data.result[0]).to.be.validatedSetting('pricing', 'simple');
     });
 
     it('Refund : Check that the setting has been created in the tenant after activation', async function() {
@@ -77,7 +74,7 @@ describe('Tenant Settings test', function() {
       expect(res.status).to.equal(200);
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.data.count).to.equal(1);
-      expect(settings.data.result[0]).to.be.validatedSetting('refund','concur');
+      expect(settings.data.result[0]).to.be.validatedSetting('refund', 'concur');
     });
 
     it('Pricing/Convergent : Check that the setting has been created in the tenant after activation', async function() {
@@ -87,7 +84,7 @@ describe('Tenant Settings test', function() {
       expect(res.status).to.equal(200);
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.data.count).to.equal(1);
-      expect(settings.data.result[0]).to.be.validatedSetting('pricing','convergentCharging');
+      expect(settings.data.result[0]).to.be.validatedSetting('pricing', 'convergentCharging');
     });
 
     it('Analytics : Check that the setting has been created in the tenant after activation', async function() {
@@ -97,7 +94,7 @@ describe('Tenant Settings test', function() {
       expect(res.status).to.equal(200);
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.data.count).to.equal(1);
-      expect(settings.data.result[0]).to.be.validatedSetting('analytics','sac');
+      expect(settings.data.result[0]).to.be.validatedSetting('analytics', 'sac');
     });
 
   });

@@ -1,4 +1,3 @@
-import crypto from 'crypto';
 import fs from 'fs';
 import moment from 'moment';
 import AppAuthError from '../../../exception/AppAuthError';
@@ -8,7 +7,6 @@ import ChargingStation from '../../../entity/ChargingStation';
 import ConcurConnector from '../../../integration/refund/ConcurConnector';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
-import global from '../../../types/GlobalType';
 import Logging from '../../../utils/Logging';
 import OCPPService from '../../../server/ocpp/services/OCPPService';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
@@ -16,6 +14,7 @@ import TransactionSecurity from './security/TransactionSecurity';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
+
 export default class TransactionService {
   static async handleRefundTransactions(action, req, res, next) {
     try {

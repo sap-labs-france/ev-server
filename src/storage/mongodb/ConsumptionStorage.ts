@@ -5,7 +5,6 @@ import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 
-
 export default class ConsumptionStorage {
   static async saveConsumption(tenantID, consumptionToSave) {
     // Debug

@@ -16,10 +16,49 @@ import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
 import Tenant from '../../../src/entity/Tenant';
 import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
-import User from '../../../src/types/User';
+import User from '../../../src/entity/User';
 import UserFactory from '../../factories/UserFactory';
-import UserStorage from '../../../src/storage/mongodb/UserStorage';
-import UserService from '../../../src/server/rest/service/UserService';
+import crypto from 'crypto';
+import { ObjectID } from 'mongodb';
+import SiteArea from '../../../src/types/SiteArea';
+
+// crypto.randomBytes(256, (err, buf)
+// Math.floor(Math.random()*16777215).toString(24);
+const NBR_USERS = 10; // Number of total users : they are all connected to the sites 
+const NBR_COMPANIES = 5; // Number of companies
+const NBR_SITES = 5; // Number of sites PER company
+const NBR_SITEAREAS = 5; // Number of site areas per site
+const NBR_CHARGINGSTATIONS = 5; // Number of charging stations per site area
+const BIG_CONTEXT = [{
+  tenantName: 'Big',
+  id: 'b1b1b1b1b1b1b1b1b1b1b1b1',
+  subdomain: 'big',
+  componentSettings: {
+    pricing: {
+      type: 'simple',
+      content: {
+        simple: {
+          price: 1,
+          currency: 'EUR'
+        }
+      },
+    },
+    ocpi: {
+      type: 'gireve',
+      content: {
+        countryCode: 'FR',
+        partyId: 'UT',
+        businessDetails: {
+          name: 'Test OCPI',
+          website: 'http://www.uttest.net'
+        }
+      }
+    },
+    organization: {
+    },
+  },
+}];
+
 
 export default class ContextBuilder {
 
@@ -54,7 +93,7 @@ export default class ContextBuilder {
       }, 10000);
     }
     // Delete all tenants
-    for (const tenantContextDef of CONTEXTS.TENANT_CONTEXT_LIST) {
+    for (const tenantContextDef of BIG_CONTEXT) {
       const tenantEntity = await Tenant.getTenantByName(tenantContextDef.tenantName);
       if (tenantEntity) {
         await this.superAdminCentralServerService.tenantApi.delete(tenantEntity.getID());
@@ -74,7 +113,7 @@ export default class ContextBuilder {
     await this._init();
     await this.destroy();
     // Prepare list of tenants to create
-    const tenantContexts = CONTEXTS.TENANT_CONTEXT_LIST;
+    const tenantContexts = BIG_CONTEXT;
     // Build each tenant context
     for (const tenantContextDef of tenantContexts) {
       await this._buildTenantContext(tenantContextDef);
@@ -110,7 +149,7 @@ export default class ContextBuilder {
     const existingTenant = await Tenant.getTenant(tenantContextDef.id);
     if (existingTenant) {
       console.log(`Tenant ${tenantContextDef.id} already exist with name ${existingTenant.getName()}. Please run a destroy context`);
-      throw new Error('Tenant id exist already');
+      throw 'Tenant id exist already';
 
     }
     let buildTenant: any = {};
@@ -128,31 +167,31 @@ export default class ContextBuilder {
     console.log('CREATE tenant context ' + buildTenant.id +
       ' ' + buildTenant.subdomain);
     // Retrieve default admin
-    const existingUserList = (await UserStorage.getUsers(buildTenant.id, {}, {limit: 0, skip: 0})).result;
-    let defaultAdminUser: User = null;
+    const existingUserList = (await User.getUsers(buildTenant.id)).result;
+    let defaultAdminUser = null;
     // Search existing admin
     if (existingUserList && Array.isArray(existingUserList)) {
       defaultAdminUser = existingUserList.find((user) => {
-        return user.id === CONTEXTS.TENANT_USER_LIST[0].id || user.email === config.get('admin.username') ||
-          user.role === 'A';
+        return user.getModel().id === CONTEXTS.TENANT_USER_LIST[0].id || user.getEMail() === config.get('admin.username') ||
+          user.getRole() === 'A';
       });
     }
-    if ((defaultAdminUser.id !== CONTEXTS.TENANT_USER_LIST[0].id) || (defaultAdminUser.status !== 'A')) {
+    if ((defaultAdminUser.getID() !== CONTEXTS.TENANT_USER_LIST[0].id) || (defaultAdminUser.getStatus() !== 'A')) {
       // It is a different default user so firt delete it
-      await UserStorage.deleteUser(buildTenant.id, defaultAdminUser.id);
+      await defaultAdminUser.delete();
       // Activate user
-      defaultAdminUser.status = CONTEXTS.TENANT_USER_LIST[0].status;
+      defaultAdminUser.setStatus(CONTEXTS.TENANT_USER_LIST[0].status);
       // Generate the password hash
-      const newPasswordHashed = await UserService.hashPasswordBcrypt(config.get('admin.password'));
+      const newPasswordHashed = await User.hashPasswordBcrypt(config.get('admin.password'));
       // Update the password
-      defaultAdminUser.password = newPasswordHashed;
+      defaultAdminUser.setPassword(newPasswordHashed);
       // Update the email
-      defaultAdminUser.email = config.get('admin.username');
+      defaultAdminUser.setEMail(config.get('admin.username'));
       // Add a Tag ID
-      defaultAdminUser.tagIDs = CONTEXTS.TENANT_USER_LIST[0].tagIDs ? CONTEXTS.TENANT_USER_LIST[0].tagIDs : [faker.random.alphaNumeric(8).toUpperCase()];
+      defaultAdminUser.setTagIDs(CONTEXTS.TENANT_USER_LIST[0].tagIDs ? CONTEXTS.TENANT_USER_LIST[0].tagIDs : [faker.random.alphaNumeric(8).toUpperCase()]);
       // Fix id
-      defaultAdminUser.id = CONTEXTS.TENANT_USER_LIST[0].id;
-      await UserStorage.saveUser(buildTenant.id, defaultAdminUser);
+      defaultAdminUser.getModel().id = CONTEXTS.TENANT_USER_LIST[0].id;
+      await defaultAdminUser.save();
     }
 
     // Create Central Server Service
@@ -186,21 +225,29 @@ export default class ContextBuilder {
         }
       }
     }
-    let userListToAssign: User[] = null;
-    let userList: User[] = null;
+    let userListToAssign = null;
+    let userList = null;
     // Read admin user
-    const adminUser: User = (await localCentralServiceService.getEntityById(
-      localCentralServiceService.userApi, defaultAdminUser, false)).data;
+    const adminUser = (await localCentralServiceService.getEntityById(
+      localCentralServiceService.userApi, defaultAdminUser.getModel(), false)).data;
     userListToAssign = [adminUser]; // Default admin is always assigned to site
     userList = [adminUser]; // Default admin is always assigned to site
     // Prepare users
     // Skip first entry as it is the default admin already consider above
-    for (let index = 1; index < CONTEXTS.TENANT_USER_LIST.length; index++) {
-      const userDef = CONTEXTS.TENANT_USER_LIST[index];
+    for (let index = 1; index <= NBR_USERS; index++) {
+      const userDef = {
+        id: '',
+        role: CONTEXTS.USER_CONTEXTS.BASIC_USER.role,
+        status: CONTEXTS.USER_CONTEXTS.BASIC_USER.status,
+        assignedToSite: CONTEXTS.USER_CONTEXTS.BASIC_USER.assignedToSite,
+        emailPrefix: 'basic-',
+        tagIDs: []
+      };
+      userDef.id = new ObjectID().toHexString();
       const createUser = UserFactory.build();
-      createUser.email = userDef.emailPrefix + defaultAdminUser.email;
+      userDef.tagIDs.push(`A1234${index}`);
       // Update the password
-      const newPasswordHashed = await UserService.hashPasswordBcrypt(config.get('admin.password'));
+      const newPasswordHashed = await User.hashPasswordBcrypt(config.get('admin.password'));
       createUser.password = newPasswordHashed;
       createUser.role = userDef.role;
       createUser.status = userDef.status;
@@ -208,14 +255,14 @@ export default class ContextBuilder {
       if (userDef.tagIDs) {
         createUser.tagIDs = userDef.tagIDs;
       }
-      const user: User = createUser;
-      UserStorage.saveUser(buildTenant.id, user);
+      const user = new User(buildTenant.id, createUser);
+      user.save();
       if (userDef.assignedToSite) {
-        userListToAssign.push(user);
+        userListToAssign.push(user.getModel());
       }
       // Set back password to clear value for login/logout
-      const userModel = user;
-      (userModel as any).passwordClear = config.get('admin.password'); // TODO ?
+      const userModel = user.getModel();
+      userModel.passwordClear = config.get('admin.password');
       userList.push(userModel);
     }
     // Persist tenant context
@@ -226,73 +273,77 @@ export default class ContextBuilder {
     if (buildTenant.components && buildTenant.components.hasOwnProperty(Constants.COMPONENTS.ORGANIZATION) &&
       buildTenant.components[Constants.COMPONENTS.ORGANIZATION].active) {
       // Create the company
-      let company = null;
-      for (const companyDef of CONTEXTS.TENANT_COMPANY_LIST) {
+      for (let index = 1; index <= NBR_COMPANIES; index++) {
+        let company = null;
+        const companyDef =     { 
+          id: new ObjectID().toHexString()
+        };
         const dummyCompany: any = Factory.company.build();
         dummyCompany.id = companyDef.id;
         dummyCompany.createdBy = { id : adminUser.id };
         dummyCompany.createdOn = moment().toISOString();
         company = await CompanyStorage.saveCompany(buildTenant.id, dummyCompany);
         newTenantContext.getContext().companies.push(dummyCompany);
-      }
-      // Build sites/sitearea according to tenant definition
-      for (const siteContextDef of CONTEXTS.TENANT_SITE_LIST) {
-        let site: Site = null;
-        // Create site
-        const siteTemplate = Factory.site.build({
-          companyID: siteContextDef.companyID,
-          userIDs: userListToAssign.map((user) => {
-            return user.id;
-          })
-        });
-        siteTemplate.name = siteContextDef.name;
-        siteTemplate.allowAllUsersToStopTransactions = siteContextDef.allowAllUsersToStopTransactions;
-        siteTemplate.autoUserSiteAssignment = siteContextDef.autoUserSiteAssignment;
-        siteTemplate.id = siteContextDef.id;
-        site = siteTemplate;
-        site.id = await SiteStorage.saveSite(buildTenant.id, siteTemplate, true);
-        await SiteStorage.addUsersToSite(buildTenant.id, site.id, userListToAssign.map((user) => {
-          return user.id;
-        }));
-        const siteContext = new SiteContext(site, newTenantContext);
-        newTenantContext.addSiteContext(siteContext);
-        // Create site areas of current site
-        for (const siteAreaDef of CONTEXTS.TENANT_SITEAREA_LIST.filter((siteArea) => {
-          return siteArea.siteName === site.name;
-        })) {
-          const siteAreaTemplate = Factory.siteArea.build();
-          siteAreaTemplate.id = siteAreaDef.id;
-          siteAreaTemplate.name = siteAreaDef.name;
-          siteAreaTemplate.accessControl = siteAreaDef.accessControl;
-          siteAreaTemplate.siteID = site.id;
-          console.log(siteAreaTemplate.name);
-          const sireAreaID = await SiteAreaStorage.saveSiteArea(buildTenant.id, siteAreaTemplate);
-          const siteAreaModel = await SiteAreaStorage.getSiteArea(buildTenant.id, sireAreaID);
-          const siteAreaContext = new SiteAreaContext(siteAreaModel, newTenantContext);
-          siteContext.addSiteArea(siteAreaContext);
-          const relevantCS = CONTEXTS.TENANT_CHARGINGSTATION_LIST.filter((chargingStation) => {
-            return chargingStation.siteAreaNames && chargingStation.siteAreaNames.includes(siteAreaModel.name) === true;
+        // Build sites/sitearea according to tenant definition
+        for (let index = 1; index <= NBR_SITES; index++) {
+          const siteContextDef = { 
+            id: new ObjectID().toHexString(),
+            name: CONTEXTS.SITE_CONTEXTS.SITE_BASIC,
+            allowAllUsersToStopTransactions: false,
+            autoUserSiteAssignment: false,
+            companyID: companyDef.id
+          };
+          let site: Site = null;
+          // Create site
+          const siteTemplate = Factory.site.build({
+            companyID: siteContextDef.companyID,
+            userIDs: userListToAssign.map((user) => {
+              return user.id;
+            })
           });
-          // Create Charging Station for site area
-          for (const chargingStationDef of relevantCS) {
-            const chargingStationTemplate = Factory.chargingStation.build();
-            chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
-            console.log(chargingStationTemplate.id);
-            await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
+          siteTemplate.name = siteContextDef.name;
+          siteTemplate.allowAllUsersToStopTransactions = siteContextDef.allowAllUsersToStopTransactions;
+          siteTemplate.autoUserSiteAssignment = siteContextDef.autoUserSiteAssignment;
+          siteTemplate.id = siteContextDef.id;
+          site = siteTemplate;
+          site.id = await SiteStorage.saveSite(buildTenant.id, siteTemplate, true);
+          await SiteStorage.addUsersToSite(buildTenant.id, site.id, userListToAssign.map((user) => {
+            return user.id;
+          }));
+          const siteContext = new SiteContext(site, newTenantContext);
+          newTenantContext.addSiteContext(siteContext);
+          // Create site areas of current site
+          for (let index = 1; index <= NBR_SITEAREAS; index++) {
+            const siteAreaDef =     { 
+              id: new ObjectID().toHexString(),
+              name: `${CONTEXTS.SITE_CONTEXTS.SITE_BASIC}-${CONTEXTS.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
+              accessControl: false,
+              siteName: siteTemplate.name
+            };
+            let siteArea: SiteArea = null;  
+            const siteAreaTemplate = Factory.siteArea.build();
+            siteAreaTemplate.id = siteAreaDef.id;
+            //siteAreaTemplate.name = siteAreaDef.name;
+            siteAreaTemplate.accessControl = siteAreaDef.accessControl;
+            siteAreaTemplate.siteID = site.id;
+            const sireAreaID = await SiteAreaStorage.saveSiteArea(buildTenant.id, siteAreaTemplate);
+            const siteAreaModel = await SiteAreaStorage.getSiteArea(buildTenant.id, sireAreaID);
+            const siteAreaContext = new SiteAreaContext(siteAreaModel, newTenantContext);
+            siteContext.addSiteArea(siteAreaContext);
+            // Create Charging Station for site area
+            for (let index = 1; index <= NBR_CHARGINGSTATIONS; index++) {
+              const chargingStationDef = {
+                baseName: new ObjectID().toHexString(),
+                ocppVersion: '1.6',
+                siteAreaNames: [siteAreaTemplate.id]
+              }
+              const chargingStationTemplate = Factory.chargingStation.build();
+              chargingStationTemplate.id = chargingStationDef.baseName;
+              await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
+            }
           }
         }
       }
-    }
-    // Create unassigned Charging station
-    const relevantCS = CONTEXTS.TENANT_CHARGINGSTATION_LIST.filter((chargingStation) => {
-      return chargingStation.siteAreaNames === null;
-    });
-    // Create Charging Station for site area
-    for (const chargingStationDef of relevantCS) {
-      const chargingStationTemplate = Factory.chargingStation.build();
-      chargingStationTemplate.id = chargingStationDef.baseName;
-      console.log(chargingStationTemplate.id);
-      await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, null);
     }
     return newTenantContext;
   }

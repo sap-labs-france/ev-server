@@ -23,7 +23,11 @@ chai.use(chaiSubset);
 export default class CentralServerService {
 
   public static get DefaultInstance(): CentralServerService {
-    return CentralServerService._defaultInstance || (CentralServerService._defaultInstance = new CentralServerService());
+    if (CentralServerService._defaultInstance) {
+      return CentralServerService._defaultInstance;
+    }
+    CentralServerService._defaultInstance = new CentralServerService();
+    return CentralServerService._defaultInstance;
   }
 
   private static _defaultInstance = new CentralServerService();
@@ -88,7 +92,7 @@ export default class CentralServerService {
     const settings = await this.settingApi.readAll({});
     let newSetting = false;
     let setting = settings.data.result.find((s) => {
-      return s.identifier == 'pricing';
+      return s.identifier === 'pricing';
     });
     if (!setting) {
       setting = {};
@@ -108,7 +112,6 @@ export default class CentralServerService {
   }
 
   public async createEntity(entityApi, entity, performCheck = true) {
-
     // Create
     const response = await entityApi.create(entity);
     // Check
@@ -161,9 +164,9 @@ export default class CentralServerService {
       expect(response.data).to.have.property('result');
       // All record retrieved
       expect(response.data.count).to.eql(response.data.result.length);
-      // Check created company
+      // Check created entity
       delete entity.locale;
-      expect(response.data.result).to.containSubset([entity]);
+      expect(response.data.result).to.containSubset([{ id: entity.id }]);
     } else {
       // Let the caller to handle response
       return response;
@@ -202,7 +205,6 @@ export default class CentralServerService {
     const response = await entityApi.delete(entity.id);
     // Check
     if (performCheck) {
-      // Check
       expect(response.status).to.equal(200);
       expect(response.data.status).to.eql('Success');
       return response;

@@ -1,10 +1,10 @@
 import chai, { expect } from 'chai';
-import ContextBuilder from './ContextProvider/ContextBuilder';
+import BigBuilder from './ContextProvider/BigBuilder';
 
 // For Visual Studio it is recommended to install Mocha sidebar and Chai snippets
 // Mocha is the test framework and chai provides functions to check expectations
 
-describe('Unit test Context Builder', function() {
+describe('Big Builder', function() {
   this.timeout(500000); // Not mandatory will automatically stop the unit test after that period of time
 
   before(async () => {
@@ -12,7 +12,7 @@ describe('Unit test Context Builder', function() {
     // Used to create data before teh whole test chain is started
     // To simplify you can use the ContextBuilder to get a tenant and some preloaded entities
     // To be used with care as more than 20 tenants!!!
-    const contextBuilder = new ContextBuilder();
+    const contextBuilder = new BigBuilder();
     await contextBuilder.prepareContexts();
     // pragma this.tenantContext = await ContextBuilder.getTenantContext(TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS, SITE_CONTEXTS.SITE_BASIC)
     // It will build all tenants except if you provide input arguments to limit to some contexts only.
@@ -33,7 +33,7 @@ describe('Unit test Context Builder', function() {
     // await ContextBuilder.initializeAllTenantContents();
   });
 
-  describe('Context builder test case', () => {
+  describe('Big builder test case', () => {
     it('Builder dummy test', async () => {
       const test = 2;
       // pragma const adminUser = this.tenantContextAll.getUserContext(null, 'florent.pernice@sap.com');
@@ -47,8 +47,9 @@ describe('Unit test Context Builder', function() {
 
 });
 
-async function timeout(ms) {
-  return await new Promise((resolve) => {
+function timeout(ms) {
+  // eslint-disable-next-line no-undef
+  return new Promise((resolve) => {
     return setTimeout(resolve, ms);
   });
 }

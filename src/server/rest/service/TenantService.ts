@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import HttpStatusCodes from 'http-status-codes';
+import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import ConflictError from '../../../exception/ConflictError';
@@ -16,7 +17,6 @@ import User from '../../../types/User';
 import Utils from '../../../utils/Utils';
 import UserService from './UserService';
 import UserStorage from '../../../storage/mongodb/UserStorage';
-import AppAuthError from '../../../exception/AppAuthError';
 
 const MODULE_NAME = 'TenantService';
 

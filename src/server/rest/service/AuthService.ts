@@ -406,7 +406,7 @@ export default class AuthService {
     newUser.tagIDs = [newUser.name[0] + newUser.firstName[0] + Utils.getRandomInt()];
     newUser.locale = req.locale.substring(0, 5);
     newUser.verificationToken = Utils.generateToken(req.body.email);
-    
+
     const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, newUser.locale.substring(0,2));
     newUser.eulaAcceptedOn = new Date();
     newUser.eulaAcceptedVersion = endUserLicenseAgreement.version;
@@ -414,7 +414,7 @@ export default class AuthService {
 
     // Save
     await UserStorage.saveUser(tenantID, newUser);
-    
+
     // Log
     Logging.logSecurityInfo({
       tenantID: tenantID,

@@ -50,7 +50,7 @@ export default class OCPPService {
       // Set the ChargeBox ID
       if (!headers.chargeBoxIdentity) {
         throw new BackendError(Constants.CENTRAL_SERVER,
-          `Should have the required property 'chargeBoxIdentity'!`,
+          'Should have the required property \'chargeBoxIdentity\'!',
           'OCPPUtils', '_checkAndGetChargingStation');
       }
       bootNotification.id = headers.chargeBoxIdentity;

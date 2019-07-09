@@ -18,7 +18,6 @@
     "TS_NODE_FILES": "true"
   },
   "mochaExplorer.files": "test/**/*Test.ts",
-  "mochaExplorer.require": "ts-node/register",
   "mochaExplorer.exit": true,
   "mochaExplorer.debuggerConfig": "Debug Mocha Tests",
   "search.usePCRE2": true

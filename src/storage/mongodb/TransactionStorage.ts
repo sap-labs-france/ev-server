@@ -192,10 +192,10 @@ export default class TransactionStorage {
           $group: {
             _id: null,
             totalConsumptionWattHours: { $sum: '$stop.totalConsumption' },
-            totalPriceRefund: { $sum: { $cond: [ { '$eq': [ { $type : "$refundData" }, 'missing' ] }, 0, '$stop.price' ] } },
-            totalPricePending: { $sum: { $cond: [ { '$eq': [ { $type : "$refundData" }, 'missing' ] }, '$stop.price', 0 ] } },
-            countRefundTransactions: { $sum: { $cond: [ { '$eq': [ { $type : "$refundData" }, 'missing' ] }, 0, 1 ] } },
-            countPendingTransactions: { $sum: { $cond: [ { '$eq': [ { $type : "$refundData" }, 'missing' ] }, 1, 0 ] } },
+            totalPriceRefund: { $sum: { $cond: [ { '$eq': [ { $type : '$refundData' }, 'missing' ] }, 0, '$stop.price' ] } },
+            totalPricePending: { $sum: { $cond: [ { '$eq': [ { $type : '$refundData' }, 'missing' ] }, '$stop.price', 0 ] } },
+            countRefundTransactions: { $sum: { $cond: [ { '$eq': [ { $type : '$refundData' }, 'missing' ] }, 0, 1 ] } },
+            countPendingTransactions: { $sum: { $cond: [ { '$eq': [ { $type : '$refundData' }, 'missing' ] }, 1, 0 ] } },
             currency: { $addToSet: '$stop.priceUnit' },
             countRefundedReports: { $addToSet: '$refundData.reportId' },
             count: { $sum: 1 }
@@ -210,13 +210,13 @@ export default class TransactionStorage {
           }
         };
         break;
-      }
+    }
     // Count Records
     const transactionsCountMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate([...aggregation, statsQuery],
-      {
-        allowDiskUse: true
-      })
+        {
+          allowDiskUse: true
+        })
       .toArray();
     let transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ? transactionsCountMDB[0] : null;
     // Initialize statistics
@@ -224,34 +224,34 @@ export default class TransactionStorage {
       switch (params.statistics) {
         case 'history':
           transactionCountMDB = {
-              totalConsumptionWattHours: 0,
-              totalDurationSecs: 0,
-              totalPrice: 0,
-              totalInactivitySecs: 0,
-              count: 0
-            }
+            totalConsumptionWattHours: 0,
+            totalDurationSecs: 0,
+            totalPrice: 0,
+            totalInactivitySecs: 0,
+            count: 0
+          };
           break;
         case 'refund':
           transactionCountMDB = {
-              totalConsumptionWattHours: 0,
-              totalPriceRefund: 0,
-              totalPricePending: 0,
-              countRefundTransactions: 0,
-              countPendingTransactions: 0,
-              countRefundedReports: 0,
-              count: 0
-            }
+            totalConsumptionWattHours: 0,
+            totalPriceRefund: 0,
+            totalPricePending: 0,
+            countRefundTransactions: 0,
+            countPendingTransactions: 0,
+            countRefundedReports: 0,
+            count: 0
+          };
           break;
         default:
           transactionCountMDB = {
             count: 0
-          }
+          };
           break;
       }
     }
     if (transactionCountMDB && transactionCountMDB.countRefundedReports) {
       // Translate array response to number
-      transactionCountMDB.countRefundedReports = transactionCountMDB.countRefundedReports.length
+      transactionCountMDB.countRefundedReports = transactionCountMDB.countRefundedReports.length;
     }
     if (transactionCountMDB && transactionCountMDB.currency) {
       // Take first entry as reference currency. Expectation is that we have only one currency for all transaction

@@ -90,7 +90,7 @@ export default class NormalizeTransactionsTask extends MigrationTask {
         chargersNotExisting.add(transactionMDB.chargeBoxID);
         chargersNotExistingTransactionCount++;
       }
-      if (transactionMDB.hasOwnProperty('stateOfCharge')) {
+      if (transactionMDB.stateOfCharge) {
         transaction.stateOfCharge = transactionMDB.stateOfCharge;
       } else {
         transaction.stateOfCharge = 0;
@@ -111,22 +111,22 @@ export default class NormalizeTransactionsTask extends MigrationTask {
       transaction.stop.timestamp = transactionMDB.stop.timestamp;
       transaction.stop.totalConsumption = transactionMDB.stop.totalConsumption;
       transaction.stop.totalInactivitySecs = transactionMDB.stop.totalInactivitySecs;
-      if (transactionMDB.stop.hasOwnProperty('tagID')) {
+      if (transactionMDB.stop.tagID) {
         transaction.stop.tagID = transactionMDB.stop.tagID;
       } else {
         transaction.stop.tagID = transactionMDB.tagID;
       }
-      if (transactionMDB.stop.hasOwnProperty('userID')) {
+      if (transactionMDB.stop.userID) {
         transaction.stop.userID = transactionMDB.stop.userID;
       } else {
         transaction.stop.userID = transactionMDB.userID;
       }
-      if (transactionMDB.stop.hasOwnProperty('totalDurationSecs')) {
+      if (transactionMDB.stop.totalDurationSecs) {
         transaction.stop.totalDurationSecs = transactionMDB.stop.totalDurationSecs;
       } else {
         transaction.stop.totalDurationSecs = moment.duration(moment(transactionMDB.stop.timestamp).diff(moment(transactionMDB.timestamp))).asSeconds();
       }
-      if (transactionMDB.stop.hasOwnProperty('stateOfCharge')) {
+      if (transactionMDB.stop.stateOfCharge) {
         transaction.stop.stateOfCharge = transactionMDB.stop.stateOfCharge;
       } else {
         transaction.stop.stateOfCharge = 0;

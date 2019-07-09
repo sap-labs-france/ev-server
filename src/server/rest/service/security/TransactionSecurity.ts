@@ -146,7 +146,7 @@ export default class TransactionSecurity {
       filteredTransaction.refundData = transaction.getRefundData();
       // Demo user?
       if (Authorizations.isDemo(loggedUser)) {
-        filteredTransaction.tagID = Constants.ANONIMIZED_VALUE;
+        filteredTransaction.tagID = Constants.ANONYMIZED_VALUE;
       } else {
         filteredTransaction.tagID = transaction.getTagID();
       }
@@ -171,7 +171,7 @@ export default class TransactionSecurity {
         }
         // Demo user?
         if (Authorizations.isDemo(loggedUser)) {
-          filteredTransaction.stop.tagID = Constants.ANONIMIZED_VALUE;
+          filteredTransaction.stop.tagID = Constants.ANONYMIZED_VALUE;
         } else {
           filteredTransaction.stop.tagID = transaction.getStopTagID();
         }
@@ -214,8 +214,8 @@ export default class TransactionSecurity {
       // Demo user?
       if (Authorizations.isDemo(loggedUser)) {
         filteredUser.id = null;
-        filteredUser.name = Constants.ANONIMIZED_VALUE;
-        filteredUser.firstName = Constants.ANONIMIZED_VALUE;
+        filteredUser.name = Constants.ANONYMIZED_VALUE;
+        filteredUser.firstName = Constants.ANONYMIZED_VALUE;
       } else {
         filteredUser.id = user.id;
         filteredUser.name = user.name;

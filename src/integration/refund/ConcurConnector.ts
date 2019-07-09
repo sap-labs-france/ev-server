@@ -211,7 +211,7 @@ const CONNECTOR_ID = 'concur';
    * @param quickRefund
    * @returns {Promise<Transaction[]>}
    */
-  async refund(user: User, transactions, quickRefund = false) {
+  async refund(user: User, transactions, quickRefund = false): Promise<any> {
     const startDate = moment();
     const refundedTransactions = [];
     let connection = await this.getConnectionByUserId(user.id);
@@ -308,7 +308,7 @@ const CONNECTOR_ID = 'concur';
     if (response.data && response.data.Items && response.data.Items.length > 0) {
       return response.data.Items[0];
     }
-    const company = await site.company;
+    const company = site.company;
     response = await axios.get(`${this.getApiUrl()}/api/v3.0/common/locations?city=${company.address.city}`, {
       headers: {
         Accept: 'application/json',
