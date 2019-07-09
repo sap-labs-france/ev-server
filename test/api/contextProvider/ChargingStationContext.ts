@@ -75,7 +75,7 @@ export default class ChargingStationContext {
       transactionId: transactionId,
       meterValue: {
         timestamp: timestamp.toISOString(),
-        sampledValue: [{
+        sampledValue: [{ // For OCPP 1.6
           value: meterValue,
           format: 'Raw',
           measurand: 'Energy.Active.Import.Register',
@@ -83,7 +83,19 @@ export default class ChargingStationContext {
           location: 'Outlet',
           context: 'Sample.Periodic'
         }]
-
+      },
+      values: { // For OCPP 1.5
+        timestamp: timestamp.toISOString(),
+        value: {
+          $attributes: {
+            unit: 'Wh',
+            location: 'Outlet',
+            measurand: 'Energy.Active.Import.Register',
+            format: 'Raw',
+            context: 'Sample.Periodic'
+          },
+          $value: meterValue
+        }
       },
     });
     return response;
