@@ -456,17 +456,17 @@ export default class Logging {
           break;
         }
       // Keep up to warning filter out debug
-      case LogLevel.WARNING: // eslint-disable-line
+      case LogLevel.WARNING: // eslint-disable-line no-fallthrough
         if (log.level === LogLevel.INFO || log.level === LogLevel.DEBUG) {
           break;
         }
       // Keep all log messages just filter out DEBUG
-      case LogLevel.INFO: // eslint-disable-line
+      case LogLevel.INFO: // eslint-disable-line no-fallthrough
         if (log.level === LogLevel.DEBUG) {
           break;
         }
       // Keep all messages
-      case LogLevel.DEBUG: // eslint-disable-line
+      case LogLevel.DEBUG: // eslint-disable-line no-fallthrough
       default: // If we did not break then it means we have to console log it
         Logging._consoleLog(log);
         break;
