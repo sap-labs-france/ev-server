@@ -162,6 +162,7 @@
     "test:ocpp16": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/OCPPJson16Test.ts",
     "test:authentication": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/AuthenticationTest.ts",
     "test:createContext": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/ContextBuilderRunner.ts --exit",
+    "test:createBigContext": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha -r ts-node/register test/**/BigBuilderRunner.ts",
     "clinic:clean": "clinic clean",
     "npm-check": "npm-check"
   },
