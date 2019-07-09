@@ -150,7 +150,7 @@
     "test:parallel": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha-parallel-tests test/**/*Test.ts",
     "test:charger": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/OCPP*Test.ts",
     "test:charger:specifics": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/OCPPSpecificsTest.ts",
-    "test:ocpi": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/OCPI*.ts",
+    "test:ocpi": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/OCPI*Test.ts",
     "test:tenant": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/*TenantTest.ts",
     "test:org": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/*OrgTest.ts",
     "test:setting": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/*SettingTest.ts",
@@ -162,7 +162,7 @@
     "test:ocpp16": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/OCPPJson16Test.ts",
     "test:authentication": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/AuthenticationTest.ts",
     "test:createContext": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/ContextBuilderRunner.ts --exit",
-    "test:createBigContext": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha -r ts-node/register test/**/BigBuilderRunner.ts",
+    "test:createBigContext": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/BigBuilderRunner.ts --exit",
     "clinic:clean": "clinic clean",
     "npm-check": "npm-check"
   },
