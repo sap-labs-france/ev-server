@@ -598,6 +598,9 @@ export default class Database {
     if (src.hasOwnProperty('currentStateOfCharge')) {
       dest.currentStateOfCharge = src.currentStateOfCharge;
     }
+    if (src.hasOwnProperty('currentSignedData')) {
+      dest.currentSignedData = src.currentSignedData;
+    }
     if (src.hasOwnProperty('lastMeterValue')) {
       dest.lastMeterValue = src.lastMeterValue;
     }
@@ -638,6 +641,7 @@ export default class Database {
     }
     dest.timestamp = Utils.convertToDate(src.timestamp);
     dest.stateOfCharge = Utils.convertToInt(src.stateOfCharge);
+    dest.signedData = src.signedData;
     if (!Utils.isEmptyJSon(src.stop)) {
       dest.stop = {};
       if (forFrontEnd && !Utils.isEmptyJSon(src.stop.user)) {
@@ -652,6 +656,7 @@ export default class Database {
         dest.stop.transactionData = src.stop.transactionData;
       }
       dest.stop.stateOfCharge = Utils.convertToInt(src.stop.stateOfCharge);
+      dest.stop.signedData = src.stop.signedData;
       dest.stop.totalConsumption = Utils.convertToInt(src.stop.totalConsumption);
       dest.stop.totalInactivitySecs = Utils.convertToInt(src.stop.totalInactivitySecs);
       dest.stop.extraInactivitySecs = Utils.convertToInt(src.stop.extraInactivitySecs);

@@ -35,6 +35,12 @@ export default class OCPPUtils {
         && (meterValue.attribute.context === 'Sample.Periodic' || meterValue.attribute.context === 'Sample.Clock'));
   }
 
+  static isSignedMeterValue(meterValue) {
+    return meterValue.attribute
+      && meterValue.attribute.format === 'SignedData'
+      && (meterValue.attribute.context === 'Transaction.End' || meterValue.attribute.context === 'Transaction.Begin');
+  }
+
   static async checkAndGetChargingStation(chargeBoxIdentity, tenantID) {
     // Check
     if (!chargeBoxIdentity) {
