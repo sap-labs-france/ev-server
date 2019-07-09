@@ -6,8 +6,11 @@
       "./build/types/",
       "./test/types/"
     ],
-    "esModuleInterop": true
+    "types": [
+      "node",
+      "bluebird-global",
+      "mocha"
+    ]
   },
-  "exclude": [
-  ]
+  "exclude": []
 }

@@ -104,7 +104,7 @@ export default class ChargingStationStorage {
       // Site Area
       DatabaseUtils.pushSiteAreaLookupInAggregation(
         { tenantID, aggregation, localField: 'siteAreaID', foreignField: '_id',
-          asField: 'siteArea', oneToOneCardinality: true, objectIDFields: ['createdBy','lastChangedBy'] });
+          asField: 'siteArea', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy'] });
       // With sites
       if (params.siteIDs && params.siteIDs.length > 0) {
         // Build filter
@@ -276,7 +276,7 @@ export default class ChargingStationStorage {
       siteAreaJoin = [];
       // Site Area
       DatabaseUtils.pushSiteLookupInAggregation(
-        { tenantID, aggregation: siteAreaIdJoin, localField: 'siteArea.siteID', foreignField: '_id',
+        { tenantID, aggregation: siteAreaJoin, localField: 'siteArea.siteID', foreignField: '_id',
           asField: 'site', oneToOneCardinality: true });
     }
     // Charger
@@ -595,7 +595,6 @@ export default class ChargingStationStorage {
         }
         // Continue
         return true;
-
       });
     }
     // Debug

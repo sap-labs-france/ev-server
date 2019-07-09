@@ -426,7 +426,9 @@ export default class AuthService {
         { limit: Constants.NO_LIMIT, skip: 0 }
       );
       if (sites.count > 0) {
-        const siteIDs = sites.result.map((site) => site.id);
+        const siteIDs = sites.result.map((site) => {
+          return site.id;
+        });
         if (siteIDs && siteIDs.length > 0) {
           await User.addSitesToUser(tenantID, newUser.getID(), siteIDs);
         }

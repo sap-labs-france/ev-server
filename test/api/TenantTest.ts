@@ -1,6 +1,5 @@
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
-import HttpStatus from 'http-status-codes';
 import CentralServerService from '../api/client/CentralServerService';
 import Factory from '../factories/Factory';
 

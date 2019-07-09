@@ -429,15 +429,15 @@ export default class Transaction extends TenantHolder {
   }
 
   isActive() {
-    return !this._model.hasOwnProperty('stop');
+    return !this._model.stop;
   }
 
   isFinished() {
-    return this._model.hasOwnProperty('stop');
+    return this._model.stop;
   }
 
   isRemotelyStopped() {
-    return this._model.hasOwnProperty('remotestop');
+    return this._model.remotestop;
   }
 
   getRemoteStop() {

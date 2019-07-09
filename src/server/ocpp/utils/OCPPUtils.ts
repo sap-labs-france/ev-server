@@ -45,7 +45,7 @@ export default class OCPPUtils {
     // Check
     if (!chargeBoxIdentity) {
       throw new BackendError(Constants.CENTRAL_SERVER,
-        `Should have the required property 'chargeBoxIdentity'!`,
+        'Should have the required property \'chargeBoxIdentity\'!',
         'OCPPUtils', '_checkAndGetChargingStation');
     }
     // Get the charging station

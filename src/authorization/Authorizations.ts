@@ -91,8 +91,8 @@ export default class Authorizations {
       // Get User's Site Admin
       const sitesAdmin = await UserStorage.getSites(
         user.getTenantID(), { userID: user.getID(), siteAdmin: true },
-        {limit: Constants.NO_LIMIT, skip: 0},
-        ["site.id"]
+        { limit: Constants.NO_LIMIT, skip: 0 },
+        ['site.id']
       );
       for (const siteAdmin of sitesAdmin.result) {
         siteAdminIDs.push(siteAdmin.site.id);
@@ -219,7 +219,7 @@ export default class Authorizations {
         return;
       }
       // Site -----------------------------------------------------
-      // TODO consider changing structure of CS->SA->S entirely; It's a little inconvenient that sometimes CS includes SA with includes S, which can also include SA, but not always
+      // TODO: consider changing structure of CS->SA->S entirely; It's a little inconvenient that sometimes CS includes SA with includes S, which can also include SA, but not always
       site = siteArea.site ? siteArea.site : (siteArea.siteID ? await SiteStorage.getSite(chargingStation.getTenantID(), siteArea.siteID) : null);
 
       if (!site) {
@@ -643,12 +643,11 @@ export default class Authorizations {
   public static async getUserScopes(user: User): Promise<ReadonlyArray<string>> {
     // Get the sites where the user is marked Site Admin
     const sitesAdmin = await UserStorage.getSites(user.getTenantID(),
-      { userID: user.getID(), siteAdmin: true },
-      { limit: Constants.NO_LIMIT, skip: 0 },
-      ["userID", "siteAdmin"]
+      { userID: user.getID(), siteAdmin: true, onlyRecordCount: true },
+      { limit: Constants.NO_LIMIT, skip: 0 }
     );
     // Get the group from User's role
-    const groups = Authorizations.getAuthGroupsFromUser(user.getRole(), sitesAdmin['result']);
+    const groups = Authorizations.getAuthGroupsFromUser(user.getRole(), sitesAdmin.count);
     // Return the scopes
     return AuthorizationsDefinition.getInstance().getScopes(groups);
   }
@@ -689,7 +688,7 @@ export default class Authorizations {
         'Authorizations', '_checkAndGetUserTagIDOnChargingStation', user.getModel()
       );
     } else {
-      // USer Exists: Check User Deleted?
+      // User Exists: Check User Deleted?
       if (user.getStatus() === Constants.USER_STATUS_DELETED) {
         // Yes: Restore it!
         user.setDeleted(false);
@@ -725,7 +724,7 @@ export default class Authorizations {
     return Authorizations.configuration;
   }
 
-  private static getAuthGroupsFromUser(userRole: string, sitesAdmins: ReadonlyArray<Site>): ReadonlyArray<string> {
+  private static getAuthGroupsFromUser(userRole: string, sitesAdminCount: number): ReadonlyArray<string> {
     const groups: Array<string> = [];
     switch (userRole) {
       case Constants.ROLE_ADMIN:
@@ -737,7 +736,7 @@ export default class Authorizations {
       case Constants.ROLE_BASIC:
         groups.push('basic');
         // Check Site Admin
-        if (sitesAdmins && sitesAdmins.length > 0) {
+        if (sitesAdminCount > 0) {
           groups.push('siteAdmin');
         }
         break;
@@ -750,7 +749,8 @@ export default class Authorizations {
 
   private static canPerformAction(loggedUser, resource, action, context?): boolean {
     // Get the groups
-    const groups = Authorizations.getAuthGroupsFromUser(loggedUser.role, loggedUser.sitesAdmin);
+    const groups = Authorizations.getAuthGroupsFromUser(loggedUser.role,
+      loggedUser.sitesAdmin ? loggedUser.sitesAdmin.length : 0);
     // Check
     const authorized = AuthorizationsDefinition.getInstance().can(groups, resource, action, context);
     if (!authorized && Authorizations.getConfiguration().debug) {
