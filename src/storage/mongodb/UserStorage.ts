@@ -118,7 +118,7 @@ export default class UserStorage {
 
     // Debug
     Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement', uniqueTimerID, { language });
-    
+
     // Return
     return eula;
   }
@@ -158,7 +158,7 @@ export default class UserStorage {
 
     const user = await UserStorage.getUsers(tenantID, {email: email}, {limit: 1, skip: 0});
     //TODO: error handling if no user returned
-    
+
     // Debug
     Logging.traceEnd('UserStorage', 'getUserByEmail', uniqueTimerID, { email });
     return user.count>0 ? user.result[0] : null;
@@ -167,24 +167,24 @@ export default class UserStorage {
   public static async getUser(tenantID: string, userID: string): Promise<User> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUser');
-   
+
     const user = await UserStorage.getUsers(tenantID, {userID: userID}, {limit: 1, skip: 0});
-    
+
     // Debug
     Logging.traceEnd('UserStorage', 'getUser', uniqueTimerID, { userID });
-    
+
     return user.count>0 ? user.result[0] : null;
   }
 
   public static async getUserImage(tenantID: string, id: string): Promise<{id: string, image: string}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserImage');
-    
+
     const userImages = await this.getUserImages(tenantID, [id]);
 
     // Debug
     Logging.traceEnd('UserStorage', 'getUserImage', uniqueTimerID, { id });
-    
+
     return userImages?userImages[0]:null;
   }
 
@@ -193,13 +193,13 @@ export default class UserStorage {
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserImages');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    
+
     // Build options
     let options: any = {};
     if(userIDs) {
       options._id = { $in: userIDs.map(id => Utils.convertToObjectID(id)) };
     }
-    
+
     // Read DB
     const userImagesMDB = await global.database.getCollection<{_id: string, image: string}>(tenantID, 'userimages')
       .find(options)
@@ -313,12 +313,12 @@ export default class UserStorage {
       userToSave.tagIDs = userToSave.tagIDs.filter(tid => tid && tid !== '');
       // Delete Tag IDs
       await global.database.getCollection<any>(tenantID, 'tags')
-        .deleteMany({ 'userID': userFilter._id });
+        .deleteMany({ 'userID': userMDB._id });
 
       if(userToSave.tagIDs.length !== 0) {
         // Insert new Tag IDs
         await global.database.getCollection<any>(tenantID, 'tags')
-        .insertMany(userToSave.tagIDs.map(tid => ({_id: tid, userID: userFilter._id}) ));
+        .insertMany(userToSave.tagIDs.map(tid => ({_id: tid, userID: userMDB._id}) ));
       }
     }
 
@@ -445,10 +445,10 @@ export default class UserStorage {
         }
       }
     });
-    
+
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
-    
+
     // Site ID? or ExcludeSiteID - cannot be used together
     if (params.siteID || params.excludeSiteID) {
       // Add Site
@@ -585,10 +585,10 @@ export default class UserStorage {
     aggregation.push({
       $match: filter
     });
-    
+
     // Get Sites
     DatabaseUtils.pushBasicSiteJoinInAggregation(tenantID, aggregation, 'siteID', '_id', 'site', ['userID', 'siteID'], 'none', true);
-    
+
     // Count Records
     const usersCountMDB = await global.database.getCollection<any>(tenantID, 'siteusers')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })

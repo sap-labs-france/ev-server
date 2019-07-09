@@ -89,7 +89,6 @@ describe('Authentication Service', function() {
       // Call
       const response = await CentralServerService.DefaultInstance.authenticationApi.login(testData.adminEmail, 'another', true);
       // Check
-      console.log(response);
       expect(response.status).to.be.eql(550);
       expect(response.data).to.not.have.property('token');
     });
