@@ -288,7 +288,18 @@ export default class SiteStorage {
     }
     // Set Company?
     if (params.companyID) {
-      filters.companyID = Utils.convertToObjectID(params.companyID);
+      // Yes, add in filter
+      // Parse companies with the | delimiter for multiple values
+      const companySplitted = params.companyID.split('|');
+      if(companySplitted.length > 1) {
+        const companyArray = [];
+        companySplitted.forEach((company)=>{
+          companyArray.push({"companyID": Utils.convertToObjectID(company)});
+        });
+        filters.$or = companyArray;
+      } else {
+        filters.companyID = Utils.convertToObjectID(params.companyID)
+      }
     }
     // Auto User Site Assignment
     if (params.withAutoUserAssignment) {

@@ -119,7 +119,18 @@ export default class SiteAreaStorage {
     }
     // Set Site?
     if (params.siteID) {
-      filters.siteID = Utils.convertToObjectID(params.siteID);
+      // Yes, add in filter
+      // Parse companies with the | delimiter for multiple values
+      const siteSplitted = params.siteID.split('|');
+      if(siteSplitted.length > 1) {
+        const siteArray = [];
+        siteSplitted.forEach((site)=>{
+          siteArray.push({"siteID": Utils.convertToObjectID(site)});
+        });
+        filters.$or = siteArray;
+      } else {
+        filters.siteID = Utils.convertToObjectID(params.siteID)
+      }
     }
     // Create Aggregation
     const aggregation = [];

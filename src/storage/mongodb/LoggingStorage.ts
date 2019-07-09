@@ -147,6 +147,16 @@ export default class LoggingStorage {
       // Yes, add in filter
       // Parse action with the | delimiter for multiple values
       const actionSplitted = params.action.split('|');
+/*      if(actionSplitted.length > 1) {
+        const actionArray = [];
+        actionSplitted.forEach((action)=>{
+          actionArray.push({"action": action});
+        });
+        filters.$or = actionArray;
+      } else {
+        filters.action = params.action;
+      }
+    }*/
       if(actionSplitted.length > 1) {
         const actionArray = [];
         actionSplitted.forEach((action)=>{
@@ -156,7 +166,8 @@ export default class LoggingStorage {
       } else {
         filters.action = params.action;
       }
-    }
+    }*/
+
     // User ID
     if (params.userID) {
       // Yes, add in filter

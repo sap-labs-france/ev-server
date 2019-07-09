@@ -33,10 +33,20 @@ describe('Logging tests', function() {
 
 
   describe('Success cases', () => {
-    it('Check that retrieving logs ', async () => {
-      // Retrieve the setting id
+    it('Check that multi filtering (action) works', async () => {
       let read = await testData.centralService.logsApi.readAll({ "Action" : "ChargingStationDelete|DataTransfer" },{ limit: 10, skip: 0 });
       expect(read.status).to.equal(200);
     });
+
+    it('Check that multi filtering (charging stations) works', async () => {
+      let read = await testData.centralService.logsApi.readAll({ "Source" : "SAP-Caen-01|SAP-Mougins-01" },{ limit: 10, skip: 0 });
+      expect(read.status).to.equal(200);
+    });
+
+    it('Check that multi filtering (users) works', async () => {
+      let read = await testData.centralService.logsApi.readAll({ "UserID" : "5bd8339cd0685c19bf056f51|5ca775dac521b1cec0e2ea19|5c5c4bd8084dd543fdcf2ee9" },{ limit: 10, skip: 0 });
+      expect(read.status).to.equal(200);
+    });
+
   });
 });
