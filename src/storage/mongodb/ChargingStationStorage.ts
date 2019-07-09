@@ -276,7 +276,7 @@ export default class ChargingStationStorage {
       siteAreaJoin = [];
       // Site Area
       DatabaseUtils.pushSiteLookupInAggregation(
-        { tenantID, aggregation: siteAreaIdJoin, localField: 'siteArea.siteID', foreignField: '_id',
+        { tenantID, aggregation: siteAreaJoin, localField: 'siteArea.siteID', foreignField: '_id',
           asField: 'site', oneToOneCardinality: true });
     }
     // Charger
