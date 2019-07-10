@@ -1,3 +1,5 @@
+// FIXME: Temporary workaround until the bluebird global import issue is sorted out
+import BBPromise from 'bluebird';
 import moment from 'moment';
 import Constants from '../../utils/Constants';
 import global from '../../types/GlobalType';
@@ -51,7 +53,7 @@ export default class UpdateTransactionSimplePriceTask extends MigrationTask {
     const transactionsCollection = await global.database.getCollection<any>(tenantId, 'transactions');
     const transactions = await transactionsCollection.find().toArray();
 
-    await Promise.map(transactions,
+    await BBPromise.map(transactions,
       async (transaction) => {
         if (transaction.stop && transaction.stop.totalConsumption) {
           const updatedField = await simplePricing.computePrice({ consumption: transaction.stop.totalConsumption });
@@ -81,7 +83,7 @@ export default class UpdateTransactionSimplePriceTask extends MigrationTask {
       { $match: { transactionId: transactionId } },
       { $sort: { endedAt: 1 } }
     ]).toArray();
-    await Promise.map(consumptions,
+    await BBPromise.map(consumptions,
       async (consumption: any) => {
         const updatedField = await simplePricing.computePrice({ consumption: consumption.consumption });
         const cumulatedField = await simplePricing.computePrice({ consumption: consumption.cumulatedConsumption });
