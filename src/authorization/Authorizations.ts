@@ -72,11 +72,10 @@ export default class Authorizations {
   }
 
   public static async getAuthorizedEntities(user: User) {
+    const companyIDs = [];
+    const siteIDs = [];
+    const siteAdminIDs = [];
     if (!Authorizations.isAdmin(user.getRole())) {
-      const companyIDs = [];
-      const siteIDs = [];
-      const siteAdminIDs = [];
-
       // Get User's site
       const sites = await user.getSites();
 
@@ -97,14 +96,12 @@ export default class Authorizations {
       for (const siteAdmin of sitesAdmin.result) {
         siteAdminIDs.push(siteAdmin.site.id);
       }
-
-      return {
-        companies: companyIDs,
-        sites: siteIDs,
-        sitesAdmin: siteAdminIDs
-      };
     }
-    return {};
+    return {
+      companies: companyIDs,
+      sites: siteIDs,
+      sitesAdmin: siteAdminIDs
+    };
   }
 
   public static async getConnectorActionAuthorizations(tenantID: string, user: any, chargingStation: any, connector: any, siteArea: SiteArea, site: Site) {
@@ -350,11 +347,13 @@ export default class Authorizations {
   }
 
   public static canReadTransaction(loggedUser: any, transaction: Transaction): boolean {
-    if (transaction.getUserJson() && transaction.getUserJson().id) {
-      return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION, Constants.ACTION_READ,
-        { 'user': transaction.getUserJson().id, 'owner': loggedUser.id });
-    }
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION, Constants.ACTION_READ);
+    const context = {
+      user: transaction.getUserJson() ? transaction.getUserJson().id : null,
+      owner: loggedUser.id,
+      site: transaction.getSiteID(),
+      sites: loggedUser.sitesAdmin
+    };
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION, Constants.ACTION_READ, context);
   }
 
   public static canUpdateTransaction(loggedUser: any): boolean {
@@ -751,6 +750,7 @@ export default class Authorizations {
     // Get the groups
     const groups = Authorizations.getAuthGroupsFromUser(loggedUser.role,
       loggedUser.sitesAdmin ? loggedUser.sitesAdmin.length : 0);
+
     // Check
     const authorized = AuthorizationsDefinition.getInstance().can(groups, resource, action, context);
     if (!authorized && Authorizations.getConfiguration().debug) {
