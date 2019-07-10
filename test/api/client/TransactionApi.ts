@@ -158,41 +158,8 @@ export default class TransactionApi extends CrudApi {
     // OCPP 1.6?
     if (ocpp.getVersion() === '1.6') {
       // Yes
-      if (!withSoC) {
-        // SignedData ?
-        if (withSignedData) {
-          response = await ocpp.executeMeterValues(chargingStation.id, {
-            connectorId: transaction.connectorId,
-            transactionId: transaction.id,
-            meterValue: {
-              timestamp: currentTime.toISOString(),
-              sampledValue: [{
-                'unit': 'Wh',
-                'context': 'Transaction.Begin',
-                'value': signedValue,
-                'format': 'SignedData'
-              }, {
-                'unit': 'Wh',
-                'context': 'Transaction.Begin',
-                'value': meterValue
-              }]
-            },
-          });
-        } else {
-          response = await ocpp.executeMeterValues(chargingStation.id, {
-            connectorId: transaction.connectorId,
-            transactionId: transaction.id,
-            meterValue: {
-              timestamp: currentTime.toISOString(),
-              sampledValue: [{
-                'unit': 'Wh',
-                'context': 'Transaction.Begin',
-                'value': meterValue
-              }]
-            },
-          });
-        }
-      } else {
+      if (withSoC) {
+        // With State of Charge ?
         response = await ocpp.executeMeterValues(chargingStation.id, {
           connectorId: transaction.connectorId,
           transactionId: transaction.id,
@@ -208,6 +175,39 @@ export default class TransactionApi extends CrudApi {
               'measurand': 'SoC',
               'location': 'EV',
               'value': meterSocValue
+            }]
+          },
+        });
+      } else if (withSignedData) {
+        // With SignedData ?
+        response = await ocpp.executeMeterValues(chargingStation.id, {
+          connectorId: transaction.connectorId,
+          transactionId: transaction.id,
+          meterValue: {
+            timestamp: currentTime.toISOString(),
+            sampledValue: [{
+              'unit': 'Wh',
+              'context': 'Transaction.Begin',
+              'value': signedValue,
+              'format': 'SignedData'
+            }, {
+              'unit': 'Wh',
+              'context': 'Transaction.Begin',
+              'value': meterValue
+            }]
+          },
+        });
+      } else {
+        // Regular case
+        response = await ocpp.executeMeterValues(chargingStation.id, {
+          connectorId: transaction.connectorId,
+          transactionId: transaction.id,
+          meterValue: {
+            timestamp: currentTime.toISOString(),
+            sampledValue: [{
+              'unit': 'Wh',
+              'context': 'Transaction.Begin',
+              'value': meterValue
             }]
           },
         });
@@ -292,37 +292,9 @@ export default class TransactionApi extends CrudApi {
     let response;
     // OCPP 1.6?
     if (ocpp.getVersion() === '1.6') {
-      if (!withSoC) {
-        // SignedData ?
-        if (withSignedData) {
-          response = await ocpp.executeMeterValues(chargingStation.id, {
-            connectorId: transaction.connectorId,
-            transactionId: transaction.id,
-            meterValue: {
-              timestamp: currentTime.toISOString(),
-              sampledValue: [{
-                'unit': 'Wh',
-                'context': 'Transaction.End',
-                'value': signedValue,
-                'format': 'SignedData'
-              }]
-            },
-          });
-        } else {
-          response = await ocpp.executeMeterValues(chargingStation.id, {
-            connectorId: transaction.connectorId,
-            transactionId: transaction.id,
-            meterValue: {
-              timestamp: currentTime.toISOString(),
-              sampledValue: [{
-                'unit': 'Wh',
-                'context': 'Transaction.End',
-                'value': meterValue
-              }]
-            },
-          });
-        }
-      } else {
+      // Yes
+      if (withSoC) {
+        // With State of Charge ?
         response = await ocpp.executeMeterValues(chargingStation.id, {
           connectorId: transaction.connectorId,
           transactionId: transaction.id,
@@ -338,6 +310,35 @@ export default class TransactionApi extends CrudApi {
               'measurand': 'SoC',
               'location': 'EV',
               'value': meterSocValue
+            }]
+          },
+        });
+      } else if (withSignedData) {
+        // With SignedData ?
+        response = await ocpp.executeMeterValues(chargingStation.id, {
+          connectorId: transaction.connectorId,
+          transactionId: transaction.id,
+          meterValue: {
+            timestamp: currentTime.toISOString(),
+            sampledValue: [{
+              'unit': 'Wh',
+              'context': 'Transaction.End',
+              'value': signedValue,
+              'format': 'SignedData'
+            }]
+          },
+        });
+      } else {
+        // Regular case
+        response = await ocpp.executeMeterValues(chargingStation.id, {
+          connectorId: transaction.connectorId,
+          transactionId: transaction.id,
+          meterValue: {
+            timestamp: currentTime.toISOString(),
+            sampledValue: [{
+              'unit': 'Wh',
+              'context': 'Transaction.End',
+              'value': meterValue
             }]
           },
         });
