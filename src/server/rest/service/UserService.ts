@@ -60,7 +60,6 @@ export default class UserService {
     }
     // Get Sites
     for (const siteID of filteredRequest.siteIDs) {
-
       if(! SiteStorage.siteExists(req.user.tenantID, siteID)) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -103,7 +102,6 @@ export default class UserService {
         'User\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
         'UserService', 'handleDeleteUser', req.user);
     }
-
     // Check auth
     if (!Authorizations.canDeleteUser(req.user, id)) {
       // Not Authorized!
@@ -115,7 +113,6 @@ export default class UserService {
         'UserService', 'handleDeleteUser',
         req.user);
     }
-
     // Check Mandatory fields
     if (id === req.user.id) {
       // Not Found!
@@ -144,10 +141,8 @@ export default class UserService {
       siteUser => siteUser.site.id
     );
     UserStorage.removeSitesFromUser(req.user.tenantID, user.id, siteIDs);
-    
     // Delete User
     await UserStorage.deleteUser(req.user.tenantID, user.id);
-    
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -156,7 +151,6 @@ export default class UserService {
       message: `User with ID '${user.id}' has been deleted successfully`,
       action: action
     });
-
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
@@ -192,7 +186,6 @@ export default class UserService {
         `User with ID '${filteredRequest.id}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'UserService', 'handleUpdateUser', req.user);
     }
-
     // Deleted?
     if (user.deleted) {
       throw new AppError(
@@ -200,10 +193,8 @@ export default class UserService {
         `User with ID '${filteredRequest.id}' is logically deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'UserService', 'handleUpdateUser', req.user);
     }
-    
     // Check email
     const userWithEmail = await UserStorage.getUserByEmail(req.user.tenantID, filteredRequest.email);
-    
     // Check if EMail is already taken
     if (userWithEmail && user.id !== userWithEmail.id) {
       // Yes!
@@ -212,7 +203,6 @@ export default class UserService {
         `Email '${filteredRequest.email}' already exists`, Constants.HTTP_USER_EMAIL_ALREADY_EXIST_ERROR,
         'UserService', 'handleUpdateUser', req.user);
     }
-    
     // Check if Status has been changed
     if (filteredRequest.status &&
       filteredRequest.status !== user.status) {
@@ -227,17 +217,15 @@ export default class UserService {
       filteredRequest.password = newPasswordHashed;
     }
     // Update timestamp
-    filteredRequest.lastChangedBy = { id: req.user.id } as User; //TODO do we really need to query the full user here?
+    filteredRequest.lastChangedBy = { id: req.user.id };
     filteredRequest.lastChangedOn = new Date();
+    // Clean up request
     delete filteredRequest.passwords;
-
     // Check Mandatory fields
     UserService.checkIfUserValid(filteredRequest, user, req);
-
     // Update User
     const newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? [] : filteredRequest.tagIDs;
     const updatedUserId = await UserStorage.saveUser(req.user.tenantID, {...filteredRequest, tagIDs: newTagIDs}, true); //Careful: Last changed by is not a proper user here! TODO (it wasnt before either tho)
-
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -402,10 +390,8 @@ export default class UserService {
         onlyRecordCount: filteredRequest.OnlyRecordCount
       }
     );
-
     // Filter
     UserSecurity.filterUsersResponse(users, req.user);
-
     // Return
     res.json(users);
     next();
@@ -440,7 +426,6 @@ export default class UserService {
         sort: filteredRequest.Sort
       }
     );
-
     // Filter
     UserSecurity.filterUsersResponse(users, req.user);
     // Return
@@ -460,7 +445,6 @@ export default class UserService {
         'UserService', 'handleCreateUser',
         req.user);
     }
-
     // Filter
     const filteredRequest = UserSecurity.filterUserCreateRequest(req.body, req.user);
     // Check Mandatory fields
@@ -473,9 +457,8 @@ export default class UserService {
         `Email '${filteredRequest.email}' already exists`, Constants.HTTP_USER_EMAIL_ALREADY_EXIST_ERROR,
         'UserService', 'handleCreateUser', req.user);
     }
-    // Create user
+    // Clean request
     delete filteredRequest.passwords;
-
     // Set the password
     if (filteredRequest.password) {
       // Generate a hash for the given password
@@ -486,13 +469,11 @@ export default class UserService {
     // Set timestamp
     filteredRequest.createdBy = { id: req.user.id } as User;
     filteredRequest.createdOn = new Date();
-
     // Set default
     if (!filteredRequest.notificationsActive) {
       filteredRequest.notificationsActive = true;
     }
     filteredRequest.createdOn = new Date();
-
     // Save User
     let newTagIDs: string[];
     if(typeof filteredRequest.tagIDs === 'string') {
@@ -552,7 +533,6 @@ export default class UserService {
     }
     let setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, Constants.COMPONENTS.PRICING);
     setting = setting.getContent().convergentCharging;
-
     if (!setting) {
       Logging.logException({ 'message': 'Convergent Charging setting is missing' }, 'UserInvoice', Constants.CENTRAL_SERVER, 'UserService', 'handleGetUserInvoice', req.user.tenantID, req.user);
       throw new AppError(

@@ -109,7 +109,6 @@ export default class UserSecurity {
   // User
   static filterUserResponse(user: User, loggedUser) {
     const filteredUser: any = {};
-
     if (!user) {
       return null;
     }
@@ -163,7 +162,6 @@ export default class UserSecurity {
   // User
   static filterMinimalUserResponse(user: User, loggedUser) {
     let filteredUser: any = {};
-
     if (!user) {
       return null;
     }
@@ -178,7 +176,6 @@ export default class UserSecurity {
 
   static filterUsersResponse(users, loggedUser) {
     const filteredUsers = [];
-
     if (!users.result) {
       return null;
     }
