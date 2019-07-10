@@ -5,8 +5,8 @@ import TenantContext from './TenantContext';
 export default class StatisticsContext {
 
   static readonly CHARGING_STATIONS: any = [
-    CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16,
-    CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15];
+    CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15,
+    CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16];
 
   static readonly USERS: any = [
     CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN,
@@ -22,7 +22,7 @@ export default class StatisticsContext {
   };
 
   private tenantContext: TenantContext;
-  private chargingStations: any[];
+  private chargingStations: any[] = [];
 
   constructor(tenantContext: TenantContext) {
     this.tenantContext = tenantContext;
@@ -32,9 +32,9 @@ export default class StatisticsContext {
     let firstYear = 0;
     const siteContext = this.tenantContext.getSiteContext(siteName);
     const siteAreaContext = siteContext.getSiteAreaContext(siteAreaName);
-    this.chargingStations = Array.from(StatisticsContext.CHARGING_STATIONS, (cs) => {
-      return siteAreaContext.getChargingStationContext(cs);
-    });
+    for (const cs of StatisticsContext.CHARGING_STATIONS) {
+      this.chargingStations.push(siteAreaContext.getChargingStationContext(cs));
+    }
     const users = Array.from(StatisticsContext.USERS, (user) => {
       return this.tenantContext.getUserContext(user);
     });
@@ -66,6 +66,7 @@ export default class StatisticsContext {
         }
       }
     }
+    await this.tenantContext.close();
     return firstYear;
   }
 
