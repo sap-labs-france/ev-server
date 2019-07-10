@@ -125,20 +125,6 @@ export default class OCPPService {
         // Get config and save it
         updatedChargingStation.requestAndSaveConfiguration();
       }, 3000);
-      // Check if charger will be automatically assigned
-      if (Configuration.getTestConfig() && Configuration.getTestConfig().automaticChargerAssignment) {
-        // Get all the site areas
-        const siteAreas = await SiteAreaStorage.getSiteAreas(headers.tenantID, null,
-          { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 }
-        );
-        // Assign them
-        if (Array.isArray(siteAreas.result) && siteAreas.result.length > 0) {
-          // Set
-          chargingStation.setSiteArea(siteAreas.result[0]);
-          // Save
-          await updatedChargingStation.saveChargingStationSiteArea();
-        }
-      }
       // Return the result
       return {
         'currentTime': bootNotification.timestamp.toISOString(),

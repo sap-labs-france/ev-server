@@ -14,7 +14,6 @@ export default class CleanupTransactionTask extends MigrationTask {
 
   async migrate() {
     const tenants = await Tenant.getTenants();
-
     for (const tenant of tenants.result) {
       await this.migrateTenant(tenant);
     }

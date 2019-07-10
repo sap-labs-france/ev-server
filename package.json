@@ -158,6 +158,7 @@
     "test:user": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/UserTest.ts",
     "test:siteorg": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/SiteOrgTest.ts",
     "test:transaction": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/TransactionTest.ts",
+    "test:stat": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/StatisticsTest.ts",
     "test:auth": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/AuthenticationTest.ts",
     "test:ocpp16": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/OCPPJson16Test.ts",
     "test:authentication": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/AuthenticationTest.ts",
