@@ -35,6 +35,7 @@ describe('Logging tests', function() {
   describe('Success cases', () => {
     it('Check that multi filtering (action) works', async () => {
       let read = await testData.centralService.logsApi.readAll({ "Action" : "ChargingStationDelete|DataTransfer" },{ limit: 10, skip: 0 });
+      console.log(`>>> read:${read.data.count}`);
       expect(read.status).to.equal(200);
     });
 

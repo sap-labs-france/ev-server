@@ -124,15 +124,10 @@ export default class LoggingStorage {
     }
     // Charging Station
     if (params.source) {
-      // Yes, add in filter
       // Parse source with the | delimiter
       const sourceSplitted = params.source.split('|');
       if(sourceSplitted.length > 1) {
-        const sourceArray = [];
-        sourceSplitted.forEach((source)=>{
-          sourceArray.push({"action": source});
-        });
-        filters.$or = sourceArray;
+        filters.source = { $in: sourceSplitted };;
       } else {
         filters.source = params.source;
       }
@@ -144,30 +139,14 @@ export default class LoggingStorage {
     }
     // Action
     if (params.action) {
-      // Yes, add in filter
       // Parse action with the | delimiter for multiple values
       const actionSplitted = params.action.split('|');
-/*      if(actionSplitted.length > 1) {
-        const actionArray = [];
-        actionSplitted.forEach((action)=>{
-          actionArray.push({"action": action});
-        });
-        filters.$or = actionArray;
-      } else {
-        filters.action = params.action;
-      }
-    }*/
       if(actionSplitted.length > 1) {
-        const actionArray = [];
-        actionSplitted.forEach((action)=>{
-          actionArray.push({"action": action});
-        });
-        filters.$or = actionArray;
+        filters.action = { $in: actionSplitted };;
       } else {
         filters.action = params.action;
       }
-    }*/
-
+    }
     // User ID
     if (params.userID) {
       // Yes, add in filter
