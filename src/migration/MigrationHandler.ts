@@ -17,6 +17,7 @@ import UpdateTransactionInactivityTask from './tasks/UpdateTransactionInactivity
 import UpdateTransactionSimplePriceTask from './tasks/UpdateTransactionSimplePriceTask';
 import UpdateTransactionSoCTask from './tasks/UpdateTransactionSoCTask';
 import UsersAddNotificationsFlagTask from './tasks/UsersAddNotificationsFlagTask';
+import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
 
 
 export default class MigrationHandler {
@@ -53,6 +54,7 @@ export default class MigrationHandler {
       currentMigrationTasks.push(new MigrateTenantSettingsTask());
       currentMigrationTasks.push(new UpdateTransactionExtraInactivityTask());
       currentMigrationTasks.push(new AddSensitiveDataInSettingsTask());
+      currentMigrationTasks.push(new SiteUsersHashIDsTask());
 
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();
