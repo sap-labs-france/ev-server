@@ -160,7 +160,6 @@
     "test:authentication": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha -r ts-node/register test/**/AuthenticationTest.ts --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
     "test:company": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha -r ts-node/register test/**/CompanyTest.ts --exit --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
     "test:createContext": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha -r ts-node/register test/**/ContextBuilderRunner.ts --exit --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
-    "test:createBigContext": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha --exit -r ts-node/register test/**/BigBuilderRunner.ts --exit --reporter mochawesome --reporter-options reportDir=outputs/mochawesome-report,json=false",
     "clinic:clean": "clinic clean",
     "npm-check": "npm-check"
   },
