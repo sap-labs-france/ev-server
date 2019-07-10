@@ -32,10 +32,6 @@ export default class CentralRestServer {
     CentralRestServer.centralSystemRestConfig = centralSystemRestConfig;
     this.chargingStationConfig = chargingStationConfig;
 
-    // Set
-    Database.setChargingStationHeartbeatIntervalSecs(
-      this.chargingStationConfig.heartbeatIntervalSecs);
-
     // Initialize express app
     this.express = expressTools.init('2mb');
 

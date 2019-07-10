@@ -210,9 +210,10 @@ export default class SiteAreaStorage {
         if (params.withAvailableChargers) {
           // Chargers
           for (const chargeBox of siteAreaMDB.chargingStations) {
+            // Set Inactive flag
+            chargeBox.inactive = DatabaseUtils.chargingStationIsInactive(chargeBox);
             // Check not deleted
             if (chargeBox.deleted) {
-              // Forget
               continue;
             }
             totalChargers++;
@@ -223,7 +224,7 @@ export default class SiteAreaStorage {
               }
               totalConnectors++;
               // Check if Available
-              if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
+              if (!chargeBox.inactive && connector.status === Constants.CONN_STATUS_AVAILABLE) {
                 availableConnectors++;
               }
             }
@@ -233,7 +234,7 @@ export default class SiteAreaStorage {
                 continue;
               }
               // Check if Available
-              if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
+              if (!chargeBox.inactive && connector.status === Constants.CONN_STATUS_AVAILABLE) {
                 availableChargers++;
                 break;
               }

@@ -7,12 +7,11 @@ import Company from '../types/Company';
 import Configuration from './Configuration';
 import Constants from './Constants';
 import Utils from './Utils';
+import DatabaseUtils from '../storage/mongodb/DatabaseUtils';
 
 SourceMap.install();
 
 export default class Database {
-  private static heartbeatIntervalSecs = -1;
-
   public static updateID(src, dest): void {
     // Set it
     if (src.id) {
@@ -36,10 +35,6 @@ export default class Database {
       }
     }
     return changedID;
-  }
-
-  public static setChargingStationHeartbeatIntervalSecs(heartbeatIntervalSecs: number): void {
-    Database.heartbeatIntervalSecs = heartbeatIntervalSecs;
   }
 
   static updateChargingStation(src, dest, forFrontEnd = true) {
@@ -72,15 +67,7 @@ export default class Database {
     dest.deleted = src.deleted;
     // Check Inactive Chargers
     if (forFrontEnd) {
-      // Default
-      dest.inactive = false;
-      if (dest.lastHeartBeat) {
-        const inactivitySecs = Math.floor((Date.now() - dest.lastHeartBeat.getTime()) / 1000);
-        // Inactive?
-        if (inactivitySecs > (Database.heartbeatIntervalSecs * 5)) {
-          dest.inactive = true;
-        }
-      }
+      dest.inactive = DatabaseUtils.chargingStationIsInactive(dest);
     }
     dest.lastReboot = Utils.convertToDate(src.lastReboot);
     if (src.chargingStationURL) {
