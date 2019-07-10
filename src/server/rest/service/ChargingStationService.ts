@@ -445,7 +445,7 @@ export default class ChargingStationService {
         // Filter
 
         ChargingStationSecurity.filterChargingStationResponse(
-          chargingStation.getModel(), req.user, await tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION))
+          chargingStation.getModel(), req.user, tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION))
       );
       next();
     } catch (error) {
