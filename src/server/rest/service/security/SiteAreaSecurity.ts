@@ -6,6 +6,7 @@ import { HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/req
 import SiteArea from '../../../../types/SiteArea';
 import SiteSecurity from './SiteSecurity';
 import UtilsSecurity from './UtilsSecurity';
+import UserToken from '../../../../types/UserToken';
 
 export default class SiteAreaSecurity {
 
@@ -57,7 +58,7 @@ export default class SiteAreaSecurity {
     };
   }
 
-  static filterSiteAreaResponse(siteArea, loggedUser) {
+  static filterSiteAreaResponse(siteArea, loggedUser: UserToken) {
     let filteredSiteArea;
 
     if (!siteArea) {

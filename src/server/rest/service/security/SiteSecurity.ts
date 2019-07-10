@@ -7,6 +7,7 @@ import Site from '../../../../types/Site';
 import SiteAreaSecurity from './SiteAreaSecurity';
 import UserSecurity from './UserSecurity';
 import UtilsSecurity from './UtilsSecurity';
+import UserToken from '../../../../types/UserToken';
 
 export default class SiteSecurity {
 
@@ -85,7 +86,7 @@ export default class SiteSecurity {
     return filteredRequest;
   }
 
-  static filterSiteResponse(site: Site, loggedUser) {
+  static filterSiteResponse(site: Site, loggedUser: UserToken) {
     let filteredSite;
 
     if (!site) {

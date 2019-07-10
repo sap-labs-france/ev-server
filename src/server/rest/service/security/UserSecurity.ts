@@ -4,6 +4,7 @@ import UtilsSecurity from './UtilsSecurity';
 import { HttpSitesAssignUserRequest, HttpUsersRequest, HttpUserRequest } from '../../../../types/requests/HttpUserRequest';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import User from '../../../../types/User';
+import UserToken from '../../../../types/UserToken';
 
 export default class UserSecurity {
 
@@ -107,7 +108,7 @@ export default class UserSecurity {
   }
 
   // User
-  static filterUserResponse(user: User, loggedUser) {
+  static filterUserResponse(user: User, loggedUser: UserToken) {
     const filteredUser: any = {};
     if (!user) {
       return null;
@@ -160,7 +161,7 @@ export default class UserSecurity {
   }
 
   // User
-  static filterMinimalUserResponse(user: User, loggedUser) {
+  static filterMinimalUserResponse(user: User, loggedUser: UserToken) {
     let filteredUser: any = {};
     if (!user) {
       return null;
@@ -174,7 +175,7 @@ export default class UserSecurity {
     return filteredUser;
   }
 
-  static filterUsersResponse(users, loggedUser) {
+  static filterUsersResponse(users, loggedUser: UserToken) {
     const filteredUsers = [];
     if (!users.result) {
       return null;

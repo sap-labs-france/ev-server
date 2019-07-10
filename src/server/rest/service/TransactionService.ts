@@ -14,6 +14,7 @@ import TransactionSecurity from './security/TransactionSecurity';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
+import { Request, Response, NextFunction } from 'express';
 
 export default class TransactionService {
   static async handleRefundTransactions(action, req, res, next) {
@@ -177,7 +178,7 @@ export default class TransactionService {
     }
   }
 
-  static async handleTransactionSoftStop(action, req, res, next) {
+  static async handleTransactionSoftStop(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
       const filteredRequest = TransactionSecurity.filterTransactionSoftStop(req.body, req.user);

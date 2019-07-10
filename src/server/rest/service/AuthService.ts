@@ -141,7 +141,7 @@ export default class AuthService {
             `User with ID '${filteredRequest.Arg1}' does not exist`,
             Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleIsAuthorized');
         }
-        result = await AuthService.checkConnectorsActionAuthorizations(req.user.tenantID, user, chargingStation);
+        result = await AuthService.checkConnectorsActionAuthorizations(req.user.tenantID, req.user, chargingStation);
         break;
     }
     // Return the result
@@ -149,7 +149,7 @@ export default class AuthService {
     next();
   }
 
-  public static async checkConnectorsActionAuthorizations(tenantID: string, user: User, chargingStation) {
+  public static async checkConnectorsActionAuthorizations(tenantID: string, user: UserToken, chargingStation) {
     const results = [];
     // Check if organization component is active
     const tenant = await Tenant.getTenant(tenantID);
@@ -222,7 +222,7 @@ export default class AuthService {
     }
     try {
       // Check
-      await Authorizations.isTagIDsAuthorizedOnChargingStation(
+      await Authorizations.isTagIDsAuthorizedOnChargingStation(user,
         chargingStation, user.tagIDs[0], transaction.getTagID(), filteredRequest.Action);
       // Ok
       return true;

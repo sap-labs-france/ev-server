@@ -1,12 +1,14 @@
 import path from 'path';
 import MongoDBStorage from '../storage/mongodb/MongoDBStorage';
 import Global = NodeJS.Global;
+import SoapCentralSystemServer from '../server/ocpp/soap/SoapCentralSystemServer';
+import JsonCentralSystemServer from '../server/ocpp/json/JsonCentralSystemServer';
 
 interface TSGlobal extends Global {
   database: MongoDBStorage;
   appRoot: string;
-  centralSystemJson: any;
-  centralSystemSoap: any;
+  centralSystemJson: JsonCentralSystemServer;
+  centralSystemSoap: SoapCentralSystemServer;
   userHashMapIDs: any;
   tenantHashMapIDs: any;
 }
