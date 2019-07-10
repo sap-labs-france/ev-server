@@ -1,3 +1,5 @@
+// FIXME: Temporary workaround until the bluebird global import issue is sorted out
+import BBPromise from 'bluebird';
 import Constants from '../../utils/Constants';
 import global from '../../types/GlobalType';
 import MigrationTask from '../MigrationTask';
@@ -28,7 +30,7 @@ export default class UpdateTransactionExtraInactivityTask extends MigrationTask 
       .toArray();
 
     // Process them
-    await Promise.map(transactionsMDB, async (transactionMDB) => {
+    await BBPromise.map(transactionsMDB, async (transactionMDB) => {
       // Get the last status
       const statusNotifications = await OCPPStorage.getStatusNotifications(tenant.getID(), {
         chargeBoxID: transactionMDB.chargeBoxID,
