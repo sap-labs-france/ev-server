@@ -124,10 +124,20 @@ export default class DatabaseUtils {
     if (!renamedFieldName) {
       renamedFieldName = fieldName;
     }
-    // Convert to string
+    // Make sure the field exists so it can be operated on
     aggregation.push(JSON.parse(`{
       "$addFields": {
-        "${renamedFieldName}": { "$toString": "$${fieldName}" }
+        "${renamedFieldName}": {
+          "$ifNull": ["$${fieldName}", null]
+        }
+      }
+    }`));
+    // Convert to string (or null)
+    aggregation.push(JSON.parse(`{
+      "$addFields": {
+        "${renamedFieldName}": {
+          "$cond": { "if": { "$gt": ["$${fieldName}", null] }, "then": { "$toString": "$${fieldName}" }, "else": null }
+        }
       }
     }`));
   }
@@ -149,6 +159,8 @@ export default class DatabaseUtils {
 
   // TODO: Can probably be removed once user gets typed. For now use as shortcut.
   public static addLastChangedCreatedProps(dest: any, entity: any) {
+    dest.createdBy = null;
+    dest.lastChangedBy = null;
     if (entity.createdBy && entity.createdOn) {
       dest.createdBy = DatabaseUtils._mongoConvertUserID(entity, 'createdBy');
       dest.createdOn = entity.createdOn;

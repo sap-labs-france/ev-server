@@ -134,6 +134,7 @@ export default class SiteStorage {
       // Always limit the nbr of record to avoid perfs issues
       aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
     }
+    console.log(JSON.stringify(aggregation));
     // Count Records
     const usersCountMDB = await global.database.getCollection<{count: number}>(tenantID, 'siteusers')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
@@ -167,6 +168,9 @@ export default class SiteStorage {
     });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
+
+    //console.log(aggregation);
+
     // Read DB
     const siteUsersMDB = await global.database.getCollection<{user: User, siteID: string, siteAdmin: boolean}>(tenantID, 'siteusers')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
