@@ -15,12 +15,14 @@ SourceMap.install();
 
 // Email
 const _emailConfig = Configuration.getEmailConfig();
+
 export default class EMailNotificationTask extends NotificationTask {
   public server: any;
+  public serverBackup: any;
 
   constructor() {
     super();
-    // Connect to the server
+    // Connect the SMTP server
     this.server = email.server.connect({
       user: _emailConfig.smtp.user,
       password: _emailConfig.smtp.password,
@@ -29,6 +31,17 @@ export default class EMailNotificationTask extends NotificationTask {
       tls: _emailConfig.smtp.requireTLS,
       ssl: _emailConfig.smtp.secure
     });
+    // Connect the SMTP Backup server
+    if (_emailConfig.smtpBackup) {
+      this.serverBackup = email.server.connect({
+        user: _emailConfig.smtpBackup.user,
+        password: _emailConfig.smtpBackup.password,
+        host: _emailConfig.smtpBackup.host,
+        port: _emailConfig.smtpBackup.port,
+        tls: _emailConfig.smtpBackup.requireTLS,
+        ssl: _emailConfig.smtpBackup.secure
+      });
+    }
   }
 
   sendNewRegisteredUser(data, locale, tenantID) {
@@ -159,8 +172,8 @@ export default class EMailNotificationTask extends NotificationTask {
     // Remove extra empty lines
     Utils.removeExtraEmptyLines(emailTemplate.body.afterActionLines);
     // Render the final HTML -----------------------------------------------
-    const subject = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/subject.mustache`, 'utf8'), emailTemplate);
-    const html = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/template.html`, 'utf8'), emailTemplate);
+    const subject = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/subject.template`, 'utf8'), emailTemplate);
+    const html = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/body-html.template`, 'utf8'), emailTemplate);
     // Add Admins in BCC from Configuration
     let adminEmails = null;
     if (data.adminUsers && data.adminUsers.length > 0) {
@@ -194,10 +207,10 @@ export default class EMailNotificationTask extends NotificationTask {
     }
   }
 
-  async sendEmail(email, data, tenantID) {
+  async sendEmail(email, data, tenantID, retry: boolean = false) {
     // Create the message
     const messageToSend = {
-      from: (!email.from ? _emailConfig.from : email.from),
+      from: (!retry ? _emailConfig.smtp.from : _emailConfig.smtpBackup.from),
       to: email.to,
       cc: email.cc,
       bcc: email.bcc,
@@ -208,27 +221,30 @@ export default class EMailNotificationTask extends NotificationTask {
       ]
     };
     // Send the message and get a callback with an error or details of the message that was sent
-    return this.server.send(messageToSend, function(err, messageSent) {
+    return this[!retry ? 'server' : 'serverBackup'].send(messageToSend, (err, messageSent) => {
       if (err) {
-        // Error!
+        // Log
         try {
           Logging.logError({
             tenantID: tenantID, source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
             module: 'EMailNotificationTask', method: 'sendEmail',
-            action: 'SendEmail', message: err.toString(),
+            action: (!retry ? 'SendEmail' : 'SendEmailBackup'), message: err.toString(),
             detailedMessages: {
               email: {
                 from: messageToSend.from,
                 to: messageToSend.to,
                 cc: messageToSend.cc,
-                bcc: messageToSend.bcc,
                 subject: messageToSend.subject
               },
               error: err.stack
             }
           });
+        // For Unit Tests only: Tenant is deleted and email is not known thus this Logging statement is always failing with an invalid Tenant
         } catch (error) {
-          // For Unit Tests only: Tenant is deleted and email is not known thus this Logging statement is always failing with an invalid Tenant
+        }
+        // Retry?
+        if (!retry && this.serverBackup) {
+          return this.sendEmail(email, data, tenantID, true);
         }
       } else {
         // Email sent successfully
@@ -236,14 +252,13 @@ export default class EMailNotificationTask extends NotificationTask {
           tenantID: tenantID,
           source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
           module: 'EMailNotificationTask', method: '_prepareAndSendEmail',
-          action: 'SendEmail', actionOnUser: data.user,
+          action: (!retry ? 'SendEmail' : 'SendEmailBackup'), actionOnUser: data.user,
           message: 'Email has been sent successfully',
           detailedMessages: {
             email: {
               from: messageToSend.from,
               to: messageToSend.to,
               cc: messageToSend.cc,
-              bcc: messageToSend.bcc,
               subject: messageToSend.subject
             }
           }
