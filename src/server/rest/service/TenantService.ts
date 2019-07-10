@@ -158,6 +158,9 @@ export default class TenantService {
         Constants.ACTION_CREATE,
         Constants.ENTITY_TENANT,
         null,
+        Constants.HTTP_AUTH_ERROR,
+        'TenantService',
+        'handleCreateTenant',
         req.user);
     }
     TenantValidator.getInstance().validateTenantCreation(req.body);

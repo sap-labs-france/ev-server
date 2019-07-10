@@ -81,8 +81,7 @@ export default abstract class AbstractOCPIService {
     const action = regexResult[0].substring(1);
 
     // Set default tenant in case of exception
-    req.user = {};
-    req.user.tenantID = Constants.DEFAULT_TENANT;
+    req.user = {tenantID: Constants.DEFAULT_TENANT};
 
     // Check action
     switch (action) {

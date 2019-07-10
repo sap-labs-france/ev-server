@@ -25,6 +25,7 @@ import UserService from './UserService';
 import { Handler, NextFunction, Request, Response } from 'express';
 import { HttpIsAuthorizedRequest, HttpResetPasswordRequest, HttpLoginRequest } from '../../../types/requests/HttpUserRequest';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import UserToken from '../../../types/UserToken';
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
@@ -203,7 +204,7 @@ export default class AuthService {
     return results;
   }
 
-  public static async isStopTransactionAuthorized(filteredRequest: HttpIsAuthorizedRequest, chargingStation, transactionId: string, user: User) {
+  public static async isStopTransactionAuthorized(filteredRequest: HttpIsAuthorizedRequest, chargingStation, transactionId: string, user: UserToken) {
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(chargingStation.getTenantID(), transactionId);
     if (!transaction) {
@@ -908,7 +909,7 @@ export default class AuthService {
     }
 
     // Yes: build payload
-    const payload = {
+    const payload: UserToken = {
       'id': user.id,
       'role': user.role,
       'name': user.name,
