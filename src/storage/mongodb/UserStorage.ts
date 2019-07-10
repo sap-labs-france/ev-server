@@ -4,7 +4,6 @@ import Mustache from 'mustache';
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
-import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
@@ -16,23 +15,18 @@ import Tag from '../../types/Tag';
 import { ObjectID } from 'bson';
 import Site, { SiteUser } from '../../types/Site';
 
-const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
-
 export default class UserStorage {
 
   public static getLatestEndUserLicenseAgreement(language: string = 'en'): string {
     const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
-
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getLatestEndUserLicenseAgreement');
-
     let eulaText = null;
     try {
       eulaText = fs.readFileSync(`${global.appRoot}/assets/eula/${language}/end-user-agreement.html`, 'utf8');
     } catch (e) {
       eulaText = fs.readFileSync(`${global.appRoot}/assets/eula/en/end-user-agreement.html`, 'utf8');
     }
-
     // Build Front End URL
     const frontEndURL = _centralSystemFrontEndConfig.protocol + '://' +
       _centralSystemFrontEndConfig.host + ':' + _centralSystemFrontEndConfig.port;
@@ -57,7 +51,6 @@ export default class UserStorage {
     let languageFound = false;
     let currentEulaHash: string;
     const supportLanguages = Configuration.getLocalesConfig().supported;
-
     // Search for language
     for (const supportLanguage of supportLanguages) {
       if (language === supportLanguage.substring(0, 2)) {
@@ -93,9 +86,8 @@ export default class UserStorage {
           hash: currentEulaHash
         };
         // Create
-        const result = await global.database.getCollection<Eula>(tenantID, 'eulas')
+        await global.database.getCollection<Eula>(tenantID, 'eulas')
           .insertOne(eula);
-        // Update object
         // Debug
         Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement', uniqueTimerID, { language });
         // Return
@@ -115,10 +107,8 @@ export default class UserStorage {
     };
     // Create
     await global.database.getCollection<Eula>(tenantID, 'eulas').insertOne(eula);
-
     // Debug
     Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement', uniqueTimerID, { language });
-
     // Return
     return eula;
   }
@@ -144,7 +134,6 @@ export default class UserStorage {
     // Check
     if (tagsMDB && tagsMDB.length > 0) {
       // Ok
-      console.log(tagsMDB[0].userID);
       user = await UserStorage.getUser(tenantID, tagsMDB[0].userID);
     }
     // Debug
@@ -155,10 +144,9 @@ export default class UserStorage {
   public static async getUserByEmail(tenantID: string, email: string): Promise<User> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserByEmail');
-
+    // Get user
     const user = await UserStorage.getUsers(tenantID, {email: email}, {limit: 1, skip: 0});
-    //TODO: error handling if no user returned
-
+    //TODO: Error handling if no user found here or is returning null fine?
     // Debug
     Logging.traceEnd('UserStorage', 'getUserByEmail', uniqueTimerID, { email });
     return user.count>0 ? user.result[0] : null;
@@ -167,24 +155,20 @@ export default class UserStorage {
   public static async getUser(tenantID: string, userID: string): Promise<User> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUser');
-
+    // Get user
     const user = await UserStorage.getUsers(tenantID, {userID: userID}, {limit: 1, skip: 0});
-
     // Debug
     Logging.traceEnd('UserStorage', 'getUser', uniqueTimerID, { userID });
-
     return user.count>0 ? user.result[0] : null;
   }
 
   public static async getUserImage(tenantID: string, id: string): Promise<{id: string, image: string}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserImage');
-
+    // Get single user image
     const userImages = await this.getUserImages(tenantID, [id]);
-
     // Debug
     Logging.traceEnd('UserStorage', 'getUserImage', uniqueTimerID, { id });
-
     return userImages?userImages[0]:null;
   }
 
@@ -193,19 +177,16 @@ export default class UserStorage {
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserImages');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-
     // Build options
     let options: any = {};
     if(userIDs) {
       options._id = { $in: userIDs.map(id => Utils.convertToObjectID(id)) };
     }
-
     // Read DB
     const userImagesMDB = await global.database.getCollection<{_id: string, image: string}>(tenantID, 'userimages')
       .find(options)
       .toArray();
     const userImages = [];
-
     // Add
     for (const userImageMDB of userImagesMDB) {
       userImages.push({
@@ -234,6 +215,7 @@ export default class UserStorage {
             'userID': Utils.convertToObjectID(userID),
             'siteID': Utils.convertToObjectID(siteID)
           });
+          //TODO: Can be converted by setting siteID: {$in: [list of sites]}. Not changed yet due to previously having been coded like this. Change wanted? Please review.
         }
       }
     }
@@ -289,7 +271,6 @@ export default class UserStorage {
     } else {
       userFilter.email = userToSave.email;
     }
-
     // Properties to save
     let userMDB = {
       _id: userToSave.id ? Utils.convertToObjectID(userToSave.id) : new ObjectID(),
@@ -297,6 +278,7 @@ export default class UserStorage {
       lastChangedBy: userToSave.lastChangedBy ? userToSave.lastChangedBy.id : null,
       ...userToSave
     };
+    // Clean up mongo request
     delete userMDB.id;
     delete userMDB.image;
     // Check Created/Last Changed By
@@ -306,25 +288,22 @@ export default class UserStorage {
       userFilter,
       { $set: userMDB },
       { upsert: true, returnOriginal: false });
-
     // Add tags
     if (userToSave.tagIDs) {
       userToSave.tagIDs = userToSave.tagIDs.filter(tid => tid && tid !== '');
       // Delete Tag IDs
       await global.database.getCollection<any>(tenantID, 'tags')
         .deleteMany({ 'userID': userMDB._id });
-
       if(userToSave.tagIDs.length !== 0) {
         // Insert new Tag IDs
         await global.database.getCollection<any>(tenantID, 'tags')
         .insertMany(userToSave.tagIDs.map(tid => ({_id: tid, userID: userMDB._id}) ));
       }
     }
-
+    // Delegate saving image as well if specified
     if(saveImage) {
       this.saveUserImage(tenantID, { id: userMDB._id.toHexString(), image: userToSave.image });
     }
-
     // Debug
     Logging.traceEnd('UserStorage', 'saveUser', uniqueTimerID, { userToSave });
     return userMDB._id.toHexString();
@@ -382,23 +361,26 @@ export default class UserStorage {
         ]
       });
     }
-    // UserID: Used only with SiteID
+    // Query by Email
     if(params.email) {
       filters.$and.push({
         'email': params.email
       });
     }
+    // UserID: Used only with SiteID
     if (params.userID) {
       // Build filter
       filters.$and.push({
         '_id': Utils.convertToObjectID(params.userID)
       });
     }
+    // Query by role
     if (params.role) {
       filters.$and.push({
         'role': params.role
       });
     }
+    // Query by status(Previously getUsersInError)
     if (params.statuses && params.statuses.filter(status => status).length > 0) {
       filters.$and.push({
         'status': { $in: params.statuses }
@@ -417,7 +399,6 @@ export default class UserStorage {
         $match: filters
       });
     }
-
     // Add TagIDs
     aggregation.push({
       $lookup: {
@@ -440,10 +421,8 @@ export default class UserStorage {
         }
       }
     });
-
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
-
     // Site ID? or ExcludeSiteID - cannot be used together
     if (params.siteID || params.excludeSiteID) {
       // Add Site
@@ -455,7 +434,6 @@ export default class UserStorage {
           as: 'siteusers'
         }
       });
-
       // Check which filter to use
       if (params.siteID) {
         aggregation.push({
@@ -467,8 +445,6 @@ export default class UserStorage {
         });
       }
     }
-
-
     // Limit records?
     if (!onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -519,7 +495,7 @@ export default class UserStorage {
       .toArray();
     //Clean user object
     for(let userMDB of usersMDB) {
-      delete (usersMDB as any).siteusers;
+      delete (userMDB as any).siteusers;
     }
     // Debug
     Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID, { params, limit, skip, sort });
@@ -574,7 +550,6 @@ export default class UserStorage {
     aggregation.push({
       $match: filter
     });
-
     // Get Sites
     DatabaseUtils.pushSiteLookupInAggregation(
       { tenantID, aggregation, localField: 'siteID', foreignField: '_id',
@@ -641,6 +616,7 @@ export default class UserStorage {
     };
   }
 
+  // Alternative system of registering new users by badging should be found - for now, an empty user is created and saved.
   public static getEmptyUser(): User {
     return {
       id: new ObjectID().toHexString(),
