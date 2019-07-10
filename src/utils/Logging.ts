@@ -101,8 +101,8 @@ export default class Logging {
       currentStatistics = _traceStatistics[name];
     }
 
+    // Update current statistics timers
     if (currentStatistics) {
-      // Update current statistics timers
       currentStatistics.countTime = (currentStatistics.countTime ? currentStatistics.countTime + 1 : 1);
       currentStatistics.minTime = (currentStatistics.minTime ? (currentStatistics.minTime > duration ? duration : currentStatistics.minTime) : duration);
       currentStatistics.maxTime = (currentStatistics.maxTime ? (currentStatistics.maxTime < duration ? duration : currentStatistics.maxTime) : duration);
@@ -113,7 +113,6 @@ export default class Logging {
 
   // Debug DB
   public static traceEnd(module, method, uniqueID, params = {}): void {
-    // Check
     if (_loggingConfig.trace) {
       performance.mark(`End ${module}.${method}(${uniqueID})`);
       performance.measure(`${module}.${method}(${JSON.stringify(params)})`, `Start ${module}.${method}(${uniqueID})`, `End ${module}.${method}(${uniqueID})`);
@@ -122,55 +121,42 @@ export default class Logging {
 
   // Log Info
   public static logInfo(log): void {
-    // Log
     log.level = LogLevel.INFO;
-    // Log it
     Logging._log(log);
   }
 
   // Log Security Info
   public static logSecurityInfo(log): void {
-    // Set
     log.type = LoggingType.SECURITY;
-    // Log it
     Logging.logInfo(log);
   }
 
   // Log Warning
   public static logWarning(log): void {
-    // Log
     log.level = LogLevel.WARNING;
-    // Log it
     Logging._log(log);
   }
 
   // Log Security Warning
   public static logSecurityWarning(log): void {
-    // Set
     log.type = LoggingType.SECURITY;
-    // Log it
     Logging.logWarning(log);
   }
 
   // Log Error
   public static logError(log): void {
-    // Log
     log.level = LogLevel.ERROR;
-    // Log it
     Logging._log(log);
   }
 
   // Log Security Error
   public static logSecurityError(log): void {
-    // Set
     log.type = LoggingType.SECURITY;
-    // Log it
     Logging.logError(log);
   }
 
   // Log
   public static logReceivedAction(module, tenantID, chargeBoxID, action, payload): void {
-    // Log
     Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
@@ -184,7 +170,6 @@ export default class Logging {
 
   // Log
   public static logSendAction(module, tenantID, chargeBoxID, action, args): void {
-    // Log
     Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
@@ -198,7 +183,6 @@ export default class Logging {
 
   // Log
   public static logReturnedAction(module, tenantID, chargeBoxID, action, detailedMessages): void {
-    // Log
     Logging.logDebug({
       tenantID: tenantID,
       source: chargeBoxID,
@@ -417,12 +401,10 @@ export default class Logging {
   // Log
   private static async _log(log): Promise<void> {
     let moduleConfig = null;
-
     // Default Log Level
     let logLevel = _loggingConfig.logLevel ? _loggingConfig.logLevel : LogLevel.DEBUG;
     // Default Console Level
     let consoleLogLevel = _loggingConfig.consoleLogLevel ? _loggingConfig.consoleLogLevel : LogLevel.NONE;
-
     // Module Provided?
     if (log.module && _loggingConfig.moduleDetails) {
       // Yes: Check the Module
@@ -445,7 +427,6 @@ export default class Logging {
         }
       }
     }
-
     // Log Level takes precedence over console log
     switch (LogLevel[consoleLogLevel]) {
       case LogLevel.NONE:
@@ -471,12 +452,10 @@ export default class Logging {
         Logging._consoleLog(log);
         break;
     }
-
     // Do not log to DB simple string messages
     if (log.simpleMessage) {
       return;
     }
-
     // Log Level
     switch (LogLevel[logLevel]) {
       // No logging at all
@@ -507,21 +486,16 @@ export default class Logging {
     }
     // Timestamp
     log.timestamp = new Date();
-
     // Source
     if (!log.source) {
       log.source = `${Constants.CENTRAL_SERVER}`;
     }
-
     // Host
     log.host = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname();
-
     // Process
     log.process = cluster.isWorker ? 'worker ' + cluster.worker.id : 'master';
-
     // Anonymize message
     Logging._anonymizeSensitiveData(log.detailedMessages);
-
     // Check
     if (log.detailedMessages) {
       // Array?
@@ -531,15 +505,16 @@ export default class Logging {
       // Format
       log.detailedMessages = Logging._format(log.detailedMessages);
     }
-
     // Check Type
     if (!log.type) {
       log.type = LoggingType.REGULAR;
     }
-
+    // First char always in Uppercase
+    if (log.message && log.message.length > 0) {
+      log.message = log.message[0].toUpperCase() + log.message.substring(1);
+    }
     // Log
     await LoggingStorage.saveLog(log.tenantID, log);
-
     // Log in Cloud Foundry
     if (Configuration.isCloudFoundry()) {
       // Bind to express app

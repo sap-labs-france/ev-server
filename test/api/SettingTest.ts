@@ -8,11 +8,10 @@ import config from '../config';
 import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
 import Constants from './client/utils/Constants';
+import TestData from './client/utils/TestData';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
-
-import TestData from './client/utils/TestData';
 
 const testData: TestData = new TestData();
 
