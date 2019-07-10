@@ -138,6 +138,10 @@ const GRANTS = {
           'GetDiagnostics', 'UpdateFirmware'], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
       },
+      {
+        resource: 'Transaction', action: 'Read', attributes: ['*'],
+        condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
+      },
       { resource: 'Loggings', action: 'List', attributes: ['*'] },
       { resource: 'Logging', action: 'Read', attributes: ['*'], args: { 'sites': '$.site' } },
     ]
