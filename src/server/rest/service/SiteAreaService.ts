@@ -143,7 +143,7 @@ export default class SiteAreaService {
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort },
       ['id', 'name', 'siteID', 'address.latitude', 'address.longitude', 'address.city', 'address.country', 'site.id', 'site.name',
-        'chargingStations.id', 'chargingStations.connectors']
+        'chargingStations.id', 'chargingStations.connectors', 'chargingStations.lastHeartBeat']
     );
     // Filter
     SiteAreaSecurity.filterSiteAreasResponse(siteAreas, req.user);
