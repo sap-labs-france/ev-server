@@ -2,7 +2,6 @@ import chai, { expect } from 'chai';
 import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
 import faker from 'faker';
-// import 'mocha';
 import moment from 'moment';
 import CentralServerService from './client/CentralServerService';
 import DataHelper from './DataHelper';

@@ -43,7 +43,7 @@ describe('Statistics tests', function() {
 
     // Build context here (for debugging):
     const contextBuilder = new ContextBuilder();
-    //           await contextBuilder.prepareContexts();
+    // pragma await contextBuilder.prepareContexts();
 
     // Prepare data before the whole test chain is started
     await ContextProvider.DefaultInstance.prepareContexts();
