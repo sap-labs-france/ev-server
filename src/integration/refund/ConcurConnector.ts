@@ -1,3 +1,5 @@
+// FIXME: Temporary workaround until the bluebird global import issue is sorted out
+import BBPromise from 'bluebird';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import BBPromise from 'bluebird';

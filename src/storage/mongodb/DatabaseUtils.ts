@@ -2,6 +2,7 @@ import { ObjectID } from 'mongodb';
 import Constants from '../../utils/Constants';
 import DbLookup from '../../types/database/DBLookup';
 import Utils from '../../utils/Utils';
+import Configuration from '../../utils/Configuration';
 
 const FIXED_COLLECTIONS: string[] = ['tenants', 'migrations'];
 
@@ -39,6 +40,24 @@ export default class DatabaseUtils {
       { 'deleted': null },
       { 'deleted': false }
     ];
+  }
+
+  static chargingStationIsInactive(chargingStation) : boolean {
+    let inactive = false
+    // Get Heartbeat Interval from conf
+    const config = Configuration.getChargingStationConfig();
+    if (config) {
+      const heartbeatIntervalSecs = config.heartbeatIntervalSecs;
+      // Compute against the last Heartbeat
+      if (chargingStation.lastHeartBeat) {
+        const inactivitySecs = Math.floor((Date.now() - chargingStation.lastHeartBeat.getTime()) / 1000);
+        // Inactive?
+        if (inactivitySecs > (heartbeatIntervalSecs * 5)) {
+          inactive = true;
+        }
+      }
+    }
+    return inactive;
   }
 
   public static pushSiteLookupInAggregation(lookupParams: DbLookup) {

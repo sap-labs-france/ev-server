@@ -1,3 +1,5 @@
+// FIXME: Temporary workaround until the bluebird global import issue is sorted out
+import BBPromise from 'bluebird';
 import Constants from '../../utils/Constants';
 import global from '../../types/GlobalType';
 import MigrationTask from '../MigrationTask';

@@ -1,3 +1,4 @@
+import bluebird from 'bluebird-global';
 import path from 'path';
 import MongoDBStorage from '../storage/mongodb/MongoDBStorage';
 import Global = NodeJS.Global;

@@ -20,6 +20,7 @@ import User from '../../../src/types/User';
 import UserFactory from '../../factories/UserFactory';
 import UserStorage from '../../../src/storage/mongodb/UserStorage';
 import UserService from '../../../src/server/rest/service/UserService';
+import StatisticsContext from './StatisticsContext';
 
 export default class ContextBuilder {
 
@@ -230,7 +231,7 @@ export default class ContextBuilder {
       for (const companyDef of CONTEXTS.TENANT_COMPANY_LIST) {
         const dummyCompany: any = Factory.company.build();
         dummyCompany.id = companyDef.id;
-        dummyCompany.createdBy = { id : adminUser.id };
+        dummyCompany.createdBy = { id: adminUser.id };
         dummyCompany.createdOn = moment().toISOString();
         company = await CompanyStorage.saveCompany(buildTenant.id, dummyCompany);
         newTenantContext.getContext().companies.push(dummyCompany);
@@ -255,7 +256,6 @@ export default class ContextBuilder {
           return user.id;
         }));
         const siteContext = new SiteContext(site, newTenantContext);
-        newTenantContext.addSiteContext(siteContext);
         // Create site areas of current site
         for (const siteAreaDef of CONTEXTS.TENANT_SITEAREA_LIST.filter((siteArea) => {
           return siteArea.siteName === site.name;
@@ -268,8 +268,7 @@ export default class ContextBuilder {
           console.log(siteAreaTemplate.name);
           const sireAreaID = await SiteAreaStorage.saveSiteArea(buildTenant.id, siteAreaTemplate);
           const siteAreaModel = await SiteAreaStorage.getSiteArea(buildTenant.id, sireAreaID);
-          const siteAreaContext = new SiteAreaContext(siteAreaModel, newTenantContext);
-          siteContext.addSiteArea(siteAreaContext);
+          const siteAreaContext = siteContext.addSiteArea(siteAreaModel);
           const relevantCS = CONTEXTS.TENANT_CHARGINGSTATION_LIST.filter((chargingStation) => {
             return chargingStation.siteAreaNames && chargingStation.siteAreaNames.includes(siteAreaModel.name) === true;
           });
@@ -278,9 +277,11 @@ export default class ContextBuilder {
             const chargingStationTemplate = Factory.chargingStation.build();
             chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
             console.log(chargingStationTemplate.id);
-            await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
+            const newChargingStationContext = await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
+            siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
           }
         }
+        newTenantContext.addSiteContext(siteContext);
       }
     }
     // Create unassigned Charging station
@@ -293,6 +294,12 @@ export default class ContextBuilder {
       chargingStationTemplate.id = chargingStationDef.baseName;
       console.log(chargingStationTemplate.id);
       await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, null);
+    }
+    // await newTenantContext.close();
+    // Create transaction/session data for a specific tenant and context:
+    if (tenantContextDef.tenantName === CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS) {
+      const statisticContext = new StatisticsContext(newTenantContext);
+//      await statisticContext.createTestData(CONTEXTS.SITE_CONTEXTS.SITE_BASIC, CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
     }
     return newTenantContext;
   }

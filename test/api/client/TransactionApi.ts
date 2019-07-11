@@ -51,7 +51,7 @@ export default class TransactionApi extends CrudApi {
     expect(responseTransaction.data).to.have.property('transactionId');
     expect(responseTransaction.data.transactionId).to.not.equal(0);
     // Keep it
-    const transactionId = responseTransaction.data.transactionId;
+    // const transactionId = responseTransaction.data.transactionId;
     // Set Connector Status to Occupied
     chargingStationConnector.status = 'Occupied';
     chargingStationConnector.timestamp = new Date().toISOString();
