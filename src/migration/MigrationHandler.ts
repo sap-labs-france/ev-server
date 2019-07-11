@@ -114,7 +114,7 @@ export default class MigrationHandler {
     }
   }
 
-  static async _executeTask(currentMigrationTask) {
+  static async _executeTask(currentMigrationTask): Promise<void> {
     // Create a RunLock by migration name and version
     const migrationLock = new RunLock(`Migration ${currentMigrationTask.getName()}~${currentMigrationTask.getVersion()}`);
     // Acquire the migration lock
