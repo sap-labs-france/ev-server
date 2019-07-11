@@ -66,19 +66,19 @@ const GRANTS = {
       },
       { resource: 'Companies', action: 'List', attributes: ['*'] },
       {
-        resource: 'Company', action: ['Read'], attributes: ['*'],
+        resource: 'Company', action: 'Read', attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'companies': '$.company' } }
       },
       { resource: 'Sites', action: 'List', attributes: ['*'] },
       {
-        resource: 'Site', action: ['Read'], attributes: ['*'],
+        resource: 'Site', action: 'Read', attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
       },
       {
         resource: 'SiteAreas', action: 'List', attributes: ['*']
       },
       {
-        resource: 'SiteArea', action: ['Read'], attributes: ['*'],
+        resource: 'SiteArea', action: 'Read', attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
       },
       { resource: 'ChargingStations', action: 'List', attributes: ['*'] },
@@ -103,7 +103,7 @@ const GRANTS = {
   },
   demo: {
     grants: [
-      { resource: 'User', action: ['Read'], attributes: ['*'] },
+      { resource: 'User', action: 'Read', attributes: ['*'] },
       { resource: 'Companies', action: 'List', attributes: ['*'] },
       { resource: 'Company', action: 'Read', attributes: ['*'] },
       { resource: 'Sites', action: 'List', attributes: ['*'] },
@@ -136,6 +136,10 @@ const GRANTS = {
           'Reset', 'ClearCache', 'GetConfiguration', 'ChangeConfiguration',
           'SetChargingProfile', 'GetCompositeSchedule', 'ClearChargingProfile',
           'GetDiagnostics', 'UpdateFirmware'], attributes: ['*'],
+        condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
+      },
+      {
+        resource: 'Transaction', action: 'Read', attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
       },
       { resource: 'Loggings', action: 'List', attributes: ['*'] },

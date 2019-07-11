@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { ObjectID } from 'mongodb';
 import BackendError from '../../exception/BackendError';
+import ChargingStationStorage from './ChargingStationStorage';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
@@ -10,7 +11,6 @@ import Site from '../../types/Site';
 import SiteAreaStorage from './SiteAreaStorage';
 import UserSite from '../../types/User';
 import Utils from '../../utils/Utils';
-import ChargingStationStorage from './ChargingStationStorage';
 
 export default class SiteStorage {
   public static async getSite(tenantID: string, id: string): Promise<Site> {
@@ -100,8 +100,8 @@ export default class SiteStorage {
   }
 
   public static async getUsers(tenantID: string,
-      params: { siteID: string; onlyRecordCount?: boolean },
-      dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: UserSite[]}> {
+    params: { siteID: string; onlyRecordCount?: boolean },
+    dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: UserSite[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getUsers');
     // Check Tenant
@@ -129,8 +129,8 @@ export default class SiteStorage {
       }
     });
     // Convert IDs to String
-    DatabaseUtils.convertObjectIDToString(aggregation, "userID");
-    DatabaseUtils.convertObjectIDToString(aggregation, "siteID");
+    DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
     // Limit records?
     if (!params.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -313,22 +313,19 @@ export default class SiteStorage {
         }
       });
     }
-    // Set User?
+    // Get users
     if (params.userID || params.excludeSitesOfUserID) {
-      // Get users
       DatabaseUtils.pushCollectionLookupInAggregation('siteusers',
         { tenantID, aggregation, localField: '_id', foreignField: 'siteID', asField: 'siteusers' }
       );
-      // User ID filter
       if (params.userID) {
         filters['siteusers.userID'] = Utils.convertToObjectID(params.userID);
       }
-      // Exclude User ID filter
       if (params.excludeSitesOfUserID) {
         filters['siteusers.userID'] = { $ne: Utils.convertToObjectID(params.excludeSitesOfUserID) };
       }
     }
-    // Filters
+    // Set filters
     aggregation.push({
       $match: filters
     });
@@ -394,8 +391,10 @@ export default class SiteStorage {
         if (params.withAvailableChargers) {
           let availableChargers = 0, totalChargers = 0, availableConnectors = 0, totalConnectors = 0;
           // Get te chargers
-          const chargingStations = await ChargingStationStorage.getChargingStations(tenantID, {siteIDs: [siteMDB.id]}, Constants.MAX_DB_RECORD_COUNT, 0);
+          const chargingStations = await ChargingStationStorage.getChargingStations(tenantID, { siteIDs: [siteMDB.id] }, Constants.MAX_DB_RECORD_COUNT, 0);
           for (const chargingStation of chargingStations.result) {
+            // Set Inactive flag
+            chargingStation.setInactive(DatabaseUtils.chargingStationIsInactive(chargingStation.getModel()));
             // Check not deleted
             if (chargingStation.isDeleted()) {
               continue;
@@ -408,7 +407,7 @@ export default class SiteStorage {
               }
               totalConnectors++;
               // Check Available
-              if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
+              if (!chargingStation.isInactive() && connector.status === Constants.CONN_STATUS_AVAILABLE) {
                 availableConnectors++;
               }
             }
@@ -418,7 +417,7 @@ export default class SiteStorage {
                 continue;
               }
               // Check Available
-              if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
+              if (!chargingStation.isInactive() && connector.status === Constants.CONN_STATUS_AVAILABLE) {
                 availableChargers++;
                 break;
               }
@@ -496,7 +495,7 @@ export default class SiteStorage {
       .map((site) => {
         return site._id.toHexString();
       }
-    );
+      );
     // Delete all Site Areas
     SiteAreaStorage.deleteSiteAreasFromSites(tenantID, siteIDs);
     // Delete Sites

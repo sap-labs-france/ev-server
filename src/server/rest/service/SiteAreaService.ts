@@ -38,11 +38,11 @@ export default class SiteAreaService {
     await SiteAreaStorage.deleteSiteArea(req.user.tenantID, siteArea.id);
     // Log
     Logging.logSecurityInfo({
-        tenantID: req.user.tenantID,
-        user: req.user, module: 'SiteAreaService', method: 'handleDeleteSiteArea',
-        message: `Site Area '${siteArea.name}' has been deleted successfully`,
-        action: action, detailedMessages: siteArea
-      }
+      tenantID: req.user.tenantID,
+      user: req.user, module: 'SiteAreaService', method: 'handleDeleteSiteArea',
+      message: `Site Area '${siteArea.name}' has been deleted successfully`,
+      action: action, detailedMessages: siteArea
+    }
     );
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -97,7 +97,7 @@ export default class SiteAreaService {
     UtilsService.assertObjectExists(siteArea, 'Site Area does not exist.', 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
 
     // Check auth
-    if (siteArea.site || !Authorizations.canReadSiteArea(req.user, siteArea.site.id)) {
+    if (!Authorizations.canReadSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError(
         Constants.ACTION_READ,
         Constants.ENTITY_SITE_AREA,
@@ -142,8 +142,8 @@ export default class SiteAreaService {
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort },
-      ['id', 'name', 'address.latitude', 'address.longitude', 'address.city', 'address.country', 'site.id', 'site.name',
-        'chargingStations.id', 'chargingStations.connectors']
+      ['id', 'name', 'siteID', 'address.latitude', 'address.longitude', 'address.city', 'address.country', 'site.id', 'site.name',
+        'chargingStations.id', 'chargingStations.connectors', 'chargingStations.lastHeartBeat']
     );
     // Filter
     SiteAreaSecurity.filterSiteAreasResponse(siteAreas, req.user);

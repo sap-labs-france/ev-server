@@ -145,7 +145,7 @@ export default {
 
   DEFAULT_LOCALE: 'en_US',
 
-  ANONIMIZED_VALUE: '####',
+  ANONYMIZED_VALUE: '####',
 
   DEFAULT_DB_LIMIT: 100,
 

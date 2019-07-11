@@ -10,7 +10,6 @@ import Vehicle from '../../entity/Vehicle';
 import VehicleManufacturer from '../../entity/VehicleManufacturer';
 import VehicleStorage from './VehicleStorage';
 
-
 export default class VehicleManufacturerStorage {
 
   static async getVehicleManufacturerLogo(tenantID, id) {

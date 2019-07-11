@@ -47,9 +47,6 @@ export default class SiteAreaStorage {
     );
     // Debug
     Logging.traceEnd('SiteAreaStorage', 'getSiteArea', uniqueTimerID, { id, withChargeBoxes: params.withChargeBoxes, withSite: params.withSite });
-    if (siteAreaResult.result && siteAreaResult.result.length > 0 && siteAreaResult.result[0].siteID) {
-      siteAreaResult.result[0].siteID = siteAreaResult.result[0].siteID.toString();
-    }
     return siteAreaResult.result[0];
   }
 
@@ -214,15 +211,16 @@ export default class SiteAreaStorage {
     if (siteAreasMDB && siteAreasMDB.length > 0) {
       // Create
       for (const siteAreaMDB of siteAreasMDB) {
-        let chargingStations: ChargingStation[];
+        // let chargingStations: ChargingStation[];
         let availableChargers = 0, totalChargers = 0, availableConnectors = 0, totalConnectors = 0;
         // Count Available/Occupied Chargers/Connectors
         if (params.withAvailableChargers) {
           // Chargers
           for (const chargeBox of siteAreaMDB.chargingStations) {
+            // Set Inactive flag
+            chargeBox.inactive = DatabaseUtils.chargingStationIsInactive(chargeBox);
             // Check not deleted
             if (chargeBox.deleted) {
-              // Forget
               continue;
             }
             totalChargers++;
@@ -233,7 +231,7 @@ export default class SiteAreaStorage {
               }
               totalConnectors++;
               // Check if Available
-              if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
+              if (!chargeBox.inactive && connector.status === Constants.CONN_STATUS_AVAILABLE) {
                 availableConnectors++;
               }
             }
@@ -243,7 +241,7 @@ export default class SiteAreaStorage {
                 continue;
               }
               // Check if Available
-              if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
+              if (!chargeBox.inactive && connector.status === Constants.CONN_STATUS_AVAILABLE) {
                 availableChargers++;
                 break;
               }

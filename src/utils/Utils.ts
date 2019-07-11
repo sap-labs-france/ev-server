@@ -130,7 +130,7 @@ export default class Utils {
     _tenants.push(tenantID);
   }
 
-  static convertToDate(date) {
+  static convertToDate(date): Date {
     // Check
     if (!date) {
       return date;
@@ -171,7 +171,7 @@ export default class Utils {
     }
   }
 
-  static convertToObjectID(id) {
+  static convertToObjectID(id): ObjectID {
     let changedID = id;
     // Check
     if (typeof id === 'string') {
@@ -181,7 +181,7 @@ export default class Utils {
     return changedID;
   }
 
-  static convertToInt(id) {
+  static convertToInt(id): number {
     let changedID = id;
     if (!id) {
       return 0;
@@ -194,7 +194,7 @@ export default class Utils {
     return changedID;
   }
 
-  static convertToFloat(id) {
+  static convertToFloat(id): number {
     let changedID = id;
     if (!id) {
       return 0;
@@ -309,13 +309,12 @@ export default class Utils {
     return (env === 'production');
   }
 
-  static hideShowMessage(message) {
+  static hideShowMessage(message): string {
     // Check Prod
     if (Utils.isServerInProductionMode()) {
       return 'An unexpected server error occurred. Check the server\'s logs!';
     }
     return message;
-
   }
 
   public static checkRecordLimit(recordLimit: number | string): number {
@@ -335,7 +334,7 @@ export default class Utils {
     return parseFloat(number.toFixed(scale));
   }
 
-  static firstLetterInUpperCase(value) {
+  static firstLetterInUpperCase(value): string {
     return value[0].toUpperCase() + value.substring(1);
   }
 
@@ -361,7 +360,7 @@ export default class Utils {
    * @param src
    * @returns a copy of the source
    */
-  static duplicateJSON(src) {
+  static duplicateJSON(src): any {
     if (!src || typeof src !== 'object') {
       return src;
     }

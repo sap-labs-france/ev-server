@@ -1,4 +1,3 @@
-import BBPromise from 'bluebird';
 import cluster from 'cluster';
 import SourceMap from 'source-map-support';
 import CentralRestServer from './server/rest/CentralRestServer';
@@ -16,9 +15,6 @@ import ODataServer from './server/odata/ODataServer';
 import SchedulerManager from './scheduler/SchedulerManager';
 import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer';
 import Utils from './utils/Utils';
-
-// FIXME: Move to global variables initialization
-global.Promise = BBPromise;
 
 SourceMap.install();
 
@@ -45,7 +41,7 @@ export default class Bootstrap {
   public static async start(): Promise<void> {
     try {
       if (cluster.isMaster) {
-        const nodejsEnv = process.env.NODE_ENV || 'dev';
+        const nodejsEnv = process.env.NODE_ENV || 'development';
         // eslint-disable-next-line no-console
         console.log(`NodeJS is started in '${nodejsEnv}' mode`);
       }
@@ -57,7 +53,7 @@ export default class Bootstrap {
       Bootstrap.ocpiConfig = Configuration.getOCPIServiceConfig();
       Bootstrap.oDataServerConfig = Configuration.getODataServiceConfig();
       Bootstrap.isClusterEnabled = Configuration.getClusterConfig().enabled;
-      // Init global vars
+      // Init global user and tenant IDs hashmap
       global.userHashMapIDs = {};
       global.tenantHashMapIDs = {};
 
@@ -129,7 +125,7 @@ export default class Bootstrap {
       }
 
       if (cluster.isMaster && Bootstrap.isClusterEnabled) {
-        await Bootstrap.startMaster();
+        Bootstrap.startMaster();
       } else {
         await Bootstrap.startServersListening();
       }
@@ -203,10 +199,10 @@ export default class Bootstrap {
     cluster.on('exit', exitCb);
   }
 
-  private static async startMaster(): Promise<void> {
+  private static startMaster(): void {
     try {
       if (Bootstrap.isClusterEnabled && Utils.isEmptyArray(cluster.workers)) {
-        await Bootstrap.startServerWorkers('Main');
+        Bootstrap.startServerWorkers('Main');
       }
     } catch (error) {
       // Log

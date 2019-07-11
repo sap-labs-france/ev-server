@@ -136,7 +136,7 @@ export default class User extends TenantHolder {
         `User I-Number ${filteredRequest.iNumber} is not valid`, Constants.HTTP_GENERAL_ERROR,
         'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
     }
-    if (filteredRequest.hasOwnProperty('tagIDs')) {
+    if (filteredRequest.tagIDs) {
       // Check
       if (!User.isTagIDValid(filteredRequest.tagIDs)) {
         throw new AppError(
@@ -186,9 +186,9 @@ export default class User extends TenantHolder {
     return /^[A-Z0-9-]*$/.test(plateID);
   }
 
-  static hashPasswordBcrypt(password) {
+  static async hashPasswordBcrypt(password): Promise<any> {
     // eslint-disable-next-line no-undef
-    return new Promise((fulfill, reject) => {
+    return await new Promise((fulfill, reject) => {
       // Generate a salt with 15 rounds
       bcrypt.genSalt(10, (err, salt) => {
         // Hash
@@ -204,9 +204,9 @@ export default class User extends TenantHolder {
     });
   }
 
-  static checkPasswordBCrypt(password, hash) {
+  static async checkPasswordBCrypt(password, hash): Promise<any> {
     // eslint-disable-next-line no-undef
-    return new Promise((fulfill, reject) => {
+    return await new Promise((fulfill, reject) => {
       // Compare
       bcrypt.compare(password, hash, (err, match) => {
         // Error?
@@ -610,17 +610,17 @@ export default class User extends TenantHolder {
     if (transactions.count > 0) {
       this.setDeleted(true);
       this.setStatus(Constants.USER_STATUS_DELETED);
-      this.setName(Constants.ANONIMIZED_VALUE);
-      this.setFirstName(Constants.ANONIMIZED_VALUE);
+      this.setName(Constants.ANONYMIZED_VALUE);
+      this.setFirstName(Constants.ANONYMIZED_VALUE);
       this.setAddress(null);
       this.setEMail(this.getID());
-      this.setPassword(Constants.ANONIMIZED_VALUE);
-      this.setPasswordResetHash(Constants.ANONIMIZED_VALUE);
-      this.setPhone(Constants.ANONIMIZED_VALUE);
-      this.setMobile(Constants.ANONIMIZED_VALUE);
+      this.setPassword(Constants.ANONYMIZED_VALUE);
+      this.setPasswordResetHash(Constants.ANONYMIZED_VALUE);
+      this.setPhone(Constants.ANONYMIZED_VALUE);
+      this.setMobile(Constants.ANONYMIZED_VALUE);
       this.setNotificationsActive(true);
-      this.setINumber(Constants.ANONIMIZED_VALUE);
-      this.setCostCenter(Constants.ANONIMIZED_VALUE);
+      this.setINumber(Constants.ANONYMIZED_VALUE);
+      this.setCostCenter(Constants.ANONYMIZED_VALUE);
       this.setImage(null);
       // Save User Image
       await this.saveImage();

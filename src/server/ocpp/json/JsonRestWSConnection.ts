@@ -65,7 +65,7 @@ export default class JsonRestWSConnection extends WSConnection {
 
   async handleRequest(messageId, commandName, commandPayload) {
     // Log
-    Logging.logSendAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
+    Logging.logReceivedAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
     // Get the Charging Station
     const chargingStation = await ChargingStation.getChargingStation(this.getTenantID(), this.getChargingStationID());
     // Found?
@@ -74,7 +74,7 @@ export default class JsonRestWSConnection extends WSConnection {
       throw new BackendError(this.getChargingStationID(), `'${commandName}' not found`,
         'JsonRestWSConnection', 'handleRequest', commandName);
     }
-    // Get the client from JSon Server
+    // Get the client from JSON Server
     const chargingStationClient = global.centralSystemJson.getChargingStationClient(chargingStation.getTenantID(), chargingStation.getID());
     if (!chargingStationClient) {
       // Error
@@ -89,15 +89,15 @@ export default class JsonRestWSConnection extends WSConnection {
     if (typeof chargingStationClient[actionMethod] === 'function') {
       // Call the method
       result = await chargingStationClient[actionMethod](commandPayload);
+      // Log
+      Logging.logReturnedAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, result);
+      // Send Response
+      await this.sendMessage(messageId, result, Constants.OCPP_JSON_CALL_RESULT_MESSAGE);
     } else {
       // Error
       throw new BackendError(this.getChargingStationID(), `'${actionMethod}' is not implemented`,
         'JsonRestWSConnection', 'handleRequest', commandName);
     }
-    // Log
-    Logging.logReturnedAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, result);
-    // Send Response
-    await this.sendMessage(messageId, result, Constants.OCPP_JSON_CALL_RESULT_MESSAGE);
   }
 }
 

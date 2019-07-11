@@ -1,6 +1,7 @@
+// FIXME: Temporary workaround until the bluebird global import issue is sorted out
+import BBPromise from 'bluebird';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
-import BBPromise from 'bluebird';
 import jwt from 'jsonwebtoken';
 import moment from 'moment-timezone';
 import querystring from 'querystring';
@@ -25,7 +26,8 @@ const CONNECTOR_ID = 'concur';
  * Token  string  -  The access token value passed in the Authorization header when making API calls. It is a long-lived token which is currently set to expire after one year from creation. You should securely store the token and use it for all subsequent API requests until the token expires. Before it does, you should send a request to refresh the token prior to the expiration date.
  * Expiration_Date  string  -  The Universal Coordinated Time (UTC) date and time when the access token expires.
  * Refresh_Token  string  -  Token with a new expiration date of a year from the refresh date. You should securely store the refresh token for a user and use it for all subsequent API requests.
- */export default class ConcurConnector extends AbstractConnector {
+ */
+export default class ConcurConnector extends AbstractConnector {
   public getSetting: any;
   public getTenantID: any;
   public getConnectionByUserId: any;
@@ -213,7 +215,7 @@ const CONNECTOR_ID = 'concur';
    * @param quickRefund
    * @returns {Promise<Transaction[]>}
    */
-  async refund(user, transactions, quickRefund = false) {
+  async refund(user, transactions, quickRefund = false): Promise<any> {
     const startDate = moment();
     const refundedTransactions = [];
     let connection = await this.getConnectionByUserId(user.getID());
@@ -310,7 +312,7 @@ const CONNECTOR_ID = 'concur';
     if (response.data && response.data.Items && response.data.Items.length > 0) {
       return response.data.Items[0];
     }
-    const company = await site.company;
+    const company = site.company;
     response = await axios.get(`${this.getApiUrl()}/api/v3.0/common/locations?city=${company.address.city}`, {
       headers: {
         Accept: 'application/json',

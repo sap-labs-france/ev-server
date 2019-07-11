@@ -92,11 +92,21 @@
     </table>
     <!-- Footer -->
     <table width="768" border="0" cellspacing="0" cellpadding="0">
-      <tr height="40" style="background-color: #1976d2;">
-        <td align="right" colspan="3" style="padding: 0 15px">
-          <a style="text-decoration:none;" href="http://chargeangels.fr/" target="_blank">
-            <font size="3" color="white" face="sans-serif"><i>Charge-Angels</i></font>
-          </a>
+      <tr style="background-color: #1976d2;">
+        <td>
+          <table width="768" border="0" cellspacing="0" cellpadding="0">
+            <tr height="40">
+              <td width="180" align="center">
+              </td>
+              <td align="center">
+              </td>
+              <td width="180" align="right" style="padding-right: 15px;">
+                <a style="text-decoration:none" href="http://chargeangels.fr/" target="_blank">
+                  <font size="3" color="white" face="sans-serif"><i>Charge-Angels</i></font>
+                </a>
+              </td>
+            </tr>
+          </table>
         </td>
       </tr>
     </table>
