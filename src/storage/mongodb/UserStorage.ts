@@ -414,14 +414,22 @@ export default class UserStorage {
       });
     }
     if (params.role) {
-      filters.$and.push({
-        'role': params.role
-      });
+      // Parse filter with | delimiter
+      const roleSplitted = params.role.split('|');
+      if(roleSplitted.length > 1) {
+        filters.role = { $in: roleSplitted };;
+      } else {
+        filters.role = params.role;
+      }
     }
     if (params.status) {
-      filters.$and.push({
-        'status': params.status
-      });
+      // Parse filter with | delimiter
+      const statusSplitted = params.status.split('|');
+      if(statusSplitted.length > 1) {
+        filters.status = { $in: statusSplitted };;
+      } else {
+        filters.status = params.status;
+      }
     }
     if (params.notificationsActive) {
       filters.$and.push({

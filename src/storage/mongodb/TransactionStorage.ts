@@ -97,11 +97,26 @@ export default class TransactionStorage {
     }
     // User
     if (params.userId) {
-      match.userID = Utils.convertToObjectID(params.userId);
+      // Parse filter the | delimiter for multiple values
+      const userSplitted = params.userId.split('|');
+      if(userSplitted.length > 1) {
+        const userArray = userSplitted.map((user) => {
+          return Utils.convertToObjectID(user);
+        });
+        match.userID = { $in: userArray };;
+      } else {
+        match.userID = Utils.convertToObjectID(params.userId);
+      } 
     }
     // Charge Box
     if (params.chargeBoxID) {
-      match.chargeBoxID = params.chargeBoxID;
+      // Parse filter with | delimiter
+      const chargeBoxSplitted = params.chargeBoxID.split('|');
+      if(chargeBoxSplitted.length > 1) {
+        match.chargeBoxID = { $in: chargeBoxSplitted };;
+      } else {
+        match.chargeBoxID = params.chargeBoxID;
+      }
     }
     // Connector
     if (params.connectorId) {
@@ -368,11 +383,26 @@ export default class TransactionStorage {
     }
     // User
     if (params.userId) {
-      match.userID = Utils.convertToObjectID(params.userId);
+      // Parse filter the | delimiter for multiple values
+      const userSplitted = params.userId.split('|');
+      if(userSplitted.length > 1) {
+        const userArray = userSplitted.map((user) => {
+          return Utils.convertToObjectID(user);
+        });
+        match.userID = { $in: userArray };;
+      } else {
+        match.userID = Utils.convertToObjectID(params.userId);
+      } 
     }
     // Charge Box
     if (params.chargeBoxID) {
-      match.chargeBoxID = params.chargeBoxID;
+      // Parse filter with | delimiter
+      const chargeBoxSplitted = params.chargeBoxID.split('|');
+      if(chargeBoxSplitted.length > 1) {
+        match.chargeBoxID = { $in: chargeBoxSplitted };;
+      } else {
+        match.chargeBoxID = params.chargeBoxID;
+      }
     }
     // Connector
     if (params.connectorId) {

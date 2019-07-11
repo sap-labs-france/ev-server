@@ -120,9 +120,12 @@ export default class SiteAreaStorage {
       // Parse companies with the | delimiter for multiple values
       const siteSplitted = params.siteID.split('|');
       if(siteSplitted.length > 1) {
-        filters.siteID = { $in: siteSplitted };;
+        filters.$and.push({ 'siteID': { $in: siteSplitted.map((site) => {
+            return Utils.convertToObjectID(site);
+          })}
+        });
       } else {
-        filters.siteID = params.siteID;
+        filters.siteID = Utils.convertToObjectID(params.siteID);
       }
     }
     // Create Aggregation
