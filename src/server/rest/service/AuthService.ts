@@ -222,8 +222,7 @@ export default class AuthService {
     }
     try {
       // Check
-      await Authorizations.isTagIDsAuthorizedOnChargingStation(user,
-        chargingStation, user.tagIDs[0], transaction.getTagID(), filteredRequest.Action);
+      await Authorizations.isTagIDsAuthorizedOnChargingStation(chargingStation, user.tagIDs[0], transaction.getTagID(), filteredRequest.Action);
       // Ok
       return true;
     } catch (e) {
@@ -896,42 +895,9 @@ export default class AuthService {
     user.passwordResetHash = null;
     // Save
     await UserStorage.saveUser(tenantID, user);
-    // Build Authorization
-    const scopes = await Authorizations.getUserScopes(tenantID, user);
-    const authorizedEntities = await Authorizations.getAuthorizedEntities(tenantID, user);
-    const userHashID = SessionHashService.buildUserHashID(user);
-    let tenantHashID;
-    if (tenantID !== Constants.DEFAULT_TENANT) {
-      const tenant = await TenantStorage.getTenant(tenantID);
-      tenantHashID = SessionHashService.buildTenantHashID(tenant);
-    } else {
-      tenantHashID = Constants.DEFAULT_TENANT;
-    }
 
     // Yes: build payload
-    const payload: UserToken = {
-      'id': user.id,
-      'role': user.role,
-      'name': user.name,
-      'tagIDs': user.tagIDs,
-      'firstName': user.firstName,
-      'locale': user.locale,
-      'language': user.locale.substring(0,2),
-      'tenantID': tenantID,
-      'userHashID': userHashID,
-      'tenantHashID': tenantHashID,
-      'scopes': scopes,
-      'companies': authorizedEntities.companies,
-      'sitesAdmin': authorizedEntities.sitesAdmin,
-      'sites': authorizedEntities.sites,
-      'activeComponents': []
-    };
-
-    // Get active components from tenant if not default
-    if (tenantID !== Constants.DEFAULT_TENANT) {
-      const tenant = await TenantStorage.getTenant(tenantID);
-      payload.activeComponents = tenant.getActiveComponents();
-    }
+    const payload: UserToken = await Authorizations.buildUserToken(tenantID, user);
 
     // Build token
     let token;
