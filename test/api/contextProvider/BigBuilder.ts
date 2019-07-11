@@ -18,13 +18,10 @@ import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
 import User from '../../../src/entity/User';
 import UserFactory from '../../factories/UserFactory';
-import crypto from 'crypto';
 import { ObjectID } from 'mongodb';
 import SiteArea from '../../../src/types/SiteArea';
 
-// crypto.randomBytes(256, (err, buf)
-// Math.floor(Math.random()*16777215).toString(24);
-const NBR_USERS = 10; // Number of total users : they are all connected to the sites 
+const NBR_USERS = 10; // Number of total users : they are all connected to the sites
 const NBR_COMPANIES = 5; // Number of companies
 const NBR_SITES = 5; // Number of sites PER company
 const NBR_SITEAREAS = 5; // Number of site areas per site
@@ -58,7 +55,6 @@ const BIG_CONTEXT = [{
     },
   },
 }];
-
 
 export default class ContextBuilder {
 
@@ -275,7 +271,7 @@ export default class ContextBuilder {
       // Create the company
       for (let index = 1; index <= NBR_COMPANIES; index++) {
         let company = null;
-        const companyDef =     { 
+        const companyDef = {
           id: new ObjectID().toHexString()
         };
         const dummyCompany: any = Factory.company.build();
@@ -286,7 +282,7 @@ export default class ContextBuilder {
         newTenantContext.getContext().companies.push(dummyCompany);
         // Build sites/sitearea according to tenant definition
         for (let index = 1; index <= NBR_SITES; index++) {
-          const siteContextDef = { 
+          const siteContextDef = {
             id: new ObjectID().toHexString(),
             name: CONTEXTS.SITE_CONTEXTS.SITE_BASIC,
             allowAllUsersToStopTransactions: false,
@@ -314,16 +310,16 @@ export default class ContextBuilder {
           newTenantContext.addSiteContext(siteContext);
           // Create site areas of current site
           for (let index = 1; index <= NBR_SITEAREAS; index++) {
-            const siteAreaDef =     { 
+            const siteAreaDef = {
               id: new ObjectID().toHexString(),
               name: `${CONTEXTS.SITE_CONTEXTS.SITE_BASIC}-${CONTEXTS.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
               accessControl: false,
               siteName: siteTemplate.name
             };
-            let siteArea: SiteArea = null;  
+            const siteArea: SiteArea = null;
             const siteAreaTemplate = Factory.siteArea.build();
             siteAreaTemplate.id = siteAreaDef.id;
-            //siteAreaTemplate.name = siteAreaDef.name;
+            // pragma siteAreaTemplate.name = siteAreaDef.name;
             siteAreaTemplate.accessControl = siteAreaDef.accessControl;
             siteAreaTemplate.siteID = site.id;
             const sireAreaID = await SiteAreaStorage.saveSiteArea(buildTenant.id, siteAreaTemplate);
@@ -336,7 +332,7 @@ export default class ContextBuilder {
                 baseName: new ObjectID().toHexString(),
                 ocppVersion: '1.6',
                 siteAreaNames: [siteAreaTemplate.id]
-              }
+              };
               const chargingStationTemplate = Factory.chargingStation.build();
               chargingStationTemplate.id = chargingStationDef.baseName;
               await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);

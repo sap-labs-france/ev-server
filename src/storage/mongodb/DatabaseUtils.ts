@@ -42,8 +42,8 @@ export default class DatabaseUtils {
     ];
   }
 
-  static chargingStationIsInactive(chargingStation) : boolean {
-    let inactive = false
+  static chargingStationIsInactive(chargingStation): boolean {
+    let inactive = false;
     // Get Heartbeat Interval from conf
     const config = Configuration.getChargingStationConfig();
     if (config) {
