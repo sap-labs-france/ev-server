@@ -113,7 +113,6 @@ export default class CreateConsumptionsTask extends MigrationTask {
       }
     );
     // Execute them all
-    // eslint-disable-next-line no-undef
     await Promise.all(promises);
     // Get the end time
     const endTime = moment();

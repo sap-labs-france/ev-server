@@ -61,12 +61,12 @@ export default class UpdateTransactionSoCTask extends MigrationTask {
     // Process each transaction
     for (const meterValueMDB of meterValuesMDB) {
       // Check
-      if (!meterValueMDB.transaction.hasOwnProperty('stateOfCharge')) {
+      if (!meterValueMDB.transaction.stateOfCharge) {
         // Default
         meterValueMDB.transaction.stateOfCharge = 0;
       }
       // Check
-      if (!meterValueMDB.transaction.stop.hasOwnProperty('stateOfCharge')) {
+      if (!meterValueMDB.transaction.stop.stateOfCharge) {
         // Default
         meterValueMDB.transaction.stop.stateOfCharge = 0;
       }

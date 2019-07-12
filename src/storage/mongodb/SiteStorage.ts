@@ -306,22 +306,19 @@ export default class SiteStorage {
         }
       });
     }
-    // Set User?
+    // Get users
     if (params.userID || params.excludeSitesOfUserID) {
-      // Get users
       DatabaseUtils.pushCollectionLookupInAggregation('siteusers',
         { tenantID, aggregation, localField: '_id', foreignField: 'siteID', asField: 'siteusers' }
       );
-      // User ID filter
       if (params.userID) {
         filters['siteusers.userID'] = Utils.convertToObjectID(params.userID);
       }
-      // Exclude User ID filter
       if (params.excludeSitesOfUserID) {
         filters['siteusers.userID'] = { $ne: Utils.convertToObjectID(params.excludeSitesOfUserID) };
       }
     }
-    // Filters
+    // Set filters
     aggregation.push({
       $match: filters
     });
@@ -389,6 +386,8 @@ export default class SiteStorage {
           // Get te chargers
           const chargingStations = await ChargingStationStorage.getChargingStations(tenantID, { siteIDs: [siteMDB.id] }, Constants.MAX_DB_RECORD_COUNT, 0);
           for (const chargingStation of chargingStations.result) {
+            // Set Inactive flag
+            chargingStation.setInactive(DatabaseUtils.chargingStationIsInactive(chargingStation.getModel()));
             // Check not deleted
             if (chargingStation.isDeleted()) {
               continue;
@@ -401,7 +400,7 @@ export default class SiteStorage {
               }
               totalConnectors++;
               // Check Available
-              if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
+              if (!chargingStation.isInactive() && connector.status === Constants.CONN_STATUS_AVAILABLE) {
                 availableConnectors++;
               }
             }
@@ -411,7 +410,7 @@ export default class SiteStorage {
                 continue;
               }
               // Check Available
-              if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
+              if (!chargingStation.isInactive() && connector.status === Constants.CONN_STATUS_AVAILABLE) {
                 availableChargers++;
                 break;
               }

@@ -998,7 +998,7 @@ export default class OCPPService {
       await chargingStation.save();
       // Log
       if (user) {
-        this._notifyStartTransaction(transaction, chargingStation, user);
+        await this._notifyStartTransaction(transaction, chargingStation, user);
         // Log
         Logging.logInfo({
           tenantID: chargingStation.getTenantID(),
@@ -1088,7 +1088,7 @@ export default class OCPPService {
 
   async _notifyStartTransaction(transaction, chargingStation, user) {
     // Notify
-    NotificationHandler.sendTransactionStarted(
+    await NotificationHandler.sendTransactionStarted(
       chargingStation.getTenantID(),
       transaction.getID(),
       user.getModel(),
@@ -1218,7 +1218,7 @@ export default class OCPPService {
       // Save the transaction
       transaction = await transaction.save();
       // Notify User
-      this._notifyStopTransaction(chargingStation, transaction, user, alternateUser);
+      await this._notifyStopTransaction(chargingStation, transaction, user, alternateUser);
       // Log
       Logging.logInfo({
         tenantID: chargingStation.getTenantID(),
@@ -1309,7 +1309,7 @@ export default class OCPPService {
     // User provided?
     if (user) {
       // Send Notification
-      NotificationHandler.sendEndOfSession(
+      await NotificationHandler.sendEndOfSession(
         chargingStation.getTenantID(),
         transaction.getID() + '-EOS',
         user.getModel(),
@@ -1337,22 +1337,22 @@ export default class OCPPService {
     }
   }
 
-  private async _checkAndGetChargingStation(chargeBoxIdentity, tenantID): Promise<ChargingStation> {
-    // Get the charging station
-    const chargingStation = await ChargingStation.getChargingStation(tenantID, chargeBoxIdentity);
-    // Found?
-    if (!chargingStation) {
-      // Error
-      throw new BackendError(chargeBoxIdentity, 'Charging Station does not exist',
-        'OCPPService', '_checkAndGetChargingStation');
-    }
-    // Found?
-    if (chargingStation.isDeleted()) {
-      // Error
-      throw new BackendError(chargeBoxIdentity, 'Charging Station is deleted',
-        'OCPPService', '_checkAndGetChargingStation');
-    }
-    return chargingStation;
-  }
+  // pragma private async _checkAndGetChargingStation(chargeBoxIdentity, tenantID): Promise<ChargingStation> {
+  //   // Get the charging station
+  //   const chargingStation = await ChargingStation.getChargingStation(tenantID, chargeBoxIdentity);
+  //   // Found?
+  //   if (!chargingStation) {
+  //     // Error
+  //     throw new BackendError(chargeBoxIdentity, 'Charging Station does not exist',
+  //       'OCPPService', '_checkAndGetChargingStation');
+  //   }
+  //   // Found?
+  //   if (chargingStation.isDeleted()) {
+  //     // Error
+  //     throw new BackendError(chargeBoxIdentity, 'Charging Station is deleted',
+  //       'OCPPService', '_checkAndGetChargingStation');
+  //   }
+  //   return chargingStation;
+  // }
 }
 

@@ -3,10 +3,10 @@ const faker = require('faker');
 
 module.exports = Factory.define('chargingStation')
   .attr('chargePointVendor', () => {
-    return faker.company.companyName(0);
+    return faker.random.alphaNumeric(15);
   })
   .attr('chargePointModel', () => {
-    return faker.commerce.product();
+    return faker.random.alphaNumeric(15);
   })
   .attr('chargePointSerialNumber', () => {
     return faker.random.alphaNumeric(25);

@@ -297,10 +297,11 @@ export default class ContextBuilder {
       emptySiteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
     }
     newTenantContext.addSiteContext(siteContext);
+    // pragma await newTenantContext.close();
     // Create transaction/session data for a specific tenant and context:
     if (tenantContextDef.tenantName === CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS) {
       const statisticContext = new StatisticsContext(newTenantContext);
-      //     await statisticContext.createTestData(CONTEXTS.SITE_CONTEXTS.SITE_BASIC, CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
+      // pragma await statisticContext.createTestData(CONTEXTS.SITE_CONTEXTS.SITE_BASIC, CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
     }
     return newTenantContext;
   }

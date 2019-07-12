@@ -5,11 +5,6 @@
       "./node_modules/@types",
       "./build/types/",
       "./test/types/"
-    ],
-    "types": [
-      "node",
-      "bluebird-global",
-      "mocha"
     ]
   },
   "exclude": []
