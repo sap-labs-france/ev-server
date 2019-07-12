@@ -5,8 +5,6 @@ import responseHelper from '../helpers/responseHelper';
 import CentralServerService from '../api/client/CentralServerService';
 import CONTEXTS from './contextProvider/ContextConstants';
 import ContextProvider from './contextProvider/ContextProvider';
-
-import ContextBuilder from './contextProvider/ContextBuilder';
 import StatisticsContext from './contextProvider/StatisticsContext';
 import StatisticsApi from './client/StatisticsApi';
 
@@ -18,7 +16,7 @@ chai.use(responseHelper);
 // Mocha is the test framework and chai provides functions to check expectations
 
 describe('Statistics tests', function() {
-  this.timeout(300000); // Will automatically stop the unit test after that period of time
+  this.timeout(20000); // Will automatically stop the unit test after that period of time
 
   let tenantContextNothing: any;
   let adminUserServerServiceNothing: CentralServerService;
@@ -41,10 +39,6 @@ describe('Statistics tests', function() {
   before(async () => {
     chai.config.includeStack = true;
 
-    // Build context here (for debugging):
-    const contextBuilder = new ContextBuilder();
-    // pragma await contextBuilder.prepareContexts();
-
     // Prepare data before the whole test chain is started
     await ContextProvider.DefaultInstance.prepareContexts();
 
@@ -66,7 +60,7 @@ describe('Statistics tests', function() {
       firstYear = allYears.data[0];
     }
 
-    // chargers of only one site area are used for generating transaction data:
+    // Chargers of only one site area are used for generating transaction data:
     const siteContextAll = tenantContextAll.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_BASIC);
     const siteAreaContextAll = siteContextAll.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
     const chargingStationsAll = siteAreaContextAll.getChargingStations();
@@ -76,13 +70,6 @@ describe('Statistics tests', function() {
     expectedConsumption = StatisticsContext.CONSTANTS.ENERGY_PER_MINUTE * StatisticsContext.CONSTANTS.CHARGING_MINUTES / 1000;
     expectedUsage = (StatisticsContext.CONSTANTS.CHARGING_MINUTES + StatisticsContext.CONSTANTS.IDLE_MINUTES) / 60;
     expectedInactivity = StatisticsContext.CONSTANTS.IDLE_MINUTES / 60;
-
-    if (!numberOfYears) {
-      // Create transaction data here (if not done in contextBuilder)
-      statisticsContext = new StatisticsContext(tenantContextAll);
-      numberOfYears = StatisticsContext.CONSTANTS.TRANSACTION_YEARS;
-      firstYear = await statisticsContext.createTestData(CONTEXTS.SITE_CONTEXTS.SITE_BASIC, CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
-    }
   });
 
   afterEach(() => {

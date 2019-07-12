@@ -301,9 +301,11 @@ export default class ContextBuilder {
     const statisticContext = new StatisticsContext(newTenantContext);
     switch (tenantContextDef.tenantName) {
       case CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS:
+        console.log(`Create transactions for chargers of site area ${CONTEXTS.SITE_CONTEXTS.SITE_BASIC}-${CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL}`);
         await statisticContext.createTestData(CONTEXTS.SITE_CONTEXTS.SITE_BASIC, CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
         break;
       case CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS:
+        console.log('Create transactions for unassigned chargers');
         await statisticContext.createTestData(CONTEXTS.SITE_CONTEXTS.NO_SITE, CONTEXTS.SITE_AREA_CONTEXTS.NO_SITE);
         break;
     }
