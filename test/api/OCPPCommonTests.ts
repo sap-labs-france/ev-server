@@ -168,8 +168,10 @@ export default class OCPPCommonTests {
   async testAuthorizeUsers() {
     // Asserts that the start user is authorized.
     await this.testAuthorize(this.transactionStartUser.tagIDs[0], 'Accepted');
+    console.log('aaa');
     // Asserts that the stop user is authorized.
     await this.testAuthorize(this.transactionStopUser.tagIDs[0], 'Accepted');
+    console.log('bbb');
     // Asserts that the user with a too long tag is not authorized.
     await this.testAuthorize('ThisIsATooTooTooLongTag', 'Invalid');
   }

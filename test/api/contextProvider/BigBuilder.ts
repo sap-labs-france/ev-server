@@ -211,12 +211,12 @@ export default class ContextBuilder {
             content: tenantContextDef.componentSettings[setting].content
           };
           console.log(`CREATE settings for ${setting} in tenant ${buildTenant.name}`);
-          const response = await localCentralServiceService.createEntity(localCentralServiceService.settingApi,
+          await localCentralServiceService.createEntity(localCentralServiceService.settingApi,
             settingInput);
         } else {
           console.log(`UPDATE settings for ${setting} in tenant ${buildTenant.name}`);
           foundSetting.content = tenantContextDef.componentSettings[setting].content;
-          const response = await localCentralServiceService.updateEntity(localCentralServiceService.settingApi,
+          await localCentralServiceService.updateEntity(localCentralServiceService.settingApi,
             foundSetting);
         }
       }
@@ -252,7 +252,7 @@ export default class ContextBuilder {
         createUser.tagIDs = userDef.tagIDs;
       }
       const user = new User(buildTenant.id, createUser);
-      user.save();
+      await user.save();
       if (userDef.assignedToSite) {
         userListToAssign.push(user.getModel());
       }
@@ -269,7 +269,7 @@ export default class ContextBuilder {
     if (buildTenant.components && buildTenant.components.hasOwnProperty(Constants.COMPONENTS.ORGANIZATION) &&
       buildTenant.components[Constants.COMPONENTS.ORGANIZATION].active) {
       // Create the company
-      for (let index = 1; index <= NBR_COMPANIES; index++) {
+      for (let counterComp = 1; counterComp <= NBR_COMPANIES; counterComp++) {
         let company = null;
         const companyDef = {
           id: new ObjectID().toHexString()
@@ -280,8 +280,9 @@ export default class ContextBuilder {
         dummyCompany.createdOn = moment().toISOString();
         company = await CompanyStorage.saveCompany(buildTenant.id, dummyCompany);
         newTenantContext.getContext().companies.push(dummyCompany);
+        console.log(`Create company : ${dummyCompany.id}`);
         // Build sites/sitearea according to tenant definition
-        for (let index = 1; index <= NBR_SITES; index++) {
+        for (let counterSite = 1; counterSite <= NBR_SITES; counterSite++) {
           const siteContextDef = {
             id: new ObjectID().toHexString(),
             name: CONTEXTS.SITE_CONTEXTS.SITE_BASIC,
@@ -303,14 +304,15 @@ export default class ContextBuilder {
           siteTemplate.id = siteContextDef.id;
           site = siteTemplate;
           site.id = await SiteStorage.saveSite(buildTenant.id, siteTemplate, true);
+          console.log(`* Create site : ${siteTemplate.id}`);
           await SiteStorage.addUsersToSite(buildTenant.id, site.id, userListToAssign.map((user) => {
             return user.id;
           }));
           const siteContext = new SiteContext(site, newTenantContext);
           newTenantContext.addSiteContext(siteContext);
           // Create site areas of current site
-          for (let index = 1; index <= NBR_SITEAREAS; index++) {
-            const siteAreaDef = {
+          for (let counterSiteA = 1; counterSiteA <= NBR_SITEAREAS; counterSiteA++) {
+            const siteAreaDef =     { 
               id: new ObjectID().toHexString(),
               name: `${CONTEXTS.SITE_CONTEXTS.SITE_BASIC}-${CONTEXTS.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
               accessControl: false,
@@ -323,11 +325,12 @@ export default class ContextBuilder {
             siteAreaTemplate.accessControl = siteAreaDef.accessControl;
             siteAreaTemplate.siteID = site.id;
             const sireAreaID = await SiteAreaStorage.saveSiteArea(buildTenant.id, siteAreaTemplate);
+            console.log(`** Create sitearea : ${siteAreaTemplate.id}`);
             const siteAreaModel = await SiteAreaStorage.getSiteArea(buildTenant.id, sireAreaID);
             const siteAreaContext = new SiteAreaContext(siteAreaModel, newTenantContext);
             siteContext.addSiteArea(siteAreaContext);
             // Create Charging Station for site area
-            for (let index = 1; index <= NBR_CHARGINGSTATIONS; index++) {
+            for (let counterCS = 1; counterCS <= NBR_CHARGINGSTATIONS; counterCS++) {
               const chargingStationDef = {
                 baseName: new ObjectID().toHexString(),
                 ocppVersion: '1.6',
@@ -335,6 +338,7 @@ export default class ContextBuilder {
               };
               const chargingStationTemplate = Factory.chargingStation.build();
               chargingStationTemplate.id = chargingStationDef.baseName;
+              console.log(`*** Create charging station : ${chargingStationTemplate.id}`);
               await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
             }
           }

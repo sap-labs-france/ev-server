@@ -15,6 +15,7 @@ import Site from '../../types/Site';
 import Transaction from '../../entity/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import User from '../../types/User';
+import BBPromise from 'bluebird';
 
 const MODULE_NAME = 'ConcurConnector';
 const CONNECTOR_ID = 'concur';
@@ -231,7 +232,7 @@ const CONNECTOR_ID = 'concur';
       expenseReportId = await this.createExpenseReport(connection, transactions[0].getTimezone(), user);
     }
 
-    await Promise.map(transactions,
+    await BBPromise.map(transactions,
       async (transaction: Transaction) => {
         try {
           const chargingStation = await ChargingStation.getChargingStation(transaction.getTenantID(), transaction.getChargeBoxID());
