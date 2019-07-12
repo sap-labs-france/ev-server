@@ -11,21 +11,21 @@ export default interface User extends CreatedUpdatedProps {
   status: string;
   locale: string;
   plateID: string;
-  address: Address;
+  address?: Address;
   image: string;
-  notificationsActive: boolean;
-  iNumber: string;
-  costCenter: string;
-  
+  notificationsActive?: boolean;
+  iNumber?: string;
+  costCenter?: string;
+
   deleted: boolean;
 
   eulaAcceptedHash: string;
   eulaAcceptedVersion: number;
   eulaAcceptedOn: Date;
-  
+
   name: string;
   firstName: string;
-  
+
   password: string;
   passwordResetHash: string;
   passwordWrongNbrTrials: number;
