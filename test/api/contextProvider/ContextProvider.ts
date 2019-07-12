@@ -89,7 +89,7 @@ export default class ContextProvider {
     let userList = null;
     // Read all existing entities
     chargingStationList = (await defaultAdminCentralServiceService.chargingStationApi.readAll({}, { limit: 0, skip: 0 })).data.result;
-    if (tenantEntity.components && tenantEntity.components.hasOwnProperty(Constants.COMPONENTS.ORGANIZATION) &&
+    if (tenantEntity.components && tenantEntity.components[Constants.COMPONENTS.ORGANIZATION] &&
       tenantEntity.components[Constants.COMPONENTS.ORGANIZATION].active) {
       siteAreaList = (await defaultAdminCentralServiceService.siteAreaApi.readAll({}, { limit: 0, skip: 0 })).data.result;
       siteList = (await defaultAdminCentralServiceService.siteApi.readAll({}, { limit: 0, skip: 0 })).data.result;
@@ -107,7 +107,7 @@ export default class ContextProvider {
     newTenantContext.addUsers(userList); // pragma getContext().users = userList;
     newTenantContext.getContext().companies = companyList;
 
-    if (tenantEntity.components && tenantEntity.components.hasOwnProperty(Constants.COMPONENTS.ORGANIZATION) &&
+    if (tenantEntity.components && tenantEntity.components[Constants.COMPONENTS.ORGANIZATION] &&
       tenantEntity.components[Constants.COMPONENTS.ORGANIZATION].active) {
       for (const siteContextDef of CONTEXTS.TENANT_SITE_LIST) {
         const jsonSite = siteList.find((site) => {

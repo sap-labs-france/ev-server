@@ -2,7 +2,6 @@ import moment from 'moment-timezone';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import Pricing, { PricedConsumption } from '../Pricing';
-import SiteArea from '../../../types/SiteArea';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import StatefulChargingService from './StatefulChargingService';
 

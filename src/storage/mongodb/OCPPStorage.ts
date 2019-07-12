@@ -226,19 +226,7 @@ export default class OCPPStorage {
     // Set the filters
     const filters: any = {
       '$and': [{
-        '$or': [
-          {
-            'deleted': {
-              $exists: false
-            }
-          },
-          {
-            'deleted': null
-          },
-          {
-            'deleted': false
-          }
-        ]
+        '$or': DatabaseUtils.getNotDeletedFilter()
       }]
     };
 

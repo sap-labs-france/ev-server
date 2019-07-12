@@ -27,13 +27,11 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     super();
     // Keep the charger
     this.chargingStation = chargingStation;
-    // Get the Charging Station
-    // eslint-disable-next-line no-undef
   }
 
-  static build(chargingStation): Promise<SoapChargingStationClient> {
+  static async build(chargingStation): Promise<SoapChargingStationClient> {
     const scsc = new SoapChargingStationClient(chargingStation);
-    return new Promise((fulfill, reject) => {
+    return await new Promise((fulfill, reject) => {
       let chargingStationWdsl = null;
       // Read the WSDL client files
       switch (scsc.chargingStation.getOcppVersion()) {

@@ -474,7 +474,7 @@ export default class ChargingStationService {
           'search': filteredRequest.Search,
           'withNoSiteArea': filteredRequest.WithNoSiteArea,
           'withSite': filteredRequest.WithSite,
-          'siteIDs': (filteredRequest.SiteID ? [filteredRequest.SiteID] : Authorizations.getAuthorizedEntityIDsFromLoggedUser(Constants.ENTITY_SITE, req.user)),
+          'siteIDs': (filteredRequest.SiteID ? [filteredRequest.SiteID] : Authorizations.getAuthorizedSiteIDs(req.user)),
           'chargeBoxID': filteredRequest.ChargeBoxID,
           'siteAreaID': filteredRequest.SiteAreaID,
           'includeDeleted': filteredRequest.IncludeDeleted,
@@ -693,6 +693,7 @@ export default class ChargingStationService {
           'ChargingStationService', 'handleAction', req.user);
       }
       let result;
+      // Remote Stop Transaction / Unlock Connector
       if (action === 'RemoteStopTransaction' || action === 'UnlockConnector') {
         // Check Transaction ID
         if (!filteredRequest.args || !filteredRequest.args.transactionId) {
@@ -728,6 +729,7 @@ export default class ChargingStationService {
         await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
         // Ok: Execute it
         result = await chargingStation.handleAction(action, filteredRequest.args);
+      // Remote Start Transaction
       } else if (action === 'RemoteStartTransaction') {
         // Check Tag ID
         if (!filteredRequest.args || !filteredRequest.args.tagID) {

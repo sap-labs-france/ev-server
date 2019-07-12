@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { ObjectID } from 'mongodb';
 import BackendError from '../../exception/BackendError';
+import ChargingStationStorage from './ChargingStationStorage';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
@@ -12,7 +13,6 @@ import UserSite from '../../types/User';
 import Utils from '../../utils/Utils';
 
 export default class SiteStorage {
-
   public static async getSite(tenantID: string, id: string): Promise<Site> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getSite');
@@ -36,7 +36,6 @@ export default class SiteStorage {
       .find({ _id: Utils.convertToObjectID(id) })
       .limit(1)
       .toArray();
-
     let siteImage: {id: string; image: string} = null;
     // Set
     if (siteImagesMDB && siteImagesMDB.length > 0) {
@@ -100,7 +99,9 @@ export default class SiteStorage {
     Logging.traceEnd('SiteStorage', 'addUsersToSite', uniqueTimerID, { siteID, userIDs });
   }
 
-  public static async getUsers(tenantID: string, siteID: string, dbParams: DbParams): Promise<{count: number; result: UserSite[]}> {
+  public static async getUsers(tenantID: string,
+    params: { siteID: string; onlyRecordCount?: boolean },
+    dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: UserSite[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getUsers');
     // Check Tenant
@@ -114,37 +115,40 @@ export default class SiteStorage {
     // Filter
     aggregation.push({
       $match: {
-        siteID: Utils.convertToObjectID(siteID)
+        siteID: Utils.convertToObjectID(params.siteID)
       }
     });
-
     // Get users
-    aggregation.push({
-      $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
-        localField: 'userID',
-        foreignField: '_id',
-        as: 'user'
-      }
-    });
-    // Single Record
-    aggregation.push({
-      $unwind: { 'path': '$user', 'preserveNullAndEmptyArrays': true }
-    });
+    DatabaseUtils.pushUserLookupInAggregation(
+      { tenantID, aggregation, localField: 'userID', foreignField: '_id',
+        asField: 'user', oneToOneCardinality: true, oneToOneCardinalityNotNull: true });
     // Filter deleted users
     aggregation.push({
       $match: {
-        '$or': [
-          { 'user.deleted': { '$exists': false } },
-          { 'user.deleted': false },
-          { 'user.deleted': null }
-        ]
+        '$or': DatabaseUtils.getNotDeletedFilter('user')
       }
     });
+    // Convert IDs to String
+    DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
+    // Limit records?
+    if (!params.onlyRecordCount) {
+      // Always limit the nbr of record to avoid perfs issues
+      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+    }
     // Count Records
     const usersCountMDB = await global.database.getCollection<{count: number}>(tenantID, 'siteusers')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
+    // Check if only the total count is requested
+    if (params.onlyRecordCount) {
+      return {
+        count: (usersCountMDB.length > 0 ? usersCountMDB[0].count : 0),
+        result: []
+      };
+    }
+    // Remove the limit
+    aggregation.pop();
     // Sort
     if (dbParams.sort) {
       aggregation.push({
@@ -163,20 +167,19 @@ export default class SiteStorage {
     aggregation.push({
       $limit: limit
     });
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const siteUsersMDB = await global.database.getCollection<any>(tenantID, 'siteusers')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     const users: UserSite[] = [];
-    // Create
+    // Convert to typed object
     for (const siteUserMDB of siteUsersMDB) {
-      if (siteUserMDB.user) {
-        siteUserMDB.user.id = siteUserMDB.user._id;
-        users.push({ user: siteUserMDB.user, siteAdmin: !siteUserMDB.siteAdmin ? false : siteUserMDB.siteAdmin, siteID: siteID });
-      }
+      users.push({ user: siteUserMDB.user, siteAdmin: !siteUserMDB.siteAdmin ? false : siteUserMDB.siteAdmin, siteID: params.siteID });
     }
     // Debug
-    Logging.traceEnd('SiteStorage', 'getUsers', uniqueTimerID, { siteID: siteID });
+    Logging.traceEnd('SiteStorage', 'getUsers', uniqueTimerID, { siteID: params.siteID });
     // Ok
     return {
       count: (usersCountMDB.length > 0 ?
@@ -222,26 +225,22 @@ export default class SiteStorage {
       name: siteToSave.name,
     };
     // Add Last Changed/Created props
-    DatabaseUtils.mongoConvertLastChangedCreatedProps(siteMDB, siteToSave);
-
+    DatabaseUtils.addLastChangedCreatedProps(siteMDB, siteToSave);
     // Modify
     const result = await global.database.getCollection<any>(tenantID, 'sites').findOneAndUpdate(
       siteFilter,
       { $set: siteMDB },
-      { upsert: true, returnOriginal: false });
-
-
+      { upsert: true, returnOriginal: false }
+    );
     if (!result.ok) {
       throw new BackendError(
         Constants.CENTRAL_SERVER,
         'Couldn\'t update Site',
         'SiteStorage', 'saveSite');
     }
-
     if (saveImage) {
       SiteStorage.saveSiteImage(tenantID, siteFilter._id.toHexString(), siteToSave.image);
     }
-
     // Debug
     Logging.traceEnd('SiteStorage', 'saveSite', uniqueTimerID, { siteToSave });
     return siteFilter._id.toHexString();
@@ -250,24 +249,24 @@ export default class SiteStorage {
   public static async saveSiteImage(tenantID: string, siteID: string, siteImageToSave: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'saveSiteImage');
-
     // Check Tenant
     await Utils.checkTenant(tenantID);
-
     // Modify
     await global.database.getCollection<{_id: string; image: string}>(tenantID, 'siteimages').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(siteID) },
       { $set: { image: siteImageToSave } },
-      { upsert: true, returnOriginal: false });
-
+      { upsert: true, returnOriginal: false }
+    );
     // Debug
     Logging.traceEnd('SiteStorage', 'saveSiteImage', uniqueTimerID);
   }
 
   public static async getSites(tenantID: string,
-    params: {search?: string; companyID?: string; withAutoUserAssignment?: boolean; siteIDs?: string[];
-      userID?: string; excludeSitesOfUserID?: boolean; onlyRecordCount?: boolean; withAvailableChargers?: boolean; withCompany?: boolean; } = {},
-    dbParams: DbParams): Promise<{count: number; result: Site[]}> {
+    params: {
+      search?: string; companyID?: string; withAutoUserAssignment?: boolean; siteIDs?: string[];
+      userID?: string; excludeSitesOfUserID?: boolean; onlyRecordCount?: boolean;
+      withAvailableChargers?: boolean; withCompany?: boolean; } = {},
+    dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: Site[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getSites');
     // Check Tenant
@@ -291,17 +290,14 @@ export default class SiteStorage {
     if (params.companyID) {
       filters.companyID = Utils.convertToObjectID(params.companyID);
     }
-
     // Auto User Site Assignment
     if (params.withAutoUserAssignment) {
       filters.autoUserSiteAssignment = true;
     }
-
     // Create Aggregation
     const aggregation = [];
     // Limit on Site for Basic Users
     if (params.siteIDs && params.siteIDs.length > 0) {
-      // Build filter
       aggregation.push({
         $match: {
           _id: { $in: params.siteIDs.map((siteID) => {
@@ -310,36 +306,24 @@ export default class SiteStorage {
         }
       });
     }
-    // Set User?
+    // Get users
     if (params.userID || params.excludeSitesOfUserID) {
-      // Add Users
-      aggregation.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, 'siteusers'),
-          localField: '_id',
-          foreignField: 'siteID',
-          as: 'siteusers'
-        } // TODO convert when User is getting typed as well
-      });
-      // User ID filter
+      DatabaseUtils.pushCollectionLookupInAggregation('siteusers',
+        { tenantID, aggregation, localField: '_id', foreignField: 'siteID', asField: 'siteusers' }
+      );
       if (params.userID) {
         filters['siteusers.userID'] = Utils.convertToObjectID(params.userID);
       }
-      // Exclude User ID filter
       if (params.excludeSitesOfUserID) {
         filters['siteusers.userID'] = { $ne: Utils.convertToObjectID(params.excludeSitesOfUserID) };
       }
-
     }
-    // Filters
-    if (filters) {
-      aggregation.push({
-        $match: filters
-      });
-    }
+    // Set filters
+    aggregation.push({
+      $match: filters
+    });
     // Limit records?
     if (!params.onlyRecordCount) {
-      // Always limit the nbr of record to avoid perfs issues
       aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
     }
     // Count Records
@@ -348,7 +332,6 @@ export default class SiteStorage {
       .toArray();
     // Check if only the total count is requested
     if (params.onlyRecordCount) {
-      // Return only the count
       return {
         count: (sitesCountMDB.length > 0 ? sitesCountMDB[0].count : 0),
         result: []
@@ -356,30 +339,18 @@ export default class SiteStorage {
     }
     // Remove the limit
     aggregation.pop();
-
-    // Add Chargers
-    if (params.withAvailableChargers) {
-      DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, aggregation, '_id', 'siteID', 'siteAreas', ['address', 'allowAllUsersToStopTransactions', 'autoUserSiteAssignment', 'companyID', 'name'], 'manual', false);
-      aggregation.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
-          localField: 'siteAreas.id',
-          foreignField: 'siteAreaID',
-          as: 'chargeBoxes'
-        }
-      }); // TODO: change when typed
-    }
-
-    // Add Company?
+    // Add Company
     if (params.withCompany) {
-      DatabaseUtils.pushCompanyWOSWOIJoinInAggregation(tenantID, aggregation, 'companyID', '_id', 'company', ['chargeBoxes', 'siteAreas', 'address', 'allowAllUsersToStopTransactions', 'autoUserSiteAssignment', 'companyID', 'name'], 'manual');
+      DatabaseUtils.pushCompanyLookupInAggregation(
+        { tenantID, aggregation, localField: 'companyID', foreignField: '_id',
+          asField: 'company', oneToOneCardinality: true });
     }
+    // Convert Object ID to string
+    DatabaseUtils.convertObjectIDToString(aggregation, 'companyID');
+    // Add Last Changed / Created
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
-
-    aggregation.push({ $addFields: {
-      id: { $toString: '$_id' }
-    } });
-
+    // Handle the ID
+    DatabaseUtils.renameDatabaseID(aggregation);
     // Sort
     if (dbParams.sort) {
       aggregation.push({
@@ -398,57 +369,67 @@ export default class SiteStorage {
     aggregation.push({
       $limit: limit
     });
-
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const sitesMDB = await global.database.getCollection<any>(tenantID, 'sites')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true }) // TODO: change this method when typed ChargingStation...
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     const sites = [];
     // Check
     if (sitesMDB && sitesMDB.length > 0) {
       // Create
-      for (const site of sitesMDB) {
+      for (const siteMDB of sitesMDB) {
         // Count Available/Occupied Chargers/Connectors
         if (params.withAvailableChargers) {
           let availableChargers = 0, totalChargers = 0, availableConnectors = 0, totalConnectors = 0;
-          // Chargers
-          for (const chargeBox of site.chargeBoxes) {
+          // Get te chargers
+          const chargingStations = await ChargingStationStorage.getChargingStations(tenantID, { siteIDs: [siteMDB.id] }, Constants.MAX_DB_RECORD_COUNT, 0);
+          for (const chargingStation of chargingStations.result) {
+            // Set Inactive flag
+            chargingStation.setInactive(DatabaseUtils.chargingStationIsInactive(chargingStation.getModel()));
             // Check not deleted
-            if (chargeBox.deleted) {
+            if (chargingStation.isDeleted()) {
               continue;
             }
             totalChargers++;
             // Handle Connectors
-            for (const connector of chargeBox.connectors) {
+            for (const connector of chargingStation.getConnectors()) {
+              if (!connector) {
+                continue;
+              }
               totalConnectors++;
               // Check Available
-              if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
+              if (!chargingStation.isInactive() && connector.status === Constants.CONN_STATUS_AVAILABLE) {
                 availableConnectors++;
               }
             }
             // Handle Chargers
-            for (const connector of chargeBox.connectors) {
+            for (const connector of chargingStation.getConnectors()) {
+              if (!connector) {
+                continue;
+              }
               // Check Available
-              if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
+              if (!chargingStation.isInactive() && connector.status === Constants.CONN_STATUS_AVAILABLE) {
                 availableChargers++;
                 break;
               }
             }
           }
           // Set
-          site.availableChargers = availableChargers;
-          site.totalChargers = totalChargers;
-          site.availableConnectors = availableConnectors;
-          site.totalConnectors = totalConnectors;
+          siteMDB.availableChargers = availableChargers;
+          siteMDB.totalChargers = totalChargers;
+          siteMDB.availableConnectors = availableConnectors;
+          siteMDB.totalConnectors = totalConnectors;
         }
-        if (!site.allowAllUsersToStopTransactions) {
-          site.allowAllUsersToStopTransactions = false;
+        if (!siteMDB.allowAllUsersToStopTransactions) {
+          siteMDB.allowAllUsersToStopTransactions = false;
         }
-        if (!site.autoUserSiteAssignment) {
-          site.autoUserSiteAssignment = false;
+        if (!siteMDB.autoUserSiteAssignment) {
+          siteMDB.autoUserSiteAssignment = false;
         }
         // Add
-        sites.push(site);
+        sites.push(siteMDB);
       }
     }
     // Debug
@@ -464,9 +445,8 @@ export default class SiteStorage {
   public static async deleteSite(tenantID: string, id: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'deleteSite');
-
-    SiteStorage.deleteSites(tenantID, [id]);
-
+    // Delegate
+    await SiteStorage.deleteSites(tenantID, [id]);
     // Debug
     Logging.traceEnd('SiteStorage', 'deleteSite', uniqueTimerID, { id });
   }
@@ -476,13 +456,12 @@ export default class SiteStorage {
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'deleteSites');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-
+    // Delete all Site Areas
     SiteAreaStorage.deleteSiteAreasFromSites(tenantID, ids);
-
+    // Convert
     const cids: ObjectID[] = ids.map((id) => {
       return Utils.convertToObjectID(id);
     });
-
     // Delete Site
     await global.database.getCollection<any>(tenantID, 'sites')
       .deleteMany({ '_id': { $in: cids } });
@@ -501,22 +480,19 @@ export default class SiteStorage {
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'deleteCompanySites');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-
-    // Get sites to fetch IDs in order to delete site areas
+    // Get Sites of Company
     const siteIDs: string[] = (await global.database.getCollection<{_id: ObjectID}>(tenantID, 'sites')
       .find({ companyID: Utils.convertToObjectID(companyID) })
       .project({ _id: 1 })
       .toArray())
       .map((site) => {
         return site._id.toHexString();
-      });
-
-    // Delete site areas
+      }
+      );
+    // Delete all Site Areas
     SiteAreaStorage.deleteSiteAreasFromSites(tenantID, siteIDs);
-
-    // Delete sites
+    // Delete Sites
     SiteStorage.deleteSites(tenantID, siteIDs);
-
     // Debug
     Logging.traceEnd('SiteStorage', 'deleteCompanySites', uniqueTimerID, { companyID });
   }
@@ -526,12 +502,10 @@ export default class SiteStorage {
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'deleteCompanySites');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-
+    // Exec
     const result = await global.database.getCollection<any>(tenantID, 'sites').findOne({ _id: Utils.convertToObjectID(siteID) });
-
     // Debug
     Logging.traceEnd('SiteStorage', 'deleteCompanySites', uniqueTimerID, { siteID });
-
     // Check
     if (!result) {
       return false;
@@ -544,13 +518,11 @@ export default class SiteStorage {
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'siteHasUser');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-
+    // Exec
     const result = await global.database.getCollection<any>(tenantID, 'siteusers').findOne(
       { siteID: Utils.convertToObjectID(siteID), userID: Utils.convertToObjectID(userID) });
-
     // Debug
     Logging.traceEnd('SiteStorage', 'deleteCompanySites', uniqueTimerID, { siteID });
-
     // Check
     if (!result) {
       return false;

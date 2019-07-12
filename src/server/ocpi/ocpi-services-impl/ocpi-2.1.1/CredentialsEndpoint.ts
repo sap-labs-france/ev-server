@@ -49,7 +49,8 @@ const MODULE_NAME = 'CredentialsEndpoint';
   /**
    * Registration process initiated by IOP
    */
-  async deleteCredentials(req, res, next, tenant) { // eslint-disable-line
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async deleteCredentials(req, res, next, tenant) {
     // Get token from header
     let token;
     if (req.headers && req.headers.authorization) {

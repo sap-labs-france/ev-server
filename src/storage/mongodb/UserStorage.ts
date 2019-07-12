@@ -16,7 +16,7 @@ import Utils from '../../utils/Utils';
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 
 export default class UserStorage {
-  static getLatestEndUserLicenseAgreement(language = 'en') {
+  static getLatestEndUserLicenseAgreement(language = 'en'): string {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getLatestEndUserLicenseAgreement');
 
@@ -317,7 +317,7 @@ export default class UserStorage {
       userFilter.email = userToSave.email;
     }
     // Check Created/Last Changed By
-    DatabaseUtils.mongoConvertLastChangedCreatedProps(userToSave, userToSave);
+    DatabaseUtils.addLastChangedCreatedProps(userToSave, userToSave);
     // Transfer
     const user: any = {};
     Database.updateUser(userToSave, user, false);
@@ -329,7 +329,7 @@ export default class UserStorage {
     // Create
     const updatedUser = new User(tenantID, result.value);
     // Add tags
-    if (userToSave.hasOwnProperty('tagIDs')) {
+    if (userToSave.tagIDs) {
       // Delete Tag IDs
       await global.database.getCollection<any>(tenantID, 'tags')
         .deleteMany({ 'userID': Utils.convertToObjectID(updatedUser.getID()) });
@@ -388,11 +388,7 @@ export default class UserStorage {
     const filters: any = {
       '$and': [
         {
-          '$or': [
-            { 'deleted': { $exists: false } },
-            { 'deleted': false },
-            { 'deleted': null }
-          ]
+          '$or': DatabaseUtils.getNotDeletedFilter()
         }
       ]
     };
@@ -571,11 +567,7 @@ export default class UserStorage {
     const filters: any = {
       '$and': [
         {
-          '$or': [
-            { 'deleted': { $exists: false } },
-            { 'deleted': false },
-            { 'deleted': null }
-          ]
+          '$or': DatabaseUtils.getNotDeletedFilter()
         }
       ]
     };
@@ -748,7 +740,9 @@ export default class UserStorage {
     Logging.traceEnd('UserStorage', 'deleteUser', uniqueTimerID, { id });
   }
 
-  static async getSites(tenantID, params: { userID: string; siteAdmin?: boolean }, dbParams: DbParams): Promise<{count: number; result: SiteUser[]}> {
+  static async getSites(tenantID,
+    params: { userID: string; siteAdmin?: boolean; onlyRecordCount?: boolean },
+    dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: SiteUser[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getSites');
     // Check Tenant
@@ -771,19 +765,30 @@ export default class UserStorage {
       $match: filter
     });
     // Get Sites
-    aggregation.push({
-      $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, 'sites'),
-        localField: 'siteID',
-        foreignField: '_id',
-        as: 'sites'
-      }
-    });
-    DatabaseUtils.pushBasicSiteJoinInAggregation(tenantID, aggregation, 'siteID', '_id', 'sites', ['userID', 'siteID'], 'none', true);
+    DatabaseUtils.pushSiteLookupInAggregation(
+      { tenantID, aggregation, localField: 'siteID', foreignField: '_id',
+        asField: 'site', oneToOneCardinality: true, oneToOneCardinalityNotNull: true });
+    // Convert IDs to String
+    DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
+    // Limit records?
+    if (!params.onlyRecordCount) {
+      // Always limit the nbr of record to avoid perfs issues
+      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+    }
     // Count Records
-    const usersCountMDB = await global.database.getCollection<any>(tenantID, 'siteusers')
+    const sitesCountMDB = await global.database.getCollection<any>(tenantID, 'siteusers')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
+    // Check if only the total count is requested
+    if (params.onlyRecordCount) {
+      return {
+        count: (sitesCountMDB.length > 0 ? sitesCountMDB[0].count : 0),
+        result: []
+      };
+    }
+    // Remove the limit
+    aggregation.pop();
     // Sort
     if (dbParams.sort) {
       aggregation.push({
@@ -802,6 +807,8 @@ export default class UserStorage {
     aggregation.push({
       $limit: limit
     });
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const siteUsersMDB = await global.database.getCollection<any>(tenantID, 'siteusers')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
@@ -809,19 +816,15 @@ export default class UserStorage {
     // Create
     const sites: SiteUser[] = [];
     for (const siteUserMDB of siteUsersMDB) {
-      if (siteUserMDB.sites) {
-        const siteUser: SiteUser = { siteAdmin: siteUserMDB.siteAdmin, userID: siteUserMDB.userID, site: siteUserMDB.sites } as SiteUser;
-        sites.push(siteUser);
-      }
+      const siteUser: SiteUser = { siteAdmin: siteUserMDB.siteAdmin, userID: siteUserMDB.userID, site: siteUserMDB.site } as SiteUser;
+      sites.push(siteUser);
     }
-
     // Debug
     Logging.traceEnd('UserStorage', 'UserStorage', uniqueTimerID, { userID: params.userID });
-
     // Ok
     return {
-      count: (usersCountMDB.length > 0 ?
-        (usersCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : usersCountMDB[0].count) : 0),
+      count: (sitesCountMDB.length > 0 ?
+        (sitesCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : sitesCountMDB[0].count) : 0),
       result: sites
     };
   }

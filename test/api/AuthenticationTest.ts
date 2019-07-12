@@ -5,9 +5,17 @@ import jwt from 'jsonwebtoken';
 import CentralServerService from './client/CentralServerService';
 import UserFactory from '../factories/UserFactory';
 
-const testData: any = {};
-
 chai.use(chaiSubset);
+
+class TestData {
+  public adminEmail: any;
+  public adminPassword: any;
+  public superAdminEmail: any;
+  public superAdminPassword: any;
+  public adminTenant: any;
+}
+
+const testData: TestData = new TestData();
 
 describe('Authentication Service', function() {
   this.timeout(5000);

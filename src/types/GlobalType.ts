@@ -1,3 +1,4 @@
+import bluebird from 'bluebird';
 import path from 'path';
 import MongoDBStorage from '../storage/mongodb/MongoDBStorage';
 import Global = NodeJS.Global;
@@ -9,11 +10,19 @@ interface TSGlobal extends Global {
   centralSystemSoap: any;
   userHashMapIDs: any;
   tenantHashMapIDs: any;
-  Promise: any;
 }
 
 // Export global variables
 declare const global: TSGlobal;
+// Use bluebird Promise as default
+global.Promise = bluebird;
 // AppRoot full path
-global.appRoot = path.resolve(__dirname, '../');
+if (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test') {
+  global.appRoot = path.resolve(__dirname, '../');
+} else if (process.env.NODE_ENV === 'production') {
+  global.appRoot = path.resolve(__dirname, '../dist');
+} else {
+  console.log(`Unknown NODE_ENV '${process.env.NODE_ENV}' defined, exiting`);
+  process.exit();
+}
 export default global;

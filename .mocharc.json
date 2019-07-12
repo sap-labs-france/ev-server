@@ -1,0 +1,15 @@
+{
+  "diff": true,
+  "extension": [
+    "js",
+    "ts"
+  ],
+  "opts": "./test/mocha.opts",
+  "package": "./package.json",
+  "reporter": "mochawesome",
+  "reporter-options": "reportDir=outputs/mochawesome-report,json=false",
+  "slow": 75,
+  "timeout": 2000,
+  "ui": "bdd",
+  "full-trace": true
+}

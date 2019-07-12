@@ -18,13 +18,10 @@ import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
 import User from '../../../src/entity/User';
 import UserFactory from '../../factories/UserFactory';
-import crypto from 'crypto';
 import { ObjectID } from 'mongodb';
 import SiteArea from '../../../src/types/SiteArea';
 
-// crypto.randomBytes(256, (err, buf)
-// Math.floor(Math.random()*16777215).toString(24);
-const NBR_USERS = 10; // Number of total users : they are all connected to the sites 
+const NBR_USERS = 10; // Number of total users : they are all connected to the sites
 const NBR_COMPANIES = 5; // Number of companies
 const NBR_SITES = 5; // Number of sites PER company
 const NBR_SITEAREAS = 5; // Number of site areas per site
@@ -58,7 +55,6 @@ const BIG_CONTEXT = [{
     },
   },
 }];
-
 
 export default class ContextBuilder {
 
@@ -275,7 +271,7 @@ export default class ContextBuilder {
       // Create the company
       for (let counterComp = 1; counterComp <= NBR_COMPANIES; counterComp++) {
         let company = null;
-        const companyDef =     { 
+        const companyDef = {
           id: new ObjectID().toHexString()
         };
         const dummyCompany: any = Factory.company.build();
@@ -322,10 +318,10 @@ export default class ContextBuilder {
               accessControl: false,
               siteName: siteTemplate.name
             };
-            let siteArea: SiteArea = null;  
+            const siteArea: SiteArea = null;
             const siteAreaTemplate = Factory.siteArea.build();
             siteAreaTemplate.id = siteAreaDef.id;
-            //siteAreaTemplate.name = siteAreaDef.name;
+            // pragma siteAreaTemplate.name = siteAreaDef.name;
             siteAreaTemplate.accessControl = siteAreaDef.accessControl;
             siteAreaTemplate.siteID = site.id;
             const sireAreaID = await SiteAreaStorage.saveSiteArea(buildTenant.id, siteAreaTemplate);
