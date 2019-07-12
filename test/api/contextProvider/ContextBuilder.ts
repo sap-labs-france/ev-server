@@ -9,7 +9,6 @@ import Factory from '../../factories/Factory';
 import global from '../../../src/types/GlobalType';
 import MongoDBStorage from '../../../src/storage/mongodb/MongoDBStorage';
 import Site from '../../../src/types/Site';
-import SiteAreaContext from './SiteAreaContext';
 import SiteAreaStorage from '../../../src/storage/mongodb/SiteAreaStorage';
 import SiteContext from './SiteContext';
 import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
@@ -30,7 +29,10 @@ export default class ContextBuilder {
 
   constructor() {
     // Create a super admin interface
-    this.superAdminCentralServerService = new CentralServerService(null, { email: config.get('superadmin.username'), password: config.get('superadmin.password') });
+    this.superAdminCentralServerService = new CentralServerService(null, {
+      email: config.get('superadmin.username'),
+      password: config.get('superadmin.password')
+    });
     this.tenantsContexts = [];
     // Create MongoDB
     global.database = new MongoDBStorage(config.get('storage'));
@@ -128,33 +130,21 @@ export default class ContextBuilder {
       this.superAdminCentralServerService.tenantApi, buildTenant);
     console.log('CREATE tenant context ' + buildTenant.id +
       ' ' + buildTenant.subdomain);
-    // Retrieve default admin
-    const existingUserList = (await UserStorage.getUsers(buildTenant.id, {}, {limit: 0, skip: 0})).result;
-    let defaultAdminUser: User = null;
-    // Search existing admin
-    if (existingUserList && Array.isArray(existingUserList)) {
-      defaultAdminUser = existingUserList.find((user) => {
-        return user.id === CONTEXTS.TENANT_USER_LIST[0].id || user.email === config.get('admin.username') ||
-          user.role === 'A';
-      });
-    }
-    if ((defaultAdminUser.id !== CONTEXTS.TENANT_USER_LIST[0].id) || (defaultAdminUser.status !== 'A')) {
-      // It is a different default user so firt delete it
-      await UserStorage.deleteUser(buildTenant.id, defaultAdminUser.id);
-      // Activate user
-      defaultAdminUser.status = CONTEXTS.TENANT_USER_LIST[0].status;
-      // Generate the password hash
-      const newPasswordHashed = await UserService.hashPasswordBcrypt(config.get('admin.password'));
-      // Update the password
-      defaultAdminUser.password = newPasswordHashed;
-      // Update the email
-      defaultAdminUser.email = config.get('admin.username');
-      // Add a Tag ID
-      defaultAdminUser.tagIDs = CONTEXTS.TENANT_USER_LIST[0].tagIDs ? CONTEXTS.TENANT_USER_LIST[0].tagIDs : [faker.random.alphaNumeric(8).toUpperCase()];
-      // Fix id
-      defaultAdminUser.id = CONTEXTS.TENANT_USER_LIST[0].id;
-      await UserStorage.saveUser(buildTenant.id, defaultAdminUser);
-    }
+
+    await UserStorage.saveUser(buildTenant.id, {
+      'id': CONTEXTS.TENANT_USER_LIST[0].id,
+      'tagIDs': CONTEXTS.TENANT_USER_LIST[0].tagIDs ? CONTEXTS.TENANT_USER_LIST[0].tagIDs : [faker.random.alphaNumeric(8).toUpperCase()],
+      'password': await UserService.hashPasswordBcrypt(config.get('admin.password')),
+      'email': config.get('admin.username'),
+      'status': CONTEXTS.TENANT_USER_LIST[0].status,
+      'role': CONTEXTS.TENANT_USER_LIST[0].role,
+      'locale': 'en-US',
+      'phone': faker.phone.phoneNumber(),
+      'mobile': faker.phone.phoneNumber(),
+      'plateID': faker.random.alphaNumeric(8),
+      'deleted': false
+    });
+    const defaultAdminUser = await UserStorage.getUser(buildTenant.id, CONTEXTS.TENANT_USER_LIST[0].id);
 
     // Create Central Server Service
     const localCentralServiceService: CentralServerService = new CentralServerService(buildTenant.subdomain);
