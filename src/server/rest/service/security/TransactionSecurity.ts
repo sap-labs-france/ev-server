@@ -4,7 +4,7 @@ import Constants from '../../../../utils/Constants';
 import UtilsSecurity from './UtilsSecurity';
 import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
-import { HttpTransactionRequest, HttpTransactionsRefundRequest } from '../../../../types/requests/HttpTransactionRequest';
+import { HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
 
 export default class TransactionSecurity {
   public static filterTransactionsRefund(request: Partial<HttpTransactionsRefundRequest>): HttpTransactionsRefundRequest {
@@ -18,38 +18,26 @@ export default class TransactionSecurity {
     return sanitize(request.ID);
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterTransactionSoftStop(request, loggedUser) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.transactionId = sanitize(request.transactionId);
-    return filteredRequest;
+  public static filterTransactionSoftStop(request: Partial<HttpTransactionRequest>): number {
+    return sanitize(request.ID);
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterTransactionRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.ID = sanitize(request.ID);
-    return filteredRequest;
+  public static filterTransactionRequest(request: Partial<HttpTransactionRequest>): number {
+    return sanitize(request.ID);
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterTransactionsActiveRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
-    filteredRequest.ConnectorId = sanitize(request.ConnectorId);
-    filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
-    if (request.UserID) {
-      filteredRequest.UserID = sanitize(request.UserID);
-    }
-    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
-    UtilsSecurity.filterSort(request, filteredRequest);
-    return filteredRequest;
+  public static filterTransactionsActiveRequest(request: Partial<HttpTransactionsRequest>): HttpTransactionsRequest {
+    let filtered: HttpTransactionsRequest = {} as HttpTransactionsRequest;
+    filtered.ChargeBoxID = sanitize(request.ChargeBoxID);
+    filtered.ConnectorId = sanitize(request.ConnectorId);
+    filtered.SiteAreaID = sanitize(request.SiteAreaID);
+    filtered.UserID = request.UserID?sanitize(request.UserID):null;
+    UtilsSecurity.filterSkipAndLimit(request, filtered);
+    UtilsSecurity.filterSort(request, filtered);
+    return filtered;
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterTransactionsCompletedRequest(request, loggedUser) {
+  public static filterTransactionsCompletedRequest(request, loggedUser) {
     const filteredRequest: any = {};
     // Handle picture
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);

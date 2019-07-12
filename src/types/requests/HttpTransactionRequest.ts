@@ -14,4 +14,7 @@ export interface HttpTransactionsRequest extends HttpDatabaseRequest {
   ConnectorId: number;
   SiteAreaID: string;
   UserID: string;
+  StartDateTime?: Date;
+  EndDateTime?: Date;
+  Search?: string;
 }
