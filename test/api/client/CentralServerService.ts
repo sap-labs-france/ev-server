@@ -12,6 +12,7 @@ import OCPIEndpointApi from './OCPIEndpointApi';
 import SettingApi from './SettingApi';
 import SiteApi from './SiteApi';
 import SiteAreaApi from './SiteAreaApi';
+import StatisticsApi from './StatisticsApi';
 import TenantApi from './TenantApi';
 import TransactionApi from './TransactionApi';
 import UserApi from './UserApi';
@@ -43,6 +44,7 @@ export default class CentralServerService {
   public authenticationApi: AuthenticationApi;
   public tenantApi: TenantApi;
   public mailApi: MailApi;
+  public statisticsApi: StatisticsApi;
 
   private _tenantSubdomain: string;
   private _baseURL: string;
@@ -85,6 +87,7 @@ export default class CentralServerService {
     this.authenticationApi = new AuthenticationApi(this._baseApi);
     this.tenantApi = new TenantApi(this.authenticatedSuperAdminApi, this._baseApi);
     this.mailApi = new MailApi(new BaseApi(`http://${config.get('mailServer.host')}:${config.get('mailServer.port')}`));
+    this.statisticsApi = new StatisticsApi(this.authenticatedApi);
   }
 
   public async updatePriceSetting(priceKWH, priceUnit) {

@@ -15,7 +15,8 @@ export default class OCPIServices extends AbstractOCPIService {
   }
 
   // Rest Service Implementation
-  restService(req, res, next) { // eslint-disable-line
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  restService(req, res, next) {
     // Not implemented
     res.sendStatus(501);
   }

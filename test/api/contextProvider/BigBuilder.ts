@@ -18,13 +18,10 @@ import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
 import User from '../../../src/entity/User';
 import UserFactory from '../../factories/UserFactory';
-import crypto from 'crypto';
 import { ObjectID } from 'mongodb';
 import SiteArea from '../../../src/types/SiteArea';
 
-// crypto.randomBytes(256, (err, buf)
-// Math.floor(Math.random()*16777215).toString(24);
-const NBR_USERS = 10; // Number of total users : they are all connected to the sites 
+const NBR_USERS = 10; // Number of total users : they are all connected to the sites
 const NBR_COMPANIES = 5; // Number of companies
 const NBR_SITES = 5; // Number of sites PER company
 const NBR_SITEAREAS = 5; // Number of site areas per site
@@ -58,7 +55,6 @@ const BIG_CONTEXT = [{
     },
   },
 }];
-
 
 export default class ContextBuilder {
 
@@ -215,12 +211,12 @@ export default class ContextBuilder {
             content: tenantContextDef.componentSettings[setting].content
           };
           console.log(`CREATE settings for ${setting} in tenant ${buildTenant.name}`);
-          const response = await localCentralServiceService.createEntity(localCentralServiceService.settingApi,
+          await localCentralServiceService.createEntity(localCentralServiceService.settingApi,
             settingInput);
         } else {
           console.log(`UPDATE settings for ${setting} in tenant ${buildTenant.name}`);
           foundSetting.content = tenantContextDef.componentSettings[setting].content;
-          const response = await localCentralServiceService.updateEntity(localCentralServiceService.settingApi,
+          await localCentralServiceService.updateEntity(localCentralServiceService.settingApi,
             foundSetting);
         }
       }
@@ -256,7 +252,7 @@ export default class ContextBuilder {
         createUser.tagIDs = userDef.tagIDs;
       }
       const user = new User(buildTenant.id, createUser);
-      user.save();
+      await user.save();
       if (userDef.assignedToSite) {
         userListToAssign.push(user.getModel());
       }
@@ -273,9 +269,9 @@ export default class ContextBuilder {
     if (buildTenant.components && buildTenant.components.hasOwnProperty(Constants.COMPONENTS.ORGANIZATION) &&
       buildTenant.components[Constants.COMPONENTS.ORGANIZATION].active) {
       // Create the company
-      for (let index = 1; index <= NBR_COMPANIES; index++) {
+      for (let counterComp = 1; counterComp <= NBR_COMPANIES; counterComp++) {
         let company = null;
-        const companyDef =     { 
+        const companyDef = {
           id: new ObjectID().toHexString()
         };
         const dummyCompany: any = Factory.company.build();
@@ -284,9 +280,10 @@ export default class ContextBuilder {
         dummyCompany.createdOn = moment().toISOString();
         company = await CompanyStorage.saveCompany(buildTenant.id, dummyCompany);
         newTenantContext.getContext().companies.push(dummyCompany);
+        console.log(`Create company : ${dummyCompany.id}`);
         // Build sites/sitearea according to tenant definition
-        for (let index = 1; index <= NBR_SITES; index++) {
-          const siteContextDef = { 
+        for (let counterSite = 1; counterSite <= NBR_SITES; counterSite++) {
+          const siteContextDef = {
             id: new ObjectID().toHexString(),
             name: CONTEXTS.SITE_CONTEXTS.SITE_BASIC,
             allowAllUsersToStopTransactions: false,
@@ -307,38 +304,41 @@ export default class ContextBuilder {
           siteTemplate.id = siteContextDef.id;
           site = siteTemplate;
           site.id = await SiteStorage.saveSite(buildTenant.id, siteTemplate, true);
+          console.log(`* Create site : ${siteTemplate.id}`);
           await SiteStorage.addUsersToSite(buildTenant.id, site.id, userListToAssign.map((user) => {
             return user.id;
           }));
           const siteContext = new SiteContext(site, newTenantContext);
           newTenantContext.addSiteContext(siteContext);
           // Create site areas of current site
-          for (let index = 1; index <= NBR_SITEAREAS; index++) {
+          for (let counterSiteA = 1; counterSiteA <= NBR_SITEAREAS; counterSiteA++) {
             const siteAreaDef =     { 
               id: new ObjectID().toHexString(),
               name: `${CONTEXTS.SITE_CONTEXTS.SITE_BASIC}-${CONTEXTS.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
               accessControl: false,
               siteName: siteTemplate.name
             };
-            let siteArea: SiteArea = null;  
+            const siteArea: SiteArea = null;
             const siteAreaTemplate = Factory.siteArea.build();
             siteAreaTemplate.id = siteAreaDef.id;
-            //siteAreaTemplate.name = siteAreaDef.name;
+            // pragma siteAreaTemplate.name = siteAreaDef.name;
             siteAreaTemplate.accessControl = siteAreaDef.accessControl;
             siteAreaTemplate.siteID = site.id;
             const sireAreaID = await SiteAreaStorage.saveSiteArea(buildTenant.id, siteAreaTemplate);
+            console.log(`** Create sitearea : ${siteAreaTemplate.id}`);
             const siteAreaModel = await SiteAreaStorage.getSiteArea(buildTenant.id, sireAreaID);
             const siteAreaContext = new SiteAreaContext(siteAreaModel, newTenantContext);
             siteContext.addSiteArea(siteAreaContext);
             // Create Charging Station for site area
-            for (let index = 1; index <= NBR_CHARGINGSTATIONS; index++) {
+            for (let counterCS = 1; counterCS <= NBR_CHARGINGSTATIONS; counterCS++) {
               const chargingStationDef = {
                 baseName: new ObjectID().toHexString(),
                 ocppVersion: '1.6',
                 siteAreaNames: [siteAreaTemplate.id]
-              }
+              };
               const chargingStationTemplate = Factory.chargingStation.build();
               chargingStationTemplate.id = chargingStationDef.baseName;
+              console.log(`*** Create charging station : ${chargingStationTemplate.id}`);
               await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
             }
           }
