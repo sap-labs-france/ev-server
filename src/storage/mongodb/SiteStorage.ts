@@ -100,7 +100,7 @@ export default class SiteStorage {
   }
 
   public static async getUsers(tenantID: string,
-    params: { siteID: string; onlyRecordCount?: boolean },
+    params: { search?: string; siteID: string; onlyRecordCount?: boolean },
     dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: UserSite[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getUsers');
@@ -128,6 +128,18 @@ export default class SiteStorage {
         '$or': DatabaseUtils.getNotDeletedFilter('user')
       }
     });
+    // Another match for searching on Users
+    if (params.search) {
+      aggregation.push({
+        $match: {
+          $or: [
+            { 'user.name': { $regex: params.search, $options: 'i' } },
+            { 'user.firstName': { $regex: params.search, $options: 'i' } },
+            { 'user.email': { $regex: params.search, $options: 'i' } }
+          ]
+        }
+      });
+    }
     // Convert IDs to String
     DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
     DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');

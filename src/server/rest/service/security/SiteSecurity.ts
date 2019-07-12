@@ -44,6 +44,7 @@ export default class SiteSecurity {
   public static filterSiteUsersRequest(request: Partial<HttpSiteUsersRequest>): HttpSiteUsersRequest {
     const filteredRequest: HttpSiteUsersRequest = {} as HttpSiteUsersRequest;
     filteredRequest.SiteID = sanitize(request.SiteID);
+    filteredRequest.Search = sanitize(request.Search);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;

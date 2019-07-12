@@ -266,6 +266,7 @@ export default class SiteService {
     // Get users
     const users = await SiteStorage.getUsers(req.user.tenantID,
       {
+        search: filteredRequest.Search,
         siteID: filteredRequest.SiteID,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
