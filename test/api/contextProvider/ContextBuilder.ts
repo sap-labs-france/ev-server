@@ -200,7 +200,7 @@ export default class ContextBuilder {
         createUser.tagIDs = userDef.tagIDs;
       }
       const user: User = createUser;
-      UserStorage.saveUser(buildTenant.id, user);
+      await UserStorage.saveUser(buildTenant.id, user);
       if (userDef.assignedToSite) {
         userListToAssign.push(user);
       }
