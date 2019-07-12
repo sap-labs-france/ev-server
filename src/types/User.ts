@@ -5,14 +5,14 @@ export default interface User extends CreatedUpdatedProps {
 
   id: string;
   email: string;
-  phone: string;
+  phone?: string;
   mobile: string;
   role: string;
   status: string;
   locale: string;
-  plateID: string;
+  plateID?: string;
   address?: Address;
-  image: string;
+  image?: string;
   notificationsActive?: boolean;
   iNumber?: string;
   costCenter?: string;
@@ -30,8 +30,8 @@ export default interface User extends CreatedUpdatedProps {
   passwordResetHash: string;
   passwordWrongNbrTrials: number;
   passwordBlockedUntil: Date;
-  verificationToken: string;
-  verifiedAt: Date;
+  verificationToken?: string;
+  verifiedAt?: Date;
 
   tagIDs?: string[];
 
