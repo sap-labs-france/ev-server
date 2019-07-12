@@ -287,17 +287,20 @@ export default class ContextBuilder {
       return chargingStation.siteAreaNames === null;
     });
     // Create Charging Station for site area
+    const siteContext = new SiteContext({ id: 1, name: CONTEXTS.SITE_CONTEXTS.NO_SITE }, newTenantContext);
+    const emptySiteAreaContext = siteContext.addSiteArea({ id: 1, name: CONTEXTS.SITE_AREA_CONTEXTS.NO_SITE });
     for (const chargingStationDef of relevantCS) {
       const chargingStationTemplate = Factory.chargingStation.build();
       chargingStationTemplate.id = chargingStationDef.baseName;
       console.log(chargingStationTemplate.id);
-      await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, null);
+      const newChargingStationContext = await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, null);
+      emptySiteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
     }
-    // await newTenantContext.close();
+    newTenantContext.addSiteContext(siteContext);
     // Create transaction/session data for a specific tenant and context:
     if (tenantContextDef.tenantName === CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS) {
       const statisticContext = new StatisticsContext(newTenantContext);
-//      await statisticContext.createTestData(CONTEXTS.SITE_CONTEXTS.SITE_BASIC, CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
+      //     await statisticContext.createTestData(CONTEXTS.SITE_CONTEXTS.SITE_BASIC, CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
     }
     return newTenantContext;
   }

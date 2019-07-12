@@ -32,9 +32,10 @@ export default class StatisticsContext {
     let firstYear = 0;
     const siteContext = this.tenantContext.getSiteContext(siteName);
     const siteAreaContext = siteContext.getSiteAreaContext(siteAreaName);
-    for (const cs of StatisticsContext.CHARGING_STATIONS) {
-      this.chargingStations.push(siteAreaContext.getChargingStationContext(cs));
-    }
+    this.chargingStations = siteAreaContext.getChargingStations();
+//       for (const cs of StatisticsContext.CHARGING_STATIONS) {
+//      this.chargingStations.push(siteAreaContext.getChargingStationContext(cs));
+//    }
     const users = Array.from(StatisticsContext.USERS, (user) => {
       return this.tenantContext.getUserContext(user);
     });
