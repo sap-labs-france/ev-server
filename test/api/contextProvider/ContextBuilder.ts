@@ -208,7 +208,7 @@ export default class ContextBuilder {
         createUser.tagIDs = userDef.tagIDs;
       }
       const user = new User(buildTenant.id, createUser);
-      user.save();
+      await user.save();
       if (userDef.assignedToSite) {
         userListToAssign.push(user.getModel());
       }
@@ -297,11 +297,15 @@ export default class ContextBuilder {
       emptySiteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
     }
     newTenantContext.addSiteContext(siteContext);
-    // pragma await newTenantContext.close();
-    // Create transaction/session data for a specific tenant and context:
-    if (tenantContextDef.tenantName === CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS) {
-      const statisticContext = new StatisticsContext(newTenantContext);
-      // pragma await statisticContext.createTestData(CONTEXTS.SITE_CONTEXTS.SITE_BASIC, CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
+    // Create transaction/session data for a specific tenants:
+    const statisticContext = new StatisticsContext(newTenantContext);
+    switch (tenantContextDef.tenantName) {
+      case CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS:
+        await statisticContext.createTestData(CONTEXTS.SITE_CONTEXTS.SITE_BASIC, CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
+        break;
+      case CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS:
+        await statisticContext.createTestData(CONTEXTS.SITE_CONTEXTS.NO_SITE, CONTEXTS.SITE_AREA_CONTEXTS.NO_SITE);
+        break;
     }
     return newTenantContext;
   }

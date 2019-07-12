@@ -18,7 +18,7 @@ chai.use(responseHelper);
 // Mocha is the test framework and chai provides functions to check expectations
 
 describe('Statistics tests', function() {
-  this.timeout(20000); // Will automatically stop the unit test after that period of time
+  this.timeout(300000); // Will automatically stop the unit test after that period of time
 
   let tenantContextNothing: any;
   let adminUserServerServiceNothing: CentralServerService;
@@ -66,7 +66,12 @@ describe('Statistics tests', function() {
       firstYear = allYears.data[0];
     }
 
-    numberOfChargers = StatisticsContext.CHARGING_STATIONS.length;
+    // chargers of only one site area are used for generating transaction data:
+    const siteContextAll = tenantContextAll.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_BASIC);
+    const siteAreaContextAll = siteContextAll.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
+    const chargingStationsAll = siteAreaContextAll.getChargingStations();
+    numberOfChargers = chargingStationsAll.length;
+
     numberOfUsers = StatisticsContext.USERS.length;
     expectedConsumption = StatisticsContext.CONSTANTS.ENERGY_PER_MINUTE * StatisticsContext.CONSTANTS.CHARGING_MINUTES / 1000;
     expectedUsage = (StatisticsContext.CONSTANTS.CHARGING_MINUTES + StatisticsContext.CONSTANTS.IDLE_MINUTES) / 60;
