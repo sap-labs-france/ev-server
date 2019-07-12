@@ -204,9 +204,7 @@ export default class ContextBuilder {
       createUser.role = userDef.role;
       createUser.status = userDef.status;
       createUser.id = userDef.id;
-      if (userDef.tagIDs) {
-        createUser.tagIDs = userDef.tagIDs;
-      }
+      createUser.tagIDs = userDef.tagIDs;
       const user = new User(buildTenant.id, createUser);
       await user.save();
       if (userDef.assignedToSite) {
