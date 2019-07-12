@@ -81,7 +81,7 @@ export default class Tenant {
   getActiveComponentNames(): string[] {
     const activeComponents = [];
     for (const componentName in this._model.components) {
-      if (this._model.components.hasOwnProperty(componentName) && this._model.components[componentName].active) {
+      if (this._model.components[componentName] && this._model.components[componentName].active) {
         activeComponents.push(componentName);
       }
     }
@@ -91,7 +91,7 @@ export default class Tenant {
   getActiveComponents() {
     const activeComponents = [];
     for (const componentName in this._model.components) {
-      if (this._model.components.hasOwnProperty(componentName) && this._model.components[componentName].active) {
+      if (this._model.components[componentName] && this._model.components[componentName].active) {
         activeComponents.push(componentName);
       }
     }

@@ -126,20 +126,6 @@ export default class OCPPService {
         // Get config and save it
         updatedChargingStation.requestAndSaveConfiguration();
       }, 3000);
-      // Check if charger will be automatically assigned
-      if (Configuration.getTestConfig() && Configuration.getTestConfig().automaticChargerAssignment) {
-        // Get all the site areas
-        const siteAreas = await SiteAreaStorage.getSiteAreas(headers.tenantID, null,
-          { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 }
-        );
-        // Assign them
-        if (Array.isArray(siteAreas.result) && siteAreas.result.length > 0) {
-          // Set
-          chargingStation.setSiteArea(siteAreas.result[0]);
-          // Save
-          await updatedChargingStation.saveChargingStationSiteArea();
-        }
-      }
       // Return the result
       return {
         'currentTime': bootNotification.timestamp.toISOString(),
@@ -1014,7 +1000,7 @@ export default class OCPPService {
       await chargingStation.save();
       // Log
       if (user) {
-        this._notifyStartTransaction(transaction, chargingStation, user);
+        await this._notifyStartTransaction(transaction, chargingStation, user);
         // Log
         Logging.logInfo({
           tenantID: chargingStation.getTenantID(),
@@ -1104,7 +1090,7 @@ export default class OCPPService {
 
   async _notifyStartTransaction(transaction, chargingStation, user: User) {
     // Notify
-    NotificationHandler.sendTransactionStarted(
+    await NotificationHandler.sendTransactionStarted(
       chargingStation.getTenantID(),
       transaction.getID(),
       user,
@@ -1234,7 +1220,7 @@ export default class OCPPService {
       // Save the transaction
       transaction = await transaction.save();
       // Notify User
-      this._notifyStopTransaction(chargingStation, transaction, user, alternateUser);
+      await this._notifyStopTransaction(chargingStation, transaction, user, alternateUser);
       // Log
       Logging.logInfo({
         tenantID: chargingStation.getTenantID(),
@@ -1325,7 +1311,7 @@ export default class OCPPService {
     // User provided?
     if (user) {
       // Send Notification
-      NotificationHandler.sendEndOfSession(
+      await NotificationHandler.sendEndOfSession(
         chargingStation.getTenantID(),
         transaction.getID() + '-EOS',
         user,
@@ -1353,22 +1339,22 @@ export default class OCPPService {
     }
   }
 
-  private async _checkAndGetChargingStation(chargeBoxIdentity, tenantID): Promise<ChargingStation> {
-    // Get the charging station
-    const chargingStation = await ChargingStation.getChargingStation(tenantID, chargeBoxIdentity);
-    // Found?
-    if (!chargingStation) {
-      // Error
-      throw new BackendError(chargeBoxIdentity, 'Charging Station does not exist',
-        'OCPPService', '_checkAndGetChargingStation');
-    }
-    // Found?
-    if (chargingStation.isDeleted()) {
-      // Error
-      throw new BackendError(chargeBoxIdentity, 'Charging Station is deleted',
-        'OCPPService', '_checkAndGetChargingStation');
-    }
-    return chargingStation;
-  }
+  // pragma private async _checkAndGetChargingStation(chargeBoxIdentity, tenantID): Promise<ChargingStation> {
+  //   // Get the charging station
+  //   const chargingStation = await ChargingStation.getChargingStation(tenantID, chargeBoxIdentity);
+  //   // Found?
+  //   if (!chargingStation) {
+  //     // Error
+  //     throw new BackendError(chargeBoxIdentity, 'Charging Station does not exist',
+  //       'OCPPService', '_checkAndGetChargingStation');
+  //   }
+  //   // Found?
+  //   if (chargingStation.isDeleted()) {
+  //     // Error
+  //     throw new BackendError(chargeBoxIdentity, 'Charging Station is deleted',
+  //       'OCPPService', '_checkAndGetChargingStation');
+  //   }
+  //   return chargingStation;
+  // }
 }
 

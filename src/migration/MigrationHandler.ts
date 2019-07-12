@@ -53,8 +53,8 @@ export default class MigrationHandler {
       currentMigrationTasks.push(new UsersAddNotificationsFlagTask());
       currentMigrationTasks.push(new MigrateTenantSettingsTask());
       currentMigrationTasks.push(new UpdateTransactionExtraInactivityTask());
-      currentMigrationTasks.push(new AddSensitiveDataInSettingsTask());
       currentMigrationTasks.push(new SiteUsersHashIDsTask());
+      // currentMigrationTasks.push(new AddSensitiveDataInSettingsTask());
 
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();
@@ -111,7 +111,7 @@ export default class MigrationHandler {
     }
   }
 
-  static async _executeTask(currentMigrationTask) {
+  static async _executeTask(currentMigrationTask): Promise<void> {
     // Create a RunLock by migration name and version
     const migrationLock = new RunLock(`Migration ${currentMigrationTask.getName()}~${currentMigrationTask.getVersion()}`);
     // Acquire the migration lock

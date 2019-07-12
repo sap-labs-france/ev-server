@@ -58,7 +58,7 @@ export default class SessionHashService {
   }
 
   // Build Tenant Hash ID
-  static buildTenantHashID(tenant) {
+  static buildTenantHashID(tenant: Tenant) {
     // Get all field that need to be hashed
     const data = JSON.stringify(tenant.getActiveComponents());
     return crypto.createHash('sha256').update(data).digest('hex');

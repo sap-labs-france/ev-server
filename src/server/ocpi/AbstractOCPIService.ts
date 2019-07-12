@@ -72,7 +72,7 @@ export default abstract class AbstractOCPIService {
   }
 
   // Rest Service Implementation
-  public restService(req: TenantIdHoldingRequest, res: Response, next: Function): void { // eslint-disable-line
+  public restService(req: TenantIdHoldingRequest, res: Response, next: Function): void {
     // Parse the action
     const regexResult = /^\/\w*/g.exec(req.url);
     if (!regexResult) {
@@ -98,7 +98,8 @@ export default abstract class AbstractOCPIService {
   /**
    * Send Supported Endpoints
    */
-  public getSupportedEndpoints(req: TenantIdHoldingRequest, res: Response, next: Function): void { // eslint-disable-line
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public getSupportedEndpoints(req: TenantIdHoldingRequest, res: Response, next: Function): void {
     const fullUrl = this.getServiceUrl(req);
     const registeredEndpointsArray = Array.from(this.getRegisteredEndpoints().values());
 
@@ -115,7 +116,7 @@ export default abstract class AbstractOCPIService {
   /**
    * Process Endpoint action
    */
-  public async processEndpointAction(action: string, req: TenantIdHoldingRequest, res: Response, next: Function): Promise<void> { // eslint-disable-line
+  public async processEndpointAction(action: string, req: TenantIdHoldingRequest, res: Response, next: Function): Promise<void> {
     try {
       const registeredEndpoints = this.getRegisteredEndpoints();
 
