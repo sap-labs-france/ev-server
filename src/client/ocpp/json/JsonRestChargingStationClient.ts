@@ -156,7 +156,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         // Log
         Logging.logException(error, 'WSRestConnectionClosed', this.chargingStation.getID(), MODULE_NAME, 'onError', this.chargingStation.getTenantID());
         // Terminate WS in error
-        this.wsConnection._terminateConnection();
+        this._terminateConnection();
       };
       // Handle Server Message
       this.wsConnection.onmessage = (message) => {
@@ -213,7 +213,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
   }
 
   _terminateConnection() {
-    // Close
+    // Terminate
     if (this.wsConnection) {
       this.wsConnection.terminate();
       this.wsConnection = null;
