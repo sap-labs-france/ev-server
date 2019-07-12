@@ -134,7 +134,6 @@ export default class SiteStorage {
       // Always limit the nbr of record to avoid perfs issues
       aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
     }
-    console.log(JSON.stringify(aggregation));
     // Count Records
     const usersCountMDB = await global.database.getCollection<{count: number}>(tenantID, 'siteusers')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
