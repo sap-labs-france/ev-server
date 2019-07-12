@@ -155,6 +155,8 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       this.wsConnection.onerror = (error) => {
         // Log
         Logging.logException(error, 'WSRestConnectionClosed', this.chargingStation.getID(), MODULE_NAME, 'onError', this.chargingStation.getTenantID());
+        // Terminate WS in error
+        this.wsConnection._terminateConnection();
       };
       // Handle Server Message
       this.wsConnection.onmessage = (message) => {
@@ -185,7 +187,6 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
                 message: `OCPP error response for '${JSON.stringify(messageJson[2])}'`,
                 detailedMessages: `Details: ${JSON.stringify(messageJson[3])}`
               });
-
               // Resolve with error message
               this.requests[messageJson[1]].reject({ status: 'Rejected', error: messageJson });
             } else {
@@ -207,6 +208,14 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     // Close
     if (this.wsConnection) {
       this.wsConnection.close();
+      this.wsConnection = null;
+    }
+  }
+
+  _terminateConnection() {
+    // Close
+    if (this.wsConnection) {
+      this.wsConnection.terminate();
       this.wsConnection = null;
     }
   }
