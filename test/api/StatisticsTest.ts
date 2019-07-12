@@ -34,8 +34,6 @@ describe('Statistics tests', function() {
   let expectedUsage = 0;
   let expectedInactivity = 0;
 
-  let statisticsContext: StatisticsContext;
-
   before(async () => {
     chai.config.includeStack = true;
 
@@ -362,8 +360,8 @@ describe('Statistics tests', function() {
   });
 });
 
-function timeout(ms) {
-  return new Promise((resolve) => {
+async function timeout(ms) {
+  return await new Promise((resolve) => {
     return setTimeout(resolve, ms);
   });
 }
