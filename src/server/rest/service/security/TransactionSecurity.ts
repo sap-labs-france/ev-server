@@ -4,24 +4,18 @@ import Constants from '../../../../utils/Constants';
 import UtilsSecurity from './UtilsSecurity';
 import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
+import { HttpTransactionRequest, HttpTransactionsRefundRequest } from '../../../../types/requests/HttpTransactionRequest';
 
 export default class TransactionSecurity {
-  // eslint-disable-next-line no-unused-vars
-  static filterTransactionsRefund(request, loggedUser) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.transactionIds = request.transactionIds.map((id) => {
-      return sanitize(id);
-    });
-    return filteredRequest;
+  public static filterTransactionsRefund(request: Partial<HttpTransactionsRefundRequest>): HttpTransactionsRefundRequest {
+    if(! request.transactionIds) {
+      return {transactionIds: []};
+    }
+    return {transactionIds: request.transactionIds.map(id => sanitize(id))};
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterTransactionDelete(request, loggedUser) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.ID = sanitize(request.ID);
-    return filteredRequest;
+  public static filterTransactionDelete(request: Partial<HttpTransactionRequest>): number {
+    return sanitize(request.ID);
   }
 
   // eslint-disable-next-line no-unused-vars

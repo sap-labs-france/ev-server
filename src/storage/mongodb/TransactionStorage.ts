@@ -4,29 +4,31 @@ import DatabaseUtils from './DatabaseUtils';
 import global from './../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import PricingStorage from './PricingStorage';
-import Transaction from '../../entity/Transaction';
+import Transaction from '../../types/Transaction';
 import Utils from '../../utils/Utils';
+import DbLookup from '../../types/database/DBLookup';
+import DbParams from '../../types/database/DbParams';
 
 export default class TransactionStorage {
-  static async deleteTransaction(tenantID, transaction) {
+  public static async deleteTransaction(tenantID: string, transaction: Transaction) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'deleteTransaction');
     // Check
     await Utils.checkTenant(tenantID);
     // Delete
     await global.database.getCollection<any>(tenantID, 'transactions')
-      .findOneAndDelete({ '_id': transaction.getID() });
+      .findOneAndDelete({ '_id': transaction.id });
     // Delete Meter Values
     await global.database.getCollection<any>(tenantID, 'metervalues')
-      .deleteMany({ 'transactionId': transaction.getID() });
+      .deleteMany({ 'transactionId': transaction.id });
     // Delete Consumptions
     await global.database.getCollection<any>(tenantID, 'consumptions')
-      .deleteMany({ 'transactionId': transaction.getID() });
+      .deleteMany({ 'transactionId': transaction.id });
     // Debug
     Logging.traceEnd('TransactionStorage', 'deleteTransaction', uniqueTimerID, { transaction });
   }
 
-  static async saveTransaction(tenantID, transactionToSave) {
+  public static async saveTransaction(tenantID: string, transactionToSave: Partial<Transaction>): Promise<number> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'saveTransaction');
     // Check
@@ -37,20 +39,35 @@ export default class TransactionStorage {
       transactionToSave.id = await TransactionStorage._findAvailableID(tenantID);
     }
     // Transfer
-    const transactionMDB: any = {};
-    Database.updateTransaction(transactionToSave, transactionMDB, false);
+    const transactionMDB: any = {
+      _id: transactionToSave.id,
+      siteID: Utils.convertToObjectID(transactionToSave.siteID),
+      siteAreaID: Utils.convertToObjectID(transactionToSave.siteAreaID),
+      userID: Utils.convertToObjectID(transactionToSave.userID),
+      ... transactionToSave
+    };
+    // Clean up mongo save object
+    delete transactionMDB.id;
+    if(transactionMDB.stop){
+      delete transactionMDB.stop.user;
+    }
+    delete transactionMDB.chargeBox;
+    delete transactionMDB.user;
+    delete transactionMDB.lastUpdate;
+    delete transactionMDB.currentConsumptionWh;
+
     // Modify
-    const result = await global.database.getCollection<any>(tenantID, 'transactions').findOneAndReplace(
+    await global.database.getCollection<any>(tenantID, 'transactions').findOneAndReplace(
       { '_id': Utils.convertToInt(transactionToSave.id) },
       transactionMDB,
       { upsert: true, returnOriginal: false });
     // Debug
     Logging.traceEnd('TransactionStorage', 'saveTransaction', uniqueTimerID, { transactionToSave });
     // Return
-    return new Transaction(tenantID, result.value);
+    return transactionToSave.id;
   }
 
-  static async getTransactionYears(tenantID) {
+  public static async getTransactionYears(tenantID: string) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactionYears');
     // Check
@@ -75,15 +92,30 @@ export default class TransactionStorage {
     return transactionYears;
   }
 
-  static async getTransactions(tenantID, params: any = {}, limit?, skip?, sort?) {
+  public static async getTransactions(tenantID: string, 
+    params:{search?:string,userId?:string,chargeBoxID?:string,siteAreaID?:string,siteID?:string,connectorId?:number,startTime?:Date,endTime?:Date,stop?:any,type?:'refunded'|'notRefunded',minimalPrice?:boolean,withChargeBoxes?:boolean,statistics?:'refund'|'history'},//TODO change the any
+    dbParams: DbParams): 
+  Promise<{count: number, stats: {
+    totalConsumptionWattHours?: number,
+    totalPriceRefund?: number,
+    totalPricePending?: number,
+    countRefundTransactions?: number,
+    countPendingTransactions?: number,
+    countRefundedReports?: number,
+    totalDurationSecs?: number,
+    totalPrice?: number,
+    currency?: string,
+    totalInactivitySecs?: number,
+    count: number
+  }, result: Transaction[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactions');
     // Check
     await Utils.checkTenant(tenantID);
     // Check Limit
-    limit = Utils.checkRecordLimit(limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    skip = Utils.checkRecordSkip(skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Build filter
     const match: any = {};
     // Filter?
@@ -108,16 +140,16 @@ export default class TransactionStorage {
       match.connectorId = Utils.convertToInt(params.connectorId);
     }
     // Date provided?
-    if (params.startDateTime || params.endDateTime) {
+    if (params.startTime || params.endTime) {
       match.timestamp = {};
-    }
-    // Start date
-    if (params.startDateTime) {
-      match.timestamp.$gte = Utils.convertToDate(params.startDateTime);
-    }
-    // End date
-    if (params.endDateTime) {
-      match.timestamp.$lte = Utils.convertToDate(params.endDateTime);
+      // Start date
+      if (params.startTime) {
+        match.timestamp.$gte = Utils.convertToDate(params.startTime);
+      }
+      // End date
+      if (params.endTime) {
+        match.timestamp.$lte = Utils.convertToDate(params.endTime);
+      }
     }
     // Check stop transaction
     if (params.stop) {
@@ -153,22 +185,12 @@ export default class TransactionStorage {
     // Charger?
     if (params.withChargeBoxes) {
       // Add Charge Box
-      aggregation.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
-          localField: 'chargeBoxID',
-          foreignField: '_id',
-          as: 'chargeBox'
-        }
-      });
-      // Single Record
-      aggregation.push({
-        $unwind: { 'path': '$chargeBox', 'preserveNullAndEmptyArrays': true }
-      });
+      DatabaseUtils.pushChargingStationLookupInAggregation(
+        { tenantID, aggregation, localField: 'chargeBoxID', foreignField: '_id',
+          asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false });
     }
-
     // Limit records?
-    if (!params.onlyRecordCount) {
+    if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
       aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
     }
@@ -258,7 +280,7 @@ export default class TransactionStorage {
       transactionCountMDB.currency = transactionCountMDB.currency[0];
     }
     // Check if only the total count is requested
-    if (params.onlyRecordCount) {
+    if (dbParams.onlyRecordCount) {
       return {
         count: transactionCountMDB ? transactionCountMDB.count : 0,
         stats: transactionCountMDB ? transactionCountMDB : {},
@@ -268,14 +290,14 @@ export default class TransactionStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (sort) {
-      if (!sort.timestamp) {
+    if (dbParams.sort) {
+      if (!dbParams.sort.timestamp) {
         aggregation.push({
-          $sort: { ...sort, timestamp: -1 }
+          $sort: { ...dbParams.sort, timestamp: -1 }
         });
       } else {
         aggregation.push({
-          $sort: sort
+          $sort: dbParams.sort
         });
       }
       // Sort
@@ -287,40 +309,20 @@ export default class TransactionStorage {
     }
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
     // Add User that started the transaction
-    aggregation.push({
-      $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
-        localField: 'userID',
-        foreignField: '_id',
-        as: 'user'
-      }
-    });
-    // Single Record
-    aggregation.push({
-      $unwind: { 'path': '$user', 'preserveNullAndEmptyArrays': true }
-    });
-    // Add User that stopped the transaction
-    aggregation.push({
-      $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
-        localField: 'stop.userID',
-        foreignField: '_id',
-        as: 'stop.user'
-      }
-    });
-    // Single Record
-    aggregation.push({
-      $unwind: { 'path': '$stop.user', 'preserveNullAndEmptyArrays': true }
-    });
+    DatabaseUtils.pushUserLookupInAggregation({ tenantID, aggregation, localField: 'userID', foreignField: '_id', asField: 'user',
+      oneToOneCardinality: true, oneToOneCardinalityNotNull: false});
+    // Add stop User
+    DatabaseUtils.pushUserLookupInAggregation({ tenantID, aggregation, localField: 'stop.userID', foreignField: '_id', asField: 'stop.user',
+      oneToOneCardinality: true, oneToOneCardinalityNotNull: false});
     // Read DB
-    const transactionsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
+    const transactionsMDB = await global.database.getCollection<Transaction>(tenantID, 'transactions')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Set
@@ -329,11 +331,11 @@ export default class TransactionStorage {
     if (transactionsMDB && transactionsMDB.length > 0) {
       // Create
       for (const transactionMDB of transactionsMDB) {
-        transactions.push(new Transaction(tenantID, transactionMDB));
+        transactions.push(transactionMDB);
       }
     }
     // Debug
-    Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, { params, limit, skip, sort });
+    Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, { params, dbParams });
     return {
       count: transactionCountMDB ? (transactionCountMDB.count === Constants.MAX_DB_RECORD_COUNT ? -1 : transactionCountMDB.count) : 0,
       stats: transactionCountMDB ? transactionCountMDB : {},
@@ -573,7 +575,7 @@ export default class TransactionStorage {
     };
   }
 
-  static async getTransaction(tenantID, id) {
+  public static async getTransaction(tenantID: string, id: number): Promise<{count: number, result: Transaction[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransaction');
     // Check
@@ -585,44 +587,16 @@ export default class TransactionStorage {
       $match: { _id: Utils.convertToInt(id) }
     });
     // Add User
-    aggregation.push({
-      $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
-        localField: 'userID',
-        foreignField: '_id',
-        as: 'user'
-      }
-    });
-    // Add
-    aggregation.push({
-      $unwind: { 'path': '$user', 'preserveNullAndEmptyArrays': true }
-    });
+    DatabaseUtils.pushUserLookupInAggregation(
+      { tenantID, aggregation, localField: 'userID', foreignField: '_id',
+        asField: 'user', oneToOneCardinality: true, oneToOneCardinalityNotNull: false });
     // Add Stop User
-    aggregation.push({
-      $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
-        localField: 'stop.userID',
-        foreignField: '_id',
-        as: 'stop.user'
-      }
-    });
-    // Add
-    aggregation.push({
-      $unwind: { 'path': '$stop.user', 'preserveNullAndEmptyArrays': true }
-    });
+    DatabaseUtils.pushUserLookupInAggregation(
+      { tenantID, aggregation, localField: 'stop.userID', foreignField: '_id',
+        asField: 'stop.user', oneToOneCardinality: true, oneToOneCardinalityNotNull: false });
     // Charging Station
-    aggregation.push({
-      $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
-        localField: 'chargeBoxID',
-        foreignField: '_id',
-        as: 'chargeBox'
-      }
-    });
-    // Single Record
-    aggregation.push({
-      $unwind: { 'path': '$chargeBox', 'preserveNullAndEmptyArrays': true }
-    });
+    DatabaseUtils.pushChargingStationLookupInAggregation({ tenantID, aggregation, localField: 'chargeBoxID', foreignField: '_id', 
+        asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false })
     // Read DB
     const transactionsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
@@ -677,7 +651,7 @@ export default class TransactionStorage {
     return null;
   }
 
-  static async getLastTransaction(tenantID, chargeBoxID, connectorId) {
+  public static async getLastTransaction(tenantID: string, chargeBoxID: string, connectorId: number): Promise<Transaction> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getLastTransaction');
     // Check
@@ -692,7 +666,7 @@ export default class TransactionStorage {
     });
     aggregation.push({ $sort: { timestamp: -1 } });
     // The last one
-    aggregation.push({ $limit: 1 });
+    aggregation.push({ $limit: 1 }); // TODO Use getTransactions so that I dont need to query charging stations etc here as well oof
     // Read DB
     const transactionsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
@@ -701,12 +675,12 @@ export default class TransactionStorage {
     Logging.traceEnd('TransactionStorage', 'getLastTransaction', uniqueTimerID, { chargeBoxID, connectorId });
     // Found?
     if (transactionsMDB && transactionsMDB.length > 0) {
-      return new Transaction(tenantID, transactionsMDB[0]);
+      return transactionsMDB[0];
     }
     return null;
   }
 
-  static async _findAvailableID(tenantID) {
+  static async _findAvailableID(tenantID) { //TODO ...Why not just increment it??
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', '_findAvailableID');
     // Check
