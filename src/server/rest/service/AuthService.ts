@@ -170,7 +170,7 @@ export default class AuthService {
         }
 
         // Site -----------------------------------------------------
-        site = await siteArea.site;
+        site = await SiteStorage.getSite(tenantID, siteArea.siteID);
         if (!site) {
           // Reject Site Not Found
           throw new AppError(
