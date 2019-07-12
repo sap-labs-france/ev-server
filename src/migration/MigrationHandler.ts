@@ -53,8 +53,8 @@ export default class MigrationHandler {
       currentMigrationTasks.push(new UsersAddNotificationsFlagTask());
       currentMigrationTasks.push(new MigrateTenantSettingsTask());
       currentMigrationTasks.push(new UpdateTransactionExtraInactivityTask());
+      currentMigrationTasks.push(new SiteUsersHashIDsTask());
       // currentMigrationTasks.push(new AddSensitiveDataInSettingsTask());
-      // currentMigrationTasks.push(new SiteUsersHashIDsTask());
 
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();
