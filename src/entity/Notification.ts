@@ -70,8 +70,8 @@ export default class Notification extends TenantHolder {
 
   setUser(user) {
     if (user) {
-      this._model.user = user.getModel();
-      this._model.userID = user.getID();
+      this._model.user = user;
+      this._model.userID = user.id;
     } else {
       this._model.user = null;
     }

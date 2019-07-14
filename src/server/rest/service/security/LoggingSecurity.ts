@@ -2,6 +2,7 @@ import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
+import UserToken from '../../../../types/UserToken';
 
 export default class LoggingSecurity {
   // eslint-disable-next-line no-unused-vars
@@ -32,7 +33,7 @@ export default class LoggingSecurity {
     return filteredRequest;
   }
 
-  static filterLoggingResponse(logging, loggedUser, withDetailedMessage = false) {
+  static filterLoggingResponse(logging, loggedUser: UserToken, withDetailedMessage = false) {
     const filteredLogging: any = {};
 
     if (!logging) {

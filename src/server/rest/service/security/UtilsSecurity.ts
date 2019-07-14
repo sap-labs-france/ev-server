@@ -2,6 +2,7 @@ import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import Utils from '../../../../utils/Utils';
+import UserToken from '../../../../types/UserToken';
 
 export default class UtilsSecurity {
   static filterBoolean(value) {
@@ -118,7 +119,7 @@ export default class UtilsSecurity {
     return filteredAddress;
   }
 
-  static filterCreatedAndLastChanged(filteredEntity, entity, loggedUser) {
+  static filterCreatedAndLastChanged(filteredEntity, entity, loggedUser: UserToken) {
     if (entity.createdBy && typeof entity.createdBy === 'object' &&
       entity.createdBy.id && Authorizations.canReadUser(loggedUser, entity.createdBy.id)) {
       // Build user

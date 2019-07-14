@@ -8,6 +8,7 @@ import StatisticsStorage from '../../../storage/mongodb/StatisticsStorage';
 import StatisticSecurity from './security/StatisticSecurity';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
+import User from '../../../types/User';
 
 export default class StatisticService {
   static async handleGetChargingStationConsumptionStatistics(action, req, res, next) {
@@ -376,7 +377,7 @@ export default class StatisticService {
   }
 
   static convertToCSV(transactionStatsMDB: any[], dataCategory: string, dataType: string, year: number | string, dataScope?: string) {
-    let user: any;
+    let user: User;
     let unknownUser = Utils.buildUserFullName(user, false, false, true);
     if (!unknownUser) {
       unknownUser = 'Unknown';

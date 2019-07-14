@@ -100,9 +100,6 @@ export default class MigrationHandler {
         message: `All synchronous migration tasks have been run with success in ${totalMigrationTimeSecs} secs`
       });
     } catch (error) {
-      // Log in the console also
-      // eslint-disable-next-line no-console
-      console.log(error);
       // Log
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,

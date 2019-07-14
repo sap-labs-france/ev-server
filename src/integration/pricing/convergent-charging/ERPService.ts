@@ -3,11 +3,12 @@ import AbstractSoapClient from './AbstractSoapClient';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 import global from '../../../types/GlobalType';
 import InternalError from '../../../exception/InternalError';
+import User from '../../../types/User';
 
 export default class ERPService extends AbstractSoapClient {
   public execute: any;
 
-  constructor(serverUrl, user, password) {
+  constructor(serverUrl, user: string, password) {
     super(
       `${serverUrl}/ARTIX/erpservices`,
       `${global.appRoot}/assets/convergent-charging/wsdl/erpservices_1.wsdl`,
@@ -29,10 +30,10 @@ export default class ERPService extends AbstractSoapClient {
    * @param user {User}
    * @returns {Promise<void>}
    */
-  async createInvoice(tenantId, user) {
-    const connection = await ConnectionStorage.getConnectionByUserId(tenantId, 'convergent-invoicing', user.getID());
+  async createInvoice(tenantId, user: User) {
+    const connection = await ConnectionStorage.getConnectionByUserId(tenantId, 'convergent-invoicing', user.id);
     if (!connection) {
-      throw new InternalError(`Convergent Invoicing connection is missing for user ${user.getID()}`);
+      throw new InternalError(`Convergent Invoicing connection is missing for user ${user.id}`);
     }
     const invoiceCreateRequest = new InvoiceCreateRequest(connection.getData().gpart, connection.getData().vkont, 1, 'SDBC', 'YN');
     const result = await this.execute(invoiceCreateRequest);

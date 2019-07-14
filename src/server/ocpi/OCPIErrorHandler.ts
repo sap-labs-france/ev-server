@@ -20,10 +20,14 @@ export default class OCPIErrorHandler {
       error = err;
       detailedMessages = err['detailedMessages'];
     }
-
+    console.log(error.message);
+    console.log(error.action);
+    console.log(error.source);
+    console.log(error.module);
+    console.log(detailedMessages);
     // Add logging
     Logging.logError({
-      tenantID: req.tenantID,
+      tenantID: req.user.tenantID,
       action: error.action,
       message: error.message,
       source: error.source,

@@ -13,6 +13,9 @@ import ErrorHandler from './ErrorHandler';
 import expressTools from '../ExpressTools';
 import Logging from '../../utils/Logging';
 import SessionHashService from '../rest/service/SessionHashService';
+import { NextFunction, Request, Response } from 'express';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import AuthService from './service/AuthService';
 
 SourceMap.install();
 

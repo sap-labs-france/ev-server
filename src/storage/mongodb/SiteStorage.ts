@@ -9,8 +9,8 @@ import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Site from '../../types/Site';
 import SiteAreaStorage from './SiteAreaStorage';
-import UserSite from '../../types/User';
 import Utils from '../../utils/Utils';
+import User, { UserSite } from '../../types/User';
 
 export default class SiteStorage {
   public static async getSite(tenantID: string, id: string): Promise<Site> {
@@ -59,11 +59,9 @@ export default class SiteStorage {
       // At least one User
       if (userIDs && userIDs.length > 0) {
         // Execute
-        await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
-          'userID': { $in: userIDs.map((userID) => {
-            return Utils.convertToObjectID(userID);
-          }) },
-          'siteID': Utils.convertToObjectID(siteID)
+        let res = await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
+          "userID": { $in: userIDs.map(userID => Utils.convertToObjectID(userID)) },
+          "siteID": Utils.convertToObjectID(siteID)
         });
       }
     }
@@ -144,7 +142,7 @@ export default class SiteStorage {
     DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
     DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
     // Limit records?
-    if (!params.onlyRecordCount) {
+    if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
       aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
     }
@@ -153,7 +151,7 @@ export default class SiteStorage {
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
-    if (params.onlyRecordCount) {
+    if (dbParams.onlyRecordCount) {
       return {
         count: (usersCountMDB.length > 0 ? usersCountMDB[0].count : 0),
         result: []
@@ -181,14 +179,19 @@ export default class SiteStorage {
     });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
+
+    //console.log(aggregation);
+
     // Read DB
-    const siteUsersMDB = await global.database.getCollection<any>(tenantID, 'siteusers')
+    const siteUsersMDB = await global.database.getCollection<{user: User, siteID: string, siteAdmin: boolean}>(tenantID, 'siteusers')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     const users: UserSite[] = [];
     // Convert to typed object
     for (const siteUserMDB of siteUsersMDB) {
-      users.push({ user: siteUserMDB.user, siteAdmin: !siteUserMDB.siteAdmin ? false : siteUserMDB.siteAdmin, siteID: params.siteID });
+      if (siteUserMDB.user) {
+        users.push({ user: siteUserMDB.user, siteAdmin: !siteUserMDB.siteAdmin ? false : siteUserMDB.siteAdmin, siteID: params.siteID });
+      }
     }
     // Debug
     Logging.traceEnd('SiteStorage', 'getUsers', uniqueTimerID, { siteID: params.siteID });
@@ -223,7 +226,7 @@ export default class SiteStorage {
     const siteFilter: any = {};
     // Build Request
     if (siteToSave.id) {
-      siteFilter._id = Utils.convertUserToObjectID(siteToSave.id);
+      siteFilter._id = Utils.convertToObjectID(siteToSave.id);
     } else {
       siteFilter._id = new ObjectID();
     }

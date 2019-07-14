@@ -5,6 +5,7 @@ import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
 import SiteSecurity from './SiteSecurity';
 import UtilsSecurity from './UtilsSecurity';
+import UserToken from '../../../../types/UserToken';
 
 export default class CompanySecurity {
 
@@ -49,7 +50,7 @@ export default class CompanySecurity {
     };
   }
 
-  public static filterCompanyResponse(company: Company, loggedUser: any) { // TODO: typings
+  public static filterCompanyResponse(company: Company, loggedUser: UserToken) { // TODO: typings
     let filteredCompany;
 
     if (!company) {

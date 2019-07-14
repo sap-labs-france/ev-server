@@ -1,5 +1,6 @@
 import { soap } from 'strong-soap';
 import AbstractSoapClient from './AbstractSoapClient';
+import User from '../../../types/User';
 
 export default class StatefulChargingService extends AbstractSoapClient {
 

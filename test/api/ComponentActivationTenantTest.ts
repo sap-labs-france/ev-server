@@ -1,6 +1,7 @@
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import config from '../config';
+import 'mocha';
 import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
 import Constants from './client/utils/Constants';

@@ -14,6 +14,8 @@ import Logging from '../../utils/Logging';
 import Site from '../../types/Site';
 import Transaction from '../../entity/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
+import User from '../../types/User';
+import BBPromise from 'bluebird';
 
 const MODULE_NAME = 'ConcurConnector';
 const CONNECTOR_ID = 'concur';
@@ -24,11 +26,7 @@ const CONNECTOR_ID = 'concur';
  * Token  string  -  The access token value passed in the Authorization header when making API calls. It is a long-lived token which is currently set to expire after one year from creation. You should securely store the token and use it for all subsequent API requests until the token expires. Before it does, you should send a request to refresh the token prior to the expiration date.
  * Expiration_Date  string  -  The Universal Coordinated Time (UTC) date and time when the access token expires.
  * Refresh_Token  string  -  Token with a new expiration date of a year from the refresh date. You should securely store the refresh token for a user and use it for all subsequent API requests.
- */
-export default class ConcurConnector extends AbstractConnector {
-  public getSetting: any;
-  public getTenantID: any;
-  public getConnectionByUserId: any;
+ */export default class ConcurConnector extends AbstractConnector {
 
   constructor(tenantID, setting) {
     super(tenantID, 'concur', setting);
@@ -213,20 +211,20 @@ export default class ConcurConnector extends AbstractConnector {
    * @param quickRefund
    * @returns {Promise<Transaction[]>}
    */
-  async refund(user, transactions, quickRefund = false): Promise<any> {
+  async refund(user: User, transactions, quickRefund = false): Promise<any> {
     const startDate = moment();
     const refundedTransactions = [];
-    let connection = await this.getConnectionByUserId(user.getID());
+    let connection = await this.getConnectionByUserId(user.id);
     if (!connection) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The user with ID '${user.getID()}' does not have a connection to connector '${CONNECTOR_ID}'`,
+        `The user with ID '${user.id}' does not have a connection to connector '${CONNECTOR_ID}'`,
         Constants.HTTP_CONCUR_NO_CONNECTOR_CONNECTION_ERROR,
         'TransactionService', 'handleRefundTransactions', user);
     }
 
     if (ConcurConnector.isTokenExpired(connection)) {
-      connection = await this.refreshToken(user.getID(), connection);
+      connection = await this.refreshToken(user.id, connection);
     }
     let expenseReportId;
 
@@ -234,7 +232,7 @@ export default class ConcurConnector extends AbstractConnector {
       expenseReportId = await this.createExpenseReport(connection, transactions[0].getTimezone(), user);
     }
 
-    await Promise.map(transactions,
+    await BBPromise.map(transactions,
       async (transaction: Transaction) => {
         try {
           const chargingStation = await ChargingStation.getChargingStation(transaction.getTenantID(), transaction.getChargeBoxID());
@@ -261,7 +259,7 @@ export default class ConcurConnector extends AbstractConnector {
 
     Logging.logInfo({
       tenantID: this.getTenantID(),
-      user: user.getID(),
+      user: user.id,
       source: MODULE_NAME, action: 'Refund',
       module: MODULE_NAME, method: 'Refund',
       message: `${refundedTransactions.length} transactions have been transferred to Concur in ${moment().diff(startDate, 'milliseconds')} ms`
@@ -336,7 +334,7 @@ export default class ConcurConnector extends AbstractConnector {
    * @param user
    * @returns {Promise<string>}
    */
-  async createQuickExpense(connection, transaction, location, user) {
+  async createQuickExpense(connection, transaction, location, user: User) {
     try {
       const startDate = moment();
       const response = await axios.post(`${this.getAuthenticationUrl()}/quickexpense/v4/users/${jwt.decode(connection.getData().access_token).sub}/context/TRAVELER/quickexpenses`, {
@@ -360,7 +358,7 @@ export default class ConcurConnector extends AbstractConnector {
       });
       Logging.logDebug({
         tenantID: this.getTenantID(),
-        user: user.getID(),
+        user: user.id,
         source: MODULE_NAME, action: 'Refund',
         module: MODULE_NAME, method: 'createQuickExpense',
         message: `Transaction ${transaction.getID()} has been successfully transferred in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
@@ -384,7 +382,7 @@ export default class ConcurConnector extends AbstractConnector {
    * @param user
    * @returns {Promise<string>}
    */
-  async createExpenseReportEntry(connection, expenseReportId, transaction, location, user) {
+  async createExpenseReportEntry(connection, expenseReportId, transaction, location, user: User) {
     try {
       const startDate = moment();
       const response = await axios.post(`${this.getApiUrl()}/api/v3.0/expense/entries`, {
@@ -412,7 +410,7 @@ export default class ConcurConnector extends AbstractConnector {
       });
       Logging.logDebug({
         tenantID: this.getTenantID(),
-        user: user.getID(),
+        user: user.id,
         source: MODULE_NAME, action: 'Refund',
         module: MODULE_NAME, method: 'createExpenseReportEntry',
         message: `Transaction ${transaction.getID()} has been successfully transferred in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
@@ -433,7 +431,7 @@ export default class ConcurConnector extends AbstractConnector {
    * @param timezone
    * @returns {Promise<void>}
    */
-  async createExpenseReport(connection, timezone, user) {
+  async createExpenseReport(connection, timezone, user: User) {
     try {
       const startDate = moment();
       const response = await axios.post(`${this.getApiUrl()}/api/v3.0/expense/reports`, {
@@ -447,7 +445,7 @@ export default class ConcurConnector extends AbstractConnector {
       });
       Logging.logDebug({
         tenantID: this.getTenantID(),
-        user: user.getID(),
+        user: user.id,
         source: MODULE_NAME, action: 'Refund',
         module: MODULE_NAME, method: 'createExpenseReport',
         message: `Report has been successfully created in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`

@@ -8,12 +8,22 @@ import Logging from '../../../utils/Logging';
 import Site from '../../../types/Site';
 import SiteSecurity from './security/SiteSecurity';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
-import User from '../../../entity/User';
 import UserSecurity from './security/UserSecurity';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 
 export default class SiteService {
+
+  public static async handleAssignUsersToSites(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    await UtilsService.assertComponentIsActive(
+      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+      Constants.ACTION_UPDATE, Constants.ENTITY_SITE, 'SiteService', 'handleAssignUsersToSites');
+
+    //TODO: Fill this in based on content of both other files
+  }
+
   public static async handleAddUsersToSite(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     await UtilsService.assertComponentIsActive(
@@ -54,7 +64,7 @@ export default class SiteService {
     }
     for (const userID of filteredRequest.userIDs) {
       // Check the user
-      const user = await User.getUser(req.user.tenantID, userID);
+      const user = await UserStorage.getUser(req.user.tenantID, userID);
       if (!user) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -144,7 +154,7 @@ export default class SiteService {
         'SiteService', 'handleUpdateSiteUserAdmin', req.user, filteredRequest.userID);
     }
     // Get the User
-    const user = await User.getUser(req.user.tenantID, filteredRequest.userID);
+    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
     if (!user) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
@@ -152,7 +162,7 @@ export default class SiteService {
         'SiteService', 'handleUpdateSiteUserAdmin', req.user, filteredRequest.userID);
     }
     // Check user
-    if (!Authorizations.isBasic(user.getRole())) {
+    if (!Authorizations.isBasic(user.role)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         'Only Users with Basic role can be Site Admin', Constants.HTTP_GENERAL_ERROR,
@@ -199,7 +209,7 @@ export default class SiteService {
     // Get Users
     for (const userID of filteredRequest.userIDs) {
       // Check the user
-      const user = await User.getUser(req.user.tenantID, userID);
+      const user = await UserStorage.getUser(req.user.tenantID, userID);
       if (!user) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -270,7 +280,7 @@ export default class SiteService {
         siteID: filteredRequest.SiteID,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       ['user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteID']
     );
     // Filter
@@ -433,7 +443,7 @@ export default class SiteService {
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.companyID);
     UtilsService.assertObjectExists(company, `The Company ID '${filteredRequest.companyID}' does not exist`, 'SiteService', 'handleCreateSite', req.user);
     // Create site
-    const usr = new User(req.user.tenantID, { id: req.user.id });
+    const usr = { id: req.user.id };
     const date = new Date();
     const newSite: Site = {
       ...filteredRequest,
@@ -479,7 +489,7 @@ export default class SiteService {
     const site: Site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.id);
     UtilsService.assertObjectExists(site, `Site with ID '${filteredRequest.id}' does not exist`, 'SiteService', 'handleUpdateSite', req.user);
     // Update
-    site.lastChangedBy = new User(req.user.tenantID, { 'id': req.user.id });
+    site.lastChangedBy = { 'id': req.user.id };
     site.lastChangedOn = new Date();
     // Save
     await SiteStorage.saveSite(req.user.tenantID, { ...site, ...filteredRequest }, true);

@@ -13,6 +13,8 @@ import Configuration from './Configuration';
 import Constants from './Constants';
 import Logging from './Logging';
 import Tenant from '../entity/Tenant';
+import User from '../types/User';
+import TenantStorage from '../storage/mongodb/TenantStorage';
 
 SourceMap.install();
 
@@ -48,7 +50,7 @@ export default class Utils {
   }
 
   // Temporary method for Revenue Cloud concept
-  static async pushTransactionToRevenueCloud(action, transaction, user, actionOnUser) {
+  static async pushTransactionToRevenueCloud(action, transaction, user: User, actionOnUser: User) {
     // Refund Transaction
     const cloudRevenueAuth = new ClientOAuth2({
       clientId: 'sb-revenue-cloud!b1122|revenue-cloud!b1532',
@@ -207,17 +209,15 @@ export default class Utils {
     return changedID;
   }
 
-  public static convertUserToObjectID(user: any): ObjectID | null { // TODO: Fix this method...
+  public static convertUserToObjectID(user: User): ObjectID | null { // TODO: Fix this method...
     let userID = null;
     // Check Created By
     if (user) {
-      // Set
-      userID = user;
       // Check User Model
       if (typeof user === 'object' &&
-        user.constructor.name !== 'ObjectID' && ('id' in user || 'getID' in user)) {
+        user.constructor.name !== 'ObjectID') {
         // This is the User Model
-        userID = Utils.convertToObjectID('id' in user ? user.id : user.getID());
+        userID = Utils.convertToObjectID(user.id);
       }
       // Check String
       if (typeof user === 'string') {
@@ -235,7 +235,7 @@ export default class Utils {
     return true;
   }
 
-  static buildUserFullName(user, withID = true, withEmail = false, inversedName = false) {
+  static buildUserFullName(user: User, withID = true, withEmail = false, inversedName = false) {
     let fullName: string;
     if (!user) {
       return 'Unknown';
@@ -283,11 +283,12 @@ export default class Utils {
       _centralSystemFrontEndConfig.port}`;
   }
 
-  static async buildEvseUserURL(user, hash = '') {
-    const tenant = await user.getTenant();
+  static async buildEvseUserURL(tenantID: string, user: User, hash = '') {
+    
+    const tenant = await TenantStorage.getTenant(tenantID);
     const _evseBaseURL = Utils.buildEvseURL(tenant.getSubdomain());
     // Add
-    return _evseBaseURL + '/users?UserID=' + user.getID() + hash;
+    return _evseBaseURL + '/users?UserID=' + user.id + hash;
   }
 
   static async buildEvseChargingStationURL(chargingStation, hash = '') {

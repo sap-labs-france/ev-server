@@ -7,7 +7,7 @@ import CompanySecurity from './security/CompanySecurity';
 import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import User from '../../../entity/User';
+import User from '../../../types/User';
 import UtilsService from './UtilsService';
 
 export default class CompanyService {
@@ -165,7 +165,7 @@ export default class CompanyService {
     // Create company
     const newCompany: Company = {
       ...filteredRequest,
-      createdBy: new User(req.user.tenantID, { id: req.user.id }),
+      createdBy: { id: req.user.id },
       createdOn: new Date(),
     } as Company;
     // Save
@@ -209,7 +209,7 @@ export default class CompanyService {
     company.name = filteredRequest.name;
     company.address = filteredRequest.address;
     company.logo = filteredRequest.logo;
-    company.lastChangedBy = new User(req.user.tenantID, { 'id': req.user.id });
+    company.lastChangedBy = { 'id': req.user.id };
     company.lastChangedOn = new Date();
     // Update Company
     await CompanyStorage.saveCompany(req.user.tenantID, company);

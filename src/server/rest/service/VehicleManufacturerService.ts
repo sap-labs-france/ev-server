@@ -4,7 +4,7 @@ import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import Database from '../../../utils/Database';
 import Logging from '../../../utils/Logging';
-import User from '../../../entity/User';
+import User from '../../../types/User';
 import VehicleManufacturer from '../../../entity/VehicleManufacturer';
 import VehicleManufacturerSecurity from './security/VehicleManufacturerSecurity';
 
@@ -147,7 +147,7 @@ export default class VehicleManufacturerService {
       // Create vehicleManufacturer
       const vehicleManufacturer = new VehicleManufacturer(req.user.tenantID, filteredRequest);
       // Update timestamp
-      vehicleManufacturer.setCreatedBy(new User(req.user.tenantID, { 'id': req.user.id }));
+      vehicleManufacturer.setCreatedBy({ 'id': req.user.id });
       vehicleManufacturer.setCreatedOn(new Date());
       // Save
       const newVehicleManufacturer = await vehicleManufacturer.save();
@@ -198,7 +198,7 @@ export default class VehicleManufacturerService {
       // Update
       Database.updateVehicleManufacturer(filteredRequest, vehicleManufacturer.getModel());
       // Update timestamp
-      vehicleManufacturer.setLastChangedBy(new User(req.user.tenantID, { 'id': req.user.id }));
+      vehicleManufacturer.setLastChangedBy({ 'id': req.user.id });
       vehicleManufacturer.setLastChangedOn(new Date());
       // Update VehicleManufacturer
       const updatedVehicleManufacturer = await vehicleManufacturer.save();

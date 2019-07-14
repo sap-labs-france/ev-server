@@ -4,7 +4,9 @@ import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 import Tenant from '../../entity/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
-import User from '../../entity/User';
+import User from '../../types/User';
+import UserStorage from '../../storage/mongodb/UserStorage';
+import UserService from '../../server/rest/service/UserService';
 
 const SLF_TENANT = {
   'name': 'SAP Labs France',
@@ -19,27 +21,28 @@ export default class TenantMigrationTask extends MigrationTask {
   }
 
   async createSuperAdmin() {
-    const users = await User.getUsers(Constants.DEFAULT_TENANT);
+    const users = await UserStorage.getUsers(Constants.DEFAULT_TENANT, {}, {limit: 0, skip: 0});
 
     if (users.count === 0) {
       // First, create a super admin user
-      const password = User.generatePassword();
-      let user = new User(Constants.DEFAULT_TENANT, {
+      const password = UserService.generatePassword();
+      let user: Partial<User> = {
         name: 'Super',
         firstName: 'Admin',
-        password: await User.hashPasswordBcrypt(password),
+        password: await UserService.hashPasswordBcrypt(password),
         status: Constants.USER_STATUS_ACTIVE,
         role: Constants.ROLE_SUPER_ADMIN,
         email: 'super.admin@sap.com',
-        createdOn: new Date().toISOString()
-      });
+        createdOn: new Date()
+      };
       // Save
-      user = await user.save();
+      await UserStorage.saveUser(Constants.DEFAULT_TENANT, user);
+
       // Log
       Logging.logWarning({
         tenantID: Constants.DEFAULT_TENANT, module: 'TenantMigrationTask', method: 'createSuperAdmin',
-        actionOnUser: user.getModel(), action: 'Migration', source: 'TenantMigrationTask',
-        message: `Super Admin user '${user.getEMail()}' created with initial password '${password}'`
+        actionOnUser: user, action: 'Migration', source: 'TenantMigrationTask',
+        message: `Super Admin user '${user.email}' created with initial password '${password}'`
       });
     }
   }

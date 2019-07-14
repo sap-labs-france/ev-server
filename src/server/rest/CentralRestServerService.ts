@@ -82,8 +82,8 @@ class RequestMapper {
           SiteCreate: SiteService.handleCreateSite,
           AddUsersToSite: SiteService.handleAddUsersToSite,
           RemoveUsersFromSite: SiteService.handleRemoveUsersFromSite,
-          AddSitesToUser: UserService.handleAddSitesToUser,
-          RemoveSitesFromUser: UserService.handleRemoveSitesFromUser,
+          AddSitesToUser: UserService.handleAssignSitesToUser,
+          RemoveSitesFromUser: UserService.handleAssignSitesToUser,
           SiteAreaCreate: SiteAreaService.handleCreateSiteArea,
           TransactionsRefund: TransactionService.handleRefundTransactions,
           SettingCreate: SettingService.handleCreateSetting,
@@ -281,6 +281,7 @@ export default {
       await handleRequest(action, req, res, next);
     } catch (error) {
       // Log
+      console.trace(error);
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
   }

@@ -6,7 +6,7 @@ import Database from '../utils/Database';
 import OCPPStorage from '../storage/mongodb/OCPPStorage';
 import TenantHolder from './TenantHolder';
 import TransactionStorage from '../storage/mongodb/TransactionStorage';
-import User from './User';
+import User from '../types/User';
 import UserStorage from '../storage/mongodb/UserStorage';
 
 export default class Transaction extends TenantHolder {
@@ -223,7 +223,7 @@ export default class Transaction extends TenantHolder {
 
   async getUser() {
     if (this._model.user) {
-      return new User(this.getTenantID(), this._model.user);
+      return this._model.user;
     } else if (this._model.userID) {
       const user = await UserStorage.getUser(this.getTenantID(), this._model.userID);
       this.setUser(user);
@@ -231,10 +231,10 @@ export default class Transaction extends TenantHolder {
     }
   }
 
-  setUser(user) {
+  setUser(user: User) {
     if (user) {
-      this._model.user = user.getModel();
-      this._model.userID = user.getID();
+      this._model.user = user;
+      this._model.userID = user.id;
     } else {
       this._model.user = null;
     }
@@ -262,11 +262,11 @@ export default class Transaction extends TenantHolder {
     this._model.stop.userID = userID;
   }
 
-  setStopUser(user) {
+  setStopUser(user: User) {
     this._checkAndCreateStop();
     if (user) {
-      this._model.stop.user = user.getModel();
-      this._model.stop.userID = user.getID();
+      this._model.stop.user = user;
+      this._model.stop.userID = user.id;
     } else {
       this._model.stop.user = null;
     }
@@ -281,7 +281,7 @@ export default class Transaction extends TenantHolder {
   async getStopUser() {
     if (this.isFinished()) {
       if (this._model.stop.user) {
-        return new User(this.getTenantID(), this._model.stop.user);
+        return this._model.stop.user;
       } else if (this._model.stop.userID) {
         const user = await UserStorage.getUser(this.getTenantID(), this._model.stop.userID);
         this.setStopUser(user);
