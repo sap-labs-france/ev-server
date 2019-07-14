@@ -1,3 +1,4 @@
+import chai, { expect } from 'chai';
 import config from '../../config';
 import faker from 'faker';
 import CentralServerService from '../client/CentralServerService';
@@ -8,7 +9,6 @@ import OCPPJsonService16 from '../ocpp/json/OCPPJsonService16';
 import OCPPJsonService15 from '../ocpp/soap/OCPPSoapService15';
 import SiteAreaContext from './SiteAreaContext';
 import SiteContext from './SiteContext';
-import chai, { expect } from 'chai';
 
 export default class TenantContext {
 

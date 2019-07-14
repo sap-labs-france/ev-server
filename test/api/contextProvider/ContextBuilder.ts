@@ -12,14 +12,14 @@ import Site from '../../../src/types/Site';
 import SiteAreaStorage from '../../../src/storage/mongodb/SiteAreaStorage';
 import SiteContext from './SiteContext';
 import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
+import StatisticsContext from './StatisticsContext';
 import Tenant from '../../../src/entity/Tenant';
 import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
 import User from '../../../src/types/User';
 import UserFactory from '../../factories/UserFactory';
-import UserStorage from '../../../src/storage/mongodb/UserStorage';
 import UserService from '../../../src/server/rest/service/UserService';
-import StatisticsContext from './StatisticsContext';
+import UserStorage from '../../../src/storage/mongodb/UserStorage';
 
 export default class ContextBuilder {
 

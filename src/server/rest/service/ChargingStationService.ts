@@ -10,8 +10,6 @@ import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import Tenant from '../../../entity/Tenant';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import User from '../../../types/User';
-import { filter } from 'bluebird';
 
 export default class ChargingStationService {
   static async handleAddChargingStationsToSiteArea(action, req, res, next) {
@@ -638,7 +636,7 @@ export default class ChargingStationService {
         'ChargingStationService', 'handleAction', req.user);
     }
     let result;
-      // Remote Stop Transaction / Unlock Connector
+    // Remote Stop Transaction / Unlock Connector
     if (action === 'RemoteStopTransaction' || action === 'UnlockConnector') {
       // Check Transaction ID
       if (!filteredRequest.args || !filteredRequest.args.transactionId) {

@@ -14,9 +14,9 @@ import TenantSecurity from './security/TenantSecurity';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TenantValidator from '../validation/TenantValidation';
 import User from '../../../types/User';
-import Utils from '../../../utils/Utils';
 import UserService from './UserService';
 import UserStorage from '../../../storage/mongodb/UserStorage';
+import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'TenantService';
 
@@ -201,7 +201,7 @@ export default class TenantService {
     // Create user in tenant
     const password = UserService.generatePassword();
     const verificationToken = Utils.generateToken(newTenant.getEmail());
-    let tenantUser: User = UserStorage.getEmptyUser();
+    const tenantUser: User = UserStorage.getEmptyUser();
     tenantUser.name = newTenant.getName();
     tenantUser.firstName = 'Admin';
     tenantUser.password = await UserService.hashPasswordBcrypt(password);

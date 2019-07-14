@@ -1,9 +1,9 @@
 import bluebird from 'bluebird';
 import path from 'path';
+import JsonCentralSystemServer from '../server/ocpp/json/JsonCentralSystemServer';
 import MongoDBStorage from '../storage/mongodb/MongoDBStorage';
 import Global = NodeJS.Global;
 import SoapCentralSystemServer from '../server/ocpp/soap/SoapCentralSystemServer';
-import JsonCentralSystemServer from '../server/ocpp/json/JsonCentralSystemServer';
 
 interface TSGlobal extends Global {
   database: MongoDBStorage;

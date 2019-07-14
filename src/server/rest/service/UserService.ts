@@ -1,27 +1,27 @@
+import bcrypt from 'bcrypt';
+import crypto from 'crypto';
+import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
+import passwordGenerator = require('password-generator');
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
-import bcrypt from 'bcrypt';
 import Constants from '../../../utils/Constants';
 import ERPService from '../../../integration/pricing/convergent-charging/ERPService';
+import { HttpUserRequest } from '../../../types/requests/HttpUserRequest';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import RatingService from '../../../integration/pricing/convergent-charging/RatingService';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import User from '../../../types/User';
 import UserSecurity from './security/UserSecurity';
-import Utils from '../../../utils/Utils';
-import { NextFunction, Request, Response } from 'express';
 import UserStorage from '../../../storage/mongodb/UserStorage';
-import { HttpUserRequest } from '../../../types/requests/HttpUserRequest';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import passwordGenerator = require('password-generator');
-import crypto from 'crypto';
+import Utils from '../../../utils/Utils';
 
 export default class UserService {
-  
+
   public static async handleAssignSitesToUser(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = UserSecurity.filterAssignSitesToUserRequest(req.body, req.user);
@@ -60,7 +60,7 @@ export default class UserService {
     }
     // Get Sites
     for (const siteID of filteredRequest.siteIDs) {
-      if(! SiteStorage.siteExists(req.user.tenantID, siteID)) {
+      if (!SiteStorage.siteExists(req.user.tenantID, siteID)) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `Site with ID '${siteID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
@@ -136,9 +136,12 @@ export default class UserService {
         `User with ID '${id}' is already deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'UserService', 'handleDeleteUser', req.user);
     }
-    // Delete from site  //TODO-OPTIM lots of useless information queried here, could be made faster...
-    const siteIDs: string[] = (await UserStorage.getSites(req.user.tenantID, {userID: id}, {limit: 0, skip: 0})).result.map(
-      siteUser => siteUser.site.id
+    // Delete from site
+    // TODO: lots of useless information queried here, could be made faster...
+    const siteIDs: string[] = (await UserStorage.getSites(req.user.tenantID, { userID: id }, { limit: 0, skip: 0 })).result.map(
+      (siteUser) => {
+        return siteUser.site.id;
+      }
     );
     UserStorage.removeSitesFromUser(req.user.tenantID, user.id, siteIDs);
     // Delete User
@@ -225,7 +228,7 @@ export default class UserService {
     UserService.checkIfUserValid(filteredRequest, user, req);
     // Update User
     const newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? [] : filteredRequest.tagIDs;
-    const updatedUserId = await UserStorage.saveUser(req.user.tenantID, {...filteredRequest, tagIDs: newTagIDs}, true); //Careful: Last changed by is not a proper user here! TODO (it wasnt before either tho)
+    const updatedUserId = await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: newTagIDs }, true); // Careful: Last changed by is not a proper user here! TODO (it wasnt before either tho)
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -300,7 +303,7 @@ export default class UserService {
 
   public static async handleGetUserImage(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
-    const filteredRequest = {ID: UserSecurity.filterUserByIDRequest(req.query)};
+    const filteredRequest = { ID: UserSecurity.filterUserByIDRequest(req.query) };
     // User mandatory
     if (!filteredRequest.ID) {
       // Not Found!
@@ -380,7 +383,7 @@ export default class UserService {
         search: filteredRequest.Search,
         siteID: filteredRequest.SiteID,
         role: filteredRequest.Role,
-        statuses: filteredRequest.Status?[filteredRequest.Status]:null,
+        statuses: filteredRequest.Status ? [filteredRequest.Status] : null,
         excludeSiteID: filteredRequest.ExcludeSiteID,
       },
       {
@@ -476,12 +479,12 @@ export default class UserService {
     filteredRequest.createdOn = new Date();
     // Save User
     let newTagIDs: string[];
-    if(typeof filteredRequest.tagIDs === 'string') {
+    if (typeof filteredRequest.tagIDs === 'string') {
       newTagIDs = [];
-    }else{
+    } else {
       newTagIDs = filteredRequest.tagIDs;
     }
-    const newUserId = await UserStorage.saveUser(req.user.tenantID, {...filteredRequest, tagIDs: newTagIDs}, true);
+    const newUserId = await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: newTagIDs }, true);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -574,7 +577,7 @@ export default class UserService {
           'UserService', 'handleGetUserInvoice', req.user);
       }
       const filename = 'invoice.pdf';
-      fs.writeFile(filename, invoice, (err) => {//TODO: potential problem at sccale; two pple generating invoice at same time?
+      fs.writeFile(filename, invoice, (err) => { // TODO: potential problem at sccale; two pple generating invoice at same time?
         if (err) {
           throw err;
         }
@@ -599,7 +602,7 @@ export default class UserService {
   }
 
   public static checkIfUserValid(filteredRequest: Partial<HttpUserRequest>, user: User, req: Request) {
-    let tenantID = req.user.tenantID;;
+    const tenantID = req.user.tenantID;
     if (!tenantID) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
@@ -709,8 +712,8 @@ export default class UserService {
     }
     if (filteredRequest.tagIDs) {
       // Check
-      if(!Array.isArray(filteredRequest.tagIDs)) { //TODO this piece is not very robust, and mutates filteredRequest even tho it's named "check". Should be changed, honestly
-        if(filteredRequest.tagIDs !== '') {
+      if (!Array.isArray(filteredRequest.tagIDs)) { // TODO: this piece is not very robust, and mutates filteredRequest even tho it's named "check". Should be changed, honestly
+        if (filteredRequest.tagIDs !== '') {
           filteredRequest.tagIDs = filteredRequest.tagIDs.split(',');
         }
       }
@@ -743,10 +746,12 @@ export default class UserService {
   }
 
   public static areTagIDsValid(tagIDs: string[]|string) {
-    if(typeof tagIDs === 'string') {
+    if (typeof tagIDs === 'string') {
       return /^[A-Za-z0-9,]*$/.test(tagIDs);
     }
-    return tagIDs.filter(tagID => /^[A-Za-z0-9,]*$/.test(tagID)).length === tagIDs.length;
+    return tagIDs.filter((tagID) => {
+      return /^[A-Za-z0-9,]*$/.test(tagID);
+    }).length === tagIDs.length;
   }
 
   public static isPhoneValid(phone: string): boolean {
@@ -806,7 +811,7 @@ export default class UserService {
       sc && sc.length >= Constants.PWD_SPECIAL_MIN_COUNT;
   }
 
-  
+
   static generatePassword() {
     let password = '';
     const randomLength = Math.floor(Math.random() * (Constants.PWD_MAX_LENGTH - Constants.PWD_MIN_LENGTH)) + Constants.PWD_MIN_LENGTH;
@@ -835,6 +840,7 @@ export default class UserService {
         return 'Unknown';
     }
   }
+
   static hashPassword(password) {
     return crypto.createHash('sha256').update(password).digest('hex');
   }

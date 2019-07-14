@@ -5,8 +5,8 @@ import MigrationTask from '../MigrationTask';
 import Tenant from '../../entity/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import User from '../../types/User';
-import UserStorage from '../../storage/mongodb/UserStorage';
 import UserService from '../../server/rest/service/UserService';
+import UserStorage from '../../storage/mongodb/UserStorage';
 
 const SLF_TENANT = {
   'name': 'SAP Labs France',
@@ -21,12 +21,12 @@ export default class TenantMigrationTask extends MigrationTask {
   }
 
   async createSuperAdmin() {
-    const users = await UserStorage.getUsers(Constants.DEFAULT_TENANT, {}, {limit: 0, skip: 0});
+    const users = await UserStorage.getUsers(Constants.DEFAULT_TENANT, {}, { limit: 0, skip: 0 });
 
     if (users.count === 0) {
       // First, create a super admin user
       const password = UserService.generatePassword();
-      let user: Partial<User> = {
+      const user: Partial<User> = {
         name: 'Super',
         firstName: 'Admin',
         password: await UserService.hashPasswordBcrypt(password),

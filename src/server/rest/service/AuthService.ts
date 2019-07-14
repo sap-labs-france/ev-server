@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { Handler, NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import passport from 'passport';
@@ -10,6 +11,7 @@ import BadRequestError from '../../../exception/BadRequestError';
 import ChargingStation from '../../../entity/ChargingStation';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
+import { HttpIsAuthorizedRequest, HttpLoginRequest, HttpResetPasswordRequest } from '../../../types/requests/HttpUserRequest';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import SessionHashService from './SessionHashService';
@@ -17,15 +19,13 @@ import Site from '../../../types/Site';
 import SiteArea from '../../../types/SiteArea';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import Tenant from '../../../entity/Tenant';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
-import Utils from '../../../utils/Utils';
-import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserService from './UserService';
-import { Handler, NextFunction, Request, Response } from 'express';
-import { HttpIsAuthorizedRequest, HttpResetPasswordRequest, HttpLoginRequest } from '../../../types/requests/HttpUserRequest';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
+import Utils from '../../../utils/Utils';
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
@@ -145,7 +145,7 @@ export default class AuthService {
         break;
     }
     // Return the result
-    res.json(result.length===1?result[0]:result);
+    res.json(result.length === 1 ? result[0] : result);
     next();
   }
 
@@ -237,7 +237,7 @@ export default class AuthService {
     const filteredRequest = AuthSecurity.filterLoginRequest(req.body);
     // Get Tenant
     tenantID = await AuthService.getTenantID(filteredRequest.tenant);
-    req.user = {tenantID: tenantID};
+    req.user = { tenantID: tenantID };
     if (!tenantID) {
       tenantID = Constants.DEFAULT_TENANT;
       throw new AppError(
@@ -350,7 +350,7 @@ export default class AuthService {
       next(error);
       return;
     }
-    req.user = {tenantID: tenantID};
+    req.user = { tenantID: tenantID };
     // Check EULA
     if (!filteredRequest.acceptEula) {
       throw new AppError(
@@ -395,19 +395,19 @@ export default class AuthService {
     // Generate a password
     const newPasswordHashed = await UserService.hashPasswordBcrypt(filteredRequest.password);
     // Create the user
-    let newUser = UserStorage.getEmptyUser();
+    const newUser = UserStorage.getEmptyUser();
 
     newUser.password = newPasswordHashed;
     newUser.email = filteredRequest.email;
     newUser.name = filteredRequest.name;
-    newUser.firstName = filteredRequest.firstName
+    newUser.firstName = filteredRequest.firstName;
     newUser.role = Constants.ROLE_BASIC;
     newUser.status = Constants.USER_STATUS_PENDING;
     newUser.tagIDs = [newUser.name[0] + newUser.firstName[0] + Utils.getRandomInt()];
     newUser.locale = req.locale.substring(0, 5);
     newUser.verificationToken = Utils.generateToken(req.body.email);
 
-    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, newUser.locale.substring(0,2));
+    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, newUser.locale.substring(0, 2));
     newUser.eulaAcceptedOn = new Date();
     newUser.eulaAcceptedVersion = endUserLicenseAgreement.version;
     newUser.eulaAcceptedHash = endUserLicenseAgreement.hash;
@@ -768,7 +768,7 @@ export default class AuthService {
         'AuthService', 'handleResendVerificationEmail');
     }
     // Is valid email?
-    let user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
+    const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
     // User exists?
     if (!user) {
       throw new AppError(
@@ -882,7 +882,7 @@ export default class AuthService {
       action: action, message: 'User logged in successfully'
     });
     // Get EULA
-    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, user.locale.substring(0,2));
+    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, user.locale.substring(0, 2));
     // Set Eula Info on Login Only
     if (action === 'Login') {
       user.eulaAcceptedOn = new Date();

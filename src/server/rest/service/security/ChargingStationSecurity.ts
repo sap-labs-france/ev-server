@@ -1,8 +1,8 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
-import UtilsSecurity from './UtilsSecurity';
 import UserToken from '../../../../types/UserToken';
+import UtilsSecurity from './UtilsSecurity';
 
 export default class ChargingStationSecurity {
 

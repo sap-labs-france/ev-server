@@ -9,8 +9,8 @@ import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Site from '../../types/Site';
 import SiteAreaStorage from './SiteAreaStorage';
-import Utils from '../../utils/Utils';
 import User, { UserSite } from '../../types/User';
+import Utils from '../../utils/Utils';
 
 export default class SiteStorage {
   public static async getSite(tenantID: string, id: string): Promise<Site> {
@@ -59,9 +59,11 @@ export default class SiteStorage {
       // At least one User
       if (userIDs && userIDs.length > 0) {
         // Execute
-        let res = await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
-          "userID": { $in: userIDs.map(userID => Utils.convertToObjectID(userID)) },
-          "siteID": Utils.convertToObjectID(siteID)
+        const res = await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
+          'userID': { $in: userIDs.map((userID) => {
+            return Utils.convertToObjectID(userID);
+          }) },
+          'siteID': Utils.convertToObjectID(siteID)
         });
       }
     }
@@ -180,10 +182,8 @@ export default class SiteStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
 
-    //console.log(aggregation);
-
     // Read DB
-    const siteUsersMDB = await global.database.getCollection<{user: User, siteID: string, siteAdmin: boolean}>(tenantID, 'siteusers')
+    const siteUsersMDB = await global.database.getCollection<{user: User; siteID: string; siteAdmin: boolean}>(tenantID, 'siteusers')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     const users: UserSite[] = [];

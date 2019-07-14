@@ -6,8 +6,8 @@ import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUserAdminRequest, 
 import Site from '../../../../types/Site';
 import SiteAreaSecurity from './SiteAreaSecurity';
 import UserSecurity from './UserSecurity';
-import UtilsSecurity from './UtilsSecurity';
 import UserToken from '../../../../types/UserToken';
+import UtilsSecurity from './UtilsSecurity';
 
 export default class SiteSecurity {
 
@@ -115,11 +115,11 @@ export default class SiteSecurity {
       if (site.siteAreas) {
         filteredSite.siteAreas = SiteAreaSecurity.filterSiteAreasResponse(site.siteAreas, loggedUser);
       }
-      // if (site.users) {
+      // pragma if (site.users) {
       //   filteredSite.users = site.users.map((user) => {
       //     return UserSecurity.filterMinimalUserResponse(user, loggedUser);
       //   });
-      // } TODO not needed anymore right
+      // } TODO: not needed anymore right
       if (site.availableChargers) {
         filteredSite.availableChargers = site.availableChargers;
       }
@@ -139,7 +139,7 @@ export default class SiteSecurity {
     return filteredSite;
   }
 
-  static filterSitesResponse(sites: {result: Site[], count: number}, loggedUser) {
+  static filterSitesResponse(sites: {result: Site[]; count: number}, loggedUser) {
     const filteredSites = [];
 
     if (!sites.result) {

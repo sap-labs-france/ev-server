@@ -9,9 +9,9 @@ import Site from '../../../types/Site';
 import SiteSecurity from './security/SiteSecurity';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import UserSecurity from './security/UserSecurity';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
-import UserStorage from '../../../storage/mongodb/UserStorage';
 
 export default class SiteService {
 
@@ -21,7 +21,7 @@ export default class SiteService {
       req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_UPDATE, Constants.ENTITY_SITE, 'SiteService', 'handleAssignUsersToSites');
 
-    //TODO: Fill this in based on content of both other files
+    // TODO: Fill this in based on content of both other files
   }
 
   public static async handleAddUsersToSite(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {

@@ -8,6 +8,7 @@ import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import NotificationHandler from '../notification/NotificationHandler';
+import SessionHashService from '../server/rest/service/SessionHashService';
 import Site from '../types/Site';
 import SiteArea from '../types/SiteArea';
 import SiteStorage from '../storage/mongodb/SiteStorage';
@@ -19,7 +20,6 @@ import UserService from '../server/rest/service/UserService';
 import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
 import Utils from '../utils/Utils';
-import SessionHashService from '../server/rest/service/SessionHashService';
 
 SourceMap.install();
 
@@ -117,14 +117,14 @@ export default class Authorizations {
       'tagIDs': user.tagIDs,
       'firstName': user.firstName,
       'locale': user.locale,
-      'language': user.locale.substring(0,2),
+      'language': user.locale.substring(0, 2),
       'tenantID': tenantID,
       'userHashID': SessionHashService.buildUserHashID(user),
       'tenantHashID': tenantHashID,
-      'scopes': this.getUserScopes(tenantID, user, siteAdminIDs.length),
+      'scopes': Authorizations.getUserScopes(tenantID, user, siteAdminIDs.length),
       'companies': companyIDs,
       'sitesAdmin': siteAdminIDs,
-      'sites':siteIDs,
+      'sites': siteIDs,
       'activeComponents': activeComponents
     };
   }
@@ -273,7 +273,7 @@ export default class Authorizations {
           user);
       }
 
-      const userToken = await this.buildUserToken(chargingStation.getTenantID(), user);
+      const userToken = await Authorizations.buildUserToken(chargingStation.getTenantID(), user);
       await Authorizations._checkAndGetUserOnChargingStation(
         chargingStation, userToken, isOrgCompActive, site, action);
     }
@@ -324,34 +324,6 @@ export default class Authorizations {
       user = await Authorizations.isTagIDAuthorizedOnChargingStation(chargingStation, transactionTagId, action);
     }
     return { user, alternateUser };
-  }
-
-  private static async _checkAndGetUserOnChargingStation(chargingStation: any, loggedUser: UserToken, isOrgCompActive: boolean, site: Site, action: string) {
-    // Check if User belongs to a Site ------------------------------------------
-    // Org component enabled?
-    if (isOrgCompActive) {
-      const foundUser = await SiteStorage.siteHasUser(chargingStation.getTenantID(), site.id, loggedUser.id);
-      // User not found and Access Control Enabled?
-      if (!foundUser) {
-        // Yes: Reject the User
-        throw new AppError(
-          chargingStation.getID(),
-          `User is not assigned to the site '${site.name}'!`,
-          Constants.HTTP_AUTH_USER_WITH_NO_SITE_ERROR,
-          'Authorizations', '_checkAndGetUserOnChargingStation',
-          loggedUser);
-      }
-    }
-    // Authorized?
-    if (!Authorizations.canPerformActionOnChargingStation(loggedUser, chargingStation.getModel(), action)) {
-      // Not Authorized!
-      throw new AppAuthError(
-        action,
-        Constants.ENTITY_CHARGING_STATION,
-        chargingStation.getID(),
-        Constants.HTTP_GENERAL_ERROR, 'Authorizations', '_checkAndGetUserOnChargingStation',
-        loggedUser);
-    }
   }
 
   public static canListLogging(loggedUser: UserToken): boolean {
@@ -661,6 +633,34 @@ export default class Authorizations {
 
   public static isDemo(userRole: string): boolean {
     return userRole === Constants.ROLE_DEMO;
+  }
+
+  private static async _checkAndGetUserOnChargingStation(chargingStation: any, loggedUser: UserToken, isOrgCompActive: boolean, site: Site, action: string) {
+    // Check if User belongs to a Site ------------------------------------------
+    // Org component enabled?
+    if (isOrgCompActive) {
+      const foundUser = await SiteStorage.siteHasUser(chargingStation.getTenantID(), site.id, loggedUser.id);
+      // User not found and Access Control Enabled?
+      if (!foundUser) {
+        // Yes: Reject the User
+        throw new AppError(
+          chargingStation.getID(),
+          `User is not assigned to the site '${site.name}'!`,
+          Constants.HTTP_AUTH_USER_WITH_NO_SITE_ERROR,
+          'Authorizations', '_checkAndGetUserOnChargingStation',
+          loggedUser);
+      }
+    }
+    // Authorized?
+    if (!Authorizations.canPerformActionOnChargingStation(loggedUser, chargingStation.getModel(), action)) {
+      // Not Authorized!
+      throw new AppAuthError(
+        action,
+        Constants.ENTITY_CHARGING_STATION,
+        chargingStation.getID(),
+        Constants.HTTP_GENERAL_ERROR, 'Authorizations', '_checkAndGetUserOnChargingStation',
+        loggedUser);
+    }
   }
 
   private static getUserScopes(tenantID: string, user: User, sitesAdminCount: number): ReadonlyArray<string> {

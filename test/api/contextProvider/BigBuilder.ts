@@ -1,6 +1,7 @@
 import config from '../../config';
 import faker from 'faker';
 import moment from 'moment';
+import { ObjectID } from 'mongodb';
 import CentralServerService from '../client/CentralServerService';
 import CompanyStorage from '../../../src/storage/mongodb/CompanyStorage';
 import Constants from '../../../src/utils/Constants';
@@ -9,6 +10,7 @@ import Factory from '../../factories/Factory';
 import global from '../../../src/types/GlobalType';
 import MongoDBStorage from '../../../src/storage/mongodb/MongoDBStorage';
 import Site from '../../../src/types/Site';
+import SiteArea from '../../../src/types/SiteArea';
 import SiteAreaContext from './SiteAreaContext';
 import SiteAreaStorage from '../../../src/storage/mongodb/SiteAreaStorage';
 import SiteContext from './SiteContext';
@@ -18,8 +20,6 @@ import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
 import User from '../../../src/entity/User';
 import UserFactory from '../../factories/UserFactory';
-import { ObjectID } from 'mongodb';
-import SiteArea from '../../../src/types/SiteArea';
 
 const NBR_USERS = 10; // Number of total users : they are all connected to the sites
 const NBR_COMPANIES = 5; // Number of companies
@@ -145,7 +145,7 @@ export default class ContextBuilder {
     const existingTenant = await Tenant.getTenant(tenantContextDef.id);
     if (existingTenant) {
       console.log(`Tenant ${tenantContextDef.id} already exist with name ${existingTenant.getName()}. Please run a destroy context`);
-      throw 'Tenant id exist already';
+      throw new Error('Tenant id exist already');
 
     }
     let buildTenant: any = {};
@@ -312,7 +312,7 @@ export default class ContextBuilder {
           newTenantContext.addSiteContext(siteContext);
           // Create site areas of current site
           for (let counterSiteA = 1; counterSiteA <= NBR_SITEAREAS; counterSiteA++) {
-            const siteAreaDef =     { 
+            const siteAreaDef = {
               id: new ObjectID().toHexString(),
               name: `${CONTEXTS.SITE_CONTEXTS.SITE_BASIC}-${CONTEXTS.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
               accessControl: false,

@@ -1,5 +1,5 @@
-import CreatedUpdatedProps from "./CreatedUpdatedProps";
-import Address from "./Address";
+import Address from './Address';
+import CreatedUpdatedProps from './CreatedUpdatedProps';
 
 export default interface User extends CreatedUpdatedProps {
 

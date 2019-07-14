@@ -5,7 +5,6 @@ import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import SimplePricing from '../../integration/pricing/simple-pricing/SimplePricing';
-import BBPromise from 'bluebird';
 
 const SUB_DOMAINS = ['slfcah', 'slf'];
 export default class UpdateTransactionSimplePriceTask extends MigrationTask {
@@ -52,7 +51,7 @@ export default class UpdateTransactionSimplePriceTask extends MigrationTask {
     const transactionsCollection = await global.database.getCollection<any>(tenantId, 'transactions');
     const transactions = await transactionsCollection.find().toArray();
 
-    await BBPromise.map(transactions,
+    await Promise.map(transactions,
       async (transaction) => {
         if (transaction.stop && transaction.stop.totalConsumption) {
           const updatedField = await simplePricing.computePrice({ consumption: transaction.stop.totalConsumption });
@@ -82,7 +81,7 @@ export default class UpdateTransactionSimplePriceTask extends MigrationTask {
       { $match: { transactionId: transactionId } },
       { $sort: { endedAt: 1 } }
     ]).toArray();
-    await BBPromise.map(consumptions,
+    await Promise.map(consumptions,
       async (consumption: any) => {
         const updatedField = await simplePricing.computePrice({ consumption: consumption.consumption });
         const cumulatedField = await simplePricing.computePrice({ consumption: consumption.cumulatedConsumption });

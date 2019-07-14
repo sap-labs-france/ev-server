@@ -1,7 +1,7 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import UtilsSecurity from './UtilsSecurity';
 import UserToken from '../../../../types/UserToken';
+import UtilsSecurity from './UtilsSecurity';
 
 export default class ConnectorSecurity {
   static filterConnectionDeleteRequest(request, loggedUser: UserToken) {
