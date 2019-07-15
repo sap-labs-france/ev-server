@@ -166,6 +166,7 @@
     "test:authentication": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/AuthenticationTest.ts",
     "test:createContext": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/ContextBuilderRunner.ts --exit",
     "test:createBigContext": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/BigBuilderRunner.ts --exit",
+    "test:encryptionSetting": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/EncryptionSettingTest.ts --exit",
     "clinic:clean": "clinic clean",
     "npm-check": "npm-check"
   },
