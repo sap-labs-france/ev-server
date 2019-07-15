@@ -72,5 +72,46 @@ describe('Setting tests', function() {
       const response = await testData.centralService.settingApi.readById(read.data.result[0].id);
       expect(response.status).to.equal(200);
     });
+    it('Check that changing the pricing component from simple to convergent charging back and forth works', async () => {
+      // Retrieve the setting id
+      let read = await testData.centralService.settingApi.readAll({ 'Identifier': 'pricing' }, {
+        limit: Constants.UNLIMITED,
+        skip: 0
+      });
+      expect(read.status).to.equal(200);
+      expect(read.data.count).to.equal(1);
+      // Update the setting to convergent charging
+      testData.data = JSON.parse(`{
+            "id":"${read.data.result[0].id}",
+            "identifier":"pricing",
+            "sensitiveData":["content.convergentCharging.password"],
+            "content":{
+                "type":"convergentCharging",
+                "convergentCharging":{
+                    "url":"http://test.com",
+                    "chargeableItemName":"IN",
+                    "user":"HarryPotter",
+                    "password":"Th1sI5aFakePa55*"
+                }
+            }
+        }`);
+      const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
+      expect(update.status).to.equal(200);
+      // Go back to simple pricing and check
+      testData.data = JSON.parse(`{
+        "id":"${read.data.result[0].id}",
+        "identifier":"pricing",
+        "sensitiveData":[],
+        "content":{
+          "type":"simple",
+          "simple":{
+              "price":"1",
+              "currency":"EUR"
+          }
+        }
+      }`);
+      const response = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
+      expect(response.status).to.equal(200);
+    });
   });
 });
