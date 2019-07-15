@@ -100,10 +100,9 @@ export default class TransactionStorage {
       // Parse filter the | delimiter for multiple values
       const userSplitted = params.userId.split('|');
       if(userSplitted.length > 1) {
-        const userArray = userSplitted.map((user) => {
+        match.userID = { $in: userSplitted.map((user) => {
           return Utils.convertToObjectID(user);
-        });
-        match.userID = { $in: userArray };;
+        })};
       } else {
         match.userID = Utils.convertToObjectID(params.userId);
       } 
