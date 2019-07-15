@@ -109,7 +109,7 @@ export default class WSServer extends WebSocket.Server {
     this.startListening();
   }
 
-  private startListening(): void {
+  public startListening(): void {
     // Start listening
     this.httpServer.listen(this.serverConfig.port, this.serverConfig.host, (): void => {
       // Log

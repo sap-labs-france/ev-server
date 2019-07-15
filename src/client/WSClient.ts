@@ -33,9 +33,9 @@ export default class WSClient {
   private options: any;
   private callbacks: any;
   private dbLogging: any;
-  private autoReconnectRetryCount: any;
-  private autoReconnectMaxRetries: any;
-  private autoReconnectTimeout: any;
+  private autoReconnectRetryCount: number;
+  private autoReconnectMaxRetries: number;
+  private autoReconnectTimeout: number;
   private logTenantID: any;
   private ws: WebSocket;
 
@@ -58,7 +58,7 @@ export default class WSClient {
     this.open();
   }
 
-  public open() {
+  public open(): void {
     this.ws = new WebSocket(this.url, this.options.protocols || [], this.options.WSOptions || {});
     // Handle Socket open
     this.ws.on('open', this.onOpen.bind(this));
@@ -70,7 +70,7 @@ export default class WSClient {
     this.reinstantiateCbs();
   }
 
-  public reconnect(error) {
+  public reconnect(error): void {
     if (this.autoReconnectTimeout !== Constants.WS_RECONNECT_DISABLED &&
       (this.autoReconnectRetryCount < this.autoReconnectMaxRetries || this.autoReconnectMaxRetries === Constants.WS_RECONNECT_UNLIMITED)) {
       this.autoReconnectRetryCount++;
@@ -121,7 +121,7 @@ export default class WSClient {
    * @param {Function} cb Callback which is executed when data is written out
    * @public
    */
-  public send(data, options, callback) {
+  public send(data, options?, callback?) {
     this.ws.send(data, options, callback);
   }
 
@@ -144,7 +144,7 @@ export default class WSClient {
    * @param {String} data A string explaining why the connection is closing
    * @public
    */
-  public close(code, reason) {
+  public close(code?: number, reason?) {
     return this.ws.close(code, reason);
   }
 
@@ -156,7 +156,7 @@ export default class WSClient {
    * @param {Function} cb Callback which is executed when the ping is sent
    * @public
    */
-  public ping(data, mask, callback) {
+  public ping(data?, mask?, callback?): void {
     this.ws.ping(data, mask, callback);
   }
 
@@ -168,7 +168,7 @@ export default class WSClient {
    * @param {Function} cb Callback which is executed when the pong is sent
    * @public
    */
-  public pong(data, mask, callback) {
+  public pong(data?, mask?, callback?): void {
     this.ws.pong(data, mask, callback);
   }
 
