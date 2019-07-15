@@ -113,12 +113,13 @@ export default class ChargingStationStorage {
         { tenantID, aggregation, localField: 'siteAreaID', foreignField: '_id',
           asField: 'siteArea', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy'] });
       // With sites
-      if (params.siteIDs && params.siteIDs.length > 0) {
+      if (params.siteID && params.siteID.length > 0) {
         // Build filter
+        const siteSplitted = params.siteID.split('|');
         filters.$and.push({
           'siteArea.siteID': {
-            $in: params.siteIDs.map((siteID) => {
-              return Utils.convertToObjectID(siteID);
+            $in: siteSplitted.map((site) => {
+              return Utils.convertToObjectID(site);
             })
           }
         });
@@ -276,8 +277,6 @@ export default class ChargingStationStorage {
       DatabaseUtils.pushSiteAreaLookupInAggregation(
         { tenantID, aggregation: siteAreaIdJoin, localField: 'siteAreaID', foreignField: '_id',
           asField: 'siteArea', oneToOneCardinality: true });
-          console.log(`>>> siteAreaIdJoin:${JSON.stringify(siteAreaIdJoin)}`);
-
     }
     // Check Site ID
     if (params.siteID) {
@@ -293,7 +292,6 @@ export default class ChargingStationStorage {
       DatabaseUtils.pushSiteLookupInAggregation(
         { tenantID, aggregation: siteAreaJoin, localField: 'siteArea.siteID', foreignField: '_id',
           asField: 'site', oneToOneCardinality: true });
-          console.log(`>>> siteAreaJoin:${JSON.stringify(siteAreaJoin)}`);
     }
     // Charger
     if (params.chargeBoxID) {
@@ -402,7 +400,6 @@ export default class ChargingStationStorage {
       })
       .toArray();
     const chargingStations = [];
-    console.log(`>>> result:${JSON.stringify(chargingStationsFacetMDB)}`);
     // Create
     for (const chargingStationMDB of chargingStationsFacetMDB) {
       // Create the Charger

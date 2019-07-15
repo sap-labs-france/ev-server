@@ -474,7 +474,7 @@ export default class ChargingStationService {
           'search': filteredRequest.Search,
           'withNoSiteArea': filteredRequest.WithNoSiteArea,
           'withSite': filteredRequest.WithSite,
-          'siteIDs': (filteredRequest.SiteID ? [filteredRequest.SiteID] : Authorizations.getAuthorizedSiteIDs(req.user)),
+          'siteID': (filteredRequest.SiteID ? filteredRequest.SiteID : Authorizations.getAuthorizedSiteIDs(req.user).join("|")),
           'chargeBoxID': filteredRequest.ChargeBoxID,
           'siteAreaID': filteredRequest.SiteAreaID,
           'includeDeleted': filteredRequest.IncludeDeleted,
