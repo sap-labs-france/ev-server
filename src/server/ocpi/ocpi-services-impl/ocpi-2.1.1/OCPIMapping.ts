@@ -1,11 +1,8 @@
-import SourceMap from 'source-map-support';
 import Constants from '../../../../utils/Constants';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
-
-SourceMap.install();
 
 /**
  * OCPI Mapping 2.1.1 - Mapping class

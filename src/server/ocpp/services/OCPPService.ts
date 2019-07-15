@@ -1,5 +1,4 @@
 import momentDurationFormatSetup from 'moment-duration-format'; // TODO: what?
-import SourceMap from 'source-map-support';
 import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
 import ChargingStation from '../../../entity/ChargingStation';
@@ -16,8 +15,6 @@ import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Transaction from '../../../entity/Transaction';
 import User from '../../../entity/User';
 import Utils from '../../../utils/Utils';
-
-SourceMap.install();
 
 // FIXME
 const moment = require('moment');

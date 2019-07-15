@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import SourceMap from 'source-map-support';
 import AbstractEndpoint from './ocpi-services-impl/AbstractEndpoint';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
@@ -7,8 +6,6 @@ import Logging from '../../utils/Logging';
 import OCPIServerError from '../../exception/OCPIServerError';
 import OCPIUtils from './OCPIUtils';
 import Tenant from '../../entity/Tenant';
-
-SourceMap.install();
 
 const MODULE_NAME = 'AbstractOCPIService';
 export interface TenantIdHoldingRequest extends Request {

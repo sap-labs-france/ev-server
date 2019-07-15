@@ -1,8 +1,5 @@
-import SourceMap from 'source-map-support';
 import Constants from '../../utils/Constants';
 import OCPPService from './services/OCPPService';
-
-SourceMap.install();
 
 export default class CentralSystemServer {
   protected centralSystemConfig: any;

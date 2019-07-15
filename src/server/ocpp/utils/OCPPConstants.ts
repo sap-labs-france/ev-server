@@ -1,6 +1,3 @@
-import SourceMap from 'source-map-support';
-
-SourceMap.install();
 
 const OCPPConstants = {
   DEFAULT_OCPP_CONFIGURATION: {
