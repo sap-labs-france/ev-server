@@ -118,7 +118,7 @@ export default class DataHelper {
     }
   }
 
-  public async close() {
+  public close() {
     if (this.ocpp && this.ocpp.closeConnection) {
       this.ocpp.closeConnection();
     }
