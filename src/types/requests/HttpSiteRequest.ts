@@ -26,6 +26,7 @@ export interface HttpSiteUserAdminRequest {
 }
 
 export interface HttpSiteUsersRequest extends HttpDatabaseRequest {
+  Search: string;
   SiteID: string;
 }
 

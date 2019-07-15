@@ -741,7 +741,7 @@ export default class UserStorage {
   }
 
   static async getSites(tenantID,
-    params: { userID: string; siteAdmin?: boolean; onlyRecordCount?: boolean },
+    params: { search?: string; userID: string; siteAdmin?: boolean; onlyRecordCount?: boolean },
     dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: SiteUser[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getSites');
@@ -751,23 +751,35 @@ export default class UserStorage {
     const limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
+    // Set the filters
+    const filters: any = {};
     // Filter
-    const filter: any = {
-      userID: Utils.convertToObjectID(params.userID)
-    };
+    if (params.userID) {
+      filters.userID = Utils.convertToObjectID(params.userID);
+    }
     if ('siteAdmin' in params) {
-      filter.siteAdmin = params.siteAdmin;
+      filters.siteAdmin = params.siteAdmin;
     }
     // Create Aggregation
     const aggregation: any[] = [];
     // Filter
     aggregation.push({
-      $match: filter
+      $match: filters
     });
     // Get Sites
     DatabaseUtils.pushSiteLookupInAggregation(
       { tenantID, aggregation, localField: 'siteID', foreignField: '_id',
         asField: 'site', oneToOneCardinality: true, oneToOneCardinalityNotNull: true });
+    // Another match for searching on Sites
+    if (params.search) {
+      aggregation.push({
+        $match: {
+          $or: [
+            { 'site.name': { $regex: params.search, $options: 'i' } }
+          ]
+        }
+      });
+    }
     // Convert IDs to String
     DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
     DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
@@ -796,7 +808,7 @@ export default class UserStorage {
       });
     } else {
       aggregation.push({
-        $sort: { 'sites.name': 1 }
+        $sort: { 'site.name': 1 }
       });
     }
     // Skip

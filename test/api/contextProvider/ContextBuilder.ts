@@ -204,11 +204,9 @@ export default class ContextBuilder {
       createUser.role = userDef.role;
       createUser.status = userDef.status;
       createUser.id = userDef.id;
-      if (userDef.tagIDs) {
-        createUser.tagIDs = userDef.tagIDs;
-      }
+      createUser.tagIDs = userDef.tagIDs;
       const user = new User(buildTenant.id, createUser);
-      user.save();
+      await user.save();
       if (userDef.assignedToSite) {
         userListToAssign.push(user.getModel());
       }
@@ -287,17 +285,27 @@ export default class ContextBuilder {
       return chargingStation.siteAreaNames === null;
     });
     // Create Charging Station for site area
+    const siteContext = new SiteContext({ id: 1, name: CONTEXTS.SITE_CONTEXTS.NO_SITE }, newTenantContext);
+    const emptySiteAreaContext = siteContext.addSiteArea({ id: 1, name: CONTEXTS.SITE_AREA_CONTEXTS.NO_SITE });
     for (const chargingStationDef of relevantCS) {
       const chargingStationTemplate = Factory.chargingStation.build();
       chargingStationTemplate.id = chargingStationDef.baseName;
       console.log(chargingStationTemplate.id);
-      await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, null);
+      const newChargingStationContext = await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, null);
+      emptySiteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
     }
-    // pragma await newTenantContext.close();
-    // Create transaction/session data for a specific tenant and context:
-    if (tenantContextDef.tenantName === CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS) {
-      const statisticContext = new StatisticsContext(newTenantContext);
-      // pragma await statisticContext.createTestData(CONTEXTS.SITE_CONTEXTS.SITE_BASIC, CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
+    newTenantContext.addSiteContext(siteContext);
+    // Create transaction/session data for a specific tenants:
+    const statisticContext = new StatisticsContext(newTenantContext);
+    switch (tenantContextDef.tenantName) {
+      case CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS:
+        console.log(`Create transactions for chargers of site area ${CONTEXTS.SITE_CONTEXTS.SITE_BASIC}-${CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL}`);
+        await statisticContext.createTestData(CONTEXTS.SITE_CONTEXTS.SITE_BASIC, CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
+        break;
+      case CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS:
+        console.log('Create transactions for unassigned chargers');
+        await statisticContext.createTestData(CONTEXTS.SITE_CONTEXTS.NO_SITE, CONTEXTS.SITE_AREA_CONTEXTS.NO_SITE);
+        break;
     }
     return newTenantContext;
   }

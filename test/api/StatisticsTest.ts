@@ -5,8 +5,6 @@ import responseHelper from '../helpers/responseHelper';
 import CentralServerService from '../api/client/CentralServerService';
 import CONTEXTS from './contextProvider/ContextConstants';
 import ContextProvider from './contextProvider/ContextProvider';
-
-import ContextBuilder from './contextProvider/ContextBuilder';
 import StatisticsContext from './contextProvider/StatisticsContext';
 import StatisticsApi from './client/StatisticsApi';
 
@@ -36,14 +34,8 @@ describe('Statistics tests', function() {
   let expectedUsage = 0;
   let expectedInactivity = 0;
 
-  let statisticsContext: StatisticsContext;
-
   before(async () => {
     chai.config.includeStack = true;
-
-    // Build context here (for debugging):
-    const contextBuilder = new ContextBuilder();
-    // pragma await contextBuilder.prepareContexts();
 
     // Prepare data before the whole test chain is started
     await ContextProvider.DefaultInstance.prepareContexts();
@@ -66,18 +58,16 @@ describe('Statistics tests', function() {
       firstYear = allYears.data[0];
     }
 
-    numberOfChargers = StatisticsContext.CHARGING_STATIONS.length;
+    // Chargers of only one site area are used for generating transaction data:
+    const siteContextAll = tenantContextAll.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_BASIC);
+    const siteAreaContextAll = siteContextAll.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
+    const chargingStationsAll = siteAreaContextAll.getChargingStations();
+    numberOfChargers = chargingStationsAll.length;
+
     numberOfUsers = StatisticsContext.USERS.length;
     expectedConsumption = StatisticsContext.CONSTANTS.ENERGY_PER_MINUTE * StatisticsContext.CONSTANTS.CHARGING_MINUTES / 1000;
     expectedUsage = (StatisticsContext.CONSTANTS.CHARGING_MINUTES + StatisticsContext.CONSTANTS.IDLE_MINUTES) / 60;
     expectedInactivity = StatisticsContext.CONSTANTS.IDLE_MINUTES / 60;
-
-    if (!numberOfYears) {
-      // Create transaction data here (if not done in contextBuilder)
-      statisticsContext = new StatisticsContext(tenantContextAll);
-      numberOfYears = StatisticsContext.CONSTANTS.TRANSACTION_YEARS;
-      firstYear = await statisticsContext.createTestData(CONTEXTS.SITE_CONTEXTS.SITE_BASIC, CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
-    }
   });
 
   afterEach(() => {
@@ -370,8 +360,8 @@ describe('Statistics tests', function() {
   });
 });
 
-function timeout(ms) {
-  return new Promise((resolve) => {
+async function timeout(ms) {
+  return await new Promise((resolve) => {
     return setTimeout(resolve, ms);
   });
 }
