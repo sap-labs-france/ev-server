@@ -45,7 +45,7 @@ describe('OCPP Tests', function() {
     // ContextProvider.cleanUpCreatedContent();
   });
 
-  describe('Tenant context with all components', () => {
+  describe('With all activated components (tenant ut-all)', () => {
 
     before(async () => {
       testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
@@ -55,7 +55,7 @@ describe('OCPP Tests', function() {
       expect(testData.siteAreaContext).to.exist;
     });
 
-    describe('OCPP 1.5 Tests', () => {
+    describe('With OCPP 1.5', () => {
 
       before(() => {
         testData.chargingStationContextAssigned = testData.siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
@@ -64,44 +64,74 @@ describe('OCPP Tests', function() {
         expect(testData.chargingStationContextUnassigned).to.exist;
       });
 
-      describe('Basic User', () => {
+      describe('Where basic user', () => {
 
         before(() => {
           testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
           expect(testData.userContext).to.exist;
         });
 
-        it('Should authorize Transaction if the Charger is assigned to a Site Area', async () => {
+        it('Should authorize transaction if the charger is assigned to a site area', async () => {
           const response = await testData.chargingStationContextAssigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
           expect(response).to.be.transactionValid;
         });
 
-        it('Should not authorize Transaction if the Charger is not assigned to a Site Area', async () => {
+        it('Should not authorize transaction if the charger is not assigned to a site area', async () => {
           const response = await testData.chargingStationContextUnassigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
           expect(response).to.be.transactionStatus('Invalid');
         });
       });
 
-      describe('Admin User', () => {
+      describe('Where unassigned basic user', () => {
+
+        before(() => {
+          testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED);
+          expect(testData.userContext).to.exist;
+        });
+
+        it('Should not authorize transaction', async () => {
+          const response1 = await testData.chargingStationContextAssigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
+          expect(response1).to.be.transactionStatus('Invalid');
+          const response2 = await testData.chargingStationContextUnassigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
+          expect(response2).to.be.transactionStatus('Invalid');
+        });
+      });
+
+      describe('Where admin user', () => {
 
         before(() => {
           testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
           expect(testData.userContext).to.exist;
         });
 
-        it('Should authorize Transaction if the Charger is assigned to a Site Area', async () => {
+        it('Should authorize transaction if the charger is assigned to a site area', async () => {
           const response = await testData.chargingStationContextAssigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
           expect(response).to.be.transactionValid;
         });
 
-        it('Should not authorize Transaction if the Charger is not assigned to a Site Area', async () => {
+        it('Should not authorize transaction if the charger is not assigned to a site area', async () => {
           const response = await testData.chargingStationContextUnassigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
           expect(response).to.be.transactionStatus('Invalid');
         });
       });
+
+      describe('Where unassigned admin user', () => {
+
+        before(() => {
+          testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.ADMIN_UNASSIGNED);
+          expect(testData.userContext).to.exist;
+        });
+
+        it('Should not authorize transaction', async () => {
+          const response1 = await testData.chargingStationContextAssigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
+          expect(response1).to.be.transactionStatus('Invalid');
+          const response2 = await testData.chargingStationContextUnassigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
+          expect(response2).to.be.transactionStatus('Invalid');
+        });
+      });
     });
 
-    describe('OCPP 1.6 Tests', () => {
+    describe('With OCPP 1.6', () => {
 
       before(() => {
         testData.chargingStationContextAssigned = testData.siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
@@ -110,45 +140,75 @@ describe('OCPP Tests', function() {
         expect(testData.chargingStationContextUnassigned).to.exist;
       });
 
-      describe('Basic User', () => {
+      describe('Where basic user', () => {
 
         before(() => {
           testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
           expect(testData.userContext).to.exist;
         });
 
-        it('Should authorize Transaction if the Charger is assigned to a Site Area', async () => {
+        it('Should authorize transaction if the charger is assigned to a site area', async () => {
           const response = await testData.chargingStationContextAssigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
           expect(response).to.be.transactionValid;
         });
 
-        it('Should not authorize Transaction if the Charger is not assigned to a Site Area', async () => {
+        it('Should not authorize transaction if the charger is not assigned to a site area', async () => {
           const response = await testData.chargingStationContextUnassigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
           expect(response).to.be.transactionStatus('Invalid');
         });
       });
 
-      describe('Admin User', () => {
+      describe('Where unassigned basic user', () => {
+
+        before(() => {
+          testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED);
+          expect(testData.userContext).to.exist;
+        });
+
+        it('Should not authorize transaction', async () => {
+          const response1 = await testData.chargingStationContextAssigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
+          expect(response1).to.be.transactionStatus('Invalid');
+          const response2 = await testData.chargingStationContextUnassigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
+          expect(response2).to.be.transactionStatus('Invalid');
+        });
+      });
+
+      describe('Where admin user', () => {
 
         before(() => {
           testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
           expect(testData.userContext).to.exist;
         });
 
-        it('Should authorize Transaction if the Charger is assigned to a Site Area', async () => {
+        it('Should authorize transaction if the charger is assigned to a site area', async () => {
           const response = await testData.chargingStationContextAssigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
           expect(response).to.be.transactionValid;
         });
 
-        it('Should not authorize Transaction if the Charger is not assigned to a Site Area', async () => {
+        it('Should not authorize transaction if the charger is not assigned to a site area', async () => {
           const response = await testData.chargingStationContextUnassigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
           expect(response).to.be.transactionStatus('Invalid');
+        });
+      });
+
+      describe('Where unassigned admin user', () => {
+
+        before(() => {
+          testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.ADMIN_UNASSIGNED);
+          expect(testData.userContext).to.exist;
+        });
+
+        it('Should not authorize transaction', async () => {
+          const response1 = await testData.chargingStationContextAssigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
+          expect(response1).to.be.transactionStatus('Invalid');
+          const response2 = await testData.chargingStationContextUnassigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
+          expect(response2).to.be.transactionStatus('Invalid');
         });
       });
     });
   });
 
-  describe('Tenant context with only Organization Component', () => {
+  describe('With organization component only (tenant ut-org)', () => {
 
     before(async () => {
       testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION);
@@ -158,7 +218,7 @@ describe('OCPP Tests', function() {
       expect(testData.siteAreaContext).to.exist;
     });
 
-    describe('OCPP 1.5 Tests', () => {
+    describe('With OCPP 1.5', () => {
 
       before(() => {
         testData.chargingStationContextAssigned = testData.siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
@@ -167,44 +227,74 @@ describe('OCPP Tests', function() {
         expect(testData.chargingStationContextUnassigned).to.exist;
       });
 
-      describe('Basic User', () => {
+      describe('Where basic user', () => {
 
         before(() => {
           testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
           expect(testData.userContext).to.exist;
         });
 
-        it('Should authorize Transaction if the Charger is assigned to a Site Area', async () => {
+        it('Should authorize transaction if the charger is assigned to a site area', async () => {
           const response = await testData.chargingStationContextAssigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
           expect(response).to.be.transactionValid;
         });
 
-        it('Should not authorize Transaction if the Charger is not assigned to a Site Area', async () => {
+        it('Should not authorize transaction if the charger is not assigned to a site area', async () => {
           const response = await testData.chargingStationContextUnassigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
           expect(response).to.be.transactionStatus('Invalid');
         });
       });
 
-      describe('Admin User', () => {
+      describe('Where unassigned basic user', () => {
+
+        before(() => {
+          testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED);
+          expect(testData.userContext).to.exist;
+        });
+
+        it('Should not authorize transaction', async () => {
+          const response1 = await testData.chargingStationContextAssigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
+          expect(response1).to.be.transactionStatus('Invalid');
+          const response2 = await testData.chargingStationContextUnassigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
+          expect(response2).to.be.transactionStatus('Invalid');
+        });
+      });
+
+      describe('Where admin user', () => {
 
         before(() => {
           testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
           expect(testData.userContext).to.exist;
         });
 
-        it('Should authorize Transaction if the Charger is assigned to a Site Area', async () => {
+        it('Should authorize transaction if the charger is assigned to a site area', async () => {
           const response = await testData.chargingStationContextAssigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
           expect(response).to.be.transactionValid;
         });
 
-        it('Should not authorize Transaction if the Charger is not assigned to a Site Area', async () => {
+        it('Should not authorize transaction if the charger is not assigned to a site area', async () => {
           const response = await testData.chargingStationContextUnassigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
           expect(response).to.be.transactionStatus('Invalid');
         });
       });
+
+      describe('Where unassigned admin user', () => {
+
+        before(() => {
+          testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.ADMIN_UNASSIGNED);
+          expect(testData.userContext).to.exist;
+        });
+
+        it('Should not authorize transaction', async () => {
+          const response1 = await testData.chargingStationContextAssigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
+          expect(response1).to.be.transactionStatus('Invalid');
+          const response2 = await testData.chargingStationContextUnassigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
+          expect(response2).to.be.transactionStatus('Invalid');
+        });
+      });
     });
 
-    describe('OCPP 1.6 Tests', () => {
+    describe('With OCPP 1.6', () => {
 
       before(() => {
         testData.chargingStationContextAssigned = testData.siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
@@ -213,115 +303,145 @@ describe('OCPP Tests', function() {
         expect(testData.chargingStationContextUnassigned).to.exist;
       });
 
-      describe('Basic User', () => {
+      describe('Where basic user', () => {
 
         before(() => {
           testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
           expect(testData.userContext).to.exist;
         });
 
-        it('Should authorize Transaction if the Charger is assigned to a Site Area', async () => {
+        it('Should authorize transaction if the charger is assigned to a site area', async () => {
           const response = await testData.chargingStationContextAssigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
           expect(response).to.be.transactionValid;
         });
 
-        it('Should not authorize Transaction if the Charger is not assigned to a Site Area', async () => {
+        it('Should not authorize transaction if the charger is not assigned to a site area', async () => {
           const response = await testData.chargingStationContextUnassigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
           expect(response).to.be.transactionStatus('Invalid');
         });
       });
 
-      describe('Admin User', () => {
+      describe('Where unassigned basic user', () => {
+
+        before(() => {
+          testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED);
+          expect(testData.userContext).to.exist;
+        });
+
+        it('Should not authorize transaction', async () => {
+          const response1 = await testData.chargingStationContextAssigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
+          expect(response1).to.be.transactionStatus('Invalid');
+          const response2 = await testData.chargingStationContextUnassigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
+          expect(response2).to.be.transactionStatus('Invalid');
+        });
+      });
+
+      describe('Where admin user', () => {
 
         before(() => {
           testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
           expect(testData.userContext).to.exist;
         });
 
-        it('Should authorize Transaction if the Charger is assigned to a Site Area', async () => {
+        it('Should authorize transaction if the charger is assigned to a site area', async () => {
           const response = await testData.chargingStationContextAssigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
           expect(response).to.be.transactionValid;
         });
 
-        it('Should not authorize Transaction if the Charger is not assigned to a Site Area', async () => {
+        it('Should not authorize transaction if the charger is not assigned to a site area', async () => {
           const response = await testData.chargingStationContextUnassigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
           expect(response).to.be.transactionStatus('Invalid');
+        });
+      });
+
+      describe('Where unassigned admin user', () => {
+
+        before(() => {
+          testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.ADMIN_UNASSIGNED);
+          expect(testData.userContext).to.exist;
+        });
+
+        it('Should not authorize transaction', async () => {
+          const response1 = await testData.chargingStationContextAssigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
+          expect(response1).to.be.transactionStatus('Invalid');
+          const response2 = await testData.chargingStationContextUnassigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
+          expect(response2).to.be.transactionStatus('Invalid');
         });
       });
     });
   });
 
-  describe('Tenant context with no Component', () => {
+  describe('Without component (tenant ut-nothing)', () => {
 
     before(async () => {
       testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS);
       expect(testData.tenantContext).to.exist;
     });
 
-    describe('OCPP 1.5 Tests', () => {
+    describe('With OCPP 1.5', () => {
 
       before(() => {
         testData.chargingStationContextUnassigned = testData.tenantContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP15);
         expect(testData.chargingStationContextUnassigned).to.exist;
       });
 
-      describe('Basic User', () => {
+      describe('Where basic user', () => {
 
         before(() => {
-          testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+          testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED);
           expect(testData.userContext).to.exist;
         });
 
-        it('Should authorize Transaction if the Charger is not assigned to a Site Area', async () => {
-          const response = await testData.chargingStationContextUnassigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
-          expect(response).to.be.transactionValid;
+        it('Should authorize transaction', async () => {
+          const response2 = await testData.chargingStationContextUnassigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
+          expect(response2).to.be.transactionValid;
         });
       });
 
-      describe('Admin User', () => {
+      describe('Where admin user', () => {
 
         before(() => {
-          testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+          testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.ADMIN_UNASSIGNED);
           expect(testData.userContext).to.exist;
         });
 
-        it('Should authorize Transaction if the Charger is not assigned to a Site Area', async () => {
-          const response = await testData.chargingStationContextUnassigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
-          expect(response).to.be.transactionValid;
+        it('Should authorize transaction', async () => {
+          const response2 = await testData.chargingStationContextUnassigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
+          expect(response2).to.be.transactionValid;
         });
       });
     });
 
-    describe('OCPP 1.6 Tests', () => {
+    describe('With OCPP 1.6', () => {
 
       before(() => {
         testData.chargingStationContextUnassigned = testData.tenantContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.UNASSIGNED_OCPP16);
         expect(testData.chargingStationContextUnassigned).to.exist;
       });
 
-      describe('Basic User', () => {
+      describe('Where basic user', () => {
 
         before(() => {
-          testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+          testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED);
           expect(testData.userContext).to.exist;
         });
 
-        it('Should authorize Transaction if the Charger is not assigned to a Site Area', async () => {
-          const response = await testData.chargingStationContextUnassigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
-          expect(response).to.be.transactionValid;
+        it('Should authorize transaction', async () => {
+          const response2 = await testData.chargingStationContextUnassigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
+          expect(response2).to.be.transactionValid;
         });
       });
 
-      describe('Admin User', () => {
+      describe('Where admin user', () => {
 
         before(() => {
-          testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+          testData.userContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.ADMIN_UNASSIGNED);
           expect(testData.userContext).to.exist;
         });
 
-        it('Should authorize Transaction if the Charger is not assigned to a Site Area', async () => {
-          const response = await testData.chargingStationContextUnassigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
-          expect(response).to.be.transactionValid;
+        it('Should authorize transaction', async () => {
+          const response2 = await testData.chargingStationContextUnassigned.startTransaction(1, testData.userContext.tagIDs[0], 0, moment());
+          expect(response2).to.be.transactionValid;
         });
       });
     });
