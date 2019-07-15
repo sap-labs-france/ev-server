@@ -51,7 +51,7 @@ export default {
 
             default:
               // Delegate
-              await UtilsService.handleUnknownAction(action, req, res, next);
+              UtilsService.handleUnknownAction(action, req, res, next);
           }
           break;
 
@@ -62,7 +62,7 @@ export default {
             // Log out
             case 'Logout':
               // Delegate
-              await AuthService.handleUserLogOut(action, req, res, next);
+              AuthService.handleUserLogOut(action, req, res, next);
               break;
 
             // End-user license agreement
@@ -79,7 +79,7 @@ export default {
 
             default:
               // Delegate
-              await UtilsService.handleUnknownAction(action, req, res, next);
+              UtilsService.handleUnknownAction(action, req, res, next);
           }
           break;
       }

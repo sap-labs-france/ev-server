@@ -42,10 +42,10 @@ export default class Authorizations {
       user,
       chargingStation.getModel(),
       Constants.ACTION_REMOTE_START_TRANSACTION)) {
-      // ꓘO
+      // Ko
       return false;
     }
-    // OK
+    // Ok
     return true;
   }
 
