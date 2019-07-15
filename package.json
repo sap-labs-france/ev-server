@@ -163,6 +163,7 @@
     "test:stat": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/StatisticsTest.ts",
     "test:auth": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/AuthenticationTest.ts",
     "test:ocpp16": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/OCPPJson16Test.ts",
+    "test:newocpp": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/OCPPNewTest.ts",
     "test:authentication": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/AuthenticationTest.ts",
     "test:createContext": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/ContextBuilderRunner.ts --exit",
     "test:createBigContext": "cross-env TS_NODE_PROJECT=tsconfig-test.json TS_NODE_FILES=true mocha test/**/BigBuilderRunner.ts --exit",
