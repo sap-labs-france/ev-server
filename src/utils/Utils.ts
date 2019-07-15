@@ -5,7 +5,6 @@ import fs from 'fs';
 import _ from 'lodash';
 import { ObjectID } from 'mongodb';
 import path from 'path';
-import SourceMap from 'source-map-support';
 import url from 'url';
 import uuidV4 from 'uuid/v4';
 import BackendError from '../exception/BackendError';
@@ -15,8 +14,6 @@ import Logging from './Logging';
 import Tenant from '../entity/Tenant';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import User from '../types/User';
-
-SourceMap.install();
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];

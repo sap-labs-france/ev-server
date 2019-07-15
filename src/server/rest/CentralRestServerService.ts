@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from 'express';
-import SourceMap from 'source-map-support';
 import AuthService from './service/AuthService';
 import ChargingStationService from './service/ChargingStationService';
 import CompanyService from './service/CompanyService';
@@ -20,9 +19,6 @@ import UserService from './service/UserService';
 import UtilsService from './service/UtilsService';
 import VehicleManufacturerService from './service/VehicleManufacturerService';
 import VehicleService from './service/VehicleService';
-
-SourceMap.install();
-
 class RequestMapper {
   private static instances = new Map<string, RequestMapper>();
 

@@ -10,7 +10,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
   private serverURL: any;
   private chargingStation: any;
   private requests: any;
-  private wsConnection: any;
+  private wsConnection: WSClient;
 
   constructor(chargingStation) {
     super();

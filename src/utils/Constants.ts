@@ -1,6 +1,3 @@
-import SourceMap from 'source-map-support';
-
-SourceMap.install();
 
 export default {
   HTTP_GENERAL_ERROR: 500,

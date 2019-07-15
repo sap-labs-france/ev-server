@@ -1,6 +1,5 @@
 import * as moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
-import SourceMap from 'source-map-support';
 import tzlookup from 'tz-lookup';
 import BackendError from '../exception/BackendError';
 import buildChargingStationClient from '../client/ocpp/ChargingStationClientFactory';
@@ -21,7 +20,6 @@ import Transaction from './Transaction';
 import User from '../types/User';
 import Utils from '../utils/Utils';
 
-SourceMap.install();
 momentDurationFormatSetup(moment);
 
 export default class ChargingStation extends TenantHolder {

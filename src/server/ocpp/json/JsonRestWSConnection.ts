@@ -7,7 +7,6 @@ import WSConnection from './WSConnection';
 
 const MODULE_NAME = 'JsonRestWSConnection';
 export default class JsonRestWSConnection extends WSConnection {
-
   public getTenantID: any;
   public getChargingStationID: any;
   public getIP: any;

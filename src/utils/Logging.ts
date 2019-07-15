@@ -3,7 +3,6 @@ import cfenv from 'cfenv';
 import cluster from 'cluster';
 import os from 'os';
 import { PerformanceObserver, performance } from 'perf_hooks';
-import SourceMap from 'source-map-support';
 import uuid from 'uuid/v4';
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
@@ -17,8 +16,6 @@ import NotFoundError from '../exception/NotFoundError';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
 import Utils from './Utils';
-
-SourceMap.install();
 
 const _loggingConfig = Configuration.getLoggingConfig();
 let _traceStatistics = null;

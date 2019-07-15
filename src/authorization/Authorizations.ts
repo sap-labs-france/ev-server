@@ -1,4 +1,3 @@
-import SourceMap from 'source-map-support';
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
 import AuthorizationsDefinition from './AuthorizationsDefinition';
@@ -20,8 +19,6 @@ import UserService from '../server/rest/service/UserService';
 import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
 import Utils from '../utils/Utils';
-
-SourceMap.install();
 
 export default class Authorizations {
 
