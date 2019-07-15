@@ -321,19 +321,19 @@ describe('Statistics tests', function() {
       });
 
       it('Should be able to export own usage data to file', async () => {
-        let basicUserListResponse = await basicUserServerService.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Usage', DataCategory: 'C', DataScope: 'month' });
+        let basicUserListResponse = await basicUserServerService.statisticsApi.exportStatistics({ DataType: 'Usage', DataCategory: 'C', DataScope: 'total' });
         expect(basicUserListResponse.status).to.be.eql(200);
         expect(basicUserListResponse.data,
-          `Query response for year ${firstYear} on data per charging station should not be empty`
+          'Query response for all years on data per charging station should not be empty'
         ).not.to.be.empty;
         let objectArray = StatisticsApi.convertExportFileToObjectArray(basicUserListResponse.data);
         expect(objectArray.length,
           `Number of exported chargers should be ${numberOfChargers}`
         ).to.be.eql(numberOfChargers);
-        basicUserListResponse = await basicUserServerService.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Usage', DataCategory: 'U', DataScope: 'total' });
+        basicUserListResponse = await basicUserServerService.statisticsApi.exportStatistics({ DataType: 'Usage', DataCategory: 'U', DataScope: 'total' });
         expect(basicUserListResponse.status).to.be.eql(200);
         expect(basicUserListResponse.data,
-          `Query response for year ${firstYear} on data per user should not be empty`
+          'Query response for all years on data per user should not be empty'
         ).not.to.be.empty;
         objectArray = StatisticsApi.convertExportFileToObjectArray(basicUserListResponse.data);
         expect(objectArray.length,
@@ -419,19 +419,19 @@ describe('Statistics tests', function() {
       });
 
       it('Should be able to export inactivity data to file for all users', async () => {
-        let demoUserListResponse = await demoUserServerService.statisticsApi.exportStatistics({ DataType: 'Inactivity', DataCategory: 'C', DataScope: 'total' });
+        let demoUserListResponse = await demoUserServerService.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Inactivity', DataCategory: 'C', DataScope: 'total' });
         expect(demoUserListResponse.status).to.be.eql(200);
         expect(demoUserListResponse.data,
-          'Query response for all years on data per charging station should not be empty'
+          `Query response for year ${firstYear} on data per charging station should not be empty`
         ).not.to.be.empty;
         let objectArray = StatisticsApi.convertExportFileToObjectArray(demoUserListResponse.data);
         expect(objectArray.length,
           `Number of exported chargers should be ${numberOfChargers}`
         ).to.be.eql(numberOfChargers);
-        demoUserListResponse = await demoUserServerService.statisticsApi.exportStatistics({ DataType: 'Inactivity', DataCategory: 'U', DataScope: 'total' });
+        demoUserListResponse = await demoUserServerService.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Inactivity', DataCategory: 'U', DataScope: 'month' });
         expect(demoUserListResponse.status).to.be.eql(200);
         expect(demoUserListResponse.data,
-          'Query response for all years on data per user should not be empty'
+          `Query response for year ${firstYear} on data per user should not be empty`
         ).not.to.be.empty;
         objectArray = StatisticsApi.convertExportFileToObjectArray(demoUserListResponse.data);
         expect(objectArray.length,
