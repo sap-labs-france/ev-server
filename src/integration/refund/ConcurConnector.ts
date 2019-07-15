@@ -1,5 +1,3 @@
-// FIXME: Temporary workaround until the bluebird global import issue is sorted out
-import BBPromise from 'bluebird';
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
 import jwt from 'jsonwebtoken';
@@ -236,7 +234,7 @@ export default class ConcurConnector extends AbstractConnector {
       expenseReportId = await this.createExpenseReport(connection, transactions[0].getTimezone(), user);
     }
 
-    await BBPromise.map(transactions,
+    await Promise.map(transactions,
       async (transaction: Transaction) => {
         try {
           const chargingStation = await ChargingStation.getChargingStation(transaction.getTenantID(), transaction.getChargeBoxID());

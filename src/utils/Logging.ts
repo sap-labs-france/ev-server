@@ -408,7 +408,7 @@ export default class Logging {
     // Module Provided?
     if (log.module && _loggingConfig.moduleDetails) {
       // Yes: Check the Module
-      if (_loggingConfig.moduleDetails.log &&_loggingConfig.moduleDetails.log.module) {
+      if (_loggingConfig.moduleDetails.log && _loggingConfig.moduleDetails.log.module) {
         // Get Modules Config
         moduleConfig = _loggingConfig.moduleDetails[log.module];
         // Check Module Log Level

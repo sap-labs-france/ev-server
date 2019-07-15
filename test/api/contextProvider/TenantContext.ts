@@ -8,6 +8,7 @@ import OCPPJsonService16 from '../ocpp/json/OCPPJsonService16';
 import OCPPJsonService15 from '../ocpp/soap/OCPPSoapService15';
 import SiteAreaContext from './SiteAreaContext';
 import SiteContext from './SiteContext';
+import chai, { expect } from 'chai';
 
 export default class TenantContext {
 
@@ -215,6 +216,10 @@ export default class TenantContext {
   }), connectorsDef = null, siteArea = null) {
     const response = await this.getOCPPService(ocppVersion).executeBootNotification(
       chargingStation.id, chargingStation);
+    // Check
+    expect(response.data).to.not.be.null;
+    expect(response.data.status).to.eql('Accepted');
+    expect(response.data).to.have.property('currentTime');
     const createdChargingStation = await this.getAdminCentralServerService().getEntityById(
       this.getAdminCentralServerService().chargingStationApi, chargingStation);
     chargingStation.connectors = [];

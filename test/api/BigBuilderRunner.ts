@@ -23,18 +23,18 @@ describe('Big Builder', function() {
     console.log('unit test context initialized');
   });
 
-  afterEach(async () => {
+  afterEach(async function() {
     // pragma console.log('Reinitialize content after each test');
     // await ContextBuilder.initializeAllTenantContents(); //.then(() => done());
   });
 
-  after(async () => {
+  after(async function() {
     // pragma console.log('Reinitialize content after complete test scenario');
     // await ContextBuilder.initializeAllTenantContents();
   });
 
   describe('Big builder test case', () => {
-    it('Builder dummy test', async () => {
+    it('Builder dummy test', () => {
       const test = 2;
       // pragma const adminUser = this.tenantContextAll.getUserContext(null, 'florent.pernice@sap.com');
       // startTransaction(chargingStation, connectorId, tagId, meterStart, startDate, expectedStatus = 'Accepted')
@@ -47,9 +47,3 @@ describe('Big Builder', function() {
 
 });
 
-function timeout(ms) {
-  // eslint-disable-next-line no-undef
-  return new Promise((resolve) => {
-    return setTimeout(resolve, ms);
-  });
-}
