@@ -60,10 +60,10 @@ describe('OCPP Validation tests', function() {
 
   after(async () => {
     testData.dataHelper.close();
-    testData.dataHelper.destroyData();
+    await testData.dataHelper.destroyData();
 
     testData.dataHelper15.close();
-    testData.dataHelper15.destroyData();
+    await testData.dataHelper15.destroyData();
   });
 
   it('Should be possible to authorize a user with tag as integer', async () => {
