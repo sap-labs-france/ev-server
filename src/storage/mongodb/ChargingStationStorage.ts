@@ -90,9 +90,16 @@ export default class ChargingStationStorage {
     }
     // Site Area
     if (params.siteAreaID) {
-      filters.$and.push({
-        'siteAreaID': Utils.convertToObjectID(params.siteAreaID)
-      });
+      // Parse filter with | delimiter
+      const siteAreaSplitted = params.siteAreaID.split('|');
+      if(siteAreaSplitted.length > 1) {
+        filters.$and.push({ 'siteAreaID': { $in: siteAreaSplitted.map((siteArea) => {
+          return Utils.convertToObjectID(siteArea);
+          })}
+        });
+      } else {
+        filters.siteAreaID = Utils.convertToObjectID(params.siteAreaID);
+      }
     }
     // No Site Area
     if (params.withNoSiteArea) {
@@ -243,12 +250,18 @@ export default class ChargingStationStorage {
         ]
       });
     }
-    // Source?
+    // Site Area
     if (params.siteAreaID) {
-      // Build filter
-      basicFilters.$and.push({
-        'siteAreaID': Utils.convertToObjectID(params.siteAreaID)
-      });
+      // Parse filter with | delimiter
+      const siteAreaSplitted = params.siteAreaID.split('|');
+      if(siteAreaSplitted.length > 1) {
+        basicFilters.$and.push({ 'siteAreaID': { $in: siteAreaSplitted.map((siteArea) => {
+          return Utils.convertToObjectID(siteArea);
+          })}
+        });
+      } else {
+        basicFilters.siteAreaID = Utils.convertToObjectID(params.siteAreaID);
+      }
     }
     // With no Site Area
     if (params.withNoSiteArea) {
@@ -263,6 +276,8 @@ export default class ChargingStationStorage {
       DatabaseUtils.pushSiteAreaLookupInAggregation(
         { tenantID, aggregation: siteAreaIdJoin, localField: 'siteAreaID', foreignField: '_id',
           asField: 'siteArea', oneToOneCardinality: true });
+          console.log(`>>> siteAreaIdJoin:${JSON.stringify(siteAreaIdJoin)}`);
+
     }
     // Check Site ID
     if (params.siteID) {
@@ -273,11 +288,12 @@ export default class ChargingStationStorage {
     }
     if (params.withSite) {
       // Get the site from the sitearea
-      siteAreaJoin = [];
+      const siteAreaJoin = [];
       // Site Area
       DatabaseUtils.pushSiteLookupInAggregation(
         { tenantID, aggregation: siteAreaJoin, localField: 'siteArea.siteID', foreignField: '_id',
           asField: 'site', oneToOneCardinality: true });
+          console.log(`>>> siteAreaJoin:${JSON.stringify(siteAreaJoin)}`);
     }
     // Charger
     if (params.chargeBoxID) {
@@ -342,7 +358,7 @@ export default class ChargingStationStorage {
     const chargingStationsCountMDB = await global.database.getCollection<any>(tenantID, 'chargingstations')
       .aggregate([...aggregation, { $count: 'count' }])
       .toArray();
-    // Check if only the total count is requested
+      // Check if only the total count is requested
     if (params.onlyRecordCount) {
       // Return only the count
       return {
@@ -386,6 +402,7 @@ export default class ChargingStationStorage {
       })
       .toArray();
     const chargingStations = [];
+    console.log(`>>> result:${JSON.stringify(chargingStationsFacetMDB)}`);
     // Create
     for (const chargingStationMDB of chargingStationsFacetMDB) {
       // Create the Charger
