@@ -112,7 +112,7 @@ export default class TransactionStorage {
       // Parse filter with | delimiter
       const chargeBoxSplitted = params.chargeBoxID.split('|');
       if(chargeBoxSplitted.length > 1) {
-        match.chargeBoxID = { $in: chargeBoxSplitted };;
+        match.chargeBoxID = { $in: chargeBoxSplitted };
       } else {
         match.chargeBoxID = params.chargeBoxID;
       }
