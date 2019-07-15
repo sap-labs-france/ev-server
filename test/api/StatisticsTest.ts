@@ -125,6 +125,27 @@ describe('Statistics tests', function() {
         ).to.contain('inactive');
       });
 
+
+      it('Is not authorized to export data to file', async () => {
+        let adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Consumption', DataCategory: 'C', DataScope: 'month' });
+        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.data.message,
+          `Message from query for year ${firstYear} on consumption data per charging station should contain "inactive"`
+        ).to.contain('inactive');
+
+        adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Usage', DataCategory: 'U', DataScope: 'total' });
+        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.data.message,
+          `Message from query for year ${firstYear} on usage data per user should contain "inactive"`
+        ).to.contain('inactive');
+
+        adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Inactivity', DataCategory: 'U', DataScope: 'month' });
+        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.data.message,
+          `Message from query for year ${firstYear} on inactivity data per user should contain "inactive"`
+        ).to.contain('inactive');
+      });
+
     });
   });
 
@@ -200,6 +221,27 @@ describe('Statistics tests', function() {
             `Inactivity data should be ${numberOfChargers * numberOfUsers * numberOfYears * expectedInactivity} hours`
           ).to.be.eql(numberOfChargers * numberOfUsers * numberOfYears * expectedInactivity);
         }
+      });
+
+      it('Should be able to export consumption data to file', async () => {
+        let adminUserListResponse = await adminUserServerService.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Consumption', DataCategory: 'C', DataScope: 'month' });
+        expect(adminUserListResponse.status).to.be.eql(200);
+        expect(adminUserListResponse.data,
+          `Query response for year ${firstYear} on data per charging station should not be empty`
+        ).not.to.be.empty;
+        let objectArray = StatisticsApi.convertExportFileToObjectArray(adminUserListResponse.data);
+        expect(objectArray.length,
+          `Number of exported chargers should be ${numberOfChargers}`
+        ).to.be.eql(numberOfChargers);
+        adminUserListResponse = await adminUserServerService.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Consumption', DataCategory: 'U', DataScope: 'total' });
+        expect(adminUserListResponse.status).to.be.eql(200);
+        expect(adminUserListResponse.data,
+          `Query response for year ${firstYear} on data per user should not be empty`
+        ).not.to.be.empty;
+        objectArray = StatisticsApi.convertExportFileToObjectArray(adminUserListResponse.data);
+        expect(objectArray.length,
+          `Number of exported users should be ${numberOfUsers}`
+        ).to.be.eql(numberOfUsers);
       });
 
     });
@@ -278,6 +320,27 @@ describe('Statistics tests', function() {
         }
       });
 
+      it('Should be able to export own usage data to file', async () => {
+        let basicUserListResponse = await basicUserServerService.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Usage', DataCategory: 'C', DataScope: 'month' });
+        expect(basicUserListResponse.status).to.be.eql(200);
+        expect(basicUserListResponse.data,
+          `Query response for year ${firstYear} on data per charging station should not be empty`
+        ).not.to.be.empty;
+        let objectArray = StatisticsApi.convertExportFileToObjectArray(basicUserListResponse.data);
+        expect(objectArray.length,
+          `Number of exported chargers should be ${numberOfChargers}`
+        ).to.be.eql(numberOfChargers);
+        basicUserListResponse = await basicUserServerService.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Usage', DataCategory: 'U', DataScope: 'total' });
+        expect(basicUserListResponse.status).to.be.eql(200);
+        expect(basicUserListResponse.data,
+          `Query response for year ${firstYear} on data per user should not be empty`
+        ).not.to.be.empty;
+        objectArray = StatisticsApi.convertExportFileToObjectArray(basicUserListResponse.data);
+        expect(objectArray.length,
+          'Number of exported users should be 1'
+        ).to.be.eql(1);
+      });
+
     });
 
     describe('Where demo user', () => {
@@ -353,6 +416,27 @@ describe('Statistics tests', function() {
             `Inactivity data should be ${numberOfYears * expectedInactivity} hours`
           ).to.be.eql(numberOfUsers * expectedInactivity);
         }
+      });
+
+      it('Should be able to export inactivity data to file for all users', async () => {
+        let demoUserListResponse = await demoUserServerService.statisticsApi.exportStatistics({ DataType: 'Inactivity', DataCategory: 'C', DataScope: 'total' });
+        expect(demoUserListResponse.status).to.be.eql(200);
+        expect(demoUserListResponse.data,
+          'Query response for all years on data per charging station should not be empty'
+        ).not.to.be.empty;
+        let objectArray = StatisticsApi.convertExportFileToObjectArray(demoUserListResponse.data);
+        expect(objectArray.length,
+          `Number of exported chargers should be ${numberOfChargers}`
+        ).to.be.eql(numberOfChargers);
+        demoUserListResponse = await demoUserServerService.statisticsApi.exportStatistics({ DataType: 'Inactivity', DataCategory: 'U', DataScope: 'total' });
+        expect(demoUserListResponse.status).to.be.eql(200);
+        expect(demoUserListResponse.data,
+          'Query response for all years on data per user should not be empty'
+        ).not.to.be.empty;
+        objectArray = StatisticsApi.convertExportFileToObjectArray(demoUserListResponse.data);
+        expect(objectArray.length,
+          `Number of exported users should be ${numberOfUsers}`
+        ).to.be.eql(numberOfUsers);
       });
 
     });
