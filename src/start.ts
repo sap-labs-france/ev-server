@@ -1,5 +1,4 @@
 import cluster from 'cluster';
-import SourceMap from 'source-map-support';
 import CentralRestServer from './server/rest/CentralRestServer';
 import Configuration from './utils/Configuration';
 import Constants from './utils/Constants';
@@ -15,8 +14,6 @@ import ODataServer from './server/odata/ODataServer';
 import SchedulerManager from './scheduler/SchedulerManager';
 import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer';
 import Utils from './utils/Utils';
-
-SourceMap.install();
 
 const MODULE_NAME = 'Bootstrap';
 export default class Bootstrap {

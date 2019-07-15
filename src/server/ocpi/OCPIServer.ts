@@ -1,12 +1,9 @@
 import morgan from 'morgan';
-import SourceMap from 'source-map-support';
 import Constants from '../../utils/Constants';
 import expressTools from '../ExpressTools';
 import Logging from '../../utils/Logging';
 import OCPIErrorHandler from './OCPIErrorHandler';
 import OCPIServices from './OCPIServices';
-
-SourceMap.install();
 
 const MODULE_NAME = 'OCPIServer';
 export default class OCPIServer {

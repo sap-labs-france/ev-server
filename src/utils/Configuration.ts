@@ -1,7 +1,6 @@
 import cfenv from 'cfenv';
 import fs from 'fs';
 import os from 'os';
-import SourceMap from 'source-map-support';
 import Constants from './Constants';
 import global from './../types/GlobalType';
 
@@ -11,8 +10,6 @@ const {
 } = {};
 const _appEnv = cfenv.getAppEnv();
 let config = null;
-
-SourceMap.install();
 
 export default class Configuration {
   // Read the config file
