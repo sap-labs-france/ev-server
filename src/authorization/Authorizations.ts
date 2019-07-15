@@ -55,7 +55,7 @@ export default class Authorizations {
       user,
       chargingStation.getModel(),
       Constants.ACTION_REMOTE_STOP_TRANSACTION)) {
-      // ꓘO
+      // Ko
       return false;
     }
     // Ok
@@ -90,7 +90,7 @@ export default class Authorizations {
         { limit: Constants.NO_LIMIT, skip: 0 },
         ['site.id']
       );
-
+      // Assign
       siteIDs = sites.map((site) => {
         return site.id;
       });

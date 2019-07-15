@@ -39,7 +39,6 @@ export default class UserStorage {
     );
     // Debug
     Logging.traceEnd('UserStorage', 'getLatestEndUserLicenseAgreement', uniqueTimerID, { language });
-    // Parse
     return eulaText;
   }
 
@@ -90,7 +89,6 @@ export default class UserStorage {
           .insertOne(eula);
         // Debug
         Logging.traceEnd('UserStorage', 'getEndUserLicenseAgreement', uniqueTimerID, { language });
-        // Return
         return eula;
       }
       // Debug
@@ -133,7 +131,6 @@ export default class UserStorage {
       .toArray();
     // Check
     if (tagsMDB && tagsMDB.length > 0) {
-      // Ok
       user = await UserStorage.getUser(tenantID, tagsMDB[0].userID);
     }
     // Debug
@@ -146,7 +143,6 @@ export default class UserStorage {
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserByEmail');
     // Get user
     const user = await UserStorage.getUsers(tenantID, {email: email}, {limit: 1, skip: 0});
-    // TODO: Error handling if no user found here or is returning null fine?
     // Debug
     Logging.traceEnd('UserStorage', 'getUserByEmail', uniqueTimerID, { email });
     return user.count > 0 ? user.result[0] : null;
@@ -215,7 +211,6 @@ export default class UserStorage {
             'userID': Utils.convertToObjectID(userID),
             'siteID': Utils.convertToObjectID(siteID)
           });
-          // TODO: Can be converted by setting siteID: {$in: [list of sites]}. Not changed yet due to previously having been coded like this. Change wanted? Please review.
         }
       }
     }
@@ -258,7 +253,6 @@ export default class UserStorage {
     await Utils.checkTenant(tenantID);
     // Check if ID or email is provided
     if (!userToSave.id && !userToSave.email) {
-      // ID must be provided!
       throw new BackendError(
         Constants.CENTRAL_SERVER,
         'User has no ID and no Email',
@@ -331,7 +325,10 @@ export default class UserStorage {
     Logging.traceEnd('UserStorage', 'saveUserImage', uniqueTimerID, { userImageToSave });
   }
 
-  public static async getUsers(tenantID: string, params: {notificationsActive?: boolean, siteID?: string, excludeSiteID?: string, search?: string, userID?: string, email?: string, role?: string, statuses?: string[], withImage?: boolean}, {limit, skip, onlyRecordCount, sort}: DbParams) {
+  public static async getUsers(tenantID: string,
+      params: {notificationsActive?: boolean, siteID?: string, excludeSiteID?: string, search?: string, userID?: string, email?: string,
+        role?: string, statuses?: string[], withImage?: boolean},
+        {limit, skip, onlyRecordCount, sort}: DbParams) {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
     // Check Tenant
@@ -369,7 +366,6 @@ export default class UserStorage {
     }
     // UserID: Used only with SiteID
     if (params.userID) {
-      // Build filter
       filters.$and.push({
         '_id': Utils.convertToObjectID(params.userID)
       });
@@ -380,7 +376,7 @@ export default class UserStorage {
         'role': params.role
       });
     }
-    // Query by status(Previously getUsersInError)
+    // Query by status (Previously getUsersInError)
     if (params.statuses && params.statuses.filter(status => status).length > 0) {
       filters.$and.push({
         'status': { $in: params.statuses }
@@ -423,9 +419,8 @@ export default class UserStorage {
     });
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
-    // Site ID? or ExcludeSiteID - cannot be used together
+    // Add Site
     if (params.siteID || params.excludeSiteID) {
-      // Add Site
       aggregation.push({
         $lookup: {
           from: DatabaseUtils.getCollectionName(tenantID, 'siteusers'),
@@ -434,7 +429,6 @@ export default class UserStorage {
           as: 'siteusers'
         }
       });
-      // Check which filter to use
       if (params.siteID) {
         aggregation.push({
           $match: { 'siteusers.siteID': Utils.convertToObjectID(params.siteID) }
@@ -466,12 +460,10 @@ export default class UserStorage {
     aggregation.pop();
     // Sort
     if (sort) {
-      // Sort
       aggregation.push({
         $sort: sort
       });
     } else {
-      // Default
       aggregation.push({
         $sort: { status: -1, name: 1, firstName: 1 }
       });
@@ -645,7 +637,7 @@ export default class UserStorage {
       eulaAcceptedHash: null,
       eulaAcceptedOn: null,
       eulaAcceptedVersion: 0,
-      firstName: 'Unkown',
+      firstName: 'Unknown',
       name: 'User',
       iNumber: null,
       image: null,

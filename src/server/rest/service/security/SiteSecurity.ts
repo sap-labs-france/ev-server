@@ -115,11 +115,6 @@ export default class SiteSecurity {
       if (site.siteAreas) {
         filteredSite.siteAreas = SiteAreaSecurity.filterSiteAreasResponse(site.siteAreas, loggedUser);
       }
-      // pragma if (site.users) {
-      //   filteredSite.users = site.users.map((user) => {
-      //     return UserSecurity.filterMinimalUserResponse(user, loggedUser);
-      //   });
-      // } TODO: not needed anymore right
       if (site.availableChargers) {
         filteredSite.availableChargers = site.availableChargers;
       }

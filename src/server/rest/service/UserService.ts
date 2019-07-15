@@ -27,14 +27,12 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterAssignSitesToUserRequest(req.body, req.user);
     // Check Mandatory fields
     if (!filteredRequest.userID) {
-      // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
         'User\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
         'UserService', 'handleAssignSitesToUser', req.user);
     }
     if (!filteredRequest.siteIDs || (filteredRequest.siteIDs && filteredRequest.siteIDs.length <= 0)) {
-      // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
         'Site\'s IDs must be provided', Constants.HTTP_GENERAL_ERROR,
@@ -96,7 +94,6 @@ export default class UserService {
     const id = UserSecurity.filterUserByIDRequest(req.query);
     // Check Mandatory fields
     if (!id) {
-      // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
         'User\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
@@ -104,7 +101,6 @@ export default class UserService {
     }
     // Check auth
     if (!Authorizations.canDeleteUser(req.user, id)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_DELETE,
         Constants.ENTITY_USER,
@@ -115,13 +111,12 @@ export default class UserService {
     }
     // Check Mandatory fields
     if (id === req.user.id) {
-      // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
         'User cannot delete himself', Constants.HTTP_GENERAL_ERROR,
         'UserService', 'handleDeleteUser', req.user);
     }
-    // Check email
+    // Check user
     const user = await UserStorage.getUser(req.user.tenantID, id);
     if (!user) {
       throw new AppError(
@@ -165,7 +160,6 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterUserUpdateRequest(req.body, req.user);
     // Check Mandatory fields
     if (!filteredRequest.id) {
-      // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
         'User\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
@@ -181,7 +175,7 @@ export default class UserService {
         'UserService', 'handleUpdateUser',
         req.user);
     }
-    // Check email
+    // Get User
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.id);
     if (!user) {
       throw new AppError(
@@ -200,7 +194,6 @@ export default class UserService {
     const userWithEmail = await UserStorage.getUserByEmail(req.user.tenantID, filteredRequest.email);
     // Check if EMail is already taken
     if (userWithEmail && user.id !== userWithEmail.id) {
-      // Yes!
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Email '${filteredRequest.email}' already exists`, Constants.HTTP_USER_EMAIL_ALREADY_EXIST_ERROR,
@@ -261,7 +254,6 @@ export default class UserService {
     const id = UserSecurity.filterUserByIDRequest(req.query);
     // User mandatory
     if (!id) {
-      // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
         'User\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
@@ -269,7 +261,6 @@ export default class UserService {
     }
     // Check auth
     if (!Authorizations.canReadUser(req.user, id)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_READ,
         Constants.ENTITY_USER,
@@ -292,7 +283,7 @@ export default class UserService {
         `User with ID '${id}' is logically deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'UserService', 'handleGetUser', req.user);
     }
-    // Set the user
+    // Ok
     res.json(
       // Filter
       UserSecurity.filterUserResponse(
@@ -306,7 +297,6 @@ export default class UserService {
     const filteredRequest = { ID: UserSecurity.filterUserByIDRequest(req.query) };
     // User mandatory
     if (!filteredRequest.ID) {
-      // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
         'User\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
@@ -314,7 +304,6 @@ export default class UserService {
     }
     // Check auth
     if (!Authorizations.canReadUser(req.user, filteredRequest.ID)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_READ,
         Constants.ENTITY_USER,
@@ -339,7 +328,7 @@ export default class UserService {
     }
     // Get the user image
     const userImage = await UserStorage.getUserImage(req.user.tenantID, filteredRequest.ID);
-    // Return
+    // Ok
     res.json(userImage);
     next();
   }
@@ -347,7 +336,6 @@ export default class UserService {
   public static async handleGetUserImages(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListUsers(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_LIST,
         Constants.ENTITY_USERS,
@@ -358,7 +346,7 @@ export default class UserService {
     }
     // Get the user image
     const userImages = await UserStorage.getUserImages(req.user.tenantID);
-    // Return
+    // Ok
     res.json(userImages);
     next();
   }
@@ -366,7 +354,6 @@ export default class UserService {
   public static async handleGetUsers(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListUsers(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_LIST,
         Constants.ENTITY_USERS,
@@ -395,7 +382,7 @@ export default class UserService {
     );
     // Filter
     UserSecurity.filterUsersResponse(users, req.user);
-    // Return
+    // Ok
     res.json(users);
     next();
   }
@@ -403,7 +390,6 @@ export default class UserService {
   public static async handleGetUsersInError(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListUsers(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_LIST,
         Constants.ENTITY_USERS,
@@ -439,7 +425,6 @@ export default class UserService {
   public static async handleCreateUser(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canCreateUser(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_CREATE,
         Constants.ENTITY_USER,
@@ -503,7 +488,6 @@ export default class UserService {
     const id = UserSecurity.filterUserByIDRequest(req.query);
     // User mandatory
     if (!id) {
-      // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
         'User\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
@@ -511,7 +495,6 @@ export default class UserService {
     }
     // Check auth
     if (!Authorizations.canReadUser(req.user, id)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_READ,
         Constants.ENTITY_USER,
@@ -534,6 +517,7 @@ export default class UserService {
         `User with ID '${id}' is logically deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'UserService', 'handleGetUserInvoice', req.user);
     }
+    // Get the settings
     let setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, Constants.COMPONENTS.PRICING);
     setting = setting.getContent().convergentCharging;
     if (!setting) {
@@ -543,6 +527,7 @@ export default class UserService {
         'An issue occurred while creating the invoice', Constants.HTTP_AUTH_ERROR,
         'UserService', 'handleGetUserInvoice', req.user);
     }
+    // Create services
     const ratingService = new RatingService(setting.url, setting.user, setting.password);
     const erpService = new ERPService(setting.url, setting.user, setting.password);
     let invoiceNumber;
