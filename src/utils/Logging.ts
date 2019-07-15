@@ -13,6 +13,8 @@ import ConflictError from '../exception/ConflictError';
 import Constants from './Constants';
 import LoggingStorage from '../storage/mongodb/LoggingStorage';
 import NotFoundError from '../exception/NotFoundError';
+import User from '../types/User';
+import UserToken from '../types/UserToken';
 import Utils from './Utils';
 
 const _loggingConfig = Configuration.getLoggingConfig();
@@ -192,7 +194,7 @@ export default class Logging {
   }
 
   // Used to log exception in catch(...) only
-  public static logException(error, action, source, module, method, tenantID, user?): void {
+  public static logException(error, action, source, module, method, tenantID, user?: UserToken|User): void {
     const log = Logging._buildLog(error, action, source, module, method, tenantID, user);
     if (error instanceof AppAuthError) {
       Logging.logSecurityError(log);
@@ -350,16 +352,8 @@ export default class Logging {
     });
   }
 
-  private static _buildLog(error, action, source, module, method, tenantID, user): object {
-    let tenant = tenantID ? tenantID : Constants.DEFAULT_TENANT;
-    if (!tenantID && user) {
-      // Check if the log can be attached to a tenant
-      if (user.tenantID) {
-        tenant = user.tenantID;
-      } else if (user._tenantID) {
-        tenant = user._tenantID;
-      }
-    }
+  private static _buildLog(error, action, source, module, method, tenantID, user: UserToken|User): object {
+    const tenant = tenantID ? tenantID : Constants.DEFAULT_TENANT;
     return {
       source: source,
       user: user,

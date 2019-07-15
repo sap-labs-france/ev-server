@@ -5,8 +5,8 @@ import responseHelper from '../helpers/responseHelper';
 import CentralServerService from '../api/client/CentralServerService';
 import CONTEXTS from './contextProvider/ContextConstants';
 import ContextProvider from './contextProvider/ContextProvider';
-import StatisticsContext from './contextProvider/StatisticsContext';
 import StatisticsApi from './client/StatisticsApi';
+import StatisticsContext from './contextProvider/StatisticsContext';
 
 chai.use(chaiDatetime);
 chai.use(chaiSubset);

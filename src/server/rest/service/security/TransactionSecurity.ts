@@ -1,6 +1,8 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
+import User from '../../../../types/User';
+import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 
 export default class TransactionSecurity {
@@ -100,7 +102,7 @@ export default class TransactionSecurity {
    * @param loggedUser
    * @returns {*}
    */
-  static filterTransactionResponse(transaction, loggedUser) {
+  static filterTransactionResponse(transaction, loggedUser: UserToken) {
     let filteredTransaction;
 
     if (!transaction) {
@@ -144,7 +146,7 @@ export default class TransactionSecurity {
       filteredTransaction.stateOfCharge = transaction.getStateOfCharge();
       filteredTransaction.refundData = transaction.getRefundData();
       // Demo user?
-      if (Authorizations.isDemo(loggedUser)) {
+      if (Authorizations.isDemo(loggedUser.role)) {
         filteredTransaction.tagID = Constants.ANONYMIZED_VALUE;
       } else {
         filteredTransaction.tagID = transaction.getTagID();
@@ -169,7 +171,7 @@ export default class TransactionSecurity {
           filteredTransaction.stop.pricingSource = transaction.getStopPricingSource();
         }
         // Demo user?
-        if (Authorizations.isDemo(loggedUser)) {
+        if (Authorizations.isDemo(loggedUser.role)) {
           filteredTransaction.stop.tagID = Constants.ANONYMIZED_VALUE;
         } else {
           filteredTransaction.stop.tagID = transaction.getStopTagID();
@@ -202,7 +204,7 @@ export default class TransactionSecurity {
     transactions.result = filteredTransactions;
   }
 
-  static _filterUserInTransactionResponse(user, loggedUser) {
+  static _filterUserInTransactionResponse(user: User, loggedUser) {
     const filteredUser: any = {};
 
     if (!user) {
@@ -254,7 +256,7 @@ export default class TransactionSecurity {
    * @param loggedUser
    * @returns {*}
    */
-  static filterConsumptionsFromTransactionResponse(transaction, consumptions, loggedUser) {
+  static filterConsumptionsFromTransactionResponse(transaction, consumptions, loggedUser: UserToken) {
     if (!consumptions) {
       consumptions = [];
     }

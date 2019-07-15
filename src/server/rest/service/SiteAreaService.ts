@@ -7,7 +7,6 @@ import Logging from '../../../utils/Logging';
 import SiteArea from '../../../types/SiteArea';
 import SiteAreaSecurity from './security/SiteAreaSecurity';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
-import User from '../../../entity/User';
 import UtilsService from './UtilsService';
 
 export default class SiteAreaService {
@@ -171,7 +170,7 @@ export default class SiteAreaService {
         req.user);
     }
     // Create site
-    const usr = new User(req.user.tenantID, { id: req.user.id });
+    const usr = { id: req.user.id };
     const date = new Date();
     const newSiteArea: SiteArea = {
       ...filteredRequest,
@@ -224,7 +223,7 @@ export default class SiteAreaService {
     siteArea.maximumPower = filteredRequest.maximumPower;
     siteArea.accessControl = filteredRequest.accessControl;
     siteArea.siteID = filteredRequest.siteID;
-    siteArea.lastChangedBy = new User(req.user.tenantID, { 'id': req.user.id });
+    siteArea.lastChangedBy = { 'id': req.user.id };
     siteArea.lastChangedOn = new Date();
     // Update Site Area
     await SiteAreaStorage.saveSiteArea(req.user.tenantID, siteArea, true);

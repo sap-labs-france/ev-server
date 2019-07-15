@@ -5,8 +5,8 @@ import Address from '../types/Address';
 import Company from '../types/Company';
 import Configuration from './Configuration';
 import Constants from './Constants';
-import Utils from './Utils';
 import DatabaseUtils from '../storage/mongodb/DatabaseUtils';
+import Utils from './Utils';
 
 export default class Database {
   public static updateID(src, dest): void {

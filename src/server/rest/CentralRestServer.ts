@@ -1,8 +1,10 @@
 import cluster from 'cluster';
+import { NextFunction, Request, Response } from 'express';
 import sanitize from 'express-sanitizer';
 import morgan from 'morgan';
 import path from 'path';
 import socketio from 'socket.io';
+import AuthService from './service/AuthService';
 import CentralRestServerAuthentication from './CentralRestServerAuthentication';
 import CentralRestServerService from './CentralRestServerService';
 import Configuration from '../../utils/Configuration';
@@ -11,6 +13,7 @@ import ErrorHandler from './ErrorHandler';
 import expressTools from '../ExpressTools';
 import Logging from '../../utils/Logging';
 import SessionHashService from '../rest/service/SessionHashService';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
 
 const MODULE_NAME = 'CentralRestServer';
 export default class CentralRestServer {
