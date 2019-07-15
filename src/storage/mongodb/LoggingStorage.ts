@@ -127,7 +127,7 @@ export default class LoggingStorage {
       // Parse source with the | delimiter
       const sourceSplitted = params.source.split('|');
       if(sourceSplitted.length > 1) {
-        filters.source = { $in: sourceSplitted };;
+        filters.source = { $in: sourceSplitted };
       } else {
         filters.source = params.source;
       }
@@ -142,7 +142,7 @@ export default class LoggingStorage {
       // Parse action with the | delimiter for multiple values
       const actionSplitted = params.action.split('|');
       if(actionSplitted.length > 1) {
-        filters.action = { $in: actionSplitted };;
+        filters.action = { $in: actionSplitted };
       } else {
         filters.action = params.action;
       }

@@ -93,10 +93,9 @@ export default class ChargingStationStorage {
       // Parse filter with | delimiter
       const siteAreaSplitted = params.siteAreaID.split('|');
       if(siteAreaSplitted.length > 1) {
-        filters.$and.push({ 'siteAreaID': { $in: siteAreaSplitted.map((siteArea) => {
+        filters.siteAreaID = { $in: siteAreaSplitted.map((siteArea) => {
           return Utils.convertToObjectID(siteArea);
-          })}
-        });
+          })};
       } else {
         filters.siteAreaID = Utils.convertToObjectID(params.siteAreaID);
       }
@@ -256,10 +255,9 @@ export default class ChargingStationStorage {
       // Parse filter with | delimiter
       const siteAreaSplitted = params.siteAreaID.split('|');
       if(siteAreaSplitted.length > 1) {
-        basicFilters.$and.push({ 'siteAreaID': { $in: siteAreaSplitted.map((siteArea) => {
+        basicFilters.siteAreaID = { $in: siteAreaSplitted.map((siteArea) => {
           return Utils.convertToObjectID(siteArea);
-          })}
-        });
+          })};
       } else {
         basicFilters.siteAreaID = Utils.convertToObjectID(params.siteAreaID);
       }
