@@ -619,6 +619,7 @@ export default class ChargingStationService {
           Constants.HTTP_USER_NO_BADGE_ERROR,
           'ChargingStationService', 'handleAction', req.user, null, action);
       }
+
       // Check if user is authorized
       await Authorizations.isTagIDsAuthorizedOnChargingStation(chargingStation, req.user.tagIDs[0], transaction.getTagID(), action);
       // Set the tag ID to handle the Stop Transaction afterwards
