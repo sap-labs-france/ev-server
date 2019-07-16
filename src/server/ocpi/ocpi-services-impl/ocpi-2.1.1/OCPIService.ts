@@ -1,11 +1,8 @@
-import SourceMap from 'source-map-support';
 import AbstractOCPIService from '../../AbstractOCPIService';
 import CredentialsEndpoint from './CredentialsEndpoint';
 import LocationsEndpoint from './LocationsEndpoint';
 
 const VERSION = '2.1.1';
-
-SourceMap.install();
 
 /**
  * OCPI Service 2.1.1  - Implementation

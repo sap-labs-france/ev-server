@@ -96,7 +96,7 @@ export default class MigrateTenantSettingsTask extends MigrationTask {
             '_id': tenantSettingMDB._id
           }, {
             $set: tenantSettingMDB
-          }, { upsert: true, /* pragma new: true, TODO check why typescript complains */ returnOriginal: false });
+          }, { upsert: true, /* pragma new: true, TODO: check why typescript complains */ returnOriginal: false });
         }
       }
       // Rename 'sac' to 'analytics'

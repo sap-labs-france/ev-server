@@ -1,13 +1,11 @@
-import SourceMap from 'source-map-support';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import EMailNotificationTask from './email/EMailNotificationTask';
 import Logging from '../utils/Logging';
 import Notification from '../entity/Notification';
 import NotificationStorage from '../storage/mongodb/NotificationStorage';
+import User from '../types/User';
 import UserStorage from '../storage/mongodb/UserStorage';
-
-SourceMap.install();
 
 const _notificationConfig = Configuration.getNotificationConfig();
 const _email = new EMailNotificationTask();
@@ -27,7 +25,7 @@ const SOURCE_TRANSACTION_STARTED = 'NotifyTransactionStarted';
 const SOURCE_VERIFICATION_EMAIL = 'NotifyVerificationEmail';
 export default class NotificationHandler {
 
-  static async saveNotification(tenantID, channel, sourceId, sourceDescr, user, chargingStation, data = {}) {
+  static async saveNotification(tenantID, channel, sourceId, sourceDescr, user: User, chargingStation, data = {}) {
     // Create the object
     const notification = new Notification(tenantID, {
       timestamp: new Date(),
@@ -61,15 +59,13 @@ export default class NotificationHandler {
     }
   }
 
-  static async getAdminUsers(tenantID) {
+  static async getAdminUsers(tenantID: string): Promise<User[]> {
     // Get admin users
-    const adminUsers = await UserStorage.getUsers(tenantID, { role: Constants.ROLE_ADMIN });
+    const adminUsers = await UserStorage.getUsers(tenantID, { role: Constants.ROLE_ADMIN }, { limit: 0, skip: 0 });
     // Found
     if (adminUsers.count > 0) {
       // Convert to JSon
-      return adminUsers.result.map((adminUser) => {
-        return adminUser.getModel();
-      });
+      return adminUsers.result;
     }
   }
 
@@ -85,7 +81,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendEndOfCharge(tenantID, sourceId, user, chargingStation, sourceData, locale, data) {
+  static async sendEndOfCharge(tenantID, sourceId, user: User, chargingStation, sourceData, locale, data) {
     try {
       // Check notification
       const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
@@ -108,7 +104,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendOptimalChargeReached(tenantID, sourceId, user, chargingStation, sourceData, locale, data) {
+  static async sendOptimalChargeReached(tenantID, sourceId, user: User, chargingStation, sourceData, locale, data) {
     try {
       // Check notification
       const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
@@ -131,7 +127,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendEndOfSession(tenantID, sourceId, user, chargingStation, sourceData, locale, data) {
+  static async sendEndOfSession(tenantID, sourceId, user: User, chargingStation, sourceData, locale, data) {
     try {
       // Check notification
       const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
@@ -154,7 +150,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendRequestPassword(tenantID, sourceId, user, sourceData, locale) {
+  static async sendRequestPassword(tenantID, sourceId, user: User, sourceData, locale) {
     try {
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
@@ -172,7 +168,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendNewPassword(tenantID, sourceId, user, sourceData, locale) {
+  static async sendNewPassword(tenantID, sourceId, user: User, sourceData, locale) {
     try {
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
@@ -189,7 +185,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendUserAccountStatusChanged(tenantID, sourceId, user, sourceData, locale) {
+  static async sendUserAccountStatusChanged(tenantID, sourceId, user: User, sourceData, locale) {
     try {
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
@@ -207,7 +203,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendNewRegisteredUser(tenantID, sourceId, user, sourceData, locale) {
+  static async sendNewRegisteredUser(tenantID, sourceId, user: User, sourceData, locale) {
     try {
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
@@ -225,7 +221,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendVerificationEmail(tenantID, sourceId, user, sourceData, locale) {
+  static async sendVerificationEmail(tenantID, sourceId, user: User, sourceData, locale) {
     try {
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
@@ -303,7 +299,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendTransactionStarted(tenantID, sourceId, user, chargingStation, sourceData, locale, data) {
+  static async sendTransactionStarted(tenantID, sourceId, user: User, chargingStation, sourceData, locale, data) {
     try {
       // Check notification
       const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);

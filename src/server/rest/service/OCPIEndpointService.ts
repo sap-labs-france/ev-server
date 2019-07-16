@@ -7,7 +7,7 @@ import Logging from '../../../utils/Logging';
 import OCPIClient from '../../../client/ocpi/OCPIClient';
 import OCPIEndpoint from '../../../entity/OCPIEndpoint';
 import OCPIEndpointSecurity from './security/OCPIEndpointSecurity';
-import User from '../../../entity/User';
+import User from '../../../types/User';
 
 export default class OCPIEndpointService {
   static async handleDeleteOcpiEndpoint(action, req, res, next) {
@@ -153,7 +153,7 @@ export default class OCPIEndpointService {
       // Set status
       ocpiendpoint.setStatus(Constants.OCPI_REGISTERING_STATUS.OCPI_NEW);
       // Update timestamp
-      ocpiendpoint.setCreatedBy(new User(req.user.tenantID, { 'id': req.user.id }));
+      ocpiendpoint.setCreatedBy({ 'id': req.user.id });
       ocpiendpoint.setCreatedOn(new Date());
       // Save OcpiEndpoint
       const newOcpiEndpoint = await ocpiendpoint.save();
@@ -201,7 +201,7 @@ export default class OCPIEndpointService {
       // Update
       Database.updateOcpiEndpoint(filteredRequest, ocpiendpoint.getModel());
       // Update timestamp
-      ocpiendpoint.setLastChangedBy(new User(req.user.tenantID, { 'id': req.user.id }));
+      ocpiendpoint.setLastChangedBy({ 'id': req.user.id });
       ocpiendpoint.setLastChangedOn(new Date());
       // Update OcpiEndpoint
       const updatedOcpiEndpoint = await ocpiendpoint.save();

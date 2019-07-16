@@ -2,6 +2,7 @@ import { expect } from 'chai';
 // pragma import moment from 'moment';
 import Constants from './utils/Constants';
 import CrudApi from './utils/CrudApi';
+import User from '../../../src/types/User';
 
 export default class TransactionApi extends CrudApi {
   public constructor(authenticatedApi) {
@@ -36,7 +37,7 @@ export default class TransactionApi extends CrudApi {
     return super.delete(id, '/client/api/TransactionDelete');
   }
 
-  public async startTransaction(ocpp, chargingStation, chargingStationConnector, user, meterStart, startTime, withSoC = false) {
+  public async startTransaction(ocpp, chargingStation, chargingStationConnector, user: User, meterStart, startTime, withSoC = false) {
     // Start the transaction
     const responseTransaction = await ocpp.executeStartTransaction(chargingStation.id, {
       connectorId: chargingStationConnector.connectorId,
@@ -88,7 +89,7 @@ export default class TransactionApi extends CrudApi {
     // return response.data;
   }
 
-  public async sendTransactionMeterValue(ocpp, transaction, chargingStation, user, meterValue, currentTime, currentConsumption, totalConsumption) {
+  public async sendTransactionMeterValue(ocpp, transaction, chargingStation, user: User, meterValue, currentTime, currentConsumption, totalConsumption) {
     let response;
     // OCPP 1.6?
     if (ocpp.getVersion() === '1.6') {
@@ -237,7 +238,7 @@ export default class TransactionApi extends CrudApi {
     return response;
   }
 
-  public async sendTransactionWithSoCMeterValue(ocpp, transaction, chargingStation, user,
+  public async sendTransactionWithSoCMeterValue(ocpp, transaction, chargingStation, user: User,
     meterValue, meterSocValue, currentTime, currentConsumption, totalConsumption) {
     let response;
     // OCPP 1.6?
@@ -372,7 +373,7 @@ export default class TransactionApi extends CrudApi {
     }
   }
 
-  public async stopTransaction(ocpp, transaction, userStart, userStop, meterStop, stopTime,
+  public async stopTransaction(ocpp, transaction, userStart: User, userStop: User, meterStop, stopTime,
     chargingStationConnector, totalConsumption, totalInactivity, totalPrice, stateOfCharge) {
     // Stop the transaction
     let response = await ocpp.executeStopTransaction(transaction.chargeBoxID, {

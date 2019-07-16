@@ -1,9 +1,10 @@
 import Transaction from '../../entity/Transaction';
+import User from '../../types/User';
 
 export abstract class PricingSettings {}
 
 export class ConvergentChargingPricingSettings {
-  constructor(readonly url: string, readonly chargeableItemName: string, readonly user: string, readonly password: string) {
+  constructor(readonly url: string, readonly chargeableItemName: string, readonly user: User, readonly password: string) {
   }
 }
 

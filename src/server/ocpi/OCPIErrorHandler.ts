@@ -20,10 +20,9 @@ export default class OCPIErrorHandler {
       error = err;
       detailedMessages = err['detailedMessages'];
     }
-
     // Add logging
     Logging.logError({
-      tenantID: req.tenantID,
+      tenantID: req.user.tenantID,
       action: error.action,
       message: error.message,
       source: error.source,

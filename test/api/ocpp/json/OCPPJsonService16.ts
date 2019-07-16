@@ -61,7 +61,6 @@ export default class OCPPJsonService16 extends OCPPService {
             await this.handleRequest(chargeBoxIdentity, messageId, commandName, commandPayload);
           }
         } catch (error) {
-          // eslint-disable-next-line no-console
           reject(error);
         }
       };

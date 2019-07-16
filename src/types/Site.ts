@@ -19,7 +19,7 @@ export default interface Site extends CreatedUpdatedProps {
   company?: Company;
 }
 
-export default interface SiteUser {
+export interface SiteUser {
   site: Site;
   userID: string;
   siteAdmin: boolean;

@@ -6,6 +6,7 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import StatisticsStorage from '../../../storage/mongodb/StatisticsStorage';
 import StatisticSecurity from './security/StatisticSecurity';
+import User from '../../../types/User';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 
@@ -376,7 +377,7 @@ export default class StatisticService {
   }
 
   static convertToCSV(transactionStatsMDB: any[], dataCategory: string, dataType: string, year: number | string, dataScope?: string) {
-    let user: any;
+    let user: User;
     let unknownUser = Utils.buildUserFullName(user, false, false, true);
     if (!unknownUser) {
       unknownUser = 'Unknown';

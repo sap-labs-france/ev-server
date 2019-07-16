@@ -1,5 +1,4 @@
 import momentDurationFormatSetup from 'moment-duration-format'; // TODO: what?
-import SourceMap from 'source-map-support';
 import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
 import ChargingStation from '../../../entity/ChargingStation';
@@ -14,10 +13,9 @@ import PricingFactory from '../../../integration/pricing/PricingFactory';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Transaction from '../../../entity/Transaction';
-import User from '../../../entity/User';
+import User from '../../../types/User';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
-
-SourceMap.install();
 
 // FIXME
 const moment = require('moment');
@@ -861,7 +859,7 @@ export default class OCPPService {
       Logging.logInfo({
         tenantID: chargingStation.getTenantID(),
         source: chargingStation.getID(), module: 'OCPPService', method: 'handleAuthorize',
-        action: 'Authorize', user: (authorize.user ? authorize.user.getModel() : null),
+        action: 'Authorize', user: (authorize.user ? authorize.user : null),
         message: `User has been authorized with Badge ID '${authorize.idTag}'`
       });
       // Return
@@ -952,7 +950,7 @@ export default class OCPPService {
       const user = await Authorizations.isTagIDAuthorizedOnChargingStation(
         chargingStation, startTransaction.tagID, Constants.ACTION_REMOTE_START_TRANSACTION);
       if (user) {
-        startTransaction.user = user.getModel();
+        startTransaction.user = user;
       }
       // Check Org
       const tenant = await TenantStorage.getTenant(chargingStation.getTenantID());
@@ -1020,7 +1018,7 @@ export default class OCPPService {
         Logging.logInfo({
           tenantID: chargingStation.getTenantID(),
           source: chargingStation.getID(), module: 'OCPPService', method: 'handleStartTransaction',
-          action: 'StartTransaction', user: user.getModel(),
+          action: 'StartTransaction', user: user,
           message: `Transaction ID '${transaction.getID()}' has been started on Connector '${transaction.getConnectorId()}'`
         });
       } else {
@@ -1103,22 +1101,22 @@ export default class OCPPService {
     } while (activeTransaction);
   }
 
-  async _notifyStartTransaction(transaction, chargingStation, user) {
+  async _notifyStartTransaction(transaction, chargingStation, user: User) {
     // Notify
     await NotificationHandler.sendTransactionStarted(
       chargingStation.getTenantID(),
       transaction.getID(),
-      user.getModel(),
+      user,
       chargingStation.getModel(),
       {
-        'user': user.getModel(),
+        'user': user,
         'chargeBoxID': chargingStation.getID(),
         'connectorId': transaction.getConnectorId(),
         'evseDashboardURL': Utils.buildEvseURL((await chargingStation.getTenant()).getSubdomain()),
         'evseDashboardChargingStationURL':
           await Utils.buildEvseTransactionURL(chargingStation, transaction.getID(), '#inprogress')
       },
-      user.getLocale(),
+      user.locale,
       {
         'transactionId': transaction.getID(),
         'connectorId': transaction.getConnectorId()
@@ -1177,7 +1175,7 @@ export default class OCPPService {
       }
       // Get the TagID that stopped the transaction
       const tagId = this._getStopTransactionTagId(stopTransaction, transaction);
-      let user, alternateUser;
+      let user: User, alternateUser: User;
       // Transaction is stopped by central system?
       if (!stoppedByCentralSystem) {
         // Check and get users
@@ -1187,15 +1185,15 @@ export default class OCPPService {
         alternateUser = users.alternateUser;
       } else {
         // Get the user
-        user = await User.getUserByTagId(chargingStation.getTenantID(), tagId);
+        user = await UserStorage.getUserByTagId(chargingStation.getTenantID(), tagId);
       }
       // Check if the transaction has already been stopped
       if (!transaction.isActive()) {
         throw new BackendError(chargingStation.getID(),
           `Transaction ID '${stopTransaction.transactionId}' has already been stopped`,
           'OCPPService', 'handleStopTransaction', Constants.ACTION_REMOTE_STOP_TRANSACTION,
-          (alternateUser ? alternateUser.getID() : (user ? user.getID() : null)),
-          (alternateUser ? (user ? user.getID() : null) : null));
+          (alternateUser ? alternateUser : user),
+          (alternateUser ? (user ? user : null) : null));
       }
       // Check and free the connector
       await chargingStation.checkAndFreeConnector(transaction.getConnectorId(), false);
@@ -1241,8 +1239,8 @@ export default class OCPPService {
         tenantID: chargingStation.getTenantID(),
         source: chargingStation.getID(), module: 'OCPPService', method: 'handleStopTransaction',
         action: Constants.ACTION_REMOTE_STOP_TRANSACTION,
-        user: (alternateUser ? alternateUser.getID() : (user ? user.getID() : null)),
-        actionOnUser: (alternateUser ? (user ? user.getID() : null) : null),
+        user: (alternateUser ? alternateUser : (user ? user : null)),
+        actionOnUser: (alternateUser ? (user ? user : null) : null),
         message: `Transaction ID '${transaction.getID()}' has been stopped successfully`
       });
       // Success
@@ -1259,10 +1257,10 @@ export default class OCPPService {
     }
   }
 
-  _updateTransactionWithStopTransaction(transaction, stopTransaction, user, alternateUser, tagId) {
+  _updateTransactionWithStopTransaction(transaction, stopTransaction, user: User, alternateUser: User, tagId) {
     transaction.setStopMeter(Utils.convertToInt(stopTransaction.meterStop));
     transaction.setStopDate(new Date(stopTransaction.timestamp));
-    transaction.setStopUserID((alternateUser ? alternateUser.getID() : (user ? user.getID() : null)));
+    transaction.setStopUserID((alternateUser ? alternateUser.id : (user ? user.id : null)));
     transaction.setStopTagID(tagId);
     transaction.setStopStateOfCharge(transaction.getCurrentStateOfCharge());
     transaction.setEndSignedData(transaction.getCurrentSignedData());
@@ -1323,22 +1321,22 @@ export default class OCPPService {
     return transaction.getTagID();
   }
 
-  async _notifyStopTransaction(chargingStation, transaction, user, alternateUser) {
+  async _notifyStopTransaction(chargingStation, transaction, user: User, alternateUser: User) {
     // User provided?
     if (user) {
       // Send Notification
       await NotificationHandler.sendEndOfSession(
         chargingStation.getTenantID(),
         transaction.getID() + '-EOS',
-        user.getModel(),
+        user,
         chargingStation.getModel(),
         {
-          'user': user.getModel(),
-          'alternateUser': (alternateUser ? alternateUser.getModel() : null),
+          'user': user,
+          'alternateUser': (alternateUser ? alternateUser : null),
           'chargeBoxID': chargingStation.getID(),
           'connectorId': transaction.getConnectorId(),
           'totalConsumption': (transaction.getStopTotalConsumption() / 1000).toLocaleString(
-            (user.getLocale() ? user.getLocale().replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
+            (user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
             { minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2 }),
           'totalDuration': this._buildTransactionDuration(transaction),
           'totalInactivity': this._buildTransactionInactivity(transaction),
@@ -1346,7 +1344,7 @@ export default class OCPPService {
           'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(chargingStation, transaction.getID(), '#history'),
           'evseDashboardURL': Utils.buildEvseURL((await chargingStation.getTenant()).getSubdomain())
         },
-        user.getLocale(),
+        user.locale,
         {
           'transactionId': transaction.getID(),
           'connectorId': transaction.getConnectorId()

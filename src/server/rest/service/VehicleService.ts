@@ -4,7 +4,7 @@ import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import Database from '../../../utils/Database';
 import Logging from '../../../utils/Logging';
-import User from '../../../entity/User';
+import User from '../../../types/User';
 import Vehicle from '../../../entity/Vehicle';
 import VehicleSecurity from './security/VehicleSecurity';
 
@@ -213,7 +213,7 @@ export default class VehicleService {
       // Create vehicle
       const vehicle = new Vehicle(req.user.tenantID, filteredRequest);
       // Update timestamp
-      vehicle.setCreatedBy(new User(req.user.tenantID, { 'id': req.user.id }));
+      vehicle.setCreatedBy({ 'id': req.user.id });
       vehicle.setCreatedOn(new Date());
       // Save
       const newVehicle = await vehicle.save();
@@ -268,7 +268,7 @@ export default class VehicleService {
       // Update
       Database.updateVehicle(filteredRequest, vehicle.getModel());
       // Update timestamp
-      vehicle.setLastChangedBy(new User(req.user.tenantID, { 'id': req.user.id }));
+      vehicle.setLastChangedBy({ 'id': req.user.id });
       vehicle.setLastChangedOn(new Date());
       // Update Vehicle
       const updatedVehicle = await vehicle.save();

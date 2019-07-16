@@ -33,7 +33,7 @@ describe('Transaction tests', function() {
 
   after(async () => {
     testData.dataHelper16.close();
-    testData.dataHelper16.destroyData();
+    await testData.dataHelper16.destroyData();
   });
 
   describe('readById', () => {

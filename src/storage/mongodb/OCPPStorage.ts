@@ -19,7 +19,7 @@ export default class OCPPStorage {
       .digest('hex');
     // Set the User
     if (authorize.user) {
-      authorize.userID = Utils.convertToObjectID(authorize.user.getID());
+      authorize.userID = Utils.convertToObjectID(authorize.user.id);
     }
     // Insert
     await global.database.getCollection<any>(tenantID, 'authorizes')

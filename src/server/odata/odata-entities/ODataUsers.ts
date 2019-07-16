@@ -1,10 +1,11 @@
 import AbstractODataEntities from './AbstractODataEntities';
+import User from '../../../types/User';
 
 export default class ODataUsers extends AbstractODataEntities {
   public buildParams: any;
   public returnResponse: any;
 
-  static getObjectKey(user) {
+  static getObjectKey(user: User) {
     return user.id;
   }
 
