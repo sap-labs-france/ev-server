@@ -6,19 +6,19 @@ const MODULE_NAME = 'WSClient';
 
 export default class WSClient {
 
-  public get CONNECTING() {
+  public get CONNECTING(): number {
     return WebSocket.CONNECTING;
   }
 
-  public get CLOSING() {
+  public get CLOSING(): number {
     return WebSocket.CLOSING;
   }
 
-  public get CLOSED() {
+  public get CLOSED(): number {
     return WebSocket.CLOSED;
   }
 
-  public get OPEN() {
+  public get OPEN(): number {
     return WebSocket.OPEN;
   }
 
@@ -28,7 +28,7 @@ export default class WSClient {
   public onmessage: Function;
   public onmaximum: Function;
   public onreconnect: Function;
-  public readyState: any;
+  public readyState: number;
   private url: any;
   private options: any;
   private callbacks: any;
@@ -265,10 +265,10 @@ export default class WSClient {
  */
 ['onopen', 'onerror', 'onclose', 'onmessage'].forEach((method) => {
   Object.defineProperty(WSClient.prototype, method, {
-    get() {
+    get(): Function {
       return this.ws[method];
     },
-    set(callback) {
+    set(callback: Function): void {
       // Save the callback in an object attribute
       this.callbacks[method] = callback;
       this.ws[method] = callback;
@@ -277,10 +277,10 @@ export default class WSClient {
 });
 ['onreconnect', 'onmaximum'].forEach((method) => {
   Object.defineProperty(WSClient.prototype, method, {
-    get() {
+    get(): Function {
       return this.callbacks[method];
     },
-    set(callback) {
+    set(callback: Function): void {
       this.callbacks[method] = callback;
     }
   });
@@ -290,7 +290,7 @@ export default class WSClient {
  * Add `readyState` property
  */
 Object.defineProperty(WSClient.prototype, 'readyState', {
-  get() {
+  get(): number {
     return this.ws.readyState;
   }
 });

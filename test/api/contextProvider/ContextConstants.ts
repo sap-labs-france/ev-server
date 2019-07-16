@@ -1,7 +1,7 @@
+/**
+ * Available contexts that can be used in the unit tests
+ */
 export default class CONTEXTS {
-  /**************************************
-  * Available contexts that can be used in the unit tests
-  ***************************************/
   static readonly TENANT_CONTEXTS: any = {
     TENANT_WITH_ALL_COMPONENTS: 'ut-all', // All components are active
     TENANT_WITH_NO_COMPONENTS: 'ut-nothing', // No components are active
@@ -59,11 +59,9 @@ export default class CONTEXTS {
     },
   };
 
-  // pragma export class CONTEXTS_DEFINITION {
-  /*
-  * Definition of the different contexts
-  */
-
+  /**
+   * Definition of the different contexts
+   */
   static readonly TENANT_CONTEXT_LIST: any = [{
     // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS,
     tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS,

@@ -74,7 +74,7 @@ describe('Setting tests', function() {
     });
     it('Check that changing the pricing component from simple to convergent charging back and forth works', async () => {
       // Retrieve the setting id
-      let read = await testData.centralService.settingApi.readAll({ 'Identifier': 'pricing' }, {
+      const read = await testData.centralService.settingApi.readAll({ 'Identifier': 'pricing' }, {
         limit: Constants.UNLIMITED,
         skip: 0
       });
