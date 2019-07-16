@@ -275,7 +275,7 @@ export default class VehicleManufacturerStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete Vehicles
-    const vehicles = await VehicleStorage.getVehicles(tenantID, { 'vehicleManufacturerID': id });
+    const vehicles = await VehicleStorage.getVehicles(tenantID, { 'vehicleManufacturerID': id }, {limit: Constants.MAX_DB_RECORD_COUNT, skip: 0});
     // Delete
     for (const vehicle of vehicles.result) {
       // Delete Vehicle
