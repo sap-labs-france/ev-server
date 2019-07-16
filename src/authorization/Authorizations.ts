@@ -37,7 +37,6 @@ export default class Authorizations {
     // Can perform stop?
     if (!Authorizations.canPerformActionOnChargingStation(
       user,
-      chargingStation.getModel(),
       Constants.ACTION_REMOTE_START_TRANSACTION)) {
       // Ko
       return false;
@@ -50,7 +49,6 @@ export default class Authorizations {
     // Can perform stop?
     if (!Authorizations.canPerformActionOnChargingStation(
       user,
-      chargingStation.getModel(),
       Constants.ACTION_REMOTE_STOP_TRANSACTION)) {
       // Ko
       return false;
@@ -361,7 +359,7 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATIONS, Constants.ACTION_LIST);
   }
 
-  public static canPerformActionOnChargingStation(loggedUser: UserToken, chargingStation: any, action: any): boolean {
+  public static canPerformActionOnChargingStation(loggedUser: UserToken, action: any): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION, action);
   }
 
@@ -649,7 +647,7 @@ export default class Authorizations {
       }
     }
     // Authorized?
-    if (!Authorizations.canPerformActionOnChargingStation(loggedUser, chargingStation.getModel(), action)) {
+    if (!Authorizations.canPerformActionOnChargingStation(loggedUser, action)) {
       // Not Authorized!
       throw new AppAuthError(
         action,

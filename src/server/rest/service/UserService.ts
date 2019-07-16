@@ -1,8 +1,5 @@
-import bcrypt from 'bcrypt';
-import crypto from 'crypto';
 import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
-import passwordGenerator = require('password-generator');
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
@@ -19,10 +16,14 @@ import User from '../../../types/User';
 import UserSecurity from './security/UserSecurity';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
+import UtilsService from './UtilsService';
 
 export default class UserService {
 
   public static async handleAssignSitesToUser(action: string, req: Request, res: Response, next: NextFunction) {
+    await UtilsService.assertComponentIsActive(
+      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+      Constants.ACTION_UPDATE, Constants.ENTITY_SITES, 'SiteService', 'handleAssignSitesToUser');
     // Filter
     const filteredRequest = UserSecurity.filterAssignSitesToUserRequest(req.body, req.user);
     // Check Mandatory fields
@@ -76,8 +77,11 @@ export default class UserService {
       }
     }
     // Save
-    const func = action.toLowerCase().includes('add') ? UserStorage.addSitesToUser : UserStorage.removeSitesFromUser;
-    await func(req.user.tenantID, filteredRequest.userID, filteredRequest.siteIDs);
+    if(action.toLowerCase().includes('add')) {
+      await UserStorage.addSitesToUser(req.user.tenantID, filteredRequest.userID, filteredRequest.siteIDs);
+    }else{
+      await UserStorage.removeSitesFromUser(req.user.tenantID, filteredRequest.userID, filteredRequest.siteIDs);
+    }
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -131,14 +135,16 @@ export default class UserService {
         `User with ID '${id}' is already deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'UserService', 'handleDeleteUser', req.user);
     }
-    // Delete from site
-    // TODO: lots of useless information queried here, could be made faster...
-    const siteIDs: string[] = (await UserStorage.getSites(req.user.tenantID, { userID: id }, { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 })).result.map(
-      (siteUser) => {
-        return siteUser.site.id;
-      }
-    );
-    UserStorage.removeSitesFromUser(req.user.tenantID, user.id, siteIDs);
+    if(req.user.activeComponents.includes(Constants.COMPONENTS.ORGANIZATION)){
+      // Delete from site
+      // TODO: lots of useless information queried here, could be made faster...
+      const siteIDs: string[] = (await UserStorage.getSites(req.user.tenantID, { userID: id }, { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 })).result.map(
+        (siteUser) => {
+          return siteUser.site.id;
+        }
+      );
+      UserStorage.removeSitesFromUser(req.user.tenantID, user.id, siteIDs);
+    }
     // Delete User
     await UserStorage.deleteUser(req.user.tenantID, user.id);
     // Log
@@ -364,6 +370,11 @@ export default class UserService {
     }
     // Filter
     const filteredRequest = UserSecurity.filterUsersRequest(req.query, req.user);
+    // Check component
+    if(filteredRequest.SiteID || filteredRequest.ExcludeSiteID) {
+      await UtilsService.assertComponentIsActive(req.user.tenantID, 
+        Constants.COMPONENTS.ORGANIZATION, Constants.ACTION_READ, Constants.ENTITY_USER, 'UserService', 'handleGetUsers');
+    }
     // Get users
     const users = await UserStorage.getUsers(req.user.tenantID,
       {
@@ -400,6 +411,11 @@ export default class UserService {
     }
     // Filter
     const filteredRequest = UserSecurity.filterUsersRequest(req.query, req.user);
+    // Check component
+    if(filteredRequest.SiteID || filteredRequest.ExcludeSiteID) {
+      await UtilsService.assertComponentIsActive(req.user.tenantID, 
+        Constants.COMPONENTS.ORGANIZATION, Constants.ACTION_READ, Constants.ENTITY_USER, 'UserService', 'handleGetUsersInError');
+    }
     // Get users
     const users = await UserStorage.getUsers(req.user.tenantID,
       {
