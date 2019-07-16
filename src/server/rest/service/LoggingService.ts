@@ -20,6 +20,8 @@ export default class LoggingService {
       }
       // Filter
       const filteredRequest = LoggingSecurity.filterLoggingsRequest(req.query, req.user);
+      console.log(`>>> filter:${JSON.stringify(filteredRequest)}`);
+      console.log(`>>> action:${JSON.stringify(filteredRequest.Action.split('|'))}`);
       // Get logs
       const loggings = await Logging.getLogs(req.user.tenantID, {
         'search': filteredRequest.Search, 'dateFrom': filteredRequest.DateFrom, 'dateUntil': filteredRequest.DateUntil, 'users': filteredRequest.UserID.split('|'),
