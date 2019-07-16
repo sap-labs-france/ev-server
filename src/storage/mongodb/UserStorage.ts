@@ -521,7 +521,7 @@ export default class UserStorage {
   }
 
   public static async getSites(tenantID: string,
-    params: { search?: string; userID: string; siteAdmin?: boolean; onlyRecordCount?: boolean },
+    params: { search?: string; userID: string; siteAdmin?: boolean },
     dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: SiteUser[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getSites');

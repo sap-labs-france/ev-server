@@ -10,6 +10,7 @@ import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import Tenant from '../../../entity/Tenant';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
+import { filter } from 'bluebird';
 
 export default class ChargingStationService {
   static async handleAddChargingStationsToSiteArea(action, req, res, next) {
@@ -54,14 +55,6 @@ export default class ChargingStationService {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The Charging Station with ID '${chargingStationID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-          'ChargingStationService', 'handleAddChargingStationsToSiteArea', req.user);
-      }
-      // Get the Site Area
-      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
-      if (!siteArea) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Site Area with ID '${filteredRequest.siteAreaID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'ChargingStationService', 'handleAddChargingStationsToSiteArea', req.user);
       }
       // Check auth
@@ -426,10 +419,9 @@ export default class ChargingStationService {
         'siteIDs': (filteredRequest.SiteID ? [filteredRequest.SiteID] : Authorizations.getAuthorizedSiteIDs(req.user)),
         'chargeBoxID': filteredRequest.ChargeBoxID,
         'siteAreaID': filteredRequest.SiteAreaID,
-        'includeDeleted': filteredRequest.IncludeDeleted,
-        'onlyRecordCount': filteredRequest.OnlyRecordCount
+        'includeDeleted': filteredRequest.IncludeDeleted
       },
-      filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort
+      {limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount}
     );
     // Build the result
     if (chargingStations.result && chargingStations.result.length > 0) {
@@ -469,9 +461,8 @@ export default class ChargingStationService {
         'siteID': filteredRequest.SiteID,
         'chargeBoxID': filteredRequest.ChargeBoxID,
         'siteAreaID': filteredRequest.SiteAreaID,
-        'onlyRecordCount': filteredRequest.OnlyRecordCount
       },
-      filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort
+      {limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount}
     );
     // Build the result
     if (chargingStations.result && chargingStations.result.length > 0) {
@@ -525,10 +516,9 @@ export default class ChargingStationService {
         'siteID': filteredRequest.SiteID,
         'chargeBoxID': filteredRequest.ChargeBoxID,
         'siteAreaID': filteredRequest.SiteAreaID,
-        'errorType': filteredRequest.ErrorType,
-        'onlyRecordCount': filteredRequest.OnlyRecordCount
+        'errorType': filteredRequest.ErrorType
       },
-      filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort
+      {limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount}
     );
     // Build the result
     if (chargingStations.result && chargingStations.result.length > 0) {

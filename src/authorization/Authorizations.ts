@@ -77,7 +77,7 @@ export default class Authorizations {
     let siteAdminIDs = [];
     if (!Authorizations.isAdmin(user.role)) {
       // Get User's site
-      const sites = (await UserStorage.getSites(tenantID, { userID: user.id }, { limit: 0, skip: 0 }))
+      const sites = (await UserStorage.getSites(tenantID, { userID: user.id }, { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 }))
         .result.map((siteUser) => {
           return siteUser.site;
         });
@@ -126,18 +126,18 @@ export default class Authorizations {
     };
   }
 
-  public static async getConnectorActionAuthorizations(tenantID: string, user: UserToken, chargingStation: any, connector: any, siteArea: SiteArea, site: Site) {
-    const tenant: Tenant | null = await Tenant.getTenant(tenantID);
+  public static async getConnectorActionAuthorizations(params: {tenantID: string, user: UserToken, chargingStation: any, connector: any, siteArea: SiteArea, site: Site}) {
+    const tenant: Tenant | null = await Tenant.getTenant(params.tenantID);
     if (!tenant) {
       throw new BackendError('Authorizations.ts#getConnectorActionAuthorizations', 'Tenant null');
     }
     const isOrgCompActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
-    if (isOrgCompActive && (!siteArea || !site)) {
+    if (isOrgCompActive && (!params.siteArea || !params.site)) {
       throw new AppError(
-        chargingStation.getID(),
-        `Site area and site not provided for Charging Station '${chargingStation.getID()}'!`, Constants.HTTP_GENERAL_ERROR,
+        params.chargingStation.getID(),
+        `Site area and site not provided for Charging Station '${params.chargingStation.getID()}'!`, Constants.HTTP_GENERAL_ERROR,
         'Authorizations', 'getConnectorActionAuthorizations',
-        user
+        params.user
       );
     }
     // Set default value
@@ -147,46 +147,46 @@ export default class Authorizations {
     let isSameUserAsTransaction = false;
     if (isOrgCompActive) {
       // Acces Control Enabled?
-      accessControlEnable = siteArea.accessControl;
+      accessControlEnable = params.siteArea.accessControl;
       // Allow to stop all transactions
-      userAllowedToStopAllTransactions = site.allowAllUsersToStopTransactions;
+      userAllowedToStopAllTransactions = params.site.allowAllUsersToStopTransactions;
       // Check if User belongs to the charging station Site
-      isUserAssignedToSite = await SiteStorage.siteHasUser(tenantID, site.id, user.id);
+      isUserAssignedToSite = await SiteStorage.siteHasUser(params.tenantID, params.site.id, params.user.id);
     }
-    if (connector.activeTransactionID > 0) {
+    if (params.connector.activeTransactionID > 0) {
       // Get Transaction
-      const transaction = await Transaction.getTransaction(tenantID, connector.activeTransactionID);
+      const transaction = await Transaction.getTransaction(params.tenantID, params.connector.activeTransactionID);
       if (!transaction) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `Transaction ID '${connector.activeTransactionID}' does not exist`,
+          `Transaction ID '${params.connector.activeTransactionID}' does not exist`,
           Constants.HTTP_AUTH_ERROR, 'Authorizations', 'getConnectorActionAuthorizations');
       }
       // Check if transaction user is the same as request user
-      isSameUserAsTransaction = transaction.getUserID() === user.id;
+      isSameUserAsTransaction = transaction.getUserID() === params.user.id;
     }
 
     // Prepare default authorizations
     const result = {
-      'isStartAuthorized': Authorizations.canStartTransaction(user, chargingStation),
-      'isStopAuthorized': Authorizations.canStopTransaction(user, chargingStation),
+      'isStartAuthorized': Authorizations.canStartTransaction(params.user, params.chargingStation),
+      'isStopAuthorized': Authorizations.canStopTransaction(params.user, params.chargingStation),
       'isTransactionDisplayAuthorized': false
     };
-    if (user.role === Constants.ROLE_ADMIN) {
+    if (params.user.role === Constants.ROLE_ADMIN) {
       // An admin has all authorizations except for site where he is not assigned and in case site management is not active
       const defaultAuthorization = (isOrgCompActive && isUserAssignedToSite) || (!isOrgCompActive);
       result.isStartAuthorized = result.isStartAuthorized && defaultAuthorization;
       result.isStopAuthorized = result.isStopAuthorized && defaultAuthorization;
       result.isTransactionDisplayAuthorized = defaultAuthorization;
     }
-    if (user.role === Constants.ROLE_DEMO) {
+    if (params.user.role === Constants.ROLE_DEMO) {
       // Demon user can never start nor stop transaction and can display details only for assigned site
       const defaultAuthorization = (isOrgCompActive && isUserAssignedToSite) || (!isOrgCompActive);
       result.isStartAuthorized = false;
       result.isStopAuthorized = false;
       result.isTransactionDisplayAuthorized = defaultAuthorization;
     }
-    if (user.role === Constants.ROLE_BASIC) {
+    if (params.user.role === Constants.ROLE_BASIC) {
       // Basic user can start a transaction if he is assigned to the site or site management is not active
       result.isStartAuthorized = result.isStartAuthorized &&
         (isOrgCompActive && isUserAssignedToSite) || (!isOrgCompActive);
@@ -265,7 +265,7 @@ export default class Authorizations {
         // Reject but save ok
         throw new AppError(
           chargingStation.getID(),
-          `${Utils.buildUserFullName(user)} is '${UserService.getStatusDescription(user.status)}'`, Constants.HTTP_GENERAL_ERROR,
+          `${Utils.buildUserFullName(user)} is '${Utils.getStatusDescription(user.status)}'`, Constants.HTTP_GENERAL_ERROR,
           'Authorizations', '_checkAndGetUserOnChargingStation',
           user);
       }

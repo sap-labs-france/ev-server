@@ -86,7 +86,7 @@ export default class CompanyStorage {
   }
 
   public static async getCompanies(tenantID: string,
-    params: {search?: string; companyIDs?: string[]; onlyRecordCount?: boolean; withSites?: boolean; withLogo?: boolean} = {},
+    params: {search?: string; companyIDs?: string[]; withSites?: boolean; withLogo?: boolean} = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<{count: number; result: Company[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompanies');
@@ -132,7 +132,7 @@ export default class CompanyStorage {
       });
     }
     // Limit records?
-    if (!params.onlyRecordCount) {
+    if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
       aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
     }
@@ -141,7 +141,7 @@ export default class CompanyStorage {
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
-    if (params.onlyRecordCount) {
+    if (dbParams.onlyRecordCount) {
       // Return only the count
       return {
         count: (companiesCountMDB.length > 0 ? companiesCountMDB[0].count : 0),

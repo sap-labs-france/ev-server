@@ -19,6 +19,7 @@ import TenantHolder from './TenantHolder';
 import Transaction from './Transaction';
 import User from '../types/User';
 import Utils from '../utils/Utils';
+import DbParams from '../types/database/DbParams';
 
 momentDurationFormatSetup(moment);
 
@@ -36,12 +37,12 @@ export default class ChargingStation extends TenantHolder {
     return ChargingStationStorage.getChargingStation(tenantID, id);
   }
 
-  static async getChargingStations(tenantID, params, limit, skip, sort): Promise<{ count: number; result: ChargingStation[] }> {
-    return ChargingStationStorage.getChargingStations(tenantID, params, limit, skip, sort);
+  static async getChargingStations(tenantID, params, dbParams: DbParams): Promise<{ count: number; result: ChargingStation[] }> {
+    return ChargingStationStorage.getChargingStations(tenantID, params, dbParams);
   }
 
-  static getChargingStationsInError(tenantID, params, limit, skip, sort) {
-    return ChargingStationStorage.getChargingStationsInError(tenantID, params, limit, skip, sort);
+  static getChargingStationsInError(tenantID, params, dbParams: DbParams) {
+    return ChargingStationStorage.getChargingStationsInError(tenantID, params, dbParams);
   }
 
   static addChargingStationsToSiteArea(tenantID, siteAreaID, chargingStationIDs) {

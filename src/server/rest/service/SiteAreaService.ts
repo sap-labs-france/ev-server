@@ -137,10 +137,9 @@ export default class SiteAreaService {
         withSite: filteredRequest.WithSite,
         withChargeBoxes: filteredRequest.WithChargeBoxes,
         withAvailableChargers: filteredRequest.WithAvailableChargers,
-        siteID: filteredRequest.SiteID,
-        onlyRecordCount: filteredRequest.OnlyRecordCount
+        siteID: filteredRequest.SiteID
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       ['id', 'name', 'siteID', 'address.latitude', 'address.longitude', 'address.city', 'address.country', 'site.id', 'site.name',
         'chargingStations.id', 'chargingStations.connectors', 'chargingStations.lastHeartBeat']
     );

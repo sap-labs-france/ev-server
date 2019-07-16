@@ -110,8 +110,8 @@ export default class VehicleManufacturerService {
       // Get the vehicle Manufacturers
       const vehicleManufacturers = await VehicleManufacturer.getVehicleManufacturers(req.user.tenantID,
         { 'search': filteredRequest.Search, 'withVehicles': filteredRequest.WithVehicles,
-          'vehicleType': filteredRequest.VehicleType, 'onlyRecordCount': filteredRequest.OnlyRecordCount },
-        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+          'vehicleType': filteredRequest.VehicleType },
+        { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
       // Set
       vehicleManufacturers.result = vehicleManufacturers.result.map((vehicleManufacturer) => {
         return vehicleManufacturer.getModel();

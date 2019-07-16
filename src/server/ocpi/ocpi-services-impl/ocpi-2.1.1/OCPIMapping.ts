@@ -70,7 +70,7 @@ export default class OCPIMapping {
   static async getEvsesFromSite(tenant: any, site: Site, options: any) {
     // Build evses array
     const evses = [];
-    const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.getID(), { withChargeBoxes: true, siteID: site.id }, { limit: 0, skip: 0 });
+    const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.getID(), { withChargeBoxes: true, siteID: site.id }, { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 });
     for (const siteArea of siteAreas.result) {
       // Get charging stations from SiteArea
       evses.push(...await OCPIMapping.getEvsesFromSiteaArea(tenant, siteArea, options));

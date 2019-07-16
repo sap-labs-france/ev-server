@@ -277,8 +277,7 @@ export default class SiteService {
     const users = await SiteStorage.getUsers(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        siteID: filteredRequest.SiteID,
-        onlyRecordCount: filteredRequest.OnlyRecordCount
+        siteID: filteredRequest.SiteID
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       ['user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteID']
@@ -377,10 +376,9 @@ export default class SiteService {
         'siteIDs': Authorizations.getAuthorizedSiteIDs(req.user),
         'withCompany': filteredRequest.WithCompany,
         'excludeSitesOfUserID': filteredRequest.ExcludeSitesOfUserID,
-        'withAvailableChargers': filteredRequest.WithAvailableChargers,
-        'onlyRecordCount': filteredRequest.OnlyRecordCount
+        'withAvailableChargers': filteredRequest.WithAvailableChargers
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       [ 'id', 'name', 'address.latitude', 'address.longitude', 'address.city', 'address.country', 'company.name',
         'autoUserSiteAssignment', 'allowAllUsersToStopTransactions']
     );

@@ -7,6 +7,7 @@ import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import Vehicle from '../../entity/Vehicle';
+import DbParams from '../../types/database/DbParams';
 
 export default class VehicleStorage {
 
@@ -146,15 +147,15 @@ export default class VehicleStorage {
   }
 
   // Delegate
-  static async getVehicles(tenantID, params: any = {}, limit?, skip?, sort?) {
+  static async getVehicles(tenantID, params: any = {}, dbParams: DbParams) {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleStorage', 'getVehicles');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
-    limit = Utils.checkRecordLimit(limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    skip = Utils.checkRecordSkip(skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
     const filters: any = {};
     // Source?
@@ -181,7 +182,7 @@ export default class VehicleStorage {
       });
     }
     // Limit records?
-    if (!params.onlyRecordCount) {
+    if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
       aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
     }
@@ -190,7 +191,7 @@ export default class VehicleStorage {
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
-    if (params.onlyRecordCount) {
+    if (dbParams.onlyRecordCount) {
       // Return only the count
       return {
         count: (vehiclesCountMDB.length > 0 ? vehiclesCountMDB[0].count : 0),
@@ -202,10 +203,10 @@ export default class VehicleStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
-    if (sort) {
+    if (dbParams.sort) {
       // Sort
       aggregation.push({
-        $sort: sort
+        $sort: dbParams.sort
       });
     } else {
       // Default
@@ -217,11 +218,11 @@ export default class VehicleStorage {
     }
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
     // Read DB
     const vehiclesMDB = await global.database.getCollection<any>(tenantID, 'vehicles')
@@ -237,7 +238,7 @@ export default class VehicleStorage {
       }
     }
     // Debug
-    Logging.traceEnd('VehicleStorage', 'getVehicles', uniqueTimerID, { params, limit, skip, sort });
+    Logging.traceEnd('VehicleStorage', 'getVehicles', uniqueTimerID, { params, dbParams });
     // Ok
     return {
       count: (vehiclesCountMDB.length > 0 ?

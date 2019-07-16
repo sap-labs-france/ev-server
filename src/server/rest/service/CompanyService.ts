@@ -130,10 +130,9 @@ export default class CompanyService {
         search: filteredRequest.Search,
         companyIDs: Authorizations.getAuthorizedCompanyIDs(req.user),
         withSites: filteredRequest.WithSites,
-        withLogo: filteredRequest.WithLogo,
-        onlyRecordCount: filteredRequest.OnlyRecordCount
+        withLogo: filteredRequest.WithLogo
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       [ 'id', 'name', 'address.latitude', 'address.longitude', 'address.city', 'address.country', 'logo']
     );
     // Filter

@@ -1,6 +1,7 @@
 import AuthService from './service/AuthService';
 import Logging from '../../utils/Logging';
 import UtilsService from './service/UtilsService';
+import Constants from '../../utils/Constants';
 
 export default {
   // Init Passport
@@ -82,7 +83,7 @@ export default {
       }
     } catch (error) {
       // FIXME: Cannot read property 'tenantID' of undefined
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next, req.user.tenantID);
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next, req.user ? req.user.tenantID : Constants.DEFAULT_TENANT);
     }
   }
 };

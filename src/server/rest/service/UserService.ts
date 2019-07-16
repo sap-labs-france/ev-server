@@ -133,7 +133,7 @@ export default class UserService {
     }
     // Delete from site
     // TODO: lots of useless information queried here, could be made faster...
-    const siteIDs: string[] = (await UserStorage.getSites(req.user.tenantID, { userID: id }, { limit: 0, skip: 0 })).result.map(
+    const siteIDs: string[] = (await UserStorage.getSites(req.user.tenantID, { userID: id }, { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 })).result.map(
       (siteUser) => {
         return siteUser.site.id;
       }
@@ -208,7 +208,7 @@ export default class UserService {
     // Check the password
     if (filteredRequest.password && filteredRequest.password.length > 0) {
       // Generate the password hash
-      const newPasswordHashed = await UserService.hashPasswordBcrypt(filteredRequest.password);
+      const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
       // Update the password
       filteredRequest.password = newPasswordHashed;
     }
@@ -218,7 +218,7 @@ export default class UserService {
     // Clean up request
     delete filteredRequest.passwords;
     // Check Mandatory fields
-    UserService.checkIfUserValid(filteredRequest, user, req);
+    UserService._checkIfUserValid(filteredRequest, user, req);
     // Update User
     const newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? [] : filteredRequest.tagIDs;
     const updatedUserId = await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: newTagIDs }, true); // Careful: Last changed by is not a proper user here! TODO (it wasnt before either tho)
@@ -436,7 +436,7 @@ export default class UserService {
     // Filter
     const filteredRequest = UserSecurity.filterUserCreateRequest(req.body, req.user);
     // Check Mandatory fields
-    UserService.checkIfUserValid(filteredRequest, null, req);
+    UserService._checkIfUserValid(filteredRequest, null, req);
     // Get the email
     const foundUser = await UserStorage.getUserByEmail(req.user.tenantID, filteredRequest.email);
     if (foundUser) {
@@ -450,7 +450,7 @@ export default class UserService {
     // Set the password
     if (filteredRequest.password) {
       // Generate a hash for the given password
-      const newPasswordHashed = await UserService.hashPasswordBcrypt(filteredRequest.password);
+      const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
       // Generate a hash
       filteredRequest.password = newPasswordHashed;
     }
@@ -586,7 +586,7 @@ export default class UserService {
     }
   }
 
-  public static checkIfUserValid(filteredRequest: Partial<HttpUserRequest>, user: User, req: Request) {
+  public static _checkIfUserValid(filteredRequest: Partial<HttpUserRequest>, user: User, req: Request) {
     const tenantID = req.user.tenantID;
     if (!tenantID) {
       throw new AppError(
@@ -751,82 +751,4 @@ export default class UserService {
     return /^[A-Z0-9-]*$/.test(plateID);
   }
 
-  public static hashPasswordBcrypt(password: string): Promise<string> {
-    // eslint-disable-next-line no-undef
-    return new Promise((fulfill, reject) => {
-      // Generate a salt with 15 rounds
-      bcrypt.genSalt(10, (err, salt) => {
-        // Hash
-        bcrypt.hash(password, salt, (err, hash) => {
-          // Error?
-          if (err) {
-            reject(err);
-          } else {
-            fulfill(hash);
-          }
-        });
-      });
-    });
-  }
-
-  static checkPasswordBCrypt(password, hash) {
-    // eslint-disable-next-line no-undef
-    return new Promise((fulfill, reject) => {
-      // Compare
-      bcrypt.compare(password, hash, (err, match) => {
-        // Error?
-        if (err) {
-          reject(err);
-        } else {
-          fulfill(match);
-        }
-      });
-    });
-  }
-
-  static isPasswordStrongEnough(password) {
-    const uc = password.match(Constants.PWD_UPPERCASE_RE);
-    const lc = password.match(Constants.PWD_LOWERCASE_RE);
-    const n = password.match(Constants.PWD_NUMBER_RE);
-    const sc = password.match(Constants.PWD_SPECIAL_CHAR_RE);
-    return password.length >= Constants.PWD_MIN_LENGTH &&
-      uc && uc.length >= Constants.PWD_UPPERCASE_MIN_COUNT &&
-      lc && lc.length >= Constants.PWD_LOWERCASE_MIN_COUNT &&
-      n && n.length >= Constants.PWD_NUMBER_MIN_COUNT &&
-      sc && sc.length >= Constants.PWD_SPECIAL_MIN_COUNT;
-  }
-
-
-  static generatePassword() {
-    let password = '';
-    const randomLength = Math.floor(Math.random() * (Constants.PWD_MAX_LENGTH - Constants.PWD_MIN_LENGTH)) + Constants.PWD_MIN_LENGTH;
-    while (!UserService.isPasswordStrongEnough(password)) {
-      // eslint-disable-next-line no-useless-escape
-      password = passwordGenerator(randomLength, false, /[\w\d!#\$%\^&\*\.\?\-]/);
-    }
-    return password;
-  }
-
-  public static getStatusDescription(status: string): string {
-    switch (status) {
-      case Constants.USER_STATUS_PENDING:
-        return 'Pending';
-      case Constants.USER_STATUS_LOCKED:
-        return 'Locked';
-      case Constants.USER_STATUS_BLOCKED:
-        return 'Blocked';
-      case Constants.USER_STATUS_ACTIVE:
-        return 'Active';
-      case Constants.USER_STATUS_DELETED:
-        return 'Deleted';
-      case Constants.USER_STATUS_INACTIVE:
-        return 'Inactive';
-      default:
-        return 'Unknown';
-    }
-  }
-
-  static hashPassword(password) {
-    return crypto.createHash('sha256').update(password).digest('hex');
-  }
 }

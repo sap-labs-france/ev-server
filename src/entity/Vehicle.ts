@@ -49,8 +49,8 @@ export default class Vehicle extends TenantHolder {
     return VehicleStorage.getVehicle(tenantID, id);
   }
 
-  static getVehicles(tenantID, params, limit, skip, sort) {
-    return VehicleStorage.getVehicles(tenantID, params, limit, skip, sort);
+  static getVehicles(tenantID, params, dbParams) {
+    return VehicleStorage.getVehicles(tenantID, params, dbParams);
   }
 
   static getVehicleImage(tenantID, id) {

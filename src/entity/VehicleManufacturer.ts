@@ -37,8 +37,8 @@ export default class VehicleManufacturer extends TenantHolder {
     return VehicleManufacturerStorage.getVehicleManufacturer(tenantID, id);
   }
 
-  static getVehicleManufacturers(tenantID, params, limit, skip, sort) {
-    return VehicleManufacturerStorage.getVehicleManufacturers(tenantID, params, limit, skip, sort);
+  static getVehicleManufacturers(tenantID, params, dbParams) {
+    return VehicleManufacturerStorage.getVehicleManufacturers(tenantID, params, dbParams);
   }
 
   static getVehicleManufacturerLogo(tenantID, id) {
