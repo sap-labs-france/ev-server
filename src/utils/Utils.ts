@@ -234,7 +234,7 @@ export default class Utils {
 
   static buildUserFullName(user: User, withID = true, withEmail = false, inversedName = false) {
     let fullName: string;
-    if (!user) {
+    if (!user || !user.name) {
       return 'Unknown';
     }
     if (inversedName) {
