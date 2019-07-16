@@ -34,29 +34,17 @@ export default class Authorizations {
   }
 
   public static canStartTransaction(user: UserToken, chargingStation: ChargingStation) {
-    // Can perform stop?
-    if (!Authorizations.canPerformActionOnChargingStation(
+    return Authorizations.canPerformActionOnChargingStation(
       user,
       chargingStation.getModel(),
-      Constants.ACTION_REMOTE_START_TRANSACTION)) {
-      // Ko
-      return false;
-    }
-    // Ok
-    return true;
+      Constants.ACTION_REMOTE_START_TRANSACTION);
   }
 
   public static canStopTransaction(user: UserToken, chargingStation: any) {
-    // Can perform stop?
-    if (!Authorizations.canPerformActionOnChargingStation(
+    return Authorizations.canPerformActionOnChargingStation(
       user,
       chargingStation.getModel(),
-      Constants.ACTION_REMOTE_STOP_TRANSACTION)) {
-      // Ko
-      return false;
-    }
-    // Ok
-    return true;
+      Constants.ACTION_REMOTE_STOP_TRANSACTION);
   }
 
   public static getAuthorizedCompanyIDs(loggedUser: UserToken): string[] {
@@ -287,32 +275,34 @@ export default class Authorizations {
       if (alternateUser) {
         // Get the user
         user = await UserStorage.getUserByTagId(chargingStation.getTenantID(), transactionTagId);
-        // Not Check if Alternate User belongs to a Site --------------------------------
-        // Organization component active?
-        const tenant = await TenantStorage.getTenant(chargingStation.getTenantID());
-        const isOrgCompActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
-        if (isOrgCompActive) {
-          // Get the site (site existence is already checked by isTagIDAuthorizedOnChargingStation())
-          const site: Site = await chargingStation.getSite();
-          // Check if the site allows to stop the transaction of another user
-          if (!Authorizations.isAdmin(alternateUser.role) &&
-            !site.allowAllUsersToStopTransactions) {
-            // Reject the User
-            throw new BackendError(
-              chargingStation.getID(),
-              `User '${Utils.buildUserFullName(alternateUser)}' is not allowed to perform 'Stop Transaction' on User '${Utils.buildUserFullName(user)}' on Site '${site.name}'!`,
-              'Authorizations', 'isTagIDsAuthorizedOnChargingStation', action,
-              (alternateUser ? alternateUser : null), (user ? user : null));
-          }
-        } else {
-          // Only Admins can stop a transaction when org is not active
-          if (!Authorizations.isAdmin(alternateUser.role)) {
-            // Reject the User
-            throw new BackendError(
-              chargingStation.getID(),
-              `User '${Utils.buildUserFullName(alternateUser)}' is not allowed to perform 'Stop Transaction' on User '${Utils.buildUserFullName(user)}'!`,
-              'Authorizations', 'isTagIDsAuthorizedOnChargingStation', action,
-              (alternateUser ? alternateUser : null), (user ? user : null));
+        if (user.id !== alternateUser.id) {
+          // Not Check if Alternate User belongs to a Site --------------------------------
+          // Organization component active?
+          const tenant = await TenantStorage.getTenant(chargingStation.getTenantID());
+          const isOrgCompActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+          if (isOrgCompActive) {
+            // Get the site (site existence is already checked by isTagIDAuthorizedOnChargingStation())
+            const site: Site = await chargingStation.getSite();
+            // Check if the site allows to stop the transaction of another user
+            if (!Authorizations.isAdmin(alternateUser.role) &&
+              !site.allowAllUsersToStopTransactions) {
+              // Reject the User
+              throw new BackendError(
+                chargingStation.getID(),
+                `User '${Utils.buildUserFullName(alternateUser)}' is not allowed to perform 'Stop Transaction' on User '${Utils.buildUserFullName(user)}' on Site '${site.name}'!`,
+                'Authorizations', 'isTagIDsAuthorizedOnChargingStation', action,
+                (alternateUser ? alternateUser : null), (user ? user : null));
+            }
+          } else {
+            // Only Admins can stop a transaction when org is not active
+            if (!Authorizations.isAdmin(alternateUser.role)) {
+              // Reject the User
+              throw new BackendError(
+                chargingStation.getID(),
+                `User '${Utils.buildUserFullName(alternateUser)}' is not allowed to perform 'Stop Transaction' on User '${Utils.buildUserFullName(user)}'!`,
+                'Authorizations', 'isTagIDsAuthorizedOnChargingStation', action,
+                (alternateUser ? alternateUser : null), (user ? user : null));
+            }
           }
         }
       }

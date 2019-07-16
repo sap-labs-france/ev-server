@@ -90,6 +90,7 @@ class RequestMapper {
           IntegrationConnectionCreate: ConnectorService.handleCreateConnection,
           _default: UtilsService.handleUnknownAction
         });
+        break;
 
       // Read
       case 'GET':
@@ -162,6 +163,7 @@ class RequestMapper {
             return res.sendStatus(200);
           }
         });
+        break;
 
       // Update
       case 'PUT':
@@ -183,6 +185,7 @@ class RequestMapper {
           OcpiEndpointRegister: OCPIEndpointService.handleRegisterOcpiEndpoint,
           _default: UtilsService.handleUnknownAction
         });
+        break;
 
       // Delete
       case 'DELETE':
@@ -202,6 +205,7 @@ class RequestMapper {
           OcpiEndpointDelete: OCPIEndpointService.handleDeleteOcpiEndpoint,
           _default: UtilsService.handleUnknownAction
         });
+        break;
     }
   }
 
@@ -259,7 +263,7 @@ export default {
     const action = /^\/\w*/g.exec(req.url)[0].substring(1);
 
     // Check if User has been updated and require new login
-    if (await SessionHashService.isSessionHashUpdated(req, res, next)) {
+    if (SessionHashService.isSessionHashUpdated(req, res, next)) {
       return;
     }
 
