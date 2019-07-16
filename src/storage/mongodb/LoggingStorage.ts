@@ -125,9 +125,9 @@ export default class LoggingStorage {
     // Charging Station
     if (params.source) {
       // Parse source with the | delimiter
-      const sourceSplitted = params.source.split('|');
-      if(sourceSplitted.length > 1) {
-        filters.source = { $in: sourceSplitted };
+      const sources = params.source.split('|');
+      if(sources.length > 1) {
+        filters.source = { $in: sources };
       } else {
         filters.source = params.source;
       }
@@ -140,9 +140,9 @@ export default class LoggingStorage {
     // Action
     if (params.action) {
       // Parse action with the | delimiter for multiple values
-      const actionSplitted = params.action.split('|');
-      if(actionSplitted.length > 1) {
-        filters.action = { $in: actionSplitted };
+      const actions = params.action.split('|');
+      if(actions.length > 1) {
+        filters.action = { $in: actions };
       } else {
         filters.action = params.action;
       }
@@ -151,9 +151,9 @@ export default class LoggingStorage {
     if (params.userID) {
       // Yes, add in filter
       // Parse action with the | delimiter for multiple values
-      const userSplitted = params.userID.split('|');
+      const users = params.userID.split('|');
       const userArray = [];
-      userSplitted.forEach((user)=>{
+      users.forEach((user)=>{
         userArray.push({"userID": Utils.convertToObjectID(user)});
         userArray.push({"actionOnUserID": Utils.convertToObjectID(user)});
       });

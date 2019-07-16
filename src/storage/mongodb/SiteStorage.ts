@@ -290,10 +290,10 @@ export default class SiteStorage {
     if (params.companyID) {
       // Yes, add in filter
       // Parse companies with the | delimiter for multiple values
-      const companySplitted = params.companyID.split('|');
-      if(companySplitted.length > 1) {
-        filters.companyID = { $in: companySplitted.map((company) => {
-            return Utils.convertToObjectID(company);
+      const companyIDs = params.companyID.split('|');
+      if(companyIDs.length > 1) {
+        filters.companyID = { $in: companyIDs.map((companyID) => {
+            return Utils.convertToObjectID(companyID);
           })};
       } else {
         filters.companyID = Utils.convertToObjectID(params.companyID);

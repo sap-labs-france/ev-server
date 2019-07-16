@@ -98,21 +98,21 @@ export default class TransactionStorage {
     // User
     if (params.userId) {
       // Parse filter the | delimiter for multiple values
-      const userSplitted = params.userId.split('|');
-      if(userSplitted.length > 1) {
-        match.userID = { $in: userSplitted.map((user) => {
-          return Utils.convertToObjectID(user);
+      const userIDs = params.userId.split('|');
+      if(userIDs.length > 1) {
+        match.userID = { $in: userIDs.map((userID) => {
+          return Utils.convertToObjectID(userID);
         })};
       } else {
         match.userID = Utils.convertToObjectID(params.userId);
-      } 
+      }
     }
     // Charge Box
     if (params.chargeBoxID) {
       // Parse filter with | delimiter
-      const chargeBoxSplitted = params.chargeBoxID.split('|');
-      if(chargeBoxSplitted.length > 1) {
-        match.chargeBoxID = { $in: chargeBoxSplitted };
+      const chargeBoxIDs = params.chargeBoxID.split('|');
+      if(chargeBoxIDs.length > 1) {
+        match.chargeBoxID = { $in: chargeBoxIDs };
       } else {
         match.chargeBoxID = params.chargeBoxID;
       }
@@ -383,22 +383,22 @@ export default class TransactionStorage {
     // User
     if (params.userId) {
       // Parse filter the | delimiter for multiple values
-      const userSplitted = params.userId.split('|');
-      if(userSplitted.length > 1) {
-        const userArray = userSplitted.map((user) => {
-          return Utils.convertToObjectID(user);
+      const userIDs = params.userId.split('|');
+      if(userIDs.length > 1) {
+        const userArray = userIDs.map((userID) => {
+          return Utils.convertToObjectID(userID);
         });
         match.userID = { $in: userArray };;
       } else {
         match.userID = Utils.convertToObjectID(params.userId);
-      } 
+      }
     }
     // Charge Box
     if (params.chargeBoxID) {
       // Parse filter with | delimiter
-      const chargeBoxSplitted = params.chargeBoxID.split('|');
-      if(chargeBoxSplitted.length > 1) {
-        match.chargeBoxID = { $in: chargeBoxSplitted };;
+      const chargeBoxIDs = params.chargeBoxID.split('|');
+      if(chargeBoxIDs.length > 1) {
+        match.chargeBoxID = { $in: chargeBoxIDs };;
       } else {
         match.chargeBoxID = params.chargeBoxID;
       }

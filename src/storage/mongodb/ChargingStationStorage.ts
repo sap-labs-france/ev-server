@@ -91,10 +91,10 @@ export default class ChargingStationStorage {
     // Site Area
     if (params.siteAreaID) {
       // Parse filter with | delimiter
-      const siteAreaSplitted = params.siteAreaID.split('|');
-      if(siteAreaSplitted.length > 1) {
-        filters.siteAreaID = { $in: siteAreaSplitted.map((siteArea) => {
-          return Utils.convertToObjectID(siteArea);
+      const siteAreaIDs = params.siteAreaID.split('|');
+      if(siteAreaIDs.length > 1) {
+        filters.siteAreaID = { $in: siteAreaIDs.map((siteAreaID) => {
+          return Utils.convertToObjectID(siteAreaID);
           })};
       } else {
         filters.siteAreaID = Utils.convertToObjectID(params.siteAreaID);
@@ -114,11 +114,11 @@ export default class ChargingStationStorage {
       // With sites
       if (params.siteID && params.siteID.length > 0) {
         // Build filter
-        const siteSplitted = params.siteID.split('|');
+        const siteAreaIDs = params.siteID.split('|');
         filters.$and.push({
           'siteArea.siteID': {
-            $in: siteSplitted.map((site) => {
-              return Utils.convertToObjectID(site);
+            $in: siteAreaIDs.map((siteAreaID) => {
+              return Utils.convertToObjectID(siteAreaID);
             })
           }
         });
@@ -253,10 +253,10 @@ export default class ChargingStationStorage {
     // Site Area
     if (params.siteAreaID) {
       // Parse filter with | delimiter
-      const siteAreaSplitted = params.siteAreaID.split('|');
-      if(siteAreaSplitted.length > 1) {
-        basicFilters.siteAreaID = { $in: siteAreaSplitted.map((siteArea) => {
-          return Utils.convertToObjectID(siteArea);
+      const siteAreaIDs = params.siteAreaID.split('|');
+      if(siteAreaIDs.length > 1) {
+        basicFilters.siteAreaID = { $in: siteAreaIDs.map((siteAreaID) => {
+          return Utils.convertToObjectID(siteAreaID);
           })};
       } else {
         basicFilters.siteAreaID = Utils.convertToObjectID(params.siteAreaID);

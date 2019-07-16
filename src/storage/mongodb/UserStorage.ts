@@ -415,18 +415,18 @@ export default class UserStorage {
     }
     if (params.role) {
       // Parse filter with | delimiter
-      const roleSplitted = params.role.split('|');
-      if(roleSplitted.length > 1) {
-        filters.role = { $in: roleSplitted };;
+      const roles = params.role.split('|');
+      if(roles.length > 1) {
+        filters.role = { $in: roles };;
       } else {
         filters.role = params.role;
       }
     }
     if (params.status) {
       // Parse filter with | delimiter
-      const statusSplitted = params.status.split('|');
-      if(statusSplitted.length > 1) {
-        filters.status = { $in: statusSplitted };;
+      const statuses = params.status.split('|');
+      if(statuses.length > 1) {
+        filters.status = { $in: statuses };;
       } else {
         filters.status = params.status;
       }

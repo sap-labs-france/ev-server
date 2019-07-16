@@ -118,11 +118,12 @@ export default class SiteAreaStorage {
     if (params.siteID) {
       // Yes, add in filter
       // Parse companies with the | delimiter for multiple values
-      const siteSplitted = params.siteID.split('|');
-      if(siteSplitted.length > 1) {
-        filters.siteID = { $in: siteSplitted.map((site) => {
-            return Utils.convertToObjectID(site);
-          })}
+      const siteIDs = params.siteID.split('|');
+      if (siteIDs.length > 1) {
+        filters.siteID = { $in: siteIDs.map((siteID) => {
+            return Utils.convertToObjectID(siteID);
+          })
+        };
       } else {
         filters.siteID = Utils.convertToObjectID(params.siteID);
       }
