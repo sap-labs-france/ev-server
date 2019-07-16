@@ -5,7 +5,8 @@ import Constants from '../../../utils/Constants';
 import global from '../../../types/GlobalType';
 import Logging from '../../../utils/Logging';
 import Tenant from '../../../entity/Tenant';
-import User from '../../../entity/User';
+import User from '../../../types/User';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 
 export default class SessionHashService {
   // Check if Session has been updated and require new login
@@ -47,17 +48,17 @@ export default class SessionHashService {
   }
 
   // Build User Hash ID
-  static buildUserHashID(user) {
+  static buildUserHashID(user: User) {
     // Get all field that need to be hashed
     const data =
-      user.getLanguage() + '/' +
-      user.getRole() + '/' +
-      user.getStatus();
+      user.locale.substring(0, 2) + '/' +
+      user.role + '/' +
+      user.status;
     return crypto.createHash('sha256').update(data).digest('hex');
   }
 
   // Build Tenant Hash ID
-  static buildTenantHashID(tenant) {
+  static buildTenantHashID(tenant: Tenant) {
     // Get all field that need to be hashed
     const data = JSON.stringify(tenant.getActiveComponents());
     return crypto.createHash('sha256').update(data).digest('hex');
@@ -66,7 +67,7 @@ export default class SessionHashService {
   // Rebuild and store User Hash ID
   static async rebuildUserHashID(tenantID, userID) {
     // Build User hash
-    const user = await User.getUser(tenantID, userID);
+    const user = await UserStorage.getUser(tenantID, userID);
     if (user) {
       const hashID = SessionHashService.buildUserHashID(user);
       // Store the hash

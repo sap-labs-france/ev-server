@@ -1,8 +1,5 @@
 import AccessControl from 'role-acl';
-import SourceMap from 'source-map-support';
 import InternalError from '../exception/InternalError';
-
-SourceMap.install();
 
 const GRANTS = {
   superAdmin: {

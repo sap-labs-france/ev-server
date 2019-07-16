@@ -1,4 +1,4 @@
-import User from '../entity/User';
+import User from '../types/User';
 
 export default class BackendError extends Error {
 
@@ -9,7 +9,7 @@ export default class BackendError extends Error {
     readonly method: string = 'N/A',
     readonly action: string = 'N/A',
     readonly user?: User,
-    readonly actionOnUser?: string) {
+    readonly actionOnUser?: User) {
     super(message);
   }
 }

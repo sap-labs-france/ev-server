@@ -9,7 +9,7 @@ chai.use(chaiSubset);
 chai.use(responseHelper);
 
 // Goal : Test the creation of settings following a component activation
-// Usage : these unit tests use the tenant utnothing
+// Usage : these unit tests use the tenant ut-nothing
 
 class TestData {
   public data: any;

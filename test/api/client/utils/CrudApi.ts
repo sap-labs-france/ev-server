@@ -39,9 +39,9 @@ export default class CrudApi {
    * @returns The HTTP response
    * @memberof CrudApi
    */
-  public readById(id, path) {
+  public async readById(id, path) {
     // Execute
-    return this.read({ ID: id }, path);
+    return await this.read({ ID: id }, path);
   }
 
   /**
@@ -52,8 +52,8 @@ export default class CrudApi {
    * @returns The HTTP response
    * @memberof CrudApi
    */
-  public read(params, path) {
-    return this._authenticatedApi.send({
+  public async read(params, path) {
+    return await this._authenticatedApi.send({
       method: 'GET',
       url: path,
       params
@@ -70,13 +70,13 @@ export default class CrudApi {
    * @returns The HTTP response
    * @memberof CrudApi
    */
-  public readAll(params = {}, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING, path) {
+  public async readAll(params = {}, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING, path) {
     // Build Paging
     this._buildPaging(paging, params);
     // Build Ordering
     this._buildOrdering(ordering, params);
     // Call
-    return this._authenticatedApi.send({
+    return await this._authenticatedApi.send({
       method: 'GET',
       url: path,
       params: params
@@ -91,8 +91,8 @@ export default class CrudApi {
    * @returns The HTTP response
    * @memberof CrudApi
    */
-  public create(data, path) {
-    return this._authenticatedApi.send({
+  public async create(data, path) {
+    return await this._authenticatedApi.send({
       method: 'POST',
       url: path,
       data: data,
@@ -107,8 +107,8 @@ export default class CrudApi {
    * @returns The HTTP response
    * @memberof CrudApi
    */
-  public update(data, path) {
-    return this._authenticatedApi.send({
+  public async update(data, path) {
+    return await this._authenticatedApi.send({
       method: 'PUT',
       url: path,
       data: data,
@@ -123,8 +123,8 @@ export default class CrudApi {
    * @returns
    * @memberof CrudApi
    */
-  public delete(id, path) {
-    return this._authenticatedApi.send({
+  public async delete(id, path) {
+    return await this._authenticatedApi.send({
       method: 'DELETE',
       url: path,
       params: {

@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import SourceMap from 'source-map-support';
 import AbstractEndpoint from './ocpi-services-impl/AbstractEndpoint';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
@@ -7,8 +6,6 @@ import Logging from '../../utils/Logging';
 import OCPIServerError from '../../exception/OCPIServerError';
 import OCPIUtils from './OCPIUtils';
 import Tenant from '../../entity/Tenant';
-
-SourceMap.install();
 
 const MODULE_NAME = 'AbstractOCPIService';
 export interface TenantIdHoldingRequest extends Request {
@@ -81,7 +78,7 @@ export default abstract class AbstractOCPIService {
     const action = regexResult[0].substring(1);
 
     // Set default tenant in case of exception
-    req.tenantID = Constants.DEFAULT_TENANT;
+    req.user = { tenantID: Constants.DEFAULT_TENANT };
 
     // Check action
     switch (action) {
@@ -178,7 +175,7 @@ export default abstract class AbstractOCPIService {
       }
 
       // Pass tenant id to req
-      req.tenantID = tenant.getID();
+      req.user.tenantID = tenant.getID();
 
       // Check if service is enabled for tenant
       if (!this.ocpiRestConfig.tenantEnabled.includes(tenantSubdomain)) {

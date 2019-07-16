@@ -1,6 +1,7 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
+import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 
 export default class ChargingStationSecurity {
@@ -32,7 +33,7 @@ export default class ChargingStationSecurity {
   }
 
   // Charging Station
-  static filterChargingStationResponse(chargingStation, loggedUser, organizationIsActive: boolean) {
+  static filterChargingStationResponse(chargingStation, loggedUser: UserToken, organizationIsActive: boolean) {
     let filteredChargingStation;
 
     if (!chargingStation || !Authorizations.canReadChargingStation(loggedUser)) {
@@ -96,7 +97,7 @@ export default class ChargingStationSecurity {
     return filteredChargingStation;
   }
 
-  static filterChargingStationsResponse(chargingStations, loggedUser, organizationIsActive: boolean) {
+  static filterChargingStationsResponse(chargingStations, loggedUser: UserToken, organizationIsActive: boolean) {
     const filteredChargingStations = [];
     // Check
     if (!chargingStations.result) {

@@ -8,7 +8,6 @@ import Logging from '../../../utils/Logging';
 import WSServer from './WSServer';
 
 export default class JsonCentralSystemServer extends CentralSystemServer {
-
   private _serverName: any;
   private _MODULE_NAME: any;
   private jsonChargingStationClients: any;
@@ -52,8 +51,8 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       return false;
     };
 
-    // eslint-disable-next-line no-unused-vars
-    const handleProtocols = (protocols, request) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const handleProtocols = (protocols, request): boolean|string => {
       // Check the protocols
       // Ensure protocol used as ocpp1.6 or nothing (should create an error)
       if (Array.isArray(protocols)) {
@@ -70,7 +69,6 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
         return protocols;
       }
       return false;
-
     };
 
     // Create the WS server

@@ -1,8 +1,9 @@
 import AuthenticatedApi from './AuthenticatedApi';
+import User from '../../../types/User';
 
 export default class CentralServiceApi extends AuthenticatedApi {
 
-  constructor(baseURL, user, password, tenant) {
+  constructor(baseURL, user: User, password, tenant) {
     super(baseURL, user, password, tenant);
   }
 

@@ -1,14 +1,15 @@
 import jwt from 'jsonwebtoken';
 import BaseApi from './BaseApi';
+import User from '../../../types/User';
 
 export default class AuthenticatedApi extends BaseApi {
-  public user: any;
-  public password: any;
+  public user: User;
+  public password: string;
   public tenant: any;
   public token: any;
-  public tenantID: any;
+  public tenantID: string;
 
-  constructor(baseURL, user, password, tenant) {
+  constructor(baseURL, user: User, password, tenant) {
     super(baseURL);
     this.user = user;
     this.password = password;
