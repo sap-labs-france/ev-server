@@ -22,9 +22,9 @@ export default class LoggingService {
       const filteredRequest = LoggingSecurity.filterLoggingsRequest(req.query, req.user);
       // Get logs
       const loggings = await Logging.getLogs(req.user.tenantID, {
-        'search': filteredRequest.Search, 'dateFrom': filteredRequest.DateFrom, 'dateUntil': filteredRequest.DateUntil, 'userID': filteredRequest.UserID,
-        'level': filteredRequest.Level, 'type': filteredRequest.Type, 'source': filteredRequest.Source, 'host': filteredRequest.Host,
-        'process': filteredRequest.Process, 'action': filteredRequest.Action, 'onlyRecordCount': filteredRequest.OnlyRecordCount
+        'search': filteredRequest.Search, 'dateFrom': filteredRequest.DateFrom, 'dateUntil': filteredRequest.DateUntil, 'users': filteredRequest.UserID.split('|'),
+        'level': filteredRequest.Level, 'type': filteredRequest.Type, 'sources': filteredRequest.Source.split('|'), 'host': filteredRequest.Host,
+        'process': filteredRequest.Process, 'actions': filteredRequest.Action.split('|'), 'onlyRecordCount': filteredRequest.OnlyRecordCount
       }, filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
       LoggingSecurity.filterLoggingsResponse(loggings, req.user);
@@ -53,9 +53,9 @@ export default class LoggingService {
       const filteredRequest = LoggingSecurity.filterLoggingsRequest(req.query, req.user);
       // Get logs
       const loggings = await Logging.getLogs(req.user.tenantID, {
-        'search': filteredRequest.Search, 'dateFrom': filteredRequest.DateFrom, 'dateUntil': filteredRequest.DateUntil, 'userID': filteredRequest.UserID,
-        'level': filteredRequest.Level, 'type': filteredRequest.Type, 'source': filteredRequest.Source, 'host': filteredRequest.Host,
-        'process': filteredRequest.Process, 'action': filteredRequest.Action, 'onlyRecordCount': filteredRequest.OnlyRecordCount
+        'search': filteredRequest.Search, 'dateFrom': filteredRequest.DateFrom, 'dateUntil': filteredRequest.DateUntil, 'users': filteredRequest.UserID.split('|'),
+        'level': filteredRequest.Level, 'type': filteredRequest.Type, 'sources': filteredRequest.Source.split('|'), 'host': filteredRequest.Host,
+        'process': filteredRequest.Process, 'actions': filteredRequest.Action.split('|'), 'onlyRecordCount': filteredRequest.OnlyRecordCount
       }, filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
       LoggingSecurity.filterLoggingsResponse(loggings, req.user);

@@ -122,30 +122,32 @@ export default class LoggingStorage {
         filters.level = { $in: ['E', 'W', 'I'] };
         break;
     }
-    // Charging Station
-    if (params.source) {
+    // Filter on charging Stations
+    if (params.sources && Array.isArray(params.sources)) {
       // Yes, add in filter
-      filters.source = params.source;
+      filters.source = { $in: params.sources }; 
     }
     // Type
     if (params.type) {
       // Yes, add in filter
       filters.type = params.type;
     }
-    // Action
-    if (params.action) {
+    // Filter on actions
+    if (params.actions && Array.isArray(params.actions)) {
       // Yes, add in filter
-      filters.action = params.action;
+      filters.action = { $in: params.actions }; 
     }
-    // User ID
-    if (params.userID) {
+    // Filter on users
+    if (params.users && Array.isArray(params.users)) {
       // Yes, add in filter
-      filters.$or = [
-        { 'userID': Utils.convertToObjectID(params.userID) },
-        { 'actionOnUserID': Utils.convertToObjectID(params.userID) }
-      ];
+      const userArray = [];
+      params.users.forEach((user)=>{
+        userArray.push({"userID": Utils.convertToObjectID(user)});
+        userArray.push({"actionOnUserID": Utils.convertToObjectID(user)});
+      });
+      filters.$or = userArray;
     }
-    // Source?
+    // Search
     if (params.search) {
       // Set
       const searchArray = [
