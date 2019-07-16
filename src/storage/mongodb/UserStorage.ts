@@ -204,14 +204,11 @@ export default class UserStorage {
     if (userID) {
       // At least one Site
       if (siteIDs && siteIDs.length > 0) {
-        // Create the list
-        for (const siteID of siteIDs) {
-          // Execute
-          await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
-            'userID': Utils.convertToObjectID(userID),
-            'siteID': Utils.convertToObjectID(siteID)
-          });
-        }
+        // Create the lis
+        await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
+          'userID': Utils.convertToObjectID(userID),
+          'siteID': { $in: siteIDs.map(siteID => Utils.convertToObjectID(siteID)) }
+        });
       }
     }
     // Debug
@@ -328,7 +325,7 @@ export default class UserStorage {
   public static async getUsers(tenantID: string,
       params: {notificationsActive?: boolean, siteID?: string, excludeSiteID?: string, search?: string, userID?: string, email?: string,
         role?: string, statuses?: string[], withImage?: boolean},
-        {limit, skip, onlyRecordCount, sort}: DbParams) {
+        {limit, skip, onlyRecordCount, sort}: DbParams, projectFields?:string[]) {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
     // Check Tenant
@@ -407,7 +404,6 @@ export default class UserStorage {
     // Project tag IDs
     aggregation.push({
       $addFields: {
-        id: { $toString: '$_id' },
         tagIDs: {
           $map: {
             input: '$tagIDs',
@@ -417,6 +413,10 @@ export default class UserStorage {
         }
       }
     });
+    // Change ID
+    DatabaseUtils.renameDatabaseID(aggregation);
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Add Site
@@ -475,11 +475,6 @@ export default class UserStorage {
     // Limit
     aggregation.push({
       $limit: limit
-    },
-    {
-      $project: {
-        _id: 0
-      }
     });
     // Read DB
     const usersMDB = await global.database.getCollection<User>(tenantID, 'users')

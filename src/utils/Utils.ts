@@ -16,6 +16,11 @@ import TenantStorage from '../storage/mongodb/TenantStorage';
 import User from '../types/User';
 import passwordGenerator = require('password-generator');
 import bcrypt from 'bcrypt';
+import { HttpUserRequest } from '../types/requests/HttpUserRequest';
+import AppError from '../exception/AppError';
+import Authorizations from '../authorization/Authorizations';
+import UserService from '../server/rest/service/UserService';
+import { Request } from 'express';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
@@ -460,5 +465,170 @@ export default class Utils {
 
   static hashPassword(password) {
     return crypto.createHash('sha256').update(password).digest('hex');
+  }
+
+  public static _checkIfUserValid(filteredRequest: Partial<HttpUserRequest>, user: User, req: Request) {
+    const tenantID = req.user.tenantID;
+    if (!tenantID) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Tenant is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'Users', 'checkIfUserValid');
+    }
+    // Update model?
+    if (req.method !== 'POST' && !filteredRequest.id) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'User ID is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'Users', 'checkIfUserValid',
+        req.user.id);
+    }
+    // Creation?
+    if (req.method === 'POST') {
+      if (!filteredRequest.role) {
+        filteredRequest.role = Constants.ROLE_BASIC;
+      }
+    } else {
+      // Do not allow to change if not Admin
+      if (!Authorizations.isAdmin(req.user.role)) {
+        filteredRequest.role = user.role;
+      }
+    }
+    if (req.method === 'POST' && !filteredRequest.status) {
+      filteredRequest.status = Constants.USER_STATUS_BLOCKED;
+    }
+    // Creation?
+    if ((filteredRequest.role !== Constants.ROLE_BASIC) && (filteredRequest.role !== Constants.ROLE_DEMO) &&
+        !Authorizations.isAdmin(req.user.role) && !Authorizations.isSuperAdmin(req.user.role)) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `Only Admins can assign the role '${Utils.getRoleNameFromRoleID(filteredRequest.role)}'`, Constants.HTTP_GENERAL_ERROR,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+    }
+    // Only Admin user can change role
+    if (tenantID === 'default' && filteredRequest.role && filteredRequest.role !== Constants.ROLE_SUPER_ADMIN) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `User cannot have the role '${Utils.getRoleNameFromRoleID(filteredRequest.role)}' in the Super Tenant`, Constants.HTTP_GENERAL_ERROR,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+    }
+    // Only Super Admin user in Super Tenant (default)
+    if (tenantID === 'default' && filteredRequest.role && filteredRequest.role !== Constants.ROLE_SUPER_ADMIN) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `User cannot have the role '${Utils.getRoleNameFromRoleID(filteredRequest.role)}' in the Super Tenant`, Constants.HTTP_GENERAL_ERROR,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+    }
+    // Only Basic, Demo, Admin user other Tenants (!== default)
+    if (tenantID !== 'default' && filteredRequest.role && filteredRequest.role === Constants.ROLE_SUPER_ADMIN) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'User cannot have the Super Admin role in this Tenant', Constants.HTTP_GENERAL_ERROR,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+    }
+    // Only Admin and Super Admin can use role different from Basic
+    if (filteredRequest.role === Constants.ROLE_ADMIN && filteredRequest.role === Constants.ROLE_SUPER_ADMIN &&
+        !Authorizations.isAdmin(req.user.role) && !Authorizations.isSuperAdmin(req.user.role)) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `User without role Admin or Super Admin tried to ${filteredRequest.id ? 'update' : 'create'} an User with the '${Utils.getRoleNameFromRoleID(filteredRequest.role)}' role`, Constants.HTTP_GENERAL_ERROR,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+    }
+    if (!filteredRequest.name) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'User Last Name is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+    }
+    if (req.method === 'POST' && !filteredRequest.email) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'User Email is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+    }
+    if (req.method === 'POST' && !Utils._isUserEmailValid(filteredRequest.email)) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `User Email ${filteredRequest.email} is not valid`, Constants.HTTP_GENERAL_ERROR,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+    }
+    if (filteredRequest.password && !Utils._isPasswordValid(filteredRequest.password)) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'User Password is not valid', Constants.HTTP_GENERAL_ERROR,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+    }
+    if (filteredRequest.phone && !Utils._isPhoneValid(filteredRequest.phone)) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `User Phone ${filteredRequest.phone} is not valid`, Constants.HTTP_GENERAL_ERROR,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+    }
+    if (filteredRequest.mobile && !Utils._isPhoneValid(filteredRequest.mobile)) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `User Mobile ${filteredRequest.mobile} is not valid`, Constants.HTTP_GENERAL_ERROR,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+    }
+    if (filteredRequest.iNumber && !Utils._isINumberValid(filteredRequest.iNumber)) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `User I-Number ${filteredRequest.iNumber} is not valid`, Constants.HTTP_GENERAL_ERROR,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+    }
+    if (filteredRequest.tagIDs) {
+      // Check
+      if (!Array.isArray(filteredRequest.tagIDs)) { // TODO: this piece is not very robust, and mutates filteredRequest even tho it's named "check". Should be changed, honestly
+        if (filteredRequest.tagIDs !== '') {
+          filteredRequest.tagIDs = filteredRequest.tagIDs.split(',');
+        }
+      }
+      if (!Utils._areTagIDsValid(filteredRequest.tagIDs)) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `User Tags ${filteredRequest.tagIDs} is/are not valid`, Constants.HTTP_GENERAL_ERROR,
+          'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+      }
+    }
+    // At least one tag ID
+    if (!filteredRequest.tagIDs || filteredRequest.tagIDs.length === 0) {
+      filteredRequest.tagIDs = [Utils.generateTagID(filteredRequest.name, filteredRequest.firstName)];
+    }
+    if (filteredRequest.plateID && !Utils._isPlateIDValid(filteredRequest.plateID)) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `User Plate ID ${filteredRequest.plateID} is not valid`, Constants.HTTP_GENERAL_ERROR,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+    }
+  }
+
+  private static _isPasswordValid(password: string): boolean {
+    // eslint-disable-next-line no-useless-escape
+    return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
+  }
+
+  private static _isUserEmailValid(email: string) {
+    return /^(([^<>()\[\]\\.,;:\s@']+(\.[^<>()\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email);
+  }
+
+  private static _areTagIDsValid(tagIDs: string[]|string) {
+    if (typeof tagIDs === 'string') {
+      return /^[A-Za-z0-9,]*$/.test(tagIDs);
+    }
+    return tagIDs.filter((tagID) => {
+      return /^[A-Za-z0-9,]*$/.test(tagID);
+    }).length === tagIDs.length;
+  }
+
+  private static _isPhoneValid(phone: string): boolean {
+    return /^\+?([0-9] ?){9,14}[0-9]$/.test(phone);
+  }
+
+  private static _isINumberValid(iNumber) {
+    return /^[A-Z]{1}[0-9]{6}$/.test(iNumber);
+  }
+
+  private static _isPlateIDValid(plateID) {
+    return /^[A-Z0-9-]*$/.test(plateID);
   }
 }

@@ -137,7 +137,7 @@ export default class UserService {
     }
     if(req.user.activeComponents.includes(Constants.COMPONENTS.ORGANIZATION)){
       // Delete from site
-      // TODO: lots of useless information queried here, could be made faster...
+      // TODO: Add argument to getSites to be able to only query IDs
       const siteIDs: string[] = (await UserStorage.getSites(req.user.tenantID, { userID: id }, { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 })).result.map(
         (siteUser) => {
           return siteUser.site.id;
@@ -224,10 +224,10 @@ export default class UserService {
     // Clean up request
     delete filteredRequest.passwords;
     // Check Mandatory fields
-    UserService._checkIfUserValid(filteredRequest, user, req);
+    Utils._checkIfUserValid(filteredRequest, user, req);
     // Update User
     const newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? [] : filteredRequest.tagIDs;
-    const updatedUserId = await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: newTagIDs }, true); // Careful: Last changed by is not a proper user here! TODO (it wasnt before either tho)
+    await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: newTagIDs }, true); // Careful: Last changed by is not a proper user here! TODO (it wasnt before either tho)
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -452,7 +452,7 @@ export default class UserService {
     // Filter
     const filteredRequest = UserSecurity.filterUserCreateRequest(req.body, req.user);
     // Check Mandatory fields
-    UserService._checkIfUserValid(filteredRequest, null, req);
+    Utils._checkIfUserValid(filteredRequest, null, req);
     // Get the email
     const foundUser = await UserStorage.getUserByEmail(req.user.tenantID, filteredRequest.email);
     if (foundUser) {
@@ -600,171 +600,6 @@ export default class UserService {
         Constants.HTTP_PRICING_REQUEST_INVOICE_ERROR,
         'UserService', 'handleGetUserInvoice', req.user);
     }
-  }
-
-  public static _checkIfUserValid(filteredRequest: Partial<HttpUserRequest>, user: User, req: Request) {
-    const tenantID = req.user.tenantID;
-    if (!tenantID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Tenant is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid');
-    }
-    // Update model?
-    if (req.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'User ID is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid',
-        req.user.id);
-    }
-    // Creation?
-    if (req.method === 'POST') {
-      if (!filteredRequest.role) {
-        filteredRequest.role = Constants.ROLE_BASIC;
-      }
-    } else {
-      // Do not allow to change if not Admin
-      if (!Authorizations.isAdmin(req.user.role)) {
-        filteredRequest.role = user.role;
-      }
-    }
-    if (req.method === 'POST' && !filteredRequest.status) {
-      filteredRequest.status = Constants.USER_STATUS_BLOCKED;
-    }
-    // Creation?
-    if ((filteredRequest.role !== Constants.ROLE_BASIC) && (filteredRequest.role !== Constants.ROLE_DEMO) &&
-        !Authorizations.isAdmin(req.user.role) && !Authorizations.isSuperAdmin(req.user.role)) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Only Admins can assign the role '${Utils.getRoleNameFromRoleID(filteredRequest.role)}'`, Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
-    }
-    // Only Admin user can change role
-    if (tenantID === 'default' && filteredRequest.role && filteredRequest.role !== Constants.ROLE_SUPER_ADMIN) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `User cannot have the role '${Utils.getRoleNameFromRoleID(filteredRequest.role)}' in the Super Tenant`, Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
-    }
-    // Only Super Admin user in Super Tenant (default)
-    if (tenantID === 'default' && filteredRequest.role && filteredRequest.role !== Constants.ROLE_SUPER_ADMIN) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `User cannot have the role '${Utils.getRoleNameFromRoleID(filteredRequest.role)}' in the Super Tenant`, Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
-    }
-    // Only Basic, Demo, Admin user other Tenants (!== default)
-    if (tenantID !== 'default' && filteredRequest.role && filteredRequest.role === Constants.ROLE_SUPER_ADMIN) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'User cannot have the Super Admin role in this Tenant', Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
-    }
-    // Only Admin and Super Admin can use role different from Basic
-    if (filteredRequest.role === Constants.ROLE_ADMIN && filteredRequest.role === Constants.ROLE_SUPER_ADMIN &&
-        !Authorizations.isAdmin(req.user.role) && !Authorizations.isSuperAdmin(req.user.role)) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `User without role Admin or Super Admin tried to ${filteredRequest.id ? 'update' : 'create'} an User with the '${Utils.getRoleNameFromRoleID(filteredRequest.role)}' role`, Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
-    }
-    if (!filteredRequest.name) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'User Last Name is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
-    }
-    if (req.method === 'POST' && !filteredRequest.email) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'User Email is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
-    }
-    if (req.method === 'POST' && !UserService.isUserEmailValid(filteredRequest.email)) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `User Email ${filteredRequest.email} is not valid`, Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
-    }
-    if (filteredRequest.password && !UserService.isPasswordValid(filteredRequest.password)) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'User Password is not valid', Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
-    }
-    if (filteredRequest.phone && !UserService.isPhoneValid(filteredRequest.phone)) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `User Phone ${filteredRequest.phone} is not valid`, Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
-    }
-    if (filteredRequest.mobile && !UserService.isPhoneValid(filteredRequest.mobile)) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `User Mobile ${filteredRequest.mobile} is not valid`, Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
-    }
-    if (filteredRequest.iNumber && !UserService.isINumberValid(filteredRequest.iNumber)) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `User I-Number ${filteredRequest.iNumber} is not valid`, Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
-    }
-    if (filteredRequest.tagIDs) {
-      // Check
-      if (!Array.isArray(filteredRequest.tagIDs)) { // TODO: this piece is not very robust, and mutates filteredRequest even tho it's named "check". Should be changed, honestly
-        if (filteredRequest.tagIDs !== '') {
-          filteredRequest.tagIDs = filteredRequest.tagIDs.split(',');
-        }
-      }
-      if (!UserService.areTagIDsValid(filteredRequest.tagIDs)) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `User Tags ${filteredRequest.tagIDs} is/are not valid`, Constants.HTTP_GENERAL_ERROR,
-          'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
-      }
-    }
-    // At least one tag ID
-    if (!filteredRequest.tagIDs || filteredRequest.tagIDs.length === 0) {
-      filteredRequest.tagIDs = [Utils.generateTagID(filteredRequest.name, filteredRequest.firstName)];
-    }
-    if (filteredRequest.plateID && !UserService.isPlateIDValid(filteredRequest.plateID)) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `User Plate ID ${filteredRequest.plateID} is not valid`, Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
-    }
-  }
-
-  public static isPasswordValid(password: string): boolean {
-    // eslint-disable-next-line no-useless-escape
-    return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
-  }
-
-  public static isUserEmailValid(email: string) {
-    return /^(([^<>()\[\]\\.,;:\s@']+(\.[^<>()\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email);
-  }
-
-  public static areTagIDsValid(tagIDs: string[]|string) {
-    if (typeof tagIDs === 'string') {
-      return /^[A-Za-z0-9,]*$/.test(tagIDs);
-    }
-    return tagIDs.filter((tagID) => {
-      return /^[A-Za-z0-9,]*$/.test(tagID);
-    }).length === tagIDs.length;
-  }
-
-  public static isPhoneValid(phone: string): boolean {
-    return /^\+?([0-9] ?){9,14}[0-9]$/.test(phone);
-  }
-
-  static isINumberValid(iNumber) {
-    return /^[A-Z]{1}[0-9]{6}$/.test(iNumber);
-  }
-
-  static isPlateIDValid(plateID) {
-    return /^[A-Z0-9-]*$/.test(plateID);
   }
 
 }
