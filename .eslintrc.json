@@ -11,9 +11,6 @@
     "plugin:@typescript-eslint/eslint-recommended",
     "plugin:@typescript-eslint/recommended"
   ],
-  "env": {
-    "mocha": true
-  },
   "rules": {
     "indent": "off",
     "@typescript-eslint/indent": [

@@ -1,0 +1,9 @@
+{
+  "extends": "../.eslintrc.json",
+  "parserOptions": {
+    "project": "./tsconfig-test.json"
+  },
+  "env": {
+    "mocha": true
+  }
+}

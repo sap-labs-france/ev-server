@@ -22,6 +22,8 @@ export default class OCPPCommonTests {
   public transactionStartSoC: any;
   public transactionMeterValues: any;
   public transactionMeterSoCValues: any;
+  public transactionSignedData: any;
+  public transactionEndSignedData: any;
   public transactionMeterValueIntervalSecs: any;
   public transactionStartTime: any;
   public transactionTotalConsumption: any;
@@ -60,6 +62,8 @@ export default class OCPPCommonTests {
     this.transactionStartUser = this.context.newUser;
     this.transactionStopUser = this.context.newUser;
     this.transactionStartMeterValue = 0;
+    this.transactionSignedData = 'DT785uwRY0zBF9ZepmQV94mK08l4ovYHgsraT8Z00l1p7jVRgq';
+    this.transactionEndSignedData = 'WZ2eLegGcstPRqYpsu7JQEMZSnUP6XTNzJJfBDKpAYgtXrNQSM';
     this.transactionMeterValues = Array.from({ length: 12 }, () => {
       return faker.random.number({
         min: 200,
@@ -224,7 +228,7 @@ export default class OCPPCommonTests {
     expect(this.newTransaction.id).to.not.equal(transactionId);
   }
 
-  public async testSendMeterValues(withSoC = false) {
+  public async testSendMeterValues(withSoC = false, withSignedData = false) {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
     // Current Time matches Transaction one
@@ -239,8 +243,10 @@ export default class OCPPCommonTests {
       this.transactionStartUser,
       transactionCurrentMeterValue,
       this.transactionStartSoC,
+      this.transactionSignedData,
       this.transactionCurrentTime,
-      withSoC);
+      withSoC,
+      withSignedData);
     // Send Meter Values (except the last one which will be used in Stop Transaction)
     for (let index = 0; index <= this.transactionMeterValues.length - 2; index++) {
       // Set new meter value
@@ -279,8 +285,10 @@ export default class OCPPCommonTests {
       this.transactionStartUser,
       this.transactionEndMeterValue,
       this.transactionEndSoC,
+      this.transactionEndSignedData,
       moment(this.transactionCurrentTime),
-      withSoC);
+      withSoC,
+      withSignedData);
   }
 
   public async testStopTransaction(withSoC = false) {
@@ -306,7 +314,7 @@ export default class OCPPCommonTests {
       (withSoC ? this.transactionEndSoC : 0));
   }
 
-  public async testTransactionMetrics(withSoC = false) {
+  public async testTransactionMetrics(withSoC = false, withSignedData = false) {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
 
@@ -318,6 +326,7 @@ export default class OCPPCommonTests {
       'chargeBoxID': this.newTransaction.chargeBoxID,
       'connectorId': this.newTransaction.connectorId,
       'stateOfCharge': (withSoC ? this.transactionStartSoC : 0),
+      'signedData': (withSignedData ? this.transactionSignedData : ''),
       'stop': {
         'price': this.totalPrice,
         'pricingSource': 'simple',
@@ -326,6 +335,7 @@ export default class OCPPCommonTests {
         'totalConsumption': this.transactionTotalConsumption,
         'totalInactivitySecs': this.transactionTotalInactivity,
         'stateOfCharge': (withSoC ? this.transactionEndSoC : 0),
+        'signedData': (withSignedData ? this.transactionEndSignedData : ''),
         'user': {
           'id': this.transactionStartUser.id,
           'name': this.transactionStartUser.name,
