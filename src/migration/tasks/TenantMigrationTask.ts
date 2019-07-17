@@ -23,7 +23,7 @@ export default class TenantMigrationTask extends MigrationTask {
 
   async createSuperAdmin() {
     const users = await UserStorage.getUsers(Constants.DEFAULT_TENANT, {},
-      { limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0 });
+      Constants.DB_PARAMS_MAX_LIMIT);
 
     if (users.count === 0) {
       // First, create a super admin user

@@ -139,7 +139,7 @@ export default class UserService {
       // Delete from site
       // TODO: Add argument to getSites to be able to only query IDs
       const siteIDs: string[] = (await UserStorage.getSites(req.user.tenantID, { userID: id },
-        { limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0 })).result.map(
+        Constants.DB_PARAMS_MAX_LIMIT)).result.map(
         (siteUser) => {
           return siteUser.site.id;
         }

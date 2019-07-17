@@ -162,7 +162,7 @@ export default class VehicleService {
     }
     // Get the vehicle image
     const vehicleImages = await VehicleStorage.getVehicleImages(req.user.tenantID, {},
-      { limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0 });
+      Constants.DB_PARAMS_MAX_LIMIT);
     // Return
     res.json(vehicleImages);
     next();

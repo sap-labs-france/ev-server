@@ -62,7 +62,7 @@ export default class NotificationHandler {
   static async getAdminUsers(tenantID: string): Promise<User[]> {
     // Get admin users
     const adminUsers = await UserStorage.getUsers(tenantID, { role: Constants.ROLE_ADMIN },
-      { limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0 });
+      Constants.DB_PARAMS_MAX_LIMIT);
     // Found
     if (adminUsers.count > 0) {
       // Check if notification is active
