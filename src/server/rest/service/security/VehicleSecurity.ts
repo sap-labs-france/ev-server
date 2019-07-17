@@ -8,8 +8,14 @@ import Vehicle from '../../../../types/Vehicle';
 
 export default class VehicleSecurity {
 
-  public static filterVehicleRequest(request: HttpByIDRequest): string {
+  public static filterVehicleRequestByID(request: HttpByIDRequest): string {
     return sanitize(request.ID);
+  }
+
+  public static filterVehicleRequest(request: HttpByIDRequest): HttpByIDRequest {
+    return {
+      ID: sanitize(request.ID)
+    };
   }
 
   public static filterVehiclesRequest(request: HttpVehiclesRequest): HttpVehiclesRequest {
@@ -22,11 +28,11 @@ export default class VehicleSecurity {
     return filteredRequest;
   }
 
-  public static filterVehicleUpdateRequest(request: Partial<Vehicle>&{withVehicleImages?: boolean}): Partial<Vehicle>&{withVehicleImages?: boolean} {
+  public static filterVehicleUpdateRequest(request: Partial<Vehicle>): Partial<Vehicle> {
     // Set
     const filteredRequest = VehicleSecurity._filterVehicleRequest(request);
     filteredRequest.id = sanitize(request.id);
-    return { ...filteredRequest, withVehicleImages: UtilsSecurity.filterBoolean(request.withVehicleImages) };
+    return filteredRequest;
   }
 
   public static filterVehicleCreateRequest(request: Partial<Vehicle>): Partial<Vehicle> {
@@ -68,9 +74,7 @@ export default class VehicleSecurity {
     for (const vehicle of vehicles.result) {
       // Filter
       const filteredVehicle = VehicleSecurity.filterVehicleResponse(vehicle, loggedUser);
-      // Ok?
       if (filteredVehicle) {
-        // Add
         filteredVehicles.push(filteredVehicle);
       }
     }
@@ -78,24 +82,23 @@ export default class VehicleSecurity {
   }
 
   private static _filterVehicleRequest(request: Partial<Vehicle>): Partial<Vehicle> {
-    const rrequest: Partial<Vehicle> = {};
-    rrequest.type = sanitize(request.type);
-    rrequest.model = sanitize(request.model);
-    rrequest.batteryKW = sanitize(request.batteryKW);
-    rrequest.autonomyKmWLTP = sanitize(request.autonomyKmWLTP);
-    rrequest.autonomyKmReal = sanitize(request.autonomyKmReal);
-    rrequest.horsePower = sanitize(request.horsePower);
-    rrequest.torqueNm = sanitize(request.torqueNm);
-    rrequest.performance0To100kmh = sanitize(request.performance0To100kmh);
-    rrequest.weightKg = sanitize(request.weightKg);
-    rrequest.lengthMeter = sanitize(request.lengthMeter);
-    rrequest.widthMeter = sanitize(request.widthMeter);
-    rrequest.heightMeter = sanitize(request.heightMeter);
-    rrequest.releasedOn = sanitize(request.releasedOn);
-    rrequest.images = sanitize(request.images);
-    rrequest.logo = sanitize(request.logo);
-    rrequest.vehicleManufacturerID = sanitize(request.vehicleManufacturerID);
-    return rrequest;
+    const filteredVehicle: Partial<Vehicle> = {};
+    filteredVehicle.type = sanitize(request.type);
+    filteredVehicle.model = sanitize(request.model);
+    filteredVehicle.batteryKW = sanitize(request.batteryKW);
+    filteredVehicle.autonomyKmWLTP = sanitize(request.autonomyKmWLTP);
+    filteredVehicle.autonomyKmReal = sanitize(request.autonomyKmReal);
+    filteredVehicle.horsePower = sanitize(request.horsePower);
+    filteredVehicle.torqueNm = sanitize(request.torqueNm);
+    filteredVehicle.performance0To100kmh = sanitize(request.performance0To100kmh);
+    filteredVehicle.weightKg = sanitize(request.weightKg);
+    filteredVehicle.lengthMeter = sanitize(request.lengthMeter);
+    filteredVehicle.widthMeter = sanitize(request.widthMeter);
+    filteredVehicle.heightMeter = sanitize(request.heightMeter);
+    filteredVehicle.releasedOn = sanitize(request.releasedOn);
+    filteredVehicle.images = sanitize(request.images);
+    filteredVehicle.logo = sanitize(request.logo);
+    filteredVehicle.vehicleManufacturerID = sanitize(request.vehicleManufacturerID);
+    return filteredVehicle;
   }
 }
-

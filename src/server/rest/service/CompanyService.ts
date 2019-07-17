@@ -1,13 +1,11 @@
 import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../exception/AppAuthError';
-import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import Company from '../../../types/Company';
 import CompanySecurity from './security/CompanySecurity';
 import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import User from '../../../types/User';
 import UtilsService from './UtilsService';
 import Utils from '../../../utils/Utils';
 

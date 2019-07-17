@@ -13,7 +13,8 @@ export default class VehicleStorage {
   public static async getVehicleImage(tenantID: string, id: string): Promise<{id: string; images: string[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleStorage', 'getVehicleImage');
-    const result = await VehicleStorage.getVehicleImages(tenantID, { IDs: [id] }, { limit: 1, skip: 0 });
+    // Get
+    const result = await VehicleStorage.getVehicleImages(tenantID, { IDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('VehicleStorage', 'getVehicleImage', uniqueTimerID, { id });
     return result[0];
@@ -56,7 +57,7 @@ export default class VehicleStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleStorage', 'getVehicle');
     // Get vehicle
-    const result = await VehicleStorage.getVehicles(tenantID, { vehicleIDs: [id] }, { limit: 1, skip: 0 });
+    const result = await VehicleStorage.getVehicles(tenantID, { vehicleIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('VehicleStorage', 'getVehicle', uniqueTimerID, { id });
     return result.count > 0 ? result.result[0] : null;
@@ -88,12 +89,10 @@ export default class VehicleStorage {
     delete vehicleMDB.logo;
     // Set Created By
     DatabaseUtils.addLastChangedCreatedProps(vehicleMDB, vehicleToSave);
-    // Transfer
-    const vehicle: any = {};
     // Modify
-    const result = await global.database.getCollection<any>(tenantID, 'vehicles').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'vehicles').findOneAndUpdate(
       vehicleFilter,
-      { $set: vehicle },
+      { $set: vehicleMDB },
       { upsert: true, returnOriginal: false });
     // Debug
     Logging.traceEnd('VehicleStorage', 'saveVehicle', uniqueTimerID, { vehicleToSave });
@@ -125,7 +124,8 @@ export default class VehicleStorage {
 
   // Delegate
   public static async getVehicles(tenantID: string,
-    params: {search?: string; vehicleManufacturerID?: string; vehicleType?: string; vehicleIDs?: string[]}, dbParams: DbParams): Promise<{count: number; result: Vehicle[]}> {
+    params: {search?: string; vehicleManufacturerID?: string; vehicleType?: string; vehicleIDs?: string[]},
+    dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: Vehicle[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleStorage', 'getVehicles');
     // Check Tenant
@@ -136,9 +136,7 @@ export default class VehicleStorage {
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
     const filters: any = {};
-    // Source?
     if (params.search) {
-      // Build filter
       filters.$or = [
         { 'model': { $regex: params.search, $options: 'i' } }
       ];
@@ -190,12 +188,10 @@ export default class VehicleStorage {
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
     if (dbParams.sort) {
-      // Sort
       aggregation.push({
         $sort: dbParams.sort
       });
     } else {
-      // Default
       aggregation.push({
         $sort: {
           manufacturer: 1, model: 1
@@ -210,9 +206,10 @@ export default class VehicleStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const vehiclesMDB =
-    await global.database.getCollection<Vehicle>(tenantID, 'vehicles')
+    const vehiclesMDB = await global.database.getCollection<Vehicle>(tenantID, 'vehicles')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Debug

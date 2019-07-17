@@ -300,22 +300,22 @@ export default class SiteService {
       req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_DELETE, Constants.ENTITY_SITE, 'SiteService', 'handleDeleteSite');
     // Filter
-    const id = SiteSecurity.filterSiteRequestByID(req.query);
+    const siteID = SiteSecurity.filterSiteRequestByID(req.query);
     // Check Mandatory fields
-    UtilsService.assertIdIsProvided(id, 'SiteService', 'handleDeleteSite', req.user);
+    UtilsService.assertIdIsProvided(siteID, 'SiteService', 'handleDeleteSite', req.user);
     // Check
-    if (!Authorizations.canDeleteSite(req.user, id)) {
+    if (!Authorizations.canDeleteSite(req.user, siteID)) {
       throw new AppAuthError(
         Constants.ACTION_DELETE,
         Constants.ENTITY_SITE,
-        id,
+        siteID,
         Constants.HTTP_AUTH_ERROR,
         'SiteService', 'handleDeleteSite',
         req.user);
     }
     // Get
-    const site = await SiteStorage.getSite(req.user.tenantID, id);
-    UtilsService.assertObjectExists(site, `Site with ID '${id}' does not exist`, 'SiteService', 'handleDeleteSite', req.user);
+    const site = await SiteStorage.getSite(req.user.tenantID, siteID);
+    UtilsService.assertObjectExists(site, `Site with ID '${siteID}' does not exist`, 'SiteService', 'handleDeleteSite', req.user);
     // Delete
     await SiteStorage.deleteSite(req.user.tenantID, site.id);
     // Log
@@ -396,23 +396,23 @@ export default class SiteService {
       Constants.ACTION_READ, Constants.ENTITY_SITE, 'SiteService', 'handleGetSiteImage');
 
     // Filter
-    const id = SiteSecurity.filterSiteRequestByID(req.query);
-    UtilsService.assertIdIsProvided(id, 'SiteService', 'handleGetSiteImage', req.user);
+    const siteID = SiteSecurity.filterSiteRequestByID(req.query);
+    UtilsService.assertIdIsProvided(siteID, 'SiteService', 'handleGetSiteImage', req.user);
     // Check auth
-    if (!Authorizations.canReadSite(req.user, id)) {
+    if (!Authorizations.canReadSite(req.user, siteID)) {
       throw new AppAuthError(
         Constants.ACTION_READ,
         Constants.ENTITY_SITE,
-        id,
+        siteID,
         Constants.HTTP_AUTH_ERROR,
         'SiteService', 'handleGetSiteImage',
         req.user);
     }
     // Get it
-    const site = await SiteStorage.getSite(req.user.tenantID, id);
-    UtilsService.assertObjectExists(site, `Site with ID '${id}' does not exist`, 'SiteService', 'handleGetSiteImage', req.user);
+    const site = await SiteStorage.getSite(req.user.tenantID, siteID);
+    UtilsService.assertObjectExists(site, `Site with ID '${siteID}' does not exist`, 'SiteService', 'handleGetSiteImage', req.user);
     // Get the image
-    const siteImage = await SiteStorage.getSiteImage(req.user.tenantID, id);
+    const siteImage = await SiteStorage.getSiteImage(req.user.tenantID, siteID);
     // Return
     res.json(siteImage);
     next();
@@ -443,7 +443,7 @@ export default class SiteService {
     // Create site
     const usr = { id: req.user.id };
     const date = new Date();
-    const newSite: Site = {
+    const site: Site = {
       ...filteredRequest,
       createdBy: usr,
       createdOn: date,
@@ -451,16 +451,16 @@ export default class SiteService {
       lastChangedOn: date
     } as Site;
     // Save
-    newSite.id = await SiteStorage.saveSite(req.user.tenantID, newSite, true);
+    site.id = await SiteStorage.saveSite(req.user.tenantID, site, true);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: 'SiteService', method: 'handleCreateSite',
-      message: `Site '${newSite.name}' has been created successfully`,
-      action: action, detailedMessages: newSite
+      message: `Site '${site.name}' has been created successfully`,
+      action: action, detailedMessages: site
     });
     // Ok
-    res.json(Object.assign({ id: newSite.id }, Constants.REST_RESPONSE_SUCCESS));
+    res.json(Object.assign({ id: site.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
