@@ -46,6 +46,7 @@ export default class TransactionSecurity {
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
     filteredRequest.ConnectorId = sanitize(request.ConnectorId);
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
+    filteredRequest.SiteID = sanitize(request.SiteID);
     if (request.UserID) {
       filteredRequest.UserID = sanitize(request.UserID);
     }
