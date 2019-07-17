@@ -332,7 +332,7 @@ export default class UserStorage {
 
   public static async getUsers(tenantID: string,
     params: {notificationsActive?: boolean; siteID?: string; excludeSiteID?: string; search?: string; userID?: string; email?: string;
-      role?: string; statuses?: string[]; withImage?: boolean;},
+      role?: string; statuses?: string[]; withImage?: boolean; },
     { limit, skip, onlyRecordCount, sort }: DbParams, projectFields?: string[]) {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');

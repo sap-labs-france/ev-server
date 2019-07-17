@@ -64,7 +64,8 @@ export default class NotificationHandler {
     const adminUsers = await UserStorage.getUsers(tenantID, { role: Constants.ROLE_ADMIN }, { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 });
     // Found
     if (adminUsers.count > 0) {
-      // Convert to JSon
+      // Check if notification is active
+      adminUsers.result = adminUsers.result.filter((adminUser) => adminUser.notificationsActive);
       return adminUsers.result;
     }
   }

@@ -20,7 +20,6 @@ import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
 import User from '../../../src/types/User';
 import UserFactory from '../../factories/UserFactory';
-import UserService from '../../../src/server/rest/service/UserService';
 import UserStorage from '../../../src/storage/mongodb/UserStorage';
 import Utils from '../../../src/utils/Utils';
 
@@ -149,7 +148,6 @@ export default class ContextBuilder {
     if (existingTenant) {
       console.log(`Tenant ${tenantContextDef.id} already exist with name ${existingTenant.getName()}. Please run a destroy context`);
       throw new Error('Tenant id exist already');
-
     }
     let buildTenant: any = {};
     // Create Tenant
@@ -166,7 +164,7 @@ export default class ContextBuilder {
     console.log('CREATE tenant context ' + buildTenant.id +
       ' ' + buildTenant.subdomain);
     // Retrieve default admin
-    const existingUserList = (await UserStorage.getUsers(buildTenant.id, {}, {limit: Constants.MAX_DB_RECORD_COUNT, skip: 0})).result;
+    const existingUserList = (await UserStorage.getUsers(buildTenant.id, {}, { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 })).result;
     let defaultAdminUser: User = null;
     // Search existing admin
     if (existingUserList && Array.isArray(existingUserList)) {
@@ -279,7 +277,7 @@ export default class ContextBuilder {
         };
         const dummyCompany: any = Factory.company.build();
         dummyCompany.id = companyDef.id;
-        dummyCompany.createdBy = { id : adminUser.id };
+        dummyCompany.createdBy = { id: adminUser.id };
         dummyCompany.createdOn = moment().toISOString();
         company = await CompanyStorage.saveCompany(buildTenant.id, dummyCompany);
         newTenantContext.getContext().companies.push(dummyCompany);
@@ -321,7 +319,7 @@ export default class ContextBuilder {
               accessControl: false,
               siteName: siteTemplate.name
             };
-            const siteArea: SiteArea = null;
+            // const siteArea: SiteArea = null;
             const siteAreaTemplate = Factory.siteArea.build();
             siteAreaTemplate.id = siteAreaDef.id;
             // pragma siteAreaTemplate.name = siteAreaDef.name;
