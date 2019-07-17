@@ -622,7 +622,7 @@ export default class ChargingStation extends TenantHolder {
 
   async hasAtLeastOneTransaction() {
     // Get the consumption
-    const transactions = await Transaction.getTransactions(this.getTenantID(), { 'chargeBoxID': this.getID() }, { limit: 1, skip: 0 });
+    const transactions = await Transaction.getTransactions(this.getTenantID(), { 'chargeBoxID': this.getID() }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Return
     return (transactions.count > 0);
   }

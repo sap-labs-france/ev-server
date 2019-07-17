@@ -1,5 +1,4 @@
 import CreatedUpdatedProps from './CreatedUpdatedProps';
-import VehicleManufacturer from './VehicleManufacturer';
 
 export default interface Vehicle extends CreatedUpdatedProps {
   id: string;
@@ -20,5 +19,4 @@ export default interface Vehicle extends CreatedUpdatedProps {
   heightMeter: number;
   releasedOn: Date;
   logo?: string;
-
 }

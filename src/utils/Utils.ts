@@ -537,6 +537,56 @@ export default class Utils {
     }
   }
 
+  public static checkIfVehicleValid(filteredRequest, req: Request) {
+    // Update model?
+    if (req.method !== 'POST' && !filteredRequest.id) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Vehicle ID is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'Vehicle', 'checkIfVehicleValid',
+        req.user.id);
+    }
+    if (!filteredRequest.type) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Vehicle Type is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'Vehicle', 'checkIfVehicleValid',
+        req.user.id, filteredRequest.id);
+    }
+    if (!filteredRequest.model) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Vehicle Model is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'Vehicle', 'checkIfVehicleValid',
+        req.user.id, filteredRequest.id);
+    }
+    if (!filteredRequest.vehicleManufacturerID) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Vehicle Manufacturer is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'Vehicle', 'checkIfVehicleValid',
+        req.user.id, filteredRequest.id);
+    }
+  }
+
+  public static checkIfVehicleManufacturerValid(filteredRequest, req) {
+    // Update model?
+    if (req.method !== 'POST' && !filteredRequest.id) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Vehicle Manufacturer ID is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'VehicleManufacturer', 'checkIfVehicleManufacturerValid',
+        req.user.id);
+    }
+    if (!filteredRequest.name) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Vehicle Manufacturer Name is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'VehicleManufacturer', 'checkIfVehicleManufacturerValid',
+        req.user.id, filteredRequest.id);
+    }
+  }
+
   public static checkIfUserValid(filteredRequest: Partial<HttpUserRequest>, user: User, req: Request) {
     const tenantID = req.user.tenantID;
     if (!tenantID) {

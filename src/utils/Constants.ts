@@ -31,7 +31,9 @@ export default {
   DB_RECORD_COUNT_DEFAULT: 100,
   DB_RECORD_COUNT_CEIL: 2000,
   DB_RECORD_COUNT_NO_LIMIT: Number.MAX_SAFE_INTEGER,
+
   DB_PARAMS_MAX_LIMIT: { limit: this.DB_RECORD_COUNT_NO_LIMIT, skip: 0 },
+  DB_PARAMS_SINGLE_RECORD: { limit: 1, skip: 0 },
 
   DEFAULT_TENANT: 'default',
 

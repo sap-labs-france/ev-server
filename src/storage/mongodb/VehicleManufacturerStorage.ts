@@ -1,7 +1,6 @@
 import { ObjectID } from 'mongodb';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
-import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
@@ -67,7 +66,6 @@ export default class VehicleManufacturerStorage {
     await Utils.checkTenant(tenantID);
     // Check if ID/Name is provided
     if (!vehicleManufacturerLogoToSave.id) {
-      // ID must be provided!
       throw new BackendError(
         Constants.CENTRAL_SERVER,
         'Vehicle Manufacturer Logo has no ID',
@@ -86,7 +84,8 @@ export default class VehicleManufacturerStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturer');
     // Get
-    const result = await VehicleManufacturerStorage.getVehicleManufacturers(tenantID, { manufacturerIDs: [id], withVehicles: true }, { limit: 1, skip: 0 });
+    const result = await VehicleManufacturerStorage.getVehicleManufacturers(
+      tenantID, { manufacturerIDs: [id], withVehicles: true }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('VehicleManufacturerStorage', 'getVehicleManufacturer', uniqueTimerID, { id });
     return result.count > 0 ? result.result[0] : null;
@@ -99,7 +98,6 @@ export default class VehicleManufacturerStorage {
     await Utils.checkTenant(tenantID);
     // Check if ID/Model is provided
     if (!vehicleManufacturerToSave.id && !vehicleManufacturerToSave.name) {
-      // ID must be provided!
       throw new BackendError(
         Constants.CENTRAL_SERVER,
         'Vehicle Manufacturer has no ID and no Name',
@@ -113,15 +111,15 @@ export default class VehicleManufacturerStorage {
       vehicleManufacturerFilter._id = new ObjectID();
     }
     // Build
-    const vmMDB = { ...vehicleManufacturerToSave };
-    delete vmMDB.vehicles;
-    delete vmMDB.logo;
+    const vehicleManufacturerMDB = { ...vehicleManufacturerToSave };
+    delete vehicleManufacturerMDB.vehicles;
+    delete vehicleManufacturerMDB.logo;
     // Check Created/Last Changed By
-    DatabaseUtils.addLastChangedCreatedProps(vmMDB, vehicleManufacturerToSave);
+    DatabaseUtils.addLastChangedCreatedProps(vehicleManufacturerMDB, vehicleManufacturerToSave);
     // Modify
-    const result = await global.database.getCollection<any>(tenantID, 'vehiclemanufacturers').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'vehiclemanufacturers').findOneAndUpdate(
       vehicleManufacturerFilter,
-      { $set: vmMDB },
+      { $set: vehicleManufacturerMDB },
       { upsert: true, returnOriginal: false });
     // Debug
     Logging.traceEnd('VehicleManufacturerStorage', 'saveVehicleManufacturer', uniqueTimerID, { vehicleManufacturerToSave });
@@ -131,7 +129,8 @@ export default class VehicleManufacturerStorage {
 
   // Delegate
   public static async getVehicleManufacturers(tenantID: string,
-    params: {search?: string; withVehicles?: boolean; vehicleType?: string; manufacturerIDs?: string[]}, dbParams: DbParams) {
+    params: {search?: string; withVehicles?: boolean; vehicleType?: string; manufacturerIDs?: string[]},
+    dbParams: DbParams, projectFields?: string[]) {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturers');
     // Check Tenant
@@ -168,16 +167,9 @@ export default class VehicleManufacturerStorage {
     }
     // With Vehicles
     if (params.withVehicles || params.vehicleType) {
-      //  Vehicles
-      aggregation.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, 'vehicles'),
-          localField: '_id',
-          foreignField: 'vehicleManufacturerID',
-          as: 'vehicles'
-        }
-      });
-      DatabaseUtils.renameDatabaseID(aggregation, 'vehicles');
+      DatabaseUtils.pushVehicleLookupInAggregation(
+        { tenantID, aggregation, localField: '_id', foreignField: 'vehicleManufacturerID',
+          asField: 'vehicles' });
     }
     // Type?
     if (params.vehicleType) {
@@ -209,12 +201,10 @@ export default class VehicleManufacturerStorage {
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
     if (dbParams.sort) {
-      // Sort
       aggregation.push({
         $sort: dbParams.sort
       });
     } else {
-      // Default
       aggregation.push({
         $sort: {
           name: 1
@@ -229,6 +219,8 @@ export default class VehicleManufacturerStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const vehiclemanufacturersMDB = await global.database.getCollection<VehicleManufacturer>(tenantID, 'vehiclemanufacturers')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
@@ -249,10 +241,9 @@ export default class VehicleManufacturerStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete Vehicles
-    const vehicles = await VehicleStorage.getVehicles(tenantID, { 'vehicleManufacturerID': id }, { limit: Constants.DB_RECORD_COUNT_CEIL, skip: 0 });
-    // Delete
+    const vehicles = await VehicleStorage.getVehicles(tenantID,
+      { 'vehicleManufacturerID': id }, Constants.DB_PARAMS_MAX_LIMIT);
     for (const vehicle of vehicles.result) {
-      // Delete Vehicle
       await VehicleStorage.deleteVehicle(tenantID, vehicle.id);
     }
     // Delete the Vehicle Manufacturers

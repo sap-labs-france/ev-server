@@ -20,7 +20,7 @@ export default class SiteStorage {
     const sitesMDB = await SiteStorage.getSites(tenantID, {
       search: id,
       withCompany: true,
-    }, { limit: 1, skip: 0 });
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('SiteStorage', 'getSite', uniqueTimerID, { id });
     return sitesMDB.result[0];
@@ -399,7 +399,8 @@ export default class SiteStorage {
         if (params.withAvailableChargers) {
           let availableChargers = 0, totalChargers = 0, availableConnectors = 0, totalConnectors = 0;
           // Get te chargers
-          const chargingStations = await ChargingStationStorage.getChargingStations(tenantID, { siteIDs: [siteMDB.id] }, { limit: Constants.DB_RECORD_COUNT_CEIL, skip: 0 });
+          const chargingStations = await ChargingStationStorage.getChargingStations(tenantID,
+            { siteIDs: [siteMDB.id] }, Constants.DB_PARAMS_MAX_LIMIT );
           for (const chargingStation of chargingStations.result) {
             // Set Inactive flag
             chargingStation.setInactive(DatabaseUtils.chargingStationIsInactive(chargingStation.getModel()));

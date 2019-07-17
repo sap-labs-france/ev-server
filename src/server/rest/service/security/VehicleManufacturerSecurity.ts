@@ -2,15 +2,20 @@ import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { HttpVehicleManufacturersRequest } from '../../../../types/requests/HttpVehicleManufacturerRequest';
-import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import VehicleManufacturer from '../../../../types/VehicleManufacturer';
 
 export default class VehicleManufacturerSecurity {
 
-  public static filterVehicleManufacturerRequest(request: HttpByIDRequest): string {
+  public static filterVehicleManufacturerRequestByID(request: HttpByIDRequest): string {
     return sanitize(request.ID);
+  }
+
+  public static filterVehicleManufacturerRequest(request: HttpByIDRequest): HttpByIDRequest {
+    return {
+      ID: sanitize(request.ID)
+    };
   }
 
   public static filterVehicleManufacturersRequest(request: Partial<HttpVehicleManufacturersRequest>): HttpVehicleManufacturersRequest {
@@ -69,9 +74,7 @@ export default class VehicleManufacturerSecurity {
     for (const vehicleManufacturer of vehicleManufacturers.result) {
       // Filter
       const filteredVehicleManufacturer = VehicleManufacturerSecurity.filterVehicleManufacturerResponse(vehicleManufacturer, loggedUser);
-      // Ok?
       if (filteredVehicleManufacturer) {
-        // Add
         filteredVehicleManufacturers.push(filteredVehicleManufacturer);
       }
     }
@@ -79,7 +82,10 @@ export default class VehicleManufacturerSecurity {
   }
 
   private static _filterVehicleManufacturerRequest(request: Partial<VehicleManufacturer>): Partial<VehicleManufacturer> {
-    return { name: request.name, logo: request.logo };
+    return {
+      name: request.name,
+      logo: request.logo
+    };
   }
 }
 

@@ -142,7 +142,7 @@ export default class UserStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserByEmail');
     // Get user
-    const user = await UserStorage.getUsers(tenantID, { email: email }, { limit: 1, skip: 0 });
+    const user = await UserStorage.getUsers(tenantID, { email: email }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('UserStorage', 'getUserByEmail', uniqueTimerID, { email });
     return user.count > 0 ? user.result[0] : null;
@@ -152,7 +152,7 @@ export default class UserStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUser');
     // Get user
-    const user = await UserStorage.getUsers(tenantID, { userID: userID }, { limit: 1, skip: 0 });
+    const user = await UserStorage.getUsers(tenantID, { userID: userID }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('UserStorage', 'getUser', uniqueTimerID, { userID });
     return user.count > 0 ? user.result[0] : null;
