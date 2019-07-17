@@ -399,7 +399,7 @@ export default class SiteStorage {
         if (params.withAvailableChargers) {
           let availableChargers = 0, totalChargers = 0, availableConnectors = 0, totalConnectors = 0;
           // Get te chargers
-          const chargingStations = await ChargingStationStorage.getChargingStations(tenantID, { siteIDs: [siteMDB.id] }, {limit: Constants.MAX_DB_RECORD_COUNT, skip: 0});
+          const chargingStations = await ChargingStationStorage.getChargingStations(tenantID, { siteIDs: [siteMDB.id] }, { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 });
           for (const chargingStation of chargingStations.result) {
             // Set Inactive flag
             chargingStation.setInactive(DatabaseUtils.chargingStationIsInactive(chargingStation.getModel()));

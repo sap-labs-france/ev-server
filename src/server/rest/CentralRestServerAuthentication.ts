@@ -1,7 +1,7 @@
 import AuthService from './service/AuthService';
+import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import UtilsService from './service/UtilsService';
-import Constants from '../../utils/Constants';
 
 export default {
   // Init Passport

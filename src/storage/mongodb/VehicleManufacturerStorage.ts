@@ -3,12 +3,12 @@ import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import VehicleManufacturer from '../../types/VehicleManufacturer';
 import VehicleStorage from './VehicleStorage';
-import DbParams from '../../types/database/DbParams';
 
 export default class VehicleManufacturerStorage {
 
@@ -247,7 +247,7 @@ export default class VehicleManufacturerStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete Vehicles
-    const vehicles = await VehicleStorage.getVehicles(tenantID, { 'vehicleManufacturerID': id }, {limit: Constants.MAX_DB_RECORD_COUNT, skip: 0});
+    const vehicles = await VehicleStorage.getVehicles(tenantID, { 'vehicleManufacturerID': id }, { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 });
     // Delete
     for (const vehicle of vehicles.result) {
       // Delete Vehicle

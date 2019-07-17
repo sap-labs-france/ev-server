@@ -77,9 +77,9 @@ export default class UserService {
       }
     }
     // Save
-    if(action.toLowerCase().includes('add')) {
+    if (action.toLowerCase().includes('add')) {
       await UserStorage.addSitesToUser(req.user.tenantID, filteredRequest.userID, filteredRequest.siteIDs);
-    }else{
+    } else {
       await UserStorage.removeSitesFromUser(req.user.tenantID, filteredRequest.userID, filteredRequest.siteIDs);
     }
     // Log
@@ -135,7 +135,7 @@ export default class UserService {
         `User with ID '${id}' is already deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'UserService', 'handleDeleteUser', req.user);
     }
-    if(req.user.activeComponents.includes(Constants.COMPONENTS.ORGANIZATION)){
+    if (req.user.activeComponents.includes(Constants.COMPONENTS.ORGANIZATION)) {
       // Delete from site
       // TODO: Add argument to getSites to be able to only query IDs
       const siteIDs: string[] = (await UserStorage.getSites(req.user.tenantID, { userID: id }, { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 })).result.map(
@@ -371,8 +371,8 @@ export default class UserService {
     // Filter
     const filteredRequest = UserSecurity.filterUsersRequest(req.query, req.user);
     // Check component
-    if(filteredRequest.SiteID || filteredRequest.ExcludeSiteID) {
-      await UtilsService.assertComponentIsActive(req.user.tenantID, 
+    if (filteredRequest.SiteID || filteredRequest.ExcludeSiteID) {
+      await UtilsService.assertComponentIsActive(req.user.tenantID,
         Constants.COMPONENTS.ORGANIZATION, Constants.ACTION_READ, Constants.ENTITY_USER, 'UserService', 'handleGetUsers');
     }
     // Get users
@@ -412,8 +412,8 @@ export default class UserService {
     // Filter
     const filteredRequest = UserSecurity.filterUsersRequest(req.query, req.user);
     // Check component
-    if(filteredRequest.SiteID || filteredRequest.ExcludeSiteID) {
-      await UtilsService.assertComponentIsActive(req.user.tenantID, 
+    if (filteredRequest.SiteID || filteredRequest.ExcludeSiteID) {
+      await UtilsService.assertComponentIsActive(req.user.tenantID,
         Constants.COMPONENTS.ORGANIZATION, Constants.ACTION_READ, Constants.ENTITY_USER, 'UserService', 'handleGetUsersInError');
     }
     // Get users

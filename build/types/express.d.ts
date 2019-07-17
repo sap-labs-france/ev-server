@@ -7,13 +7,3 @@ declare module 'Express' {
     user?: UserToken;
   }
 }
-/*
-declare global {
-  namespace Express {
-    interface Request {
-      locale: string;
-      user?: UserToken;
-    }
-  }
-}
-*/

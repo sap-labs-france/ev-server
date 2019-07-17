@@ -1,27 +1,26 @@
 import axios from 'axios';
+import bcrypt from 'bcrypt';
 import ClientOAuth2 from 'client-oauth2';
 import crypto from 'crypto';
+import { Request } from 'express';
 import fs from 'fs';
 import _ from 'lodash';
 import { ObjectID } from 'mongodb';
+import passwordGenerator = require('password-generator');
 import path from 'path';
 import url from 'url';
 import uuidV4 from 'uuid/v4';
+import AppError from '../exception/AppError';
+import Authorizations from '../authorization/Authorizations';
 import BackendError from '../exception/BackendError';
 import Configuration from './Configuration';
 import Constants from './Constants';
+import { HttpUserRequest } from '../types/requests/HttpUserRequest';
 import Logging from './Logging';
 import Tenant from '../entity/Tenant';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import User from '../types/User';
-import passwordGenerator = require('password-generator');
-import bcrypt from 'bcrypt';
-import { HttpUserRequest } from '../types/requests/HttpUserRequest';
-import AppError from '../exception/AppError';
-import Authorizations from '../authorization/Authorizations';
 import UserService from '../server/rest/service/UserService';
-import { Request } from 'express';
-import Vehicle from '../types/Vehicle';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
@@ -242,7 +241,7 @@ export default class Utils {
 
   static buildUserFullName(user: User, withID = true, withEmail = false, inversedName = false) {
     let fullName: string;
-    if (!user) {
+    if (!user || !user.name) {
       return 'Unknown';
     }
     if (inversedName) {

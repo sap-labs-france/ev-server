@@ -124,7 +124,7 @@ export default class UserStorage {
         { $project: {
           id: '$_id',
           _id: 0,
-          userID: {$toString: '$userID'}
+          userID: { $toString: '$userID' }
         } }
       ])
       .limit(1)
@@ -142,7 +142,7 @@ export default class UserStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserByEmail');
     // Get user
-    const user = await UserStorage.getUsers(tenantID, {email: email}, {limit: 1, skip: 0});
+    const user = await UserStorage.getUsers(tenantID, { email: email }, { limit: 1, skip: 0 });
     // Debug
     Logging.traceEnd('UserStorage', 'getUserByEmail', uniqueTimerID, { email });
     return user.count > 0 ? user.result[0] : null;
@@ -152,13 +152,13 @@ export default class UserStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUser');
     // Get user
-    const user = await UserStorage.getUsers(tenantID, {userID: userID}, {limit: 1, skip: 0});
+    const user = await UserStorage.getUsers(tenantID, { userID: userID }, { limit: 1, skip: 0 });
     // Debug
     Logging.traceEnd('UserStorage', 'getUser', uniqueTimerID, { userID });
     return user.count > 0 ? user.result[0] : null;
   }
 
-  public static async getUserImage(tenantID: string, id: string): Promise<{id: string, image: string}> {
+  public static async getUserImage(tenantID: string, id: string): Promise<{id: string; image: string}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserImage');
     // Get single user image
@@ -168,7 +168,7 @@ export default class UserStorage {
     return userImages ? userImages[0] : null;
   }
 
-  public static async getUserImages(tenantID: string, userIDs?: string[]): Promise<{id: string, image: string}[]> {
+  public static async getUserImages(tenantID: string, userIDs?: string[]): Promise<{id: string; image: string}[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserImages');
     // Check Tenant
@@ -176,10 +176,12 @@ export default class UserStorage {
     // Build options
     const options: any = {};
     if (userIDs) {
-      options._id = { $in: userIDs.map(id => Utils.convertToObjectID(id)) };
+      options._id = { $in: userIDs.map((id) => {
+        return Utils.convertToObjectID(id);
+      }) };
     }
     // Read DB
-    const userImagesMDB = await global.database.getCollection<{_id: string, image: string}>(tenantID, 'userimages')
+    const userImagesMDB = await global.database.getCollection<{_id: string; image: string}>(tenantID, 'userimages')
       .find(options)
       .toArray();
     const userImages = [];
@@ -207,7 +209,9 @@ export default class UserStorage {
         // Create the lis
         await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
           'userID': Utils.convertToObjectID(userID),
-          'siteID': { $in: siteIDs.map(siteID => Utils.convertToObjectID(siteID)) }
+          'siteID': { $in: siteIDs.map((siteID) => {
+            return Utils.convertToObjectID(siteID);
+          }) }
         });
       }
     }
@@ -281,14 +285,18 @@ export default class UserStorage {
       { upsert: true, returnOriginal: false });
     // Add tags
     if (userToSave.tagIDs) {
-      userToSave.tagIDs = userToSave.tagIDs.filter(tid => tid && tid !== '');
+      userToSave.tagIDs = userToSave.tagIDs.filter((tid) => {
+        return tid && tid !== '';
+      });
       // Delete Tag IDs
       await global.database.getCollection<any>(tenantID, 'tags')
         .deleteMany({ 'userID': userMDB._id });
       if (userToSave.tagIDs.length !== 0) {
         // Insert new Tag IDs
         await global.database.getCollection<any>(tenantID, 'tags')
-        .insertMany(userToSave.tagIDs.map(tid => ({_id: tid, userID: userMDB._id}) ));
+          .insertMany(userToSave.tagIDs.map((tid) => {
+            return { _id: tid, userID: userMDB._id };
+          }));
       }
     }
     // Delegate saving image as well if specified
@@ -300,7 +308,7 @@ export default class UserStorage {
     return userMDB._id.toHexString();
   }
 
-  public static async saveUserImage(tenantID: string, userImageToSave: {id: string, image: string}): Promise<void> {
+  public static async saveUserImage(tenantID: string, userImageToSave: {id: string; image: string}): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserImage');
     // Check Tenant
@@ -323,9 +331,9 @@ export default class UserStorage {
   }
 
   public static async getUsers(tenantID: string,
-      params: {notificationsActive?: boolean, siteID?: string, excludeSiteID?: string, search?: string, userID?: string, email?: string,
-        role?: string, statuses?: string[], withImage?: boolean},
-        {limit, skip, onlyRecordCount, sort}: DbParams, projectFields?:string[]) {
+    params: {notificationsActive?: boolean; siteID?: string; excludeSiteID?: string; search?: string; userID?: string; email?: string;
+      role?: string; statuses?: string[]; withImage?: boolean;},
+    { limit, skip, onlyRecordCount, sort }: DbParams, projectFields?: string[]) {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
     // Check Tenant
@@ -374,7 +382,9 @@ export default class UserStorage {
       });
     }
     // Query by status (Previously getUsersInError)
-    if (params.statuses && params.statuses.filter(status => status).length > 0) {
+    if (params.statuses && params.statuses.filter((status) => {
+      return status;
+    }).length > 0) {
       filters.$and.push({
         'status': { $in: params.statuses }
       });
@@ -597,14 +607,14 @@ export default class UserStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const siteUsersMDB = await global.database.getCollection<{userID: string, siteID: string, siteAdmin: boolean, site: Site}>(tenantID, 'siteusers')
+    const siteUsersMDB = await global.database.getCollection<{userID: string; siteID: string; siteAdmin: boolean; site: Site}>(tenantID, 'siteusers')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Create
     const sites: SiteUser[] = [];
     for (const siteUserMDB of siteUsersMDB) {
       if (siteUserMDB.site) {
-        sites.push({siteAdmin: siteUserMDB.siteAdmin, userID: siteUserMDB.userID, site: siteUserMDB.site});
+        sites.push({ siteAdmin: siteUserMDB.siteAdmin, userID: siteUserMDB.userID, site: siteUserMDB.site });
       }
     }
     // Debug

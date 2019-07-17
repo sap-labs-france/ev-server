@@ -3,12 +3,12 @@ import ChargingStation from '../../entity/ChargingStation';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import SiteArea from '../../types/SiteArea';
 import Tenant from '../../entity/Tenant';
 import Utils from '../../utils/Utils';
-import DbParams from '../../types/database/DbParams';
 
 export default class ChargingStationStorage {
 
@@ -54,7 +54,7 @@ export default class ChargingStationStorage {
     return chargingStation;
   }
 
-  static async getChargingStations(tenantID, params: any = {}, {limit, onlyRecordCount, skip, sort}: DbParams): Promise<{count: number; result: ChargingStation[]}> {
+  static async getChargingStations(tenantID, params: any = {}, { limit, onlyRecordCount, skip, sort }: DbParams): Promise<{count: number; result: ChargingStation[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
     // Check Tenant
@@ -214,7 +214,7 @@ export default class ChargingStationStorage {
     };
   }
 
-  static async getChargingStationsInError(tenantID, params: any = {}, {limit, skip, sort, onlyRecordCount}: DbParams) {
+  static async getChargingStationsInError(tenantID, params: any = {}, { limit, skip, sort, onlyRecordCount }: DbParams) {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
     // Check Tenant

@@ -102,6 +102,26 @@ describe('OCPP 1.6 JSON Tests', function() {
       // Delegate
       await testData.ocppCommonTests.testDeleteTransaction();
     });
+
+    it('Start User should be able to start a new transaction (with SígnedData)', async () => {
+      // Delegate
+      await testData.ocppCommonTests.testStartTransaction();
+    });
+    it('Charging Station should send meter values (with SignedData)', async () => {
+      await testData.ocppCommonTests.testSendMeterValues(false, true);
+    });
+    it('User should stop the transaction (with SignedData)', async () => {
+      // Delegate
+      await testData.ocppCommonTests.testStopTransaction();
+    });
+    it('Transaction must have the right consumption metrics and inactivity (with SignedData)', async () => {
+      // Delegate
+      await testData.ocppCommonTests.testTransactionMetrics(false, true);
+    });
+    it('User should delete his transaction (with SignedData)', async () => {
+      // Delegate
+      await testData.ocppCommonTests.testDeleteTransaction();
+    });
   });
 
   describe('Error cases', () => {

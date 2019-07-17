@@ -7,6 +7,7 @@ import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
 import Company from '../types/Company';
 import Constants from '../utils/Constants';
 import Database from '../utils/Database';
+import DbParams from '../types/database/DbParams';
 import Logging from '../utils/Logging';
 import OCPPConstants from '../server/ocpp/utils/OCPPConstants';
 import OCPPStorage from '../storage/mongodb/OCPPStorage';
@@ -19,7 +20,6 @@ import TenantHolder from './TenantHolder';
 import Transaction from './Transaction';
 import User from '../types/User';
 import Utils from '../utils/Utils';
-import DbParams from '../types/database/DbParams';
 
 momentDurationFormatSetup(moment);
 

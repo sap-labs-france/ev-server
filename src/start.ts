@@ -62,6 +62,8 @@ export default class Bootstrap {
           case 'mongodb':
             // Create MongoDB
             Bootstrap.database = new MongoDBStorage(Bootstrap.storageConfig);
+            // Keep a global reference
+            global.database = Bootstrap.database;
             break;
           default:
             // eslint-disable-next-line no-console
@@ -83,7 +85,6 @@ export default class Bootstrap {
         });
         Bootstrap.databaseDone = true;
       }
-      global.database = Bootstrap.database;
       // Clean the locks in DB belonging to the current app/host
       if (cluster.isMaster && Bootstrap.databaseDone) {
         await LockingStorage.cleanLocks();

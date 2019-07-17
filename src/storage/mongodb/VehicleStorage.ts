@@ -2,11 +2,11 @@ import { ObjectID } from 'mongodb';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import Vehicle from '../../types/Vehicle';
-import DbParams from '../../types/database/DbParams';
 
 export default class VehicleStorage {
 

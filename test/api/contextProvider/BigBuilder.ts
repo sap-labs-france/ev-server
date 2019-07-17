@@ -261,7 +261,7 @@ export default class ContextBuilder {
       }
       // Set back password to clear value for login/logout
       const userModel = user;
-      (userModel as any).passwordClear = config.get('admin.password');//FIXME: What is this
+      (userModel as any).passwordClear = config.get('admin.password'); // FIXME: What is this?
       userList.push(userModel);
     }
     // Persist tenant context
