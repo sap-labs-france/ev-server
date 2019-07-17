@@ -134,7 +134,7 @@ export default class CompanyStorage {
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
     const companiesCountMDB = await global.database.getCollection<{count: number}>(tenantID, 'companies')
@@ -184,7 +184,7 @@ export default class CompanyStorage {
     }
     // Limit
     aggregation.push({
-      $limit: (limit > 0 && limit < Constants.MAX_DB_RECORD_COUNT) ? limit : Constants.MAX_DB_RECORD_COUNT
+      $limit: (limit > 0 && limit < Constants.DB_RECORD_COUNT_CEIL) ? limit : Constants.DB_RECORD_COUNT_CEIL
     });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
@@ -198,7 +198,7 @@ export default class CompanyStorage {
     // Ok
     return {
       count: (companiesCountMDB.length > 0 ?
-        (companiesCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : companiesCountMDB[0].count) : 0),
+        (companiesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : companiesCountMDB[0].count) : 0),
       result: companies
     };
   }

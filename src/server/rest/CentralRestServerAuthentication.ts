@@ -1,6 +1,4 @@
-import { constants } from 'http2';
 import AuthService from './service/AuthService';
-import Constants from '../../utils/Constants';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import UtilsService from './service/UtilsService';

@@ -329,8 +329,11 @@ export default class Utils {
     }
     // Not provided?
     if (isNaN(recordLimit) || recordLimit < 0 || recordLimit === 0) {
-      // Default
-      recordLimit = Constants.DEFAULT_DB_LIMIT;
+      recordLimit = Constants.DB_RECORD_COUNT_DEFAULT;
+    }
+    // Check max
+    if (recordLimit > Number.MAX_SAFE_INTEGER) {
+      recordLimit = Number.MAX_SAFE_INTEGER;
     }
     return recordLimit;
   }

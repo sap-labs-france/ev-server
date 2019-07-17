@@ -189,7 +189,7 @@ export default class VehicleManufacturerStorage {
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
     const vehiclemanufacturersCountMDB = await global.database.getCollection<any>(tenantID, 'vehiclemanufacturers')
@@ -238,7 +238,7 @@ export default class VehicleManufacturerStorage {
     // Ok
     return {
       count: (vehiclemanufacturersCountMDB.length > 0 ?
-        (vehiclemanufacturersCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : vehiclemanufacturersCountMDB[0].count) : 0),
+        (vehiclemanufacturersCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : vehiclemanufacturersCountMDB[0].count) : 0),
       result: vehiclemanufacturersMDB
     };
   }
@@ -249,7 +249,7 @@ export default class VehicleManufacturerStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete Vehicles
-    const vehicles = await VehicleStorage.getVehicles(tenantID, { 'vehicleManufacturerID': id }, { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 });
+    const vehicles = await VehicleStorage.getVehicles(tenantID, { 'vehicleManufacturerID': id }, { limit: Constants.DB_RECORD_COUNT_CEIL, skip: 0 });
     // Delete
     for (const vehicle of vehicles.result) {
       // Delete Vehicle

@@ -170,7 +170,7 @@ export default class VehicleStorage {
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
     const vehiclesCountMDB = await global.database.getCollection<any>(tenantID, 'vehicles')
@@ -220,7 +220,7 @@ export default class VehicleStorage {
     // Ok
     return {
       count: (vehiclesCountMDB.length > 0 ?
-        (vehiclesCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : vehiclesCountMDB[0].count) : 0),
+        (vehiclesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : vehiclesCountMDB[0].count) : 0),
       result: vehiclesMDB
     };
   }

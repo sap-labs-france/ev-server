@@ -145,7 +145,7 @@ export default class SiteAreaStorage {
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
     const siteAreasCountMDB = await global.database.getCollection<{count: number}>(tenantID, 'siteareas')
@@ -264,7 +264,7 @@ export default class SiteAreaStorage {
     // Ok
     return {
       count: (siteAreasCountMDB.length > 0 ?
-        (siteAreasCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : siteAreasCountMDB[0].count) : 0),
+        (siteAreasCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : siteAreasCountMDB[0].count) : 0),
       result: siteAreas
     };
   }

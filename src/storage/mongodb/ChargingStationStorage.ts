@@ -137,7 +137,7 @@ export default class ChargingStationStorage {
     // Limit records?
     if (!onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
     const chargingStationsCountMDB = await global.database.getCollection<any>(tenantID, 'chargingstations')
@@ -209,7 +209,7 @@ export default class ChargingStationStorage {
     // Ok
     return {
       count: (chargingStationsCountMDB.length > 0 ?
-        (chargingStationsCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : chargingStationsCountMDB[0].count) : 0),
+        (chargingStationsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : chargingStationsCountMDB[0].count) : 0),
       result: chargingStations
     };
   }
@@ -337,7 +337,7 @@ export default class ChargingStationStorage {
     // Limit records?
     if (!onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
     const chargingStationsCountMDB = await global.database.getCollection<any>(tenantID, 'chargingstations')
@@ -412,7 +412,7 @@ export default class ChargingStationStorage {
     // Ok
     return {
       count: (chargingStationsCountMDB.length > 0 ?
-        (chargingStationsCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : chargingStationsCountMDB[0].count) : 0),
+        (chargingStationsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : chargingStationsCountMDB[0].count) : 0),
       result: chargingStations
     };
   }

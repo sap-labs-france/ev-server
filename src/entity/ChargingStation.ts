@@ -634,7 +634,7 @@ export default class ChargingStation extends TenantHolder {
         'chargeBoxID': this.getID(), 'connectorId': connectorId, 'startDateTime': startDateTime,
         'endDateTime': endDateTime, 'withChargeBoxes': withChargeBoxes
       },
-      Constants.NO_LIMIT);
+      Constants.DB_RECORD_COUNT_NO_LIMIT);
     // Return list of transactions
     return transactions;
   }

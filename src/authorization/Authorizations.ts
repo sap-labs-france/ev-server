@@ -63,14 +63,15 @@ export default class Authorizations {
     let siteAdminIDs = [];
     if (!Authorizations.isAdmin(user.role)) {
       // Get User's site
-      const sites = (await UserStorage.getSites(tenantID, { userID: user.id }, { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 }))
+      const sites = (await UserStorage.getSites(tenantID, { userID: user.id },
+        { limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0 }))
         .result.map((siteUser) => {
           return siteUser.site;
         });
       // Get User's Site Admin
       const sitesAdmin = await UserStorage.getSites(
         tenantID, { userID: user.id, siteAdmin: true },
-        { limit: Constants.NO_LIMIT, skip: 0 },
+        { limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0 },
         ['site.id']
       );
       // Assign

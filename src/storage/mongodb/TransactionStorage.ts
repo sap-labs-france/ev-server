@@ -171,7 +171,7 @@ export default class TransactionStorage {
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Prepare statistics query
     let statsQuery = null;
@@ -336,7 +336,7 @@ export default class TransactionStorage {
     // Debug
     Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, { params, dbParams });
     return {
-      count: transactionCountMDB ? (transactionCountMDB.count === Constants.MAX_DB_RECORD_COUNT ? -1 : transactionCountMDB.count) : 0,
+      count: transactionCountMDB ? (transactionCountMDB.count === Constants.DB_RECORD_COUNT_CEIL ? -1 : transactionCountMDB.count) : 0,
       stats: transactionCountMDB ? transactionCountMDB : {},
       result: transactions
     };
@@ -512,7 +512,7 @@ export default class TransactionStorage {
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
     const transactionsCountMDB = await global.database.getCollection<any>(tenantID, 'transactions')
@@ -569,7 +569,7 @@ export default class TransactionStorage {
     Logging.traceEnd('TransactionStorage', 'getTransactionsInError', uniqueTimerID, { params, dbParams });
     // Ok
     return {
-      count: (transactionCountMDB ? (transactionCountMDB.count === Constants.MAX_DB_RECORD_COUNT ? -1 : transactionCountMDB.count) : 0),
+      count: (transactionCountMDB ? (transactionCountMDB.count === Constants.DB_RECORD_COUNT_CEIL ? -1 : transactionCountMDB.count) : 0),
       result: transactions
     };
   }

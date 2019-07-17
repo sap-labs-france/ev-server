@@ -452,7 +452,7 @@ export default class UserStorage {
     // Limit records?
     if (!onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
     const usersCountMDB = await global.database.getCollection<any>(tenantID, 'users')
@@ -499,7 +499,7 @@ export default class UserStorage {
     // Ok
     return {
       count: (usersCountMDB.length > 0 ?
-        (usersCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : usersCountMDB[0].count) : 0),
+        (usersCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : usersCountMDB[0].count) : 0),
       result: usersMDB
     };
   }
@@ -571,7 +571,7 @@ export default class UserStorage {
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
     const sitesCountMDB = await global.database.getCollection<any>(tenantID, 'siteusers')
@@ -622,7 +622,7 @@ export default class UserStorage {
     // Ok
     return {
       count: (sitesCountMDB.length > 0 ?
-        (sitesCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : sitesCountMDB[0].count) : 0),
+        (sitesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : sitesCountMDB[0].count) : 0),
       result: sites
     };
   }
