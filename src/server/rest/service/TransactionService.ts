@@ -473,7 +473,7 @@ export default class TransactionService {
       if (filteredRequest.UserID) {
         filter.userId = filteredRequest.UserID;
       }
-      if (Authorizations.isBasic(req.user)) {
+      if (Authorizations.isBasic(req.user.role)) {
         filter.userId = req.user.id;
       }
       if (filteredRequest.ConnectorId) {
@@ -522,7 +522,7 @@ export default class TransactionService {
       if (filteredRequest.UserID) {
         filter.userId = filteredRequest.UserID;
       }
-      if (Authorizations.isBasic(req.user)) {
+      if (Authorizations.isBasic(req.user.role)) {
         filter.userId = req.user.id;
       }
       if (filteredRequest.Type) {
@@ -585,7 +585,7 @@ export default class TransactionService {
       if (filteredRequest.UserID) {
         filter.userId = filteredRequest.UserID;
       }
-      if (Authorizations.isBasic(req.user)) {
+      if (Authorizations.isBasic(req.user.role)) {
         filter.userId = req.user.id;
       }
       if (filteredRequest.Type) {
