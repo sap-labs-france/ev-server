@@ -225,7 +225,7 @@ export default class UserService {
     // Clean up request
     delete filteredRequest.passwords;
     // Check Mandatory fields
-    Utils._checkIfUserValid(filteredRequest, user, req);
+    Utils.checkIfUserValid(filteredRequest, user, req);
     // Update User
     const newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? [] : filteredRequest.tagIDs;
     await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: newTagIDs }, true); // Careful: Last changed by is not a proper user here! TODO (it wasnt before either tho)
@@ -453,7 +453,7 @@ export default class UserService {
     // Filter
     const filteredRequest = UserSecurity.filterUserCreateRequest(req.body, req.user);
     // Check Mandatory fields
-    Utils._checkIfUserValid(filteredRequest, null, req);
+    Utils.checkIfUserValid(filteredRequest, null, req);
     // Get the email
     const foundUser = await UserStorage.getUserByEmail(req.user.tenantID, filteredRequest.email);
     if (foundUser) {

@@ -470,7 +470,74 @@ export default class Utils {
     return crypto.createHash('sha256').update(password).digest('hex');
   }
 
-  public static _checkIfUserValid(filteredRequest: Partial<HttpUserRequest>, user: User, req: Request) {
+  public static checkIfSiteValid(filteredRequest: any, req: Request): void {
+    if (req.method !== 'POST' && !filteredRequest.id) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Site ID is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'SiteService', '_checkIfSiteValid',
+        req.user.id);
+    }
+    if (!filteredRequest.name) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Site Name is mandatory',
+        Constants.HTTP_GENERAL_ERROR,
+        'SiteService', '_checkIfSiteValid',
+        req.user.id, filteredRequest.id);
+    }
+    if (!filteredRequest.companyID) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Company ID is mandatory for the Site',
+        Constants.HTTP_GENERAL_ERROR,
+        'SiteService', '_checkIfSiteValid',
+        req.user.id, filteredRequest.id);
+    }
+  }
+
+  public static checkIfSiteAreaValid(filteredRequest: any, req: Request): void {
+    if (req.method !== 'POST' && !filteredRequest.id) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Site Area ID is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'SiteAreaService', '_checkIfSiteAreaValid',
+        req.user.id);
+    }
+    if (!filteredRequest.name) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Site Area is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'SiteAreaService', '_checkIfSiteAreaValid',
+        req.user.id, filteredRequest.id);
+    }
+    if (!filteredRequest.siteID) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Site ID is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'SiteAreaService', '_checkIfSiteAreaValid',
+        req.user.id, filteredRequest.id);
+    }
+  }
+
+  public static checkIfCompanyValid(filteredRequest: any, req: Request): void {
+    if (req.method !== 'POST' && !filteredRequest.id) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Company ID is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'CompanyService', 'checkIfCompanyValid',
+        req.user.id);
+    }
+    if (!filteredRequest.name) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Company Name is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'CompanyService', 'checkIfCompanyValid',
+        req.user.id, filteredRequest.id);
+    }
+  }
+
+  public static checkIfUserValid(filteredRequest: Partial<HttpUserRequest>, user: User, req: Request) {
     const tenantID = req.user.tenantID;
     if (!tenantID) {
       throw new AppError(

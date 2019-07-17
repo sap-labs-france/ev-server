@@ -436,7 +436,7 @@ export default class SiteService {
     // Filter
     const filteredRequest = SiteSecurity.filterSiteCreateRequest(req.body);
     // Check
-    SiteService._checkIfSiteValid(filteredRequest, req);
+    Utils.checkIfSiteValid(filteredRequest, req);
     // Check Company
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.companyID);
     UtilsService.assertObjectExists(company, `The Company ID '${filteredRequest.companyID}' does not exist`, 'SiteService', 'handleCreateSite', req.user);
@@ -472,7 +472,7 @@ export default class SiteService {
     // Filter
     const filteredRequest = SiteSecurity.filterSiteUpdateRequest(req.body);
     // Check
-    SiteService._checkIfSiteValid(filteredRequest, req);
+    Utils.checkIfSiteValid(filteredRequest, req);
     // Check auth
     if (!Authorizations.canUpdateSite(req.user, filteredRequest.id)) {
       throw new AppAuthError(
@@ -501,31 +501,5 @@ export default class SiteService {
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
-  }
-
-  private static _checkIfSiteValid(filteredRequest: any, req: Request): void {
-    if (req.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Site ID is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'SiteService', '_checkIfSiteValid',
-        req.user.id);
-    }
-    if (!filteredRequest.name) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Site Name is mandatory',
-        Constants.HTTP_GENERAL_ERROR,
-        'SiteService', '_checkIfSiteValid',
-        req.user.id, filteredRequest.id);
-    }
-    if (!filteredRequest.companyID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Company ID is mandatory for the Site',
-        Constants.HTTP_GENERAL_ERROR,
-        'SiteService', '_checkIfSiteValid',
-        req.user.id, filteredRequest.id);
-    }
   }
 }

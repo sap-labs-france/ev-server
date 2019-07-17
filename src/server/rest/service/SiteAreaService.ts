@@ -8,6 +8,7 @@ import SiteArea from '../../../types/SiteArea';
 import SiteAreaSecurity from './security/SiteAreaSecurity';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import UtilsService from './UtilsService';
+import Utils from '../../../utils/Utils';
 
 export default class SiteAreaService {
   public static async handleDeleteSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -158,7 +159,7 @@ export default class SiteAreaService {
     // Filter
     const filteredRequest = SiteAreaSecurity.filterSiteAreaCreateRequest(req.body);
     // Check
-    SiteAreaService._checkIfSiteAreaValid(filteredRequest, req);
+    Utils.checkIfSiteAreaValid(filteredRequest, req);
     // Check auth
     if (!Authorizations.canCreateSiteArea(req.user, filteredRequest.siteID)) {
       throw new AppAuthError(
@@ -214,7 +215,7 @@ export default class SiteAreaService {
         req.user);
     }
     // Check Mandatory fields
-    SiteAreaService._checkIfSiteAreaValid(filteredRequest, req);
+    Utils.checkIfSiteAreaValid(filteredRequest, req);
     // Update
     siteArea.name = filteredRequest.name;
     siteArea.address = filteredRequest.address;
@@ -236,29 +237,5 @@ export default class SiteAreaService {
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
-  }
-
-  private static _checkIfSiteAreaValid(filteredRequest: any, req: Request): void {
-    if (req.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Site Area ID is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'SiteAreaService', '_checkIfSiteAreaValid',
-        req.user.id);
-    }
-    if (!filteredRequest.name) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Site Area is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'SiteAreaService', '_checkIfSiteAreaValid',
-        req.user.id, filteredRequest.id);
-    }
-    if (!filteredRequest.siteID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Site ID is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'SiteAreaService', '_checkIfSiteAreaValid',
-        req.user.id, filteredRequest.id);
-    }
   }
 }

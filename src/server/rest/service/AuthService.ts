@@ -385,7 +385,7 @@ export default class AuthService {
     // Check email
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
     // Check Mandatory fields
-    Utils._checkIfUserValid(filteredRequest, null, req);
+    Utils.checkIfUserValid(filteredRequest, null, req);
     if (user) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
