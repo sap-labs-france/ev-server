@@ -95,6 +95,9 @@ export default class NormalizeTransactionsTask extends MigrationTask {
       } else {
         transaction.stateOfCharge = 0;
       }
+      if (transactionMDB.hasOwnProperty('signedData')) {
+        transaction.signedData = transactionMDB.signedData;
+      }
       if (pricing) {
         transaction.price = 0;
         transaction.roundedPrice = 0;
@@ -130,6 +133,9 @@ export default class NormalizeTransactionsTask extends MigrationTask {
         transaction.stop.stateOfCharge = transactionMDB.stop.stateOfCharge;
       } else {
         transaction.stop.stateOfCharge = 0;
+      }
+      if (transactionMDB.stop.hasOwnProperty('signedData')) {
+        transaction.stop.signedData = transactionMDB.stop.signedData;
       }
       if (pricing) {
         transaction.stop.price = parseFloat((pricing.priceKWH * (transactionMDB.stop.totalConsumption / 1000)).toFixed(6));

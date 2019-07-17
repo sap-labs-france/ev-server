@@ -467,6 +467,9 @@ export default class TransactionService {
       if (filteredRequest.SiteAreaID) {
         filter.siteAreaID = filteredRequest.SiteAreaID;
       }
+      if (filteredRequest.SiteID) {
+        filter.siteID = filteredRequest.SiteID;
+      }
       if (filteredRequest.UserID) {
         filter.userId = filteredRequest.UserID;
       }

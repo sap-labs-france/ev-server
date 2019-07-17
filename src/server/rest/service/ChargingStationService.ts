@@ -1,4 +1,3 @@
-import { filter } from 'bluebird';
 import fs from 'fs';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';

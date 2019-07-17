@@ -396,6 +396,34 @@ export default class Transaction extends TenantHolder {
     this._model.stop.stateOfCharge = stateOfCharge;
   }
 
+  // SignedData
+  getSignedData() {
+    return this._model.signedData;
+  }
+
+  setSignedData(signedData) {
+    this._model.signedData = signedData;
+  }
+
+  getEndSignedData() {
+    if (this.isFinished()) {
+      return this._model.stop.signedData;
+    }
+  }
+
+  setEndSignedData(signedData) {
+    this._checkAndCreateStop();
+    this._model.stop.signedData = signedData;
+  }
+
+  getCurrentSignedData() {
+    return this._model.currentSignedData;
+  }
+
+  setCurrentSignedData(signedData) {
+    this._model.currentSignedData = signedData;
+  }
+
   hasMultipleConsumptions() {
     return this.getNumberOfMeterValues() > 1;
   }
@@ -544,6 +572,7 @@ export default class Transaction extends TenantHolder {
   clearRuntimeData() {
     delete this._model.currentConsumption;
     delete this._model.currentStateOfCharge;
+    delete this._model.currentSignedData;
     delete this._model.currentTotalConsumption;
     delete this._model.currentTotalInactivitySecs;
     delete this._model.currentCumulatedPrice;

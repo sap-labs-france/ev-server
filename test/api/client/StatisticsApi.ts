@@ -27,6 +27,36 @@ export default class StatisticsApi extends CrudApi {
     return number;
   }
 
+  public static convertExportFileToRawArray(fileData: string): Array<string> {
+    let fileArray = fileData.split('\r\n');
+    fileArray = fileArray.filter((record: string) => {
+      return record.length > 0;
+    });
+    return fileArray;
+  }
+
+  public static convertExportFileToObjectArray(fileData: string): Array<{ [x: string]: any }> {
+    let jsonString = '';
+    const objectArray = [];
+    const fileArray = StatisticsApi.convertExportFileToRawArray(fileData);
+    if (Array.isArray(fileArray) && fileArray.length > 0) {
+      const columns = fileArray[0].split(',');
+      for (let i = 1; i < fileArray.length; i++) {
+        const values = fileArray[i].split(',');
+        jsonString = '{';
+        for (let j = 0; j < columns.length; j++) {
+          if (j > 0) {
+            jsonString += ',';
+          }
+          jsonString += `"${columns[j]}":"${values[j]}"`;
+        }
+        jsonString += '}';
+        objectArray.push(JSON.parse(jsonString));
+      }
+    }
+    return objectArray;
+  }
+
   public readAllYears() {
     return super.read({}, '/client/api/TransactionYears');
   }
@@ -53,6 +83,10 @@ export default class StatisticsApi extends CrudApi {
 
   public readUserInactivity(params) {
     return super.read(params, '/client/api/UserInactivityStatistics');
+  }
+
+  public async exportStatistics(params) {
+    return await super.read(params, '/client/api/StatisticsExport');
   }
 
 }

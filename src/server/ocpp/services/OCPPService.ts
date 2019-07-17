@@ -357,6 +357,7 @@ export default class OCPPService {
         // Process values
       } else {
         // Handle Meter Value only for transaction
+        // eslint-disable-next-line no-lonely-if
         if (meterValues.transactionId) {
           // Get the transaction
           const transaction = await Transaction.getTransaction(chargingStation.getTenantID(), meterValues.transactionId);
@@ -481,6 +482,16 @@ export default class OCPPService {
     // Build consumptions
     const consumptions = [];
     for (const meterValue of meterValues.values) {
+      // Handles Signed Data values
+      if (meterValue.attribute.format === 'SignedData') {
+        if (meterValue.attribute.context === 'Transaction.Begin') {
+          transaction.setSignedData(meterValue.value);
+          continue;
+        } else if (meterValue.attribute.context === 'Transaction.End') {
+          transaction.setCurrentSignedData(meterValue.value);
+          continue;
+        }
+      }
       // SoC handling
       if (meterValue.attribute.measurand === 'SoC') {
         // Set the first SoC
@@ -786,7 +797,13 @@ export default class OCPPService {
             // Add Attributes
             const newLocalMeterValue = JSON.parse(JSON.stringify(newMeterValue));
             newLocalMeterValue.attribute = this._buildMeterValueAttributes(sampledValue);
-            newLocalMeterValue.value = parseFloat(sampledValue.value);
+            // Data is to be interpreted as integer/decimal numeric data
+            if (newLocalMeterValue.attribute.format === 'Raw') {
+              newLocalMeterValue.value = parseFloat(sampledValue.value);
+            // Data is represented as a signed binary data block, encoded as hex data
+            } else if (newLocalMeterValue.attribute.format === 'SignedData') {
+              newLocalMeterValue.value = sampledValue.value;
+            }
             // Add
             newMeterValues.values.push(newLocalMeterValue);
           }
@@ -962,7 +979,9 @@ export default class OCPPService {
       });
       transaction.setCurrentTotalInactivitySecs(0);
       transaction.setCurrentStateOfCharge(0);
+      transaction.setCurrentSignedData('');
       transaction.setStateOfCharge(0);
+      transaction.setSignedData('');
       transaction.setCurrentConsumption(0);
       transaction.setCurrentTotalConsumption(0);
       transaction.setCurrentConsumptionWh(0);
@@ -1246,6 +1265,7 @@ export default class OCPPService {
     transaction.setStopUserID((alternateUser ? alternateUser.id : (user ? user.id : null)));
     transaction.setStopTagID(tagId);
     transaction.setStopStateOfCharge(transaction.getCurrentStateOfCharge());
+    transaction.setEndSignedData(transaction.getCurrentSignedData());
     // Keep the last Meter Value
     const lastMeterValue = transaction.getLastMeterValue();
     // Compute duration
