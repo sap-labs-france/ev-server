@@ -26,6 +26,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
         method: 'run', action: 'SynchronizeRefundTransactions',
         message: 'The refund settings are not configured. The task \'SynchronizeRefundTransactionsTask\' is skipped.'
       });
+      return;
     }
     Logging.logInfo({
       tenantID: tenant.getID(),
