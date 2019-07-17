@@ -18,8 +18,8 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
       });
       return;
     }
-    const setting = await SettingStorage.getSettingByIdentifier(tenant.getID(), 'refund');
-    if (!setting || !setting.getContent()['concur']) {
+    const setting = await SettingStorage.getSettingByIdentifier(tenant.getID(), Constants.COMPONENTS.REFUND);
+    if (!setting || !setting.getContent()[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]) {
       Logging.logDebug({
         tenantID: tenant.getID(),
         module: 'SynchronizeRefundTransactionsTask',
@@ -34,7 +34,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
       message: 'The task \'SynchronizeRefundTransactionsTask\' is started'
     });
 
-    const connector = new ConcurConnector(tenant.getID(), setting.getContent()['concur']);
+    const connector = new ConcurConnector(tenant.getID(), setting.getContent()[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]);
     const transactions = await TransactionStorage.getTransactions(tenant.getID(), {
       'type': 'refunded',
       'refundStatus': Constants.REFUND_TRANSACTION_SUBMITTED
