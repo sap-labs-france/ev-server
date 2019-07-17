@@ -59,7 +59,7 @@ export default class AuthService {
   public static async handleIsAuthorized(action: string, req: Request, res: Response, next: NextFunction) {
     let user: User;
     // Default
-    let result = [{ 'IsAuthorized': false }];
+    let result = [{ 'IsAuthorized': false }]; // TODO: Change style
     // Filter
     const filteredRequest = AuthSecurity.filterIsAuthorizedRequest(req.query);
     // Check
@@ -199,7 +199,7 @@ export default class AuthService {
     // Check authorization for each connectors
     for (let index = 0; index < chargingStation.getConnectors().length; index++) {
       const connector = chargingStation.getConnector(index + 1);
-      results.push(await Authorizations.getConnectorActionAuthorizations(tenantID, user, chargingStation, connector, siteArea, site));
+      results.push(await Authorizations.getConnectorActionAuthorizations({ tenantID, user, chargingStation, connector, siteArea, site }));
     }
     return results;
   }
@@ -222,7 +222,8 @@ export default class AuthService {
     }
     try {
       // Check
-      await Authorizations.isTagIDsAuthorizedOnChargingStation(chargingStation, user.tagIDs[0], transaction.getTagID(), filteredRequest.Action);
+      await Authorizations.isTagIDsAuthorizedOnChargingStation(
+        chargingStation, user.tagIDs[0], transaction.getTagID(), filteredRequest.Action);
       // Ok
       return true;
     } catch (e) {
@@ -384,7 +385,7 @@ export default class AuthService {
     // Check email
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
     // Check Mandatory fields
-    UserService.checkIfUserValid(filteredRequest, null, req);
+    Utils.checkIfUserValid(filteredRequest, null, req);
     if (user) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
@@ -393,7 +394,7 @@ export default class AuthService {
         null, user);
     }
     // Generate a password
-    const newPasswordHashed = await UserService.hashPasswordBcrypt(filteredRequest.password);
+    const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
     // Create the user
     const newUser = UserStorage.getEmptyUser();
 
@@ -522,9 +523,9 @@ export default class AuthService {
 
   public static async generateNewPasswordAndSendEmail(tenantID: string, filteredRequest, action: string, req: Request, res: Response, next: NextFunction) {
     // Create the password
-    const newPassword = UserService.generatePassword();
+    const newPassword = Utils.generatePassword();
     // Hash it
-    const newHashedPassword = await UserService.hashPasswordBcrypt(newPassword);
+    const newHashedPassword = await Utils.hashPasswordBcrypt(newPassword);
     // Get the user
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
     // Found?
@@ -939,9 +940,9 @@ export default class AuthService {
     }
 
     // Check password
-    const match = await UserService.checkPasswordBCrypt(filteredRequest.password, user.password);
+    const match = await Utils.checkPasswordBCrypt(filteredRequest.password, user.password);
     // Check new and old version of hashing the password
-    if (match || (user.password === UserService.hashPassword(filteredRequest.password))) {
+    if (match || (user.password === Utils.hashPassword(filteredRequest.password))) {
       // Check if the account is pending
       if (user.status === Constants.USER_STATUS_PENDING) {
         throw new AppError(

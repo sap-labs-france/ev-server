@@ -481,8 +481,8 @@ export default class TransactionService {
       }
       // Get Transactions
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-        { ...filter, 'withChargeBoxes': true, 'onlyRecordCount': filteredRequest.OnlyRecordCount },
-        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+        { ...filter, 'withChargeBoxes': true },
+        { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
       // Filter
       TransactionSecurity.filterTransactionsResponse(transactions, req.user);
       // Return
@@ -541,10 +541,9 @@ export default class TransactionService {
         {
           ...filter,
           'search': filteredRequest.Search,
-          'siteID': filteredRequest.SiteID,
-          'onlyRecordCount': filteredRequest.OnlyRecordCount
+          'siteID': filteredRequest.SiteID
         },
-        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+        { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
       // Filter
       TransactionSecurity.filterTransactionsResponse(transactions, req.user);
       // Return
@@ -595,9 +594,8 @@ export default class TransactionService {
         filter.siteAreaID = filteredRequest.SiteAreaID;
       }
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-        { ...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID,
-          'onlyRecordCount': filteredRequest.OnlyRecordCount },
-        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+        { ...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID },
+        { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
       // Filter
       TransactionSecurity.filterTransactionsResponse(transactions, req.user);
       // Hash userId and tagId for confidentiality purposes
@@ -667,9 +665,8 @@ export default class TransactionService {
         filter.siteAreaID = filteredRequest.SiteAreaID;
       }
       const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
-        { ...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID,
-          'onlyRecordCount': filteredRequest.OnlyRecordCount },
-        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+        { ...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID },
+        { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
       // Filter
       TransactionSecurity.filterTransactionsResponse(transactions, req.user);
       // Return

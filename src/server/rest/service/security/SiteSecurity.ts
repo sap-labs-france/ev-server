@@ -115,16 +115,16 @@ export default class SiteSecurity {
       if (site.siteAreas) {
         filteredSite.siteAreas = SiteAreaSecurity.filterSiteAreasResponse(site.siteAreas, loggedUser);
       }
-      if (site.availableChargers) {
+      if (site.hasOwnProperty('availableChargers')) {
         filteredSite.availableChargers = site.availableChargers;
       }
-      if (site.totalChargers) {
+      if (site.hasOwnProperty('totalChargers')) {
         filteredSite.totalChargers = site.totalChargers;
       }
-      if (site.availableConnectors) {
+      if (site.hasOwnProperty('availableConnectors')) {
         filteredSite.availableConnectors = site.availableConnectors;
       }
-      if (site.totalConnectors) {
+      if (site.hasOwnProperty('totalConnectors')) {
         filteredSite.totalConnectors = site.totalConnectors;
       }
       // Created By / Last Changed By

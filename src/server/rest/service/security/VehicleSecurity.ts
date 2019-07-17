@@ -1,26 +1,19 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
+import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import { HttpVehiclesRequest } from '../../../../types/requests/HttpVehicleRequest';
+import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
+import Vehicle from '../../../../types/Vehicle';
 
 export default class VehicleSecurity {
-  // eslint-disable-next-line no-unused-vars
-  static filterVehicleDeleteRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.ID = sanitize(request.ID);
-    return filteredRequest;
+
+  public static filterVehicleRequest(request: HttpByIDRequest): string {
+    return sanitize(request.ID);
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterVehicleRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    filteredRequest.ID = sanitize(request.ID);
-    return filteredRequest;
-  }
-
-  // eslint-disable-next-line no-unused-vars
-  static filterVehiclesRequest(request, loggedUser) {
-    const filteredRequest: any = {};
+  public static filterVehiclesRequest(request: HttpVehiclesRequest): HttpVehiclesRequest {
+    const filteredRequest: HttpVehiclesRequest = {} as HttpVehiclesRequest;
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.Type = sanitize(request.Type);
     filteredRequest.VehicleManufacturerID = sanitize(request.VehicleManufacturerID);
@@ -29,42 +22,18 @@ export default class VehicleSecurity {
     return filteredRequest;
   }
 
-  static filterVehicleUpdateRequest(request, loggedUser) {
+  public static filterVehicleUpdateRequest(request: Partial<Vehicle>&{withVehicleImages?: boolean}): Partial<Vehicle>&{withVehicleImages?: boolean} {
     // Set
-    const filteredRequest = VehicleSecurity._filterVehicleRequest(request, loggedUser);
+    const filteredRequest = VehicleSecurity._filterVehicleRequest(request);
     filteredRequest.id = sanitize(request.id);
-    filteredRequest.withVehicleImages = UtilsSecurity.filterBoolean(request.withVehicleImages);
-    return filteredRequest;
+    return { ...filteredRequest, withVehicleImages: UtilsSecurity.filterBoolean(request.withVehicleImages) };
   }
 
-  static filterVehicleCreateRequest(request, loggedUser) {
-    const filteredRequest = VehicleSecurity._filterVehicleRequest(request, loggedUser);
-    return filteredRequest;
+  public static filterVehicleCreateRequest(request: Partial<Vehicle>): Partial<Vehicle> {
+    return VehicleSecurity._filterVehicleRequest(request);
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static _filterVehicleRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    filteredRequest.type = sanitize(request.type);
-    filteredRequest.model = sanitize(request.model);
-    filteredRequest.batteryKW = sanitize(request.batteryKW);
-    filteredRequest.autonomyKmWLTP = sanitize(request.autonomyKmWLTP);
-    filteredRequest.autonomyKmReal = sanitize(request.autonomyKmReal);
-    filteredRequest.horsePower = sanitize(request.horsePower);
-    filteredRequest.torqueNm = sanitize(request.torqueNm);
-    filteredRequest.performance0To100kmh = sanitize(request.performance0To100kmh);
-    filteredRequest.weightKg = sanitize(request.weightKg);
-    filteredRequest.lengthMeter = sanitize(request.lengthMeter);
-    filteredRequest.widthMeter = sanitize(request.widthMeter);
-    filteredRequest.heightMeter = sanitize(request.heightMeter);
-    filteredRequest.releasedOn = sanitize(request.releasedOn);
-    filteredRequest.images = sanitize(request.images);
-    filteredRequest.logo = sanitize(request.logo);
-    filteredRequest.vehicleManufacturerID = sanitize(request.vehicleManufacturerID);
-    return filteredRequest;
-  }
-
-  static filterVehicleResponse(vehicle, loggedUser) {
+  public static filterVehicleResponse(vehicle: Vehicle, loggedUser: UserToken) {
     let filteredVehicle;
 
     if (!vehicle) {
@@ -87,7 +56,7 @@ export default class VehicleSecurity {
     return filteredVehicle;
   }
 
-  static filterVehiclesResponse(vehicles, loggedUser) {
+  public static filterVehiclesResponse(vehicles: {result: Vehicle[]}, loggedUser: UserToken) {
     const filteredVehicles = [];
 
     if (!vehicles.result) {
@@ -105,7 +74,28 @@ export default class VehicleSecurity {
         filteredVehicles.push(filteredVehicle);
       }
     }
-    vehicles.result = filteredVehicles;
+    return filteredVehicles;
+  }
+
+  private static _filterVehicleRequest(request: Partial<Vehicle>): Partial<Vehicle> {
+    const rrequest: Partial<Vehicle> = {};
+    rrequest.type = sanitize(request.type);
+    rrequest.model = sanitize(request.model);
+    rrequest.batteryKW = sanitize(request.batteryKW);
+    rrequest.autonomyKmWLTP = sanitize(request.autonomyKmWLTP);
+    rrequest.autonomyKmReal = sanitize(request.autonomyKmReal);
+    rrequest.horsePower = sanitize(request.horsePower);
+    rrequest.torqueNm = sanitize(request.torqueNm);
+    rrequest.performance0To100kmh = sanitize(request.performance0To100kmh);
+    rrequest.weightKg = sanitize(request.weightKg);
+    rrequest.lengthMeter = sanitize(request.lengthMeter);
+    rrequest.widthMeter = sanitize(request.widthMeter);
+    rrequest.heightMeter = sanitize(request.heightMeter);
+    rrequest.releasedOn = sanitize(request.releasedOn);
+    rrequest.images = sanitize(request.images);
+    rrequest.logo = sanitize(request.logo);
+    rrequest.vehicleManufacturerID = sanitize(request.vehicleManufacturerID);
+    return rrequest;
   }
 }
 

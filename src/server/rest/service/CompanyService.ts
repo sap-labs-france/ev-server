@@ -9,6 +9,7 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import User from '../../../types/User';
 import UtilsService from './UtilsService';
+import Utils from '../../../utils/Utils';
 
 export default class CompanyService {
 
@@ -130,10 +131,9 @@ export default class CompanyService {
         search: filteredRequest.Search,
         companyIDs: Authorizations.getAuthorizedCompanyIDs(req.user),
         withSites: filteredRequest.WithSites,
-        withLogo: filteredRequest.WithLogo,
-        onlyRecordCount: filteredRequest.OnlyRecordCount
+        withLogo: filteredRequest.WithLogo
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       [ 'id', 'name', 'address.latitude', 'address.longitude', 'address.city', 'address.country', 'logo']
     );
     // Filter
@@ -161,7 +161,7 @@ export default class CompanyService {
     // Filter
     const filteredRequest = CompanySecurity.filterCompanyCreateRequest(req.body);
     // Check
-    CompanyService._checkIfCompanyValid(filteredRequest, req);
+    Utils.checkIfCompanyValid(filteredRequest, req);
     // Create company
     const newCompany: Company = {
       ...filteredRequest,
@@ -204,7 +204,7 @@ export default class CompanyService {
     // Check
     UtilsService.assertObjectExists(company, `The Site Area with ID '${filteredRequest.id}' does not exist`, 'CompanyService', 'handleUpdateCompany', req.user);
     // Check Mandatory fields
-    CompanyService._checkIfCompanyValid(filteredRequest, req);
+    Utils.checkIfCompanyValid(filteredRequest, req);
     // Update
     company.name = filteredRequest.name;
     company.address = filteredRequest.address;
@@ -223,22 +223,5 @@ export default class CompanyService {
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
-  }
-
-  private static _checkIfCompanyValid(filteredRequest: any, req: Request): void {
-    if (req.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Company ID is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'CompanyService', 'checkIfCompanyValid',
-        req.user.id);
-    }
-    if (!filteredRequest.name) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Company Name is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'CompanyService', 'checkIfCompanyValid',
-        req.user.id, filteredRequest.id);
-    }
   }
 }

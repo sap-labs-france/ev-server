@@ -1,26 +1,20 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
+import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import { HttpVehicleManufacturersRequest } from '../../../../types/requests/HttpVehicleManufacturerRequest';
+import User from '../../../../types/User';
+import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
+import VehicleManufacturer from '../../../../types/VehicleManufacturer';
 
 export default class VehicleManufacturerSecurity {
-  // eslint-disable-next-line no-unused-vars
-  static filterVehicleManufacturerDeleteRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.ID = sanitize(request.ID);
-    return filteredRequest;
+
+  public static filterVehicleManufacturerRequest(request: HttpByIDRequest): string {
+    return sanitize(request.ID);
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterVehicleManufacturerRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    filteredRequest.ID = sanitize(request.ID);
-    return filteredRequest;
-  }
-
-  // eslint-disable-next-line no-unused-vars
-  static filterVehicleManufacturersRequest(request, loggedUser) {
-    const filteredRequest: any = {};
+  public static filterVehicleManufacturersRequest(request: Partial<HttpVehicleManufacturersRequest>): HttpVehicleManufacturersRequest {
+    const filteredRequest: HttpVehicleManufacturersRequest = {} as HttpVehicleManufacturersRequest;
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.WithVehicles = UtilsSecurity.filterBoolean(request.WithVehicles);
     filteredRequest.VehicleType = sanitize(request.VehicleType);
@@ -29,27 +23,18 @@ export default class VehicleManufacturerSecurity {
     return filteredRequest;
   }
 
-  static filterVehicleManufacturerUpdateRequest(request, loggedUser) {
+  public static filterVehicleManufacturerUpdateRequest(request: Partial<VehicleManufacturer>): Partial<VehicleManufacturer> {
     // Set
-    const filteredRequest = VehicleManufacturerSecurity._filterVehicleManufacturerRequest(request, loggedUser);
+    const filteredRequest = VehicleManufacturerSecurity._filterVehicleManufacturerRequest(request);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  static filterVehicleManufacturerCreateRequest(request, loggedUser) {
-    const filteredRequest = VehicleManufacturerSecurity._filterVehicleManufacturerRequest(request, loggedUser);
-    return filteredRequest;
+  public static filterVehicleManufacturerCreateRequest(request: Partial<VehicleManufacturer>): Partial<VehicleManufacturer> {
+    return VehicleManufacturerSecurity._filterVehicleManufacturerRequest(request);
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static _filterVehicleManufacturerRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    filteredRequest.name = sanitize(request.name);
-    filteredRequest.logo = sanitize(request.logo);
-    return filteredRequest;
-  }
-
-  static filterVehicleManufacturerResponse(vehicleManufacturer, loggedUser) {
+  public static filterVehicleManufacturerResponse(vehicleManufacturer: VehicleManufacturer, loggedUser: UserToken): VehicleManufacturer {
     let filteredVehicleManufacturer;
 
     if (!vehicleManufacturer) {
@@ -72,7 +57,7 @@ export default class VehicleManufacturerSecurity {
     return filteredVehicleManufacturer;
   }
 
-  static filterVehicleManufacturersResponse(vehicleManufacturers, loggedUser) {
+  public static filterVehicleManufacturersResponse(vehicleManufacturers: {result: VehicleManufacturer[]}, loggedUser: UserToken) {
     const filteredVehicleManufacturers = [];
 
     if (!vehicleManufacturers.result) {
@@ -91,6 +76,10 @@ export default class VehicleManufacturerSecurity {
       }
     }
     vehicleManufacturers.result = filteredVehicleManufacturers;
+  }
+
+  private static _filterVehicleManufacturerRequest(request: Partial<VehicleManufacturer>): Partial<VehicleManufacturer> {
+    return { name: request.name, logo: request.logo };
   }
 }
 

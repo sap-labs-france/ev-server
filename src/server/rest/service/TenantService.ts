@@ -199,12 +199,12 @@ export default class TenantService {
     // Create DB collections
     TenantStorage.createTenantDB(newTenant.getID());
     // Create user in tenant
-    const password = UserService.generatePassword();
+    const password = Utils.generatePassword();
     const verificationToken = Utils.generateToken(newTenant.getEmail());
     const tenantUser: User = UserStorage.getEmptyUser();
     tenantUser.name = newTenant.getName();
     tenantUser.firstName = 'Admin';
-    tenantUser.password = await UserService.hashPasswordBcrypt(password);
+    tenantUser.password = await Utils.hashPasswordBcrypt(password);
     tenantUser.role = Constants.ROLE_ADMIN;
     tenantUser.email = newTenant.getEmail();
     tenantUser.verificationToken = verificationToken;
