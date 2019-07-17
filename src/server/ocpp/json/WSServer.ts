@@ -64,7 +64,7 @@ export default class WSServer extends WebSocket.Server {
 
   public static createHttpServer(serverConfig): http.Server {
     // Create HTTP server
-    let httpServer;
+    let httpServer: http.Server;
     // Secured protocol?
     if (serverConfig.protocol === 'wss') {
       // Create the options
@@ -97,7 +97,7 @@ export default class WSServer extends WebSocket.Server {
 
   public start(): void {
     // Log
-    let logMsg;
+    let logMsg: string;
     if (cluster.isWorker) {
       logMsg = `Starting ${this.serverName} Json ${MODULE_NAME} in worker ${cluster.worker.id}...`;
     } else {
