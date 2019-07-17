@@ -175,6 +175,7 @@ export default class ChargingStationService {
         `The Charging Station with ID '${filteredRequest.id}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'ChargingStationService', 'handleUpdateChargingStationParams', req.user);
     }
+
     const siteArea = await chargingStation.getSiteArea();
     // Check Auth
     if (!Authorizations.canUpdateChargingStation(req.user, siteArea ? siteArea.siteID : null)) {

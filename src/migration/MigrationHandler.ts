@@ -18,6 +18,7 @@ import UpdateTransactionInactivityTask from './tasks/UpdateTransactionInactivity
 import UpdateTransactionSimplePriceTask from './tasks/UpdateTransactionSimplePriceTask';
 import UpdateTransactionSoCTask from './tasks/UpdateTransactionSoCTask';
 import UsersAddNotificationsFlagTask from './tasks/UsersAddNotificationsFlagTask';
+import AddTransactionRefundStatusTask from './tasks/AddTransactionRefundStatusTask';
 
 
 export default class MigrationHandler {
@@ -54,6 +55,7 @@ export default class MigrationHandler {
       currentMigrationTasks.push(new MigrateTenantSettingsTask());
       currentMigrationTasks.push(new UpdateTransactionExtraInactivityTask());
       currentMigrationTasks.push(new SiteUsersHashIDsTask());
+      currentMigrationTasks.push(new AddTransactionRefundStatusTask());
       // pragma currentMigrationTasks.push(new AddSensitiveDataInSettingsTask());
 
       // Get the already done migrations from the DB

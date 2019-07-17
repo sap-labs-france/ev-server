@@ -133,6 +133,9 @@ export default class TransactionStorage {
       switch (params.type) {
         case 'refunded':
           match.refundData = { $exists: true };
+          if (params.refundStatus) {
+            match['refundData.status'] = params.refundStatus;
+          }
           break;
         case 'notRefunded':
           match.refundData = { $exists: false };

@@ -8,6 +8,7 @@ import TenantHolder from './TenantHolder';
 import TransactionStorage from '../storage/mongodb/TransactionStorage';
 import User from '../types/User';
 import UserStorage from '../storage/mongodb/UserStorage';
+import Constants from '../utils/Constants';
 
 export default class Transaction extends TenantHolder {
   private _model: any = {};
@@ -479,7 +480,8 @@ export default class Transaction extends TenantHolder {
   }
 
   isRefunded() {
-    return this._model.refundData && !!this._model.refundData.refundId;
+    return this._model.refundData && !!this._model.refundData.refundId
+      && this._model.refundData.status !== Constants.REFUND_TRANSACTION_CANCELLED;
   }
 
   hasStateOfCharges() {

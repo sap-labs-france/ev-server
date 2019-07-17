@@ -15,8 +15,36 @@ import TransactionSecurity from './security/TransactionSecurity';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
+import SynchronizeRefundTransactionsTask from '../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
+import Tenant from '../../../entity/Tenant';
 
 export default class TransactionService {
+  static async handleSynchronizeRefundedTransactions(action, req, res, next) {
+    try {
+      if (!Authorizations.isAdmin(req.user.role)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_UPDATE,
+          Constants.ENTITY_TRANSACTION,
+          null,
+          Constants.HTTP_AUTH_ERROR, 'TransactionService', 'handleSynchronizeRefundedTransactions',
+          req.user);
+      }
+
+      const tenant = await Tenant.getTenant(req.user.tenantID);
+      const task = new SynchronizeRefundTransactionsTask();
+      await task.processTenant(tenant, null);
+
+      const response: any = {
+        ...Constants.REST_RESPONSE_SUCCESS,
+      };
+      res.json(response);
+      next();
+    } catch (error) {
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
   static async handleRefundTransactions(action, req, res, next) {
     try {
       // Filter
@@ -94,7 +122,7 @@ export default class TransactionService {
       let setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, 'refund');
       setting = setting.getContent()['concur'];
       const connector = new ConcurConnector(req.user.tenantID, setting);
-      const refundedTransactions = await connector.refund(user, transactionsToRefund);
+      const refundedTransactions = await connector.refund(user.id, transactionsToRefund);
       // // Transfer it to the Revenue Cloud
       // pragma await Utils.pushTransactionToRevenueCloud(action, transaction, req.user, transaction.getUserJson());
 

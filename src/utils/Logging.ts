@@ -194,7 +194,7 @@ export default class Logging {
   }
 
   // Used to log exception in catch(...) only
-  public static logException(error, action, source, module, method, tenantID, user?: UserToken|User): void {
+  public static logException(error, action, source, module, method, tenantID, user?: UserToken|User|string): void {
     const log = Logging._buildLog(error, action, source, module, method, tenantID, user);
     if (error instanceof AppAuthError) {
       Logging.logSecurityError(log);
@@ -352,7 +352,7 @@ export default class Logging {
     });
   }
 
-  private static _buildLog(error, action, source, module, method, tenantID, user: UserToken|User): object {
+  private static _buildLog(error, action, source, module, method, tenantID, user: UserToken|User|string): object {
     const tenant = tenantID ? tenantID : Constants.DEFAULT_TENANT;
     return {
       source: source,
