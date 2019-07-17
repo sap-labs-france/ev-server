@@ -56,37 +56,37 @@ export default class TransactionApi extends CrudApi {
     chargingStationConnector.status = 'Occupied';
     chargingStationConnector.timestamp = new Date().toISOString();
     // Update
-    const response = await ocpp.executeStatusNotification(chargingStation.id, chargingStationConnector);
+    let response = await ocpp.executeStatusNotification(chargingStation.id, chargingStationConnector);
     // Check
     expect(response.data).to.eql({});
+    // Check if the Transaction exists
+    const transactionId = responseTransaction.data.transactionId;
+    response = await this.readById(transactionId);
+    // Check
+    expect(response.status).to.equal(200);
+    expect(response.data).to.deep.include({
+      id: transactionId,
+      timestamp: startTime.toISOString(),
+      connectorId: chargingStationConnector.connectorId,
+      currentConsumption: 0,
+      currentCumulatedPrice: 0,
+      currentStateOfCharge: 0,
+      currentTotalConsumption: 0,
+      currentTotalInactivitySecs: 0,
+      isLoading: false,
+      meterStart: meterStart,
+      price: 0,
+      roundedPrice: 0,
+      tagID: user.tagIDs[0],
+      chargeBoxID: chargingStation.id,
+      stateOfCharge: 0,
+      user: {
+        id: user.id,
+        firstName: user.firstName,
+        name: user.name,
+      }
+    });
     return responseTransaction;
-    // // Check if the Transaction exists
-    // response = await this.readById(transactionId);
-    // // Check
-    // expect(response.status).to.equal(200);
-    // expect(response.data).to.deep.include({
-    //   id: transactionId,
-    //   timestamp: startTime.toISOString(),
-    //   connectorId: chargingStationConnector.connectorId,
-    //   // currentConsumption: 0,
-    //   // currentCumulatedPrice: 0,
-    //   // currentStateOfCharge: 0,
-    //   // currentTotalConsumption: 0,
-    //   // currentTotalInactivitySecs: 0,
-    //   isLoading: false,
-    //   meterStart: meterStart,
-    //   price: 0,
-    //   roundedPrice: 0,
-    //   tagID: user.tagIDs[0],
-    //   chargeBoxID: chargingStation.id,
-    //   // stateOfCharge: 0,
-    //   user: {
-    //     id: user.id,
-    //     firstName: user.firstName,
-    //     name: user.name,
-    //   }
-    // });
-    // return response.data;
   }
 
   public async sendTransactionMeterValue(ocpp, transaction, chargingStation, user: User, meterValue, currentTime, currentConsumption, totalConsumption) {
