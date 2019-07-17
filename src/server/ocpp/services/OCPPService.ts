@@ -797,8 +797,10 @@ export default class OCPPService {
             // Add Attributes
             const newLocalMeterValue = JSON.parse(JSON.stringify(newMeterValue));
             newLocalMeterValue.attribute = this._buildMeterValueAttributes(sampledValue);
+            // Data is to be interpreted as integer/decimal numeric data
             if (newLocalMeterValue.attribute.format === 'Raw') {
               newLocalMeterValue.value = parseFloat(sampledValue.value);
+            // Data is represented as a signed binary data block, encoded as hex data
             } else if (newLocalMeterValue.attribute.format === 'SignedData') {
               newLocalMeterValue.value = sampledValue.value;
             }
