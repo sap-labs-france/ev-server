@@ -21,6 +21,7 @@ import AppError from '../exception/AppError';
 import Authorizations from '../authorization/Authorizations';
 import UserService from '../server/rest/service/UserService';
 import { Request } from 'express';
+import Vehicle from '../types/Vehicle';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
