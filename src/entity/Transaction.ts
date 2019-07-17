@@ -21,8 +21,8 @@ export default class Transaction extends TenantHolder {
     return TransactionStorage.getTransaction(tenantID, id);
   }
 
-  static getTransactions(tenantID, filter, limit) {
-    return TransactionStorage.getTransactions(tenantID, filter, limit);
+  static getTransactions(tenantID, filter, dbParams) {
+    return TransactionStorage.getTransactions(tenantID, filter, dbParams);
   }
 
   static getActiveTransaction(tenantID, chargeBoxID, connectorId) {
