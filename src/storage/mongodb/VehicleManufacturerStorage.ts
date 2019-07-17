@@ -12,7 +12,7 @@ import VehicleStorage from './VehicleStorage';
 
 export default class VehicleManufacturerStorage {
 
-  public static async getVehicleManufacturerLogo(tenantID: string, id: string): Promise<{id: string, logo: string}> {
+  public static async getVehicleManufacturerLogo(tenantID: string, id: string): Promise<{id: string; logo: string}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturerLogo');
     // Check Tenant
@@ -35,7 +35,7 @@ export default class VehicleManufacturerStorage {
     return vehicleManufacturerLogo;
   }
 
-  public static async getVehicleManufacturerLogos(tenantID: string, IDs?: string[]): Promise<{id: string, logo: string}[]> {
+  public static async getVehicleManufacturerLogos(tenantID: string, IDs?: string[]): Promise<{id: string; logo: string}[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturerLogos');
     // Check Tenant
@@ -60,7 +60,7 @@ export default class VehicleManufacturerStorage {
     return vehicleManufacturerLogos;
   }
 
-  public static async saveVehicleManufacturerLogo(tenantID: string, vehicleManufacturerLogoToSave: {id: string, logo: string}) {
+  public static async saveVehicleManufacturerLogo(tenantID: string, vehicleManufacturerLogoToSave: {id: string; logo: string}) {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'saveVehicleManufacturerLogo');
     // Check Tenant
@@ -86,10 +86,10 @@ export default class VehicleManufacturerStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturer');
     // Get
-    const result = await VehicleManufacturerStorage.getVehicleManufacturers(tenantID, {manufacturerIDs: [id], withVehicles: true}, {limit: 1, skip: 0});
+    const result = await VehicleManufacturerStorage.getVehicleManufacturers(tenantID, { manufacturerIDs: [id], withVehicles: true }, { limit: 1, skip: 0 });
     // Debug
     Logging.traceEnd('VehicleManufacturerStorage', 'getVehicleManufacturer', uniqueTimerID, { id });
-    return result.count>0?result.result[0]:null;
+    return result.count > 0 ? result.result[0] : null;
   }
 
   public static async saveVehicleManufacturer(tenantID: string, vehicleManufacturerToSave: Partial<VehicleManufacturer>): Promise<string> {
@@ -113,7 +113,7 @@ export default class VehicleManufacturerStorage {
       vehicleManufacturerFilter._id = new ObjectID();
     }
     // Build
-    let vmMDB = {...vehicleManufacturerToSave};
+    const vmMDB = { ...vehicleManufacturerToSave };
     delete vmMDB.vehicles;
     delete vmMDB.logo;
     // Check Created/Last Changed By
@@ -130,8 +130,8 @@ export default class VehicleManufacturerStorage {
   }
 
   // Delegate
-  public static async getVehicleManufacturers(tenantID: string, 
-    params: {search?:string;withVehicles?:boolean;vehicleType?:string,manufacturerIDs?:string[]}, dbParams: DbParams) {
+  public static async getVehicleManufacturers(tenantID: string,
+    params: {search?: string; withVehicles?: boolean; vehicleType?: string; manufacturerIDs?: string[]}, dbParams: DbParams) {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturers');
     // Check Tenant
@@ -157,10 +157,12 @@ export default class VehicleManufacturerStorage {
         $match: filters
       });
     }
-    if(params.manufacturerIDs) {
+    if (params.manufacturerIDs) {
       aggregation.push({
         $match: {
-          _id: {$in: params.manufacturerIDs.map(id=>Utils.convertToObjectID(id))}
+          _id: { $in: params.manufacturerIDs.map((id) => {
+            return Utils.convertToObjectID(id);
+          }) }
         }
       });
     }

@@ -1,10 +1,10 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import UtilsSecurity from './UtilsSecurity';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { HttpVehiclesRequest } from '../../../../types/requests/HttpVehicleRequest';
-import Vehicle from '../../../../types/Vehicle';
 import UserToken from '../../../../types/UserToken';
+import UtilsSecurity from './UtilsSecurity';
+import Vehicle from '../../../../types/Vehicle';
 
 export default class VehicleSecurity {
 
@@ -22,36 +22,15 @@ export default class VehicleSecurity {
     return filteredRequest;
   }
 
-  public static filterVehicleUpdateRequest(request: Partial<Vehicle>&{withVehicleImages?:boolean}): Partial<Vehicle>&{withVehicleImages?:boolean} {
+  public static filterVehicleUpdateRequest(request: Partial<Vehicle>&{withVehicleImages?: boolean}): Partial<Vehicle>&{withVehicleImages?: boolean} {
     // Set
     const filteredRequest = VehicleSecurity._filterVehicleRequest(request);
     filteredRequest.id = sanitize(request.id);
-    return {...filteredRequest, withVehicleImages: UtilsSecurity.filterBoolean(request.withVehicleImages)};
+    return { ...filteredRequest, withVehicleImages: UtilsSecurity.filterBoolean(request.withVehicleImages) };
   }
 
   public static filterVehicleCreateRequest(request: Partial<Vehicle>): Partial<Vehicle> {
     return VehicleSecurity._filterVehicleRequest(request);
-  }
-
-  private static _filterVehicleRequest(request: Partial<Vehicle>): Partial<Vehicle> {
-    let rrequest: Partial<Vehicle> = {};
-    rrequest.type = sanitize(request.type);
-    rrequest.model = sanitize(request.model);
-    rrequest.batteryKW = sanitize(request.batteryKW);
-    rrequest.autonomyKmWLTP = sanitize(request.autonomyKmWLTP);
-    rrequest.autonomyKmReal = sanitize(request.autonomyKmReal);
-    rrequest.horsePower = sanitize(request.horsePower);
-    rrequest.torqueNm = sanitize(request.torqueNm);
-    rrequest.performance0To100kmh = sanitize(request.performance0To100kmh);
-    rrequest.weightKg = sanitize(request.weightKg);
-    rrequest.lengthMeter = sanitize(request.lengthMeter);
-    rrequest.widthMeter = sanitize(request.widthMeter);
-    rrequest.heightMeter = sanitize(request.heightMeter);
-    rrequest.releasedOn = sanitize(request.releasedOn);
-    rrequest.images = sanitize(request.images);
-    rrequest.logo = sanitize(request.logo);
-    rrequest.vehicleManufacturerID = sanitize(request.vehicleManufacturerID);
-    return rrequest;
   }
 
   public static filterVehicleResponse(vehicle: Vehicle, loggedUser: UserToken) {
@@ -96,6 +75,27 @@ export default class VehicleSecurity {
       }
     }
     return filteredVehicles;
+  }
+
+  private static _filterVehicleRequest(request: Partial<Vehicle>): Partial<Vehicle> {
+    const rrequest: Partial<Vehicle> = {};
+    rrequest.type = sanitize(request.type);
+    rrequest.model = sanitize(request.model);
+    rrequest.batteryKW = sanitize(request.batteryKW);
+    rrequest.autonomyKmWLTP = sanitize(request.autonomyKmWLTP);
+    rrequest.autonomyKmReal = sanitize(request.autonomyKmReal);
+    rrequest.horsePower = sanitize(request.horsePower);
+    rrequest.torqueNm = sanitize(request.torqueNm);
+    rrequest.performance0To100kmh = sanitize(request.performance0To100kmh);
+    rrequest.weightKg = sanitize(request.weightKg);
+    rrequest.lengthMeter = sanitize(request.lengthMeter);
+    rrequest.widthMeter = sanitize(request.widthMeter);
+    rrequest.heightMeter = sanitize(request.heightMeter);
+    rrequest.releasedOn = sanitize(request.releasedOn);
+    rrequest.images = sanitize(request.images);
+    rrequest.logo = sanitize(request.logo);
+    rrequest.vehicleManufacturerID = sanitize(request.vehicleManufacturerID);
+    return rrequest;
   }
 }
 

@@ -1,11 +1,11 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import UtilsSecurity from './UtilsSecurity';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { HttpVehicleManufacturersRequest } from '../../../../types/requests/HttpVehicleManufacturerRequest';
-import VehicleManufacturer from '../../../../types/VehicleManufacturer';
-import UserToken from '../../../../types/UserToken';
 import User from '../../../../types/User';
+import UserToken from '../../../../types/UserToken';
+import UtilsSecurity from './UtilsSecurity';
+import VehicleManufacturer from '../../../../types/VehicleManufacturer';
 
 export default class VehicleManufacturerSecurity {
 
@@ -32,10 +32,6 @@ export default class VehicleManufacturerSecurity {
 
   public static filterVehicleManufacturerCreateRequest(request: Partial<VehicleManufacturer>): Partial<VehicleManufacturer> {
     return VehicleManufacturerSecurity._filterVehicleManufacturerRequest(request);
-  }
-
-  private  static _filterVehicleManufacturerRequest(request: Partial<VehicleManufacturer>): Partial<VehicleManufacturer> {
-    return {name: request.name, logo: request.logo}
   }
 
   public static filterVehicleManufacturerResponse(vehicleManufacturer: VehicleManufacturer, loggedUser: UserToken): VehicleManufacturer {
@@ -80,6 +76,10 @@ export default class VehicleManufacturerSecurity {
       }
     }
     vehicleManufacturers.result = filteredVehicleManufacturers;
+  }
+
+  private static _filterVehicleManufacturerRequest(request: Partial<VehicleManufacturer>): Partial<VehicleManufacturer> {
+    return { name: request.name, logo: request.logo };
   }
 }
 

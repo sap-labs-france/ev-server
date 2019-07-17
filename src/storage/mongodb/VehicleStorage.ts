@@ -10,39 +10,41 @@ import Vehicle from '../../types/Vehicle';
 
 export default class VehicleStorage {
 
-  public static async getVehicleImage(tenantID: string, id: string): Promise<{id: string, images: string[]}> {
+  public static async getVehicleImage(tenantID: string, id: string): Promise<{id: string; images: string[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleStorage', 'getVehicleImage');
-    let result = await VehicleStorage.getVehicleImages(tenantID, {IDs: [id]}, {limit: 1, skip: 0});
+    const result = await VehicleStorage.getVehicleImages(tenantID, { IDs: [id] }, { limit: 1, skip: 0 });
     // Debug
     Logging.traceEnd('VehicleStorage', 'getVehicleImage', uniqueTimerID, { id });
     return result[0];
   }
 
-  public static async getVehicleImages(tenantID: string, params: {IDs?: string[]}, dbParams: DbParams): Promise<{id:string,images:string[]}[]> {
+  public static async getVehicleImages(tenantID: string, params: {IDs?: string[]}, dbParams: DbParams): Promise<{id: string; images: string[]}[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleStorage', 'getVehicleImages');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build aggregation
-    let aggregation = [];
-    if(params.IDs) {
+    const aggregation = [];
+    if (params.IDs) {
       aggregation.push({
         $match: {
-          _id: { $in: params.IDs.map(ID=>Utils.convertToObjectID(ID)) }
+          _id: { $in: params.IDs.map((ID) => {
+            return Utils.convertToObjectID(ID);
+          }) }
         }
       });
     }
     DatabaseUtils.renameDatabaseID(aggregation);
     // DbParams
-    if(dbParams.limit) {
-      aggregation.push({$limit: dbParams.limit});
+    if (dbParams.limit) {
+      aggregation.push({ $limit: dbParams.limit });
     }
-    if(dbParams.skip) {
-      aggregation.push({$skip: dbParams.skip});
+    if (dbParams.skip) {
+      aggregation.push({ $skip: dbParams.skip });
     }
     // Read DB
-    const vehicleImagesMDB = await global.database.getCollection<{id: string, images: string[]}>(tenantID, 'vehicleimages')
+    const vehicleImagesMDB = await global.database.getCollection<{id: string; images: string[]}>(tenantID, 'vehicleimages')
       .aggregate(aggregation)
       .toArray();
     // Debug
@@ -54,10 +56,10 @@ export default class VehicleStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleStorage', 'getVehicle');
     // Get vehicle
-    const result = await VehicleStorage.getVehicles(tenantID, {vehicleIDs:[id]}, {limit: 1, skip: 0});
+    const result = await VehicleStorage.getVehicles(tenantID, { vehicleIDs: [id] }, { limit: 1, skip: 0 });
     // Debug
     Logging.traceEnd('VehicleStorage', 'getVehicle', uniqueTimerID, { id });
-    return result.count>0?result.result[0]:null;
+    return result.count > 0 ? result.result[0] : null;
   }
 
   public static async saveVehicle(tenantID: string, vehicleToSave: Partial<Vehicle>): Promise<string> {
@@ -81,7 +83,7 @@ export default class VehicleStorage {
       vehicleFilter._id = new ObjectID();
     }
     // Copy
-    let vehicleMDB = {...vehicleToSave};
+    const vehicleMDB = { ...vehicleToSave };
     delete vehicleMDB.images;
     delete vehicleMDB.logo;
     // Set Created By
@@ -99,7 +101,7 @@ export default class VehicleStorage {
     return vehicleFilter._id.toHexString();
   }
 
-  public static async saveVehicleImages(tenantID: string, vehicleImagesToSave: {id:string, images:string[]}) {
+  public static async saveVehicleImages(tenantID: string, vehicleImagesToSave: {id: string; images: string[]}) {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleStorage', 'saveVehicleImages');
     // Check Tenant
@@ -122,9 +124,8 @@ export default class VehicleStorage {
   }
 
   // Delegate
-  public static async getVehicles(tenantID: string, 
-    params:{search?:string,vehicleManufacturerID?:string,vehicleType?:string,vehicleIDs?:string[]}, dbParams: DbParams)
-  :Promise<{count:number, result: Vehicle[]}> {
+  public static async getVehicles(tenantID: string,
+    params: {search?: string; vehicleManufacturerID?: string; vehicleType?: string; vehicleIDs?: string[]}, dbParams: DbParams): Promise<{count: number; result: Vehicle[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleStorage', 'getVehicles');
     // Check Tenant
@@ -159,7 +160,7 @@ export default class VehicleStorage {
       });
     }
     DatabaseUtils.renameDatabaseID(aggregation);
-    if(params.vehicleIDs){
+    if (params.vehicleIDs) {
       aggregation.push({
         $match: {
           id: { $in: params.vehicleIDs }
@@ -210,7 +211,7 @@ export default class VehicleStorage {
       $limit: dbParams.limit
     });
     // Read DB
-    const vehiclesMDB = 
+    const vehiclesMDB =
     await global.database.getCollection<Vehicle>(tenantID, 'vehicles')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();

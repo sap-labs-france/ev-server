@@ -10,7 +10,6 @@ import Factory from '../../factories/Factory';
 import global from '../../../src/types/GlobalType';
 import MongoDBStorage from '../../../src/storage/mongodb/MongoDBStorage';
 import Site from '../../../src/types/Site';
-import SiteArea from '../../../src/types/SiteArea';
 import SiteAreaContext from './SiteAreaContext';
 import SiteAreaStorage from '../../../src/storage/mongodb/SiteAreaStorage';
 import SiteContext from './SiteContext';
@@ -319,7 +318,6 @@ export default class ContextBuilder {
               accessControl: false,
               siteName: siteTemplate.name
             };
-            // const siteArea: SiteArea = null;
             const siteAreaTemplate = Factory.siteArea.build();
             siteAreaTemplate.id = siteAreaDef.id;
             // pragma siteAreaTemplate.name = siteAreaDef.name;

@@ -6,6 +6,6 @@ import User from '../types/User';
 import VehicleStorage from '../storage/mongodb/VehicleStorage';
 
 export default class Vehicle extends TenantHolder {
-  
+
 
 }

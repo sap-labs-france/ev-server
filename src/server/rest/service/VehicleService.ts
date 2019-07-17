@@ -1,3 +1,4 @@
+import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
@@ -5,14 +6,13 @@ import Constants from '../../../utils/Constants';
 import Database from '../../../utils/Database';
 import Logging from '../../../utils/Logging';
 import User from '../../../types/User';
+import Utils from '../../../utils/Utils';
 import Vehicle from '../../../types/Vehicle';
 import VehicleSecurity from './security/VehicleSecurity';
-import { Request, Response, NextFunction } from 'express';
 import VehicleStorage from '../../../storage/mongodb/VehicleStorage';
-import Utils from '../../../utils/Utils';
 
 export default class VehicleService {
-  
+
   public static async handleDeleteVehicle(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const ID = VehicleSecurity.filterVehicleRequest(req.query);
@@ -161,7 +161,7 @@ export default class VehicleService {
         req.user);
     }
     // Get the vehicle image
-    const vehicleImages = await VehicleStorage.getVehicleImages(req.user.tenantID, {}, {limit: Constants.MAX_DB_RECORD_COUNT, skip: 0});
+    const vehicleImages = await VehicleStorage.getVehicleImages(req.user.tenantID, {}, { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 });
     // Return
     res.json(vehicleImages);
     next();
@@ -193,8 +193,9 @@ export default class VehicleService {
     // Save
     const newVehicleId = await VehicleStorage.saveVehicle(req.user.tenantID, vehicle);
     // Save
-    if(vehicle.images)
-      await VehicleStorage.saveVehicleImages(req.user.tenantID, {id: newVehicleId, images: vehicle.images});
+    if (vehicle.images) {
+      await VehicleStorage.saveVehicleImages(req.user.tenantID, { id: newVehicleId, images: vehicle.images });
+    }
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -207,51 +208,51 @@ export default class VehicleService {
   }
 
   public static async handleUpdateVehicle(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
-      // Filter
-      const filteredRequest = VehicleSecurity.filterVehicleUpdateRequest(req.body);
-      // Check email
-      const vehicle = await VehicleStorage.getVehicle(req.user.tenantID, filteredRequest.id);
-      if (!vehicle) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Vehicle with ID '${filteredRequest.id}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-          'VehicleService', 'handleUpdateVehicle', req.user);
-      }
-      // Check Mandatory fields
-      VehicleService._checkIfVehicleValid(filteredRequest, req);
-      // Check auth
-      if (!Authorizations.canUpdateVehicle(req.user)) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_UPDATE,
-          Constants.ENTITY_VEHICLE,
-          vehicle.id,
-          Constants.HTTP_AUTH_ERROR,
-          'VehicleService', 'handleUpdateVehicle',
-          req.user);
-      }
-      // Update
-      const wImgs = filteredRequest.withVehicleImages;
-      delete filteredRequest.withVehicleImages;
-      let vehicleToSave = {...vehicle, ...filteredRequest};
-      // Update timestamp
-      vehicleToSave.lastChangedBy = { 'id': req.user.id };
-      vehicle.lastChangedOn = new Date();
-      // Update Vehicle
-      const updatedVehicle = await VehicleStorage.saveVehicle(req.user.tenantID, vehicleToSave);
-      // Update Vehicle's Image
-      if (filteredRequest.withVehicleImages) {
-        await VehicleStorage.saveVehicleImages(req.user.tenantID, {id: updatedVehicle, images: vehicleToSave.images});
-      }
-      // Log
-      Logging.logSecurityInfo({
-        tenantID: req.user.tenantID,
-        user: req.user, module: 'VehicleService', method: 'handleUpdateVehicle',
-        message: `Vehicle '${vehicleToSave.model}' has been updated successfully`,
-        action: action, detailedMessages: updatedVehicle });
-      // Ok
-      res.json(Constants.REST_RESPONSE_SUCCESS);
-      next();
+    // Filter
+    const filteredRequest = VehicleSecurity.filterVehicleUpdateRequest(req.body);
+    // Check email
+    const vehicle = await VehicleStorage.getVehicle(req.user.tenantID, filteredRequest.id);
+    if (!vehicle) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `The Vehicle with ID '${filteredRequest.id}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        'VehicleService', 'handleUpdateVehicle', req.user);
+    }
+    // Check Mandatory fields
+    VehicleService._checkIfVehicleValid(filteredRequest, req);
+    // Check auth
+    if (!Authorizations.canUpdateVehicle(req.user)) {
+      // Not Authorized!
+      throw new AppAuthError(
+        Constants.ACTION_UPDATE,
+        Constants.ENTITY_VEHICLE,
+        vehicle.id,
+        Constants.HTTP_AUTH_ERROR,
+        'VehicleService', 'handleUpdateVehicle',
+        req.user);
+    }
+    // Update
+    const wImgs = filteredRequest.withVehicleImages;
+    delete filteredRequest.withVehicleImages;
+    const vehicleToSave = { ...vehicle, ...filteredRequest };
+    // Update timestamp
+    vehicleToSave.lastChangedBy = { 'id': req.user.id };
+    vehicle.lastChangedOn = new Date();
+    // Update Vehicle
+    const updatedVehicle = await VehicleStorage.saveVehicle(req.user.tenantID, vehicleToSave);
+    // Update Vehicle's Image
+    if (filteredRequest.withVehicleImages) {
+      await VehicleStorage.saveVehicleImages(req.user.tenantID, { id: updatedVehicle, images: vehicleToSave.images });
+    }
+    // Log
+    Logging.logSecurityInfo({
+      tenantID: req.user.tenantID,
+      user: req.user, module: 'VehicleService', method: 'handleUpdateVehicle',
+      message: `Vehicle '${vehicleToSave.model}' has been updated successfully`,
+      action: action, detailedMessages: updatedVehicle });
+    // Ok
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
   }
 
   private static _checkIfVehicleValid(filteredRequest, req: Request) {

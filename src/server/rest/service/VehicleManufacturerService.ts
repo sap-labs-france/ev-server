@@ -1,3 +1,4 @@
+import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
@@ -7,15 +8,14 @@ import Logging from '../../../utils/Logging';
 import User from '../../../types/User';
 import VehicleManufacturer from '../../../types/VehicleManufacturer';
 import VehicleManufacturerSecurity from './security/VehicleManufacturerSecurity';
-import { Request, Response, NextFunction } from 'express';
 import VehicleManufacturerStorage from '../../../storage/mongodb/VehicleManufacturerStorage';
 
 export default class VehicleManufacturerService {
-  
+
   public static async handleDeleteVehicleManufacturer(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const ID = VehicleManufacturerSecurity.filterVehicleManufacturerRequest(
-      req.query, );
+      req.query,);
     // Check Mandatory fields
     if (!ID) {
       // Not Found!
@@ -137,8 +137,8 @@ export default class VehicleManufacturerService {
     // Save
     const newVehicleManufacturer = await VehicleManufacturerStorage.saveVehicleManufacturer(req.user.tenantID, vehicleManufacturer);
     // Save
-    if(vehicleManufacturer.logo){
-      await VehicleManufacturerStorage.saveVehicleManufacturerLogo(req.user.tenantID, {id: newVehicleManufacturer, logo: vehicleManufacturer.logo});
+    if (vehicleManufacturer.logo) {
+      await VehicleManufacturerStorage.saveVehicleManufacturerLogo(req.user.tenantID, { id: newVehicleManufacturer, logo: vehicleManufacturer.logo });
     }
     // Log
     Logging.logSecurityInfo({
@@ -176,15 +176,15 @@ export default class VehicleManufacturerService {
         req.user);
     }
     // Update
-    let vm = {... vehicleManufacturer, ...filteredRequest}
+    const vm = { ...vehicleManufacturer, ...filteredRequest };
     // Update timestamp
     vm.lastChangedBy = { 'id': req.user.id };
     vehicleManufacturer.lastChangedOn = new Date();
     // Update VehicleManufacturer
     const updatedVehicleManufacturer = VehicleManufacturerStorage.saveVehicleManufacturer(req.user.tenantID, vm);
     // Update VehicleManufacturer's Logo
-    if(vm.logo){
-      await VehicleManufacturerStorage.saveVehicleManufacturerLogo(req.user.tenantID, {id: vm.id, logo: vm.logo });
+    if (vm.logo) {
+      await VehicleManufacturerStorage.saveVehicleManufacturerLogo(req.user.tenantID, { id: vm.id, logo: vm.logo });
     }
     // Log
     Logging.logSecurityInfo({
