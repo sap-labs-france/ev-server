@@ -467,6 +467,9 @@ export default class TransactionService {
       if (filteredRequest.SiteAreaID) {
         filter.siteAreas = filteredRequest.SiteAreaID.split('|');
       }
+      if (filteredRequest.SiteID) {
+        filter.siteID = filteredRequest.SiteID;
+      }
       if (filteredRequest.UserID) {
         filter.users = filteredRequest.UserID.split('|');
       }

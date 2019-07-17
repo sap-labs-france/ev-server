@@ -46,6 +46,7 @@ export default class TransactionSecurity {
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
     filteredRequest.ConnectorId = sanitize(request.ConnectorId);
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
+    filteredRequest.SiteID = sanitize(request.SiteID);
     if (request.UserID) {
       filteredRequest.UserID = sanitize(request.UserID);
     }
@@ -140,10 +141,12 @@ export default class TransactionSecurity {
         filteredTransaction.currentCumulatedPrice = transaction.getCurrentCumulatedPrice();
         filteredTransaction.currentStateOfCharge = transaction.getCurrentStateOfCharge();
         filteredTransaction.currentStateOfCharge = transaction.getCurrentStateOfCharge();
+        filteredTransaction.currentSignedData = transaction.getCurrentSignedData();
       }
       filteredTransaction.status = transaction.getChargerStatus();
       filteredTransaction.isLoading = transaction.isLoading();
       filteredTransaction.stateOfCharge = transaction.getStateOfCharge();
+      filteredTransaction.signedData = transaction.getSignedData();
       filteredTransaction.refundData = transaction.getRefundData();
       // Demo user?
       if (Authorizations.isDemo(loggedUser.role)) {
@@ -163,6 +166,7 @@ export default class TransactionSecurity {
         filteredTransaction.stop.totalInactivitySecs = transaction.getStopTotalInactivitySecs() + transaction.getStopExtraInactivitySecs();
         filteredTransaction.stop.totalDurationSecs = transaction.getStopTotalDurationSecs();
         filteredTransaction.stop.stateOfCharge = transaction.getStopStateOfCharge();
+        filteredTransaction.stop.signedData = transaction.getEndSignedData();
         // pragma if (Authorizations.isAdmin(loggedUser) && transaction.hasStopPrice()) {
         if (transaction.hasStopPrice()) {
           filteredTransaction.stop.price = transaction.getStopPrice();
