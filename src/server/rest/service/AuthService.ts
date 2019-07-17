@@ -59,7 +59,7 @@ export default class AuthService {
   public static async handleIsAuthorized(action: string, req: Request, res: Response, next: NextFunction) {
     let user: User;
     // Default
-    let result = [{ 'IsAuthorized': false }];//TODO: Change style
+    let result = [{ 'IsAuthorized': false }]; // TODO: Change style
     // Filter
     const filteredRequest = AuthSecurity.filterIsAuthorizedRequest(req.query);
     // Check
@@ -199,7 +199,7 @@ export default class AuthService {
     // Check authorization for each connectors
     for (let index = 0; index < chargingStation.getConnectors().length; index++) {
       const connector = chargingStation.getConnector(index + 1);
-      results.push(await Authorizations.getConnectorActionAuthorizations({tenantID, user, chargingStation, connector, siteArea, site}));
+      results.push(await Authorizations.getConnectorActionAuthorizations({ tenantID, user, chargingStation, connector, siteArea, site }));
     }
     return results;
   }

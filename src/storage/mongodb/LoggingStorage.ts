@@ -1,9 +1,9 @@
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
 import global from './../../types/GlobalType';
 import Utils from '../../utils/Utils';
-import DbParams from '../../types/database/DbParams';
 
 export default class LoggingStorage {
   public static async deleteLogs(tenantID, deleteUpToDate) {
@@ -85,7 +85,7 @@ export default class LoggingStorage {
     return logging;
   }
 
-  public static async getLogs(tenantID, params: any = {}, {limit,sort,skip,onlyRecordCount}:DbParams) {
+  public static async getLogs(tenantID, params: any = {}, { limit, sort, skip, onlyRecordCount }: DbParams) {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit

@@ -1,3 +1,4 @@
+import { filter } from 'bluebird';
 import fs from 'fs';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
@@ -10,7 +11,6 @@ import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import Tenant from '../../../entity/Tenant';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import { filter } from 'bluebird';
 
 export default class ChargingStationService {
   static async handleAddChargingStationsToSiteArea(action, req, res, next) {
@@ -413,7 +413,7 @@ export default class ChargingStationService {
         'siteAreaID': filteredRequest.SiteAreaID,
         'includeDeleted': filteredRequest.IncludeDeleted
       },
-      {limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount}
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
     );
     // Build the result
     if (chargingStations.result && chargingStations.result.length > 0) {
@@ -454,7 +454,7 @@ export default class ChargingStationService {
         'chargeBoxID': filteredRequest.ChargeBoxID,
         'siteAreaID': filteredRequest.SiteAreaID,
       },
-      {limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount}
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
     );
     // Build the result
     if (chargingStations.result && chargingStations.result.length > 0) {
@@ -510,7 +510,7 @@ export default class ChargingStationService {
         'siteAreaID': filteredRequest.SiteAreaID,
         'errorType': filteredRequest.ErrorType
       },
-      {limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount}
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
     );
     // Build the result
     if (chargingStations.result && chargingStations.result.length > 0) {

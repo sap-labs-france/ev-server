@@ -9,7 +9,7 @@ export default class AppError extends Error {
     readonly errorCode: number = Constants.HTTP_GENERAL_ERROR,
     readonly module: string = 'N/A',
     readonly method: string = 'N/A',
-    readonly user?: User|string|UserToken, //TODO: Convert
+    readonly user?: User|string|UserToken, // TODO: Convert
     readonly actionOnUser?: User|string|UserToken,
     readonly action?: any) {
     super(message);

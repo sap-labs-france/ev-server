@@ -117,7 +117,7 @@ export default class VehicleManufacturer extends TenantHolder {
         return new Vehicle(this.getTenantID(), vehicle);
       });
     }
-    const vehicles = await VehicleStorage.getVehicles(this.getTenantID(), { 'vehicleManufacturerID': this.getID() }, {limit: Constants.MAX_DB_RECORD_COUNT, skip: 0});
+    const vehicles = await VehicleStorage.getVehicles(this.getTenantID(), { 'vehicleManufacturerID': this.getID() }, { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 });
     this.setVehicles(vehicles.result);
     return vehicles.result;
 

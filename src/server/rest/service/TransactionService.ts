@@ -479,7 +479,7 @@ export default class TransactionService {
       // Get Transactions
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
         { ...filter, 'withChargeBoxes': true },
-        {limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount});
+        { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
       // Filter
       TransactionSecurity.filterTransactionsResponse(transactions, req.user);
       // Return
@@ -540,7 +540,7 @@ export default class TransactionService {
           'search': filteredRequest.Search,
           'siteID': filteredRequest.SiteID
         },
-        {limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount});
+        { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
       // Filter
       TransactionSecurity.filterTransactionsResponse(transactions, req.user);
       // Return
@@ -592,7 +592,7 @@ export default class TransactionService {
       }
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
         { ...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID },
-        {limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount});
+        { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
       // Filter
       TransactionSecurity.filterTransactionsResponse(transactions, req.user);
       // Hash userId and tagId for confidentiality purposes
@@ -663,7 +663,7 @@ export default class TransactionService {
       }
       const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
         { ...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID },
-        { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount});
+        { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
       // Filter
       TransactionSecurity.filterTransactionsResponse(transactions, req.user);
       // Return
