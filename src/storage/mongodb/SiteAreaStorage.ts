@@ -91,7 +91,7 @@ export default class SiteAreaStorage {
   }
 
   public static async getSiteAreas(tenantID: string,
-    params: {search?: string; siteID?: string; siteIDs?: string[]; onlyRecordCount?: boolean; withSite?: boolean;
+    params: {search?: string; sites?: string[]; siteIDs?: string[]; onlyRecordCount?: boolean; withSite?: boolean;
       withChargeBoxes?: boolean; withAvailableChargers?: boolean; } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: SiteArea[]}> {
     // Debug
@@ -114,9 +114,13 @@ export default class SiteAreaStorage {
         ];
       }
     }
-    // Set Site?
-    if (params.siteID) {
-      filters.siteID = Utils.convertToObjectID(params.siteID);
+    // Set Site thru a filter in the dashboard
+    if (params.sites && Array.isArray(params.sites) && params.sites.length > 0) {
+      filters.siteID = {
+        $in: params.sites.map((site) => {
+          return Utils.convertToObjectID(site);
+        })
+      };
     }
     // Create Aggregation
     const aggregation = [];

@@ -123,7 +123,7 @@ export default class LoggingStorage {
         break;
     }
     // Filter on charging Stations
-    if (params.sources && Array.isArray(params.sources)) {
+    if (params.sources && Array.isArray(params.sources) && params.sources.length > 0) {
       // Yes, add in filter
       filters.source = { $in: params.sources }; 
     }
@@ -133,12 +133,12 @@ export default class LoggingStorage {
       filters.type = params.type;
     }
     // Filter on actions
-    if (params.actions && Array.isArray(params.actions)) {
+    if (params.actions && Array.isArray(params.actions) && params.actions.length > 0) {
       // Yes, add in filter
       filters.action = { $in: params.actions }; 
     }
     // Filter on users
-    if (params.users && Array.isArray(params.users)) {
+    if (params.users && Array.isArray(params.users) && params.users.length > 0) {
       // Yes, add in filter
       const userArray = [];
       params.users.forEach((user)=>{

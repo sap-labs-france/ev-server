@@ -61,7 +61,7 @@ export default class NotificationHandler {
 
   static async getAdminUsers(tenantID: string): Promise<User[]> {
     // Get admin users
-    const adminUsers = await UserStorage.getUsers(tenantID, { role: Constants.ROLE_ADMIN }, { limit: 0, skip: 0 });
+    const adminUsers = await UserStorage.getUsers(tenantID, { roles: [Constants.ROLE_ADMIN] }, { limit: 0, skip: 0 });
     // Found
     if (adminUsers.count > 0) {
       // Convert to JSon

@@ -106,12 +106,12 @@ export default class ChargingStationStorage {
         { tenantID, aggregation, localField: 'siteAreaID', foreignField: '_id',
           asField: 'siteArea', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy'] });
       // With sites
-      if (params.siteIDs && params.siteIDs.length > 0) {
+      if (params.sites && Array.isArray(params.sites) && params.sites.length > 0) {
         // Build filter
         filters.$and.push({
           'siteArea.siteID': {
-            $in: params.siteIDs.map((siteID) => {
-              return Utils.convertToObjectID(siteID);
+            $in: params.sites.map((site) => {
+              return Utils.convertToObjectID(site);
             })
           }
         });
@@ -265,10 +265,14 @@ export default class ChargingStationStorage {
           asField: 'siteArea', oneToOneCardinality: true });
     }
     // Check Site ID
-    if (params.siteID) {
+    if (params.sites && Array.isArray(params.sites) && params.sites.length > 0) {
       // Build filter
       basicFilters.$and.push({
-        'siteArea.siteID': Utils.convertToObjectID(params.siteID)
+        'siteArea.siteID': {
+          $in: params.sites.map((site) => {
+            return Utils.convertToObjectID(site);
+          })
+        }
       });
     }
     if (params.withSite) {

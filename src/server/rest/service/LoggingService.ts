@@ -20,13 +20,11 @@ export default class LoggingService {
       }
       // Filter
       const filteredRequest = LoggingSecurity.filterLoggingsRequest(req.query, req.user);
-      console.log(`>>> filter:${JSON.stringify(filteredRequest)}`);
-      console.log(`>>> action:${JSON.stringify(filteredRequest.Action.split('|'))}`);
       // Get logs
       const loggings = await Logging.getLogs(req.user.tenantID, {
-        'search': filteredRequest.Search, 'dateFrom': filteredRequest.DateFrom, 'dateUntil': filteredRequest.DateUntil, 'users': filteredRequest.UserID.split('|'),
-        'level': filteredRequest.Level, 'type': filteredRequest.Type, 'sources': filteredRequest.Source.split('|'), 'host': filteredRequest.Host,
-        'process': filteredRequest.Process, 'actions': filteredRequest.Action.split('|'), 'onlyRecordCount': filteredRequest.OnlyRecordCount
+        'search': filteredRequest.Search, 'dateFrom': filteredRequest.DateFrom, 'dateUntil': filteredRequest.DateUntil, 'users': filteredRequest.UserID,
+        'level': filteredRequest.Level, 'type': filteredRequest.Type, 'sources': filteredRequest.Source, 'host': filteredRequest.Host,
+        'process': filteredRequest.Process, 'actions': filteredRequest.Action, 'onlyRecordCount': filteredRequest.OnlyRecordCount
       }, filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
       LoggingSecurity.filterLoggingsResponse(loggings, req.user);
@@ -55,9 +53,9 @@ export default class LoggingService {
       const filteredRequest = LoggingSecurity.filterLoggingsRequest(req.query, req.user);
       // Get logs
       const loggings = await Logging.getLogs(req.user.tenantID, {
-        'search': filteredRequest.Search, 'dateFrom': filteredRequest.DateFrom, 'dateUntil': filteredRequest.DateUntil, 'users': filteredRequest.UserID.split('|'),
-        'level': filteredRequest.Level, 'type': filteredRequest.Type, 'sources': filteredRequest.Source.split('|'), 'host': filteredRequest.Host,
-        'process': filteredRequest.Process, 'actions': filteredRequest.Action.split('|'), 'onlyRecordCount': filteredRequest.OnlyRecordCount
+        'search': filteredRequest.Search, 'dateFrom': filteredRequest.DateFrom, 'dateUntil': filteredRequest.DateUntil, 'users': filteredRequest.UserID,
+        'level': filteredRequest.Level, 'type': filteredRequest.Type, 'sources': filteredRequest.Source, 'host': filteredRequest.Host,
+        'process': filteredRequest.Process, 'actions': filteredRequest.Action, 'onlyRecordCount': filteredRequest.OnlyRecordCount
       }, filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Filter
       LoggingSecurity.filterLoggingsResponse(loggings, req.user);

@@ -137,7 +137,7 @@ export default class SiteAreaService {
         withSite: filteredRequest.WithSite,
         withChargeBoxes: filteredRequest.WithChargeBoxes,
         withAvailableChargers: filteredRequest.WithAvailableChargers,
-        siteID: filteredRequest.SiteID,
+        sites: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|'): null),
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort },

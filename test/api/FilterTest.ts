@@ -19,7 +19,7 @@ import TestData from './client/utils/TestData';
 
 const testData: TestData = new TestData();
 
-describe('Multi-filtering tests', function() {
+describe('Filters with multiple values tests', function() {
   this.timeout(30000);
 
   before( async function() {
@@ -32,56 +32,56 @@ describe('Multi-filtering tests', function() {
   });
 
 
-  describe('Success cases', () => {
-    it('Logs : Check that multi-filtering (action) works', async () => {
+  describe('Checks per application (tenant slf)', () => {
+    it('Logs : Check that multi-filtering based on actions works', async () => {
       let read = await testData.centralService.logsApi.readAll({ "Action" : "ChargingStationDelete|DataTransfer" },{ limit: 10, skip: 0 });
       expect(read.status).to.equal(200);
     });
 
-    it('Logs : Check that multi-filtering (charging stations) works', async () => {
+    it('Logs : Check that multi-filtering based on charging stations works', async () => {
       let read = await testData.centralService.logsApi.readAll({ "Source" : "SAP-Caen-01|SAP-Mougins-01" },{ limit: 10, skip: 0 });
       expect(read.status).to.equal(200);
     });
 
-    it('Logs : Check that multi-filtering (users) works', async () => {
+    it('Logs : Check that multi-filtering based on users works', async () => {
       let read = await testData.centralService.logsApi.readAll({ "UserID" : "5bd8339cd0685c19bf056f51|5ca775dac521b1cec0e2ea19|5c5c4bd8084dd543fdcf2ee9" },{ limit: 10, skip: 0 });
       expect(read.status).to.equal(200);
     });
-/*
-    it('Charging stations : Check that multi-filtering (site) works', async () => {
+
+    it('Charging stations : Check that multi-filtering based on sites works', async () => {
       let read = await testData.centralService.chargingStationApi.readAll({ "SiteID" : "5abeba8d4bae1457eb565e5b|5abeba9e4bae1457eb565e66" },{ limit: 10, skip: 0 });
       expect(read.status).to.equal(200);
     });
 
-    it('Organization-Sites : Check that multi-filtering (company) works', async () => {
+    it('Organization-Sites : Check that multi-filtering based on companies works', async () => {
       let read = await testData.centralService.siteApi.readAll({ "CompanyID" : "5abeba344bae1457eb565e27|5b3f5587000337ca85cee337" },{ limit: 10, skip: 0 });
       expect(read.status).to.equal(200);
     });
 
-    it('Organization-Site areas : Check that multi-filtering (site) works', async () => {
+    it('Organization-Site areas : Check that multi-filtering based on sites works', async () => {
       let read = await testData.centralService.siteAreaApi.readAll({ "SiteID" : "5abeba8d4bae1457eb565e5b|5abeba9e4bae1457eb565e66" },{ limit: 10, skip: 0 });
       expect(read.status).to.equal(200);
     });
 
-    it('Users : Check that multi-filtering (role) works', async () => {
+    it('Users : Check that multi-filtering based on roles works', async () => {
       let read = await testData.centralService.userApi.readAll({ "Role" : "B|A" },{ limit: 10, skip: 0 });
       expect(read.status).to.equal(200);
     });
 
-    it('Users : Check that multi-filtering (status) works', async () => {
+    it('Users : Check that multi-filtering based on status works', async () => {
       let read = await testData.centralService.userApi.readAll({ "Status" : "A|B" },{ limit: 10, skip: 0 });
       expect(read.status).to.equal(200);
     });
 
-    it('Users in error : Check that multi-filtering (role) works', async () => {
+    it('Users in error : Check that multi-filtering based on roles works', async () => {
       let read = await testData.centralService.userApi.readAllInError({ "Role" : "B|A" },{ limit: 10, skip: 0 });
       expect(read.status).to.equal(200);
     });
 
-    it('Sessions history : Check that multi-filtering (charging station) works', async () => {
+    it('Sessions history : Check that multi-filtering based on charging stations works', async () => {
       let read = await testData.centralService.transactionApi.readAllCompleted({ "ChargeBoxID" : "SAP-Caen-01|SAP-Mougins-01" },{ limit: 10, skip: 0 });
       expect(read.status).to.equal(200);
     });
-*/
+
   });
 });
