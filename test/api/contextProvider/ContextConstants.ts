@@ -248,6 +248,7 @@ export default class CONTEXTS {
       tagIDs: (CONTEXTS.USER_CONTEXTS.DEMO_USER.withTagIDs ? ['A12343'] : null)
     },
     { // Basic user unassigned
+      id: '5ce249a1a39ae1c056c456ad',
       role: CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED.role,
       status: CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED.status,
       assignedToSite: CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED.assignedToSite,
