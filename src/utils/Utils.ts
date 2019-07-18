@@ -20,7 +20,6 @@ import Logging from './Logging';
 import Tenant from '../entity/Tenant';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import User from '../types/User';
-import UserService from '../server/rest/service/UserService';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];

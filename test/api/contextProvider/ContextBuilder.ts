@@ -18,7 +18,6 @@ import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
 import User from '../../../src/types/User';
 import UserFactory from '../../factories/UserFactory';
-import UserService from '../../../src/server/rest/service/UserService';
 import UserStorage from '../../../src/storage/mongodb/UserStorage';
 import Utils from '../../../src/utils/Utils';
 
@@ -64,7 +63,6 @@ export default class ContextBuilder {
         await this.superAdminCentralServerService.tenantApi.delete(tenantEntity.getID());
       }
     }
-
   }
 
   /**
@@ -153,7 +151,7 @@ export default class ContextBuilder {
     // Create Tenant component settings
     if (tenantContextDef.componentSettings) {
       console.log(`settings in tenant ${buildTenant.name} as ${JSON.stringify(tenantContextDef.componentSettings)}`);
-      const allSettings: any = await localCentralServiceService.settingApi.readAll({}, { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 });
+      const allSettings: any = await localCentralServiceService.settingApi.readAll({}, Constants.DB_PARAMS_MAX_LIMIT);
       for (const setting in tenantContextDef.componentSettings) {
         let foundSetting: any = null;
         if (allSettings && allSettings.data && allSettings.data.result && allSettings.data.result.length > 0) {

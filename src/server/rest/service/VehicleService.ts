@@ -191,7 +191,7 @@ export default class VehicleService {
       createdOn: date,
       lastChangedBy: usr,
       lastChangedOn: date
-    }
+    };
     // Save
     vehicle.id = await VehicleStorage.saveVehicle(req.user.tenantID, vehicle);
     // Save

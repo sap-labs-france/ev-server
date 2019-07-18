@@ -158,7 +158,13 @@
 				"active": true,
 				"periodicity": "0-59/5 * * * *",
 				"config": {}
-			}
+			},
+      {
+        "name": "SynchronizeRefundTransactionsTask",
+        "active": true,
+        "periodicity": "0 * * * *",
+        "config": {}
+      }
 		]
 	},
 	"Logging": {
