@@ -73,15 +73,15 @@ export default class UtilsSecurity {
     // Exist?
     if (!request.Limit) {
       // Default
-      filteredRequest.Limit = Constants.DEFAULT_DB_LIMIT;
+      filteredRequest.Limit = Constants.DB_RECORD_COUNT_DEFAULT;
     } else {
       // Parse
       filteredRequest.Limit = parseInt(sanitize(request.Limit));
       if (isNaN(filteredRequest.Limit)) {
-        filteredRequest.Limit = Constants.DEFAULT_DB_LIMIT;
+        filteredRequest.Limit = Constants.DB_RECORD_COUNT_DEFAULT;
         // Negative limit?
       } else if (filteredRequest.Limit < 0) {
-        filteredRequest.Limit = Constants.DEFAULT_DB_LIMIT;
+        filteredRequest.Limit = Constants.DB_RECORD_COUNT_DEFAULT;
       }
     }
   }

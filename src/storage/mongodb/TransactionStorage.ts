@@ -1,6 +1,7 @@
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
 import global from './../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import PricingStorage from './PricingStorage';
@@ -75,15 +76,15 @@ export default class TransactionStorage {
     return transactionYears;
   }
 
-  static async getTransactions(tenantID, params: any = {}, limit?, skip?, sort?) {
+  static async getTransactions(tenantID, params: any = {}, dbParams: DbParams) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactions');
     // Check
     await Utils.checkTenant(tenantID);
     // Check Limit
-    limit = Utils.checkRecordLimit(limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    skip = Utils.checkRecordSkip(skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Build filter
     const match: any = {};
     // Filter?
@@ -171,9 +172,9 @@ export default class TransactionStorage {
     }
 
     // Limit records?
-    if (!params.onlyRecordCount) {
+    if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Prepare statistics query
     let statsQuery = null;
@@ -261,7 +262,7 @@ export default class TransactionStorage {
       transactionCountMDB.currency = transactionCountMDB.currency[0];
     }
     // Check if only the total count is requested
-    if (params.onlyRecordCount) {
+    if (dbParams.onlyRecordCount) {
       return {
         count: transactionCountMDB ? transactionCountMDB.count : 0,
         stats: transactionCountMDB ? transactionCountMDB : {},
@@ -271,14 +272,14 @@ export default class TransactionStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (sort) {
-      if (!sort.timestamp) {
+    if (dbParams.sort) {
+      if (!dbParams.sort.timestamp) {
         aggregation.push({
-          $sort: { ...sort, timestamp: -1 }
+          $sort: { ...dbParams.sort, timestamp: -1 }
         });
       } else {
         aggregation.push({
-          $sort: sort
+          $sort: dbParams.sort
         });
       }
       // Sort
@@ -290,11 +291,11 @@ export default class TransactionStorage {
     }
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
     // Add User that started the transaction
     aggregation.push({
@@ -336,15 +337,15 @@ export default class TransactionStorage {
       }
     }
     // Debug
-    Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, { params, limit, skip, sort });
+    Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, { params, dbParams });
     return {
-      count: transactionCountMDB ? (transactionCountMDB.count === Constants.MAX_DB_RECORD_COUNT ? -1 : transactionCountMDB.count) : 0,
+      count: transactionCountMDB ? (transactionCountMDB.count === Constants.DB_RECORD_COUNT_CEIL ? -1 : transactionCountMDB.count) : 0,
       stats: transactionCountMDB ? transactionCountMDB : {},
       result: transactions
     };
   }
 
-  static async getTransactionsInError(tenantID, params: any = {}, limit, skip, sort) {
+  static async getTransactionsInError(tenantID, params: any = {}, dbParams: DbParams) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactionsInError');
     // Check
@@ -352,9 +353,9 @@ export default class TransactionStorage {
     const pricing = await PricingStorage.getPricing(tenantID);
 
     // Check Limit
-    limit = Utils.checkRecordLimit(limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    skip = Utils.checkRecordSkip(skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
     const toSubRequests = [];
@@ -512,9 +513,9 @@ export default class TransactionStorage {
     // Add a unique identifier as we may have the same charger several time
     aggregation.push({ $addFields: { 'uniqueId': { $concat: ['$idAsString', '#', '$errorCode'] } } });
     // Limit records?
-    if (!params.onlyRecordCount) {
+    if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
     const transactionsCountMDB = await global.database.getCollection<any>(tenantID, 'transactions')
@@ -522,7 +523,7 @@ export default class TransactionStorage {
       .toArray();
     // Check if only the total count is requested
     const transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ? transactionsCountMDB[0] : null;
-    if (params.onlyRecordCount) {
+    if (dbParams.onlyRecordCount) {
       // Return only the count
       return {
         count: (transactionCountMDB ? transactionCountMDB.count : 0),
@@ -532,10 +533,10 @@ export default class TransactionStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (sort) {
+    if (dbParams.sort) {
       // Sort
       aggregation.push({
-        $sort: sort
+        $sort: dbParams.sort
       });
     } else {
       // Default
@@ -545,11 +546,11 @@ export default class TransactionStorage {
     }
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
     // Read DB
     const transactionsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
@@ -568,10 +569,10 @@ export default class TransactionStorage {
       }
     }
     // Debug
-    Logging.traceEnd('TransactionStorage', 'getTransactionsInError', uniqueTimerID, { params, limit, skip, sort });
+    Logging.traceEnd('TransactionStorage', 'getTransactionsInError', uniqueTimerID, { params, dbParams });
     // Ok
     return {
-      count: (transactionCountMDB ? (transactionCountMDB.count === Constants.MAX_DB_RECORD_COUNT ? -1 : transactionCountMDB.count) : 0),
+      count: (transactionCountMDB ? (transactionCountMDB.count === Constants.DB_RECORD_COUNT_CEIL ? -1 : transactionCountMDB.count) : 0),
       result: transactions
     };
   }

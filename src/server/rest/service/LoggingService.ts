@@ -24,8 +24,8 @@ export default class LoggingService {
       const loggings = await Logging.getLogs(req.user.tenantID, {
         'search': filteredRequest.Search, 'dateFrom': filteredRequest.DateFrom, 'dateUntil': filteredRequest.DateUntil, 'userID': filteredRequest.UserID,
         'level': filteredRequest.Level, 'type': filteredRequest.Type, 'source': filteredRequest.Source, 'host': filteredRequest.Host,
-        'process': filteredRequest.Process, 'action': filteredRequest.Action, 'onlyRecordCount': filteredRequest.OnlyRecordCount
-      }, filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+        'process': filteredRequest.Process, 'action': filteredRequest.Action
+      }, { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
       // Filter
       LoggingSecurity.filterLoggingsResponse(loggings, req.user);
       // Return
@@ -55,8 +55,8 @@ export default class LoggingService {
       const loggings = await Logging.getLogs(req.user.tenantID, {
         'search': filteredRequest.Search, 'dateFrom': filteredRequest.DateFrom, 'dateUntil': filteredRequest.DateUntil, 'userID': filteredRequest.UserID,
         'level': filteredRequest.Level, 'type': filteredRequest.Type, 'source': filteredRequest.Source, 'host': filteredRequest.Host,
-        'process': filteredRequest.Process, 'action': filteredRequest.Action, 'onlyRecordCount': filteredRequest.OnlyRecordCount
-      }, filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+        'process': filteredRequest.Process, 'action': filteredRequest.Action
+      }, { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
       // Filter
       LoggingSecurity.filterLoggingsResponse(loggings, req.user);
       const filename = 'loggings_export.csv';

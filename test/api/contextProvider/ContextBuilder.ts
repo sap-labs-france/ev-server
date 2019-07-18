@@ -20,6 +20,7 @@ import User from '../../../src/types/User';
 import UserFactory from '../../factories/UserFactory';
 import UserService from '../../../src/server/rest/service/UserService';
 import UserStorage from '../../../src/storage/mongodb/UserStorage';
+import Utils from '../../../src/utils/Utils';
 
 export default class ContextBuilder {
 
@@ -134,7 +135,7 @@ export default class ContextBuilder {
     await UserStorage.saveUser(buildTenant.id, {
       'id': CONTEXTS.TENANT_USER_LIST[0].id,
       'tagIDs': CONTEXTS.TENANT_USER_LIST[0].tagIDs ? CONTEXTS.TENANT_USER_LIST[0].tagIDs : [faker.random.alphaNumeric(8).toUpperCase()],
-      'password': await UserService.hashPasswordBcrypt(config.get('admin.password')),
+      'password': await Utils.hashPasswordBcrypt(config.get('admin.password')),
       'email': config.get('admin.username'),
       'status': CONTEXTS.TENANT_USER_LIST[0].status,
       'role': CONTEXTS.TENANT_USER_LIST[0].role,
@@ -152,7 +153,7 @@ export default class ContextBuilder {
     // Create Tenant component settings
     if (tenantContextDef.componentSettings) {
       console.log(`settings in tenant ${buildTenant.name} as ${JSON.stringify(tenantContextDef.componentSettings)}`);
-      const allSettings: any = await localCentralServiceService.settingApi.readAll({}, { limit: 0, skip: 0 });
+      const allSettings: any = await localCentralServiceService.settingApi.readAll({}, { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 });
       for (const setting in tenantContextDef.componentSettings) {
         let foundSetting: any = null;
         if (allSettings && allSettings.data && allSettings.data.result && allSettings.data.result.length > 0) {
@@ -191,7 +192,7 @@ export default class ContextBuilder {
       const createUser = UserFactory.build();
       createUser.email = userDef.emailPrefix + defaultAdminUser.email;
       // Update the password
-      const newPasswordHashed = await UserService.hashPasswordBcrypt(config.get('admin.password'));
+      const newPasswordHashed = await Utils.hashPasswordBcrypt(config.get('admin.password'));
       createUser.password = newPasswordHashed;
       createUser.role = userDef.role;
       createUser.status = userDef.status;

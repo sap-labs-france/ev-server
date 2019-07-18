@@ -7,7 +7,7 @@ import UtilsSecurity from './UtilsSecurity';
 
 export default class TransactionSecurity {
   // eslint-disable-next-line no-unused-vars
-  static filterTransactionsRefund(request, loggedUser) {
+  static filterTransactionsRefund(request, loggedUser: UserToken) {
     const filteredRequest: any = {};
     // Set
     filteredRequest.transactionIds = request.transactionIds.map((id) => {
@@ -17,7 +17,7 @@ export default class TransactionSecurity {
   }
 
   // eslint-disable-next-line no-unused-vars
-  static filterTransactionDelete(request, loggedUser) {
+  static filterTransactionDelete(request, loggedUser: UserToken) {
     const filteredRequest: any = {};
     // Set
     filteredRequest.ID = sanitize(request.ID);
@@ -25,7 +25,7 @@ export default class TransactionSecurity {
   }
 
   // eslint-disable-next-line no-unused-vars
-  static filterTransactionSoftStop(request, loggedUser) {
+  static filterTransactionSoftStop(request, loggedUser: UserToken) {
     const filteredRequest: any = {};
     // Set
     filteredRequest.transactionId = sanitize(request.transactionId);
@@ -33,7 +33,7 @@ export default class TransactionSecurity {
   }
 
   // eslint-disable-next-line no-unused-vars
-  static filterTransactionRequest(request, loggedUser) {
+  static filterTransactionRequest(request, loggedUser: UserToken) {
     const filteredRequest: any = {};
     // Set
     filteredRequest.ID = sanitize(request.ID);
@@ -41,7 +41,7 @@ export default class TransactionSecurity {
   }
 
   // eslint-disable-next-line no-unused-vars
-  static filterTransactionsActiveRequest(request, loggedUser) {
+  static filterTransactionsActiveRequest(request, loggedUser: UserToken) {
     const filteredRequest: any = {};
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
     filteredRequest.ConnectorId = sanitize(request.ConnectorId);
@@ -56,7 +56,7 @@ export default class TransactionSecurity {
   }
 
   // eslint-disable-next-line no-unused-vars
-  static filterTransactionsCompletedRequest(request, loggedUser) {
+  static filterTransactionsCompletedRequest(request, loggedUser: UserToken) {
     const filteredRequest: any = {};
     // Handle picture
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
@@ -191,7 +191,7 @@ export default class TransactionSecurity {
     return filteredTransaction;
   }
 
-  static filterTransactionsResponse(transactions, loggedUser) {
+  static filterTransactionsResponse(transactions, loggedUser: UserToken) {
     const filteredTransactions = [];
     if (!transactions.result) {
       return null;
@@ -208,7 +208,7 @@ export default class TransactionSecurity {
     transactions.result = filteredTransactions;
   }
 
-  static _filterUserInTransactionResponse(user: User, loggedUser) {
+  static _filterUserInTransactionResponse(user: User, loggedUser: UserToken) {
     const filteredUser: any = {};
 
     if (!user) {
@@ -217,7 +217,7 @@ export default class TransactionSecurity {
     // Check auth
     if (Authorizations.canReadUser(loggedUser, user.id)) {
       // Demo user?
-      if (Authorizations.isDemo(loggedUser)) {
+      if (Authorizations.isDemo(loggedUser.role)) {
         filteredUser.id = null;
         filteredUser.name = Constants.ANONYMIZED_VALUE;
         filteredUser.firstName = Constants.ANONYMIZED_VALUE;
@@ -231,7 +231,7 @@ export default class TransactionSecurity {
   }
 
   // eslint-disable-next-line no-unused-vars
-  static filterChargingStationConsumptionFromTransactionRequest(request, loggedUser) {
+  static filterChargingStationConsumptionFromTransactionRequest(request, loggedUser: UserToken) {
     const filteredRequest: any = {};
     // Set
     filteredRequest.TransactionId = sanitize(request.TransactionId);
@@ -241,7 +241,7 @@ export default class TransactionSecurity {
   }
 
   // eslint-disable-next-line no-unused-vars
-  static filterChargingStationTransactionsRequest(request, loggedUser) {
+  static filterChargingStationTransactionsRequest(request, loggedUser: UserToken) {
     const filteredRequest: any = {};
     // Set
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
