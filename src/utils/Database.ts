@@ -88,6 +88,9 @@ export default class Database {
     if (src.hasOwnProperty('longitude')) {
       dest.longitude = Utils.convertToFloat(src.longitude);
     }
+    if (src.hasOwnProperty('currentIPAddress')) {
+      dest.currentIPAddress = src.currentIPAddress;
+    }
     dest.connectors = [];
     if (src.connectors) {
       // Set

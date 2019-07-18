@@ -316,10 +316,10 @@ export default class Utils {
   }
 
   public static getRequestIP(request): string {
-    if(request.connection.remoteAddress){
+    if (request.connection.remoteAddress) {
       return request.connection.remoteAddress;
-    } else {
-      const host = request.headers.host.split(":", 2);
+    } else if (request.headers.host) {
+      const host = request.headers.host.split(':', 2);
       const ip = host[0];
       return ip;
     }

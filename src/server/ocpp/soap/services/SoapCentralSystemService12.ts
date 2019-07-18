@@ -2,6 +2,7 @@ import Constants from '../../../../utils/Constants';
 import global from '../../../../types/GlobalType';
 import Logging from '../../../../utils/Logging';
 import Utils from '../../../../utils/Utils';
+import ChargingStation from '../../../../entity/ChargingStation';
 
 const MODULE_NAME = 'SoapCentralSystemService12';
 export default { /* Services */
@@ -164,6 +165,9 @@ export default { /* Services */
           // Add OCPP Version
           headers.ocppVersion = Constants.OCPP_VERSION_12;
           headers.ocppProtocol = Constants.OCPP_PROTOCOL_SOAP;
+          // Add current IP to charging station properties
+          const requestIP = Utils.getRequestIP(req);
+          headers.currentIPAddress = requestIP;
           // Log
           Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, 'BootNotification', [ headers, args ]);
           // Handle

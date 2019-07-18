@@ -291,6 +291,14 @@ export default class ChargingStation extends TenantHolder {
     this._model.chargingStationURL = chargingStationURL;
   }
 
+  getCurrentIPAddress(): string {
+    return this._model.currentIPAddress;
+  }
+
+  setCurrentIPAddress(address: string) {
+    this._model.currentIPAddress = address;
+  }
+
   getOcppVersion() {
     return this._model.ocppVersion;
   }
