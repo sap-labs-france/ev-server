@@ -331,8 +331,8 @@ export default class UserStorage {
   }
 
   public static async getUsers(tenantID: string,
-    params: {notificationsActive?: boolean; siteIDs?: string; excludeSiteID?: string; search?: string; userID?: string; email?: string;
-      roles?: string; statuses?: string[]; withImage?: boolean; },
+    params: {notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string; userID?: string; email?: string;
+      roles?: string[]; statuses?: string[]; withImage?: boolean; },
     { limit, skip, onlyRecordCount, sort }: DbParams, projectFields?: string[]) {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
@@ -424,7 +424,7 @@ export default class UserStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Add Site
-    if (params.sites || params.excludeSiteID) {
+    if (params.siteIDs || params.excludeSiteID) {
       aggregation.push({
         $lookup: {
           from: DatabaseUtils.getCollectionName(tenantID, 'siteusers'),
@@ -433,11 +433,11 @@ export default class UserStorage {
           as: 'siteusers'
         }
       });
-      if (params.sites) {
+      if (params.siteIDs) {
         aggregation.push({
           $match: {
             'siteusers.siteID': {
-              $in: params.sites.map((site) => {
+              $in: params.siteIDs.map((site) => {
                 return Utils.convertToObjectID(site);
               })
             }

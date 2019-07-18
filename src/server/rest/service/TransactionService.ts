@@ -465,7 +465,7 @@ export default class TransactionService {
         filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
       }
       if (filteredRequest.SiteAreaID) {
-        filter.siteAreas = filteredRequest.SiteAreaID.split('|');
+        filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
       if (filteredRequest.SiteID) {
         filter.siteID = filteredRequest.SiteID;
@@ -514,7 +514,7 @@ export default class TransactionService {
         filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
       }
       if (filteredRequest.SiteAreaID) {
-        filter.siteAreas = filteredRequest.SiteAreaID.split('|');
+        filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
       if (filteredRequest.UserID) {
         filter.userIDs = filteredRequest.UserID.split('|');
@@ -575,7 +575,7 @@ export default class TransactionService {
         filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
       }
       if (filteredRequest.SiteAreaID) {
-        filter.siteAreas = filteredRequest.SiteAreaID.split('|');
+        filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
       if (filteredRequest.UserID) {
         filter.userIDs = filteredRequest.UserID.split('|');
@@ -648,7 +648,7 @@ export default class TransactionService {
         filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
       }
       if (filteredRequest.SiteAreaID) {
-        filter.siteAreas = filteredRequest.SiteAreaID.split('|');
+        filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
       if (filteredRequest.UserID) {
         filter.userIDs = filteredRequest.UserID.split('|');

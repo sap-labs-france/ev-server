@@ -97,16 +97,16 @@ export default class TransactionStorage {
       ];
     }
     // User
-    if (params.users) {
+    if (params.userIDs) {
       match.userID = {
-        $in: params.users.map((user) => {
+        $in: params.userIDs.map((user) => {
         return Utils.convertToObjectID(user);
       })
     };
   }
     // Charge Box
-    if (params.chargingStations) {
-      match.chargeBoxID = { $in : params.chargingStations };
+    if (params.chargeBoxIDs) {
+      match.chargeBoxID = { $in : params.chargeBoxIDs };
     }
     // Connector
     if (params.connectorId) {
@@ -128,9 +128,9 @@ export default class TransactionStorage {
     if (params.stop) {
       match.stop = params.stop;
     }
-    if (params.siteAreas) {
+    if (params.siteAreaIDs) {
       match.siteAreaID = {
-        $in: params.siteAreas.map((area) => {
+        $in: params.siteAreaIDs.map((area) => {
           return Utils.convertToObjectID(area);
         })
       };
@@ -376,16 +376,16 @@ export default class TransactionStorage {
       ];
     }
     // User
-    if (params.users) {
+    if (params.userIDs) {
       match.userID = {
-        $in: params.users.map((user) => {
+        $in: params.userIDs.map((user) => {
         return Utils.convertToObjectID(user);
       })
     };
   }
     // Charge Box
-    if (params.chargingStations) {
-      match.chargeBoxID = { $in : params.chargingStations };
+    if (params.chargeBoxIDs) {
+      match.chargeBoxID = { $in : params.chargeBoxIDs };
     }
     // Connector
     if (params.connectorId) {
@@ -403,9 +403,9 @@ export default class TransactionStorage {
     if (params.endDateTime) {
       match.timestamp.$lte = Utils.convertToDate(params.endDateTime);
     }
-    if (params.siteAreas) {
+    if (params.siteAreaIDs) {
       match.siteAreaID = {
-        $in: params.siteAreas.map((area) => {
+        $in: params.siteAreaIDs.map((area) => {
           return Utils.convertToObjectID(area);
         })
       };

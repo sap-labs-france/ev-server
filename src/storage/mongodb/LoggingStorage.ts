@@ -139,14 +139,18 @@ export default class LoggingStorage {
       filters.action = { $in: params.actions }; 
     }
     // Filter on users
-    if (params.users && Array.isArray(params.users) && params.users.length > 0) {
+    if (params.userIDs && Array.isArray(params.userIDs) && params.userIDs.length > 0) {
       // Yes, add in filter
-      const userArray = [];
-      params.users.forEach((user)=>{
-        userArray.push({"userID": Utils.convertToObjectID(user)});
-        userArray.push({"actionOnUserID": Utils.convertToObjectID(user)});
-      });
-      filters.$or = userArray;
+      filters.userID = {
+        $in: params.userIDs.map((user) => {
+          return Utils.convertToObjectID(user);
+        })
+      };
+      filters.actionOnUserID = {
+        $in: params.userIDs.map((user) => {
+          return Utils.convertToObjectID(user);
+        })
+      };
     }
     // Search
     if (params.search) {
