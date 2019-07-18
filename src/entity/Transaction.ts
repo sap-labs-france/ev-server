@@ -481,7 +481,7 @@ export default class Transaction extends TenantHolder {
 
   isRefunded() {
     return this._model.refundData && !!this._model.refundData.refundId
-      && this._model.refundData.status !== Constants.REFUND_TRANSACTION_CANCELLED;
+      && this._model.refundData.status !== Constants.REFUND_STATUS_CANCELLED;
   }
 
   hasStateOfCharges() {

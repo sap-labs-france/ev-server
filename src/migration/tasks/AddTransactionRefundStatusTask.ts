@@ -2,6 +2,7 @@ import MigrationTask from '../MigrationTask';
 import Tenant from '../../entity/Tenant';
 import global from '../../types/GlobalType';
 import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
 
 export default class AddTransactionRefundStatusTask extends MigrationTask {
   async migrate() {
@@ -12,11 +13,24 @@ export default class AddTransactionRefundStatusTask extends MigrationTask {
   }
 
   async migrateTenant(tenant: Tenant) {
-    await global.database.getCollection<any>(tenant.getID(), 'transactions').updateMany(
-      { 'refundData': { $exists: true } },
-      { $set: { 'refundData.status': Constants.REFUND_TRANSACTION_SUBMITTED } },
+    // Add the status property to the refunded transactions
+    const result = await global.database.getCollection<any>(tenant.getID(), 'transactions').updateMany(
+      {
+        'refundData': { $exists: true },
+        'refundData.status': { $exists: false }
+      },
+      { $set: { 'refundData.status': Constants.REFUND_STATUS_SUBMITTED } },
       { upsert: false }
     );
+    // Log in the default tenant
+    if (result.modifiedCount > 0) {
+      Logging.logDebug({
+        tenantID: Constants.DEFAULT_TENANT,
+        module: 'AddTransactionRefundStatusTask', method: 'migrateTenant',
+        action: 'MigrateRefundStatus',
+        message: `${result.modifiedCount} Refunded Transaction(s) has been updated in Tenant '${tenant.getName()}'`
+      });
+    }
   }
 
   getVersion() {
@@ -27,4 +41,3 @@ export default class AddTransactionRefundStatusTask extends MigrationTask {
     return 'AddTransactionRefundStatusTask';
   }
 }
-

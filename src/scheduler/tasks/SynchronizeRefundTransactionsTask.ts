@@ -13,58 +13,79 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
       Logging.logDebug({
         tenantID: tenant.getID(),
         module: 'SynchronizeRefundTransactionsTask',
-        method: 'run', action: 'SynchronizeRefundTransactions',
-        message: 'The refund component is inactive for this tenant. The task \'SynchronizeRefundTransactionsTask\' is skipped.'
+        method: 'run', action: 'RefundSynchronize',
+        message: 'Refund not active in this Tenant'
       });
       return;
     }
+    // Get Concur Settings
     const setting = await SettingStorage.getSettingByIdentifier(tenant.getID(), Constants.COMPONENTS.REFUND);
     if (!setting || !setting.getContent()[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]) {
       Logging.logDebug({
         tenantID: tenant.getID(),
         module: 'SynchronizeRefundTransactionsTask',
-        method: 'run', action: 'SynchronizeRefundTransactions',
-        message: 'The refund settings are not configured. The task \'SynchronizeRefundTransactionsTask\' is skipped.'
+        method: 'run', action: 'RefundSynchronize',
+        message: 'Refund settings are not configured'
       });
       return;
     }
-    Logging.logInfo({
-      tenantID: tenant.getID(),
-      module: 'SynchronizeRefundTransactionsTask',
-      method: 'run', action: 'SynchronizeRefundTransactions',
-      message: 'The task \'SynchronizeRefundTransactionsTask\' is started'
-    });
-
-    const connector = new ConcurConnector(tenant.getID(), setting.getContent()[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]);
+    // Create the Concur Connector
+    const connector = new ConcurConnector(
+      tenant.getID(), setting.getContent()[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]);
+    // Get the 'Submitted' transactions
     const transactions = await TransactionStorage.getTransactions(tenant.getID(), {
-      'type': 'refunded',
-      'refundStatus': Constants.REFUND_TRANSACTION_SUBMITTED
-    }, Constants.NO_LIMIT, 0, {
-      'userID': 1,
-      'refundData.reportId': 1
-    });
-
-    Logging.logDebug({
-      tenantID: tenant.getID(),
-      module: 'SynchronizeRefundTransactionsTask',
-      method: 'run', action: 'SynchronizeRefundTransactions',
-      message: `${transactions.count} refunded transaction(s) to be synchronized`
-    });
-
-    for (const transaction of transactions.result) {
-      try {
-        await connector.updateRefundStatus(transaction);
-      } catch (error) {
-        Logging.logActionExceptionMessage(tenant.getID(), 'SynchronizeRefundTransactions', error);
+      'refundType': Constants.REFUND_TYPE_REFUNDED,
+      'refundStatus': Constants.REFUND_STATUS_SUBMITTED
+    }, Constants.DB_PARAMS_MAX_LIMIT, [ 'userID', 'refundData.reportId' ]);
+    // Check
+    if (transactions.count > 0) {
+      // Process them
+      Logging.logInfo({
+        tenantID: tenant.getID(),
+        module: 'SynchronizeRefundTransactionsTask',
+        method: 'run', action: 'RefundSynchronize',
+        message: `${transactions.count} Refunded Transaction(s) are going to be synchronized`
+      });
+      const actionsDone = {
+        approved: 0,
+        cancelled: 0,
+        notUpdated: 0,
+        error: 0
+      };
+      for (const transaction of transactions.result) {
+        try {
+          // Update Transaction
+          const action = await connector.updateRefundStatus(transaction, 'RefundSynchronize');
+          switch (action) {
+            case Constants.REFUND_STATUS_CANCELLED:
+              actionsDone.cancelled++;
+              break;
+            case Constants.REFUND_STATUS_APPROVED:
+              actionsDone.approved++;
+              break;
+            default:
+              actionsDone.notUpdated++;
+          }
+        } catch (error) {
+          actionsDone.error++;
+          Logging.logActionExceptionMessage(tenant.getID(), 'RefundSynchronize', error);
+        }
       }
+      // Log result
+      Logging.logInfo({
+        tenantID: tenant.getID(),
+        module: 'SynchronizeRefundTransactionsTask',
+        method: 'run', action: 'RefundSynchronize',
+        message: `Synchronized: ${actionsDone.approved} Approved, ${actionsDone.cancelled} Cancelled, ${actionsDone.notUpdated} Not updated - ${actionsDone.error} Exception(s)`
+      });
+    } else {
+      // Process them
+      Logging.logInfo({
+        tenantID: tenant.getID(),
+        module: 'SynchronizeRefundTransactionsTask',
+        method: 'run', action: 'RefundSynchronize',
+        message: `No Refunded Transaction found to synchronize`
+      });
     }
-
-    Logging.logInfo({
-      tenantID: tenant.getID(),
-      module: 'SynchronizeRefundTransactionsTask',
-      method: 'run', action: 'SynchronizeRefundTransactions',
-      message: 'The task \'SynchronizeRefundTransactionsTask\' is successfully completed'
-    });
-
   }
 }
