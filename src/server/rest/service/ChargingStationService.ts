@@ -408,7 +408,7 @@ export default class ChargingStationService {
         'search': filteredRequest.Search,
         'withNoSiteArea': filteredRequest.WithNoSiteArea,
         'withSite': filteredRequest.WithSite,
-        'siteIDs': (filteredRequest.SiteID ? [filteredRequest.SiteID] : Authorizations.getAuthorizedSiteIDs(req.user)),
+        'siteIDs': (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : Authorizations.getAuthorizedSiteIDs(req.user)),
         'chargeBoxID': filteredRequest.ChargeBoxID,
         'siteAreaID': filteredRequest.SiteAreaID,
         'includeDeleted': filteredRequest.IncludeDeleted
@@ -450,7 +450,7 @@ export default class ChargingStationService {
         'search': filteredRequest.Search,
         'withNoSiteArea': filteredRequest.WithNoSiteArea,
         'withSite': filteredRequest.WithSite,
-        'siteID': filteredRequest.SiteID,
+        'siteIDs': (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         'chargeBoxID': filteredRequest.ChargeBoxID,
         'siteAreaID': filteredRequest.SiteAreaID,
       },
@@ -505,7 +505,7 @@ export default class ChargingStationService {
         'search': filteredRequest.Search,
         'withNoSiteArea': filteredRequest.WithNoSiteArea,
         'withSite': filteredRequest.WithSite,
-        'siteID': filteredRequest.SiteID,
+        'siteIDs': filteredRequest.SiteID,
         'chargeBoxID': filteredRequest.ChargeBoxID,
         'siteAreaID': filteredRequest.SiteAreaID,
         'errorType': filteredRequest.ErrorType

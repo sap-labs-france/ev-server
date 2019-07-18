@@ -12,14 +12,14 @@ export default class LoggingSecurity {
     filteredRequest.DateFrom = sanitize(request.DateFrom);
     filteredRequest.DateUntil = sanitize(request.DateUntil);
     filteredRequest.Level = sanitize(request.Level);
-    filteredRequest.Source = sanitize(request.Source);
+    filteredRequest.Source = request.Source ? sanitize(request.Source).split('|'):null;
     filteredRequest.Host = sanitize(request.Host);
     filteredRequest.Process = sanitize(request.Process);
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.SortDate = sanitize(request.SortDate);
     filteredRequest.Type = sanitize(request.Type);
-    filteredRequest.Action = sanitize(request.Action);
-    filteredRequest.UserID = sanitize(request.UserID);
+    filteredRequest.Action = request.Action ? sanitize(request.Action).split('|'):null;
+    filteredRequest.UserID = request.UserID ? sanitize(request.UserID).split('|'):null;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;

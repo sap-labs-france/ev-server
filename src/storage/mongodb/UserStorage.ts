@@ -331,8 +331,8 @@ export default class UserStorage {
   }
 
   public static async getUsers(tenantID: string,
-    params: {notificationsActive?: boolean; siteID?: string; excludeSiteID?: string; search?: string; userID?: string; email?: string;
-      role?: string; statuses?: string[]; withImage?: boolean; },
+    params: {notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string; userID?: string; email?: string;
+      roles?: string[]; statuses?: string[]; withImage?: boolean; },
     { limit, skip, onlyRecordCount, sort }: DbParams, projectFields?: string[]) {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
@@ -376,18 +376,12 @@ export default class UserStorage {
       });
     }
     // Query by role
-    if (params.role) {
-      filters.$and.push({
-        'role': params.role
-      });
+    if (params.roles && Array.isArray(params.roles) && params.roles.length > 0) {
+      filters.role = { $in: params.roles };
     }
     // Query by status (Previously getUsersInError)
-    if (params.statuses && params.statuses.filter((status) => {
-      return status;
-    }).length > 0) {
-      filters.$and.push({
-        'status': { $in: params.statuses }
-      });
+    if (params.statuses && Array.isArray(params.statuses) && params.statuses.length > 0) {
+      filters.status = { $in: params.statuses };
     }
     if (params.notificationsActive) {
       filters.$and.push({
@@ -430,7 +424,7 @@ export default class UserStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Add Site
-    if (params.siteID || params.excludeSiteID) {
+    if (params.siteIDs || params.excludeSiteID) {
       aggregation.push({
         $lookup: {
           from: DatabaseUtils.getCollectionName(tenantID, 'siteusers'),
@@ -439,9 +433,15 @@ export default class UserStorage {
           as: 'siteusers'
         }
       });
-      if (params.siteID) {
+      if (params.siteIDs) {
         aggregation.push({
-          $match: { 'siteusers.siteID': Utils.convertToObjectID(params.siteID) }
+          $match: {
+            'siteusers.siteID': {
+              $in: params.siteIDs.map((site) => {
+                return Utils.convertToObjectID(site);
+              })
+            }
+          }
         });
       } else if (params.excludeSiteID) {
         aggregation.push({

@@ -278,7 +278,7 @@ export default class SiteStorage {
 
   public static async getSites(tenantID: string,
     params: {
-      search?: string; companyID?: string; withAutoUserAssignment?: boolean; siteIDs?: string[];
+      search?: string; companyIDs?: string[]; withAutoUserAssignment?: boolean; siteIDs?: string[];
       userID?: string; excludeSitesOfUserID?: boolean;
       withAvailableChargers?: boolean; withCompany?: boolean; } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: Site[]}> {
@@ -302,8 +302,12 @@ export default class SiteStorage {
       }
     }
     // Set Company?
-    if (params.companyID) {
-      filters.companyID = Utils.convertToObjectID(params.companyID);
+    if (params.companyIDs && Array.isArray(params.companyIDs) && params.companyIDs.length > 0) {
+      filters.companyID = {
+        $in: params.companyIDs.map((company) => {
+          return Utils.convertToObjectID(company);
+        })
+      };
     }
     // Auto User Site Assignment
     if (params.withAutoUserAssignment) {

@@ -380,9 +380,9 @@ export default class UserService {
     const users = await UserStorage.getUsers(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        siteID: filteredRequest.SiteID,
-        role: filteredRequest.Role,
-        statuses: filteredRequest.Status ? [filteredRequest.Status] : null,
+        siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|'): null),
+        roles: (filteredRequest.Role ? filteredRequest.Role.split('|'): null),
+        statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
         excludeSiteID: filteredRequest.ExcludeSiteID,
       },
       {
@@ -420,9 +420,9 @@ export default class UserService {
     // Get users
     const users = await UserStorage.getUsers(req.user.tenantID,
       {
-        'search': filteredRequest.Search,
-        'siteID': filteredRequest.SiteID,
-        'role': filteredRequest.Role,
+        search: filteredRequest.Search,
+        siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|'): null),
+        roles: (filteredRequest.Role ? filteredRequest.Role.split('|'): null),
         statuses: [Constants.USER_STATUS_BLOCKED, Constants.USER_STATUS_INACTIVE, Constants.USER_STATUS_LOCKED, Constants.USER_STATUS_PENDING]
       },
       {

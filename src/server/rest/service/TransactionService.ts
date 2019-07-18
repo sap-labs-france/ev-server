@@ -490,19 +490,19 @@ export default class TransactionService {
       // Filter
       const filteredRequest = TransactionSecurity.filterTransactionsActiveRequest(req.query, req.user);
       if (filteredRequest.ChargeBoxID) {
-        filter.chargeBoxID = filteredRequest.ChargeBoxID;
+        filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
       }
       if (filteredRequest.SiteAreaID) {
-        filter.siteAreaID = filteredRequest.SiteAreaID;
+        filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
       if (filteredRequest.SiteID) {
         filter.siteID = filteredRequest.SiteID;
       }
       if (filteredRequest.UserID) {
-        filter.userId = filteredRequest.UserID;
+        filter.userIDs = filteredRequest.UserID.split('|');
       }
       if (Authorizations.isBasic(req.user.role)) {
-        filter.userId = req.user.id;
+        filter.userIDs = [req.user.id];
       }
       if (filteredRequest.ConnectorId) {
         filter.connectorId = filteredRequest.ConnectorId;
@@ -539,7 +539,16 @@ export default class TransactionService {
       // Filter
       const filteredRequest = TransactionSecurity.filterTransactionsCompletedRequest(req.query, req.user);
       if (filteredRequest.ChargeBoxID) {
-        filter.chargeBoxID = filteredRequest.ChargeBoxID;
+        filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
+      }
+      if (filteredRequest.SiteAreaID) {
+        filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
+      }
+      if (filteredRequest.UserID) {
+        filter.userIDs = filteredRequest.UserID.split('|');
+      }
+      if (Authorizations.isBasic(req.user)) {
+        filter.userIDs = [req.user.id];
       }
       if (filteredRequest.StartDateTime) {
         filter.startDateTime = filteredRequest.StartDateTime;
@@ -547,17 +556,8 @@ export default class TransactionService {
       if (filteredRequest.EndDateTime) {
         filter.endDateTime = filteredRequest.EndDateTime;
       }
-      if (filteredRequest.UserID) {
-        filter.userId = filteredRequest.UserID;
-      }
-      if (Authorizations.isBasic(req.user.role)) {
-        filter.userId = req.user.id;
-      }
       if (filteredRequest.Type) {
         filter.type = filteredRequest.Type;
-      }
-      if (filteredRequest.SiteAreaID) {
-        filter.siteAreaID = filteredRequest.SiteAreaID;
       }
       if (filteredRequest.MinimalPrice) {
         filter.minimalPrice = filteredRequest.MinimalPrice;
@@ -600,7 +600,16 @@ export default class TransactionService {
       // Filter
       const filteredRequest = TransactionSecurity.filterTransactionsCompletedRequest(req.query, req.user);
       if (filteredRequest.ChargeBoxID) {
-        filter.chargeBoxID = filteredRequest.ChargeBoxID;
+        filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
+      }
+      if (filteredRequest.SiteAreaID) {
+        filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
+      }
+      if (filteredRequest.UserID) {
+        filter.userIDs = filteredRequest.UserID.split('|');
+      }
+      if (Authorizations.isBasic(req.user)) {
+        filter.userIDs = [req.user.id];
       }
       // Date
       if (filteredRequest.StartDateTime) {
@@ -609,17 +618,8 @@ export default class TransactionService {
       if (filteredRequest.EndDateTime) {
         filter.endDateTime = filteredRequest.EndDateTime;
       }
-      if (filteredRequest.UserID) {
-        filter.userId = filteredRequest.UserID;
-      }
-      if (Authorizations.isBasic(req.user.role)) {
-        filter.userId = req.user.id;
-      }
       if (filteredRequest.Type) {
         filter.type = filteredRequest.Type;
-      }
-      if (filteredRequest.SiteAreaID) {
-        filter.siteAreaID = filteredRequest.SiteAreaID;
       }
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
         { ...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID },
@@ -673,7 +673,13 @@ export default class TransactionService {
       // Filter
       const filteredRequest = TransactionSecurity.filterTransactionsInErrorRequest(req.query);
       if (filteredRequest.ChargeBoxID) {
-        filter.chargeBoxID = filteredRequest.ChargeBoxID;
+        filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
+      }
+      if (filteredRequest.SiteAreaID) {
+        filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
+      }
+      if (filteredRequest.UserID) {
+        filter.userIDs = filteredRequest.UserID.split('|');
       }
       // Date
       if (filteredRequest.StartDateTime) {
@@ -685,13 +691,7 @@ export default class TransactionService {
       if (filteredRequest.ErrorType) {
         filter.errorType = filteredRequest.ErrorType;
       }
-      if (filteredRequest.UserID) {
-        filter.userId = filteredRequest.UserID;
-      }
       // Site Area
-      if (filteredRequest.SiteAreaID) {
-        filter.siteAreaID = filteredRequest.SiteAreaID;
-      }
       const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
         { ...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID },
         { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });

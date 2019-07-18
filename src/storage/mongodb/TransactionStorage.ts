@@ -97,12 +97,16 @@ export default class TransactionStorage {
       ];
     }
     // User
-    if (params.userId) {
-      match.userID = Utils.convertToObjectID(params.userId);
-    }
+    if (params.userIDs) {
+      match.userID = {
+        $in: params.userIDs.map((user) => {
+        return Utils.convertToObjectID(user);
+      })
+    };
+  }
     // Charge Box
-    if (params.chargeBoxID) {
-      match.chargeBoxID = params.chargeBoxID;
+    if (params.chargeBoxIDs) {
+      match.chargeBoxID = { $in : params.chargeBoxIDs };
     }
     // Connector
     if (params.connectorId) {
@@ -124,8 +128,12 @@ export default class TransactionStorage {
     if (params.stop) {
       match.stop = params.stop;
     }
-    if (params.siteAreaID) {
-      match.siteAreaID = Utils.convertToObjectID(params.siteAreaID);
+    if (params.siteAreaIDs) {
+      match.siteAreaID = {
+        $in: params.siteAreaIDs.map((area) => {
+          return Utils.convertToObjectID(area);
+        })
+      };
     }
     if (params.siteID) {
       match.siteID = Utils.convertToObjectID(params.siteID);
@@ -373,12 +381,16 @@ export default class TransactionStorage {
       ];
     }
     // User
-    if (params.userId) {
-      match.userID = Utils.convertToObjectID(params.userId);
-    }
+    if (params.userIDs) {
+      match.userID = {
+        $in: params.userIDs.map((user) => {
+        return Utils.convertToObjectID(user);
+      })
+    };
+  }
     // Charge Box
-    if (params.chargeBoxID) {
-      match.chargeBoxID = params.chargeBoxID;
+    if (params.chargeBoxIDs) {
+      match.chargeBoxID = { $in : params.chargeBoxIDs };
     }
     // Connector
     if (params.connectorId) {
@@ -396,8 +408,12 @@ export default class TransactionStorage {
     if (params.endDateTime) {
       match.timestamp.$lte = Utils.convertToDate(params.endDateTime);
     }
-    if (params.siteAreaID) {
-      match.siteAreaID = Utils.convertToObjectID(params.siteAreaID);
+    if (params.siteAreaIDs) {
+      match.siteAreaID = {
+        $in: params.siteAreaIDs.map((area) => {
+          return Utils.convertToObjectID(area);
+        })
+      };
     }
     if (params.siteID) {
       match.siteID = Utils.convertToObjectID(params.siteID);
