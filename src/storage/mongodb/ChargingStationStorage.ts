@@ -532,7 +532,7 @@ export default class ChargingStationStorage {
     return new ChargingStation(tenantID, result.value);
   }
 
-  static async saveChargingStationSiteArea(tenantID, chargingStation) {
+  public static async saveChargingStationSiteArea(tenantID: string, chargingStation: ChargingStation) {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStationSiteArea');
     // Check Tenant
@@ -560,7 +560,7 @@ export default class ChargingStationStorage {
     return new ChargingStation(tenantID, result.value);
   }
 
-  static async deleteChargingStation(tenantID, id) {
+  public static async deleteChargingStation(tenantID: string, id: string) {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'deleteChargingStation');
     // Check Tenant
@@ -576,7 +576,7 @@ export default class ChargingStationStorage {
     Logging.traceEnd('ChargingStationStorage', 'deleteChargingStation', uniqueTimerID);
   }
 
-  static async getConfigurationParamValue(tenantID, chargeBoxID, paramName) {
+  public static async getConfigurationParamValue(tenantID: string, chargeBoxID: string, paramName: string) {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getConfigurationParamValue');
     // Check Tenant
@@ -603,31 +603,32 @@ export default class ChargingStationStorage {
     return value;
   }
 
-  static async getConfiguration(tenantID, chargeBoxID) {
+  public static async getConfiguration(tenantID: string, chargeBoxID: string) { // TODO: Typing configuration would be hard because of the setting variations
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getConfiguration');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
     const configurationsMDB = await global.database.getCollection<any>(tenantID, 'configurations')
-      .find({
+      .findOne({
         '_id': chargeBoxID
-      })
-      .limit(1)
-      .toArray();
+      });
     // Found?
     let configuration = null;
     if (configurationsMDB && configurationsMDB.length > 0) {
       // Set values
-      configuration = {};
-      Database.updateConfiguration(configurationsMDB[0], configuration);
+      configuration = {
+        id: configurationsMDB._id.toHexString(),
+        timestamp: Utils.convertToDate(configurationsMDB.timestamp),
+        configuration: configurationsMDB.configuration
+      };
     }
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'getConfiguration', uniqueTimerID);
     return configuration;
   }
 
-  static async removeChargingStationsFromSiteArea(tenantID, siteAreaID, chargingStationIDs) {
+  public static async removeChargingStationsFromSiteArea(tenantID: string, siteAreaID: string, chargingStationIDs: string[]): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'removeChargingStationsFromSiteArea');
     // Check Tenant
@@ -656,7 +657,7 @@ export default class ChargingStationStorage {
     });
   }
 
-  static async addChargingStationsToSiteArea(tenantID, siteAreaID, chargingStationIDs) {
+  public static async addChargingStationsToSiteArea(tenantID: string, siteAreaID: string, chargingStationIDs: string[]): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'addChargingStationsToSiteArea');
     // Check Tenant
