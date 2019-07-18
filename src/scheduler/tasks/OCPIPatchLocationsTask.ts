@@ -43,7 +43,7 @@ export default class OCPIPatchLocationsTask implements SchedulerTask {
   // eslint-disable-next-line no-unused-vars
   static async processOCPIEndpoint(ocpiEndpoint, config) {
     // Check if OCPI endpoint is registered
-    if (ocpiEndpoint.getStatus() != Constants.OCPI_REGISTERING_STATUS.OCPI_REGISTERED) {
+    if (ocpiEndpoint.getStatus() !== Constants.OCPI_REGISTERING_STATUS.OCPI_REGISTERED) {
       Logging.logDebug({
         tenantID: ocpiEndpoint.getTenantID(),
         module: 'OCPIPatchLocationsTask',
