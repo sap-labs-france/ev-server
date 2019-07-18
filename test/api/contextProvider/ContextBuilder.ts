@@ -18,7 +18,6 @@ import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
 import User from '../../../src/types/User';
 import UserFactory from '../../factories/UserFactory';
-import UserService from '../../../src/server/rest/service/UserService';
 import UserStorage from '../../../src/storage/mongodb/UserStorage';
 import Utils from '../../../src/utils/Utils';
 
@@ -64,7 +63,6 @@ export default class ContextBuilder {
         await this.superAdminCentralServerService.tenantApi.delete(tenantEntity.getID());
       }
     }
-
   }
 
   /**
