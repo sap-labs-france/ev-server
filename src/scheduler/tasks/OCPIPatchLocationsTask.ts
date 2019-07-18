@@ -4,10 +4,11 @@ import OCPIClient from '../../client/ocpi/OCPIClient';
 import OCPIEndpoint from '../../entity/OCPIEndpoint';
 import SchedulerTask from '../SchedulerTask';
 import Tenant from '../../entity/Tenant';
+import { TaskConfig } from '../TaskConfig';
 
-export default class OCPIPatchLocationsTask implements SchedulerTask {
+export default class OCPIPatchLocationsTask extends SchedulerTask {
 
-  static async processTenant(tenant, config) {
+  async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     try {
       // Check if OCPI component is active
       if (!tenant.isComponentActive(Constants.COMPONENTS.OCPI)) {
@@ -32,7 +33,7 @@ export default class OCPIPatchLocationsTask implements SchedulerTask {
       const ocpiEndpoints = await OCPIEndpoint.getOcpiEndpoints(tenant.getID());
 
       for (const ocpiEndpoint of ocpiEndpoints.result) {
-        await OCPIPatchLocationsTask.processOCPIEndpoint(ocpiEndpoint, config);
+        await this.processOCPIEndpoint(ocpiEndpoint);
       }
     } catch (error) {
       // Log error
@@ -41,7 +42,7 @@ export default class OCPIPatchLocationsTask implements SchedulerTask {
   }
 
   // eslint-disable-next-line no-unused-vars
-  static async processOCPIEndpoint(ocpiEndpoint, config) {
+  async processOCPIEndpoint(ocpiEndpoint) {
     // Check if OCPI endpoint is registered
     if (ocpiEndpoint.getStatus() !== Constants.OCPI_REGISTERING_STATUS.OCPI_REGISTERED) {
       Logging.logDebug({
@@ -82,13 +83,6 @@ export default class OCPIPatchLocationsTask implements SchedulerTask {
       method: 'patch', action: 'OCPIPatchLocations',
       message: `The patching Locations process for endpoint ${ocpiEndpoint.getName()} is completed (Success: ${sendResult.success}/Failure: ${sendResult.failure})`
     });
-  }
-
-  async run(config) {
-    const tenants = await Tenant.getTenants();
-    for (const tenant of tenants.result) {
-      OCPIPatchLocationsTask.processTenant(tenant, config);
-    }
   }
 }
 

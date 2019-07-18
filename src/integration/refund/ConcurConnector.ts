@@ -14,7 +14,6 @@ import Logging from '../../utils/Logging';
 import Site from '../../types/Site';
 import Transaction from '../../entity/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
-import User from '../../types/User';
 
 const MODULE_NAME = 'ConcurConnector';
 const CONNECTOR_ID = 'concur';
@@ -165,7 +164,280 @@ export default class ConcurConnector extends AbstractConnector {
     }
   }
 
-  async refreshToken(userId, connection) {
+  /**
+   *
+   * @param userId {string}
+   * @param transactions {Transaction}
+   * @param quickRefund
+   * @returns {Promise<Transaction[]>}
+   */
+  async refund(userId: string, transactions, quickRefund = false): Promise<any> {
+    const startDate = moment();
+    const refundedTransactions = [];
+    const connection = await this.getRefreshedConnection(userId);
+    let expenseReportId;
+
+    if (!quickRefund) {
+      expenseReportId = await this.createExpenseReport(connection, transactions[0].getTimezone(), userId);
+    }
+
+    await Promise.map(transactions,
+      async (transaction: Transaction) => {
+        try {
+          const chargingStation = await ChargingStation.getChargingStation(transaction.getTenantID(), transaction.getChargeBoxID());
+          const locationId = await this.getLocation(connection, await chargingStation.getSite());
+          if (quickRefund) {
+            const entryId = await this.createQuickExpense(connection, transaction, locationId, userId);
+            transaction.setRefundData({ refundId: entryId, type: 'quick', refundedAt: new Date() });
+          } else {
+            const entryId = await this.createExpenseReportEntry(connection, expenseReportId, transaction, locationId, userId);
+            transaction.setRefundData({
+              refundId: entryId,
+              type: 'report',
+              status: Constants.REFUND_TRANSACTION_SUBMITTED,
+              reportId: expenseReportId,
+              refundedAt: new Date()
+            });
+          }
+          await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
+          refundedTransactions.push(transaction);
+        } catch (exception) {
+          Logging.logException(exception, 'Refund', MODULE_NAME, MODULE_NAME, 'refund', this.getTenantID(), userId);
+        }
+      },
+      { concurrency: 10 });
+
+    Logging.logInfo({
+      tenantID: this.getTenantID(),
+      user: userId,
+      source: MODULE_NAME, action: 'Refund',
+      module: MODULE_NAME, method: 'Refund',
+      message: `${refundedTransactions.length} transactions have been transferred to Concur in ${moment().diff(startDate, 'milliseconds')} ms`
+    });
+
+    return refundedTransactions;
+  }
+
+  async updateRefundStatus(transaction: Transaction): Promise<any> {
+    const connection = await this.getRefreshedConnection(transaction.getUserID());
+    if (transaction.getRefundData()) {
+      const report = await this.getExpenseReport(connection, transaction.getRefundData().reportId);
+      if (report) {
+        if (report.ApprovalStatusCode === 'A_APPR') {
+          transaction.getRefundData().status = Constants.REFUND_TRANSACTION_APPROVED;
+          await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
+        }
+      } else {
+        transaction.getRefundData().status = Constants.REFUND_TRANSACTION_CANCELLED;
+        await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
+      }
+    }
+  }
+
+  async getLocation(connection, site: Site) {
+    let response = await axios.get(`${this.getApiUrl()}/api/v3.0/common/locations?city=${site.address.city}`, {
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${connection.getData().access_token}`
+      }
+    });
+    if (response.data && response.data.Items && response.data.Items.length > 0) {
+      return response.data.Items[0];
+    }
+    const company = site.company;
+    response = await axios.get(`${this.getApiUrl()}/api/v3.0/common/locations?city=${company.address.city}`, {
+      headers: {
+        Accept: 'application/json',
+        Authorization: `Bearer ${connection.getData().access_token}`
+      }
+    });
+    if (response.data && response.data.Items && response.data.Items.length > 0) {
+      return response.data.Items[0];
+    }
+
+    throw new AppError(
+      MODULE_NAME,
+      `The city '${site.address.city}' of the station is unknown to Concur`,
+      Constants.HTTP_CONCUR_CITY_UNKNOWN_ERROR,
+      MODULE_NAME, 'getLocation');
+  }
+
+  /**
+   *
+   * @param connection {Connection}
+   * @param transaction {Transaction}
+   * @param location
+   * @param userId
+   * @returns {Promise<string>}
+   */
+  async createQuickExpense(connection, transaction, location, userId: string) {
+    try {
+      const startDate = moment();
+      const response = await axios.post(`${this.getAuthenticationUrl()}/quickexpense/v4/users/${jwt.decode(connection.getData().access_token).sub}/context/TRAVELER/quickexpenses`, {
+        'comment': `Session started the ${moment.tz(transaction.getStartDate(), transaction.getTimezone()).format('YYYY-MM-DD HH:mm:ss')} during ${moment.duration(transaction.getStopTotalDurationSecs(), 'seconds').format('h[h]mm', { trim: false })}`,
+        'vendor': this.getReportName(),
+        'entryDetails': `Refund of transaction ${transaction.getID}`,
+        'expenseTypeID': this.getExpenseTypeCode(),
+        'location': {
+          'name': location.Name
+        },
+        'transactionAmount': {
+          'currencyCode': transaction.getStopPriceUnit(),
+          'value': transaction.getStopPrice()
+        },
+        'transactionDate': moment.tz(transaction.getStartDate(), transaction.getTimezone()).format('YYYY-MM-DD')
+      }, {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${connection.getData().access_token}`
+        }
+      });
+      Logging.logDebug({
+        tenantID: this.getTenantID(),
+        user: userId,
+        source: MODULE_NAME, action: 'Refund',
+        module: MODULE_NAME, method: 'createQuickExpense',
+        message: `Transaction ${transaction.getID()} has been successfully transferred in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
+      });
+      return response.data.quickExpenseIdUri;
+    } catch (e) {
+      if (e.response) {
+        throw new InternalError(`Unable to create quickExpense, response status ${e.response.status}`, e.response.data);
+      } else {
+        throw new InternalError('Unable to create expense report', e);
+      }
+    }
+  }
+
+  /**
+   *
+   * @param connection {Connection}
+   * @param expenseReportId {string}
+   * @param transaction {Transaction}
+   * @param location {Location}
+   * @param userId
+   * @returns {Promise<string>}
+   */
+  async createExpenseReportEntry(connection, expenseReportId, transaction, location, userId: string) {
+    try {
+      const startDate = moment();
+      const response = await axios.post(`${this.getApiUrl()}/api/v3.0/expense/entries`, {
+        'Description': `E-Mobility reimbursement ${moment.tz(transaction.getStartDate(), transaction.getTimezone()).format('YYYY-MM-DD')}`,
+        'Comment': `Session started the ${moment.tz(transaction.getStartDate(), transaction.getTimezone()).format('YYYY-MM-DD HH:mm:ss')} during ${moment.duration(transaction.getStopTotalDurationSecs(), 'seconds').format('h[h]mm', { trim: false })}`,
+        'VendorDescription': 'E-Mobility',
+        'Custom1': transaction.getID(),
+        'ExpenseTypeCode': this.getExpenseTypeCode(),
+        'IsBillable': true,
+        'IsPersonal': false,
+        'PaymentTypeID': this.getPaymentTypeID(),
+        'ReportID': expenseReportId,
+        'TaxReceiptType': 'N',
+        'TransactionAmount': transaction.getStopPrice(),
+        'TransactionCurrencyCode': transaction.getStopPriceUnit(),
+        'TransactionDate': moment.tz(transaction.getStartDate(), transaction.getTimezone()).format('YYYY-MM-DD'),
+        'SpendCategoryCode': 'COCAR',
+        'LocationID': location.ID
+
+      }, {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${connection.getData().access_token}`
+        }
+      });
+      Logging.logDebug({
+        tenantID: this.getTenantID(),
+        user: userId,
+        source: MODULE_NAME, action: 'Refund',
+        module: MODULE_NAME, method: 'createExpenseReportEntry',
+        message: `Transaction ${transaction.getID()} has been successfully transferred in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
+      });
+      return response.data.ID;
+    } catch (e) {
+      if (e.response) {
+        throw new InternalError(`Unable to create expense entry, response status ${e.response.status}`, e.response.data);
+      } else {
+        throw new InternalError('Unable to create expense entry', e);
+      }
+    }
+  }
+
+  /**
+   *
+   * @param connection
+   * @param timezone
+   * @param userId
+   * @returns {Promise<void>}
+   */
+  async createExpenseReport(connection, timezone, userId: string) {
+    try {
+      const startDate = moment();
+      const response = await axios.post(`${this.getApiUrl()}/api/v3.0/expense/reports`, {
+        'Name': `${this.getReportName()} - ${moment.tz(timezone).format('DD/MM/YY HH:mm')}`,
+        'PolicyID': this.getPolicyID()
+      }, {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${connection.getData().access_token}`
+        }
+      });
+      Logging.logDebug({
+        tenantID: this.getTenantID(),
+        user: userId,
+        source: MODULE_NAME, action: 'Refund',
+        module: MODULE_NAME, method: 'createExpenseReport',
+        message: `Report has been successfully created in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
+      });
+      return response.data.ID;
+    } catch (e) {
+      if (e.response) {
+        throw new InternalError(`Unable to create expense report, response status ${e.response.status}`, e.response.data);
+      } else {
+        throw new InternalError('Unable to create expense report', e);
+      }
+    }
+  }
+
+  getRetryCount(response) {
+    if (response && response.config) {
+      return response.config['axios-retry'].retryCount;
+    }
+    return 0;
+  }
+
+  private async getExpenseReport(connection, reportId) {
+    try {
+      const response = await axios.get(`${this.getApiUrl()}/api/v3.0/expense/reports/${reportId}`, {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${connection.getData().access_token}`
+        }
+      });
+      return response.data;
+    } catch (error) {
+      if (error.response.status === 404) {
+        return null;
+      }
+      throw new InternalError(`Unable to get report details, response status 
+        ${error.response.status}`, error.response.data);
+    }
+  }
+
+  private async getExpenseReports(connection) {
+    try {
+
+      const response = await axios.get(`${this.getApiUrl()}/api/v3.0/expense/reports?approvalStatusCode=A_NOTF`, {
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${connection.getData().access_token}`
+        }
+      });
+      return response.data.Items;
+    } catch (e) {
+      throw new InternalError(`Unable to get expense reports, response status ${e.response.status}`, e.response.data);
+    }
+  }
+
+  private async refreshToken(userId, connection) {
     try {
       const startDate = moment();
       const response = await axios.post(`${this.getAuthenticationUrl()}/oauth2/v0/token`,
@@ -204,267 +476,20 @@ export default class ConcurConnector extends AbstractConnector {
     }
   }
 
-  /**
-   *
-   * @param user {User}
-   * @param transactions {Transaction}
-   * @param quickRefund
-   * @returns {Promise<Transaction[]>}
-   */
-  async refund(user: User, transactions, quickRefund = false): Promise<any> {
-    const startDate = moment();
-    const refundedTransactions = [];
-    let connection = await this.getConnectionByUserId(user.id);
+  private async getRefreshedConnection(userId: string) {
+    let connection = await this.getConnectionByUserId(userId);
     if (!connection) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The user with ID '${user.id}' does not have a connection to connector '${CONNECTOR_ID}'`,
+        `The user with ID '${userId}' does not have a connection to connector '${CONNECTOR_ID}'`,
         Constants.HTTP_CONCUR_NO_CONNECTOR_CONNECTION_ERROR,
-        'TransactionService', 'handleRefundTransactions', user);
+        'TransactionService', 'getRefreshedConnection', userId);
     }
 
     if (ConcurConnector.isTokenExpired(connection)) {
-      connection = await this.refreshToken(user.id, connection);
+      connection = await this.refreshToken(userId, connection);
     }
-    let expenseReportId;
-
-    if (!quickRefund) {
-      expenseReportId = await this.createExpenseReport(connection, transactions[0].getTimezone(), user);
-    }
-
-    await Promise.map(transactions,
-      async (transaction: Transaction) => {
-        try {
-          const chargingStation = await ChargingStation.getChargingStation(transaction.getTenantID(), transaction.getChargeBoxID());
-          const locationId = await this.getLocation(connection, await chargingStation.getSite());
-          if (quickRefund) {
-            const entryId = await this.createQuickExpense(connection, transaction, locationId, user);
-            transaction.setRefundData({ refundId: entryId, type: 'quick', refundedAt: new Date() });
-          } else {
-            const entryId = await this.createExpenseReportEntry(connection, expenseReportId, transaction, locationId, user);
-            transaction.setRefundData({
-              refundId: entryId,
-              type: 'report',
-              reportId: expenseReportId,
-              refundedAt: new Date()
-            });
-          }
-          await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
-          refundedTransactions.push(transaction);
-        } catch (exception) {
-          Logging.logException(exception, 'Refund', MODULE_NAME, MODULE_NAME, 'refund', this.getTenantID(), user);
-        }
-      },
-      { concurrency: 10 });
-
-    Logging.logInfo({
-      tenantID: this.getTenantID(),
-      user: user.id,
-      source: MODULE_NAME, action: 'Refund',
-      module: MODULE_NAME, method: 'Refund',
-      message: `${refundedTransactions.length} transactions have been transferred to Concur in ${moment().diff(startDate, 'milliseconds')} ms`
-    });
-
-    return refundedTransactions;
-  }
-
-  async getReportDetails(connection, reportId) {
-    try {
-
-      const response = await axios.get(`${this.getApiUrl()}/api/expense/expensereport/v2.0/report/${reportId}`, {
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${connection.getData().access_token}`
-        }
-      });
-      return response.data;
-    } catch (e) {
-      throw new InternalError(`Unable to get report details, response status ${e.response.status}`, e.response.data);
-    }
-  }
-
-  async getExpenseReports(connection) {
-    try {
-
-      const response = await axios.get(`${this.getApiUrl()}/api/v3.0/expense/reports?approvalStatusCode=A_NOTF`, {
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${connection.getData().access_token}`
-        }
-      });
-      return response.data.Items;
-    } catch (e) {
-      throw new InternalError(`Unable to get expense reports, response status ${e.response.status}`, e.response.data);
-    }
-  }
-
-  async getLocation(connection, site: Site) {
-    let response = await axios.get(`${this.getApiUrl()}/api/v3.0/common/locations?city=${site.address.city}`, {
-      headers: {
-        Accept: 'application/json',
-        Authorization: `Bearer ${connection.getData().access_token}`
-      }
-    });
-    if (response.data && response.data.Items && response.data.Items.length > 0) {
-      return response.data.Items[0];
-    }
-    const company = site.company;
-    response = await axios.get(`${this.getApiUrl()}/api/v3.0/common/locations?city=${company.address.city}`, {
-      headers: {
-        Accept: 'application/json',
-        Authorization: `Bearer ${connection.getData().access_token}`
-      }
-    });
-    if (response.data && response.data.Items && response.data.Items.length > 0) {
-      return response.data.Items[0];
-    }
-
-    throw new AppError(
-      MODULE_NAME,
-      `The city '${site.address.city}' of the station is unknown to Concur`,
-      Constants.HTTP_CONCUR_CITY_UNKNOWN_ERROR,
-      MODULE_NAME, 'getLocation');
-  }
-
-  /**
-   *
-   * @param connection {Connection}
-   * @param transaction {Transaction}
-   * @param location
-   * @param user
-   * @returns {Promise<string>}
-   */
-  async createQuickExpense(connection, transaction, location, user: User) {
-    try {
-      const startDate = moment();
-      const response = await axios.post(`${this.getAuthenticationUrl()}/quickexpense/v4/users/${jwt.decode(connection.getData().access_token).sub}/context/TRAVELER/quickexpenses`, {
-        'comment': `Session started the ${moment.tz(transaction.getStartDate(), transaction.getTimezone()).format('YYYY-MM-DD HH:mm:ss')} during ${moment.duration(transaction.getStopTotalDurationSecs(), 'seconds').format('h[h]mm', { trim: false })}`,
-        'vendor': this.getReportName(),
-        'entryDetails': `Refund of transaction ${transaction.getID}`,
-        'expenseTypeID': this.getExpenseTypeCode(),
-        'location': {
-          'name': location.Name
-        },
-        'transactionAmount': {
-          'currencyCode': transaction.getStopPriceUnit(),
-          'value': transaction.getStopPrice()
-        },
-        'transactionDate': moment.tz(transaction.getStartDate(), transaction.getTimezone()).format('YYYY-MM-DD')
-      }, {
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${connection.getData().access_token}`
-        }
-      });
-      Logging.logDebug({
-        tenantID: this.getTenantID(),
-        user: user.id,
-        source: MODULE_NAME, action: 'Refund',
-        module: MODULE_NAME, method: 'createQuickExpense',
-        message: `Transaction ${transaction.getID()} has been successfully transferred in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
-      });
-      return response.data.quickExpenseIdUri;
-    } catch (e) {
-      if (e.response) {
-        throw new InternalError(`Unable to create quickExpense, response status ${e.response.status}`, e.response.data);
-      } else {
-        throw new InternalError('Unable to create expense report', e);
-      }
-    }
-  }
-
-  /**
-   *
-   * @param connection {Connection}
-   * @param expenseReportId {string}
-   * @param transaction {Transaction}
-   * @param location {Location}
-   * @param user
-   * @returns {Promise<string>}
-   */
-  async createExpenseReportEntry(connection, expenseReportId, transaction, location, user: User) {
-    try {
-      const startDate = moment();
-      const response = await axios.post(`${this.getApiUrl()}/api/v3.0/expense/entries`, {
-        'Description': `E-Mobility reimbursement ${moment.tz(transaction.getStartDate(), transaction.getTimezone()).format('YYYY-MM-DD')}`,
-        'Comment': `Session started the ${moment.tz(transaction.getStartDate(), transaction.getTimezone()).format('YYYY-MM-DD HH:mm:ss')} during ${moment.duration(transaction.getStopTotalDurationSecs(), 'seconds').format('h[h]mm', { trim: false })}`,
-        'VendorDescription': 'E-Mobility',
-        'Custom1': transaction.getID(),
-        'ExpenseTypeCode': this.getExpenseTypeCode(),
-        'IsBillable': true,
-        'IsPersonal': false,
-        'PaymentTypeID': this.getPaymentTypeID(),
-        'ReportID': expenseReportId,
-        'TaxReceiptType': 'N',
-        'TransactionAmount': transaction.getStopPrice(),
-        'TransactionCurrencyCode': transaction.getStopPriceUnit(),
-        'TransactionDate': moment.tz(transaction.getStartDate(), transaction.getTimezone()).format('YYYY-MM-DD'),
-        'SpendCategoryCode': 'COCAR',
-        'LocationID': location.ID
-
-      }, {
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${connection.getData().access_token}`
-        }
-      });
-      Logging.logDebug({
-        tenantID: this.getTenantID(),
-        user: user.id,
-        source: MODULE_NAME, action: 'Refund',
-        module: MODULE_NAME, method: 'createExpenseReportEntry',
-        message: `Transaction ${transaction.getID()} has been successfully transferred in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
-      });
-      return response.data.ID;
-    } catch (e) {
-      if (e.response) {
-        throw new InternalError(`Unable to create expense entry, response status ${e.response.status}`, e.response.data);
-      } else {
-        throw new InternalError('Unable to create expense entry', e);
-      }
-    }
-  }
-
-  /**
-   *
-   * @param connection
-   * @param timezone
-   * @returns {Promise<void>}
-   */
-  async createExpenseReport(connection, timezone, user: User) {
-    try {
-      const startDate = moment();
-      const response = await axios.post(`${this.getApiUrl()}/api/v3.0/expense/reports`, {
-        'Name': `${this.getReportName()} - ${moment.tz(timezone).format('DD/MM/YY HH:mm')}`,
-        'PolicyID': this.getPolicyID()
-      }, {
-        headers: {
-          Accept: 'application/json',
-          Authorization: `Bearer ${connection.getData().access_token}`
-        }
-      });
-      Logging.logDebug({
-        tenantID: this.getTenantID(),
-        user: user.id,
-        source: MODULE_NAME, action: 'Refund',
-        module: MODULE_NAME, method: 'createExpenseReport',
-        message: `Report has been successfully created in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
-      });
-      return response.data.ID;
-    } catch (e) {
-      if (e.response) {
-        throw new InternalError(`Unable to create expense report, response status ${e.response.status}`, e.response.data);
-      } else {
-        throw new InternalError('Unable to create expense report', e);
-      }
-    }
-  }
-
-  getRetryCount(response) {
-    if (response && response.config) {
-      return response.config['axios-retry'].retryCount;
-    }
-    return 0;
+    return connection;
   }
 
 }

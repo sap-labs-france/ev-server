@@ -82,6 +82,7 @@ class RequestMapper {
           RemoveSitesFromUser: UserService.handleAssignSitesToUser,
           SiteAreaCreate: SiteAreaService.handleCreateSiteArea,
           TransactionsRefund: TransactionService.handleRefundTransactions,
+          SynchronizeRefundedTransactions: TransactionService.handleSynchronizeRefundedTransactions,
           SettingCreate: SettingService.handleCreateSetting,
           OcpiEndpointCreate: OCPIEndpointService.handleCreateOcpiEndpoint,
           OcpiEndpointPing: OCPIEndpointService.handlePingOcpiEndpoint,
