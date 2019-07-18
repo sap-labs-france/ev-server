@@ -39,9 +39,13 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
     const transactions = await TransactionStorage.getTransactions(tenant.getID(), {
       'type': 'refunded',
       'refundStatus': Constants.REFUND_TRANSACTION_SUBMITTED
-    }, Constants.NO_LIMIT, 0, {
-      'userID': 1,
-      'refundData.reportId': 1
+    }, {
+      limit: Constants.DB_RECORD_COUNT_NO_LIMIT,
+      skip: 0,
+      sort: {
+        'userID': 1,
+        'refundData.reportId': 1
+      }
     });
 
     Logging.logDebug({
