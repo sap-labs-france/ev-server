@@ -151,7 +151,7 @@ export default class ContextBuilder {
     // Create Tenant component settings
     if (tenantContextDef.componentSettings) {
       console.log(`settings in tenant ${buildTenant.name} as ${JSON.stringify(tenantContextDef.componentSettings)}`);
-      const allSettings: any = await localCentralServiceService.settingApi.readAll({}, { limit: Constants.DB_RECORD_COUNT_CEIL, skip: 0 });
+      const allSettings: any = await localCentralServiceService.settingApi.readAll({}, Constants.DB_PARAMS_MAX_LIMIT);
       for (const setting in tenantContextDef.componentSettings) {
         let foundSetting: any = null;
         if (allSettings && allSettings.data && allSettings.data.result && allSettings.data.result.length > 0) {
