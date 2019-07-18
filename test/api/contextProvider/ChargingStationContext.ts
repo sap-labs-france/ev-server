@@ -1,6 +1,8 @@
 import faker from 'faker';
 import TenantContext from './TenantContext';
 import Utils from '../../../src/utils/Utils';
+import CentralServerService from '../client/CentralServerService';
+import CONTEXTS from '../contextProvider/ContextConstants';
 
 export default class ChargingStationContext {
 
@@ -8,6 +10,7 @@ export default class ChargingStationContext {
   private tenantContext: TenantContext;
   private transactionsStarted: any;
   private transactionsStopped: any;
+  private userService: CentralServerService;
 
   constructor(chargingStation, tenantContext) {
     this.chargingStation = chargingStation;
@@ -39,6 +42,21 @@ export default class ChargingStationContext {
     const response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeAuthorize(this.chargingStation.id, {
       idTag: tagId
     });
+    return response;
+  }
+
+  async readChargingStation(userService?: CentralServerService) {
+    if (userService) {
+      this.userService = userService;
+    } else if (!this.userService) {
+      this.userService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN));
+    }
+    const response = await this.userService.chargingStationApi.readById(this.chargingStation.id);
+    return response;
+  }
+
+  async sendHeartbeat() {
+    const response = await await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeHeartbeat(this.chargingStation.id, {});
     return response;
   }
 
@@ -140,12 +158,16 @@ export default class ChargingStationContext {
   }
 
   async setConnectorStatus(connectorId, status, timestamp) {
-    const connector = Utils.duplicateJSON(this.chargingStation.connectors[connectorId]);
-    connector.status = status;
-    connector.timestamp = timestamp.toISOString();
+    // const connector = Utils.duplicateJSON(this.chargingStation.connectors[connectorId]);
+    const connector = {
+      connectorId: connectorId,
+      status: status,
+      errorCode: 'NoError',
+      timestamp: timestamp.toISOString()
+    };
     const response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeStatusNotification(this.chargingStation.id, connector);
-    this.chargingStation.connectors[connectorId].status = connector.status;
-    this.chargingStation.connectors[connectorId].timestamp = connector.timestamp;
+    this.chargingStation.connectors[connectorId - 1].status = connector.status;
+    this.chargingStation.connectors[connectorId - 1].timestamp = connector.timestamp;
     return response;
   }
 
