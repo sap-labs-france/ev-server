@@ -317,9 +317,11 @@ export default class SiteAreaStorage {
       .find({ siteID: { $in: siteIDs.map((id) => {
         return Utils.convertToObjectID(id);
       }) } })
-      .project({ _id: 1 }).toArray()).map((idWrapper) => {
+      .project({ _id: 1 }).toArray()).map((idWrapper): string => {
+      /* eslint-disable @typescript-eslint/indent */
         return idWrapper._id.toHexString();
       });
+    /* eslint-enable @typescript-eslint/indent */
     // Delete site areas
     await SiteAreaStorage.deleteSiteAreas(tenantID, siteareas);
     // Debug
