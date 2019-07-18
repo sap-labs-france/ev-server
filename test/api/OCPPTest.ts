@@ -1,12 +1,10 @@
 import chai, { expect } from 'chai';
-
-import CONTEXTS from './contextProvider/ContextConstants';
-import ContextProvider from './contextProvider/ContextProvider';
 import chaiDateTime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
 import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
-
+import CONTEXTS from './contextProvider/ContextConstants';
+import ContextProvider from './contextProvider/ContextProvider';
 
 chai.use(chaiDateTime);
 chai.use(chaiSubset);
