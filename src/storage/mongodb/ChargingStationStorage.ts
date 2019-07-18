@@ -3,6 +3,7 @@ import ChargingStation from '../../entity/ChargingStation';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import SiteArea from '../../types/SiteArea';
@@ -53,7 +54,7 @@ export default class ChargingStationStorage {
     return chargingStation;
   }
 
-  static async getChargingStations(tenantID, params: any = {}, limit?, skip?, sort?): Promise<{count: number; result: ChargingStation[]}> {
+  static async getChargingStations(tenantID, params: any = {}, { limit, onlyRecordCount, skip, sort }: DbParams): Promise<{count: number; result: ChargingStation[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
     // Check Tenant
@@ -134,16 +135,16 @@ export default class ChargingStationStorage {
       $match: filters
     });
     // Limit records?
-    if (!params.onlyRecordCount) {
+    if (!onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
     const chargingStationsCountMDB = await global.database.getCollection<any>(tenantID, 'chargingstations')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
-    if (params.onlyRecordCount) {
+    if (onlyRecordCount) {
       // Return only the count
       return {
         count: (chargingStationsCountMDB.length > 0 ? chargingStationsCountMDB[0].count : 0),
@@ -208,12 +209,12 @@ export default class ChargingStationStorage {
     // Ok
     return {
       count: (chargingStationsCountMDB.length > 0 ?
-        (chargingStationsCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : chargingStationsCountMDB[0].count) : 0),
+        (chargingStationsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : chargingStationsCountMDB[0].count) : 0),
       result: chargingStations
     };
   }
 
-  static async getChargingStationsInError(tenantID, params: any = {}, limit?, skip?, sort?) {
+  static async getChargingStationsInError(tenantID, params: any = {}, { limit, skip, sort, onlyRecordCount }: DbParams) {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
     // Check Tenant
@@ -338,16 +339,16 @@ export default class ChargingStationStorage {
     aggregation.push({ $addFields: { 'uniqueId': { $concat: ['$_id', '#', '$errorCode'] } } });
 
     // Limit records?
-    if (!params.onlyRecordCount) {
+    if (!onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
     const chargingStationsCountMDB = await global.database.getCollection<any>(tenantID, 'chargingstations')
       .aggregate([...aggregation, { $count: 'count' }])
       .toArray();
     // Check if only the total count is requested
-    if (params.onlyRecordCount) {
+    if (onlyRecordCount) {
       // Return only the count
       return {
         count: (chargingStationsCountMDB.length > 0 ? chargingStationsCountMDB[0].count : 0),
@@ -415,7 +416,7 @@ export default class ChargingStationStorage {
     // Ok
     return {
       count: (chargingStationsCountMDB.length > 0 ?
-        (chargingStationsCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : chargingStationsCountMDB[0].count) : 0),
+        (chargingStationsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : chargingStationsCountMDB[0].count) : 0),
       result: chargingStations
     };
   }

@@ -61,11 +61,14 @@ export default class NotificationHandler {
 
   static async getAdminUsers(tenantID: string): Promise<User[]> {
     // Get admin users
-    const adminUsers = await UserStorage.getUsers(tenantID, { roles: [Constants.ROLE_ADMIN] }, { limit: 0, skip: 0 });
+    const adminUsers = await UserStorage.getUsers(tenantID, { roles: [Constants.ROLE_ADMIN] },
+      Constants.DB_PARAMS_MAX_LIMIT);
     // Found
     if (adminUsers.count > 0) {
       // Check if notification is active
-      adminUsers.result = adminUsers.result.filter((adminUser) => adminUser.notificationsActive);
+      adminUsers.result = adminUsers.result.filter((adminUser) => {
+        return adminUser.notificationsActive;
+      });
       return adminUsers.result;
     }
   }

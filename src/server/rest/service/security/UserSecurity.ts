@@ -87,7 +87,7 @@ export default class UserSecurity {
     // Admin?
     if (Authorizations.isAdmin(loggedUser.role) || Authorizations.isSuperAdmin(loggedUser.role)) {
       // Ok to set the sensitive data
-      if (request.notificationsActive) {
+      if (request.hasOwnProperty('notificationsActive')) {
         filteredRequest.notificationsActive = sanitize(request.notificationsActive);
       }
       if (request.email) {

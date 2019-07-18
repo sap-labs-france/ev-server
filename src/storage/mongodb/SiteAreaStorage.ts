@@ -41,9 +41,9 @@ export default class SiteAreaStorage {
     await Utils.checkTenant(tenantID);
     // Exec
     const siteAreaResult = await SiteAreaStorage.getSiteAreas(
-      tenantID, { search: id, onlyRecordCount: false,
+      tenantID, { search: id,
         withSite: params.withSite, withChargeBoxes: params.withChargeBoxes, withAvailableChargers: true },
-      { limit: 1, skip: 0 }
+      { limit: 1, skip: 0, onlyRecordCount: false }
     );
     // Debug
     Logging.traceEnd('SiteAreaStorage', 'getSiteArea', uniqueTimerID, { id, withChargeBoxes: params.withChargeBoxes, withSite: params.withSite });
@@ -91,7 +91,7 @@ export default class SiteAreaStorage {
   }
 
   public static async getSiteAreas(tenantID: string,
-    params: {search?: string; sites?: string[]; siteIDs?: string[]; onlyRecordCount?: boolean; withSite?: boolean;
+    params: {search?: string; siteID?: string; siteIDs?: string[]; withSite?: boolean;
       withChargeBoxes?: boolean; withAvailableChargers?: boolean; } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: SiteArea[]}> {
     // Debug
@@ -147,16 +147,16 @@ export default class SiteAreaStorage {
           asField: 'site', oneToOneCardinality: true });
     }
     // Limit records?
-    if (!params.onlyRecordCount) {
+    if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
     const siteAreasCountMDB = await global.database.getCollection<{count: number}>(tenantID, 'siteareas')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
-    if (params.onlyRecordCount) {
+    if (dbParams.onlyRecordCount) {
       // Return only the count
       return {
         count: (siteAreasCountMDB.length > 0 ? siteAreasCountMDB[0].count : 0),
@@ -268,7 +268,7 @@ export default class SiteAreaStorage {
     // Ok
     return {
       count: (siteAreasCountMDB.length > 0 ?
-        (siteAreasCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : siteAreasCountMDB[0].count) : 0),
+        (siteAreasCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : siteAreasCountMDB[0].count) : 0),
       result: siteAreas
     };
   }

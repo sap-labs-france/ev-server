@@ -1,6 +1,7 @@
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
 import global from './../../types/GlobalType';
 import Utils from '../../utils/Utils';
 
@@ -84,7 +85,7 @@ export default class LoggingStorage {
     return logging;
   }
 
-  public static async getLogs(tenantID, params: any = {}, limit?, skip?, sort?) {
+  public static async getLogs(tenantID, params: any = {}, { limit, sort, skip, onlyRecordCount }: DbParams) {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
@@ -178,15 +179,15 @@ export default class LoggingStorage {
     }
     // Count Records
     // Limit records?
-    if (!params.onlyRecordCount) {
+    if (!onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     const loggingsCountMDB = await global.database.getCollection<any>(tenantID, 'logs')
       .aggregate([...aggregation, { $count: 'count' }], { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
     // Check if only the total count is requested
-    if (params.onlyRecordCount) {
+    if (onlyRecordCount) {
       // Return only the count
       return {
         count: (loggingsCountMDB.length > 0 ? loggingsCountMDB[0].count : 0),
@@ -256,7 +257,7 @@ export default class LoggingStorage {
     // Ok
     return {
       count: (loggingsCountMDB.length > 0 ?
-        (loggingsCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : loggingsCountMDB[0].count) : 0),
+        (loggingsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : loggingsCountMDB[0].count) : 0),
       result: loggings
     };
   }

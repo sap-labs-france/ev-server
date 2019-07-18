@@ -142,7 +142,7 @@ export default class UserStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserByEmail');
     // Get user
-    const user = await UserStorage.getUsers(tenantID, { email: email }, { limit: 1, skip: 0 });
+    const user = await UserStorage.getUsers(tenantID, { email: email }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('UserStorage', 'getUserByEmail', uniqueTimerID, { email });
     return user.count > 0 ? user.result[0] : null;
@@ -152,7 +152,7 @@ export default class UserStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUser');
     // Get user
-    const user = await UserStorage.getUsers(tenantID, { userID: userID }, { limit: 1, skip: 0 });
+    const user = await UserStorage.getUsers(tenantID, { userID: userID }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('UserStorage', 'getUser', uniqueTimerID, { userID });
     return user.count > 0 ? user.result[0] : null;
@@ -206,14 +206,13 @@ export default class UserStorage {
     if (userID) {
       // At least one Site
       if (siteIDs && siteIDs.length > 0) {
-        // Create the list
-        for (const siteID of siteIDs) {
-          // Execute
-          await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
-            'userID': Utils.convertToObjectID(userID),
-            'siteID': Utils.convertToObjectID(siteID)
-          });
-        }
+        // Create the lis
+        await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
+          'userID': Utils.convertToObjectID(userID),
+          'siteID': { $in: siteIDs.map((siteID) => {
+            return Utils.convertToObjectID(siteID);
+          }) }
+        });
       }
     }
     // Debug
@@ -332,9 +331,9 @@ export default class UserStorage {
   }
 
   public static async getUsers(tenantID: string,
-      params: {notificationsActive?: boolean, sites?: string[], excludeSiteID?: string, search?: string, userID?: string, email?: string,
-        roles?: string[], statuses?: string[], withImage?: boolean},
-        {limit, skip, onlyRecordCount, sort}: DbParams) {
+    params: {notificationsActive?: boolean; siteIDs?: string; excludeSiteID?: string; search?: string; userID?: string; email?: string;
+      roles?: string; statuses?: string[]; withImage?: boolean; },
+    { limit, skip, onlyRecordCount, sort }: DbParams, projectFields?: string[]) {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
     // Check Tenant
@@ -409,7 +408,6 @@ export default class UserStorage {
     // Project tag IDs
     aggregation.push({
       $addFields: {
-        id: { $toString: '$_id' },
         tagIDs: {
           $map: {
             input: '$tagIDs',
@@ -419,6 +417,10 @@ export default class UserStorage {
         }
       }
     });
+    // Change ID
+    DatabaseUtils.renameDatabaseID(aggregation);
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Add Site
@@ -450,7 +452,7 @@ export default class UserStorage {
     // Limit records?
     if (!onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
     const usersCountMDB = await global.database.getCollection<any>(tenantID, 'users')
@@ -483,11 +485,6 @@ export default class UserStorage {
     // Limit
     aggregation.push({
       $limit: limit
-    },
-    {
-      $project: {
-        _id: 0
-      }
     });
     // Read DB
     const usersMDB = await global.database.getCollection<User>(tenantID, 'users')
@@ -502,7 +499,7 @@ export default class UserStorage {
     // Ok
     return {
       count: (usersCountMDB.length > 0 ?
-        (usersCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : usersCountMDB[0].count) : 0),
+        (usersCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : usersCountMDB[0].count) : 0),
       result: usersMDB
     };
   }
@@ -529,7 +526,7 @@ export default class UserStorage {
   }
 
   public static async getSites(tenantID: string,
-    params: { search?: string; userID: string; siteAdmin?: boolean; onlyRecordCount?: boolean },
+    params: { search?: string; userID: string; siteAdmin?: boolean },
     dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: SiteUser[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getSites');
@@ -574,7 +571,7 @@ export default class UserStorage {
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
     const sitesCountMDB = await global.database.getCollection<any>(tenantID, 'siteusers')
@@ -625,7 +622,7 @@ export default class UserStorage {
     // Ok
     return {
       count: (sitesCountMDB.length > 0 ?
-        (sitesCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : sitesCountMDB[0].count) : 0),
+        (sitesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : sitesCountMDB[0].count) : 0),
       result: sites
     };
   }

@@ -20,7 +20,7 @@ export default class SiteStorage {
     const sitesMDB = await SiteStorage.getSites(tenantID, {
       search: id,
       withCompany: true,
-    }, { limit: 1, skip: 0 });
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('SiteStorage', 'getSite', uniqueTimerID, { id });
     return sitesMDB.result[0];
@@ -100,7 +100,7 @@ export default class SiteStorage {
   }
 
   public static async getUsers(tenantID: string,
-    params: { search?: string; siteID: string; onlyRecordCount?: boolean },
+    params: { search?: string; siteID: string},
     dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: UserSite[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getUsers');
@@ -146,7 +146,7 @@ export default class SiteStorage {
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
     const usersCountMDB = await global.database.getCollection<{count: number}>(tenantID, 'siteusers')
@@ -198,7 +198,7 @@ export default class SiteStorage {
     // Ok
     return {
       count: (usersCountMDB.length > 0 ?
-        (usersCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : usersCountMDB[0].count) : 0),
+        (usersCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : usersCountMDB[0].count) : 0),
       result: users
     };
   }
@@ -278,8 +278,8 @@ export default class SiteStorage {
 
   public static async getSites(tenantID: string,
     params: {
-      search?: string; companies?: string[]; withAutoUserAssignment?: boolean; siteIDs?: string[];
-      userID?: string; excludeSitesOfUserID?: boolean; onlyRecordCount?: boolean;
+      search?: string; companyIDs?: string; withAutoUserAssignment?: boolean; siteIDs?: string[];
+      userID?: string; excludeSitesOfUserID?: boolean;
       withAvailableChargers?: boolean; withCompany?: boolean; } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: Site[]}> {
     // Debug
@@ -342,15 +342,15 @@ export default class SiteStorage {
       $match: filters
     });
     // Limit records?
-    if (!params.onlyRecordCount) {
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+    if (!dbParams.onlyRecordCount) {
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
     const sitesCountMDB = await global.database.getCollection<any>(tenantID, 'sites')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
-    if (params.onlyRecordCount) {
+    if (dbParams.onlyRecordCount) {
       return {
         count: (sitesCountMDB.length > 0 ? sitesCountMDB[0].count : 0),
         result: []
@@ -403,7 +403,8 @@ export default class SiteStorage {
         if (params.withAvailableChargers) {
           let availableChargers = 0, totalChargers = 0, availableConnectors = 0, totalConnectors = 0;
           // Get te chargers
-          const chargingStations = await ChargingStationStorage.getChargingStations(tenantID, { siteIDs: [siteMDB.id] }, Constants.MAX_DB_RECORD_COUNT, 0);
+          const chargingStations = await ChargingStationStorage.getChargingStations(tenantID,
+            { siteIDs: [siteMDB.id] }, Constants.DB_PARAMS_MAX_LIMIT );
           for (const chargingStation of chargingStations.result) {
             // Set Inactive flag
             chargingStation.setInactive(DatabaseUtils.chargingStationIsInactive(chargingStation.getModel()));
@@ -456,7 +457,7 @@ export default class SiteStorage {
     // Ok
     return {
       count: (sitesCountMDB.length > 0 ?
-        (sitesCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : sitesCountMDB[0].count) : 0),
+        (sitesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : sitesCountMDB[0].count) : 0),
       result: sites
     };
   }

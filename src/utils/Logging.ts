@@ -267,8 +267,8 @@ export default class Logging {
     return LoggingStorage.getLog(tenantID, id);
   }
 
-  public static getLogs(tenantID, params, limit, skip, sort): any {
-    return LoggingStorage.getLogs(tenantID, params, limit, skip, sort);
+  public static getLogs(tenantID, params, dbParams): any {
+    return LoggingStorage.getLogs(tenantID, params, dbParams);
   }
 
   private static _logActionExceptionMessage(tenantID, action, exception): void {

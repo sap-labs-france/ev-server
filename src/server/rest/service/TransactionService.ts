@@ -462,7 +462,7 @@ export default class TransactionService {
       // Filter
       const filteredRequest = TransactionSecurity.filterTransactionsActiveRequest(req.query, req.user);
       if (filteredRequest.ChargeBoxID) {
-        filter.chargingStations = filteredRequest.ChargeBoxID.split('|');
+        filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
       }
       if (filteredRequest.SiteAreaID) {
         filter.siteAreas = filteredRequest.SiteAreaID.split('|');
@@ -471,18 +471,18 @@ export default class TransactionService {
         filter.siteID = filteredRequest.SiteID;
       }
       if (filteredRequest.UserID) {
-        filter.users = filteredRequest.UserID.split('|');
+        filter.userIDs = filteredRequest.UserID.split('|');
       }
-      if (Authorizations.isBasic(req.user)) {
-        filter.users = [req.user.id];
+      if (Authorizations.isBasic(req.user.role)) {
+        filter.userIDs = [req.user.id];
       }
       if (filteredRequest.ConnectorId) {
         filter.connectorId = filteredRequest.ConnectorId;
       }
       // Get Transactions
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-        { ...filter, 'withChargeBoxes': true, 'onlyRecordCount': filteredRequest.OnlyRecordCount },
-        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+        { ...filter, 'withChargeBoxes': true },
+        { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
       // Filter
       TransactionSecurity.filterTransactionsResponse(transactions, req.user);
       // Return
@@ -511,16 +511,16 @@ export default class TransactionService {
       // Filter
       const filteredRequest = TransactionSecurity.filterTransactionsCompletedRequest(req.query, req.user);
       if (filteredRequest.ChargeBoxID) {
-        filter.chargingStations = filteredRequest.ChargeBoxID.split('|');
+        filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
       }
       if (filteredRequest.SiteAreaID) {
         filter.siteAreas = filteredRequest.SiteAreaID.split('|');
       }
       if (filteredRequest.UserID) {
-        filter.users = filteredRequest.UserID.split('|');
+        filter.userIDs = filteredRequest.UserID.split('|');
       }
       if (Authorizations.isBasic(req.user)) {
-        filter.users = [req.user.id];
+        filter.userIDs = [req.user.id];
       }
       if (filteredRequest.StartDateTime) {
         filter.startDateTime = filteredRequest.StartDateTime;
@@ -541,10 +541,9 @@ export default class TransactionService {
         {
           ...filter,
           'search': filteredRequest.Search,
-          'siteID': filteredRequest.SiteID,
-          'onlyRecordCount': filteredRequest.OnlyRecordCount
+          'siteID': filteredRequest.SiteID
         },
-        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+        { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
       // Filter
       TransactionSecurity.filterTransactionsResponse(transactions, req.user);
       // Return
@@ -573,16 +572,16 @@ export default class TransactionService {
       // Filter
       const filteredRequest = TransactionSecurity.filterTransactionsCompletedRequest(req.query, req.user);
       if (filteredRequest.ChargeBoxID) {
-        filter.chargingStations = filteredRequest.ChargeBoxID.split('|');
+        filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
       }
       if (filteredRequest.SiteAreaID) {
         filter.siteAreas = filteredRequest.SiteAreaID.split('|');
       }
       if (filteredRequest.UserID) {
-        filter.users = filteredRequest.UserID.split('|');
+        filter.userIDs = filteredRequest.UserID.split('|');
       }
       if (Authorizations.isBasic(req.user)) {
-        filter.users = [req.user.id];
+        filter.userIDs = [req.user.id];
       }
       // Date
       if (filteredRequest.StartDateTime) {
@@ -595,9 +594,8 @@ export default class TransactionService {
         filter.type = filteredRequest.Type;
       }
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-        { ...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID,
-          'onlyRecordCount': filteredRequest.OnlyRecordCount },
-        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+        { ...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID },
+        { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
       // Filter
       TransactionSecurity.filterTransactionsResponse(transactions, req.user);
       // Hash userId and tagId for confidentiality purposes
@@ -647,13 +645,13 @@ export default class TransactionService {
       // Filter
       const filteredRequest = TransactionSecurity.filterTransactionsInErrorRequest(req.query);
       if (filteredRequest.ChargeBoxID) {
-        filter.chargingStations = filteredRequest.ChargeBoxID.split('|');
+        filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
       }
       if (filteredRequest.SiteAreaID) {
         filter.siteAreas = filteredRequest.SiteAreaID.split('|');
       }
       if (filteredRequest.UserID) {
-        filter.users = filteredRequest.UserID.split('|');
+        filter.userIDs = filteredRequest.UserID.split('|');
       }
       // Date
       if (filteredRequest.StartDateTime) {
@@ -667,9 +665,8 @@ export default class TransactionService {
       }
       // Site Area
       const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
-        { ...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID,
-          'onlyRecordCount': filteredRequest.OnlyRecordCount },
-        filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+        { ...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID },
+        { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
       // Filter
       TransactionSecurity.filterTransactionsResponse(transactions, req.user);
       // Return
