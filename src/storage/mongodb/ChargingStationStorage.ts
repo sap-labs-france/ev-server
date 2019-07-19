@@ -1,16 +1,13 @@
 import BackendError from '../../exception/BackendError';
 import ChargingStation from '../../types/ChargingStation';
 import Constants from '../../utils/Constants';
-import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
-import SiteArea from '../../types/SiteArea';
 import Tenant from '../../entity/Tenant';
 import Utils from '../../utils/Utils';
 import Connector from '../../types/Connector';
-import { ObjectID } from 'bson';
 
 export default class ChargingStationStorage {
 
