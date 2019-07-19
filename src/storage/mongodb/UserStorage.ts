@@ -277,7 +277,7 @@ export default class UserStorage {
     delete userMDB.id;
     delete userMDB.image;
     // Check Created/Last Changed By
-    DatabaseUtils.addLastChangedCreatedProps(userToSave, userToSave);
+    DatabaseUtils.addLastChangedCreatedProps(userMDB, userMDB);
     // Modify and return the modified document
     const result = await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
       userFilter,
