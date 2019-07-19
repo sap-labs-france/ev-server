@@ -28,7 +28,7 @@ export default class MigrationHandler {
       // Create tasks
       currentMigrationTasks.push(new SiteUsersHashIDsTask());
       currentMigrationTasks.push(new AddTransactionRefundStatusTask());
-      currentMigrationTasks.push(new AddSensitiveDataInSettingsTask());
+      // currentMigrationTasks.push(new AddSensitiveDataInSettingsTask());
 
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();
