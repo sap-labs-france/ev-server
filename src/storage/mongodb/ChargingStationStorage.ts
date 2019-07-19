@@ -14,212 +14,24 @@ import { ObjectID } from 'bson';
 
 export default class ChargingStationStorage {
 
-  static async getChargingStation(tenantID, id): Promise<ChargingStation> {
+  public static async getChargingStation(tenantID: string, id: string): Promise<ChargingStation> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStation');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Create Aggregation
-    const aggregation = [];
-    // Filters
-    aggregation.push({
-      $match: {
-        _id: id
-      }
-    });
-    // Site Area
-    DatabaseUtils.pushSiteAreaLookupInAggregation(
-      { tenantID, aggregation, localField: 'siteAreaID', foreignField: '_id',
-        asField: 'siteArea', oneToOneCardinality: true });
-    // Read DB
-    const chargingStationMDB = await global.database.getCollection<any>(tenantID, 'chargingstations')
-      .aggregate(aggregation)
-      .limit(1)
-      .toArray();
-
-    let chargingStation: ChargingStation = null;
-    // Found
-    if (chargingStationMDB && chargingStationMDB.length > 0) {
-      // Create
-      chargingStation = new ChargingStation(tenantID, chargingStationMDB[0]);
-      // Set Site Area
-      if (chargingStationMDB[0].siteArea) {
-        if (chargingStationMDB[0].siteArea.siteID) {
-          chargingStationMDB[0].siteArea.siteID = chargingStationMDB[0].siteArea.siteID.toString();
-        }
-        chargingStation.setSiteArea(chargingStationMDB[0].siteArea);
-      }
-    }
-
+    // Query single Charging Station
+    const result = await ChargingStationStorage.getChargingStations(tenantID, {
+      chargeBoxID: id
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'getChargingStation', uniqueTimerID);
-    return chargingStation;
+    return result.count>0 ? result.result[0] : null;
   }
 
-  static async getChargingStations(tenantID, params: any = {}, { limit, onlyRecordCount, skip, sort }: DbParams): Promise<{count: number; result: ChargingStation[]}> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-
-    // Check Limit
-    limit = Utils.checkRecordLimit(limit);
-    // Check Skip
-    skip = Utils.checkRecordSkip(skip);
-    // Create Aggregation
-    const aggregation = [];
-    // Set the filters
-    const filters: any = {
-      '$and': [{
-        '$or': DatabaseUtils.getNotDeletedFilter()
-      }]
-    };
-    // Include deleted charging stations if requested
-    if (params.includeDeleted) {
-      filters.$and[0].$or.push({
-        'deleted': true
-      });
-    }
-    // Source?
-    if (params.search) {
-      // Build filter
-      filters.$and.push({
-        '$or': [
-          { '_id': { $regex: params.search, $options: 'i' } },
-          { 'chargePointModel': { $regex: params.search, $options: 'i' } },
-          { 'chargePointVendor': { $regex: params.search, $options: 'i' } }
-        ]
-      });
-    }
-    // Site Area
-    if (params.siteAreaID) {
-      filters.$and.push({
-        'siteAreaID': Utils.convertToObjectID(params.siteAreaID)
-      });
-    }
-    // No Site Area
-    if (params.withNoSiteArea) {
-      // Build filter
-      filters.$and.push({
-        'siteAreaID': null
-      });
-    } else {
-      // Site Area
-      DatabaseUtils.pushSiteAreaLookupInAggregation(
-        { tenantID, aggregation, localField: 'siteAreaID', foreignField: '_id',
-          asField: 'siteArea', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy'] });
-      // With sites
-      if (params.siteIDs && Array.isArray(params.siteIDs) && params.siteIDs.length > 0) {
-        // Build filter
-        filters.$and.push({
-          'siteArea.siteID': {
-            $in: params.siteIDs.map((site) => {
-              return Utils.convertToObjectID(site);
-            })
-          }
-        });
-      }
-      // Site
-      if (params.withSite) {
-        DatabaseUtils.pushSiteLookupInAggregation(
-          { tenantID, aggregation, localField: 'siteArea.siteID', foreignField: '_id',
-            asField: 'site', oneToOneCardinality: true });
-      }
-    }
-    // Charger
-    if (params.chargeBoxID) {
-      filters.$and.push({
-        '_id': params.chargeBoxID
-      });
-    }
-    // Filters
-    aggregation.push({
-      $match: filters
-    });
-    // Limit records?
-    if (!onlyRecordCount) {
-      // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
-    }
-    // Count Records
-    const chargingStationsCountMDB = await global.database.getCollection<any>(tenantID, 'chargingstations')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
-      .toArray();
-    // Check if only the total count is requested
-    if (onlyRecordCount) {
-      // Return only the count
-      return {
-        count: (chargingStationsCountMDB.length > 0 ? chargingStationsCountMDB[0].count : 0),
-        result: []
-      };
-    }
-    // Remove the limit
-    aggregation.pop();
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
-    // Sort
-    if (sort) {
-      aggregation.push({
-        $sort: sort
-      });
-    } else {
-      aggregation.push({
-        $sort: {
-          _id: 1
-        }
-      });
-    }
-    // Skip
-    aggregation.push({
-      $skip: skip
-    });
-    // Limit
-    aggregation.push({
-      $limit: limit
-    });
-    // Read DB
-    const chargingStationsMDB = await global.database.getCollection<any>(tenantID, 'chargingstations')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
-      .toArray();
-    const chargingStations = [];
-    // Create
-    for (const chargingStationMDB of chargingStationsMDB) {
-      // Create the Charger
-      const chargingStation = new ChargingStation(tenantID, chargingStationMDB);
-      // Add the Site Area?
-      if (chargingStationMDB.siteArea) {
-        const siteArea: SiteArea = chargingStationMDB.siteArea;
-        // Handle empty SiteArea
-        if (siteArea.id) {
-          siteArea.id = siteArea.id.toString();
-        }
-        if (siteArea.siteID) {
-          siteArea.siteID = siteArea.siteID.toString();
-        }
-        // Set
-        chargingStation.setSiteArea(siteArea);
-        if (chargingStationMDB.site) {
-          // Add site
-          siteArea.site = chargingStationMDB.site;
-        }
-      }
-      // Add
-      chargingStations.push(chargingStation);
-    }
-    // Debug
-    Logging.traceEnd('ChargingStationStorage', 'getChargingStations', uniqueTimerID);
-    // Ok
-    return {
-      count: (chargingStationsCountMDB.length > 0 ?
-        (chargingStationsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : chargingStationsCountMDB[0].count) : 0),
-      result: chargingStations
-    };
-  }
-
-  public static async getChargingStationsInError(tenantID: string, params:
+  public static async getChargingStations(tenantID: string, params:
     {search?:string,siteAreaID?:string,withNoSiteArea?:boolean,siteIDs?:string[],withSite?:boolean,chargeBoxID?:string,
-      errorType?:'missingSettings'|'connectionBroken'|'connectorError'|'missingSiteArea'},
-    { limit, skip, sort, onlyRecordCount }: DbParams, projectFields?: string[]) {
+      errorType?:'missingSettings'|'connectionBroken'|'connectorError'|'missingSiteArea'|'all',includeDeleted?:boolean},
+    { limit, skip, sort, onlyRecordCount }: DbParams, projectFields?: string[]): Promise<{count: number, result: ChargingStation[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
     // Check Tenant
@@ -238,6 +50,12 @@ export default class ChargingStationStorage {
         $or: DatabaseUtils.getNotDeletedFilter()
       }]
     };
+    // Include deleted charging stations if requested
+    if (params.includeDeleted) {
+      filters.$and[0].$or.push({
+        'deleted': true
+      });
+    }
     // Charger
     // TODO: Review for logical correctness: Moved up; why let aggregation stages process many chargers if we're only getting one anyway
     if (params.chargeBoxID) {
@@ -293,10 +111,11 @@ export default class ChargingStationStorage {
       DatabaseUtils.pushSiteLookupInAggregation(
         { tenantID, aggregation: siteJoin, localField: 'siteArea.siteID', foreignField: '_id',
           asField: 'siteArea.site', oneToOneCardinality: true });
+      // TODO: Might not work because siteID is already a string and not objectId. site should be removed tbh...
     }
     // Build facets meaning each different error scenario
-    let facets: any = {};
-    if (params.errorType) {
+    let facets: any = {$facet:{}};
+    if (params.errorType && params.errorType !== 'all') {
       // Check allowed
       if (!(await Tenant.getTenant(tenantID)).isComponentActive(Constants.COMPONENTS.ORGANIZATION) && params.errorType === 'missingSiteArea') {
         throw new BackendError(null, 'Organization is not active whereas filter is on missing site.',
@@ -305,7 +124,7 @@ export default class ChargingStationStorage {
       // Build facet only for one error type
       facets.$facet = {};
       facets.$facet[params.errorType] = ChargingStationStorage._buildChargerInErrorFacet(params.errorType);
-    } else {
+    } else if(params.errorType && params.errorType === 'all') {
       facets = {
         '$facet':
         {
@@ -334,14 +153,17 @@ export default class ChargingStationStorage {
       }
       project.push(`$${facet}`);
     }
-    aggregation.push(facets);
-    // Manipulate the results to convert it to an array of document on root level
-    aggregation.push({ $project: { 'allItems': { $concatArrays: project } } });
-    aggregation.push({ $unwind: { 'path': '$allItems' } });
-    aggregation.push({ $replaceRoot: { newRoot: '$allItems' } });
-    // Add a unique identifier as we may have the same charger several time
-    aggregation.push({ $addFields: { 'uniqueId': { $concat: ['$_id', '#', '$errorCode'] } } });
-
+    if(params.errorType) {
+      aggregation.push(facets);
+      // Manipulate the results to convert it to an array of document on root level
+      aggregation.push({ $project: { 'allItems': { $concatArrays: project } } });
+      aggregation.push({ $unwind: { 'path': '$allItems' } });
+      aggregation.push({ $replaceRoot: { newRoot: '$allItems' } });
+      // Add a unique identifier as we may have the same charger several time
+      aggregation.push({ $addFields: { 'uniqueId': { $concat: ['$_id', '#', '$errorCode'] } } });
+    } else {
+      aggregation = aggregation.concat(siteAreaJoin).concat(siteJoin);
+    }
     // Limit records?
     if (!onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
