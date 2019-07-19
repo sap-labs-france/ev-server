@@ -1,10 +1,10 @@
-import SchedulerTask from '../SchedulerTask';
-import { TaskConfig } from '../TaskConfig';
-import Tenant from '../../entity/Tenant';
+import ConcurConnector from '../../integration/refund/ConcurConnector';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
+import SchedulerTask from '../SchedulerTask';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
-import ConcurConnector from '../../integration/refund/ConcurConnector';
+import { TaskConfig } from '../TaskConfig';
+import Tenant from '../../entity/Tenant';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 
 export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
@@ -84,7 +84,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
         tenantID: tenant.getID(),
         module: 'SynchronizeRefundTransactionsTask',
         method: 'run', action: 'RefundSynchronize',
-        message: `No Refunded Transaction found to synchronize`
+        message: 'No Refunded Transaction found to synchronize'
       });
     }
   }

@@ -217,7 +217,7 @@ export default class Constants {
   // OCPI Constants
   // --------------------------------------------------------------------
   // OCPI Base Path
-  public static readonly OCPI_SERVER_BASE_PATH= '/ocpi/cpo/versions';
+  public static readonly OCPI_SERVER_BASE_PATH = '/ocpi/cpo/versions';
   // OCPI Available Response Status
   public static readonly OCPI_STATUS_CODE = {
     // 1*** SUCCESS
@@ -320,5 +320,5 @@ export default class Constants {
     'plateID': 0,
     'tagIDs': 0,
     'verificationToken': 0
-  }
+  };
 }

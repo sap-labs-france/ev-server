@@ -100,10 +100,10 @@ export default class TransactionStorage {
     if (params.userIDs) {
       match.userID = {
         $in: params.userIDs.map((user) => {
-        return Utils.convertToObjectID(user);
-      })
-    };
-  }
+          return Utils.convertToObjectID(user);
+        })
+      };
+    }
     // Charge Box
     if (params.chargeBoxIDs) {
       match.chargeBoxID = { $in : params.chargeBoxIDs };
@@ -384,10 +384,10 @@ export default class TransactionStorage {
     if (params.userIDs) {
       match.userID = {
         $in: params.userIDs.map((user) => {
-        return Utils.convertToObjectID(user);
-      })
-    };
-  }
+          return Utils.convertToObjectID(user);
+        })
+      };
+    }
     // Charge Box
     if (params.chargeBoxIDs) {
       match.chargeBoxID = { $in : params.chargeBoxIDs };

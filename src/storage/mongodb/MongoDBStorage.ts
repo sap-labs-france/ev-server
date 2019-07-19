@@ -239,7 +239,7 @@ export default class MongoDBStorage {
     const tenantsMDB = await this.db.collection(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, 'tenants'))
       .find({})
       .toArray();
-    const tenantIds = tenantsMDB.map((t) => {
+    const tenantIds = tenantsMDB.map((t): string => {
       return t._id.toString();
     });
     for (const tenantId of tenantIds) {

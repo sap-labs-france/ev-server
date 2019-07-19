@@ -1,8 +1,8 @@
 import moment from 'moment';
+import Constants from '../utils/Constants';
+import Logging from '../utils/Logging';
 import { TaskConfig } from './TaskConfig';
 import Tenant from '../entity/Tenant';
-import Logging from '../utils/Logging';
-import Constants from '../utils/Constants';
 
 export default abstract class SchedulerTask {
   async run(name: string, config: TaskConfig): Promise<void> {
