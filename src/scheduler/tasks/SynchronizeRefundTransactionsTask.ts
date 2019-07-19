@@ -76,7 +76,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
         tenantID: tenant.getID(),
         module: 'SynchronizeRefundTransactionsTask',
         method: 'run', action: 'RefundSynchronize',
-        message: `Synchronized: ${actionsDone.approved} Approved, ${actionsDone.cancelled} Cancelled, ${actionsDone.notUpdated} Not updated - ${actionsDone.error} Exception(s)`
+        message: `Synchronized: ${actionsDone.approved} Approved, ${actionsDone.cancelled} Cancelled, ${actionsDone.notUpdated} Not updated, ${actionsDone.error} In Error`
       });
     } else {
       // Process them
