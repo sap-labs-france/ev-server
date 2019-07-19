@@ -417,21 +417,11 @@ export default class UserStorage {
         }
       }
     });
-    // Change ID
-    DatabaseUtils.renameDatabaseID(aggregation);
-    // Project
-    DatabaseUtils.projectFields(aggregation, projectFields);
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Add Site
     if (params.siteIDs || params.excludeSiteID) {
-      aggregation.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, 'siteusers'),
-          localField: '_id',
-          foreignField: 'userID',
-          as: 'siteusers'
-        }
+      DatabaseUtils.pushSiteUserLookupInAggregation({
+        tenantID, aggregation, localField: '_id', foreignField: 'userID',
+        asField: 'siteusers'
       });
       if (params.siteIDs) {
         aggregation.push({
@@ -468,6 +458,10 @@ export default class UserStorage {
     }
     // Remove the limit
     aggregation.pop();
+    // Add Created By / Last Changed By
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
+    // Change ID
+    DatabaseUtils.renameDatabaseID(aggregation);
     // Sort
     if (sort) {
       aggregation.push({
@@ -486,6 +480,8 @@ export default class UserStorage {
     aggregation.push({
       $limit: limit
     });
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const usersMDB = await global.database.getCollection<User>(tenantID, 'users')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
