@@ -25,7 +25,7 @@ export default class LoggingService {
 
       // Check if organization component is active
       const tenant = await Tenant.getTenant(req.user.tenantID);
-      if (tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION) && Authorizations.getAuthorizedSiteAdminIDs(req.user)) {
+      if (tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
         const chargingStations = await ChargingStationStorage.getChargingStations(req.user.tenantID,
           { siteIDs: req.user.sitesAdmin }, Constants.DB_PARAMS_MAX_LIMIT);
         if (filteredRequest.Source && filteredRequest.Source.length > 0) {
