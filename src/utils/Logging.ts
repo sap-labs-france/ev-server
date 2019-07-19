@@ -194,7 +194,7 @@ export default class Logging {
   }
 
   // Used to log exception in catch(...) only
-  public static logException(error, action, source, module, method, tenantID, user?: UserToken|User): void {
+  public static logException(error, action, source, module, method, tenantID, user?: UserToken|User|string): void {
     const log = Logging._buildLog(error, action, source, module, method, tenantID, user);
     if (error instanceof AppAuthError) {
       Logging.logSecurityError(log);
@@ -267,8 +267,8 @@ export default class Logging {
     return LoggingStorage.getLog(tenantID, id);
   }
 
-  public static getLogs(tenantID, params, limit, skip, sort): any {
-    return LoggingStorage.getLogs(tenantID, params, limit, skip, sort);
+  public static getLogs(tenantID, params, dbParams): any {
+    return LoggingStorage.getLogs(tenantID, params, dbParams);
   }
 
   private static _logActionExceptionMessage(tenantID, action, exception): void {
@@ -288,6 +288,15 @@ export default class Logging {
   }
 
   private static _logActionAppExceptionMessage(tenantID, action, exception): void {
+    const detailedMessages = [];
+    detailedMessages.push({
+      'stack': exception.stack
+    });
+    if (exception.detailedMessages) {
+      detailedMessages.push({
+        'details': (exception.detailedMessages instanceof Error ? exception.detailedMessages.stack : exception.detailedMessages)
+      });
+    }
     Logging.logError({
       tenantID: tenantID,
       source: exception.source,
@@ -297,9 +306,7 @@ export default class Logging {
       method: exception.method,
       action: action,
       message: exception.message,
-      detailedMessages: [{
-        'stack': exception.stack
-      }]
+      detailedMessages
     });
   }
 
@@ -352,7 +359,7 @@ export default class Logging {
     });
   }
 
-  private static _buildLog(error, action, source, module, method, tenantID, user: UserToken|User): object {
+  private static _buildLog(error, action, source, module, method, tenantID, user: UserToken|User|string): object {
     const tenant = tenantID ? tenantID : Constants.DEFAULT_TENANT;
     return {
       source: source,

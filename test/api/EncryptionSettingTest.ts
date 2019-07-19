@@ -1,7 +1,6 @@
 // Goal : Checks related to settings
 // Note : These unit tests use the tenant utall. This tenant should exist prior running these tests.
 //        Run npm run test:createContext to create the needed utall if not present.
-
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import config from '../config';
@@ -15,24 +14,27 @@ chai.use(responseHelper);
 
 const FAKE_WORD = 'Expelliarmus';
 const testData: TestData = new TestData();
+let oldSetting = {};
 
 describe('Encryption Setting tests', function() {
   this.timeout(30000);
 
   before(async function() {
     // Init values
-    testData.centralService = new CentralServerService('utall', {
-      email: config.get('admin.username'),
-      password: config.get('admin.password')
-    });
+    testData.centralService = new CentralServerService('utall', { email: config.get('admin.username'), password: config.get('admin.password') });
+  });
+
+  afterEach(async function() {
+    // Housekeeping
+    const update = await testData.centralService.updateEntity(testData.centralService.settingApi, oldSetting);
+    expect(update.status).to.equal(200);
   });
 
   after(async function() {
     // Housekeeping
   });
 
-
-  describe('Success cases', () => {
+  describe('Success cases (tenant ut-all', () => {
     it('Check that updating the refund/concur setting works with sensitive data encryption', async () => {
       // Retrieve the setting id
       let read = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
@@ -41,6 +43,8 @@ describe('Encryption Setting tests', function() {
       });
       expect(read.status).to.equal(200);
       expect(read.data.count).to.equal(1);
+      // Store the old setting
+      oldSetting = read.data.result[0];
       // Update the setting
       testData.data = JSON.parse(`{
           "id":"${read.data.result[0].id}",
@@ -81,6 +85,8 @@ describe('Encryption Setting tests', function() {
       });
       expect(read.status).to.equal(200);
       expect(read.data.count).to.equal(1);
+      // Store the old setting
+      oldSetting = read.data.result[0];
       // Update the setting
       testData.data = JSON.parse(`{
             "id":"${read.data.result[0].id}",

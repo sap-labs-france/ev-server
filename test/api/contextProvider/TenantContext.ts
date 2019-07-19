@@ -75,7 +75,6 @@ export default class TenantContext {
       });
     }
     return this.context.siteContexts[0]; // By default return the first context
-
   }
 
   addSiteContext(siteContext) {

@@ -7,6 +7,7 @@ import BaseApi from './utils/BaseApi';
 import ChargingStationApi from './ChargingStationApi';
 import CompanyApi from './CompanyApi';
 import Constants from './utils/Constants';
+import LogsApi from './LogsApi';
 import MailApi from './MailApi';
 import OCPIEndpointApi from './OCPIEndpointApi';
 import SettingApi from './SettingApi';
@@ -45,6 +46,7 @@ export default class CentralServerService {
   public authenticationApi: AuthenticationApi;
   public tenantApi: TenantApi;
   public mailApi: MailApi;
+  public logsApi: LogsApi;
   public statisticsApi: StatisticsApi;
 
   private _tenantSubdomain: string;
@@ -79,6 +81,7 @@ export default class CentralServerService {
     this.chargingStationApi = new ChargingStationApi(this.authenticatedApi, this._baseApi);
     this.transactionApi = new TransactionApi(this.authenticatedApi);
     this.settingApi = new SettingApi(this.authenticatedApi);
+    this.logsApi = new LogsApi(this.authenticatedApi);
     this.ocpiEndpointApi = new OCPIEndpointApi(this.authenticatedApi);
     if (superAdminUser) {
       this.authenticatedSuperAdminApi = new AuthenticatedBaseApi(this._baseURL, superAdminUser.email, superAdminUser.password, '');

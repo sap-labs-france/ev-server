@@ -1,37 +1,22 @@
 import cluster from 'cluster';
 import moment from 'moment';
 import AddSensitiveDataInSettingsTask from './tasks/AddSensitiveDataInSettingsTask';
-import CleanupTransactionTask from './tasks/CleanupTransactionTask';
+import AddTransactionRefundStatusTask from './tasks/AddTransactionRefundStatusTask';
 import Constants from '../utils/Constants';
-import CreateConsumptionsTask from './tasks/CreateConsumptionsTask';
 import RunLock from '../utils/Locking';
 import Logging from '../utils/Logging';
-import MigrateTenantSettingsTask from './tasks/MigrateTenantSettingsTask';
 import MigrationStorage from '../storage/mongodb/MigrationStorage';
-import NormalizeTransactionsTask from './tasks/NormalizeTransactionsTask';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
-import TenantMigrationTask from './tasks/TenantMigrationTask';
-import TransactionsAddTimezoneTask from './tasks/TransactionsAddTimezoneTask';
-import UpdateABBMeterValuesTask from './tasks/UpdateKebaMeterValuesTask';
-import UpdateTransactionExtraInactivityTask from './tasks/UpdateTransactionExtraInactivityTask';
-import UpdateTransactionInactivityTask from './tasks/UpdateTransactionInactivityTask';
-import UpdateTransactionSimplePriceTask from './tasks/UpdateTransactionSimplePriceTask';
-import UpdateTransactionSoCTask from './tasks/UpdateTransactionSoCTask';
-import UsersAddNotificationsFlagTask from './tasks/UsersAddNotificationsFlagTask';
-
 
 export default class MigrationHandler {
-  // Migrate method
   static async migrate() {
     try {
       // Check we're on the master nodejs process
       if (!cluster.isMaster) {
         return;
       }
-
       const startMigrationTime = moment();
       const currentMigrationTasks = [];
-
       // Log
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
@@ -41,19 +26,8 @@ export default class MigrationHandler {
       });
 
       // Create tasks
-      currentMigrationTasks.push(new UpdateTransactionInactivityTask());
-      currentMigrationTasks.push(new TenantMigrationTask());
-      currentMigrationTasks.push(new UpdateTransactionSoCTask());
-      currentMigrationTasks.push(new UpdateABBMeterValuesTask());
-      currentMigrationTasks.push(new NormalizeTransactionsTask());
-      currentMigrationTasks.push(new CleanupTransactionTask());
-      currentMigrationTasks.push(new CreateConsumptionsTask());
-      currentMigrationTasks.push(new TransactionsAddTimezoneTask());
-      currentMigrationTasks.push(new UpdateTransactionSimplePriceTask());
-      currentMigrationTasks.push(new UsersAddNotificationsFlagTask());
-      currentMigrationTasks.push(new MigrateTenantSettingsTask());
-      currentMigrationTasks.push(new UpdateTransactionExtraInactivityTask());
       currentMigrationTasks.push(new SiteUsersHashIDsTask());
+      currentMigrationTasks.push(new AddTransactionRefundStatusTask());
       // pragma currentMigrationTasks.push(new AddSensitiveDataInSettingsTask());
 
       // Get the already done migrations from the DB
@@ -69,25 +43,22 @@ export default class MigrationHandler {
         });
         // Already processed?
         if (migrationTaskDone) {
-          // Yes
           Logging.logInfo({
             tenantID: Constants.DEFAULT_TENANT,
             source: 'Migration', action: 'Migration',
             module: 'MigrationHandler', method: 'migrate',
             message: `${currentMigrationTask.isAsynchronous() ? 'Asynchronous' : 'Synchronous'} task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has already been processed`
           });
-          // Continue
           continue;
         }
-        // Check if async
+        // Check
         if (currentMigrationTask.isAsynchronous()) {
-          // Execute async
+          // Execute Async
           setTimeout(() => {
-            // Execute Migration Task sync
             MigrationHandler._executeTask(currentMigrationTask);
           }, 1000);
         } else {
-          // Execute Migration Task sync
+          // Execute Sync
           await MigrationHandler._executeTask(currentMigrationTask);
         }
       }
@@ -97,10 +68,9 @@ export default class MigrationHandler {
         tenantID: Constants.DEFAULT_TENANT,
         source: 'Migration', action: 'Migration',
         module: 'MigrationHandler', method: 'migrate',
-        message: `All synchronous migration tasks have been run with success in ${totalMigrationTimeSecs} secs`
+        message: `All synchronous migration tasks have been run successfully in ${totalMigrationTimeSecs} secs`
       });
     } catch (error) {
-      // Log
       Logging.logError({
         tenantID: Constants.DEFAULT_TENANT,
         source: 'Migration', action: 'Migration',
@@ -126,17 +96,13 @@ export default class MigrationHandler {
       // Log in the console also
       // eslint-disable-next-line no-console
       console.log(`Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' is running ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}...`);
-
       // Start time and date
       const startTaskTime = moment();
       const startDate = new Date();
-
       // Execute Migration
       await currentMigrationTask.migrate();
-
       // End time
       const totalTaskTimeSecs = moment.duration(moment().diff(startTaskTime)).asSeconds();
-
       // End
       // Save to the DB
       await MigrationStorage.saveMigration({
@@ -145,7 +111,6 @@ export default class MigrationHandler {
         timestamp: startDate,
         durationSecs: totalTaskTimeSecs
       });
-
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
         source: 'Migration', action: 'Migration',
@@ -155,7 +120,6 @@ export default class MigrationHandler {
       // Log in the console also
       // eslint-disable-next-line no-console
       console.log(`Migration Task '${currentMigrationTask.getName()}' Version '${currentMigrationTask.getVersion()}' has run with success in ${totalTaskTimeSecs} secs ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}`);
-
       // Release the migration lock
       await migrationLock.release();
     }

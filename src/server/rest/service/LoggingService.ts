@@ -1,9 +1,11 @@
 import fs from 'fs';
 import AppAuthError from '../../../exception/AppAuthError';
 import Authorizations from '../../../authorization/Authorizations';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import LoggingSecurity from './security/LoggingSecurity';
+import Tenant from '../../../entity/Tenant';
 
 export default class LoggingService {
   static async handleGetLoggings(action, req, res, next) {
@@ -20,12 +22,45 @@ export default class LoggingService {
       }
       // Filter
       const filteredRequest = LoggingSecurity.filterLoggingsRequest(req.query, req.user);
+
+      // Check if organization component is active
+      const tenant = await Tenant.getTenant(req.user.tenantID);
+      if (tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
+        const chargingStations = await ChargingStationStorage.getChargingStations(req.user.tenantID,
+          { siteIDs: req.user.sitesAdmin }, Constants.DB_PARAMS_MAX_LIMIT);
+        if (filteredRequest.Source && filteredRequest.Source.length > 0) {
+          const sources = [];
+          for (const chargingStation of chargingStations.result) {
+            if (filteredRequest.Source.includes(chargingStation.getID())) {
+              sources.push(chargingStation.getID());
+            }
+          }
+          filteredRequest.Source = sources;
+        } else {
+          filteredRequest.Source = chargingStations.result.map((chargingStation) => {
+            return chargingStation.getID();
+          });
+        }
+      }
+
       // Get logs
       const loggings = await Logging.getLogs(req.user.tenantID, {
-        'search': filteredRequest.Search, 'dateFrom': filteredRequest.DateFrom, 'dateUntil': filteredRequest.DateUntil, 'userID': filteredRequest.UserID,
-        'level': filteredRequest.Level, 'type': filteredRequest.Type, 'source': filteredRequest.Source, 'host': filteredRequest.Host,
-        'process': filteredRequest.Process, 'action': filteredRequest.Action, 'onlyRecordCount': filteredRequest.OnlyRecordCount
-      }, filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+        'search': filteredRequest.Search,
+        'dateFrom': filteredRequest.DateFrom,
+        'dateUntil': filteredRequest.DateUntil,
+        'userIDs': filteredRequest.UserID,
+        'level': filteredRequest.Level,
+        'type': filteredRequest.Type,
+        'sources': filteredRequest.Source,
+        'host': filteredRequest.Host,
+        'process': filteredRequest.Process,
+        'actions': filteredRequest.Action
+      }, {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.Sort,
+        onlyRecordCount: filteredRequest.OnlyRecordCount
+      });
       // Filter
       LoggingSecurity.filterLoggingsResponse(loggings, req.user);
       // Return
@@ -53,10 +88,22 @@ export default class LoggingService {
       const filteredRequest = LoggingSecurity.filterLoggingsRequest(req.query, req.user);
       // Get logs
       const loggings = await Logging.getLogs(req.user.tenantID, {
-        'search': filteredRequest.Search, 'dateFrom': filteredRequest.DateFrom, 'dateUntil': filteredRequest.DateUntil, 'userID': filteredRequest.UserID,
-        'level': filteredRequest.Level, 'type': filteredRequest.Type, 'source': filteredRequest.Source, 'host': filteredRequest.Host,
-        'process': filteredRequest.Process, 'action': filteredRequest.Action, 'onlyRecordCount': filteredRequest.OnlyRecordCount
-      }, filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
+        'search': filteredRequest.Search,
+        'dateFrom': filteredRequest.DateFrom,
+        'dateUntil': filteredRequest.DateUntil,
+        'userIDs': filteredRequest.UserID,
+        'level': filteredRequest.Level,
+        'type': filteredRequest.Type,
+        'sources': filteredRequest.Source,
+        'host': filteredRequest.Host,
+        'process': filteredRequest.Process,
+        'actions': filteredRequest.Action
+      }, {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.Sort,
+        onlyRecordCount: filteredRequest.OnlyRecordCount
+      });
       // Filter
       LoggingSecurity.filterLoggingsResponse(loggings, req.user);
       const filename = 'loggings_export.csv';
