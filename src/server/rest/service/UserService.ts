@@ -5,7 +5,6 @@ import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import ERPService from '../../../integration/pricing/convergent-charging/ERPService';
-import { HttpUserRequest } from '../../../types/requests/HttpUserRequest';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import RatingService from '../../../integration/pricing/convergent-charging/RatingService';
@@ -21,8 +20,8 @@ import UtilsService from './UtilsService';
 export default class UserService {
 
   public static async handleAssignSitesToUser(action: string, req: Request, res: Response, next: NextFunction) {
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_UPDATE, Constants.ENTITY_SITES, 'SiteService', 'handleAssignSitesToUser');
     // Filter
     const filteredRequest = UserSecurity.filterAssignSitesToUserRequest(req.body, req.user);
@@ -144,7 +143,7 @@ export default class UserService {
           return siteUser.site.id;
         }
       );
-      UserStorage.removeSitesFromUser(req.user.tenantID, user.id, siteIDs);
+      await UserStorage.removeSitesFromUser(req.user.tenantID, user.id, siteIDs);
     }
     // Delete User
     await UserStorage.deleteUser(req.user.tenantID, user.id);
@@ -373,7 +372,7 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterUsersRequest(req.query, req.user);
     // Check component
     if (filteredRequest.SiteID || filteredRequest.ExcludeSiteID) {
-      await UtilsService.assertComponentIsActive(req.user.tenantID,
+      UtilsService.assertComponentIsActiveFromToken(req.user,
         Constants.COMPONENTS.ORGANIZATION, Constants.ACTION_READ, Constants.ENTITY_USER, 'UserService', 'handleGetUsers');
     }
     // Get users
@@ -414,7 +413,7 @@ export default class UserService {
     const filteredRequest = UserSecurity.filterUsersRequest(req.query, req.user);
     // Check component
     if (filteredRequest.SiteID || filteredRequest.ExcludeSiteID) {
-      await UtilsService.assertComponentIsActive(req.user.tenantID,
+      UtilsService.assertComponentIsActiveFromToken(req.user,
         Constants.COMPONENTS.ORGANIZATION, Constants.ACTION_READ, Constants.ENTITY_USER, 'UserService', 'handleGetUsersInError');
     }
     // Get users

@@ -14,8 +14,8 @@ export default class StatisticService {
   static async handleGetChargingStationConsumptionStatistics(action, req, res, next) {
     try {
       // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationConsumptionStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -48,8 +48,8 @@ export default class StatisticService {
   static async handleGetChargingStationUsageStatistics(action, req, res, next) {
     try {
       // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationUsageStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -82,8 +82,8 @@ export default class StatisticService {
   static async handleGetChargingStationInactivityStatistics(action, req, res, next) {
     try {
       // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationInactivityStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -116,8 +116,8 @@ export default class StatisticService {
   static async handleGetUserConsumptionStatistics(action, req, res, next) {
     try {
       // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserConsumptionStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -150,8 +150,8 @@ export default class StatisticService {
   static async handleGetUserUsageStatistics(action, req, res, next) {
     try {
       // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserUsageStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -184,8 +184,8 @@ export default class StatisticService {
   static async handleGetUserInactivityStatistics(action, req, res, next) {
     try {
       // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserInactivityStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -243,8 +243,8 @@ export default class StatisticService {
   static async handleGetStatisticsExport(action, req, res, next) {
     try {
       // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetStatisticsExport');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
