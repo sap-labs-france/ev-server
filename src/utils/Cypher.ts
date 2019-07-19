@@ -18,21 +18,29 @@ export default class Cypher {
   }
 
   public static encrypt(data: string): string {
-    const iv = crypto.randomBytes(IV_LENGTH);
-    const cipher = crypto.createCipheriv(Cypher.getConfiguration().algorithm, Buffer.from(Cypher.getConfiguration().key), iv);
-    let encryptedData = cipher.update(data);
-    encryptedData = Buffer.concat([encryptedData, cipher.final()]);
-    return iv.toString('hex') + ':' + encryptedData.toString('hex');
+    try {
+      const iv = crypto.randomBytes(IV_LENGTH);
+      const cipher = crypto.createCipheriv(Cypher.getConfiguration().algorithm, Buffer.from(Cypher.getConfiguration().key), iv);
+      let encryptedData = cipher.update(data);
+      encryptedData = Buffer.concat([encryptedData, cipher.final()]);
+      return iv.toString('hex') + ':' + encryptedData.toString('hex');
+    } catch (err){
+      throw new BackendError(Constants.CENTRAL_SERVER, err, 'Cypher', 'encrypt');
+    }
   }
 
   public static decrypt(data: string): string {
-    const dataParts = data.split(':');
-    const iv = Buffer.from(dataParts.shift(), 'hex');
-    const encryptedData = Buffer.from(dataParts.join(':'), 'hex');
-    const decipher = crypto.createDecipheriv(Cypher.getConfiguration().algorithm, Buffer.from(Cypher.getConfiguration().key), iv);
-    let decrypted = decipher.update(encryptedData);
-    decrypted = Buffer.concat([decrypted, decipher.final()]);
-    return decrypted.toString();
+    try {
+      const dataParts = data.split(':');
+      const iv = Buffer.from(dataParts.shift(), 'hex');
+      const encryptedData = Buffer.from(dataParts.join(':'), 'hex');
+      const decipher = crypto.createDecipheriv(Cypher.getConfiguration().algorithm, Buffer.from(Cypher.getConfiguration().key), iv);
+      let decrypted = decipher.update(encryptedData);
+      decrypted = Buffer.concat([decrypted, decipher.final()]);
+      return decrypted.toString();
+    } catch (err) {
+      throw new BackendError(Constants.CENTRAL_SERVER, err, 'Cypher', 'decrypt');
+    }
   }
 
   public static hash(data: string): string {
