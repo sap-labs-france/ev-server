@@ -32,5 +32,7 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   longitude: number;
   connectors: Connector[];
 
-  siteArea?: SiteArea
+  siteArea?: SiteArea;
+  errorCode?: string;
+  //TODO: include site here or remove it fro mstorage
 }

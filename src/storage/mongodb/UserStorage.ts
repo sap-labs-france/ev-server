@@ -277,7 +277,7 @@ export default class UserStorage {
     delete userMDB.id;
     delete userMDB.image;
     // Check Created/Last Changed By
-    DatabaseUtils.addLastChangedCreatedProps(userToSave, userToSave);
+    DatabaseUtils.addLastChangedCreatedProps(userMDB, userMDB);
     // Modify and return the modified document
     const result = await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
       userFilter,
@@ -343,9 +343,9 @@ export default class UserStorage {
     // Check Skip
     skip = Utils.checkRecordSkip(skip);
     const filters: any = {
-      '$and': [
+      $and: [
         {
-          '$or': DatabaseUtils.getNotDeletedFilter()
+          $or: DatabaseUtils.getNotDeletedFilter()
         }
       ]
     };
