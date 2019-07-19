@@ -133,11 +133,10 @@ export default class SiteAreaService {
     const siteAreas = await SiteAreaStorage.getSiteAreas(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        siteIDs: Authorizations.getAuthorizedSiteIDs(req.user),
         withSite: filteredRequest.WithSite,
         withChargeBoxes: filteredRequest.WithChargeBoxes,
         withAvailableChargers: filteredRequest.WithAvailableChargers,
-        siteID: filteredRequest.SiteID
+        siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|'): Authorizations.getAuthorizedSiteIDs(req.user))
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       ['id', 'name', 'siteID', 'address.latitude', 'address.longitude', 'address.city', 'address.country', 'site.id', 'site.name',

@@ -20,7 +20,6 @@ import Logging from './Logging';
 import Tenant from '../entity/Tenant';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import User from '../types/User';
-import UserService from '../server/rest/service/UserService';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
@@ -657,7 +656,7 @@ export default class Utils {
         'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
     }
     // Only Admin and Super Admin can use role different from Basic
-    if (filteredRequest.role === Constants.ROLE_ADMIN && filteredRequest.role === Constants.ROLE_SUPER_ADMIN &&
+    if ((filteredRequest.role === Constants.ROLE_ADMIN || filteredRequest.role === Constants.ROLE_SUPER_ADMIN) &&
         !Authorizations.isAdmin(req.user.role) && !Authorizations.isSuperAdmin(req.user.role)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,

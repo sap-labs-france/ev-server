@@ -3,10 +3,10 @@ import Logging from '../../utils/Logging';
 import LoggingStorage from '../../storage/mongodb/LoggingStorage';
 import SchedulerTask from '../SchedulerTask';
 import Tenant from '../../entity/Tenant';
+import { TaskConfig } from '../TaskConfig';
 
-export default class LoggingDatabaseTableCleanupTask implements SchedulerTask {
-
-  static async processTenant(tenant, config) {
+export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
+  async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     try {
       Logging.logInfo({
         tenantID: tenant.getID(),
@@ -64,13 +64,6 @@ export default class LoggingDatabaseTableCleanupTask implements SchedulerTask {
     } catch (error) {
       // Log error
       Logging.logActionExceptionMessage(tenant.getID(), 'LogsCleanup', error);
-    }
-  }
-
-  async run(config) {
-    const tenants = await Tenant.getTenants();
-    for (const tenant of tenants.result) {
-      LoggingDatabaseTableCleanupTask.processTenant(tenant, config);
     }
   }
 }

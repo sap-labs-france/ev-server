@@ -623,6 +623,7 @@ export default class Database {
       dest.refundData = {};
       dest.refundData.refundId = src.refundData.refundId;
       dest.refundData.refundedAt = Utils.convertToDate(src.refundData.refundedAt);
+      dest.refundData.status = src.refundData.status;
       dest.refundData.type = src.refundData.type;
       dest.refundData.reportId = src.refundData.reportId;
     }
