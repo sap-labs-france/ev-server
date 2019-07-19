@@ -2,8 +2,8 @@ import moment from 'moment';
 import Logging from '../../utils/Logging';
 import LoggingStorage from '../../storage/mongodb/LoggingStorage';
 import SchedulerTask from '../SchedulerTask';
-import Tenant from '../../entity/Tenant';
 import { TaskConfig } from '../TaskConfig';
+import Tenant from '../../entity/Tenant';
 
 export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {

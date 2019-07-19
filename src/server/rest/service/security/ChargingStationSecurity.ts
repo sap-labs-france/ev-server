@@ -177,7 +177,7 @@ export default class ChargingStationSecurity {
     const filteredRequest: any = {};
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.WithNoSiteArea = UtilsSecurity.filterBoolean(request.WithNoSiteArea);
-    filteredRequest.SiteID = request.SiteID ? sanitize(request.SiteID).split('|'):null;
+    filteredRequest.SiteID = request.SiteID ? sanitize(request.SiteID).split('|') : null;
     filteredRequest.WithSite = UtilsSecurity.filterBoolean(request.WithSite);
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);

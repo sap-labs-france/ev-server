@@ -1,11 +1,11 @@
 import fs from 'fs';
 import AppAuthError from '../../../exception/AppAuthError';
 import Authorizations from '../../../authorization/Authorizations';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import LoggingSecurity from './security/LoggingSecurity';
 import Tenant from '../../../entity/Tenant';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 
 export default class LoggingService {
   static async handleGetLoggings(action, req, res, next) {
@@ -66,8 +66,7 @@ export default class LoggingService {
       // Return
       res.json(loggings);
       next();
-    } catch
-    (error) {
+    } catch (error) {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }

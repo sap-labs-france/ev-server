@@ -6,8 +6,8 @@ import CompanySecurity from './security/CompanySecurity';
 import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import UtilsService from './UtilsService';
 import Utils from '../../../utils/Utils';
+import UtilsService from './UtilsService';
 
 export default class CompanyService {
 

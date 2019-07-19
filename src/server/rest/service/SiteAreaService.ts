@@ -6,8 +6,8 @@ import Logging from '../../../utils/Logging';
 import SiteArea from '../../../types/SiteArea';
 import SiteAreaSecurity from './security/SiteAreaSecurity';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
-import UtilsService from './UtilsService';
 import Utils from '../../../utils/Utils';
+import UtilsService from './UtilsService';
 
 export default class SiteAreaService {
   public static async handleDeleteSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -136,7 +136,7 @@ export default class SiteAreaService {
         withSite: filteredRequest.WithSite,
         withChargeBoxes: filteredRequest.WithChargeBoxes,
         withAvailableChargers: filteredRequest.WithAvailableChargers,
-        siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|'): Authorizations.getAuthorizedSiteIDs(req.user))
+        siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : Authorizations.getAuthorizedSiteIDs(req.user))
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       ['id', 'name', 'siteID', 'address.latitude', 'address.longitude', 'address.city', 'address.country', 'site.id', 'site.name',

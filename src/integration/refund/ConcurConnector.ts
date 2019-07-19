@@ -446,7 +446,7 @@ export default class ConcurConnector extends AbstractConnector {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Concur access token not refreshed (ID: '${userId}')`,
-        Constants.HTTP_GENERAL_ERROR, MODULE_NAME,'refreshToken',
+        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'refreshToken',
         userId, null, 'Refund', error);
     }
   }
