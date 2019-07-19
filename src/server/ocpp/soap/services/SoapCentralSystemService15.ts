@@ -110,6 +110,9 @@ export default { /* Services */
       Heartbeat: function(args, callback, headers, req) {
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
+          // Add current IP to charging station properties
+          const requestIP = Utils.getRequestIP(req);
+          headers.currentIPAddress = requestIP;
           // Log
           Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, 'Heartbeat', [ headers, args ]);
           // Handle

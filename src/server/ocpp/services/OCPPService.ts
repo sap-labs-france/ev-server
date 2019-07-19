@@ -148,6 +148,11 @@ export default class OCPPService {
     try {
       // Get Charging Station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
+      // Check and replace IP
+      if (!(chargingStation.getCurrentIPAddress() === headers.currentIPAddress)) {
+        chargingStation.setCurrentIPAddress(headers.currentIPAddress);
+        await chargingStation.save();
+      }
       // Check props
       OCPPValidation.getInstance().validateHeartbeat(heartbeat);
       // Set Heartbeat
