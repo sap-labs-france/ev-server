@@ -13,8 +13,8 @@ import Configuration from './Configuration';
 import Constants from './Constants';
 import Logging from './Logging';
 import Tenant from '../entity/Tenant';
-import User from '../types/User';
 import TenantStorage from '../storage/mongodb/TenantStorage';
+import User from '../types/User';
 
 SourceMap.install();
 
@@ -284,7 +284,7 @@ export default class Utils {
   }
 
   static async buildEvseUserURL(tenantID: string, user: User, hash = '') {
-    
+
     const tenant = await TenantStorage.getTenant(tenantID);
     const _evseBaseURL = Utils.buildEvseURL(tenant.getSubdomain());
     // Add

@@ -5,8 +5,8 @@ import EMailNotificationTask from './email/EMailNotificationTask';
 import Logging from '../utils/Logging';
 import Notification from '../entity/Notification';
 import NotificationStorage from '../storage/mongodb/NotificationStorage';
-import UserStorage from '../storage/mongodb/UserStorage';
 import User from '../types/User';
+import UserStorage from '../storage/mongodb/UserStorage';
 
 SourceMap.install();
 
@@ -64,7 +64,7 @@ export default class NotificationHandler {
 
   static async getAdminUsers(tenantID: string): Promise<User[]> {
     // Get admin users
-    const adminUsers = await UserStorage.getUsers(tenantID, { role: Constants.ROLE_ADMIN }, {limit: 0, skip: 0});
+    const adminUsers = await UserStorage.getUsers(tenantID, { role: Constants.ROLE_ADMIN }, { limit: 0, skip: 0 });
     // Found
     if (adminUsers.count > 0) {
       // Convert to JSon

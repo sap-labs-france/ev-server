@@ -3,7 +3,6 @@ import global from '../../types/GlobalType';
 import MigrationTask from '../MigrationTask';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
 import Tenant from '../../entity/Tenant';
-import BBPromise from 'bluebird';
 
 export default class UpdateTransactionExtraInactivityTask extends MigrationTask {
   async migrate() {
@@ -29,7 +28,7 @@ export default class UpdateTransactionExtraInactivityTask extends MigrationTask 
       .toArray();
 
     // Process them
-    await BBPromise.map(transactionsMDB, async (transactionMDB) => {
+    await Promise.map(transactionsMDB, async (transactionMDB) => {
       // Get the last status
       const statusNotifications = await OCPPStorage.getStatusNotifications(tenant.getID(), {
         chargeBoxID: transactionMDB.chargeBoxID,

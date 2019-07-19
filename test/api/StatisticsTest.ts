@@ -5,8 +5,8 @@ import responseHelper from '../helpers/responseHelper';
 import CentralServerService from '../api/client/CentralServerService';
 import CONTEXTS from './contextProvider/ContextConstants';
 import ContextProvider from './contextProvider/ContextProvider';
-import StatisticsContext from './contextProvider/StatisticsContext';
 import StatisticsApi from './client/StatisticsApi';
+import StatisticsContext from './contextProvider/StatisticsContext';
 
 chai.use(chaiDatetime);
 chai.use(chaiSubset);
@@ -33,8 +33,6 @@ describe('Statistics tests', function() {
   let expectedConsumption = 0;
   let expectedUsage = 0;
   let expectedInactivity = 0;
-
-  let statisticsContext: StatisticsContext;
 
   before(async () => {
     chai.config.includeStack = true;
@@ -362,8 +360,8 @@ describe('Statistics tests', function() {
   });
 });
 
-function timeout(ms) {
-  return new Promise((resolve) => {
+async function timeout(ms) {
+  return await new Promise((resolve) => {
     return setTimeout(resolve, ms);
   });
 }

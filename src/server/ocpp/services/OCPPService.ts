@@ -15,8 +15,8 @@ import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Transaction from '../../../entity/Transaction';
 import User from '../../../types/User';
-import Utils from '../../../utils/Utils';
 import UserStorage from '../../../storage/mongodb/UserStorage';
+import Utils from '../../../utils/Utils';
 
 SourceMap.install();
 
@@ -856,7 +856,6 @@ export default class OCPPService {
       };
     } catch (error) {
       // Set the source
-      console.log(error);
       error.source = headers.chargeBoxIdentity;
       // Log error
       Logging.logActionExceptionMessage(headers.tenantID, 'Authorize', error);
@@ -1179,7 +1178,7 @@ export default class OCPPService {
         throw new BackendError(chargingStation.getID(),
           `Transaction ID '${stopTransaction.transactionId}' has already been stopped`,
           'OCPPService', 'handleStopTransaction', Constants.ACTION_REMOTE_STOP_TRANSACTION,
-          (alternateUser ? alternateUser: user),
+          (alternateUser ? alternateUser : user),
           (alternateUser ? (user ? user : null) : null));
       }
       // Check and free the connector

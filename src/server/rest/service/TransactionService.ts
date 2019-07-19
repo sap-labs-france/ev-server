@@ -1,3 +1,4 @@
+import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
 import moment from 'moment';
 import AppAuthError from '../../../exception/AppAuthError';
@@ -14,7 +15,6 @@ import TransactionSecurity from './security/TransactionSecurity';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
-import { Request, Response, NextFunction } from 'express';
 
 export default class TransactionService {
   static async handleRefundTransactions(action, req, res, next) {

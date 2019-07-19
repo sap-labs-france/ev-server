@@ -1,3 +1,4 @@
+import { ObjectID } from 'bson';
 import crypto from 'crypto';
 import fs from 'fs';
 import Mustache from 'mustache';
@@ -6,14 +7,13 @@ import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
+import Eula from '../../types/Eula';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
+import Site, { SiteUser } from '../../types/Site';
+import Tag from '../../types/Tag';
 import User from '../../types/User';
 import Utils from '../../utils/Utils';
-import Eula from '../../types/Eula';
-import Tag from '../../types/Tag';
-import { ObjectID } from 'bson';
-import Site, { SiteUser } from '../../types/Site';
 
 export default class UserStorage {
 
@@ -78,7 +78,7 @@ export default class UserStorage {
         .digest('hex');
       if (currentEulaHash !== eulaMDB.hash) {
         // New Version
-        let eula = {
+        const eula = {
           timestamp: new Date(),
           language: eulaMDB.language,
           version: eulaMDB.version + 1,
@@ -98,7 +98,7 @@ export default class UserStorage {
       return eulaMDB;
     }
     // Create Default
-    let eula = {
+    const eula = {
       timestamp: new Date(),
       language: language,
       version: 1,
@@ -146,10 +146,10 @@ export default class UserStorage {
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserByEmail');
     // Get user
     const user = await UserStorage.getUsers(tenantID, {email: email}, {limit: 1, skip: 0});
-    //TODO: Error handling if no user found here or is returning null fine?
+    // TODO: Error handling if no user found here or is returning null fine?
     // Debug
     Logging.traceEnd('UserStorage', 'getUserByEmail', uniqueTimerID, { email });
-    return user.count>0 ? user.result[0] : null;
+    return user.count > 0 ? user.result[0] : null;
   }
 
   public static async getUser(tenantID: string, userID: string): Promise<User> {
@@ -159,27 +159,27 @@ export default class UserStorage {
     const user = await UserStorage.getUsers(tenantID, {userID: userID}, {limit: 1, skip: 0});
     // Debug
     Logging.traceEnd('UserStorage', 'getUser', uniqueTimerID, { userID });
-    return user.count>0 ? user.result[0] : null;
+    return user.count > 0 ? user.result[0] : null;
   }
 
   public static async getUserImage(tenantID: string, id: string): Promise<{id: string, image: string}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserImage');
     // Get single user image
-    const userImages = await this.getUserImages(tenantID, [id]);
+    const userImages = await UserStorage.getUserImages(tenantID, [id]);
     // Debug
     Logging.traceEnd('UserStorage', 'getUserImage', uniqueTimerID, { id });
-    return userImages?userImages[0]:null;
+    return userImages ? userImages[0] : null;
   }
 
-  public static async getUserImages(tenantID: string, userIDs?:string[]): Promise<{id: string, image: string}[]> {
+  public static async getUserImages(tenantID: string, userIDs?: string[]): Promise<{id: string, image: string}[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserImages');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Build options
-    let options: any = {};
-    if(userIDs) {
+    const options: any = {};
+    if (userIDs) {
       options._id = { $in: userIDs.map(id => Utils.convertToObjectID(id)) };
     }
     // Read DB
@@ -215,7 +215,7 @@ export default class UserStorage {
             'userID': Utils.convertToObjectID(userID),
             'siteID': Utils.convertToObjectID(siteID)
           });
-          //TODO: Can be converted by setting siteID: {$in: [list of sites]}. Not changed yet due to previously having been coded like this. Change wanted? Please review.
+          // TODO: Can be converted by setting siteID: {$in: [list of sites]}. Not changed yet due to previously having been coded like this. Change wanted? Please review.
         }
       }
     }
@@ -272,7 +272,7 @@ export default class UserStorage {
       userFilter.email = userToSave.email;
     }
     // Properties to save
-    let userMDB = {
+    const userMDB = {
       _id: userToSave.id ? Utils.convertToObjectID(userToSave.id) : new ObjectID(),
       createdBy: userToSave.createdBy ? userToSave.createdBy.id : null,
       lastChangedBy: userToSave.lastChangedBy ? userToSave.lastChangedBy.id : null,
@@ -294,15 +294,15 @@ export default class UserStorage {
       // Delete Tag IDs
       await global.database.getCollection<any>(tenantID, 'tags')
         .deleteMany({ 'userID': userMDB._id });
-      if(userToSave.tagIDs.length !== 0) {
+      if (userToSave.tagIDs.length !== 0) {
         // Insert new Tag IDs
         await global.database.getCollection<any>(tenantID, 'tags')
         .insertMany(userToSave.tagIDs.map(tid => ({_id: tid, userID: userMDB._id}) ));
       }
     }
     // Delegate saving image as well if specified
-    if(saveImage) {
-      this.saveUserImage(tenantID, { id: userMDB._id.toHexString(), image: userToSave.image });
+    if (saveImage) {
+      UserStorage.saveUserImage(tenantID, { id: userMDB._id.toHexString(), image: userToSave.image });
     }
     // Debug
     Logging.traceEnd('UserStorage', 'saveUser', uniqueTimerID, { userToSave });
@@ -331,7 +331,7 @@ export default class UserStorage {
     Logging.traceEnd('UserStorage', 'saveUserImage', uniqueTimerID, { userImageToSave });
   }
 
-  public static async getUsers(tenantID: string, params: {notificationsActive?: boolean, siteID?: string, excludeSiteID?: string, search?:string, userID?:string,email?:string,role?:string, statuses?:string[], withImage?:boolean}, {limit, skip, onlyRecordCount, sort}: DbParams) {
+  public static async getUsers(tenantID: string, params: {notificationsActive?: boolean, siteID?: string, excludeSiteID?: string, search?: string, userID?: string, email?: string, role?: string, statuses?: string[], withImage?: boolean}, {limit, skip, onlyRecordCount, sort}: DbParams) {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
     // Check Tenant
@@ -362,7 +362,7 @@ export default class UserStorage {
       });
     }
     // Query by Email
-    if(params.email) {
+    if (params.email) {
       filters.$and.push({
         'email': params.email
       });
@@ -493,8 +493,8 @@ export default class UserStorage {
     const usersMDB = await global.database.getCollection<User>(tenantID, 'users')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
-    //Clean user object
-    for(let userMDB of usersMDB) {
+    // Clean user object
+    for (const userMDB of usersMDB) {
       delete (userMDB as any).siteusers;
     }
     // Debug
@@ -528,7 +528,9 @@ export default class UserStorage {
     Logging.traceEnd('UserStorage', 'deleteUser', uniqueTimerID, { id });
   }
 
-  public static async getSites(tenantID: string, params: { userID: string; siteAdmin?: boolean }, dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: SiteUser[]}> {
+  public static async getSites(tenantID: string,
+    params: { search?: string; userID: string; siteAdmin?: boolean; onlyRecordCount?: boolean },
+    dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: SiteUser[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getSites');
     // Check Tenant
@@ -537,23 +539,35 @@ export default class UserStorage {
     const limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
+    // Set the filters
+    const filters: any = {};
     // Filter
-    const filter: any = {
-      userID: Utils.convertToObjectID(params.userID)
-    };
+    if (params.userID) {
+      filters.userID = Utils.convertToObjectID(params.userID);
+    }
     if (params.siteAdmin) {
-      filter.siteAdmin = params.siteAdmin;
+      filters.siteAdmin = params.siteAdmin;
     }
     // Create Aggregation
     const aggregation: any[] = [];
     // Filter
     aggregation.push({
-      $match: filter
+      $match: filters
     });
     // Get Sites
     DatabaseUtils.pushSiteLookupInAggregation(
       { tenantID, aggregation, localField: 'siteID', foreignField: '_id',
         asField: 'site', oneToOneCardinality: true, oneToOneCardinalityNotNull: true });
+    // Another match for searching on Sites
+    if (params.search) {
+      aggregation.push({
+        $match: {
+          $or: [
+            { 'site.name': { $regex: params.search, $options: 'i' } }
+          ]
+        }
+      });
+    }
     // Convert IDs to String
     DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
     DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
@@ -649,6 +663,6 @@ export default class UserStorage {
       tagIDs: [],
       verificationToken: '',
       verifiedAt: null
-    }
+    };
   }
 }

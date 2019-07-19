@@ -15,7 +15,6 @@ import Site from '../../types/Site';
 import Transaction from '../../entity/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import User from '../../types/User';
-import BBPromise from 'bluebird';
 
 const MODULE_NAME = 'ConcurConnector';
 const CONNECTOR_ID = 'concur';
@@ -26,7 +25,8 @@ const CONNECTOR_ID = 'concur';
  * Token  string  -  The access token value passed in the Authorization header when making API calls. It is a long-lived token which is currently set to expire after one year from creation. You should securely store the token and use it for all subsequent API requests until the token expires. Before it does, you should send a request to refresh the token prior to the expiration date.
  * Expiration_Date  string  -  The Universal Coordinated Time (UTC) date and time when the access token expires.
  * Refresh_Token  string  -  Token with a new expiration date of a year from the refresh date. You should securely store the refresh token for a user and use it for all subsequent API requests.
- */export default class ConcurConnector extends AbstractConnector {
+ */
+export default class ConcurConnector extends AbstractConnector {
 
   constructor(tenantID, setting) {
     super(tenantID, 'concur', setting);
@@ -232,7 +232,7 @@ const CONNECTOR_ID = 'concur';
       expenseReportId = await this.createExpenseReport(connection, transactions[0].getTimezone(), user);
     }
 
-    await BBPromise.map(transactions,
+    await Promise.map(transactions,
       async (transaction: Transaction) => {
         try {
           const chargingStation = await ChargingStation.getChargingStation(transaction.getTenantID(), transaction.getChargeBoxID());

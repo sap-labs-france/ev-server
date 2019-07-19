@@ -9,9 +9,9 @@ import Site from '../../../types/Site';
 import SiteSecurity from './security/SiteSecurity';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import UserSecurity from './security/UserSecurity';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
-import UserStorage from '../../../storage/mongodb/UserStorage';
 
 export default class SiteService {
 
@@ -21,7 +21,7 @@ export default class SiteService {
       req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_UPDATE, Constants.ENTITY_SITE, 'SiteService', 'handleAssignUsersToSites');
 
-    //TODO: Fill this in based on content of both other files
+    // TODO: Fill this in based on content of both other files
   }
 
   public static async handleAddUsersToSite(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -276,7 +276,9 @@ export default class SiteService {
     // Get users
     const users = await SiteStorage.getUsers(req.user.tenantID,
       {
-        siteID: filteredRequest.SiteID
+        search: filteredRequest.Search,
+        siteID: filteredRequest.SiteID,
+        onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       ['user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteID']
@@ -375,10 +377,9 @@ export default class SiteService {
         'siteIDs': Authorizations.getAuthorizedSiteIDs(req.user),
         'withCompany': filteredRequest.WithCompany,
         'excludeSitesOfUserID': filteredRequest.ExcludeSitesOfUserID,
-        'withAvailableChargers': filteredRequest.WithAvailableChargers,
-        'onlyRecordCount': filteredRequest.OnlyRecordCount
+        'withAvailableChargers': filteredRequest.WithAvailableChargers
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount},
       [ 'id', 'name', 'address.latitude', 'address.longitude', 'address.city', 'address.country', 'company.name',
         'autoUserSiteAssignment', 'allowAllUsersToStopTransactions']
     );

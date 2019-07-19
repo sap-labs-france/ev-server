@@ -1,5 +1,4 @@
-//import * as express from 'express'
-import UserToken from "../../src/types/UserToken";
+import UserToken from '../../src/types/UserToken';
 
 declare global {
   namespace Express {
@@ -9,4 +8,3 @@ declare global {
     }
   }
 }
-  

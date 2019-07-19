@@ -1,8 +1,8 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
-import Utils from '../../../../utils/Utils';
 import UserToken from '../../../../types/UserToken';
+import Utils from '../../../../utils/Utils';
 
 export default class UtilsSecurity {
   static filterBoolean(value) {

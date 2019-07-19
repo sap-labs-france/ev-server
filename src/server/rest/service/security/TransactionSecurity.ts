@@ -1,10 +1,10 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
-import UtilsSecurity from './UtilsSecurity';
 import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
 import { HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
+import UtilsSecurity from './UtilsSecurity';
 
 export default class TransactionSecurity {
   public static filterTransactionsRefund(request: Partial<HttpTransactionsRefundRequest>): HttpTransactionsRefundRequest {

@@ -1,17 +1,19 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import UtilsSecurity from './UtilsSecurity';
-import { HttpSitesAssignUserRequest, HttpUsersRequest, HttpUserRequest } from '../../../../types/requests/HttpUserRequest';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import { HttpSitesAssignUserRequest, HttpUserRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
+import UtilsSecurity from './UtilsSecurity';
 
 export default class UserSecurity {
 
   public static filterAssignSitesToUserRequest(request: Partial<HttpSitesAssignUserRequest>, loggedUser): HttpSitesAssignUserRequest {
     return {
       userID: sanitize(request.userID),
-      siteIDs: request.siteIDs ? request.siteIDs.map(sid => sanitize(sid)) : []
+      siteIDs: request.siteIDs ? request.siteIDs.map((sid) => {
+        return sanitize(sid);
+      }) : []
     };
   }
 
@@ -20,19 +22,19 @@ export default class UserSecurity {
   }
 
   public static filterUsersRequest(request: Partial<HttpUsersRequest>, loggedUser): HttpUsersRequest {
-    if(request.Search) {
+    if (request.Search) {
       request.Search = sanitize(request.Search);
     }
-    if(request.SiteID) {
+    if (request.SiteID) {
       request.SiteID = sanitize(request.SiteID);
     }
-    if(request.Role) {
+    if (request.Role) {
       request.Role = sanitize(request.Role);
     }
-    if(request.Status) {
+    if (request.Status) {
       request.Status = sanitize(request.Status);
     }
-    if(request.ExcludeSiteID) {
+    if (request.ExcludeSiteID) {
       request.ExcludeSiteID = sanitize(request.ExcludeSiteID);
     }
     UtilsSecurity.filterSkipAndLimit(request, request);
@@ -162,7 +164,7 @@ export default class UserSecurity {
 
   // User
   static filterMinimalUserResponse(user: User, loggedUser: UserToken) {
-    let filteredUser: any = {};
+    const filteredUser: any = {};
     if (!user) {
       return null;
     }

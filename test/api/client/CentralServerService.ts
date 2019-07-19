@@ -15,8 +15,8 @@ import SiteAreaApi from './SiteAreaApi';
 import StatisticsApi from './StatisticsApi';
 import TenantApi from './TenantApi';
 import TransactionApi from './TransactionApi';
-import UserApi from './UserApi';
 import User from '../../../src/types/User';
+import UserApi from './UserApi';
 
 // Set
 chai.use(chaiSubset);

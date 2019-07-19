@@ -9,6 +9,7 @@ import Logging from '../utils/Logging';
 import MigrateTenantSettingsTask from './tasks/MigrateTenantSettingsTask';
 import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import NormalizeTransactionsTask from './tasks/NormalizeTransactionsTask';
+import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
 import TenantMigrationTask from './tasks/TenantMigrationTask';
 import TransactionsAddTimezoneTask from './tasks/TransactionsAddTimezoneTask';
 import UpdateABBMeterValuesTask from './tasks/UpdateKebaMeterValuesTask';
@@ -17,7 +18,6 @@ import UpdateTransactionInactivityTask from './tasks/UpdateTransactionInactivity
 import UpdateTransactionSimplePriceTask from './tasks/UpdateTransactionSimplePriceTask';
 import UpdateTransactionSoCTask from './tasks/UpdateTransactionSoCTask';
 import UsersAddNotificationsFlagTask from './tasks/UsersAddNotificationsFlagTask';
-import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
 
 
 export default class MigrationHandler {
@@ -54,7 +54,7 @@ export default class MigrationHandler {
       currentMigrationTasks.push(new MigrateTenantSettingsTask());
       currentMigrationTasks.push(new UpdateTransactionExtraInactivityTask());
       currentMigrationTasks.push(new SiteUsersHashIDsTask());
-      // currentMigrationTasks.push(new AddSensitiveDataInSettingsTask());
+      // pragma currentMigrationTasks.push(new AddSensitiveDataInSettingsTask());
 
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();

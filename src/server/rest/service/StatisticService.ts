@@ -6,9 +6,9 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import StatisticsStorage from '../../../storage/mongodb/StatisticsStorage';
 import StatisticSecurity from './security/StatisticSecurity';
+import User from '../../../types/User';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
-import User from '../../../types/User';
 
 export default class StatisticService {
   static async handleGetChargingStationConsumptionStatistics(action, req, res, next) {

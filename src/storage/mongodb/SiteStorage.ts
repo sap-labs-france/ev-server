@@ -9,8 +9,8 @@ import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Site from '../../types/Site';
 import SiteAreaStorage from './SiteAreaStorage';
-import Utils from '../../utils/Utils';
 import User, { UserSite } from '../../types/User';
+import Utils from '../../utils/Utils';
 
 export default class SiteStorage {
   public static async getSite(tenantID: string, id: string): Promise<Site> {
@@ -59,9 +59,11 @@ export default class SiteStorage {
       // At least one User
       if (userIDs && userIDs.length > 0) {
         // Execute
-        let res = await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
-          "userID": { $in: userIDs.map(userID => Utils.convertToObjectID(userID)) },
-          "siteID": Utils.convertToObjectID(siteID)
+        const res = await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
+          'userID': { $in: userIDs.map((userID) => {
+            return Utils.convertToObjectID(userID);
+          }) },
+          'siteID': Utils.convertToObjectID(siteID)
         });
       }
     }
@@ -98,7 +100,7 @@ export default class SiteStorage {
   }
 
   public static async getUsers(tenantID: string,
-    params: { siteID: string },
+    params: { search?: string; siteID: string; onlyRecordCount?: boolean },
     dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: UserSite[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getUsers');
@@ -126,6 +128,18 @@ export default class SiteStorage {
         '$or': DatabaseUtils.getNotDeletedFilter('user')
       }
     });
+    // Another match for searching on Users
+    if (params.search) {
+      aggregation.push({
+        $match: {
+          $or: [
+            { 'user.name': { $regex: params.search, $options: 'i' } },
+            { 'user.firstName': { $regex: params.search, $options: 'i' } },
+            { 'user.email': { $regex: params.search, $options: 'i' } }
+          ]
+        }
+      });
+    }
     // Convert IDs to String
     DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
     DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
@@ -168,10 +182,8 @@ export default class SiteStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
 
-    //console.log(aggregation);
-
     // Read DB
-    const siteUsersMDB = await global.database.getCollection<{user: User, siteID: string, siteAdmin: boolean}>(tenantID, 'siteusers')
+    const siteUsersMDB = await global.database.getCollection<{user: User; siteID: string; siteAdmin: boolean}>(tenantID, 'siteusers')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     const users: UserSite[] = [];
@@ -267,7 +279,7 @@ export default class SiteStorage {
   public static async getSites(tenantID: string,
     params: {
       search?: string; companyID?: string; withAutoUserAssignment?: boolean; siteIDs?: string[];
-      userID?: string; excludeSitesOfUserID?: boolean; onlyRecordCount?: boolean;
+      userID?: string; excludeSitesOfUserID?: boolean;
       withAvailableChargers?: boolean; withCompany?: boolean; } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: Site[]}> {
     // Debug

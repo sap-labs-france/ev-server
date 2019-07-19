@@ -1,7 +1,7 @@
 import SourceMap from 'source-map-support';
 import AuthService from './service/AuthService';
-import UtilsService from './service/UtilsService';
 import Logging from '../../utils/Logging';
+import UtilsService from './service/UtilsService';
 
 SourceMap.install();
 
@@ -18,7 +18,7 @@ export default {
   async authService(req, res, next) {
     // Parse the action
     const action = /^\/\w*/g.exec(req.url)[0].substring(1);
-    try{
+    try {
       // Check Context
       switch (req.method) {
         // Create Request
@@ -51,7 +51,7 @@ export default {
 
             default:
               // Delegate
-              await UtilsService.handleUnknownAction(action, req, res, next);
+              UtilsService.handleUnknownAction(action, req, res, next);
           }
           break;
 
@@ -62,7 +62,7 @@ export default {
             // Log out
             case 'Logout':
               // Delegate
-              await AuthService.handleUserLogOut(action, req, res, next);
+              AuthService.handleUserLogOut(action, req, res, next);
               break;
 
             // End-user license agreement
@@ -79,12 +79,12 @@ export default {
 
             default:
               // Delegate
-              await UtilsService.handleUnknownAction(action, req, res, next);
+              UtilsService.handleUnknownAction(action, req, res, next);
           }
           break;
       }
     } catch (error) {
-      console.log(error);
+      // FIXME: Cannot read property 'tenantID' of undefined
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next, req.user.tenantID);
     }
   }
