@@ -91,7 +91,7 @@ export default class SiteAreaStorage {
   }
 
   public static async getSiteAreas(tenantID: string,
-    params: {search?: string; siteID?: string; siteIDs?: string[]; withSite?: boolean;
+    params: {search?: string; siteIDs?: string[]; withSite?: boolean;
       withChargeBoxes?: boolean; withAvailableChargers?: boolean; } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: SiteArea[]}> {
     // Debug
@@ -114,9 +114,13 @@ export default class SiteAreaStorage {
         ];
       }
     }
-    // Set Site?
-    if (params.siteID) {
-      filters.siteID = Utils.convertToObjectID(params.siteID);
+    // Set Site thru a filter in the dashboard
+    if (params.siteIDs && Array.isArray(params.siteIDs) && params.siteIDs.length > 0) {
+      filters.siteID = {
+        $in: params.siteIDs.map((site) => {
+          return Utils.convertToObjectID(site);
+        })
+      };
     }
     // Create Aggregation
     const aggregation = [];
@@ -317,9 +321,11 @@ export default class SiteAreaStorage {
       .find({ siteID: { $in: siteIDs.map((id) => {
         return Utils.convertToObjectID(id);
       }) } })
-      .project({ _id: 1 }).toArray()).map((idWrapper) => {
+      .project({ _id: 1 }).toArray()).map((idWrapper): string => {
+      /* eslint-disable @typescript-eslint/indent */
         return idWrapper._id.toHexString();
       });
+    /* eslint-enable @typescript-eslint/indent */
     // Delete site areas
     await SiteAreaStorage.deleteSiteAreas(tenantID, siteareas);
     // Debug

@@ -35,7 +35,7 @@ export default class ContextProvider {
   async _init() {
     if (!this.initialized) {
       // Read all tenants
-      this.tenantEntities = (await this.superAdminCentralServerService.tenantApi.readAll({}, { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 })).data.result;
+      this.tenantEntities = (await this.superAdminCentralServerService.tenantApi.readAll({}, Constants.DB_PARAMS_MAX_LIMIT)).data.result;
     }
     this.initialized = true;
   }
@@ -88,7 +88,7 @@ export default class ContextProvider {
     let companyList = null;
     let userList = null;
     // Read all existing entities
-    chargingStationList = (await defaultAdminCentralServiceService.chargingStationApi.readAll({}, { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 })).data.result;
+    chargingStationList = (await defaultAdminCentralServiceService.chargingStationApi.readAll({}, Constants.DB_PARAMS_MAX_LIMIT)).data.result;
     if (tenantEntity.components && tenantEntity.components[Constants.COMPONENTS.ORGANIZATION] &&
       tenantEntity.components[Constants.COMPONENTS.ORGANIZATION].active) {
       siteAreaList = (await defaultAdminCentralServiceService.siteAreaApi.readAll({}, { limit: 0, skip: 0 })).data.result;

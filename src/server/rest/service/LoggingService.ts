@@ -22,9 +22,9 @@ export default class LoggingService {
       const filteredRequest = LoggingSecurity.filterLoggingsRequest(req.query, req.user);
       // Get logs
       const loggings = await Logging.getLogs(req.user.tenantID, {
-        'search': filteredRequest.Search, 'dateFrom': filteredRequest.DateFrom, 'dateUntil': filteredRequest.DateUntil, 'userID': filteredRequest.UserID,
-        'level': filteredRequest.Level, 'type': filteredRequest.Type, 'source': filteredRequest.Source, 'host': filteredRequest.Host,
-        'process': filteredRequest.Process, 'action': filteredRequest.Action
+        'search': filteredRequest.Search, 'dateFrom': filteredRequest.DateFrom, 'dateUntil': filteredRequest.DateUntil, 'userIDs': filteredRequest.UserID,
+        'level': filteredRequest.Level, 'type': filteredRequest.Type, 'sources': filteredRequest.Source, 'host': filteredRequest.Host,
+        'process': filteredRequest.Process, 'actions': filteredRequest.Action
       }, { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
       // Filter
       LoggingSecurity.filterLoggingsResponse(loggings, req.user);
@@ -53,9 +53,9 @@ export default class LoggingService {
       const filteredRequest = LoggingSecurity.filterLoggingsRequest(req.query, req.user);
       // Get logs
       const loggings = await Logging.getLogs(req.user.tenantID, {
-        'search': filteredRequest.Search, 'dateFrom': filteredRequest.DateFrom, 'dateUntil': filteredRequest.DateUntil, 'userID': filteredRequest.UserID,
-        'level': filteredRequest.Level, 'type': filteredRequest.Type, 'source': filteredRequest.Source, 'host': filteredRequest.Host,
-        'process': filteredRequest.Process, 'action': filteredRequest.Action
+        'search': filteredRequest.Search, 'dateFrom': filteredRequest.DateFrom, 'dateUntil': filteredRequest.DateUntil, 'userIDs': filteredRequest.UserID,
+        'level': filteredRequest.Level, 'type': filteredRequest.Type, 'sources': filteredRequest.Source, 'host': filteredRequest.Host,
+        'process': filteredRequest.Process, 'actions': filteredRequest.Action
       }, { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
       // Filter
       LoggingSecurity.filterLoggingsResponse(loggings, req.user);

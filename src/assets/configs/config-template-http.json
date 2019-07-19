@@ -1,4 +1,4 @@
-{	
+{
 	"Crypto": {
 		"key": "",
 		"algorithm": "aes-256-ctr"
@@ -151,7 +151,13 @@
 				"active": true,
 				"periodicity": "0-59/5 * * * *",
 				"config": {}
-			}
+			},
+      {
+        "name": "SynchronizeRefundTransactionsTask",
+        "active": true,
+        "periodicity": "0 * * * *",
+        "config": {}
+      }
 		]
 	},
 	"Logging": {

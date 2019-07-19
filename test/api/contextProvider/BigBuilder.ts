@@ -163,7 +163,7 @@ export default class ContextBuilder {
     console.log('CREATE tenant context ' + buildTenant.id +
       ' ' + buildTenant.subdomain);
     // Retrieve default admin
-    const existingUserList = (await UserStorage.getUsers(buildTenant.id, {}, { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 })).result;
+    const existingUserList = (await UserStorage.getUsers(buildTenant.id, {}, Constants.DB_PARAMS_MAX_LIMIT)).result;
     let defaultAdminUser: User = null;
     // Search existing admin
     if (existingUserList && Array.isArray(existingUserList)) {
@@ -173,7 +173,7 @@ export default class ContextBuilder {
       });
     }
     if ((defaultAdminUser.id !== CONTEXTS.TENANT_USER_LIST[0].id) || (defaultAdminUser.status !== 'A')) {
-      // It is a different default user so firt delete it
+      // It is a different default user so first delete it
       await UserStorage.deleteUser(buildTenant.id, defaultAdminUser.id);
       // Activate user
       defaultAdminUser.status = CONTEXTS.TENANT_USER_LIST[0].status;
@@ -196,7 +196,7 @@ export default class ContextBuilder {
     // Create Tenant component settings
     if (tenantContextDef.componentSettings) {
       console.log(`settings in tenant ${buildTenant.name} as ${JSON.stringify(tenantContextDef.componentSettings)}`);
-      const allSettings: any = await localCentralServiceService.settingApi.readAll({}, { limit: Constants.MAX_DB_RECORD_COUNT, skip: 0 });
+      const allSettings: any = await localCentralServiceService.settingApi.readAll({}, Constants.DB_PARAMS_MAX_LIMIT);
       for (const setting in tenantContextDef.componentSettings) {
         let foundSetting: any = null;
         if (allSettings && allSettings.data && allSettings.data.result && allSettings.data.result.length > 0) {
