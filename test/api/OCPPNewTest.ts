@@ -5,7 +5,7 @@ import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
 import CONTEXTS from './contextProvider/ContextConstants';
 import ContextProvider from './contextProvider/ContextProvider';
-import OCPPCommonTestsNew from './OCPPCommonTestNew';
+import OCPPCommonTestsNew from './OCPPCommonTestsNew';
 
 chai.use(chaiDatetime);
 chai.use(chaiSubset);

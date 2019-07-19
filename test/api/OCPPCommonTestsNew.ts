@@ -2,7 +2,7 @@ import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import faker from 'faker';
 import moment from 'moment';
-import CentralServerService from '../api/client/CentralServerService';
+import CentralServerService from './client/CentralServerService';
 import OCPPService from './ocpp/OCPPService';
 import CONTEXTS from './contextProvider/ContextConstants';
 import ChargingStationContext from './contextProvider/ChargingStationContext';
