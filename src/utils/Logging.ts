@@ -288,6 +288,15 @@ export default class Logging {
   }
 
   private static _logActionAppExceptionMessage(tenantID, action, exception): void {
+    const detailedMessages = [];
+    detailedMessages.push({
+      'stack': exception.stack
+    });
+    if (exception.detailedMessages) {
+      detailedMessages.push({
+        'details': (exception.detailedMessages instanceof Error ? exception.detailedMessages.stack : exception.detailedMessages)
+      });
+    }
     Logging.logError({
       tenantID: tenantID,
       source: exception.source,
@@ -297,9 +306,7 @@ export default class Logging {
       method: exception.method,
       action: action,
       message: exception.message,
-      detailedMessages: [{
-        'stack': exception.stack
-      }]
+      detailedMessages
     });
   }
 
