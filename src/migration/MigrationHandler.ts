@@ -6,6 +6,7 @@ import Logging from '../utils/Logging';
 import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
 import AddTransactionRefundStatusTask from './tasks/AddTransactionRefundStatusTask';
+import AddSensitiveDataInSettingsTask from './tasks/AddSensitiveDataInSettingsTask';
 
 export default class MigrationHandler {
   static async migrate() {
@@ -27,7 +28,7 @@ export default class MigrationHandler {
       // Create tasks
       currentMigrationTasks.push(new SiteUsersHashIDsTask());
       currentMigrationTasks.push(new AddTransactionRefundStatusTask());
-      // pragma currentMigrationTasks.push(new AddSensitiveDataInSettingsTask());
+      currentMigrationTasks.push(new AddSensitiveDataInSettingsTask());
 
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();

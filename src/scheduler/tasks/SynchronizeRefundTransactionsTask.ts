@@ -55,8 +55,8 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
       for (const transaction of transactions.result) {
         try {
           // Update Transaction
-          const action = await connector.updateRefundStatus(transaction, 'RefundSynchronize');
-          switch (action) {
+          const updatedAction = await connector.updateRefundStatus(transaction);
+          switch (updatedAction) {
             case Constants.REFUND_STATUS_CANCELLED:
               actionsDone.cancelled++;
               break;
