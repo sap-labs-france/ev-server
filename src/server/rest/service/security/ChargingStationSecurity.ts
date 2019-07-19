@@ -3,37 +3,21 @@ import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
+import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { filter } from 'bluebird';
+import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 
 export default class ChargingStationSecurity {
 
-  // eslint-disable-next-line no-unused-vars
-  static filterAddChargingStationsToSiteAreaRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.siteAreaID = sanitize(request.siteAreaID);
-    if (request.chargingStationIDs) {
-      filteredRequest.chargingStationIDs = request.chargingStationIDs.map((chargingStationID) => {
-        return sanitize(chargingStationID);
-      });
-    }
-    return filteredRequest;
-  }
-
-  // eslint-disable-next-line no-unused-vars
-  static filterRemoveChargingStationsFromSiteAreaRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.siteAreaID = sanitize(request.siteAreaID);
-    if (request.chargingStationIDs) {
-      filteredRequest.chargingStationIDs = request.chargingStationIDs.map((chargingStationID) => {
-        return sanitize(chargingStationID);
-      });
-    }
-    return filteredRequest;
+  public static filterAssignChargingStationsToSiteAreaRequest(request: Partial<HttpAssignChargingStationToSiteAreaRequest>): HttpAssignChargingStationToSiteAreaRequest {
+    return {
+      siteAreaID: sanitize(request.siteAreaID),
+      chargingStationIDs: request.chargingStationIDs.map(id=>sanitize(id))
+    };
   }
 
   // Charging Station
-  static filterChargingStationResponse(chargingStation, loggedUser: UserToken, organizationIsActive: boolean) {
+  public static filterChargingStationResponse(chargingStation, loggedUser: UserToken, organizationIsActive: boolean) {
     let filteredChargingStation;
 
     if (!chargingStation || !Authorizations.canReadChargingStation(loggedUser)) {
@@ -135,14 +119,6 @@ export default class ChargingStationSecurity {
   }
 
   // eslint-disable-next-line no-unused-vars
-  static filterChargingStationDeleteRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.ID = sanitize(request.ID);
-    return filteredRequest;
-  }
-
-  // eslint-disable-next-line no-unused-vars
   static filterChargingStationConfigurationRequest(request, loggedUser) {
     const filteredRequest: any = {};
     // Set
@@ -151,15 +127,12 @@ export default class ChargingStationSecurity {
   }
 
   // eslint-disable-next-line no-unused-vars
-  static filterChargingStationRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    filteredRequest.ID = sanitize(request.ID);
-    return filteredRequest;
+  static filterChargingStationRequest(request: HttpByIDRequest): HttpByIDRequest {
+    return {ID: sanitize(request.ID)};
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterChargingStationsRequest(request, loggedUser) {
-    const filteredRequest: any = {};
+  public static filterChargingStationsRequest(request: HttpChargingStationsRequest): HttpChargingStationsRequest {
+    const filteredRequest: HttpChargingStationsRequest = {} as HttpChargingStationsRequest;
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.WithNoSiteArea = UtilsSecurity.filterBoolean(request.WithNoSiteArea);
     filteredRequest.SiteID = sanitize(request.SiteID);
@@ -167,20 +140,6 @@ export default class ChargingStationSecurity {
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
     filteredRequest.IncludeDeleted = UtilsSecurity.filterBoolean(request.IncludeDeleted);
-    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
-    UtilsSecurity.filterSort(request, filteredRequest);
-    return filteredRequest;
-  }
-
-  // eslint-disable-next-line no-unused-vars
-  static filterChargingStationsInErrorRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    filteredRequest.Search = sanitize(request.Search);
-    filteredRequest.WithNoSiteArea = UtilsSecurity.filterBoolean(request.WithNoSiteArea);
-    filteredRequest.SiteID = request.SiteID ? sanitize(request.SiteID).split('|'):null;
-    filteredRequest.WithSite = UtilsSecurity.filterBoolean(request.WithSite);
-    filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
-    filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
     filteredRequest.ErrorType = sanitize(request.ErrorType);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
@@ -260,8 +219,7 @@ export default class ChargingStationSecurity {
     return filteredRequest;
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterChargingStationSetMaxIntensitySocketRequest(request, loggedUser) {
+  public static filterChargingStationSetMaxIntensitySocketRequest(request: {}, loggedUser) {
     const filteredRequest: any = {};
     // Check
     filteredRequest.chargeBoxID = sanitize(request.chargeBoxID);

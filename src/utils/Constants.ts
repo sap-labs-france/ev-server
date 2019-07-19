@@ -34,6 +34,7 @@ export default {
 
   DB_PARAMS_MAX_LIMIT: { limit: this.DB_RECORD_COUNT_NO_LIMIT, skip: 0 },
   DB_PARAMS_SINGLE_RECORD: { limit: 1, skip: 0 },
+  DB_PARAMS_COUNT_ONLY: {limit: this.DB_RECORD_COUNT_NO_LIMIT, skip: 0, onlyRecordCount: true},
 
   DEFAULT_TENANT: 'default',
 
