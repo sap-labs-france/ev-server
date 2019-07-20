@@ -339,24 +339,6 @@ export default class UserService {
     next();
   }
 
-  public static async handleGetUserImages(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check auth
-    if (!Authorizations.canListUsers(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_LIST,
-        Constants.ENTITY_USERS,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        'UserService', 'handleGetUserImages',
-        req.user);
-    }
-    // Get the user image
-    const userImages = await UserStorage.getUserImages(req.user.tenantID);
-    // Ok
-    res.json(userImages);
-    next();
-  }
-
   public static async handleGetUsers(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListUsers(req.user)) {

@@ -161,40 +161,14 @@ export default class UserStorage {
   public static async getUserImage(tenantID: string, id: string): Promise<{id: string; image: string}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserImage');
-    // Get single user image
-    const userImages = await UserStorage.getUserImages(tenantID, [id]);
-    // Debug
-    Logging.traceEnd('UserStorage', 'getUserImage', uniqueTimerID, { id });
-    return userImages ? userImages[0] : null;
-  }
-
-  public static async getUserImages(tenantID: string, userIDs?: string[]): Promise<{id: string; image: string}[]> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserImages');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Build options
-    const options: any = {};
-    if (userIDs) {
-      options._id = { $in: userIDs.map((id) => {
-        return Utils.convertToObjectID(id);
-      }) };
-    }
     // Read DB
-    const userImagesMDB = await global.database.getCollection<{_id: string; image: string}>(tenantID, 'userimages')
-      .find(options)
-      .toArray();
-    const userImages = [];
-    // Add
-    for (const userImageMDB of userImagesMDB) {
-      userImages.push({
-        id: userImageMDB._id,
-        image: userImageMDB.image
-      });
-    }
+    const userImageMDB = await global.database.getCollection<{_id: string; image: string}>(tenantID, 'userimages')
+      .findOne({ id: Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd('UserStorage', 'getUserImages', uniqueTimerID);
-    return userImages;
+    Logging.traceEnd('UserStorage', 'getUserImage', uniqueTimerID, { id });
+    return { id: id, image: (userImageMDB ? userImageMDB.image : null) };
   }
 
   public static async removeSitesFromUser(tenantID: string, userID: string, siteIDs: string[]): Promise<void> {
