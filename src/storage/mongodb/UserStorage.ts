@@ -165,7 +165,7 @@ export default class UserStorage {
     await Utils.checkTenant(tenantID);
     // Read DB
     const userImageMDB = await global.database.getCollection<{_id: string; image: string}>(tenantID, 'userimages')
-      .findOne({ id: Utils.convertToObjectID(id) });
+      .findOne({ _id: Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd('UserStorage', 'getUserImage', uniqueTimerID, { id });
     return { id: id, image: (userImageMDB ? userImageMDB.image : null) };
