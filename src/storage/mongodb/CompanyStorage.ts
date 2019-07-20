@@ -78,7 +78,7 @@ export default class CompanyStorage {
     }
     // Save Logo
     if (saveLogo) {
-      CompanyStorage._saveCompanyLogo(tenantID, companyMDB._id.toHexString(), companyToSave.logo);
+      await CompanyStorage._saveCompanyLogo(tenantID, companyMDB._id.toHexString(), companyToSave.logo);
     }
     // Debug
     Logging.traceEnd('CompanyStorage', 'saveCompany', uniqueTimerID, { companyToSave });
