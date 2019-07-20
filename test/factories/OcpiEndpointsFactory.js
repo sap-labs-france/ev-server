@@ -2,9 +2,17 @@ const Factory = require('rosie').Factory;
 const faker = require('faker');
 
 module.exports = Factory.define('ocpiEndpoint')
-  .attr('name', () => faker.name.lastName())
-  .attr('baseUrl', () => faker.internet.url())
+  .attr('name', () => {
+    return faker.name.lastName();
+  })
+  .attr('baseUrl', () => {
+    return faker.internet.url();
+  })
   .attr('countryCode', 'FR')
   .attr('partyId','107')
-  .attr('localToken',() => faker.internet.password())
-  .attr('token',() => faker.internet.password());
+  .attr('localToken',() => {
+    return faker.internet.password();
+  })
+  .attr('token',() => {
+    return faker.internet.password();
+  });

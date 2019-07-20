@@ -1,0 +1,65 @@
+{
+    "title": "boot-notification-request",
+    "description": "Defines the BootNotification.req PDU",
+    "type": "object",
+    "properties": {
+        "chargePointVendor": {
+            "type": "string",
+            "description": "string defining the vendor of the charge point. To be treated as case insensitive.",
+            "minLength": 1,
+            "maxLength": 20
+        },
+        "chargePointModel": {
+            "type": "string",
+            "description": "string defining the model of the charge point. To be treated as case insensitive.",
+            "minLength": 1,
+            "maxLength": 20
+        },
+        "chargePointSerialNumber": {
+            "type": "string",
+            "description": "string defining the serial number of the charge point. To be treated as case insensitive.",
+            "minLength": 1,
+            "maxLength": 50
+        },
+        "chargeBoxSerialNumber": {
+            "type": "string",
+            "description": "string defining the serial number of the charge box. To be treated as case insensitive.",
+            "minLength": 1,
+            "maxLength": 50
+        },
+        "firmwareVersion": {
+            "type": "string",
+            "description": "string defining the firmware version of the charge point. To be treated as case insensitive.",
+            "minLength": 1,
+            "maxLength": 50
+        },
+        "iccid": {
+            "type": "string",
+            "description": "string defining the iccid of the charge point. To be treated as case insensitive.",
+            "minLength": 1,
+            "maxLength": 20
+        },
+        "imsi": {
+            "type": "string",
+            "description": "string defining the imsi of the charge point. To be treated as case insensitive.",
+            "minLength": 1,
+            "maxLength": 20
+        },
+        "meterType": {
+            "type": "string",
+            "description": "string defining the meter type of the charge point. To be treated as case insensitive.",
+            "minLength": 1,
+            "maxLength": 25
+        },
+        "meterSerialNumber": {
+            "type": "string",
+            "description": "string defining the meter serial number of the charge point. To be treated as case insensitive.",
+            "minLength": 1,
+            "maxLength": 25
+        }
+    },
+    "required": [
+        "chargePointVendor",
+        "chargePointModel"
+    ]
+}

@@ -1,0 +1,77 @@
+{
+    "title": "status-notification-request",
+    "description": "Defines the StatusNotification.req PDU",
+    "type": "object",
+    "properties": {
+        "connectorId": {
+            "type": "integer",
+            "description": "number defining the connector identifier of the charge point"
+        },
+        "status": {
+            "type": "string",
+            "description": "string defining the status notification",
+            "enum": [
+                "Available",
+                "Preparing",
+                "Charging",
+                "SuspendedEV",
+                "SuspendedEVSE",
+                "Finishing",
+                "Reserved",
+                "Faulted",
+                "Unavailable",
+                "Occupied"
+            ]
+        },
+        "errorCode": {
+            "type": "string",
+            "description": "string defining the status notification error code",
+            "enum": [
+                "ConnectorLockFailure",
+                "EVCommunicationError",
+                "GroundFailure",
+                "HighTemperature",
+                "InternalError",
+                "LocalListConflict",
+                "NoError",
+                "OtherError",
+                "OverCurrentFailure",
+                "OverVoltage",
+                "PowerMeterFailure",
+                "PowerSwitchFailure",
+                "ReaderFailure",
+                "ResetFailure",
+                "UnderVoltage",
+                "WeakSignal",
+                "Mode3Error"
+            ]
+        },
+        "info": {
+            "type": "string",
+            "description": "string defining more information about the status notification",
+            "minLength": 1,
+            "maxLength": 50
+        },
+        "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "string defining the status notification timestamp"
+        },
+        "vendorId": {
+            "type": "string",
+            "description": "string defining the vendor identifier",
+            "minLength": 1,
+            "maxLength": 25
+        },
+        "vendorErrorCode": {
+            "type": "string",
+            "description": "string defining the vendor error code",
+            "maxLength": 50
+        }
+    },
+    "required": [
+        "connectorId",
+        "status",
+        "errorCode"
+    ]
+}
