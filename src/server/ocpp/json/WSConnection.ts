@@ -88,6 +88,7 @@ export default class WSConnection {
       }
     } catch (error) {
       // Custom Error
+      Logging.logException(error, 'WSConnection', this.getChargingStationID(), 'WSConnection', 'initialize', this.tenantID);
       throw new BackendError(this.getChargingStationID(), `Invalid Tenant '${this.tenantID}' in URL '${this.getURL()}'`,
         'WSConnection', 'initialize');
     }
