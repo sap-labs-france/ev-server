@@ -254,7 +254,7 @@ export default class SiteStorage {
         'SiteStorage', 'saveSite');
     }
     if (saveImage) {
-      SiteStorage.saveSiteImage(tenantID, siteFilter._id.toHexString(), siteToSave.image);
+      await SiteStorage.saveSiteImage(tenantID, siteFilter._id.toHexString(), siteToSave.image);
     }
     // Debug
     Logging.traceEnd('SiteStorage', 'saveSite', uniqueTimerID, { siteToSave });
@@ -477,7 +477,7 @@ export default class SiteStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete all Site Areas
-    SiteAreaStorage.deleteSiteAreasFromSites(tenantID, ids);
+    await SiteAreaStorage.deleteSiteAreasFromSites(tenantID, ids);
     // Convert
     const cids: ObjectID[] = ids.map((id) => {
       return Utils.convertToObjectID(id);
@@ -505,14 +505,14 @@ export default class SiteStorage {
       .find({ companyID: Utils.convertToObjectID(companyID) })
       .project({ _id: 1 })
       .toArray())
-      .map((site) => {
+      .map((site): string => {
         return site._id.toHexString();
       }
       );
     // Delete all Site Areas
-    SiteAreaStorage.deleteSiteAreasFromSites(tenantID, siteIDs);
+    await SiteAreaStorage.deleteSiteAreasFromSites(tenantID, siteIDs);
     // Delete Sites
-    SiteStorage.deleteSites(tenantID, siteIDs);
+    await SiteStorage.deleteSites(tenantID, siteIDs);
     // Debug
     Logging.traceEnd('SiteStorage', 'deleteCompanySites', uniqueTimerID, { companyID });
   }
