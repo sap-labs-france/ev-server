@@ -1,0 +1,35 @@
+{
+  "subject": "Compte <%- (user.status==='A'?'activé':'suspendu'); %>",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Compte <%- (user.status === 'A' ? 'Activé' : 'Suspendu'); %>",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Bonjour <%- (user.firstName ? user.firstName : user.name) %>,",
+      "",
+      "Votre compte a été <b><%- (user.status === 'A' ? 'activé' : 'suspendu'); %></b> par un administrateur."
+    ],
+    "action": {
+      "title": "Charge-Angels",
+      "url": "<%- evseDashboardURL %>"
+    },
+    "afterActionLines": [
+      "Cordialement,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}

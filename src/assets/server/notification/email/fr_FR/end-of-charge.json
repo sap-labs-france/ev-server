@@ -1,0 +1,42 @@
+{
+  "subject": "Charge terminée",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Charge Terminée",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
+      "",
+      "Votre véhicule électrique, qui est connecté sur <b><%- chargeBoxID %></b>, a terminé sa charge."
+    ],
+    "stats": [
+      { "label": "Consommation", "value": "<%- totalConsumption %> kW.h" },
+      { "label": "Durée Estimée", "value": "<%- totalDuration %>" },
+      { "label": "Niveau Batterie", "value": "<%- (stateOfCharge ? stateOfCharge + ' %' : '-') %>" }
+    ],
+    "action": {
+      "title": "Voir Session",
+      "url": "<%- evseDashboardChargingStationURL %>"
+    },
+    "afterActionLines": [
+      "Vous pouvez maintenant stopper la session et deplacer votre véhicule.",
+      "",
+      "Cordialement,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
