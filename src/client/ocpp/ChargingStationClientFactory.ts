@@ -12,7 +12,7 @@ const buildChargingStationClient = async function(chargingStation) {
     case Constants.OCPP_PROTOCOL_JSON:
       // Get the client from JSon Server
       if (global.centralSystemJson) {
-        chargingClient = global.centralSystemJson.getChargingStationClient(chargingStation.getTenantID(), chargingStation.getID());
+        chargingClient = global.centralSystemJson.getChargingStationClient(chargingStation.getTenantID(), chargingStation.id);
       }
       // Not Found
       if (!chargingClient) {
@@ -29,7 +29,7 @@ const buildChargingStationClient = async function(chargingStation) {
   }
   // Check
   if (!chargingClient) {
-    throw new BackendError(chargingStation.getID(), 'Client has not been found',
+    throw new BackendError(chargingStation.id, 'Client has not been found',
       'ChargingStationClient', 'getChargingStationClient');
   }
   return chargingClient;

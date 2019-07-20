@@ -22,7 +22,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       chargingStationURL = chargingStationURL.substring(0, chargingStationURL.length - 1);
     }
     // Keep
-    this.serverURL = `${chargingStationURL}/REST/${chargingStation.getTenantID()}/${chargingStation.getID()}`;
+    this.serverURL = `${chargingStationURL}/REST/${chargingStation.getTenantID()}/${chargingStation.id}`;
     this.chargingStation = chargingStation;
     this.requests = {};
   }
@@ -98,7 +98,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
     Logging.logInfo({
       tenantID: this.chargingStation.getTenantID(),
       module: MODULE_NAME,
-      source: this.chargingStation.getID(),
+      source: this.chargingStation.id,
       method: 'onOpen',
       action: 'WSRestClientConnectionOpen',
       message: `Try to connect to '${this.serverURL}', CF Instance '${this.chargingStation.getCFApplicationIDAndInstanceIndex()}'`
@@ -131,7 +131,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         Logging.logInfo({
           tenantID: this.chargingStation.getTenantID(),
           module: MODULE_NAME,
-          source: this.chargingStation.getID(),
+          source: this.chargingStation.id,
           method: 'onOpen',
           action: 'WSRestClientConnectionOpened',
           message: `Connection opened to '${this.serverURL}'`
@@ -145,7 +145,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         Logging.logInfo({
           tenantID: this.chargingStation.getTenantID(),
           module: MODULE_NAME,
-          source: this.chargingStation.getID(),
+          source: this.chargingStation.id,
           method: 'onClose',
           action: 'WSRestClientConnectionClosed',
           message: `Connection closed from '${this.serverURL}'`
@@ -154,7 +154,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       // Handle Error Message
       this.wsConnection.onerror = (error) => {
         // Log
-        Logging.logException(error, 'WSRestConnectionClosed', this.chargingStation.getID(), MODULE_NAME, 'onError', this.chargingStation.getTenantID());
+        Logging.logException(error, 'WSRestConnectionClosed', this.chargingStation.id, MODULE_NAME, 'onError', this.chargingStation.getTenantID());
         // Terminate WS in error
         this._terminateConnection();
       };
@@ -167,7 +167,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           Logging.logDebug({
             tenantID: this.chargingStation.getTenantID(),
             module: MODULE_NAME,
-            source: this.chargingStation.getID(),
+            source: this.chargingStation.id,
             method: 'onMessage',
             action: 'WSRestClientMessage',
             message: `Received message '${message.data}'`,
@@ -181,7 +181,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
               Logging.logError({
                 tenantID: this.chargingStation.getTenantID(),
                 module: MODULE_NAME,
-                source: this.chargingStation.getID(),
+                source: this.chargingStation.id,
                 method: 'onMessage',
                 action: 'WSRestClientErrorResponse',
                 message: `OCPP error response for '${JSON.stringify(messageJson[2])}'`,
@@ -198,7 +198,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           }
         } catch (error) {
           // Log
-          Logging.logException(error, '', this.chargingStation.getID(), MODULE_NAME, 'onMessage', this.chargingStation.getTenantID());
+          Logging.logException(error, '', this.chargingStation.id, MODULE_NAME, 'onMessage', this.chargingStation.getTenantID());
         }
       };
     });
@@ -232,7 +232,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
         Logging.logDebug({
           tenantID: this.chargingStation.getTenantID(),
           module: MODULE_NAME,
-          source: this.chargingStation.getID(),
+          source: this.chargingStation.id,
           method: 'SendMessage',
           action: 'WSRestClientSendMessage',
           message: `Send message '${request[2]}'`,

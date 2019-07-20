@@ -323,7 +323,7 @@ export default class Transaction extends TenantHolder {
   setChargingStation(chargingStation) {
     if (chargingStation) {
       this._model.chargeBox = chargingStation.getModel();
-      this._model.chargeBoxID = chargingStation.getID();
+      this._model.chargeBoxID = chargingStation.id;
     } else {
       this._model.chargeBox = null;
       this._model.chargeBoxID = null;

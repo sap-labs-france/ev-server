@@ -303,7 +303,7 @@ export default class Utils {
     const tenant = await chargingStation.getTenant();
     const _evseBaseURL = Utils.buildEvseURL(tenant.getSubdomain());
 
-    return _evseBaseURL + '/charging-stations?ChargingStationID=' + chargingStation.getID() + hash;
+    return _evseBaseURL + '/charging-stations?ChargingStationID=' + chargingStation.id + hash;
   }
 
   static async buildEvseTransactionURL(chargingStation, transactionId, hash = '') {

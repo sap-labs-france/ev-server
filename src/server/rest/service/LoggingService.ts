@@ -33,15 +33,15 @@ export default class LoggingService {
           // Filter only Site Admin Chargers
           const sources = [];
           for (const chargingStation of chargingStations.result) {
-            if (filteredRequest.Source.includes(chargingStation.getID())) {
-              sources.push(chargingStation.getID());
+            if (filteredRequest.Source.includes(chargingStation.id)) {
+              sources.push(chargingStation.id);
             }
           }
           filteredRequest.Source = sources;
         } else {
           // Add all Site Admin Chargers in filter
           filteredRequest.Source = chargingStations.result.map((chargingStation) => {
-            return chargingStation.getID();
+            return chargingStation.id;
           });
         }
       }

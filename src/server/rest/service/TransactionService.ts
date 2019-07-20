@@ -264,7 +264,7 @@ export default class TransactionService {
       // Stop Transaction
       const result = await new OCPPService().handleStopTransaction(
         {
-          chargeBoxIdentity: chargingStation.getID(),
+          chargeBoxIdentity: chargingStation.id,
           tenantID: chargingStation.getTenantID()
         },
         {
@@ -276,7 +276,7 @@ export default class TransactionService {
         true);
       // Log
       Logging.logSecurityInfo({
-        tenantID: req.user.tenantID, source: chargingStation.getID(),
+        tenantID: req.user.tenantID, source: chargingStation.id,
         user: req.user, actionOnUser: user,
         module: 'TransactionService', method: 'handleTransactionSoftStop',
         message: `Transaction ID '${transaction.getID()}' on '${transaction.getChargeBoxID()}'-'${transaction.getConnectorId()}' has been stopped successfully`,
