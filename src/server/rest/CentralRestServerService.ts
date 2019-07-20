@@ -128,7 +128,6 @@ class RequestMapper {
           SiteAreaImage: SiteAreaService.handleGetSiteAreaImage,
           Users: UserService.handleGetUsers,
           UsersInError: UserService.handleGetUsersInError,
-          UserImages: UserService.handleGetUserImages,
           UserImage: UserService.handleGetUserImage,
           User: UserService.handleGetUser,
           UserInvoice: UserService.handleGetUserInvoice,
