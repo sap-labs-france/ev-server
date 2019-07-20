@@ -1,15 +1,16 @@
 import BackendError from '../../../exception/BackendError';
-import ChargingStation from '../../../entity/ChargingStation';
+import ChargingStation from '../../../types/ChargingStation';
 import Constants from '../../../utils/Constants';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 
 export default class OCPPUtils {
 
-  static lockAllConnectors(chargingStation) {
-    chargingStation.getConnectors().forEach((connector) => {
+  static lockAllConnectors(chargingStation: ChargingStation) {
+    chargingStation.connectors.forEach((connector) => {
       // Check
       if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
         // Check OCPP Version
-        if (chargingStation.getOcppVersion() === Constants.OCPP_VERSION_15) {
+        if (chargingStation.ocppVersion === Constants.OCPP_VERSION_15) {
           // Set OCPP 1.5 Occupied
           connector.status = Constants.CONN_STATUS_OCCUPIED;
         } else {
@@ -32,7 +33,7 @@ export default class OCPPUtils {
         && (meterValue.attribute.context === 'Sample.Periodic' || meterValue.attribute.context === 'Sample.Clock'));
   }
 
-  static async checkAndGetChargingStation(chargeBoxIdentity, tenantID) {
+  static async checkAndGetChargingStation(chargeBoxIdentity: string, tenantID: string): Promise<ChargingStation> {
     // Check
     if (!chargeBoxIdentity) {
       throw new BackendError(Constants.CENTRAL_SERVER,
@@ -40,14 +41,14 @@ export default class OCPPUtils {
         'OCPPUtils', '_checkAndGetChargingStation');
     }
     // Get the charging station
-    const chargingStation = await ChargingStation.getChargingStation(tenantID, chargeBoxIdentity);
+    const chargingStation = await ChargingStationStorage.getChargingStation(tenantID, chargeBoxIdentity);
     // Found?
     if (!chargingStation) {
       throw new BackendError(chargeBoxIdentity, 'Charging Station does not exist',
         'OCPPUtils', '_checkAndGetChargingStation');
     }
     // Found?
-    if (chargingStation.isDeleted()) {
+    if (chargingStation.deleted) {
       // Error
       throw new BackendError(chargeBoxIdentity, 'Charging Station is deleted',
         'OCPPUtils', '_checkAndGetChargingStation');

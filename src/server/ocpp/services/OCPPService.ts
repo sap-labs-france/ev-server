@@ -229,20 +229,20 @@ export default class OCPPService {
     }
   }
 
-  async _updateConnectorStatus(chargingStation: ChargingStation, statusNotification, bothConnectorsUpdated) {
+  async _updateConnectorStatus(tenantID: string, chargingStation: ChargingStation, statusNotification, bothConnectorsUpdated) {
     // Get it
     let connector = chargingStation.connectors[statusNotification.connectorId]; // TODO: Is it really an array or is it a search? Might be search. FIXME
     if (!connector) {
       // Does not exist: Create
       connector = { connectorId: statusNotification.connectorId, currentConsumption: 0, status: 'Unknown', power: 0, type: Constants.CONNECTOR_TYPES.UNKNOWN };
-      chargingStation.getConnectors().push(connector);
+      chargingStation.connectors.push(connector);
     }
     // Check if status has changed
     if (connector.status === statusNotification.status &&
       connector.errorCode === statusNotification.errorCode) {
       // No Change: Do not save it
       Logging.logWarning({
-        tenantID: chargingStation.getTenantID(), source: chargingStation.id,
+        tenantID: tenantID, source: chargingStation.id,
         module: 'OCPPService', method: 'handleStatusNotification', action: 'StatusNotification',
         message: `Status on Connector '${statusNotification.connectorId}' has not changed then not saved: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}''`
       });
@@ -257,10 +257,10 @@ export default class OCPPService {
     connector.info = (statusNotification.info ? statusNotification.info : '');
     connector.vendorErrorCode = (statusNotification.vendorErrorCode ? statusNotification.vendorErrorCode : '');
     // Save Status Notification
-    await OCPPStorage.saveStatusNotification(chargingStation.getTenantID(), statusNotification);
+    await OCPPStorage.saveStatusNotification(tenantID, statusNotification);
     // Log
     Logging.logInfo({
-      tenantID: chargingStation.getTenantID(), source: chargingStation.id,
+      tenantID: tenantID, source: chargingStation.id,
       module: 'OCPPService', method: 'handleStatusNotification', action: 'StatusNotification',
       message: `Connector '${statusNotification.connectorId}' status '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}' has been saved`
     });
@@ -269,7 +269,7 @@ export default class OCPPService {
     // Notify admins
     this._notifyStatusNotification(chargingStation, statusNotification);
     // Save Connector
-    await chargingStation.saveChargingStationConnector(statusNotification.connectorId);
+    await ChargingStationStorage.saveChargingStationConnector(tenantID, chargingStation, statusNotification.connectorId);
   }
 
   async _checkStatusNotificationInactivity(chargingStation, statusNotification, connector) {
