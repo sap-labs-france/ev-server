@@ -2,15 +2,15 @@ import ODataServer from 'simple-odata-server';
 import ODataRestAdapter from './ODataRestAdapter';
 
 export default class ODataServerFactory {
-  public odataserver: any;
+  public oDataServer: any;
 
   constructor() {
-    this.odataserver = ODataServer();
-    ODataRestAdapter.registerAdapter(this.odataserver);
+    this.oDataServer = ODataServer();
+    ODataRestAdapter.registerAdapter(this.oDataServer);
   }
 
   getODataServer() {
-    return this.odataserver;
+    return this.oDataServer;
   }
 }
 
