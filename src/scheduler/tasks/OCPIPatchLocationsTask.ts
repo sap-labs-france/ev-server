@@ -3,7 +3,7 @@ import Logging from '../../utils/Logging';
 import OCPIClient from '../../client/ocpi/OCPIClient';
 import OCPIEndpoint from '../../entity/OCPIEndpoint';
 import SchedulerTask from '../SchedulerTask';
-import { TaskConfig } from '../TaskConfig';
+import {TaskConfig} from '../TaskConfig';
 import Tenant from '../../entity/Tenant';
 
 export default class OCPIPatchLocationsTask extends SchedulerTask {
