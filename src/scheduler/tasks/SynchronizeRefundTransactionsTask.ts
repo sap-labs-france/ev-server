@@ -1,10 +1,10 @@
-import SchedulerTask from '../SchedulerTask';
-import { TaskConfig } from '../TaskConfig';
-import Tenant from '../../entity/Tenant';
+import ConcurConnector from '../../integration/refund/ConcurConnector';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
+import SchedulerTask from '../SchedulerTask';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
-import ConcurConnector from '../../integration/refund/ConcurConnector';
+import { TaskConfig } from '../TaskConfig';
+import Tenant from '../../entity/Tenant';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 
 export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
@@ -36,7 +36,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
     const transactions = await TransactionStorage.getTransactions(tenant.getID(), {
       'refundType': Constants.REFUND_TYPE_REFUNDED,
       'refundStatus': Constants.REFUND_STATUS_SUBMITTED
-    }, Constants.DB_PARAMS_MAX_LIMIT, [ 'userID', 'refundData.reportId' ]);
+    }, { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { 'userID' : 1, 'refundData.reportId' : 1 } });
     // Check
     if (transactions.count > 0) {
       // Process them
@@ -55,8 +55,8 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
       for (const transaction of transactions.result) {
         try {
           // Update Transaction
-          const action = await connector.updateRefundStatus(transaction, 'RefundSynchronize');
-          switch (action) {
+          const updatedAction = await connector.updateRefundStatus(transaction);
+          switch (updatedAction) {
             case Constants.REFUND_STATUS_CANCELLED:
               actionsDone.cancelled++;
               break;
@@ -76,7 +76,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
         tenantID: tenant.getID(),
         module: 'SynchronizeRefundTransactionsTask',
         method: 'run', action: 'RefundSynchronize',
-        message: `Synchronized: ${actionsDone.approved} Approved, ${actionsDone.cancelled} Cancelled, ${actionsDone.notUpdated} Not updated - ${actionsDone.error} Exception(s)`
+        message: `Synchronized: ${actionsDone.approved} Approved, ${actionsDone.cancelled} Cancelled, ${actionsDone.notUpdated} Not updated, ${actionsDone.error} In Error`
       });
     } else {
       // Process them
@@ -84,7 +84,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
         tenantID: tenant.getID(),
         module: 'SynchronizeRefundTransactionsTask',
         method: 'run', action: 'RefundSynchronize',
-        message: `No Refunded Transaction found to synchronize`
+        message: 'No Refunded Transaction found to synchronize'
       });
     }
   }

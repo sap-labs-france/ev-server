@@ -11,7 +11,8 @@ export default class AppError extends Error {
     readonly method: string = 'N/A',
     readonly user?: User|string|UserToken, // TODO: Convert
     readonly actionOnUser?: User|string|UserToken,
-    readonly action?: any) {
+    readonly action?: any,
+    readonly detailedMessages?: any) {
     super(message);
   }
 }

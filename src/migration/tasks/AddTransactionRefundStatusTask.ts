@@ -1,8 +1,8 @@
+import Constants from '../../utils/Constants';
+import global from '../../types/GlobalType';
+import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
 import Tenant from '../../entity/Tenant';
-import global from '../../types/GlobalType';
-import Constants from '../../utils/Constants';
-import Logging from '../../utils/Logging';
 
 export default class AddTransactionRefundStatusTask extends MigrationTask {
   async migrate() {

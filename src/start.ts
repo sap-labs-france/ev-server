@@ -71,7 +71,7 @@ export default class Bootstrap {
         }
         // Connect to the Database
         await Bootstrap.database.start();
-        let logMsg;
+        let logMsg: string;
         if (cluster.isMaster) {
           logMsg = `Database connected to '${Bootstrap.storageConfig.implementation}' successfully in master`;
         } else {
