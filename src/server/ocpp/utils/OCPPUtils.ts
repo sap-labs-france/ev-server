@@ -56,7 +56,7 @@ export default class OCPPUtils {
     return chargingStation;
   }
 
-  static async updateConnectorsPower(chargingStation) {
+  static async updateConnectorsPower(chargingStation: ChargingStation) {
     let voltageRerefence = 0;
     let current = 0;
     let nbPhase = 0;
@@ -64,7 +64,7 @@ export default class OCPPUtils {
     let totalPower = 0;
 
     // Only for Schneider
-    if (chargingStation.getChargePointVendor() === 'Schneider Electric') {
+    if (chargingStation.chargePointVendor === 'Schneider Electric') {
       // Get the configuration
       const configuration = await chargingStation.getConfiguration();
       // Config Provided?
