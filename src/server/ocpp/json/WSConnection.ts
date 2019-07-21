@@ -286,13 +286,13 @@ export default class WSConnection {
   }
 
   getTenantID() {
-    // Check
-    if (this.isTenantValid()) {
-      // Ok verified
+    // // Check
+    // if (this.isTenantValid()) {
+    //   // Ok verified
       return this.tenantID;
-    }
-    // No go to the master tenant
-    return Constants.DEFAULT_TENANT;
+    // }
+    // // No go to the master tenant
+    // return Constants.DEFAULT_TENANT;
   }
 
   setTenantID(tenantID) {
