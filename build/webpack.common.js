@@ -7,7 +7,7 @@ const CopyPlugin = require('copy-webpack-plugin');
 
 const config = {
   entry: commonPaths.srcPath + "/start.ts",
-  devtool: 'inline-source-map',
+  devtool: 'source-map',
   target: 'node',
   node: {
     console: false,
@@ -37,7 +37,12 @@ const config = {
     }, []),
     new CopyPlugin([
       { from: 'src/assets/', to: 'assets/', ignore: ['**/configs/**'] }
-    ])
+    ]),
+    new webpack.BannerPlugin({
+      banner: 'require("source-map-support").install();',
+      raw: true,
+      entryOnly: false
+    })
   ],
   optimization: {
     minimizer: [

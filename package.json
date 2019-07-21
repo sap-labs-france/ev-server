@@ -52,6 +52,7 @@
     "role-acl": "^3.3.4",
     "simple-odata-server": "^1.1.1",
     "socket.io": "^2.2.0",
+    "source-map-support": "^0.5.12",
     "strong-soap": "^1.19.1",
     "typescript": "^3.5.2",
     "tz-lookup": "^6.1.18",
