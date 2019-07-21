@@ -139,8 +139,7 @@ export default class SiteAreaService {
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : Authorizations.getAuthorizedSiteIDs(req.user))
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      ['id', 'name', 'siteID', 'address.latitude', 'address.longitude', 'address.city', 'address.country', 'site.id', 'site.name',
-        'chargingStations.id', 'chargingStations.connectors', 'chargingStations.lastHeartBeat']
+      ['id', 'name', 'siteID', 'address.latitude', 'address.longitude', 'address.city', 'address.country', 'site.id', 'site.name']
     );
     // Filter
     SiteAreaSecurity.filterSiteAreasResponse(siteAreas, req.user);
