@@ -70,20 +70,68 @@ export default class WSConnection {
 
   async initialize() {
     try {
+      // Log
+      Logging.logError({
+        tenantID: this.tenantID,
+        module: MODULE_NAME,
+        method: 'initialize',
+        action: 'WSConnection',
+        message: "Test 1: " + this.tenantID
+      });
       // Check Tenant?
       await Utils.checkTenant(this.tenantID);
+      // Log
+      Logging.logError({
+        tenantID: this.tenantID,
+        module: MODULE_NAME,
+        method: 'initialize',
+        action: 'WSConnection',
+        message: "Test 2: Check Tenant OK - " + this.tenantID
+      });
       // Ok
       this.setTenantValid(true);
       // Cloud Foundry?
       if (Configuration.isCloudFoundry()) {
+        // Log
+        Logging.logError({
+          tenantID: this.tenantID,
+          module: MODULE_NAME,
+          method: 'initialize',
+          action: 'WSConnection',
+          message: "Test 3: Check Charger - " + this.getChargingStationID()
+        });
         // Yes: Save the CF App and Instance ID to call the charger from the Rest server
         const chargingStation = await ChargingStation.getChargingStation(this.tenantID, this.getChargingStationID());
+        // Log
+        Logging.logError({
+          tenantID: this.tenantID,
+          module: MODULE_NAME,
+          method: 'initialize',
+          action: 'WSConnection',
+          message: "Test 4: Charger Ok - " + chargingStation
+        });
         // Found?
         if (chargingStation) {
           // Update CF Instance
           chargingStation.setCFApplicationIDAndInstanceIndex(Configuration.getCFApplicationIDAndInstanceIndex());
+          // Log
+          Logging.logError({
+            tenantID: this.tenantID,
+            module: MODULE_NAME,
+            method: 'initialize',
+            action: 'WSConnection',
+            message: "Test 5: Charger Save - " + chargingStation.getID()
+          });
           // Save it
           await chargingStation.save();
+          // Log
+          Logging.logError({
+            tenantID: this.tenantID,
+            module: MODULE_NAME,
+            method: 'initialize',
+            action: 'WSConnection',
+            message: "Test 6: Charger Save OK - " + chargingStation.getID()
+          });
         }
       }
     } catch (error) {
