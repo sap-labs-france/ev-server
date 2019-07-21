@@ -395,9 +395,9 @@ export default class Utils {
     }
   }
 
-  public static hashPasswordBcrypt(password: string): Promise<string> {
+  public static async hashPasswordBcrypt(password: string): Promise<string> {
     // eslint-disable-next-line no-undef
-    return new Promise((fulfill, reject) => {
+    return await new Promise((fulfill, reject) => {
       // Generate a salt with 15 rounds
       bcrypt.genSalt(10, (err, salt) => {
         // Hash
@@ -413,9 +413,9 @@ export default class Utils {
     });
   }
 
-  static checkPasswordBCrypt(password, hash) {
+  public static async checkPasswordBCrypt(password, hash): Promise<boolean> {
     // eslint-disable-next-line no-undef
-    return new Promise((fulfill, reject) => {
+    return await new Promise((fulfill, reject) => {
       // Compare
       bcrypt.compare(password, hash, (err, match) => {
         // Error?
