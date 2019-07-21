@@ -77,7 +77,7 @@ export default class WSConnection {
       // Cloud Foundry?
       if (Configuration.isCloudFoundry()) {
         // Yes: Save the CF App and Instance ID to call the charger from the Rest server
-        const chargingStation = await ChargingStation.getChargingStation(this.getTenantID(), this.getChargingStationID());
+        const chargingStation = await ChargingStation.getChargingStation(this.tenantID, this.getChargingStationID());
         // Found?
         if (chargingStation) {
           // Update CF Instance
