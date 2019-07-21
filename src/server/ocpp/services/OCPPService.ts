@@ -10,7 +10,6 @@ import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../utils/OCPPUtils';
 import OCPPValidation from '../validation/OCPPValidation';
 import PricingFactory from '../../../integration/pricing/PricingFactory';
-import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Transaction from '../../../entity/Transaction';
 import User from '../../../types/User';
@@ -1354,23 +1353,5 @@ export default class OCPPService {
       );
     }
   }
-
-  // pragma private async _checkAndGetChargingStation(chargeBoxIdentity, tenantID): Promise<ChargingStation> {
-  //   // Get the charging station
-  //   const chargingStation = await ChargingStation.getChargingStation(tenantID, chargeBoxIdentity);
-  //   // Found?
-  //   if (!chargingStation) {
-  //     // Error
-  //     throw new BackendError(chargeBoxIdentity, 'Charging Station does not exist',
-  //       'OCPPService', '_checkAndGetChargingStation');
-  //   }
-  //   // Found?
-  //   if (chargingStation.isDeleted()) {
-  //     // Error
-  //     throw new BackendError(chargeBoxIdentity, 'Charging Station is deleted',
-  //       'OCPPService', '_checkAndGetChargingStation');
-  //   }
-  //   return chargingStation;
-  // }
 }
 

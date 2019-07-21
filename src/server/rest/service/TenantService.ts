@@ -65,7 +65,7 @@ export default class TenantService {
         module: 'MongoDBStorage', method: 'deleteTenantDatabase',
         message: `Deleting collections for tenant ${tenant.getID()}`
       });
-      TenantStorage.deleteTenantDB(tenant.getID());
+      await TenantStorage.deleteTenantDB(tenant.getID());
     }
     // Log
     Logging.logSecurityInfo({
@@ -195,9 +195,9 @@ export default class TenantService {
     // Save
     const newTenant = await TenantStorage.saveTenant(tenant.getModel());
     // Update with components
-    TenantService._updateSettingsWithComponents(newTenant, req);
+    await TenantService._updateSettingsWithComponents(newTenant, req);
     // Create DB collections
-    TenantStorage.createTenantDB(newTenant.getID());
+    await TenantStorage.createTenantDB(newTenant.getID());
     // Create user in tenant
     const password = Utils.generatePassword();
     const verificationToken = Utils.generateToken(newTenant.getEmail());

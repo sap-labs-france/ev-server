@@ -243,7 +243,7 @@ export default class MongoDBStorage {
       return t._id.toString();
     });
     for (const tenantId of tenantIds) {
-      this.checkAndCreateTenantDatabase(tenantId);
+      await this.checkAndCreateTenantDatabase(tenantId);
     }
   }
 
@@ -277,7 +277,7 @@ export default class MongoDBStorage {
         useNewUrlParser: true,
         poolSize: this.dbConfig.poolSize,
         replicaSet: this.dbConfig.replicaSet,
-        loggerLevel: (this.dbConfig.debug ? 'debug' : undefined),
+        loggerLevel: (this.dbConfig.debug ? 'debug' : null),
         reconnectTries: Number.MAX_VALUE,
         reconnectInterval: 1000,
         autoReconnect: true
