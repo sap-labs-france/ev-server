@@ -505,7 +505,7 @@ export default class SiteStorage {
       .find({ companyID: Utils.convertToObjectID(companyID) })
       .project({ _id: 1 })
       .toArray())
-      .map((site) => {
+      .map((site): string => {
         return site._id.toHexString();
       }
       );

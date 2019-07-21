@@ -34,7 +34,7 @@ describe('Encryption Setting tests', function() {
     // Housekeeping
   });
 
-  describe('Success cases (tenant ut-all', () => {
+  describe('Success cases (tenant ut-all)', () => {
     it('Check that updating the refund/concur setting works with sensitive data encryption', async () => {
       // Retrieve the setting id
       let read = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
