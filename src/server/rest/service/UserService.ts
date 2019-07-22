@@ -208,14 +208,12 @@ export default class UserService {
     // Check if Status has been changed
     if (filteredRequest.status &&
       filteredRequest.status !== user.status) {
-      // Status changed
       statusHasChanged = true;
     }
     // Check the password
     if (filteredRequest.password && filteredRequest.password.length > 0) {
-      // Generate the password hash
-      const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
       // Update the password
+      const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
       filteredRequest.password = newPasswordHashed;
     }
     // Update timestamp
@@ -226,8 +224,12 @@ export default class UserService {
     // Check Mandatory fields
     Utils.checkIfUserValid(filteredRequest, user, req);
     // Update User
-    const newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? [] : filteredRequest.tagIDs;
-    await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: newTagIDs }, true); // Careful: Last changed by is not a proper user here! TODO (it wasnt before either tho)
+    await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: [] }, true);
+    // Update Tag IDs
+    if (Authorizations.isAdmin(req.user.role) || Authorizations.isSuperAdmin(req.user.role)) {
+      const newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? [] : filteredRequest.tagIDs;
+      await UserStorage.saveUserTags(req.user.tenantID, filteredRequest.id, newTagIDs);
+    }
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -453,21 +455,20 @@ export default class UserService {
       filteredRequest.password = newPasswordHashed;
     }
     // Set timestamp
-    filteredRequest.createdBy = { id: req.user.id } as User;
+    filteredRequest.createdBy = { id: req.user.id };
     filteredRequest.createdOn = new Date();
     // Set default
     if (!filteredRequest.notificationsActive) {
       filteredRequest.notificationsActive = true;
     }
     filteredRequest.createdOn = new Date();
-    // Save User
-    let newTagIDs: string[];
-    if (typeof filteredRequest.tagIDs === 'string') {
-      newTagIDs = [];
-    } else {
-      newTagIDs = filteredRequest.tagIDs;
+    // Create the User
+    const newUserId = await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: [] }, true);
+    // Save the Tag IDs
+    if (Authorizations.isAdmin(req.user.role) || Authorizations.isSuperAdmin(req.user.role)) {
+      const newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? [] : filteredRequest.tagIDs;
+      await UserStorage.saveUserTags(req.user.tenantID, newUserId, newTagIDs);
     }
-    const newUserId = await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: newTagIDs }, true);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,

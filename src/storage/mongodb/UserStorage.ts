@@ -60,7 +60,7 @@ export default class UserStorage {
       language = 'en';
     }
     // Get current eula
-    const currentEula = await UserStorage.getLatestEndUserLicenseAgreement(language);
+    const currentEula = UserStorage.getLatestEndUserLicenseAgreement(language);
     // Read DB
     const eulasMDB = await global.database.getCollection<Eula>(tenantID, 'eulas')
       .find({ 'language': language })
@@ -165,7 +165,7 @@ export default class UserStorage {
     await Utils.checkTenant(tenantID);
     // Read DB
     const userImageMDB = await global.database.getCollection<{_id: string; image: string}>(tenantID, 'userimages')
-      .findOne({ id: Utils.convertToObjectID(id) });
+      .findOne({ _id: Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd('UserStorage', 'getUserImage', uniqueTimerID, { id });
     return { id: id, image: (userImageMDB ? userImageMDB.image : null) };
@@ -253,33 +253,40 @@ export default class UserStorage {
     // Check Created/Last Changed By
     DatabaseUtils.addLastChangedCreatedProps(userMDB, userMDB);
     // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
       userFilter,
       { $set: userMDB },
       { upsert: true, returnOriginal: false });
-    // Add tags
-    if (userToSave.tagIDs) {
-      userToSave.tagIDs = userToSave.tagIDs.filter((tid) => {
-        return tid && tid !== '';
-      });
-      // Delete Tag IDs
-      await global.database.getCollection<any>(tenantID, 'tags')
-        .deleteMany({ 'userID': userMDB._id });
-      if (userToSave.tagIDs.length !== 0) {
-        // Insert new Tag IDs
-        await global.database.getCollection<any>(tenantID, 'tags')
-          .insertMany(userToSave.tagIDs.map((tid) => {
-            return { _id: tid, userID: userMDB._id };
-          }));
-      }
-    }
     // Delegate saving image as well if specified
     if (saveImage) {
-      UserStorage.saveUserImage(tenantID, { id: userMDB._id.toHexString(), image: userToSave.image });
+      await UserStorage.saveUserImage(tenantID, { id: userMDB._id.toHexString(), image: userToSave.image });
     }
     // Debug
     Logging.traceEnd('UserStorage', 'saveUser', uniqueTimerID, { userToSave });
     return userMDB._id.toHexString();
+  }
+
+  public static async saveUserTags(tenantID: string, userID: string, userTagIDs: string[]): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserTags');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Cleanup Tags
+    const userTagIDsToSave = userTagIDs.filter((tagID) => {
+      return tagID && tagID !== '';
+    });
+    // Delete former Tag IDs
+    await global.database.getCollection<any>(tenantID, 'tags')
+      .deleteMany({ 'userID': Utils.convertToObjectID(userID) });
+    // Add new ones
+    if (userTagIDsToSave.length > 0) {
+      await global.database.getCollection<any>(tenantID, 'tags')
+        .insertMany(userTagIDsToSave.map((userTagIDToSave) => {
+          return { _id: userTagIDToSave, userID: Utils.convertToObjectID(userID) };
+        }));
+    }
+    // Debug
+    Logging.traceEnd('UserStorage', 'saveUserTags', uniqueTimerID, { id: userID, tags: userTagIDs });
   }
 
   public static async saveUserImage(tenantID: string, userImageToSave: {id: string; image: string}): Promise<void> {

@@ -2,7 +2,6 @@ import Address from './Address';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 
 export default interface User extends CreatedUpdatedProps {
-
   id: string;
   email: string;
   phone?: string;
@@ -34,7 +33,6 @@ export default interface User extends CreatedUpdatedProps {
   verifiedAt?: Date;
 
   tagIDs?: string[];
-
 }
 
 export interface UserSite {

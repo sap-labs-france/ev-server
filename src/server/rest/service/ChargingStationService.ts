@@ -500,7 +500,7 @@ export default class ChargingStationService {
     if(! req.query.ErrorType) {
       req.query.ErrorType = 'all';
     }
-    ChargingStationService.handleGetChargingStation(action, req, res, next);
+    ChargingStationService.handleGetChargingStations(action, req, res, next);
   }
 
   static async handleGetStatusNotifications(action, req, res, next) {

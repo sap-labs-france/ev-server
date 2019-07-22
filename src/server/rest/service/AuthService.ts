@@ -150,18 +150,15 @@ export default class AuthService {
   public static async checkConnectorsActionAuthorizations(tenantID: string, user: UserToken, chargingStation: ChargingStation) {
     const results = [];
     // Check if organization component is active
-    const tenant = await Tenant.getTenant(tenantID);
-    const isOrganizationComponentActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+    const isOrganizationComponentActive = Utils.isComponentActiveFromToken(user, Constants.COMPONENTS.ORGANIZATION);
     let siteArea: SiteArea;
     let site: Site;
     if (isOrganizationComponentActive) {
-      // Get charging station site
       // Site Area -----------------------------------------------
       siteArea = await chargingStation.siteArea;
       try {
         // Site is mandatory
         if (!siteArea) {
-          // Reject Site Not Found
           throw new AppError(
             chargingStation.id,
             `Charging Station '${chargingStation.id}' is not assigned to a Site Area!`,
@@ -172,7 +169,6 @@ export default class AuthService {
         // Site -----------------------------------------------------
         site = await SiteStorage.getSite(tenantID, siteArea.siteID);
         if (!site) {
-          // Reject Site Not Found
           throw new AppError(
             chargingStation.id,
             `Site Area '${siteArea.name}' is not assigned to a Site!`,
@@ -364,11 +360,9 @@ export default class AuthService {
         'The captcha is mandatory', Constants.HTTP_GENERAL_ERROR,
         'AuthService', 'handleRegisterUser');
     }
-
-    // Check captcha
+    // Check Captcha
     const response = await axios.get(
       `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`);
-    // Check
     if (!response.data.success) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
@@ -380,10 +374,10 @@ export default class AuthService {
         'The captcha score is too low', Constants.HTTP_GENERAL_ERROR,
         'AuthService', 'handleRegisterUser');
     }
-    // Check email
-    const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
     // Check Mandatory fields
     Utils.checkIfUserValid(filteredRequest, null, req);
+    // Check email
+    const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
     if (user) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
@@ -395,25 +389,34 @@ export default class AuthService {
     const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
     // Create the user
     const newUser = UserStorage.getEmptyUser();
-
     newUser.password = newPasswordHashed;
     newUser.email = filteredRequest.email;
     newUser.name = filteredRequest.name;
     newUser.firstName = filteredRequest.firstName;
     newUser.role = Constants.ROLE_BASIC;
     newUser.status = Constants.USER_STATUS_PENDING;
-    newUser.tagIDs = [newUser.name[0] + newUser.firstName[0] + Utils.getRandomInt()];
     newUser.locale = req.locale.substring(0, 5);
     newUser.verificationToken = Utils.generateToken(req.body.email);
-
     const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, newUser.locale.substring(0, 2));
     newUser.eulaAcceptedOn = new Date();
     newUser.eulaAcceptedVersion = endUserLicenseAgreement.version;
     newUser.eulaAcceptedHash = endUserLicenseAgreement.hash;
-
-    // Save
-    await UserStorage.saveUser(tenantID, newUser);
-
+    // Save User
+    newUser.id = await UserStorage.saveUser(tenantID, newUser);
+    // Save Tags
+    const tagIDs = [newUser.name[0] + newUser.firstName[0] + Utils.getRandomInt()];
+    await UserStorage.saveUserTags(tenantID, newUser.id, tagIDs);
+    // Assign user to all sites with auto-assign flag set
+    const sites = await SiteStorage.getSites(tenantID,
+      { withAutoUserAssignment: true },
+      Constants.DB_PARAMS_MAX_LIMIT
+    );
+    if (sites.count > 0) {
+      const siteIDs = sites.result.map((site) => site.id);
+      if (siteIDs && siteIDs.length > 0) {
+        await UserStorage.addSitesToUser(tenantID, newUser.id, siteIDs);
+      }
+    }
     // Log
     Logging.logSecurityInfo({
       tenantID: tenantID,
@@ -423,12 +426,10 @@ export default class AuthService {
       message: `User with Email '${req.body.email}' has been created successfully`,
       detailedMessages: req.body
     });
-
     // Send notification
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
       '/#/verify-email?VerificationToken=' + newUser.verificationToken + '&Email=' +
       newUser.email;
-
     NotificationHandler.sendNewRegisteredUser(
       tenantID,
       Utils.generateGUID(),
@@ -894,20 +895,16 @@ export default class AuthService {
     user.passwordResetHash = null;
     // Save
     await UserStorage.saveUser(tenantID, user);
-
     // Yes: build payload
     const payload: UserToken = await Authorizations.buildUserToken(tenantID, user);
-
     // Build token
     let token;
     // Role Demo?
     if (Authorizations.isDemo(user.role)) {
-      // Yes
       token = jwt.sign(payload, jwtOptions.secretOrKey, {
         expiresIn: _centralSystemRestConfig.userDemoTokenLifetimeDays * 24 * 3600
       });
     } else {
-      // No
       token = jwt.sign(payload, jwtOptions.secretOrKey, {
         expiresIn: _centralSystemRestConfig.userTokenLifetimeHours * 3600
       });
