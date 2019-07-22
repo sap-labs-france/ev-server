@@ -3,38 +3,40 @@ import ChargingStationClient from '../ChargingStationClient';
 import Configuration from '../../../utils/Configuration';
 import global from '../../../types/GlobalType';
 import Logging from '../../../utils/Logging';
+import ChargingStation from '../../../types/ChargingStation';
 
 // Default Module name
 const _moduleName = 'SoapChargingStationClient';
 // Get the config
 const _wsdlEndpointConfig = Configuration.getWSDLEndpointConfig();
 export default class SoapChargingStationClient extends ChargingStationClient {
-  public transactionId: any;
+  public transactionId: number;
   public error: any;
   public result: any;
   public envelope: any;
-  public tagID: any;
+  public tagID: string;
   public connectorID: any;
   public connectorId: any;
   public type: any;
   public keys: any;
   public key: any;
   public value: any;
-  private chargingStation: any;
+  private chargingStation: ChargingStation;
+  private tenantID: string;
   private client: any;
 
-  private constructor(chargingStation) {
+  private constructor(chargingStation: ChargingStation) {
     super();
     // Keep the charger
     this.chargingStation = chargingStation;
   }
 
-  static async build(chargingStation): Promise<SoapChargingStationClient> {
+  static async build(chargingStation: ChargingStation): Promise<SoapChargingStationClient> {
     const scsc = new SoapChargingStationClient(chargingStation);
     return await new Promise((fulfill, reject) => {
       let chargingStationWdsl = null;
       // Read the WSDL client files
-      switch (scsc.chargingStation.getOcppVersion()) {
+      switch (scsc.chargingStation.ocppVersion) {
         // OCPP V1.2
         case '1.2':
           chargingStationWdsl = `${global.appRoot}/assets/server/ocpp/OCPPChargePointService12.wsdl`;
@@ -48,11 +50,11 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         default:
           // Log
           Logging.logError({
-            tenantID: scsc.chargingStation.getTenantID(),
+            tenantID: scsc.tenantID,
             module: 'SoapChargingStationClient', method: 'constructor',
-            message: `OCPP version ${scsc.chargingStation.getOcppVersion()} not supported`
+            message: `OCPP version ${scsc.chargingStation.ocppVersion} not supported`
           });
-          reject(`OCPP version ${scsc.chargingStation.getOcppVersion()} not supported`);
+          reject(`OCPP version ${scsc.chargingStation.ocppVersion} not supported`);
       }
       // Client options
       const options: any = {};
@@ -61,18 +63,18 @@ export default class SoapChargingStationClient extends ChargingStationClient {
         if (error) {
           // Log
           Logging.logError({
-            tenantID: scsc.chargingStation.getTenantID(),
-            source: scsc.chargingStation.getID(),
+            tenantID: scsc.tenantID,
+            source: scsc.chargingStation.id,
             module: 'SoapChargingStationClient', method: 'constructor',
             message: `Error when creating SOAP client: ${error.toString()}`,
             detailedMessages: error.stack
           });
-          reject(`Error when creating SOAP client for charging station with ID ${scsc.chargingStation.getID()}: ${error.message}`);
+          reject(`Error when creating SOAP client for charging station with ID ${scsc.chargingStation.id}: ${error.message}`);
         } else {
           // Keep
           scsc.client = client;
           // Set endpoint
-          scsc.client.setEndpoint(scsc.chargingStation.getChargingStationURL());
+          scsc.client.setEndpoint(scsc.chargingStation.chargingStationURL);
           // Ok
           fulfill(scsc);
         }
@@ -84,10 +86,10 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Clear the SOAP Headers`
     this.client.clearSoapHeaders();
     // Add them
-    this.client.addSoapHeader(`<h:chargeBoxIdentity xmlns:h="urn://Ocpp/Cp/2012/06/">${this.chargingStation.getID()}</h:chargeBoxIdentity>`);
+    this.client.addSoapHeader(`<h:chargeBoxIdentity xmlns:h="urn://Ocpp/Cp/2012/06/">${this.chargingStation.id}</h:chargeBoxIdentity>`);
     this.client.addSoapHeader('<a:MessageID xmlns:a="http://www.w3.org/2005/08/addressing">urn:uuid:589e13ae-1787-49f8-ab8b-4567327b23c6</a:MessageID>');
     this.client.addSoapHeader('<a:ReplyTo xmlns:a="http://www.w3.org/2005/08/addressing"><a:Address>http://www.w3.org/2005/08/addressing/anonymous</a:Address></a:ReplyTo>');
-    this.client.addSoapHeader(`<a:To xmlns:a="http://www.w3.org/2005/08/addressing">${this.chargingStation.getChargingStationURL()}</a:To>`);
+    this.client.addSoapHeader(`<a:To xmlns:a="http://www.w3.org/2005/08/addressing">${this.chargingStation.chargingStationURL}</a:To>`);
     this.client.addSoapHeader(`<a:Action xmlns:a="http://www.w3.org/2005/08/addressing">/${action}</a:Action>`);
     this.client.addSoapHeader(`<a:From xmlns:a="http://www.w3.org/2005/08/addressing"><a:Address>${_wsdlEndpointConfig.baseUrl}</a:Address></a:From>`);
   }
@@ -97,7 +99,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders('RemoteStopTransaction');
     // Log
-    Logging.logSendAction(_moduleName, this.chargingStation.getTenantID(), this.chargingStation.getID(), 'RemoteStopTransaction', [transactionId, { headers: this.client.getSoapHeaders() }]);
+    Logging.logSendAction(_moduleName, this.tenantID, this.chargingStation.id, 'RemoteStopTransaction', [transactionId, { headers: this.client.getSoapHeaders() }]);
     // Execute
     const { error, result, envelope } = await this.client.RemoteStopTransaction({
       'remoteStopTransactionRequest': {
@@ -107,8 +109,8 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     if (error) {
       // Log
       Logging.logError({
-        tenantID: this.chargingStation.getTenantID(),
-        source: this.chargingStation.getID(), module: 'SoapChargingStationClient', method: 'remoteStopTransaction',
+        tenantID: this.tenantID,
+        source: this.chargingStation.id, module: 'SoapChargingStationClient', method: 'remoteStopTransaction',
         message: `Error when trying to stop the transaction ID ${transactionId}: ${error.toString()}`,
         detailedMessages: [
           { 'stack': error.stack },
@@ -119,7 +121,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       throw error;
     }
     // Log
-    Logging.logReturnedAction(_moduleName, this.chargingStation.getTenantID(), this.chargingStation.getID(), 'RemoteStopTransaction', [
+    Logging.logReturnedAction(_moduleName, this.tenantID, this.chargingStation.id, 'RemoteStopTransaction', [
       { result },
       { envelope }
     ]);
@@ -131,7 +133,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders('RemoteStartTransaction');
     // Log
-    Logging.logSendAction(_moduleName, this.chargingStation.getTenantID(), this.chargingStation.getID(), 'RemoteStartTransaction', [{
+    Logging.logSendAction(_moduleName, this.tenantID, this.chargingStation.id, 'RemoteStartTransaction', [{
       'idTag': tagID,
       'connectorId': connectorID
     }, { headers: this.client.getSoapHeaders() }]
@@ -146,8 +148,8 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     if (error) {
       // Log
       Logging.logError({
-        tenantID: this.chargingStation.getTenantID(),
-        source: this.chargingStation.getID(), module: 'SoapChargingStationClient', method: 'remoteStartTransaction',
+        tenantID: this.tenantID,
+        source: this.chargingStation.id, module: 'SoapChargingStationClient', method: 'remoteStartTransaction',
         message: `Error when trying to start a transaction: ${error.toString()}`, action: 'RemoteStartTransaction',
         detailedMessages: [
           { 'stack': error.stack },
@@ -158,8 +160,8 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       throw error;
     }
     // Log
-    Logging.logReturnedAction(_moduleName, this.chargingStation.getTenantID(),
-      this.chargingStation.getID(), 'RemoteStartTransaction', [
+    Logging.logReturnedAction(_moduleName, this.tenantID,
+      this.chargingStation.id, 'RemoteStartTransaction', [
         { result },
         { envelope }
       ]);
@@ -171,7 +173,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders('UnlockConnector');
     // Log
-    Logging.logSendAction(_moduleName, this.chargingStation.getTenantID(), this.chargingStation.getID(), 'UnlockConnector', [connectorId, { headers: this.client.getSoapHeaders() }]);
+    Logging.logSendAction(_moduleName, this.tenantID, this.chargingStation.id, 'UnlockConnector', [connectorId, { headers: this.client.getSoapHeaders() }]);
     // Execute
     const { error, result, envelope } = await this.client.UnlockConnector({
       'unlockConnectorRequest': {
@@ -181,8 +183,8 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     if (error) {
       // Log
       Logging.logError({
-        tenantID: this.chargingStation.getTenantID(),
-        source: this.chargingStation.getID(), module: 'SoapChargingStationClient', method: 'unlockConnector',
+        tenantID: this.tenantID,
+        source: this.chargingStation.id, module: 'SoapChargingStationClient', method: 'unlockConnector',
         message: `Error when trying to unlock the connector '${connectorId}': ${error.toString()}`,
         detailedMessages: [
           { 'stack': error.stack },
@@ -193,7 +195,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       throw error;
     }
     // Log
-    Logging.logReturnedAction(_moduleName, this.chargingStation.getTenantID(), this.chargingStation.getID(), 'UnlockConnector', [
+    Logging.logReturnedAction(_moduleName, this.tenantID, this.chargingStation.id, 'UnlockConnector', [
       { result },
       { envelope }
     ]);
@@ -205,7 +207,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders('Reset');
     // Log
-    Logging.logSendAction(_moduleName, this.chargingStation.getTenantID(), this.chargingStation.getID(), 'Reset', [type, { headers: this.client.getSoapHeaders() }]);
+    Logging.logSendAction(_moduleName, this.tenantID, this.chargingStation.id, 'Reset', [type, { headers: this.client.getSoapHeaders() }]);
     // Execute
     const { error, result, envelope } = await this.client.Reset({
       'resetRequest': {
@@ -215,8 +217,8 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     if (error) {
       // Log
       Logging.logError({
-        tenantID: this.chargingStation.getTenantID(),
-        source: this.chargingStation.getID(), module: 'SoapChargingStationClient', method: 'reset',
+        tenantID: this.tenantID,
+        source: this.chargingStation.id, module: 'SoapChargingStationClient', method: 'reset',
         message: `Error when trying to reboot: ${error.toString()}`,
         detailedMessages: [
           { 'stack': error.stack },
@@ -227,7 +229,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       return error;
     }
     // Log
-    Logging.logReturnedAction(_moduleName, this.chargingStation.getTenantID(), this.chargingStation.getID(), 'Reset', [
+    Logging.logReturnedAction(_moduleName, this.tenantID, this.chargingStation.id, 'Reset', [
       { result },
       { envelope }
     ]);
@@ -238,14 +240,14 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders('ClearCache');
     // Log
-    Logging.logSendAction(_moduleName, this.chargingStation.getTenantID(), this.chargingStation.getID(), 'ClearCache', { headers: this.client.getSoapHeaders() });
+    Logging.logSendAction(_moduleName, this.tenantID, this.chargingStation.id, 'ClearCache', { headers: this.client.getSoapHeaders() });
     // Execute
     const { error, result, envelope } = await this.client.ClearCache({ clearCacheRequest: {} });
     if (error) {
       // Log
       Logging.logError({
-        tenantID: this.chargingStation.getTenantID(),
-        source: this.chargingStation.getID(), module: 'SoapChargingStationClient', method: 'clearCache',
+        tenantID: this.tenantID,
+        source: this.chargingStation.id, module: 'SoapChargingStationClient', method: 'clearCache',
         message: `Error when trying to clear the cache: ${error.toString()}`,
         detailedMessages: [
           { 'stack': error.stack },
@@ -256,7 +258,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       throw error;
     }
     // Log
-    Logging.logReturnedAction(_moduleName, this.chargingStation.getTenantID(), this.chargingStation.getID(), 'ClearCache', [
+    Logging.logReturnedAction(_moduleName, this.tenantID, this.chargingStation.id, 'ClearCache', [
       { result },
       { envelope }
     ]);
@@ -268,7 +270,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders('GetConfiguration');
     // Log
-    Logging.logSendAction(_moduleName, this.chargingStation.getTenantID(), this.chargingStation.getID(), 'GetConfiguration', [keys, { headers: this.client.getSoapHeaders() }]);
+    Logging.logSendAction(_moduleName, this.tenantID, this.chargingStation.id, 'GetConfiguration', [keys, { headers: this.client.getSoapHeaders() }]);
     // Set request
     const request: any = {
       'getConfigurationRequest': {}
@@ -283,8 +285,8 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     if (error) {
       // Log
       Logging.logError({
-        tenantID: this.chargingStation.getTenantID(),
-        source: this.chargingStation.getID(), module: 'SoapChargingStationClient', method: 'getConfiguration',
+        tenantID: this.tenantID,
+        source: this.chargingStation.id, module: 'SoapChargingStationClient', method: 'getConfiguration',
         message: `Error when trying to get the configuration: ${error.toString()}`,
         detailedMessages: [
           { 'stack': error.stack },
@@ -295,7 +297,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       throw error;
     }
     // Log
-    Logging.logReturnedAction(_moduleName, this.chargingStation.getTenantID(), this.chargingStation.getID(), 'GetConfiguration', [
+    Logging.logReturnedAction(_moduleName, this.tenantID, this.chargingStation.id, 'GetConfiguration', [
       { result },
       { envelope }
     ]);
@@ -307,7 +309,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     // Init SOAP Headers with the action
     this.initSoapHeaders('ChangeConfiguration');
     // Log
-    Logging.logSendAction(_moduleName, this.chargingStation.getTenantID(), this.chargingStation.getID(), 'ChangeConfiguration', [{
+    Logging.logSendAction(_moduleName, this.tenantID, this.chargingStation.id, 'ChangeConfiguration', [{
       'key': key,
       'value': value
     }, { headers: this.client.getSoapHeaders() }]);
@@ -321,8 +323,8 @@ export default class SoapChargingStationClient extends ChargingStationClient {
     if (error) {
       // Log
       Logging.logError({
-        tenantID: this.chargingStation.getTenantID(),
-        source: this.chargingStation.getID(), module: 'SoapChargingStationClient', method: 'changeConfiguration',
+        tenantID: this.tenantID,
+        source: this.chargingStation.id, module: 'SoapChargingStationClient', method: 'changeConfiguration',
         message: `Error when trying to change the configuration parameter '${key}' with value '${value}': ${error.toString()}`,
         detailedMessages: [
           { 'stack': error.stack },
@@ -333,7 +335,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       throw error;
     }
     // Log
-    Logging.logReturnedAction(_moduleName, this.chargingStation.getTenantID(), this.chargingStation.getID(), 'ChangeConfiguration', [
+    Logging.logReturnedAction(_moduleName, this.tenantID, this.chargingStation.id, 'ChangeConfiguration', [
       { result },
       { envelope }
     ]);

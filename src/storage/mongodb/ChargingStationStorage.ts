@@ -296,6 +296,7 @@ export default class ChargingStationStorage {
     // Clean up mongo request
     delete chargingStationMDB.id;
     delete chargingStationMDB.siteArea;
+    delete chargingStationMDB.client;
     // Convert Created/LastChanged By
     DatabaseUtils.addLastChangedCreatedProps(chargingStationMDB, chargingStationMDB);
     // Modify and return the modified document

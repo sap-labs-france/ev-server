@@ -17,7 +17,12 @@ export interface HttpChargingStationsRequest extends HttpDatabaseRequest {
   ErrorType?:'missingSettings'|'connectionBroken'|'connectorError'|'missingSiteArea'|'all';
 }
 
+export interface HttpChargingStationRequest {
+  ChargeBoxID: string;
+}
+
 export interface HttpChargingStationSetMaxIntensitySocketRequest {
   chargeBoxID: string;
-  maxIntensity;
+  maxIntensity?: number;
+  args?: {maxIntensity: number};
 }

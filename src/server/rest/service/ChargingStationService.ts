@@ -8,12 +8,16 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
-import Tenant from '../../../entity/Tenant';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import { Request, Response, NextFunction } from 'express';
 import UtilsService from './UtilsService';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import Transaction from '../../../entity/Transaction';
+import buildChargingStationClient from '../../../client/ocpp/ChargingStationClientFactory';
+import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
+import Utils from '../../../utils/Utils';
+import BackendError from '../../../exception/BackendError';
+import OCPPConstants from '../../ocpp/utils/OCPPConstants';
+import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 
 export default class ChargingStationService {
 
@@ -274,9 +278,9 @@ export default class ChargingStationService {
     next();
   }
 
-  static async handleRequestChargingStationConfiguration(action, req, res, next) {
+  public static async handleRequestChargingStationConfiguration(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query, req.user);
+    const filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query);
     // Charge Box is mandatory
     if (!filteredRequest.ChargeBoxID) {
       throw new AppError(
@@ -284,23 +288,23 @@ export default class ChargingStationService {
         'The Charging Station ID is mandatory', Constants.HTTP_GENERAL_ERROR,
         'ChargingStationService', 'handleRequestChargingStationConfiguration', req.user);
     }
+    // Check auth
+    if (!Authorizations.canReadChargingStation(req.user)) {
+      throw new AppAuthError(
+        Constants.ACTION_READ,
+        Constants.ENTITY_CHARGING_STATION,
+        filteredRequest.ChargeBoxID, Constants.HTTP_AUTH_ERROR,
+        'ChargingStationService', 'handleGetChargingStationConfiguration',
+        req.user);
+    }
     // Get the Charging Station
-    const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
     // Found?
     if (!chargingStation) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Charging Station with ID '${filteredRequest.ChargeBoxID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'ChargingStationService', 'handleRequestChargingStationConfiguration', req.user);
-    }
-    // Check auth
-    if (!Authorizations.canReadChargingStation(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_READ,
-        Constants.ENTITY_CHARGING_STATION,
-        chargingStation.getID(), Constants.HTTP_AUTH_ERROR,
-        'ChargingStationService', 'handleGetChargingStationConfiguration',
-        req.user);
     }
     // Get the Config
     const result = await chargingStation.requestAndSaveConfiguration();
@@ -674,9 +678,9 @@ export default class ChargingStationService {
     next();
   }
 
-  static async handleActionSetMaxIntensitySocket(action, req, res, next) {
+  public static async handleActionSetMaxIntensitySocket(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationSetMaxIntensitySocketRequest(req.body, req.user);
+    const filteredRequest = ChargingStationSecurity.filterChargingStationSetMaxIntensitySocketRequest(req.body);
     // Charge Box is mandatory
     if (!filteredRequest.chargeBoxID) {
       throw new AppError(
@@ -693,7 +697,7 @@ export default class ChargingStationService {
         req.user);
     }
     // Get the Charging station
-    const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
     // Found?
     if (!chargingStation) {
       throw new AppError(
@@ -702,10 +706,10 @@ export default class ChargingStationService {
         'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
     }
     // Get the Config
-    const chargerConfiguration = await chargingStation.getConfiguration();
+    const chargerConfiguration = await ChargingStationStorage.getConfiguration(req.user.tenantID, chargingStation.id);
     if (!chargerConfiguration) {
       throw new AppError(
-        chargingStation.getID(),
+        chargingStation.id,
         'Cannot retrieve the configuration', Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
     }
@@ -719,7 +723,7 @@ export default class ChargingStationService {
     }
     if (!maxIntensitySocketMax) {
       throw new AppError(
-        chargingStation.getID(),
+        chargingStation.id,
         'Cannot retrieve the max intensity socket from the configuration', Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
     }
@@ -733,10 +737,20 @@ export default class ChargingStationService {
         module: 'ChargingStationService',
         method: 'handleActionSetMaxIntensitySocket',
         action: action,
-        source: chargingStation.getID(),
+        source: chargingStation.id,
         message: `Max Instensity Socket has been set to '${filteredRequest.maxIntensity}'`
       });
       // Change the config
+      const result = await ChargingStationService.requestExecuteCommand(req.user.tenantID, chargingStation, 'changeConfiguration', {key: 'maxintensitysocket', value: filteredRequest.maxIntensity});
+      // Request the new Configuration?
+      if (result.status !== 'Accepted') {
+        // Error
+        throw new BackendError(chargingStation.id, `Cannot set the configuration param ${'maxintensitysocket'} with value ${filteredRequest.maxIntensity} to ${chargingStation.id}`,
+          'ChargingStationService', 'handleActionSetSocketMaxIntensity');
+      }
+      // Retrieve and Save it in the DB
+    await this.requestAndSaveConfiguration();
+
       result = await chargingStation.requestChangeConfiguration({
         key: 'maxintensitysocket',
         value: filteredRequest.maxIntensity
@@ -744,7 +758,7 @@ export default class ChargingStationService {
     } else {
       // Invalid value
       throw new AppError(
-        chargingStation.getID(),
+        chargingStation.id,
         `Invalid value for Max Intensity Socket: '${filteredRequest.maxIntensity}'`, Constants.HTTP_GENERAL_ERROR,
         'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
     }
@@ -780,5 +794,91 @@ export default class ChargingStationService {
       csv += `${chargingStation.powerLimitUnit}\r\n`;
     }
     return csv;
+  }
+
+
+  // TODO: Please review. Previously on ChargingStation.ts. Service a good new home?
+  // Access modifier public because it is used by OCPP etc as well most likely.
+  public static async getClient(tenantID: string, chargingStation: ChargingStation): Promise<ChargingStationClient> {
+    if(! chargingStation.client) {
+      chargingStation.client = await buildChargingStationClient(tenantID, chargingStation);
+    }
+    return chargingStation.client;
+  }
+
+  public static async requestExecuteCommand(tenantID: string, chargingStation: ChargingStation, method, params?) {
+    try {
+      // Get the client
+      const chargingStationClient = await ChargingStationService.getClient(tenantID, chargingStation);
+      // Set Charging Profile
+      const result = await chargingStationClient[method](params);
+      // Log
+      Logging.logInfo({
+        tenantID: tenantID, source: chargingStation.id,
+        module: 'ChargingStation', method: '_requestExecuteCommand',
+        action: Utils.firstLetterInUpperCase(method),
+        message: 'Command sent with success',
+        detailedMessages: result
+      });
+      // Return
+      return result;
+    } catch (error) {
+      // OCPP 1.6?
+      if (Array.isArray(error.error)) {
+        const response = error.error;
+        throw new BackendError(chargingStation.id, response[3], 'ChargingStationService',
+          'requestExecuteCommand', Utils.firstLetterInUpperCase(method));
+      } else {
+        throw error;
+      }
+    }
+  }
+
+  public static async requestAndSaveConfiguration(tenantID: string, chargingStation: ChargingStation) {
+    let configuration = null;
+    try {
+      // In case of error. the boot should no be denied
+      configuration = await ChargingStationService.requestExecuteCommand(tenantID, chargingStation, 'getConfiguration', {});
+      // Log
+      Logging.logInfo({
+        tenantID: tenantID, source: chargingStation.id, module: 'ChargingStationService',
+        method: 'requestAndSaveConfiguration', action: 'RequestConfiguration',
+        message: 'Command sent with success', detailedMessages: configuration
+      });
+      // Override with Conf
+      configuration = {
+        'configuration': configuration.configurationKey
+      };
+      // Set default?
+      if (!configuration) {
+        // Check if there is an already existing config
+        const existingConfiguration = await ChargingStationStorage.getConfiguration(tenantID, chargingStation.id);
+        if (!existingConfiguration) {
+          // No config at all: Set default OCCP configuration
+          configuration = OCPPConstants.DEFAULT_OCPP_CONFIGURATION;
+        } else {
+          // Set default
+          configuration = existingConfiguration;
+        }
+      }
+      // Set the charger ID
+      configuration.chargeBoxID = chargingStation.id;
+      configuration.timestamp = new Date();
+      // Save config
+      await OCPPStorage.saveConfiguration(tenantID, configuration);
+      // Update connector power
+      await OCPPUtils.updateConnectorsPower(this);
+      // Ok
+      Logging.logInfo({
+        tenantID: tenantID, source: chargingStation.id, module: 'ChargingStation',
+        method: 'requestAndSaveConfiguration', action: 'RequestConfiguration',
+        message: 'Configuration has been saved'
+      });
+      return { status: 'Accepted' };
+    } catch (error) {
+      // Log error
+      Logging.logActionExceptionMessage(tenantID, 'RequestConfiguration', error);
+      return { status: 'Rejected' };
+    }
   }
 }

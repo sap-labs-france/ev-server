@@ -3,7 +3,7 @@ import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
-import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationsRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import { filter } from 'bluebird';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 
@@ -118,12 +118,8 @@ export default class ChargingStationSecurity {
     return statusNotifications;
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterChargingStationConfigurationRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
-    return filteredRequest;
+  public static filterChargingStationConfigurationRequest(request: HttpChargingStationRequest): HttpChargingStationRequest {
+    return { ChargeBoxID: sanitize(request.ChargeBoxID) };
   }
 
   // eslint-disable-next-line no-unused-vars
@@ -219,12 +215,11 @@ export default class ChargingStationSecurity {
     return filteredRequest;
   }
 
-  public static filterChargingStationSetMaxIntensitySocketRequest(request: {}, loggedUser) {
-    const filteredRequest: any = {};
-    // Check
-    filteredRequest.chargeBoxID = sanitize(request.chargeBoxID);
-    filteredRequest.maxIntensity = sanitize(request.args.maxIntensity);
-    return filteredRequest;
+  public static filterChargingStationSetMaxIntensitySocketRequest(request: HttpChargingStationSetMaxIntensitySocketRequest): HttpChargingStationSetMaxIntensitySocketRequest {
+    return {
+      chargeBoxID: sanitize(request.chargeBoxID),
+      maxIntensity: request.args ? sanitize(request.args.maxIntensity) : null
+    }
   }
 }
 
