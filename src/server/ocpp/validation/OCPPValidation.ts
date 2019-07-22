@@ -73,7 +73,7 @@ export default class OCPPValidation extends SchemaValidator {
   }
 
   validateStopTransaction(chargingStation, stopTransaction) {
-    if (chargingStation.getOcppVersion() === Constants.OCPP_VERSION_16) {
+    if (chargingStation.ocppVersion === Constants.OCPP_VERSION_16) {
       this.validate(this._stopTransactionRequest16, stopTransaction);
     } else {
       this.validate(this._stopTransactionRequest15, stopTransaction);

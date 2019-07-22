@@ -407,30 +407,30 @@ export default class SiteStorage {
             { siteIDs: [siteMDB.id] }, Constants.DB_PARAMS_MAX_LIMIT);
           for (const chargingStation of chargingStations.result) {
             // Set Inactive flag
-            chargingStation.setInactive(DatabaseUtils.chargingStationIsInactive(chargingStation.getModel()));
+            chargingStation.inactive = DatabaseUtils.chargingStationIsInactive(chargingStation);
             // Check not deleted
-            if (chargingStation.isDeleted()) {
+            if (chargingStation.deleted) {
               continue;
             }
             totalChargers++;
             // Handle Connectors
-            for (const connector of chargingStation.getConnectors()) {
+            for (const connector of chargingStation.connectors) {
               if (!connector) {
                 continue;
               }
               totalConnectors++;
               // Check Available
-              if (!chargingStation.isInactive() && connector.status === Constants.CONN_STATUS_AVAILABLE) {
+              if (!chargingStation.inactive && connector.status === Constants.CONN_STATUS_AVAILABLE) {
                 availableConnectors++;
               }
             }
             // Handle Chargers
-            for (const connector of chargingStation.getConnectors()) {
+            for (const connector of chargingStation.connectors) {
               if (!connector) {
                 continue;
               }
               // Check Available
-              if (!chargingStation.isInactive() && connector.status === Constants.CONN_STATUS_AVAILABLE) {
+              if (!chargingStation.inactive && connector.status === Constants.CONN_STATUS_AVAILABLE) {
                 availableChargers++;
                 break;
               }

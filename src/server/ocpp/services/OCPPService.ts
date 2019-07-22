@@ -148,7 +148,7 @@ export default class OCPPService {
       // Check props
       OCPPValidation.getInstance().validateHeartbeat(heartbeat);
       // Set Heartbeat
-      chargingStation.setLastHeartBeat(new Date());
+      chargingStation.lastHeartBeat = new Date();
       // Save
       await chargingStation.saveHeartBeat();
       // Log
@@ -623,7 +623,7 @@ export default class OCPPService {
       // Set Transaction ID
       connector.activeTransactionID = transaction.getID();
       // Update Heartbeat
-      chargingStation.setLastHeartBeat(new Date());
+      chargingStation.lastHeartBeat = new Date();
       // Handle End Of charge
       await this._checkNotificationEndOfCharge(chargingStation, transaction);
     } else {
@@ -745,7 +745,7 @@ export default class OCPPService {
   _filterMeterValuesOnCharger(chargingStation, meterValues) {
     // Clean up Sample.Clock meter value
     if (chargingStation.getChargePointVendor() !== Constants.CHARGER_VENDOR_ABB ||
-      chargingStation.getOcppVersion() !== Constants.OCPP_VERSION_15) {
+      chargingStation.ocppVersion !== Constants.OCPP_VERSION_15) {
       // Filter Sample.Clock meter value for all chargers except ABB using OCPP 1.5
       meterValues.values = meterValues.values.filter((meterValue) => {
         // Remove Sample Clock
@@ -771,7 +771,7 @@ export default class OCPPService {
     newMeterValues.values = [];
     newMeterValues.chargeBoxID = chargingStation.id;
     // OCPP 1.6
-    if (chargingStation.getOcppVersion() === Constants.OCPP_VERSION_16) {
+    if (chargingStation.ocppVersion === Constants.OCPP_VERSION_16) {
       meterValues.values = meterValues.meterValue;
     }
     // Only one value?
@@ -788,7 +788,7 @@ export default class OCPPService {
       newMeterValue.transactionId = meterValues.transactionId;
       newMeterValue.timestamp = value.timestamp;
       // OCPP 1.6
-      if (chargingStation.getOcppVersion() === Constants.OCPP_VERSION_16) {
+      if (chargingStation.ocppVersion === Constants.OCPP_VERSION_16) {
         // Multiple Values?
         if (Array.isArray(value.sampledValue)) {
           // Create one record per value
@@ -1009,7 +1009,7 @@ export default class OCPPService {
       // Set the active transaction on the connector
       chargingStation.getConnector(transaction.getConnectorId()).activeTransactionID = transaction.getID();
       // Update Heartbeat
-      chargingStation.setLastHeartBeat(new Date());
+      chargingStation.lastHeartBeat = new Date();
       // Save
       await chargingStation.save();
       // Log
@@ -1199,7 +1199,7 @@ export default class OCPPService {
       // Check and free the connector
       await chargingStation.checkAndFreeConnector(transaction.getConnectorId(), false);
       // Update Heartbeat
-      chargingStation.setLastHeartBeat(new Date());
+      chargingStation.lastHeartBeat = new Date();
       // Save Charger
       await chargingStation.save();
       // Soft Stop?

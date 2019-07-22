@@ -58,7 +58,7 @@ export default class ChargingStationService {
     // Get Charging Stations
     for (const chargingStationID of filteredRequest.chargingStationIDs) {
       // Check the charging station
-      const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, chargingStationID);
+      const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, chargingStationID);
       if (!chargingStation) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -77,7 +77,7 @@ export default class ChargingStationService {
       }
     }
     // Save
-    await ChargingStation.addChargingStationsToSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.chargingStationIDs);
+    await ChargingStationStorage.addChargingStationsToSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.chargingStationIDs);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -91,7 +91,7 @@ export default class ChargingStationService {
 
   static async handleRemoveChargingStationsFromSiteArea(action, req, res, next) {
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterRemoveChargingStationsFromSiteAreaRequest(req.body, req.user);
+    const filteredRequest = ChargingStationSecurity.filterAssignChargingStationsToSiteAreaRequest(req.body);
     // Check Mandatory fields
     if (!filteredRequest.siteAreaID) {
       throw new AppError(
@@ -126,7 +126,7 @@ export default class ChargingStationService {
     // Get Charging Stations
     for (const chargingStationID of filteredRequest.chargingStationIDs) {
       // Check the Charging Station
-      const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, chargingStationID);
+      const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, chargingStationID);
       if (!chargingStation) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
@@ -145,7 +145,7 @@ export default class ChargingStationService {
       }
     }
     // Save
-    await ChargingStation.removeChargingStationsFromSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.chargingStationIDs);
+    await ChargingStationStorage.removeChargingStationsFromSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.chargingStationIDs);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -161,7 +161,7 @@ export default class ChargingStationService {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationParamsUpdateRequest(req.body, req.user);
     // Check email
-    const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.id);
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.id);
     if (!chargingStation) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
@@ -169,7 +169,7 @@ export default class ChargingStationService {
         'ChargingStationService', 'handleUpdateChargingStationParams', req.user);
     }
 
-    const siteArea = await chargingStation.getSiteArea();
+    const siteArea = await chargingStation.siteArea;
     // Check Auth
     if (!Authorizations.canUpdateChargingStation(req.user, siteArea ? siteArea.siteID : null)) {
       throw new AppAuthError(
@@ -180,39 +180,39 @@ export default class ChargingStationService {
     }
     // Update URL
     if (filteredRequest.chargingStationURL) {
-      chargingStation.setChargingStationURL(filteredRequest.chargingStationURL);
+      chargingStation.chargingStationURL = filteredRequest.chargingStationURL;
     }
     // Update Nb Phase
     if (filteredRequest.hasOwnProperty('numberOfConnectedPhase')) {
-      chargingStation.setNumberOfConnectedPhase(filteredRequest.numberOfConnectedPhase);
+      chargingStation.numberOfConnectedPhase = filteredRequest.numberOfConnectedPhase;
     }
     // Update Power Max
     if (filteredRequest.hasOwnProperty('maximumPower')) {
-      chargingStation.setMaximumPower(parseInt(filteredRequest.maximumPower));
+      chargingStation.maximumPower = parseInt(filteredRequest.maximumPower);
     }
     // Update Cannot Charge in Parallel
     if (filteredRequest.hasOwnProperty('cannotChargeInParallel')) {
-      chargingStation.setCannotChargeInParallel(filteredRequest.cannotChargeInParallel);
+      chargingStation.cannotChargeInParallel = filteredRequest.cannotChargeInParallel;
     }
     // Update Site Area
     if (filteredRequest.hasOwnProperty('siteArea')) {
-      chargingStation.setSiteArea(await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteArea.id));
+      chargingStation.siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteArea.id);
     }
     // Update Site Area
     if (filteredRequest.hasOwnProperty('powerLimitUnit')) {
-      chargingStation.setPowerLimitUnit(filteredRequest.powerLimitUnit);
+      chargingStation.powerLimitUnit = filteredRequest.powerLimitUnit;
     }
     // Update Latitude
     if (filteredRequest.hasOwnProperty('latitude')) {
-      chargingStation.setLatitude(filteredRequest.latitude);
+      chargingStation.latitude = filteredRequest.latitude;
     }
     // Update Longitude
     if (filteredRequest.hasOwnProperty('longitude')) {
-      chargingStation.setLongitude(filteredRequest.longitude);
+      chargingStation.longitude = filteredRequest.longitude;
     }
     // Update Connectors
     if (filteredRequest.connectors) {
-      const chargerConnectors = chargingStation.getConnectors();
+      const chargerConnectors = chargingStation.connectors;
       // Assign to Charger's connector
       for (const connector of filteredRequest.connectors) {
         // Set
@@ -223,20 +223,20 @@ export default class ChargingStationService {
       }
     }
     // Update timestamp
-    chargingStation.setLastChangedBy({ 'id': req.user.id });
-    chargingStation.setLastChangedOn(new Date());
+    chargingStation.lastChangedBy = { 'id': req.user.id };
+    chargingStation.lastChangedOn = new Date();
     // Update
-    const updatedChargingStation = await chargingStation.save();
+    ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      source: updatedchargingStation.id,
+      source: chargingStation.id,
       user: req.user, module: 'ChargingStationService',
       method: 'handleUpdateChargingStationParams',
       message: 'Parameters have been updated successfully',
       action: action, detailedMessages: {
-        'numberOfConnectedPhase': updatedChargingStation.getNumberOfConnectedPhase(),
-        'chargingStationURL': updatedChargingStation.getChargingStationURL()
+        'numberOfConnectedPhase': chargingStation.numberOfConnectedPhase,
+        'chargingStationURL': chargingStation.chargingStationURL
       }
     });
     // Ok
@@ -246,7 +246,7 @@ export default class ChargingStationService {
 
   static async handleGetChargingStationConfiguration(action, req, res, next) {
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query, req.user);
+    const filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query);
     // Charge Box is mandatory
     if (!filteredRequest.ChargeBoxID) {
       throw new AppError(
@@ -255,7 +255,7 @@ export default class ChargingStationService {
         'ChargingStationService', 'handleGetChargingStationConfiguration', req.user);
     }
     // Get the Charging Station`
-    const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
     // Found?
     if (!chargingStation) {
       throw new AppError(
@@ -451,7 +451,7 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query);
     // Check component
     if (filteredRequest.SiteID || filteredRequest.WithSite || filteredRequest.SiteAreaID || !filteredRequest.WithNoSiteArea) {
-      await UtilsService.assertComponentIsActive(req.user.tenantID,
+      await UtilsService.assertComponentIsActiveFromToken(req.user,
         Constants.COMPONENTS.ORGANIZATION, Constants.ACTION_READ, Constants.ENTITY_USER, 'UserService', 'handleGetUsers');
     }
     // Get Charging Stations
@@ -558,7 +558,7 @@ export default class ChargingStationService {
         'ChargingStationService', 'handleAction', req.user, null, action);
     }
     // Get the Charging station
-    const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
     if (!chargingStation) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
@@ -636,7 +636,7 @@ export default class ChargingStationService {
         if (result.status !== Constants.OCPP_RESPONSE_ACCEPTED) {
           result = [];
           // Call each connectors
-          for (const connector of chargingStation.getConnectors()) {
+          for (const connector of chargingStation.connectors) {
             filteredRequest.args.connectorId = connector.connectorId;
             // Execute request
             const simpleResult = await chargingStation.handleAction(action, filteredRequest.args);
@@ -741,20 +741,8 @@ export default class ChargingStationService {
         message: `Max Instensity Socket has been set to '${filteredRequest.maxIntensity}'`
       });
       // Change the config
-      const result = await ChargingStationService.requestExecuteCommand(req.user.tenantID, chargingStation, 'changeConfiguration', {key: 'maxintensitysocket', value: filteredRequest.maxIntensity});
-      // Request the new Configuration?
-      if (result.status !== 'Accepted') {
-        // Error
-        throw new BackendError(chargingStation.id, `Cannot set the configuration param ${'maxintensitysocket'} with value ${filteredRequest.maxIntensity} to ${chargingStation.id}`,
-          'ChargingStationService', 'handleActionSetSocketMaxIntensity');
-      }
-      // Retrieve and Save it in the DB
-    await this.requestAndSaveConfiguration();
-
-      result = await chargingStation.requestChangeConfiguration({
-        key: 'maxintensitysocket',
-        value: filteredRequest.maxIntensity
-      });
+      result = await ChargingStationService.requestChangeConfiguration(req.user.tenantID, chargingStation,
+        {key: 'maxintensitysocket', value: filteredRequest.maxIntensity});
     } else {
       // Invalid value
       throw new AppError(
@@ -806,7 +794,7 @@ export default class ChargingStationService {
     return chargingStation.client;
   }
 
-  public static async requestExecuteCommand(tenantID: string, chargingStation: ChargingStation, method, params?) {
+  public static async requestExecuteCommand(tenantID: string, chargingStation: ChargingStation, method: string, params?) {
     try {
       // Get the client
       const chargingStationClient = await ChargingStationService.getClient(tenantID, chargingStation);
@@ -867,7 +855,7 @@ export default class ChargingStationService {
       // Save config
       await OCPPStorage.saveConfiguration(tenantID, configuration);
       // Update connector power
-      await OCPPUtils.updateConnectorsPower(this);
+      await OCPPUtils.updateConnectorsPower(chargingStation); //TODO might be wrong
       // Ok
       Logging.logInfo({
         tenantID: tenantID, source: chargingStation.id, module: 'ChargingStation',
@@ -880,5 +868,19 @@ export default class ChargingStationService {
       Logging.logActionExceptionMessage(tenantID, 'RequestConfiguration', error);
       return { status: 'Rejected' };
     }
+  }
+
+  public static async requestChangeConfiguration(tenantID: string, chargingStation: ChargingStation, params) {
+    const result = await ChargingStationService.requestExecuteCommand(tenantID, chargingStation, 'changeConfiguration', params);
+    // Request the new Configuration?
+    if (result.status !== 'Accepted') {
+      // Error
+      throw new BackendError(chargingStation.id, `Cannot set the configuration param ${params.key} with value ${params.value} to ${chargingStation.id}`,
+        'ChargingStation', 'requestChangeConfiguration');
+    }
+    // Retrieve and Save it in the DB
+    await ChargingStationService.requestAndSaveConfiguration(tenantID, chargingStation);
+    // Return
+    return result;
   }
 }

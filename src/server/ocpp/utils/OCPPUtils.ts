@@ -2,6 +2,7 @@ import BackendError from '../../../exception/BackendError';
 import ChargingStation from '../../../types/ChargingStation';
 import Constants from '../../../utils/Constants';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import ChargingStationService from '../../rest/service/ChargingStationService';
 
 export default class OCPPUtils {
 
@@ -66,7 +67,7 @@ export default class OCPPUtils {
     // Only for Schneider
     if (chargingStation.chargePointVendor === 'Schneider Electric') {
       // Get the configuration
-      const configuration = await chargingStation.getConfiguration();
+      const configuration = await chargingStation.getConfiguration();//TODO
       // Config Provided?
       if (configuration && configuration.configuration) {
         // Search for params
@@ -93,9 +94,9 @@ export default class OCPPUtils {
           }
         }
         // Override?
-        if (chargingStation.getNumberOfConnectedPhase()) {
+        if (chargingStation.numberOfConnectedPhase) {
           // Yes
-          nbPhase = chargingStation.getNumberOfConnectedPhase();
+          nbPhase = chargingStation.numberOfConnectedPhase;
         }
         // Compute it
         if (voltageRerefence && current && nbPhase) {
@@ -108,16 +109,16 @@ export default class OCPPUtils {
         }
       }
       // Set Power
-      for (const connector of chargingStation.getConnectors()) {
+      for (const connector of chargingStation.connectors) {
         if (connector) {
           connector.power = power;
           totalPower += power;
         }
       }
       // Set total power
-      if (totalPower && !chargingStation.getMaximumPower()) {
+      if (totalPower && !chargingStation.maximumPower) {
         // Set
-        chargingStation.setMaximumPower(totalPower);
+        chargingStation.maximumPower = totalPower;
       }
     }
   }

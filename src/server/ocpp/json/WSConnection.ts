@@ -8,6 +8,7 @@ import Logging from '../../../utils/Logging';
 import OCPPError from '../../../exception/OcppError';
 import Tenant from '../../../entity/Tenant';
 import Utils from '../../../utils/Utils';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 
 const MODULE_NAME = 'WSConnection';
 export default class WSConnection {
@@ -77,13 +78,13 @@ export default class WSConnection {
       // Cloud Foundry?
       if (Configuration.isCloudFoundry()) {
         // Yes: Save the CF App and Instance ID to call the charger from the Rest server
-        const chargingStation = await ChargingStation.getChargingStation(this.tenantID, this.getChargingStationID());
+        const chargingStation = await ChargingStationStorage.getChargingStation(this.tenantID, this.getChargingStationID());
         // Found?
         if (chargingStation) {
           // Update CF Instance
-          chargingStation.setCFApplicationIDAndInstanceIndex(Configuration.getCFApplicationIDAndInstanceIndex());
+          chargingStation.cfApplicationIDAndInstanceIndex = Configuration.getCFApplicationIDAndInstanceIndex();
           // Save it
-          await chargingStation.save();
+          await ChargingStationStorage.saveChargingStation(this.tenantID, chargingStation);
         }
       }
     } catch (error) {
