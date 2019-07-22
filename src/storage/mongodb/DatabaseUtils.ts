@@ -67,6 +67,12 @@ export default class DatabaseUtils {
     });
   }
 
+  public static pushSiteUserLookupInAggregation(lookupParams: DbLookup) {
+    DatabaseUtils.pushCollectionLookupInAggregation('siteusers', {
+      ...lookupParams
+    });
+  }
+
   public static pushUserLookupInAggregation(lookupParams: DbLookup) {
     DatabaseUtils.pushCollectionLookupInAggregation('users', {
       objectIDFields: ['createdBy', 'lastChangedBy'],

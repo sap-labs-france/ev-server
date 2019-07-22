@@ -55,11 +55,6 @@ export default class ConcurConnector extends AbstractConnector {
       });
   }
 
-  /**
-   * Compute a valid until date from a date and a duration
-   * @return Date the valid until date
-   * @param result the data result returned by concur
-   */
   static computeValidUntilAt(result) {
     return new Date(result.data.refresh_expires_in * 1000);
   }
@@ -108,12 +103,6 @@ export default class ConcurConnector extends AbstractConnector {
     return this.getSetting().paymentTypeId;
   }
 
-  /**
-   *
-   * @param userId
-   * @param data
-   * @returns {Promise<Connection>}
-   */
   async createConnection(userId, data) {
     try {
       Logging.logDebug({
@@ -164,13 +153,6 @@ export default class ConcurConnector extends AbstractConnector {
     }
   }
 
-  /**
-   *
-   * @param userId {string}
-   * @param transactions {Transaction}
-   * @param quickRefund
-   * @returns {Promise<Transaction[]>}
-   */
   async refund(userId: string, transactions, quickRefund = false): Promise<any> {
     const startDate = moment();
     const refundedTransactions = [];
@@ -218,32 +200,40 @@ export default class ConcurConnector extends AbstractConnector {
     return refundedTransactions;
   }
 
-  async updateRefundStatus(transaction: Transaction, action: string = 'Refund'): Promise<{status?: string}> {
+  async updateRefundStatus(transaction: Transaction): Promise<string> {
     const connection = await this.getRefreshedConnection(transaction.getUserID());
     if (transaction.getRefundData()) {
       const report = await this.getExpenseReport(connection, transaction.getRefundData().reportId);
       if (report) {
+        // Approved
         if (report.ApprovalStatusCode === 'A_APPR') {
           transaction.getRefundData().status = Constants.REFUND_STATUS_APPROVED;
           await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
-          Logging.logInfo({
+          Logging.logDebug({
             tenantID: transaction.getTenantID(),
-            module: 'ConcurConnector', method: 'updateRefundStatus', action,
+            module: 'ConcurConnector', method: 'updateRefundStatus', action: 'RefundSynchronize',
             message: `The Transaction ID '${transaction.getID()}' has been marked 'Approved'`,
             user: transaction.getUserID()
           });
-          return { status: Constants.REFUND_STATUS_APPROVED };
+          return Constants.REFUND_STATUS_APPROVED;
         }
+        Logging.logDebug({
+          tenantID: transaction.getTenantID(),
+          module: 'ConcurConnector', method: 'updateRefundStatus', action: 'RefundSynchronize',
+          message: `The Transaction ID '${transaction.getID()}' has not been updated`,
+          user: transaction.getUserID()
+        });
       } else {
+        // Cancelled
         transaction.getRefundData().status = Constants.REFUND_STATUS_CANCELLED;
         await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
-        Logging.logInfo({
+        Logging.logDebug({
           tenantID: transaction.getTenantID(),
-          module: 'ConcurConnector', method: 'updateRefundStatus', action,
+          module: 'ConcurConnector', method: 'updateRefundStatus', action: 'RefundSynchronize',
           message: `The Transaction ID '${transaction.getID()}' has been marked 'Cancelled'`,
           user: transaction.getUserID()
         });
-        return { status: Constants.REFUND_STATUS_CANCELLED };
+        return Constants.REFUND_STATUS_CANCELLED;
       }
     }
   }
@@ -276,14 +266,6 @@ export default class ConcurConnector extends AbstractConnector {
       MODULE_NAME, 'getLocation');
   }
 
-  /**
-   *
-   * @param connection {Connection}
-   * @param transaction {Transaction}
-   * @param location
-   * @param userId
-   * @returns {Promise<string>}
-   */
   async createQuickExpense(connection, transaction, location, userId: string) {
     try {
       const startDate = moment();
@@ -323,15 +305,6 @@ export default class ConcurConnector extends AbstractConnector {
     }
   }
 
-  /**
-   *
-   * @param connection {Connection}
-   * @param expenseReportId {string}
-   * @param transaction {Transaction}
-   * @param location {Location}
-   * @param userId
-   * @returns {Promise<string>}
-   */
   async createExpenseReportEntry(connection, expenseReportId, transaction, location, userId: string) {
     try {
       const startDate = moment();
@@ -375,13 +348,6 @@ export default class ConcurConnector extends AbstractConnector {
     }
   }
 
-  /**
-   *
-   * @param connection
-   * @param timezone
-   * @param userId
-   * @returns {Promise<void>}
-   */
   async createExpenseReport(connection, timezone, userId: string) {
     try {
       const startDate = moment();
@@ -438,7 +404,6 @@ export default class ConcurConnector extends AbstractConnector {
 
   private async getExpenseReports(connection) {
     try {
-
       const response = await axios.get(`${this.getApiUrl()}/api/v3.0/expense/reports?approvalStatusCode=A_NOTF`, {
         headers: {
           Accept: 'application/json',
@@ -472,16 +437,17 @@ export default class ConcurConnector extends AbstractConnector {
         tenantID: this.getTenantID(),
         user: userId,
         source: MODULE_NAME, action: 'Refund',
-        module: MODULE_NAME, method: 'createQuickExpense',
+        module: MODULE_NAME, method: 'refreshToken',
         message: `Concur access token has been successfully generated in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
       });
       connection.updateData(response.data, new Date(), ConcurConnector.computeValidUntilAt(response));
       return ConnectionStorage.saveConnection(this.getTenantID(), connection.getModel());
-    } catch (e) {
+    } catch (error) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Concur access token not refreshed (ID: '${userId}')`,
-        Constants.HTTP_GENERAL_ERROR, MODULE_NAME,'refreshToken', userId, null, 'Refund');
+        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'refreshToken',
+        userId, null, 'Refund', error);
     }
   }
 
@@ -500,6 +466,4 @@ export default class ConcurConnector extends AbstractConnector {
     }
     return connection;
   }
-
 }
-

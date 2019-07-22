@@ -1,6 +1,7 @@
 import moment from 'moment';
 import ChargingStation from './ChargingStation';
 import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
+import Constants from '../utils/Constants';
 import ConsumptionStorage from '../storage/mongodb/ConsumptionStorage';
 import Database from '../utils/Database';
 import OCPPStorage from '../storage/mongodb/OCPPStorage';
@@ -8,7 +9,6 @@ import TenantHolder from './TenantHolder';
 import TransactionStorage from '../storage/mongodb/TransactionStorage';
 import User from '../types/User';
 import UserStorage from '../storage/mongodb/UserStorage';
-import Constants from '../utils/Constants';
 
 export default class Transaction extends TenantHolder {
   private _model: any = {};
@@ -323,7 +323,7 @@ export default class Transaction extends TenantHolder {
   setChargingStation(chargingStation) {
     if (chargingStation) {
       this._model.chargeBox = chargingStation.getModel();
-      this._model.chargeBoxID = chargingStation.getID();
+      this._model.chargeBoxID = chargingStation.id;
     } else {
       this._model.chargeBox = null;
       this._model.chargeBoxID = null;

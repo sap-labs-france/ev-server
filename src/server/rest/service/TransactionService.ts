@@ -11,12 +11,12 @@ import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import OCPPService from '../../../server/ocpp/services/OCPPService';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
+import SynchronizeRefundTransactionsTask from '../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
+import Tenant from '../../../entity/Tenant';
 import TransactionSecurity from './security/TransactionSecurity';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
-import SynchronizeRefundTransactionsTask from '../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
-import Tenant from '../../../entity/Tenant';
 
 export default class TransactionService {
   static async handleSynchronizeRefundedTransactions(action, req, res, next) {
@@ -264,7 +264,7 @@ export default class TransactionService {
       // Stop Transaction
       const result = await new OCPPService().handleStopTransaction(
         {
-          chargeBoxIdentity: chargingStation.getID(),
+          chargeBoxIdentity: chargingStation.id,
           tenantID: chargingStation.getTenantID()
         },
         {
@@ -276,7 +276,7 @@ export default class TransactionService {
         true);
       // Log
       Logging.logSecurityInfo({
-        tenantID: req.user.tenantID, source: chargingStation.getID(),
+        tenantID: req.user.tenantID, source: chargingStation.id,
         user: req.user, actionOnUser: user,
         module: 'TransactionService', method: 'handleTransactionSoftStop',
         message: `Transaction ID '${transaction.getID()}' on '${transaction.getChargeBoxID()}'-'${transaction.getConnectorId()}' has been stopped successfully`,

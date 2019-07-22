@@ -1,7 +1,6 @@
 // Goal : Checks related to settings
 // Note : These unit tests use the tenant utall. This tenant should exist prior running these tests.
 //        Run npm run test:createContext to create the needed utall if not present.
-
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import config from '../config';
@@ -29,7 +28,7 @@ describe('Encryption Setting tests', function() {
     // Housekeeping
     const update = await testData.centralService.updateEntity(testData.centralService.settingApi, oldSetting);
     expect(update.status).to.equal(200);
-});
+  });
 
   after(async function() {
     // Housekeeping
@@ -87,7 +86,7 @@ describe('Encryption Setting tests', function() {
       expect(read.status).to.equal(200);
       expect(read.data.count).to.equal(1);
       // Store the old setting
-      oldSetting = read.data.result[0]; 
+      oldSetting = read.data.result[0];
       // Update the setting
       testData.data = JSON.parse(`{
             "id":"${read.data.result[0].id}",

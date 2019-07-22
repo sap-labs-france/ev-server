@@ -174,7 +174,7 @@ export default class ChargingStationService {
     if (!Authorizations.canUpdateChargingStation(req.user, siteArea ? siteArea.siteID : null)) {
       throw new AppAuthError(
         Constants.ACTION_UPDATE, Constants.ENTITY_CHARGING_STATION,
-        chargingStation.getID(), Constants.HTTP_AUTH_ERROR,
+        chargingStation.id, Constants.HTTP_AUTH_ERROR,
         'ChargingStationService', 'handleUpdateChargingStationParams',
         req.user);
     }
@@ -230,7 +230,7 @@ export default class ChargingStationService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      source: updatedChargingStation.getID(),
+      source: updatedchargingStation.id,
       user: req.user, module: 'ChargingStationService',
       method: 'handleUpdateChargingStationParams',
       message: 'Parameters have been updated successfully',
@@ -267,7 +267,7 @@ export default class ChargingStationService {
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError(
         Constants.ACTION_READ, Constants.ENTITY_CHARGING_STATION,
-        chargingStation.getID(), Constants.HTTP_AUTH_ERROR,
+        chargingStation.id, Constants.HTTP_AUTH_ERROR,
         'ChargingStationService', 'handleGetChargingStationConfiguration',
         req.user);
     }
@@ -595,7 +595,7 @@ export default class ChargingStationService {
       }
 
       // Check if user is authorized
-      await Authorizations.isTagIDsAuthorizedOnChargingStation(chargingStation, req.user.tagIDs[0], transaction.getTagID(), action);
+      await Authorizations.isTagIDsAuthorizedOnChargingStation(req.user.tenantID, chargingStation, req.user.tagIDs[0], transaction.getTagID(), action);
       // Set the tag ID to handle the Stop Transaction afterwards
       transaction.setRemoteStopDate(new Date().toISOString());
       transaction.setRemoteStopTagID(req.user.tagIDs[0]);
@@ -614,7 +614,7 @@ export default class ChargingStationService {
           'ChargingStationService', 'handleAction', req.user, null, action);
       }
       // Check if user is authorized
-      await Authorizations.isTagIDAuthorizedOnChargingStation(chargingStation, filteredRequest.args.tagID, action);
+      await Authorizations.isTagIDAuthorizedOnChargingStation(req.user.tenantID, chargingStation, filteredRequest.args.tagID, action);
       // Ok: Execute it
       result = await chargingStation.handleAction(action, filteredRequest.args);
     } else if (action === 'GetCompositeSchedule') {
@@ -622,7 +622,7 @@ export default class ChargingStationService {
       if (!Authorizations.canPerformActionOnChargingStation(req.user, action)) {
         throw new AppAuthError(action,
           Constants.ENTITY_CHARGING_STATION,
-          chargingStation.getID(),
+          chargingStation.id,
           Constants.HTTP_AUTH_ERROR, 'ChargingStationService', 'handleAction',
           req.user);
       }
@@ -658,7 +658,7 @@ export default class ChargingStationService {
       if (!Authorizations.canPerformActionOnChargingStation(req.user, action)) {
         throw new AppAuthError(action,
           Constants.ENTITY_CHARGING_STATION,
-          chargingStation.getID(),
+          chargingStation.id,
           Constants.HTTP_AUTH_ERROR, 'ChargingStationService', 'handleAction',
           req.user);
       }
@@ -668,7 +668,7 @@ export default class ChargingStationService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      source: chargingStation.getID(), user: req.user, action: action,
+      source: chargingStation.id, user: req.user, action: action,
       module: 'ChargingStationService', method: 'handleAction',
       message: `'${action}' has been executed successfully`,
       detailedMessages: result

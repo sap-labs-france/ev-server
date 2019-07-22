@@ -7,6 +7,7 @@ import BaseApi from './utils/BaseApi';
 import ChargingStationApi from './ChargingStationApi';
 import CompanyApi from './CompanyApi';
 import Constants from './utils/Constants';
+import LogsApi from './LogsApi';
 import MailApi from './MailApi';
 import OCPIEndpointApi from './OCPIEndpointApi';
 import SettingApi from './SettingApi';
@@ -17,7 +18,6 @@ import TenantApi from './TenantApi';
 import TransactionApi from './TransactionApi';
 import User from '../../../src/types/User';
 import UserApi from './UserApi';
-import LogsApi from './LogsApi';
 
 // Set
 chai.use(chaiSubset);

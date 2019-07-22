@@ -63,7 +63,7 @@ export default class OCPPValidation extends SchemaValidator {
     this.validate(this._startTransactionRequest, startTransaction);
     // Check Connector ID
     if (!chargingStation.getConnector(startTransaction.connectorId)) {
-      throw new BackendError(chargingStation.getID(),
+      throw new BackendError(chargingStation.id,
         `The Connector ID '${startTransaction.connectorId}' is invalid`,
         'OCPPService', 'handleStartTransaction', Constants.ACTION_REMOTE_START_TRANSACTION);
     }
@@ -88,7 +88,7 @@ export default class OCPPValidation extends SchemaValidator {
       // BUG KEBA: Connector ID must be > 0 according OCPP
       Logging.logWarning({
         tenantID: chargingStation.getTenantID(),
-        source: chargingStation.getID(), module: 'OCPPValidation', method: 'validateMeterValues',
+        source: chargingStation.id, module: 'OCPPValidation', method: 'validateMeterValues',
         action: 'MeterValues', message: 'Connector ID must not be \'0\' and has been reset to \'1\''
       });
       // Set to 1 (KEBA has only one connector)
@@ -106,7 +106,7 @@ export default class OCPPValidation extends SchemaValidator {
         if (chargerTransactionId > 0) {
           // No: Log that the transaction ID will be reused
           Logging.logWarning({
-            tenantID: chargingStation.getTenantID(), source: chargingStation.getID(),
+            tenantID: chargingStation.getTenantID(), source: chargingStation.id,
             module: 'OCPPValidation', method: 'validateMeterValues', action: 'MeterValues',
             message: `Transaction ID '${meterValues.transactionId}' not found but retrieved from StartTransaction '${chargerTransactionId}'`
           });
@@ -118,7 +118,7 @@ export default class OCPPValidation extends SchemaValidator {
     } else if (chargerTransactionId > 0) {
       // Yes: Use Connector's Transaction ID
       Logging.logWarning({
-        tenantID: chargingStation.getTenantID(), source: chargingStation.getID(),
+        tenantID: chargingStation.getTenantID(), source: chargingStation.id,
         module: 'OCPPValidation', method: 'validateMeterValues', action: 'MeterValues',
         message: `Transaction ID is not provided but retrieved from StartTransaction '${chargerTransactionId}'`
       });

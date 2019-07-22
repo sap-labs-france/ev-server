@@ -53,7 +53,9 @@ export default class SchedulerManager {
             });
         }
         if (schedulerTask) {
-          cron.schedule(task.periodicity, () => schedulerTask.run(task.name, task.config));
+          cron.schedule(task.periodicity, () => {
+            return schedulerTask.run(task.name, task.config);
+          });
           Logging.logInfo({
             tenantID: Constants.DEFAULT_TENANT,
             module: 'Scheduler', method: 'init',

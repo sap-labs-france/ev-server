@@ -4,9 +4,9 @@ import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
+import Utils from '../../../utils/Utils';
 import VehicleManufacturerSecurity from './security/VehicleManufacturerSecurity';
 import VehicleManufacturerStorage from '../../../storage/mongodb/VehicleManufacturerStorage';
-import Utils from '../../../utils/Utils';
 
 export default class VehicleManufacturerService {
 
