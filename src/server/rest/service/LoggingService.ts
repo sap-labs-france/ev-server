@@ -1,3 +1,4 @@
+import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
 import AppAuthError from '../../../exception/AppAuthError';
 import Authorizations from '../../../authorization/Authorizations';
@@ -5,11 +6,10 @@ import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStor
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import LoggingSecurity from './security/LoggingSecurity';
-import Tenant from '../../../entity/Tenant';
 import Utils from '../../../utils/Utils';
 
 export default class LoggingService {
-  static async handleGetLoggings(action, req, res, next) {
+  static async handleGetLoggings(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canListLogging(req.user)) {
@@ -75,7 +75,7 @@ export default class LoggingService {
     }
   }
 
-  static async handleGetLoggingsExport(action, req, res, next) {
+  static async handleGetLoggingsExport(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canListLogging(req.user)) {
@@ -131,7 +131,7 @@ export default class LoggingService {
     }
   }
 
-  static async handleGetLogging(action, req, res, next) {
+  static async handleGetLogging(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
       const filteredRequest = LoggingSecurity.filterLoggingRequest(req.query, req.user);
