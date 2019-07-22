@@ -298,9 +298,7 @@ export default class TenantService {
     next();
   }
 
-  private static async _updateSettingsWithComponents(tenant, req) {
-    // Get the user
-    const user = await UserStorage.getUser(req.user.tenantID, req.user.id);
+  private static async _updateSettingsWithComponents(tenant: Tenant, req: Request) {
     // Create settings
     for (const component of tenant.getComponents()) {
       // Get the settings
@@ -324,13 +322,17 @@ export default class TenantService {
             content: newSettingContent
           });
           newSetting.setCreatedOn(new Date());
-          newSetting.setCreatedBy(user);
+          newSetting.setCreatedBy({
+            'id': req.user.id
+          });
           // Save Setting
           await newSetting.save();
         } else {
           currentSetting.setContent(newSettingContent);
           currentSetting.setLastChangedOn(new Date());
-          currentSetting.setLastChangedBy(user);
+          currentSetting.setLastChangedBy({
+            'id': req.user.id
+          });
           // Save Setting
           await currentSetting.save();
         }
