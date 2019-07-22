@@ -547,7 +547,7 @@ export default class TransactionService {
       if (filteredRequest.UserID) {
         filter.userIDs = filteredRequest.UserID.split('|');
       }
-      if (Authorizations.isBasic(req.user)) {
+      if (Authorizations.isBasic(req.user.role)) {
         filter.userIDs = [req.user.id];
       }
       if (filteredRequest.StartDateTime) {
@@ -608,7 +608,7 @@ export default class TransactionService {
       if (filteredRequest.UserID) {
         filter.userIDs = filteredRequest.UserID.split('|');
       }
-      if (Authorizations.isBasic(req.user)) {
+      if (Authorizations.isBasic(req.user.role)) {
         filter.userIDs = [req.user.id];
       }
       // Date
