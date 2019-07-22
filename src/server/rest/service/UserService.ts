@@ -11,7 +11,6 @@ import RatingService from '../../../integration/pricing/convergent-charging/Rati
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import User from '../../../types/User';
 import UserSecurity from './security/UserSecurity';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';

@@ -1,13 +1,13 @@
+import { NextFunction, Request, Response } from 'express';
 import AppError from '../../../exception/AppError';
 import ComponentInactiveError from '../../../exception/ComponentInactiveError';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import Tenant from '../../../entity/Tenant';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
 
 export default class UtilsService {
-  static handleUnknownAction(action, req, res, next) {
+  static handleUnknownAction(action: string, req: Request, res: Response, next: NextFunction) {
     // Action provided
     if (!action) {
       // Log

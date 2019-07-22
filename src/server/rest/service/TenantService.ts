@@ -14,7 +14,6 @@ import TenantSecurity from './security/TenantSecurity';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TenantValidator from '../validation/TenantValidation';
 import User from '../../../types/User';
-import UserService from './UserService';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 
@@ -22,7 +21,7 @@ const MODULE_NAME = 'TenantService';
 
 export default class TenantService {
 
-  static async handleDeleteTenant(action, req, res, next) {
+  static async handleDeleteTenant(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = TenantSecurity.filterTenantDeleteRequest(req.query, req.user);
     // Check Mandatory fields
@@ -80,7 +79,7 @@ export default class TenantService {
     next();
   }
 
-  static async handleGetTenant(action, req, res, next) {
+  static async handleGetTenant(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = TenantSecurity.filterTenantRequest(req.query, req.user);
 
@@ -120,7 +119,7 @@ export default class TenantService {
     next();
   }
 
-  static async handleGetTenants(action, req, res, next) {
+  static async handleGetTenants(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListTenants(req.user)) {
       throw new AppAuthError(
@@ -252,7 +251,7 @@ export default class TenantService {
     next();
   }
 
-  static async handleUpdateTenant(action, req, res, next) {
+  static async handleUpdateTenant(action: string, req: Request, res: Response, next: NextFunction) {
     // Check
     TenantValidator.getInstance().validateTenantUpdate(req.body);
     // Filter
