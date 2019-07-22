@@ -84,14 +84,14 @@ export default class UserSecurity {
     if (request.phone) {
       filteredRequest.phone = sanitize(request.phone);
     }
+    if (request.email) {
+      filteredRequest.email = sanitize(request.email);
+    }
     // Admin?
     if (Authorizations.isAdmin(loggedUser.role) || Authorizations.isSuperAdmin(loggedUser.role)) {
       // Ok to set the sensitive data
       if (request.hasOwnProperty('notificationsActive')) {
         filteredRequest.notificationsActive = sanitize(request.notificationsActive);
-      }
-      if (request.email) {
-        filteredRequest.email = sanitize(request.email);
       }
       if (request.status) {
         filteredRequest.status = sanitize(request.status);
