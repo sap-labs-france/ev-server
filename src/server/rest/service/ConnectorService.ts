@@ -1,3 +1,4 @@
+import { NextFunction, Request, Response } from 'express';
 import HttpStatusCodes from 'http-status-codes';
 import AbstractConnector from '../../../integration/AbstractConnector';
 import AppAuthError from '../../../exception/AppAuthError';
@@ -12,7 +13,7 @@ import Logging from '../../../utils/Logging';
 const MODULE_NAME = 'ConnectorService';
 
 export default class ConnectorService {
-  public static async handleGetConnection(action, req, res, next) {
+  public static async handleGetConnection(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ConnectorSecurity.filterConnectionRequest(req.query, req.user);
     // Charge Box is mandatory
@@ -51,7 +52,7 @@ export default class ConnectorService {
     next();
   }
 
-  public static async handleGetConnections(action, req, res, next) {
+  public static async handleGetConnections(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListConnections(req.user)) {
       throw new AppAuthError(
@@ -76,7 +77,7 @@ export default class ConnectorService {
     next();
   }
 
-  public static async handleCreateConnection(action, req, res, next) {
+  public static async handleCreateConnection(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canCreateConnection(req.user)) {
       throw new AppAuthError(
@@ -108,7 +109,7 @@ export default class ConnectorService {
     next();
   }
 
-  public static async handleDeleteConnection(action, req, res, next) {
+  public static async handleDeleteConnection(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ConnectorSecurity.filterConnectionDeleteRequest(req.query, req.user);
     // Check auth

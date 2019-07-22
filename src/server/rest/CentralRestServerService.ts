@@ -260,7 +260,7 @@ export default {
     }
   },
 
-  async restServiceSecured(req, res, next) {
+  async restServiceSecured(req: Request, res: Response, next: NextFunction) {
     // Parse the action
     const action = /^\/\w*/g.exec(req.url)[0].substring(1);
 
