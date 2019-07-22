@@ -21,6 +21,7 @@ export default class OCPPCommonTestsNew {
   public chargingStationConnector1: any;
   public chargingStationConnector2: any;
   public transactionStartUser: any;
+  public transactionStartUserService: any;
   public transactionStopUser: any;
   public transactionStartMeterValue: any;
   public transactionStartSoC: any;
@@ -49,6 +50,7 @@ export default class OCPPCommonTestsNew {
     } else {
       this.transactionStopUser = this.transactionStartUser;
     }
+    this.transactionStartUserService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.transactionStartUser);
   }
 
   public async before() {
@@ -251,6 +253,7 @@ export default class OCPPCommonTestsNew {
       this.transactionCurrentTime,
       withSoC,
       withSignedData);
+      console.log(response);
     if (response) {
       expect(response.data).to.eql({});
     }
@@ -424,10 +427,15 @@ export default class OCPPCommonTestsNew {
     }
   }
 
-  public async testDeleteTransaction() {
+  public async testDeleteTransaction(noAuthorization = true) {
     // Delete the created entity
     expect(this.newTransaction).to.not.be.null;
-    const response = await this.centralUserService.transactionApi.delete(this.newTransaction.id);
+    let response = await this.transactionStartUserService.transactionApi.delete(this.newTransaction.id);
+    if (noAuthorization) {
+      expect(response.status).to.equal(560);
+      // Transaction must be deleted by Admin user
+      response = await this.centralUserService.transactionApi.delete(this.newTransaction.id);
+    }
     expect(response.status).to.equal(200);
     expect(response.data).to.have.property('status');
     expect(response.data.status).to.be.eql('Success');
@@ -500,6 +508,7 @@ export default class OCPPCommonTestsNew {
 
   private async basicTransactionValidation(transactionId, connectorId, meterStart, timestamp) {
     const response = await this.centralUserService.transactionApi.readById(transactionId);
+    console.log(response);
     expect(response.status).to.equal(200);
     expect(response.data).to.deep['containSubset']({
       'id': transactionId,
