@@ -290,20 +290,20 @@ export default class StatisticService {
       const filename = 'export' + filteredRequest.DataType + 'Statistics.csv';
       fs.writeFile(filename, StatisticService.convertToCSV(transactionStatsMDB, filteredRequest.DataCategory,
         filteredRequest.DataType, filteredRequest.Year, filteredRequest.DataScope), (createError) => {
-          if (createError) {
-            throw createError;
+        if (createError) {
+          throw createError;
+        }
+        res.download(filename, (downloadError) => {
+          if (downloadError) {
+            throw downloadError;
           }
-          res.download(filename, (downloadError) => {
-            if (downloadError) {
-              throw downloadError;
+          fs.unlink(filename, (unlinkError) => {
+            if (unlinkError) {
+              throw unlinkError;
             }
-            fs.unlink(filename, (unlinkError) => {
-              if (unlinkError) {
-                throw unlinkError;
-              }
-            });
           });
         });
+      });
     } catch (error) {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);

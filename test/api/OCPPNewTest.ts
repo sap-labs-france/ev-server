@@ -207,7 +207,7 @@ describe('OCPP Tests (New)', function() {
         });
 
         it('Users should be able to perform a complete regular transaction cycle', async () => {
-          //      it('Start User should be able to start a new transaction', async () => {
+          //      pragma it('Start User should be able to start a new transaction', async () => {
           await testData.ocppCommonTests.testStartTransaction();
           //      });
           //      it('Start User should be able to start a second time a new transaction', async () => {
@@ -227,7 +227,7 @@ describe('OCPP Tests (New)', function() {
         });
 
         it('Users should be able to perform a complete transaction cycle with SoC', async () => {
-          //      it('Start User should be able to start a new transaction (with SoC)', async () => {
+          //      pragma it('Start User should be able to start a new transaction (with SoC)', async () => {
           await testData.ocppCommonTests.testStartTransaction(true);
           //      });
           //      it('Charging Station should send meter values (with SoC)', async () => {
@@ -244,7 +244,7 @@ describe('OCPP Tests (New)', function() {
         });
 
         it('Users should be able to perform a complete transaction cycle with SignedData', async () => {
-          //      it('Start User should be able to start a new transaction (with SignedData)', async () => {
+          //      pragma it('Start User should be able to start a new transaction (with SignedData)', async () => {
           await testData.ocppCommonTests.testStartTransaction();
           //      });
           //      it('Charging Station should send meter values (with SignedData)', async () => {
