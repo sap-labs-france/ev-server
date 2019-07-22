@@ -2,7 +2,6 @@ const nodeExternals = require('webpack-node-externals');
 const commonPaths = require('./webpack.common.paths');
 const webpack = require('webpack');
 const TerserPlugin = require('terser-webpack-plugin');
-const JavaScriptObfuscator = require('webpack-obfuscator');
 const CopyPlugin = require('copy-webpack-plugin');
 
 const config = {
@@ -27,22 +26,18 @@ const config = {
   },
   module: {
     rules: [
-      { test: /\.(t|j)sx?$/, use: ['ts-loader'], exclude: /node_modules/ }
+      { test: /\.(t|j)sx?$/, use: 'ts-loader', exclude: /node_modules/ }
     ]
   },
   plugins: [
+    new webpack.WatchIgnorePlugin([
+      /\.js$/,
+      /\.d\.ts$/
+    ]),
     new webpack.ProgressPlugin(),
-    new JavaScriptObfuscator({
-      rotateUnicodeArray: true
-    }, []),
     new CopyPlugin([
       { from: 'src/assets/', to: 'assets/', ignore: ['**/configs/**'] }
-    ]),
-    new webpack.BannerPlugin({
-      banner: 'require("source-map-support").install();',
-      raw: true,
-      entryOnly: false
-    })
+    ])
   ],
   optimization: {
     minimizer: [

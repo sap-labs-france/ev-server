@@ -18,7 +18,7 @@ export default class Setting extends TenantHolder {
     switch (activeComponent.name) {
       // Pricing
       case Constants.COMPONENTS.PRICING:
-        if (!currentSettingContent || currentSettingContent.type !==  activeComponent.type) {
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Create default settings
           if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE) {
             return { 'type': 'simple', 'simple': {} };
@@ -30,7 +30,7 @@ export default class Setting extends TenantHolder {
 
       // Refund
       case Constants.COMPONENTS.REFUND:
-        if (!currentSettingContent || currentSettingContent.type !==  activeComponent.type) {
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Concur
           return { 'type': 'concur', 'concur': {} };
         }
@@ -39,7 +39,7 @@ export default class Setting extends TenantHolder {
 
       // Refund
       case Constants.COMPONENTS.OCPI:
-        if (!currentSettingContent || currentSettingContent.type !==  activeComponent.type) {
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Gireve
           return { 'type': 'gireve', 'ocpi': {} };
         }
@@ -48,7 +48,7 @@ export default class Setting extends TenantHolder {
 
       // SAC
       case Constants.COMPONENTS.ANALYTICS:
-        if (!currentSettingContent || currentSettingContent.type !==  activeComponent.type) {
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only SAP Analytics
           return { 'type': 'sac', 'sac': {} };
         }

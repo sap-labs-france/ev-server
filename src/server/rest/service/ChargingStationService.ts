@@ -460,7 +460,7 @@ export default class ChargingStationService {
     // Build the result
     if (chargingStations.result && chargingStations.result.length > 0) {
       // Check
-      const organizationIsActive = Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)
+      const organizationIsActive = Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION);
       // Set
       chargingStations.result = chargingStations.result.map((chargingStation) => {
         return chargingStation.getModel();
