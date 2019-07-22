@@ -335,10 +335,10 @@ export default class UserStorage {
       // Build filter
       filters.$and.push({
         '$or': [
-          { '_id': { $regex: params.search, $options: 'i' } },
+          { 'id': { $regex: params.search, $options: 'i' } },
           { 'name': { $regex: params.search, $options: 'i' } },
           { 'firstName': { $regex: params.search, $options: 'i' } },
-          { 'tags._id': { $regex: params.search, $options: 'i' } },
+          { 'tagIDs': { $elemMatch: { $regex: params.search, $options: 'i' } } },
           { 'email': { $regex: params.search, $options: 'i' } },
           { 'plateID': { $regex: params.search, $options: 'i' } }
         ]
@@ -371,12 +371,6 @@ export default class UserStorage {
     }
     // Create Aggregation
     const aggregation = [];
-    // Filters
-    if (filters) {
-      aggregation.push({
-        $match: filters
-      });
-    }
     // Add TagIDs
     aggregation.push({
       $lookup: {
@@ -420,6 +414,14 @@ export default class UserStorage {
         });
       }
     }
+    // Change ID
+    DatabaseUtils.renameDatabaseID(aggregation);
+    // Filters
+    if (filters) {
+      aggregation.push({
+        $match: filters
+      });
+    }//TODO separate filters in the future for optimal performance
     // Limit records?
     if (!onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -441,8 +443,6 @@ export default class UserStorage {
     aggregation.pop();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
-    // Change ID
-    DatabaseUtils.renameDatabaseID(aggregation);
     // Sort
     if (sort) {
       aggregation.push({
