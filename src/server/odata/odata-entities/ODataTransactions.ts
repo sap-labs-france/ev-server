@@ -6,18 +6,18 @@ export default class ODataTransactions extends AbstractODataEntities {
   public convertTimestamp: any;
   public buildDateObject: any;
 
-  static getObjectKey(transaction) {
+  public getObjectKey(transaction) {
     return transaction.id;
   }
 
-  static async getTransactionsCompleted(centralServiceApi, query, req, cb) {
+  public async getTransactionsCompleted(centralServiceApi, query, req, cb) {
     try {
       // Check limit parameter
-      const params = ODataTransactions.buildParams(query);
+      const params = this.buildParams(query);
       // Perform rest call
       const response = await centralServiceApi.getTransactionsCompleted(params);
       // Return response
-      ODataTransactions.returnResponse(response, query, req, cb);
+      this.returnResponse(response, query, req, cb);
     } catch (error) {
       cb(error);
     }
@@ -26,12 +26,12 @@ export default class ODataTransactions extends AbstractODataEntities {
   // Custom convert to:
   //   - add startDate and stopDate objects
   //   - shorten stop price to 15 in order to be compatible with Edm.Double
-  static convert(object, req) {
+  public convert(object, req) {
     const transaction = super.convert(object, req);
     if (transaction.hasOwnProperty('timestamp') && transaction.timestamp) {
       // Convert timestamp and build date object
-      transaction.timestamp = ODataTransactions.convertTimestamp(transaction.timestamp, req);
-      transaction.startDate = ODataTransactions.buildDateObject(transaction.timestamp, req);
+      transaction.timestamp = this.convertTimestamp(transaction.timestamp, req);
+      transaction.startDate = this.buildDateObject(transaction.timestamp, req);
     }
     // Rename User
     if (transaction.user) {
@@ -47,8 +47,8 @@ export default class ODataTransactions extends AbstractODataEntities {
     if (transaction.stop) {
       if (transaction.stop.hasOwnProperty('timestamp') && transaction.stop.timestamp) {
         // Convert timestamp and build date object
-        transaction.stop.timestamp = ODataTransactions.convertTimestamp(transaction.stop.timestamp, req);
-        transaction.stopDate = ODataTransactions.buildDateObject(transaction.stop.timestamp, req);
+        transaction.stop.timestamp = this.convertTimestamp(transaction.stop.timestamp, req);
+        transaction.stopDate = this.buildDateObject(transaction.stop.timestamp, req);
       }
       // Rename User and move to transaction root
       if (transaction.stop.user) {

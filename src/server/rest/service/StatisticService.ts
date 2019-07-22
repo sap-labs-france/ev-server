@@ -14,8 +14,8 @@ export default class StatisticService {
   static async handleGetChargingStationConsumptionStatistics(action, req, res, next) {
     try {
       // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationConsumptionStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -48,8 +48,8 @@ export default class StatisticService {
   static async handleGetChargingStationUsageStatistics(action, req, res, next) {
     try {
       // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationUsageStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -82,8 +82,8 @@ export default class StatisticService {
   static async handleGetChargingStationInactivityStatistics(action, req, res, next) {
     try {
       // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationInactivityStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -116,8 +116,8 @@ export default class StatisticService {
   static async handleGetUserConsumptionStatistics(action, req, res, next) {
     try {
       // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserConsumptionStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -150,8 +150,8 @@ export default class StatisticService {
   static async handleGetUserUsageStatistics(action, req, res, next) {
     try {
       // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserUsageStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -184,8 +184,8 @@ export default class StatisticService {
   static async handleGetUserInactivityStatistics(action, req, res, next) {
     try {
       // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserInactivityStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -243,8 +243,8 @@ export default class StatisticService {
   static async handleGetStatisticsExport(action, req, res, next) {
     try {
       // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetStatisticsExport');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -289,20 +289,20 @@ export default class StatisticService {
       const filename = 'export' + filteredRequest.DataType + 'Statistics.csv';
       fs.writeFile(filename, StatisticService.convertToCSV(transactionStatsMDB, filteredRequest.DataCategory,
         filteredRequest.DataType, filteredRequest.Year, filteredRequest.DataScope), (createError) => {
-        if (createError) {
-          throw createError;
-        }
-        res.download(filename, (downloadError) => {
-          if (downloadError) {
-            throw downloadError;
+          if (createError) {
+            throw createError;
           }
-          fs.unlink(filename, (unlinkError) => {
-            if (unlinkError) {
-              throw unlinkError;
+          res.download(filename, (downloadError) => {
+            if (downloadError) {
+              throw downloadError;
             }
+            fs.unlink(filename, (unlinkError) => {
+              if (unlinkError) {
+                throw unlinkError;
+              }
+            });
           });
         });
-      });
     } catch (error) {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
@@ -352,6 +352,7 @@ export default class StatisticService {
       // Create
       let month = -1;
       let transaction;
+      let userName: string;
       for (const transactionStatMDB of transactionStatsMDB) {
         // Init
         if (month !== transactionStatMDB._id.month) {
@@ -369,7 +370,13 @@ export default class StatisticService {
         if (dataCategory === 'C') {
           transaction[transactionStatMDB._id.chargeBox] = transactionStatMDB.total;
         } else {
-          transaction[Utils.buildUserFullName(transactionStatMDB.user, false, false, true)] = transactionStatMDB.total;
+          // We can have duplicate user names, like 'Unknown'
+          userName = Utils.buildUserFullName(transactionStatMDB.user, false, false, true);
+          if (userName in transaction) {
+            transaction[userName] += transactionStatMDB.total;
+          } else {
+            transaction[userName] = transactionStatMDB.total;
+          }
         }
       }
     }
@@ -444,8 +451,20 @@ export default class StatisticService {
           } else {
             transactions[index].total += transaction.total;
           }
-        } else {
+        } else if (dataCategory === 'C') {
           transactions.push(transaction);
+        } else {
+          // Duplicate names are possible, like 'Unknown'
+          index = transactions.findIndex((record) => {
+            return ((record._id.month === transaction._id.month) &&
+              (record.user.name === transaction.user.name) &&
+              (record.user.firstName === transaction.user.firstName));
+          });
+          if (index < 0) {
+            transactions.push(transaction);
+          } else {
+            transactions[index].total += transaction.total;
+          }
         }
       }
       let number: number;

@@ -225,7 +225,7 @@ export default class ChargingStationStorage {
     skip = Utils.checkRecordSkip(skip);
     // Create Aggregation
     const aggregation = [];
-    const siteAreaIdJoin = null;
+    let siteAreaIdJoin = null;
     let siteAreaJoin = null;
     // Set the filters
     const basicFilters: any = {
@@ -259,7 +259,7 @@ export default class ChargingStationStorage {
       });
     } else {
       // Always get the Site Area
-      const siteAreaIdJoin = [];
+      siteAreaIdJoin = [];
       // Site Area
       DatabaseUtils.pushSiteAreaLookupInAggregation(
         { tenantID, aggregation: siteAreaIdJoin, localField: 'siteAreaID', foreignField: '_id',

@@ -200,32 +200,40 @@ export default class ConcurConnector extends AbstractConnector {
     return refundedTransactions;
   }
 
-  async updateRefundStatus(transaction: Transaction, action: string = 'Refund'): Promise<{status?: string}> {
+  async updateRefundStatus(transaction: Transaction): Promise<string> {
     const connection = await this.getRefreshedConnection(transaction.getUserID());
     if (transaction.getRefundData()) {
       const report = await this.getExpenseReport(connection, transaction.getRefundData().reportId);
       if (report) {
+        // Approved
         if (report.ApprovalStatusCode === 'A_APPR') {
           transaction.getRefundData().status = Constants.REFUND_STATUS_APPROVED;
           await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
-          Logging.logInfo({
+          Logging.logDebug({
             tenantID: transaction.getTenantID(),
-            module: 'ConcurConnector', method: 'updateRefundStatus', action,
+            module: 'ConcurConnector', method: 'updateRefundStatus', action: 'RefundSynchronize',
             message: `The Transaction ID '${transaction.getID()}' has been marked 'Approved'`,
             user: transaction.getUserID()
           });
-          return { status: Constants.REFUND_STATUS_APPROVED };
+          return Constants.REFUND_STATUS_APPROVED;
         }
+        Logging.logDebug({
+          tenantID: transaction.getTenantID(),
+          module: 'ConcurConnector', method: 'updateRefundStatus', action: 'RefundSynchronize',
+          message: `The Transaction ID '${transaction.getID()}' has not been updated`,
+          user: transaction.getUserID()
+        });
       } else {
+        // Cancelled
         transaction.getRefundData().status = Constants.REFUND_STATUS_CANCELLED;
         await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
-        Logging.logInfo({
+        Logging.logDebug({
           tenantID: transaction.getTenantID(),
-          module: 'ConcurConnector', method: 'updateRefundStatus', action,
+          module: 'ConcurConnector', method: 'updateRefundStatus', action: 'RefundSynchronize',
           message: `The Transaction ID '${transaction.getID()}' has been marked 'Cancelled'`,
           user: transaction.getUserID()
         });
-        return { status: Constants.REFUND_STATUS_CANCELLED };
+        return Constants.REFUND_STATUS_CANCELLED;
       }
     }
   }
@@ -438,7 +446,7 @@ export default class ConcurConnector extends AbstractConnector {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Concur access token not refreshed (ID: '${userId}')`,
-        Constants.HTTP_GENERAL_ERROR, MODULE_NAME,'refreshToken',
+        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'refreshToken',
         userId, null, 'Refund', error);
     }
   }

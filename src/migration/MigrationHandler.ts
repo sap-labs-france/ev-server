@@ -1,11 +1,12 @@
 import cluster from 'cluster';
 import moment from 'moment';
+import AddSensitiveDataInSettingsTask from './tasks/AddSensitiveDataInSettingsTask';
+import AddTransactionRefundStatusTask from './tasks/AddTransactionRefundStatusTask';
 import Constants from '../utils/Constants';
 import RunLock from '../utils/Locking';
 import Logging from '../utils/Logging';
 import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
-import AddTransactionRefundStatusTask from './tasks/AddTransactionRefundStatusTask';
 
 export default class MigrationHandler {
   static async migrate() {
@@ -27,7 +28,7 @@ export default class MigrationHandler {
       // Create tasks
       currentMigrationTasks.push(new SiteUsersHashIDsTask());
       currentMigrationTasks.push(new AddTransactionRefundStatusTask());
-      // pragma currentMigrationTasks.push(new AddSensitiveDataInSettingsTask());
+      currentMigrationTasks.push(new AddSensitiveDataInSettingsTask());
 
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();

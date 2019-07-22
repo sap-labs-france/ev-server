@@ -6,28 +6,27 @@ export default class ODataCompanies extends AbstractODataEntities {
   public buildParams: any;
   public returnResponse: any;
 
-  static getObjectKey(company: Company) {
+  public getObjectKey(company: Company) {
     return company.id;
   }
 
-  static async getCompanies(centralServiceApi, query, req, cb) {
+  public async getCompanies(centralServiceApi, query, req, cb) {
     try {
       // Check limit parameter
-      const params = ODataCompanies.buildParams(query);
+      const params = this.buildParams(query);
       // Perform rest call
       const response = await centralServiceApi.getCompanies(params);
       // Return response
-      ODataCompanies.returnResponse(response, query, req, cb);
+      this.returnResponse(response, query, req, cb);
     } catch (error) {
       cb(error);
     }
   }
 
   // Move Address object to same level
-  static convert(object, req) {
+  public convert(object, req) {
     const company: Company = super.convert(object, req);
     return company.address ? _.merge(company, company.address) : company;
   }
-  // TODO: ^^^ Check this
 }
 

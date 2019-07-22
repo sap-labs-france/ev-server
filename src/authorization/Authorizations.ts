@@ -15,7 +15,6 @@ import Tenant from '../entity/Tenant';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import Transaction from '../entity/Transaction';
 import User from '../types/User';
-import UserService from '../server/rest/service/UserService';
 import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
 import Utils from '../utils/Utils';
@@ -113,12 +112,12 @@ export default class Authorizations {
     };
   }
 
-  public static async getConnectorActionAuthorizations(params: {tenantID: string; user: UserToken; chargingStation: any; connector: any; siteArea: SiteArea; site: Site}) {
+  public static async getConnectorActionAuthorizations(params: { tenantID: string; user: UserToken; chargingStation: any; connector: any; siteArea: SiteArea; site: Site }) {
     const tenant: Tenant | null = await Tenant.getTenant(params.tenantID);
     if (!tenant) {
       throw new BackendError('Authorizations.ts#getConnectorActionAuthorizations', 'Tenant null');
     }
-    const isOrgCompActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+    const isOrgCompActive = Utils.isComponentActiveFromToken(params.user, Constants.COMPONENTS.ORGANIZATION);
     if (isOrgCompActive && (!params.siteArea || !params.site)) {
       throw new AppError(
         params.chargingStation.getID(),
@@ -611,6 +610,10 @@ export default class Authorizations {
 
   public static isAdmin(userRole: string): boolean {
     return userRole === Constants.ROLE_ADMIN;
+  }
+
+  public static isSiteAdmin(loggedUser: UserToken): boolean {
+    return loggedUser.role === Constants.ROLE_BASIC && loggedUser.sitesAdmin && loggedUser.sitesAdmin.length > 0;
   }
 
   public static isBasic(userRole: string): boolean {

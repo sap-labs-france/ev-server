@@ -60,7 +60,7 @@ export default class UserStorage {
       language = 'en';
     }
     // Get current eula
-    const currentEula = await UserStorage.getLatestEndUserLicenseAgreement(language);
+    const currentEula = UserStorage.getLatestEndUserLicenseAgreement(language);
     // Read DB
     const eulasMDB = await global.database.getCollection<Eula>(tenantID, 'eulas')
       .find({ 'language': language })
@@ -161,40 +161,14 @@ export default class UserStorage {
   public static async getUserImage(tenantID: string, id: string): Promise<{id: string; image: string}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserImage');
-    // Get single user image
-    const userImages = await UserStorage.getUserImages(tenantID, [id]);
-    // Debug
-    Logging.traceEnd('UserStorage', 'getUserImage', uniqueTimerID, { id });
-    return userImages ? userImages[0] : null;
-  }
-
-  public static async getUserImages(tenantID: string, userIDs?: string[]): Promise<{id: string; image: string}[]> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserImages');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Build options
-    const options: any = {};
-    if (userIDs) {
-      options._id = { $in: userIDs.map((id) => {
-        return Utils.convertToObjectID(id);
-      }) };
-    }
     // Read DB
-    const userImagesMDB = await global.database.getCollection<{_id: string; image: string}>(tenantID, 'userimages')
-      .find(options)
-      .toArray();
-    const userImages = [];
-    // Add
-    for (const userImageMDB of userImagesMDB) {
-      userImages.push({
-        id: userImageMDB._id,
-        image: userImageMDB.image
-      });
-    }
+    const userImageMDB = await global.database.getCollection<{_id: string; image: string}>(tenantID, 'userimages')
+      .findOne({ _id: Utils.convertToObjectID(id) });
     // Debug
-    Logging.traceEnd('UserStorage', 'getUserImages', uniqueTimerID);
-    return userImages;
+    Logging.traceEnd('UserStorage', 'getUserImage', uniqueTimerID, { id });
+    return { id: id, image: (userImageMDB ? userImageMDB.image : null) };
   }
 
   public static async removeSitesFromUser(tenantID: string, userID: string, siteIDs: string[]): Promise<void> {
@@ -279,33 +253,40 @@ export default class UserStorage {
     // Check Created/Last Changed By
     DatabaseUtils.addLastChangedCreatedProps(userMDB, userMDB);
     // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
       userFilter,
       { $set: userMDB },
       { upsert: true, returnOriginal: false });
-    // Add tags
-    if (userToSave.tagIDs) {
-      userToSave.tagIDs = userToSave.tagIDs.filter((tid) => {
-        return tid && tid !== '';
-      });
-      // Delete Tag IDs
-      await global.database.getCollection<any>(tenantID, 'tags')
-        .deleteMany({ 'userID': userMDB._id });
-      if (userToSave.tagIDs.length !== 0) {
-        // Insert new Tag IDs
-        await global.database.getCollection<any>(tenantID, 'tags')
-          .insertMany(userToSave.tagIDs.map((tid) => {
-            return { _id: tid, userID: userMDB._id };
-          }));
-      }
-    }
     // Delegate saving image as well if specified
     if (saveImage) {
-      UserStorage.saveUserImage(tenantID, { id: userMDB._id.toHexString(), image: userToSave.image });
+      await UserStorage.saveUserImage(tenantID, { id: userMDB._id.toHexString(), image: userToSave.image });
     }
     // Debug
     Logging.traceEnd('UserStorage', 'saveUser', uniqueTimerID, { userToSave });
     return userMDB._id.toHexString();
+  }
+
+  public static async saveUserTags(tenantID: string, userID: string, userTagIDs: string[]): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserTags');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Cleanup Tags
+    const userTagIDsToSave = userTagIDs.filter((tagID) => {
+      return tagID && tagID !== '';
+    });
+    // Delete former Tag IDs
+    await global.database.getCollection<any>(tenantID, 'tags')
+      .deleteMany({ 'userID': Utils.convertToObjectID(userID) });
+    // Add new ones
+    if (userTagIDsToSave.length > 0) {
+      await global.database.getCollection<any>(tenantID, 'tags')
+        .insertMany(userTagIDsToSave.map((userTagIDToSave) => {
+          return { _id: userTagIDToSave, userID: Utils.convertToObjectID(userID) };
+        }));
+    }
+    // Debug
+    Logging.traceEnd('UserStorage', 'saveUserTags', uniqueTimerID, { id: userID, tags: userTagIDs });
   }
 
   public static async saveUserImage(tenantID: string, userImageToSave: {id: string; image: string}): Promise<void> {
@@ -417,21 +398,11 @@ export default class UserStorage {
         }
       }
     });
-    // Change ID
-    DatabaseUtils.renameDatabaseID(aggregation);
-    // Project
-    DatabaseUtils.projectFields(aggregation, projectFields);
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Add Site
     if (params.siteIDs || params.excludeSiteID) {
-      aggregation.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, 'siteusers'),
-          localField: '_id',
-          foreignField: 'userID',
-          as: 'siteusers'
-        }
+      DatabaseUtils.pushSiteUserLookupInAggregation({
+        tenantID, aggregation, localField: '_id', foreignField: 'userID',
+        asField: 'siteusers'
       });
       if (params.siteIDs) {
         aggregation.push({
@@ -468,6 +439,10 @@ export default class UserStorage {
     }
     // Remove the limit
     aggregation.pop();
+    // Add Created By / Last Changed By
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
+    // Change ID
+    DatabaseUtils.renameDatabaseID(aggregation);
     // Sort
     if (sort) {
       aggregation.push({
@@ -486,6 +461,8 @@ export default class UserStorage {
     aggregation.push({
       $limit: limit
     });
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const usersMDB = await global.database.getCollection<User>(tenantID, 'users')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })

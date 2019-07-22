@@ -198,7 +198,10 @@ export default class SiteAreaStorage {
       $limit: limit
     });
     // Project
-    DatabaseUtils.projectFields(aggregation, projectFields);
+    if (projectFields) {
+      DatabaseUtils.projectFields(aggregation,
+        [...projectFields, 'chargingStations.id', 'chargingStations.connectors', 'chargingStations.lastHeartBeat', 'chargingStations.deleted']);
+    }
     // Read DB
     const siteAreasMDB = await global.database.getCollection<any>(tenantID, 'siteareas')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
@@ -214,12 +217,12 @@ export default class SiteAreaStorage {
         if (params.withAvailableChargers) {
           // Chargers
           for (const chargeBox of siteAreaMDB.chargingStations) {
-            // Set Inactive flag
-            chargeBox.inactive = DatabaseUtils.chargingStationIsInactive(chargeBox);
             // Check not deleted
             if (chargeBox.deleted) {
               continue;
             }
+            // Set Inactive flag
+            chargeBox.inactive = DatabaseUtils.chargingStationIsInactive(chargeBox);
             totalChargers++;
             // Handle Connectors
             for (const connector of chargeBox.connectors) {

@@ -10,6 +10,7 @@ import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import Tenant from '../../../entity/Tenant';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
+import Utils from '../../../utils/Utils';
 
 export default class ChargingStationService {
   static async handleAddChargingStationsToSiteArea(action, req, res, next) {
@@ -385,7 +386,7 @@ export default class ChargingStationService {
     res.json(
       // Filter
       ChargingStationSecurity.filterChargingStationResponse(
-        chargingStation.getModel(), req.user, await tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION))
+        chargingStation.getModel(), req.user, Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION))
     );
     next();
   }
@@ -418,8 +419,8 @@ export default class ChargingStationService {
     // Build the result
     if (chargingStations.result && chargingStations.result.length > 0) {
       // Get the Tenant
-      const tenant: Tenant = await chargingStations.result[0].getTenant();
-      const organizationIsActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+      const organizationIsActive = Utils.isComponentActiveFromToken(
+        req.user, Constants.COMPONENTS.ORGANIZATION);
       // Convert to JSon
       chargingStations.result = chargingStations.result.map((chargingStation) => {
         return chargingStation.getModel();
@@ -458,9 +459,8 @@ export default class ChargingStationService {
     );
     // Build the result
     if (chargingStations.result && chargingStations.result.length > 0) {
-      // Get the Tenant
-      const tenant: Tenant = await chargingStations.result[0].getTenant();
-      const organizationIsActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+      // Check
+      const organizationIsActive = Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)
       // Set
       chargingStations.result = chargingStations.result.map((chargingStation) => {
         return chargingStation.getModel();
@@ -514,9 +514,8 @@ export default class ChargingStationService {
     );
     // Build the result
     if (chargingStations.result && chargingStations.result.length > 0) {
-      // Get the Tenant
-      const tenant: Tenant = await chargingStations.result[0].getTenant();
-      const organizationIsActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+      // Check
+      const organizationIsActive = Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION);
       // Set
       chargingStations.result = chargingStations.result.map((chargingStation) => {
         return chargingStation.getModel();

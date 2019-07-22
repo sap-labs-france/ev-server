@@ -239,11 +239,11 @@ export default class MongoDBStorage {
     const tenantsMDB = await this.db.collection(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, 'tenants'))
       .find({})
       .toArray();
-    const tenantIds = tenantsMDB.map((t) => {
+    const tenantIds = tenantsMDB.map((t): string => {
       return t._id.toString();
     });
     for (const tenantId of tenantIds) {
-      this.checkAndCreateTenantDatabase(tenantId);
+      await this.checkAndCreateTenantDatabase(tenantId);
     }
   }
 
@@ -277,7 +277,7 @@ export default class MongoDBStorage {
         useNewUrlParser: true,
         poolSize: this.dbConfig.poolSize,
         replicaSet: this.dbConfig.replicaSet,
-        loggerLevel: (this.dbConfig.debug ? 'debug' : undefined),
+        loggerLevel: (this.dbConfig.debug ? 'debug' : null),
         reconnectTries: Number.MAX_VALUE,
         reconnectInterval: 1000,
         autoReconnect: true
