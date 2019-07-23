@@ -8,11 +8,12 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
-import Tenant from '../../../entity/Tenant';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
+import Utils from '../../../utils/Utils';
+import { NextFunction, Request, Response } from 'express';
 
 export default class ChargingStationService {
-  static async handleAddChargingStationsToSiteArea(action, req, res, next) {
+  static async handleAddChargingStationsToSiteArea(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterAddChargingStationsToSiteAreaRequest(req.body, req.user);
     // Check Mandatory fields
@@ -80,7 +81,7 @@ export default class ChargingStationService {
     next();
   }
 
-  static async handleRemoveChargingStationsFromSiteArea(action, req, res, next) {
+  static async handleRemoveChargingStationsFromSiteArea(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterRemoveChargingStationsFromSiteAreaRequest(req.body, req.user);
     // Check Mandatory fields
@@ -148,7 +149,7 @@ export default class ChargingStationService {
     next();
   }
 
-  static async handleUpdateChargingStationParams(action, req, res, next) {
+  static async handleUpdateChargingStationParams(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationParamsUpdateRequest(req.body, req.user);
     // Check email
@@ -235,7 +236,7 @@ export default class ChargingStationService {
     next();
   }
 
-  static async handleGetChargingStationConfiguration(action, req, res, next) {
+  static async handleGetChargingStationConfiguration(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query, req.user);
     // Charge Box is mandatory
@@ -269,7 +270,7 @@ export default class ChargingStationService {
     next();
   }
 
-  static async handleRequestChargingStationConfiguration(action, req, res, next) {
+  static async handleRequestChargingStationConfiguration(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query, req.user);
     // Charge Box is mandatory
@@ -304,7 +305,7 @@ export default class ChargingStationService {
     next();
   }
 
-  static async handleDeleteChargingStation(action, req, res, next) {
+  static async handleDeleteChargingStation(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationDeleteRequest(req.query, req.user);
     // Check Mandatory fields
@@ -361,7 +362,7 @@ export default class ChargingStationService {
     next();
   }
 
-  static async handleGetChargingStation(action, req, res, next) {
+  static async handleGetChargingStation(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationRequest(req.query, req.user);
     // Charge Box is mandatory
@@ -385,12 +386,12 @@ export default class ChargingStationService {
     res.json(
       // Filter
       ChargingStationSecurity.filterChargingStationResponse(
-        chargingStation.getModel(), req.user, await tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION))
+        chargingStation.getModel(), req.user, Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION))
     );
     next();
   }
 
-  static async handleGetChargingStations(action, req, res, next) {
+  static async handleGetChargingStations(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError(
@@ -418,8 +419,8 @@ export default class ChargingStationService {
     // Build the result
     if (chargingStations.result && chargingStations.result.length > 0) {
       // Get the Tenant
-      const tenant: Tenant = await chargingStations.result[0].getTenant();
-      const organizationIsActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+      const organizationIsActive = Utils.isComponentActiveFromToken(
+        req.user, Constants.COMPONENTS.ORGANIZATION);
       // Convert to JSon
       chargingStations.result = chargingStations.result.map((chargingStation) => {
         return chargingStation.getModel();
@@ -432,7 +433,7 @@ export default class ChargingStationService {
     next();
   }
 
-  static async handleGetChargingStationsExport(action, req, res, next) {
+  static async handleGetChargingStationsExport(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError(
@@ -458,9 +459,8 @@ export default class ChargingStationService {
     );
     // Build the result
     if (chargingStations.result && chargingStations.result.length > 0) {
-      // Get the Tenant
-      const tenant: Tenant = await chargingStations.result[0].getTenant();
-      const organizationIsActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+      // Check
+      const organizationIsActive = Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION);
       // Set
       chargingStations.result = chargingStations.result.map((chargingStation) => {
         return chargingStation.getModel();
@@ -487,7 +487,7 @@ export default class ChargingStationService {
     });
   }
 
-  static async handleGetChargingStationsInError(action, req, res, next) {
+  static async handleGetChargingStationsInError(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError(
@@ -514,9 +514,8 @@ export default class ChargingStationService {
     );
     // Build the result
     if (chargingStations.result && chargingStations.result.length > 0) {
-      // Get the Tenant
-      const tenant: Tenant = await chargingStations.result[0].getTenant();
-      const organizationIsActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+      // Check
+      const organizationIsActive = Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION);
       // Set
       chargingStations.result = chargingStations.result.map((chargingStation) => {
         return chargingStation.getModel();
@@ -529,7 +528,7 @@ export default class ChargingStationService {
     next();
   }
 
-  static async handleGetStatusNotifications(action, req, res, next) {
+  static async handleGetStatusNotifications(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError(
@@ -551,7 +550,7 @@ export default class ChargingStationService {
     next();
   }
 
-  static async handleGetBootNotifications(action, req, res, next) {
+  static async handleGetBootNotifications(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError(
@@ -573,7 +572,7 @@ export default class ChargingStationService {
     next();
   }
 
-  static async handleAction(action, req, res, next) {
+  static async handleAction(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationActionRequest(req.body, action, req.user);
     // Charge Box is mandatory
@@ -704,7 +703,7 @@ export default class ChargingStationService {
     next();
   }
 
-  static async handleActionSetMaxIntensitySocket(action, req, res, next) {
+  static async handleActionSetMaxIntensitySocket(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationSetMaxIntensitySocketRequest(req.body, req.user);
     // Charge Box is mandatory

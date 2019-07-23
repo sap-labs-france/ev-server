@@ -134,7 +134,7 @@ export default class OCPIEndpoint extends TenantHolder {
   }
 
   getEndpointUrl(service) {
-    if (this._model.availableEndpoints && this._model.availableEndpoints.service) {
+    if (this._model.availableEndpoints && this._model.availableEndpoints.hasOwnProperty(service)) {
       return this._model.availableEndpoints[service];
     }
   }

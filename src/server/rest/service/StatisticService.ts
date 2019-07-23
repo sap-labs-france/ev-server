@@ -1,3 +1,4 @@
+import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
 import moment from 'moment';
 import AppAuthError from '../../../exception/AppAuthError';
@@ -11,11 +12,11 @@ import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 
 export default class StatisticService {
-  static async handleGetChargingStationConsumptionStatistics(action, req, res, next) {
+  static async handleGetChargingStationConsumptionStatistics(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationConsumptionStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -45,11 +46,11 @@ export default class StatisticService {
     }
   }
 
-  static async handleGetChargingStationUsageStatistics(action, req, res, next) {
+  static async handleGetChargingStationUsageStatistics(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationUsageStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -79,11 +80,11 @@ export default class StatisticService {
     }
   }
 
-  static async handleGetChargingStationInactivityStatistics(action, req, res, next) {
+  static async handleGetChargingStationInactivityStatistics(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationInactivityStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -113,11 +114,11 @@ export default class StatisticService {
     }
   }
 
-  static async handleGetUserConsumptionStatistics(action, req, res, next) {
+  static async handleGetUserConsumptionStatistics(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserConsumptionStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -147,11 +148,11 @@ export default class StatisticService {
     }
   }
 
-  static async handleGetUserUsageStatistics(action, req, res, next) {
+  static async handleGetUserUsageStatistics(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserUsageStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -181,11 +182,11 @@ export default class StatisticService {
     }
   }
 
-  static async handleGetUserInactivityStatistics(action, req, res, next) {
+  static async handleGetUserInactivityStatistics(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserInactivityStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -215,7 +216,7 @@ export default class StatisticService {
     }
   }
 
-  static async handleGetCurrentMetrics(action, req, res, next) {
+  static async handleGetCurrentMetrics(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canListChargingStations(req.user)) {
@@ -240,11 +241,11 @@ export default class StatisticService {
     }
   }
 
-  static async handleGetStatisticsExport(action, req, res, next) {
+  static async handleGetStatisticsExport(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetStatisticsExport');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -289,20 +290,20 @@ export default class StatisticService {
       const filename = 'export' + filteredRequest.DataType + 'Statistics.csv';
       fs.writeFile(filename, StatisticService.convertToCSV(transactionStatsMDB, filteredRequest.DataCategory,
         filteredRequest.DataType, filteredRequest.Year, filteredRequest.DataScope), (createError) => {
-          if (createError) {
-            throw createError;
+        if (createError) {
+          throw createError;
+        }
+        res.download(filename, (downloadError) => {
+          if (downloadError) {
+            throw downloadError;
           }
-          res.download(filename, (downloadError) => {
-            if (downloadError) {
-              throw downloadError;
+          fs.unlink(filename, (unlinkError) => {
+            if (unlinkError) {
+              throw unlinkError;
             }
-            fs.unlink(filename, (unlinkError) => {
-              if (unlinkError) {
-                throw unlinkError;
-              }
-            });
           });
         });
+      });
     } catch (error) {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);

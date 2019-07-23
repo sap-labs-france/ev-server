@@ -66,7 +66,7 @@ export default class SchedulerManager {
       }
     } else {
       // Log
-      Logging.logError({
+      Logging.logWarning({
         tenantID: Constants.DEFAULT_TENANT,
         module: 'Scheduler', method: 'init',
         action: 'Scheduler',

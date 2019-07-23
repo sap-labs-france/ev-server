@@ -56,7 +56,9 @@ class RequestMapper {
           'ChargingStationGetConfiguration',
           'ChargingStationChangeConfiguration',
           'ChargingStationStopTransaction',
+          'ChargingStationRemoteStopTransaction',
           'ChargingStationStartTransaction',
+          'ChargingStationRemoteStartTransaction',
           'ChargingStationUnlockConnector',
           'ChargingStationReset',
           'ChargingStationSetChargingProfile',
@@ -128,7 +130,6 @@ class RequestMapper {
           SiteAreaImage: SiteAreaService.handleGetSiteAreaImage,
           Users: UserService.handleGetUsers,
           UsersInError: UserService.handleGetUsersInError,
-          UserImages: UserService.handleGetUserImages,
           UserImage: UserService.handleGetUserImage,
           User: UserService.handleGetUser,
           UserInvoice: UserService.handleGetUserInvoice,
@@ -259,7 +260,7 @@ export default {
     }
   },
 
-  async restServiceSecured(req, res, next) {
+  async restServiceSecured(req: Request, res: Response, next: NextFunction) {
     // Parse the action
     const action = /^\/\w*/g.exec(req.url)[0].substring(1);
 

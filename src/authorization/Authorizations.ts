@@ -117,7 +117,7 @@ export default class Authorizations {
     if (!tenant) {
       throw new BackendError('Authorizations.ts#getConnectorActionAuthorizations', 'Tenant null');
     }
-    const isOrgCompActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+    const isOrgCompActive = Utils.isComponentActiveFromToken(params.user, Constants.COMPONENTS.ORGANIZATION);
     if (isOrgCompActive && (!params.siteArea || !params.site)) {
       throw new AppError(
         params.chargingStation.getID(),

@@ -254,7 +254,7 @@ export default class SiteStorage {
         'SiteStorage', 'saveSite');
     }
     if (saveImage) {
-      SiteStorage.saveSiteImage(tenantID, siteFilter._id.toHexString(), siteToSave.image);
+      await SiteStorage.saveSiteImage(tenantID, siteFilter._id.toHexString(), siteToSave.image);
     }
     // Debug
     Logging.traceEnd('SiteStorage', 'saveSite', uniqueTimerID, { siteToSave });
@@ -402,7 +402,7 @@ export default class SiteStorage {
         // Count Available/Occupied Chargers/Connectors
         if (params.withAvailableChargers) {
           let availableChargers = 0, totalChargers = 0, availableConnectors = 0, totalConnectors = 0;
-          // Get te chargers
+          // Get the chargers
           const chargingStations = await ChargingStationStorage.getChargingStations(tenantID,
             { siteIDs: [siteMDB.id] }, Constants.DB_PARAMS_MAX_LIMIT);
           for (const chargingStation of chargingStations.result) {
@@ -477,7 +477,7 @@ export default class SiteStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete all Site Areas
-    SiteAreaStorage.deleteSiteAreasFromSites(tenantID, ids);
+    await SiteAreaStorage.deleteSiteAreasFromSites(tenantID, ids);
     // Convert
     const cids: ObjectID[] = ids.map((id) => {
       return Utils.convertToObjectID(id);
@@ -505,14 +505,14 @@ export default class SiteStorage {
       .find({ companyID: Utils.convertToObjectID(companyID) })
       .project({ _id: 1 })
       .toArray())
-      .map((site) => {
+      .map((site): string => {
         return site._id.toHexString();
       }
       );
     // Delete all Site Areas
-    SiteAreaStorage.deleteSiteAreasFromSites(tenantID, siteIDs);
+    await SiteAreaStorage.deleteSiteAreasFromSites(tenantID, siteIDs);
     // Delete Sites
-    SiteStorage.deleteSites(tenantID, siteIDs);
+    await SiteStorage.deleteSites(tenantID, siteIDs);
     // Debug
     Logging.traceEnd('SiteStorage', 'deleteCompanySites', uniqueTimerID, { companyID });
   }

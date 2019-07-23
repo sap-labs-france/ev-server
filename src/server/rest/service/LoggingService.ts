@@ -1,3 +1,4 @@
+import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
 import AppAuthError from '../../../exception/AppAuthError';
 import Authorizations from '../../../authorization/Authorizations';
@@ -5,10 +6,10 @@ import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStor
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import LoggingSecurity from './security/LoggingSecurity';
-import Tenant from '../../../entity/Tenant';
+import Utils from '../../../utils/Utils';
 
 export default class LoggingService {
-  static async handleGetLoggings(action, req, res, next) {
+  static async handleGetLoggings(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canListLogging(req.user)) {
@@ -22,13 +23,14 @@ export default class LoggingService {
       }
       // Filter
       const filteredRequest = LoggingSecurity.filterLoggingsRequest(req.query, req.user);
-
       // Check if organization component is active
-      const tenant = await Tenant.getTenant(req.user.tenantID);
-      if (tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
+      if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
+        // Optimization: Retrieve Charging Stations to get the logs only for the Site Admin user
         const chargingStations = await ChargingStationStorage.getChargingStations(req.user.tenantID,
           { siteIDs: req.user.sitesAdmin }, Constants.DB_PARAMS_MAX_LIMIT);
+        // Check if Charging Station is already filtered
         if (filteredRequest.Source && filteredRequest.Source.length > 0) {
+          // Filter only Site Admin Chargers
           const sources = [];
           for (const chargingStation of chargingStations.result) {
             if (filteredRequest.Source.includes(chargingStation.getID())) {
@@ -37,6 +39,7 @@ export default class LoggingService {
           }
           filteredRequest.Source = sources;
         } else {
+          // Add all Site Admin Chargers in filter
           filteredRequest.Source = chargingStations.result.map((chargingStation) => {
             return chargingStation.getID();
           });
@@ -72,7 +75,7 @@ export default class LoggingService {
     }
   }
 
-  static async handleGetLoggingsExport(action, req, res, next) {
+  static async handleGetLoggingsExport(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canListLogging(req.user)) {
@@ -128,7 +131,7 @@ export default class LoggingService {
     }
   }
 
-  static async handleGetLogging(action, req, res, next) {
+  static async handleGetLogging(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
       const filteredRequest = LoggingSecurity.filterLoggingRequest(req.query, req.user);
