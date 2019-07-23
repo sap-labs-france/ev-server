@@ -2,7 +2,7 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MongoDBStorage from './MongoDBStorage';
 import CentralRestServer from '../../server/rest/CentralRestServer';
-import StorageCfg from '../../utils/ConfigurationClasses/StorageConfiguration';
+import StorageConfiguration from '../../types/configuration/StorageConfiguration';
 
 const _pipeline = [];
 const _options = {
@@ -10,11 +10,11 @@ const _options = {
 };
 
 export default class MongoDBStorageNotification {
-  public dbConfig: StorageCfg;
+  public dbConfig: StorageConfiguration;
   public centralRestServer: CentralRestServer;
   public database: MongoDBStorage;
 
-  constructor(dbConfig: StorageCfg, centralRestServer: CentralRestServer) {
+  constructor(dbConfig: StorageConfiguration, centralRestServer: CentralRestServer) {
     this.dbConfig = dbConfig;
     this.centralRestServer = centralRestServer;
   }
