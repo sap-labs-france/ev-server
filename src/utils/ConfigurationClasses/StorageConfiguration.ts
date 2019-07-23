@@ -1,5 +1,4 @@
 export default interface StorageConfiguration {
-
   implementation: string;
   uri: string;
   host: string;
