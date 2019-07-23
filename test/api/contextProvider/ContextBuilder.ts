@@ -132,7 +132,7 @@ export default class ContextBuilder {
 
     await UserStorage.saveUser(buildTenant.id, {
       'id': CONTEXTS.TENANT_USER_LIST[0].id,
-      'tagIDs': CONTEXTS.TENANT_USER_LIST[0].tagIDs ? CONTEXTS.TENANT_USER_LIST[0].tagIDs : [faker.random.alphaNumeric(8).toUpperCase()],
+      'tagIDs': CONTEXTS.TENANT_USER_LIST[0].tagIDs,
       'password': await Utils.hashPasswordBcrypt(config.get('admin.password')),
       'email': config.get('admin.username'),
       'status': CONTEXTS.TENANT_USER_LIST[0].status,
@@ -144,6 +144,9 @@ export default class ContextBuilder {
       'deleted': false
     });
     const defaultAdminUser = await UserStorage.getUser(buildTenant.id, CONTEXTS.TENANT_USER_LIST[0].id);
+    if (CONTEXTS.TENANT_USER_LIST[0].tagIDs) {
+      await UserStorage.saveUserTags(buildTenant.id, CONTEXTS.TENANT_USER_LIST[0].id, CONTEXTS.TENANT_USER_LIST[0].tagIDs);
+    }
 
     // Create Central Server Service
     const localCentralServiceService: CentralServerService = new CentralServerService(buildTenant.subdomain);
@@ -179,8 +182,8 @@ export default class ContextBuilder {
     let userListToAssign: User[] = null;
     let userList: User[] = null;
     // Read admin user
-    const adminUser: User = (await localCentralServiceService.getEntityById(
-      localCentralServiceService.userApi, defaultAdminUser, false)).data;
+    const adminUser: User = defaultAdminUser; // (await localCentralServiceService.getEntityById(
+//      localCentralServiceService.userApi, defaultAdminUser, false)).data;
     userListToAssign = [adminUser]; // Default admin is always assigned to site
     userList = [adminUser]; // Default admin is always assigned to site
     // Prepare users
@@ -198,6 +201,9 @@ export default class ContextBuilder {
       createUser.tagIDs = userDef.tagIDs;
       const user: User = createUser;
       await UserStorage.saveUser(buildTenant.id, user);
+      if (userDef.tagIDs) {
+        await UserStorage.saveUserTags(buildTenant.id, userDef.id, userDef.tagIDs);
+      }
       if (userDef.assignedToSite) {
         userListToAssign.push(user);
       }
