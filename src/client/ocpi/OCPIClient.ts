@@ -229,7 +229,7 @@ export default class OCPIClient {
     const payload = { 'status': newStatus };
 
     // Log
-    Logging.logInfo({
+    Logging.logDebug({
       tenantID: tenant.getID(),
       action: 'OCPIPatchLocations',
       message: `Patch location at ${fullUrl}`,
