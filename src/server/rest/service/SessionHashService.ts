@@ -1,16 +1,17 @@
 import crypto from 'crypto';
+import { NextFunction, Request, Response } from 'express';
 import HttpStatus from 'http-status-codes';
-import AppError from '../../../exception/AppError';
-import Constants from '../../../utils/Constants';
-import global from '../../../types/GlobalType';
-import Logging from '../../../utils/Logging';
 import Tenant from '../../../entity/Tenant';
-import User from '../../../types/User';
+import AppError from '../../../exception/AppError';
 import UserStorage from '../../../storage/mongodb/UserStorage';
+import global from '../../../types/GlobalType';
+import User from '../../../types/User';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
 
 export default class SessionHashService {
   // Check if Session has been updated and require new login
-  static isSessionHashUpdated(req, res, next) {
+  static isSessionHashUpdated(req: Request, res: Response, next: NextFunction) {
     // Get tenant id, user id and hash ID
     const userID = req.user.id;
     const tenantID = req.user.tenantID;
@@ -19,8 +20,8 @@ export default class SessionHashService {
 
     try {
       // Check User's Hash
-      if (global.userHashMapIDs[`${tenantID}#${userID}`] &&
-          global.userHashMapIDs[`${tenantID}#${userID}`] !== userHashID) {
+      if (global.userHashMapIDs.has(`${tenantID}#${userID}`) &&
+        global.userHashMapIDs.get(`${tenantID}#${userID}`) !== userHashID) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           'User has been updated and will be logged off',
@@ -29,8 +30,8 @@ export default class SessionHashService {
           req.user
         );
       }
-      if (global.tenantHashMapIDs[`${tenantID}`] &&
-          global.tenantHashMapIDs[`${tenantID}`] !== tenantHashID) {
+      if (global.tenantHashMapIDs.has(`${tenantID}`) &&
+        global.tenantHashMapIDs.get(`${tenantID}`) !== tenantHashID) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           'Tenant has been updated and all users will be logged off',
@@ -65,24 +66,24 @@ export default class SessionHashService {
   }
 
   // Rebuild and store User Hash ID
-  static async rebuildUserHashID(tenantID, userID) {
+  static async rebuildUserHashID(tenantID: string, userID: string) {
     // Build User hash
     const user = await UserStorage.getUser(tenantID, userID);
     if (user) {
-      const hashID = SessionHashService.buildUserHashID(user);
-      // Store the hash
-      global.userHashMapIDs[`${tenantID}#${userID}`] = hashID;
+      global.userHashMapIDs.set(`${tenantID}#${userID}`, SessionHashService.buildUserHashID(user));
+    } else {
+      global.userHashMapIDs.delete(`${tenantID}#${userID}`);
     }
   }
 
   // Rebuild and store Tenant Hash ID
-  static async rebuildTenantHashID(tenantID) {
+  static async rebuildTenantHashID(tenantID: string) {
     // Build Tenant hash
     const tenant = await Tenant.getTenant(tenantID);
     if (tenant) {
-      const hashID = SessionHashService.buildTenantHashID(tenant);
-      // Store the hash
-      global.tenantHashMapIDs[`${tenantID}`] = hashID;
+      global.tenantHashMapIDs.set(`${tenantID}`, SessionHashService.buildTenantHashID(tenant));
+    } else {
+      global.tenantHashMapIDs.delete(`${tenantID}`);
     }
   }
 }
