@@ -401,7 +401,6 @@ export default class OCPIClient {
       return this.ocpiEndpoint.getLastPatchJobResult().chargeBoxIDsInFailure;
     }
     return [];
-
   }
 
   // Get ChargeBoxIds with new status notifications
@@ -422,7 +421,6 @@ export default class OCPIClient {
       });
     }
     return [];
-
   }
 
 }

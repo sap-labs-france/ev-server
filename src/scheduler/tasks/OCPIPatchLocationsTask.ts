@@ -64,12 +64,12 @@ export default class OCPIPatchLocationsTask extends SchedulerTask {
       return;
     }
 
-    Logging.logInfo({
-      tenantID: ocpiEndpoint.getTenantID(),
-      module: 'OCPIPatchLocationsTask',
-      method: 'patch', action: 'OCPIPatchLocations',
-      message: `The patching Locations process for endpoint ${ocpiEndpoint.getName()} is being processed`
-    });
+    // Logging.logInfo({
+    //   tenantID: ocpiEndpoint.getTenantID(),
+    //   module: 'OCPIPatchLocationsTask',
+    //   method: 'patch', action: 'OCPIPatchLocations',
+    //   message: `The patching Locations process for endpoint ${ocpiEndpoint.getName()} is being processed`
+    // });
 
     // Build OCPI Client
     const ocpiClient = new OCPIClient(ocpiEndpoint);
@@ -77,12 +77,12 @@ export default class OCPIPatchLocationsTask extends SchedulerTask {
     // Send EVSE statuses
     const sendResult = await ocpiClient.sendEVSEStatuses(false);
 
-    Logging.logInfo({
-      tenantID: ocpiEndpoint.getTenantID(),
-      module: 'OCPIPatchLocationsTask',
-      method: 'patch', action: 'OCPIPatchLocations',
-      message: `The patching Locations process for endpoint ${ocpiEndpoint.getName()} is completed (Success: ${sendResult.success}/Failure: ${sendResult.failure})`
-    });
+    // Logging.logInfo({
+    //   tenantID: ocpiEndpoint.getTenantID(),
+    //   module: 'OCPIPatchLocationsTask',
+    //   method: 'patch', action: 'OCPIPatchLocations',
+    //   message: `The patching Locations process for endpoint ${ocpiEndpoint.getName()} is completed (Success: ${sendResult.success}/Failure: ${sendResult.failure})`
+    // });
   }
 }
 
