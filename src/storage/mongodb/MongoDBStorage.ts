@@ -6,7 +6,7 @@ import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import InternalError from '../../exception/InternalError';
 import RunLock from './../../utils/Locking';
-import StorageCfg from './../../utils/ConfigurationClasses/StorageConfiguration';
+import StorageCfg from '../../types/configuration/StorageConfiguration';
 
 export default class MongoDBStorage {
   private db: Db;

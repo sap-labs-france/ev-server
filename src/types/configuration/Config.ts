@@ -32,7 +32,7 @@ export default interface Config {
     webSocketNotificationIntervalSecs: number;
     passwordWrongNumberOfTrial: number;
     passwordBlockedWaitTimeMin: number;
-    captchaSecretKey: number;
+    captchaSecretKey: string;
     socketIO: boolean;
     debug: boolean;
   };
