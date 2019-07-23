@@ -148,13 +148,13 @@ export default class UserStorage {
     return user.count > 0 ? user.result[0] : null;
   }
 
-  public static async getUser(tenantID: string, userID: string): Promise<User> {
+  public static async getUser(tenantID: string, id: string): Promise<User> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUser');
     // Get user
-    const user = await UserStorage.getUsers(tenantID, { userID: userID }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const user = await UserStorage.getUsers(tenantID, { search: id }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
-    Logging.traceEnd('UserStorage', 'getUser', uniqueTimerID, { userID });
+    Logging.traceEnd('UserStorage', 'getUser', uniqueTimerID, { id });
     return user.count > 0 ? user.result[0] : null;
   }
 
@@ -324,46 +324,42 @@ export default class UserStorage {
     // Check Skip
     skip = Utils.checkRecordSkip(skip);
     const filters: any = {
-      '$and': [
-        {
-          '$or': DatabaseUtils.getNotDeletedFilter()
-        }
-      ]
+      '$and': [{
+        '$or': DatabaseUtils.getNotDeletedFilter()
+      }]
     };
     // Source?
     if (params.search) {
-      // Build filter
-      filters.$and.push({
-        '$or': [
-          { '_id': { $regex: params.search, $options: 'i' } },
-          { 'name': { $regex: params.search, $options: 'i' } },
-          { 'firstName': { $regex: params.search, $options: 'i' } },
-          { 'tags._id': { $regex: params.search, $options: 'i' } },
-          { 'email': { $regex: params.search, $options: 'i' } },
-          { 'plateID': { $regex: params.search, $options: 'i' } }
-        ]
-      });
+      if (ObjectID.isValid(params.search)) {
+        filters.$and.push({ _id: Utils.convertToObjectID(params.search) });
+      } else {
+        // Build filter
+        filters.$and.push({
+          '$or': [
+            { 'name': { $regex: params.search, $options: 'i' } },
+            { 'firstName': { $regex: params.search, $options: 'i' } },
+            { 'tagIDs': { $regex: params.search, $options: 'i' } },
+            { 'email': { $regex: params.search, $options: 'i' } },
+            { 'plateID': { $regex: params.search, $options: 'i' } }
+          ]
+        });
+      }
     }
-    // Query by Email
+    // Email
     if (params.email) {
       filters.$and.push({
         'email': params.email
       });
     }
-    // UserID: Used only with SiteID
-    if (params.userID) {
-      filters.$and.push({
-        '_id': Utils.convertToObjectID(params.userID)
-      });
-    }
-    // Query by role
+    // Role
     if (params.roles && Array.isArray(params.roles) && params.roles.length > 0) {
       filters.role = { $in: params.roles };
     }
-    // Query by status (Previously getUsersInError)
+    // Status (Previously getUsersInError)
     if (params.statuses && Array.isArray(params.statuses) && params.statuses.length > 0) {
       filters.status = { $in: params.statuses };
     }
+    // Notification
     if (params.notificationsActive) {
       filters.$and.push({
         'notificationsActive': params.notificationsActive
@@ -371,12 +367,6 @@ export default class UserStorage {
     }
     // Create Aggregation
     const aggregation = [];
-    // Filters
-    if (filters) {
-      aggregation.push({
-        $match: filters
-      });
-    }
     // Add TagIDs
     aggregation.push({
       $lookup: {
@@ -398,6 +388,12 @@ export default class UserStorage {
         }
       }
     });
+    // Filters
+    if (filters) {
+      aggregation.push({
+        $match: filters
+      });
+    }
     // Add Site
     if (params.siteIDs || params.excludeSiteID) {
       DatabaseUtils.pushSiteUserLookupInAggregation({
@@ -420,6 +416,8 @@ export default class UserStorage {
         });
       }
     }
+    // Change ID
+    DatabaseUtils.renameDatabaseID(aggregation);
     // Limit records?
     if (!onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -441,8 +439,6 @@ export default class UserStorage {
     aggregation.pop();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
-    // Change ID
-    DatabaseUtils.renameDatabaseID(aggregation);
     // Sort
     if (sort) {
       aggregation.push({
