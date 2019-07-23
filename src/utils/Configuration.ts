@@ -1,13 +1,13 @@
 import cfenv from 'cfenv';
 import fs from 'fs';
 import os from 'os';
-import ClusterConfiguration from './ConfigurationClasses/ClusterConfiguration';
-import Config from './ConfigurationClasses/Config';
+import ClusterConfiguration from '../types/configuration/ClusterConfiguration';
+import Config from '../types/configuration/Config';
 import Constants from './Constants';
 import global from './../types/GlobalType';
-import ODataServiceConfiguration from './ConfigurationClasses/ODataServiceConfiguration';
-import StorageConfiguration from './ConfigurationClasses/StorageConfiguration';
-import WSClientConfiguration from './ConfigurationClasses/WSClientConfiguration';
+import ODataServiceConfiguration from '../types/configuration/ODataServiceConfiguration';
+import StorageConfiguration from '../types/configuration/StorageConfiguration';
+import WSClientConfiguration from '../types/configuration/WSClientConfiguration';
 
 const {
   WS_DEFAULT_RECONNECT_MAX_RETRIES = Constants.WS_DEFAULT_RECONNECT_MAX_RETRIES,
