@@ -1,13 +1,14 @@
-export interface ODataServiceCfg {
-  protocol: string;
-  host: string;
-  port: number;
-  externalProtocol: string;
-  debug: boolean;
-}
+import ClusterConfiguration from './ClusterConfiguration';
+import ODataServiceConfiguration from './ODataServiceConfiguration';
+import StorageConfiguration from './StorageConfiguration';
+import WSClientConfiguration from './WSClientConfiguration';
 
-export interface Config {
-  ODataService: ODataServiceCfg;
+export default interface Config {
+  Crypto: {
+    key: string;
+    algorithm: string;
+  };
+  Cluster: ClusterConfiguration;
   CentralSystemServer: {
     protocol: string;
     host: string;
@@ -39,6 +40,8 @@ export interface Config {
     protocol: string;
     host: string;
     port: number;
+    distEnabled: boolean;
+    distPath: string;
   };
   WSDLEndpoint: {
     baseUrl: string;
@@ -46,19 +49,7 @@ export interface Config {
   JsonEndpoint: {
     baseUrl: string;
   };
-  Storage: {
-    implementation: string;
-    uri: string;
-    host: string;
-    port: number;
-    user: string;
-    password: string;
-    database: string;
-    poolSize: number;
-    replicaSet: string;
-    monitorDBChange: boolean;
-    debug: boolean;
-  };
+  WSClient: WSClientConfiguration;
   OCPIService: {
     protocol: string;
     host: string;
@@ -66,56 +57,85 @@ export interface Config {
     debug: boolean;
     tenantEnabled: string[];
     eMI3id: any;
-  }; /*
-  "Notification": {
-		"Email": {
-			"enabled": true
-		}
-	},
-	"Authorization": {
-		"debug": false
-	},
-	"ChargingStation" : {
-		"heartbeatIntervalSecs": 60,
-		"notifBeforeEndOfChargeEnabled": true,
-		"notifBeforeEndOfChargePercent": 85,
-		"notifEndOfChargeEnabled": true,
-		"notifStopTransactionAndUnlockConnector": false
-	},
-	"Locales" : {
-		"default": "en_US",
-		"supported": ["en_US", "fr_FR"]
-	},
-	"Advanced" : {
-		"chargeCurveTimeFrameSecsPoint": 60
-	},
-	"Scheduler" : {
-		"active" : true,
-		"tasks": [
-			{
-				"name": "loggingDatabaseTableCleanup",
-				"active": true,
-				"periodicity": "0 0 * * 1",
-				"config": {
-					"retentionPeriodWeeks": 4,
-					"securityRetentionPeriodWeeks": 4
-				}
-			}
-		]
-  },
-  "Logging": {
-    "logLevel": "D",
-    "consoleLogLevel": "NONE",
-    "trace": false,
-    "moduleDetails": {
-      "ChargingStation": {
-        "logLevel": "DEFAULT",
-        "consoleLogLevel": "DEFAULT"
-      },
-      "Authorizations": {
-        "logLevel": "DEFAULT",
-        "consoleLogLevel": "DEFAULT"
-      }
-    }
-  }*/
+  };
+  ODataService: ODataServiceConfiguration;
+  Email: {
+    from: string;
+    admins: string[];
+    bcc: string;
+    smtp: {
+      from: string;
+      host: string;
+      port: number;
+      secure: boolean;
+      requireTLS: boolean;
+      user: string;
+      password: string;
+    };
+    smtpBackup: {
+      from: string;
+      host: string;
+      port: number;
+      secure: boolean;
+      requireTLS: boolean;
+      user: string;
+      password: string;
+    };
+  };
+  Storage: StorageConfiguration;
+  Notification: {
+    Email: {
+      enabled: boolean;
+    };
+  };
+  Authorization: {
+    debug: boolean;
+  };
+  ChargingStation: {
+    heartbeatIntervalSecs: number;
+    checkEndOfChargeNotificationAfterMin: number;
+    notifBeforeEndOfChargeEnabled: boolean;
+    notifBeforeEndOfChargePercent: number;
+    notifEndOfChargeEnabled: boolean;
+    notifEndOfChargePercent: number;
+    notifStopTransactionAndUnlockConnector: boolean;
+  };
+  Locales: {
+    default: string;
+    supported: string[];
+  };
+  Advanced: {
+    chargeCurveTimeFrameSecsPoint: number;
+  };
+  Scheduler: {
+    active: boolean;
+    tasks:
+    {
+      name: string;
+      active: boolean;
+      periodicity: string;
+      config: {
+        retentionPeriodWeeks: number;
+        securityRetentionPeriodWeeks: number;
+      };
+    }[];
+  };
+  Logging: {
+    logLevel: string;
+    consoleLogLevel: string;
+    trace: boolean;
+    traceLogOnlyStatistics: boolean;
+    traceStatisticInterval: number;
+    moduleDetails: {
+      ChargingStation: {
+        logLevel: string;
+        consoleLogLevel: string;
+      };
+      Authorizations: {
+        logLevel: string;
+        consoleLogLevel: string;
+      };
+    };
+  };
+  Test: any;
 }

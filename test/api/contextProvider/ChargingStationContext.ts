@@ -1,8 +1,8 @@
 import faker from 'faker';
-import TenantContext from './TenantContext';
-import Utils from '../../../src/utils/Utils';
 import CentralServerService from '../client/CentralServerService';
 import CONTEXTS from '../contextProvider/ContextConstants';
+import TenantContext from './TenantContext';
+import Utils from '../../../src/utils/Utils';
 
 export default class ChargingStationContext {
 
