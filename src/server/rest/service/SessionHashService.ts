@@ -51,10 +51,8 @@ export default class SessionHashService {
   // Build User Hash ID
   static buildUserHashID(user: User) {
     // Get all field that need to be hashed
-    const data =
-      user.locale.substring(0, 2) + '/' +
-      user.role + '/' +
-      user.status;
+    const tags = user.tagIDs && user.tagIDs.length > 0 ? user.tagIDs.sort().join('-') : '';
+    const data = `${user.locale.substring(0, 2)}/${user.role}/${user.status}/${tags}`;
     return crypto.createHash('sha256').update(data).digest('hex');
   }
 
