@@ -110,7 +110,7 @@ export default class UserSecurity {
   }
 
   // User
-  static filterUserResponse(user: User, loggedUser: UserToken) {
+  static filterUserResponse(user: User, loggedUser: UserToken): Partial<User> {
     const filteredUser: any = {};
     if (!user) {
       return null;
@@ -163,7 +163,7 @@ export default class UserSecurity {
   }
 
   // User
-  static filterMinimalUserResponse(user: User, loggedUser: UserToken) {
+  static filterMinimalUserResponse(user: User, loggedUser: UserToken): void {
     const filteredUser: any = {};
     if (!user) {
       return null;
@@ -177,7 +177,7 @@ export default class UserSecurity {
     return filteredUser;
   }
 
-  static filterUsersResponse(users, loggedUser: UserToken) {
+  static filterUsersResponse(users, loggedUser: UserToken): void {
     const filteredUsers = [];
     if (!users.result) {
       return null;
