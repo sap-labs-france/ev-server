@@ -6,6 +6,8 @@ import CentralServerService from './client/CentralServerService';
 import OCPPService from './ocpp/OCPPService';
 import CONTEXTS from './contextProvider/ContextConstants';
 import ChargingStationContext from './contextProvider/ChargingStationContext';
+import Factory from '../factories/Factory';
+import SiteStorage from '../../src/storage/mongodb/SiteStorage';
 
 chai.use(chaiSubset);
 
@@ -39,11 +41,28 @@ export default class OCPPCommonTestsNew {
   public newTransaction: any;
   public transactionCurrentTime: any;
 
-  public constructor(tenantContext, chargingStationContext, centralUserContext, startUserContext, stopUserContext?) {
+  public createAnyUser = false;
+  public numberTag: any;
+  public validTag: any;
+  public invalidTag: any;
+  public anyUser: any;
+
+  public constructor(tenantContext, centralUserContext, createAnyUser = false) {
+    expect(tenantContext).to.exist;
     this.tenantContext = tenantContext;
-    this.chargingStationContext = chargingStationContext;
     this.centralUserContext = centralUserContext;
+    expect(centralUserContext).to.exist;
     this.centralUserService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.centralUserContext);
+    this.createAnyUser = createAnyUser;
+  }
+
+  public setChargingStation(chargingStationContext) {
+    expect(chargingStationContext).to.exist;
+    this.chargingStationContext = chargingStationContext;
+  }
+
+  public setUsers(startUserContext, stopUserContext?) {
+    expect(startUserContext).to.exist;
     this.transactionStartUser = startUserContext;
     if (stopUserContext) {
       this.transactionStopUser = stopUserContext;
@@ -51,6 +70,13 @@ export default class OCPPCommonTestsNew {
       this.transactionStopUser = this.transactionStartUser;
     }
     this.transactionStartUserService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.transactionStartUser);
+  }
+
+  public async assignAnyUserToSite(siteContext) {
+    expect(siteContext).to.exist;
+    if (this.anyUser) {
+      await SiteStorage.addUsersToSite(this.tenantContext.getTenant().id, siteContext.getSite().id, [this.anyUser.id])
+    }
   }
 
   public async before() {
@@ -105,11 +131,22 @@ export default class OCPPCommonTestsNew {
         return (meterValue === 0 ? sum + this.transactionMeterValueIntervalSecs : sum);
       }, 0);
     this.totalPrice = this.priceKWH * (this.transactionTotalConsumption / 1000);
+
+    this.validTag = faker.random.alphaNumeric(20).toString();
+    this.invalidTag = faker.random.alphaNumeric(21).toString();
+    this.numberTag = faker.random.number(10000);
+    if (this.createAnyUser) {
+      this.anyUser = await this.createUser(Factory.user.build({ tagIDs: [this.validTag, this.invalidTag, this.numberTag.toString()] }));
+    }
   }
 
   public async after() {
     if (this.currentPricingSetting) {
       await this.centralUserService.settingApi.update(this.currentPricingSetting);
+    }
+    if (this.anyUser) {
+      await this.centralUserService.deleteEntity(
+        this.centralUserService.userApi, this.anyUser);
     }
   }
 
@@ -190,7 +227,7 @@ export default class OCPPCommonTestsNew {
     await this.testAuthorize('ThisIsATooTooTooLongTag', 'Invalid');
   }
 
-  public async testStartTransaction(withSoC = false) {
+  public async testStartTransaction(withSoC = false, validTransaction = true) {
     // Start a new Transaction
     const response = await this.chargingStationContext.startTransaction(
       this.chargingStationConnector1.connectorId,
@@ -198,14 +235,20 @@ export default class OCPPCommonTestsNew {
       this.transactionStartMeterValue,
       this.transactionStartTime
     );
-    const transactionId = response.data.transactionId;
-    await this.validateStartedTransaction(
-      response,
-      this.chargingStationConnector1,
-      this.transactionStartMeterValue,
-      this.transactionStartTime);
-    this.newTransaction = (await this.centralUserService.transactionApi.readById(transactionId)).data;
-    expect(this.newTransaction).to.not.be.null;
+    if (validTransaction) {
+      expect(response).to.be.transactionValid;
+      const transactionId = response.data.transactionId;
+      await this.validateStartedTransaction(
+        response,
+        this.chargingStationConnector1,
+        this.transactionStartMeterValue,
+        this.transactionStartTime);
+      this.newTransaction = (await this.centralUserService.transactionApi.readById(transactionId)).data;
+      expect(this.newTransaction).to.not.be.null;
+    } else {
+      this.newTransaction = null;
+      expect(response).to.be.transactionStatus('Invalid');
+    }
   }
 
   public async testStartSecondTransaction(withSoC = false) {
@@ -253,7 +296,6 @@ export default class OCPPCommonTestsNew {
       this.transactionCurrentTime,
       withSoC,
       withSignedData);
-      console.log(response);
     if (response) {
       expect(response.data).to.eql({});
     }
@@ -266,13 +308,13 @@ export default class OCPPCommonTestsNew {
       // Add time
       this.transactionCurrentTime.add(this.transactionMeterValueIntervalSecs, 's');
       // Send consumption meter value
-      response = await this.chargingStationContext.sendTransactionMeterValue(
+      response = await this.chargingStationContext.sendConsumptionMeterValue(
         this.newTransaction.connectorId,
         this.newTransaction.transactionId,
         transactionCurrentMeterValue,
-        this.transactionMeterSoCValues[index],
         this.transactionCurrentTime,
-        withSoC);
+        withSoC,
+        this.transactionMeterSoCValues[index]);
       expect(response.data).to.eql({});
       // Check the Consumption
       response = await this.basicTransactionValidation(this.newTransaction.id, this.newTransaction.connectorId, this.newTransaction.meterStart, this.newTransaction.timestamp);
@@ -427,7 +469,7 @@ export default class OCPPCommonTestsNew {
     }
   }
 
-  public async testDeleteTransaction(noAuthorization = true) {
+  public async testDeleteTransaction(noAuthorization = false) {
     // Delete the created entity
     expect(this.newTransaction).to.not.be.null;
     let response = await this.transactionStartUserService.transactionApi.delete(this.newTransaction.id);
@@ -472,6 +514,351 @@ export default class OCPPCommonTestsNew {
     // Check Transaction
     this.newTransaction = (await this.centralUserService.transactionApi.readById(transactionId)).data;
     expect(this.newTransaction.message).to.contain('does not exist');
+  }
+
+  public async testAuthorizeTagAsInteger() {
+    await this.testAuthorize(this.numberTag, 'Accepted');
+    await this.testAuthorize(this.numberTag.toString(), 'Accepted');
+  }
+
+  public async testAuthorizeInvalidTag() {
+    await this.testAuthorize(this.invalidTag, 'Invalid');
+    await this.testAuthorize('', 'Invalid');
+    await this.testAuthorize(null, 'Invalid');
+  }
+
+  public async testStartTransactionWithTagAsInteger() {
+    let response = await this.chargingStationContext.startTransaction(
+      this.chargingStationConnector1.connectorId,
+      this.numberTag,
+      0,
+      this.transactionStartTime
+    );
+    expect(response).to.be.transactionValid;
+    response = await this.chargingStationContext.startTransaction(
+      this.chargingStationConnector1.connectorId,
+      this.numberTag.toString(),
+      0,
+      this.transactionStartTime
+    );
+    expect(response).to.be.transactionValid;
+  }
+
+  public async testStartTransactionWithConnectorIdAsString() {
+    const response = await this.chargingStationContext.startTransaction(
+      this.chargingStationConnector1.connectorId.toString(),
+      this.numberTag.toString(),
+      0,
+      this.transactionStartTime
+    );
+    expect(response).to.be.transactionValid;
+  }
+
+  public async testStartTransactionWithMeterStartAsString() {
+    const response = await this.chargingStationContext.startTransaction(
+      this.chargingStationConnector1.connectorId,
+      this.numberTag.toString(),
+      '0',
+      this.transactionStartTime
+    );
+    expect(response).to.be.transactionValid;
+  }
+
+  public async testStartTransactionWithMeterStartGreaterZero() {
+    const response = await this.chargingStationContext.startTransaction(
+      this.chargingStationConnector1.connectorId,
+      this.numberTag.toString(),
+      faker.random.number(100000),
+      this.transactionStartTime
+    );
+    expect(response).to.be.transactionValid;
+  }
+
+  public async testStartTransactionWithInvalidTag() {
+    let response = await this.chargingStationContext.startTransaction(
+      this.chargingStationConnector1.connectorId,
+      this.invalidTag,
+      0,
+      this.transactionStartTime
+    );
+    expect(response).to.be.transactionStatus('Invalid');
+    response = await this.chargingStationContext.startTransaction(
+      this.chargingStationConnector1.connectorId,
+      '',
+      0,
+      this.transactionStartTime
+    );
+    expect(response).to.be.transactionStatus('Invalid');
+    response = await this.chargingStationContext.startTransaction(
+      this.chargingStationConnector1.connectorId,
+      null,
+      0,
+      this.transactionStartTime
+    );
+    expect(response).to.be.transactionStatus('Invalid');
+  }
+
+  public async testStartTransactionWithInvalidConnectorId() {
+    let response = await this.chargingStationContext.startTransaction(
+      'bla',
+      this.numberTag.toString(),
+      0,
+      this.transactionStartTime
+    );
+    expect(response).to.be.transactionStatus('Invalid');
+    response = await this.chargingStationContext.startTransaction(
+      '',
+      this.numberTag.toString(),
+      0,
+      this.transactionStartTime
+    );
+    expect(response).to.be.transactionStatus('Invalid');
+    response = await this.chargingStationContext.startTransaction(
+      -1,
+      this.numberTag.toString(),
+      0,
+      this.transactionStartTime
+    );
+    expect(response).to.be.transactionStatus('Invalid');
+    response = await this.chargingStationContext.startTransaction(
+      null,
+      this.numberTag.toString(),
+      0,
+      this.transactionStartTime
+    );
+    expect(response).to.be.transactionStatus('Invalid');
+  }
+
+  public async testStartTransactionWithInvalidMeterStart() {
+    let response = await this.chargingStationContext.startTransaction(
+      this.chargingStationConnector1.connectorId,
+      this.numberTag.toString(),
+      'bla',
+      this.transactionStartTime
+    );
+    expect(response).to.be.transactionStatus('Invalid');
+    response = await this.chargingStationContext.startTransaction(
+      this.chargingStationConnector1.connectorId,
+      this.numberTag.toString(),
+      '',
+      this.transactionStartTime
+    );
+    expect(response).to.be.transactionStatus('Invalid');
+    response = await this.chargingStationContext.startTransaction(
+      this.chargingStationConnector1.connectorId,
+      this.numberTag.toString(),
+      undefined,
+      this.transactionStartTime
+    );
+    expect(response).to.be.transactionStatus('Invalid');
+  }
+
+  public async testStopTransactionWithoutTransactionData() {
+    let response = await this.chargingStationContext.startTransaction(
+      this.chargingStationConnector1.connectorId,
+      this.numberTag.toString(),
+      this.transactionStartMeterValue,
+      this.transactionStartTime
+    );
+    expect(response).to.be.transactionValid;
+    const transactionId = response.data.transactionId;
+    this.transactionCurrentTime = moment();
+    const stopValue = this.transactionStartMeterValue + faker.random.number(100000);
+    response = await this.chargingStationContext.stopTransaction(transactionId, this.numberTag.toString(), stopValue, this.transactionCurrentTime);
+    expect(response.data).to.have.property('idTagInfo');
+    expect(response.data.idTagInfo.status).to.equal('Accepted');
+  }
+
+  public async testStopTransactionWithTransactionData() {
+    let response = await this.chargingStationContext.startTransaction(
+      this.chargingStationConnector1.connectorId,
+      this.numberTag.toString(),
+      this.transactionStartMeterValue,
+      this.transactionStartTime
+    );
+    expect(response).to.be.transactionValid;
+    const transactionId = response.data.transactionId;
+    this.transactionCurrentTime = moment();
+    const stopValue = this.transactionStartMeterValue + faker.random.number(100000);
+    let transactionData;
+    if (this.chargingStationContext.getChargingStation().ocppVersion === '1.6') {
+      transactionData = [
+        {
+          'timestamp': this.transactionStartTime.toISOString(),
+          'sampledValue': [
+            {
+              'value': this.transactionStartMeterValue,
+              'context': 'Transaction.Begin',
+              'format': 'Raw',
+              'measurand': 'Energy.Active.Import.Register',
+              'location': 'Outlet',
+              'unit': 'Wh'
+            }
+          ]
+        },
+        {
+          'timestamp': this.transactionCurrentTime.toISOString(),
+          'sampledValue': [
+            {
+              'value': stopValue,
+              'context': 'Transaction.End',
+              'format': 'Raw',
+              'measurand': 'Energy.Active.Import.Register',
+              'location': 'Outlet',
+              'unit': 'Wh'
+            }
+          ]
+        }
+      ];
+    } else {
+      transactionData = {
+        'values': [
+          {
+            'timestamp': this.transactionStartTime.toISOString(),
+            'value': {
+              'attributes': {
+                'context': 'Transaction.Begin',
+                'format': 'Raw',
+                'location': 'Outlet',
+                'measurand': 'Energy.Active.Import.Register',
+                'unit': 'Wh'
+              },
+              '$value': this.transactionStartMeterValue,
+            }
+          },
+          {
+            'timestamp': this.transactionCurrentTime.toISOString(),
+            'value': {
+              'attributes': {
+                'context': 'Transaction.End',
+                'format': 'Raw',
+                'location': 'Outlet',
+                'measurand': 'Energy.Active.Import.Register',
+                'unit': 'Wh'
+              },
+              '$value': stopValue
+            }
+          }
+        ]
+      };
+    }
+    response = await this.chargingStationContext.stopTransaction(transactionId, this.numberTag.toString(), stopValue, this.transactionCurrentTime, transactionData);
+    expect(response.data).to.have.property('idTagInfo');
+    expect(response.data.idTagInfo.status).to.equal('Accepted');
+  }
+
+  public async testStopTransactionWithInvalidTransactionData() {
+    let response = await this.chargingStationContext.startTransaction(
+      this.chargingStationConnector1.connectorId,
+      this.numberTag.toString(),
+      this.transactionStartMeterValue,
+      this.transactionStartTime
+    );
+    expect(response).to.be.transactionValid;
+    const transactionId = response.data.transactionId;
+    this.transactionCurrentTime = moment();
+    const stopValue = this.transactionStartMeterValue + faker.random.number(100000);
+    let transactionData;
+    // Provide TransactionData for wrong OCPP Version
+    if (this.chargingStationContext.getChargingStation().ocppVersion === '1.5') {
+      transactionData = [
+        {
+          'timestamp': this.transactionStartTime.toISOString(),
+          'sampledValue': [
+            {
+              'value': this.transactionStartMeterValue,
+              'context': 'Transaction.Begin',
+              'format': 'Raw',
+              'measurand': 'Energy.Active.Import.Register',
+              'location': 'Outlet',
+              'unit': 'Wh'
+            }
+          ]
+        },
+        {
+          'timestamp': this.transactionCurrentTime.toISOString(),
+          'sampledValue': [
+            {
+              'value': stopValue,
+              'context': 'Transaction.End',
+              'format': 'Raw',
+              'measurand': 'Energy.Active.Import.Register',
+              'location': 'Outlet',
+              'unit': 'Wh'
+            }
+          ]
+        }
+      ];
+    } else {
+      transactionData = {
+        'values': [
+          {
+            'timestamp': this.transactionStartTime.toISOString(),
+            'value': {
+              'attributes': {
+                'context': 'Transaction.Begin',
+                'format': 'Raw',
+                'location': 'Outlet',
+                'measurand': 'Energy.Active.Import.Register',
+                'unit': 'Wh'
+              },
+              '$value': this.transactionStartMeterValue,
+            }
+          },
+          {
+            'timestamp': this.transactionCurrentTime.toISOString(),
+            'value': {
+              'attributes': {
+                'context': 'Transaction.End',
+                'format': 'Raw',
+                'location': 'Outlet',
+                'measurand': 'Energy.Active.Import.Register',
+                'unit': 'Wh'
+              },
+              '$value': stopValue
+            }
+          }
+        ]
+      };
+    }
+    response = await this.chargingStationContext.stopTransaction(transactionId, this.numberTag.toString(), stopValue, this.transactionCurrentTime, transactionData);
+    expect(response.data).to.have.property('idTagInfo');
+    expect(response.data.idTagInfo.status).to.equal('Invalid');
+    // Now stop the transaction without Transaction Data
+    response = await this.chargingStationContext.stopTransaction(transactionId, this.numberTag.toString(), stopValue, this.transactionCurrentTime);
+    expect(response.data).to.have.property('idTagInfo');
+    expect(response.data.idTagInfo.status).to.equal('Accepted');
+  }
+
+  public async testRetrieveLastRebootDate() {
+    const bootNotification = await this.chargingStationContext.sendBootNotification();
+    expect(bootNotification.data).to.not.be.null;
+    expect(bootNotification.data.status).to.eql('Accepted');
+    expect(bootNotification.data).to.have.property('currentTime');
+    let chargingStationResponse = await this.chargingStationContext.readChargingStation();
+    if (this.chargingStationContext.getChargingStation().ocppVersion === '1.6') {
+      expect(bootNotification.data.currentTime).to.equal(chargingStationResponse.data.lastReboot);
+    } else {
+      expect(bootNotification.data.currentTime.toISOString()).to.equal(chargingStationResponse.data.lastReboot);
+    }
+    const bootNotification2 = await this.chargingStationContext.sendBootNotification();
+    chargingStationResponse = await this.chargingStationContext.readChargingStation();
+    if (this.chargingStationContext.getChargingStation().ocppVersion === '1.6') {
+      expect(bootNotification2.data.currentTime).to.equal(chargingStationResponse.data.lastReboot);
+    } else {
+      expect(bootNotification2.data.currentTime.toISOString()).to.equal(chargingStationResponse.data.lastReboot);
+    }
+    expect(bootNotification.data.currentTime).to.not.equal(bootNotification2.data.currentTime);
+    if (this.chargingStationContext.getChargingStation().ocppVersion === '1.6') {
+      expect(new Date(bootNotification.data.currentTime)).to.beforeTime(new Date(bootNotification2.data.currentTime));
+    } else {
+      expect(bootNotification.data.currentTime).to.beforeTime(bootNotification2.data.currentTime);
+    }
+  }
+
+  private async createUser(user = Factory.user.build()) {
+    const createdUser = await this.centralUserService.createEntity(this.centralUserService.userApi, user);
+    return createdUser;
   }
 
   private async testAuthorize(tagId, expectedStatus) {
