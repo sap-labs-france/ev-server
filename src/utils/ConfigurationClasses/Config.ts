@@ -109,8 +109,7 @@ export default interface Config {
   };
   Scheduler: {
     active: boolean;
-    tasks:
-    {
+    tasks: {
       name: string;
       active: boolean;
       periodicity: string;
