@@ -722,7 +722,6 @@ export default class AuthService {
   public static async handleResendVerificationEmail(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterResendVerificationEmail(req.body);
-
     // Get the tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
@@ -734,6 +733,13 @@ export default class AuthService {
       Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleResendVerificationEmail', Constants.DEFAULT_TENANT);
       next(error);
       return;
+    }
+    // Check that this is not the super tenant
+    if (tenantID === Constants.DEFAULT_TENANT) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Cannot request a verification Email in the Super Tenant', Constants.HTTP_GENERAL_ERROR,
+        'AuthService', 'handleResendVerificationEmail');
     }
     // Check email
     if (!filteredRequest.email) {
