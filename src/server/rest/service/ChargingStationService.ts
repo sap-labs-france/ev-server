@@ -37,8 +37,10 @@ export default class ChargingStationService {
         'The Charging Station\'s IDs must be provided', Constants.HTTP_GENERAL_ERROR,
         'ChargingStationService', 'handleAddChargingStationsToSiteArea', req.user);
     }
+    // Get the Site Area (before auth to get siteID)
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
     // Check auth
-    if (!Authorizations.canUpdateSiteArea(req.user, filteredRequest.siteID)) {
+    if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError(
         Constants.ACTION_UPDATE,
         Constants.ENTITY_SITE_AREA,
@@ -47,8 +49,6 @@ export default class ChargingStationService {
         'ChargingStationService', 'handleAddChargingStationsToSiteArea',
         req.user);
     }
-    // Get the Site Area
-    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
     if (!siteArea) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
@@ -105,8 +105,10 @@ export default class ChargingStationService {
         'The Site Area\'s IDs must be provided', Constants.HTTP_GENERAL_ERROR,
         'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea', req.user);
     }
+    // Get the Site Area (before auth because siteID needed in auth)
+    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
     // Check auth
-    if (!Authorizations.canUpdateSiteArea(req.user, filteredRequest.siteID)) {
+    if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError(
         Constants.ACTION_UPDATE,
         Constants.ENTITY_SITE_AREA,
@@ -115,8 +117,6 @@ export default class ChargingStationService {
         'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea',
         req.user);
     }
-    // Get the Site Area
-    const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
     if (!siteArea) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
@@ -244,7 +244,7 @@ export default class ChargingStationService {
     next();
   }
 
-  static async handleGetChargingStationConfiguration(action, req, res, next) {
+  public static async handleGetChargingStationConfiguration(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query);
     // Charge Box is mandatory
@@ -272,7 +272,7 @@ export default class ChargingStationService {
         req.user);
     }
     // Get the Config
-    const configuration = await chargingStation.getConfiguration();
+    const configuration = await ChargingStationStorage.getConfiguration(req.user.tenantID, chargingStation.id);
     // Return the result
     res.json(configuration);
     next();
@@ -307,7 +307,7 @@ export default class ChargingStationService {
         'ChargingStationService', 'handleRequestChargingStationConfiguration', req.user);
     }
     // Get the Config
-    const result = await chargingStation.requestAndSaveConfiguration();
+    const result = await ChargingStationService.requestAndSaveConfiguration(req.user.tenantID, chargingStation);
     // Ok
     res.json(result);
     next();
