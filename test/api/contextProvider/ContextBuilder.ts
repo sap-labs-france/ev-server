@@ -143,10 +143,10 @@ export default class ContextBuilder {
       'plateID': faker.random.alphaNumeric(8),
       'deleted': false
     });
-    const defaultAdminUser = await UserStorage.getUser(buildTenant.id, CONTEXTS.TENANT_USER_LIST[0].id);
     if (CONTEXTS.TENANT_USER_LIST[0].tagIDs) {
       await UserStorage.saveUserTags(buildTenant.id, CONTEXTS.TENANT_USER_LIST[0].id, CONTEXTS.TENANT_USER_LIST[0].tagIDs);
     }
+    const defaultAdminUser = await UserStorage.getUser(buildTenant.id, CONTEXTS.TENANT_USER_LIST[0].id);
 
     // Create Central Server Service
     const localCentralServiceService: CentralServerService = new CentralServerService(buildTenant.subdomain);
@@ -182,8 +182,11 @@ export default class ContextBuilder {
     let userListToAssign: User[] = null;
     let userList: User[] = null;
     // Read admin user
-    const adminUser: User = defaultAdminUser; // (await localCentralServiceService.getEntityById(
-//      localCentralServiceService.userApi, defaultAdminUser, false)).data;
+    const adminUser: User = (await localCentralServiceService.getEntityById(
+      localCentralServiceService.userApi, defaultAdminUser, false)).data;
+    if (!adminUser.id) {
+      console.log('Error with new Admin user: ', adminUser);
+    }
     userListToAssign = [adminUser]; // Default admin is always assigned to site
     userList = [adminUser]; // Default admin is always assigned to site
     // Prepare users
