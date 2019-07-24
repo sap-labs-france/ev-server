@@ -381,7 +381,11 @@ export default class AuthService {
     newUser.email = filteredRequest.email;
     newUser.name = filteredRequest.name;
     newUser.firstName = filteredRequest.firstName;
-    newUser.role = Constants.ROLE_BASIC;
+    if (tenantID === Constants.DEFAULT_TENANT) {
+      newUser.role = Constants.ROLE_SUPER_ADMIN;
+    } else {
+      newUser.role = Constants.ROLE_BASIC;
+    }
     newUser.status = Constants.USER_STATUS_PENDING;
     newUser.locale = req.locale.substring(0, 5);
     newUser.verificationToken = Utils.generateToken(req.body.email);

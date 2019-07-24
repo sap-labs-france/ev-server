@@ -93,7 +93,7 @@ describe('Authentication Service', function() {
       expect(user).to.have.property('name', newUser.name);
       expect(user).to.have.property('firstName', newUser.firstName);
       expect(user).to.have.property('status', 'P');
-      expect(user).to.have.property('role', 'B');
+      expect(user).to.have.property('role', 'S');
     });
 
     it('Should be possible to reset a user password', async () => {
