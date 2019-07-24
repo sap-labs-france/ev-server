@@ -25,14 +25,15 @@ export default class SoapChargingStationClient extends ChargingStationClient {
   private tenantID: string;
   private client: any;
 
-  private constructor(chargingStation: ChargingStation) {
+  private constructor(tenantID: string, chargingStation: ChargingStation) {
     super();
     // Keep the charger
     this.chargingStation = chargingStation;
+    this.tenantID = tenantID;
   }
 
-  static async build(chargingStation: ChargingStation): Promise<SoapChargingStationClient> {
-    const scsc = new SoapChargingStationClient(chargingStation);
+  static async build(tenantID: string, chargingStation: ChargingStation): Promise<SoapChargingStationClient> {
+    const scsc = new SoapChargingStationClient(tenantID, chargingStation);
     return await new Promise((fulfill, reject) => {
       let chargingStationWdsl = null;
       // Read the WSDL client files

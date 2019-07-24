@@ -25,7 +25,7 @@ const buildChargingStationClient = async function(tenantID: string, chargingStat
     case Constants.OCPP_PROTOCOL_SOAP:
     default:
       // Init client
-      chargingClient = await SoapChargingStationClient.build(chargingStation);
+      chargingClient = await SoapChargingStationClient.build(tenantID, chargingStation);
       break;
   }
   // Check

@@ -452,10 +452,11 @@ export default class ChargingStationService {
     }
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query);
+    console.log(req.user);
     // Check component
     if (filteredRequest.SiteID || filteredRequest.WithSite || filteredRequest.SiteAreaID || !filteredRequest.WithNoSiteArea) {
       await UtilsService.assertComponentIsActiveFromToken(req.user,
-        Constants.COMPONENTS.ORGANIZATION, Constants.ACTION_READ, Constants.ENTITY_USER, 'UserService', 'handleGetUsers');
+        Constants.COMPONENTS.ORGANIZATION, Constants.ACTION_READ, Constants.ENTITY_SITE_AREA, 'ChargingStationService', 'handleGetChargingStations');
     }
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStations(req.user.tenantID,
