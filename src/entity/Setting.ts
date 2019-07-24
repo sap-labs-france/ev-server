@@ -18,37 +18,20 @@ export default class Setting extends TenantHolder {
     switch (activeComponent.name) {
       // Pricing
       case Constants.COMPONENTS.PRICING:
-        // Settings does not exists
-        if (!currentSettingContent) {
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Create default settings
           if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE) {
             return { 'type': 'simple', 'simple': {} };
           } else if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING) {
             return { 'type': 'convergentCharging', 'convergentCharging': {} };
           }
-        } else {
-          // Changed?
-          // eslint-disable-next-line no-lonely-if
-          if (!currentSettingContent[activeComponent.type]) {
-            // Create new settings
-            if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE) {
-              return { 'type': 'simple', 'simple': {} };
-            } else if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING) {
-              return { 'type': 'convergentCharging', 'convergentCharging': {} };
-            }
-          }
         }
         break;
 
       // Refund
       case Constants.COMPONENTS.REFUND:
-        // Settings does not exists
-        if (!currentSettingContent) {
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Concur
-          return { 'type': 'concur', 'concur': {} };
-        }
-        // Changed?
-        if (!currentSettingContent[activeComponent.type]) {
           return { 'type': 'concur', 'concur': {} };
         }
 
@@ -56,13 +39,8 @@ export default class Setting extends TenantHolder {
 
       // Refund
       case Constants.COMPONENTS.OCPI:
-        // Settings does not exists
-        if (!currentSettingContent) {
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Gireve
-          return { 'type': 'gireve', 'ocpi': {} };
-        }
-        // Changed?
-        if (!currentSettingContent[activeComponent.type]) {
           return { 'type': 'gireve', 'ocpi': {} };
         }
 
@@ -70,13 +48,8 @@ export default class Setting extends TenantHolder {
 
       // SAC
       case Constants.COMPONENTS.ANALYTICS:
-        // Settings does not exists
-        if (!currentSettingContent) {
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only SAP Analytics
-          return { 'type': 'sac', 'sac': {} };
-        }
-        // Changed?
-        if (!currentSettingContent[activeComponent.type]) {
           return { 'type': 'sac', 'sac': {} };
         }
 

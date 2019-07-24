@@ -19,7 +19,7 @@ import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 
 export default class TransactionService {
-  static async handleSynchronizeRefundedTransactions(action, req, res, next) {
+  static async handleSynchronizeRefundedTransactions(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       if (!Authorizations.isAdmin(req.user.role)) {
         // Not Authorized!
@@ -45,7 +45,7 @@ export default class TransactionService {
     }
   }
 
-  static async handleRefundTransactions(action, req, res, next) {
+  static async handleRefundTransactions(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
       const filteredRequest = TransactionSecurity.filterTransactionsRefund(req.body, req.user);
@@ -142,7 +142,7 @@ export default class TransactionService {
     }
   }
 
-  static async handleDeleteTransaction(action, req, res, next) {
+  static async handleDeleteTransaction(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
       const filteredRequest = TransactionSecurity.filterTransactionDelete(req.query, req.user);
@@ -291,7 +291,7 @@ export default class TransactionService {
     }
   }
 
-  static async handleGetChargingStationConsumptionFromTransaction(action, req, res, next) {
+  static async handleGetChargingStationConsumptionFromTransaction(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
       const filteredRequest = TransactionSecurity.filterChargingStationConsumptionFromTransactionRequest(req.query, req.user);
@@ -350,7 +350,7 @@ export default class TransactionService {
     }
   }
 
-  static async handleGetTransaction(action, req, res, next) {
+  static async handleGetTransaction(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
       const filteredRequest = TransactionSecurity.filterTransactionRequest(req.query, req.user);
@@ -397,7 +397,7 @@ export default class TransactionService {
     }
   }
 
-  static async handleGetChargingStationTransactions(action, req, res, next) {
+  static async handleGetChargingStationTransactions(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -455,7 +455,7 @@ export default class TransactionService {
     }
   }
 
-  static async handleGetTransactionYears(action, req, res, next) {
+  static async handleGetTransactionYears(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Get Transactions
       const transactionsYears = await TransactionStorage.getTransactionYears(req.user.tenantID);
@@ -473,7 +473,7 @@ export default class TransactionService {
     }
   }
 
-  static async handleGetTransactionsActive(action, req, res, next) {
+  static async handleGetTransactionsActive(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -522,7 +522,7 @@ export default class TransactionService {
     }
   }
 
-  static async handleGetTransactionsCompleted(action, req, res, next) {
+  static async handleGetTransactionsCompleted(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -547,7 +547,7 @@ export default class TransactionService {
       if (filteredRequest.UserID) {
         filter.userIDs = filteredRequest.UserID.split('|');
       }
-      if (Authorizations.isBasic(req.user)) {
+      if (Authorizations.isBasic(req.user.role)) {
         filter.userIDs = [req.user.id];
       }
       if (filteredRequest.StartDateTime) {
@@ -583,7 +583,7 @@ export default class TransactionService {
     }
   }
 
-  static async handleGetTransactionsExport(action, req, res, next) {
+  static async handleGetTransactionsExport(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -608,7 +608,7 @@ export default class TransactionService {
       if (filteredRequest.UserID) {
         filter.userIDs = filteredRequest.UserID.split('|');
       }
-      if (Authorizations.isBasic(req.user)) {
+      if (Authorizations.isBasic(req.user.role)) {
         filter.userIDs = [req.user.id];
       }
       // Date
@@ -656,7 +656,7 @@ export default class TransactionService {
     }
   }
 
-  static async handleGetTransactionsInError(action, req, res, next) {
+  static async handleGetTransactionsInError(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canListTransactionsInError(req.user)) {

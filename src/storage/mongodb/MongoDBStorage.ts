@@ -6,7 +6,7 @@ import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import InternalError from '../../exception/InternalError';
 import RunLock from './../../utils/Locking';
-import StorageCfg from './../../utils/ConfigurationClasses/StorageConfiguration';
+import StorageCfg from '../../types/configuration/StorageConfiguration';
 
 export default class MongoDBStorage {
   private db: Db;
@@ -115,12 +115,16 @@ export default class MongoDBStorage {
     await this.handleIndexesInCollection(collections, tenantID, 'logs', [
       { fields: { timestamp: 1 } },
       { fields: { timestamp: -1 } },
+      { fields: { type: 1, timestamp: 1 } },
+      { fields: { type: 1, timestamp: -1 } },
       { fields: { action: 1, timestamp: 1 } },
       { fields: { action: 1, timestamp: -1 } },
       { fields: { level: 1, timestamp: 1 } },
       { fields: { level: 1, timestamp: -1 } },
       { fields: { source: 1, timestamp: 1 } },
-      { fields: { source: 1, timestamp: -1 } }
+      { fields: { source: 1, timestamp: -1 } },
+      { fields: { host: 1, timestamp: 1 } },
+      { fields: { host: 1, timestamp: -1 } }
     ]);
     // MeterValues
     await this.handleIndexesInCollection(collections, tenantID, 'metervalues', [
@@ -160,27 +164,24 @@ export default class MongoDBStorage {
   }
 
   public async deleteTenantDatabase(tenantID: string): Promise<void> {
-    // Delay the deletion: there are some collections remaining after Unit Test execution
-    setTimeout(async () => {
-      // Not the Default tenant
-      if (tenantID !== Constants.DEFAULT_TENANT) {
-        // Safety check
-        if (!this.db) {
-          throw new InternalError('Not supposed to call deleteTenantDatabase before start', []);
-        }
+    // Not the Default tenant
+    if (tenantID !== Constants.DEFAULT_TENANT) {
+      // Safety check
+      if (!this.db) {
+        throw new InternalError('Not supposed to call deleteTenantDatabase before start', []);
+      }
 
-        // Get all the collections
-        const collections = await this.db.listCollections().toArray();
-        // Check and Delete
-        for (const collection of collections) {
-          // Check
-          if (collection.name.startsWith(`${tenantID}.`)) {
-            // Delete
-            await this.db.collection(collection.name).drop();
-          }
+      // Get all the collections
+      const collections = await this.db.listCollections().toArray();
+      // Check and Delete
+      for (const collection of collections) {
+        // Check
+        if (collection.name.startsWith(`${tenantID}.`)) {
+          // Delete
+          await this.db.collection(collection.name).drop();
         }
       }
-    }, Constants.HTTP_GENERAL_ERROR);
+    }
   }
 
   public async migrateTenantDatabase(tenantID: string): Promise<void> {
@@ -218,8 +219,17 @@ export default class MongoDBStorage {
     // Logs
     await this.handleIndexesInCollection(collections, Constants.DEFAULT_TENANT, 'logs', [
       { fields: { timestamp: 1 } },
-      { fields: { level: 1 } },
-      { fields: { type: 1 } }
+      { fields: { timestamp: -1 } },
+      { fields: { type: 1, timestamp: 1 } },
+      { fields: { type: 1, timestamp: -1 } },
+      { fields: { action: 1, timestamp: 1 } },
+      { fields: { action: 1, timestamp: -1 } },
+      { fields: { level: 1, timestamp: 1 } },
+      { fields: { level: 1, timestamp: -1 } },
+      { fields: { source: 1, timestamp: 1 } },
+      { fields: { source: 1, timestamp: -1 } },
+      { fields: { host: 1, timestamp: 1 } },
+      { fields: { host: 1, timestamp: -1 } }
     ]);
     // Locks
     await this.handleIndexesInCollection(collections, Constants.DEFAULT_TENANT, 'locks', [

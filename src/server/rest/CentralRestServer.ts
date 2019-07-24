@@ -1,10 +1,9 @@
 import cluster from 'cluster';
-import { NextFunction, Request, Response } from 'express';
+import { Application, NextFunction, Request, Response } from 'express';
 import sanitize from 'express-sanitizer';
 import morgan from 'morgan';
 import path from 'path';
 import socketio from 'socket.io';
-import AuthService from './service/AuthService';
 import CentralRestServerAuthentication from './CentralRestServerAuthentication';
 import CentralRestServerService from './CentralRestServerService';
 import Configuration from '../../utils/Configuration';
@@ -13,7 +12,6 @@ import ErrorHandler from './ErrorHandler';
 import expressTools from '../ExpressTools';
 import Logging from '../../utils/Logging';
 import SessionHashService from '../rest/service/SessionHashService';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 
 const MODULE_NAME = 'CentralRestServer';
 export default class CentralRestServer {
@@ -23,7 +21,7 @@ export default class CentralRestServer {
   private static socketIO;
   private static currentNotifications = [];
   private chargingStationConfig: any;
-  private express: any;
+  private express: Application;
 
   // Create the rest server
   constructor(centralSystemRestConfig, chargingStationConfig) {
@@ -84,11 +82,11 @@ export default class CentralRestServer {
     if (centralSystemConfig.distEnabled) {
       // Serve all the static files of the front-end
       // eslint-disable-next-line no-unused-vars
-      this.express.get(/^\/(?!client\/)(.+)$/, function(req, res, next) {
+      this.express.get(/^\/(?!client\/)(.+)$/, function(req: Request, res: Response, next: NextFunction) {
         // Filter to not handle other server requests
         if (!res.headersSent) {
           // Not already processed: serve the file
-          res.sendFile(path.join(__dirname, centralSystemConfig.distPath, req.sanitize(req.params[0])));
+          res.sendFile(path.join(__dirname, centralSystemConfig.distPath, sanitize(req.params[0])));
         }
       });
       // Default, serve the index.html
@@ -168,7 +166,7 @@ export default class CentralRestServer {
     expressTools.startServer(CentralRestServer.centralSystemRestConfig, CentralRestServer.restHttpServer, 'REST', MODULE_NAME);
   }
 
-  notifyUser(tenantID, action, data) {
+  notifyUser(tenantID: string, action: string, data) {
     // On User change rebuild userHashID
     if (data && data.id) {
       SessionHashService.rebuildUserHashID(tenantID, data.id);
@@ -187,7 +185,7 @@ export default class CentralRestServer {
     });
   }
 
-  notifyVehicle(tenantID, action, data) {
+  notifyVehicle(tenantID: string, action: string, data) {
     // Add in buffer
     this.addNotificationInBuffer({
       'tenantID': tenantID,
@@ -202,7 +200,7 @@ export default class CentralRestServer {
     });
   }
 
-  notifyVehicleManufacturer(tenantID, action, data) {
+  notifyVehicleManufacturer(tenantID: string, action: string, data) {
     // Add in buffer
     this.addNotificationInBuffer({
       'tenantID': tenantID,
@@ -217,7 +215,7 @@ export default class CentralRestServer {
     });
   }
 
-  notifyTenant(tenantID, action, data) {
+  notifyTenant(tenantID: string, action: string, data) {
     // On Tenant change rebuild tenantHashID
     if (data && data.id) {
       SessionHashService.rebuildTenantHashID(data.id);
@@ -236,7 +234,7 @@ export default class CentralRestServer {
     });
   }
 
-  notifySite(tenantID, action, data) {
+  notifySite(tenantID: string, action: string, data) {
     // Add in buffer
     this.addNotificationInBuffer({
       'tenantID': tenantID,
@@ -251,7 +249,7 @@ export default class CentralRestServer {
     });
   }
 
-  notifySiteArea(tenantID, action, data) {
+  notifySiteArea(tenantID: string, action: string, data) {
     // Add in buffer
     this.addNotificationInBuffer({
       'tenantID': tenantID,
@@ -266,7 +264,7 @@ export default class CentralRestServer {
     });
   }
 
-  notifyCompany(tenantID, action, data) {
+  notifyCompany(tenantID: string, action: string, data) {
     // Add in buffer
     this.addNotificationInBuffer({
       'tenantID': tenantID,
@@ -281,7 +279,7 @@ export default class CentralRestServer {
     });
   }
 
-  notifyTransaction(tenantID, action, data) {
+  notifyTransaction(tenantID: string, action: string, data) {
     // Add in buffer
     this.addNotificationInBuffer({
       'tenantID': tenantID,
@@ -296,7 +294,7 @@ export default class CentralRestServer {
     });
   }
 
-  notifyChargingStation(tenantID, action, data) {
+  notifyChargingStation(tenantID: string, action: string, data) {
     // Add in buffer
     this.addNotificationInBuffer({
       'tenantID': tenantID,
@@ -311,7 +309,7 @@ export default class CentralRestServer {
     });
   }
 
-  notifyLogging(tenantID, action) {
+  notifyLogging(tenantID: string, action: string) {
     // Add in buffer
     this.addNotificationInBuffer({
       'tenantID': tenantID,
@@ -320,7 +318,7 @@ export default class CentralRestServer {
     });
   }
 
-  addNotificationInBuffer(notification) {
+  private addNotificationInBuffer(notification) {
     let dups = false;
     // Add in buffer
     for (let i = 0; i < CentralRestServer.currentNotifications.length; i++) {

@@ -1,9 +1,10 @@
+import { NextFunction, Request, Response } from 'express';
 import Logging from '../../../utils/Logging';
 import Notification from '../../../entity/Notification';
 import NotificationSecurity from './security/NotificationSecurity';
 
 export default class NotificationService {
-  static async handleGetNotifications(action, req, res, next) {
+  static async handleGetNotifications(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
       const filteredRequest = NotificationSecurity.filterNotificationsRequest(req.query, req.user);

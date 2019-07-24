@@ -132,7 +132,7 @@ export default class ContextBuilder {
 
     await UserStorage.saveUser(buildTenant.id, {
       'id': CONTEXTS.TENANT_USER_LIST[0].id,
-      'tagIDs': CONTEXTS.TENANT_USER_LIST[0].tagIDs ? CONTEXTS.TENANT_USER_LIST[0].tagIDs : [faker.random.alphaNumeric(8).toUpperCase()],
+      'tagIDs': CONTEXTS.TENANT_USER_LIST[0].tagIDs,
       'password': await Utils.hashPasswordBcrypt(config.get('admin.password')),
       'email': config.get('admin.username'),
       'status': CONTEXTS.TENANT_USER_LIST[0].status,
@@ -143,6 +143,9 @@ export default class ContextBuilder {
       'plateID': faker.random.alphaNumeric(8),
       'deleted': false
     });
+    if (CONTEXTS.TENANT_USER_LIST[0].tagIDs) {
+      await UserStorage.saveUserTags(buildTenant.id, CONTEXTS.TENANT_USER_LIST[0].id, CONTEXTS.TENANT_USER_LIST[0].tagIDs);
+    }
     const defaultAdminUser = await UserStorage.getUser(buildTenant.id, CONTEXTS.TENANT_USER_LIST[0].id);
 
     // Create Central Server Service
@@ -181,6 +184,9 @@ export default class ContextBuilder {
     // Read admin user
     const adminUser: User = (await localCentralServiceService.getEntityById(
       localCentralServiceService.userApi, defaultAdminUser, false)).data;
+    if (!adminUser.id) {
+      console.log('Error with new Admin user: ', adminUser);
+    }
     userListToAssign = [adminUser]; // Default admin is always assigned to site
     userList = [adminUser]; // Default admin is always assigned to site
     // Prepare users
@@ -198,6 +204,9 @@ export default class ContextBuilder {
       createUser.tagIDs = userDef.tagIDs;
       const user: User = createUser;
       await UserStorage.saveUser(buildTenant.id, user);
+      if (userDef.tagIDs) {
+        await UserStorage.saveUserTags(buildTenant.id, userDef.id, userDef.tagIDs);
+      }
       if (userDef.assignedToSite) {
         userListToAssign.push(user);
       }

@@ -238,7 +238,11 @@ export default class Database {
     dest.connectorId = Utils.convertToInt(src.connectorId);
     dest.transactionId = Utils.convertToInt(src.transactionId);
     dest.timestamp = Utils.convertToDate(src.timestamp);
-    dest.value = Utils.convertToInt(src.value);
+    if (src.attribute.format === 'SignedData') {
+      dest.value = src.value;
+    } else {
+      dest.value = Utils.convertToInt(src.value);
+    }
     dest.attribute = src.attribute;
   }
 
@@ -520,7 +524,6 @@ export default class Database {
       dest.longitude = Utils.convertToFloat(src.longitude);
     }
   }
-
 
   public static updateLogging(src, dest, forFrontEnd = true): void {
     if (forFrontEnd) {

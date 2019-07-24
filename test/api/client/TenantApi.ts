@@ -25,8 +25,8 @@ export default class TenantApi extends CrudApi {
     return super.update(data, '/client/api/TenantUpdate');
   }
 
-  public delete(id) {
-    return this._authenticatedApi.send({
+  public async delete(id) {
+    return await this._authenticatedApi.send({
       method: 'DELETE',
       url: '/client/api/TenantDelete',
       params: {

@@ -14,7 +14,6 @@ import TenantSecurity from './security/TenantSecurity';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TenantValidator from '../validation/TenantValidation';
 import User from '../../../types/User';
-import UserService from './UserService';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 
@@ -22,7 +21,7 @@ const MODULE_NAME = 'TenantService';
 
 export default class TenantService {
 
-  static async handleDeleteTenant(action, req, res, next) {
+  static async handleDeleteTenant(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = TenantSecurity.filterTenantDeleteRequest(req.query, req.user);
     // Check Mandatory fields
@@ -80,7 +79,7 @@ export default class TenantService {
     next();
   }
 
-  static async handleGetTenant(action, req, res, next) {
+  static async handleGetTenant(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = TenantSecurity.filterTenantRequest(req.query, req.user);
 
@@ -120,7 +119,7 @@ export default class TenantService {
     next();
   }
 
-  static async handleGetTenants(action, req, res, next) {
+  static async handleGetTenants(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListTenants(req.user)) {
       throw new AppAuthError(
@@ -252,7 +251,7 @@ export default class TenantService {
     next();
   }
 
-  static async handleUpdateTenant(action, req, res, next) {
+  static async handleUpdateTenant(action: string, req: Request, res: Response, next: NextFunction) {
     // Check
     TenantValidator.getInstance().validateTenantUpdate(req.body);
     // Filter
@@ -299,9 +298,7 @@ export default class TenantService {
     next();
   }
 
-  private static async _updateSettingsWithComponents(tenant, req) {
-    // Get the user
-    const user = await UserStorage.getUser(req.user.tenantID, req.user.id);
+  private static async _updateSettingsWithComponents(tenant: Tenant, req: Request) {
     // Create settings
     for (const component of tenant.getComponents()) {
       // Get the settings
@@ -325,13 +322,17 @@ export default class TenantService {
             content: newSettingContent
           });
           newSetting.setCreatedOn(new Date());
-          newSetting.setCreatedBy(user);
+          newSetting.setCreatedBy({
+            'id': req.user.id
+          });
           // Save Setting
           await newSetting.save();
         } else {
           currentSetting.setContent(newSettingContent);
           currentSetting.setLastChangedOn(new Date());
-          currentSetting.setLastChangedBy(user);
+          currentSetting.setLastChangedBy({
+            'id': req.user.id
+          });
           // Save Setting
           await currentSetting.save();
         }

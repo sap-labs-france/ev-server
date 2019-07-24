@@ -242,7 +242,7 @@ class RequestMapper {
 export default {
   // Util Service
   // eslint-disable-next-line no-unused-vars
-  restServiceUtil(req, res, next) {
+  restServiceUtil(req: Request, res: Response, next: NextFunction) {
     // Parse the action
     const action = /^\/\w*/g.exec(req.url)[0].substring(1);
     // Check Context
@@ -260,7 +260,7 @@ export default {
     }
   },
 
-  async restServiceSecured(req, res, next) {
+  async restServiceSecured(req: Request, res: Response, next: NextFunction) {
     // Parse the action
     const action = /^\/\w*/g.exec(req.url)[0].substring(1);
 
