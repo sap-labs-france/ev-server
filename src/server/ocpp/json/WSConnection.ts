@@ -1,7 +1,7 @@
 import uuid from 'uuid/v4';
 import { OPEN } from 'ws';
 import BackendError from '../../../exception/BackendError';
-import ChargingStation from '../../../entity/ChargingStation';
+import ChargingStation from '../../../types/ChargingStation';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';

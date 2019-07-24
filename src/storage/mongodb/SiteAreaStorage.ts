@@ -1,6 +1,6 @@
 import { ObjectID } from 'mongodb';
 import BackendError from '../../exception/BackendError';
-import ChargingStation from '../../entity/ChargingStation';
+import ChargingStation from '../../types/ChargingStation';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
@@ -225,6 +225,9 @@ export default class SiteAreaStorage {
             chargeBox.inactive = DatabaseUtils.chargingStationIsInactive(chargeBox);
             totalChargers++;
             // Handle Connectors
+            if(! chargeBox.connectors) {
+              chargeBox.connectors = [];
+            }
             for (const connector of chargeBox.connectors) {
               if (!connector) {
                 continue;
@@ -254,11 +257,7 @@ export default class SiteAreaStorage {
           siteAreaMDB.totalConnectors = totalConnectors;
         }
         // Chargers
-        if (params.withChargeBoxes && siteAreaMDB.chargingStations) {
-          siteAreaMDB.chargingStations = siteAreaMDB.chargingStations.map((chargeBox) => {
-            return new ChargingStation(tenantID, chargeBox);
-          });
-        } else {
+        if (!params.withChargeBoxes && siteAreaMDB.chargingStations) {
           delete siteAreaMDB.chargingStations;
         }
         // Add

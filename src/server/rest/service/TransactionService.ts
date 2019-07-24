@@ -4,7 +4,7 @@ import moment from 'moment';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
-import ChargingStation from '../../../entity/ChargingStation';
+import ChargingStation from '../../../types/ChargingStation';
 import ConcurConnector from '../../../integration/refund/ConcurConnector';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
@@ -17,6 +17,9 @@ import TransactionSecurity from './security/TransactionSecurity';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import ChargingStationService from './ChargingStationService';
+import Transaction from '../../../entity/Transaction';
 
 export default class TransactionService {
   static async handleSynchronizeRefundedTransactions(action: string, req: Request, res: Response, next: NextFunction) {
@@ -174,7 +177,7 @@ export default class TransactionService {
           Constants.HTTP_AUTH_ERROR, 'TransactionService', 'handleDeleteTransaction',
           req.user);
       }
-      const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, transaction.getChargeBoxID());
+      const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, transaction.getChargeBoxID());
       if (transaction.isActive()) {
         if (!chargingStation) {
           throw new AppError(
@@ -182,9 +185,9 @@ export default class TransactionService {
             `Charging Station with ID ${transaction.getChargeBoxID()} does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
             'TransactionService', 'handleDeleteTransaction', req.user);
         }
-        if (transaction.getID() === chargingStation.getConnector(transaction.getConnectorId()).activeTransactionID) {
-          await chargingStation.checkAndFreeConnector(transaction.getConnectorId());
-          await chargingStation.save();
+        if (transaction.getID() === chargingStation.connectors.find(c => c.connectorId === transaction.getConnectorId()).activeTransactionID) {
+          await ChargingStationService.checkAndFreeConnector(req.user.tenantID, chargingStation, transaction.getConnectorId());
+          await ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);
         }
       }
       // Delete Transaction
@@ -238,7 +241,7 @@ export default class TransactionService {
           req.user);
       }
       // Get the Charging Station
-      const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, transaction.getChargeBoxID());
+      const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, transaction.getChargeBoxID());
       // Found?
       if (!chargingStation) {
         // Not Found!
@@ -265,7 +268,7 @@ export default class TransactionService {
       const result = await new OCPPService().handleStopTransaction(
         {
           chargeBoxIdentity: chargingStation.id,
-          tenantID: chargingStation.getTenantID()
+          tenantID: req.user.tenantID
         },
         {
           transactionId: transaction.getID(),
@@ -429,7 +432,7 @@ export default class TransactionService {
           'TransactionService', 'handleGetChargingStationTransactions', req.user);
       }
       // Get Charge Box
-      const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
+      const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
       // Found?
       if (!chargingStation) {
         // Not Found!
@@ -439,11 +442,11 @@ export default class TransactionService {
           'TransactionService', 'handleGetChargingStationTransactions', req.user);
       }
       // Set the model
-      const transactions = await chargingStation.getTransactions(
-        filteredRequest.ConnectorId,
-        filteredRequest.StartDateTime,
-        filteredRequest.EndDateTime,
-        true);
+      const transactions = await TransactionStorage.getTransactions(req.user.tenantID, {
+        chargeBoxID: chargingStation.id, connectorId: filteredRequest.ConnectorId,
+        startDateTime: filteredRequest.StartDateTime, endDateTime: filteredRequest.EndDateTime,
+        withChargeBoxes: true
+      }, Constants.DB_PARAMS_MAX_LIMIT);
       // Filter
       TransactionSecurity.filterTransactionsResponse(transactions, req.user);
       // Return

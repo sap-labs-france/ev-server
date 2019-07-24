@@ -18,6 +18,7 @@ import User from '../types/User';
 import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
 import Utils from '../utils/Utils';
+import Connector from '../types/Connector';
 
 export default class Authorizations {
 
@@ -112,7 +113,7 @@ export default class Authorizations {
     };
   }
 
-  public static async getConnectorActionAuthorizations(params: { tenantID: string; user: UserToken; chargingStation: ChargingStation; connector: any; siteArea: SiteArea; site: Site }) {
+  public static async getConnectorActionAuthorizations(params: { tenantID: string; user: UserToken; chargingStation: ChargingStation; connector: Connector; siteArea: SiteArea; site: Site }) {
     const tenant: Tenant | null = await Tenant.getTenant(params.tenantID);
     if (!tenant) {
       throw new BackendError('Authorizations.ts#getConnectorActionAuthorizations', 'Tenant null');
@@ -240,7 +241,7 @@ export default class Authorizations {
     let user: User = null;
     // Get the user
     if (tagID) {
-      user = await Authorizations.checkAndGetUserTagIDOnChargingStation(tenantID, 
+      user = await Authorizations.checkAndGetUserTagIDOnChargingStation(tenantID,
         chargingStation, tagID, action);
     }
     // Found?
@@ -257,7 +258,7 @@ export default class Authorizations {
       }
 
       const userToken = await Authorizations.buildUserToken(tenantID, user);
-      await Authorizations._checkAndGetUserOnChargingStation(tenantID, 
+      await Authorizations._checkAndGetUserOnChargingStation(tenantID,
         chargingStation, userToken, isOrgCompActive, site, action);
     }
     return user;

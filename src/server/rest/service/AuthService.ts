@@ -96,7 +96,7 @@ export default class AuthService {
           const results = [];
           // Check authorization for each connectors
           for (let index = 0; index < chargingStation.connectors.length; index++) {
-            const connector = chargingStation.connectors[index + 1];
+            const connector = chargingStation.connectors.find(c=>c.connectorId===index + 1);
             const tempResult = { 'IsAuthorized': false };
             if (connector.activeTransactionID) {
               tempResult.IsAuthorized = await AuthService.isStopTransactionAuthorized(filteredRequest, chargingStation, connector.activeTransactionID, req.user);
@@ -192,7 +192,7 @@ export default class AuthService {
     }
     // Check authorization for each connectors
     for (let index = 0; index < chargingStation.connectors.length; index++) {
-      const connector = chargingStation.connectors[index + 1];
+      const connector = chargingStation.connectors.find(c=>c.connectorId===index+1);
       results.push(await Authorizations.getConnectorActionAuthorizations({ tenantID, user, chargingStation, connector, siteArea, site }));
     }
     return results;

@@ -21,8 +21,12 @@ export interface HttpChargingStationRequest {
   ChargeBoxID: string;
 }
 
-export interface HttpChargingStationSetMaxIntensitySocketRequest {
-  chargeBoxID: string;
+export interface HttpChargingStationSetMaxIntensitySocketRequest extends HttpChargingStationCommandRequest {
   maxIntensity?: number;
   args?: {maxIntensity: number};
+}
+
+export interface HttpChargingStationCommandRequest {
+  chargeBoxID: string;
+  args?: any;
 }

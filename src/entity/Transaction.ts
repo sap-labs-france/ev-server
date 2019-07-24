@@ -1,5 +1,4 @@
 import moment from 'moment';
-import ChargingStation from './ChargingStation';
 import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
 import Constants from '../utils/Constants';
 import ConsumptionStorage from '../storage/mongodb/ConsumptionStorage';
@@ -312,7 +311,7 @@ export default class Transaction extends TenantHolder {
 
   async getChargingStation() {
     if (this._model.chargeBox) {
-      return new ChargingStation(this.getTenantID(), this._model.chargeBox);
+      return this._model.chargeBox;
     } else if (this._model.chargeBoxID) {
       const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenantID(), this._model.chargeBoxID);
       this.setChargingStation(chargingStation);
@@ -322,7 +321,7 @@ export default class Transaction extends TenantHolder {
 
   setChargingStation(chargingStation) {
     if (chargingStation) {
-      this._model.chargeBox = chargingStation.getModel();
+      this._model.chargeBox = chargingStation;
       this._model.chargeBoxID = chargingStation.id;
     } else {
       this._model.chargeBox = null;

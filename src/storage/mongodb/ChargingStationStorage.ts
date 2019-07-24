@@ -159,7 +159,7 @@ export default class ChargingStationStorage {
       // Add a unique identifier as we may have the same charger several time
       aggregation.push({ $addFields: { 'uniqueId': { $concat: ['$_id', '#', '$errorCode'] } } });
     } else {
-      aggregation = aggregation.concat(siteAreaJoin).concat(siteJoin);
+      aggregation = aggregation.concat([{$match: filters}]).concat(siteAreaJoin).concat(siteJoin);
     }
     // Limit records?
     if (!onlyRecordCount) {
@@ -208,6 +208,7 @@ export default class ChargingStationStorage {
     aggregation.push({
       $limit: limit
     });
+
     // Read DB
     const chargingStationsFacetMDB = await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
       .aggregate(aggregation, {
@@ -219,6 +220,14 @@ export default class ChargingStationStorage {
       .toArray();
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'getChargingStations', uniqueTimerID);
+    // Add clean connectors
+    if(chargingStationsCountMDB.length > 0) {
+      for(let chargingStation of chargingStationsFacetMDB) {
+        if(! chargingStation.connectors) {
+          chargingStation.connectors = [];
+        }
+      }
+    }
     // Ok
     return {
       count: (chargingStationsCountMDB.length > 0 ?
@@ -287,16 +296,19 @@ export default class ChargingStationStorage {
     };
     // Properties to save
     const chargingStationMDB = {
+      ...chargingStationToSave,
       _id: chargingStationToSave.id,
       createdBy: chargingStationToSave.createdBy ? chargingStationToSave.createdBy.id : null,
       lastChangedBy: chargingStationToSave.lastChangedBy ? chargingStationToSave.lastChangedBy : null,
-      siteAreaID: chargingStationToSave.siteArea ? chargingStationToSave.siteArea.id : null, // TODO: what if chARging station queried wo SA
-      ...chargingStationToSave
+      siteAreaID: chargingStationToSave.siteArea ? Utils.convertToObjectID(chargingStationToSave.siteArea.id) : null // TODO: what if chARging station queried wo SA
     };
     // Clean up mongo request
     delete chargingStationMDB.id;
     delete chargingStationMDB.siteArea;
     delete chargingStationMDB.client;
+    if(!chargingStationMDB.connectors) {
+      chargingStationMDB.connectors = [];
+    }
     // Convert Created/LastChanged By
     DatabaseUtils.addLastChangedCreatedProps(chargingStationMDB, chargingStationMDB);
     // Modify and return the modified document
