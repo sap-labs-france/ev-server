@@ -895,7 +895,6 @@ export default class OCPPCommonTestsNew {
 
   private async basicTransactionValidation(transactionId, connectorId, meterStart, timestamp) {
     const response = await this.centralUserService.transactionApi.readById(transactionId);
-    console.log(response);
     expect(response.status).to.equal(200);
     expect(response.data).to.deep['containSubset']({
       'id': transactionId,
