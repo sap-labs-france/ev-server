@@ -521,7 +521,6 @@ export default class Database {
     }
   }
 
-
   public static updateLogging(src, dest, forFrontEnd = true): void {
     if (forFrontEnd) {
       Database.updateID(src, dest);
