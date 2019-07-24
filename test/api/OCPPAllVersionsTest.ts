@@ -5,7 +5,7 @@ import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
 import CONTEXTS from './contextProvider/ContextConstants';
 import ContextProvider from './contextProvider/ContextProvider';
-import OCPPCommonTestsNew from './OCPPCommonTestsNew';
+import OCPPCommonTests from './OCPPCommonTests';
 
 chai.use(chaiDatetime);
 chai.use(chaiSubset);
@@ -14,7 +14,7 @@ chai.use(responseHelper);
 class TestData {
   public tenantContext: any;
   public centralUserContext: any;
-  public ocppCommonTests: OCPPCommonTestsNew;
+  public ocppCommonTests: OCPPCommonTests;
   public siteContext: any;
   public siteAreaContext: any;
   public chargingStationContext: any;
@@ -44,7 +44,7 @@ describe('OCPP tests (all versions)', function () {
     before(async () => {
       testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS);
       testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
-      testData.ocppCommonTests = new OCPPCommonTestsNew(testData.tenantContext, testData.centralUserContext, true);
+      testData.ocppCommonTests = new OCPPCommonTests(testData.tenantContext, testData.centralUserContext, true);
 
       await testData.ocppCommonTests.before();
     });
@@ -294,7 +294,7 @@ describe('OCPP tests (all versions)', function () {
     before(async () => {
       testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION);
       testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
-      testData.ocppCommonTests = new OCPPCommonTestsNew(testData.tenantContext, testData.centralUserContext);
+      testData.ocppCommonTests = new OCPPCommonTests(testData.tenantContext, testData.centralUserContext);
 
       testData.siteContext = testData.tenantContext.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_BASIC);
       testData.siteAreaContext = testData.siteContext.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
@@ -597,7 +597,7 @@ describe('OCPP tests (all versions)', function () {
     before(async () => {
       testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS);
       testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
-      testData.ocppCommonTests = new OCPPCommonTestsNew(testData.tenantContext, testData.centralUserContext, true);
+      testData.ocppCommonTests = new OCPPCommonTests(testData.tenantContext, testData.centralUserContext, true);
 
       testData.siteContext = testData.tenantContext.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_BASIC);
       testData.siteAreaContext = testData.siteContext.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
