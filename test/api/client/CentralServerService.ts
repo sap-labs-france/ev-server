@@ -24,14 +24,6 @@ chai.use(chaiSubset);
 
 export default class CentralServerService {
 
-  public static get DefaultInstance(): CentralServerService {
-    if (CentralServerService._defaultInstance) {
-      return CentralServerService._defaultInstance;
-    }
-    CentralServerService._defaultInstance = new CentralServerService();
-    return CentralServerService._defaultInstance;
-  }
-
   private static _defaultInstance = new CentralServerService();
   public authenticatedApi: AuthenticatedBaseApi;
   public companyApi: CompanyApi;
@@ -48,7 +40,6 @@ export default class CentralServerService {
   public mailApi: MailApi;
   public logsApi: LogsApi;
   public statisticsApi: StatisticsApi;
-
   private _tenantSubdomain: string;
   private _baseURL: string;
   private _baseApi: BaseApi;
@@ -92,6 +83,14 @@ export default class CentralServerService {
     this.tenantApi = new TenantApi(this.authenticatedSuperAdminApi, this._baseApi);
     this.mailApi = new MailApi(new BaseApi(`http://${config.get('mailServer.host')}:${config.get('mailServer.port')}`));
     this.statisticsApi = new StatisticsApi(this.authenticatedApi);
+  }
+
+  public static get DefaultInstance(): CentralServerService {
+    if (CentralServerService._defaultInstance) {
+      return CentralServerService._defaultInstance;
+    }
+    CentralServerService._defaultInstance = new CentralServerService();
+    return CentralServerService._defaultInstance;
   }
 
   public async updatePriceSetting(priceKWH, priceUnit) {
@@ -250,6 +249,10 @@ export default class CentralServerService {
       // Let the caller to handle response
       return response;
     }
+  }
+
+  public async reconnect() {
+    await this.authenticatedApi.authenticate(true);
   }
 }
 
