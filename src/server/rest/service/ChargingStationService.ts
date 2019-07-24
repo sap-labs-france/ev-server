@@ -1,3 +1,4 @@
+import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
@@ -10,7 +11,6 @@ import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import Utils from '../../../utils/Utils';
-import { NextFunction, Request, Response } from 'express';
 
 export default class ChargingStationService {
   static async handleAddChargingStationsToSiteArea(action: string, req: Request, res: Response, next: NextFunction) {

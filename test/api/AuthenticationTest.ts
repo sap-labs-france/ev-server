@@ -4,6 +4,9 @@ import config from '../config';
 import jwt from 'jsonwebtoken';
 import CentralServerService from './client/CentralServerService';
 import UserFactory from '../factories/UserFactory';
+import HttpStatus from 'http-status-codes';
+import Utils from './Utils';
+import faker from 'faker';
 
 chai.use(chaiSubset);
 
@@ -38,7 +41,10 @@ describe('Authentication Service', function() {
       expect(response.status).to.be.eql(200);
       expect(response.data).to.have.property('token');
       expect(response.data.token).to.be.a('string');
-      const centralServiceSuperAdmin = new CentralServerService(testData.adminEmail, { email: testData.superAdminEmail, password: testData.superAdminPassword });
+      const centralServiceSuperAdmin = new CentralServerService(testData.adminEmail, {
+        email: testData.superAdminEmail,
+        password: testData.superAdminPassword
+      });
       const tenantID = jwt.decode(response.data.token)['tenantID'];
       const tenant = await centralServiceSuperAdmin.getEntityById(centralServiceSuperAdmin.tenantApi, { id: tenantID });
       expect(tenant).to.have.property('subdomain', testData.adminTenant);
@@ -89,6 +95,80 @@ describe('Authentication Service', function() {
       // Check
       expect(response.status).to.be.eql(200);
       expect(response.data).to.have.property('status', 'Success');
+    });
+
+    it('Should be logged off when the locale is updated', async () => {
+      const newUser = await CentralServerService.DefaultInstance.createEntity(
+        CentralServerService.DefaultInstance.userApi, UserFactory.build());
+
+      const userAPI = new CentralServerService(testData.adminTenant, {
+        email: newUser.email,
+        password: newUser.passwords.password
+      });
+      let validResponse = await userAPI.userApi.readById(newUser.id);
+      // Check
+      expect(validResponse.status).to.be.eql(HttpStatus.OK);
+      expect(validResponse.data.id).to.be.eql(newUser.id);
+
+      newUser.locale = 'fr_FR';
+      await CentralServerService.DefaultInstance.updateEntity(
+        CentralServerService.DefaultInstance.userApi, newUser);
+
+      await Utils.sleep(1000);
+
+      const forbiddenResponse = await userAPI.userApi.readById(newUser.id);
+      expect(forbiddenResponse.status).to.be.eql(HttpStatus.FORBIDDEN);
+      expect(forbiddenResponse.data.message).to.equal('User has been updated and will be logged off');
+
+      await userAPI.reconnect();
+
+      validResponse = await userAPI.userApi.readById(newUser.id);
+      expect(validResponse.status).to.be.eql(HttpStatus.OK);
+      expect(validResponse.data.id).to.be.eql(newUser.id);
+    });
+
+    it('Should be logged off when the tags are updated', async () => {
+      const newUser = await CentralServerService.DefaultInstance.createEntity(
+        CentralServerService.DefaultInstance.userApi, UserFactory.build());
+
+      const userAPI = new CentralServerService(testData.adminTenant, {
+        email: newUser.email,
+        password: newUser.passwords.password
+      });
+      let validResponse = await userAPI.userApi.readById(newUser.id);
+      // Check
+      expect(validResponse.status).to.be.eql(HttpStatus.OK);
+      expect(validResponse.data.id).to.be.eql(newUser.id);
+
+      const tag1 = faker.random.alphaNumeric(8).toUpperCase();
+      const tag2 = faker.random.alphaNumeric(7).toUpperCase();
+
+      newUser.tagIDs = [tag1, tag2];
+      await CentralServerService.DefaultInstance.updateEntity(
+        CentralServerService.DefaultInstance.userApi, newUser);
+
+      await Utils.sleep(1000);
+
+      const forbiddenResponse = await userAPI.userApi.readById(newUser.id);
+      expect(forbiddenResponse.status).to.be.eql(HttpStatus.FORBIDDEN);
+      expect(forbiddenResponse.data.message).to.equal('User has been updated and will be logged off');
+
+      await userAPI.reconnect();
+
+      validResponse = await userAPI.userApi.readById(newUser.id);
+      expect(validResponse.status).to.be.eql(HttpStatus.OK);
+      expect(validResponse.data.id).to.be.eql(newUser.id);
+
+      // same list in a different order
+      newUser.tagIDs = [tag2, tag1];
+      await CentralServerService.DefaultInstance.updateEntity(
+        CentralServerService.DefaultInstance.userApi, newUser);
+
+      await Utils.sleep(1000);
+
+      validResponse = await userAPI.userApi.readById(newUser.id);
+      expect(validResponse.status).to.be.eql(HttpStatus.OK);
+      expect(validResponse.data.id).to.be.eql(newUser.id);
     });
   });
 
@@ -157,4 +237,5 @@ describe('Authentication Service', function() {
     });
   });
 });
+
 

@@ -3,8 +3,6 @@ import chaiSubset from 'chai-subset';
 import faker from 'faker';
 import moment from 'moment';
 import CentralServerService from './client/CentralServerService';
-import OCPPService from './ocpp/OCPPService';
-import CONTEXTS from './contextProvider/ContextConstants';
 import ChargingStationContext from './contextProvider/ChargingStationContext';
 import Factory from '../factories/Factory';
 import SiteStorage from '../../src/storage/mongodb/SiteStorage';
