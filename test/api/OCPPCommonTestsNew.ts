@@ -73,7 +73,7 @@ export default class OCPPCommonTestsNew {
   public async assignAnyUserToSite(siteContext) {
     expect(siteContext).to.exist;
     if (this.anyUser) {
-      await SiteStorage.addUsersToSite(this.tenantContext.getTenant().id, siteContext.getSite().id, [this.anyUser.id])
+      await this.centralUserService.siteApi.addUsersToSite(siteContext.getSite().id, [this.anyUser.id]);
     }
   }
 
@@ -409,6 +409,9 @@ export default class OCPPCommonTestsNew {
     expect(this.newTransaction).to.not.be.null;
 
     // Get the Consumption
+    if (!this.newTransaction.id) {
+      console.log(this.newTransaction);
+    }
     const response = await this.centralUserService.transactionApi.readAllConsumption({ TransactionId: this.newTransaction.id });
     expect(response.status).to.equal(200);
     // Check Headers
@@ -456,9 +459,11 @@ export default class OCPPCommonTestsNew {
       });
       if (withSoC) {
         // Check
-        expect(value).to.include({
-          'stateOfCharge': (i > 0 ? this.transactionMeterSoCValues[i - 1] : this.transactionStartSoC)
-        });
+        if (value.stateOfCharge || i > 0) {
+          expect(value).to.include({
+            'stateOfCharge': (i > 0 ? this.transactionMeterSoCValues[i - 1] : this.transactionStartSoC)
+          });
+        }
       }
       // Add time
       transactionCurrentTime.add(this.transactionMeterValueIntervalSecs, 's');
@@ -852,6 +857,72 @@ export default class OCPPCommonTestsNew {
     } else {
       expect(bootNotification.data.currentTime).to.beforeTime(bootNotification2.data.currentTime);
     }
+  }
+
+  public async testTransactionIgnoringClockMeterValues() {
+    const meterStart = 0;
+    let meterValue = meterStart;
+    const currentTime = moment();
+    let response = await this.chargingStationContext.startTransaction(
+      this.chargingStationConnector1.connectorId,
+      this.numberTag.toString(),
+      meterValue,
+      currentTime
+    );
+    expect(response).to.be.transactionValid;
+    const transactionId = response.data.transactionId;
+    response = await this.chargingStationContext.sendConsumptionMeterValue(
+      this.chargingStationConnector1.connectorId,
+      transactionId,
+      meterValue += 300,
+      currentTime.add(1, 'minute').clone()
+    );
+    expect(response.data).to.eql({});
+    response = await this.chargingStationContext.sendConsumptionMeterValue(
+      this.chargingStationConnector1.connectorId,
+      transactionId,
+      meterValue += 300,
+      currentTime.add(1, 'minute').clone()
+    );
+    expect(response.data).to.eql({});
+    response = await this.chargingStationContext.sendConsumptionMeterValue(
+      this.chargingStationConnector1.connectorId,
+      transactionId,
+      meterValue += 300,
+      currentTime.add(1, 'minute').clone()
+    );
+    expect(response.data).to.eql({});
+    response = await this.chargingStationContext.sendClockMeterValue(
+      this.chargingStationConnector1.connectorId,
+      transactionId,
+      0,
+      currentTime.clone()
+    );
+    expect(response.data).to.eql({});
+    response = await this.chargingStationContext.sendConsumptionMeterValue(
+      this.chargingStationConnector1.connectorId,
+      transactionId,
+      meterValue += 300,
+      currentTime.add(1, 'minute').clone()
+    );
+    expect(response.data).to.eql({});
+    response = await this.chargingStationContext.stopTransaction(
+      transactionId,
+      this.numberTag.toString(),
+      meterValue, currentTime.add(1, 'minute').clone()
+    );
+    expect(response.data).to.have.property('idTagInfo');
+    expect(response.data.idTagInfo.status).to.equal('Accepted');
+    response = await this.centralUserService.transactionApi.readById(transactionId);
+    expect(response.status).to.equal(200);
+    expect(response.data).to.deep['containSubset']({
+      id: transactionId,
+      meterStart: meterStart,
+      stop: {
+        totalConsumption: meterValue - meterStart,
+        totalInactivitySecs: 60
+      }
+    });
   }
 
   private async createUser(user = Factory.user.build()) {
