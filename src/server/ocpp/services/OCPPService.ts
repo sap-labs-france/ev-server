@@ -148,7 +148,7 @@ export default class OCPPService {
       // Get Charging Station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
       // Check and replace IP
-      if (!(chargingStation.getCurrentIPAddress() === headers.currentIPAddress)) {
+      if (chargingStation.getCurrentIPAddress() !== headers.currentIPAddress) {
         chargingStation.setCurrentIPAddress(headers.currentIPAddress);
         await chargingStation.save();
       }
