@@ -1,11 +1,13 @@
+import { NextFunction, Request, Response } from 'express';
 import AppError from '../../../exception/AppError';
 import ComponentInactiveError from '../../../exception/ComponentInactiveError';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import Tenant from '../../../entity/Tenant';
+import UserToken from '../../../types/UserToken';
+import Utils from '../../../utils/Utils';
 
 export default class UtilsService {
-  static handleUnknownAction(action, req, res, next) {
+  static handleUnknownAction(action: string, req: Request, res: Response, next: NextFunction) {
     // Action provided
     if (!action) {
       // Log
@@ -40,16 +42,11 @@ export default class UtilsService {
     }
   }
 
-  public static async assertComponentIsActive(tenantID: string, component: string, action: string, entity: string, module: string, method: string) {
-    let active = false;
-    // Get the tenant
-    const tenant = await Tenant.getTenant(tenantID);
-    // Check
-    if (tenant) {
-      active = tenant.isComponentActive(component);
-    }
+  public static assertComponentIsActiveFromToken(userToken: UserToken, component: string, action: string, entity: string, module: string, method: string) {
+    // Check from token
+    const active = Utils.isComponentActiveFromToken(userToken, component);
     // Throw
-    if (!active) {
+    if (!active) {console.log(userToken);
       throw new ComponentInactiveError(
         component, action, entity,
         Constants.HTTP_AUTH_ERROR,

@@ -1,9 +1,8 @@
-import HttpByIDRequest from "./HttpByIDRequest";
-import HttpDatabaseRequest from "./HttpDatabaseRequest";
-import User from "../User";
+import HttpDatabaseRequest from './HttpDatabaseRequest';
+import User from '../User';
 
 export interface HttpUserRequest extends Partial<Omit<User, 'tagIDs'>> {
-  passwords: {password?: string}
+  passwords: {password?: string};
   tagIDs: string|string[];
 }
 
@@ -46,11 +45,11 @@ export interface HttpRegisterUserRequest extends HttpLoginRequest {
   firstName: string;
   captcha: string;
   status: string;
-  passwords: {password: string}; //frontend... 
+  passwords: {password: string}; // Frontend...
 }
 
 export interface HttpVerifyEmailRequest {
-  Email:string;
+  Email: string;
   tenant: string;
   VerificationToken: string;
 }

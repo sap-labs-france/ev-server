@@ -42,8 +42,10 @@ export default class OCPPBootstrap {
       const chargingStationID = faker.random.alphaNumeric(12);
       // Create Charger Object
       const chargingStation = Factory.chargingStation.build();
+
       // Simulate a Boot Notification
       let response = await this.ocpp.executeBootNotification(chargingStationID, chargingStation);
+
       // Check
       expect(response.data).to.not.be.null;
       expect(response.data.status).to.eql('Accepted');
@@ -64,6 +66,7 @@ export default class OCPPBootstrap {
         errorCode: 'NoError',
         timestamp: new Date().toISOString()
       });
+
       // Check
       expect(response).to.not.be.null;
       expect(response.data).to.eql({});
@@ -93,7 +96,6 @@ export default class OCPPBootstrap {
       // Get the new Charger
       context.newChargingStation = await CentralServerService.DefaultInstance.getEntityById(
         CentralServerService.DefaultInstance.chargingStationApi, context.newChargingStation);
-
     } catch (error) {
       // Error: Clean up!
       this.destroyContext(context);

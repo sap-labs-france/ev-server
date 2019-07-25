@@ -36,8 +36,9 @@ export default class WSServer extends WebSocket.Server {
     this.serverConfig = serverConfig;
     this.keepAliveIntervalValue = (this.serverConfig.keepaliveinterval ?
       this.serverConfig.keepaliveinterval : Constants.WS_DEFAULT_KEEPALIVE) * 1000; // Ms
-    this.on('connection', (ws: any): void => {
+    this.on('connection', (ws: any, req: any): void => {
       ws.isAlive = true;
+      ws.ip = req.connection.remoteAddress;
       ws.on('pong', (): void => {
         ws.isAlive = true;
       });
@@ -51,7 +52,7 @@ export default class WSServer extends WebSocket.Server {
               tenantID: Constants.DEFAULT_TENANT,
               module: MODULE_NAME,
               method: 'constructor',
-              message: `Web Socket on ${ws.url} do not respond to ping, terminating`
+              message: `Web Socket from ${ws.ip} do not respond to ping, terminating`
             });
             return ws.terminate();
           }
@@ -64,7 +65,7 @@ export default class WSServer extends WebSocket.Server {
 
   public static createHttpServer(serverConfig): http.Server {
     // Create HTTP server
-    let httpServer;
+    let httpServer: http.Server;
     // Secured protocol?
     if (serverConfig.protocol === 'wss') {
       // Create the options
@@ -97,7 +98,7 @@ export default class WSServer extends WebSocket.Server {
 
   public start(): void {
     // Log
-    let logMsg;
+    let logMsg: string;
     if (cluster.isWorker) {
       logMsg = `Starting ${this.serverName} Json ${MODULE_NAME} in worker ${cluster.worker.id}...`;
     } else {
@@ -109,7 +110,7 @@ export default class WSServer extends WebSocket.Server {
     this.startListening();
   }
 
-  private startListening(): void {
+  public startListening(): void {
     // Start listening
     this.httpServer.listen(this.serverConfig.port, this.serverConfig.host, (): void => {
       // Log

@@ -1,15 +1,12 @@
 import cfenv from 'cfenv';
 import cluster from 'cluster';
 import os from 'os';
-import SourceMap from 'source-map-support';
 import Address from '../types/Address';
 import Company from '../types/Company';
 import Configuration from './Configuration';
 import Constants from './Constants';
-import Utils from './Utils';
 import DatabaseUtils from '../storage/mongodb/DatabaseUtils';
-
-SourceMap.install();
+import Utils from './Utils';
 
 export default class Database {
   public static updateID(src, dest): void {
@@ -90,6 +87,9 @@ export default class Database {
     }
     if (src.hasOwnProperty('longitude')) {
       dest.longitude = Utils.convertToFloat(src.longitude);
+    }
+    if (src.hasOwnProperty('currentIPAddress')) {
+      dest.currentIPAddress = src.currentIPAddress;
     }
     dest.connectors = [];
     if (src.connectors) {
@@ -241,7 +241,11 @@ export default class Database {
     dest.connectorId = Utils.convertToInt(src.connectorId);
     dest.transactionId = Utils.convertToInt(src.transactionId);
     dest.timestamp = Utils.convertToDate(src.timestamp);
-    dest.value = Utils.convertToInt(src.value);
+    if (src.attribute.format === 'SignedData') {
+      dest.value = src.value;
+    } else {
+      dest.value = Utils.convertToInt(src.value);
+    }
     dest.attribute = src.attribute;
   }
 
@@ -524,7 +528,6 @@ export default class Database {
     }
   }
 
-
   public static updateLogging(src, dest, forFrontEnd = true): void {
     if (forFrontEnd) {
       Database.updateID(src, dest);
@@ -585,6 +588,9 @@ export default class Database {
     if (src.hasOwnProperty('currentStateOfCharge')) {
       dest.currentStateOfCharge = src.currentStateOfCharge;
     }
+    if (src.hasOwnProperty('currentSignedData')) {
+      dest.currentSignedData = src.currentSignedData;
+    }
     if (src.hasOwnProperty('lastMeterValue')) {
       dest.lastMeterValue = src.lastMeterValue;
     }
@@ -620,11 +626,13 @@ export default class Database {
       dest.refundData = {};
       dest.refundData.refundId = src.refundData.refundId;
       dest.refundData.refundedAt = Utils.convertToDate(src.refundData.refundedAt);
+      dest.refundData.status = src.refundData.status;
       dest.refundData.type = src.refundData.type;
       dest.refundData.reportId = src.refundData.reportId;
     }
     dest.timestamp = Utils.convertToDate(src.timestamp);
     dest.stateOfCharge = Utils.convertToInt(src.stateOfCharge);
+    dest.signedData = src.signedData;
     if (!Utils.isEmptyJSon(src.stop)) {
       dest.stop = {};
       if (forFrontEnd && !Utils.isEmptyJSon(src.stop.user)) {
@@ -639,6 +647,7 @@ export default class Database {
         dest.stop.transactionData = src.stop.transactionData;
       }
       dest.stop.stateOfCharge = Utils.convertToInt(src.stop.stateOfCharge);
+      dest.stop.signedData = src.stop.signedData;
       dest.stop.totalConsumption = Utils.convertToInt(src.stop.totalConsumption);
       dest.stop.totalInactivitySecs = Utils.convertToInt(src.stop.totalInactivitySecs);
       dest.stop.extraInactivitySecs = Utils.convertToInt(src.stop.extraInactivitySecs);

@@ -2,7 +2,6 @@ import express from 'express';
 import sanitize from 'express-sanitizer';
 import fs from 'fs';
 import morgan from 'morgan';
-import SourceMap from 'source-map-support';
 import { soap } from 'strong-soap';
 import CentralSystemServer from '../CentralSystemServer';
 import Constants from '../../../utils/Constants';
@@ -12,8 +11,6 @@ import Logging from '../../../utils/Logging';
 import centralSystemService12 from './services/SoapCentralSystemService12';
 import centralSystemService15 from './services/SoapCentralSystemService15';
 import centralSystemService16 from './services/SoapCentralSystemService16';
-
-SourceMap.install();
 
 const MODULE_NAME = 'SoapCentralSystemServer';
 export default class SoapCentralSystemServer extends CentralSystemServer {

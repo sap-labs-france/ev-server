@@ -1,6 +1,7 @@
 import config from '../../config';
 import faker from 'faker';
 import moment from 'moment';
+import { ObjectID } from 'mongodb';
 import CentralServerService from '../client/CentralServerService';
 import CompanyStorage from '../../../src/storage/mongodb/CompanyStorage';
 import Constants from '../../../src/utils/Constants';
@@ -16,10 +17,10 @@ import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
 import Tenant from '../../../src/entity/Tenant';
 import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
-import User from '../../../src/entity/User';
+import User from '../../../src/types/User';
 import UserFactory from '../../factories/UserFactory';
-import { ObjectID } from 'mongodb';
-import SiteArea from '../../../src/types/SiteArea';
+import UserStorage from '../../../src/storage/mongodb/UserStorage';
+import Utils from '../../../src/utils/Utils';
 
 const NBR_USERS = 10; // Number of total users : they are all connected to the sites
 const NBR_COMPANIES = 5; // Number of companies
@@ -145,8 +146,7 @@ export default class ContextBuilder {
     const existingTenant = await Tenant.getTenant(tenantContextDef.id);
     if (existingTenant) {
       console.log(`Tenant ${tenantContextDef.id} already exist with name ${existingTenant.getName()}. Please run a destroy context`);
-      throw 'Tenant id exist already';
-
+      throw new Error('Tenant id exist already');
     }
     let buildTenant: any = {};
     // Create Tenant
@@ -163,31 +163,31 @@ export default class ContextBuilder {
     console.log('CREATE tenant context ' + buildTenant.id +
       ' ' + buildTenant.subdomain);
     // Retrieve default admin
-    const existingUserList = (await User.getUsers(buildTenant.id)).result;
-    let defaultAdminUser = null;
+    const existingUserList = (await UserStorage.getUsers(buildTenant.id, {}, Constants.DB_PARAMS_MAX_LIMIT)).result;
+    let defaultAdminUser: User = null;
     // Search existing admin
     if (existingUserList && Array.isArray(existingUserList)) {
       defaultAdminUser = existingUserList.find((user) => {
-        return user.getModel().id === CONTEXTS.TENANT_USER_LIST[0].id || user.getEMail() === config.get('admin.username') ||
-          user.getRole() === 'A';
+        return user.id === CONTEXTS.TENANT_USER_LIST[0].id || user.email === config.get('admin.username') ||
+          user.role === 'A';
       });
     }
-    if ((defaultAdminUser.getID() !== CONTEXTS.TENANT_USER_LIST[0].id) || (defaultAdminUser.getStatus() !== 'A')) {
-      // It is a different default user so firt delete it
-      await defaultAdminUser.delete();
+    if ((defaultAdminUser.id !== CONTEXTS.TENANT_USER_LIST[0].id) || (defaultAdminUser.status !== 'A')) {
+      // It is a different default user so first delete it
+      await UserStorage.deleteUser(buildTenant.id, defaultAdminUser.id);
       // Activate user
-      defaultAdminUser.setStatus(CONTEXTS.TENANT_USER_LIST[0].status);
+      defaultAdminUser.status = CONTEXTS.TENANT_USER_LIST[0].status;
       // Generate the password hash
-      const newPasswordHashed = await User.hashPasswordBcrypt(config.get('admin.password'));
+      const newPasswordHashed = await Utils.hashPasswordBcrypt(config.get('admin.password'));
       // Update the password
-      defaultAdminUser.setPassword(newPasswordHashed);
+      defaultAdminUser.password = newPasswordHashed;
       // Update the email
-      defaultAdminUser.setEMail(config.get('admin.username'));
+      defaultAdminUser.email = config.get('admin.username');
       // Add a Tag ID
-      defaultAdminUser.setTagIDs(CONTEXTS.TENANT_USER_LIST[0].tagIDs ? CONTEXTS.TENANT_USER_LIST[0].tagIDs : [faker.random.alphaNumeric(8).toUpperCase()]);
+      defaultAdminUser.tagIDs = CONTEXTS.TENANT_USER_LIST[0].tagIDs ? CONTEXTS.TENANT_USER_LIST[0].tagIDs : [faker.random.alphaNumeric(8).toUpperCase()];
       // Fix id
-      defaultAdminUser.getModel().id = CONTEXTS.TENANT_USER_LIST[0].id;
-      await defaultAdminUser.save();
+      defaultAdminUser.id = CONTEXTS.TENANT_USER_LIST[0].id;
+      await UserStorage.saveUser(buildTenant.id, defaultAdminUser);
     }
 
     // Create Central Server Service
@@ -196,7 +196,7 @@ export default class ContextBuilder {
     // Create Tenant component settings
     if (tenantContextDef.componentSettings) {
       console.log(`settings in tenant ${buildTenant.name} as ${JSON.stringify(tenantContextDef.componentSettings)}`);
-      const allSettings: any = await localCentralServiceService.settingApi.readAll({}, { limit: 0, skip: 0 });
+      const allSettings: any = await localCentralServiceService.settingApi.readAll({}, Constants.DB_PARAMS_MAX_LIMIT);
       for (const setting in tenantContextDef.componentSettings) {
         let foundSetting: any = null;
         if (allSettings && allSettings.data && allSettings.data.result && allSettings.data.result.length > 0) {
@@ -221,11 +221,11 @@ export default class ContextBuilder {
         }
       }
     }
-    let userListToAssign = null;
-    let userList = null;
+    let userListToAssign: User[] = null;
+    let userList: User[] = null;
     // Read admin user
-    const adminUser = (await localCentralServiceService.getEntityById(
-      localCentralServiceService.userApi, defaultAdminUser.getModel(), false)).data;
+    const adminUser: User = (await localCentralServiceService.getEntityById(
+      localCentralServiceService.userApi, defaultAdminUser, false)).data;
     userListToAssign = [adminUser]; // Default admin is always assigned to site
     userList = [adminUser]; // Default admin is always assigned to site
     // Prepare users
@@ -240,10 +240,10 @@ export default class ContextBuilder {
         tagIDs: []
       };
       userDef.id = new ObjectID().toHexString();
-      const createUser = UserFactory.build();
+      const createUser: User = UserFactory.build();
       userDef.tagIDs.push(`A1234${index}`);
       // Update the password
-      const newPasswordHashed = await User.hashPasswordBcrypt(config.get('admin.password'));
+      const newPasswordHashed = await Utils.hashPasswordBcrypt(config.get('admin.password'));
       createUser.password = newPasswordHashed;
       createUser.role = userDef.role;
       createUser.status = userDef.status;
@@ -251,14 +251,14 @@ export default class ContextBuilder {
       if (userDef.tagIDs) {
         createUser.tagIDs = userDef.tagIDs;
       }
-      const user = new User(buildTenant.id, createUser);
-      await user.save();
+      const user: User = createUser;
+      await UserStorage.saveUser(buildTenant.id, user, false);
       if (userDef.assignedToSite) {
-        userListToAssign.push(user.getModel());
+        userListToAssign.push(user);
       }
       // Set back password to clear value for login/logout
-      const userModel = user.getModel();
-      userModel.passwordClear = config.get('admin.password');
+      const userModel = user;
+      (userModel as any).passwordClear = config.get('admin.password'); // FIXME: What is this?
       userList.push(userModel);
     }
     // Persist tenant context
@@ -276,7 +276,7 @@ export default class ContextBuilder {
         };
         const dummyCompany: any = Factory.company.build();
         dummyCompany.id = companyDef.id;
-        dummyCompany.createdBy = { id : adminUser.id };
+        dummyCompany.createdBy = { id: adminUser.id };
         dummyCompany.createdOn = moment().toISOString();
         company = await CompanyStorage.saveCompany(buildTenant.id, dummyCompany);
         newTenantContext.getContext().companies.push(dummyCompany);
@@ -312,13 +312,12 @@ export default class ContextBuilder {
           newTenantContext.addSiteContext(siteContext);
           // Create site areas of current site
           for (let counterSiteA = 1; counterSiteA <= NBR_SITEAREAS; counterSiteA++) {
-            const siteAreaDef =     { 
+            const siteAreaDef = {
               id: new ObjectID().toHexString(),
               name: `${CONTEXTS.SITE_CONTEXTS.SITE_BASIC}-${CONTEXTS.SITE_AREA_CONTEXTS.WITHOUT_ACL}`,
               accessControl: false,
               siteName: siteTemplate.name
             };
-            const siteArea: SiteArea = null;
             const siteAreaTemplate = Factory.siteArea.build();
             siteAreaTemplate.id = siteAreaDef.id;
             // pragma siteAreaTemplate.name = siteAreaDef.name;

@@ -229,7 +229,7 @@ export default class OCPIClient {
     const payload = { 'status': newStatus };
 
     // Log
-    Logging.logInfo({
+    Logging.logDebug({
       tenantID: tenant.getID(),
       action: 'OCPIPatchLocations',
       message: `Patch location at ${fullUrl}`,
@@ -401,7 +401,6 @@ export default class OCPIClient {
       return this.ocpiEndpoint.getLastPatchJobResult().chargeBoxIDsInFailure;
     }
     return [];
-
   }
 
   // Get ChargeBoxIds with new status notifications
@@ -413,7 +412,7 @@ export default class OCPIClient {
     const params = { 'dateFrom': lastPatchJobOn };
 
     // Get last status notifications
-    const statusNotificationsResult = await OCPPStorage.getStatusNotifications(tenant.getID(), params);
+    const statusNotificationsResult = await OCPPStorage.getStatusNotifications(tenant.getID(), params, Constants.DB_PARAMS_MAX_LIMIT);
 
     // Loop through notifications
     if (statusNotificationsResult.count > 0) {
@@ -422,7 +421,6 @@ export default class OCPIClient {
       });
     }
     return [];
-
   }
 
 }

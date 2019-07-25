@@ -1,13 +1,13 @@
+import { Request } from 'express';
 import sanitize from 'mongo-sanitize';
 import Constants from '../../../../utils/Constants';
+import { HttpIsAuthorizedRequest, HttpLoginRequest, HttpRegisterUserRequest, HttpResendVerificationMailRequest, HttpResetPasswordRequest, HttpVerifyEmailRequest } from '../../../../types/requests/HttpUserRequest';
 import UtilsSecurity from './UtilsSecurity';
-import { HttpIsAuthorizedRequest, HttpLoginRequest, HttpResetPasswordRequest, HttpRegisterUserRequest, HttpVerifyEmailRequest, HttpResendVerificationMailRequest } from '../../../../types/requests/HttpUserRequest';
-import { Request } from 'express';
 
 export default class AuthSecurity {
-  
+
   public static filterIsAuthorizedRequest(request: Partial<HttpIsAuthorizedRequest>): HttpIsAuthorizedRequest {
-    let filteredRequest: HttpIsAuthorizedRequest = {
+    const filteredRequest: HttpIsAuthorizedRequest = {
       Action: sanitize(request.Action),
       Arg1: sanitize(request.Arg1),
       Arg2: sanitize(request.Arg2),
@@ -67,7 +67,7 @@ export default class AuthSecurity {
     };
   }
 
-  public static filterEndUserLicenseAgreementRequest(request: Request): {Language: string, tenant: string} {
+  public static filterEndUserLicenseAgreementRequest(request: Request): {Language: string; tenant: string} {
     const filteredRequest: any = {};
     // Set
     if (request.query) {

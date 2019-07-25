@@ -4,6 +4,7 @@ import faker from 'faker';
 import moment from 'moment';
 import CentralServerService from '../api/client/CentralServerService';
 import DataHelper from './DataHelper';
+import Utils from './Utils';
 
 chai.use(chaiSubset);
 
@@ -33,7 +34,7 @@ describe('Transaction tests', function() {
 
   after(async () => {
     testData.dataHelper16.close();
-    testData.dataHelper16.destroyData();
+    await testData.dataHelper16.destroyData();
   });
 
   describe('readById', () => {
@@ -927,7 +928,8 @@ describe('Transaction tests', function() {
       cumulated += meterValue.value;
       await testData.dataHelper16.sendConsumptionMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.timestamp);
     }
-    await timeout(2000);
+
+    await Utils.sleep(1000);
     expect(await testData.centralServerService.mailApi.isMailReceived(user.email, 'transaction-started')).is.equal(true, 'transaction-started mail');
     expect(await testData.centralServerService.mailApi.isMailReceived(user.email, 'end-of-charge')).is.equal(true, 'end-of-charge mail');
 
@@ -1055,11 +1057,3 @@ describe('Transaction tests', function() {
     });
   });
 });
-
-
-async function timeout(ms) {
-  // eslint-disable-next-line no-undef
-  return await new Promise((resolve) => {
-    return setTimeout(resolve, ms);
-  });
-}

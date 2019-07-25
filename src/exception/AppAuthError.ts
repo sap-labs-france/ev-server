@@ -1,11 +1,11 @@
 import Constants from '../utils/Constants';
-import Utils from '../utils/Utils';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
+import Utils from '../utils/Utils';
 
 export default class AppAuthError extends Error {
   public user: UserToken|User;
-  public actionOnUser: UserToken|User|string;
+  public actionOnUser: UserToken|User|string; // TODO: Convert
   public action: any;
   public entity: any;
   public value: any;

@@ -15,7 +15,7 @@ export default class CompanyStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompany');
     // Reuse
-    const companiesMDB = await CompanyStorage.getCompanies(tenantID, { search: id }, { limit: 1, skip: 0 });
+    const companiesMDB = await CompanyStorage.getCompanies(tenantID, { search: id }, Constants.DB_PARAMS_SINGLE_RECORD);
     let company: Company = null;
     // Check
     if (companiesMDB && companiesMDB.count > 0) {
@@ -78,7 +78,7 @@ export default class CompanyStorage {
     }
     // Save Logo
     if (saveLogo) {
-      CompanyStorage._saveCompanyLogo(tenantID, companyMDB._id.toHexString(), companyToSave.logo);
+      await CompanyStorage._saveCompanyLogo(tenantID, companyMDB._id.toHexString(), companyToSave.logo);
     }
     // Debug
     Logging.traceEnd('CompanyStorage', 'saveCompany', uniqueTimerID, { companyToSave });
@@ -86,7 +86,7 @@ export default class CompanyStorage {
   }
 
   public static async getCompanies(tenantID: string,
-    params: {search?: string; companyIDs?: string[]; onlyRecordCount?: boolean; withSites?: boolean; withLogo?: boolean} = {},
+    params: {search?: string; companyIDs?: string[]; withSites?: boolean; withLogo?: boolean} = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<{count: number; result: Company[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompanies');
@@ -132,16 +132,16 @@ export default class CompanyStorage {
       });
     }
     // Limit records?
-    if (!params.onlyRecordCount) {
+    if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
     const companiesCountMDB = await global.database.getCollection<{count: number}>(tenantID, 'companies')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
-    if (params.onlyRecordCount) {
+    if (dbParams.onlyRecordCount) {
       // Return only the count
       return {
         count: (companiesCountMDB.length > 0 ? companiesCountMDB[0].count : 0),
@@ -184,7 +184,7 @@ export default class CompanyStorage {
     }
     // Limit
     aggregation.push({
-      $limit: (limit > 0 && limit < Constants.MAX_DB_RECORD_COUNT) ? limit : Constants.MAX_DB_RECORD_COUNT
+      $limit: (limit > 0 && limit < Constants.DB_RECORD_COUNT_CEIL) ? limit : Constants.DB_RECORD_COUNT_CEIL
     });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
@@ -198,7 +198,7 @@ export default class CompanyStorage {
     // Ok
     return {
       count: (companiesCountMDB.length > 0 ?
-        (companiesCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : companiesCountMDB[0].count) : 0),
+        (companiesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : companiesCountMDB[0].count) : 0),
       result: companies
     };
   }
@@ -209,7 +209,7 @@ export default class CompanyStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete sites associated with Company
-    SiteStorage.deleteCompanySites(tenantID, id);
+    await SiteStorage.deleteCompanySites(tenantID, id);
     // Delete the Company
     await global.database.getCollection<Company>(tenantID, 'companies')
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });

@@ -5,8 +5,8 @@ import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 import SiteArea from '../../../../types/SiteArea';
 import SiteSecurity from './SiteSecurity';
-import UtilsSecurity from './UtilsSecurity';
 import UserToken from '../../../../types/UserToken';
+import UtilsSecurity from './UtilsSecurity';
 
 export default class SiteAreaSecurity {
 

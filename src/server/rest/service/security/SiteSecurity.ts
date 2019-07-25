@@ -6,8 +6,8 @@ import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUserAdminRequest, 
 import Site from '../../../../types/Site';
 import SiteAreaSecurity from './SiteAreaSecurity';
 import UserSecurity from './UserSecurity';
-import UtilsSecurity from './UtilsSecurity';
 import UserToken from '../../../../types/UserToken';
+import UtilsSecurity from './UtilsSecurity';
 
 export default class SiteSecurity {
 
@@ -45,6 +45,7 @@ export default class SiteSecurity {
   public static filterSiteUsersRequest(request: Partial<HttpSiteUsersRequest>): HttpSiteUsersRequest {
     const filteredRequest: HttpSiteUsersRequest = {} as HttpSiteUsersRequest;
     filteredRequest.SiteID = sanitize(request.SiteID);
+    filteredRequest.Search = sanitize(request.Search);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
@@ -114,21 +115,16 @@ export default class SiteSecurity {
       if (site.siteAreas) {
         filteredSite.siteAreas = SiteAreaSecurity.filterSiteAreasResponse(site.siteAreas, loggedUser);
       }
-      // if (site.users) {
-      //   filteredSite.users = site.users.map((user) => {
-      //     return UserSecurity.filterMinimalUserResponse(user, loggedUser);
-      //   });
-      // } TODO not needed anymore right
-      if (site.availableChargers) {
+      if (site.hasOwnProperty('availableChargers')) {
         filteredSite.availableChargers = site.availableChargers;
       }
-      if (site.totalChargers) {
+      if (site.hasOwnProperty('totalChargers')) {
         filteredSite.totalChargers = site.totalChargers;
       }
-      if (site.availableConnectors) {
+      if (site.hasOwnProperty('availableConnectors')) {
         filteredSite.availableConnectors = site.availableConnectors;
       }
-      if (site.totalConnectors) {
+      if (site.hasOwnProperty('totalConnectors')) {
         filteredSite.totalConnectors = site.totalConnectors;
       }
       // Created By / Last Changed By
@@ -138,7 +134,7 @@ export default class SiteSecurity {
     return filteredSite;
   }
 
-  static filterSitesResponse(sites: {result: Site[], count: number}, loggedUser) {
+  static filterSitesResponse(sites: {result: Site[]; count: number}, loggedUser) {
     const filteredSites = [];
 
     if (!sites.result) {

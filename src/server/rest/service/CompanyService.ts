@@ -1,21 +1,20 @@
 import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../exception/AppAuthError';
-import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import Company from '../../../types/Company';
 import CompanySecurity from './security/CompanySecurity';
 import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import User from '../../../types/User';
+import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 
 export default class CompanyService {
 
   public static async handleDeleteCompany(action: string, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_DELETE, Constants.ENTITY_COMPANY, 'CompanyService', 'handleDeleteCompany');
     // Filter
     const companyID = CompanySecurity.filterCompanyRequestByID(req.query);
@@ -51,8 +50,8 @@ export default class CompanyService {
 
   public static async handleGetCompany(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_READ, Constants.ENTITY_COMPANY, 'CompanyService', 'handleGetCompany');
     // Filter
     const filteredRequest = CompanySecurity.filterCompanyRequest(req.query);
@@ -82,8 +81,8 @@ export default class CompanyService {
 
   public static async handleGetCompanyLogo(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_READ, Constants.ENTITY_COMPANY, 'CompanyService', 'handleGetCompanyLogo');
     // Filter
     const companyID = CompanySecurity.filterCompanyRequestByID(req.query);
@@ -109,8 +108,8 @@ export default class CompanyService {
 
   public static async handleGetCompanies(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_LIST, Constants.ENTITY_COMPANIES, 'CompanyService', 'handleGetCompanies');
     // Check auth
     if (!Authorizations.canListCompanies(req.user)) {
@@ -130,10 +129,9 @@ export default class CompanyService {
         search: filteredRequest.Search,
         companyIDs: Authorizations.getAuthorizedCompanyIDs(req.user),
         withSites: filteredRequest.WithSites,
-        withLogo: filteredRequest.WithLogo,
-        onlyRecordCount: filteredRequest.OnlyRecordCount
+        withLogo: filteredRequest.WithLogo
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       [ 'id', 'name', 'address.latitude', 'address.longitude', 'address.city', 'address.country', 'logo']
     );
     // Filter
@@ -145,8 +143,8 @@ export default class CompanyService {
 
   public static async handleCreateCompany(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_CREATE, Constants.ENTITY_COMPANY, 'CompanyService', 'handleCreateCompany');
     // Check auth
     if (!Authorizations.canCreateCompany(req.user)) {
@@ -161,7 +159,7 @@ export default class CompanyService {
     // Filter
     const filteredRequest = CompanySecurity.filterCompanyCreateRequest(req.body);
     // Check
-    CompanyService._checkIfCompanyValid(filteredRequest, req);
+    Utils.checkIfCompanyValid(filteredRequest, req);
     // Create company
     const newCompany: Company = {
       ...filteredRequest,
@@ -184,8 +182,8 @@ export default class CompanyService {
 
   public static async handleUpdateCompany(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_UPDATE, Constants.ENTITY_COMPANY, 'CompanyService', 'handleUpdateCompany');
     // Filter
     const filteredRequest = CompanySecurity.filterCompanyUpdateRequest(req.body);
@@ -204,7 +202,7 @@ export default class CompanyService {
     // Check
     UtilsService.assertObjectExists(company, `The Site Area with ID '${filteredRequest.id}' does not exist`, 'CompanyService', 'handleUpdateCompany', req.user);
     // Check Mandatory fields
-    CompanyService._checkIfCompanyValid(filteredRequest, req);
+    Utils.checkIfCompanyValid(filteredRequest, req);
     // Update
     company.name = filteredRequest.name;
     company.address = filteredRequest.address;
@@ -223,22 +221,5 @@ export default class CompanyService {
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
-  }
-
-  private static _checkIfCompanyValid(filteredRequest: any, req: Request): void {
-    if (req.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Company ID is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'CompanyService', 'checkIfCompanyValid',
-        req.user.id);
-    }
-    if (!filteredRequest.name) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Company Name is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'CompanyService', 'checkIfCompanyValid',
-        req.user.id, filteredRequest.id);
-    }
   }
 }

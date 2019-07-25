@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { Handler, NextFunction, Request, Response } from 'express';
 import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import passport from 'passport';
@@ -7,25 +8,22 @@ import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import AuthSecurity from './security/AuthSecurity';
 import BadRequestError from '../../../exception/BadRequestError';
-import ChargingStation from '../../../entity/ChargingStation';
+import ChargingStation from '../../../types/ChargingStation';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
+import { HttpIsAuthorizedRequest, HttpLoginRequest, HttpResetPasswordRequest } from '../../../types/requests/HttpUserRequest';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
-import SessionHashService from './SessionHashService';
 import Site from '../../../types/Site';
 import SiteArea from '../../../types/SiteArea';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import Tenant from '../../../entity/Tenant';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
-import Utils from '../../../utils/Utils';
 import UserStorage from '../../../storage/mongodb/UserStorage';
-import UserService from './UserService';
-import { Handler, NextFunction, Request, Response } from 'express';
-import { HttpIsAuthorizedRequest, HttpResetPasswordRequest, HttpLoginRequest } from '../../../types/requests/HttpUserRequest';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import UserToken from '../../../types/UserToken';
+import Utils from '../../../utils/Utils';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
@@ -59,7 +57,7 @@ export default class AuthService {
   public static async handleIsAuthorized(action: string, req: Request, res: Response, next: NextFunction) {
     let user: User;
     // Default
-    let result = [{ 'IsAuthorized': false }];
+    let result = [{ 'IsAuthorized': false }]; // TODO: Change style
     // Filter
     const filteredRequest = AuthSecurity.filterIsAuthorizedRequest(req.query);
     // Check
@@ -84,7 +82,7 @@ export default class AuthService {
             Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleIsAuthorized');
         }
         // Get the Charging station
-        chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.Arg1);
+        chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.Arg1);
         // Found?
         if (!chargingStation) {
           // Not Found!
@@ -97,8 +95,8 @@ export default class AuthService {
         if (!filteredRequest.Arg2) {
           const results = [];
           // Check authorization for each connectors
-          for (let index = 0; index < chargingStation.getConnectors().length; index++) {
-            const connector = chargingStation.getConnector(index + 1);
+          for (let index = 0; index < chargingStation.connectors.length; index++) {
+            const connector = chargingStation.connectors.find(c=>c.connectorId===index + 1);
             const tempResult = { 'IsAuthorized': false };
             if (connector.activeTransactionID) {
               tempResult.IsAuthorized = await AuthService.isStopTransactionAuthorized(filteredRequest, chargingStation, connector.activeTransactionID, req.user);
@@ -122,7 +120,7 @@ export default class AuthService {
             Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleIsAuthorized');
         }
         // Get the Charging station
-        chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.Arg1);
+        chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.Arg1);
         // Found?
         if (!chargingStation) {
           // Not Found!
@@ -145,38 +143,34 @@ export default class AuthService {
         break;
     }
     // Return the result
-    res.json(result.length===1?result[0]:result);
+    res.json(result.length === 1 ? result[0] : result);
     next();
   }
 
-  public static async checkConnectorsActionAuthorizations(tenantID: string, user: UserToken, chargingStation) {
+  public static async checkConnectorsActionAuthorizations(tenantID: string, user: UserToken, chargingStation: ChargingStation) {
     const results = [];
     // Check if organization component is active
-    const tenant = await Tenant.getTenant(tenantID);
-    const isOrganizationComponentActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+    const isOrganizationComponentActive = Utils.isComponentActiveFromToken(user, Constants.COMPONENTS.ORGANIZATION);
     let siteArea: SiteArea;
     let site: Site;
     if (isOrganizationComponentActive) {
-      // Get charging station site
       // Site Area -----------------------------------------------
-      siteArea = await chargingStation.getSiteArea();
+      siteArea = await chargingStation.siteArea;
       try {
         // Site is mandatory
         if (!siteArea) {
-          // Reject Site Not Found
           throw new AppError(
-            chargingStation.getID(),
-            `Charging Station '${chargingStation.getID()}' is not assigned to a Site Area!`,
+            chargingStation.id,
+            `Charging Station '${chargingStation.id}' is not assigned to a Site Area!`,
             Constants.HTTP_AUTH_CHARGER_WITH_NO_SITE_AREA_ERROR,
             'AuthService', 'checkConnectorsActionAuthorizations');
         }
 
         // Site -----------------------------------------------------
-        site = await siteArea.site;
+        site = await SiteStorage.getSite(tenantID, siteArea.siteID);
         if (!site) {
-          // Reject Site Not Found
           throw new AppError(
-            chargingStation.getID(),
+            chargingStation.id,
             `Site Area '${siteArea.name}' is not assigned to a Site!`,
             Constants.HTTP_AUTH_SITE_AREA_WITH_NO_SITE_ERROR,
             'AuthService', 'checkConnectorsActionAuthorizations',
@@ -184,7 +178,7 @@ export default class AuthService {
         }
       } catch (error) {
         // Problem with site assignment so do not allow any action
-        for (let index = 0; index < chargingStation.getConnectors().length; index++) {
+        for (let index = 0; index < chargingStation.connectors.length; index++) {
           results.push(
             {
               'isStartAuthorized': false,
@@ -197,16 +191,16 @@ export default class AuthService {
       }
     }
     // Check authorization for each connectors
-    for (let index = 0; index < chargingStation.getConnectors().length; index++) {
-      const connector = chargingStation.getConnector(index + 1);
-      results.push(await Authorizations.getConnectorActionAuthorizations(tenantID, user, chargingStation, connector, siteArea, site));
+    for (let index = 0; index < chargingStation.connectors.length; index++) {
+      const connector = chargingStation.connectors.find(c=>c.connectorId===index+1);
+      results.push(await Authorizations.getConnectorActionAuthorizations({ tenantID, user, chargingStation, connector, siteArea, site }));
     }
     return results;
   }
 
-  public static async isStopTransactionAuthorized(filteredRequest: HttpIsAuthorizedRequest, chargingStation, transactionId: string, user: UserToken) {
+  public static async isStopTransactionAuthorized(filteredRequest: HttpIsAuthorizedRequest, chargingStation: ChargingStation, transactionId: number, user: UserToken) {
     // Get Transaction
-    const transaction = await TransactionStorage.getTransaction(chargingStation.getTenantID(), transactionId);
+    const transaction = await TransactionStorage.getTransaction(user.tenantID, transactionId);
     if (!transaction) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
@@ -214,15 +208,16 @@ export default class AuthService {
         Constants.HTTP_AUTH_ERROR, 'AuthService', 'isStopTransactionAuthorized');
     }
     // Check Charging Station
-    if (transaction.getChargeBoxID() !== chargingStation.getID()) {
+    if (transaction.getChargeBoxID() !== chargingStation.id) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Transaction ID '${filteredRequest.Arg2}' has a Charging Station '${transaction.getChargeBoxID()}' that differs from '${chargingStation.getID()}'`,
+        `Transaction ID '${filteredRequest.Arg2}' has a Charging Station '${transaction.getChargeBoxID()}' that differs from '${chargingStation.id}'`,
         565, 'AuthService', 'isStopTransactionAuthorized');
     }
     try {
       // Check
-      await Authorizations.isTagIDsAuthorizedOnChargingStation(chargingStation, user.tagIDs[0], transaction.getTagID(), filteredRequest.Action);
+      await Authorizations.isTagIDsAuthorizedOnChargingStation(user.tenantID,
+        chargingStation, user.tagIDs[0], transaction.getTagID(), filteredRequest.Action);
       // Ok
       return true;
     } catch (e) {
@@ -237,7 +232,7 @@ export default class AuthService {
     const filteredRequest = AuthSecurity.filterLoginRequest(req.body);
     // Get Tenant
     tenantID = await AuthService.getTenantID(filteredRequest.tenant);
-    req.user = {tenantID: tenantID};
+    req.user = { tenantID: tenantID };
     if (!tenantID) {
       tenantID = Constants.DEFAULT_TENANT;
       throw new AppError(
@@ -327,17 +322,6 @@ export default class AuthService {
   public static async handleRegisterUser(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterRegisterUserRequest(req.body);
-    // Check
-    if (!filteredRequest.tenant) {
-      const error = new BadRequestError({
-        path: 'tenant',
-        message: 'The Tenant is mandatory'
-      });
-      // Log Error
-      Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleRegisterUser', Constants.DEFAULT_TENANT);
-      next(error);
-      return;
-    }
     // Get the Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
@@ -350,7 +334,7 @@ export default class AuthService {
       next(error);
       return;
     }
-    req.user = {tenantID: tenantID};
+    req.user = { tenantID: tenantID };
     // Check EULA
     if (!filteredRequest.acceptEula) {
       throw new AppError(
@@ -365,11 +349,9 @@ export default class AuthService {
         'The captcha is mandatory', Constants.HTTP_GENERAL_ERROR,
         'AuthService', 'handleRegisterUser');
     }
-
-    // Check captcha
+    // Check Captcha
     const response = await axios.get(
       `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`);
-    // Check
     if (!response.data.success) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
@@ -381,10 +363,10 @@ export default class AuthService {
         'The captcha score is too low', Constants.HTTP_GENERAL_ERROR,
         'AuthService', 'handleRegisterUser');
     }
+    // Check Mandatory fields
+    Utils.checkIfUserValid(filteredRequest, null, req);
     // Check email
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
-    // Check Mandatory fields
-    UserService.checkIfUserValid(filteredRequest, null, req);
     if (user) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
@@ -393,28 +375,43 @@ export default class AuthService {
         null, user);
     }
     // Generate a password
-    const newPasswordHashed = await UserService.hashPasswordBcrypt(filteredRequest.password);
+    const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
     // Create the user
-    let newUser = UserStorage.getEmptyUser();
-
+    const newUser = UserStorage.getEmptyUser();
     newUser.password = newPasswordHashed;
     newUser.email = filteredRequest.email;
     newUser.name = filteredRequest.name;
-    newUser.firstName = filteredRequest.firstName
-    newUser.role = Constants.ROLE_BASIC;
+    newUser.firstName = filteredRequest.firstName;
+    if (tenantID === Constants.DEFAULT_TENANT) {
+      newUser.role = Constants.ROLE_SUPER_ADMIN;
+    } else {
+      newUser.role = Constants.ROLE_BASIC;
+    }
     newUser.status = Constants.USER_STATUS_PENDING;
-    newUser.tagIDs = [newUser.name[0] + newUser.firstName[0] + Utils.getRandomInt()];
     newUser.locale = req.locale.substring(0, 5);
     newUser.verificationToken = Utils.generateToken(req.body.email);
-
-    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, newUser.locale.substring(0,2));
+    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, newUser.locale.substring(0, 2));
     newUser.eulaAcceptedOn = new Date();
     newUser.eulaAcceptedVersion = endUserLicenseAgreement.version;
     newUser.eulaAcceptedHash = endUserLicenseAgreement.hash;
-
-    // Save
-    await UserStorage.saveUser(tenantID, newUser);
-
+    // Save User
+    newUser.id = await UserStorage.saveUser(tenantID, newUser);
+    // Save Tags
+    const tagIDs = [newUser.name[0] + newUser.firstName[0] + Utils.getRandomInt()];
+    await UserStorage.saveUserTags(tenantID, newUser.id, tagIDs);
+    // Assign user to all sites with auto-assign flag set
+    const sites = await SiteStorage.getSites(tenantID,
+      { withAutoUserAssignment: true },
+      Constants.DB_PARAMS_MAX_LIMIT
+    );
+    if (sites.count > 0) {
+      const siteIDs = sites.result.map((site) => {
+        return site.id;
+      });
+      if (siteIDs && siteIDs.length > 0) {
+        await UserStorage.addSitesToUser(tenantID, newUser.id, siteIDs);
+      }
+    }
     // Log
     Logging.logSecurityInfo({
       tenantID: tenantID,
@@ -425,22 +422,23 @@ export default class AuthService {
       detailedMessages: req.body
     });
 
-    // Send notification
-    const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
-      '/#/verify-email?VerificationToken=' + newUser.verificationToken + '&Email=' +
-      newUser.email;
-
-    NotificationHandler.sendNewRegisteredUser(
-      tenantID,
-      Utils.generateGUID(),
-      newUser,
-      {
-        'user': newUser,
-        'evseDashboardURL': Utils.buildEvseURL(filteredRequest.tenant),
-        'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
-      },
-      newUser.locale
-    );
+    if (tenantID !== Constants.DEFAULT_TENANT) {
+      // Send notification
+      const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
+        '/#/verify-email?VerificationToken=' + newUser.verificationToken + '&Email=' +
+        newUser.email;
+      NotificationHandler.sendNewRegisteredUser(
+        tenantID,
+        Utils.generateGUID(),
+        newUser,
+        {
+          'user': newUser,
+          'evseDashboardURL': Utils.buildEvseURL(filteredRequest.tenant),
+          'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
+        },
+        newUser.locale
+      );
+    }
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
@@ -522,9 +520,9 @@ export default class AuthService {
 
   public static async generateNewPasswordAndSendEmail(tenantID: string, filteredRequest, action: string, req: Request, res: Response, next: NextFunction) {
     // Create the password
-    const newPassword = UserService.generatePassword();
+    const newPassword = Utils.generatePassword();
     // Hash it
-    const newHashedPassword = await UserService.hashPasswordBcrypt(newPassword);
+    const newHashedPassword = await Utils.hashPasswordBcrypt(newPassword);
     // Get the user
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
     // Found?
@@ -725,7 +723,6 @@ export default class AuthService {
   public static async handleResendVerificationEmail(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterResendVerificationEmail(req.body);
-
     // Get the tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
@@ -737,6 +734,13 @@ export default class AuthService {
       Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleResendVerificationEmail', Constants.DEFAULT_TENANT);
       next(error);
       return;
+    }
+    // Check that this is not the super tenant
+    if (tenantID === Constants.DEFAULT_TENANT) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Cannot request a verification Email in the Super Tenant', Constants.HTTP_GENERAL_ERROR,
+        'AuthService', 'handleResendVerificationEmail');
     }
     // Check email
     if (!filteredRequest.email) {
@@ -768,7 +772,7 @@ export default class AuthService {
         'AuthService', 'handleResendVerificationEmail');
     }
     // Is valid email?
-    let user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
+    const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
     // User exists?
     if (!user) {
       throw new AppError(
@@ -882,7 +886,7 @@ export default class AuthService {
       action: action, message: 'User logged in successfully'
     });
     // Get EULA
-    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, user.locale.substring(0,2));
+    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, user.locale.substring(0, 2));
     // Set Eula Info on Login Only
     if (action === 'Login') {
       user.eulaAcceptedOn = new Date();
@@ -895,20 +899,16 @@ export default class AuthService {
     user.passwordResetHash = null;
     // Save
     await UserStorage.saveUser(tenantID, user);
-
     // Yes: build payload
     const payload: UserToken = await Authorizations.buildUserToken(tenantID, user);
-
     // Build token
     let token;
     // Role Demo?
     if (Authorizations.isDemo(user.role)) {
-      // Yes
       token = jwt.sign(payload, jwtOptions.secretOrKey, {
         expiresIn: _centralSystemRestConfig.userDemoTokenLifetimeDays * 24 * 3600
       });
     } else {
-      // No
       token = jwt.sign(payload, jwtOptions.secretOrKey, {
         expiresIn: _centralSystemRestConfig.userTokenLifetimeHours * 3600
       });
@@ -939,9 +939,9 @@ export default class AuthService {
     }
 
     // Check password
-    const match = await UserService.checkPasswordBCrypt(filteredRequest.password, user.password);
+    const match = await Utils.checkPasswordBCrypt(filteredRequest.password, user.password);
     // Check new and old version of hashing the password
-    if (match || (user.password === UserService.hashPassword(filteredRequest.password))) {
+    if (match || (user.password === Utils.hashPassword(filteredRequest.password))) {
       // Check if the account is pending
       if (user.status === Constants.USER_STATUS_PENDING) {
         throw new AppError(

@@ -4,6 +4,8 @@ import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import LoggingDatabaseTableCleanupTask from './tasks/LoggingDatabaseTableCleanupTask';
 import OCPIPatchLocationsTask from './tasks/OCPIPatchLocationsTask';
+import SchedulerTask from './SchedulerTask';
+import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
 
 const _schedulerConfig = Configuration.getSchedulerConfig();
 
@@ -14,65 +16,60 @@ export default class SchedulerManager {
       // Log
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
-        module: 'Scheduler',
-        method: 'init', action: 'Initialization',
+        module: 'Scheduler', method: 'init',
+        action: 'Scheduler',
         message: 'The Scheduler is active'
       });
       // Yes: init
       for (const task of _schedulerConfig.tasks) {
         // Active?
         if (!task.active) {
-          // Log
           Logging.logError({
             tenantID: Constants.DEFAULT_TENANT,
-            module: 'Scheduler',
-            method: 'init', action: 'Initialization',
+            module: 'Scheduler', method: 'init',
+            action: 'Scheduler',
             message: `The task '${task.name}' is inactive`
           });
-          // No
           return;
         }
+        let schedulerTask: SchedulerTask;
         // Tasks
         switch (task.name) {
-          // Cleanup of logging table
-          case 'loggingDatabaseTableCleanup':
-            const loggingDatabaseTableCleanupTask = new LoggingDatabaseTableCleanupTask();
-            cron.schedule(task.periodicity, loggingDatabaseTableCleanupTask.run.bind(SchedulerManager, task.config));
-            Logging.logInfo({
-              tenantID: Constants.DEFAULT_TENANT,
-              module: 'Scheduler',
-              method: 'init', action: 'Initialization',
-              message: `The task '${task.name}' has been scheduled with periodicity ''${task.periodicity}'`
-            });
+          case 'LoggingDatabaseTableCleanupTask':
+            schedulerTask = new LoggingDatabaseTableCleanupTask();
             break;
-          // Cleanup of logging table
           case 'OCPIPatchLocationsTask':
-            const ocpiPatvhLocationsTask = new OCPIPatchLocationsTask();
-            cron.schedule(task.periodicity, ocpiPatvhLocationsTask.run.bind(SchedulerManager, task.config));
-            Logging.logInfo({
-              tenantID: Constants.DEFAULT_TENANT,
-              module: 'Scheduler',
-              method: 'init', action: 'Initialization',
-              message: `The task '${task.name}' has been scheduled with periodicity ''${task.periodicity}'`
-            });
+            schedulerTask = new OCPIPatchLocationsTask();
             break;
-          // Unknown task
+          case 'SynchronizeRefundTransactionsTask':
+            schedulerTask = new SynchronizeRefundTransactionsTask();
+            break;
           default:
-            // Log
             Logging.logError({
               tenantID: Constants.DEFAULT_TENANT,
-              module: 'Scheduler',
-              method: 'init', action: 'Initialization',
+              module: 'Scheduler', method: 'init',
+              action: 'Scheduler',
               message: `The task '${task.name}' is unknown`
             });
+        }
+        if (schedulerTask) {
+          cron.schedule(task.periodicity, () => {
+            return schedulerTask.run(task.name, task.config);
+          });
+          Logging.logInfo({
+            tenantID: Constants.DEFAULT_TENANT,
+            module: 'Scheduler', method: 'init',
+            action: 'Scheduler',
+            message: `The task '${task.name}' has been scheduled with periodicity ''${task.periodicity}'`
+          });
         }
       }
     } else {
       // Log
-      Logging.logError({
+      Logging.logWarning({
         tenantID: Constants.DEFAULT_TENANT,
-        module: 'Scheduler',
-        method: 'init', action: 'Initialization',
+        module: 'Scheduler', method: 'init',
+        action: 'Scheduler',
         message: 'The Scheduler is inactive'
       });
     }

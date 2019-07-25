@@ -5,6 +5,7 @@ import DatabaseUtils from './DatabaseUtils';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
+import DbParams from '../../types/database/DbParams';
 
 export default class OCPPStorage {
   static async saveAuthorize(tenantID, authorize) {
@@ -35,15 +36,15 @@ export default class OCPPStorage {
     Logging.traceEnd('OCPPStorage', 'saveAuthorize', uniqueTimerID);
   }
 
-  static async getStatusNotifications(tenantID, params: any = {}, limit?, skip?, sort?) {
+  static async getStatusNotifications(tenantID: string, params: {dateFrom?:Date,chargeBoxID?:string,connectorId?:number,status?:string}, dbParams: DbParams) {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getStatusNotifications');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
-    limit = Utils.checkRecordLimit(limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    skip = Utils.checkRecordSkip(skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
     const filters: any = {};
     // Date from provided?
@@ -76,10 +77,10 @@ export default class OCPPStorage {
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Sort
-    if (sort) {
+    if (dbParams.sort) {
       // Sort
       aggregation.push({
-        $sort: sort
+        $sort: dbParams.sort
       });
     } else {
       // Default
@@ -91,11 +92,11 @@ export default class OCPPStorage {
     }
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
     // Read DB
     const statusNotificationsMDB = await global.database.getCollection<any>(tenantID, 'statusnotifications')
@@ -212,7 +213,7 @@ export default class OCPPStorage {
     Logging.traceEnd('OCPPStorage', 'saveBootNotification', uniqueTimerID);
   }
 
-  static async getBootNotifications(tenantID, params: any = {}, limit, skip, sort) {
+  public static async getBootNotifications(tenantID: string, params: {chargeBoxID?: string}, {limit, skip, sort}: DbParams) {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPPStorage', 'getBootNotifications');
     // Check Tenant

@@ -1,19 +1,13 @@
 import BackendError from '../../../exception/BackendError';
-import ChargingStation from '../../../entity/ChargingStation';
+import ChargingStation from '../../../types/ChargingStation';
 import Constants from '../../../utils/Constants';
 import global from '../../../types/GlobalType';
 import Logging from '../../../utils/Logging';
 import WSConnection from './WSConnection';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 
 const MODULE_NAME = 'JsonRestWSConnection';
 export default class JsonRestWSConnection extends WSConnection {
-
-  public getTenantID: any;
-  public getChargingStationID: any;
-  public getIP: any;
-  public getWSConnection: any;
-  public getURL: any;
-  public sendMessage: any;
 
   constructor(wsConnection, req, wsServer) {
     // Call super
@@ -67,7 +61,7 @@ export default class JsonRestWSConnection extends WSConnection {
     // Log
     Logging.logReceivedAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
     // Get the Charging Station
-    const chargingStation = await ChargingStation.getChargingStation(this.getTenantID(), this.getChargingStationID());
+    const chargingStation = await ChargingStationStorage.getChargingStation(this.getTenantID(), this.getChargingStationID());
     // Found?
     if (!chargingStation) {
       // Error
@@ -75,7 +69,7 @@ export default class JsonRestWSConnection extends WSConnection {
         'JsonRestWSConnection', 'handleRequest', commandName);
     }
     // Get the client from JSON Server
-    const chargingStationClient = global.centralSystemJson.getChargingStationClient(chargingStation.getTenantID(), chargingStation.getID());
+    const chargingStationClient = global.centralSystemJson.getChargingStationClient(this.getTenantID(), chargingStation.id);
     if (!chargingStationClient) {
       // Error
       throw new BackendError(this.getChargingStationID(), 'Charger is not connected to the backend',

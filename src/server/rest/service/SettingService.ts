@@ -1,3 +1,4 @@
+import { NextFunction, Request, Response } from 'express';
 import _ from 'lodash';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
@@ -8,10 +9,9 @@ import Database from '../../../utils/Database';
 import Logging from '../../../utils/Logging';
 import Setting from '../../../entity/Setting';
 import SettingSecurity from './security/SettingSecurity';
-import User from '../../../types/User';
 
 export default class SettingService {
-  public static async handleDeleteSetting(action, req, res, next) {
+  public static async handleDeleteSetting(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
       const filteredRequest = SettingSecurity.filterSettingDeleteRequest(req.query, req.user);
@@ -61,7 +61,7 @@ export default class SettingService {
     }
   }
 
-  public static async handleGetSetting(action, req, res, next) {
+  public static async handleGetSetting(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
       const filteredRequest = SettingSecurity.filterSettingRequest(req.query, req.user);
@@ -97,7 +97,7 @@ export default class SettingService {
     }
   }
 
-  public static async handleGetSettings(action, req, res, next) {
+  public static async handleGetSettings(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canListSettings(req.user)) {
@@ -140,7 +140,7 @@ export default class SettingService {
     }
   }
 
-  public static async handleCreateSetting(action, req, res, next) {
+  public static async handleCreateSetting(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canCreateSetting(req.user)) {
@@ -182,7 +182,7 @@ export default class SettingService {
     }
   }
 
-  public static async handleUpdateSetting(action, req, res, next) {
+  public static async handleUpdateSetting(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = SettingSecurity.filterSettingUpdateRequest(req.body, req.user);
     // Get Setting

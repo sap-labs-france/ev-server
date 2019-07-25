@@ -1,9 +1,7 @@
-import SourceMap from 'source-map-support';
 import AuthService from './service/AuthService';
-import UtilsService from './service/UtilsService';
+import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-
-SourceMap.install();
+import UtilsService from './service/UtilsService';
 
 export default {
   // Init Passport
@@ -18,7 +16,16 @@ export default {
   async authService(req, res, next) {
     // Parse the action
     const action = /^\/\w*/g.exec(req.url)[0].substring(1);
-    try{
+    // Get the tenant
+    let tenant = Constants.DEFAULT_TENANT;
+    if (req.body && req.body.tenant) {
+      tenant = req.body.tenant;
+    } else if (req.query && req.query.tenant) {
+      tenant = req.query.tenant;
+    } else if (req.user && req.user.tenantID) {
+      tenant = req.user.tenantID;
+    }
+    try {
       // Check Context
       switch (req.method) {
         // Create Request
@@ -51,7 +58,7 @@ export default {
 
             default:
               // Delegate
-              await UtilsService.handleUnknownAction(action, req, res, next);
+              UtilsService.handleUnknownAction(action, req, res, next);
           }
           break;
 
@@ -62,7 +69,7 @@ export default {
             // Log out
             case 'Logout':
               // Delegate
-              await AuthService.handleUserLogOut(action, req, res, next);
+              AuthService.handleUserLogOut(action, req, res, next);
               break;
 
             // End-user license agreement
@@ -79,13 +86,12 @@ export default {
 
             default:
               // Delegate
-              await UtilsService.handleUnknownAction(action, req, res, next);
+              UtilsService.handleUnknownAction(action, req, res, next);
           }
           break;
       }
     } catch (error) {
-      console.log(error);
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next, req.user.tenantID);
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next, tenant);
     }
   }
 };

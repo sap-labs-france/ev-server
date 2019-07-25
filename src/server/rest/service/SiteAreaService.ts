@@ -1,19 +1,19 @@
 import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../exception/AppAuthError';
-import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import SiteArea from '../../../types/SiteArea';
 import SiteAreaSecurity from './security/SiteAreaSecurity';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 
 export default class SiteAreaService {
   public static async handleDeleteSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_DELETE, Constants.ENTITY_SITE_AREA, 'SiteAreaService', 'handleDeleteSiteArea');
     // Filter
     const siteAreaID = SiteAreaSecurity.filterSiteAreaRequestByID(req.query);
@@ -50,8 +50,8 @@ export default class SiteAreaService {
 
   public static async handleGetSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_READ, Constants.ENTITY_SITE_AREA, 'SiteAreaService', 'handleGetSiteArea');
     // Filter
     const filteredRequest = SiteAreaSecurity.filterSiteAreaRequest(req.query);
@@ -82,8 +82,8 @@ export default class SiteAreaService {
 
   public static async handleGetSiteAreaImage(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_READ, Constants.ENTITY_SITE_AREA, 'SiteAreaService', 'handleGetSiteAreaImage');
     // Filter
     const siteAreaID = SiteAreaSecurity.filterSiteAreaRequestByID(req.query);
@@ -115,8 +115,8 @@ export default class SiteAreaService {
 
   public static async handleGetSiteAreas(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_LIST, Constants.ENTITY_SITE_AREAS, 'SiteAreaService', 'handleGetSiteAreas');
     // Check auth
     if (!Authorizations.canListSiteAreas(req.user)) {
@@ -133,16 +133,13 @@ export default class SiteAreaService {
     const siteAreas = await SiteAreaStorage.getSiteAreas(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        siteIDs: Authorizations.getAuthorizedSiteIDs(req.user),
         withSite: filteredRequest.WithSite,
         withChargeBoxes: filteredRequest.WithChargeBoxes,
         withAvailableChargers: filteredRequest.WithAvailableChargers,
-        siteID: filteredRequest.SiteID,
-        onlyRecordCount: filteredRequest.OnlyRecordCount
+        siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : Authorizations.getAuthorizedSiteIDs(req.user))
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort },
-      ['id', 'name', 'siteID', 'address.latitude', 'address.longitude', 'address.city', 'address.country', 'site.id', 'site.name',
-        'chargingStations.id', 'chargingStations.connectors', 'chargingStations.lastHeartBeat']
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
+      ['id', 'name', 'siteID', 'address.latitude', 'address.longitude', 'address.city', 'address.country', 'site.id', 'site.name']
     );
     // Filter
     SiteAreaSecurity.filterSiteAreasResponse(siteAreas, req.user);
@@ -153,13 +150,13 @@ export default class SiteAreaService {
 
   public static async handleCreateSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_CREATE, Constants.ENTITY_SITE_AREAS, 'SiteAreaService', 'handleCreateSiteArea');
     // Filter
     const filteredRequest = SiteAreaSecurity.filterSiteAreaCreateRequest(req.body);
     // Check
-    SiteAreaService._checkIfSiteAreaValid(filteredRequest, req);
+    Utils.checkIfSiteAreaValid(filteredRequest, req);
     // Check auth
     if (!Authorizations.canCreateSiteArea(req.user, filteredRequest.siteID)) {
       throw new AppAuthError(
@@ -195,8 +192,8 @@ export default class SiteAreaService {
 
   public static async handleUpdateSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_UPDATE, Constants.ENTITY_SITE_AREA, 'SiteAreaService', 'handleUpdateSiteArea');
     // Filter
     const filteredRequest = SiteAreaSecurity.filterSiteAreaUpdateRequest(req.body);
@@ -215,7 +212,7 @@ export default class SiteAreaService {
         req.user);
     }
     // Check Mandatory fields
-    SiteAreaService._checkIfSiteAreaValid(filteredRequest, req);
+    Utils.checkIfSiteAreaValid(filteredRequest, req);
     // Update
     siteArea.name = filteredRequest.name;
     siteArea.address = filteredRequest.address;
@@ -237,29 +234,5 @@ export default class SiteAreaService {
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
-  }
-
-  private static _checkIfSiteAreaValid(filteredRequest: any, req: Request): void {
-    if (req.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Site Area ID is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'SiteAreaService', '_checkIfSiteAreaValid',
-        req.user.id);
-    }
-    if (!filteredRequest.name) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Site Area is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'SiteAreaService', '_checkIfSiteAreaValid',
-        req.user.id, filteredRequest.id);
-    }
-    if (!filteredRequest.siteID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Site ID is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'SiteAreaService', '_checkIfSiteAreaValid',
-        req.user.id, filteredRequest.id);
-    }
   }
 }

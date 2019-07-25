@@ -1,5 +1,5 @@
 import Address from './Address';
-import ChargingStation from '../entity/ChargingStation';
+import ChargingStation from '../types/ChargingStation';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import Site from '../types/Site';
 

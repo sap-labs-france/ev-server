@@ -1,17 +1,19 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import UtilsSecurity from './UtilsSecurity';
-import { HttpSitesAssignUserRequest, HttpUsersRequest, HttpUserRequest } from '../../../../types/requests/HttpUserRequest';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import { HttpSitesAssignUserRequest, HttpUserRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
+import UtilsSecurity from './UtilsSecurity';
 
 export default class UserSecurity {
 
-  public static filterAssignSitesToUserRequest(request: Partial<HttpSitesAssignUserRequest>, loggedUser): HttpSitesAssignUserRequest {
+  public static filterAssignSitesToUserRequest(request: Partial<HttpSitesAssignUserRequest>): HttpSitesAssignUserRequest {
     return {
       userID: sanitize(request.userID),
-      siteIDs: request.siteIDs ? request.siteIDs.map(sid => sanitize(sid)) : []
+      siteIDs: request.siteIDs ? request.siteIDs.map((sid) => {
+        return sanitize(sid);
+      }) : []
     };
   }
 
@@ -19,20 +21,20 @@ export default class UserSecurity {
     return sanitize(request.ID);
   }
 
-  public static filterUsersRequest(request: Partial<HttpUsersRequest>, loggedUser): HttpUsersRequest {
-    if(request.Search) {
+  public static filterUsersRequest(request: Partial<HttpUsersRequest>): HttpUsersRequest {
+    if (request.Search) {
       request.Search = sanitize(request.Search);
     }
-    if(request.SiteID) {
+    if (request.SiteID) {
       request.SiteID = sanitize(request.SiteID);
     }
-    if(request.Role) {
+    if (request.Role) {
       request.Role = sanitize(request.Role);
     }
-    if(request.Status) {
+    if (request.Status) {
       request.Status = sanitize(request.Status);
     }
-    if(request.ExcludeSiteID) {
+    if (request.ExcludeSiteID) {
       request.ExcludeSiteID = sanitize(request.ExcludeSiteID);
     }
     UtilsSecurity.filterSkipAndLimit(request, request);
@@ -40,17 +42,17 @@ export default class UserSecurity {
     return request as HttpUsersRequest;
   }
 
-  public static filterUserUpdateRequest(request: Partial<HttpUserRequest>, loggedUser): Partial<HttpUserRequest> {
+  public static filterUserUpdateRequest(request: Partial<HttpUserRequest>, loggedUser: UserToken): Partial<HttpUserRequest> {
     const filteredRequest = UserSecurity._filterUserRequest(request, loggedUser);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  public static filterUserCreateRequest(request: Partial<HttpUserRequest>, loggedUser): Partial<HttpUserRequest> {
+  public static filterUserCreateRequest(request: Partial<HttpUserRequest>, loggedUser: UserToken): Partial<HttpUserRequest> {
     return UserSecurity._filterUserRequest(request, loggedUser);
   }
 
-  public static _filterUserRequest(request: Partial<HttpUserRequest>, loggedUser): Partial<HttpUserRequest> {
+  public static _filterUserRequest(request: Partial<HttpUserRequest>, loggedUser: UserToken): Partial<HttpUserRequest> {
     const filteredRequest: Partial<HttpUserRequest> = {};
     if (request.costCenter) {
       filteredRequest.costCenter = sanitize(request.costCenter);
@@ -82,14 +84,14 @@ export default class UserSecurity {
     if (request.phone) {
       filteredRequest.phone = sanitize(request.phone);
     }
+    if (request.email) {
+      filteredRequest.email = sanitize(request.email);
+    }
     // Admin?
     if (Authorizations.isAdmin(loggedUser.role) || Authorizations.isSuperAdmin(loggedUser.role)) {
       // Ok to set the sensitive data
-      if (request.notificationsActive) {
+      if (request.hasOwnProperty('notificationsActive')) {
         filteredRequest.notificationsActive = sanitize(request.notificationsActive);
-      }
-      if (request.email) {
-        filteredRequest.email = sanitize(request.email);
       }
       if (request.status) {
         filteredRequest.status = sanitize(request.status);
@@ -108,7 +110,7 @@ export default class UserSecurity {
   }
 
   // User
-  static filterUserResponse(user: User, loggedUser: UserToken) {
+  static filterUserResponse(user: User, loggedUser: UserToken): User {
     const filteredUser: any = {};
     if (!user) {
       return null;
@@ -161,8 +163,8 @@ export default class UserSecurity {
   }
 
   // User
-  static filterMinimalUserResponse(user: User, loggedUser: UserToken) {
-    let filteredUser: any = {};
+  static filterMinimalUserResponse(user: User, loggedUser: UserToken): void {
+    const filteredUser: any = {};
     if (!user) {
       return null;
     }
@@ -175,7 +177,7 @@ export default class UserSecurity {
     return filteredUser;
   }
 
-  static filterUsersResponse(users, loggedUser: UserToken) {
+  static filterUsersResponse(users, loggedUser: UserToken): void {
     const filteredUsers = [];
     if (!users.result) {
       return null;

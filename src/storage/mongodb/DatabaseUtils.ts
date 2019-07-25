@@ -1,8 +1,8 @@
 import { ObjectID } from 'mongodb';
+import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import DbLookup from '../../types/database/DBLookup';
 import Utils from '../../utils/Utils';
-import Configuration from '../../utils/Configuration';
 
 const FIXED_COLLECTIONS: string[] = ['tenants', 'migrations'];
 
@@ -67,6 +67,12 @@ export default class DatabaseUtils {
     });
   }
 
+  public static pushSiteUserLookupInAggregation(lookupParams: DbLookup) {
+    DatabaseUtils.pushCollectionLookupInAggregation('siteusers', {
+      ...lookupParams
+    });
+  }
+
   public static pushUserLookupInAggregation(lookupParams: DbLookup) {
     DatabaseUtils.pushCollectionLookupInAggregation('users', {
       objectIDFields: ['createdBy', 'lastChangedBy'],
@@ -76,6 +82,13 @@ export default class DatabaseUtils {
 
   public static pushCompanyLookupInAggregation(lookupParams: DbLookup) {
     DatabaseUtils.pushCollectionLookupInAggregation('companies', {
+      objectIDFields: ['createdBy', 'lastChangedBy'],
+      ...lookupParams
+    });
+  }
+
+  public static pushVehicleLookupInAggregation(lookupParams: DbLookup) {
+    DatabaseUtils.pushCollectionLookupInAggregation('vehicles', {
       objectIDFields: ['createdBy', 'lastChangedBy'],
       ...lookupParams
     });

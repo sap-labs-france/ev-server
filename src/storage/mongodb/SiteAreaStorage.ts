@@ -1,6 +1,6 @@
 import { ObjectID } from 'mongodb';
 import BackendError from '../../exception/BackendError';
-import ChargingStation from '../../entity/ChargingStation';
+import ChargingStation from '../../types/ChargingStation';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
@@ -41,9 +41,9 @@ export default class SiteAreaStorage {
     await Utils.checkTenant(tenantID);
     // Exec
     const siteAreaResult = await SiteAreaStorage.getSiteAreas(
-      tenantID, { search: id, onlyRecordCount: false,
+      tenantID, { search: id,
         withSite: params.withSite, withChargeBoxes: params.withChargeBoxes, withAvailableChargers: true },
-      { limit: 1, skip: 0 }
+      { limit: 1, skip: 0, onlyRecordCount: false }
     );
     // Debug
     Logging.traceEnd('SiteAreaStorage', 'getSiteArea', uniqueTimerID, { id, withChargeBoxes: params.withChargeBoxes, withSite: params.withSite });
@@ -91,7 +91,7 @@ export default class SiteAreaStorage {
   }
 
   public static async getSiteAreas(tenantID: string,
-    params: {search?: string; siteID?: string; siteIDs?: string[]; onlyRecordCount?: boolean; withSite?: boolean;
+    params: {search?: string; siteIDs?: string[]; withSite?: boolean;
       withChargeBoxes?: boolean; withAvailableChargers?: boolean; } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: SiteArea[]}> {
     // Debug
@@ -114,9 +114,13 @@ export default class SiteAreaStorage {
         ];
       }
     }
-    // Set Site?
-    if (params.siteID) {
-      filters.siteID = Utils.convertToObjectID(params.siteID);
+    // Set Site thru a filter in the dashboard
+    if (params.siteIDs && Array.isArray(params.siteIDs) && params.siteIDs.length > 0) {
+      filters.siteID = {
+        $in: params.siteIDs.map((site) => {
+          return Utils.convertToObjectID(site);
+        })
+      };
     }
     // Create Aggregation
     const aggregation = [];
@@ -143,16 +147,16 @@ export default class SiteAreaStorage {
           asField: 'site', oneToOneCardinality: true });
     }
     // Limit records?
-    if (!params.onlyRecordCount) {
+    if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
     const siteAreasCountMDB = await global.database.getCollection<{count: number}>(tenantID, 'siteareas')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
-    if (params.onlyRecordCount) {
+    if (dbParams.onlyRecordCount) {
       // Return only the count
       return {
         count: (siteAreasCountMDB.length > 0 ? siteAreasCountMDB[0].count : 0),
@@ -194,7 +198,10 @@ export default class SiteAreaStorage {
       $limit: limit
     });
     // Project
-    DatabaseUtils.projectFields(aggregation, projectFields);
+    if (projectFields) {
+      DatabaseUtils.projectFields(aggregation,
+        [...projectFields, 'chargingStations.id', 'chargingStations.connectors', 'chargingStations.lastHeartBeat', 'chargingStations.deleted']);
+    }
     // Read DB
     const siteAreasMDB = await global.database.getCollection<any>(tenantID, 'siteareas')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
@@ -210,14 +217,17 @@ export default class SiteAreaStorage {
         if (params.withAvailableChargers) {
           // Chargers
           for (const chargeBox of siteAreaMDB.chargingStations) {
-            // Set Inactive flag
-            chargeBox.inactive = DatabaseUtils.chargingStationIsInactive(chargeBox);
             // Check not deleted
             if (chargeBox.deleted) {
               continue;
             }
+            // Set Inactive flag
+            chargeBox.inactive = DatabaseUtils.chargingStationIsInactive(chargeBox);
             totalChargers++;
             // Handle Connectors
+            if(! chargeBox.connectors) {
+              chargeBox.connectors = [];
+            }
             for (const connector of chargeBox.connectors) {
               if (!connector) {
                 continue;
@@ -247,11 +257,7 @@ export default class SiteAreaStorage {
           siteAreaMDB.totalConnectors = totalConnectors;
         }
         // Chargers
-        if (params.withChargeBoxes && siteAreaMDB.chargingStations) {
-          siteAreaMDB.chargingStations = siteAreaMDB.chargingStations.map((chargeBox) => {
-            return new ChargingStation(tenantID, chargeBox);
-          });
-        } else {
+        if (!params.withChargeBoxes && siteAreaMDB.chargingStations) {
           delete siteAreaMDB.chargingStations;
         }
         // Add
@@ -264,7 +270,7 @@ export default class SiteAreaStorage {
     // Ok
     return {
       count: (siteAreasCountMDB.length > 0 ?
-        (siteAreasCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : siteAreasCountMDB[0].count) : 0),
+        (siteAreasCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : siteAreasCountMDB[0].count) : 0),
       result: siteAreas
     };
   }
@@ -317,9 +323,11 @@ export default class SiteAreaStorage {
       .find({ siteID: { $in: siteIDs.map((id) => {
         return Utils.convertToObjectID(id);
       }) } })
-      .project({ _id: 1 }).toArray()).map((idWrapper) => {
+      .project({ _id: 1 }).toArray()).map((idWrapper): string => {
+      /* eslint-disable @typescript-eslint/indent */
         return idWrapper._id.toHexString();
       });
+    /* eslint-enable @typescript-eslint/indent */
     // Delete site areas
     await SiteAreaStorage.deleteSiteAreas(tenantID, siteareas);
     // Debug

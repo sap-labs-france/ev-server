@@ -9,25 +9,25 @@ import Site from '../../../types/Site';
 import SiteSecurity from './security/SiteSecurity';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import UserSecurity from './security/UserSecurity';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
-import UserStorage from '../../../storage/mongodb/UserStorage';
 
 export default class SiteService {
 
   public static async handleAssignUsersToSites(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_UPDATE, Constants.ENTITY_SITE, 'SiteService', 'handleAssignUsersToSites');
 
-    //TODO: Fill this in based on content of both other files
+    // TODO: Fill this in based on content of both other files
   }
 
   public static async handleAddUsersToSite(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_UPDATE, Constants.ENTITY_SITE, 'SiteService', 'handleAddUsersToSite');
     // Filter
     const filteredRequest = SiteSecurity.filterAssignSiteUsers(req.body);
@@ -97,8 +97,8 @@ export default class SiteService {
 
   public static async handleUpdateSiteUserAdmin(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_UPDATE, Constants.ENTITY_SITE, 'SiteService', 'handleUpdateSiteUserAdmin');
     // Filter
     const filteredRequest = SiteSecurity.filterUpdateSiteUserAdminRequest(req.body);
@@ -184,8 +184,8 @@ export default class SiteService {
 
   public static async handleRemoveUsersFromSite(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_UPDATE, Constants.ENTITY_SITE, 'SiteService', 'handleRemoveUsersFromSite');
     // Filter
     const filteredRequest = SiteSecurity.filterAssignSiteUsers(req.body);
@@ -242,8 +242,8 @@ export default class SiteService {
 
   public static async handleGetUsers(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_UPDATE, Constants.ENTITY_SITE, 'SiteService', 'handleGetUsersFromSite');
     // Filter
     const filteredRequest = SiteSecurity.filterSiteUsersRequest(req.query);
@@ -276,6 +276,7 @@ export default class SiteService {
     // Get users
     const users = await SiteStorage.getUsers(req.user.tenantID,
       {
+        search: filteredRequest.Search,
         siteID: filteredRequest.SiteID
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
@@ -295,26 +296,26 @@ export default class SiteService {
 
   public static async handleDeleteSite(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_DELETE, Constants.ENTITY_SITE, 'SiteService', 'handleDeleteSite');
     // Filter
-    const id = SiteSecurity.filterSiteRequestByID(req.query);
+    const siteID = SiteSecurity.filterSiteRequestByID(req.query);
     // Check Mandatory fields
-    UtilsService.assertIdIsProvided(id, 'SiteService', 'handleDeleteSite', req.user);
+    UtilsService.assertIdIsProvided(siteID, 'SiteService', 'handleDeleteSite', req.user);
     // Check
-    if (!Authorizations.canDeleteSite(req.user, id)) {
+    if (!Authorizations.canDeleteSite(req.user, siteID)) {
       throw new AppAuthError(
         Constants.ACTION_DELETE,
         Constants.ENTITY_SITE,
-        id,
+        siteID,
         Constants.HTTP_AUTH_ERROR,
         'SiteService', 'handleDeleteSite',
         req.user);
     }
     // Get
-    const site = await SiteStorage.getSite(req.user.tenantID, id);
-    UtilsService.assertObjectExists(site, `Site with ID '${id}' does not exist`, 'SiteService', 'handleDeleteSite', req.user);
+    const site = await SiteStorage.getSite(req.user.tenantID, siteID);
+    UtilsService.assertObjectExists(site, `Site with ID '${siteID}' does not exist`, 'SiteService', 'handleDeleteSite', req.user);
     // Delete
     await SiteStorage.deleteSite(req.user.tenantID, site.id);
     // Log
@@ -331,8 +332,8 @@ export default class SiteService {
 
   public static async handleGetSite(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_READ, Constants.ENTITY_SITE, 'SiteService', 'handleGetSite');
     // Filter
     const filteredRequest = SiteSecurity.filterSiteRequest(req.query);
@@ -350,11 +351,9 @@ export default class SiteService {
 
   public static async handleGetSites(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_LIST, Constants.ENTITY_SITES, 'SiteService', 'handleGetSites');
-    // Filter
-    const filteredRequest = SiteSecurity.filterSitesRequest(req.query, req.user);
     // Check auth
     if (!Authorizations.canListSites(req.user)) {
       // Not Authorized!
@@ -366,19 +365,20 @@ export default class SiteService {
         'SiteService', 'handleGetSites',
         req.user);
     }
+    // Filter
+    const filteredRequest = SiteSecurity.filterSitesRequest(req.query, req.user);
     // Get the sites
     const sites = await SiteStorage.getSites(req.user.tenantID,
       {
         'search': filteredRequest.Search,
         'userID': filteredRequest.UserID,
-        'companyID': filteredRequest.CompanyID,
+        'companyIDs': (filteredRequest.CompanyID ? filteredRequest.CompanyID.split('|') : null),
         'siteIDs': Authorizations.getAuthorizedSiteIDs(req.user),
         'withCompany': filteredRequest.WithCompany,
         'excludeSitesOfUserID': filteredRequest.ExcludeSitesOfUserID,
-        'withAvailableChargers': filteredRequest.WithAvailableChargers,
-        'onlyRecordCount': filteredRequest.OnlyRecordCount
+        'withAvailableChargers': filteredRequest.WithAvailableChargers
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       [ 'id', 'name', 'address.latitude', 'address.longitude', 'address.city', 'address.country', 'company.name',
         'autoUserSiteAssignment', 'allowAllUsersToStopTransactions']
     );
@@ -391,28 +391,28 @@ export default class SiteService {
 
   public static async handleGetSiteImage(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_READ, Constants.ENTITY_SITE, 'SiteService', 'handleGetSiteImage');
 
     // Filter
-    const id = SiteSecurity.filterSiteRequestByID(req.query);
-    UtilsService.assertIdIsProvided(id, 'SiteService', 'handleGetSiteImage', req.user);
+    const siteID = SiteSecurity.filterSiteRequestByID(req.query);
+    UtilsService.assertIdIsProvided(siteID, 'SiteService', 'handleGetSiteImage', req.user);
     // Check auth
-    if (!Authorizations.canReadSite(req.user, id)) {
+    if (!Authorizations.canReadSite(req.user, siteID)) {
       throw new AppAuthError(
         Constants.ACTION_READ,
         Constants.ENTITY_SITE,
-        id,
+        siteID,
         Constants.HTTP_AUTH_ERROR,
         'SiteService', 'handleGetSiteImage',
         req.user);
     }
     // Get it
-    const site = await SiteStorage.getSite(req.user.tenantID, id);
-    UtilsService.assertObjectExists(site, `Site with ID '${id}' does not exist`, 'SiteService', 'handleGetSiteImage', req.user);
+    const site = await SiteStorage.getSite(req.user.tenantID, siteID);
+    UtilsService.assertObjectExists(site, `Site with ID '${siteID}' does not exist`, 'SiteService', 'handleGetSiteImage', req.user);
     // Get the image
-    const siteImage = await SiteStorage.getSiteImage(req.user.tenantID, id);
+    const siteImage = await SiteStorage.getSiteImage(req.user.tenantID, siteID);
     // Return
     res.json(siteImage);
     next();
@@ -420,8 +420,8 @@ export default class SiteService {
 
   public static async handleCreateSite(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_CREATE, Constants.ENTITY_SITE, 'SiteService', 'handleCreateSite');
     // Check auth
     if (!Authorizations.canCreateSite(req.user)) {
@@ -436,14 +436,14 @@ export default class SiteService {
     // Filter
     const filteredRequest = SiteSecurity.filterSiteCreateRequest(req.body);
     // Check
-    SiteService._checkIfSiteValid(filteredRequest, req);
+    Utils.checkIfSiteValid(filteredRequest, req);
     // Check Company
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.companyID);
     UtilsService.assertObjectExists(company, `The Company ID '${filteredRequest.companyID}' does not exist`, 'SiteService', 'handleCreateSite', req.user);
     // Create site
     const usr = { id: req.user.id };
     const date = new Date();
-    const newSite: Site = {
+    const site: Site = {
       ...filteredRequest,
       createdBy: usr,
       createdOn: date,
@@ -451,28 +451,28 @@ export default class SiteService {
       lastChangedOn: date
     } as Site;
     // Save
-    newSite.id = await SiteStorage.saveSite(req.user.tenantID, newSite, true);
+    site.id = await SiteStorage.saveSite(req.user.tenantID, site, true);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: 'SiteService', method: 'handleCreateSite',
-      message: `Site '${newSite.name}' has been created successfully`,
-      action: action, detailedMessages: newSite
+      message: `Site '${site.name}' has been created successfully`,
+      action: action, detailedMessages: site
     });
     // Ok
-    res.json(Object.assign({ id: newSite.id }, Constants.REST_RESPONSE_SUCCESS));
+    res.json(Object.assign({ id: site.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
   public static async handleUpdateSite(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_UPDATE, Constants.ENTITY_SITE, 'SiteService', 'handleUpdateSite');
     // Filter
     const filteredRequest = SiteSecurity.filterSiteUpdateRequest(req.body);
     // Check
-    SiteService._checkIfSiteValid(filteredRequest, req);
+    Utils.checkIfSiteValid(filteredRequest, req);
     // Check auth
     if (!Authorizations.canUpdateSite(req.user, filteredRequest.id)) {
       throw new AppAuthError(
@@ -501,31 +501,5 @@ export default class SiteService {
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
-  }
-
-  private static _checkIfSiteValid(filteredRequest: any, req: Request): void {
-    if (req.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Site ID is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'SiteService', '_checkIfSiteValid',
-        req.user.id);
-    }
-    if (!filteredRequest.name) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Site Name is mandatory',
-        Constants.HTTP_GENERAL_ERROR,
-        'SiteService', '_checkIfSiteValid',
-        req.user.id, filteredRequest.id);
-    }
-    if (!filteredRequest.companyID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Company ID is mandatory for the Site',
-        Constants.HTTP_GENERAL_ERROR,
-        'SiteService', '_checkIfSiteValid',
-        req.user.id, filteredRequest.id);
-    }
   }
 }

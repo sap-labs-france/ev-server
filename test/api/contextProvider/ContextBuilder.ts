@@ -12,14 +12,15 @@ import Site from '../../../src/types/Site';
 import SiteAreaStorage from '../../../src/storage/mongodb/SiteAreaStorage';
 import SiteContext from './SiteContext';
 import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
+import StatisticsContext from './StatisticsContext';
 import Tenant from '../../../src/entity/Tenant';
 import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
 import User from '../../../src/types/User';
 import UserFactory from '../../factories/UserFactory';
 import UserStorage from '../../../src/storage/mongodb/UserStorage';
-import UserService from '../../../src/server/rest/service/UserService';
-import StatisticsContext from './StatisticsContext';
+import Utils from '../../../src/utils/Utils';
+import { expect } from 'chai';
 
 export default class ContextBuilder {
 
@@ -49,21 +50,19 @@ export default class ContextBuilder {
 
   async destroy() {
     if (this.tenantsContexts && this.tenantsContexts.length > 0) {
-      return setTimeout(() => { // Delay deletion as unit tests are faster than processing
-        this.tenantsContexts.forEach(async (tenantContext) => {
-          // pragma console.log('DESTROY context ' + tenantContext.getTenant().id + ' ' + tenantContext.getTenant().subdomain);
-          await this.superAdminCentralServerService.deleteEntity(this.superAdminCentralServerService.tenantApi, tenantContext.getTenant());
-        });
-      }, 10000);
+      this.tenantsContexts.forEach(async (tenantContext) => {
+        console.log('Delete tenant context ' + tenantContext.getTenant().id + ' ' + tenantContext.getTenant().subdomain);
+        await this.superAdminCentralServerService.deleteEntity(this.superAdminCentralServerService.tenantApi, tenantContext.getTenant());
+      });
     }
     // Delete all tenants
     for (const tenantContextDef of CONTEXTS.TENANT_CONTEXT_LIST) {
+      console.log('Delete tenant ' + tenantContextDef.id + ' ' + tenantContextDef.subdomain);
       const tenantEntity = await Tenant.getTenantByName(tenantContextDef.tenantName);
       if (tenantEntity) {
         await this.superAdminCentralServerService.tenantApi.delete(tenantEntity.getID());
       }
     }
-
   }
 
   /**
@@ -133,8 +132,7 @@ export default class ContextBuilder {
 
     await UserStorage.saveUser(buildTenant.id, {
       'id': CONTEXTS.TENANT_USER_LIST[0].id,
-      'tagIDs': CONTEXTS.TENANT_USER_LIST[0].tagIDs ? CONTEXTS.TENANT_USER_LIST[0].tagIDs : [faker.random.alphaNumeric(8).toUpperCase()],
-      'password': await UserService.hashPasswordBcrypt(config.get('admin.password')),
+      'password': await Utils.hashPasswordBcrypt(config.get('admin.password')),
       'email': config.get('admin.username'),
       'status': CONTEXTS.TENANT_USER_LIST[0].status,
       'role': CONTEXTS.TENANT_USER_LIST[0].role,
@@ -144,6 +142,9 @@ export default class ContextBuilder {
       'plateID': faker.random.alphaNumeric(8),
       'deleted': false
     });
+    if (CONTEXTS.TENANT_USER_LIST[0].tagIDs) {
+      await UserStorage.saveUserTags(buildTenant.id, CONTEXTS.TENANT_USER_LIST[0].id, CONTEXTS.TENANT_USER_LIST[0].tagIDs);
+    }
     const defaultAdminUser = await UserStorage.getUser(buildTenant.id, CONTEXTS.TENANT_USER_LIST[0].id);
 
     // Create Central Server Service
@@ -152,7 +153,8 @@ export default class ContextBuilder {
     // Create Tenant component settings
     if (tenantContextDef.componentSettings) {
       console.log(`settings in tenant ${buildTenant.name} as ${JSON.stringify(tenantContextDef.componentSettings)}`);
-      const allSettings: any = await localCentralServiceService.settingApi.readAll({}, { limit: 0, skip: 0 });
+      const allSettings: any = await localCentralServiceService.settingApi.readAll({}, Constants.DB_PARAMS_MAX_LIMIT);
+      expect(allSettings.status).to.equal(200);
       for (const setting in tenantContextDef.componentSettings) {
         let foundSetting: any = null;
         if (allSettings && allSettings.data && allSettings.data.result && allSettings.data.result.length > 0) {
@@ -182,6 +184,9 @@ export default class ContextBuilder {
     // Read admin user
     const adminUser: User = (await localCentralServiceService.getEntityById(
       localCentralServiceService.userApi, defaultAdminUser, false)).data;
+    if (!adminUser.id) {
+      console.log('Error with new Admin user: ', adminUser);
+    }
     userListToAssign = [adminUser]; // Default admin is always assigned to site
     userList = [adminUser]; // Default admin is always assigned to site
     // Prepare users
@@ -191,16 +196,17 @@ export default class ContextBuilder {
       const createUser = UserFactory.build();
       createUser.email = userDef.emailPrefix + defaultAdminUser.email;
       // Update the password
-      const newPasswordHashed = await UserService.hashPasswordBcrypt(config.get('admin.password'));
+      const newPasswordHashed = await Utils.hashPasswordBcrypt(config.get('admin.password'));
       createUser.password = newPasswordHashed;
       createUser.role = userDef.role;
       createUser.status = userDef.status;
       createUser.id = userDef.id;
-      if (userDef.tagIDs) {
-        createUser.tagIDs = userDef.tagIDs;
-      }
+      createUser.tagIDs = userDef.tagIDs;
       const user: User = createUser;
       await UserStorage.saveUser(buildTenant.id, user);
+      if (userDef.tagIDs) {
+        await UserStorage.saveUserTags(buildTenant.id, userDef.id, userDef.tagIDs);
+      }
       if (userDef.assignedToSite) {
         userListToAssign.push(user);
       }
