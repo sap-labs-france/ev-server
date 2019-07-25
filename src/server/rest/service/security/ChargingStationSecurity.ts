@@ -83,7 +83,7 @@ export default class ChargingStationSecurity {
     return filteredChargingStation;
   }
 
-  static filterChargingStationsResponse(chargingStations, loggedUser: UserToken, organizationIsActive: boolean) {
+  public static filterChargingStationsResponse(chargingStations: {result: ChargingStation[]}, loggedUser: UserToken, organizationIsActive: boolean) {
     const filteredChargingStations = [];
     // Check
     if (!chargingStations.result) {
@@ -104,7 +104,7 @@ export default class ChargingStationSecurity {
     chargingStations.result = filteredChargingStations;
   }
 
-  static filterStatusNotificationsResponse(statusNotifications, loggedUser) {
+  public static filterStatusNotificationsResponse(statusNotifications, loggedUser: UserToken) {
     // Check
     if (!Authorizations.canListChargingStations(loggedUser)) {
       return null;
@@ -112,7 +112,7 @@ export default class ChargingStationSecurity {
     return statusNotifications;
   }
 
-  static filterBootNotificationsResponse(statusNotifications, loggedUser) {
+  public static filterBootNotificationsResponse(statusNotifications, loggedUser: UserToken) {
     // Check
     if (!Authorizations.canListChargingStations(loggedUser)) {
       return null;
@@ -125,7 +125,7 @@ export default class ChargingStationSecurity {
   }
 
   // eslint-disable-next-line no-unused-vars
-  static filterChargingStationRequest(request: HttpByIDRequest): HttpByIDRequest {
+  public static filterChargingStationRequest(request: HttpByIDRequest): HttpByIDRequest {
     return {ID: sanitize(request.ID)};
   }
 

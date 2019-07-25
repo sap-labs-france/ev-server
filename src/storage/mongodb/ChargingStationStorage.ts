@@ -425,7 +425,7 @@ export default class ChargingStationStorage {
     return value;
   }
 
-  public static async getConfiguration(tenantID: string, chargeBoxID: string) { // TODO: Typing configuration would be hard because of the setting variations
+  public static async getConfiguration(tenantID: string, chargeBoxID: string) {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getConfiguration');
     // Check Tenant
