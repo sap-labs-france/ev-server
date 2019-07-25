@@ -7,9 +7,10 @@ import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Tenant from '../../entity/Tenant';
 import Utils from '../../utils/Utils';
+import DbParams from '../../types/database/DbParams';
 
 export default class TenantStorage {
-  static async getTenant(id: string): Promise<Tenant|null> {
+  public static async getTenant(id: string): Promise<Tenant> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'getTenant');
     // Create Aggregation
@@ -116,7 +117,7 @@ export default class TenantStorage {
   }
 
   // Delegate
-  static async getTenants(params: any = {}, limit?, skip?, sort?) {
+  public static async getTenants(params: {search?: string}, {limit, skip, sort}: DbParams, projectFields?: string[]) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'getTenants');
     // Check Limit
@@ -190,7 +191,7 @@ export default class TenantStorage {
     };
   }
 
-  static async deleteTenant(id) {
+  public static async deleteTenant(id: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'deleteTenant');
     // Delete
@@ -202,7 +203,7 @@ export default class TenantStorage {
     Logging.traceEnd('TenantStorage', 'deleteTenant', uniqueTimerID, { id });
   }
 
-  static async deleteTenantDB(id) {
+  public static async deleteTenantDB(id: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'deleteTenantDB');
     // Delete
