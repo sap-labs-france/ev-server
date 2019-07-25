@@ -630,20 +630,6 @@ export default class Utils {
         `Only Admins can assign the role '${Utils.getRoleNameFromRoleID(filteredRequest.role)}'`, Constants.HTTP_GENERAL_ERROR,
         'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
     }
-    // Only Admin user can change role
-    if (tenantID === 'default' && filteredRequest.role && filteredRequest.role !== Constants.ROLE_SUPER_ADMIN) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `User cannot have the role '${Utils.getRoleNameFromRoleID(filteredRequest.role)}' in the Super Tenant`, Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
-    }
-    // Only Super Admin user in Super Tenant (default)
-    if (tenantID === 'default' && filteredRequest.role && filteredRequest.role !== Constants.ROLE_SUPER_ADMIN) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `User cannot have the role '${Utils.getRoleNameFromRoleID(filteredRequest.role)}' in the Super Tenant`, Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
-    }
     // Only Basic, Demo, Admin user other Tenants (!== default)
     if (tenantID !== 'default' && filteredRequest.role && filteredRequest.role === Constants.ROLE_SUPER_ADMIN) {
       throw new AppError(
