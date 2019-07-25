@@ -1,6 +1,4 @@
-import BBPromise from 'bluebird';
 import cluster from 'cluster';
-import SourceMap from 'source-map-support';
 import CentralRestServer from './server/rest/CentralRestServer';
 import Configuration from './utils/Configuration';
 import Constants from './utils/Constants';
@@ -16,11 +14,6 @@ import ODataServer from './server/odata/ODataServer';
 import SchedulerManager from './scheduler/SchedulerManager';
 import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer';
 import Utils from './utils/Utils';
-
-// FIXME: Move to global variables initialization
-global.Promise = BBPromise;
-
-SourceMap.install();
 
 const MODULE_NAME = 'Bootstrap';
 export default class Bootstrap {
@@ -45,7 +38,7 @@ export default class Bootstrap {
   public static async start(): Promise<void> {
     try {
       if (cluster.isMaster) {
-        const nodejsEnv = process.env.NODE_ENV || 'dev';
+        const nodejsEnv = process.env.NODE_ENV || 'development';
         // eslint-disable-next-line no-console
         console.log(`NodeJS is started in '${nodejsEnv}' mode`);
       }
@@ -57,9 +50,9 @@ export default class Bootstrap {
       Bootstrap.ocpiConfig = Configuration.getOCPIServiceConfig();
       Bootstrap.oDataServerConfig = Configuration.getODataServiceConfig();
       Bootstrap.isClusterEnabled = Configuration.getClusterConfig().enabled;
-      // Init global vars
-      global.userHashMapIDs = {};
-      global.tenantHashMapIDs = {};
+      // Init global user and tenant IDs hashmap
+      global.userHashMapIDs = new Map<string, string>();
+      global.tenantHashMapIDs = new Map<string, string>();
 
       // Start the connection to the Database
       if (!Bootstrap.databaseDone) {
@@ -69,6 +62,8 @@ export default class Bootstrap {
           case 'mongodb':
             // Create MongoDB
             Bootstrap.database = new MongoDBStorage(Bootstrap.storageConfig);
+            // Keep a global reference
+            global.database = Bootstrap.database;
             break;
           default:
             // eslint-disable-next-line no-console
@@ -76,7 +71,7 @@ export default class Bootstrap {
         }
         // Connect to the Database
         await Bootstrap.database.start();
-        let logMsg;
+        let logMsg: string;
         if (cluster.isMaster) {
           logMsg = `Database connected to '${Bootstrap.storageConfig.implementation}' successfully in master`;
         } else {
@@ -90,7 +85,6 @@ export default class Bootstrap {
         });
         Bootstrap.databaseDone = true;
       }
-      global.database = Bootstrap.database;
       // Clean the locks in DB belonging to the current app/host
       if (cluster.isMaster && Bootstrap.databaseDone) {
         await LockingStorage.cleanLocks();
@@ -129,7 +123,7 @@ export default class Bootstrap {
       }
 
       if (cluster.isMaster && Bootstrap.isClusterEnabled) {
-        await Bootstrap.startMaster();
+        Bootstrap.startMaster();
       } else {
         await Bootstrap.startServersListening();
       }
@@ -203,10 +197,10 @@ export default class Bootstrap {
     cluster.on('exit', exitCb);
   }
 
-  private static async startMaster(): Promise<void> {
+  private static startMaster(): void {
     try {
       if (Bootstrap.isClusterEnabled && Utils.isEmptyArray(cluster.workers)) {
-        await Bootstrap.startServerWorkers('Main');
+        Bootstrap.startServerWorkers('Main');
       }
     } catch (error) {
       // Log

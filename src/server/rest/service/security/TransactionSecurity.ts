@@ -1,11 +1,13 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
+import User from '../../../../types/User';
+import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 
 export default class TransactionSecurity {
   // eslint-disable-next-line no-unused-vars
-  static filterTransactionsRefund(request, loggedUser) {
+  static filterTransactionsRefund(request, loggedUser: UserToken) {
     const filteredRequest: any = {};
     // Set
     filteredRequest.transactionIds = request.transactionIds.map((id) => {
@@ -15,7 +17,7 @@ export default class TransactionSecurity {
   }
 
   // eslint-disable-next-line no-unused-vars
-  static filterTransactionDelete(request, loggedUser) {
+  static filterTransactionDelete(request, loggedUser: UserToken) {
     const filteredRequest: any = {};
     // Set
     filteredRequest.ID = sanitize(request.ID);
@@ -23,7 +25,7 @@ export default class TransactionSecurity {
   }
 
   // eslint-disable-next-line no-unused-vars
-  static filterTransactionSoftStop(request, loggedUser) {
+  static filterTransactionSoftStop(request, loggedUser: UserToken) {
     const filteredRequest: any = {};
     // Set
     filteredRequest.transactionId = sanitize(request.transactionId);
@@ -31,7 +33,7 @@ export default class TransactionSecurity {
   }
 
   // eslint-disable-next-line no-unused-vars
-  static filterTransactionRequest(request, loggedUser) {
+  static filterTransactionRequest(request, loggedUser: UserToken) {
     const filteredRequest: any = {};
     // Set
     filteredRequest.ID = sanitize(request.ID);
@@ -39,11 +41,12 @@ export default class TransactionSecurity {
   }
 
   // eslint-disable-next-line no-unused-vars
-  static filterTransactionsActiveRequest(request, loggedUser) {
+  static filterTransactionsActiveRequest(request, loggedUser: UserToken) {
     const filteredRequest: any = {};
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
     filteredRequest.ConnectorId = sanitize(request.ConnectorId);
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
+    filteredRequest.SiteID = sanitize(request.SiteID);
     if (request.UserID) {
       filteredRequest.UserID = sanitize(request.UserID);
     }
@@ -53,7 +56,7 @@ export default class TransactionSecurity {
   }
 
   // eslint-disable-next-line no-unused-vars
-  static filterTransactionsCompletedRequest(request, loggedUser) {
+  static filterTransactionsCompletedRequest(request, loggedUser: UserToken) {
     const filteredRequest: any = {};
     // Handle picture
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
@@ -64,6 +67,9 @@ export default class TransactionSecurity {
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.Type = sanitize(request.Type);
     filteredRequest.MinimalPrice = sanitize(request.MinimalPrice);
+    if (request.Statistics) {
+      filteredRequest.Statistics = sanitize(request.Statistics);
+    }
     if (request.UserID) {
       filteredRequest.UserID = sanitize(request.UserID);
     }
@@ -97,7 +103,7 @@ export default class TransactionSecurity {
    * @param loggedUser
    * @returns {*}
    */
-  static filterTransactionResponse(transaction, loggedUser) {
+  static filterTransactionResponse(transaction, loggedUser: UserToken) {
     let filteredTransaction;
 
     if (!transaction) {
@@ -135,14 +141,16 @@ export default class TransactionSecurity {
         filteredTransaction.currentCumulatedPrice = transaction.getCurrentCumulatedPrice();
         filteredTransaction.currentStateOfCharge = transaction.getCurrentStateOfCharge();
         filteredTransaction.currentStateOfCharge = transaction.getCurrentStateOfCharge();
+        filteredTransaction.currentSignedData = transaction.getCurrentSignedData();
       }
       filteredTransaction.status = transaction.getChargerStatus();
       filteredTransaction.isLoading = transaction.isLoading();
       filteredTransaction.stateOfCharge = transaction.getStateOfCharge();
+      filteredTransaction.signedData = transaction.getSignedData();
       filteredTransaction.refundData = transaction.getRefundData();
       // Demo user?
-      if (Authorizations.isDemo(loggedUser)) {
-        filteredTransaction.tagID = Constants.ANONIMIZED_VALUE;
+      if (Authorizations.isDemo(loggedUser.role)) {
+        filteredTransaction.tagID = Constants.ANONYMIZED_VALUE;
       } else {
         filteredTransaction.tagID = transaction.getTagID();
       }
@@ -158,6 +166,7 @@ export default class TransactionSecurity {
         filteredTransaction.stop.totalInactivitySecs = transaction.getStopTotalInactivitySecs() + transaction.getStopExtraInactivitySecs();
         filteredTransaction.stop.totalDurationSecs = transaction.getStopTotalDurationSecs();
         filteredTransaction.stop.stateOfCharge = transaction.getStopStateOfCharge();
+        filteredTransaction.stop.signedData = transaction.getEndSignedData();
         // pragma if (Authorizations.isAdmin(loggedUser) && transaction.hasStopPrice()) {
         if (transaction.hasStopPrice()) {
           filteredTransaction.stop.price = transaction.getStopPrice();
@@ -166,8 +175,8 @@ export default class TransactionSecurity {
           filteredTransaction.stop.pricingSource = transaction.getStopPricingSource();
         }
         // Demo user?
-        if (Authorizations.isDemo(loggedUser)) {
-          filteredTransaction.stop.tagID = Constants.ANONIMIZED_VALUE;
+        if (Authorizations.isDemo(loggedUser.role)) {
+          filteredTransaction.stop.tagID = Constants.ANONYMIZED_VALUE;
         } else {
           filteredTransaction.stop.tagID = transaction.getStopTagID();
         }
@@ -182,7 +191,7 @@ export default class TransactionSecurity {
     return filteredTransaction;
   }
 
-  static filterTransactionsResponse(transactions, loggedUser) {
+  static filterTransactionsResponse(transactions, loggedUser: UserToken) {
     const filteredTransactions = [];
     if (!transactions.result) {
       return null;
@@ -199,7 +208,7 @@ export default class TransactionSecurity {
     transactions.result = filteredTransactions;
   }
 
-  static _filterUserInTransactionResponse(user, loggedUser) {
+  static _filterUserInTransactionResponse(user: User, loggedUser: UserToken) {
     const filteredUser: any = {};
 
     if (!user) {
@@ -208,10 +217,10 @@ export default class TransactionSecurity {
     // Check auth
     if (Authorizations.canReadUser(loggedUser, user.id)) {
       // Demo user?
-      if (Authorizations.isDemo(loggedUser)) {
+      if (Authorizations.isDemo(loggedUser.role)) {
         filteredUser.id = null;
-        filteredUser.name = Constants.ANONIMIZED_VALUE;
-        filteredUser.firstName = Constants.ANONIMIZED_VALUE;
+        filteredUser.name = Constants.ANONYMIZED_VALUE;
+        filteredUser.firstName = Constants.ANONYMIZED_VALUE;
       } else {
         filteredUser.id = user.id;
         filteredUser.name = user.name;
@@ -222,7 +231,7 @@ export default class TransactionSecurity {
   }
 
   // eslint-disable-next-line no-unused-vars
-  static filterChargingStationConsumptionFromTransactionRequest(request, loggedUser) {
+  static filterChargingStationConsumptionFromTransactionRequest(request, loggedUser: UserToken) {
     const filteredRequest: any = {};
     // Set
     filteredRequest.TransactionId = sanitize(request.TransactionId);
@@ -232,7 +241,7 @@ export default class TransactionSecurity {
   }
 
   // eslint-disable-next-line no-unused-vars
-  static filterChargingStationTransactionsRequest(request, loggedUser) {
+  static filterChargingStationTransactionsRequest(request, loggedUser: UserToken) {
     const filteredRequest: any = {};
     // Set
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
@@ -251,7 +260,7 @@ export default class TransactionSecurity {
    * @param loggedUser
    * @returns {*}
    */
-  static filterConsumptionsFromTransactionResponse(transaction, consumptions, loggedUser) {
+  static filterConsumptionsFromTransactionResponse(transaction, consumptions, loggedUser: UserToken) {
     if (!consumptions) {
       consumptions = [];
     }

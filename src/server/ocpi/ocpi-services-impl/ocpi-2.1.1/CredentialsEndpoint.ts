@@ -1,5 +1,4 @@
 import axios from 'axios';
-import SourceMap from 'source-map-support';
 import AbstractEndpoint from '../AbstractEndpoint';
 import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
@@ -8,8 +7,6 @@ import OCPIEndpoint from '../../../../entity/OCPIEndpoint';
 import OCPIMapping from './OCPIMapping';
 import OCPIServerError from '../../../../exception/OCPIServerError';
 import OCPIUtils from '../../OCPIUtils';
-
-SourceMap.install();
 
 const EP_IDENTIFIER = 'credentials';
 const EP_VERSION = '2.1.1';
@@ -49,7 +46,8 @@ const MODULE_NAME = 'CredentialsEndpoint';
   /**
    * Registration process initiated by IOP
    */
-  async deleteCredentials(req, res, next, tenant) { // eslint-disable-line
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  async deleteCredentials(req, res, next, tenant) {
     // Get token from header
     let token;
     if (req.headers && req.headers.authorization) {

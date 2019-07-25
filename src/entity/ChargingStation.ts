@@ -1,6 +1,5 @@
 import * as moment from 'moment';
 import momentDurationFormatSetup from 'moment-duration-format';
-import SourceMap from 'source-map-support';
 import tzlookup from 'tz-lookup';
 import BackendError from '../exception/BackendError';
 import buildChargingStationClient from '../client/ocpp/ChargingStationClientFactory';
@@ -8,6 +7,7 @@ import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
 import Company from '../types/Company';
 import Constants from '../utils/Constants';
 import Database from '../utils/Database';
+import DbParams from '../types/database/DbParams';
 import Logging from '../utils/Logging';
 import OCPPConstants from '../server/ocpp/utils/OCPPConstants';
 import OCPPStorage from '../storage/mongodb/OCPPStorage';
@@ -18,10 +18,9 @@ import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../storage/mongodb/SiteStorage';
 import TenantHolder from './TenantHolder';
 import Transaction from './Transaction';
-import User from './User';
+import User from '../types/User';
 import Utils from '../utils/Utils';
 
-SourceMap.install();
 momentDurationFormatSetup(moment);
 
 export default class ChargingStation extends TenantHolder {
@@ -38,12 +37,12 @@ export default class ChargingStation extends TenantHolder {
     return ChargingStationStorage.getChargingStation(tenantID, id);
   }
 
-  static async getChargingStations(tenantID, params, limit, skip, sort): Promise<{ count: number; result: ChargingStation[] }> {
-    return ChargingStationStorage.getChargingStations(tenantID, params, limit, skip, sort);
+  static async getChargingStations(tenantID, params, dbParams: DbParams): Promise<{ count: number; result: ChargingStation[] }> {
+    return ChargingStationStorage.getChargingStations(tenantID, params, dbParams);
   }
 
-  static getChargingStationsInError(tenantID, params, limit, skip, sort) {
-    return ChargingStationStorage.getChargingStationsInError(tenantID, params, limit, skip, sort);
+  static getChargingStationsInError(tenantID, params, dbParams: DbParams) {
+    return ChargingStationStorage.getChargingStationsInError(tenantID, params, dbParams);
   }
 
   static addChargingStationsToSiteArea(tenantID, siteAreaID, chargingStationIDs) {
@@ -241,13 +240,13 @@ export default class ChargingStation extends TenantHolder {
 
   getCreatedBy() {
     if (this._model.createdBy) {
-      return new User(this.getTenantID(), this._model.createdBy);
+      return this._model.createdBy;
     }
     return null;
   }
 
-  setCreatedBy(user) {
-    this._model.createdBy = user.getModel();
+  setCreatedBy(user: Partial<User>) {
+    this._model.createdBy = user;
   }
 
   getCreatedOn() {
@@ -260,13 +259,13 @@ export default class ChargingStation extends TenantHolder {
 
   getLastChangedBy() {
     if (this._model.lastChangedBy) {
-      return new User(this.getTenantID(), this._model.lastChangedBy);
+      return this._model.lastChangedBy;
     }
     return null;
   }
 
-  setLastChangedBy(user) {
-    this._model.lastChangedBy = user.getModel();
+  setLastChangedBy(user: Partial<User>) {
+    this._model.lastChangedBy = user;
   }
 
   getLastChangedOn() {
@@ -623,7 +622,7 @@ export default class ChargingStation extends TenantHolder {
 
   async hasAtLeastOneTransaction() {
     // Get the consumption
-    const transactions = await Transaction.getTransactions(this.getTenantID(), { 'chargeBoxID': this.getID() }, 1);
+    const transactions = await Transaction.getTransactions(this.getTenantID(), { 'chargeBoxID': this.getID() }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Return
     return (transactions.count > 0);
   }
@@ -635,7 +634,7 @@ export default class ChargingStation extends TenantHolder {
         'chargeBoxID': this.getID(), 'connectorId': connectorId, 'startDateTime': startDateTime,
         'endDateTime': endDateTime, 'withChargeBoxes': withChargeBoxes
       },
-      Constants.NO_LIMIT);
+      Constants.DB_RECORD_COUNT_NO_LIMIT);
     // Return list of transactions
     return transactions;
   }

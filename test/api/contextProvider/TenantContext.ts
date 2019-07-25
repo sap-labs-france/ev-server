@@ -1,3 +1,4 @@
+import chai, { expect } from 'chai';
 import config from '../../config';
 import faker from 'faker';
 import CentralServerService from '../client/CentralServerService';
@@ -28,6 +29,7 @@ export default class TenantContext {
       companies: [],
       users: [],
       siteContexts: [],
+      chargingStations: [],
       createdUsers: [],
       createdCompanies: [],
       createdSites: [],
@@ -73,11 +75,33 @@ export default class TenantContext {
       });
     }
     return this.context.siteContexts[0]; // By default return the first context
-
   }
 
   addSiteContext(siteContext) {
     this.context.siteContexts.push(siteContext);
+  }
+
+  getChargingStations() {
+    return this.context.chargingStations;
+  }
+
+  getChargingStation(chargingStationID) {
+    // Search in context list
+    return this.context.chargingStations.find((chargingStationContext) => {
+      return chargingStationContext.getChargingStation().id === chargingStationID;
+    });
+  }
+
+  getChargingStationContext(chargingStationContext) {
+    // Search in context list
+    return this.context.chargingStations.find((chargingStation) => {
+      return chargingStation.getChargingStation().id.startsWith(chargingStationContext);
+    });
+  }
+
+  addChargingStation(chargingStation) {
+    const chargingStationContext = new ChargingStationContext(chargingStation, this);
+    this.context.chargingStations.push(chargingStationContext);
   }
 
   async cleanUpCreatedData() {
@@ -215,6 +239,10 @@ export default class TenantContext {
   }), connectorsDef = null, siteArea = null) {
     const response = await this.getOCPPService(ocppVersion).executeBootNotification(
       chargingStation.id, chargingStation);
+    // Check
+    expect(response.data).to.not.be.null;
+    expect(response.data.status).to.eql('Accepted');
+    expect(response.data).to.have.property('currentTime');
     const createdChargingStation = await this.getAdminCentralServerService().getEntityById(
       this.getAdminCentralServerService().chargingStationApi, chargingStation);
     chargingStation.connectors = [];

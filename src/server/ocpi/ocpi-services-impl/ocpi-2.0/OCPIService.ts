@@ -1,9 +1,6 @@
-import SourceMap from 'source-map-support';
 import AbstractOCPIService from '../../AbstractOCPIService';
 
 const VERSION = '2.0';
-
-SourceMap.install();
 
 /**
  * OCPI Service 2.0 - Not Implemented - Only used for testing multiple Services declaration
@@ -15,7 +12,8 @@ export default class OCPIServices extends AbstractOCPIService {
   }
 
   // Rest Service Implementation
-  restService(req, res, next) { // eslint-disable-line
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  restService(req, res, next) {
     // Not implemented
     res.sendStatus(501);
   }

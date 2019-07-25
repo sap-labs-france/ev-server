@@ -4,7 +4,7 @@ import Database from '../utils/Database';
 import OCPIEndpointStorage from '../storage/mongodb/OCPIEndpointStorage';
 import SettingStorage from '../storage/mongodb/SettingStorage';
 import TenantHolder from './TenantHolder';
-import User from './User';
+import User from '../types/User';
 
 export default class Setting extends TenantHolder {
   private _model: any = {};
@@ -18,36 +18,20 @@ export default class Setting extends TenantHolder {
     switch (activeComponent.name) {
       // Pricing
       case Constants.COMPONENTS.PRICING:
-        // Settings does not exists
-        if (!currentSettingContent) {
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Create default settings
           if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE) {
             return { 'type': 'simple', 'simple': {} };
           } else if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING) {
             return { 'type': 'convergentCharging', 'convergentCharging': {} };
           }
-        } else {
-          // Changed?
-          if (!currentSettingContent.hasOwnProperty(activeComponent.type)) {
-            // Create new settings
-            if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE) {
-              return { 'type': 'simple', 'simple': {} };
-            } else if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING) {
-              return { 'type': 'convergentCharging', 'convergentCharging': {} };
-            }
-          }
         }
         break;
 
       // Refund
       case Constants.COMPONENTS.REFUND:
-        // Settings does not exists
-        if (!currentSettingContent) {
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Concur
-          return { 'type': 'concur', 'concur': {} };
-        }
-        // Changed?
-        if (!currentSettingContent.hasOwnProperty(activeComponent.type)) {
           return { 'type': 'concur', 'concur': {} };
         }
 
@@ -55,13 +39,8 @@ export default class Setting extends TenantHolder {
 
       // Refund
       case Constants.COMPONENTS.OCPI:
-        // Settings does not exists
-        if (!currentSettingContent) {
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only Gireve
-          return { 'type': 'gireve', 'ocpi': {} };
-        }
-        // Changed?
-        if (!currentSettingContent.hasOwnProperty(activeComponent.type)) {
           return { 'type': 'gireve', 'ocpi': {} };
         }
 
@@ -69,13 +48,8 @@ export default class Setting extends TenantHolder {
 
       // SAC
       case Constants.COMPONENTS.ANALYTICS:
-        // Settings does not exists
-        if (!currentSettingContent) {
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
           // Only SAP Analytics
-          return { 'type': 'sac', 'sac': {} };
-        }
-        // Changed?
-        if (!currentSettingContent.hasOwnProperty(activeComponent.type)) {
           return { 'type': 'sac', 'sac': {} };
         }
 
@@ -140,13 +114,13 @@ export default class Setting extends TenantHolder {
 
   getCreatedBy() {
     if (this._model.createdBy) {
-      return new User(this.getTenantID(), this._model.createdBy);
+      return this._model.createdBy;
     }
     return null;
   }
 
-  setCreatedBy(user) {
-    this._model.createdBy = user.getModel();
+  setCreatedBy(user: Partial<User>) {
+    this._model.createdBy = user;
   }
 
   getCreatedOn() {
@@ -159,13 +133,13 @@ export default class Setting extends TenantHolder {
 
   getLastChangedBy() {
     if (this._model.lastChangedBy) {
-      return new User(this.getTenantID(), this._model.lastChangedBy);
+      return this._model.lastChangedBy;
     }
     return null;
   }
 
-  setLastChangedBy(user) {
-    this._model.lastChangedBy = user.getModel();
+  setLastChangedBy(user: Partial<User>) {
+    this._model.lastChangedBy = user;
   }
 
   getLastChangedOn() {

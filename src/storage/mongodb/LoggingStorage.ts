@@ -1,6 +1,7 @@
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
 import global from './../../types/GlobalType';
 import Utils from '../../utils/Utils';
 
@@ -84,13 +85,13 @@ export default class LoggingStorage {
     return logging;
   }
 
-  public static async getLogs(tenantID, params: any = {}, limit?, skip?, sort?) {
+  public static async getLogs(tenantID, params: any = {}, dbParams: DbParams) {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
-    limit = Utils.checkRecordLimit(limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    skip = Utils.checkRecordSkip(skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
     const filters: any = {};
     // Date provided?
@@ -122,34 +123,41 @@ export default class LoggingStorage {
         filters.level = { $in: ['E', 'W', 'I'] };
         break;
     }
-    // Charging Station
-    if (params.source) {
+    // Filter on charging Stations
+    if (params.sources && Array.isArray(params.sources) && params.sources.length > 0) {
       // Yes, add in filter
-      filters.source = params.source;
+      filters.source = { $in: params.sources };
     }
     // Type
     if (params.type) {
       // Yes, add in filter
       filters.type = params.type;
     }
-    // Action
-    if (params.action) {
+    // Filter on actions
+    if (params.actions && Array.isArray(params.actions) && params.actions.length > 0) {
       // Yes, add in filter
-      filters.action = params.action;
+      filters.action = { $in: params.actions };
     }
-    // User ID
-    if (params.userID) {
+    // Filter on users
+    if (params.userIDs && Array.isArray(params.userIDs) && params.userIDs.length > 0) {
       // Yes, add in filter
-      filters.$or = [
-        { 'userID': Utils.convertToObjectID(params.userID) },
-        { 'actionOnUserID': Utils.convertToObjectID(params.userID) }
-      ];
+      filters.userID = {
+        $in: params.userIDs.map((user) => {
+          return Utils.convertToObjectID(user);
+        })
+      };
+      filters.actionOnUserID = {
+        $in: params.userIDs.map((user) => {
+          return Utils.convertToObjectID(user);
+        })
+      };
     }
-    // Source?
+    // Search
     if (params.search) {
       // Set
       const searchArray = [
         { 'source': { $regex: params.search, $options: 'i' } },
+        { 'host': { $regex: params.search, $options: 'i' } },
         { 'message': { $regex: params.search, $options: 'i' } },
         { 'detailedMessages': { $regex: params.search, $options: 'i' } },
         { 'action': { $regex: params.search, $options: 'i' } }
@@ -174,17 +182,23 @@ export default class LoggingStorage {
         $match: filters
       });
     }
+
     // Count Records
     // Limit records?
-    if (!params.onlyRecordCount) {
+    if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     const loggingsCountMDB = await global.database.getCollection<any>(tenantID, 'logs')
-      .aggregate([...aggregation, { $count: 'count' }], { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
+      .aggregate([...aggregation, { $count: 'count' }], {
+        collation: {
+          locale: Constants.DEFAULT_LOCALE,
+          strength: 2
+        }
+      })
       .toArray();
     // Check if only the total count is requested
-    if (params.onlyRecordCount) {
+    if (dbParams.onlyRecordCount) {
       // Return only the count
       return {
         count: (loggingsCountMDB.length > 0 ? loggingsCountMDB[0].count : 0),
@@ -194,10 +208,10 @@ export default class LoggingStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (sort) {
+    if (dbParams.sort) {
       // Sort
       aggregation.push({
-        $sort: sort
+        $sort: dbParams.sort
       });
     } else {
       // Default
@@ -207,11 +221,11 @@ export default class LoggingStorage {
     }
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
     // User
     aggregation.push({
@@ -254,7 +268,7 @@ export default class LoggingStorage {
     // Ok
     return {
       count: (loggingsCountMDB.length > 0 ?
-        (loggingsCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : loggingsCountMDB[0].count) : 0),
+        (loggingsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : loggingsCountMDB[0].count) : 0),
       result: loggings
     };
   }

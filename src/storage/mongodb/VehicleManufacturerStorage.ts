@@ -1,19 +1,17 @@
 import { ObjectID } from 'mongodb';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
-import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import Vehicle from '../../entity/Vehicle';
-import VehicleManufacturer from '../../entity/VehicleManufacturer';
+import VehicleManufacturer from '../../types/VehicleManufacturer';
 import VehicleStorage from './VehicleStorage';
-
 
 export default class VehicleManufacturerStorage {
 
-  static async getVehicleManufacturerLogo(tenantID, id) {
+  public static async getVehicleManufacturerLogo(tenantID: string, id: string): Promise<{id: string; logo: string}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturerLogo');
     // Check Tenant
@@ -27,7 +25,7 @@ export default class VehicleManufacturerStorage {
     // Set
     if (vehicleManufacturerLogosMDB && vehicleManufacturerLogosMDB.length > 0) {
       vehicleManufacturerLogo = {
-        id: vehicleManufacturerLogosMDB[0]._id,
+        id: vehicleManufacturerLogosMDB[0]._id.toHexString(),
         logo: vehicleManufacturerLogosMDB[0].logo
       };
     }
@@ -36,7 +34,7 @@ export default class VehicleManufacturerStorage {
     return vehicleManufacturerLogo;
   }
 
-  static async getVehicleManufacturerLogos(tenantID) {
+  public static async getVehicleManufacturerLogos(tenantID: string, IDs?: string[]): Promise<{id: string; logo: string}[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturerLogos');
     // Check Tenant
@@ -51,7 +49,7 @@ export default class VehicleManufacturerStorage {
       // Add
       for (const vehicleManufacturerLogoMDB of vehicleManufacturerLogosMDB) {
         vehicleManufacturerLogos.push({
-          id: vehicleManufacturerLogoMDB._id,
+          id: vehicleManufacturerLogoMDB._id.toHexString(),
           logo: vehicleManufacturerLogoMDB.logo
         });
       }
@@ -61,14 +59,13 @@ export default class VehicleManufacturerStorage {
     return vehicleManufacturerLogos;
   }
 
-  static async saveVehicleManufacturerLogo(tenantID, vehicleManufacturerLogoToSave) {
+  public static async saveVehicleManufacturerLogo(tenantID: string, vehicleManufacturerLogoToSave: {id: string; logo: string}) {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'saveVehicleManufacturerLogo');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check if ID/Name is provided
     if (!vehicleManufacturerLogoToSave.id) {
-      // ID must be provided!
       throw new BackendError(
         Constants.CENTRAL_SERVER,
         'Vehicle Manufacturer Logo has no ID',
@@ -83,43 +80,24 @@ export default class VehicleManufacturerStorage {
     Logging.traceEnd('VehicleManufacturerStorage', 'saveVehicleManufacturerLogo', uniqueTimerID);
   }
 
-  static async getVehicleManufacturer(tenantID, id) {
+  public static async getVehicleManufacturer(tenantID: string, id: string) {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturer');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Create Aggregation
-    const aggregation = [];
-    // Filters
-    aggregation.push({
-      $match: { _id: Utils.convertToObjectID(id) }
-    });
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
-    // Read DB
-    const vehicleManufacturersMDB = await global.database.getCollection<any>(tenantID, 'vehiclemanufacturers')
-      .aggregate(aggregation, { allowDiskUse: true })
-      .limit(1)
-      .toArray();
-    let vehicleManufacturer = null;
-    // Check
-    if (vehicleManufacturersMDB && vehicleManufacturersMDB.length > 0) {
-      // Create
-      vehicleManufacturer = new VehicleManufacturer(tenantID, vehicleManufacturersMDB[0]);
-    }
+    // Get
+    const result = await VehicleManufacturerStorage.getVehicleManufacturers(
+      tenantID, { manufacturerIDs: [id], withVehicles: true }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('VehicleManufacturerStorage', 'getVehicleManufacturer', uniqueTimerID, { id });
-    return vehicleManufacturer;
+    return result.count > 0 ? result.result[0] : null;
   }
 
-  static async saveVehicleManufacturer(tenantID, vehicleManufacturerToSave) {
+  public static async saveVehicleManufacturer(tenantID: string, vehicleManufacturerToSave: Partial<VehicleManufacturer>): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'saveVehicleManufacturer');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check if ID/Model is provided
     if (!vehicleManufacturerToSave.id && !vehicleManufacturerToSave.name) {
-      // ID must be provided!
       throw new BackendError(
         Constants.CENTRAL_SERVER,
         'Vehicle Manufacturer has no ID and no Name',
@@ -132,33 +110,35 @@ export default class VehicleManufacturerStorage {
     } else {
       vehicleManufacturerFilter._id = new ObjectID();
     }
+    // Build
+    const vehicleManufacturerMDB = { ...vehicleManufacturerToSave };
+    delete vehicleManufacturerMDB.vehicles;
+    delete vehicleManufacturerMDB.logo;
     // Check Created/Last Changed By
-    vehicleManufacturerToSave.createdBy = Utils.convertUserToObjectID(vehicleManufacturerToSave.createdBy);
-    vehicleManufacturerToSave.lastChangedBy = Utils.convertUserToObjectID(vehicleManufacturerToSave.lastChangedBy);
-    // Transfer
-    const vehicleManufacturer: any = {};
-    Database.updateVehicleManufacturer(vehicleManufacturerToSave, vehicleManufacturer, false);
+    DatabaseUtils.addLastChangedCreatedProps(vehicleManufacturerMDB, vehicleManufacturerToSave);
     // Modify
-    const result = await global.database.getCollection<any>(tenantID, 'vehiclemanufacturers').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'vehiclemanufacturers').findOneAndUpdate(
       vehicleManufacturerFilter,
-      { $set: vehicleManufacturer },
+      { $set: vehicleManufacturerMDB },
       { upsert: true, returnOriginal: false });
     // Debug
     Logging.traceEnd('VehicleManufacturerStorage', 'saveVehicleManufacturer', uniqueTimerID, { vehicleManufacturerToSave });
     // Create
-    return new VehicleManufacturer(tenantID, result.value);
+    return vehicleManufacturerFilter._id.toHexString();
   }
 
   // Delegate
-  static async getVehicleManufacturers(tenantID, params: any = {}, limit?, skip?, sort?) {
+  public static async getVehicleManufacturers(tenantID: string,
+    params: {search?: string; withVehicles?: boolean; vehicleType?: string; manufacturerIDs?: string[]},
+    dbParams: DbParams, projectFields?: string[]) {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturers');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
-    limit = Utils.checkRecordLimit(limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    skip = Utils.checkRecordSkip(skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
     const filters: any = {};
     // Source?
@@ -176,17 +156,20 @@ export default class VehicleManufacturerStorage {
         $match: filters
       });
     }
-    // With Vehicles
-    if (params.withVehicles || params.vehicleType) {
-      //  Vehicles
+    if (params.manufacturerIDs) {
       aggregation.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, 'vehicles'),
-          localField: '_id',
-          foreignField: 'vehicleManufacturerID',
-          as: 'vehicles'
+        $match: {
+          _id: { $in: params.manufacturerIDs.map((id) => {
+            return Utils.convertToObjectID(id);
+          }) }
         }
       });
+    }
+    // With Vehicles
+    if (params.withVehicles || params.vehicleType) {
+      DatabaseUtils.pushVehicleLookupInAggregation(
+        { tenantID, aggregation, localField: '_id', foreignField: 'vehicleManufacturerID',
+          asField: 'vehicles' });
     }
     // Type?
     if (params.vehicleType) {
@@ -194,17 +177,18 @@ export default class VehicleManufacturerStorage {
         $match: { 'vehicles.type': params.vehicleType }
       });
     }
+    DatabaseUtils.renameDatabaseID(aggregation);
     // Limit records?
-    if (!params.onlyRecordCount) {
+    if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
     const vehiclemanufacturersCountMDB = await global.database.getCollection<any>(tenantID, 'vehiclemanufacturers')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
-    if (params.onlyRecordCount) {
+    if (dbParams.onlyRecordCount) {
       // Return only the count
       return {
         count: (vehiclemanufacturersCountMDB.length > 0 ? vehiclemanufacturersCountMDB[0].count : 0),
@@ -216,13 +200,11 @@ export default class VehicleManufacturerStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
-    if (sort) {
-      // Sort
+    if (dbParams.sort) {
       aggregation.push({
-        $sort: sort
+        $sort: dbParams.sort
       });
     } else {
-      // Default
       aggregation.push({
         $sort: {
           name: 1
@@ -231,55 +213,38 @@ export default class VehicleManufacturerStorage {
     }
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const vehiclemanufacturersMDB = await global.database.getCollection<any>(tenantID, 'vehiclemanufacturers')
+    const vehiclemanufacturersMDB = await global.database.getCollection<VehicleManufacturer>(tenantID, 'vehiclemanufacturers')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
-    const vehicleManufacturers = [];
-    // Check
-    if (vehiclemanufacturersMDB && vehiclemanufacturersMDB.length > 0) {
-      // Create
-      for (const vehicleManufacturerMDB of vehiclemanufacturersMDB) {
-        // Create
-        const vehicleManufacturer = new VehicleManufacturer(tenantID, vehicleManufacturerMDB);
-        // Set Vehicles
-        if (params.withVehicles && vehicleManufacturerMDB.vehicles) {
-          // Add vehicles
-          vehicleManufacturer.setVehicles(vehicleManufacturerMDB.vehicles.map((vehicle) => {
-            return new Vehicle(tenantID, vehicle);
-          }));
-        }
-        // Add
-        vehicleManufacturers.push(vehicleManufacturer);
-      }
-    }
     // Debug
-    Logging.traceEnd('VehicleManufacturerStorage', 'getVehicleManufacturers', uniqueTimerID, { params, limit, skip, sort });
+    Logging.traceEnd('VehicleManufacturerStorage', 'getVehicleManufacturers', uniqueTimerID, { params, dbParams });
     // Ok
     return {
       count: (vehiclemanufacturersCountMDB.length > 0 ?
-        (vehiclemanufacturersCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : vehiclemanufacturersCountMDB[0].count) : 0),
-      result: vehicleManufacturers
+        (vehiclemanufacturersCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : vehiclemanufacturersCountMDB[0].count) : 0),
+      result: vehiclemanufacturersMDB
     };
   }
 
-  static async deleteVehicleManufacturer(tenantID, id) {
+  public static async deleteVehicleManufacturer(tenantID: string, id: string) {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'deleteVehicleManufacturer');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete Vehicles
-    const vehicles = await VehicleStorage.getVehicles(tenantID, { 'vehicleManufacturerID': id });
-    // Delete
+    const vehicles = await VehicleStorage.getVehicles(tenantID,
+      { 'vehicleManufacturerID': id }, Constants.DB_PARAMS_MAX_LIMIT);
     for (const vehicle of vehicles.result) {
-      // Delete Vehicle
-      await vehicle.delete();
+      await VehicleStorage.deleteVehicle(tenantID, vehicle.id);
     }
     // Delete the Vehicle Manufacturers
     await global.database.getCollection<any>(tenantID, 'vehiclemanufacturers')

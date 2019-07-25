@@ -2,8 +2,6 @@ import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import config from '../config';
 import faker from 'faker';
-import { from } from 'rxjs';
-import { mergeMap } from 'rxjs/operators';
 import CentralServerService from './client/CentralServerService';
 import Factory from '../factories/Factory';
 import OCPPJsonService16 from './ocpp/json/OCPPJsonService16';
@@ -71,8 +69,8 @@ export default class DataHelper {
     return createdSiteArea;
   }
 
-  public async getChargingStation(chargingStation, withCheck = true) {
-    return await this.centralServerService.getEntityById(this.centralServerService.chargingStationApi, chargingStation, withCheck);
+  public getChargingStation(chargingStation, withCheck = true) {
+    return this.centralServerService.getEntityById(this.centralServerService.chargingStationApi, chargingStation, withCheck);
   }
 
   public async createChargingStation(chargingStation = Factory.chargingStation.build({ id: faker.random.alphaNumeric(12) }), numberOfConnectors = 2) {
@@ -98,35 +96,29 @@ export default class DataHelper {
   }
 
   public async destroyData() {
-    await this.executeOnAll(this.context.users, (user) => {
-      return this.centralServerService.deleteEntity(
+    for (const user of this.context.users) {
+      await this.centralServerService.deleteEntity(
         this.centralServerService.userApi, user);
-    });
-    this.context.siteAreas.forEach((siteArea) => {
-      return this.centralServerService.deleteEntity(
+    }
+    for (const siteArea of this.context.siteAreas) {
+      await this.centralServerService.deleteEntity(
         this.centralServerService.siteAreaApi, siteArea);
-    });
-    this.context.sites.forEach((site) => {
-      return this.centralServerService.deleteEntity(
+    }
+    for (const site of this.context.sites) {
+      await this.centralServerService.deleteEntity(
         this.centralServerService.siteApi, site);
-    });
-    this.context.companies.forEach((company) => {
-      return this.centralServerService.deleteEntity(
+    }
+    for (const company of this.context.companies) {
+      await this.centralServerService.deleteEntity(
         this.centralServerService.companyApi, company);
-    });
-    this.context.chargingStations.forEach((chargingStation) => {
-      return this.centralServerService.deleteEntity(
+    }
+    for (const chargingStation of this.context.chargingStations) {
+      await this.centralServerService.deleteEntity(
         this.centralServerService.chargingStationApi, chargingStation);
-    });
+    }
   }
 
-  public async executeOnAll(array, method) {
-    await from(array).pipe(
-      mergeMap(method, 50)
-    ).toPromise();
-  }
-
-  public async close() {
+  public close() {
     if (this.ocpp && this.ocpp.closeConnection) {
       this.ocpp.closeConnection();
     }
@@ -253,7 +245,7 @@ export default class DataHelper {
     let response;
     // OCPP 1.6?
     if (this.ocpp.getVersion() === '1.6') {
-      const response = await this.ocpp.executeMeterValues(chargingStation.id, {
+      response = await this.ocpp.executeMeterValues(chargingStation.id, {
         connectorId: connectorId,
         transactionId: transactionId,
         meterValue: {

@@ -1,24 +1,23 @@
 import moment from 'moment-timezone';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
-import Pricing, { PricedConsumption } from '../Pricing';
-import SiteArea from '../../../types/SiteArea';
+import Pricing, { PricedConsumption, PricingSettings } from '../Pricing';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import StatefulChargingService from './StatefulChargingService';
+import Transaction from '../../../entity/Transaction';
 
-export default class ConvergentChargingPricing extends Pricing {
-  public statefulChargingService: any;
-  public setting: any;
-  public transaction: any;
-  public tenantId: any;
+export class ConvergentChargingPricingSettings extends PricingSettings {
+  constructor(readonly url: string, readonly user: string, readonly password: string, readonly chargeableItemName: string) {
+    super();
+  }
+}
 
-  constructor(tenantId, setting, transaction) {
+export default class ConvergentChargingPricing extends Pricing<ConvergentChargingPricingSettings> {
+  public statefulChargingService: StatefulChargingService;
+
+  constructor(tenantId: string, setting: ConvergentChargingPricingSettings, transaction: Transaction) {
     super(tenantId, setting, transaction);
     this.statefulChargingService = new StatefulChargingService(this.setting.url, this.setting.user, Cypher.decrypt(this.setting.password));
-  }
-
-  getSettings() {
-    return this.setting; // TODO: added this check if correct
   }
 
   consumptionToChargeableItemProperties(consumptionData) {
@@ -55,7 +54,7 @@ export default class ConvergentChargingPricing extends Pricing {
     return hash;
   }
 
-  async startSession(consumptionData): Promise<PricedConsumption|null> {
+  async startSession(consumptionData): Promise<PricedConsumption | null> {
     const siteArea = await SiteAreaStorage.getSiteArea(this.tenantId, this.transaction.getSiteAreaID());
     const sessionId = this.computeSessionId(consumptionData);
     const chargeableItemProperties = this.consumptionToChargeableItemProperties(consumptionData);
@@ -81,7 +80,7 @@ export default class ConvergentChargingPricing extends Pricing {
 
   }
 
-  async updateSession(consumptionData): Promise<PricedConsumption|null> {
+  async updateSession(consumptionData): Promise<PricedConsumption | null> {
     const siteArea = await SiteAreaStorage.getSiteArea(this.tenantId, this.transaction.getSiteAreaID());
     const sessionId = this.computeSessionId(consumptionData);
 
@@ -110,7 +109,7 @@ export default class ConvergentChargingPricing extends Pricing {
 
   }
 
-  async stopSession(consumptionData): Promise<PricedConsumption|null> {
+  async stopSession(consumptionData): Promise<PricedConsumption | null> {
     const siteArea = await SiteAreaStorage.getSiteArea(this.tenantId, this.transaction.getSiteAreaID());
     const sessionId = this.computeSessionId(consumptionData);
     const chargeableItemProperties = this.consumptionToChargeableItemProperties(consumptionData);
@@ -193,6 +192,7 @@ export default class ConvergentChargingPricing extends Pricing {
   }
 
 }
+
 export class ChargingRequest {
   public chargeableItem: any;
   public transactionSelection: any;
@@ -210,6 +210,7 @@ export class ChargingRequest {
     this.filterTransaction = filterTransaction;
   }
 }
+
 export class StartRateRequest {
   public reservationItem: any;
   public sessionID: any;
@@ -255,6 +256,7 @@ export class StartRateRequest {
     return 'statefulStartRate';
   }
 }
+
 export class RateResult {
   public amountToConfirm: any;
   public amountToReserve: any;
@@ -307,6 +309,7 @@ export class RateResult {
     return null;
   }
 }
+
 export class UpdateRateRequest {
   public confirmationItem: any;
   public reservationItem: any;
@@ -346,6 +349,7 @@ export class UpdateRateRequest {
     return 'statefulUpdateRate';
   }
 }
+
 export class StopRateRequest {
   public confirmationItem: any;
   public sessionID: any;
@@ -397,6 +401,7 @@ export class ReservationItem {
     this.property = properties;
   }
 }
+
 export class ConfirmationItem {
   public name: any;
   public property: any;
@@ -411,6 +416,7 @@ export class ConfirmationItem {
     this.property = properties;
   }
 }
+
 export class ChargeableItem {
   public name: any;
   public userTechnicalId: any;
@@ -434,6 +440,7 @@ export class ChargeableItem {
     this.property = properties;
   }
 }
+
 export class ChargeableItemProperty {
   public name: any;
 
@@ -454,6 +461,7 @@ const Type = {
   string: 'string',
   date: 'date',
 };
+
 export class TransactionSet {
   public ccTransactions: any;
 
@@ -480,6 +488,7 @@ export class TransactionSet {
     return this.ccTransactions[0].details['default.iso_currency_code'];
   }
 }
+
 export class Notification {
   public instanceId: any;
   public timestamp: any;
@@ -515,6 +524,7 @@ export class Notification {
     }
   }
 }
+
 export class CCTransaction {
   public details: any;
   public notifications: any;

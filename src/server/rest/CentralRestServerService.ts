@@ -1,5 +1,4 @@
 import { NextFunction, Request, Response } from 'express';
-import SourceMap from 'source-map-support';
 import AuthService from './service/AuthService';
 import ChargingStationService from './service/ChargingStationService';
 import CompanyService from './service/CompanyService';
@@ -20,9 +19,6 @@ import UserService from './service/UserService';
 import UtilsService from './service/UtilsService';
 import VehicleManufacturerService from './service/VehicleManufacturerService';
 import VehicleService from './service/VehicleService';
-
-SourceMap.install();
-
 class RequestMapper {
   private static instances = new Map<string, RequestMapper>();
 
@@ -60,7 +56,9 @@ class RequestMapper {
           'ChargingStationGetConfiguration',
           'ChargingStationChangeConfiguration',
           'ChargingStationStopTransaction',
+          'ChargingStationRemoteStopTransaction',
           'ChargingStationStartTransaction',
+          'ChargingStationRemoteStartTransaction',
           'ChargingStationUnlockConnector',
           'ChargingStationReset',
           'ChargingStationSetChargingProfile',
@@ -82,10 +80,11 @@ class RequestMapper {
           SiteCreate: SiteService.handleCreateSite,
           AddUsersToSite: SiteService.handleAddUsersToSite,
           RemoveUsersFromSite: SiteService.handleRemoveUsersFromSite,
-          AddSitesToUser: UserService.handleAddSitesToUser,
-          RemoveSitesFromUser: UserService.handleRemoveSitesFromUser,
+          AddSitesToUser: UserService.handleAssignSitesToUser,
+          RemoveSitesFromUser: UserService.handleAssignSitesToUser,
           SiteAreaCreate: SiteAreaService.handleCreateSiteArea,
           TransactionsRefund: TransactionService.handleRefundTransactions,
+          SynchronizeRefundedTransactions: TransactionService.handleSynchronizeRefundedTransactions,
           SettingCreate: SettingService.handleCreateSetting,
           OcpiEndpointCreate: OCPIEndpointService.handleCreateOcpiEndpoint,
           OcpiEndpointPing: OCPIEndpointService.handlePingOcpiEndpoint,
@@ -94,6 +93,7 @@ class RequestMapper {
           IntegrationConnectionCreate: ConnectorService.handleCreateConnection,
           _default: UtilsService.handleUnknownAction
         });
+        break;
 
       // Read
       case 'GET':
@@ -130,7 +130,6 @@ class RequestMapper {
           SiteAreaImage: SiteAreaService.handleGetSiteAreaImage,
           Users: UserService.handleGetUsers,
           UsersInError: UserService.handleGetUsersInError,
-          UserImages: UserService.handleGetUserImages,
           UserImage: UserService.handleGetUserImage,
           User: UserService.handleGetUser,
           UserInvoice: UserService.handleGetUserInvoice,
@@ -166,6 +165,7 @@ class RequestMapper {
             return res.sendStatus(200);
           }
         });
+        break;
 
       // Update
       case 'PUT':
@@ -187,6 +187,7 @@ class RequestMapper {
           OcpiEndpointRegister: OCPIEndpointService.handleRegisterOcpiEndpoint,
           _default: UtilsService.handleUnknownAction
         });
+        break;
 
       // Delete
       case 'DELETE':
@@ -206,6 +207,7 @@ class RequestMapper {
           OcpiEndpointDelete: OCPIEndpointService.handleDeleteOcpiEndpoint,
           _default: UtilsService.handleUnknownAction
         });
+        break;
     }
   }
 
@@ -240,7 +242,7 @@ class RequestMapper {
 export default {
   // Util Service
   // eslint-disable-next-line no-unused-vars
-  restServiceUtil(req, res, next) {
+  restServiceUtil(req: Request, res: Response, next: NextFunction) {
     // Parse the action
     const action = /^\/\w*/g.exec(req.url)[0].substring(1);
     // Check Context
@@ -258,12 +260,12 @@ export default {
     }
   },
 
-  async restServiceSecured(req, res, next) {
+  async restServiceSecured(req: Request, res: Response, next: NextFunction) {
     // Parse the action
     const action = /^\/\w*/g.exec(req.url)[0].substring(1);
 
     // Check if User has been updated and require new login
-    if (await SessionHashService.isSessionHashUpdated(req, res, next)) {
+    if (SessionHashService.isSessionHashUpdated(req, res, next)) {
       return;
     }
 

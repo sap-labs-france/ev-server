@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import SourceMap from 'source-map-support';
 import AbstractEndpoint from './ocpi-services-impl/AbstractEndpoint';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
@@ -7,8 +6,6 @@ import Logging from '../../utils/Logging';
 import OCPIServerError from '../../exception/OCPIServerError';
 import OCPIUtils from './OCPIUtils';
 import Tenant from '../../entity/Tenant';
-
-SourceMap.install();
 
 const MODULE_NAME = 'AbstractOCPIService';
 export interface TenantIdHoldingRequest extends Request {
@@ -72,7 +69,7 @@ export default abstract class AbstractOCPIService {
   }
 
   // Rest Service Implementation
-  public restService(req: TenantIdHoldingRequest, res: Response, next: Function): void { // eslint-disable-line
+  public restService(req: TenantIdHoldingRequest, res: Response, next: Function): void {
     // Parse the action
     const regexResult = /^\/\w*/g.exec(req.url);
     if (!regexResult) {
@@ -81,7 +78,7 @@ export default abstract class AbstractOCPIService {
     const action = regexResult[0].substring(1);
 
     // Set default tenant in case of exception
-    req.tenantID = Constants.DEFAULT_TENANT;
+    req.user = { tenantID: Constants.DEFAULT_TENANT };
 
     // Check action
     switch (action) {
@@ -98,7 +95,8 @@ export default abstract class AbstractOCPIService {
   /**
    * Send Supported Endpoints
    */
-  public getSupportedEndpoints(req: TenantIdHoldingRequest, res: Response, next: Function): void { // eslint-disable-line
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  public getSupportedEndpoints(req: TenantIdHoldingRequest, res: Response, next: Function): void {
     const fullUrl = this.getServiceUrl(req);
     const registeredEndpointsArray = Array.from(this.getRegisteredEndpoints().values());
 
@@ -115,7 +113,7 @@ export default abstract class AbstractOCPIService {
   /**
    * Process Endpoint action
    */
-  public async processEndpointAction(action: string, req: TenantIdHoldingRequest, res: Response, next: Function): Promise<void> { // eslint-disable-line
+  public async processEndpointAction(action: string, req: TenantIdHoldingRequest, res: Response, next: Function): Promise<void> {
     try {
       const registeredEndpoints = this.getRegisteredEndpoints();
 
@@ -177,7 +175,7 @@ export default abstract class AbstractOCPIService {
       }
 
       // Pass tenant id to req
-      req.tenantID = tenant.getID();
+      req.user.tenantID = tenant.getID();
 
       // Check if service is enabled for tenant
       if (!this.ocpiRestConfig.tenantEnabled.includes(tenantSubdomain)) {

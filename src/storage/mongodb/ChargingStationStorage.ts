@@ -3,6 +3,7 @@ import ChargingStation from '../../entity/ChargingStation';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import SiteArea from '../../types/SiteArea';
@@ -11,15 +12,11 @@ import Utils from '../../utils/Utils';
 
 export default class ChargingStationStorage {
 
-  private static _chargingStationFields = [ 'siteAreaID', 'chargePointSerialNumber', 'chargePointModel', 'chargeBoxSerialNumber', 'chargePointVendor', 'iccid', 'imsi', 'meterType', 'firmwareVersion',
-    'meterSerialNumber', 'endpoint', 'ocppVersion', 'ocppProtocol', 'lastHeartBeat', 'deleted', 'lastReboot', 'chargingStationURL', 'connectors', 'firmwareVersion', 'maximumPower', 'latitude', 'longitude', 'powerLimitUnit', 'cannotChargeInParallel', 'numberOfConnectedPhase', 'cfApplicationIDAndInstanceIndex'];
-
   static async getChargingStation(tenantID, id): Promise<ChargingStation> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStation');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -28,9 +25,10 @@ export default class ChargingStationStorage {
         _id: id
       }
     });
-    // With Site Area, TODO make sure this works
-    DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, aggregation, 'siteAreaID', '_id', 'siteArea', ChargingStationStorage._chargingStationFields, 'include', true);
-
+    // Site Area
+    DatabaseUtils.pushSiteAreaLookupInAggregation(
+      { tenantID, aggregation, localField: 'siteAreaID', foreignField: '_id',
+        asField: 'siteArea', oneToOneCardinality: true });
     // Read DB
     const chargingStationMDB = await global.database.getCollection<any>(tenantID, 'chargingstations')
       .aggregate(aggregation)
@@ -44,7 +42,9 @@ export default class ChargingStationStorage {
       chargingStation = new ChargingStation(tenantID, chargingStationMDB[0]);
       // Set Site Area
       if (chargingStationMDB[0].siteArea) {
-        chargingStationMDB[0].siteArea.siteID = chargingStationMDB[0].siteArea.siteID;
+        if (chargingStationMDB[0].siteArea.siteID) {
+          chargingStationMDB[0].siteArea.siteID = chargingStationMDB[0].siteArea.siteID.toString();
+        }
         chargingStation.setSiteArea(chargingStationMDB[0].siteArea);
       }
     }
@@ -54,7 +54,7 @@ export default class ChargingStationStorage {
     return chargingStation;
   }
 
-  static async getChargingStations(tenantID, params: any = {}, limit?, skip?, sort?): Promise<{count: number; result: ChargingStation[]}> {
+  static async getChargingStations(tenantID, params: any = {}, { limit, onlyRecordCount, skip, sort }: DbParams): Promise<{count: number; result: ChargingStation[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
     // Check Tenant
@@ -69,11 +69,7 @@ export default class ChargingStationStorage {
     // Set the filters
     const filters: any = {
       '$and': [{
-        '$or': [
-          { 'deleted': { $exists: false } },
-          { 'deleted': null },
-          { 'deleted': false }
-        ]
+        '$or': DatabaseUtils.getNotDeletedFilter()
       }]
     };
     // Include deleted charging stations if requested
@@ -106,26 +102,30 @@ export default class ChargingStationStorage {
         'siteAreaID': null
       });
     } else {
-      // With Site Area, TODO make sure this works
-      DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, aggregation, 'siteAreaID', '_id', 'siteArea', ChargingStationStorage._chargingStationFields, 'manual', true);
-
+      // Site Area
+      DatabaseUtils.pushSiteAreaLookupInAggregation(
+        { tenantID, aggregation, localField: 'siteAreaID', foreignField: '_id',
+          asField: 'siteArea', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy'] });
       // With sites
-      if (params.siteIDs && params.siteIDs.length > 0) {
+      if (params.siteIDs && Array.isArray(params.siteIDs) && params.siteIDs.length > 0) {
         // Build filter
         filters.$and.push({
           'siteArea.siteID': {
-            $in: params.siteIDs.map((siteID) => {
-              return Utils.convertToObjectID(siteID);
+            $in: params.siteIDs.map((site) => {
+              return Utils.convertToObjectID(site);
             })
           }
         });
       }
+      // Site
       if (params.withSite) {
-        DatabaseUtils.pushBasicSiteJoinInAggregation(tenantID, aggregation, 'siteArea.siteID', '_id', 'site', ['siteArea', ...ChargingStationStorage._chargingStationFields], 'manual', true);
+        DatabaseUtils.pushSiteLookupInAggregation(
+          { tenantID, aggregation, localField: 'siteArea.siteID', foreignField: '_id',
+            asField: 'site', oneToOneCardinality: true });
       }
     }
+    // Charger
     if (params.chargeBoxID) {
-      // Build filter
       filters.$and.push({
         '_id': params.chargeBoxID
       });
@@ -135,16 +135,16 @@ export default class ChargingStationStorage {
       $match: filters
     });
     // Limit records?
-    if (!params.onlyRecordCount) {
+    if (!onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
     const chargingStationsCountMDB = await global.database.getCollection<any>(tenantID, 'chargingstations')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
-    if (params.onlyRecordCount) {
+    if (onlyRecordCount) {
       // Return only the count
       return {
         count: (chargingStationsCountMDB.length > 0 ? chargingStationsCountMDB[0].count : 0),
@@ -157,12 +157,10 @@ export default class ChargingStationStorage {
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
     if (sort) {
-      // Sort
       aggregation.push({
         $sort: sort
       });
     } else {
-      // Default
       aggregation.push({
         $sort: {
           _id: 1
@@ -211,12 +209,12 @@ export default class ChargingStationStorage {
     // Ok
     return {
       count: (chargingStationsCountMDB.length > 0 ?
-        (chargingStationsCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : chargingStationsCountMDB[0].count) : 0),
+        (chargingStationsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : chargingStationsCountMDB[0].count) : 0),
       result: chargingStations
     };
   }
 
-  static async getChargingStationsInError(tenantID, params: any = {}, limit?, skip?, sort?) {
+  static async getChargingStationsInError(tenantID, params: any = {}, { limit, skip, sort, onlyRecordCount }: DbParams) {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
     // Check Tenant
@@ -227,16 +225,12 @@ export default class ChargingStationStorage {
     skip = Utils.checkRecordSkip(skip);
     // Create Aggregation
     const aggregation = [];
-    const siteAreaIdJoin = null;
+    let siteAreaIdJoin = null;
     let siteAreaJoin = null;
     // Set the filters
     const basicFilters: any = {
       $and: [{
-        $or: [
-          { 'deleted': { $exists: false } },
-          { 'deleted': null },
-          { 'deleted': false }
-        ]
+        $or: DatabaseUtils.getNotDeletedFilter()
       }]
     };
     // Source?
@@ -265,22 +259,30 @@ export default class ChargingStationStorage {
       });
     } else {
       // Always get the Site Area
-      const siteAreaIdJoin = [];
-      // With Site Area, TODO make sure this works
-      DatabaseUtils.pushSiteAreaJoinInAggregation(tenantID, siteAreaIdJoin, 'siteAreaID', '_id', 'siteArea', ChargingStationStorage._chargingStationFields, 'manual', true);
-
+      siteAreaIdJoin = [];
+      // Site Area
+      DatabaseUtils.pushSiteAreaLookupInAggregation(
+        { tenantID, aggregation: siteAreaIdJoin, localField: 'siteAreaID', foreignField: '_id',
+          asField: 'siteArea', oneToOneCardinality: true });
     }
     // Check Site ID
-    if (params.siteID) {
+    if (params.siteIDs && Array.isArray(params.siteIDs) && params.siteIDs.length > 0) {
       // Build filter
       basicFilters.$and.push({
-        'siteArea.siteID': Utils.convertToObjectID(params.siteID)
+        'siteArea.siteID': {
+          $in: params.siteIDs.map((site) => {
+            return Utils.convertToObjectID(site);
+          })
+        }
       });
     }
     if (params.withSite) {
       // Get the site from the sitearea
       siteAreaJoin = [];
-      DatabaseUtils.pushBasicSiteJoinInAggregation(tenantID, siteAreaJoin, 'siteArea.siteID', '_id', 'site', ['siteArea', ...ChargingStationStorage._chargingStationFields], 'manual', true);
+      // Site Area
+      DatabaseUtils.pushSiteLookupInAggregation(
+        { tenantID, aggregation: siteAreaJoin, localField: 'siteArea.siteID', foreignField: '_id',
+          asField: 'site', oneToOneCardinality: true });
     }
     // Charger
     if (params.chargeBoxID) {
@@ -337,16 +339,16 @@ export default class ChargingStationStorage {
     aggregation.push({ $addFields: { 'uniqueId': { $concat: ['$_id', '#', '$errorCode'] } } });
 
     // Limit records?
-    if (!params.onlyRecordCount) {
+    if (!onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
     const chargingStationsCountMDB = await global.database.getCollection<any>(tenantID, 'chargingstations')
       .aggregate([...aggregation, { $count: 'count' }])
       .toArray();
     // Check if only the total count is requested
-    if (params.onlyRecordCount) {
+    if (onlyRecordCount) {
       // Return only the count
       return {
         count: (chargingStationsCountMDB.length > 0 ? chargingStationsCountMDB[0].count : 0),
@@ -414,7 +416,7 @@ export default class ChargingStationStorage {
     // Ok
     return {
       count: (chargingStationsCountMDB.length > 0 ?
-        (chargingStationsCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : chargingStationsCountMDB[0].count) : 0),
+        (chargingStationsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : chargingStationsCountMDB[0].count) : 0),
       result: chargingStations
     };
   }
@@ -598,7 +600,6 @@ export default class ChargingStationStorage {
         }
         // Continue
         return true;
-
       });
     }
     // Debug

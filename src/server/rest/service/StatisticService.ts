@@ -1,3 +1,4 @@
+import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
 import moment from 'moment';
 import AppAuthError from '../../../exception/AppAuthError';
@@ -6,15 +7,16 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import StatisticsStorage from '../../../storage/mongodb/StatisticsStorage';
 import StatisticSecurity from './security/StatisticSecurity';
+import User from '../../../types/User';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 
 export default class StatisticService {
-  static async handleGetChargingStationConsumptionStatistics(action, req, res, next) {
+  static async handleGetChargingStationConsumptionStatistics(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationConsumptionStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -44,11 +46,11 @@ export default class StatisticService {
     }
   }
 
-  static async handleGetChargingStationUsageStatistics(action, req, res, next) {
+  static async handleGetChargingStationUsageStatistics(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationUsageStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -78,11 +80,11 @@ export default class StatisticService {
     }
   }
 
-  static async handleGetChargingStationInactivityStatistics(action, req, res, next) {
+  static async handleGetChargingStationInactivityStatistics(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationInactivityStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -112,11 +114,11 @@ export default class StatisticService {
     }
   }
 
-  static async handleGetUserConsumptionStatistics(action, req, res, next) {
+  static async handleGetUserConsumptionStatistics(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserConsumptionStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -146,11 +148,11 @@ export default class StatisticService {
     }
   }
 
-  static async handleGetUserUsageStatistics(action, req, res, next) {
+  static async handleGetUserUsageStatistics(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserUsageStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -180,11 +182,11 @@ export default class StatisticService {
     }
   }
 
-  static async handleGetUserInactivityStatistics(action, req, res, next) {
+  static async handleGetUserInactivityStatistics(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserInactivityStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -214,7 +216,7 @@ export default class StatisticService {
     }
   }
 
-  static async handleGetCurrentMetrics(action, req, res, next) {
+  static async handleGetCurrentMetrics(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canListChargingStations(req.user)) {
@@ -239,11 +241,11 @@ export default class StatisticService {
     }
   }
 
-  static async handleGetStatisticsExport(action, req, res, next) {
+  static async handleGetStatisticsExport(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check if component is active
-      await UtilsService.assertComponentIsActive(
-        req.user.tenantID, Constants.COMPONENTS.STATISTICS,
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetStatisticsExport');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
@@ -351,6 +353,7 @@ export default class StatisticService {
       // Create
       let month = -1;
       let transaction;
+      let userName: string;
       for (const transactionStatMDB of transactionStatsMDB) {
         // Init
         if (month !== transactionStatMDB._id.month) {
@@ -368,7 +371,13 @@ export default class StatisticService {
         if (dataCategory === 'C') {
           transaction[transactionStatMDB._id.chargeBox] = transactionStatMDB.total;
         } else {
-          transaction[Utils.buildUserFullName(transactionStatMDB.user, false, false, true)] = transactionStatMDB.total;
+          // We can have duplicate user names, like 'Unknown'
+          userName = Utils.buildUserFullName(transactionStatMDB.user, false, false, true);
+          if (userName in transaction) {
+            transaction[userName] += transactionStatMDB.total;
+          } else {
+            transaction[userName] = transactionStatMDB.total;
+          }
         }
       }
     }
@@ -376,7 +385,7 @@ export default class StatisticService {
   }
 
   static convertToCSV(transactionStatsMDB: any[], dataCategory: string, dataType: string, year: number | string, dataScope?: string) {
-    let user: any;
+    let user: User;
     let unknownUser = Utils.buildUserFullName(user, false, false, true);
     if (!unknownUser) {
       unknownUser = 'Unknown';
@@ -443,8 +452,20 @@ export default class StatisticService {
           } else {
             transactions[index].total += transaction.total;
           }
-        } else {
+        } else if (dataCategory === 'C') {
           transactions.push(transaction);
+        } else {
+          // Duplicate names are possible, like 'Unknown'
+          index = transactions.findIndex((record) => {
+            return ((record._id.month === transaction._id.month) &&
+              (record.user.name === transaction.user.name) &&
+              (record.user.firstName === transaction.user.firstName));
+          });
+          if (index < 0) {
+            transactions.push(transaction);
+          } else {
+            transactions[index].total += transaction.total;
+          }
         }
       }
       let number: number;

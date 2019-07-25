@@ -35,7 +35,7 @@ export default class ContextProvider {
   async _init() {
     if (!this.initialized) {
       // Read all tenants
-      this.tenantEntities = (await this.superAdminCentralServerService.tenantApi.readAll({}, { limit: 0, skip: 0 })).data.result;
+      this.tenantEntities = (await this.superAdminCentralServerService.tenantApi.readAll({}, Constants.DB_PARAMS_MAX_LIMIT)).data.result;
     }
     this.initialized = true;
   }
@@ -88,8 +88,8 @@ export default class ContextProvider {
     let companyList = null;
     let userList = null;
     // Read all existing entities
-    chargingStationList = (await defaultAdminCentralServiceService.chargingStationApi.readAll({}, { limit: 0, skip: 0 })).data.result;
-    if (tenantEntity.components && tenantEntity.components.hasOwnProperty(Constants.COMPONENTS.ORGANIZATION) &&
+    chargingStationList = (await defaultAdminCentralServiceService.chargingStationApi.readAll({}, Constants.DB_PARAMS_MAX_LIMIT)).data.result;
+    if (tenantEntity.components && tenantEntity.components[Constants.COMPONENTS.ORGANIZATION] &&
       tenantEntity.components[Constants.COMPONENTS.ORGANIZATION].active) {
       siteAreaList = (await defaultAdminCentralServiceService.siteAreaApi.readAll({}, { limit: 0, skip: 0 })).data.result;
       siteList = (await defaultAdminCentralServiceService.siteApi.readAll({}, { limit: 0, skip: 0 })).data.result;
@@ -107,7 +107,7 @@ export default class ContextProvider {
     newTenantContext.addUsers(userList); // pragma getContext().users = userList;
     newTenantContext.getContext().companies = companyList;
 
-    if (tenantEntity.components && tenantEntity.components.hasOwnProperty(Constants.COMPONENTS.ORGANIZATION) &&
+    if (tenantEntity.components && tenantEntity.components[Constants.COMPONENTS.ORGANIZATION] &&
       tenantEntity.components[Constants.COMPONENTS.ORGANIZATION].active) {
       for (const siteContextDef of CONTEXTS.TENANT_SITE_LIST) {
         const jsonSite = siteList.find((site) => {
@@ -129,16 +129,13 @@ export default class ContextProvider {
         newTenantContext.addSiteContext(siteContext);
       }
     }
-    // Create list of unassigned charging station by creating a dummy site
-    const siteContext = new SiteContext({ id: 1, name: CONTEXTS.SITE_CONTEXTS.NO_SITE }, newTenantContext);
-    const emptySiteAreaContext = siteContext.addSiteArea({ id: 1, name: CONTEXTS.SITE_AREA_CONTEXTS.NO_SITE });
+    // Create list of unassigned charging stations
     const chargingStations = chargingStationList.filter((chargingStation) => {
       return !chargingStation.siteAreaID;
     });
     for (const chargingStation of chargingStations) {
-      emptySiteAreaContext.addChargingStation(chargingStation);
+      newTenantContext.addChargingStation(chargingStation);
     }
-    newTenantContext.addSiteContext(siteContext);
 
     return newTenantContext;
   }

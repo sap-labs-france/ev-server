@@ -1,44 +1,45 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
+import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
 import UtilsSecurity from './UtilsSecurity';
 
 export default class LoggingSecurity {
   // eslint-disable-next-line no-unused-vars
-  static filterLoggingsRequest(request, loggedUser) {
+  static filterLoggingsRequest(request, loggedUser: UserToken) {
     const filteredRequest: any = {};
     // Get logs
     filteredRequest.DateFrom = sanitize(request.DateFrom);
     filteredRequest.DateUntil = sanitize(request.DateUntil);
     filteredRequest.Level = sanitize(request.Level);
-    filteredRequest.Source = sanitize(request.Source);
+    filteredRequest.Source = request.Source ? sanitize(request.Source).split('|') : null;
     filteredRequest.Host = sanitize(request.Host);
     filteredRequest.Process = sanitize(request.Process);
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.SortDate = sanitize(request.SortDate);
     filteredRequest.Type = sanitize(request.Type);
-    filteredRequest.Action = sanitize(request.Action);
-    filteredRequest.UserID = sanitize(request.UserID);
+    filteredRequest.Action = request.Action ? sanitize(request.Action).split('|') : null;
+    filteredRequest.UserID = request.UserID ? sanitize(request.UserID).split('|') : null;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
   }
 
   // eslint-disable-next-line no-unused-vars
-  static filterLoggingRequest(request, loggedUser) {
+  static filterLoggingRequest(request, loggedUser: UserToken) {
     const filteredRequest: any = {};
     // Get logs
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
   }
 
-  static filterLoggingResponse(logging, loggedUser, withDetailedMessage = false) {
+  static filterLoggingResponse(logging, loggedUser: UserToken, withDetailedMessage = false) {
     const filteredLogging: any = {};
 
     if (!logging) {
       return null;
     }
-    if (!Authorizations.isAdmin(loggedUser.role) && !Authorizations.isSuperAdmin(loggedUser.role)) {
+    if (!Authorizations.canReadLogging(loggedUser)) {
       return null;
     }
     filteredLogging.id = logging.id;
@@ -53,7 +54,7 @@ export default class LoggingSecurity {
     filteredLogging.message = logging.message;
     filteredLogging.module = logging.module;
     filteredLogging.method = logging.method;
-    filteredLogging.hasDetailedMessages = (logging.detailedMessages && logging.detailedMessages.length > 0 ? true : false);
+    filteredLogging.hasDetailedMessages = (logging.detailedMessages && logging.detailedMessages.length > 0);
     if (withDetailedMessage) {
       filteredLogging.detailedMessages = logging.detailedMessages;
     }

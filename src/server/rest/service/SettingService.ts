@@ -1,3 +1,4 @@
+import { NextFunction, Request, Response } from 'express';
 import _ from 'lodash';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
@@ -8,10 +9,9 @@ import Database from '../../../utils/Database';
 import Logging from '../../../utils/Logging';
 import Setting from '../../../entity/Setting';
 import SettingSecurity from './security/SettingSecurity';
-import User from '../../../entity/User';
 
 export default class SettingService {
-  public static async handleDeleteSetting(action, req, res, next) {
+  public static async handleDeleteSetting(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
       const filteredRequest = SettingSecurity.filterSettingDeleteRequest(req.query, req.user);
@@ -61,7 +61,7 @@ export default class SettingService {
     }
   }
 
-  public static async handleGetSetting(action, req, res, next) {
+  public static async handleGetSetting(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
       const filteredRequest = SettingSecurity.filterSettingRequest(req.query, req.user);
@@ -97,7 +97,7 @@ export default class SettingService {
     }
   }
 
-  public static async handleGetSettings(action, req, res, next) {
+  public static async handleGetSettings(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canListSettings(req.user)) {
@@ -140,7 +140,7 @@ export default class SettingService {
     }
   }
 
-  public static async handleCreateSetting(action, req, res, next) {
+  public static async handleCreateSetting(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canCreateSetting(req.user)) {
@@ -162,7 +162,7 @@ export default class SettingService {
       // Create setting
       const setting = new Setting(req.user.tenantID, filteredRequest);
       // Update timestamp
-      setting.setCreatedBy(new User(req.user.tenantID, { 'id': req.user.id }));
+      setting.setCreatedBy({ 'id': req.user.id });
       setting.setCreatedOn(new Date());
       // Save Setting
       const newSetting = await setting.save();
@@ -182,84 +182,79 @@ export default class SettingService {
     }
   }
 
-  public static async handleUpdateSetting(action, req, res, next) {
-    try {
-      // Filter
-      const filteredRequest = SettingSecurity.filterSettingUpdateRequest(req.body, req.user);
-      // Get Setting
-      const setting = await Setting.getSetting(req.user.tenantID, filteredRequest.id);
-      if (!setting) {
+  public static async handleUpdateSetting(action: string, req: Request, res: Response, next: NextFunction) {
+    // Filter
+    const filteredRequest = SettingSecurity.filterSettingUpdateRequest(req.body, req.user);
+    // Get Setting
+    const setting = await Setting.getSetting(req.user.tenantID, filteredRequest.id);
+    if (!setting) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `The Setting with ID '${filteredRequest.id}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        'SettingService', 'handleUpdateSetting', req.user);
+    }
+    // Check Mandatory fields
+    Setting.checkIfSettingValid(filteredRequest, req);
+    // Check auth
+    if (!Authorizations.canUpdateSetting(req.user)) {
+      // Not Authorized!
+      throw new AppAuthError(
+        Constants.ACTION_UPDATE,
+        Constants.ENTITY_SETTING,
+        setting.getID(),
+        Constants.HTTP_AUTH_ERROR,
+        'SettingService', 'handleUpdateSetting',
+        req.user);
+    }
+    // Process the sensitive data if any
+    // Preprocess the data to take care of updated values
+    if (filteredRequest.sensitiveData) {
+      if (!Array.isArray(filteredRequest.sensitiveData)) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The Setting with ID '${filteredRequest.id}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+          `The property 'sensitiveData' for Setting with ID '${filteredRequest.id}' is not an array`,
+          Constants.HTTP_CYPHER_INVALID_SENSITIVE_DATA_ERROR,
           'SettingService', 'handleUpdateSetting', req.user);
       }
-      // Check Mandatory fields
-      Setting.checkIfSettingValid(filteredRequest, req);
-      // Check auth
-      if (!Authorizations.canUpdateSetting(req.user)) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_UPDATE,
-          Constants.ENTITY_SETTING,
-          setting.getID(),
-          Constants.HTTP_AUTH_ERROR,
-          'SettingService', 'handleUpdateSetting',
-          req.user);
-      }
-      // Process the sensitive data if any
-      // Preprocess the data to take care of updated values
-      if (filteredRequest.sensitiveData) {
-        if (!Array.isArray(filteredRequest.sensitiveData)) {
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            `The property 'sensitiveData' for Setting with ID '${filteredRequest.id}' is not an array`,
-            Constants.HTTP_CYPHER_INVALID_SENSITIVE_DATA_ERROR,
-            'SettingService', 'handleUpdateSetting', req.user);
-        }
-        // Process sensitive properties
-        for (const property of filteredRequest.sensitiveData) {
-          // Get the sensitive property from the request
-          const valueInRequest = _.get(filteredRequest, property);
-          if (valueInRequest && valueInRequest.length > 0) {
-            // Get the sensitive property from the DB
-            const valueInDb = _.get(setting.getModel(), property);
-            if (valueInDb && valueInDb.length > 0) {
-              const hashedValueInDB = Cypher.hash(valueInDb);
-              if (valueInRequest !== hashedValueInDB) {
-                // Yes: Encrypt
-                _.set(filteredRequest, property, Cypher.encrypt(valueInRequest));
-              } else {
-                // No: Put back the encrypted value
-                _.set(filteredRequest, property, valueInDb);
-              }
-            } else {
-              // Value in db is empty then encrypt
+      // Process sensitive properties
+      for (const property of filteredRequest.sensitiveData) {
+        // Get the sensitive property from the request
+        const valueInRequest = _.get(filteredRequest, property);
+        if (valueInRequest && valueInRequest.length > 0) {
+          // Get the sensitive property from the DB
+          const valueInDb = _.get(setting.getModel(), property);
+          if (valueInDb && valueInDb.length > 0) {
+            const hashedValueInDB = Cypher.hash(valueInDb);
+            if (valueInRequest !== hashedValueInDB) {
+              // Yes: Encrypt
               _.set(filteredRequest, property, Cypher.encrypt(valueInRequest));
+            } else {
+              // No: Put back the encrypted value
+              _.set(filteredRequest, property, valueInDb);
             }
+          } else {
+            // Value in db is empty then encrypt
+            _.set(filteredRequest, property, Cypher.encrypt(valueInRequest));
           }
         }
       }
-      // Update
-      Database.updateSetting(filteredRequest, setting.getModel());
-      // Update timestamp
-      setting.setLastChangedBy(new User(req.user.tenantID, { 'id': req.user.id }));
-      setting.setLastChangedOn(new Date());
-      // Update Setting
-      const updatedSetting = await setting.save();
-      // Log
-      Logging.logSecurityInfo({
-        tenantID: req.user.tenantID,
-        user: req.user, module: 'SettingService', method: 'handleUpdateSetting',
-        message: `Setting '${updatedSetting.getIdentifier()}' has been updated successfully`,
-        action: action, detailedMessages: updatedSetting
-      });
-      // Ok
-      res.json(Constants.REST_RESPONSE_SUCCESS);
-      next();
-    } catch (error) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
+    // Update
+    Database.updateSetting(filteredRequest, setting.getModel());
+    // Update timestamp
+    setting.setLastChangedBy({ 'id': req.user.id });
+    setting.setLastChangedOn(new Date());
+    // Update Setting
+    const updatedSetting = await setting.save();
+    // Log
+    Logging.logSecurityInfo({
+      tenantID: req.user.tenantID,
+      user: req.user, module: 'SettingService', method: 'handleUpdateSetting',
+      message: `Setting '${updatedSetting.getIdentifier()}' has been updated successfully`,
+      action: action, detailedMessages: updatedSetting
+    });
+    // Ok
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
   }
 }

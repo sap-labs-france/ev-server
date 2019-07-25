@@ -1,9 +1,6 @@
-import SourceMap from 'source-map-support';
 import BackendError from '../../../exception/BackendError';
 import ChargingStation from '../../../entity/ChargingStation';
 import Constants from '../../../utils/Constants';
-
-SourceMap.install();
 
 export default class OCPPUtils {
 
@@ -39,7 +36,7 @@ export default class OCPPUtils {
     // Check
     if (!chargeBoxIdentity) {
       throw new BackendError(Constants.CENTRAL_SERVER,
-        `Should have the required property 'chargeBoxIdentity'!`,
+        'Should have the required property \'chargeBoxIdentity\'!',
         'OCPPUtils', '_checkAndGetChargingStation');
     }
     // Get the charging station

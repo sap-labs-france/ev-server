@@ -4,6 +4,7 @@ import faker from 'faker';
 import moment from 'moment';
 import CentralServerService from '../api/client/CentralServerService';
 import DataHelper from './DataHelper';
+import Utils from './Utils';
 
 chai.use(chaiSubset);
 
@@ -25,7 +26,7 @@ class TestData {
 let testData: TestData;
 
 describe('Transaction tests', function() {
-  this.timeout(10000);
+  this.timeout(1000000);
   before(async () => {
     testData = new TestData();
     await testData.init();
@@ -33,7 +34,7 @@ describe('Transaction tests', function() {
 
   after(async () => {
     testData.dataHelper16.close();
-    testData.dataHelper16.destroyData();
+    await testData.dataHelper16.destroyData();
   });
 
   describe('readById', () => {
@@ -228,7 +229,7 @@ describe('Transaction tests', function() {
       expect(response.status).to.equal(200);
       expect(response.data.count).to.equal(0);
     });
-    it('some transactions completed', async () => {
+    it('some transactions completed without statistics', async () => {
       const user = await testData.dataHelper16.createUser();
       const company = await testData.dataHelper16.createCompany();
       const site = await testData.dataHelper16.createSite(company, [user]);
@@ -248,6 +249,111 @@ describe('Transaction tests', function() {
       const response = await testData.centralServerService.transactionApi.readAllCompleted({ ChargeBoxID: chargingStation.id });
       expect(response.status).to.equal(200);
       expect(response.data.count).to.equal(2);
+      expect(response.data.stats).to.containSubset({ count: 2 });
+      expect(response.data.result).to.containSubset([{
+        id: transactionId1,
+        meterStart: meterStart,
+        stop: {
+          totalConsumption: 1000,
+          totalInactivitySecs: 0,
+          meterStop: meterStop,
+          timestamp: stopDate.toISOString(),
+          tagID: tagId,
+        }
+      }, {
+        id: transactionId2,
+        meterStart: meterStart,
+        stop: {
+          meterStop: meterStop,
+          totalConsumption: 1000,
+          totalInactivitySecs: 0,
+          timestamp: stopDate.toISOString(),
+          tagID: tagId,
+        }
+      }]);
+    });
+    it('some transactions completed with historical statistics', async () => {
+      const user = await testData.dataHelper16.createUser();
+      const company = await testData.dataHelper16.createCompany();
+      const site = await testData.dataHelper16.createSite(company, [user]);
+      const chargingStation = await testData.dataHelper16.createChargingStation();
+      await testData.dataHelper16.createSiteArea(site, [chargingStation]);
+      const connectorId = 1;
+      const tagId = user.tagIDs[0];
+      const meterStart = 0;
+      const meterStop = 1000;
+      const startDate = moment();
+      const stopDate = startDate.clone().add(1, 'hour');
+      const transactionId1 = await testData.dataHelper16.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
+      await testData.dataHelper16.stopTransaction(chargingStation, transactionId1, tagId, meterStop, stopDate);
+      const transactionId2 = await testData.dataHelper16.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
+      await testData.dataHelper16.stopTransaction(chargingStation, transactionId2, tagId, meterStop, stopDate);
+
+      const response = await testData.centralServerService.transactionApi.readAllCompleted({ ChargeBoxID: chargingStation.id, Statistics: 'history' });
+      expect(response.status).to.equal(200);
+      expect(response.data.count).to.equal(2);
+      expect(response.data.stats).to.containSubset({
+        totalConsumptionWattHours: 2000,
+        totalDurationSecs: 7200,
+        totalPrice: 2,
+        totalInactivitySecs: 0,
+        count: 2
+      }
+      );
+      expect(response.data.result).to.containSubset([{
+        id: transactionId1,
+        meterStart: meterStart,
+        stop: {
+          totalConsumption: 1000,
+          totalInactivitySecs: 0,
+          meterStop: meterStop,
+          timestamp: stopDate.toISOString(),
+          tagID: tagId,
+        }
+      }, {
+        id: transactionId2,
+        meterStart: meterStart,
+        stop: {
+          meterStop: meterStop,
+          totalConsumption: 1000,
+          totalInactivitySecs: 0,
+          timestamp: stopDate.toISOString(),
+          tagID: tagId,
+        }
+      }]);
+    });
+
+    it('some transactions completed with refund statistics', async () => {
+      const user = await testData.dataHelper16.createUser();
+      const company = await testData.dataHelper16.createCompany();
+      const site = await testData.dataHelper16.createSite(company, [user]);
+      const chargingStation = await testData.dataHelper16.createChargingStation();
+      await testData.dataHelper16.createSiteArea(site, [chargingStation]);
+      const connectorId = 1;
+      const tagId = user.tagIDs[0];
+      const meterStart = 0;
+      const meterStop = 1000;
+      const startDate = moment();
+      const stopDate = startDate.clone().add(1, 'hour');
+      const transactionId1 = await testData.dataHelper16.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
+      await testData.dataHelper16.stopTransaction(chargingStation, transactionId1, tagId, meterStop, stopDate);
+      const transactionId2 = await testData.dataHelper16.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
+      await testData.dataHelper16.stopTransaction(chargingStation, transactionId2, tagId, meterStop, stopDate);
+
+      const response = await testData.centralServerService.transactionApi.readAllCompleted({ UserId: user.id, ChargeBoxID: chargingStation.id, Statistics: 'refund' });
+      expect(response.status).to.equal(200);
+      expect(response.data.count).to.equal(2);
+      expect(response.data.stats).to.containSubset({
+        totalConsumptionWattHours: 2000,
+        totalPriceRefund: 0,
+        totalPricePending: 2,
+        currency: 'EUR',
+        countRefundTransactions: 0,
+        countPendingTransactions: 2,
+        countRefundedReports: 0,
+        count: 2
+      }
+      );
       expect(response.data.result).to.containSubset([{
         id: transactionId1,
         meterStart: meterStart,
@@ -822,7 +928,8 @@ describe('Transaction tests', function() {
       cumulated += meterValue.value;
       await testData.dataHelper16.sendConsumptionMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.timestamp);
     }
-    await timeout(2000);
+
+    await Utils.sleep(1000);
     expect(await testData.centralServerService.mailApi.isMailReceived(user.email, 'transaction-started')).is.equal(true, 'transaction-started mail');
     expect(await testData.centralServerService.mailApi.isMailReceived(user.email, 'end-of-charge')).is.equal(true, 'end-of-charge mail');
 
@@ -950,11 +1057,3 @@ describe('Transaction tests', function() {
     });
   });
 });
-
-
-function timeout(ms) {
-  // eslint-disable-next-line no-undef
-  return new Promise((resolve) => {
-    return setTimeout(resolve, ms);
-  });
-}

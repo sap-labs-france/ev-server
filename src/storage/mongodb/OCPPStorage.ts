@@ -19,7 +19,7 @@ export default class OCPPStorage {
       .digest('hex');
     // Set the User
     if (authorize.user) {
-      authorize.userID = Utils.convertToObjectID(authorize.user.getID());
+      authorize.userID = Utils.convertToObjectID(authorize.user.id);
     }
     // Insert
     await global.database.getCollection<any>(tenantID, 'authorizes')
@@ -226,19 +226,7 @@ export default class OCPPStorage {
     // Set the filters
     const filters: any = {
       '$and': [{
-        '$or': [
-          {
-            'deleted': {
-              $exists: false
-            }
-          },
-          {
-            'deleted': null
-          },
-          {
-            'deleted': false
-          }
-        ]
+        '$or': DatabaseUtils.getNotDeletedFilter()
       }]
     };
 

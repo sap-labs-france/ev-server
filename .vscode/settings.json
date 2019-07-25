@@ -5,20 +5,11 @@
     "typescript",
     "typescriptreact"
   ],
-  "mocha.env": {
-    "TS_NODE_PROJECT": "tsconfig-test.json",
-    "TS_NODE_FILES": true
-  },
-  "mocha.requires": [
-    "ts-node/register"
-  ],
-  "mocha.files.glob": "test/**/*Test.ts",
   "mochaExplorer.env": {
-    "TS_NODE_PROJECT": "tsconfig-test.json",
     "TS_NODE_FILES": "true"
   },
   "mochaExplorer.files": "test/**/*Test.ts",
-  "mochaExplorer.require": "ts-node/register",
   "mochaExplorer.exit": true,
-  "mochaExplorer.debuggerConfig": "Debug Mocha Tests"
+  "mochaExplorer.debuggerConfig": "Debug Mocha Tests",
+  "search.usePCRE2": true
 }

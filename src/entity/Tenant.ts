@@ -1,7 +1,7 @@
 import Database from '../utils/Database';
 import Setting from '../entity/Setting';
 import TenantStorage from '../storage/mongodb/TenantStorage';
-import User from './User';
+import User from '../types/User';
 
 
 export default class Tenant {
@@ -81,7 +81,7 @@ export default class Tenant {
   getActiveComponentNames(): string[] {
     const activeComponents = [];
     for (const componentName in this._model.components) {
-      if (this._model.components.hasOwnProperty(componentName) && this._model.components[componentName].active) {
+      if (this._model.components[componentName] && this._model.components[componentName].active) {
         activeComponents.push(componentName);
       }
     }
@@ -91,7 +91,7 @@ export default class Tenant {
   getActiveComponents() {
     const activeComponents = [];
     for (const componentName in this._model.components) {
-      if (this._model.components.hasOwnProperty(componentName) && this._model.components[componentName].active) {
+      if (this._model.components[componentName] && this._model.components[componentName].active) {
         activeComponents.push(componentName);
       }
     }
@@ -122,13 +122,13 @@ export default class Tenant {
 
   getCreatedBy() {
     if (this._model.createdBy) {
-      return new User(this.getID(), this._model.createdBy);
+      return this._model.createdBy;
     }
     return null;
   }
 
-  setCreatedBy(user: any) {
-    this._model.createdBy = user.getModel();
+  setCreatedBy(user: Partial<User>) {
+    this._model.createdBy = user;
   }
 
   getCreatedOn() {
@@ -141,13 +141,13 @@ export default class Tenant {
 
   getLastChangedBy() {
     if (this._model.lastChangedBy) {
-      return new User(this.getID(), this._model.lastChangedBy);
+      return this._model.lastChangedBy;
     }
     return null;
   }
 
-  setLastChangedBy(user: any) {
-    this._model.lastChangedBy = user.getModel();
+  setLastChangedBy(user: Partial<User>) {
+    this._model.lastChangedBy = user;
   }
 
   getLastChangedOn() {

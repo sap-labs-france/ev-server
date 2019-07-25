@@ -1,44 +1,50 @@
 // Goal : Checks related to settings
 // Note : These unit tests use the tenant utall. This tenant should exist prior running these tests.
 //        Run npm run test:createContext to create the needed utall if not present.
-
-import path from 'path';
-import global from '../../src/types/GlobalType';
-global.appRoot = path.resolve(__dirname, '../../src');
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
-import CentralServerService from './client/CentralServerService';
-import Constants from './client/utils/Constants';
 import config from '../config';
 import responseHelper from '../helpers/responseHelper';
+import CentralServerService from './client/CentralServerService';
+import Constants from './client/utils/Constants';
+import TestData from './client/utils/TestData';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
 
-import TestData from './client/utils/TestData';
-
 const FAKE_WORD = 'Expelliarmus';
 const testData: TestData = new TestData();
+let oldSetting = {};
 
-describe('Setting tests', function() {
+describe('Encryption Setting tests', function() {
   this.timeout(30000);
 
-  before( async function() {
+  before(async function() {
     // Init values
     testData.centralService = new CentralServerService('utall', { email: config.get('admin.username'), password: config.get('admin.password') });
   });
 
-  after( async function() {
+  afterEach(async function() {
+    // Housekeeping
+    const update = await testData.centralService.updateEntity(testData.centralService.settingApi, oldSetting);
+    expect(update.status).to.equal(200);
+  });
+
+  after(async function() {
     // Housekeeping
   });
 
-
-  describe('Success cases', () => {
+  describe('Success cases (tenant ut-all)', () => {
     it('Check that updating the refund/concur setting works with sensitive data encryption', async () => {
       // Retrieve the setting id
-      let read = await testData.centralService.settingApi.readAll({ "Identifier" : "refund" },{ limit: Constants.UNLIMITED, skip: 0 });
+      let read = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
+        limit: Constants.UNLIMITED,
+        skip: 0
+      });
       expect(read.status).to.equal(200);
       expect(read.data.count).to.equal(1);
+      // Store the old setting
+      oldSetting = read.data.result[0];
       // Update the setting
       testData.data = JSON.parse(`{
           "id":"${read.data.result[0].id}",
@@ -61,20 +67,28 @@ describe('Setting tests', function() {
       const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
       expect(update.status).to.equal(200);
       // Retrieve the updated setting and check
-      read = await testData.centralService.settingApi.readAll({ "Identifier" : "refund" },{ limit: Constants.UNLIMITED, skip: 0 });
+      read = await testData.centralService.settingApi.readAll({ 'Identifier': 'refund' }, {
+        limit: Constants.UNLIMITED,
+        skip: 0
+      });
       expect(read.status).to.equal(200);
       expect(read.data.count).to.equal(1);
-      expect(read.data.result[0].sensitiveData[0]).to.equal("content.concur.clientSecret");
+      expect(read.data.result[0].sensitiveData[0]).to.equal('content.concur.clientSecret');
       expect(read.data.result[0].content.concur.clientSecret).to.not.equal(FAKE_WORD);
     });
 
     it('Check that updating the pricing/convergent charging setting works with sensitive data encryption', async () => {
-        // Retrieve the setting id
-        let read = await testData.centralService.settingApi.readAll({ "Identifier" : "pricing" },{ limit: Constants.UNLIMITED, skip: 0 });
-        expect(read.status).to.equal(200);
-        expect(read.data.count).to.equal(1);
-        // Update the setting
-        testData.data = JSON.parse(`{
+      // Retrieve the setting id
+      let read = await testData.centralService.settingApi.readAll({ 'Identifier': 'pricing' }, {
+        limit: Constants.UNLIMITED,
+        skip: 0
+      });
+      expect(read.status).to.equal(200);
+      expect(read.data.count).to.equal(1);
+      // Store the old setting
+      oldSetting = read.data.result[0];
+      // Update the setting
+      testData.data = JSON.parse(`{
             "id":"${read.data.result[0].id}",
             "identifier":"pricing",
             "sensitiveData":["content.convergentCharging.password"],
@@ -88,16 +102,32 @@ describe('Setting tests', function() {
                 }
             }
         }`);
-        const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
-        expect(update.status).to.equal(200);
-        // Retrieve the updated setting and check
-        read = await testData.centralService.settingApi.readAll({ "Identifier" : "pricing" },{ limit: Constants.UNLIMITED, skip: 0 });
-        expect(read.status).to.equal(200);
-        expect(read.data.count).to.equal(1);
-        expect(read.data.result[0].sensitiveData[0]).to.equal("content.convergentCharging.password");
-        expect(read.data.result[0].content.convergentCharging.password).to.not.equal(FAKE_WORD);
+      const update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
+      expect(update.status).to.equal(200);
+      // Retrieve the updated setting and check
+      read = await testData.centralService.settingApi.readAll({ 'Identifier': 'pricing' }, {
+        limit: Constants.UNLIMITED,
+        skip: 0
       });
-
+      expect(read.status).to.equal(200);
+      expect(read.data.count).to.equal(1);
+      expect(read.data.result[0].sensitiveData[0]).to.equal('content.convergentCharging.password');
+      expect(read.data.result[0].content.convergentCharging.password).to.not.equal(FAKE_WORD);
+      // Housekeeping set the pricing setting back to simple pricing
+      testData.data = JSON.parse(`{
+        "id":"${read.data.result[0].id}",
+        "identifier":"pricing",
+        "sensitiveData":[],
+        "content":{
+          "type":"simple",
+          "simple":{
+              "price":"1",
+              "currency":"EUR"
+          }
+        }
+      }`);
+      const response = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
+      expect(response.status).to.equal(200);
     });
-
+  });
 });

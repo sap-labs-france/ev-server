@@ -2,6 +2,7 @@ import { expect } from 'chai';
 // pragma import moment from 'moment';
 import Constants from './utils/Constants';
 import CrudApi from './utils/CrudApi';
+import User from '../../../src/types/User';
 
 export default class TransactionApi extends CrudApi {
   public constructor(authenticatedApi) {
@@ -36,7 +37,7 @@ export default class TransactionApi extends CrudApi {
     return super.delete(id, '/client/api/TransactionDelete');
   }
 
-  public async startTransaction(ocpp, chargingStation, chargingStationConnector, user, meterStart, startTime, withSoC = false) {
+  public async startTransaction(ocpp, chargingStation, chargingStationConnector, user: User, meterStart, startTime, withSoC = false) {
     // Start the transaction
     const responseTransaction = await ocpp.executeStartTransaction(chargingStation.id, {
       connectorId: chargingStationConnector.connectorId,
@@ -50,45 +51,45 @@ export default class TransactionApi extends CrudApi {
     expect(responseTransaction.data).to.have.property('transactionId');
     expect(responseTransaction.data.transactionId).to.not.equal(0);
     // Keep it
-    const transactionId = responseTransaction.data.transactionId;
+    // const transactionId = responseTransaction.data.transactionId;
     // Set Connector Status to Occupied
     chargingStationConnector.status = 'Occupied';
     chargingStationConnector.timestamp = new Date().toISOString();
     // Update
-    const response = await ocpp.executeStatusNotification(chargingStation.id, chargingStationConnector);
+    let response = await ocpp.executeStatusNotification(chargingStation.id, chargingStationConnector);
     // Check
     expect(response.data).to.eql({});
+    // Check if the Transaction exists
+    const transactionId = responseTransaction.data.transactionId;
+    response = await this.readById(transactionId);
+    // Check
+    expect(response.status).to.equal(200);
+    expect(response.data).to.deep.include({
+      id: transactionId,
+      timestamp: startTime.toISOString(),
+      connectorId: chargingStationConnector.connectorId,
+      currentConsumption: 0,
+      currentCumulatedPrice: 0,
+      currentStateOfCharge: 0,
+      currentTotalConsumption: 0,
+      currentTotalInactivitySecs: 0,
+      isLoading: false,
+      meterStart: meterStart,
+      price: 0,
+      roundedPrice: 0,
+      tagID: user.tagIDs[0],
+      chargeBoxID: chargingStation.id,
+      stateOfCharge: 0,
+      user: {
+        id: user.id,
+        firstName: user.firstName,
+        name: user.name,
+      }
+    });
     return responseTransaction;
-    // // Check if the Transaction exists
-    // response = await this.readById(transactionId);
-    // // Check
-    // expect(response.status).to.equal(200);
-    // expect(response.data).to.deep.include({
-    //   id: transactionId,
-    //   timestamp: startTime.toISOString(),
-    //   connectorId: chargingStationConnector.connectorId,
-    //   // currentConsumption: 0,
-    //   // currentCumulatedPrice: 0,
-    //   // currentStateOfCharge: 0,
-    //   // currentTotalConsumption: 0,
-    //   // currentTotalInactivitySecs: 0,
-    //   isLoading: false,
-    //   meterStart: meterStart,
-    //   price: 0,
-    //   roundedPrice: 0,
-    //   tagID: user.tagIDs[0],
-    //   chargeBoxID: chargingStation.id,
-    //   // stateOfCharge: 0,
-    //   user: {
-    //     id: user.id,
-    //     firstName: user.firstName,
-    //     name: user.name,
-    //   }
-    // });
-    // return response.data;
   }
 
-  public async sendTransactionMeterValue(ocpp, transaction, chargingStation, user, meterValue, currentTime, currentConsumption, totalConsumption) {
+  public async sendTransactionMeterValue(ocpp, transaction, chargingStation, user: User, meterValue, currentTime, currentConsumption, totalConsumption) {
     let response;
     // OCPP 1.6?
     if (ocpp.getVersion() === '1.6') {
@@ -153,12 +154,13 @@ export default class TransactionApi extends CrudApi {
   }
 
   public async sendBeginMeterValue(ocpp, transaction, chargingStation, user,
-    meterValue, meterSocValue, currentTime, withSoC = false) {
+    meterValue, meterSocValue, signedValue, currentTime, withSoC = false, withSignedData = false) {
     let response;
     // OCPP 1.6?
     if (ocpp.getVersion() === '1.6') {
       // Yes
       if (withSoC) {
+        // With State of Charge ?
         response = await ocpp.executeMeterValues(chargingStation.id, {
           connectorId: transaction.connectorId,
           transactionId: transaction.id,
@@ -177,7 +179,27 @@ export default class TransactionApi extends CrudApi {
             }]
           },
         });
+      } else if (withSignedData) {
+        // With SignedData ?
+        response = await ocpp.executeMeterValues(chargingStation.id, {
+          connectorId: transaction.connectorId,
+          transactionId: transaction.id,
+          meterValue: {
+            timestamp: currentTime.toISOString(),
+            sampledValue: [{
+              'unit': 'Wh',
+              'context': 'Transaction.Begin',
+              'value': signedValue,
+              'format': 'SignedData'
+            }, {
+              'unit': 'Wh',
+              'context': 'Transaction.Begin',
+              'value': meterValue
+            }]
+          },
+        });
       } else {
+        // Regular case
         response = await ocpp.executeMeterValues(chargingStation.id, {
           connectorId: transaction.connectorId,
           transactionId: transaction.id,
@@ -216,7 +238,7 @@ export default class TransactionApi extends CrudApi {
     return response;
   }
 
-  public async sendTransactionWithSoCMeterValue(ocpp, transaction, chargingStation, user,
+  public async sendTransactionWithSoCMeterValue(ocpp, transaction, chargingStation, user: User,
     meterValue, meterSocValue, currentTime, currentConsumption, totalConsumption) {
     let response;
     // OCPP 1.6?
@@ -267,11 +289,13 @@ export default class TransactionApi extends CrudApi {
   }
 
   public async sendEndMeterValue(ocpp, transaction, chargingStation, user,
-    meterValue, meterSocValue, currentTime, withSoC = false) {
+    meterValue, meterSocValue, signedValue, currentTime, withSoC = false, withSignedData = false) {
     let response;
     // OCPP 1.6?
     if (ocpp.getVersion() === '1.6') {
+      // Yes
       if (withSoC) {
+        // With State of Charge ?
         response = await ocpp.executeMeterValues(chargingStation.id, {
           connectorId: transaction.connectorId,
           transactionId: transaction.id,
@@ -290,7 +314,23 @@ export default class TransactionApi extends CrudApi {
             }]
           },
         });
+      } else if (withSignedData) {
+        // With SignedData ?
+        response = await ocpp.executeMeterValues(chargingStation.id, {
+          connectorId: transaction.connectorId,
+          transactionId: transaction.id,
+          meterValue: {
+            timestamp: currentTime.toISOString(),
+            sampledValue: [{
+              'unit': 'Wh',
+              'context': 'Transaction.End',
+              'value': signedValue,
+              'format': 'SignedData'
+            }]
+          },
+        });
       } else {
+        // Regular case
         response = await ocpp.executeMeterValues(chargingStation.id, {
           connectorId: transaction.connectorId,
           transactionId: transaction.id,
@@ -333,7 +373,7 @@ export default class TransactionApi extends CrudApi {
     }
   }
 
-  public async stopTransaction(ocpp, transaction, userStart, userStop, meterStop, stopTime,
+  public async stopTransaction(ocpp, transaction, userStart: User, userStop: User, meterStop, stopTime,
     chargingStationConnector, totalConsumption, totalInactivity, totalPrice, stateOfCharge) {
     // Stop the transaction
     let response = await ocpp.executeStopTransaction(transaction.chargeBoxID, {

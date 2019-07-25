@@ -1,4 +1,3 @@
-import Consumption from '../../../entity/Consumption';
 import Pricing, { PricedConsumption, PricingSettings } from '../Pricing';
 import Transaction from '../../../entity/Transaction';
 
@@ -8,7 +7,7 @@ export class SimplePricingSettings extends PricingSettings {
   }
 }
 
-export default class SimplePricing extends Pricing {
+export default class SimplePricing extends Pricing<SimplePricingSettings> {
 
   constructor(tenantId: string, readonly settings: SimplePricingSettings, transaction: Transaction) {
     super(tenantId, settings, transaction);
@@ -27,19 +26,12 @@ export default class SimplePricing extends Pricing {
   }
 
   async computePrice(consumptionData: {consumption: any}): Promise<PricedConsumption> {
-    // Shorthand
-    const s = this.getSettings();
-
     return {
       pricingSource: 'simple',
-      amount: parseFloat((s.price * (consumptionData.consumption / 1000)).toFixed(6)),
-      roundedAmount: parseFloat((s.price * (consumptionData.consumption / 1000)).toFixed(2)),
-      currencyCode: s.currency,
+      amount: parseFloat((this.settings.price * (consumptionData.consumption / 1000)).toFixed(6)),
+      roundedAmount: parseFloat((this.settings.price * (consumptionData.consumption / 1000)).toFixed(2)),
+      currencyCode: this.settings.currency,
       cumulatedAmount: 0 // TODO: handle this using NULLs instead?
     };
-  }
-
-  protected getSettings(): SimplePricingSettings {
-    return this.settings;
   }
 }

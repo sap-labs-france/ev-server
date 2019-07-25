@@ -1,149 +1,117 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
+import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import { HttpSitesAssignUserRequest, HttpUserRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
+import User from '../../../../types/User';
+import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 
 export default class UserSecurity {
-  // eslint-disable-next-line no-unused-vars
-  static filterAddSitesToUserRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.userID = sanitize(request.userID);
-    if (request.siteIDs) {
-      filteredRequest.siteIDs = request.siteIDs.map((siteID) => {
-        return sanitize(siteID);
-      });
+
+  public static filterAssignSitesToUserRequest(request: Partial<HttpSitesAssignUserRequest>): HttpSitesAssignUserRequest {
+    return {
+      userID: sanitize(request.userID),
+      siteIDs: request.siteIDs ? request.siteIDs.map((sid) => {
+        return sanitize(sid);
+      }) : []
+    };
+  }
+
+  public static filterUserByIDRequest(request: Partial<HttpByIDRequest>): string {
+    return sanitize(request.ID);
+  }
+
+  public static filterUsersRequest(request: Partial<HttpUsersRequest>): HttpUsersRequest {
+    if (request.Search) {
+      request.Search = sanitize(request.Search);
     }
-    return filteredRequest;
-  }
-
-  // eslint-disable-next-line no-unused-vars
-  static filterRemoveSitesFromUserRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.userID = sanitize(request.userID);
-    if (request.siteIDs) {
-      filteredRequest.siteIDs = request.siteIDs.map((siteID) => {
-        return sanitize(siteID);
-      });
+    if (request.SiteID) {
+      request.SiteID = sanitize(request.SiteID);
     }
-    return filteredRequest;
+    if (request.Role) {
+      request.Role = sanitize(request.Role);
+    }
+    if (request.Status) {
+      request.Status = sanitize(request.Status);
+    }
+    if (request.ExcludeSiteID) {
+      request.ExcludeSiteID = sanitize(request.ExcludeSiteID);
+    }
+    UtilsSecurity.filterSkipAndLimit(request, request);
+    UtilsSecurity.filterSort(request, request);
+    return request as HttpUsersRequest;
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterUserDeleteRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.ID = sanitize(request.ID);
-    return filteredRequest;
-  }
-
-  // eslint-disable-next-line no-unused-vars
-  static filterUserRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.ID = sanitize(request.ID);
-    return filteredRequest;
-  }
-
-  // eslint-disable-next-line no-unused-vars
-  static filterUsersRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    // Handle picture
-    filteredRequest.Search = sanitize(request.Search);
-    filteredRequest.SiteID = sanitize(request.SiteID);
-    filteredRequest.Role = sanitize(request.Role);
-    filteredRequest.Status = sanitize(request.Status);
-    filteredRequest.ExcludeSiteID = sanitize(request.ExcludeSiteID);
-    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
-    UtilsSecurity.filterSort(request, filteredRequest);
-    return filteredRequest;
-  }
-
-  static filterUserUpdateRequest(request, loggedUser) {
-    // Set
+  public static filterUserUpdateRequest(request: Partial<HttpUserRequest>, loggedUser: UserToken): Partial<HttpUserRequest> {
     const filteredRequest = UserSecurity._filterUserRequest(request, loggedUser);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  static filterUserCreateRequest(request, loggedUser) {
+  public static filterUserCreateRequest(request: Partial<HttpUserRequest>, loggedUser: UserToken): Partial<HttpUserRequest> {
     return UserSecurity._filterUserRequest(request, loggedUser);
   }
 
-  static _filterUserRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    if (request.hasOwnProperty('costCenter')) {
+  public static _filterUserRequest(request: Partial<HttpUserRequest>, loggedUser: UserToken): Partial<HttpUserRequest> {
+    const filteredRequest: Partial<HttpUserRequest> = {};
+    if (request.costCenter) {
       filteredRequest.costCenter = sanitize(request.costCenter);
     }
-    if (request.hasOwnProperty('firstName')) {
+    if (request.firstName) {
       filteredRequest.firstName = sanitize(request.firstName);
     }
-    if (request.hasOwnProperty('iNumber')) {
+    if (request.iNumber) {
       filteredRequest.iNumber = sanitize(request.iNumber);
     }
-    if (request.hasOwnProperty('image')) {
+    if (request.image) {
       filteredRequest.image = sanitize(request.image);
     }
-    if (request.hasOwnProperty('mobile')) {
+    if (request.mobile) {
       filteredRequest.mobile = sanitize(request.mobile);
     }
-    if (request.hasOwnProperty('name')) {
+    if (request.name) {
       filteredRequest.name = sanitize(request.name);
     }
-    if (request.hasOwnProperty('locale')) {
+    if (request.locale) {
       filteredRequest.locale = sanitize(request.locale);
     }
-    if (request.hasOwnProperty('address')) {
+    if (request.address) {
       filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address);
     }
-    if (request.hasOwnProperty('passwords') && request.passwords.hasOwnProperty('password') && request.passwords.password.length > 0) {
+    if (request.passwords && request.passwords.password && request.passwords.password.length > 0) {
       filteredRequest.password = sanitize(request.passwords.password);
     }
-    if (request.hasOwnProperty('phone')) {
+    if (request.phone) {
       filteredRequest.phone = sanitize(request.phone);
     }
+    if (request.email) {
+      filteredRequest.email = sanitize(request.email);
+    }
     // Admin?
-    if (Authorizations.isAdmin(loggedUser.role)) {
+    if (Authorizations.isAdmin(loggedUser.role) || Authorizations.isSuperAdmin(loggedUser.role)) {
       // Ok to set the sensitive data
       if (request.hasOwnProperty('notificationsActive')) {
         filteredRequest.notificationsActive = sanitize(request.notificationsActive);
       }
-      if (request.hasOwnProperty('email')) {
-        filteredRequest.email = sanitize(request.email);
-      }
-      if (request.hasOwnProperty('status')) {
+      if (request.status) {
         filteredRequest.status = sanitize(request.status);
       }
-      if (request.hasOwnProperty('tagIDs')) {
+      if (request.tagIDs) {
         filteredRequest.tagIDs = sanitize(request.tagIDs);
       }
-      if (request.hasOwnProperty('plateID')) {
+      if (request.plateID) {
         filteredRequest.plateID = sanitize(request.plateID);
       }
-      if (request.hasOwnProperty('role')) {
+      if (request.role) {
         filteredRequest.role = sanitize(request.role);
-      }
-    }
-    // Admin?
-    if (Authorizations.isSuperAdmin(loggedUser.role)) {
-      // Ok to set the sensitive data
-      if (request.hasOwnProperty('email')) {
-        filteredRequest.email = sanitize(request.email);
-      }
-      if (request.hasOwnProperty('role')) {
-        filteredRequest.role = sanitize(request.role);
-      }
-      if (request.hasOwnProperty('status')) {
-        filteredRequest.status = sanitize(request.status);
       }
     }
     return filteredRequest;
   }
 
   // User
-  static filterUserResponse(user, loggedUser) {
+  static filterUserResponse(user: User, loggedUser: UserToken): User {
     const filteredUser: any = {};
-
     if (!user) {
       return null;
     }
@@ -167,9 +135,6 @@ export default class UserSecurity {
         filteredUser.tagIDs = user.tagIDs;
         filteredUser.plateID = user.plateID;
         filteredUser.role = user.role;
-        if ('siteAdmin' in user) {
-          filteredUser.siteAdmin = user.siteAdmin;
-        }
         if (user.address) {
           filteredUser.address = UtilsSecurity.filterAddressRequest(user.address);
         }
@@ -198,9 +163,8 @@ export default class UserSecurity {
   }
 
   // User
-  static filterMinimalUserResponse(user, loggedUser) {
+  static filterMinimalUserResponse(user: User, loggedUser: UserToken): void {
     const filteredUser: any = {};
-
     if (!user) {
       return null;
     }
@@ -213,9 +177,8 @@ export default class UserSecurity {
     return filteredUser;
   }
 
-  static filterUsersResponse(users, loggedUser) {
+  static filterUsersResponse(users, loggedUser: UserToken): void {
     const filteredUsers = [];
-
     if (!users.result) {
       return null;
     }

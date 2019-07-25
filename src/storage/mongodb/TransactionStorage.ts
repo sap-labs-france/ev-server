@@ -1,6 +1,7 @@
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
 import global from './../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import PricingStorage from './PricingStorage';
@@ -75,15 +76,15 @@ export default class TransactionStorage {
     return transactionYears;
   }
 
-  static async getTransactions(tenantID, params: any = {}, limit?, skip?, sort?) {
+  static async getTransactions(tenantID, params: any = {}, dbParams: DbParams, projectFields?: string[]) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactions');
     // Check
     await Utils.checkTenant(tenantID);
     // Check Limit
-    limit = Utils.checkRecordLimit(limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    skip = Utils.checkRecordSkip(skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Build filter
     const match: any = {};
     // Filter?
@@ -96,12 +97,16 @@ export default class TransactionStorage {
       ];
     }
     // User
-    if (params.userId) {
-      match.userID = Utils.convertToObjectID(params.userId);
+    if (params.userIDs) {
+      match.userID = {
+        $in: params.userIDs.map((user) => {
+          return Utils.convertToObjectID(user);
+        })
+      };
     }
     // Charge Box
-    if (params.chargeBoxID) {
-      match.chargeBoxID = params.chargeBoxID;
+    if (params.chargeBoxIDs) {
+      match.chargeBoxID = { $in : params.chargeBoxIDs };
     }
     // Connector
     if (params.connectorId) {
@@ -123,18 +128,25 @@ export default class TransactionStorage {
     if (params.stop) {
       match.stop = params.stop;
     }
-    if (params.siteAreaID) {
-      match.siteAreaID = Utils.convertToObjectID(params.siteAreaID);
+    if (params.siteAreaIDs) {
+      match.siteAreaID = {
+        $in: params.siteAreaIDs.map((area) => {
+          return Utils.convertToObjectID(area);
+        })
+      };
     }
     if (params.siteID) {
       match.siteID = Utils.convertToObjectID(params.siteID);
     }
-    if (params.type) {
-      switch (params.type) {
-        case 'refunded':
+    if (params.refundType) {
+      switch (params.refundType) {
+        case Constants.REFUND_TYPE_REFUNDED:
           match.refundData = { $exists: true };
+          if (params.refundStatus) {
+            match['refundData.status'] = params.refundStatus;
+          }
           break;
-        case 'notRefunded':
+        case Constants.REFUND_TYPE_NOT_REFUNDED:
           match.refundData = { $exists: false };
           break;
       }
@@ -168,51 +180,114 @@ export default class TransactionStorage {
     }
 
     // Limit records?
-    if (!params.onlyRecordCount) {
+    if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
+    }
+    // Prepare statistics query
+    let statsQuery = null;
+    switch (params.statistics) {
+      case 'history': // For historical case
+        statsQuery = {
+          $group: {
+            _id: null,
+            totalConsumptionWattHours: { $sum: '$stop.totalConsumption' },
+            totalDurationSecs: { $sum: '$stop.totalDurationSecs' },
+            totalPrice: { $sum: '$stop.price' },
+            totalInactivitySecs: { '$sum': { $add: ['$stop.totalInactivitySecs', '$stop.extraInactivitySecs'] } },
+            count: { $sum: 1 }
+          }
+        };
+        break;
+      case 'refund': // For refund case
+        statsQuery = {
+          $group: {
+            _id: null,
+            totalConsumptionWattHours: { $sum: '$stop.totalConsumption' },
+            totalPriceRefund: { $sum: { $cond: [ { '$eq': [ { $type : '$refundData' }, 'missing' ] }, 0, '$stop.price' ] } },
+            totalPricePending: { $sum: { $cond: [ { '$eq': [ { $type : '$refundData' }, 'missing' ] }, '$stop.price', 0 ] } },
+            countRefundTransactions: { $sum: { $cond: [ { '$eq': [ { $type : '$refundData' }, 'missing' ] }, 0, 1 ] } },
+            countPendingTransactions: { $sum: { $cond: [ { '$eq': [ { $type : '$refundData' }, 'missing' ] }, 1, 0 ] } },
+            currency: { $addToSet: '$stop.priceUnit' },
+            countRefundedReports: { $addToSet: '$refundData.reportId' },
+            count: { $sum: 1 }
+          }
+        };
+        break;
+      default: // Default case only count
+        statsQuery = {
+          $group: {
+            _id: null,
+            count: { $sum: 1 }
+          }
+        };
+        break;
     }
     // Count Records
     const transactionsCountMDB = await global.database.getCollection<any>(tenantID, 'transactions')
-      .aggregate([...aggregation, {
-        $group: {
-          _id: null,
-          totalConsumptionWattHours: { $sum: '$stop.totalConsumption' },
-          totalDurationSecs: { $sum: '$stop.totalDurationSecs' },
-          totalPrice: { $sum: '$stop.price' },
-          totalInactivitySecs: { '$sum': { $add: ['$stop.totalInactivitySecs', '$stop.extraInactivitySecs'] } },
-          count: { $sum: 1 }
-        }
-      }],
-      {
-        allowDiskUse: true
-      })
+      .aggregate([...aggregation, statsQuery],
+        {
+          allowDiskUse: true
+        })
       .toArray();
-    const transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ? transactionsCountMDB[0] : null;
+    let transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ? transactionsCountMDB[0] : null;
+    // Initialize statistics
+    if (!transactionCountMDB) {
+      switch (params.statistics) {
+        case 'history':
+          transactionCountMDB = {
+            totalConsumptionWattHours: 0,
+            totalDurationSecs: 0,
+            totalPrice: 0,
+            totalInactivitySecs: 0,
+            count: 0
+          };
+          break;
+        case 'refund':
+          transactionCountMDB = {
+            totalConsumptionWattHours: 0,
+            totalPriceRefund: 0,
+            totalPricePending: 0,
+            countRefundTransactions: 0,
+            countPendingTransactions: 0,
+            countRefundedReports: 0,
+            count: 0
+          };
+          break;
+        default:
+          transactionCountMDB = {
+            count: 0
+          };
+          break;
+      }
+    }
+    if (transactionCountMDB && transactionCountMDB.countRefundedReports) {
+      // Translate array response to number
+      transactionCountMDB.countRefundedReports = transactionCountMDB.countRefundedReports.length;
+    }
+    if (transactionCountMDB && transactionCountMDB.currency) {
+      // Take first entry as reference currency. Expectation is that we have only one currency for all transaction
+      transactionCountMDB.currency = transactionCountMDB.currency[0];
+    }
     // Check if only the total count is requested
-    if (params.onlyRecordCount) {
+    if (dbParams.onlyRecordCount) {
       return {
         count: transactionCountMDB ? transactionCountMDB.count : 0,
-        stats: {
-          totalConsumptionWattHours: transactionCountMDB ? Math.round(transactionCountMDB.totalConsumptionWattHours) : 0,
-          totalInactivitySecs: transactionCountMDB ? Math.round(transactionCountMDB.totalInactivitySecs) : 0,
-          totalPrice: transactionCountMDB ? Math.round(transactionCountMDB.totalPrice) : 0,
-          totalDurationSecs: transactionCountMDB ? Math.round(transactionCountMDB.totalDurationSecs) : 0
-        },
+        stats: transactionCountMDB ? transactionCountMDB : {},
         result: []
       };
     }
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (sort) {
-      if (!sort.timestamp) {
+    if (dbParams.sort) {
+      if (!dbParams.sort.timestamp) {
         aggregation.push({
-          $sort: { ...sort, timestamp: -1 }
+          $sort: { ...dbParams.sort, timestamp: -1 }
         });
       } else {
         aggregation.push({
-          $sort: sort
+          $sort: dbParams.sort
         });
       }
       // Sort
@@ -224,11 +299,11 @@ export default class TransactionStorage {
     }
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
     // Add User that started the transaction
     aggregation.push({
@@ -256,6 +331,8 @@ export default class TransactionStorage {
     aggregation.push({
       $unwind: { 'path': '$stop.user', 'preserveNullAndEmptyArrays': true }
     });
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const transactionsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
@@ -270,20 +347,15 @@ export default class TransactionStorage {
       }
     }
     // Debug
-    Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, { params, limit, skip, sort });
+    Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, { params, dbParams });
     return {
-      count: transactionCountMDB ? (transactionCountMDB.count === Constants.MAX_DB_RECORD_COUNT ? -1 : transactionCountMDB.count) : 0,
-      stats: {
-        totalConsumptionWattHours: transactionCountMDB ? Math.round(transactionCountMDB.totalConsumptionWattHours) : 0,
-        totalInactivitySecs: transactionCountMDB ? Math.round(transactionCountMDB.totalInactivitySecs) : 0,
-        totalPrice: transactionCountMDB ? Math.round(transactionCountMDB.totalPrice) : 0,
-        totalDurationSecs: transactionCountMDB ? Math.round(transactionCountMDB.totalDurationSecs) : 0
-      },
+      count: transactionCountMDB ? (transactionCountMDB.count === Constants.DB_RECORD_COUNT_CEIL ? -1 : transactionCountMDB.count) : 0,
+      stats: transactionCountMDB ? transactionCountMDB : {},
       result: transactions
     };
   }
 
-  static async getTransactionsInError(tenantID, params: any = {}, limit, skip, sort) {
+  static async getTransactionsInError(tenantID, params: any = {}, dbParams: DbParams) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactionsInError');
     // Check
@@ -291,9 +363,9 @@ export default class TransactionStorage {
     const pricing = await PricingStorage.getPricing(tenantID);
 
     // Check Limit
-    limit = Utils.checkRecordLimit(limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    skip = Utils.checkRecordSkip(skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     const aggregation = [];
     const toSubRequests = [];
@@ -309,12 +381,16 @@ export default class TransactionStorage {
       ];
     }
     // User
-    if (params.userId) {
-      match.userID = Utils.convertToObjectID(params.userId);
+    if (params.userIDs) {
+      match.userID = {
+        $in: params.userIDs.map((user) => {
+          return Utils.convertToObjectID(user);
+        })
+      };
     }
     // Charge Box
-    if (params.chargeBoxID) {
-      match.chargeBoxID = params.chargeBoxID;
+    if (params.chargeBoxIDs) {
+      match.chargeBoxID = { $in : params.chargeBoxIDs };
     }
     // Connector
     if (params.connectorId) {
@@ -332,8 +408,12 @@ export default class TransactionStorage {
     if (params.endDateTime) {
       match.timestamp.$lte = Utils.convertToDate(params.endDateTime);
     }
-    if (params.siteAreaID) {
-      match.siteAreaID = Utils.convertToObjectID(params.siteAreaID);
+    if (params.siteAreaIDs) {
+      match.siteAreaID = {
+        $in: params.siteAreaIDs.map((area) => {
+          return Utils.convertToObjectID(area);
+        })
+      };
     }
     if (params.siteID) {
       match.siteID = Utils.convertToObjectID(params.siteID);
@@ -451,9 +531,9 @@ export default class TransactionStorage {
     // Add a unique identifier as we may have the same charger several time
     aggregation.push({ $addFields: { 'uniqueId': { $concat: ['$idAsString', '#', '$errorCode'] } } });
     // Limit records?
-    if (!params.onlyRecordCount) {
+    if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
     const transactionsCountMDB = await global.database.getCollection<any>(tenantID, 'transactions')
@@ -461,7 +541,7 @@ export default class TransactionStorage {
       .toArray();
     // Check if only the total count is requested
     const transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ? transactionsCountMDB[0] : null;
-    if (params.onlyRecordCount) {
+    if (dbParams.onlyRecordCount) {
       // Return only the count
       return {
         count: (transactionCountMDB ? transactionCountMDB.count : 0),
@@ -471,10 +551,10 @@ export default class TransactionStorage {
     // Remove the limit
     aggregation.pop();
     // Sort
-    if (sort) {
+    if (dbParams.sort) {
       // Sort
       aggregation.push({
-        $sort: sort
+        $sort: dbParams.sort
       });
     } else {
       // Default
@@ -484,11 +564,11 @@ export default class TransactionStorage {
     }
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
     // Read DB
     const transactionsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
@@ -507,10 +587,10 @@ export default class TransactionStorage {
       }
     }
     // Debug
-    Logging.traceEnd('TransactionStorage', 'getTransactionsInError', uniqueTimerID, { params, limit, skip, sort });
+    Logging.traceEnd('TransactionStorage', 'getTransactionsInError', uniqueTimerID, { params, dbParams });
     // Ok
     return {
-      count: (transactionCountMDB ? (transactionCountMDB.count === Constants.MAX_DB_RECORD_COUNT ? -1 : transactionCountMDB.count) : 0),
+      count: (transactionCountMDB ? (transactionCountMDB.count === Constants.DB_RECORD_COUNT_CEIL ? -1 : transactionCountMDB.count) : 0),
       result: transactions
     };
   }

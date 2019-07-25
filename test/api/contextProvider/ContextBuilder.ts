@@ -9,15 +9,17 @@ import Factory from '../../factories/Factory';
 import global from '../../../src/types/GlobalType';
 import MongoDBStorage from '../../../src/storage/mongodb/MongoDBStorage';
 import Site from '../../../src/types/Site';
-import SiteAreaContext from './SiteAreaContext';
 import SiteAreaStorage from '../../../src/storage/mongodb/SiteAreaStorage';
 import SiteContext from './SiteContext';
 import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
+import StatisticsContext from './StatisticsContext';
 import Tenant from '../../../src/entity/Tenant';
 import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
-import User from '../../../src/entity/User';
+import User from '../../../src/types/User';
 import UserFactory from '../../factories/UserFactory';
+import UserStorage from '../../../src/storage/mongodb/UserStorage';
+import Utils from '../../../src/utils/Utils';
 
 export default class ContextBuilder {
 
@@ -27,7 +29,10 @@ export default class ContextBuilder {
 
   constructor() {
     // Create a super admin interface
-    this.superAdminCentralServerService = new CentralServerService(null, { email: config.get('superadmin.username'), password: config.get('superadmin.password') });
+    this.superAdminCentralServerService = new CentralServerService(null, {
+      email: config.get('superadmin.username'),
+      password: config.get('superadmin.password')
+    });
     this.tenantsContexts = [];
     // Create MongoDB
     global.database = new MongoDBStorage(config.get('storage'));
@@ -58,7 +63,6 @@ export default class ContextBuilder {
         await this.superAdminCentralServerService.tenantApi.delete(tenantEntity.getID());
       }
     }
-
   }
 
   /**
@@ -108,7 +112,7 @@ export default class ContextBuilder {
     const existingTenant = await Tenant.getTenant(tenantContextDef.id);
     if (existingTenant) {
       console.log(`Tenant ${tenantContextDef.id} already exist with name ${existingTenant.getName()}. Please run a destroy context`);
-      throw 'Tenant id exist already';
+      throw new Error('Tenant id exist already');
 
     }
     let buildTenant: any = {};
@@ -125,33 +129,24 @@ export default class ContextBuilder {
       this.superAdminCentralServerService.tenantApi, buildTenant);
     console.log('CREATE tenant context ' + buildTenant.id +
       ' ' + buildTenant.subdomain);
-    // Retrieve default admin
-    const existingUserList = (await User.getUsers(buildTenant.id)).result;
-    let defaultAdminUser = null;
-    // Search existing admin
-    if (existingUserList && Array.isArray(existingUserList)) {
-      defaultAdminUser = existingUserList.find((user) => {
-        return user.getModel().id === CONTEXTS.TENANT_USER_LIST[0].id || user.getEMail() === config.get('admin.username') ||
-          user.getRole() === 'A';
-      });
+
+    await UserStorage.saveUser(buildTenant.id, {
+      'id': CONTEXTS.TENANT_USER_LIST[0].id,
+      'tagIDs': CONTEXTS.TENANT_USER_LIST[0].tagIDs,
+      'password': await Utils.hashPasswordBcrypt(config.get('admin.password')),
+      'email': config.get('admin.username'),
+      'status': CONTEXTS.TENANT_USER_LIST[0].status,
+      'role': CONTEXTS.TENANT_USER_LIST[0].role,
+      'locale': 'en-US',
+      'phone': faker.phone.phoneNumber(),
+      'mobile': faker.phone.phoneNumber(),
+      'plateID': faker.random.alphaNumeric(8),
+      'deleted': false
+    });
+    if (CONTEXTS.TENANT_USER_LIST[0].tagIDs) {
+      await UserStorage.saveUserTags(buildTenant.id, CONTEXTS.TENANT_USER_LIST[0].id, CONTEXTS.TENANT_USER_LIST[0].tagIDs);
     }
-    if ((defaultAdminUser.getID() !== CONTEXTS.TENANT_USER_LIST[0].id) || (defaultAdminUser.getStatus() !== 'A')) {
-      // It is a different default user so firt delete it
-      await defaultAdminUser.delete();
-      // Activate user
-      defaultAdminUser.setStatus(CONTEXTS.TENANT_USER_LIST[0].status);
-      // Generate the password hash
-      const newPasswordHashed = await User.hashPasswordBcrypt(config.get('admin.password'));
-      // Update the password
-      defaultAdminUser.setPassword(newPasswordHashed);
-      // Update the email
-      defaultAdminUser.setEMail(config.get('admin.username'));
-      // Add a Tag ID
-      defaultAdminUser.setTagIDs(CONTEXTS.TENANT_USER_LIST[0].tagIDs ? CONTEXTS.TENANT_USER_LIST[0].tagIDs : [faker.random.alphaNumeric(8).toUpperCase()]);
-      // Fix id
-      defaultAdminUser.getModel().id = CONTEXTS.TENANT_USER_LIST[0].id;
-      await defaultAdminUser.save();
-    }
+    const defaultAdminUser = await UserStorage.getUser(buildTenant.id, CONTEXTS.TENANT_USER_LIST[0].id);
 
     // Create Central Server Service
     const localCentralServiceService: CentralServerService = new CentralServerService(buildTenant.subdomain);
@@ -159,7 +154,7 @@ export default class ContextBuilder {
     // Create Tenant component settings
     if (tenantContextDef.componentSettings) {
       console.log(`settings in tenant ${buildTenant.name} as ${JSON.stringify(tenantContextDef.componentSettings)}`);
-      const allSettings: any = await localCentralServiceService.settingApi.readAll({}, { limit: 0, skip: 0 });
+      const allSettings: any = await localCentralServiceService.settingApi.readAll({}, Constants.DB_PARAMS_MAX_LIMIT);
       for (const setting in tenantContextDef.componentSettings) {
         let foundSetting: any = null;
         if (allSettings && allSettings.data && allSettings.data.result && allSettings.data.result.length > 0) {
@@ -184,11 +179,14 @@ export default class ContextBuilder {
         }
       }
     }
-    let userListToAssign = null;
-    let userList = null;
+    let userListToAssign: User[] = null;
+    let userList: User[] = null;
     // Read admin user
-    const adminUser = (await localCentralServiceService.getEntityById(
-      localCentralServiceService.userApi, defaultAdminUser.getModel(), false)).data;
+    const adminUser: User = (await localCentralServiceService.getEntityById(
+      localCentralServiceService.userApi, defaultAdminUser, false)).data;
+    if (!adminUser.id) {
+      console.log('Error with new Admin user: ', adminUser);
+    }
     userListToAssign = [adminUser]; // Default admin is always assigned to site
     userList = [adminUser]; // Default admin is always assigned to site
     // Prepare users
@@ -196,24 +194,25 @@ export default class ContextBuilder {
     for (let index = 1; index < CONTEXTS.TENANT_USER_LIST.length; index++) {
       const userDef = CONTEXTS.TENANT_USER_LIST[index];
       const createUser = UserFactory.build();
-      createUser.email = userDef.emailPrefix + defaultAdminUser.getEMail();
+      createUser.email = userDef.emailPrefix + defaultAdminUser.email;
       // Update the password
-      const newPasswordHashed = await User.hashPasswordBcrypt(config.get('admin.password'));
+      const newPasswordHashed = await Utils.hashPasswordBcrypt(config.get('admin.password'));
       createUser.password = newPasswordHashed;
       createUser.role = userDef.role;
       createUser.status = userDef.status;
       createUser.id = userDef.id;
+      createUser.tagIDs = userDef.tagIDs;
+      const user: User = createUser;
+      await UserStorage.saveUser(buildTenant.id, user);
       if (userDef.tagIDs) {
-        createUser.tagIDs = userDef.tagIDs;
+        await UserStorage.saveUserTags(buildTenant.id, userDef.id, userDef.tagIDs);
       }
-      const user = new User(buildTenant.id, createUser);
-      user.save();
       if (userDef.assignedToSite) {
-        userListToAssign.push(user.getModel());
+        userListToAssign.push(user);
       }
       // Set back password to clear value for login/logout
-      const userModel = user.getModel();
-      userModel.passwordClear = config.get('admin.password');
+      const userModel = user;
+      (userModel as any).passwordClear = config.get('admin.password'); // TODO ?
       userList.push(userModel);
     }
     // Persist tenant context
@@ -228,7 +227,7 @@ export default class ContextBuilder {
       for (const companyDef of CONTEXTS.TENANT_COMPANY_LIST) {
         const dummyCompany: any = Factory.company.build();
         dummyCompany.id = companyDef.id;
-        dummyCompany.createdBy = { id : adminUser.id };
+        dummyCompany.createdBy = { id: adminUser.id };
         dummyCompany.createdOn = moment().toISOString();
         company = await CompanyStorage.saveCompany(buildTenant.id, dummyCompany);
         newTenantContext.getContext().companies.push(dummyCompany);
@@ -253,7 +252,6 @@ export default class ContextBuilder {
           return user.id;
         }));
         const siteContext = new SiteContext(site, newTenantContext);
-        newTenantContext.addSiteContext(siteContext);
         // Create site areas of current site
         for (const siteAreaDef of CONTEXTS.TENANT_SITEAREA_LIST.filter((siteArea) => {
           return siteArea.siteName === site.name;
@@ -266,8 +264,7 @@ export default class ContextBuilder {
           console.log(siteAreaTemplate.name);
           const sireAreaID = await SiteAreaStorage.saveSiteArea(buildTenant.id, siteAreaTemplate);
           const siteAreaModel = await SiteAreaStorage.getSiteArea(buildTenant.id, sireAreaID);
-          const siteAreaContext = new SiteAreaContext(siteAreaModel, newTenantContext);
-          siteContext.addSiteArea(siteAreaContext);
+          const siteAreaContext = siteContext.addSiteArea(siteAreaModel);
           const relevantCS = CONTEXTS.TENANT_CHARGINGSTATION_LIST.filter((chargingStation) => {
             return chargingStation.siteAreaNames && chargingStation.siteAreaNames.includes(siteAreaModel.name) === true;
           });
@@ -276,9 +273,11 @@ export default class ContextBuilder {
             const chargingStationTemplate = Factory.chargingStation.build();
             chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
             console.log(chargingStationTemplate.id);
-            await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
+            const newChargingStationContext = await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
+            siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
           }
         }
+        newTenantContext.addSiteContext(siteContext);
       }
     }
     // Create unassigned Charging station
@@ -286,11 +285,27 @@ export default class ContextBuilder {
       return chargingStation.siteAreaNames === null;
     });
     // Create Charging Station for site area
+    const siteContext = new SiteContext({ id: 1, name: CONTEXTS.SITE_CONTEXTS.NO_SITE }, newTenantContext);
+    const emptySiteAreaContext = siteContext.addSiteArea({ id: 1, name: CONTEXTS.SITE_AREA_CONTEXTS.NO_SITE });
     for (const chargingStationDef of relevantCS) {
       const chargingStationTemplate = Factory.chargingStation.build();
       chargingStationTemplate.id = chargingStationDef.baseName;
       console.log(chargingStationTemplate.id);
-      await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, null);
+      const newChargingStationContext = await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, null);
+      emptySiteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
+    }
+    newTenantContext.addSiteContext(siteContext);
+    // Create transaction/session data for a specific tenants:
+    const statisticContext = new StatisticsContext(newTenantContext);
+    switch (tenantContextDef.tenantName) {
+      case CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_ALL_COMPONENTS:
+        console.log(`Create transactions for chargers of site area ${CONTEXTS.SITE_CONTEXTS.SITE_BASIC}-${CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL}`);
+        await statisticContext.createTestData(CONTEXTS.SITE_CONTEXTS.SITE_BASIC, CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
+        break;
+      case CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS:
+        console.log('Create transactions for unassigned chargers');
+        await statisticContext.createTestData(CONTEXTS.SITE_CONTEXTS.NO_SITE, CONTEXTS.SITE_AREA_CONTEXTS.NO_SITE);
+        break;
     }
     return newTenantContext;
   }

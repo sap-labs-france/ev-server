@@ -1,12 +1,10 @@
 import morgan from 'morgan';
-import SourceMap from 'source-map-support';
 import Configuration from '../../utils/Configuration';
 import expressTools from '../ExpressTools';
 import Logging from '../../utils/Logging';
+import ODataRestAdapter from './ODataRestAdapter';
 import ODataSchema from './odata-schema/ODataSchema';
 import ODataServerFactory from '../odata/ODataServerFactory';
-
-SourceMap.install();
 
 const MODULE_NAME = 'ODataServer';
 export default class ODataServer {
@@ -47,7 +45,9 @@ export default class ODataServer {
     const oDataServer = oDataServerFactory.getODataServer();
     oDataServer.restServerUrl = restServerUrl;
     ODataSchema.restServerUrl = restServerUrl;
-    this.express.use('/odata',
+    ODataRestAdapter.restServerUrl = restServerUrl;
+    this.express.use(
+      '/odata',
       ODataSchema.getSchema,
       function(req, res) {
         oDataServer.handle(req, res);

@@ -1,3 +1,4 @@
+import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
@@ -7,10 +8,9 @@ import Logging from '../../../utils/Logging';
 import OCPIClient from '../../../client/ocpi/OCPIClient';
 import OCPIEndpoint from '../../../entity/OCPIEndpoint';
 import OCPIEndpointSecurity from './security/OCPIEndpointSecurity';
-import User from '../../../entity/User';
 
 export default class OCPIEndpointService {
-  static async handleDeleteOcpiEndpoint(action, req, res, next) {
+  static async handleDeleteOcpiEndpoint(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
       const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointDeleteRequest(req.query, req.user);
@@ -60,7 +60,7 @@ export default class OCPIEndpointService {
     }
   }
 
-  static async handleGetOcpiEndpoint(action, req, res, next) {
+  static async handleGetOcpiEndpoint(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
       const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointRequest(req.query, req.user);
@@ -93,7 +93,7 @@ export default class OCPIEndpointService {
     }
   }
 
-  static async handleGetOcpiEndpoints(action, req, res, next) {
+  static async handleGetOcpiEndpoints(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canListOcpiEndpoints(req.user)) {
@@ -130,7 +130,7 @@ export default class OCPIEndpointService {
     }
   }
 
-  static async handleCreateOcpiEndpoint(action, req, res, next) {
+  static async handleCreateOcpiEndpoint(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canCreateOcpiEndpoint(req.user)) {
@@ -153,7 +153,7 @@ export default class OCPIEndpointService {
       // Set status
       ocpiendpoint.setStatus(Constants.OCPI_REGISTERING_STATUS.OCPI_NEW);
       // Update timestamp
-      ocpiendpoint.setCreatedBy(new User(req.user.tenantID, { 'id': req.user.id }));
+      ocpiendpoint.setCreatedBy({ 'id': req.user.id });
       ocpiendpoint.setCreatedOn(new Date());
       // Save OcpiEndpoint
       const newOcpiEndpoint = await ocpiendpoint.save();
@@ -173,7 +173,7 @@ export default class OCPIEndpointService {
     }
   }
 
-  static async handleUpdateOcpiEndpoint(action, req, res, next) {
+  static async handleUpdateOcpiEndpoint(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
       const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointUpdateRequest(req.body, req.user);
@@ -201,7 +201,7 @@ export default class OCPIEndpointService {
       // Update
       Database.updateOcpiEndpoint(filteredRequest, ocpiendpoint.getModel());
       // Update timestamp
-      ocpiendpoint.setLastChangedBy(new User(req.user.tenantID, { 'id': req.user.id }));
+      ocpiendpoint.setLastChangedBy({ 'id': req.user.id });
       ocpiendpoint.setLastChangedOn(new Date());
       // Update OcpiEndpoint
       const updatedOcpiEndpoint = await ocpiendpoint.save();
@@ -221,7 +221,7 @@ export default class OCPIEndpointService {
     }
   }
 
-  static async handlePingOcpiEndpoint(action, req, res, next) {
+  static async handlePingOcpiEndpoint(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canPingOcpiEndpoint(req.user)) {
@@ -271,7 +271,7 @@ export default class OCPIEndpointService {
     }
   }
 
-  static async handleSendEVSEStatusesOcpiEndpoint(action, req, res, next) {
+  static async handleSendEVSEStatusesOcpiEndpoint(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canSendEVSEStatusesOcpiEndpoint(req.user)) {
@@ -304,7 +304,7 @@ export default class OCPIEndpointService {
     }
   }
 
-  static async handleRegisterOcpiEndpoint(action, req, res, next) {
+  static async handleRegisterOcpiEndpoint(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
       const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointRegisterRequest(req.body, req.user);
@@ -361,7 +361,7 @@ export default class OCPIEndpointService {
     }
   }
 
-  static async handleGenerateLocalTokenOcpiEndpoint(action, req, res, next) {
+  static async handleGenerateLocalTokenOcpiEndpoint(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canGenerateLocalTokenOcpiEndpoint(req.user)) {

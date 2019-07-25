@@ -1,9 +1,11 @@
 import Constants from '../utils/Constants';
+import User from '../types/User';
+import UserToken from '../types/UserToken';
 import Utils from '../utils/Utils';
 
 export default class AppAuthError extends Error {
-  public user: any;
-  public actionOnUser: any;
+  public user: UserToken|User;
+  public actionOnUser: UserToken|User|string; // TODO: Convert
   public action: any;
   public entity: any;
   public value: any;
@@ -11,7 +13,7 @@ export default class AppAuthError extends Error {
   public module: any;
   public method: any;
 
-  constructor(action, entity, value, errorCode = Constants.HTTP_GENERAL_ERROR, module = 'N/A', method = 'N/A', user?, actionOnUser?) {
+  constructor(action, entity, value, errorCode = Constants.HTTP_GENERAL_ERROR, module = 'N/A', method = 'N/A', user?: UserToken|User, actionOnUser?: User|UserToken|string) {
     super(`Role ${Utils.getRoleNameFromRoleID(user.role)} is not authorized to perform ${action} on ${entity}${(value ? ' \'' + value + '\'' : '')}`);
     this.user = user;
     this.actionOnUser = actionOnUser;

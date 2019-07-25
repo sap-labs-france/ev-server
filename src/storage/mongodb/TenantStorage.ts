@@ -37,7 +37,6 @@ export default class TenantStorage {
     // Debug
     Logging.traceEnd('TenantStorage', 'getTenant', uniqueTimerID, { id });
 
-
     return tenant;
   }
 

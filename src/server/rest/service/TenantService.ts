@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import HttpStatusCodes from 'http-status-codes';
+import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import ConflictError from '../../../exception/ConflictError';
@@ -12,15 +13,15 @@ import Tenant from '../../../entity/Tenant';
 import TenantSecurity from './security/TenantSecurity';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TenantValidator from '../validation/TenantValidation';
-import User from '../../../entity/User';
+import User from '../../../types/User';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
-import AppAuthError from '../../../exception/AppAuthError';
 
 const MODULE_NAME = 'TenantService';
 
 export default class TenantService {
 
-  static async handleDeleteTenant(action, req, res, next) {
+  static async handleDeleteTenant(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = TenantSecurity.filterTenantDeleteRequest(req.query, req.user);
     // Check Mandatory fields
@@ -63,7 +64,7 @@ export default class TenantService {
         module: 'MongoDBStorage', method: 'deleteTenantDatabase',
         message: `Deleting collections for tenant ${tenant.getID()}`
       });
-      TenantStorage.deleteTenantDB(tenant.getID());
+      await TenantStorage.deleteTenantDB(tenant.getID());
     }
     // Log
     Logging.logSecurityInfo({
@@ -78,7 +79,7 @@ export default class TenantService {
     next();
   }
 
-  static async handleGetTenant(action, req, res, next) {
+  static async handleGetTenant(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = TenantSecurity.filterTenantRequest(req.query, req.user);
 
@@ -118,7 +119,7 @@ export default class TenantService {
     next();
   }
 
-  static async handleGetTenants(action, req, res, next) {
+  static async handleGetTenants(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListTenants(req.user)) {
       throw new AppAuthError(
@@ -151,15 +152,16 @@ export default class TenantService {
   public static async handleCreateTenant(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canCreateTenant(req.user)) {
+      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_CREATE,
         Constants.ENTITY_TENANT,
         null,
         Constants.HTTP_AUTH_ERROR,
-        'TenantService', 'handleCreateTenant',
+        'TenantService',
+        'handleCreateTenant',
         req.user);
     }
-    // Check
     TenantValidator.getInstance().validateTenantCreation(req.body);
     // Filter
     const filteredRequest = TenantSecurity.filterTenantCreateRequest(req.body, req.user);
@@ -185,9 +187,9 @@ export default class TenantService {
     // Create
     const tenant = new Tenant(filteredRequest);
     // Update timestamp
-    tenant.setCreatedBy(new User(req.user.tenantID, {
+    tenant.setCreatedBy({
       'id': req.user.id
-    }));
+    });
     tenant.setCreatedOn(new Date());
     // Save
     const newTenant = await TenantStorage.saveTenant(tenant.getModel());
@@ -196,47 +198,45 @@ export default class TenantService {
     // Create DB collections
     await TenantStorage.createTenantDB(newTenant.getID());
     // Create user in tenant
-    const password = User.generatePassword();
+    const password = Utils.generatePassword();
     const verificationToken = Utils.generateToken(newTenant.getEmail());
-    const tenantUser = new User(newTenant.getID(), {
-      name: newTenant.getName(),
-      firstName: 'Admin',
-      password: await User.hashPasswordBcrypt(password),
-      status: Constants.USER_STATUS_PENDING,
-      role: Constants.ROLE_ADMIN,
-      email: newTenant.getEmail(),
-      createdOn: new Date().toISOString(),
-      verificationToken: verificationToken
-    });
+    const tenantUser: User = UserStorage.getEmptyUser();
+    tenantUser.name = newTenant.getName();
+    tenantUser.firstName = 'Admin';
+    tenantUser.password = await Utils.hashPasswordBcrypt(password);
+    tenantUser.role = Constants.ROLE_ADMIN;
+    tenantUser.email = newTenant.getEmail();
+    tenantUser.verificationToken = verificationToken;
+
     // Save
-    const newUser = await tenantUser.save();
+    const newUserId = await UserStorage.saveUser(newTenant.getID(), tenantUser);
     // Send activation link
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(newTenant.getSubdomain()) +
       '/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
-      newUser.getEMail();
+      tenantUser.email;
     NotificationHandler.sendNewRegisteredUser(
-      newUser.getTenantID(),
+      newTenant.getID(),
       Utils.generateGUID(),
-      newUser.getModel(),
+      tenantUser,
       {
-        'user': newUser.getModel(),
+        'user': tenantUser,
         'evseDashboardURL': Utils.buildEvseURL(newTenant.getSubdomain()),
         'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
       },
-      newUser.getLocale()
+      tenantUser.locale
     );
     // Send temporary password
     NotificationHandler.sendNewPassword(
-      newUser.getTenantID(),
+      newTenant.getID(),
       Utils.generateGUID(),
-      newUser.getModel(),
+      tenantUser,
       {
-        'user': newUser.getModel(),
+        'user': tenantUser,
         'hash': null,
         'newPassword': password,
         'evseDashboardURL': Utils.buildEvseURL(newTenant.getSubdomain())
       },
-      newUser.getLocale()
+      tenantUser.locale
     );
     // Log
     Logging.logSecurityInfo({
@@ -251,7 +251,7 @@ export default class TenantService {
     next();
   }
 
-  static async handleUpdateTenant(action, req, res, next) {
+  static async handleUpdateTenant(action: string, req: Request, res: Response, next: NextFunction) {
     // Check
     TenantValidator.getInstance().validateTenantUpdate(req.body);
     // Filter
@@ -277,9 +277,9 @@ export default class TenantService {
     // Update
     Database.updateTenant(filteredRequest, tenant.getModel());
     // Update timestamp
-    tenant.setLastChangedBy(new User(req.user.tenantID, {
+    tenant.setLastChangedBy({
       'id': req.user.id
-    }));
+    });
     tenant.setLastChangedOn(new Date());
     // Update Tenant
     const updatedTenant = await TenantStorage.saveTenant(tenant.getModel());
@@ -298,9 +298,7 @@ export default class TenantService {
     next();
   }
 
-  private static async _updateSettingsWithComponents(tenant, req) {
-    // Get the user
-    const user = await User.getUser(req.user.tenantID, req.user.id);
+  private static async _updateSettingsWithComponents(tenant: Tenant, req: Request) {
     // Create settings
     for (const component of tenant.getComponents()) {
       // Get the settings
@@ -324,13 +322,17 @@ export default class TenantService {
             content: newSettingContent
           });
           newSetting.setCreatedOn(new Date());
-          newSetting.setCreatedBy(user);
+          newSetting.setCreatedBy({
+            'id': req.user.id
+          });
           // Save Setting
           await newSetting.save();
         } else {
           currentSetting.setContent(newSettingContent);
           currentSetting.setLastChangedOn(new Date());
-          currentSetting.setLastChangedBy(user);
+          currentSetting.setLastChangedBy({
+            'id': req.user.id
+          });
           // Save Setting
           await currentSetting.save();
         }

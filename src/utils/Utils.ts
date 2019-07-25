@@ -1,20 +1,26 @@
 import axios from 'axios';
+import bcrypt from 'bcrypt';
 import ClientOAuth2 from 'client-oauth2';
 import crypto from 'crypto';
+import { Request } from 'express';
 import fs from 'fs';
 import _ from 'lodash';
 import { ObjectID } from 'mongodb';
+import passwordGenerator = require('password-generator');
 import path from 'path';
-import SourceMap from 'source-map-support';
 import url from 'url';
 import uuidV4 from 'uuid/v4';
+import AppError from '../exception/AppError';
+import Authorizations from '../authorization/Authorizations';
 import BackendError from '../exception/BackendError';
 import Configuration from './Configuration';
 import Constants from './Constants';
+import { HttpUserRequest } from '../types/requests/HttpUserRequest';
 import Logging from './Logging';
 import Tenant from '../entity/Tenant';
-
-SourceMap.install();
+import TenantStorage from '../storage/mongodb/TenantStorage';
+import User from '../types/User';
+import UserToken from '../types/UserToken';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
@@ -48,7 +54,7 @@ export default class Utils {
   }
 
   // Temporary method for Revenue Cloud concept
-  static async pushTransactionToRevenueCloud(action, transaction, user, actionOnUser) {
+  static async pushTransactionToRevenueCloud(action, transaction, user: User, actionOnUser: User) {
     // Refund Transaction
     const cloudRevenueAuth = new ClientOAuth2({
       clientId: 'sb-revenue-cloud!b1122|revenue-cloud!b1532',
@@ -109,35 +115,28 @@ export default class Utils {
   }
 
   static async checkTenant(tenantID) {
+    if (!tenantID) {
+      throw new BackendError(null, 'The Tenant ID is mandatory');
+    }
     // Check in cache
     if (_tenants.indexOf(tenantID) >= 0) {
       return;
     }
-    // Check Tenant ID
-    if (!tenantID) {
-      // Error
-      throw new BackendError(null, 'The Tenant ID is mandatory');
-    }
-    // Check if not default tenant?
     if (tenantID !== Constants.DEFAULT_TENANT) {
-      // Check if object id is valid
+      // Valid Object ID?
       if (!ObjectID.isValid(tenantID)) {
-        // Error
         throw new BackendError(null, `Invalid Tenant ID '${tenantID}'`);
       }
-      // Check if the Tenant exists
+      // Get the Tenant
       const tenant = await Tenant.getTenant(tenantID);
-      // Found?
       if (!tenant) {
-        // Error
         throw new BackendError(null, `Invalid Tenant ID '${tenantID}'`);
       }
     }
-    // Ok
     _tenants.push(tenantID);
   }
 
-  static convertToDate(date) {
+  static convertToDate(date): Date {
     // Check
     if (!date) {
       return date;
@@ -178,7 +177,11 @@ export default class Utils {
     }
   }
 
-  static convertToObjectID(id) {
+  static isComponentActiveFromToken(userToken: UserToken, componentName: string): boolean {
+    return userToken.activeComponents.includes(componentName);
+  }
+
+  static convertToObjectID(id): ObjectID {
     let changedID = id;
     // Check
     if (typeof id === 'string') {
@@ -188,7 +191,7 @@ export default class Utils {
     return changedID;
   }
 
-  static convertToInt(id) {
+  static convertToInt(id): number {
     let changedID = id;
     if (!id) {
       return 0;
@@ -201,7 +204,7 @@ export default class Utils {
     return changedID;
   }
 
-  static convertToFloat(id) {
+  static convertToFloat(id): number {
     let changedID = id;
     if (!id) {
       return 0;
@@ -214,17 +217,15 @@ export default class Utils {
     return changedID;
   }
 
-  public static convertUserToObjectID(user: any): ObjectID | null { // TODO: Fix this method...
+  public static convertUserToObjectID(user: User): ObjectID | null { // TODO: Fix this method...
     let userID = null;
     // Check Created By
     if (user) {
-      // Set
-      userID = user;
       // Check User Model
       if (typeof user === 'object' &&
-        user.constructor.name !== 'ObjectID' && ('id' in user || 'getID' in user)) {
+        user.constructor.name !== 'ObjectID') {
         // This is the User Model
-        userID = Utils.convertToObjectID('id' in user ? user.id : user.getID());
+        userID = Utils.convertToObjectID(user.id);
       }
       // Check String
       if (typeof user === 'string') {
@@ -242,9 +243,9 @@ export default class Utils {
     return true;
   }
 
-  static buildUserFullName(user, withID = true, withEmail = false, inversedName = false) {
+  static buildUserFullName(user: User, withID = true, withEmail = false, inversedName = false) {
     let fullName: string;
-    if (!user) {
+    if (!user || !user.name) {
       return 'Unknown';
     }
     if (inversedName) {
@@ -290,11 +291,12 @@ export default class Utils {
       _centralSystemFrontEndConfig.port}`;
   }
 
-  static async buildEvseUserURL(user, hash = '') {
-    const tenant = await user.getTenant();
+  static async buildEvseUserURL(tenantID: string, user: User, hash = '') {
+
+    const tenant = await TenantStorage.getTenant(tenantID);
     const _evseBaseURL = Utils.buildEvseURL(tenant.getSubdomain());
     // Add
-    return _evseBaseURL + '/users?UserID=' + user.getID() + hash;
+    return _evseBaseURL + '/users?UserID=' + user.id + hash;
   }
 
   static async buildEvseChargingStationURL(chargingStation, hash = '') {
@@ -316,13 +318,12 @@ export default class Utils {
     return (env === 'production');
   }
 
-  static hideShowMessage(message) {
+  static hideShowMessage(message): string {
     // Check Prod
     if (Utils.isServerInProductionMode()) {
       return 'An unexpected server error occurred. Check the server\'s logs!';
     }
     return message;
-
   }
 
   public static checkRecordLimit(recordLimit: number | string): number {
@@ -332,8 +333,11 @@ export default class Utils {
     }
     // Not provided?
     if (isNaN(recordLimit) || recordLimit < 0 || recordLimit === 0) {
-      // Default
-      recordLimit = Constants.DEFAULT_DB_LIMIT;
+      recordLimit = Constants.DB_RECORD_COUNT_DEFAULT;
+    }
+    // Check max
+    if (recordLimit > Number.MAX_SAFE_INTEGER) {
+      recordLimit = Number.MAX_SAFE_INTEGER;
     }
     return recordLimit;
   }
@@ -342,7 +346,7 @@ export default class Utils {
     return parseFloat(number.toFixed(scale));
   }
 
-  static firstLetterInUpperCase(value) {
+  static firstLetterInUpperCase(value): string {
     return value[0].toUpperCase() + value.substring(1);
   }
 
@@ -368,7 +372,7 @@ export default class Utils {
    * @param src
    * @returns a copy of the source
    */
-  static duplicateJSON(src) {
+  static duplicateJSON(src): any {
     if (!src || typeof src !== 'object') {
       return src;
     }
@@ -389,5 +393,352 @@ export default class Utils {
       default:
         return 'Unknown';
     }
+  }
+
+  public static async hashPasswordBcrypt(password: string): Promise<string> {
+    // eslint-disable-next-line no-undef
+    return await new Promise((fulfill, reject) => {
+      // Generate a salt with 15 rounds
+      bcrypt.genSalt(10, (err, salt) => {
+        // Hash
+        bcrypt.hash(password, salt, (err, hash) => {
+          // Error?
+          if (err) {
+            reject(err);
+          } else {
+            fulfill(hash);
+          }
+        });
+      });
+    });
+  }
+
+  public static async checkPasswordBCrypt(password, hash): Promise<boolean> {
+    // eslint-disable-next-line no-undef
+    return await new Promise((fulfill, reject) => {
+      // Compare
+      bcrypt.compare(password, hash, (err, match) => {
+        // Error?
+        if (err) {
+          reject(err);
+        } else {
+          fulfill(match);
+        }
+      });
+    });
+  }
+
+  static isPasswordStrongEnough(password) {
+    const uc = password.match(Constants.PWD_UPPERCASE_RE);
+    const lc = password.match(Constants.PWD_LOWERCASE_RE);
+    const n = password.match(Constants.PWD_NUMBER_RE);
+    const sc = password.match(Constants.PWD_SPECIAL_CHAR_RE);
+    return password.length >= Constants.PWD_MIN_LENGTH &&
+      uc && uc.length >= Constants.PWD_UPPERCASE_MIN_COUNT &&
+      lc && lc.length >= Constants.PWD_LOWERCASE_MIN_COUNT &&
+      n && n.length >= Constants.PWD_NUMBER_MIN_COUNT &&
+      sc && sc.length >= Constants.PWD_SPECIAL_MIN_COUNT;
+  }
+
+
+  static generatePassword() {
+    let password = '';
+    const randomLength = Math.floor(Math.random() * (Constants.PWD_MAX_LENGTH - Constants.PWD_MIN_LENGTH)) + Constants.PWD_MIN_LENGTH;
+    while (!Utils.isPasswordStrongEnough(password)) {
+      // eslint-disable-next-line no-useless-escape
+      password = passwordGenerator(randomLength, false, /[\w\d!#\$%\^&\*\.\?\-]/);
+    }
+    return password;
+  }
+
+  public static getStatusDescription(status: string): string {
+    switch (status) {
+      case Constants.USER_STATUS_PENDING:
+        return 'Pending';
+      case Constants.USER_STATUS_LOCKED:
+        return 'Locked';
+      case Constants.USER_STATUS_BLOCKED:
+        return 'Blocked';
+      case Constants.USER_STATUS_ACTIVE:
+        return 'Active';
+      case Constants.USER_STATUS_DELETED:
+        return 'Deleted';
+      case Constants.USER_STATUS_INACTIVE:
+        return 'Inactive';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  static hashPassword(password) {
+    return crypto.createHash('sha256').update(password).digest('hex');
+  }
+
+  public static checkIfSiteValid(filteredRequest: any, req: Request): void {
+    if (req.method !== 'POST' && !filteredRequest.id) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Site ID is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'SiteService', '_checkIfSiteValid',
+        req.user.id);
+    }
+    if (!filteredRequest.name) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Site Name is mandatory',
+        Constants.HTTP_GENERAL_ERROR,
+        'SiteService', '_checkIfSiteValid',
+        req.user.id, filteredRequest.id);
+    }
+    if (!filteredRequest.companyID) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Company ID is mandatory for the Site',
+        Constants.HTTP_GENERAL_ERROR,
+        'SiteService', '_checkIfSiteValid',
+        req.user.id, filteredRequest.id);
+    }
+  }
+
+  public static checkIfSiteAreaValid(filteredRequest: any, req: Request): void {
+    if (req.method !== 'POST' && !filteredRequest.id) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Site Area ID is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'SiteAreaService', '_checkIfSiteAreaValid',
+        req.user.id);
+    }
+    if (!filteredRequest.name) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Site Area is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'SiteAreaService', '_checkIfSiteAreaValid',
+        req.user.id, filteredRequest.id);
+    }
+    if (!filteredRequest.siteID) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Site ID is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'SiteAreaService', '_checkIfSiteAreaValid',
+        req.user.id, filteredRequest.id);
+    }
+  }
+
+  public static checkIfCompanyValid(filteredRequest: any, req: Request): void {
+    if (req.method !== 'POST' && !filteredRequest.id) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Company ID is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'CompanyService', 'checkIfCompanyValid',
+        req.user.id);
+    }
+    if (!filteredRequest.name) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Company Name is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'CompanyService', 'checkIfCompanyValid',
+        req.user.id, filteredRequest.id);
+    }
+  }
+
+  public static checkIfVehicleValid(filteredRequest, req: Request) {
+    // Update model?
+    if (req.method !== 'POST' && !filteredRequest.id) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Vehicle ID is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'Vehicle', 'checkIfVehicleValid',
+        req.user.id);
+    }
+    if (!filteredRequest.type) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Vehicle Type is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'Vehicle', 'checkIfVehicleValid',
+        req.user.id, filteredRequest.id);
+    }
+    if (!filteredRequest.model) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Vehicle Model is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'Vehicle', 'checkIfVehicleValid',
+        req.user.id, filteredRequest.id);
+    }
+    if (!filteredRequest.vehicleManufacturerID) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Vehicle Manufacturer is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'Vehicle', 'checkIfVehicleValid',
+        req.user.id, filteredRequest.id);
+    }
+  }
+
+  public static checkIfVehicleManufacturerValid(filteredRequest, req) {
+    // Update model?
+    if (req.method !== 'POST' && !filteredRequest.id) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Vehicle Manufacturer ID is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'VehicleManufacturer', 'checkIfVehicleManufacturerValid',
+        req.user.id);
+    }
+    if (!filteredRequest.name) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Vehicle Manufacturer Name is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'VehicleManufacturer', 'checkIfVehicleManufacturerValid',
+        req.user.id, filteredRequest.id);
+    }
+  }
+
+  public static checkIfUserValid(filteredRequest: Partial<HttpUserRequest>, user: User, req: Request) {
+    const tenantID = req.user.tenantID;
+    if (!tenantID) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Tenant is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'Users', 'checkIfUserValid');
+    }
+    // Update model?
+    if (req.method !== 'POST' && !filteredRequest.id) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'User ID is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'Users', 'checkIfUserValid',
+        req.user.id);
+    }
+    // Creation?
+    if (req.method === 'POST') {
+      if (!filteredRequest.role) {
+        filteredRequest.role = Constants.ROLE_BASIC;
+      }
+    } else {
+      // Do not allow to change if not Admin
+      if (!Authorizations.isAdmin(req.user.role)) {
+        filteredRequest.role = user.role;
+      }
+    }
+    if (req.method === 'POST' && !filteredRequest.status) {
+      filteredRequest.status = Constants.USER_STATUS_BLOCKED;
+    }
+    // Creation?
+    if ((filteredRequest.role !== Constants.ROLE_BASIC) && (filteredRequest.role !== Constants.ROLE_DEMO) &&
+        !Authorizations.isAdmin(req.user.role) && !Authorizations.isSuperAdmin(req.user.role)) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `Only Admins can assign the role '${Utils.getRoleNameFromRoleID(filteredRequest.role)}'`, Constants.HTTP_GENERAL_ERROR,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+    }
+    // Only Basic, Demo, Admin user other Tenants (!== default)
+    if (tenantID !== 'default' && filteredRequest.role && filteredRequest.role === Constants.ROLE_SUPER_ADMIN) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'User cannot have the Super Admin role in this Tenant', Constants.HTTP_GENERAL_ERROR,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+    }
+    // Only Admin and Super Admin can use role different from Basic
+    if ((filteredRequest.role === Constants.ROLE_ADMIN || filteredRequest.role === Constants.ROLE_SUPER_ADMIN) &&
+        !Authorizations.isAdmin(req.user.role) && !Authorizations.isSuperAdmin(req.user.role)) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `User without role Admin or Super Admin tried to ${filteredRequest.id ? 'update' : 'create'} an User with the '${Utils.getRoleNameFromRoleID(filteredRequest.role)}' role`, Constants.HTTP_GENERAL_ERROR,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+    }
+    if (!filteredRequest.name) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'User Last Name is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+    }
+    if (req.method === 'POST' && !filteredRequest.email) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'User Email is mandatory', Constants.HTTP_GENERAL_ERROR,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+    }
+    if (req.method === 'POST' && !Utils._isUserEmailValid(filteredRequest.email)) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `User Email ${filteredRequest.email} is not valid`, Constants.HTTP_GENERAL_ERROR,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+    }
+    if (filteredRequest.password && !Utils._isPasswordValid(filteredRequest.password)) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'User Password is not valid', Constants.HTTP_GENERAL_ERROR,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+    }
+    if (filteredRequest.phone && !Utils._isPhoneValid(filteredRequest.phone)) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `User Phone ${filteredRequest.phone} is not valid`, Constants.HTTP_GENERAL_ERROR,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+    }
+    if (filteredRequest.mobile && !Utils._isPhoneValid(filteredRequest.mobile)) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `User Mobile ${filteredRequest.mobile} is not valid`, Constants.HTTP_GENERAL_ERROR,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+    }
+    if (filteredRequest.iNumber && !Utils._isINumberValid(filteredRequest.iNumber)) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `User I-Number ${filteredRequest.iNumber} is not valid`, Constants.HTTP_GENERAL_ERROR,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+    }
+    if (filteredRequest.tagIDs) {
+      // Check
+      if (!Array.isArray(filteredRequest.tagIDs)) { // TODO: this piece is not very robust, and mutates filteredRequest even tho it's named "check". Should be changed, honestly
+        if (filteredRequest.tagIDs !== '') {
+          filteredRequest.tagIDs = filteredRequest.tagIDs.split(',');
+        }
+      }
+      if (!Utils._areTagIDsValid(filteredRequest.tagIDs)) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `User Tags ${filteredRequest.tagIDs} is/are not valid`, Constants.HTTP_GENERAL_ERROR,
+          'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+      }
+    }
+    // At least one tag ID
+    if (!filteredRequest.tagIDs || filteredRequest.tagIDs.length === 0) {
+      filteredRequest.tagIDs = [Utils.generateTagID(filteredRequest.name, filteredRequest.firstName)];
+    }
+    if (filteredRequest.plateID && !Utils._isPlateIDValid(filteredRequest.plateID)) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `User Plate ID ${filteredRequest.plateID} is not valid`, Constants.HTTP_GENERAL_ERROR,
+        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+    }
+  }
+
+  private static _isPasswordValid(password: string): boolean {
+    // eslint-disable-next-line no-useless-escape
+    return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
+  }
+
+  private static _isUserEmailValid(email: string) {
+    return /^(([^<>()\[\]\\.,;:\s@']+(\.[^<>()\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email);
+  }
+
+  private static _areTagIDsValid(tagIDs: string[]|string) {
+    if (typeof tagIDs === 'string') {
+      return /^[A-Za-z0-9,]*$/.test(tagIDs);
+    }
+    return tagIDs.filter((tagID) => {
+      return /^[A-Za-z0-9,]*$/.test(tagID);
+    }).length === tagIDs.length;
+  }
+
+  private static _isPhoneValid(phone: string): boolean {
+    return /^\+?([0-9] ?){9,14}[0-9]$/.test(phone);
+  }
+
+  private static _isINumberValid(iNumber) {
+    return /^[A-Z]{1}[0-9]{6}$/.test(iNumber);
+  }
+
+  private static _isPlateIDValid(plateID) {
+    return /^[A-Z0-9-]*$/.test(plateID);
   }
 }

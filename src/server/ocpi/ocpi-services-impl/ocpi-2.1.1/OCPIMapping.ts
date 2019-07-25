@@ -1,11 +1,8 @@
-import SourceMap from 'source-map-support';
 import Constants from '../../../../utils/Constants';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
-
-SourceMap.install();
 
 /**
  * OCPI Mapping 2.1.1 - Mapping class
@@ -73,7 +70,8 @@ export default class OCPIMapping {
   static async getEvsesFromSite(tenant: any, site: Site, options: any) {
     // Build evses array
     const evses = [];
-    const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.getID(), { withChargeBoxes: true, siteID: site.id }, { limit: 0, skip: 0 });
+    const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.getID(), { withChargeBoxes: true, siteIDs: [site.id] },
+      Constants.DB_PARAMS_MAX_LIMIT);
     for (const siteArea of siteAreas.result) {
       // Get charging stations from SiteArea
       evses.push(...await OCPIMapping.getEvsesFromSiteaArea(tenant, siteArea, options));
@@ -118,19 +116,20 @@ export default class OCPIMapping {
     const evse_id = OCPIMapping.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.getID()}`);
 
     // Loop through connectors and send one evse per connector
-    const evses = chargingStation.getConnectors().map((connector: any) => {
+    const connectors = chargingStation.getConnectors().filter((connector) => {
+      return connector !== null;
+    });
+    const evses = connectors.map((connector: any) => {
       const evse: any = {
         'uid': `${chargingStation.getID()}*${connector.connectorId}`,
         'id': OCPIMapping.convert2evseid(`${evse_id}*${connector.connectorId}`),
         'status': OCPIMapping.convertStatus2OCPIStatus(connector.status),
         'connectors': [OCPIMapping.convertConnector2OCPIConnector(chargingStation, connector, evse_id)]
       };
-
       // Check addChargeBoxID flag
       if (options && options.addChargeBoxID) {
         evse.chargeBoxId = chargingStation.getID();
       }
-
       return evse;
     });
 

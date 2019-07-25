@@ -1,18 +1,14 @@
 import cfenv from 'cfenv';
 import cluster from 'cluster';
 import os from 'os';
-import SourceMap from 'source-map-support';
 import Address from '../types/Address';
 import Company from '../types/Company';
 import Configuration from './Configuration';
 import Constants from './Constants';
+import DatabaseUtils from '../storage/mongodb/DatabaseUtils';
 import Utils from './Utils';
 
-SourceMap.install();
-
 export default class Database {
-  private static heartbeatIntervalSecs = -1;
-
   public static updateID(src, dest): void {
     // Set it
     if (src.id) {
@@ -36,10 +32,6 @@ export default class Database {
       }
     }
     return changedID;
-  }
-
-  public static setChargingStationHeartbeatIntervalSecs(heartbeatIntervalSecs: number): void {
-    Database.heartbeatIntervalSecs = heartbeatIntervalSecs;
   }
 
   static updateChargingStation(src, dest, forFrontEnd = true) {
@@ -72,15 +64,7 @@ export default class Database {
     dest.deleted = src.deleted;
     // Check Inactive Chargers
     if (forFrontEnd) {
-      // Default
-      dest.inactive = false;
-      if (dest.lastHeartBeat) {
-        const inactivitySecs = Math.floor((Date.now() - dest.lastHeartBeat.getTime()) / 1000);
-        // Inactive?
-        if (inactivitySecs > (Database.heartbeatIntervalSecs * 5)) {
-          dest.inactive = true;
-        }
-      }
+      dest.inactive = DatabaseUtils.chargingStationIsInactive(dest);
     }
     dest.lastReboot = Utils.convertToDate(src.lastReboot);
     if (src.chargingStationURL) {
@@ -254,7 +238,11 @@ export default class Database {
     dest.connectorId = Utils.convertToInt(src.connectorId);
     dest.transactionId = Utils.convertToInt(src.transactionId);
     dest.timestamp = Utils.convertToDate(src.timestamp);
-    dest.value = Utils.convertToInt(src.value);
+    if (src.attribute.format === 'SignedData') {
+      dest.value = src.value;
+    } else {
+      dest.value = Utils.convertToInt(src.value);
+    }
     dest.attribute = src.attribute;
   }
 
@@ -537,7 +525,6 @@ export default class Database {
     }
   }
 
-
   public static updateLogging(src, dest, forFrontEnd = true): void {
     if (forFrontEnd) {
       Database.updateID(src, dest);
@@ -598,6 +585,9 @@ export default class Database {
     if (src.hasOwnProperty('currentStateOfCharge')) {
       dest.currentStateOfCharge = src.currentStateOfCharge;
     }
+    if (src.hasOwnProperty('currentSignedData')) {
+      dest.currentSignedData = src.currentSignedData;
+    }
     if (src.hasOwnProperty('lastMeterValue')) {
       dest.lastMeterValue = src.lastMeterValue;
     }
@@ -633,11 +623,13 @@ export default class Database {
       dest.refundData = {};
       dest.refundData.refundId = src.refundData.refundId;
       dest.refundData.refundedAt = Utils.convertToDate(src.refundData.refundedAt);
+      dest.refundData.status = src.refundData.status;
       dest.refundData.type = src.refundData.type;
       dest.refundData.reportId = src.refundData.reportId;
     }
     dest.timestamp = Utils.convertToDate(src.timestamp);
     dest.stateOfCharge = Utils.convertToInt(src.stateOfCharge);
+    dest.signedData = src.signedData;
     if (!Utils.isEmptyJSon(src.stop)) {
       dest.stop = {};
       if (forFrontEnd && !Utils.isEmptyJSon(src.stop.user)) {
@@ -652,6 +644,7 @@ export default class Database {
         dest.stop.transactionData = src.stop.transactionData;
       }
       dest.stop.stateOfCharge = Utils.convertToInt(src.stop.stateOfCharge);
+      dest.stop.signedData = src.stop.signedData;
       dest.stop.totalConsumption = Utils.convertToInt(src.stop.totalConsumption);
       dest.stop.totalInactivitySecs = Utils.convertToInt(src.stop.totalInactivitySecs);
       dest.stop.extraInactivitySecs = Utils.convertToInt(src.stop.extraInactivitySecs);
