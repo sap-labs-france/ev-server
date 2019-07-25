@@ -88,12 +88,14 @@ export default class ContextProvider {
     let companyList = null;
     let userList = null;
     // Read all existing entities
-    chargingStationList = (await defaultAdminCentralServiceService.chargingStationApi.readAll({}, Constants.DB_PARAMS_MAX_LIMIT)).data.result;
     if (tenantEntity.components && tenantEntity.components[Constants.COMPONENTS.ORGANIZATION] &&
       tenantEntity.components[Constants.COMPONENTS.ORGANIZATION].active) {
       siteAreaList = (await defaultAdminCentralServiceService.siteAreaApi.readAll({}, { limit: 0, skip: 0 })).data.result;
       siteList = (await defaultAdminCentralServiceService.siteApi.readAll({}, { limit: 0, skip: 0 })).data.result;
       companyList = (await defaultAdminCentralServiceService.companyApi.readAll({}, { limit: 0, skip: 0 })).data.result;
+      chargingStationList = (await defaultAdminCentralServiceService.chargingStationApi.readAll({}, Constants.DB_PARAMS_MAX_LIMIT)).data.result;
+    }else{
+      chargingStationList = (await defaultAdminCentralServiceService.chargingStationApi.readAll({WithNoSiteArea: true}, Constants.DB_PARAMS_MAX_LIMIT)).data.result;
     }
     userList = (await defaultAdminCentralServiceService.userApi.readAll({}, { limit: 0, skip: 0 })).data.result;
     for (const user of userList) {
