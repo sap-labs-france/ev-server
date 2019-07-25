@@ -5,6 +5,7 @@ import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
 import Constants from './client/utils/Constants';
 import HttpStatus from 'http-status-codes';
+import Utils from './Utils';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -73,6 +74,7 @@ describe('Tenant Settings test', function() {
       const res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
       expect(res.status).to.equal(200);
 
+      await Utils.sleep(500);
       const settingsResponse = await testData.centralService.settingApi.readAll({});
       expect(settingsResponse.status).to.equal(HttpStatus.FORBIDDEN);
       expect(settingsResponse.data.message).to.equal('Tenant has been updated and all users will be logged off');
@@ -89,6 +91,7 @@ describe('Tenant Settings test', function() {
       const res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
       expect(res.status).to.equal(200);
 
+      await Utils.sleep(500);
       const settingsResponse = await testData.centralService.settingApi.readAll({});
       expect(settingsResponse.status).to.equal(HttpStatus.FORBIDDEN);
       expect(settingsResponse.data.message).to.equal('Tenant has been updated and all users will be logged off');
@@ -105,6 +108,7 @@ describe('Tenant Settings test', function() {
       const res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
       expect(res.status).to.equal(200);
 
+      await Utils.sleep(500);
       const settingsResponse = await testData.centralService.settingApi.readAll({});
       expect(settingsResponse.status).to.equal(HttpStatus.FORBIDDEN);
       expect(settingsResponse.data.message).to.equal('Tenant has been updated and all users will be logged off');
@@ -121,6 +125,7 @@ describe('Tenant Settings test', function() {
       const res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
       expect(res.status).to.equal(200);
 
+      await Utils.sleep(500);
       const settingsResponse = await testData.centralService.settingApi.readAll({});
       expect(settingsResponse.status).to.equal(HttpStatus.FORBIDDEN);
       expect(settingsResponse.data.message).to.equal('Tenant has been updated and all users will be logged off');

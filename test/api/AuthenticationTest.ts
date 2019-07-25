@@ -69,14 +69,23 @@ describe('Authentication Service', function() {
       expect(user).to.have.property('role', 'B');
     });
 
-    it('Should be possible to register a new user', async () => {
+    it('Should be possible to register a new user on the default tenant', async () => {
       const newUser = UserFactory.buildRegisterUser();
-      let response = await CentralServerService.DefaultInstance.authenticationApi.registerUser(newUser, testData.adminTenant);
+      let response = await CentralServerService.DefaultInstance.authenticationApi.registerUser(newUser, null);
       // Check
       expect(response.status).to.be.eql(200);
       expect(response.data).to.have.property('status', 'Success');
 
-      response = await CentralServerService.DefaultInstance.userApi.getByEmail(newUser.email);
+      const centralServiceSuperAdmin = new CentralServerService('',
+        {
+          email: testData.superAdminEmail,
+          password: testData.superAdminPassword
+        },
+        {
+          email: testData.superAdminEmail,
+          password: testData.superAdminPassword
+        });
+      response = await centralServiceSuperAdmin.userApi.getByEmail(newUser.email);
       expect(response.status).to.be.eql(200);
       expect(response.data).to.have.property('count', 1);
       const user = response.data.result[0];
@@ -84,7 +93,7 @@ describe('Authentication Service', function() {
       expect(user).to.have.property('name', newUser.name);
       expect(user).to.have.property('firstName', newUser.firstName);
       expect(user).to.have.property('status', 'P');
-      expect(user).to.have.property('role', 'B');
+      expect(user).to.have.property('role', 'S');
     });
 
     it('Should be possible to reset a user password', async () => {
