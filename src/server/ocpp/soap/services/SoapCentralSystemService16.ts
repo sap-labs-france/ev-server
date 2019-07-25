@@ -48,6 +48,8 @@ export default { /* Services */
           // Add OCPP Version
           headers.ocppVersion = Constants.OCPP_VERSION_16;
           headers.ocppProtocol = Constants.OCPP_PROTOCOL_SOAP;
+          // Add current IP to charging station properties
+          headers.currentIPAddress = Utils.getRequestIP(req);
           // Log
           Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, 'BootNotification', [ headers, args ]);
           // Handle
