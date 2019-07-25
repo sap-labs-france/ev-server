@@ -17,12 +17,13 @@ export default class ChargingStationStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Query single Charging Station
-    const result = await ChargingStationStorage.getChargingStations(tenantID, {
-      chargeBoxID: id
+    const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID, {
+      chargeBoxID: id,
+      withSite: true
     }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
-    Logging.traceEnd('ChargingStationStorage', 'getChargingStation', uniqueTimerID);
-    return result.count>0 ? result.result[0] : null;
+    Logging.traceEnd('ChargingStationStorage', 'getChargingStation', uniqueTimerID, { id });
+    return chargingStationsMDB.result[0];
   }
 
   public static async getChargingStations(tenantID: string, params:
@@ -54,7 +55,6 @@ export default class ChargingStationStorage {
       });
     }
     // Charger
-    // TODO: Review for logical correctness: Moved up; why let aggregation stages process many chargers if we're only getting one anyway
     if (params.chargeBoxID) {
       filters.$and.push({
         '_id': params.chargeBoxID
@@ -88,7 +88,7 @@ export default class ChargingStationStorage {
       // Site Area
       DatabaseUtils.pushSiteAreaLookupInAggregation(
         { tenantID, aggregation: siteAreaJoin, localField: 'siteAreaID', foreignField: '_id',
-          asField: 'siteArea', oneToOneCardinality: true });
+          asField: 'siteArea', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy'] });
     }
     // Check Site ID
     if (params.siteIDs && Array.isArray(params.siteIDs) && params.siteIDs.length > 0) {
@@ -97,18 +97,20 @@ export default class ChargingStationStorage {
       if(params.withNoSiteArea)
         return {count: 0, result: []};
       // Build filter
-      filters.$and.push({
+      siteAreaJoin.push({ $match: {
         'siteArea.siteID': {
-          $in: params.siteIDs // TODO: Only string cuz has previously been converted to string
+          // Still ObjectId because we need it for the site inclusion
+          $in: params.siteIDs.map(id=>Utils.convertToObjectID(id))
         }
-      });
+      }});
     }
     if (params.withSite && !params.withNoSiteArea) {
       // Site
       DatabaseUtils.pushSiteLookupInAggregation(
         { tenantID, aggregation: siteJoin, localField: 'siteArea.siteID', foreignField: '_id',
-          asField: 'siteArea.site', oneToOneCardinality: true });
-      // TODO: Might not work because siteID is already a string and not objectId. site should be removed tbh...
+          asField: 'siteArea.site', oneToOneCardinality: true});
+      // Convert siteID back to string after having queried the site
+      DatabaseUtils.convertObjectIDToString(siteJoin, 'siteArea.siteID', 'siteArea.siteID');
     }
     // Build facets meaning each different error scenario
     let facets: any = {$facet:{}};
@@ -161,6 +163,8 @@ export default class ChargingStationStorage {
     } else {
       aggregation = aggregation.concat([{$match: filters}]).concat(siteAreaJoin).concat(siteJoin);
     }
+    // Change ID
+    DatabaseUtils.renameDatabaseID(aggregation);
     // Limit records?
     if (!onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -180,8 +184,6 @@ export default class ChargingStationStorage {
     }
     // Remove the limit
     aggregation.pop();
-    // Change ID
-    DatabaseUtils.renameDatabaseID(aggregation);
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Add Created By / Last Changed By
@@ -208,7 +210,6 @@ export default class ChargingStationStorage {
     aggregation.push({
       $limit: limit
     });
-
     // Read DB
     const chargingStationsFacetMDB = await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
       .aggregate(aggregation, {
@@ -218,16 +219,28 @@ export default class ChargingStationStorage {
         }
       })
       .toArray();
-    // Debug
-    Logging.traceEnd('ChargingStationStorage', 'getChargingStations', uniqueTimerID);
-    // Add clean connectors
     if(chargingStationsCountMDB.length > 0) {
       for(let chargingStation of chargingStationsFacetMDB) {
+        // Add clean connectors in case of corrupted DB
         if(! chargingStation.connectors) {
           chargingStation.connectors = [];
+        // Clean broken connectors
+        }else{
+          let cleanedConnectors = [];
+          for(const connector of chargingStation.connectors) {
+            if(connector) {
+              cleanedConnectors.push(connector);
+            }
+          }
+          //TODO Clean them a bit more?
+          chargingStation.connectors = cleanedConnectors;
         }
+        // Add Inactive flag
+        chargingStation.inactive = DatabaseUtils.chargingStationIsInactive(chargingStation);
       }
     }
+    // Debug
+    Logging.traceEnd('ChargingStationStorage', 'getChargingStations', uniqueTimerID);
     // Ok
     return {
       count: (chargingStationsCountMDB.length > 0 ?
@@ -300,7 +313,8 @@ export default class ChargingStationStorage {
       _id: chargingStationToSave.id,
       createdBy: chargingStationToSave.createdBy ? chargingStationToSave.createdBy.id : null,
       lastChangedBy: chargingStationToSave.lastChangedBy ? chargingStationToSave.lastChangedBy : null,
-      siteAreaID: chargingStationToSave.siteArea ? Utils.convertToObjectID(chargingStationToSave.siteArea.id) : null // TODO: what if chARging station queried wo SA
+      siteAreaID: chargingStationToSave.siteArea ? Utils.convertToObjectID(chargingStationToSave.siteArea.id) :
+        ( chargingStationToSave.siteAreaID ? Utils.convertToObjectID(chargingStationToSave.siteAreaID) : null )
     };
     // Clean up mongo request
     delete chargingStationMDB.id;
@@ -313,9 +327,15 @@ export default class ChargingStationStorage {
     DatabaseUtils.addLastChangedCreatedProps(chargingStationMDB, chargingStationMDB);
     // Modify and return the modified document
     const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
-    chargingStationFilter,
-    { $set: chargingStationMDB },
-    { upsert: true });
+      chargingStationFilter,
+      { $set: chargingStationMDB },
+      { upsert: true });
+    if (!result.ok) {
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Couldn\'t update ChargingStation',
+        'ChargingStationStorage', 'saveChargingStation');
+    }
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'saveChargingStation', uniqueTimerID);
     return chargingStationMDB._id;

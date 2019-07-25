@@ -230,7 +230,7 @@ export default class SiteStorage {
     } else {
       siteFilter._id = new ObjectID();
     }
-    // Check Created By/On
+    // Properties to save
     const siteMDB: any = {
       _id: siteFilter._id,
       address: siteToSave.address,
@@ -245,7 +245,7 @@ export default class SiteStorage {
     const result = await global.database.getCollection<any>(tenantID, 'sites').findOneAndUpdate(
       siteFilter,
       { $set: siteMDB },
-      { upsert: true, returnOriginal: false }
+      { upsert: true }
     );
     if (!result.ok) {
       throw new BackendError(
@@ -404,20 +404,11 @@ export default class SiteStorage {
           let availableChargers = 0, totalChargers = 0, availableConnectors = 0, totalConnectors = 0;
           // Get the chargers
           const chargingStations = await ChargingStationStorage.getChargingStations(tenantID,
-            { siteIDs: [siteMDB.id] }, Constants.DB_PARAMS_MAX_LIMIT);
+            { siteIDs: [siteMDB.id], includeDeleted: false }, Constants.DB_PARAMS_MAX_LIMIT);
           for (const chargingStation of chargingStations.result) {
-            // Set Inactive flag
-            chargingStation.inactive = DatabaseUtils.chargingStationIsInactive(chargingStation);
-            // Check not deleted
-            if (chargingStation.deleted) {
-              continue;
-            }
             totalChargers++;
             // Handle Connectors
             for (const connector of chargingStation.connectors) {
-              if (!connector) {
-                continue;
-              }
               totalConnectors++;
               // Check Available
               if (!chargingStation.inactive && connector.status === Constants.CONN_STATUS_AVAILABLE) {
@@ -426,9 +417,6 @@ export default class SiteStorage {
             }
             // Handle Chargers
             for (const connector of chargingStation.connectors) {
-              if (!connector) {
-                continue;
-              }
               // Check Available
               if (!chargingStation.inactive && connector.status === Constants.CONN_STATUS_AVAILABLE) {
                 availableChargers++;

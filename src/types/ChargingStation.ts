@@ -36,7 +36,5 @@ export default interface ChargingStation extends CreatedUpdatedProps {
 
   siteArea?: SiteArea;
 
-  client?: ChargingStationClient;//TODO: where to place this?? sn ot a class anymore...
-
-  //TODO: include site here or remove it fro mstorage
+  client?: ChargingStationClient;
 }
