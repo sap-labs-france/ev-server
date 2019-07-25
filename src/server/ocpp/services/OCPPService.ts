@@ -54,6 +54,7 @@ export default class OCPPService {
           'OCPPUtils', '_checkAndGetChargingStation');
       }
       bootNotification.id = headers.chargeBoxIdentity;
+      bootNotification.currentIPAddress = headers.currentIPAddress;
       // Set the default Heart Beat
       bootNotification.lastReboot = new Date();
       bootNotification.lastHeartBeat = bootNotification.lastReboot;
@@ -91,6 +92,7 @@ export default class OCPPService {
       chargingStation.ocppVersion = headers.ocppVersion;
       chargingStation.ocppProtocol = headers.ocppProtocol;
       chargingStation.lastHeartBeat = bootNotification.lastHeartBeat;
+      chargingStation.currentIPAddress = bootNotification.currentIPAddress;
       // Set the charger URL?
       if (headers.chargingStationURL) {
         chargingStation.chargingStationURL = headers.chargingStationURL;
@@ -147,6 +149,11 @@ export default class OCPPService {
     try {
       // Get Charging Station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
+      // Check and replace IP
+      if (chargingStation.currentIPAddress !== headers.currentIPAddress) {
+        chargingStation.currentIPAddress = headers.currentIPAddress;
+        await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
+      }
       // Check props
       OCPPValidation.getInstance().validateHeartbeat(heartbeat);
       // Set Heartbeat

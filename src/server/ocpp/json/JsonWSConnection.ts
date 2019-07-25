@@ -9,13 +9,7 @@ import WSConnection from './WSConnection';
 
 const MODULE_NAME = 'JsonWSConnection';
 export default class JsonWSConnection extends WSConnection {
-  public getChargingStationID: any;
-  public getWSConnection: any;
-  public getTenantID: any;
-  public getIP: any;
-  public getURL: any;
-  public sendMessage: any;
-  public isWSConnectionOpen: any;
+
   private chargingStationClient: any;
   private chargingStationService: any;
   private headers: any;
@@ -97,6 +91,9 @@ export default class JsonWSConnection extends WSConnection {
     Logging.logReceivedAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
     // Check if method exist in the service
     if (typeof this.chargingStationService['handle' + commandName] === 'function') {
+      if ((commandName === 'BootNotification') || (commandName === 'Heartbeat')) {
+        this.headers.currentIPAddress = this.getIP();
+      }
       // Call it
       const result = await this.chargingStationService['handle' + commandName](this.headers, commandPayload);
       // Log

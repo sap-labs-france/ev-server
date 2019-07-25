@@ -327,6 +327,16 @@ export default class Utils {
     return message;
   }
 
+  public static getRequestIP(request): string {
+    if (request.connection.remoteAddress) {
+      return request.connection.remoteAddress;
+    } else if (request.headers.host) {
+      const host = request.headers.host.split(':', 2);
+      const ip = host[0];
+      return ip;
+    }
+  }
+
   public static checkRecordLimit(recordLimit: number | string): number {
     // String?
     if (typeof recordLimit === 'string') {

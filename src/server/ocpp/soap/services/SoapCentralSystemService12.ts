@@ -109,6 +109,8 @@ export default { /* Services */
       Heartbeat: function(args, callback, headers, req) {
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
+          // Add current IP to charging station properties
+          headers.currentIPAddress = Utils.getRequestIP(req);
           // Log
           Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, 'Heartbeat', [ headers, args ]);
           // Handle
@@ -164,6 +166,8 @@ export default { /* Services */
           // Add OCPP Version
           headers.ocppVersion = Constants.OCPP_VERSION_12;
           headers.ocppProtocol = Constants.OCPP_PROTOCOL_SOAP;
+          // Add current IP to charging station properties
+          headers.currentIPAddress = Utils.getRequestIP(req);
           // Log
           Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, 'BootNotification', [ headers, args ]);
           // Handle
