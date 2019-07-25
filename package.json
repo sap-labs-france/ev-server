@@ -168,6 +168,7 @@
     "test:encryptionSetting": "cross-env TS_NODE_FILES=true mocha test/**/EncryptionSettingTest.ts --exit",
     "test:filter": "cross-env TS_NODE_FILES=true mocha test/**/FilterTest.ts --exit",
     "test:ocppnew":"cross-env TS_NODE_FILES=true mocha test/**/OCPPNewTest.ts --exit",
+    "test:tenantsetting":"cross-env TS_NODE_FILES=true mocha test/**/ComponentActivationTenantTest.ts --exit",
     "clinic:clean": "clinic clean",
     "npm-check": "npm-check"
   },

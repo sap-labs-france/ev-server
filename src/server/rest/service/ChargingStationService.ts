@@ -452,7 +452,6 @@ export default class ChargingStationService {
     }
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query);
-    console.log(req.user);
     // Check component
     if (filteredRequest.SiteID || filteredRequest.WithSite || filteredRequest.SiteAreaID || !filteredRequest.WithNoSiteArea) {
       await UtilsService.assertComponentIsActiveFromToken(req.user,
