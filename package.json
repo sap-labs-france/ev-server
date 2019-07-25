@@ -54,14 +54,14 @@
     "socket.io": "^2.2.0",
     "source-map-support": "^0.5.12",
     "strong-soap": "^1.19.1",
-    "typescript": "^3.5.2",
+    "typescript": "^3.5.3",
     "tz-lookup": "^6.1.18",
     "urlencode": "^1.1.0",
     "uuid": "^3.3.2",
     "ws": "^7.1.1"
   },
   "devDependencies": {
-    "@babel/core": "^7.4.5",
+    "@babel/core": "^7.5.5",
     "@types/bcrypt": "^3.0.0",
     "@types/bluebird": "^3.5.27",
     "@types/bluebird-global": "^3.5.12",
