@@ -19,6 +19,8 @@ import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
 import Utils from '../utils/Utils';
 import Connector from '../types/Connector';
+import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
+import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
 
 export default class Authorizations {
 
@@ -201,16 +203,27 @@ export default class Authorizations {
   }
 
   public static async isTagIDAuthorizedOnChargingStation(tenantID: string, chargingStation: ChargingStation, tagID: string, action: string) {
-    let site: Site, siteArea: SiteArea;
+    let site: Site;
     // Get the Organization component
     const tenant = await TenantStorage.getTenant(tenantID);
     const isOrgCompActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
     // Org component enabled?
     if (isOrgCompActive) {
+      let throwError = false;
       // Site Area -----------------------------------------------
-      siteArea = await chargingStation.siteArea; // TODO: Make sure all sources to this method provide CS with SA
+      if(! chargingStation.siteAreaID) {
+        throwError = true;
+      } else {
+        if(! chargingStation.siteArea) {
+          chargingStation.siteArea =
+            await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID, {withSite: true});
+          if(! chargingStation.siteArea) {
+            throwError = true;
+          }
+        }
+      }
       // Site is mandatory
-      if (!siteArea) {
+      if (throwError) {
         // Reject Site Not Found
         throw new AppError(
           chargingStation.id,
@@ -220,19 +233,19 @@ export default class Authorizations {
       }
 
       // Access Control Enabled?
-      if (!siteArea.accessControl) {
+      if (!chargingStation.siteArea.accessControl) {
         // No control
         return;
       }
       // Site -----------------------------------------------------
       // TODO: consider changing structure of CS->SA->S entirely; It's a little inconvenient that sometimes CS includes SA with includes S, which can also include SA, but not always
-      site = siteArea.site ? siteArea.site : (siteArea.siteID ? await SiteStorage.getSite(tenantID, siteArea.siteID) : null);
-      siteArea.site = site;
+      site = chargingStation.siteArea.site ? chargingStation.siteArea.site : (chargingStation.siteArea.siteID ? await SiteStorage.getSite(tenantID, chargingStation.siteArea.siteID) : null);
+      chargingStation.siteArea.site = site;
       if (!site) {
         // Reject Site Not Found
         throw new AppError(
           chargingStation.id,
-          `Site Area '${siteArea.name}' is not assigned to a Site!`,
+          `Site Area '${chargingStation.siteArea.name}' is not assigned to a Site!`,
           Constants.HTTP_AUTH_SITE_AREA_WITH_NO_SITE_ERROR,
           'Authorizations', 'checkAndGetUserOnChargingStation');
       }

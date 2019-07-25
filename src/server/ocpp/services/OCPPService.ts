@@ -885,7 +885,6 @@ export default class OCPPService {
         'status': 'Accepted'
       };
     } catch (error) {
-      console.log(error);
       // Set the source
       error.source = headers.chargeBoxIdentity;
       // Log error
