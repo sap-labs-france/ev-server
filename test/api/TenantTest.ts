@@ -113,7 +113,7 @@ describe('Tenant tests', function() {
       expect(response.status).to.equal(500);
     });
 
-    it('Should not be possible to create a tenant without a name', async () => {
+    it('Should not be possible to create a tenant without a subdomain', async () => {
       // Create
       const tenant = Factory.tenant.buildTenantCreate();
       delete tenant.subdomain;
