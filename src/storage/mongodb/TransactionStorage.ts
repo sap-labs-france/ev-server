@@ -349,6 +349,7 @@ export default class TransactionStorage {
     }
     // Debug
     Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, { params, dbParams });
+    console.log(transactions);
     return {
       count: transactionCountMDB ? (transactionCountMDB.count === Constants.DB_RECORD_COUNT_CEIL ? -1 : transactionCountMDB.count) : 0,
       stats: transactionCountMDB ? transactionCountMDB : {},
@@ -581,9 +582,9 @@ export default class TransactionStorage {
     if (transactionsMDB && transactionsMDB.length > 0) {
       // Create
       for (const transactionMDB of transactionsMDB) {
-        const transaction = new Transaction(tenantID, { ...transactionMDB, pricing: pricing });
-        transaction.getModel().errorCode = transactionMDB.errorCode;
-        transaction.getModel().uniqueId = transactionMDB.uniqueId;
+        const transaction: Transaction = transactionMDB; //TODO rewrite //new Transaction(tenantID, { ...transactionMDB, pricing: pricing });
+        transaction.errorCode = transactionMDB.errorCode;
+        transaction.uniqueId = transactionMDB.uniqueId;
         transactions.push(transaction);
       }
     }
@@ -627,7 +628,7 @@ export default class TransactionStorage {
     Logging.traceEnd('TransactionStorage', 'getTransaction', uniqueTimerID, { id });
     // Found?
     if (transactionsMDB && transactionsMDB.length > 0) {
-      return new Transaction(tenantID, transactionsMDB[0]);
+      return transactionsMDB[0];
     }
     return null;
   }
@@ -667,7 +668,7 @@ export default class TransactionStorage {
     Logging.traceEnd('TransactionStorage', 'getActiveTransaction', uniqueTimerID, { chargeBoxID, connectorId });
     // Found?
     if (transactionsMDB && transactionsMDB.length > 0) {
-      return new Transaction(tenantID, transactionsMDB[0]);
+      return new transactionsMDB[0];
     }
     return null;
   }
