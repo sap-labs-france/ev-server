@@ -11,7 +11,7 @@ export default class LoggingSecurity {
     // Get logs
     filteredRequest.DateFrom = sanitize(request.DateFrom);
     filteredRequest.DateUntil = sanitize(request.DateUntil);
-    filteredRequest.Level = sanitize(request.Level);
+    filteredRequest.Level = request.Level ? sanitize(request.Level).split('|') : null;
     filteredRequest.Source = request.Source ? sanitize(request.Source).split('|') : null;
     filteredRequest.Host = sanitize(request.Host);
     filteredRequest.Process = sanitize(request.Process);

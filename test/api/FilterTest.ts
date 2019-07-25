@@ -42,6 +42,11 @@ describe('Filters with multiple values tests', function() {
       expect(read.status).to.equal(200);
     });
 
+    it('Logs : Check that multi-filtering based on levels works', async () => {
+      const read = await testData.centralService.logsApi.readAll({ 'Level' : 'E|I' }, { limit: 10, skip: 0 });
+      expect(read.status).to.equal(200);
+    });
+
     it('Charging stations : Check that multi-filtering based on sites works', async () => {
       const read = await testData.centralService.chargingStationApi.readAll({ 'SiteID' : '5abeba8d4bae1457eb565e5b|5abeba9e4bae1457eb565e66' }, { limit: 10, skip: 0 });
       expect(read.status).to.equal(200);
