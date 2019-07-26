@@ -24,15 +24,14 @@ import Configuration from '../../../utils/Configuration';
 export default class ChargingStationService {
 
   public static async handleAssignChargingStationsToSiteArea(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check if component is active
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
+      Constants.ACTION_UPDATE, Constants.ENTITY_CHARGING_STATION, 'ChargingStationService', 'handleAssignChargingStationsToSiteArea');
     // Filter
     const filteredRequest = ChargingStationSecurity.filterAssignChargingStationsToSiteAreaRequest(req.body);
-    // Check Mandatory fields
-    if (!filteredRequest.siteAreaID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The Site Area\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
-        'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
-    }
+    // Check mandatory fields
+    UtilsService.assertIdIsProvided(filteredRequest.siteAreaID, 'ChargingStationService', 'handleAssignChargingSTationsToSiteArea', req.user);
     if (!filteredRequest.chargingStationIDs || (filteredRequest.chargingStationIDs && filteredRequest.chargingStationIDs.length <= 0)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
@@ -41,6 +40,8 @@ export default class ChargingStationService {
     }
     // Get the Site Area (before auth to get siteID)
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
+    UtilsService.assertObjectExists(siteArea, `SiteArea '${filteredRequest.siteAreaID}' doesn't exist anymore.`,
+      'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
     // Check auth
     if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
       throw new AppAuthError(
@@ -51,22 +52,12 @@ export default class ChargingStationService {
         'ChargingStationService', 'handleAssignChargingStationsToSiteArea',
         req.user);
     }
-    if (!siteArea) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Site Area with ID '${filteredRequest.siteAreaID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        'ChargingStationService', 'handleAddChargingStationsToSiteArea', req.user);
-    }
     // Get Charging Stations
     for (const chargingStationID of filteredRequest.chargingStationIDs) {
       // Check the charging station
       const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, chargingStationID);
-      if (!chargingStation) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Charging Station with ID '${chargingStationID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-          'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
-      }
+      UtilsService.assertObjectExists(chargingStation, `ChargingStation '${chargingStationID}' doesn't exist anymore.`,
+        'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
       // Check auth
       if (!Authorizations.canUpdateChargingStation(req.user, siteArea.siteID)) {
         throw new AppAuthError(
@@ -100,12 +91,8 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationSecurity.filterChargingStationParamsUpdateRequest(req.body, req.user);
     // Check existence
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.id);
-    if (!chargingStation) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Charging Station with ID '${filteredRequest.id}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        'ChargingStationService', 'handleUpdateChargingStationParams', req.user);
-    }
+    UtilsService.assertObjectExists(chargingStation, `ChargingStation '${filteredRequest.id}' doesn't exist.`,
+        'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, chargingStation.siteAreaID);
     // Check Auth
     if (!Authorizations.canUpdateChargingStation(req.user, siteArea ? siteArea.siteID : null)) {
@@ -185,22 +172,12 @@ export default class ChargingStationService {
   public static async handleGetChargingStationConfiguration(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query);
-    // Charge Box is mandatory
-    if (!filteredRequest.ChargeBoxID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The Charging Station ID is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'ChargingStationService', 'handleGetChargingStationConfiguration', req.user);
-    }
+    UtilsService.assertIdIsProvided(filteredRequest.ChargeBoxID, 'ChargingStationService', 'handleGetChargingStationConfiguration', req.user);
     // Get the Charging Station`
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
     // Found?
-    if (!chargingStation) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Charging Station with ID '${filteredRequest.ChargeBoxID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        'ChargingStationService', 'handleGetChargingStationConfiguration', req.user);
-    }
+    UtilsService.assertObjectExists(chargingStation, `ChargingStation '${filteredRequest.ChargeBoxID}' doesn't exist anymore.`,
+        'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError(
@@ -219,13 +196,7 @@ export default class ChargingStationService {
   public static async handleRequestChargingStationConfiguration(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query);
-    // Charge Box is mandatory
-    if (!filteredRequest.ChargeBoxID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The Charging Station ID is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'ChargingStationService', 'handleRequestChargingStationConfiguration', req.user);
-    }
+    UtilsService.assertIdIsProvided(filteredRequest.ChargeBoxID, 'ChargingStationService', 'handleGetChargingStationConfiguration', req.user);
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError(
@@ -238,12 +209,8 @@ export default class ChargingStationService {
     // Get the Charging Station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
     // Found?
-    if (!chargingStation) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Charging Station with ID '${filteredRequest.ChargeBoxID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        'ChargingStationService', 'handleRequestChargingStationConfiguration', req.user);
-    }
+    UtilsService.assertObjectExists(chargingStation, `ChargingStation '${filteredRequest.ChargeBoxID}' doesn't exist anymore.`,
+        'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
     // Get the Config
     const result = await ChargingStationService.requestAndSaveConfiguration(req.user.tenantID, chargingStation);
     // Ok
@@ -253,28 +220,28 @@ export default class ChargingStationService {
 
   public static async handleDeleteChargingStation(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationRequest(req.query);
+    const chargingStationID = ChargingStationSecurity.filterChargingStationByIDRequest(req.query);
     // Check Mandatory fields
-    UtilsService.assertIdIsProvided(filteredRequest.ID, 'ChargingStationService',
+    UtilsService.assertIdIsProvided(chargingStationID, 'ChargingStationService',
       'handleDeleteChargingStation', req.user);
     // Check auth
     if (!Authorizations.canDeleteChargingStation(req.user)) {
       throw new AppAuthError(
         Constants.ACTION_DELETE,
         Constants.ENTITY_CHARGING_STATION,
-        filteredRequest.ID, Constants.HTTP_AUTH_ERROR,
+        chargingStationID, Constants.HTTP_AUTH_ERROR,
         'ChargingStationService', 'handleDeleteChargingStation',
         req.user);
     }
     // Get
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ID);
-    UtilsService.assertObjectExists(chargingStation, `Charging Station with ID '${filteredRequest.ID}' does not exist`,
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, chargingStationID);
+    UtilsService.assertObjectExists(chargingStation, `Charging Station with ID '${chargingStationID}' does not exist`,
       'ChargingStationService', 'handleDeleteChargingStation', req.user);
     // Deleted
     if (chargingStation.deleted) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `ChargingStation with ID '${filteredRequest.ID}' is already deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        `ChargingStation with ID '${chargingStationID}' is already deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'ChargingStationService', 'handleDeleteChargingStation', req.user);
     }
     // Check no active transaction
@@ -369,7 +336,7 @@ export default class ChargingStationService {
     // Check component
     if (filteredRequest.SiteID || filteredRequest.WithSite || filteredRequest.SiteAreaID || !filteredRequest.WithNoSiteArea) {
       await UtilsService.assertComponentIsActiveFromToken(req.user,
-        Constants.COMPONENTS.ORGANIZATION, Constants.ACTION_READ, Constants.ENTITY_SITE_AREA, 'ChargingStationService', 'handleGetChargingStations');
+        Constants.COMPONENTS.ORGANIZATION, Constants.ACTION_READ, Constants.ENTITY_CHARGING_STATIONS, 'ChargingStationService', 'handleGetChargingStations');
     }
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStations(req.user.tenantID,
@@ -378,7 +345,6 @@ export default class ChargingStationService {
         withNoSiteArea: filteredRequest.WithNoSiteArea,
         withSite: filteredRequest.WithSite,
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : Authorizations.getAuthorizedSiteIDs(req.user)),
-        chargeBoxID: filteredRequest.ChargeBoxID,
         siteAreaID: filteredRequest.SiteAreaID,
         includeDeleted: filteredRequest.IncludeDeleted,
         errorType: filteredRequest.ErrorType
@@ -470,13 +436,7 @@ export default class ChargingStationService {
   public static async handleAction(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
     const filteredRequest: HttpChargingStationCommandRequest & {loadAllConnectors?: boolean} = ChargingStationSecurity.filterChargingStationActionRequest(req.body, action, req.user);
-    // Charge Box is mandatory
-    if (!filteredRequest.chargeBoxID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Charging Station ID is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'ChargingStationService', 'handleAction', req.user, null, action);
-    }
+    UtilsService.assertIdIsProvided(filteredRequest.chargeBoxID, 'ChargingSTationService', 'handleAction', req.user);
     // Get the Charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
     UtilsService.assertObjectExists(chargingStation, `Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`,

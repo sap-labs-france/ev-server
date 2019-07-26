@@ -8,17 +8,17 @@ import Logging from '../../utils/Logging';
 import Tenant from '../../entity/Tenant';
 import Utils from '../../utils/Utils';
 import Connector from '../../types/Connector';
+import { ObjectID } from 'bson';
+import UtilsService from '../../server/rest/service/UtilsService';
 
 export default class ChargingStationStorage {
 
   public static async getChargingStation(tenantID: string, id: string): Promise<ChargingStation> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStation');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
     // Query single Charging Station
     const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID, {
-      chargeBoxID: id,
+      search: id,
       withSite: true
     }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
@@ -27,17 +27,17 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingStations(tenantID: string, params:
-    {search?:string,siteAreaID?:string,withNoSiteArea?:boolean,siteIDs?:string[],withSite?:boolean,chargeBoxID?:string,
+    {search?:string,siteAreaID?:string,withNoSiteArea?:boolean,siteIDs?:string[],withSite?:boolean,
       errorType?:'missingSettings'|'connectionBroken'|'connectorError'|'missingSiteArea'|'all',includeDeleted?:boolean},
-    { limit, skip, sort, onlyRecordCount }: DbParams, projectFields?: string[]): Promise<{count: number, result: ChargingStation[]}> {
+    dbParams: DbParams, projectFields?: string[]): Promise<{count: number, result: ChargingStation[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
-    limit = Utils.checkRecordLimit(limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    skip = Utils.checkRecordSkip(skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
     let aggregation = [];
     let siteAreaJoin = [];
@@ -54,13 +54,7 @@ export default class ChargingStationStorage {
         'deleted': true
       });
     }
-    // Charger
-    if (params.chargeBoxID) {
-      filters.$and.push({
-        '_id': params.chargeBoxID
-      });
-    }
-    // Source?
+    // Search filters
     if (params.search) {
       // Build filter
       filters.$and.push({
@@ -71,13 +65,6 @@ export default class ChargingStationStorage {
         ]
       });
     }
-    // Query by siteAreaID
-    if (params.siteAreaID) {
-      // Build filter
-      filters.$and.push({
-        'siteAreaID': Utils.convertToObjectID(params.siteAreaID)
-      });
-    }
     // With no Site Area
     if (params.withNoSiteArea) {
       // Build filter
@@ -85,6 +72,13 @@ export default class ChargingStationStorage {
         'siteAreaID': null
       });
     } else {
+      // Query by siteAreaID
+      if (params.siteAreaID) {
+        // Build filter
+        filters.$and.push({
+          'siteAreaID': Utils.convertToObjectID(params.siteAreaID)
+        });
+      }
       // Site Area
       DatabaseUtils.pushSiteAreaLookupInAggregation(
         { tenantID, aggregation: siteAreaJoin, localField: 'siteAreaID', foreignField: '_id',
@@ -93,7 +87,6 @@ export default class ChargingStationStorage {
     // Check Site ID
     if (params.siteIDs && Array.isArray(params.siteIDs) && params.siteIDs.length > 0) {
       // If sites but no site area, no results can be found - return early.
-      // TODO: Please review for logical correctness
       if(params.withNoSiteArea)
         return {count: 0, result: []};
       // Build filter
@@ -163,10 +156,8 @@ export default class ChargingStationStorage {
     } else {
       aggregation = aggregation.concat([{$match: filters}]).concat(siteAreaJoin).concat(siteJoin);
     }
-    // Change ID
-    DatabaseUtils.renameDatabaseID(aggregation);
     // Limit records?
-    if (!onlyRecordCount) {
+    if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
@@ -175,7 +166,7 @@ export default class ChargingStationStorage {
       .aggregate([...aggregation, { $count: 'count' }])
       .toArray();
     // Check if only the total count is requested
-    if (onlyRecordCount) {
+    if (dbParams.onlyRecordCount) {
       // Return only the count
       return {
         count: (chargingStationsCountMDB.length > 0 ? chargingStationsCountMDB[0].count : 0),
@@ -184,15 +175,15 @@ export default class ChargingStationStorage {
     }
     // Remove the limit
     aggregation.pop();
-    // Project
-    DatabaseUtils.projectFields(aggregation, projectFields);
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
+    // Change ID
+    DatabaseUtils.renameDatabaseID(aggregation);
     // Sort
-    if (sort) {
+    if (dbParams.sort) {
       // Sort
       aggregation.push({
-        $sort: sort
+        $sort: dbParams.sort
       });
     } else {
       // Default
@@ -204,12 +195,14 @@ export default class ChargingStationStorage {
     }
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const chargingStationsFacetMDB = await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
       .aggregate(aggregation, {
@@ -297,12 +290,7 @@ export default class ChargingStationStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check if ID is provided
-    if(!chargingStationToSave.id) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'ChargingStation has no ID',
-        'ChargingStationStorage', 'saveChargingStation');
-    }
+    UtilsService.assertIdIsProvided(chargingStationToSave.id, 'ChargingStationStorage', 'saveChargingStation', null);
     // Build Request
     const chargingStationFilter = {
       _id: chargingStationToSave.id
@@ -323,7 +311,7 @@ export default class ChargingStationStorage {
     if(!chargingStationMDB.connectors) {
       chargingStationMDB.connectors = [];
     }
-    // Convert Created/LastChanged By
+    // Add Created/LastChanged By
     DatabaseUtils.addLastChangedCreatedProps(chargingStationMDB, chargingStationMDB);
     // Modify and return the modified document
     const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
@@ -351,18 +339,21 @@ export default class ChargingStationStorage {
     // Update model
     chargingStation.connectors[connector.connectorId - 1] = connector;
     // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate({
-      '_id': chargingStation.id
-    }, {
-      $set: updatedFields
-    }, {
-      upsert: true
-    });
+    const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
+      { '_id': chargingStation.id },
+      { $set: updatedFields },
+      { upsert: true });
+    if (!result.ok) {
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Couldn\'t update ChargingStation connector',
+        'ChargingStationStorage', 'saveChargingStationConnector');
+    }
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'saveChargingStationConnector', uniqueTimerID);
   }
 
-  // TODO: Could be removed and just handled in saveChargingStation (the update), right?
+  // TODO: Could be removed and just handled in saveChargingStation (the update), potentially.
   public static async saveChargingStationHeartBeat(tenantID: string, chargingStation: ChargingStation): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStationHeartBeat');
@@ -371,18 +362,21 @@ export default class ChargingStationStorage {
     const updatedFields: any = {};
     updatedFields['lastHeartBeat'] = Utils.convertToDate(chargingStation.lastHeartBeat);
     // Modify and return the modified document
-    await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate({
-      '_id': chargingStation.id
-    }, {
-      $set: updatedFields
-    }, {
-      upsert: true
-    });
+    const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
+      { '_id': chargingStation.id },
+      { $set: updatedFields },
+      { upsert: true });
+    if (!result.ok) {
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Couldn\'t update ChargingStation heartbeat',
+        'ChargingStationStorage', 'saveChargingStationHeartBeat');
+      }
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'saveChargingStationHeartBeat', uniqueTimerID);
   }
 
-  public static async deleteChargingStation(tenantID: string, id: string) {
+  public static async deleteChargingStation(tenantID: string, id: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'deleteChargingStation');
     // Check Tenant
@@ -425,7 +419,7 @@ export default class ChargingStationStorage {
     return value;
   }
 
-  public static async getConfiguration(tenantID: string, chargeBoxID: string) {
+  public static async getConfiguration(tenantID: string, chargeBoxID: string): Promise<{id: string, timestamp: Date, configuration: any}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getConfiguration');
     // Check Tenant
@@ -457,7 +451,7 @@ export default class ChargingStationStorage {
     await Utils.checkTenant(tenantID);
     // Site provided?
     if (siteAreaID) {
-      // At least one User
+      // At least one ChargingStation
       if (chargingStationIDs && chargingStationIDs.length > 0) {
         // Update all chargers
         await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany({
@@ -486,7 +480,7 @@ export default class ChargingStationStorage {
     await Utils.checkTenant(tenantID);
     // Site provided?
     if (siteAreaID) {
-      // At least one User
+      // At least one ChargingStation
       if (chargingStationIDs && chargingStationIDs.length > 0) {
         // Update all chargers
         await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany({
