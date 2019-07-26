@@ -458,13 +458,13 @@ export default class AuthService {
     if (!response.data.success) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        'The captcha is invalid',
+        'The reCaptcha is invalid',
         Constants.HTTP_AUTH_INVALID_CAPTCHA,
         'AuthService', 'handleRegisterUser');
     } else if (response.data.score < 0.5) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        'The captcha score is too low (< 0.5)',
+        `The reCaptcha score is too low, got ${response.data.score} and expected to be >= 0.5`,
         Constants.HTTP_AUTH_INVALID_CAPTCHA,
         'AuthService', 'handleRegisterUser');
     }
