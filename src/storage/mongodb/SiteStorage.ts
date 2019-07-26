@@ -23,7 +23,7 @@ export default class SiteStorage {
     }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('SiteStorage', 'getSite', uniqueTimerID, { id });
-    return sitesMDB.result[0];
+    return sitesMDB.count>0 ? sitesMDB.result[0] : null;
   }
 
   public static async getSiteImage(tenantID: string, id: string): Promise<{id: string; image: string}> {

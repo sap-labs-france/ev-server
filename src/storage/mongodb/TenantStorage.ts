@@ -14,11 +14,11 @@ export default class TenantStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'getTenant');
     // Delegate querying
-    const tenantsResult = await TenantStorage.getTenants({search: id}, {limit: 1, skip: 0});
+    const tenantsMDB = await TenantStorage.getTenants({search: id}, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('TenantStorage', 'getTenant', uniqueTimerID, { id });
 
-    return tenantsResult.count>0 ? tenantsResult.result[0] : null;
+    return tenantsMDB.count>0 ? tenantsMDB.result[0] : null;
   }
 
   public static async getTenantByName(name: string): Promise<Tenant> {
@@ -65,6 +65,12 @@ export default class TenantStorage {
       tenantFilter,
       { $set: tenantMDB },
       { upsert: true, returnOriginal: false });
+    if (!result.ok) {
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Couldn\'t update Tenant',
+        'TenantStorage', 'saveTenant');
+    }
     // Debug
     Logging.traceEnd('TenantStorage', 'saveTenant', uniqueTimerID, { tenantToSave });
     // Create
@@ -81,13 +87,13 @@ export default class TenantStorage {
   }
 
   // Delegate
-  public static async getTenants(params: {search?: string, exact?: boolean}, {limit, skip, sort}: DbParams, projectFields?: string[]) {
+  public static async getTenants(params: {search?: string, exact?: boolean}, dbParams: DbParams, projectFields?: string[]) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'getTenants');
     // Check Limit
-    limit = Utils.checkRecordLimit(limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    skip = Utils.checkRecordSkip(skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
     const filters: any = {};
     if (params.search) {
@@ -115,8 +121,6 @@ export default class TenantStorage {
         $match: filters
       });
     }
-    // Change ID
-    DatabaseUtils.renameDatabaseID(aggregation);
     // Count Records
     const tenantsCountMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
@@ -124,10 +128,10 @@ export default class TenantStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation('', aggregation);
     // Sort
-    if (sort) {
+    if (dbParams.sort) {
       // Sort
       aggregation.push({
-        $sort: sort
+        $sort: dbParams.sort
       });
     } else {
       // Default
@@ -139,19 +143,21 @@ export default class TenantStorage {
     }
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
+    // Change ID
+    DatabaseUtils.renameDatabaseID(aggregation);
     // Read DB
     const tenantsMDB = await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenants')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
 
     // Debug
-    Logging.traceEnd('TenantStorage', 'getTenants', uniqueTimerID, { params, limit, skip, sort });
+    Logging.traceEnd('TenantStorage', 'getTenants', uniqueTimerID, { params, dbParams });
     // Ok
     return {
       count: (tenantsCountMDB.length > 0 ? tenantsCountMDB[0].count : 0),

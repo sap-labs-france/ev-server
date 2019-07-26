@@ -38,6 +38,7 @@ export default class TenantService {
     }
     // Get
     const tenant = await TenantStorage.getTenant(filteredRequest.ID);
+    // Found?
     UtilsService.assertObjectExists(tenant, `Tenant '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check if current tenant
