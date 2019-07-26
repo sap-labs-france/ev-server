@@ -588,25 +588,7 @@ export default class AuthService {
   }
 
   public static async handleUserPasswordReset(action: string, req: Request, res: Response, next: NextFunction) {
-    // Filter
-    Logging.logDebug({
-      tenantID: Constants.DEFAULT_TENANT,
-      action: 'ResetPassword',
-      message: `Reset Password 1/2`,
-      module: 'AuthService',
-      method: 'handleUserPasswordReset',
-      detailedMessages: req.body
-    });
     const filteredRequest = AuthSecurity.filterResetPasswordRequest(req.body);
-    // Filter
-    Logging.logDebug({
-      tenantID: Constants.DEFAULT_TENANT,
-      action: 'ResetPassword',
-      message: `Reset Password 2/2`,
-      module: 'AuthService',
-      method: 'handleUserPasswordReset',
-      detailedMessages: filteredRequest
-    });
     // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
