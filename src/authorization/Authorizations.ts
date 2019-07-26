@@ -665,16 +665,17 @@ export default class Authorizations {
     if (!user) {
       // Create an empty user
       user = {
+        ...UserStorage.getEmptyUser(),
         name: 'Unknown',
         firstName: 'User',
         status: Constants.USER_STATUS_INACTIVE,
         role: Constants.ROLE_BASIC,
-        email: tagID + '@chargeangels.fr',
-        tagIDs: [tagID],
-        ...UserStorage.getEmptyUser()
+        email: tagID + '@chargeangels.fr'
       };
-      await UserStorage.saveUser(chargingStation.getTenantID(), user);
-
+      // Save
+      user.id = await UserStorage.saveUser(chargingStation.getTenantID(), user);
+      // Save TagIDs
+      await UserStorage.saveUserTags(chargingStation.getTenantID(), user.id, [tagID]);
       // Notify
       NotificationHandler.sendUnknownUserBadged(
         chargingStation.getTenantID(),
