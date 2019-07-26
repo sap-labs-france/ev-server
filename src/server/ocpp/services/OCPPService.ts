@@ -19,7 +19,7 @@ import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStor
 import ChargingStationService from '../../rest/service/ChargingStationService';
 import tzlookup from 'tz-lookup';
 import Connector from '../../../types/Connector';
-import Tenant from '../../../entity/Tenant';
+import Tenant from '../../../types/Tenant';
 // FIXME
 const moment = require('moment');
 momentDurationFormatSetup(moment);
@@ -108,7 +108,7 @@ export default class OCPPService {
         chargingStation,
         {
           'chargeBoxID': chargingStation.id,
-          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(headers.tenantID)).getSubdomain()),
+          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(headers.tenantID)).subdomain),
           'evseDashboardChargingStationURL': await Utils.buildEvseChargingStationURL(headers.tenantID, chargingStation, '#all')
         }
       );
@@ -333,7 +333,7 @@ export default class OCPPService {
           'chargeBoxID': chargingStation.id,
           'connectorId': statusNotification.connectorId,
           'error': `${statusNotification.status} - ${statusNotification.errorCode} - ${(statusNotification.info ? statusNotification.info : 'N/A')}`,
-          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).getSubdomain()),
+          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain),
           'evseDashboardChargingStationURL': await Utils.buildEvseChargingStationURL(tenantID, chargingStation, '#inerror')
         },
         {
@@ -680,7 +680,7 @@ export default class OCPPService {
         'stateOfCharge': transaction.getCurrentStateOfCharge(),
         'totalDuration': this._buildCurrentTransactionDuration(transaction),
         'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.getID(), '#inprogress'),
-        'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).getSubdomain())
+        'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
       },
       transaction.getUserJson().locale,
       {
@@ -706,7 +706,7 @@ export default class OCPPService {
           { minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2 }),
         'stateOfCharge': transaction.getCurrentStateOfCharge(),
         'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.getID(), '#inprogress'),
-        'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).getSubdomain())
+        'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
       },
       transaction.getUserJson().locale,
       {
@@ -979,7 +979,7 @@ export default class OCPPService {
       }
       // Check Org
       const tenant = await TenantStorage.getTenant(headers.tenantID);
-      const isOrgCompActive = await tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+      const isOrgCompActive = await Utils.tenantComponentActive(tenant, Constants.COMPONENTS.ORGANIZATION);
       if (isOrgCompActive) {
         // Set the Site Area ID
         startTransaction.siteAreaID = chargingStation.siteAreaID;
@@ -1145,7 +1145,7 @@ export default class OCPPService {
         'user': user,
         'chargeBoxID': chargingStation.id,
         'connectorId': transaction.getConnectorId(),
-        'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).getSubdomain()),
+        'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain),
         'evseDashboardChargingStationURL':
           await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.getID(), '#inprogress')
       },
@@ -1375,7 +1375,7 @@ export default class OCPPService {
           'totalInactivity': this._buildTransactionInactivity(transaction),
           'stateOfCharge': transaction.getStopStateOfCharge(),
           'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.getID(), '#history'),
-          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).getSubdomain())
+          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
         },
         user.locale,
         {

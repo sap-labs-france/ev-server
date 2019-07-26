@@ -1,11 +1,13 @@
 import crypto from 'crypto';
 import global from '../../types/GlobalType';
 import MigrationTask from '../MigrationTask';
-import Tenant from '../../entity/Tenant';
+import Tenant from '../../types/Tenant';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import Constants from '../../utils/Constants';
 
 export default class SiteUsersHashIDsTask extends MigrationTask {
   async migrate() {
-    const tenants = await Tenant.getTenants();
+    const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     for (const tenant of tenants.result) {
       await this.migrateTenant(tenant);
     }
@@ -23,7 +25,7 @@ export default class SiteUsersHashIDsTask extends MigrationTask {
       }
     });
     // Exec
-    const userSitesMDB = await global.database.getCollection<any>(tenant.getID(), 'siteusers')
+    const userSitesMDB = await global.database.getCollection<any>(tenant.id, 'siteusers')
       .aggregate(aggregation).toArray();
     // Process IDs
     for (const userSiteMDB of userSitesMDB) {
@@ -33,12 +35,12 @@ export default class SiteUsersHashIDsTask extends MigrationTask {
         `${userSiteMDB.siteID.toString()}~${userSiteMDB.userID.toString()}`).digest('hex'),
       // Delete
       await global.database.getCollection<any>(
-        tenant.getID(), 'siteusers').deleteOne(
+        tenant.id, 'siteusers').deleteOne(
         { '_id' : idToDelete }
       );
       // Create
       await global.database.getCollection<any>(
-        tenant.getID(), 'siteusers').insertOne(userSiteMDB);
+        tenant.id, 'siteusers').insertOne(userSiteMDB);
     }
   }
 

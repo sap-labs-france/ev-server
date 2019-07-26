@@ -6,9 +6,10 @@ import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import OCPPError from '../../../exception/OcppError';
-import Tenant from '../../../entity/Tenant';
+import Tenant from '../../../types/Tenant';
 import Utils from '../../../utils/Utils';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
 
 const MODULE_NAME = 'WSConnection';
 export default class WSConnection {
@@ -248,7 +249,7 @@ export default class WSConnection {
         this.wsConnection.send(messageToSend);
       } else {
         // Reject it
-        return rejectCallback(`Web socket closed for Message ID '${messageId}' with content '${messageToSend}' (${Tenant.getTenant(this.tenantID)})`);
+        return rejectCallback(`Web socket closed for Message ID '${messageId}' with content '${messageToSend}' (${TenantStorage.getTenant(this.tenantID)})`);
       }
       // Request?
       if (messageType !== Constants.OCPP_JSON_CALL_MESSAGE) {
@@ -257,7 +258,7 @@ export default class WSConnection {
       } else {
         // Send timeout
         setTimeout(() => {
-          return rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${Tenant.getTenant(this.tenantID)})'`);
+          return rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${TenantStorage.getTenant(this.tenantID)})'`);
         }, Constants.OCPP_SOCKET_TIMEOUT);
       }
 

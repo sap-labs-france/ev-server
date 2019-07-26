@@ -12,7 +12,7 @@ import Logging from '../../../utils/Logging';
 import OCPPService from '../../../server/ocpp/services/OCPPService';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import SynchronizeRefundTransactionsTask from '../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
-import Tenant from '../../../entity/Tenant';
+import Tenant from '../../../types/Tenant';
 import TransactionSecurity from './security/TransactionSecurity';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
@@ -20,6 +20,7 @@ import UserStorage from '../../../storage/mongodb/UserStorage';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import ChargingStationService from './ChargingStationService';
 import Transaction from '../../../entity/Transaction';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
 
 export default class TransactionService {
   static async handleSynchronizeRefundedTransactions(action: string, req: Request, res: Response, next: NextFunction) {
@@ -34,7 +35,7 @@ export default class TransactionService {
           req.user);
       }
 
-      const tenant = await Tenant.getTenant(req.user.tenantID);
+      const tenant = await TenantStorage.getTenant(req.user.tenantID);
       const task = new SynchronizeRefundTransactionsTask();
       await task.processTenant(tenant, null);
 

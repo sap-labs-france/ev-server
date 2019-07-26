@@ -17,13 +17,14 @@ import NotificationHandler from '../../../notification/NotificationHandler';
 import Site from '../../../types/Site';
 import SiteArea from '../../../types/SiteArea';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
-import Tenant from '../../../entity/Tenant';
+import Tenant from '../../../types/Tenant';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
@@ -931,9 +932,9 @@ export default class AuthService {
       return Constants.DEFAULT_TENANT;
     }
     // Get it
-    const tenant = await Tenant.getTenantBySubdomain(subdomain);
+    const tenant = await TenantStorage.getTenantBySubdomain(subdomain);
     // Return
-    return (tenant ? tenant.getID() : null);
+    return (tenant ? tenant.id : null);
   }
 
   public static async checkUserLogin(action: string, tenantID: string, user: User, filteredRequest: Partial<HttpLoginRequest>, req: Request, res: Response, next: NextFunction) {

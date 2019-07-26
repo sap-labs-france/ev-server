@@ -251,7 +251,7 @@ export default class UserService {
         user,
         {
           'user': user,
-          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(req.user.tenantID)).getSubdomain())
+          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(req.user.tenantID)).subdomain)
         },
         user.locale
       );

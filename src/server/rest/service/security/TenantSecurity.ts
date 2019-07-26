@@ -1,50 +1,35 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import UtilsSecurity from './UtilsSecurity';
+import { HttpTenantDeleteRequest, HttpTenantVerifyRequest, HttpTenantsRequest } from '../../../../types/requests/HttpTenantRequest';
+import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import Tenant from '../../../../types/Tenant';
+import UserToken from '../../../../types/UserToken';
 
 export default class TenantSecurity {
-  // eslint-disable-next-line no-unused-vars
-  static filterTenantDeleteRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.ID = sanitize(request.ID);
-    filteredRequest.forced = sanitize(request.forced);
-    return filteredRequest;
+  public static filterTenantDeleteRequest(request: HttpTenantDeleteRequest): HttpTenantDeleteRequest {
+    return { ID: sanitize(request.ID),
+      forced: sanitize(request.forced) };
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterTenantRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    filteredRequest.ID = sanitize(request.ID);
-    return filteredRequest;
+  public static filterTenantByIDRequest(request: HttpByIDRequest): HttpByIDRequest {
+    return { ID: sanitize(request.ID) };
   }
 
-  static filterVerifyTenantRequest(request) {
-    const filteredRequest: any = {};
-    filteredRequest.tenant = sanitize(request.tenant);
-    return filteredRequest;
+  public static filterVerifyTenantRequest(request: HttpTenantVerifyRequest): HttpTenantVerifyRequest {
+    return { tenant: sanitize(request.tenant) };
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterTenantsRequest(request, loggedUser) {
-    const filteredRequest: any = {};
+  public static filterTenantsRequest(request: HttpTenantsRequest): HttpTenantsRequest {
+    const filteredRequest: HttpTenantsRequest = {} as HttpTenantsRequest;
     filteredRequest.Search = sanitize(request.Search);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
   }
 
-  static filterTenantUpdateRequest(request, loggedUser) {
-    return TenantSecurity._filterTenantRequest(request, loggedUser);
-  }
-
-  static filterTenantCreateRequest(request, loggedUser) {
-    return TenantSecurity._filterTenantRequest(request, loggedUser);
-  }
-
-  // eslint-disable-next-line no-unused-vars
-  static _filterTenantRequest(request, loggedUser) {
-    const filteredRequest: any = {};
+  public static filterTenantRequest(request: Partial<Tenant>): Partial<Tenant> {
+    const filteredRequest: Partial<Tenant> = {};
     if ('id' in request) {
       filteredRequest.id = sanitize(request.id);
     }
@@ -55,7 +40,7 @@ export default class TenantSecurity {
     return filteredRequest;
   }
 
-  static filterTenantResponse(tenant, loggedUser) {
+  static filterTenantResponse(tenant: Tenant, loggedUser: UserToken) {
     let filteredTenant: any;
 
     if (!tenant) {
@@ -78,7 +63,7 @@ export default class TenantSecurity {
     return filteredTenant;
   }
 
-  static filterTenantsResponse(tenants, loggedUser) {
+  static filterTenantsResponse(tenants, loggedUser: UserToken) {
     const filteredTenants = [];
 
     if (!tenants.result) {

@@ -4,16 +4,17 @@ import OCPIClient from '../../client/ocpi/OCPIClient';
 import OCPIEndpoint from '../../entity/OCPIEndpoint';
 import SchedulerTask from '../SchedulerTask';
 import { TaskConfig } from '../TaskConfig';
-import Tenant from '../../entity/Tenant';
+import Tenant from '../../types/Tenant';
+import Utils from '../../utils/Utils';
 
 export default class OCPIPatchLocationsTask extends SchedulerTask {
 
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     try {
       // Check if OCPI component is active
-      if (!tenant.isComponentActive(Constants.COMPONENTS.OCPI)) {
+      if (!Utils.tenantComponentActive(tenant, Constants.COMPONENTS.OCPI)) {
         Logging.logDebug({
-          tenantID: tenant.getID(),
+          tenantID: tenant.id,
           module: 'OCPIPatchLocationsTask',
           method: 'run', action: 'OCPIPatchLocations',
           message: 'OCPI Inactive for this tenant. The task \'OCPIPatchLocationsTask\' is skipped.'
@@ -23,21 +24,21 @@ export default class OCPIPatchLocationsTask extends SchedulerTask {
         return;
       }
       Logging.logInfo({
-        tenantID: tenant.getID(),
+        tenantID: tenant.id,
         module: 'OCPIPatchLocationsTask',
         method: 'run', action: 'OCPIPatchLocations',
         message: 'The task \'OCPIPatchLocationsTask\' is being run'
       });
 
       // Get all available endpoints
-      const ocpiEndpoints = await OCPIEndpoint.getOcpiEndpoints(tenant.getID());
+      const ocpiEndpoints = await OCPIEndpoint.getOcpiEndpoints(tenant.id);
 
       for (const ocpiEndpoint of ocpiEndpoints.result) {
         await this.processOCPIEndpoint(ocpiEndpoint);
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.getID(), 'OCPIPatchLocations', error);
+      Logging.logActionExceptionMessage(tenant.id, 'OCPIPatchLocations', error);
     }
   }
 

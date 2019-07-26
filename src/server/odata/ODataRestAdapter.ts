@@ -11,7 +11,10 @@ import ODataSiteAreas from './odata-entities/ODataSiteAreas';
 import ODataStatusNotifications from './odata-entities/ODataStatusNotifications';
 import ODataTransactions from './odata-entities/ODataTransactions';
 import ODataUsers from './odata-entities/ODataUsers';
-import Tenant from '../../entity/Tenant';
+import Tenant from '../../types/Tenant';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import Utils from '../../utils/Utils';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
 
 const MODULE_NAME = 'ODataServer';
 export default class ODataRestAdapter {
@@ -33,21 +36,21 @@ export default class ODataRestAdapter {
     // Handle error
     try {
       // Get tenant
-      const tenant = await Tenant.getTenantBySubdomain(subdomain);
+      const tenant = await TenantStorage.getTenantBySubdomain(subdomain);
       // Check if tenant available
       if (!tenant) {
         cb(Error('Invalid tenant'));
         return;
       }
       // Check if sac setting is active
-      if (!tenant.isComponentActive(Constants.COMPONENTS.ANALYTICS)) {
+      if (!Utils.tenantComponentActive(tenant, Constants.COMPONENTS.ANALYTICS)) {
         cb(Error('SAP Analytics Cloud Interface not enabled'));
         return;
       }
       // Default timezone
       req.timezone = 'UTC';
       // Get settings
-      const sacSetting = await tenant.getSetting(Constants.COMPONENTS.ANALYTICS);
+      const sacSetting = await SettingStorage.getSettingByIdentifier(tenant.id, Constants.COMPONENTS.ANALYTICS);
       if (sacSetting) {
         const configuration = sacSetting.getContent();
         if (configuration && configuration.sac && configuration.sac.timezone) {
@@ -62,7 +65,7 @@ export default class ODataRestAdapter {
       if (!req.user) {
         req.user = {};
       }
-      req.user.tenantID = tenant.getID();
+      req.user.tenantID = tenant.id;
       switch (collection) {
         case 'Transactions':
           await new ODataTransactions().getTransactionsCompleted(centralServiceApi, query, req, cb);

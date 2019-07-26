@@ -5,9 +5,10 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
-import Tenant from '../../entity/Tenant';
+import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 import Connector from '../../types/Connector';
+import TenantStorage from './TenantStorage';
 
 export default class ChargingStationStorage {
 
@@ -116,7 +117,7 @@ export default class ChargingStationStorage {
     let facets: any = {$facet:{}};
     if (params.errorType && params.errorType !== 'all') {
       // Check allowed
-      if (!(await Tenant.getTenant(tenantID)).isComponentActive(Constants.COMPONENTS.ORGANIZATION) && params.errorType === 'missingSiteArea') {
+      if (!Utils.tenantComponentActive(await TenantStorage.getTenant(tenantID), Constants.COMPONENTS.ORGANIZATION) && params.errorType === 'missingSiteArea') {
         throw new BackendError(null, 'Organization is not active whereas filter is on missing site.',
           'ChargingStationStorage', 'getChargingStationsInError');
       }
@@ -132,7 +133,7 @@ export default class ChargingStationStorage {
           'connectorError': ChargingStationStorage._buildChargerInErrorFacet('connectorError'),
         }
       };
-      if ((await Tenant.getTenant(tenantID)).isComponentActive(Constants.COMPONENTS.ORGANIZATION)) {
+      if (Utils.tenantComponentActive(await TenantStorage.getTenant(tenantID), Constants.COMPONENTS.ORGANIZATION)) {
         // Add facet for missing Site Area ID
         facets.$facet.missingSiteArea = ChargingStationStorage._buildChargerInErrorFacet('missingSiteArea');
       }

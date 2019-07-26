@@ -1,13 +1,15 @@
 import crypto from 'crypto';
 import { NextFunction, Request, Response } from 'express';
 import HttpStatus from 'http-status-codes';
-import Tenant from '../../../entity/Tenant';
+import Tenant from '../../../types/Tenant';
 import AppError from '../../../exception/AppError';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import global from '../../../types/GlobalType';
 import User from '../../../types/User';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
+import Utils from '../../../utils/Utils';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
 
 export default class SessionHashService {
   // Check if Session has been updated and require new login
@@ -59,7 +61,7 @@ export default class SessionHashService {
   // Build Tenant Hash ID
   static buildTenantHashID(tenant: Tenant) {
     // Get all field that need to be hashed
-    const data = JSON.stringify(tenant.getActiveComponents());
+    const data = JSON.stringify(Utils.tenantActiveComponents(tenant));
     return crypto.createHash('sha256').update(data).digest('hex');
   }
 
@@ -77,7 +79,7 @@ export default class SessionHashService {
   // Rebuild and store Tenant Hash ID
   static async rebuildTenantHashID(tenantID: string) {
     // Build Tenant hash
-    const tenant = await Tenant.getTenant(tenantID);
+    const tenant = await TenantStorage.getTenant(tenantID);
     if (tenant) {
       global.tenantHashMapIDs.set(`${tenantID}`, SessionHashService.buildTenantHashID(tenant));
     } else {

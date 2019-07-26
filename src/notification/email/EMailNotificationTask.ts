@@ -7,8 +7,9 @@ import Constants from '../../utils/Constants';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import NotificationTask from '../NotificationTask';
-import Tenant from '../../entity/Tenant';
+import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
 
 
 // Email
@@ -128,8 +129,8 @@ export default class EMailNotificationTask extends NotificationTask {
     emailTemplate.subject = ejs.render(emailTemplate.subject, data);
     // Render the tenant name
     if (tenantID !== Constants.DEFAULT_TENANT) {
-      const tenant = await Tenant.getTenant(tenantID);
-      emailTemplate.tenant = tenant.getName();
+      const tenant = await TenantStorage.getTenant(tenantID);
+      emailTemplate.tenant = tenant.name;
     } else {
       emailTemplate.tenant = Constants.DEFAULT_TENANT;
     }

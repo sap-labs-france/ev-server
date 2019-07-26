@@ -11,7 +11,7 @@ import SessionHashService from '../server/rest/service/SessionHashService';
 import Site from '../types/Site';
 import SiteArea from '../types/SiteArea';
 import SiteStorage from '../storage/mongodb/SiteStorage';
-import Tenant from '../entity/Tenant';
+import Tenant from '../types/Tenant';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import Transaction from '../entity/Transaction';
 import User from '../types/User';
@@ -93,7 +93,7 @@ export default class Authorizations {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       const tenant = await TenantStorage.getTenant(tenantID);
       tenantHashID = SessionHashService.buildTenantHashID(tenant);
-      activeComponents = tenant.getActiveComponents();
+      activeComponents = Utils.tenantActiveComponents(tenant);
     }
 
     return {
@@ -116,7 +116,7 @@ export default class Authorizations {
   }
 
   public static async getConnectorActionAuthorizations(params: { tenantID: string; user: UserToken; chargingStation: ChargingStation; connector: Connector; siteArea: SiteArea; site: Site }) {
-    const tenant: Tenant | null = await Tenant.getTenant(params.tenantID);
+    const tenant: Tenant = await TenantStorage.getTenant(params.tenantID);
     if (!tenant) {
       throw new BackendError('Authorizations.ts#getConnectorActionAuthorizations', 'Tenant null');
     }
@@ -205,7 +205,7 @@ export default class Authorizations {
   public static async isTagIDAuthorizedOnChargingStation(tenantID: string, chargingStation: ChargingStation, tagID: string, action: string) {
     // Get the Organization component
     const tenant = await TenantStorage.getTenant(tenantID);
-    const isOrgCompActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+    const isOrgCompActive = Utils.tenantComponentActive(tenant, Constants.COMPONENTS.ORGANIZATION);
     // Org component enabled?
     if (isOrgCompActive) {
       let foundSiteArea = true;
@@ -289,7 +289,7 @@ export default class Authorizations {
           // Not Check if Alternate User belongs to a Site --------------------------------
           // Organization component active?
           const tenant = await TenantStorage.getTenant(tenantID);
-          const isOrgCompActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+          const isOrgCompActive = Utils.tenantComponentActive(tenant, Constants.COMPONENTS.ORGANIZATION);
           if (isOrgCompActive) {
             // Get the site (site existence is already checked by isTagIDAuthorizedOnChargingStation())
             const site: Site = chargingStation.siteArea.site;
@@ -695,7 +695,7 @@ export default class Authorizations {
         {
           'chargeBoxID': chargingStation.id,
           'badgeId': tagID,
-          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).getSubdomain()),
+          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain),
           'evseDashboardUserURL': await Utils.buildEvseUserURL(tenantID, user, '#inerror')
         }
       );

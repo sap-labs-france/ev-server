@@ -13,7 +13,7 @@ import SiteAreaStorage from '../../../src/storage/mongodb/SiteAreaStorage';
 import SiteContext from './SiteContext';
 import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
 import StatisticsContext from './StatisticsContext';
-import Tenant from '../../../src/entity/Tenant';
+import Tenant from '../../../src/types/Tenant';
 import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
 import User from '../../../src/types/User';
@@ -58,7 +58,7 @@ export default class ContextBuilder {
     // Delete all tenants
     for (const tenantContextDef of CONTEXTS.TENANT_CONTEXT_LIST) {
       console.log('Delete tenant ' + tenantContextDef.id + ' ' + tenantContextDef.subdomain);
-      const tenantEntity = await Tenant.getTenantByName(tenantContextDef.tenantName);
+      const tenantEntity = await TenantStorage.getTenantByName(tenantContextDef.tenantName);
       if (tenantEntity) {
         await this.superAdminCentralServerService.tenantApi.delete(tenantEntity.getID());
       }
@@ -109,9 +109,9 @@ export default class ContextBuilder {
       }
     }
     // Check if tenant exist
-    const existingTenant = await Tenant.getTenant(tenantContextDef.id);
+    const existingTenant = await TenantStorage.getTenant(tenantContextDef.id);
     if (existingTenant) {
-      console.log(`Tenant ${tenantContextDef.id} already exist with name ${existingTenant.getName()}. Please run a destroy context`);
+      console.log(`Tenant ${tenantContextDef.id} already exist with name ${existingtenant.name}. Please run a destroy context`);
       throw new Error('Tenant id exist already');
 
     }
