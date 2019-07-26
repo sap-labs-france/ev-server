@@ -57,17 +57,6 @@ export default class Setting extends TenantHolder {
     }
   }
 
-  static checkIfSettingValid(filteredRequest, req) {
-    // Update model?
-    if (req.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Setting ID is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'Setting', 'checkIfSettingValid',
-        req.user.id);
-    }
-  }
-
   static getSetting(tenantID, id) {
     return SettingStorage.getSetting(tenantID, id);
   }

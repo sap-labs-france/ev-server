@@ -1,56 +1,48 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import UtilsSecurity from './UtilsSecurity';
+import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import { HttpSettingRequest, HttpSettingsRequest } from '../../../../types/requests/HttpSettingRequest';
+import Setting from '../../../../types/Setting';
+import UserToken from '../../../../types/UserToken';
 
 export default class SettingSecurity {
-  // eslint-disable-next-line no-unused-vars
-  static filterSettingDeleteRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.ID = sanitize(request.ID);
-    return filteredRequest;
+
+  public static filterSettingDeleteRequest(request: HttpByIDRequest): string {
+    return sanitize(request.ID);
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterSettingRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    filteredRequest.ID = sanitize(request.ID);
-    return filteredRequest;
+  public static filterSettingRequest(request: HttpSettingRequest): HttpSettingRequest {
+    return { ID: sanitize(request.ID) };
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterSettingsRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    filteredRequest.Search = sanitize(request.Search);
+  public static filterSettingsRequest(request: HttpSettingsRequest): HttpSettingsRequest {
+    const filteredRequest: HttpSettingsRequest = {} as HttpSettingsRequest;
     filteredRequest.Identifier = sanitize(request.Identifier);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
   }
 
-  static filterSettingUpdateRequest(request, loggedUser) {
-    // Set Setting
-    const filteredRequest = SettingSecurity._filterSettingRequest(request, loggedUser);
+  public static filterSettingUpdateRequest(request: Partial<Setting>): Partial<Setting> {
+    const filteredRequest = SettingSecurity._filterSettingRequest(request);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  static filterSettingCreateRequest(request, loggedUser) {
-    return SettingSecurity._filterSettingRequest(request, loggedUser);
+  public static filterSettingCreateRequest(request: Partial<Setting>): Partial<Setting> {
+    return SettingSecurity._filterSettingRequest(request);
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static _filterSettingRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    filteredRequest.identifier = sanitize(request.identifier);
-    if ('sensitiveData' in request) {
-      filteredRequest.sensitiveData = sanitize(request.sensitiveData);
-    }
-    filteredRequest.content = sanitize(request.content);
-    return filteredRequest;
+  public static _filterSettingRequest(request: Partial<Setting>): Partial<Setting> {
+    return {
+      identifier: sanitize(request.identifier),
+      content: sanitize(request.content),
+      sensitiveData: request.sensitiveData?sanitize(request.sensitiveData):null
+    };
   }
 
-  static filterSettingResponse(setting, loggedUser) {
+  public static filterSettingResponse(setting: Setting, loggedUser: UserToken) {
     let filteredSetting;
 
     if (!setting) {
@@ -74,7 +66,7 @@ export default class SettingSecurity {
     return filteredSetting;
   }
 
-  static filterSettingsResponse(settings, loggedUser) {
+  public static filterSettingsResponse(settings, loggedUser: UserToken) {
     const filteredSettings = [];
 
     if (!settings) {

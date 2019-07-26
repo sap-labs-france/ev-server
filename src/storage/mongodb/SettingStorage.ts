@@ -5,60 +5,32 @@ import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
-import Setting from '../../entity/Setting';
+import Setting from '../../types/Setting';
 import Utils from '../../utils/Utils';
+import DbParams from '../../types/database/DbParams';
 
 export default class SettingStorage {
-  static async getSetting(tenantID, id) {
+  public static async getSetting(tenantID: string, id: string): Promise<Setting> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SettingStorage', 'getSetting');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Create Aggregation
-    const aggregation = [];
-    // Filters
-    aggregation.push({
-      $match: { _id: Utils.convertToObjectID(id) }
-    });
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
-    // Read DB
-    const settingsMDB = await global.database.getCollection<any>(tenantID, 'settings')
-      .aggregate(aggregation)
-      .toArray();
-    // Set
-    let setting = null;
-    if (settingsMDB && settingsMDB.length > 0) {
-      // Create
-      setting = new Setting(tenantID, settingsMDB[0]);
-    }
+     // Delegate querying
+     let settingMDB = await SettingStorage.getSettings(tenantID, {id: id}, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('SettingStorage', 'getSetting', uniqueTimerID, { id });
-    return setting;
+    return settingMDB.count>0 ? settingMDB.result[0] : null;
   }
 
-  static async getSettingByIdentifier(tenantID, identifier) {
-    let setting = null;
+  public static async getSettingByIdentifier(tenantID: string, identifier: string): Promise<Setting> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SettingStorage', 'getSettingByIdentifier');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Read DB
-    const settingsMDB = await global.database.getCollection<any>(tenantID, 'settings')
-      .find({ 'identifier': identifier })
-      .limit(1)
-      .toArray();
-    // Check deleted
-    if (settingsMDB && settingsMDB.length > 0) {
-      // Ok
-      setting = new Setting(tenantID, settingsMDB[0]);
-    }
+    // Delegate querying
+    let settingMDB = await SettingStorage.getSettings(tenantID, {identifier: identifier}, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('SettingStorage', 'getSettingByIdentifier', uniqueTimerID, { identifier });
-    return setting;
+    return settingMDB.count>0 ? settingMDB.result[0] : null;
   }
 
-  static async saveSetting(tenantID, settingToSave) {
+  public static async saveSetting(tenantID: string, settingToSave: Partial<Setting>): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SettingStorage', 'saveSetting');
     // Check Tenant
@@ -74,55 +46,54 @@ export default class SettingStorage {
     const settingFilter: any = {};
     // Build Request
     if (settingToSave.id) {
-      settingFilter._id = Utils.convertUserToObjectID(settingToSave.id);
+      settingFilter._id = Utils.convertToObjectID(settingToSave.id);
     } else {
       settingFilter._id = new ObjectID();
     }
-    // Set Created By
-    settingToSave.createdBy = Utils.convertUserToObjectID(settingToSave.createdBy);
-    settingToSave.lastChangedBy = Utils.convertUserToObjectID(settingToSave.lastChangedBy);
-    // Transfer
-    const setting: any = {};
-    Database.updateSetting(settingToSave, setting, false);
+    // Properties to save
+    const settingMDB = {
+      ...settingToSave,
+      _id: settingFilter._id,
+      createdBy: settingToSave.createdBy ? settingToSave.createdBy.id : null,
+      lastChangedBy: settingToSave.lastChangedBy ? settingToSave.lastChangedBy.id : null
+    }
+    // Clean up mongo request
+    delete settingMDB.id;
+    DatabaseUtils.addLastChangedCreatedProps(settingMDB, settingMDB);
     // Modify
     const result = await global.database.getCollection<any>(tenantID, 'settings').findOneAndUpdate(
       settingFilter,
-      { $set: setting },
+      { $set: settingMDB },
       { upsert: true, returnOriginal: false });
+    if (!result.ok) {
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Couldn\'t update Setting',
+        'SettingStorage', 'saveSetting');
+    }
     // Debug
     Logging.traceEnd('SettingStorage', 'saveSetting', uniqueTimerID, { settingToSave });
     // Create
-    return new Setting(tenantID, result.value);
+    return settingFilter._id.toHexString();
   }
 
-  static async getSettings(tenantID, params: any = {}, limit?, skip?, sort?) {
+  public static async getSettings(tenantID: string, params: {identifier?:string, id?:string}, dbParams: DbParams) {
     // Debug
     const uniqueTimerID = Logging.traceStart('SettingStorage', 'getSettings');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
-    limit = Utils.checkRecordLimit(limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    skip = Utils.checkRecordSkip(skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
     const filters: any = {};
     // Source?
-    if (params.search) {
-      // Build filter
-      filters.$or = [
-        { 'identifier': { $regex: params.search, $options: 'i' } }
-      ];
+    if(params.id && ObjectID.isValid(params.id)) {
+      filters._id = Utils.convertToObjectID(params.id);
+    }else if(params.identifier){
+      filters.identifier = params.identifier;
     }
-
-    if (params.identifier) {
-      if (!filters.$and) {
-        filters.$and = [];
-      }
-      filters.$and.push(
-        { 'identifier': params.identifier }
-      );
-    }
-
     // Create Aggregation
     const aggregation = [];
     // Filters
@@ -131,7 +102,6 @@ export default class SettingStorage {
         $match: filters
       });
     }
-
     // Count Records
     const settingsCountMDB = await global.database.getCollection<any>(tenantID, 'settings')
       .aggregate([...aggregation, { $count: 'count' }])
@@ -139,10 +109,10 @@ export default class SettingStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
-    if (sort) {
+    if (dbParams.sort) {
       // Sort
       aggregation.push({
-        $sort: sort
+        $sort: dbParams.sort
       });
     } else {
       // Default
@@ -154,35 +124,28 @@ export default class SettingStorage {
     }
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
+    // Rename ID
+    DatabaseUtils.renameDatabaseID(aggregation);
     // Read DB
-    const settingsMDB = await global.database.getCollection<any>(tenantID, 'settings')
+    const settingsMDB = await global.database.getCollection<Setting>(tenantID, 'settings')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
-    const settings = [];
-    // Check
-    if (settingsMDB && settingsMDB.length > 0) {
-      // Create
-      for (const settingMDB of settingsMDB) {
-        // Add
-        settings.push(new Setting(tenantID, settingMDB));
-      }
-    }
     // Debug
-    Logging.traceEnd('SettingStorage', 'getSettings', uniqueTimerID, { params, limit, skip, sort });
+    Logging.traceEnd('SettingStorage', 'getSettings', uniqueTimerID, { params, dbParams });
     // Ok
     return {
       count: (settingsCountMDB.length > 0 ? settingsCountMDB[0].count : 0),
-      result: settings
+      result: settingsMDB
     };
   }
 
-  static async deleteSetting(tenantID, id) {
+  public static async deleteSetting(tenantID: string, id: string) {
     // Debug
     const uniqueTimerID = Logging.traceStart('SettingStorage', 'deleteSetting');
     // Check Tenant
