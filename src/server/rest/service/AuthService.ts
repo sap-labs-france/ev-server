@@ -655,6 +655,14 @@ export default class AuthService {
       return;
     }
 
+    // Check that this is not the super tenant
+    if (tenantID === Constants.DEFAULT_TENANT) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Cannot verify email in the Super Tenant', Constants.HTTP_GENERAL_ERROR,
+        'AuthService', 'handleVerifyEmail');
+    }
+
     // Check email
     if (!filteredRequest.Email) {
       throw new AppError(
