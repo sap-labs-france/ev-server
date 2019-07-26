@@ -670,7 +670,7 @@ export default class Authorizations {
         firstName: 'User',
         status: Constants.USER_STATUS_INACTIVE,
         role: Constants.ROLE_BASIC,
-        email: tagID + '@chargeangels.fr'
+        email: tagID + '@e-mobility.com'
       };
       // Save
       user.id = await UserStorage.saveUser(chargingStation.getTenantID(), user);
