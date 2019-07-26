@@ -11,7 +11,6 @@ export interface HttpChargingStationsRequest extends HttpDatabaseRequest {
   WithNoSiteArea?: boolean;
   SiteID?: string;
   WithSite?: boolean; // TODO can we please remove this
-  ChargeBoxID?: string;
   SiteAreaID?: string;
   IncludeDeleted?: boolean;
   ErrorType?:'missingSettings'|'connectionBroken'|'connectorError'|'missingSiteArea'|'all';

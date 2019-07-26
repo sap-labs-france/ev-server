@@ -16,7 +16,7 @@ export default class SiteStorage {
   public static async getSite(tenantID: string, id: string): Promise<Site> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getSite');
-    // Get
+    // Query single Site
     const sitesMDB = await SiteStorage.getSites(tenantID, {
       search: id,
       withCompany: true,
@@ -241,7 +241,7 @@ export default class SiteStorage {
     };
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(siteMDB, siteToSave);
-    // Modify
+    // Modify and return the modified document
     const result = await global.database.getCollection<any>(tenantID, 'sites').findOneAndUpdate(
       siteFilter,
       { $set: siteMDB },
@@ -290,7 +290,9 @@ export default class SiteStorage {
     const limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
-    // Set the filters
+    // Create Aggregation
+    const aggregation = [];
+    // Search filters
     const filters: any = {};
     if (params.search) {
       if (ObjectID.isValid(params.search)) {
@@ -301,7 +303,7 @@ export default class SiteStorage {
         ];
       }
     }
-    // Set Company?
+    // Query by companyIDs
     if (params.companyIDs && Array.isArray(params.companyIDs) && params.companyIDs.length > 0) {
       filters.companyID = {
         $in: params.companyIDs.map((company) => {
@@ -313,8 +315,6 @@ export default class SiteStorage {
     if (params.withAutoUserAssignment) {
       filters.autoUserSiteAssignment = true;
     }
-    // Create Aggregation
-    const aggregation = [];
     // Limit on Site for Basic Users
     if (params.siteIDs && params.siteIDs.length > 0) {
       aggregation.push({

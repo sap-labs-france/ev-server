@@ -124,9 +124,12 @@ export default class ChargingStationSecurity {
     return { ChargeBoxID: sanitize(request.ChargeBoxID) };
   }
 
-  // eslint-disable-next-line no-unused-vars
   public static filterChargingStationRequest(request: HttpByIDRequest): HttpByIDRequest {
-    return {ID: sanitize(request.ID)};
+    return { ID: sanitize(request.ID) };
+  }
+
+  public static filterChargingStationByIDRequest(request: HttpByIDRequest): string {
+    return sanitize(request.ID);
   }
 
   public static filterChargingStationsRequest(request: HttpChargingStationsRequest): HttpChargingStationsRequest {
@@ -135,7 +138,6 @@ export default class ChargingStationSecurity {
     filteredRequest.WithNoSiteArea = UtilsSecurity.filterBoolean(request.WithNoSiteArea);
     filteredRequest.SiteID = sanitize(request.SiteID);
     filteredRequest.WithSite = UtilsSecurity.filterBoolean(request.WithSite);
-    filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
     filteredRequest.IncludeDeleted = UtilsSecurity.filterBoolean(request.IncludeDeleted);
     filteredRequest.ErrorType = sanitize(request.ErrorType);

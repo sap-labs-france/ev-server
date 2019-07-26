@@ -15,6 +15,7 @@ import UtilsService from './UtilsService';
 
 export default class SiteService {
 
+  // CURRENTLY NOT USED (WIP). LEAVE ALONE
   public static async handleAssignUsersToSites(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
@@ -41,12 +42,7 @@ export default class SiteService {
         'SiteService', 'handleAddUsersToSite',
         req.user);
     }
-    if (!filteredRequest.siteID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The Site\'s ID must be provided', 500,
-        'SiteSecurity', 'filterAssignSiteUsers', req.user);
-    }
+    UtilsService.assertIdIsProvided(filteredRequest.siteID, 'SiteSecurity', 'filterAssignSiteUsers', req.user);
     if (!filteredRequest.userIDs || (filteredRequest.userIDs && filteredRequest.userIDs.length <= 0)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
@@ -338,6 +334,14 @@ export default class SiteService {
     // Filter
     const filteredRequest = SiteSecurity.filterSiteRequest(req.query);
     UtilsService.assertIdIsProvided(filteredRequest.ID, 'SiteService', 'handleGetSite', req.user);
+    // Check auth
+    if(!Authorizations.canReadSite(req.user, filteredRequest.ID)) {
+      throw new AppAuthError(
+        Constants.ACTION_READ,
+        Constants.ENTITY_SITE,
+        filteredRequest.ID, Constants.HTTP_AUTH_ERROR, 'SiteService',
+        'handleGetSite', req.user);
+    }
     // Get it
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.ID);
     UtilsService.assertObjectExists(site, `The Site with ID '${filteredRequest.ID}' does not exist`, 'SiteService', 'handleGetSite', req.user);
@@ -370,21 +374,23 @@ export default class SiteService {
     // Get the sites
     const sites = await SiteStorage.getSites(req.user.tenantID,
       {
-        'search': filteredRequest.Search,
-        'userID': filteredRequest.UserID,
-        'companyIDs': (filteredRequest.CompanyID ? filteredRequest.CompanyID.split('|') : null),
-        'siteIDs': Authorizations.getAuthorizedSiteIDs(req.user),
-        'withCompany': filteredRequest.WithCompany,
-        'excludeSitesOfUserID': filteredRequest.ExcludeSitesOfUserID,
-        'withAvailableChargers': filteredRequest.WithAvailableChargers
+        search: filteredRequest.Search,
+        userID: filteredRequest.UserID,
+        companyIDs: (filteredRequest.CompanyID ? filteredRequest.CompanyID.split('|') : null),
+        siteIDs: Authorizations.getAuthorizedSiteIDs(req.user),
+        withCompany: filteredRequest.WithCompany,
+        excludeSitesOfUserID: filteredRequest.ExcludeSitesOfUserID,
+        withAvailableChargers: filteredRequest.WithAvailableChargers
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
       [ 'id', 'name', 'address.latitude', 'address.longitude', 'address.city', 'address.country', 'company.name',
         'autoUserSiteAssignment', 'allowAllUsersToStopTransactions']
     );
-    // Filter
-    SiteSecurity.filterSitesResponse(sites, req.user);
-    // Return
+    // Build the result
+    if(sites.result && sites.result.length > 0) {
+      // Filter
+      SiteSecurity.filterSitesResponse(sites, req.user);
+    }
     res.json(sites);
     next();
   }
