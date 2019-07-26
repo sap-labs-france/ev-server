@@ -13,7 +13,8 @@ export default class Constants {
   public static readonly HTTP_CYPHER_INVALID_SENSITIVE_DATA_ERROR = 555;
 
   public static readonly HTTP_AUTH_ERROR = 560;
-  public static readonly HTTP_INVALID_TOKEN_ERROR = 540;
+  public static readonly HTTP_AUTH_INVALID_CAPTCHA = 530;
+  public static readonly HTTP_AUTH_INVALID_TOKEN_ERROR = 540;
   public static readonly HTTP_AUTH_CHARGER_WITH_NO_SITE_AREA_ERROR = 525;
   public static readonly HTTP_AUTH_SITE_AREA_WITH_NO_SITE_ERROR = 525;
   public static readonly HTTP_AUTH_USER_WITH_NO_SITE_ERROR = 525;

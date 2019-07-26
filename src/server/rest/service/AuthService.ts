@@ -458,12 +458,14 @@ export default class AuthService {
     if (!response.data.success) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        'The captcha is invalid', Constants.HTTP_GENERAL_ERROR,
+        'The captcha is invalid',
+        Constants.HTTP_AUTH_INVALID_CAPTCHA,
         'AuthService', 'handleRegisterUser');
     } else if (response.data.score < 0.5) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        'The captcha score is too low', Constants.HTTP_GENERAL_ERROR,
+        'The captcha score is too low (< 0.5)',
+        Constants.HTTP_AUTH_INVALID_CAPTCHA,
         'AuthService', 'handleRegisterUser');
     }
     // Yes: Generate new password
@@ -474,14 +476,16 @@ export default class AuthService {
     if (!user) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `User with email '${filteredRequest.email}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        `User with email '${filteredRequest.email}' does not exist`,
+        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'AuthService', 'handleUserPasswordReset');
     }
     // Deleted
     if (user.deleted) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `User with email '${filteredRequest.email}' is logically deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        `User with email '${filteredRequest.email}' is logically deleted`,
+        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'AuthService', 'handleUserPasswordReset');
     }
     // Hash it
@@ -699,7 +703,7 @@ export default class AuthService {
     if (user.verificationToken !== filteredRequest.VerificationToken) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        'Wrong Verification Token', Constants.HTTP_INVALID_TOKEN_ERROR,
+        'Wrong Verification Token', Constants.HTTP_AUTH_INVALID_TOKEN_ERROR,
         'AuthService', 'handleVerifyEmail', user);
     }
     // Activate user
