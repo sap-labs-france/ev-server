@@ -760,10 +760,10 @@ export default class Utils {
     return null;
   }
 
-  public static tenantActiveComponents(tenant: Tenant): {name: string, type: string}[] {
-    let components: {name: string, type: string}[] = [];
+  public static tenantActiveComponents(tenant: Tenant): string[] {
+    let components: string[] = [];
     for(let componentName in tenant.components) {
-      components.push({name: componentName, type: tenant.components[componentName].type});
+      components.push(componentName);
     }
     return components;
   }
