@@ -261,7 +261,7 @@ export default class TenantService {
       // Get the settings
       const currentSetting = await Setting.getSettingByIdentifier(tenant.id, componentName);
       // Check if Component is active
-      if (!tenant.components[componentName].active) {
+      if (!tenant.components[componentName] || !tenant.components[componentName].active) {
         // Delete settings
         if (currentSetting) {
           await currentSetting.delete();
@@ -270,7 +270,7 @@ export default class TenantService {
       }
       // Create
       const newSettingContent = Setting.createDefaultSettingContent(
-        tenant.components[componentName], (currentSetting ? currentSetting.getContent() : null));
+        {...tenant.components[componentName], name: componentName}, (currentSetting ? currentSetting.getContent() : null));
       if (newSettingContent) {
         // Create & Save
         if (!currentSetting) {

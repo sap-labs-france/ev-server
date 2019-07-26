@@ -21,6 +21,7 @@ import UserFactory from '../../factories/UserFactory';
 import UserStorage from '../../../src/storage/mongodb/UserStorage';
 import Utils from '../../../src/utils/Utils';
 import { expect } from 'chai';
+import TenantStorage from '../../../src/storage/mongodb/TenantStorage';
 
 export default class ContextBuilder {
 
@@ -60,7 +61,7 @@ export default class ContextBuilder {
       console.log('Delete tenant ' + tenantContextDef.id + ' ' + tenantContextDef.subdomain);
       const tenantEntity = await TenantStorage.getTenantByName(tenantContextDef.tenantName);
       if (tenantEntity) {
-        await this.superAdminCentralServerService.tenantApi.delete(tenantEntity.getID());
+        await this.superAdminCentralServerService.tenantApi.delete(tenantEntity.id);
       }
     }
   }
@@ -111,7 +112,7 @@ export default class ContextBuilder {
     // Check if tenant exist
     const existingTenant = await TenantStorage.getTenant(tenantContextDef.id);
     if (existingTenant) {
-      console.log(`Tenant ${tenantContextDef.id} already exist with name ${existingtenant.name}. Please run a destroy context`);
+      console.log(`Tenant ${tenantContextDef.id} already exist with name ${existingTenant.name}. Please run a destroy context`);
       throw new Error('Tenant id exist already');
 
     }

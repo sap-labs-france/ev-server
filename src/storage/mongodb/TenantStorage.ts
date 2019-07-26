@@ -91,15 +91,15 @@ export default class TenantStorage {
     // Set the filters
     const filters: any = {};
     if (params.search) {
-      if (ObjectID.isValid(params.search)) {
-        filters._id = Utils.convertToObjectID(params.search);
-      } else {
-        if(params.exact) {
-          filters.$or = [
-            { 'name': params.search },
-            { 'subdomain': params.search }
-          ]
-        }else{
+      if(params.exact){
+        filters.$or = [
+          { 'name': params.search },
+          { 'subdomain': params.search }
+        ]
+      }else{
+        if (ObjectID.isValid(params.search)) {
+          filters._id = Utils.convertToObjectID(params.search);
+        } else {
           filters.$or = [
             { 'name': { $regex: params.search, $options: 'i' } },
             { 'subdomain': { $regex: params.search, $options: 'i' } }
