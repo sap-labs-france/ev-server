@@ -98,7 +98,7 @@ export default class AuthService {
           for (let index = 0; index < chargingStation.connectors.length; index++) {
             const connector = chargingStation.connectors.find(c=>c.connectorId===index + 1);
             const tempResult = { 'IsAuthorized': false };
-            if (connector.activeTransactionID) {
+            if (connector && connector.activeTransactionID) {
               tempResult.IsAuthorized = await AuthService.isStopTransactionAuthorized(filteredRequest, chargingStation, connector.activeTransactionID, req.user);
             }
             results.push(tempResult);

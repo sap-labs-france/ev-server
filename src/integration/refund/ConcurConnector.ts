@@ -15,6 +15,7 @@ import Site from '../../types/Site';
 import Transaction from '../../entity/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
+import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 
 const MODULE_NAME = 'ConcurConnector';
 const CONNECTOR_ID = 'concur';
@@ -168,7 +169,8 @@ export default class ConcurConnector extends AbstractConnector {
       async (transaction: Transaction) => {
         try {
           const chargingStation = await ChargingStationStorage.getChargingStation(transaction.getTenantID(), transaction.getChargeBoxID());
-          const locationId = await this.getLocation(connection, await chargingStation.siteArea.site);
+          const locationId = await this.getLocation(connection, (chargingStation.siteArea && chargingStation.siteArea.site) ? chargingStation.siteArea.site :
+            (await SiteAreaStorage.getSiteArea(transaction.getTenantID(), chargingStation.siteAreaID, {withSite: true})).site);
           if (quickRefund) {
             const entryId = await this.createQuickExpense(connection, transaction, locationId, userId);
             transaction.setRefundData({ refundId: entryId, type: 'quick', refundedAt: new Date() });
