@@ -96,7 +96,8 @@ export default class OCPPValidation extends SchemaValidator {
       meterValues.connectorId = 1;
     }
     // Check if the transaction ID matches
-    const chargerTransactionId = Utils.convertToInt(chargingStation.connectors.find(c=>c.connectorId===meterValues.connectorId).activeTransactionID);
+    const connector = chargingStation.connectors.find(c => c.connectorId === meterValues.connectorId);
+    const chargerTransactionId = Utils.convertToInt(connector ? connector.activeTransactionID : 0);
     // Transaction is provided in MeterValue?
     if (meterValues.hasOwnProperty('transactionId')) {
       // Always integer

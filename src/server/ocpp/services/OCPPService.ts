@@ -631,7 +631,7 @@ export default class OCPPService {
     // Get the connector
     const connector = chargingStation.connectors.find(c=>c.connectorId===transaction.getConnectorId());
     // Active transaction?
-    if (transaction.isActive()) {
+    if (transaction.isActive() && connector) {
       // Set consumption
       connector.currentConsumption = transaction.getCurrentConsumption();
       connector.totalConsumption = transaction.getCurrentTotalConsumption();
@@ -983,8 +983,8 @@ export default class OCPPService {
       if (isOrgCompActive) {
         // Set the Site Area ID
         startTransaction.siteAreaID = chargingStation.siteAreaID;
-        // Set the Site ID
-        const site = await chargingStation.siteArea.site; // TODO: please change structure so we can remove this
+        // Set the Site ID. ChargingStation$siteArea$site checked by TagIDAuthorized.
+        const site = chargingStation.siteArea.site; // TODO: please change structure so we can remove this
         if (site) {
           startTransaction.siteID = site.id;
         }
@@ -1029,7 +1029,7 @@ export default class OCPPService {
         OCPPUtils.lockAllConnectors(chargingStation);
       }
       // Clean up Charger's connector transaction info
-      const connector = chargingStation.connectors.find(c=>c.connectorId===transaction.getConnectorId());
+      let connector = chargingStation.connectors.find(c=>c.connectorId===transaction.getConnectorId());
       if(connector){
         connector.currentConsumption = 0;
         connector.totalConsumption = 0;
@@ -1038,7 +1038,8 @@ export default class OCPPService {
         connector.activeTransactionID = 0;
       }
       // Set the active transaction on the connector
-      chargingStation.connectors.find(c=>c.connectorId===transaction.getConnectorId()).activeTransactionID = transaction.getID();
+      connector = chargingStation.connectors.find(c=>c.connectorId===transaction.getConnectorId());
+      connector.activeTransactionID = transaction.getID();
       // Update Heartbeat
       chargingStation.lastHeartBeat = new Date();
       // Save

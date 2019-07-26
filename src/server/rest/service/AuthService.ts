@@ -98,7 +98,7 @@ export default class AuthService {
           for (let index = 0; index < chargingStation.connectors.length; index++) {
             const connector = chargingStation.connectors.find(c=>c.connectorId===index + 1);
             const tempResult = { 'IsAuthorized': false };
-            if (connector.activeTransactionID) {
+            if (connector && connector.activeTransactionID) {
               tempResult.IsAuthorized = await AuthService.isStopTransactionAuthorized(filteredRequest, chargingStation, connector.activeTransactionID, req.user);
             }
             results.push(tempResult);
@@ -653,6 +653,14 @@ export default class AuthService {
       Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleVerifyEmail', Constants.DEFAULT_TENANT);
       next(error);
       return;
+    }
+
+    // Check that this is not the super tenant
+    if (tenantID === Constants.DEFAULT_TENANT) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Cannot verify email in the Super Tenant', Constants.HTTP_GENERAL_ERROR,
+        'AuthService', 'handleVerifyEmail');
     }
 
     // Check email

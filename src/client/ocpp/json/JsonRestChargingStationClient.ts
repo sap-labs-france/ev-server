@@ -201,7 +201,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
           }
         } catch (error) {
           // Log
-          Logging.logException(error, '', this.chargingStation.id, MODULE_NAME, 'onMessage', this.tenantID);
+          Logging.logException(error, 'WSRestClientMessage', this.chargingStation.id, MODULE_NAME, 'onMessage', this.tenantID);
         }
       };
     });
