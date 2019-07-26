@@ -589,8 +589,25 @@ export default class AuthService {
 
   public static async handleUserPasswordReset(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
+    Logging.logDebug({
+      tenantID: Constants.DEFAULT_TENANT,
+      action: 'ResetPassword',
+      message: `Reset Password 1/2`,
+      module: 'AuthService',
+      method: 'handleUserPasswordReset',
+      detailedMessages: req.body
+    });
     const filteredRequest = AuthSecurity.filterResetPasswordRequest(req.body);
-
+    // Filter
+    Logging.logDebug({
+      tenantID: Constants.DEFAULT_TENANT,
+      action: 'ResetPassword',
+      message: `Reset Password 2/2`,
+      module: 'AuthService',
+      method: 'handleUserPasswordReset',
+      detailedMessages: filteredRequest
+    });
+    // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
       const error = new BadRequestError({
@@ -615,7 +632,7 @@ export default class AuthService {
   public static async handleGetEndUserLicenseAgreement(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterEndUserLicenseAgreementRequest(req);
-
+    // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
       const error = new BadRequestError({
@@ -640,8 +657,7 @@ export default class AuthService {
   public static async handleVerifyEmail(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterVerifyEmailRequest(req.query);
-
-    // Get the tenant
+    // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
       const error = new BadRequestError({
@@ -653,7 +669,6 @@ export default class AuthService {
       next(error);
       return;
     }
-
     // Check that this is not the super tenant
     if (tenantID === Constants.DEFAULT_TENANT) {
       throw new AppError(
@@ -661,7 +676,6 @@ export default class AuthService {
         'Cannot verify email in the Super Tenant', Constants.HTTP_GENERAL_ERROR,
         'AuthService', 'handleVerifyEmail');
     }
-
     // Check email
     if (!filteredRequest.Email) {
       throw new AppError(
@@ -801,7 +815,6 @@ export default class AuthService {
         'Account is already active', Constants.HTTP_USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
         'AuthService', 'handleResendVerificationEmail', user);
     }
-
     let verificationToken;
     // Check verificationToken
     if (!user.verificationToken) {
