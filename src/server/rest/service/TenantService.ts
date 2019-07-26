@@ -241,7 +241,7 @@ export default class TenantService {
     // Update Tenant
     tenantUpdate.id = await TenantStorage.saveTenant(tenantUpdate);
     // Update with components
-    await TenantService._updateSettingsWithComponents(tenant, req);
+    await TenantService._updateSettingsWithComponents(tenantUpdate, req);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID, user: req.user,

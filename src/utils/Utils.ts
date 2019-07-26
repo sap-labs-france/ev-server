@@ -763,7 +763,8 @@ export default class Utils {
   public static tenantActiveComponents(tenant: Tenant): string[] {
     let components: string[] = [];
     for(let componentName in tenant.components) {
-      components.push(componentName);
+      if(tenant.components[componentName].active)
+        components.push(componentName);
     }
     return components;
   }
