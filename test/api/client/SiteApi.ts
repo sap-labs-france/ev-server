@@ -27,6 +27,13 @@ export default class SiteApi extends CrudApi {
     return site;
   }
 
+  public addUsersToSite(siteId, userIds) {
+    return super.create({
+      siteID: siteId,
+      userIDs: userIds
+    }, '/client/api/AddUsersToSite');
+  }
+
   public update(data) {
     return super.update(data, '/client/api/SiteUpdate');
   }
