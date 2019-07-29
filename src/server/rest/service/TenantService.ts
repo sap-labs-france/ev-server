@@ -8,7 +8,7 @@ import Constants from '../../../utils/Constants';
 import Database from '../../../utils/Database';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
-import Setting from '../../../entity/Setting';
+import Setting from '../../../types/Setting';
 import Tenant from '../../../types/Tenant';
 import TenantSecurity from './security/TenantSecurity';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
@@ -17,6 +17,8 @@ import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
+import SettingStorage from '../../../storage/mongodb/SettingStorage';
+import SettingService from './SettingService';
 
 const MODULE_NAME = 'TenantService';
 
@@ -260,39 +262,36 @@ export default class TenantService {
     // Create settings
     for (const componentName in tenant.components) {
       // Get the settings
-      const currentSetting = await Setting.getSettingByIdentifier(tenant.id, componentName);
+      const currentSetting = await SettingStorage.getSettingByIdentifier(tenant.id, componentName);
       // Check if Component is active
       if (!tenant.components[componentName] || !tenant.components[componentName].active) {
         // Delete settings
         if (currentSetting) {
-          await currentSetting.delete();
+          await SettingStorage.deleteSetting(tenant.id, currentSetting.id);
         }
         continue;
       }
       // Create
-      const newSettingContent = Setting.createDefaultSettingContent(
-        {...tenant.components[componentName], name: componentName}, (currentSetting ? currentSetting.getContent() : null));
+      const newSettingContent = SettingService.createDefaultSettingContent(
+        {...tenant.components[componentName], name: componentName}, (currentSetting ? currentSetting.content : null));
       if (newSettingContent) {
         // Create & Save
         if (!currentSetting) {
-          const newSetting = new Setting(tenant.id, {
+          const newSetting: Partial<Setting> = {
             identifier: componentName,
             content: newSettingContent
-          });
-          newSetting.setCreatedOn(new Date());
-          newSetting.setCreatedBy({
-            'id': req.user.id
-          });
+          };
+          newSetting.createdOn = new Date();
+          newSetting.createdBy = { 'id': req.user.id };
           // Save Setting
-          await newSetting.save();
+          console.log(JSON.stringify(newSetting));
+          await SettingStorage.saveSetting(tenant.id, newSetting);
         } else {
-          currentSetting.setContent(newSettingContent);
-          currentSetting.setLastChangedOn(new Date());
-          currentSetting.setLastChangedBy({
-            'id': req.user.id
-          });
+          currentSetting.content = newSettingContent;
+          currentSetting.lastChangedOn = new Date();
+          currentSetting.lastChangedBy = { 'id': req.user.id };
           // Save Setting
-          await currentSetting.save();
+          await SettingStorage.saveSetting(tenant.id, currentSetting);
         }
       }
     }

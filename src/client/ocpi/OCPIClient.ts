@@ -212,11 +212,11 @@ export default class OCPIClient {
     // Read configuration to retrieve
     const ocpiSetting = await SettingStorage.getSettingByIdentifier(this.ocpiEndpoint.getTenantID(), Constants.COMPONENTS.OCPI);
 
-    if (!ocpiSetting || !ocpiSetting.getContent()) {
+    if (!ocpiSetting || !ocpiSetting.content) {
       throw new Error('OCPI Settings not found');
     }
 
-    const ocpiContent = ocpiSetting.getContent().ocpi;
+    const ocpiContent = ocpiSetting.content.ocpi;
     if (!ocpiContent.countryCode || !ocpiContent.partyID) {
       throw new Error('OCPI Country Code and/or Party ID undefined');
     }
@@ -279,8 +279,8 @@ export default class OCPIClient {
     // Define eMI3
     tenant._eMI3 = {};
 
-    if (ocpiSetting && ocpiSetting.getContent()) {
-      const configuration = ocpiSetting.getContent().ocpi;
+    if (ocpiSetting && ocpiSetting.content) {
+      const configuration = ocpiSetting.content.ocpi;
       tenant._eMI3.country_id = configuration.countryCode;
       tenant._eMI3.party_id = configuration.partyID;
     } else {

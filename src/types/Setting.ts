@@ -5,6 +5,6 @@ export default interface Setting extends CreatedUpdatedProps {
   id?: string;
   identifier: string;
   sensitiveData: string[];
-  content: string;
+  content: any;
 
 }

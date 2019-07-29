@@ -291,8 +291,8 @@ export default class OCPIMapping {
     credential.url = (versionUrl ? versionUrl : 'https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/cpo/versions');
 
     // Check if available
-    if (ocpiSetting && ocpiSetting.getContent()) {
-      const configuration = ocpiSetting.getContent().ocpi;
+    if (ocpiSetting && ocpiSetting.content) {
+      const configuration = ocpiSetting.content.ocpi;
       credential.token = token;
       credential.country_code = configuration.countryCode;
       credential.party_id = configuration.partyID;

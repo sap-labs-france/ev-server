@@ -54,6 +54,9 @@ export default class SettingSecurity {
       // if (Authorizations.isAdmin(loggedUser)) {
       // Yes: set all params
       filteredSetting = setting;
+      if(! filteredSetting.sensitiveData) {
+        filteredSetting.sensitiveData = [];
+      }
       // } else {
       //   // Set only necessary info
       //   return null;

@@ -138,6 +138,8 @@ export default class SettingStorage {
       .toArray();
     // Debug
     Logging.traceEnd('SettingStorage', 'getSettings', uniqueTimerID, { params, dbParams });
+    console.log('result:');
+    console.log(settingsMDB);
     // Ok
     return {
       count: (settingsCountMDB.length > 0 ? settingsCountMDB[0].count : 0),

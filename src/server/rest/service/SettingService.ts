@@ -11,6 +11,7 @@ import Setting from '../../../types/Setting';
 import SettingSecurity from './security/SettingSecurity';
 import UtilsService from './UtilsService';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
+import { filter } from 'bluebird';
 
 export default class SettingService {
   public static async handleDeleteSetting(action: string, req: Request, res: Response, next: NextFunction) {
@@ -121,6 +122,7 @@ export default class SettingService {
     UtilsService.assertIdIsProvided(filteredRequest.id, 'SettingService', 'handleCreateSetting', req.user);
     // Process the sensitive data if any
     Cypher.encryptSensitiveDataInJSON(filteredRequest);
+    if(! filteredRequest.sensitiveData) filteredRequest.sensitiveData = [];
     // Update timestamp
     filteredRequest.createdBy = { 'id': req.user.id };
     filteredRequest.createdOn = new Date();
@@ -138,90 +140,117 @@ export default class SettingService {
     next();
   }
 
-  public static async handleUpdateSetting(action: string, req: Request, res: Response, next: NextFunction) {
+  public static async handleUpdateSetting(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = SettingSecurity.filterSettingUpdateRequest(req.body);
+    const settingUpdate = SettingSecurity.filterSettingUpdateRequest(req.body);
+    UtilsService.assertIdIsProvided(settingUpdate.id, 'SettingService', 'handleUpdateSetting', req.user);
     // Check auth
     if (!Authorizations.canUpdateSetting(req.user)) {
       // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_UPDATE,
         Constants.ENTITY_SETTING,
-        filteredRequest.id,
+        settingUpdate.id,
         Constants.HTTP_AUTH_ERROR,
         'SettingService', 'handleUpdateSetting',
         req.user);
     }
     // Get Setting
-    const setting = await SettingStorage.getSetting(req.user.tenantID, filteredRequest.id);
-    if (!setting) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Setting with ID '${filteredRequest.id}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        'SettingService', 'handleUpdateSetting', req.user);
-    }
-    // Check Mandatory fields
-    Setting.checkIfSettingValid(filteredRequest, req);
+    const setting = await SettingStorage.getSetting(req.user.tenantID, settingUpdate.id);
+    UtilsService.assertObjectExists(setting, `Setting '${settingUpdate.id}' doesn't exist anymore`,
+      'SettingService', 'handleUpdateSetting', req.user);
     // Process the sensitive data if any
     // Preprocess the data to take care of updated values
-    if (filteredRequest.sensitiveData) {
-      if (!Array.isArray(filteredRequest.sensitiveData)) {
+    if (settingUpdate.sensitiveData) {
+      if (!Array.isArray(settingUpdate.sensitiveData)) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The property 'sensitiveData' for Setting with ID '${filteredRequest.id}' is not an array`,
+          `The property 'sensitiveData' for Setting with ID '${settingUpdate.id}' is not an array`,
           Constants.HTTP_CYPHER_INVALID_SENSITIVE_DATA_ERROR,
           'SettingService', 'handleUpdateSetting', req.user);
       }
       // Process sensitive properties
-      for (const property of filteredRequest.sensitiveData) {
+      for (const property of settingUpdate.sensitiveData) {
         // Get the sensitive property from the request
-        const valueInRequest = _.get(filteredRequest, property);
+        const valueInRequest = _.get(settingUpdate, property);
         if (valueInRequest && valueInRequest.length > 0) {
           // Get the sensitive property from the DB
-          const valueInDb = _.get(setting.getModel(), property);
+          const valueInDb = _.get(setting, property);
           if (valueInDb && valueInDb.length > 0) {
             const hashedValueInDB = Cypher.hash(valueInDb);
             if (valueInRequest !== hashedValueInDB) {
               // Yes: Encrypt
-              _.set(filteredRequest, property, Cypher.encrypt(valueInRequest));
+              _.set(settingUpdate, property, Cypher.encrypt(valueInRequest));
             } else {
               // No: Put back the encrypted value
-              _.set(filteredRequest, property, valueInDb);
+              _.set(settingUpdate, property, valueInDb);
             }
           } else {
             // Value in db is empty then encrypt
-            _.set(filteredRequest, property, Cypher.encrypt(valueInRequest));
+            _.set(settingUpdate, property, Cypher.encrypt(valueInRequest));
           }
         }
       }
+    }else{
+      settingUpdate.sensitiveData = [];
     }
-    // Update
-    Database.updateSetting(filteredRequest, setting.getModel());
     // Update timestamp
-    setting.setLastChangedBy({ 'id': req.user.id });
-    setting.setLastChangedOn(new Date());
+    setting.lastChangedBy = { 'id': req.user.id };
+    setting.lastChangedOn = new Date();
     // Update Setting
-    const updatedSetting = await setting.save();
+    settingUpdate.id = await SettingStorage.saveSetting(req.user.tenantID, settingUpdate);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       user: req.user, module: 'SettingService', method: 'handleUpdateSetting',
-      message: `Setting '${updatedSetting.getIdentifier()}' has been updated successfully`,
-      action: action, detailedMessages: updatedSetting
+      message: `Setting '${settingUpdate.id}' has been updated successfully`,
+      action: action, detailedMessages: settingUpdate
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
-  private static _checkIfSettingValid(filteredRequest: Partial<Setting>, req: Request) {
-    // Update model?
-    if (req.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Setting ID is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'Setting', 'checkIfSettingValid',
-        req.user.id);
+  public static createDefaultSettingContent(activeComponent, currentSettingContent) {
+    switch (activeComponent.name) {
+      // Pricing
+      case Constants.COMPONENTS.PRICING:
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+          // Create default settings
+          if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE) {
+            return { 'type': 'simple', 'simple': {} };
+          } else if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING) {
+            return { 'type': 'convergentCharging', 'convergentCharging': {} };
+          }
+        }
+        break;
+
+      // Refund
+      case Constants.COMPONENTS.REFUND:
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+          // Only Concur
+          return { 'type': 'concur', 'concur': {} };
+        }
+
+        break;
+
+      // Refund
+      case Constants.COMPONENTS.OCPI:
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+          // Only Gireve
+          return { 'type': 'gireve', 'ocpi': {} };
+        }
+
+        break;
+
+      // SAC
+      case Constants.COMPONENTS.ANALYTICS:
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+          // Only SAP Analytics
+          return { 'type': 'sac', 'sac': {} };
+        }
+
+        break;
     }
   }
 }
