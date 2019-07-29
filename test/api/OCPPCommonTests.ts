@@ -14,7 +14,7 @@ export default class OCPPCommonTests {
   public tenantContext: any;
   public chargingStationContext: ChargingStationContext;
   public centralUserContext: any;
-  public centralUserService: any;
+  public centralUserService: CentralServerService;
 
   public currentPricingSetting;
   public priceKWH = 2;
@@ -78,7 +78,7 @@ export default class OCPPCommonTests {
   }
 
   public async before() {
-    const allSettings = await this.centralUserService.settingApi.readAll();
+    const allSettings = await this.centralUserService.settingApi.readAll({});
     this.currentPricingSetting = allSettings.data.result.find((s) => {
       return s.identifier === 'pricing';
     });
