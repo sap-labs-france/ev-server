@@ -460,12 +460,14 @@ export default class AuthService {
     if (!response.data.success) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        'The captcha is invalid', Constants.HTTP_GENERAL_ERROR,
+        'The reCaptcha is invalid',
+        Constants.HTTP_AUTH_INVALID_CAPTCHA,
         'AuthService', 'handleRegisterUser');
     } else if (response.data.score < 0.5) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        'The captcha score is too low', Constants.HTTP_GENERAL_ERROR,
+        `The reCaptcha score is too low, got ${response.data.score} and expected to be >= 0.5`,
+        Constants.HTTP_AUTH_INVALID_CAPTCHA,
         'AuthService', 'handleRegisterUser');
     }
     // Yes: Generate new password
@@ -476,14 +478,16 @@ export default class AuthService {
     if (!user) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `User with email '${filteredRequest.email}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        `User with email '${filteredRequest.email}' does not exist`,
+        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'AuthService', 'handleUserPasswordReset');
     }
     // Deleted
     if (user.deleted) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `User with email '${filteredRequest.email}' is logically deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        `User with email '${filteredRequest.email}' is logically deleted`,
+        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'AuthService', 'handleUserPasswordReset');
     }
     // Hash it
@@ -590,9 +594,8 @@ export default class AuthService {
   }
 
   public static async handleUserPasswordReset(action: string, req: Request, res: Response, next: NextFunction) {
-    // Filter
     const filteredRequest = AuthSecurity.filterResetPasswordRequest(req.body);
-
+    // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
       const error = new BadRequestError({
@@ -617,7 +620,7 @@ export default class AuthService {
   public static async handleGetEndUserLicenseAgreement(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterEndUserLicenseAgreementRequest(req);
-
+    // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
       const error = new BadRequestError({
@@ -642,8 +645,7 @@ export default class AuthService {
   public static async handleVerifyEmail(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterVerifyEmailRequest(req.query);
-
-    // Get the tenant
+    // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
       const error = new BadRequestError({
@@ -655,7 +657,6 @@ export default class AuthService {
       next(error);
       return;
     }
-
     // Check that this is not the super tenant
     if (tenantID === Constants.DEFAULT_TENANT) {
       throw new AppError(
@@ -663,7 +664,6 @@ export default class AuthService {
         'Cannot verify email in the Super Tenant', Constants.HTTP_GENERAL_ERROR,
         'AuthService', 'handleVerifyEmail');
     }
-
     // Check email
     if (!filteredRequest.Email) {
       throw new AppError(
@@ -705,7 +705,7 @@ export default class AuthService {
     if (user.verificationToken !== filteredRequest.VerificationToken) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        'Wrong Verification Token', Constants.HTTP_INVALID_TOKEN_ERROR,
+        'Wrong Verification Token', Constants.HTTP_AUTH_INVALID_TOKEN_ERROR,
         'AuthService', 'handleVerifyEmail', user);
     }
     // Activate user
@@ -803,7 +803,6 @@ export default class AuthService {
         'Account is already active', Constants.HTTP_USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
         'AuthService', 'handleResendVerificationEmail', user);
     }
-
     let verificationToken;
     // Check verificationToken
     if (!user.verificationToken) {

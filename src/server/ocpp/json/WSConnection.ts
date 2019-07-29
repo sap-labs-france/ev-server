@@ -30,7 +30,7 @@ export default class WSConnection {
   constructor(wsConnection, req, wsServer) {
     // Init
     this.url = req.url.trim().replace(/\b(\?|&).*/, ''); // Filter trailing URL parameters
-    this.ip = req && ((req.connection && req.connection.remoteAddress) || req.headers['x-forwarded-for']);
+    this.ip = Utils.getRequestIP(req);
     this.wsConnection = wsConnection;
     this.req = req;
     this.chargingStationID = null;
