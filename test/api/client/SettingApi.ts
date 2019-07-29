@@ -10,7 +10,7 @@ export default class SettingApi extends CrudApi {
     return super.readById(id, '/client/api/Setting');
   }
 
-  public readAll(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+  public readAll(params?, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
     return super.readAll(params, paging, ordering, '/client/api/Settings');
   }
 
