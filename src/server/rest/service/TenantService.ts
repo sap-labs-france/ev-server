@@ -283,7 +283,6 @@ export default class TenantService {
           newSetting.createdOn = new Date();
           newSetting.createdBy = { 'id': req.user.id };
           // Save Setting
-          console.log(JSON.stringify(newSetting));
           await SettingStorage.saveSetting(tenant.id, newSetting);
         } else {
           currentSetting.content = newSettingContent;
