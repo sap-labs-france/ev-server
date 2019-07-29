@@ -81,7 +81,7 @@ export default class CentralServerService {
     this.userApi = new UserApi(this.authenticatedApi);
     this.chargingStationApi = new ChargingStationApi(this.authenticatedApi, this._baseApi);
     this.transactionApi = new TransactionApi(this.authenticatedApi);
-    this.settingApi = new SettingApi(this.authenticatedApi);
+    this.settingApi = new SettingApi(this.authenticatedSuperAdminApi);
     this.logsApi = new LogsApi(this.authenticatedApi);
     this.ocpiEndpointApi = new OCPIEndpointApi(this.authenticatedApi);
     this.authenticationApi = new AuthenticationApi(this._baseApi);

@@ -13,7 +13,9 @@ const GRANTS = {
       { resource: 'Loggings', action: 'List', attributes: ['*'] },
       { resource: 'Logging', action: 'Read', attributes: ['*'] },
       { resource: 'Tenants', action: 'List', attributes: ['*'] },
-      { resource: 'Tenant', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] }
+      { resource: 'Tenant', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
+      { resource: 'Settings', action: 'List', attributes: ['*'] },
+      { resource: 'Setting', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] }
     ]
   },
   admin: {
