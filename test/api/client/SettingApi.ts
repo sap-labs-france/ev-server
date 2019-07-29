@@ -6,7 +6,7 @@ export default class SettingApi extends CrudApi {
     super(authenticatedApi);
   }
 
-  public readById(id) {console.log('ByID setting');
+  public readById(id) {
     return super.readById(id, '/client/api/Setting');
   }
 
@@ -14,15 +14,15 @@ export default class SettingApi extends CrudApi {
     return super.readAll(params, paging, ordering, '/client/api/Settings');
   }
 
-  public create(data) {console.log('create setting');
+  public create(data) {
     return super.create(data, '/client/api/SettingCreate');
   }
 
-  public update(data) {console.log('update setting');
+  public update(data) {
     return super.update(data, '/client/api/SettingUpdate');
   }
 
-  public delete(id) {console.log('delete setting');
+  public delete(id) {
     return super.delete(id, '/client/api/SettingDelete');
   }
 }

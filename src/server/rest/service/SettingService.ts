@@ -12,6 +12,7 @@ import SettingSecurity from './security/SettingSecurity';
 import UtilsService from './UtilsService';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import { filter } from 'bluebird';
+import HttpStatusCodes from 'http-status-codes';
 
 export default class SettingService {
   public static async handleDeleteSetting(action: string, req: Request, res: Response, next: NextFunction) {
@@ -51,6 +52,7 @@ export default class SettingService {
     // Filter
     const filteredRequest = SettingSecurity.filterSettingRequest(req.query);
     UtilsService.assertIdIsProvided(filteredRequest.ID, 'SettingService', 'handleGetSetting', req.user);
+    // Check auth
     if(!Authorizations.canReadSetting(req.user)) {
       throw new AppAuthError(
         Constants.ACTION_READ,
@@ -119,10 +121,8 @@ export default class SettingService {
     }
     // Filter
     const filteredRequest = SettingSecurity.filterSettingCreateRequest(req.body);
-    UtilsService.assertIdIsProvided(filteredRequest.id, 'SettingService', 'handleCreateSetting', req.user);
     // Process the sensitive data if any
     Cypher.encryptSensitiveDataInJSON(filteredRequest);
-    if(! filteredRequest.sensitiveData) filteredRequest.sensitiveData = [];
     // Update timestamp
     filteredRequest.createdBy = { 'id': req.user.id };
     filteredRequest.createdOn = new Date();
@@ -136,7 +136,7 @@ export default class SettingService {
       action: action, detailedMessages: filteredRequest
     });
     // Ok
-    res.json(Object.assign({ id: filteredRequest.id }, Constants.REST_RESPONSE_SUCCESS));
+    res.status(HttpStatusCodes.OK).json(Object.assign({ id: filteredRequest.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 

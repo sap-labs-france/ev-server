@@ -38,7 +38,7 @@ export default class SettingSecurity {
     return {
       identifier: sanitize(request.identifier),
       content: sanitize(request.content),
-      sensitiveData: request.sensitiveData?sanitize(request.sensitiveData):null
+      sensitiveData: request.sensitiveData?sanitize(request.sensitiveData):[]
     };
   }
 

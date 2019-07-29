@@ -9,6 +9,7 @@ import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
 import Constants from './client/utils/Constants';
 import TestData from './client/utils/TestData';
+import Utils from './Utils';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -95,6 +96,9 @@ describe('Setting tests', function() {
       // Activate convergent charging
       testData.data = JSON.parse(`{"id":"${testData.credentials.tenantId}","name":"ut-all","email":"${testData.credentials.email}","subdomain":"utall","components":{"ocpi":{"active":true,"type":"gireve"},"organization":{"active":true,"type":null},"pricing":{"active":true,"type":"convergentCharging"},"refund":{"active":true,"type":"concur"},"statistics":{"active":true,"type":null},"analytics":{"active":true,"type":null}}}`);
       let activation = await testData.superCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
+
+      Utils.sleep(500);
+
       expect(activation.status).to.equal(200);
       // Update convergent charging setting
       testData.data = JSON.parse(`{
@@ -112,10 +116,16 @@ describe('Setting tests', function() {
           }
       }`);
       let update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
+
+      Utils.sleep(500);
+
       expect(update.status).to.equal(200);
       // Activate back simple pricing
       testData.data = JSON.parse(`{"id":"${testData.credentials.tenantId}","name":"ut-all","email":"${testData.credentials.email}","subdomain":"utall","components":{"ocpi":{"active":true,"type":"gireve"},"organization":{"active":true,"type":null},"pricing":{"active":true,"type":"simple"},"refund":{"active":true,"type":"concur"},"statistics":{"active":true,"type":null},"analytics":{"active":true,"type":null}}}`);
       activation = await testData.superCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
+
+      Utils.sleep(500);
+
       expect(activation.status).to.equal(200);
       // Restore default simple pricing setting and check
       update = await testData.centralService.updateEntity(testData.centralService.settingApi, oldSetting);

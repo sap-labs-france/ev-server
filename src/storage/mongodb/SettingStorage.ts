@@ -17,17 +17,13 @@ export default class SettingStorage {
      let settingMDB = await SettingStorage.getSettings(tenantID, {id: id}, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('SettingStorage', 'getSetting', uniqueTimerID, { id });
+
     return settingMDB.count>0 ? settingMDB.result[0] : null;
   }
 
   public static async getSettingByIdentifier(tenantID: string, identifier: string): Promise<Setting> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('SettingStorage', 'getSettingByIdentifier');
-    // Delegate querying
-    let settingMDB = await SettingStorage.getSettings(tenantID, {identifier: identifier}, Constants.DB_PARAMS_SINGLE_RECORD);
-    // Debug
-    Logging.traceEnd('SettingStorage', 'getSettingByIdentifier', uniqueTimerID, { identifier });
-    return settingMDB.count>0 ? settingMDB.result[0] : null;
+    let settingResult = await SettingStorage.getSettings(tenantID, {identifier: identifier}, Constants.DB_PARAMS_SINGLE_RECORD);
+    return settingResult.count>0 ? settingResult.result[0] : null;
   }
 
   public static async saveSetting(tenantID: string, settingToSave: Partial<Setting>): Promise<string> {
@@ -104,7 +100,7 @@ export default class SettingStorage {
     }
     // Count Records
     const settingsCountMDB = await global.database.getCollection<any>(tenantID, 'settings')
-      .aggregate([...aggregation, { $count: 'count' }])
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
@@ -134,12 +130,10 @@ export default class SettingStorage {
     DatabaseUtils.renameDatabaseID(aggregation);
     // Read DB
     const settingsMDB = await global.database.getCollection<Setting>(tenantID, 'settings')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Debug
     Logging.traceEnd('SettingStorage', 'getSettings', uniqueTimerID, { params, dbParams });
-    console.log('result:');
-    console.log(settingsMDB);
     // Ok
     return {
       count: (settingsCountMDB.length > 0 ? settingsCountMDB[0].count : 0),
