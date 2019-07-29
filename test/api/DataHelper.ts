@@ -31,7 +31,8 @@ export default class DataHelper {
       siteAreas: [],
       sites: [],
       companies: [],
-      users: []
+      users: [],
+      transactionsStarted: []
     };
   }
 
@@ -112,15 +113,18 @@ export default class DataHelper {
       await this.centralServerService.deleteEntity(
         this.centralServerService.companyApi, company);
     }
+    for (const transaction of this.context.transactionsStarted) {
+      await this.centralServerService.transactionApi.delete(transaction);
+    }
     for (const chargingStation of this.context.chargingStations) {
       await this.centralServerService.deleteEntity(
         this.centralServerService.chargingStationApi, chargingStation);
     }
   }
 
-  public close() {
+  public async close() {
     if (this.ocpp && this.ocpp.closeConnection) {
-      this.ocpp.closeConnection();
+      await this.ocpp.closeConnection();
     }
   }
 
@@ -161,6 +165,7 @@ export default class DataHelper {
     expect(response.data).to.have.property('transactionId');
     if (expectedStatus === 'Accepted') {
       expect(response.data.transactionId).to.not.equal(0);
+      this.context.transactionsStarted.push(response.data.transactionId);
     } else {
       expect(response.data.transactionId).to.equal(0);
     }

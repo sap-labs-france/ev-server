@@ -79,7 +79,7 @@ export default class OCPPCommonTests {
   }
 
   public async before() {
-    const allSettings = await this.centralUserService.settingApi.readAll();
+    const allSettings = await this.centralUserService.settingApi.readAll({});
     this.currentPricingSetting = allSettings.data.result.find((s) => {
       return s.identifier === 'pricing';
     });
