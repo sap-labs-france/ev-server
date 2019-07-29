@@ -5,6 +5,7 @@ import https from 'https';
 import WebSocket from 'ws';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
+import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'WSServer';
 export default class WSServer extends WebSocket.Server {
@@ -38,7 +39,7 @@ export default class WSServer extends WebSocket.Server {
       this.serverConfig.keepaliveinterval : Constants.WS_DEFAULT_KEEPALIVE) * 1000; // Ms
     this.on('connection', (ws: any, req: any): void => {
       ws.isAlive = true;
-      ws.ip = req.connection.remoteAddress;
+      ws.ip = Utils.getRequestIP(req);
       ws.on('pong', (): void => {
         ws.isAlive = true;
       });

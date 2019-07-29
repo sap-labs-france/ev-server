@@ -53,8 +53,8 @@ export default class SchedulerManager {
             });
         }
         if (schedulerTask) {
-          cron.schedule(task.periodicity, () => {
-            return schedulerTask.run(task.name, task.config);
+          cron.schedule(task.periodicity, async (): Promise<void> => {
+            return await schedulerTask.run(task.name, task.config);
           });
           Logging.logInfo({
             tenantID: Constants.DEFAULT_TENANT,
