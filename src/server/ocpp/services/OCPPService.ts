@@ -1373,6 +1373,42 @@ export default class OCPPService {
           'connectorId': transaction.getConnectorId()
         }
       );
+      if (transaction.getEndSignedData() !== '') {
+        // Send Notification
+        await NotificationHandler.sendEndOfSession(
+          chargingStation.getTenantID(),
+          transaction.getID() + '-EOSS',
+          user,
+          chargingStation.getModel(),
+          {
+            'user': user,
+            'chargeBoxID': chargingStation.getID(),
+            'connectorId': transaction.getConnectorId(),
+            'tagId': transaction.getTagID(),
+            'startDate': transaction.getStartDate(),
+            'endDate': transaction.getStopDate(),
+            'meterStart': (transaction.getMeterStart() / 1000).toLocaleString(
+              (user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
+              { minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2 }),
+            'meterStop': (transaction.getStopMeter() / 1000).toLocaleString(
+              (user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
+              { minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2 }),
+            'totalConsumption': (transaction.getStopTotalConsumption() / 1000).toLocaleString(
+              (user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
+              { minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2 }),
+            'price': transaction.getStopPrice(),
+            'relativeCost': (transaction.getStopPrice() / (transaction.getStopTotalConsumption() / 1000)),
+            'startSignedData': transaction.getSignedData(),
+            'endSignedData': transaction.getEndSignedData()
+          },
+          user.locale,
+          {
+            'transactionId': transaction.getID(),
+            'connectorId': transaction.getConnectorId()
+          },
+          true
+        );
+      }
     }
   }
 }

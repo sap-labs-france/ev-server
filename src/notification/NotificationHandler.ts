@@ -131,7 +131,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendEndOfSession(tenantID, sourceId, user: User, chargingStation, sourceData, locale, data) {
+  static async sendEndOfSession(tenantID, sourceId, user: User, chargingStation, sourceData, locale, data, signedData = false) {
     try {
       // Check notification
       const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
@@ -143,6 +143,11 @@ export default class NotificationHandler {
           await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
             SOURCE_END_OF_SESSION, user, chargingStation, data);
           // Send email
+          if (signedData) {
+            const result = await _email.sendEndOfSignedSession(sourceData, locale, tenantID);
+            // Return
+            return result;
+          }
           const result = await _email.sendEndOfSession(sourceData, locale, tenantID);
           // Return
           return result;
