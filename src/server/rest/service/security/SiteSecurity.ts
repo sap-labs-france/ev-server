@@ -56,6 +56,7 @@ export default class SiteSecurity {
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.UserID = sanitize(request.UserID);
     filteredRequest.CompanyID = sanitize(request.CompanyID);
+    filteredRequest.SiteID = sanitize(request.SiteID);
     filteredRequest.ExcludeSitesOfUserID = sanitize(request.ExcludeSitesOfUserID);
     filteredRequest.WithCompany = UtilsSecurity.filterBoolean(request.WithCompany);
     filteredRequest.WithAvailableChargers = UtilsSecurity.filterBoolean(request.WithAvailableChargers);

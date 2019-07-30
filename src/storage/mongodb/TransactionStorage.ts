@@ -508,6 +508,18 @@ export default class TransactionStorage {
             { $addFields: { impossiblePower: { $lte: [{ $subtract: ['$connector.power', '$averagePower'] }, 0] } } },
             { $match: { 'impossiblePower': { $eq: true } } },
             { $addFields: { 'errorCode': 'average_consumption_greater_than_connector_capacity' } }
+          ],
+        'negative_inactivity':
+          [
+            {
+              $match: {
+                $and: [
+                  { 'stop': { $exists: true } },
+                  { 'stop.totalInactivitySecs': { $lt: 0} }
+                ]
+              }
+            },
+            { $addFields: { 'errorCode': 'negative_inactivity' } }
           ]
       }
     };

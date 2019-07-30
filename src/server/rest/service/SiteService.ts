@@ -275,7 +275,12 @@ export default class SiteService {
         search: filteredRequest.Search,
         siteID: filteredRequest.SiteID
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
+      {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.Sort,
+        onlyRecordCount: filteredRequest.OnlyRecordCount
+      },
       ['user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteID']
     );
     // Filter
@@ -374,16 +379,21 @@ export default class SiteService {
     // Get the sites
     const sites = await SiteStorage.getSites(req.user.tenantID,
       {
-        search: filteredRequest.Search,
-        userID: filteredRequest.UserID,
-        companyIDs: (filteredRequest.CompanyID ? filteredRequest.CompanyID.split('|') : null),
-        siteIDs: Authorizations.getAuthorizedSiteIDs(req.user),
-        withCompany: filteredRequest.WithCompany,
-        excludeSitesOfUserID: filteredRequest.ExcludeSitesOfUserID,
-        withAvailableChargers: filteredRequest.WithAvailableChargers
+        'search': filteredRequest.Search,
+        'userID': filteredRequest.UserID,
+        'companyIDs': (filteredRequest.CompanyID ? filteredRequest.CompanyID.split('|') : null),
+        'siteIDs': (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : Authorizations.getAuthorizedSiteIDs(req.user)),
+        'withCompany': filteredRequest.WithCompany,
+        'excludeSitesOfUserID': filteredRequest.ExcludeSitesOfUserID,
+        'withAvailableChargers': filteredRequest.WithAvailableChargers
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [ 'id', 'name', 'address.latitude', 'address.longitude', 'address.city', 'address.country', 'company.name',
+      {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.Sort,
+        onlyRecordCount: filteredRequest.OnlyRecordCount
+      },
+      ['id', 'name', 'address.latitude', 'address.longitude', 'address.city', 'address.country', 'company.name',
         'autoUserSiteAssignment', 'allowAllUsersToStopTransactions']
     );
     // Build the result
@@ -447,7 +457,7 @@ export default class SiteService {
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.companyID);
     UtilsService.assertObjectExists(company, `The Company ID '${filteredRequest.companyID}' does not exist`, 'SiteService', 'handleCreateSite', req.user);
     // Create site
-    const usr = { id: req.user.id };
+    const usr = {id: req.user.id};
     const date = new Date();
     const site: Site = {
       ...filteredRequest,
@@ -466,7 +476,7 @@ export default class SiteService {
       action: action, detailedMessages: site
     });
     // Ok
-    res.json(Object.assign({ id: site.id }, Constants.REST_RESPONSE_SUCCESS));
+    res.json(Object.assign({id: site.id}, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
@@ -493,10 +503,10 @@ export default class SiteService {
     const site: Site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.id);
     UtilsService.assertObjectExists(site, `Site with ID '${filteredRequest.id}' does not exist`, 'SiteService', 'handleUpdateSite', req.user);
     // Update
-    site.lastChangedBy = { 'id': req.user.id };
+    site.lastChangedBy = {'id': req.user.id};
     site.lastChangedOn = new Date();
     // Save
-    await SiteStorage.saveSite(req.user.tenantID, { ...site, ...filteredRequest }, true);
+    await SiteStorage.saveSite(req.user.tenantID, {...site, ...filteredRequest}, true);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
