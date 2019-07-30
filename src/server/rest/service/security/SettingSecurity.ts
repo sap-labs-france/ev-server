@@ -1,6 +1,7 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import UtilsSecurity from './UtilsSecurity';
+import Constants from '../../../../utils/Constants';
 
 export default class SettingSecurity {
   // eslint-disable-next-line no-unused-vars
@@ -57,11 +58,12 @@ export default class SettingSecurity {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadSetting(loggedUser)) {
+    if (Authorizations.canReadSetting(loggedUser, setting)) {
       // Admin?
       // if (Authorizations.isAdmin(loggedUser)) {
       // Yes: set all params
       filteredSetting = setting;
+      filteredSetting.content = SettingSecurity._filterAuthorizedSettingContent(loggedUser, setting);
       // } else {
       //   // Set only necessary info
       //   return null;
@@ -94,5 +96,22 @@ export default class SettingSecurity {
     }
     return filteredSettings;
   }
-}
 
+  private static _filterAuthorizedSettingContent(loggedUser, setting) {
+    if (!setting.content) {
+      return null;
+    }
+    if (Authorizations.isSuperAdmin(loggedUser.role) || setting.identifier !== Constants.COMPONENTS.ANALYTICS) {
+      return setting.content;
+    }
+    if (setting.content.links && Array.isArray(setting.content.links)) {
+      const filteredLinks = setting.content.links.filter((link) => {
+        return !link.role || link.role === '' ||
+          (link.role && link.role.includes(loggedUser.role));
+      });
+      setting.content.links = filteredLinks;
+    }
+    return setting.content;
+  }
+
+}
