@@ -1,11 +1,8 @@
-import SourceMap from 'source-map-support';
 import Constants from '../../../../utils/Constants';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
-
-SourceMap.install();
 
 /**
  * OCPI Mapping 2.1.1 - Mapping class
@@ -73,7 +70,8 @@ export default class OCPIMapping {
   static async getEvsesFromSite(tenant: any, site: Site, options: any) {
     // Build evses array
     const evses = [];
-    const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.getID(), { withChargeBoxes: true, siteID: site.id }, { limit: 0, skip: 0 });
+    const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.getID(), { withChargeBoxes: true, siteIDs: [site.id] },
+      Constants.DB_PARAMS_MAX_LIMIT);
     for (const siteArea of siteAreas.result) {
       // Get charging stations from SiteArea
       evses.push(...await OCPIMapping.getEvsesFromSiteaArea(tenant, siteArea, options));

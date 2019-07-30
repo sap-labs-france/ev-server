@@ -35,9 +35,9 @@ export default class AuthenticatedBaseApi extends BaseApi {
     return this._tenant;
   }
 
-  public async authenticate() {
+  public async authenticate(force: boolean = false) {
     // Already logged?
-    if (!this._token) {
+    if (!this._token || force) {
       // No, try to log in
       const response = await this._authenticationApi.login(this._user, this._password, true, this._tenant);
       // Keep the token

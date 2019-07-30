@@ -1,6 +1,7 @@
 import moment from 'moment';
 import ChargingStation from './ChargingStation';
 import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
+import Constants from '../utils/Constants';
 import ConsumptionStorage from '../storage/mongodb/ConsumptionStorage';
 import Database from '../utils/Database';
 import OCPPStorage from '../storage/mongodb/OCPPStorage';
@@ -21,8 +22,8 @@ export default class Transaction extends TenantHolder {
     return TransactionStorage.getTransaction(tenantID, id);
   }
 
-  static getTransactions(tenantID, filter, limit) {
-    return TransactionStorage.getTransactions(tenantID, filter, limit);
+  static getTransactions(tenantID, filter, dbParams) {
+    return TransactionStorage.getTransactions(tenantID, filter, dbParams);
   }
 
   static getActiveTransaction(tenantID, chargeBoxID, connectorId) {
@@ -396,6 +397,34 @@ export default class Transaction extends TenantHolder {
     this._model.stop.stateOfCharge = stateOfCharge;
   }
 
+  // SignedData
+  getSignedData() {
+    return this._model.signedData;
+  }
+
+  setSignedData(signedData) {
+    this._model.signedData = signedData;
+  }
+
+  getEndSignedData() {
+    if (this.isFinished()) {
+      return this._model.stop.signedData;
+    }
+  }
+
+  setEndSignedData(signedData) {
+    this._checkAndCreateStop();
+    this._model.stop.signedData = signedData;
+  }
+
+  getCurrentSignedData() {
+    return this._model.currentSignedData;
+  }
+
+  setCurrentSignedData(signedData) {
+    this._model.currentSignedData = signedData;
+  }
+
   hasMultipleConsumptions() {
     return this.getNumberOfMeterValues() > 1;
   }
@@ -451,7 +480,8 @@ export default class Transaction extends TenantHolder {
   }
 
   isRefunded() {
-    return this._model.refundData && !!this._model.refundData.refundId;
+    return this._model.refundData && !!this._model.refundData.refundId
+      && this._model.refundData.status !== Constants.REFUND_STATUS_CANCELLED;
   }
 
   hasStateOfCharges() {
@@ -544,6 +574,7 @@ export default class Transaction extends TenantHolder {
   clearRuntimeData() {
     delete this._model.currentConsumption;
     delete this._model.currentStateOfCharge;
+    delete this._model.currentSignedData;
     delete this._model.currentTotalConsumption;
     delete this._model.currentTotalInactivitySecs;
     delete this._model.currentCumulatedPrice;

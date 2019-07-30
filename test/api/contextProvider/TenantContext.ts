@@ -29,6 +29,7 @@ export default class TenantContext {
       companies: [],
       users: [],
       siteContexts: [],
+      chargingStations: [],
       createdUsers: [],
       createdCompanies: [],
       createdSites: [],
@@ -74,11 +75,33 @@ export default class TenantContext {
       });
     }
     return this.context.siteContexts[0]; // By default return the first context
-
   }
 
   addSiteContext(siteContext) {
     this.context.siteContexts.push(siteContext);
+  }
+
+  getChargingStations() {
+    return this.context.chargingStations;
+  }
+
+  getChargingStation(chargingStationID) {
+    // Search in context list
+    return this.context.chargingStations.find((chargingStationContext) => {
+      return chargingStationContext.getChargingStation().id === chargingStationID;
+    });
+  }
+
+  getChargingStationContext(chargingStationContext) {
+    // Search in context list
+    return this.context.chargingStations.find((chargingStation) => {
+      return chargingStation.getChargingStation().id.startsWith(chargingStationContext);
+    });
+  }
+
+  addChargingStation(chargingStation) {
+    const chargingStationContext = new ChargingStationContext(chargingStation, this);
+    this.context.chargingStations.push(chargingStationContext);
   }
 
   async cleanUpCreatedData() {

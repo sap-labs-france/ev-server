@@ -1,9 +1,7 @@
-import SourceMap from 'source-map-support';
 import AuthService from './service/AuthService';
+import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import UtilsService from './service/UtilsService';
-
-SourceMap.install();
 
 export default {
   // Init Passport
@@ -18,6 +16,15 @@ export default {
   async authService(req, res, next) {
     // Parse the action
     const action = /^\/\w*/g.exec(req.url)[0].substring(1);
+    // Get the tenant
+    let tenantID = Constants.DEFAULT_TENANT;
+    if (req.body && req.body.tenant) {
+      tenantID = await AuthService.getTenantID(req.body.tenant);
+    } else if (req.query && req.query.tenant) {
+      tenantID = await AuthService.getTenantID(req.query.tenant);
+    } else if (req.user && req.user.tenantID) {
+      tenantID = req.user.tenantID;
+    }
     try {
       // Check Context
       switch (req.method) {
@@ -84,8 +91,7 @@ export default {
           break;
       }
     } catch (error) {
-      // FIXME: Cannot read property 'tenantID' of undefined
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next, req.user.tenantID);
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next, tenantID);
     }
   }
 };

@@ -1,12 +1,9 @@
-import SourceMap from 'source-map-support';
 import AbstractEndpoint from '../AbstractEndpoint';
 import Constants from '../../../../utils/Constants';
 import OCPIMapping from './OCPIMapping';
 import OCPIServerError from '../../../../exception/OCPIServerError';
 import OCPIUtils from '../../OCPIUtils';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
-
-SourceMap.install();
 
 const EP_IDENTIFIER = 'locations';
 const EP_VERSION = '2.1.1';

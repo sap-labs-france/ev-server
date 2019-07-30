@@ -1,7 +1,6 @@
 import ejs from 'ejs';
 import email from 'emailjs';
 import fs from 'fs';
-import SourceMap from 'source-map-support';
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
@@ -11,7 +10,6 @@ import NotificationTask from '../NotificationTask';
 import Tenant from '../../entity/Tenant';
 import Utils from '../../utils/Utils';
 
-SourceMap.install();
 
 // Email
 const _emailConfig = Configuration.getEmailConfig();
@@ -129,8 +127,12 @@ export default class EMailNotificationTask extends NotificationTask {
     // Render the subject
     emailTemplate.subject = ejs.render(emailTemplate.subject, data);
     // Render the tenant name
-    const tenant = await Tenant.getTenant(tenantID);
-    emailTemplate.tenant = tenant.getName();
+    if (tenantID !== Constants.DEFAULT_TENANT) {
+      const tenant = await Tenant.getTenant(tenantID);
+      emailTemplate.tenant = tenant.getName();
+    } else {
+      emailTemplate.tenant = Constants.DEFAULT_TENANT;
+    }
     // Render Base URL
     emailTemplate.baseURL = ejs.render(emailTemplate.baseURL, data);
     emailTemplate.body.template = templateName;

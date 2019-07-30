@@ -14,15 +14,12 @@ import Constants from '../../../utils/Constants';
 import { HttpIsAuthorizedRequest, HttpLoginRequest, HttpResetPasswordRequest } from '../../../types/requests/HttpUserRequest';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
-import SessionHashService from './SessionHashService';
 import Site from '../../../types/Site';
 import SiteArea from '../../../types/SiteArea';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import Tenant from '../../../entity/Tenant';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
-import UserService from './UserService';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
@@ -59,7 +56,7 @@ export default class AuthService {
   public static async handleIsAuthorized(action: string, req: Request, res: Response, next: NextFunction) {
     let user: User;
     // Default
-    let result = [{ 'IsAuthorized': false }];
+    let result = [{ 'IsAuthorized': false }]; // TODO: Change style
     // Filter
     const filteredRequest = AuthSecurity.filterIsAuthorizedRequest(req.query);
     // Check
@@ -152,18 +149,15 @@ export default class AuthService {
   public static async checkConnectorsActionAuthorizations(tenantID: string, user: UserToken, chargingStation) {
     const results = [];
     // Check if organization component is active
-    const tenant = await Tenant.getTenant(tenantID);
-    const isOrganizationComponentActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+    const isOrganizationComponentActive = Utils.isComponentActiveFromToken(user, Constants.COMPONENTS.ORGANIZATION);
     let siteArea: SiteArea;
     let site: Site;
     if (isOrganizationComponentActive) {
-      // Get charging station site
       // Site Area -----------------------------------------------
       siteArea = await chargingStation.getSiteArea();
       try {
         // Site is mandatory
         if (!siteArea) {
-          // Reject Site Not Found
           throw new AppError(
             chargingStation.getID(),
             `Charging Station '${chargingStation.getID()}' is not assigned to a Site Area!`,
@@ -174,7 +168,6 @@ export default class AuthService {
         // Site -----------------------------------------------------
         site = await SiteStorage.getSite(tenantID, siteArea.siteID);
         if (!site) {
-          // Reject Site Not Found
           throw new AppError(
             chargingStation.getID(),
             `Site Area '${siteArea.name}' is not assigned to a Site!`,
@@ -199,7 +192,7 @@ export default class AuthService {
     // Check authorization for each connectors
     for (let index = 0; index < chargingStation.getConnectors().length; index++) {
       const connector = chargingStation.getConnector(index + 1);
-      results.push(await Authorizations.getConnectorActionAuthorizations(tenantID, user, chargingStation, connector, siteArea, site));
+      results.push(await Authorizations.getConnectorActionAuthorizations({ tenantID, user, chargingStation, connector, siteArea, site }));
     }
     return results;
   }
@@ -222,7 +215,8 @@ export default class AuthService {
     }
     try {
       // Check
-      await Authorizations.isTagIDsAuthorizedOnChargingStation(chargingStation, user.tagIDs[0], transaction.getTagID(), filteredRequest.Action);
+      await Authorizations.isTagIDsAuthorizedOnChargingStation(
+        chargingStation, user.tagIDs[0], transaction.getTagID(), filteredRequest.Action);
       // Ok
       return true;
     } catch (e) {
@@ -327,17 +321,6 @@ export default class AuthService {
   public static async handleRegisterUser(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterRegisterUserRequest(req.body);
-    // Check
-    if (!filteredRequest.tenant) {
-      const error = new BadRequestError({
-        path: 'tenant',
-        message: 'The Tenant is mandatory'
-      });
-      // Log Error
-      Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleRegisterUser', Constants.DEFAULT_TENANT);
-      next(error);
-      return;
-    }
     // Get the Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
@@ -365,11 +348,9 @@ export default class AuthService {
         'The captcha is mandatory', Constants.HTTP_GENERAL_ERROR,
         'AuthService', 'handleRegisterUser');
     }
-
-    // Check captcha
+    // Check Captcha
     const response = await axios.get(
       `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`);
-    // Check
     if (!response.data.success) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
@@ -381,10 +362,10 @@ export default class AuthService {
         'The captcha score is too low', Constants.HTTP_GENERAL_ERROR,
         'AuthService', 'handleRegisterUser');
     }
+    // Check Mandatory fields
+    Utils.checkIfUserValid(filteredRequest, null, req);
     // Check email
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
-    // Check Mandatory fields
-    UserService.checkIfUserValid(filteredRequest, null, req);
     if (user) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
@@ -393,28 +374,43 @@ export default class AuthService {
         null, user);
     }
     // Generate a password
-    const newPasswordHashed = await UserService.hashPasswordBcrypt(filteredRequest.password);
+    const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
     // Create the user
     const newUser = UserStorage.getEmptyUser();
-
     newUser.password = newPasswordHashed;
     newUser.email = filteredRequest.email;
     newUser.name = filteredRequest.name;
     newUser.firstName = filteredRequest.firstName;
-    newUser.role = Constants.ROLE_BASIC;
+    if (tenantID === Constants.DEFAULT_TENANT) {
+      newUser.role = Constants.ROLE_SUPER_ADMIN;
+    } else {
+      newUser.role = Constants.ROLE_BASIC;
+    }
     newUser.status = Constants.USER_STATUS_PENDING;
-    newUser.tagIDs = [newUser.name[0] + newUser.firstName[0] + Utils.getRandomInt()];
     newUser.locale = req.locale.substring(0, 5);
     newUser.verificationToken = Utils.generateToken(req.body.email);
-
     const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, newUser.locale.substring(0, 2));
     newUser.eulaAcceptedOn = new Date();
     newUser.eulaAcceptedVersion = endUserLicenseAgreement.version;
     newUser.eulaAcceptedHash = endUserLicenseAgreement.hash;
-
-    // Save
-    await UserStorage.saveUser(tenantID, newUser);
-
+    // Save User
+    newUser.id = await UserStorage.saveUser(tenantID, newUser);
+    // Save Tags
+    const tagIDs = [newUser.name[0] + newUser.firstName[0] + Utils.getRandomInt()];
+    await UserStorage.saveUserTags(tenantID, newUser.id, tagIDs);
+    // Assign user to all sites with auto-assign flag set
+    const sites = await SiteStorage.getSites(tenantID,
+      { withAutoUserAssignment: true },
+      Constants.DB_PARAMS_MAX_LIMIT
+    );
+    if (sites.count > 0) {
+      const siteIDs = sites.result.map((site) => {
+        return site.id;
+      });
+      if (siteIDs && siteIDs.length > 0) {
+        await UserStorage.addSitesToUser(tenantID, newUser.id, siteIDs);
+      }
+    }
     // Log
     Logging.logSecurityInfo({
       tenantID: tenantID,
@@ -425,22 +421,23 @@ export default class AuthService {
       detailedMessages: req.body
     });
 
-    // Send notification
-    const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
-      '/#/verify-email?VerificationToken=' + newUser.verificationToken + '&Email=' +
-      newUser.email;
-
-    NotificationHandler.sendNewRegisteredUser(
-      tenantID,
-      Utils.generateGUID(),
-      newUser,
-      {
-        'user': newUser,
-        'evseDashboardURL': Utils.buildEvseURL(filteredRequest.tenant),
-        'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
-      },
-      newUser.locale
-    );
+    if (tenantID !== Constants.DEFAULT_TENANT) {
+      // Send notification
+      const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
+        '/#/verify-email?VerificationToken=' + newUser.verificationToken + '&Email=' +
+        newUser.email;
+      NotificationHandler.sendNewRegisteredUser(
+        tenantID,
+        Utils.generateGUID(),
+        newUser,
+        {
+          'user': newUser,
+          'evseDashboardURL': Utils.buildEvseURL(filteredRequest.tenant),
+          'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
+        },
+        newUser.locale
+      );
+    }
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
@@ -461,12 +458,14 @@ export default class AuthService {
     if (!response.data.success) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        'The captcha is invalid', Constants.HTTP_GENERAL_ERROR,
+        'The reCaptcha is invalid',
+        Constants.HTTP_AUTH_INVALID_CAPTCHA,
         'AuthService', 'handleRegisterUser');
     } else if (response.data.score < 0.5) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        'The captcha score is too low', Constants.HTTP_GENERAL_ERROR,
+        `The reCaptcha score is too low, got ${response.data.score} and expected to be >= 0.5`,
+        Constants.HTTP_AUTH_INVALID_CAPTCHA,
         'AuthService', 'handleRegisterUser');
     }
     // Yes: Generate new password
@@ -477,14 +476,16 @@ export default class AuthService {
     if (!user) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `User with email '${filteredRequest.email}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        `User with email '${filteredRequest.email}' does not exist`,
+        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'AuthService', 'handleUserPasswordReset');
     }
     // Deleted
     if (user.deleted) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `User with email '${filteredRequest.email}' is logically deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        `User with email '${filteredRequest.email}' is logically deleted`,
+        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'AuthService', 'handleUserPasswordReset');
     }
     // Hash it
@@ -522,9 +523,9 @@ export default class AuthService {
 
   public static async generateNewPasswordAndSendEmail(tenantID: string, filteredRequest, action: string, req: Request, res: Response, next: NextFunction) {
     // Create the password
-    const newPassword = UserService.generatePassword();
+    const newPassword = Utils.generatePassword();
     // Hash it
-    const newHashedPassword = await UserService.hashPasswordBcrypt(newPassword);
+    const newHashedPassword = await Utils.hashPasswordBcrypt(newPassword);
     // Get the user
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
     // Found?
@@ -591,9 +592,8 @@ export default class AuthService {
   }
 
   public static async handleUserPasswordReset(action: string, req: Request, res: Response, next: NextFunction) {
-    // Filter
     const filteredRequest = AuthSecurity.filterResetPasswordRequest(req.body);
-
+    // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
       const error = new BadRequestError({
@@ -618,7 +618,7 @@ export default class AuthService {
   public static async handleGetEndUserLicenseAgreement(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterEndUserLicenseAgreementRequest(req);
-
+    // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
       const error = new BadRequestError({
@@ -643,8 +643,7 @@ export default class AuthService {
   public static async handleVerifyEmail(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterVerifyEmailRequest(req.query);
-
-    // Get the tenant
+    // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
       const error = new BadRequestError({
@@ -656,7 +655,13 @@ export default class AuthService {
       next(error);
       return;
     }
-
+    // Check that this is not the super tenant
+    if (tenantID === Constants.DEFAULT_TENANT) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Cannot verify email in the Super Tenant', Constants.HTTP_GENERAL_ERROR,
+        'AuthService', 'handleVerifyEmail');
+    }
     // Check email
     if (!filteredRequest.Email) {
       throw new AppError(
@@ -698,7 +703,7 @@ export default class AuthService {
     if (user.verificationToken !== filteredRequest.VerificationToken) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        'Wrong Verification Token', Constants.HTTP_INVALID_TOKEN_ERROR,
+        'Wrong Verification Token', Constants.HTTP_AUTH_INVALID_TOKEN_ERROR,
         'AuthService', 'handleVerifyEmail', user);
     }
     // Activate user
@@ -725,7 +730,6 @@ export default class AuthService {
   public static async handleResendVerificationEmail(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterResendVerificationEmail(req.body);
-
     // Get the tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
@@ -737,6 +741,13 @@ export default class AuthService {
       Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleResendVerificationEmail', Constants.DEFAULT_TENANT);
       next(error);
       return;
+    }
+    // Check that this is not the super tenant
+    if (tenantID === Constants.DEFAULT_TENANT) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Cannot request a verification Email in the Super Tenant', Constants.HTTP_GENERAL_ERROR,
+        'AuthService', 'handleResendVerificationEmail');
     }
     // Check email
     if (!filteredRequest.email) {
@@ -790,7 +801,6 @@ export default class AuthService {
         'Account is already active', Constants.HTTP_USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
         'AuthService', 'handleResendVerificationEmail', user);
     }
-
     let verificationToken;
     // Check verificationToken
     if (!user.verificationToken) {
@@ -895,20 +905,16 @@ export default class AuthService {
     user.passwordResetHash = null;
     // Save
     await UserStorage.saveUser(tenantID, user);
-
     // Yes: build payload
     const payload: UserToken = await Authorizations.buildUserToken(tenantID, user);
-
     // Build token
     let token;
     // Role Demo?
     if (Authorizations.isDemo(user.role)) {
-      // Yes
       token = jwt.sign(payload, jwtOptions.secretOrKey, {
         expiresIn: _centralSystemRestConfig.userDemoTokenLifetimeDays * 24 * 3600
       });
     } else {
-      // No
       token = jwt.sign(payload, jwtOptions.secretOrKey, {
         expiresIn: _centralSystemRestConfig.userTokenLifetimeHours * 3600
       });
@@ -939,9 +945,9 @@ export default class AuthService {
     }
 
     // Check password
-    const match = await UserService.checkPasswordBCrypt(filteredRequest.password, user.password);
+    const match = await Utils.checkPasswordBCrypt(filteredRequest.password, user.password);
     // Check new and old version of hashing the password
-    if (match || (user.password === UserService.hashPassword(filteredRequest.password))) {
+    if (match || (user.password === Utils.hashPassword(filteredRequest.password))) {
       // Check if the account is pending
       if (user.status === Constants.USER_STATUS_PENDING) {
         throw new AppError(

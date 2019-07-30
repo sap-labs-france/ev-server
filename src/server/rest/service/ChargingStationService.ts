@@ -1,3 +1,4 @@
+import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
@@ -8,23 +9,21 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
-import Tenant from '../../../entity/Tenant';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
+import Utils from '../../../utils/Utils';
 
 export default class ChargingStationService {
-  static async handleAddChargingStationsToSiteArea(action, req, res, next) {
+  static async handleAddChargingStationsToSiteArea(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterAddChargingStationsToSiteAreaRequest(req.body, req.user);
     // Check Mandatory fields
     if (!filteredRequest.siteAreaID) {
-      // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
         'The Site Area\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
         'ChargingStationService', 'handleAddChargingStationsToSiteArea', req.user);
     }
     if (!filteredRequest.chargingStationIDs || (filteredRequest.chargingStationIDs && filteredRequest.chargingStationIDs.length <= 0)) {
-      // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
         'The Charging Station\'s IDs must be provided', Constants.HTTP_GENERAL_ERROR,
@@ -58,14 +57,6 @@ export default class ChargingStationService {
           `The Charging Station with ID '${chargingStationID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'ChargingStationService', 'handleAddChargingStationsToSiteArea', req.user);
       }
-      // Get the Site Area
-      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
-      if (!siteArea) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Site Area with ID '${filteredRequest.siteAreaID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-          'ChargingStationService', 'handleAddChargingStationsToSiteArea', req.user);
-      }
       // Check auth
       if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
         throw new AppAuthError(
@@ -90,23 +81,31 @@ export default class ChargingStationService {
     next();
   }
 
-  static async handleRemoveChargingStationsFromSiteArea(action, req, res, next) {
+  static async handleRemoveChargingStationsFromSiteArea(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterRemoveChargingStationsFromSiteAreaRequest(req.body, req.user);
     // Check Mandatory fields
     if (!filteredRequest.siteAreaID) {
-      // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
         'The Site Area\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
         'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea', req.user);
     }
     if (!filteredRequest.chargingStationIDs || (filteredRequest.chargingStationIDs && filteredRequest.chargingStationIDs.length <= 0)) {
-      // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
         'The Site Area\'s IDs must be provided', Constants.HTTP_GENERAL_ERROR,
         'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea', req.user);
+    }
+    // Check auth
+    if (!Authorizations.canUpdateSiteArea(req.user, filteredRequest.siteID)) {
+      throw new AppAuthError(
+        Constants.ACTION_UPDATE,
+        Constants.ENTITY_SITE_AREA,
+        filteredRequest.siteAreaID,
+        Constants.HTTP_AUTH_ERROR,
+        'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea',
+        req.user);
     }
     // Get the Site Area
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
@@ -116,16 +115,6 @@ export default class ChargingStationService {
         `The Site Area with ID '${filteredRequest.siteAreaID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea', req.user);
     }
-    // Check auth
-    if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
-      throw new AppAuthError(
-        Constants.ACTION_UPDATE,
-        Constants.ENTITY_SITE_AREA,
-        filteredRequest.siteAreaID,
-        Constants.HTTP_AUTH_ERROR,
-        'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea',
-        req.user);
-    }
     // Get Charging Stations
     for (const chargingStationID of filteredRequest.chargingStationIDs) {
       // Check the Charging Station
@@ -134,14 +123,6 @@ export default class ChargingStationService {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The Charging Station with ID '${chargingStationID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-          'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea', req.user);
-      }
-      // Get the Site Area
-      const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
-      if (!siteArea) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Site Area with ID '${filteredRequest.siteAreaID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'ChargingStationService', 'handleRemoveChargingStationsFromSiteArea', req.user);
       }
       // Check auth
@@ -168,7 +149,7 @@ export default class ChargingStationService {
     next();
   }
 
-  static async handleUpdateChargingStationParams(action, req, res, next) {
+  static async handleUpdateChargingStationParams(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationParamsUpdateRequest(req.body, req.user);
     // Check email
@@ -179,10 +160,10 @@ export default class ChargingStationService {
         `The Charging Station with ID '${filteredRequest.id}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'ChargingStationService', 'handleUpdateChargingStationParams', req.user);
     }
+
     const siteArea = await chargingStation.getSiteArea();
     // Check Auth
     if (!Authorizations.canUpdateChargingStation(req.user, siteArea ? siteArea.siteID : null)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_UPDATE, Constants.ENTITY_CHARGING_STATION,
         chargingStation.getID(), Constants.HTTP_AUTH_ERROR,
@@ -255,12 +236,11 @@ export default class ChargingStationService {
     next();
   }
 
-  static async handleGetChargingStationConfiguration(action, req, res, next) {
+  static async handleGetChargingStationConfiguration(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query, req.user);
     // Charge Box is mandatory
     if (!filteredRequest.ChargeBoxID) {
-      // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
         'The Charging Station ID is mandatory', Constants.HTTP_GENERAL_ERROR,
@@ -270,7 +250,6 @@ export default class ChargingStationService {
     const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
     // Found?
     if (!chargingStation) {
-      // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Charging Station with ID '${filteredRequest.ChargeBoxID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
@@ -278,7 +257,6 @@ export default class ChargingStationService {
     }
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_READ, Constants.ENTITY_CHARGING_STATION,
         chargingStation.getID(), Constants.HTTP_AUTH_ERROR,
@@ -292,12 +270,11 @@ export default class ChargingStationService {
     next();
   }
 
-  static async handleRequestChargingStationConfiguration(action, req, res, next) {
+  static async handleRequestChargingStationConfiguration(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationConfigurationRequest(req.query, req.user);
     // Charge Box is mandatory
     if (!filteredRequest.ChargeBoxID) {
-      // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
         'The Charging Station ID is mandatory', Constants.HTTP_GENERAL_ERROR,
@@ -307,7 +284,6 @@ export default class ChargingStationService {
     const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
     // Found?
     if (!chargingStation) {
-      // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Charging Station with ID '${filteredRequest.ChargeBoxID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
@@ -315,7 +291,6 @@ export default class ChargingStationService {
     }
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_READ,
         Constants.ENTITY_CHARGING_STATION,
@@ -325,12 +300,12 @@ export default class ChargingStationService {
     }
     // Get the Config
     const result = await chargingStation.requestAndSaveConfiguration();
-    // Return the result
+    // Ok
     res.json(result);
     next();
   }
 
-  static async handleDeleteChargingStation(action, req, res, next) {
+  static async handleDeleteChargingStation(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationDeleteRequest(req.query, req.user);
     // Check Mandatory fields
@@ -341,25 +316,23 @@ export default class ChargingStationService {
         'The Charging Station ID is mandatory', Constants.HTTP_GENERAL_ERROR,
         'ChargingStationService', 'handleDeleteChargingStation', req.user);
     }
+    // Check auth
+    if (!Authorizations.canDeleteChargingStation(req.user)) {
+      throw new AppAuthError(
+        Constants.ACTION_DELETE,
+        Constants.ENTITY_CHARGING_STATION,
+        filteredRequest.ID, Constants.HTTP_AUTH_ERROR,
+        'ChargingStationService', 'handleDeleteChargingStation',
+        req.user);
+    }
     // Get
     const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.ID);
     // Found?
     if (!chargingStation) {
-      // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Charging Station with ID '${filteredRequest.ID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'ChargingStationService', 'handleDeleteChargingStation', req.user);
-    }
-    // Check auth
-    if (!Authorizations.canDeleteChargingStation(req.user)) {
-      // Not Authorized!
-      throw new AppAuthError(
-        Constants.ACTION_DELETE,
-        Constants.ENTITY_CHARGING_STATION,
-        chargingStation.getID(), Constants.HTTP_AUTH_ERROR,
-        'ChargingStationService', 'handleDeleteChargingStation',
-        req.user);
     }
     // Check no active transaction
     const foundIndex = chargingStation.getConnectors().findIndex((connector) => {
@@ -389,12 +362,11 @@ export default class ChargingStationService {
     next();
   }
 
-  static async handleGetChargingStation(action, req, res, next) {
+  static async handleGetChargingStation(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationRequest(req.query, req.user);
     // Charge Box is mandatory
     if (!filteredRequest.ID) {
-      // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
         'The Charging Station ID is mandatory', Constants.HTTP_GENERAL_ERROR,
@@ -402,10 +374,8 @@ export default class ChargingStationService {
     }
     // Get it
     const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.ID);
-
     // Found?
     if (!chargingStation) {
-      // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Charging Station '${filteredRequest.ID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
@@ -415,17 +385,15 @@ export default class ChargingStationService {
     const tenant = await chargingStation.getTenant(); // pragma await TenantStorage.getTenant(chargingStation.getTenantID());
     res.json(
       // Filter
-
       ChargingStationSecurity.filterChargingStationResponse(
-        chargingStation.getModel(), req.user, await tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION))
+        chargingStation.getModel(), req.user, Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION))
     );
     next();
   }
 
-  static async handleGetChargingStations(action, req, res, next) {
+  static async handleGetChargingStations(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_LIST,
         Constants.ENTITY_CHARGING_STATIONS,
@@ -434,7 +402,6 @@ export default class ChargingStationService {
         req.user);
     }
     // Filter
-
     const filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query, req.user);
     // Get Charging Stations
     const chargingStations = await ChargingStation.getChargingStations(req.user.tenantID,
@@ -442,19 +409,18 @@ export default class ChargingStationService {
         'search': filteredRequest.Search,
         'withNoSiteArea': filteredRequest.WithNoSiteArea,
         'withSite': filteredRequest.WithSite,
-        'siteIDs': (filteredRequest.SiteID ? [filteredRequest.SiteID] : Authorizations.getAuthorizedSiteIDs(req.user)),
+        'siteIDs': (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : Authorizations.getAuthorizedSiteIDs(req.user)),
         'chargeBoxID': filteredRequest.ChargeBoxID,
         'siteAreaID': filteredRequest.SiteAreaID,
-        'includeDeleted': filteredRequest.IncludeDeleted,
-        'onlyRecordCount': filteredRequest.OnlyRecordCount
+        'includeDeleted': filteredRequest.IncludeDeleted
       },
-      filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
     );
     // Build the result
     if (chargingStations.result && chargingStations.result.length > 0) {
       // Get the Tenant
-      const tenant: Tenant = await chargingStations.result[0].getTenant();
-      const organizationIsActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+      const organizationIsActive = Utils.isComponentActiveFromToken(
+        req.user, Constants.COMPONENTS.ORGANIZATION);
       // Convert to JSon
       chargingStations.result = chargingStations.result.map((chargingStation) => {
         return chargingStation.getModel();
@@ -467,10 +433,9 @@ export default class ChargingStationService {
     next();
   }
 
-  static async handleGetChargingStationsExport(action, req, res, next) {
+  static async handleGetChargingStationsExport(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_LIST,
         Constants.ENTITY_CHARGING_STATIONS,
@@ -483,22 +448,19 @@ export default class ChargingStationService {
     // Get the charging Charging Stations
     const chargingStations = await ChargingStation.getChargingStations(req.user.tenantID,
       {
-
         'search': filteredRequest.Search,
         'withNoSiteArea': filteredRequest.WithNoSiteArea,
         'withSite': filteredRequest.WithSite,
-        'siteID': filteredRequest.SiteID,
+        'siteIDs': (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         'chargeBoxID': filteredRequest.ChargeBoxID,
         'siteAreaID': filteredRequest.SiteAreaID,
-        'onlyRecordCount': filteredRequest.OnlyRecordCount
       },
-      filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
     );
     // Build the result
     if (chargingStations.result && chargingStations.result.length > 0) {
-      // Get the Tenant
-      const tenant: Tenant = await chargingStations.result[0].getTenant();
-      const organizationIsActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+      // Check
+      const organizationIsActive = Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION);
       // Set
       chargingStations.result = chargingStations.result.map((chargingStation) => {
         return chargingStation.getModel();
@@ -525,10 +487,9 @@ export default class ChargingStationService {
     });
   }
 
-  static async handleGetChargingStationsInError(action, req, res, next) {
+  static async handleGetChargingStationsInError(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_LIST,
         Constants.ENTITY_CHARGING_STATIONS,
@@ -544,19 +505,17 @@ export default class ChargingStationService {
         'search': filteredRequest.Search,
         'withNoSiteArea': filteredRequest.WithNoSiteArea,
         'withSite': filteredRequest.WithSite,
-        'siteID': filteredRequest.SiteID,
+        'siteIDs': filteredRequest.SiteID,
         'chargeBoxID': filteredRequest.ChargeBoxID,
         'siteAreaID': filteredRequest.SiteAreaID,
-        'errorType': filteredRequest.ErrorType,
-        'onlyRecordCount': filteredRequest.OnlyRecordCount
+        'errorType': filteredRequest.ErrorType
       },
-      filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
     );
     // Build the result
     if (chargingStations.result && chargingStations.result.length > 0) {
-      // Get the Tenant
-      const tenant: Tenant = await chargingStations.result[0].getTenant();
-      const organizationIsActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+      // Check
+      const organizationIsActive = Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION);
       // Set
       chargingStations.result = chargingStations.result.map((chargingStation) => {
         return chargingStation.getModel();
@@ -569,10 +528,9 @@ export default class ChargingStationService {
     next();
   }
 
-  static async handleGetStatusNotifications(action, req, res, next) {
+  static async handleGetStatusNotifications(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
-      // Not Authorized! - Use same authorization as the Charging Stations
       throw new AppAuthError(
         Constants.ACTION_LIST,
         Constants.ENTITY_CHARGING_STATIONS,
@@ -592,10 +550,9 @@ export default class ChargingStationService {
     next();
   }
 
-  static async handleGetBootNotifications(action, req, res, next) {
+  static async handleGetBootNotifications(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
-      // Not Authorized! - Use same authorization as the Charging Stations
       throw new AppAuthError(
         Constants.ACTION_LIST,
         Constants.ENTITY_CHARGING_STATIONS,
@@ -615,7 +572,7 @@ export default class ChargingStationService {
     next();
   }
 
-  static async handleAction(action, req, res, next) {
+  static async handleAction(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationActionRequest(req.body, action, req.user);
     // Charge Box is mandatory
@@ -627,9 +584,7 @@ export default class ChargingStationService {
     }
     // Get the Charging station
     const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
-    // Found?
     if (!chargingStation) {
-      // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
@@ -663,6 +618,7 @@ export default class ChargingStationService {
           Constants.HTTP_USER_NO_BADGE_ERROR,
           'ChargingStationService', 'handleAction', req.user, null, action);
       }
+
       // Check if user is authorized
       await Authorizations.isTagIDsAuthorizedOnChargingStation(chargingStation, req.user.tagIDs[0], transaction.getTagID(), action);
       // Set the tag ID to handle the Stop Transaction afterwards
@@ -688,8 +644,7 @@ export default class ChargingStationService {
       result = await chargingStation.handleAction(action, filteredRequest.args);
     } else if (action === 'GetCompositeSchedule') {
       // Check auth
-      if (!Authorizations.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), action)) {
-        // Not Authorized!
+      if (!Authorizations.canPerformActionOnChargingStation(req.user, action)) {
         throw new AppAuthError(action,
           Constants.ENTITY_CHARGING_STATION,
           chargingStation.getID(),
@@ -725,8 +680,7 @@ export default class ChargingStationService {
       }
     } else {
       // Check auth
-      if (!Authorizations.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), action)) {
-        // Not Authorized!
+      if (!Authorizations.canPerformActionOnChargingStation(req.user, action)) {
         throw new AppAuthError(action,
           Constants.ENTITY_CHARGING_STATION,
           chargingStation.getID(),
@@ -736,7 +690,7 @@ export default class ChargingStationService {
       // Execute it
       result = await chargingStation.handleAction(action, filteredRequest.args);
     }
-    // Ok
+    // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
       source: chargingStation.getID(), user: req.user, action: action,
@@ -744,46 +698,41 @@ export default class ChargingStationService {
       message: `'${action}' has been executed successfully`,
       detailedMessages: result
     });
-    // Return the result
+    // Return
     res.json(result);
     next();
   }
 
-  static async handleActionSetMaxIntensitySocket(action, req, res, next) {
+  static async handleActionSetMaxIntensitySocket(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationSetMaxIntensitySocketRequest(req.body, req.user);
     // Charge Box is mandatory
     if (!filteredRequest.chargeBoxID) {
-      // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
         'The Charging Station ID is mandatory', Constants.HTTP_GENERAL_ERROR,
         'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
     }
+    // Check auth
+    if (!Authorizations.canPerformActionOnChargingStation(req.user, 'ChangeConfiguration')) {
+      throw new AppAuthError(action,
+        Constants.ENTITY_CHARGING_STATION,
+        filteredRequest.chargeBoxID,
+        Constants.HTTP_AUTH_ERROR, 'ChargingStationService', 'handleActionSetMaxIntensitySocket',
+        req.user);
+    }
     // Get the Charging station
     const chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
     // Found?
     if (!chargingStation) {
-      // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
     }
-    // Check auth
-    if (!Authorizations.canPerformActionOnChargingStation(req.user, chargingStation.getModel(), 'ChangeConfiguration')) {
-      // Not Authorized!
-      throw new AppAuthError(action,
-        Constants.ENTITY_CHARGING_STATION,
-        chargingStation.getID(),
-        Constants.HTTP_AUTH_ERROR, 'ChargingStationService', 'handleActionSetMaxIntensitySocket',
-        req.user);
-    }
     // Get the Config
     const chargerConfiguration = await chargingStation.getConfiguration();
-    // Check
     if (!chargerConfiguration) {
-      // Not Found!
       throw new AppError(
         chargingStation.getID(),
         'Cannot retrieve the configuration', Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
@@ -794,12 +743,10 @@ export default class ChargingStationService {
     for (let i = 0; i < chargerConfiguration.configuration.length; i++) {
       // Max Intensity?
       if (chargerConfiguration.configuration[i].key.startsWith('currentpb')) {
-        // Set
         maxIntensitySocketMax = Number(chargerConfiguration.configuration[i].value);
       }
     }
     if (!maxIntensitySocketMax) {
-      // Not Found!
       throw new AppError(
         chargingStation.getID(),
         'Cannot retrieve the max intensity socket from the configuration', Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
@@ -864,4 +811,3 @@ export default class ChargingStationService {
     return csv;
   }
 }
-

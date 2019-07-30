@@ -1,4 +1,3 @@
-import SourceMap from 'source-map-support';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import EMailNotificationTask from './email/EMailNotificationTask';
@@ -7,8 +6,6 @@ import Notification from '../entity/Notification';
 import NotificationStorage from '../storage/mongodb/NotificationStorage';
 import User from '../types/User';
 import UserStorage from '../storage/mongodb/UserStorage';
-
-SourceMap.install();
 
 const _notificationConfig = Configuration.getNotificationConfig();
 const _email = new EMailNotificationTask();
@@ -64,10 +61,14 @@ export default class NotificationHandler {
 
   static async getAdminUsers(tenantID: string): Promise<User[]> {
     // Get admin users
-    const adminUsers = await UserStorage.getUsers(tenantID, { role: Constants.ROLE_ADMIN }, { limit: 0, skip: 0 });
+    const adminUsers = await UserStorage.getUsers(tenantID, { roles: [Constants.ROLE_ADMIN] },
+      Constants.DB_PARAMS_MAX_LIMIT);
     // Found
     if (adminUsers.count > 0) {
-      // Convert to JSon
+      // Check if notification is active
+      adminUsers.result = adminUsers.result.filter((adminUser) => {
+        return adminUser.notificationsActive;
+      });
       return adminUsers.result;
     }
   }

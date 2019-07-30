@@ -1,9 +1,13 @@
 import cfenv from 'cfenv';
 import fs from 'fs';
 import os from 'os';
-import SourceMap from 'source-map-support';
+import ClusterConfiguration from '../types/configuration/ClusterConfiguration';
+import Config from '../types/configuration/Config';
 import Constants from './Constants';
 import global from './../types/GlobalType';
+import ODataServiceConfiguration from '../types/configuration/ODataServiceConfiguration';
+import StorageConfiguration from '../types/configuration/StorageConfiguration';
+import WSClientConfiguration from '../types/configuration/WSClientConfiguration';
 
 const {
   WS_DEFAULT_RECONNECT_MAX_RETRIES = Constants.WS_DEFAULT_RECONNECT_MAX_RETRIES,
@@ -12,11 +16,9 @@ const {
 const _appEnv = cfenv.getAppEnv();
 let config = null;
 
-SourceMap.install();
-
 export default class Configuration {
   // Read the config file
-  static getConfig() {
+  static getConfig(): Config {
     if (!config) {
       config = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/config.json`, 'utf8'));
     }
@@ -36,18 +38,18 @@ export default class Configuration {
   }
 
   // Cluster config
-  static getClusterConfig() {
-    let clusterConfig = Configuration.getConfig().Cluster;
+  static getClusterConfig(): ClusterConfiguration {
+    let clusterConfig: ClusterConfiguration = Configuration.getConfig().Cluster;
     const nbCpus = os.cpus().length;
     // Read conf and set defaults values
     if (!clusterConfig) {
-      clusterConfig = {};
+      clusterConfig = {} as ClusterConfiguration;
     }
-    if (!clusterConfig.hasOwnProperty('enabled')) {
+    if (!clusterConfig.enabled) {
       clusterConfig.enabled = false;
     }
     // Check number of workers
-    if (clusterConfig.hasOwnProperty('numWorkers')) {
+    if (clusterConfig.numWorkers) {
       if (clusterConfig.numWorkers < 2) {
         clusterConfig.numWorkers = 2;
       } else if (clusterConfig.numWorkers > nbCpus) {
@@ -136,7 +138,7 @@ export default class Configuration {
   }
 
   // OData Server Configuration
-  static getODataServiceConfig() {
+  static getODataServiceConfig(): ODataServiceConfiguration {
     const oDataservice = Configuration.getConfig().ODataService;
     // Check Cloud Foundry
     if (oDataservice && Configuration.isCloudFoundry()) {
@@ -194,10 +196,9 @@ export default class Configuration {
    * @todo
    * @param conf
    */
-  static saveConfig(conf) {
+  static saveConfig(conf: Config) {
     //
   }
-
 
   // Locale config
   static getLocalesConfig() {
@@ -206,8 +207,8 @@ export default class Configuration {
   }
 
   // DB config
-  static getStorageConfig() {
-    const storage = Configuration.getConfig().Storage;
+  static getStorageConfig(): StorageConfiguration {
+    const storage: StorageConfiguration = Configuration.getConfig().Storage;
     // Check Cloud Foundry
     if (storage && Configuration.isCloudFoundry()) {
       // CF Environment: Override
@@ -245,7 +246,7 @@ export default class Configuration {
   static getWSClientConfig() {
     // Read conf and set defaults values
     if (!Configuration.getConfig().WSClient) {
-      Configuration.getConfig().WSClient = {};
+      Configuration.getConfig().WSClient = {} as WSClientConfiguration;
     }
     if (!Configuration.getConfig().WSClient.autoReconnectMaxRetries) {
       Configuration.getConfig().WSClient.autoReconnectMaxRetries = WS_DEFAULT_RECONNECT_MAX_RETRIES;

@@ -67,6 +67,12 @@ export default class DatabaseUtils {
     });
   }
 
+  public static pushSiteUserLookupInAggregation(lookupParams: DbLookup) {
+    DatabaseUtils.pushCollectionLookupInAggregation('siteusers', {
+      ...lookupParams
+    });
+  }
+
   public static pushUserLookupInAggregation(lookupParams: DbLookup) {
     DatabaseUtils.pushCollectionLookupInAggregation('users', {
       objectIDFields: ['createdBy', 'lastChangedBy'],
@@ -76,6 +82,13 @@ export default class DatabaseUtils {
 
   public static pushCompanyLookupInAggregation(lookupParams: DbLookup) {
     DatabaseUtils.pushCollectionLookupInAggregation('companies', {
+      objectIDFields: ['createdBy', 'lastChangedBy'],
+      ...lookupParams
+    });
+  }
+
+  public static pushVehicleLookupInAggregation(lookupParams: DbLookup) {
+    DatabaseUtils.pushCollectionLookupInAggregation('vehicles', {
       objectIDFields: ['createdBy', 'lastChangedBy'],
       ...lookupParams
     });

@@ -56,6 +56,7 @@ export default class SiteSecurity {
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.UserID = sanitize(request.UserID);
     filteredRequest.CompanyID = sanitize(request.CompanyID);
+    filteredRequest.SiteID = sanitize(request.SiteID);
     filteredRequest.ExcludeSitesOfUserID = sanitize(request.ExcludeSitesOfUserID);
     filteredRequest.WithCompany = UtilsSecurity.filterBoolean(request.WithCompany);
     filteredRequest.WithAvailableChargers = UtilsSecurity.filterBoolean(request.WithAvailableChargers);
@@ -115,21 +116,16 @@ export default class SiteSecurity {
       if (site.siteAreas) {
         filteredSite.siteAreas = SiteAreaSecurity.filterSiteAreasResponse(site.siteAreas, loggedUser);
       }
-      // pragma if (site.users) {
-      //   filteredSite.users = site.users.map((user) => {
-      //     return UserSecurity.filterMinimalUserResponse(user, loggedUser);
-      //   });
-      // } TODO: not needed anymore right
-      if (site.availableChargers) {
+      if (site.hasOwnProperty('availableChargers')) {
         filteredSite.availableChargers = site.availableChargers;
       }
-      if (site.totalChargers) {
+      if (site.hasOwnProperty('totalChargers')) {
         filteredSite.totalChargers = site.totalChargers;
       }
-      if (site.availableConnectors) {
+      if (site.hasOwnProperty('availableConnectors')) {
         filteredSite.availableConnectors = site.availableConnectors;
       }
-      if (site.totalConnectors) {
+      if (site.hasOwnProperty('totalConnectors')) {
         filteredSite.totalConnectors = site.totalConnectors;
       }
       // Created By / Last Changed By

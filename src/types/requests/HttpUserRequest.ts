@@ -1,4 +1,3 @@
-import HttpByIDRequest from './HttpByIDRequest';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
 import User from '../User';
 

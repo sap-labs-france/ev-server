@@ -20,7 +20,7 @@ export default class SiteStorage {
     const sitesMDB = await SiteStorage.getSites(tenantID, {
       search: id,
       withCompany: true,
-    }, { limit: 1, skip: 0 });
+    }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('SiteStorage', 'getSite', uniqueTimerID, { id });
     return sitesMDB.result[0];
@@ -100,7 +100,7 @@ export default class SiteStorage {
   }
 
   public static async getUsers(tenantID: string,
-    params: { search?: string; siteID: string; onlyRecordCount?: boolean },
+    params: { search?: string; siteID: string},
     dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: UserSite[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getUsers');
@@ -146,7 +146,7 @@ export default class SiteStorage {
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
     const usersCountMDB = await global.database.getCollection<{count: number}>(tenantID, 'siteusers')
@@ -198,7 +198,7 @@ export default class SiteStorage {
     // Ok
     return {
       count: (usersCountMDB.length > 0 ?
-        (usersCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : usersCountMDB[0].count) : 0),
+        (usersCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : usersCountMDB[0].count) : 0),
       result: users
     };
   }
@@ -254,7 +254,7 @@ export default class SiteStorage {
         'SiteStorage', 'saveSite');
     }
     if (saveImage) {
-      SiteStorage.saveSiteImage(tenantID, siteFilter._id.toHexString(), siteToSave.image);
+      await SiteStorage.saveSiteImage(tenantID, siteFilter._id.toHexString(), siteToSave.image);
     }
     // Debug
     Logging.traceEnd('SiteStorage', 'saveSite', uniqueTimerID, { siteToSave });
@@ -278,7 +278,7 @@ export default class SiteStorage {
 
   public static async getSites(tenantID: string,
     params: {
-      search?: string; companyID?: string; withAutoUserAssignment?: boolean; siteIDs?: string[];
+      search?: string; companyIDs?: string[]; withAutoUserAssignment?: boolean; siteIDs?: string[];
       userID?: string; excludeSitesOfUserID?: boolean;
       withAvailableChargers?: boolean; withCompany?: boolean; } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: Site[]}> {
@@ -302,8 +302,12 @@ export default class SiteStorage {
       }
     }
     // Set Company?
-    if (params.companyID) {
-      filters.companyID = Utils.convertToObjectID(params.companyID);
+    if (params.companyIDs && Array.isArray(params.companyIDs) && params.companyIDs.length > 0) {
+      filters.companyID = {
+        $in: params.companyIDs.map((company) => {
+          return Utils.convertToObjectID(company);
+        })
+      };
     }
     // Auto User Site Assignment
     if (params.withAutoUserAssignment) {
@@ -338,15 +342,15 @@ export default class SiteStorage {
       $match: filters
     });
     // Limit records?
-    if (!params.onlyRecordCount) {
-      aggregation.push({ $limit: Constants.MAX_DB_RECORD_COUNT });
+    if (!dbParams.onlyRecordCount) {
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
     const sitesCountMDB = await global.database.getCollection<any>(tenantID, 'sites')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
-    if (params.onlyRecordCount) {
+    if (dbParams.onlyRecordCount) {
       return {
         count: (sitesCountMDB.length > 0 ? sitesCountMDB[0].count : 0),
         result: []
@@ -398,8 +402,9 @@ export default class SiteStorage {
         // Count Available/Occupied Chargers/Connectors
         if (params.withAvailableChargers) {
           let availableChargers = 0, totalChargers = 0, availableConnectors = 0, totalConnectors = 0;
-          // Get te chargers
-          const chargingStations = await ChargingStationStorage.getChargingStations(tenantID, { siteIDs: [siteMDB.id] }, Constants.MAX_DB_RECORD_COUNT, 0);
+          // Get the chargers
+          const chargingStations = await ChargingStationStorage.getChargingStations(tenantID,
+            { siteIDs: [siteMDB.id] }, Constants.DB_PARAMS_MAX_LIMIT);
           for (const chargingStation of chargingStations.result) {
             // Set Inactive flag
             chargingStation.setInactive(DatabaseUtils.chargingStationIsInactive(chargingStation.getModel()));
@@ -452,7 +457,7 @@ export default class SiteStorage {
     // Ok
     return {
       count: (sitesCountMDB.length > 0 ?
-        (sitesCountMDB[0].count === Constants.MAX_DB_RECORD_COUNT ? -1 : sitesCountMDB[0].count) : 0),
+        (sitesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : sitesCountMDB[0].count) : 0),
       result: sites
     };
   }
@@ -472,7 +477,7 @@ export default class SiteStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Delete all Site Areas
-    SiteAreaStorage.deleteSiteAreasFromSites(tenantID, ids);
+    await SiteAreaStorage.deleteSiteAreasFromSites(tenantID, ids);
     // Convert
     const cids: ObjectID[] = ids.map((id) => {
       return Utils.convertToObjectID(id);
@@ -500,14 +505,14 @@ export default class SiteStorage {
       .find({ companyID: Utils.convertToObjectID(companyID) })
       .project({ _id: 1 })
       .toArray())
-      .map((site) => {
+      .map((site): string => {
         return site._id.toHexString();
       }
       );
     // Delete all Site Areas
-    SiteAreaStorage.deleteSiteAreasFromSites(tenantID, siteIDs);
+    await SiteAreaStorage.deleteSiteAreasFromSites(tenantID, siteIDs);
     // Delete Sites
-    SiteStorage.deleteSites(tenantID, siteIDs);
+    await SiteStorage.deleteSites(tenantID, siteIDs);
     // Debug
     Logging.traceEnd('SiteStorage', 'deleteCompanySites', uniqueTimerID, { companyID });
   }

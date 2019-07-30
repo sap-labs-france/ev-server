@@ -32,6 +32,7 @@ coverage
 
 # Compiled binary addons (http://nodejs.org/api/addons.html)
 dist
+dist-sav
 
 # Dependency directories
 node_modules
@@ -77,3 +78,4 @@ build/config.gypi
 
  *.orig
 /yarn.lock
+.DS_Store

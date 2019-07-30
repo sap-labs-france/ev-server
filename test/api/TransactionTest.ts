@@ -4,6 +4,7 @@ import faker from 'faker';
 import moment from 'moment';
 import CentralServerService from '../api/client/CentralServerService';
 import DataHelper from './DataHelper';
+import Utils from './Utils';
 
 chai.use(chaiSubset);
 
@@ -11,6 +12,7 @@ class TestData {
   public centralServerService: CentralServerService;
   public tenantID: string;
   public dataHelper16: any;
+  public currentPricingSetting;
 
   public constructor() {
     this.centralServerService = new CentralServerService();
@@ -29,11 +31,21 @@ describe('Transaction tests', function() {
   before(async () => {
     testData = new TestData();
     await testData.init();
+    const allSettings = await testData.centralServerService.settingApi.readAll({});
+    testData.currentPricingSetting = allSettings.data.result.find((s) => {
+      return s.identifier === 'pricing';
+    });
+    if (testData.currentPricingSetting) {
+      await testData.centralServerService.updatePriceSetting(1, 'EUR');
+    }
   });
 
   after(async () => {
-    testData.dataHelper16.close();
+    await testData.dataHelper16.close();
     await testData.dataHelper16.destroyData();
+    if (testData.currentPricingSetting) {
+      await testData.centralServerService.settingApi.update(testData.currentPricingSetting);
+    }
   });
 
   describe('readById', () => {
@@ -927,7 +939,8 @@ describe('Transaction tests', function() {
       cumulated += meterValue.value;
       await testData.dataHelper16.sendConsumptionMeterValue(chargingStation, connectorId, transactionId, cumulated, meterValue.timestamp);
     }
-    await timeout(2000);
+
+    await Utils.sleep(1000);
     expect(await testData.centralServerService.mailApi.isMailReceived(user.email, 'transaction-started')).is.equal(true, 'transaction-started mail');
     expect(await testData.centralServerService.mailApi.isMailReceived(user.email, 'end-of-charge')).is.equal(true, 'end-of-charge mail');
 
@@ -1005,8 +1018,6 @@ describe('Transaction tests', function() {
       const meterStart = 180;
       const startDate = moment();
       const transactionId = await testData.dataHelper16.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
-      await testData.centralServerService.updatePriceSetting(1.5, 'EUR');
-
       const currentDate = startDate.clone();
 
       const meterValues = [
@@ -1049,17 +1060,11 @@ describe('Transaction tests', function() {
         id: transactionId,
         stop: {
           totalDurationSecs: 7 * 3600,
-          totalInactivitySecs: 5 * 3600
+          totalInactivitySecs: 5 * 3600,
+          price: 0.15,
+          roundedPrice: 0.15
         }
       });
     });
   });
 });
-
-
-async function timeout(ms) {
-  // eslint-disable-next-line no-undef
-  return await new Promise((resolve) => {
-    return setTimeout(resolve, ms);
-  });
-}

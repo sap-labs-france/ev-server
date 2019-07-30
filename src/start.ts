@@ -1,5 +1,4 @@
 import cluster from 'cluster';
-import SourceMap from 'source-map-support';
 import CentralRestServer from './server/rest/CentralRestServer';
 import Configuration from './utils/Configuration';
 import Constants from './utils/Constants';
@@ -15,8 +14,6 @@ import ODataServer from './server/odata/ODataServer';
 import SchedulerManager from './scheduler/SchedulerManager';
 import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer';
 import Utils from './utils/Utils';
-
-SourceMap.install();
 
 const MODULE_NAME = 'Bootstrap';
 export default class Bootstrap {
@@ -54,8 +51,8 @@ export default class Bootstrap {
       Bootstrap.oDataServerConfig = Configuration.getODataServiceConfig();
       Bootstrap.isClusterEnabled = Configuration.getClusterConfig().enabled;
       // Init global user and tenant IDs hashmap
-      global.userHashMapIDs = {};
-      global.tenantHashMapIDs = {};
+      global.userHashMapIDs = new Map<string, string>();
+      global.tenantHashMapIDs = new Map<string, string>();
 
       // Start the connection to the Database
       if (!Bootstrap.databaseDone) {
@@ -65,6 +62,8 @@ export default class Bootstrap {
           case 'mongodb':
             // Create MongoDB
             Bootstrap.database = new MongoDBStorage(Bootstrap.storageConfig);
+            // Keep a global reference
+            global.database = Bootstrap.database;
             break;
           default:
             // eslint-disable-next-line no-console
@@ -72,7 +71,7 @@ export default class Bootstrap {
         }
         // Connect to the Database
         await Bootstrap.database.start();
-        let logMsg;
+        let logMsg: string;
         if (cluster.isMaster) {
           logMsg = `Database connected to '${Bootstrap.storageConfig.implementation}' successfully in master`;
         } else {
@@ -86,7 +85,6 @@ export default class Bootstrap {
         });
         Bootstrap.databaseDone = true;
       }
-      global.database = Bootstrap.database;
       // Clean the locks in DB belonging to the current app/host
       if (cluster.isMaster && Bootstrap.databaseDone) {
         await LockingStorage.cleanLocks();
