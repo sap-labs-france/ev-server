@@ -16,6 +16,7 @@ export default class SettingSecurity {
   static filterSettingRequest(request, loggedUser) {
     const filteredRequest: any = {};
     filteredRequest.ID = sanitize(request.ID);
+    filteredRequest.ContentFilter = UtilsSecurity.filterBoolean(request.ContentFilter)
     return filteredRequest;
   }
 
@@ -24,6 +25,7 @@ export default class SettingSecurity {
     const filteredRequest: any = {};
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.Identifier = sanitize(request.Identifier);
+    filteredRequest.ContentFilter = UtilsSecurity.filterBoolean(request.ContentFilter);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
@@ -51,7 +53,7 @@ export default class SettingSecurity {
     return filteredRequest;
   }
 
-  static filterSettingResponse(setting, loggedUser) {
+  static filterSettingResponse(setting, loggedUser, contentFilter = false) {
     let filteredSetting;
 
     if (!setting) {
@@ -59,16 +61,10 @@ export default class SettingSecurity {
     }
     // Check auth
     if (Authorizations.canReadSetting(loggedUser, setting)) {
-      // Admin?
-      // if (Authorizations.isAdmin(loggedUser)) {
-      // Yes: set all params
       filteredSetting = setting;
-      filteredSetting.content = SettingSecurity._filterAuthorizedSettingContent(loggedUser, setting);
-      // } else {
-      //   // Set only necessary info
-      //   return null;
-      // }
-
+      if (contentFilter) {
+        filteredSetting.content = SettingSecurity._filterAuthorizedSettingContent(loggedUser, setting);
+      }
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(
         filteredSetting, setting, loggedUser);
@@ -76,7 +72,7 @@ export default class SettingSecurity {
     return filteredSetting;
   }
 
-  static filterSettingsResponse(settings, loggedUser) {
+  static filterSettingsResponse(settings, loggedUser, contentFilter = false) {
     const filteredSettings = [];
 
     if (!settings) {
@@ -87,7 +83,7 @@ export default class SettingSecurity {
     }
     for (const setting of settings) {
       // Filter
-      const filteredSetting = SettingSecurity.filterSettingResponse(setting, loggedUser);
+      const filteredSetting = SettingSecurity.filterSettingResponse(setting, loggedUser, contentFilter);
       // Ok?
       if (filteredSetting) {
         // Add
