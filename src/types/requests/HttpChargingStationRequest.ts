@@ -1,5 +1,4 @@
-import HttpDatabaseRequest from "./HttpDatabaseRequest";
-import SiteUsersHashIDsTask from "../../migration/tasks/SiteUsersHashIDsTask";
+import HttpDatabaseRequest from './HttpDatabaseRequest';
 
 export interface HttpAssignChargingStationToSiteAreaRequest {
   siteAreaID: string;
@@ -13,7 +12,7 @@ export interface HttpChargingStationsRequest extends HttpDatabaseRequest {
   WithSite?: boolean; // TODO can we please remove this
   SiteAreaID?: string;
   IncludeDeleted?: boolean;
-  ErrorType?:'missingSettings'|'connectionBroken'|'connectorError'|'missingSiteArea'|'all';
+  ErrorType?: 'missingSettings'|'connectionBroken'|'connectorError'|'missingSiteArea'|'all';
 }
 
 export interface HttpChargingStationRequest {

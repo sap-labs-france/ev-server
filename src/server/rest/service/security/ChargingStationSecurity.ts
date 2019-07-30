@@ -95,9 +95,7 @@ export default class ChargingStationSecurity {
     for (const chargingStation of chargingStations.result) {
       // Filter
       const filteredChargingStation = ChargingStationSecurity.filterChargingStationResponse(chargingStation, loggedUser, organizationIsActive);
-      // Ok?
       if (filteredChargingStation) {
-        // Add
         filteredChargingStations.push(filteredChargingStation);
       }
     }
@@ -212,7 +210,7 @@ export default class ChargingStationSecurity {
     return {
       chargeBoxID: sanitize(request.chargeBoxID),
       maxIntensity: request.args ? sanitize(request.args.maxIntensity) : null
-    }
+    };
   }
 }
 

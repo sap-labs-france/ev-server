@@ -239,10 +239,19 @@ export default class OCPPService {
 
   async _updateConnectorStatus(tenantID: string, chargingStation: ChargingStation, statusNotification, bothConnectorsUpdated) {
     // Get it
-    let connector = chargingStation.connectors.find(c=>c.connectorId===statusNotification.connectorId); // TODO: Is it really an array or is it a search? Might be search. FIXME
+    let connector = chargingStation.connectors.find((connector) => {
+      return connector.connectorId === statusNotification.connectorId
+    });
     if (!connector) {
       // Does not exist: Create
-      connector = { activeTransactionID: 0, connectorId: statusNotification.connectorId, currentConsumption: 0, status: 'Unknown', power: 0, type: Constants.CONNECTOR_TYPES.UNKNOWN };
+      connector = {
+        activeTransactionID: 0,
+        connectorId: statusNotification.connectorId,
+        currentConsumption: 0,
+        status: 'Unknown',
+        power: 0,
+        type: Constants.CONNECTOR_TYPES.UNKNOWN
+      };
       chargingStation.connectors.push(connector);
     }
     // Check if status has changed
@@ -629,7 +638,9 @@ export default class OCPPService {
 
   async _updateChargingStationConsumption(tenantID: string, chargingStation: ChargingStation, transaction: Transaction) {
     // Get the connector
-    const connector = chargingStation.connectors.find(c=>c.connectorId===transaction.getConnectorId());
+    const connector = chargingStation.connectors.find((connector)=> {
+      return connector.connectorId === transaction.getConnectorId()
+    });
     // Active transaction?
     if (transaction.isActive() && connector) {
       // Set consumption

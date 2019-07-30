@@ -26,10 +26,10 @@ export default class ChargingStationStorage {
     return chargingStationsMDB.result[0];
   }
 
-  public static async getChargingStations(tenantID: string, params:
-    {search?:string,siteAreaID?:string,withNoSiteArea?:boolean,siteIDs?:string[],withSite?:boolean,
-      errorType?:'missingSettings'|'connectionBroken'|'connectorError'|'missingSiteArea'|'all',includeDeleted?:boolean},
-    dbParams: DbParams, projectFields?: string[]): Promise<{count: number, result: ChargingStation[]}> {
+  public static async getChargingStations(tenantID: string,
+      params: { search?: string; siteAreaID?: string; withNoSiteArea?: boolean; siteIDs?: string[]; withSite?: boolean;
+        errorType?: 'missingSettings'|'connectionBroken'|'connectorError'|'missingSiteArea'|'all'; includeDeleted?: boolean; },
+      dbParams: DbParams, projectFields?: string[]): Promise<{count: number, result: ChargingStation[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
     // Check Tenant
@@ -116,7 +116,7 @@ export default class ChargingStationStorage {
       // Build facet only for one error type
       facets.$facet = {};
       facets.$facet[params.errorType] = ChargingStationStorage._buildChargerInErrorFacet(params.errorType);
-    } else if(params.errorType && params.errorType === 'all') {
+    } else if (params.errorType && params.errorType === 'all') {
       facets = {
         '$facet':
         {
@@ -242,48 +242,6 @@ export default class ChargingStationStorage {
     };
   }
 
-  private static _buildChargerInErrorFacet(errorType:'missingSettings'|'connectionBroken'|'connectorError'|'missingSiteArea') {
-    switch (errorType) {
-      case 'missingSettings':
-        return [{
-          $match: {
-            $or: [
-              { 'maximumPower': { $exists: false } }, { 'maximumPower': { $lte: 0 } }, { 'maximumPower': null },
-              { 'chargePointModel': { $exists: false } }, { 'chargePointModel': { $eq: '' } },
-              { 'chargePointVendor': { $exists: false } }, { 'chargePointVendor': { $eq: '' } },
-              { 'numberOfConnectedPhase': { $exists: false } }, { 'numberOfConnectedPhase': null }, { 'numberOfConnectedPhase': { $nin: [0, 1, 3] } },
-              { 'powerLimitUnit': { $exists: false } }, { 'powerLimitUnit': null }, { 'powerLimitUnit': { $nin: ['A', 'W'] } },
-              { 'chargingStationURL': { $exists: false } }, { 'chargingStationURL': null }, { 'chargingStationURL': { $eq: '' } },
-              { 'cannotChargeInParallel': { $exists: false } }, { 'cannotChargeInParallel': null },
-              { 'connectors.type': { $exists: false } }, { 'connectors.type': null }, { 'connectors.type': { $eq: '' } },
-              { 'connectors.power': { $exists: false } }, { 'connectors.power': null }, { 'connectors.power': { $lte: 0 } }
-            ]
-          }
-        },
-        { $addFields: { 'errorCode': 'missingSettings' } }
-        ];
-      case 'connectionBroken': {
-        const inactiveDate = new Date(new Date().getTime() - 3 * 60 * 1000);
-        return [
-          { $match: { 'lastHeartBeat': { $lte: inactiveDate } } },
-          { $addFields: { 'errorCode': 'connectionBroken' } }
-        ];
-      }
-      case 'connectorError':
-        return [
-          { $match: { $or: [{ 'connectors.errorCode': { $ne: 'NoError' } }, { 'connectors.status': { $eq: 'Faulted' } }] } },
-          { $addFields: { 'errorCode': 'connectorError' } }
-        ];
-      case 'missingSiteArea':
-        return [
-          { $match: { $or: [{ 'siteAreaID': { $exists: false } }, { 'siteAreaID': null }] } },
-          { $addFields: { 'errorCode': 'missingSiteArea' } }
-        ];
-      default:
-        return [];
-    }
-  }
-
   public static async saveChargingStation(tenantID: string, chargingStationToSave: Partial<ChargingStation>): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStation');
@@ -308,7 +266,7 @@ export default class ChargingStationStorage {
     delete chargingStationMDB.id;
     delete chargingStationMDB.siteArea;
     delete chargingStationMDB.client;
-    if(!chargingStationMDB.connectors) {
+    if (!chargingStationMDB.connectors) {
       chargingStationMDB.connectors = [];
     }
     // Add Created/LastChanged By
@@ -353,7 +311,6 @@ export default class ChargingStationStorage {
     Logging.traceEnd('ChargingStationStorage', 'saveChargingStationConnector', uniqueTimerID);
   }
 
-  // TODO: Could be removed and just handled in saveChargingStation (the update), potentially.
   public static async saveChargingStationHeartBeat(tenantID: string, chargingStation: ChargingStation): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStationHeartBeat');
@@ -371,7 +328,7 @@ export default class ChargingStationStorage {
         Constants.CENTRAL_SERVER,
         'Couldn\'t update ChargingStation heartbeat',
         'ChargingStationStorage', 'saveChargingStationHeartBeat');
-      }
+    }
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'saveChargingStationHeartBeat', uniqueTimerID);
   }
@@ -500,5 +457,47 @@ export default class ChargingStationStorage {
       siteAreaID,
       chargingStationIDs
     });
+  }
+
+  private static _buildChargerInErrorFacet(errorType:'missingSettings'|'connectionBroken'|'connectorError'|'missingSiteArea') {
+    switch (errorType) {
+      case 'missingSettings':
+        return [{
+          $match: {
+            $or: [
+              { 'maximumPower': { $exists: false } }, { 'maximumPower': { $lte: 0 } }, { 'maximumPower': null },
+              { 'chargePointModel': { $exists: false } }, { 'chargePointModel': { $eq: '' } },
+              { 'chargePointVendor': { $exists: false } }, { 'chargePointVendor': { $eq: '' } },
+              { 'numberOfConnectedPhase': { $exists: false } }, { 'numberOfConnectedPhase': null }, { 'numberOfConnectedPhase': { $nin: [0, 1, 3] } },
+              { 'powerLimitUnit': { $exists: false } }, { 'powerLimitUnit': null }, { 'powerLimitUnit': { $nin: ['A', 'W'] } },
+              { 'chargingStationURL': { $exists: false } }, { 'chargingStationURL': null }, { 'chargingStationURL': { $eq: '' } },
+              { 'cannotChargeInParallel': { $exists: false } }, { 'cannotChargeInParallel': null },
+              { 'connectors.type': { $exists: false } }, { 'connectors.type': null }, { 'connectors.type': { $eq: '' } },
+              { 'connectors.power': { $exists: false } }, { 'connectors.power': null }, { 'connectors.power': { $lte: 0 } }
+            ]
+          }
+        },
+        { $addFields: { 'errorCode': 'missingSettings' } }
+        ];
+      case 'connectionBroken': {
+        const inactiveDate = new Date(new Date().getTime() - 3 * 60 * 1000);
+        return [
+          { $match: { 'lastHeartBeat': { $lte: inactiveDate } } },
+          { $addFields: { 'errorCode': 'connectionBroken' } }
+        ];
+      }
+      case 'connectorError':
+        return [
+          { $match: { $or: [{ 'connectors.errorCode': { $ne: 'NoError' } }, { 'connectors.status': { $eq: 'Faulted' } }] } },
+          { $addFields: { 'errorCode': 'connectorError' } }
+        ];
+      case 'missingSiteArea':
+        return [
+          { $match: { $or: [{ 'siteAreaID': { $exists: false } }, { 'siteAreaID': null }] } },
+          { $addFields: { 'errorCode': 'missingSiteArea' } }
+        ];
+      default:
+        return [];
+    }
   }
 }
