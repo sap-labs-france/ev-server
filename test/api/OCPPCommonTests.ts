@@ -2,19 +2,20 @@ import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import faker from 'faker';
 import moment from 'moment';
+import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './contextProvider/ChargingStationContext';
 import Factory from '../factories/Factory';
-import SiteStorage from '../storage/mongodb/SiteStorage';
 
 chai.use(chaiSubset);
+chai.use(responseHelper);
 
 export default class OCPPCommonTests {
 
   public tenantContext: any;
   public chargingStationContext: ChargingStationContext;
   public centralUserContext: any;
-  public centralUserService: any;
+  public centralUserService: CentralServerService;
 
   public currentPricingSetting;
   public priceKWH = 2;
@@ -78,7 +79,7 @@ export default class OCPPCommonTests {
   }
 
   public async before() {
-    const allSettings = await this.centralUserService.settingApi.readAll();
+    const allSettings = await this.centralUserService.settingApi.readAll({});
     this.currentPricingSetting = allSettings.data.result.find((s) => {
       return s.identifier === 'pricing';
     });
@@ -528,6 +529,22 @@ export default class OCPPCommonTests {
     await this.testAuthorize(this.invalidTag, 'Invalid');
     await this.testAuthorize('', 'Invalid');
     await this.testAuthorize(null, 'Invalid');
+  }
+
+  public async testAuthorizeUnknownTag() {
+    const unknownTag = faker.random.alphaNumeric(8);
+    await this.testAuthorize(unknownTag, 'Invalid');
+
+    const usersResponse = await this.centralUserService.userApi.getByTag(unknownTag);
+    expect(usersResponse.status).eq(200);
+    expect(usersResponse.data.count).eq(1);
+    const user = usersResponse.data.result[0];
+    expect(user.name).eq('Unknown');
+    expect(user.firstName).eq('User');
+    expect(user.email).eq(`${unknownTag}@e-mobility.com`);
+    expect(user.role).eq('B');
+    expect(user.tagIDs.length).eq(1);
+    expect(user.tagIDs[0]).eq(unknownTag);
   }
 
   public async testStartTransactionWithTagAsInteger() {

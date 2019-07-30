@@ -33,4 +33,8 @@ export default class UserApi extends CrudApi {
   public getByEmail(email) {
     return this.readAll({ Search : email });
   }
+
+  public getByTag(tag) {
+    return this.readAll({ Search : tag });
+  }
 }

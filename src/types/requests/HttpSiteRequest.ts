@@ -9,6 +9,7 @@ export interface HttpSitesRequest extends HttpDatabaseRequest {
   WithCompany: boolean;
   UserID: string;
   CompanyID: string;
+  SiteID: string;
   ExcludeSitesOfUserID: boolean;
   Search: string;
 }
