@@ -17,7 +17,11 @@
       === Anfang der eichrechtlich gesicherte Daten zur Überprüfung der Vollständigkeit und Integrität === <br>
       Transaktionssignatur für Transparenzsoftware: <br>
       ---8&lt;----Signatur ab hier---8&lt;--- <br>
-      <%- body.xmlContent %><br>
+      &lt;?xml version="1.0"?&gt;&lt;values&gt;&lt;value transactionId="1527108" context="Transaction.Begin"&gt;&lt;signedData&gt;<br>
+      <%- body.signedData.start %><br>
+      &lt;/signedData&gt;&lt;/value&gt;&lt;value transactionId="1527108" context="Transaction.End"&gt;&lt;signedData&gt;<br>
+      <%- body.signedData.stop %><br>
+      &lt;/signedData&gt;&lt;/value&gt;&lt;/values&gt;<br>
       ---8&lt;----Signatur bis hier---8&lt;--- <br>
     </p>
     <p>

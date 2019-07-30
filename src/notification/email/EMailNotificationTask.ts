@@ -182,6 +182,18 @@ export default class EMailNotificationTask extends NotificationTask {
       // Remove extra empty lines
       Utils.removeExtraEmptyLines(emailTemplate.body.afterActionLines);
     }
+    if (emailTemplate.body.signedData) {
+      emailTemplate.body.signedData.start = emailTemplate.body.signedData.start
+        .replace(/</g, '&amp;lt;')
+        .replace(/>/g, '&amp;gt;')
+        .replace(/encoding=\\"base64\\"/g, '<br>encoding=\\"base64\\"')
+        .replace(/\\/g, '');
+      emailTemplate.body.signedData.end = emailTemplate.body.signedData.end
+        .replace(/</g, '&amp;lt;')
+        .replace(/>/g, '&amp;gt;')
+        .replace(/encoding=\\"base64\\"/g, '<br>encoding=\\"base64\\"')
+        .replace(/\\/g, '');
+    }
     // Render the final HTML -----------------------------------------------
     const subject = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/subject.template`, 'utf8'), emailTemplate);
     let htmlTemp;
