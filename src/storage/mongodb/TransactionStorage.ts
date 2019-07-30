@@ -332,7 +332,7 @@ export default class TransactionStorage {
     // Add stop User
     DatabaseUtils.pushUserLookupInAggregation({ tenantID, aggregation, localField: 'stop.userID', foreignField: '_id', asField: 'stop.user',
       oneToOneCardinality: true, oneToOneCardinalityNotNull: false});
-      // Project
+    // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const transactionsMDB = await global.database.getCollection<Transaction>(tenantID, 'transactions')
@@ -628,7 +628,7 @@ export default class TransactionStorage {
       { tenantID, aggregation, localField: 'stop.userID', foreignField: '_id',
         asField: 'stop.user', oneToOneCardinality: true, oneToOneCardinalityNotNull: false });
     // Charging Station
-    DatabaseUtils.pushChargingStationLookupInAggregation({ tenantID, aggregation, localField: 'chargeBoxID', foreignField: '_id', 
+    DatabaseUtils.pushChargingStationLookupInAggregation({ tenantID, aggregation, localField: 'chargeBoxID', foreignField: '_id',
         asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false })
     // Read DB
     const transactionsMDB = await global.database.getCollection<any>(tenantID, 'transactions')

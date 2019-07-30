@@ -5,7 +5,7 @@ import moment from 'moment-timezone';
 import querystring from 'querystring';
 import AbstractConnector from '../AbstractConnector';
 import AppError from '../../exception/AppError';
-import ChargingStation from '../../entity/ChargingStation';
+import ChargingStation from '../../types/ChargingStation';
 import ConnectionStorage from '../../storage/mongodb/ConnectionStorage';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
@@ -14,6 +14,7 @@ import Logging from '../../utils/Logging';
 import Site from '../../types/Site';
 import Transaction from '../../entity/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
+import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 
 const MODULE_NAME = 'ConcurConnector';
 const CONNECTOR_ID = 'concur';
@@ -166,8 +167,8 @@ export default class ConcurConnector extends AbstractConnector {
     await Promise.map(transactions,
       async (transaction: Transaction) => {
         try {
-          const chargingStation = await ChargingStation.getChargingStation(transaction.getTenantID(), transaction.getChargeBoxID());
-          const locationId = await this.getLocation(connection, await chargingStation.getSite());
+          const chargingStation = await ChargingStationStorage.getChargingStation(transaction.getTenantID(), transaction.getChargeBoxID());
+          const locationId = await this.getLocation(connection, await chargingStation.siteArea.site);
           if (quickRefund) {
             const entryId = await this.createQuickExpense(connection, transaction, locationId, userId);
             transaction.setRefundData({ refundId: entryId, type: 'quick', refundedAt: new Date() });

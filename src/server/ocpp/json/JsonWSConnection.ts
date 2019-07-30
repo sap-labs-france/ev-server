@@ -9,13 +9,7 @@ import WSConnection from './WSConnection';
 
 const MODULE_NAME = 'JsonWSConnection';
 export default class JsonWSConnection extends WSConnection {
-  public getChargingStationID: any;
-  public getWSConnection: any;
-  public getTenantID: any;
-  public getIP: any;
-  public getURL: any;
-  public sendMessage: any;
-  public isWSConnectionOpen: any;
+
   private chargingStationClient: any;
   private chargingStationService: any;
   private headers: any;

@@ -3,6 +3,7 @@ import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
+import ChargingStation from '../../../../types/ChargingStation';
 
 /**
  * OCPI Mapping 2.1.1 - Mapping class
@@ -48,8 +49,8 @@ export default class OCPIMapping {
     const chargingStations = await siteArea.chargingStations;
 
     // Convert charging stations to evse(s)
-    chargingStations.forEach((chargingStation: any) => {
-      if (chargingStation.canChargeInParallel()) {
+    chargingStations.forEach((chargingStation) => {
+      if (!chargingStation.cannotChargeInParallel) {
         evses.push(...OCPIMapping.convertCharginStation2MultipleEvses(tenant, chargingStation, options));
       } else {
         evses.push(...OCPIMapping.convertChargingStation2UniqueEvse(tenant, chargingStation, options));
@@ -111,24 +112,24 @@ export default class OCPIMapping {
    * @param {*} chargingStation
    * @return Array of OCPI EVSES
    */
-  static convertCharginStation2MultipleEvses(tenant: any, chargingStation: any, options: any) {
+  static convertCharginStation2MultipleEvses(tenant: any, chargingStation: ChargingStation, options: any) {
     // Build evse_id
-    const evse_id = OCPIMapping.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.getID()}`);
+    const evse_id = OCPIMapping.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.id}`);
 
     // Loop through connectors and send one evse per connector
-    const connectors = chargingStation.getConnectors().filter((connector) => {
+    const connectors = chargingStation.connectors.filter((connector) => {
       return connector !== null;
     });
     const evses = connectors.map((connector: any) => {
       const evse: any = {
-        'uid': `${chargingStation.getID()}*${connector.connectorId}`,
+        'uid': `${chargingStation.id}*${connector.connectorId}`,
         'id': OCPIMapping.convert2evseid(`${evse_id}*${connector.connectorId}`),
         'status': OCPIMapping.convertStatus2OCPIStatus(connector.status),
         'connectors': [OCPIMapping.convertConnector2OCPIConnector(chargingStation, connector, evse_id)]
       };
       // Check addChargeBoxID flag
       if (options && options.addChargeBoxID) {
-        evse.chargeBoxId = chargingStation.getID();
+        evse.chargeBoxId = chargingStation.id;
       }
       return evse;
     });
@@ -144,19 +145,19 @@ export default class OCPIMapping {
    * @param options
    * @return OCPI EVSE
    */
-  static convertChargingStation2UniqueEvse(tenant: any, chargingStation: any, options: any) {
+  static convertChargingStation2UniqueEvse(tenant: any, chargingStation: ChargingStation, options: any) {
     // Build evse_id
-    const evse_id = OCPIMapping.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.getID()}`);
+    const evse_id = OCPIMapping.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.id}`);
 
     // Get all connectors
-    const connectors = chargingStation.getConnectors().map((connector: any) => {
+    const connectors = chargingStation.connectors.map((connector: any) => {
       return OCPIMapping.convertConnector2OCPIConnector(chargingStation, connector, evse_id);
     });
 
     // Build evse
     const evse: any = {
-      'uid': `${chargingStation.getID()}`,
-      // "id": this.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.getID()}`),
+      'uid': `${chargingStation.id}`,
+      // "id": this.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.id}`),
       'id': evse_id,
       'status': OCPIMapping.convertStatus2OCPIStatus(OCPIMapping.aggregateConnectorsStatus(connectors)),
       'connectors': connectors
@@ -164,7 +165,7 @@ export default class OCPIMapping {
 
     // Check addChargeBoxID flag
     if (options && options.addChargeBoxID) {
-      evse.chargeBoxId = chargingStation.getID();
+      evse.chargeBoxId = chargingStation.id;
     }
 
     return [evse];
@@ -200,14 +201,14 @@ export default class OCPIMapping {
    * @param evse_id pass evse_id in order to buid connector id (specs for Gireve)
    * @param {*} connector
    */
-  static convertConnector2OCPIConnector(chargingStation: any, connector: any, evse_id: any) {
+  static convertConnector2OCPIConnector(chargingStation: ChargingStation, connector: any, evse_id: any) {
     return {
       'id': `${evse_id}*${connector.connectorId}`,
       'type': Constants.MAPPING_CONNECTOR_TYPE[connector.type],
       'voltage': connector.voltage,
       'amperage': connector.amperage,
-      'power_type': OCPIMapping.convertNumberofConnectedPhase2PowerType(chargingStation.getNumberOfConnectedPhase()),
-      'last_update': chargingStation.getLastHeartBeat()
+      'power_type': OCPIMapping.convertNumberofConnectedPhase2PowerType(chargingStation.numberOfConnectedPhase),
+      'last_update': chargingStation.lastHeartBeat
     };
   }
 

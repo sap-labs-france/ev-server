@@ -281,7 +281,7 @@ export default {
       const handleRequest = RequestMapper.getInstanceFromHTTPVerb(req.method).getActionFromPath(action);
       // Execute
       await handleRequest(action, req, res, next);
-    } catch (error) {
+    } catch (error) {console.log(error);
       // Log
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }

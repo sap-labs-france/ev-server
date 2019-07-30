@@ -1,15 +1,17 @@
 import BackendError from '../../../exception/BackendError';
-import ChargingStation from '../../../entity/ChargingStation';
+import ChargingStation from '../../../types/ChargingStation';
 import Constants from '../../../utils/Constants';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import ChargingStationService from '../../rest/service/ChargingStationService';
 
 export default class OCPPUtils {
 
-  static lockAllConnectors(chargingStation) {
-    chargingStation.getConnectors().forEach((connector) => {
+  static lockAllConnectors(chargingStation: ChargingStation) {
+    chargingStation.connectors.forEach((connector) => {
       // Check
       if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
         // Check OCPP Version
-        if (chargingStation.getOcppVersion() === Constants.OCPP_VERSION_15) {
+        if (chargingStation.ocppVersion === Constants.OCPP_VERSION_15) {
           // Set OCPP 1.5 Occupied
           connector.status = Constants.CONN_STATUS_OCCUPIED;
         } else {
@@ -32,7 +34,7 @@ export default class OCPPUtils {
         && (meterValue.attribute.context === 'Sample.Periodic' || meterValue.attribute.context === 'Sample.Clock'));
   }
 
-  static async checkAndGetChargingStation(chargeBoxIdentity, tenantID) {
+  static async checkAndGetChargingStation(chargeBoxIdentity: string, tenantID: string): Promise<ChargingStation> {
     // Check
     if (!chargeBoxIdentity) {
       throw new BackendError(Constants.CENTRAL_SERVER,
@@ -40,14 +42,14 @@ export default class OCPPUtils {
         'OCPPUtils', '_checkAndGetChargingStation');
     }
     // Get the charging station
-    const chargingStation = await ChargingStation.getChargingStation(tenantID, chargeBoxIdentity);
+    const chargingStation = await ChargingStationStorage.getChargingStation(tenantID, chargeBoxIdentity);
     // Found?
     if (!chargingStation) {
       throw new BackendError(chargeBoxIdentity, 'Charging Station does not exist',
         'OCPPUtils', '_checkAndGetChargingStation');
     }
     // Found?
-    if (chargingStation.isDeleted()) {
+    if (chargingStation.deleted) {
       // Error
       throw new BackendError(chargeBoxIdentity, 'Charging Station is deleted',
         'OCPPUtils', '_checkAndGetChargingStation');
@@ -55,7 +57,7 @@ export default class OCPPUtils {
     return chargingStation;
   }
 
-  static async updateConnectorsPower(chargingStation) {
+  static async updateConnectorsPower(tenantID: string, chargingStation: ChargingStation) {
     let voltageRerefence = 0;
     let current = 0;
     let nbPhase = 0;
@@ -63,9 +65,9 @@ export default class OCPPUtils {
     let totalPower = 0;
 
     // Only for Schneider
-    if (chargingStation.getChargePointVendor() === 'Schneider Electric') {
+    if (chargingStation.chargePointVendor === 'Schneider Electric') {
       // Get the configuration
-      const configuration = await chargingStation.getConfiguration();
+      const configuration = await ChargingStationStorage.getConfiguration(tenantID, chargingStation.id);//TODO
       // Config Provided?
       if (configuration && configuration.configuration) {
         // Search for params
@@ -92,9 +94,9 @@ export default class OCPPUtils {
           }
         }
         // Override?
-        if (chargingStation.getNumberOfConnectedPhase()) {
+        if (chargingStation.numberOfConnectedPhase) {
           // Yes
-          nbPhase = chargingStation.getNumberOfConnectedPhase();
+          nbPhase = chargingStation.numberOfConnectedPhase;
         }
         // Compute it
         if (voltageRerefence && current && nbPhase) {
@@ -107,16 +109,16 @@ export default class OCPPUtils {
         }
       }
       // Set Power
-      for (const connector of chargingStation.getConnectors()) {
+      for (const connector of chargingStation.connectors) {
         if (connector) {
           connector.power = power;
           totalPower += power;
         }
       }
       // Set total power
-      if (totalPower && !chargingStation.getMaximumPower()) {
+      if (totalPower && !chargingStation.maximumPower) {
         // Set
-        chargingStation.setMaximumPower(totalPower);
+        chargingStation.maximumPower = totalPower;
       }
     }
   }

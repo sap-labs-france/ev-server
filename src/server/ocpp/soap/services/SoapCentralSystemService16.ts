@@ -2,7 +2,6 @@ import Constants from '../../../../utils/Constants';
 import global from '../../../../types/GlobalType';
 import Logging from '../../../../utils/Logging';
 import Utils from '../../../../utils/Utils';
-import ChargingStation from '../../../../entity/ChargingStation';
 
 const MODULE_NAME = 'SoapCentralSystemService16';
 export default { /* Services */
@@ -44,6 +43,8 @@ export default { /* Services */
       BootNotification: function(args, callback, headers, req) {
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
+          // Add current IP to charging station properties
+          headers.currentIPAddress = Utils.getRequestIP(req);
           // Add OCPP Version
           headers.ocppVersion = Constants.OCPP_VERSION_16;
           headers.ocppProtocol = Constants.OCPP_PROTOCOL_SOAP;

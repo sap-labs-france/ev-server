@@ -21,7 +21,8 @@ import Tenant from '../entity/Tenant';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
-
+import ChargingStation from '../types/ChargingStation';
+import tzlookup from 'tz-lookup';
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
 
@@ -299,15 +300,15 @@ export default class Utils {
     return _evseBaseURL + '/users?UserID=' + user.id + hash;
   }
 
-  static async buildEvseChargingStationURL(chargingStation, hash = '') {
-    const tenant = await chargingStation.getTenant();
+  static async buildEvseChargingStationURL(tenantID: string, chargingStation: ChargingStation, hash = '') {
+    const tenant = await TenantStorage.getTenant(tenantID);
     const _evseBaseURL = Utils.buildEvseURL(tenant.getSubdomain());
 
-    return _evseBaseURL + '/charging-stations?ChargingStationID=' + chargingStation.getID() + hash;
+    return _evseBaseURL + '/charging-stations?ChargingStationID=' + chargingStation.id + hash;
   }
 
-  static async buildEvseTransactionURL(chargingStation, transactionId, hash = '') {
-    const tenant = await chargingStation.getTenant();
+  static async buildEvseTransactionURL(tenantID: string, chargingStation: ChargingStation, transactionId, hash = '') {
+    const tenant = await TenantStorage.getTenant(tenantID);
     const _evseBaseURL = Utils.buildEvseURL(tenant.getSubdomain());
     // Add
     return _evseBaseURL + '/transactions?TransactionID=' + transactionId + hash;
@@ -750,5 +751,12 @@ export default class Utils {
 
   private static _isPlateIDValid(plateID) {
     return /^[A-Z0-9-]*$/.test(plateID);
+  }
+
+  public static getTimezone(lat: number, lon: number) {
+    if(lat && lon) {
+      return tzlookup(lat, lon);
+    }
+    return null;
   }
 }

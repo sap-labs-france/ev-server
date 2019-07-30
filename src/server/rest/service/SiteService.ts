@@ -359,8 +359,6 @@ export default class SiteService {
     UtilsService.assertComponentIsActiveFromToken(
       req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_LIST, Constants.ENTITY_SITES, 'SiteService', 'handleGetSites');
-    // Filter
-    const filteredRequest = SiteSecurity.filterSitesRequest(req.query, req.user);
     // Check auth
     if (!Authorizations.canListSites(req.user)) {
       // Not Authorized!
@@ -372,6 +370,8 @@ export default class SiteService {
         'SiteService', 'handleGetSites',
         req.user);
     }
+    // Filter
+    const filteredRequest = SiteSecurity.filterSitesRequest(req.query, req.user);
     // Get the sites
     const sites = await SiteStorage.getSites(req.user.tenantID,
       {
