@@ -292,7 +292,7 @@ export default class ChargingStationStorage {
     }
     // Build facets meaning each different error scenario
     let facets: any = {};
-    if (params.errorType) {
+    if (params.errorType && Array.isArray(params.errorType) && params.errorType.length > 0) {
       // Check allowed
       if (!(await Tenant.getTenant(tenantID)).isComponentActive(Constants.COMPONENTS.ORGANIZATION) && params.errorType === 'missingSiteArea') {
         throw new BackendError(null, 'Organization is not active whereas filter is on missing site.',
@@ -300,7 +300,9 @@ export default class ChargingStationStorage {
       }
       // Build facet only for one error type
       facets.$facet = {};
-      facets.$facet[params.errorType] = ChargingStationStorage.builChargerInErrorFacet(params.errorType);
+      params.errorType.forEach((type) => {
+        facets.$facet[type] = ChargingStationStorage.builChargerInErrorFacet(type);
+      });
     } else {
       facets = {
         '$facet':
