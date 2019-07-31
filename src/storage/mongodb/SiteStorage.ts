@@ -231,7 +231,7 @@ export default class SiteStorage {
       siteFilter._id = new ObjectID();
     }
     // Properties to save
-    const siteMDB: any = {
+    let siteMDB: any = {
       _id: siteFilter._id,
       address: siteToSave.address,
       companyID: Utils.convertToObjectID(siteToSave.companyID),

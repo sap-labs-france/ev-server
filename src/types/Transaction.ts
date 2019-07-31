@@ -11,6 +11,8 @@ export default interface Transaction {
   userID: string;
   chargeBoxID: string;
 
+  signedData?: any;
+
   user?: User;
   stop?: {
     tagID: string;
@@ -19,7 +21,7 @@ export default interface Transaction {
     meterStop: number;
     price: number;
     roundedPrice: number;
-    priceUnit: string; 
+    priceUnit: string;
     pricingSource: string;
     stateOfCharge: number;
     totalInactivitySecs: number;
@@ -27,6 +29,8 @@ export default interface Transaction {
     totalConsumption: number;
     totalDurationSecs: number;
     timestamp: Date;
+    transactionData?: any;
+    signedData?: any;
   }
   remotestop?: {
     timestamp: Date;
@@ -61,7 +65,8 @@ export default interface Transaction {
   currentConsumptionWh?: number;
   currentCumulatedPrice: number;
   currentTotalConsumption: number;
-  
+  currentSignedData?: number;
+
 
   uniqueId?: string;
   errorCode?: number;

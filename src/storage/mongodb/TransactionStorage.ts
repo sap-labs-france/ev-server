@@ -10,7 +10,7 @@ import Utils from '../../utils/Utils';
 import DbLookup from '../../types/database/DBLookup';
 
 export default class TransactionStorage {
-  public static async deleteTransaction(tenantID: string, transaction: Transaction) {
+  public static async deleteTransaction(tenantID: string, transaction: Transaction): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'deleteTransaction');
     // Check
@@ -39,23 +39,58 @@ export default class TransactionStorage {
       transactionToSave.id = await TransactionStorage._findAvailableID(tenantID);
     }
     // Transfer
-    const transactionMDB: any = {
+    let transactionMDB: any = {
       _id: transactionToSave.id,
-      siteID: Utils.convertToObjectID(transactionToSave.siteID),
-      siteAreaID: Utils.convertToObjectID(transactionToSave.siteAreaID),
-      userID: Utils.convertToObjectID(transactionToSave.userID),
-      ... transactionToSave
-    };
-    // Clean up mongo save object
-    delete transactionMDB.id;
-    if(transactionMDB.stop){
-      delete transactionMDB.stop.user;
-    }
-    delete transactionMDB.chargeBox;
-    delete transactionMDB.user;
-    delete transactionMDB.lastUpdate;
-    delete transactionMDB.currentConsumptionWh;
+      siteID: transactionToSave.siteID,
+      siteAreaID: transactionToSave.siteAreaID,
+      connectorId: transactionToSave.connectorId,
+      tagID: transactionToSave.tagID,
+      userID: transactionToSave.userID,
+      chargeBoxID: transactionToSave.chargeBoxID,
+      meterStart: transactionToSave.meterStart,
+      timestamp: transactionToSave.timestamp,
+      price: transactionToSave.price,
+      roundedPrice: transactionToSave.roundedPrice,
+      priceUnit: transactionToSave.priceUnit,
+      pricingSource: transactionToSave.pricingSource,
+      stateOfCharge: transactionToSave.stateOfCharge,
+      timezone: transactionToSave.timezone,
+      signedData: transactionToSave.signedData,
 
+      numberOfMeterValues: transactionToSave.numberOfMeterValues,
+      currentStateOfCharge: transactionToSave.currentStateOfCharge,
+      currentSignedData: transactionToSave.currentSignedData,
+      lastMeterValue: transactionToSave.lastMeterValue,
+      currentTotalInactivitySecs: transactionToSave.currentTotalInactivitySecs,
+      currentCumulatedPrice: transactionToSave.currentCumulatedPrice,
+      currentConsumption: transactionToSave.currentConsumption,
+      currentTotalConsumption: transactionToSave.currentTotalConsumption,
+    };
+    if (transactionToSave.stop) {
+      transactionMDB.stop = {
+        userID: Utils.convertToObjectID(transactionToSave.stop.userID),
+        timestamp: transactionToSave.stop.timestamp,
+        tagID: transactionToSave.stop.tagID,
+        meterStop: transactionToSave.stop.meterStop,
+        transactionData: transactionToSave.stop.transactionData,
+        stateOfCharge: transactionToSave.stop.stateOfCharge,
+        signedData: transactionToSave.stop.signedData,
+        totalConsumption: transactionToSave.stop.totalConsumption,
+        totalInactivitySecs: transactionToSave.stop.totalInactivitySecs,
+        extraInactivitySecs: transactionToSave.stop.extraInactivitySecs,
+        totalDurationSecs: transactionToSave.stop.totalDurationSecs,
+        price: transactionToSave.stop.price,
+        roundedPrice: transactionToSave.stop.roundedPrice,
+        priceUnit: transactionToSave.priceUnit,
+        pricingSource: transactionToSave.stop.pricingSource
+      }
+    }
+    if(transactionToSave.remotestop) {
+      transactionMDB.remotestop = {
+        timestamp: transactionToSave.remotestop.timestamp,
+        tagID: transactionToSave.remotestop.tagID
+      }
+    }
     // Modify
     await global.database.getCollection<any>(tenantID, 'transactions').findOneAndReplace(
       { '_id': Utils.convertToInt(transactionToSave.id) },
