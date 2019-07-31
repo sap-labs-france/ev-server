@@ -5,7 +5,7 @@ import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './contextProvider/ChargingStationContext';
-import Factory from '../factories/Factory';
+import Utils from './Utils';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -16,28 +16,10 @@ export default class TransactionCommonTests {
   public chargingStationContext: ChargingStationContext;
   public centralUserContext: any;
   public centralUserService: CentralServerService;
-
   public currentPricingSetting;
   public priceKWH = 2;
-  public chargingStationConnector1: any;
-  public chargingStationConnector2: any;
   public transactionUser: any;
   public transactionUserService: any;
-  public transactionStartMeterValue: any;
-  public transactionStartSoC: any;
-  public transactionMeterValues: any;
-  public transactionMeterSoCValues: any;
-  public transactionSignedData: any;
-  public transactionEndSignedData: any;
-  public transactionMeterValueIntervalSecs: any;
-  public transactionStartTime: any;
-  public transactionTotalConsumption: any;
-  public transactionEndMeterValue: any;
-  public transactionEndSoC: any;
-  public transactionTotalInactivity: any;
-  public totalPrice: any;
-  public newTransaction: any;
-  public transactionCurrentTime: any;
 
   public constructor(tenantContext, centralUserContext) {
     expect(tenantContext).to.exist;
@@ -66,50 +48,6 @@ export default class TransactionCommonTests {
     if (this.currentPricingSetting) {
       await this.centralUserService.updatePriceSetting(this.priceKWH, 'EUR');
     }
-    // Default Connector values
-    this.chargingStationConnector1 = {
-      connectorId: 1,
-      status: 'Available',
-      errorCode: 'NoError',
-      timestamp: new Date().toISOString()
-    };
-    this.chargingStationConnector2 = {
-      connectorId: 2,
-      status: 'Available',
-      errorCode: 'NoError',
-      timestamp: new Date().toISOString()
-    };
-    // Set meter value start
-    this.transactionStartMeterValue = 0;
-    this.transactionSignedData = 'DT785uwRY0zBF9ZepmQV94mK08l4ovYHgsraT8Z00l1p7jVRgq';
-    this.transactionEndSignedData = 'WZ2eLegGcstPRqYpsu7JQEMZSnUP6XTNzJJfBDKpAYgtXrNQSM';
-    this.transactionMeterValues = Array.from({ length: 12 }, () => {
-      return faker.random.number({
-        min: 200,
-        max: 500
-      });
-    }).concat([0, 0]);
-    this.transactionMeterSoCValues = Array.from({ length: 10 }, () => {
-      return faker.random.number({
-        min: 0,
-        max: 90
-      });
-    }).concat([98, 99, 100, 100]).sort((a, b) => {
-      return (a - b);
-    });
-    this.transactionStartSoC = this.transactionMeterSoCValues[0];
-    this.transactionMeterValueIntervalSecs = 60;
-    this.transactionStartTime = moment().subtract(this.transactionMeterValues.length * this.transactionMeterValueIntervalSecs + 1, 'seconds');
-    this.transactionTotalConsumption = this.transactionMeterValues.reduce((sum, meterValue) => {
-      return sum + meterValue;
-    });
-    this.transactionEndMeterValue = this.transactionStartMeterValue + this.transactionTotalConsumption;
-    this.transactionEndSoC = 100;
-    this.transactionTotalInactivity = this.transactionMeterValues.reduce(
-      (sum, meterValue) => {
-        return (meterValue === 0 ? sum + this.transactionMeterValueIntervalSecs : sum);
-      }, 0);
-    this.totalPrice = this.priceKWH * (this.transactionTotalConsumption / 1000);
   }
 
   public async after() {
@@ -119,17 +57,17 @@ export default class TransactionCommonTests {
   }
 
   public async testReadNonExistingTransaction() {
-    const response = await this.centralUserService.transactionApi.readById(faker.random.number(100000));
+    const response = await this.transactionUserService.transactionApi.readById(faker.random.number(100000));
     expect(response.status).to.equal(550);
   }
 
   public async testReadTransactionWithInvalidId() {
-    const response = await this.centralUserService.transactionApi.readById('&é"\'(§è!çà)');
+    const response = await this.transactionUserService.transactionApi.readById('&é"\'(§è!çà)');
     expect(response.status).to.equal(550);
   }
 
   public async testReadTransactionWithoutId() {
-    const response = await this.centralUserService.transactionApi.readById(null);
+    const response = await this.transactionUserService.transactionApi.readById(null);
     expect(response.status).to.equal(500);
   }
 
@@ -141,7 +79,7 @@ export default class TransactionCommonTests {
     let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
     expect(response).to.be.transactionValid;
     const transactionId = response.data.transactionId;
-    response = await this.centralUserService.transactionApi.readById(transactionId);
+    response = await this.transactionUserService.transactionApi.readById(transactionId);
     expect(response.status).to.equal(200);
     expect(response.data).to.containSubset({
       id: transactionId,
@@ -173,7 +111,7 @@ export default class TransactionCommonTests {
     const currentTime = startDate.clone().add(1, 'hour');
     response = await this.chargingStationContext.sendConsumptionMeterValue(connectorId, transactionId, meterStart + load, currentTime);
     expect(response.data).to.eql({});
-    response = await this.centralUserService.transactionApi.readById(transactionId);
+    response = await this.transactionUserService.transactionApi.readById(transactionId);
     expect(response.status).to.equal(200);
     expect(response.data).to.containSubset({
       id: transactionId,
@@ -214,7 +152,7 @@ export default class TransactionCommonTests {
     currentTime.add(1, 'hour');
     response = await this.chargingStationContext.sendConsumptionMeterValue(connectorId, transactionId, cumulated, currentTime);
     expect(response.data).to.eql({});
-    response = await this.centralUserService.transactionApi.readById(transactionId);
+    response = await this.transactionUserService.transactionApi.readById(transactionId);
     expect(response.status).to.equal(200);
     expect(response.data).to.containSubset({
       id: transactionId,
@@ -237,7 +175,7 @@ export default class TransactionCommonTests {
     const transactionId = response.data.transactionId;
     response = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate);
     expect(response).to.be.transactionStatus('Accepted');
-    response = await this.centralUserService.transactionApi.readById(transactionId);
+    response = await this.transactionUserService.transactionApi.readById(transactionId);
     expect(response.data).to.containSubset({
       id: transactionId,
       meterStart: meterStart,
@@ -262,7 +200,7 @@ export default class TransactionCommonTests {
     const transactionId = response.data.transactionId;
     response = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate);
     expect(response).to.be.transactionStatus('Accepted');
-    response = await this.centralUserService.transactionApi.readById(transactionId);
+    response = await this.transactionUserService.transactionApi.readById(transactionId);
     expect(response.status).to.equal(200);
     expect(response.data).to.containSubset({
       id: transactionId,
@@ -284,7 +222,7 @@ export default class TransactionCommonTests {
     const startDate = moment();
     let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
     expect(response).to.be.transactionValid;
-    response = await this.centralUserService.transactionApi.readAllCompleted({ ChargeBoxID: this.chargingStationContext.getChargingStation().id });
+    response = await this.transactionUserService.transactionApi.readAllCompleted({ ChargeBoxID: this.chargingStationContext.getChargingStation().id });
     expect(response.status).to.equal(200);
     expect(response.data.count).to.equal(0);
   }
@@ -306,7 +244,7 @@ export default class TransactionCommonTests {
     const transactionId2 = response.data.transactionId;
     response = await this.chargingStationContext.stopTransaction(transactionId2, tagId, meterStop, stopDate);
     expect(response).to.be.transactionStatus('Accepted');
-    response = await this.centralUserService.transactionApi.readAllCompleted({ ChargeBoxID: this.chargingStationContext.getChargingStation().id });
+    response = await this.transactionUserService.transactionApi.readAllCompleted({ ChargeBoxID: this.chargingStationContext.getChargingStation().id });
     expect(response.status).to.equal(200);
     expect(response.data.count).to.equal(2);
     expect(response.data.stats).to.containSubset({ count: 2 });
@@ -350,7 +288,7 @@ export default class TransactionCommonTests {
     const transactionId2 = response.data.transactionId;
     response = await this.chargingStationContext.stopTransaction(transactionId2, tagId, meterStop, stopDate);
     expect(response).to.be.transactionStatus('Accepted');
-    response = await this.centralUserService.transactionApi.readAllCompleted({
+    response = await this.transactionUserService.transactionApi.readAllCompleted({
       ChargeBoxID: this.chargingStationContext.getChargingStation().id,
       Statistics: 'history'
     });
@@ -404,7 +342,7 @@ export default class TransactionCommonTests {
     const transactionId2 = response.data.transactionId;
     response = await this.chargingStationContext.stopTransaction(transactionId2, tagId, meterStop, stopDate);
     expect(response).to.be.transactionStatus('Accepted');
-    response = await this.centralUserService.transactionApi.readAllCompleted({
+    response = await this.transactionUserService.transactionApi.readAllCompleted({
       UserId: this.transactionUser.id,
       ChargeBoxID: this.chargingStationContext.getChargingStation().id,
       Statistics: 'refund'
@@ -452,7 +390,7 @@ export default class TransactionCommonTests {
     const startDate = moment();
     let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
     expect(response).to.be.transactionValid;
-    response = await this.centralUserService.transactionApi.readAllInError({ ChargeBoxID: this.chargingStationContext.getChargingStation().id });
+    response = await this.transactionUserService.transactionApi.readAllInError({ ChargeBoxID: this.chargingStationContext.getChargingStation().id });
     expect(response.status).to.equal(200);
     expect(response.data.count).to.equal(0);
   }
@@ -474,7 +412,7 @@ export default class TransactionCommonTests {
     const transactionId2 = response.data.transactionId;
     response = await this.chargingStationContext.stopTransaction(transactionId2, tagId, meterStop, stopDate);
     expect(response).to.be.transactionStatus('Accepted');
-    response = await this.centralUserService.transactionApi.readAllInError({ ChargeBoxID: this.chargingStationContext.getChargingStation().id });
+    response = await this.transactionUserService.transactionApi.readAllInError({ ChargeBoxID: this.chargingStationContext.getChargingStation().id });
     expect(response.status).to.equal(200);
     expect(response.data.count).to.equal(2);
     expect(response.data.result).to.containSubset([{
@@ -488,6 +426,599 @@ export default class TransactionCommonTests {
         tagID: tagId,
       }
     }]);
+  }
+
+  public async testReadConsumptionStartedTransactionWithoutMeterValues() {
+    const connectorId = 1;
+    const tagId = this.transactionUser.tagIDs[0];
+    const meterStart = 0;
+    const startDate = moment();
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    expect(response).to.be.transactionValid;
+    const transactionId = response.data.transactionId;
+    response = await this.transactionUserService.transactionApi.readAllConsumption({ TransactionId: transactionId });
+    expect(response.status).to.equal(200);
+    expect(response.data).to.containSubset({
+      id: transactionId,
+      values: []
+    });
+  }
+
+  public async testReadConsumptionStartedTransactionWithMultipleMeterValues() {
+    const connectorId = 1;
+    const tagId = this.transactionUser.tagIDs[0];
+    const meterStart = 180;
+    const startDate = moment();
+    const currentTime = startDate.clone();
+    let cumulated = meterStart;
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    expect(response).to.be.transactionValid;
+    const transactionId = response.data.transactionId;
+    const meterValues = [
+      {
+        value: 100,
+        timestamp: currentTime.add(1, 'hour').clone()
+      },
+      {
+        value: 50,
+        timestamp: currentTime.add(1, 'hour').clone()
+      }
+    ];
+    for (const meterValue of meterValues) {
+      cumulated += meterValue.value;
+      response = await this.chargingStationContext.sendConsumptionMeterValue(connectorId, transactionId, cumulated, meterValue.timestamp);
+      expect(response.data).to.eql({});
+    }
+    response = await this.transactionUserService.transactionApi.readAllConsumption({ TransactionId: transactionId });
+    expect(response.status).to.equal(200);
+    expect(response.data).to.containSubset({
+      id: transactionId,
+      values: [
+        {
+          date: meterValues[0].timestamp.toISOString(),
+          value: meterValues[0].value,
+          cumulated: meterValues[0].value
+        },
+        {
+          date: meterValues[1].timestamp.toISOString(),
+          value: meterValues[1].value,
+          cumulated: cumulated - meterStart
+        }
+      ]
+    });
+  }
+
+  public async testReadConsumptionStartedTransactionWithDifferentDateParameters() {
+    const connectorId = 1;
+    const tagId = this.transactionUser.tagIDs[0];
+    const meterStart = 180;
+    const startDate = moment('2018-11-06T08:00:00.000Z');
+    let cumulated = meterStart;
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    expect(response).to.be.transactionValid;
+    const transactionId = response.data.transactionId;
+    const meterValues = [
+      {
+        value: 100,
+        timestamp: startDate.clone().add(1, 'hour')
+      },
+      {
+        value: 50,
+        timestamp: startDate.clone().add(2, 'hour')
+      }
+    ];
+    for (const meterValue of meterValues) {
+      cumulated += meterValue.value;
+      response = await this.chargingStationContext.sendConsumptionMeterValue(connectorId, transactionId, cumulated, meterValue.timestamp);
+      expect(response.data).to.eql({});
+    }
+    response = await this.transactionUserService.transactionApi.readAllConsumption({
+      TransactionId: transactionId,
+      StartDateTime: startDate.clone().subtract(1, 'hour').toISOString()
+    });
+    expect(response.data.values).has.lengthOf(3);
+    expect(response.data).to.containSubset({
+      id: transactionId,
+      values: [
+        {
+          date: meterValues[0].timestamp.toISOString(),
+          value: meterValues[0].value,
+          cumulated: meterValues[0].value
+        },
+        {
+          date: meterValues[1].timestamp.toISOString(),
+          value: meterValues[1].value,
+          cumulated: cumulated - meterStart
+        }
+      ]
+    });
+    response = await this.transactionUserService.transactionApi.readAllConsumption({
+      TransactionId: transactionId,
+      StartDateTime: startDate.clone().subtract(2, 'hour').toISOString(),
+      EndDateTime: startDate.clone().subtract(1, 'hour').toISOString()
+    });
+    expect(response.data.values).has.lengthOf(0);
+    expect(response.data).to.containSubset({
+      id: transactionId,
+      values: []
+    });
+    response = await this.transactionUserService.transactionApi.readAllConsumption({
+      TransactionId: transactionId,
+      StartDateTime: startDate.clone().subtract(1, 'hour').toISOString(),
+      EndDateTime: startDate.clone().subtract(0, 'hour').toISOString()
+    });
+    expect(response.data.values).has.lengthOf(0);
+    expect(response.data).to.containSubset({
+      id: transactionId,
+      values: []
+    });
+    response = await this.transactionUserService.transactionApi.readAllConsumption({
+      TransactionId: transactionId,
+      StartDateTime: startDate.clone().subtract(1, 'hour').toISOString(),
+      EndDateTime: startDate.clone().add(30, 'minutes').toISOString()
+    });
+    expect(response.data.values).has.lengthOf(0);
+    expect(response.data).to.containSubset({
+      id: transactionId,
+      values: []
+    });
+    response = await this.transactionUserService.transactionApi.readAllConsumption({
+      TransactionId: transactionId,
+      StartDateTime: startDate.clone().subtract(1, 'hour').toISOString(),
+      EndDateTime: startDate.clone().add(1, 'hour').toISOString()
+    });
+    expect(response.data.values).has.lengthOf(2);
+    expect(response.data).to.containSubset({
+      id: transactionId,
+      values: [
+        {
+          date: meterValues[0].timestamp.toISOString(),
+          value: meterValues[0].value,
+          cumulated: meterValues[0].value
+        }
+      ]
+    });
+    response = await this.transactionUserService.transactionApi.readAllConsumption({
+      TransactionId: transactionId,
+      StartDateTime: startDate.clone().subtract(1, 'hour').toISOString(),
+      EndDateTime: startDate.clone().add(1.5, 'hour').toISOString()
+    });
+    expect(response.data.values).has.lengthOf(2);
+    expect(response.data).to.containSubset({
+      id: transactionId,
+      values: [
+        {
+          date: meterValues[0].timestamp.toISOString(),
+          value: meterValues[0].value,
+          cumulated: meterValues[0].value
+        }
+      ]
+    });
+    response = await this.transactionUserService.transactionApi.readAllConsumption({
+      TransactionId: transactionId,
+      StartDateTime: startDate.clone().subtract(1, 'hour').toISOString(),
+      EndDateTime: startDate.clone().add(3, 'hour').toISOString()
+    });
+    expect(response.data.values).has.lengthOf(3);
+    expect(response.data).to.containSubset({
+      id: transactionId,
+      values: [
+        {
+          date: meterValues[0].timestamp.toISOString(),
+          value: meterValues[0].value,
+          cumulated: meterValues[0].value
+        },
+        {
+          date: meterValues[1].timestamp.toISOString(),
+          value: meterValues[1].value,
+          cumulated: meterValues[1].value + meterValues[0].value
+        }
+      ]
+    });
+    response = await this.transactionUserService.transactionApi.readAllConsumption({
+      TransactionId: transactionId,
+      StartDateTime: startDate.clone().add(1, 'hour').toISOString(),
+      EndDateTime: startDate.clone().add(2, 'hour').toISOString()
+    });
+    expect(response.data.values).has.lengthOf(3);
+    expect(response.data).to.containSubset({
+      id: transactionId,
+      values: [
+        {
+          date: meterValues[0].timestamp.toISOString(),
+          value: meterValues[0].value,
+          cumulated: meterValues[0].value
+        },
+        {
+          date: meterValues[1].timestamp.toISOString(),
+          value: meterValues[1].value,
+          cumulated: meterValues[1].value + meterValues[0].value
+        }
+      ]
+    });
+    response = await this.transactionUserService.transactionApi.readAllConsumption({
+      TransactionId: transactionId,
+      StartDateTime: startDate.clone().add(1.5, 'hour').toISOString(),
+      EndDateTime: startDate.clone().add(2, 'hour').toISOString()
+    });
+    expect(response.data.values).has.lengthOf(2);
+    expect(response.data).to.containSubset({
+      id: transactionId,
+      values: [
+        {
+          date: meterValues[1].timestamp.toISOString(),
+          value: meterValues[1].value,
+          cumulated: meterValues[1].value + meterValues[0].value
+        }
+      ]
+    });
+    response = await this.transactionUserService.transactionApi.readAllConsumption({
+      TransactionId: transactionId,
+      StartDateTime: startDate.clone().add(2, 'hour').toISOString(),
+      EndDateTime: startDate.clone().add(3, 'hour').toISOString()
+    });
+    expect(response.data.values).has.lengthOf(2);
+    expect(response.data).to.containSubset({
+      id: transactionId,
+      values: [
+        {
+          date: meterValues[1].timestamp.toISOString(),
+          value: meterValues[1].value,
+          cumulated: meterValues[1].value + meterValues[0].value
+        }
+      ]
+    });
+    response = await this.transactionUserService.transactionApi.readAllConsumption({
+      TransactionId: transactionId,
+      StartDateTime: startDate.clone().add(2.5, 'hour').toISOString(),
+      EndDateTime: startDate.clone().add(3, 'hour').toISOString()
+    });
+    expect(response.data.values).has.lengthOf(0);
+    expect(response.data).to.containSubset({
+      id: transactionId,
+      values: []
+    });
+    response = await this.transactionUserService.transactionApi.readAllConsumption({
+      TransactionId: transactionId,
+      EndDateTime: startDate.clone().toISOString()
+    });
+    expect(response.data.values).has.lengthOf(0);
+    expect(response.data).to.containSubset({
+      id: transactionId,
+      values: []
+    });
+    response = await this.transactionUserService.transactionApi.readAllConsumption({
+      TransactionId: transactionId,
+      EndDateTime: startDate.clone().add(1, 'hour').toISOString()
+    });
+    expect(response.data.values).has.lengthOf(2);
+    expect(response.data).to.containSubset({
+      id: transactionId,
+      values: [
+        {
+          date: meterValues[0].timestamp.toISOString(),
+          value: meterValues[0].value,
+          cumulated: meterValues[0].value
+        }
+      ]
+    });
+    response = await this.transactionUserService.transactionApi.readAllConsumption({
+      TransactionId: transactionId,
+      EndDateTime: startDate.clone().add(2.5, 'hour').toISOString()
+    });
+    expect(response.data.values).has.lengthOf(3);
+    expect(response.data).to.containSubset({
+      id: transactionId,
+      values: [
+        {
+          date: meterValues[0].timestamp.toISOString(),
+          value: meterValues[0].value,
+          cumulated: meterValues[0].value
+        },
+        {
+          date: meterValues[1].timestamp.toISOString(),
+          value: meterValues[1].value,
+          cumulated: meterValues[1].value + meterValues[0].value
+        }
+      ]
+    });
+    response = await this.transactionUserService.transactionApi.readAllConsumption({
+      TransactionId: transactionId,
+      EndDateTime: startDate.clone().add(4, 'hour').toISOString()
+    });
+    expect(response.data.values).has.lengthOf(3);
+    expect(response.data).to.containSubset({
+      id: transactionId,
+      values: [
+        {
+          date: meterValues[0].timestamp.toISOString(),
+          value: meterValues[0].value,
+          cumulated: meterValues[0].value
+        },
+        {
+          date: meterValues[1].timestamp.toISOString(),
+          value: meterValues[1].value,
+          cumulated: meterValues[1].value + meterValues[0].value
+        }
+      ]
+    });
+  }
+
+  public async testReadConsumptionStoppedTransactionWithoutMeterValues() {
+    const connectorId = 1;
+    const tagId = this.transactionUser.tagIDs[0];
+    const meterStart = 0;
+    const meterStop = 1000;
+    const startDate = moment();
+    const stopDate = startDate.clone().add(1, 'hour');
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    expect(response).to.be.transactionValid;
+    const transactionId = response.data.transactionId;
+    response = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate);
+    expect(response).to.be.transactionStatus('Accepted');
+    response = await this.transactionUserService.transactionApi.readAllConsumption({ TransactionId: transactionId });
+    expect(response.status).to.equal(200);
+    expect(response.data).to.containSubset({
+      id: transactionId,
+      values: [
+        {
+          date: stopDate.toISOString(),
+          value: meterStop - meterStart,
+          cumulated: meterStop
+        }
+      ]
+    });
+  }
+
+  public async testReadActiveTransactionsWithoutActiveTransactions() {
+    const response = await this.transactionUserService.transactionApi.readAllActive({ ChargeBoxID: this.chargingStationContext.getChargingStation().id });
+    expect(response.status).to.equal(200);
+    expect(response.data.count).to.equal(0);
+  }
+
+  public async testReadActiveTransactionsWithMultipleActiveTransactions() {
+    const connectorId1 = 1;
+    const connectorId2 = 2;
+    const tagId = this.transactionUser.tagIDs[0];
+    const meterStart = 0;
+    const meterStop = 1000;
+    const startDate = moment();
+    const stopDate = startDate.clone().add(1, 'hour');
+    let response = await this.chargingStationContext.startTransaction(connectorId1, tagId, meterStart, startDate);
+    expect(response).to.be.transactionValid;
+    const transactionId1 = response.data.transactionId;
+    response = await this.chargingStationContext.stopTransaction(transactionId1, tagId, meterStop, stopDate);
+    expect(response).to.be.transactionStatus('Accepted');
+    response = await this.chargingStationContext.startTransaction(connectorId1, tagId, meterStart, startDate);
+    expect(response).to.be.transactionValid;
+    const transactionId2 = response.data.transactionId;
+    response = await this.chargingStationContext.startTransaction(connectorId2, tagId, meterStart, startDate);
+    expect(response).to.be.transactionValid;
+    const transactionId3 = response.data.transactionId;
+    response = await this.transactionUserService.transactionApi.readAllActive({ ChargeBoxID: this.chargingStationContext.getChargingStation().id });
+    expect(response.status).to.equal(200);
+    expect(response.data.count).to.equal(2);
+    expect(response.data.result).to.containSubset([
+      {
+        id: transactionId2
+      }, {
+        id: transactionId3
+      }
+    ]);
+  }
+
+  public async testDeleteNotExistingTransaction() {
+    const response = await this.transactionUserService.transactionApi.delete(faker.random.number(100000));
+    expect(response.status).to.equal(550);
+  }
+
+  public async testDeleteTransactionWithInvalidId() {
+    const response = await this.transactionUserService.transactionApi.delete('&é"\'(§è!çà)');
+    expect(response.status).to.equal(550);
+  }
+
+  public async testDeleteTransactionWithoutId() {
+    const response = await this.transactionUserService.transactionApi.delete(null);
+    expect(response.status).to.equal(500);
+  }
+
+  public async testDeleteStartedTransaction(allowed = true) {
+    const connectorId = 1;
+    const tagId = this.transactionUser.tagIDs[0];
+    const meterStart = 0;
+    const startDate = moment();
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    expect(response).to.be.transactionValid;
+    const transactionId = response.data.transactionId;
+    response = await this.transactionUserService.transactionApi.delete(transactionId);
+    if (allowed) {
+      expect(response.status).to.equal(200);
+    } else {
+      expect(response.status).to.equal(560);
+    }
+    response = await this.transactionUserService.transactionApi.readById(transactionId);
+    if (allowed) {
+      expect(response.status).to.equal(550);
+    } else {
+      expect(response.status).to.equal(200);
+    }
+  }
+
+  public async testDeleteClosedTransaction(allowed = true) {
+    const connectorId = 1;
+    const tagId = this.transactionUser.tagIDs[0];
+    const meterStart = 0;
+    const meterStop = 1000;
+    const startDate = moment();
+    const stopDate = startDate.clone().add(1, 'hour');
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    expect(response).to.be.transactionValid;
+    const transactionId = response.data.transactionId;
+    response = await this.chargingStationContext.stopTransaction(transactionId, tagId, meterStop, stopDate);
+    expect(response).to.be.transactionStatus('Accepted');
+    response = await this.transactionUserService.transactionApi.delete(transactionId);
+    if (allowed) {
+      expect(response.status).to.equal(200);
+    } else {
+      expect(response.status).to.equal(560);
+    }
+    response = await this.transactionUserService.transactionApi.readById(transactionId);
+    if (allowed) {
+      expect(response.status).to.equal(550);
+    } else {
+      expect(response.status).to.equal(200);
+    }
+  }
+
+  public async testReadPriceForStoppedTransaction() {
+    const connectorId = 1;
+    const tagId = this.transactionUser.tagIDs[0];
+    const meterStart = 180;
+    const startDate = moment();
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    expect(response).to.be.transactionValid;
+    const transactionId = response.data.transactionId;
+    const currentDate = startDate.clone();
+    const meterValues = [
+      {
+        value: 100,
+        timestamp: currentDate.add(1, 'hour').clone()
+      },
+      {
+        value: 50,
+        timestamp: currentDate.add(1, 'hour').clone()
+      },
+      {
+        value: 0,
+        timestamp: currentDate.add(1, 'hour').clone()
+      },
+      {
+        value: 0,
+        timestamp: currentDate.add(1, 'hour').clone()
+      },
+      {
+        value: 0,
+        timestamp: currentDate.add(1, 'hour').clone()
+      },
+      {
+        value: 0,
+        timestamp: currentDate.add(1, 'hour').clone()
+      }
+    ];
+    let cumulated = meterStart;
+    for (const meterValue of meterValues) {
+      cumulated += meterValue.value;
+      response = await this.chargingStationContext.sendConsumptionMeterValue(connectorId, transactionId, cumulated, meterValue.timestamp);
+      expect(response.data).to.eql({});
+    }
+    response = await this.chargingStationContext.stopTransaction(transactionId, tagId, cumulated, currentDate.add(1, 'hour'));
+    expect(response).to.be.transactionStatus('Accepted');
+    response = await this.transactionUserService.transactionApi.readById(transactionId);
+    expect(response.status).to.equal(200);
+    expect(response.data).to.containSubset({
+      id: transactionId,
+      stop: {
+        totalDurationSecs: 7 * 3600,
+        totalInactivitySecs: 5 * 3600,
+        price: 0.3,
+        roundedPrice: 0.3
+      }
+    });
+  }
+
+  public async testReadInactivityForStoppedTransaction() {
+    const connectorId = 1;
+    const tagId = this.transactionUser.tagIDs[0];
+    const meterStart = 180;
+    const startDate = moment();
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    expect(response).to.be.transactionValid;
+    const transactionId = response.data.transactionId;
+    const currentDate = startDate.clone();
+    const meterValues = [
+      {
+        value: 100,
+        timestamp: currentDate.add(1, 'hour').clone()
+      },
+      {
+        value: 50,
+        timestamp: currentDate.add(1, 'hour').clone()
+      },
+      {
+        value: 0,
+        timestamp: currentDate.add(1, 'hour').clone()
+      },
+      {
+        value: 0,
+        timestamp: currentDate.add(1, 'hour').clone()
+      },
+      {
+        value: 0,
+        timestamp: currentDate.add(1, 'hour').clone()
+      },
+      {
+        value: 0,
+        timestamp: currentDate.add(1, 'hour').clone()
+      }
+    ];
+    let cumulated = meterStart;
+    for (const meterValue of meterValues) {
+      cumulated += meterValue.value;
+      response = await this.chargingStationContext.sendConsumptionMeterValue(connectorId, transactionId, cumulated, meterValue.timestamp);
+      expect(response.data).to.eql({});
+    }
+    response = await this.chargingStationContext.stopTransaction(transactionId, tagId, cumulated, currentDate.add(1, 'hour'));
+    expect(response).to.be.transactionStatus('Accepted');
+    response = await this.transactionUserService.transactionApi.readById(transactionId);
+    expect(response.status).to.equal(200);
+    expect(response.data).to.containSubset({
+      id: transactionId,
+      stop: {
+        totalDurationSecs: 7 * 3600,
+        totalInactivitySecs: 5 * 3600
+      }
+    });
+
+  }
+
+  public async testSendMailNotificationWhenStartingTransaction() {
+    const connectorId = 1;
+    const tagId = this.transactionUser.tagIDs[0];
+    const meterStart = 180;
+    const startDate = moment();
+    let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    expect(response).to.be.transactionValid;
+    const transactionId = response.data.transactionId;
+    const currentDate = startDate.clone();
+    const meterValues = [
+      {
+        value: 100,
+        timestamp: currentDate.add(1, 'hour').clone()
+      },
+      {
+        value: 50,
+        timestamp: currentDate.add(23, 'minutes').clone()
+      },
+      {
+        value: 0,
+        timestamp: currentDate.add(1, 'hour').clone()
+      },
+      {
+        value: 0,
+        timestamp: currentDate.add(1, 'hour').clone()
+      }
+    ];
+    let cumulated = meterStart;
+    for (const meterValue of meterValues) {
+      cumulated += meterValue.value;
+      response = await this.chargingStationContext.sendConsumptionMeterValue(connectorId, transactionId, cumulated, meterValue.timestamp);
+      expect(response.data).to.eql({});
+    }
+    await Utils.sleep(1000);
+    expect(await this.centralUserService.mailApi.isMailReceived(this.transactionUser.email, 'transaction-started')).is.equal(true, 'transaction-started mail');
+    expect(await this.centralUserService.mailApi.isMailReceived(this.transactionUser.email, 'end-of-charge')).is.equal(true, 'end-of-charge mail');
+    response = await this.chargingStationContext.stopTransaction(transactionId, tagId, cumulated + 50, currentDate.add(1, 'hour'));
+    expect(response).to.be.transactionStatus('Accepted');
   }
 
 }

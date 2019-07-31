@@ -1,8 +1,7 @@
-import chai, { expect } from 'chai';
+import chai from 'chai';
 import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
 import responseHelper from '../helpers/responseHelper';
-import CentralServerService from './client/CentralServerService';
 import CONTEXTS from './contextProvider/ContextConstants';
 import ContextProvider from './contextProvider/ContextProvider';
 import TransactionCommonTests from './TransactionCommonTests';
@@ -22,7 +21,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('Transaction tests (new)', function () {
+describe('Transaction tests (new)', function() {
   this.timeout(1000000); // Will automatically stop the unit test after that period of time
 
   before(async () => {
@@ -70,7 +69,7 @@ describe('Transaction tests (new)', function () {
         await testData.chargingStationContext.cleanUpCreatedData();
       });
 
-      describe('Using method readById', () => {
+      describe('Using function "readById"', () => {
 
         it('Cannot read a not existing transaction', async () => {
           await testData.transactionCommonTests.testReadNonExistingTransaction();
@@ -106,7 +105,7 @@ describe('Transaction tests (new)', function () {
 
       });
 
-      describe('Using method readAllCompleted', () => {
+      describe('Using function "readAllCompleted"', () => {
 
         it('Cannot find any completed transactions if all transactions are still running', async () => {
           await testData.transactionCommonTests.testReadNoCompletedTransactions();
@@ -126,7 +125,7 @@ describe('Transaction tests (new)', function () {
 
       });
 
-      describe('Using method readAllInError', () => {
+      describe('Using function "readAllInError"', () => {
 
         it('Cannot find any transactions in error if all transactions are still running', async () => {
           await testData.transactionCommonTests.testReadNoTransactionsInError();
@@ -134,6 +133,116 @@ describe('Transaction tests (new)', function () {
 
         it('Can find some transactions in error', async () => {
           await testData.transactionCommonTests.testReadSomeTransactionsInError();
+        });
+
+      });
+
+      describe('Using function "readAllConsumption"', () => {
+
+        it('Can read consumption of a started transaction without meter values', async () => {
+          await testData.transactionCommonTests.testReadConsumptionStartedTransactionWithoutMeterValues();
+        });
+
+        it('Can read consumption of a started transaction with multiple meter values', async () => {
+          await testData.transactionCommonTests.testReadConsumptionStartedTransactionWithMultipleMeterValues();
+        });
+
+        it('Can read consumption of a started transaction with multiple meter values and different date parameters', async () => {
+          await testData.transactionCommonTests.testReadConsumptionStartedTransactionWithDifferentDateParameters();
+        });
+
+        it('Can read consumption of a stopped transaction without meter values', async () => {
+          await testData.transactionCommonTests.testReadConsumptionStoppedTransactionWithoutMeterValues();
+        });
+
+      });
+
+      describe('Using function "getTransactionsActive"', () => {
+
+        it('Can read on a charger without active transactions', async () => {
+          await testData.transactionCommonTests.testReadActiveTransactionsWithoutActiveTransactions();
+        });
+
+        it('Can read on a charger with multiple active transactions', async () => {
+          await testData.transactionCommonTests.testReadActiveTransactionsWithMultipleActiveTransactions();
+        });
+
+      });
+
+      describe('Using function "delete"', () => {
+
+        it('Cannot delete a not existing transaction', async () => {
+          await testData.transactionCommonTests.testDeleteNotExistingTransaction();
+        });
+
+        it('Cannot delete a transaction with invalid id', async () => {
+          await testData.transactionCommonTests.testDeleteTransactionWithInvalidId();
+        });
+
+        it('Cannot delete a transaction without providing id', async () => {
+          await testData.transactionCommonTests.testDeleteTransactionWithoutId();
+        });
+
+        it('Cannot delete a started transaction', async () => {
+          await testData.transactionCommonTests.testDeleteStartedTransaction(false);
+        });
+
+        it('Cannot delete a closed transaction', async () => {
+          await testData.transactionCommonTests.testDeleteClosedTransaction(false);
+        });
+
+      });
+
+      describe('Using other functionalities', () => {
+
+        it('Should read correct price in a stopped transaction', async () => {
+          await testData.transactionCommonTests.testReadPriceForStoppedTransaction();
+        });
+
+        it('Should read correct inactivity in a stopped transaction', async () => {
+          await testData.transactionCommonTests.testReadInactivityForStoppedTransaction();
+        });
+
+        xit('Should receive a mail notification when starting a transaction', async () => {
+          await testData.transactionCommonTests.testSendMailNotificationWhenStartingTransaction();
+        });
+
+      });
+
+    });
+
+    describe('Where admin user', () => {
+
+      before(() => {
+        testData.transactionCommonTests.setUser(
+          testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN)
+        );
+      });
+
+      afterEach(async () => {
+        await testData.chargingStationContext.cleanUpCreatedData();
+      });
+
+      describe('Using function "readAllInError"', () => {
+
+        it('Cannot find any transactions in error if all transactions are still running', async () => {
+          await testData.transactionCommonTests.testReadNoTransactionsInError();
+        });
+
+        it('Can find some transactions in error', async () => {
+          await testData.transactionCommonTests.testReadSomeTransactionsInError();
+        });
+
+      });
+
+      describe('Using function "delete"', () => {
+
+        it('Can delete a started transaction', async () => {
+          await testData.transactionCommonTests.testDeleteStartedTransaction();
+        });
+
+        it('Can delete a closed transaction', async () => {
+          await testData.transactionCommonTests.testDeleteClosedTransaction();
         });
 
       });
