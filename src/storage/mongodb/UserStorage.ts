@@ -241,17 +241,35 @@ export default class UserStorage {
       userFilter.email = userToSave.email;
     }
     // Properties to save
-    const userMDB = {
+    let userMDB = { // DO NOT CHANGE TO const!!!!
       _id: userToSave.id ? Utils.convertToObjectID(userToSave.id) : new ObjectID(),
-      createdBy: userToSave.createdBy ? userToSave.createdBy.id : null,
-      lastChangedBy: userToSave.lastChangedBy ? userToSave.lastChangedBy.id : null,
-      ...userToSave
+      email: userToSave.email,
+      phone: userToSave.phone,
+      mobile: userToSave.mobile,
+      role: userToSave.role,
+      status: userToSave.status,
+      locale: userToSave.locale,
+      plateID: userToSave.plateID,
+      address: userToSave.address,
+      notificationsActive: userToSave.notificationsActive,
+      iNumber: userToSave.iNumber,
+      costCenter: userToSave.costCenter,
+      deleted: userToSave.deleted,
+      eulaAcceptedHash: userToSave.eulaAcceptedHash,
+      eulaAcceptedVersion: userToSave.eulaAcceptedVersion,
+      eulaAcceptedOn: userToSave.eulaAcceptedOn,
+      name: userToSave.name,
+      firstName: userToSave.firstName,
+      password: userToSave.password,
+      passwordResetHash: userToSave.passwordResetHash,
+      passwordWrongNbrTrials: userToSave.passwordWrongNbrTrials,
+      passwordBlockedUntil: userToSave.passwordBlockedUntil,
+      verificationToken: userToSave.verificationToken,
+      verifiedAt: userToSave.verifiedAt,
+      tagIDs: userToSave.tagIDs
     };
-    // Clean up mongo request
-    delete userMDB.id;
-    delete userMDB.image;
     // Check Created/Last Changed By
-    DatabaseUtils.addLastChangedCreatedProps(userMDB, userMDB);
+    DatabaseUtils.addLastChangedCreatedProps(userMDB, userToSave);
     // Modify and return the modified document
     await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
       userFilter,
