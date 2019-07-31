@@ -692,7 +692,7 @@ export default class TransactionService {
         filter.endDateTime = filteredRequest.EndDateTime;
       }
       if (filteredRequest.ErrorType) {
-        filter.errorType = filteredRequest.ErrorType;
+        filter.errorType = filteredRequest.ErrorType.split('|');
       }
       // Site Area
       const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,

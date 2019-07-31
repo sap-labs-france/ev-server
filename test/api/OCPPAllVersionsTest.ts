@@ -22,7 +22,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('OCPP tests (all versions)', function () {
+describe('OCPP tests (all versions)', function() {
   this.timeout(300000); // Will automatically stop the unit test after that period of time
 
   before(async () => {
@@ -72,6 +72,10 @@ describe('OCPP tests (all versions)', function () {
 
         it('With invalid tag should not be authorized to start a transaction', async () => {
           await testData.ocppCommonTests.testAuthorizeInvalidTag();
+        });
+
+        it('Unknown Badge ID should create an unknown user ', async () => {
+          await testData.ocppCommonTests.testAuthorizeUnknownTag();
         });
 
         it('Should be able to start transaction with tag as integer', async () => {
@@ -189,6 +193,10 @@ describe('OCPP tests (all versions)', function () {
 
         it('With invalid tag should not be authorized to start a transaction', async () => {
           await testData.ocppCommonTests.testAuthorizeInvalidTag();
+        });
+
+        it('Unknown Badge ID should create an unknown user ', async () => {
+          await testData.ocppCommonTests.testAuthorizeUnknownTag();
         });
 
         it('Should be able to start transaction with tag as integer', async () => {
@@ -630,6 +638,10 @@ describe('OCPP tests (all versions)', function () {
           await testData.ocppCommonTests.testAuthorizeInvalidTag();
         });
 
+        it('Unknown Badge ID should create an unknown user ', async () => {
+          await testData.ocppCommonTests.testAuthorizeUnknownTag();
+        });
+
         it('Should be able to start transaction with tag as integer', async () => {
           await testData.ocppCommonTests.testStartTransactionWithTagAsInteger();
         });
@@ -810,6 +822,10 @@ describe('OCPP tests (all versions)', function () {
 
         it('With invalid tag should not be authorized to start a transaction', async () => {
           await testData.ocppCommonTests.testAuthorizeInvalidTag();
+        });
+
+        it('Unknown Badge ID should create an unknown user ', async () => {
+          await testData.ocppCommonTests.testAuthorizeUnknownTag();
         });
 
         it('Should be able to start transaction with tag as integer', async () => {

@@ -127,9 +127,9 @@ export default class TransactionStorage {
     return transactionYears;
   }
 
-  public static async getTransactions(tenantID: string,
-    params:{search?:string,userId?:string,chargeBoxID?:string,siteAreaID?:string,siteID?:string,connectorId?:number,startTime?:Date,endTime?:Date,stop?:any,type?:'refunded'|'notRefunded',minimalPrice?:boolean,withChargeBoxes?:boolean,statistics?:'refund'|'history'},//TODO change the any
-    dbParams: DbParams, projectFields?: string[]):
+  public static async getTransactions(tenantID: string, 
+    params:{search?:string,userIDs?:string,chargeBoxIDs?:string,siteAreaID?:string,siteID?:string,connectorId?:number,startTime?:Date,endTime?:Date,stop?:any,type?:'refunded'|'notRefunded',minimalPrice?:boolean,withChargeBoxes?:boolean,statistics?:'refund'|'history'},//TODO change the any
+    dbParams: DbParams, projectFields?: string[]): 
   Promise<{count: number, stats: {
     totalConsumptionWattHours?: number,
     totalPriceRefund?: number,
@@ -384,7 +384,6 @@ export default class TransactionStorage {
     }
     // Debug
     Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, { params, dbParams });
-    console.log(transactions);
     return {
       count: transactionCountMDB ? (transactionCountMDB.count === Constants.DB_RECORD_COUNT_CEIL ? -1 : transactionCountMDB.count) : 0,
       stats: transactionCountMDB ? transactionCountMDB : {},
@@ -545,6 +544,18 @@ export default class TransactionStorage {
             { $addFields: { impossiblePower: { $lte: [{ $subtract: ['$connector.power', '$averagePower'] }, 0] } } },
             { $match: { 'impossiblePower': { $eq: true } } },
             { $addFields: { 'errorCode': 'average_consumption_greater_than_connector_capacity' } }
+          ],
+        'negative_inactivity':
+          [
+            {
+              $match: {
+                $and: [
+                  { 'stop': { $exists: true } },
+                  { 'stop.totalInactivitySecs': { $lt: 0} }
+                ]
+              }
+            },
+            { $addFields: { 'errorCode': 'negative_inactivity' } }
           ]
       }
     };
