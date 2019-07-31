@@ -1,5 +1,6 @@
 import AccessControl from 'role-acl';
 import InternalError from '../exception/InternalError';
+import Constants from '../utils/Constants';
 
 const GRANTS = {
   superAdmin: {
@@ -111,6 +112,10 @@ const GRANTS = {
       { resource: 'ChargingStation', action: 'Read', attributes: ['*'] },
       { resource: 'Transactions', action: 'List', attributes: ['*'] },
       { resource: 'Transaction', action: 'Read', attributes: ['*'] },
+      { resource: 'Settings', action: 'List', attributes: ['*'] },
+      { resource: 'Setting', action: 'Read', attributes: ['*'],
+        condition: { Fn: 'EQUALS', args: { 'identifier': Constants.COMPONENTS.ANALYTICS } }
+      },
     ]
   },
   siteAdmin: {
