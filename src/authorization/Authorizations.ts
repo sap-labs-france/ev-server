@@ -418,8 +418,8 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SETTINGS, Constants.ACTION_LIST);
   }
 
-  public static canReadSetting(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SETTING, Constants.ACTION_READ);
+  public static canReadSetting(loggedUser: UserToken, context?): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SETTING, Constants.ACTION_READ, context);
   }
 
   public static canDeleteSetting(loggedUser: UserToken): boolean {

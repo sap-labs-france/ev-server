@@ -508,7 +508,7 @@ export default class ChargingStationService {
         'siteIDs': filteredRequest.SiteID,
         'chargeBoxID': filteredRequest.ChargeBoxID,
         'siteAreaID': filteredRequest.SiteAreaID,
-        'errorType': filteredRequest.ErrorType
+        'errorType': (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : null)
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
     );
