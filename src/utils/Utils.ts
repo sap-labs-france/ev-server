@@ -20,7 +20,7 @@ import Logging from './Logging';
 import Tenant from '../entity/Tenant';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import User from '../types/User';
-import UserService from '../server/rest/service/UserService';
+import UserToken from '../types/UserToken';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
@@ -177,6 +177,10 @@ export default class Utils {
     }
   }
 
+  static isComponentActiveFromToken(userToken: UserToken, componentName: string): boolean {
+    return userToken.activeComponents.includes(componentName);
+  }
+
   static convertToObjectID(id): ObjectID {
     let changedID = id;
     // Check
@@ -322,6 +326,16 @@ export default class Utils {
     return message;
   }
 
+  public static getRequestIP(request): string {
+    if (request.connection.remoteAddress) {
+      return request.connection.remoteAddress;
+    } else if (request.headers.host) {
+      const host = request.headers.host.split(':', 2);
+      const ip = host[0];
+      return ip;
+    }
+  }
+
   public static checkRecordLimit(recordLimit: number | string): number {
     // String?
     if (typeof recordLimit === 'string') {
@@ -391,9 +405,9 @@ export default class Utils {
     }
   }
 
-  public static hashPasswordBcrypt(password: string): Promise<string> {
+  public static async hashPasswordBcrypt(password: string): Promise<string> {
     // eslint-disable-next-line no-undef
-    return new Promise((fulfill, reject) => {
+    return await new Promise((fulfill, reject) => {
       // Generate a salt with 15 rounds
       bcrypt.genSalt(10, (err, salt) => {
         // Hash
@@ -409,9 +423,9 @@ export default class Utils {
     });
   }
 
-  static checkPasswordBCrypt(password, hash) {
+  public static async checkPasswordBCrypt(password, hash): Promise<boolean> {
     // eslint-disable-next-line no-undef
-    return new Promise((fulfill, reject) => {
+    return await new Promise((fulfill, reject) => {
       // Compare
       bcrypt.compare(password, hash, (err, match) => {
         // Error?
@@ -625,20 +639,6 @@ export default class Utils {
         `Only Admins can assign the role '${Utils.getRoleNameFromRoleID(filteredRequest.role)}'`, Constants.HTTP_GENERAL_ERROR,
         'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
     }
-    // Only Admin user can change role
-    if (tenantID === 'default' && filteredRequest.role && filteredRequest.role !== Constants.ROLE_SUPER_ADMIN) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `User cannot have the role '${Utils.getRoleNameFromRoleID(filteredRequest.role)}' in the Super Tenant`, Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
-    }
-    // Only Super Admin user in Super Tenant (default)
-    if (tenantID === 'default' && filteredRequest.role && filteredRequest.role !== Constants.ROLE_SUPER_ADMIN) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `User cannot have the role '${Utils.getRoleNameFromRoleID(filteredRequest.role)}' in the Super Tenant`, Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
-    }
     // Only Basic, Demo, Admin user other Tenants (!== default)
     if (tenantID !== 'default' && filteredRequest.role && filteredRequest.role === Constants.ROLE_SUPER_ADMIN) {
       throw new AppError(
@@ -647,7 +647,7 @@ export default class Utils {
         'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
     }
     // Only Admin and Super Admin can use role different from Basic
-    if (filteredRequest.role === Constants.ROLE_ADMIN && filteredRequest.role === Constants.ROLE_SUPER_ADMIN &&
+    if ((filteredRequest.role === Constants.ROLE_ADMIN || filteredRequest.role === Constants.ROLE_SUPER_ADMIN) &&
         !Authorizations.isAdmin(req.user.role) && !Authorizations.isSuperAdmin(req.user.role)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,

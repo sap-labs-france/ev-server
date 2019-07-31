@@ -51,8 +51,8 @@ export default class Bootstrap {
       Bootstrap.oDataServerConfig = Configuration.getODataServiceConfig();
       Bootstrap.isClusterEnabled = Configuration.getClusterConfig().enabled;
       // Init global user and tenant IDs hashmap
-      global.userHashMapIDs = {};
-      global.tenantHashMapIDs = {};
+      global.userHashMapIDs = new Map<string, string>();
+      global.tenantHashMapIDs = new Map<string, string>();
 
       // Start the connection to the Database
       if (!Bootstrap.databaseDone) {
@@ -71,7 +71,7 @@ export default class Bootstrap {
         }
         // Connect to the Database
         await Bootstrap.database.start();
-        let logMsg;
+        let logMsg: string;
         if (cluster.isMaster) {
           logMsg = `Database connected to '${Bootstrap.storageConfig.implementation}' successfully in master`;
         } else {

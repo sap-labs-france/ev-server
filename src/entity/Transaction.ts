@@ -1,6 +1,7 @@
 import moment from 'moment';
 import ChargingStation from './ChargingStation';
 import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
+import Constants from '../utils/Constants';
 import ConsumptionStorage from '../storage/mongodb/ConsumptionStorage';
 import Database from '../utils/Database';
 import OCPPStorage from '../storage/mongodb/OCPPStorage';
@@ -479,7 +480,8 @@ export default class Transaction extends TenantHolder {
   }
 
   isRefunded() {
-    return this._model.refundData && !!this._model.refundData.refundId;
+    return this._model.refundData && !!this._model.refundData.refundId
+      && this._model.refundData.status !== Constants.REFUND_STATUS_CANCELLED;
   }
 
   hasStateOfCharges() {

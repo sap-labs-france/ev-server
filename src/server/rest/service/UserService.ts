@@ -5,14 +5,12 @@ import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import ERPService from '../../../integration/pricing/convergent-charging/ERPService';
-import { HttpUserRequest } from '../../../types/requests/HttpUserRequest';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import RatingService from '../../../integration/pricing/convergent-charging/RatingService';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import User from '../../../types/User';
 import UserSecurity from './security/UserSecurity';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
@@ -21,11 +19,11 @@ import UtilsService from './UtilsService';
 export default class UserService {
 
   public static async handleAssignSitesToUser(action: string, req: Request, res: Response, next: NextFunction) {
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_UPDATE, Constants.ENTITY_SITES, 'SiteService', 'handleAssignSitesToUser');
     // Filter
-    const filteredRequest = UserSecurity.filterAssignSitesToUserRequest(req.body, req.user);
+    const filteredRequest = UserSecurity.filterAssignSitesToUserRequest(req.body);
     // Check Mandatory fields
     if (!filteredRequest.userID) {
       throw new AppError(
@@ -144,7 +142,7 @@ export default class UserService {
           return siteUser.site.id;
         }
       );
-      UserStorage.removeSitesFromUser(req.user.tenantID, user.id, siteIDs);
+      await UserStorage.removeSitesFromUser(req.user.tenantID, user.id, siteIDs);
     }
     // Delete User
     await UserStorage.deleteUser(req.user.tenantID, user.id);
@@ -209,14 +207,12 @@ export default class UserService {
     // Check if Status has been changed
     if (filteredRequest.status &&
       filteredRequest.status !== user.status) {
-      // Status changed
       statusHasChanged = true;
     }
     // Check the password
     if (filteredRequest.password && filteredRequest.password.length > 0) {
-      // Generate the password hash
-      const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
       // Update the password
+      const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
       filteredRequest.password = newPasswordHashed;
     }
     // Update timestamp
@@ -227,8 +223,17 @@ export default class UserService {
     // Check Mandatory fields
     Utils.checkIfUserValid(filteredRequest, user, req);
     // Update User
-    const newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? [] : filteredRequest.tagIDs;
-    await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: newTagIDs }, true); // Careful: Last changed by is not a proper user here! TODO (it wasnt before either tho)
+    await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: [] }, true);
+    // Update Tag IDs
+    if (Authorizations.isAdmin(req.user.role) || Authorizations.isSuperAdmin(req.user.role)) {
+      let newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? [] : filteredRequest.tagIDs;
+      // Check types
+      newTagIDs = newTagIDs.filter((newTagID) => {
+        return typeof newTagID === 'string';
+      });
+      // Save
+      await UserStorage.saveUserTags(req.user.tenantID, filteredRequest.id, newTagIDs);
+    }
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -340,24 +345,6 @@ export default class UserService {
     next();
   }
 
-  public static async handleGetUserImages(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check auth
-    if (!Authorizations.canListUsers(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_LIST,
-        Constants.ENTITY_USERS,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        'UserService', 'handleGetUserImages',
-        req.user);
-    }
-    // Get the user image
-    const userImages = await UserStorage.getUserImages(req.user.tenantID);
-    // Ok
-    res.json(userImages);
-    next();
-  }
-
   public static async handleGetUsers(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListUsers(req.user)) {
@@ -370,18 +357,18 @@ export default class UserService {
         req.user);
     }
     // Filter
-    const filteredRequest = UserSecurity.filterUsersRequest(req.query, req.user);
+    const filteredRequest = UserSecurity.filterUsersRequest(req.query);
     // Check component
     if (filteredRequest.SiteID || filteredRequest.ExcludeSiteID) {
-      await UtilsService.assertComponentIsActive(req.user.tenantID,
+      UtilsService.assertComponentIsActiveFromToken(req.user,
         Constants.COMPONENTS.ORGANIZATION, Constants.ACTION_READ, Constants.ENTITY_USER, 'UserService', 'handleGetUsers');
     }
     // Get users
     const users = await UserStorage.getUsers(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|'): null),
-        roles: (filteredRequest.Role ? filteredRequest.Role.split('|'): null),
+        siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
+        roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
         statuses: (filteredRequest.Status ? filteredRequest.Status.split('|') : null),
         excludeSiteID: filteredRequest.ExcludeSiteID,
       },
@@ -411,18 +398,18 @@ export default class UserService {
         req.user);
     }
     // Filter
-    const filteredRequest = UserSecurity.filterUsersRequest(req.query, req.user);
+    const filteredRequest = UserSecurity.filterUsersRequest(req.query);
     // Check component
     if (filteredRequest.SiteID || filteredRequest.ExcludeSiteID) {
-      await UtilsService.assertComponentIsActive(req.user.tenantID,
+      UtilsService.assertComponentIsActiveFromToken(req.user,
         Constants.COMPONENTS.ORGANIZATION, Constants.ACTION_READ, Constants.ENTITY_USER, 'UserService', 'handleGetUsersInError');
     }
     // Get users
     const users = await UserStorage.getUsers(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|'): null),
-        roles: (filteredRequest.Role ? filteredRequest.Role.split('|'): null),
+        siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
+        roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
         statuses: [Constants.USER_STATUS_BLOCKED, Constants.USER_STATUS_INACTIVE, Constants.USER_STATUS_LOCKED, Constants.USER_STATUS_PENDING]
       },
       {
@@ -472,21 +459,25 @@ export default class UserService {
       filteredRequest.password = newPasswordHashed;
     }
     // Set timestamp
-    filteredRequest.createdBy = { id: req.user.id } as User;
+    filteredRequest.createdBy = { id: req.user.id };
     filteredRequest.createdOn = new Date();
     // Set default
     if (!filteredRequest.notificationsActive) {
       filteredRequest.notificationsActive = true;
     }
     filteredRequest.createdOn = new Date();
-    // Save User
-    let newTagIDs: string[];
-    if (typeof filteredRequest.tagIDs === 'string') {
-      newTagIDs = [];
-    } else {
-      newTagIDs = filteredRequest.tagIDs;
+    // Create the User
+    const newUserId = await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: [] }, true);
+    // Save the Tag IDs
+    if (Authorizations.isAdmin(req.user.role) || Authorizations.isSuperAdmin(req.user.role)) {
+      let newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? [] : filteredRequest.tagIDs;
+      // Check types
+      newTagIDs = newTagIDs.filter((newTagID) => {
+        return typeof newTagID === 'string';
+      });
+      // Save
+      await UserStorage.saveUserTags(req.user.tenantID, newUserId, newTagIDs);
     }
-    const newUserId = await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: newTagIDs }, true);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,

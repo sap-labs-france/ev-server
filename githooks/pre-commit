@@ -8,10 +8,12 @@
 # echo "Starting the server"
 # npm run start:dev
 
-echo "Running unit tests:"
-echo "  Do not forget to start the server before with 'npm run start:dev'."
+echo "Running linter fix:"
+npm run lint-fix
+
+echo "Running unit tests (do not forget to start the server before with 'npm run start:dev'):"
 # npm run start:email &
-# npm test
+npm test
 
 # Do not abort the commit because of errors
 exit 0

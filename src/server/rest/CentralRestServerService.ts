@@ -56,7 +56,9 @@ class RequestMapper {
           'ChargingStationGetConfiguration',
           'ChargingStationChangeConfiguration',
           'ChargingStationStopTransaction',
+          'ChargingStationRemoteStopTransaction',
           'ChargingStationStartTransaction',
+          'ChargingStationRemoteStartTransaction',
           'ChargingStationUnlockConnector',
           'ChargingStationReset',
           'ChargingStationSetChargingProfile',
@@ -82,6 +84,7 @@ class RequestMapper {
           RemoveSitesFromUser: UserService.handleAssignSitesToUser,
           SiteAreaCreate: SiteAreaService.handleCreateSiteArea,
           TransactionsRefund: TransactionService.handleRefundTransactions,
+          SynchronizeRefundedTransactions: TransactionService.handleSynchronizeRefundedTransactions,
           SettingCreate: SettingService.handleCreateSetting,
           OcpiEndpointCreate: OCPIEndpointService.handleCreateOcpiEndpoint,
           OcpiEndpointPing: OCPIEndpointService.handlePingOcpiEndpoint,
@@ -127,7 +130,6 @@ class RequestMapper {
           SiteAreaImage: SiteAreaService.handleGetSiteAreaImage,
           Users: UserService.handleGetUsers,
           UsersInError: UserService.handleGetUsersInError,
-          UserImages: UserService.handleGetUserImages,
           UserImage: UserService.handleGetUserImage,
           User: UserService.handleGetUser,
           UserInvoice: UserService.handleGetUserInvoice,
@@ -240,7 +242,7 @@ class RequestMapper {
 export default {
   // Util Service
   // eslint-disable-next-line no-unused-vars
-  restServiceUtil(req, res, next) {
+  restServiceUtil(req: Request, res: Response, next: NextFunction) {
     // Parse the action
     const action = /^\/\w*/g.exec(req.url)[0].substring(1);
     // Check Context
@@ -258,7 +260,7 @@ export default {
     }
   },
 
-  async restServiceSecured(req, res, next) {
+  async restServiceSecured(req: Request, res: Response, next: NextFunction) {
     // Parse the action
     const action = /^\/\w*/g.exec(req.url)[0].substring(1);
 

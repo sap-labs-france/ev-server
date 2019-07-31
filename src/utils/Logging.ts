@@ -194,7 +194,7 @@ export default class Logging {
   }
 
   // Used to log exception in catch(...) only
-  public static logException(error, action, source, module, method, tenantID, user?: UserToken|User): void {
+  public static logException(error, action, source, module, method, tenantID, user?: UserToken|User|string): void {
     const log = Logging._buildLog(error, action, source, module, method, tenantID, user);
     if (error instanceof AppAuthError) {
       Logging.logSecurityError(log);
@@ -288,6 +288,15 @@ export default class Logging {
   }
 
   private static _logActionAppExceptionMessage(tenantID, action, exception): void {
+    const detailedMessages = [];
+    detailedMessages.push({
+      'stack': exception.stack
+    });
+    if (exception.detailedMessages) {
+      detailedMessages.push({
+        'details': (exception.detailedMessages instanceof Error ? exception.detailedMessages.stack : exception.detailedMessages)
+      });
+    }
     Logging.logError({
       tenantID: tenantID,
       source: exception.source,
@@ -297,9 +306,7 @@ export default class Logging {
       method: exception.method,
       action: action,
       message: exception.message,
-      detailedMessages: [{
-        'stack': exception.stack
-      }]
+      detailedMessages
     });
   }
 
@@ -352,7 +359,7 @@ export default class Logging {
     });
   }
 
-  private static _buildLog(error, action, source, module, method, tenantID, user: UserToken|User): object {
+  private static _buildLog(error, action, source, module, method, tenantID, user: UserToken|User|string): object {
     const tenant = tenantID ? tenantID : Constants.DEFAULT_TENANT;
     return {
       source: source,
@@ -399,7 +406,7 @@ export default class Logging {
     // Module Provided?
     if (log.module && _loggingConfig.moduleDetails) {
       // Yes: Check the Module
-      if (_loggingConfig.moduleDetails.log && _loggingConfig.moduleDetails.log.module) {
+      if (_loggingConfig.moduleDetails[log.module]) {
         // Get Modules Config
         moduleConfig = _loggingConfig.moduleDetails[log.module];
         // Check Module Log Level

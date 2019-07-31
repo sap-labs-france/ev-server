@@ -17,13 +17,13 @@ export default {
     // Parse the action
     const action = /^\/\w*/g.exec(req.url)[0].substring(1);
     // Get the tenant
-    let tenant = Constants.DEFAULT_TENANT;
+    let tenantID = Constants.DEFAULT_TENANT;
     if (req.body && req.body.tenant) {
-      tenant = req.body.tenant;
+      tenantID = await AuthService.getTenantID(req.body.tenant);
     } else if (req.query && req.query.tenant) {
-      tenant = req.query.tenant;
+      tenantID = await AuthService.getTenantID(req.query.tenant);
     } else if (req.user && req.user.tenantID) {
-      tenant = req.user.tenantID;
+      tenantID = req.user.tenantID;
     }
     try {
       // Check Context
@@ -91,7 +91,7 @@ export default {
           break;
       }
     } catch (error) {
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next, tenant);
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next, tenantID);
     }
   }
 };

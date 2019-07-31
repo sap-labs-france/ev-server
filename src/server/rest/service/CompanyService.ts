@@ -6,15 +6,15 @@ import CompanySecurity from './security/CompanySecurity';
 import CompanyStorage from '../../../storage/mongodb/CompanyStorage';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
-import UtilsService from './UtilsService';
 import Utils from '../../../utils/Utils';
+import UtilsService from './UtilsService';
 
 export default class CompanyService {
 
   public static async handleDeleteCompany(action: string, req: Request, res: Response, next: NextFunction) {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_DELETE, Constants.ENTITY_COMPANY, 'CompanyService', 'handleDeleteCompany');
     // Filter
     const companyID = CompanySecurity.filterCompanyRequestByID(req.query);
@@ -50,8 +50,8 @@ export default class CompanyService {
 
   public static async handleGetCompany(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_READ, Constants.ENTITY_COMPANY, 'CompanyService', 'handleGetCompany');
     // Filter
     const filteredRequest = CompanySecurity.filterCompanyRequest(req.query);
@@ -81,8 +81,8 @@ export default class CompanyService {
 
   public static async handleGetCompanyLogo(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_READ, Constants.ENTITY_COMPANY, 'CompanyService', 'handleGetCompanyLogo');
     // Filter
     const companyID = CompanySecurity.filterCompanyRequestByID(req.query);
@@ -108,8 +108,8 @@ export default class CompanyService {
 
   public static async handleGetCompanies(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_LIST, Constants.ENTITY_COMPANIES, 'CompanyService', 'handleGetCompanies');
     // Check auth
     if (!Authorizations.canListCompanies(req.user)) {
@@ -143,8 +143,8 @@ export default class CompanyService {
 
   public static async handleCreateCompany(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_CREATE, Constants.ENTITY_COMPANY, 'CompanyService', 'handleCreateCompany');
     // Check auth
     if (!Authorizations.canCreateCompany(req.user)) {
@@ -182,8 +182,8 @@ export default class CompanyService {
 
   public static async handleUpdateCompany(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
-    await UtilsService.assertComponentIsActive(
-      req.user.tenantID, Constants.COMPONENTS.ORGANIZATION,
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_UPDATE, Constants.ENTITY_COMPANY, 'CompanyService', 'handleUpdateCompany');
     // Filter
     const filteredRequest = CompanySecurity.filterCompanyUpdateRequest(req.body);

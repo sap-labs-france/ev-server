@@ -4,9 +4,9 @@ import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
+import Utils from '../../../utils/Utils';
 import VehicleSecurity from './security/VehicleSecurity';
 import VehicleStorage from '../../../storage/mongodb/VehicleStorage';
-import Utils from '../../../utils/Utils';
 
 export default class VehicleService {
 
@@ -191,7 +191,7 @@ export default class VehicleService {
       createdOn: date,
       lastChangedBy: usr,
       lastChangedOn: date
-    }
+    };
     // Save
     vehicle.id = await VehicleStorage.saveVehicle(req.user.tenantID, vehicle);
     // Save

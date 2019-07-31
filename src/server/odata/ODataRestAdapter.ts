@@ -2,15 +2,15 @@ import auth from 'basic-auth';
 import CentralServiceApi from './client/CentralServiceApi';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import oDataBootNotifications from './odata-entities/ODataBootNotifications';
-import oDataChargingStations from './odata-entities/ODataChargingStations';
-import oDataCompanies from './odata-entities/ODataCompanies';
-import oDataModel from './odata-model/ODataModel';
-import oDataSites from './odata-entities/ODataSites';
-import oDataSiteAreas from './odata-entities/ODataSiteAreas';
-import oDataStatusNotifications from './odata-entities/ODataStatusNotifications';
+import ODataBootNotifications from './odata-entities/ODataBootNotifications';
+import ODataChargingStations from './odata-entities/ODataChargingStations';
+import ODataCompanies from './odata-entities/ODataCompanies';
+import ODataModel from './odata-model/ODataModel';
+import ODataSites from './odata-entities/ODataSites';
+import ODataSiteAreas from './odata-entities/ODataSiteAreas';
+import ODataStatusNotifications from './odata-entities/ODataStatusNotifications';
 import ODataTransactions from './odata-entities/ODataTransactions';
-import oDataUsers from './odata-entities/ODataUsers';
+import ODataUsers from './odata-entities/ODataUsers';
 import Tenant from '../../entity/Tenant';
 
 const MODULE_NAME = 'ODataServer';
@@ -59,34 +59,37 @@ export default class ODataRestAdapter {
       const centralServiceApi = new CentralServiceApi(ODataRestAdapter.restServerUrl, authentication.name, authentication.pass, subdomain);
       // Set tenant
       req.tenant = subdomain;
+      if (!req.user) {
+        req.user = {};
+      }
       req.user.tenantID = tenant.getID();
       switch (collection) {
         case 'Transactions':
-          ODataTransactions.getTransactionsCompleted(centralServiceApi, query, req, cb);
+          await new ODataTransactions().getTransactionsCompleted(centralServiceApi, query, req, cb);
           break;
         case 'TransactionsCompleted':
-          ODataTransactions.getTransactionsCompleted(centralServiceApi, query, req, cb);
+          await new ODataTransactions().getTransactionsCompleted(centralServiceApi, query, req, cb);
           break;
         case 'Companies':
-          oDataCompanies.getCompanies(centralServiceApi, query, req, cb);
+          await new ODataCompanies().getCompanies(centralServiceApi, query, req, cb);
           break;
         case 'Sites':
-          oDataSites.getSites(centralServiceApi, query, req, cb);
+          await new ODataSites().getSites(centralServiceApi, query, req, cb);
           break;
         case 'SiteAreas':
-          oDataSiteAreas.getSiteAreas(centralServiceApi, query, req, cb);
+          await new ODataSiteAreas().getSiteAreas(centralServiceApi, query, req, cb);
           break;
         case 'ChargingStations':
-          oDataChargingStations.getChargingStations(centralServiceApi, query, req, cb);
+          await new ODataChargingStations().getChargingStations(centralServiceApi, query, req, cb);
           break;
         case 'StatusNotifications':
-          oDataStatusNotifications.getStatusNotifications(centralServiceApi, query, req, cb);
+          await new ODataStatusNotifications().getStatusNotifications(centralServiceApi, query, req, cb);
           break;
         case 'BootNotifications':
-          oDataBootNotifications.getBootNotifications(centralServiceApi, query, req, cb);
+          await new ODataBootNotifications().getBootNotifications(centralServiceApi, query, req, cb);
           break;
         case 'Users':
-          oDataUsers.getUsers(centralServiceApi, query, req, cb);
+          await new ODataUsers().getUsers(centralServiceApi, query, req, cb);
           break;
         default:
           cb('Invalid Entity');
@@ -110,7 +113,7 @@ export default class ODataRestAdapter {
     if (!oDataServer) {
       return;
     }
-    oDataServer.model(oDataModel).query(ODataRestAdapter.query);
+    oDataServer.model(ODataModel).query(ODataRestAdapter.query);
   }
 }
 

@@ -2,7 +2,7 @@ import _ from 'lodash';
 import moment from 'moment-timezone';
 
 export default class AbstractODataEntities {
-  static buildParams(query) {
+  public buildParams(query) {
     // Check limit parameter
     const limit = query.$limit ? query.$limit : 0;
     const params: any = {};
@@ -11,25 +11,24 @@ export default class AbstractODataEntities {
     return params;
   }
 
-  static convert(object, req) {
+  public convert(object, req) {
     // This implementation is necessary as the OData-imple-server do not support multiple key
     // We have to build a unique key based on tenant and object real key
-    const uniqueID = AbstractODataEntities.getObjectKey(object);
-
+    const uniqueID = this.getObjectKey(object);
     // Set tenant
     return _.merge({ uniqueID: `${req.tenant}-${uniqueID}`, tenant: req.tenant }, object);
   }
 
   // eslint-disable-next-line no-unused-vars
-  static getObjectKey(object) {
+  public getObjectKey(object) {
     throw new Error('Abstract Implementation');
   }
 
-  static convertTimestamp(timestampUTC, req) {
+  public convertTimestamp(timestampUTC, req) {
     return (req.timezone && timestampUTC) ? moment(timestampUTC).tz(req.timezone).format() : timestampUTC;
   }
 
-  static buildDateObject(timestamp, req) {
+  public buildDateObject(timestamp, req) {
     if (!timestamp) {
       return;
     }
@@ -43,7 +42,7 @@ export default class AbstractODataEntities {
     };
   }
 
-  static returnResponse(response, query, req, cb) {
+  public returnResponse(response, query, req, cb) {
     let count = 0;
     let result = [];
     let fields = [];
@@ -63,19 +62,19 @@ export default class AbstractODataEntities {
       if (fields.length !== 0) {
         if (Array.isArray(result)) {
           result = result.map((object) => {
-            return _.pick(AbstractODataEntities.convert(object, req), fields);
+            return _.pick(this.convert(object, req), fields);
           });
         } else {
-          result = [_.pick(AbstractODataEntities.convert(result, req), fields)];
+          result = [_.pick(this.convert(result, req), fields)];
         }
       } else {
         // eslint-disable-next-line no-lonely-if
         if (Array.isArray(result)) {
           result = result.map((object) => {
-            return AbstractODataEntities.convert(object, req);
+            return this.convert(object, req);
           });
         } else {
-          result = AbstractODataEntities.convert(result, req);
+          result = this.convert(result, req);
         }
       }
     }

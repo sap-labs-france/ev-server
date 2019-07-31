@@ -76,7 +76,7 @@ export default class TransactionStorage {
     return transactionYears;
   }
 
-  static async getTransactions(tenantID, params: any = {}, dbParams: DbParams) {
+  static async getTransactions(tenantID, params: any = {}, dbParams: DbParams, projectFields?: string[]) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactions');
     // Check
@@ -100,10 +100,10 @@ export default class TransactionStorage {
     if (params.userIDs) {
       match.userID = {
         $in: params.userIDs.map((user) => {
-        return Utils.convertToObjectID(user);
-      })
-    };
-  }
+          return Utils.convertToObjectID(user);
+        })
+      };
+    }
     // Charge Box
     if (params.chargeBoxIDs) {
       match.chargeBoxID = { $in : params.chargeBoxIDs };
@@ -138,12 +138,15 @@ export default class TransactionStorage {
     if (params.siteID) {
       match.siteID = Utils.convertToObjectID(params.siteID);
     }
-    if (params.type) {
-      switch (params.type) {
-        case 'refunded':
+    if (params.refundType) {
+      switch (params.refundType) {
+        case Constants.REFUND_TYPE_REFUNDED:
           match.refundData = { $exists: true };
+          if (params.refundStatus) {
+            match['refundData.status'] = params.refundStatus;
+          }
           break;
-        case 'notRefunded':
+        case Constants.REFUND_TYPE_NOT_REFUNDED:
           match.refundData = { $exists: false };
           break;
       }
@@ -328,6 +331,8 @@ export default class TransactionStorage {
     aggregation.push({
       $unwind: { 'path': '$stop.user', 'preserveNullAndEmptyArrays': true }
     });
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const transactionsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
@@ -379,10 +384,10 @@ export default class TransactionStorage {
     if (params.userIDs) {
       match.userID = {
         $in: params.userIDs.map((user) => {
-        return Utils.convertToObjectID(user);
-      })
-    };
-  }
+          return Utils.convertToObjectID(user);
+        })
+      };
+    }
     // Charge Box
     if (params.chargeBoxIDs) {
       match.chargeBoxID = { $in : params.chargeBoxIDs };
@@ -503,6 +508,18 @@ export default class TransactionStorage {
             { $addFields: { impossiblePower: { $lte: [{ $subtract: ['$connector.power', '$averagePower'] }, 0] } } },
             { $match: { 'impossiblePower': { $eq: true } } },
             { $addFields: { 'errorCode': 'average_consumption_greater_than_connector_capacity' } }
+          ],
+        'negative_inactivity':
+          [
+            {
+              $match: {
+                $and: [
+                  { 'stop': { $exists: true } },
+                  { 'stop.totalInactivitySecs': { $lt: 0} }
+                ]
+              }
+            },
+            { $addFields: { 'errorCode': 'negative_inactivity' } }
           ]
       }
     };

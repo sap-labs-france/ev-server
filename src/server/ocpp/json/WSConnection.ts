@@ -28,7 +28,7 @@ export default class WSConnection {
   constructor(wsConnection, req, wsServer) {
     // Init
     this.url = req.url.trim().replace(/\b(\?|&).*/, ''); // Filter trailing URL parameters
-    this.ip = req && ((req.connection && req.connection.remoteAddress) || req.headers['x-forwarded-for']);
+    this.ip = Utils.getRequestIP(req);
     this.wsConnection = wsConnection;
     this.req = req;
     this.chargingStationID = null;
@@ -77,7 +77,7 @@ export default class WSConnection {
       // Cloud Foundry?
       if (Configuration.isCloudFoundry()) {
         // Yes: Save the CF App and Instance ID to call the charger from the Rest server
-        const chargingStation = await ChargingStation.getChargingStation(this.getTenantID(), this.getChargingStationID());
+        const chargingStation = await ChargingStation.getChargingStation(this.tenantID, this.getChargingStationID());
         // Found?
         if (chargingStation) {
           // Update CF Instance
@@ -88,6 +88,7 @@ export default class WSConnection {
       }
     } catch (error) {
       // Custom Error
+      Logging.logException(error, 'WSConnection', this.getChargingStationID(), 'WSConnection', 'initialize', this.tenantID);
       throw new BackendError(this.getChargingStationID(), `Invalid Tenant '${this.tenantID}' in URL '${this.getURL()}'`,
         'WSConnection', 'initialize');
     }
@@ -246,7 +247,7 @@ export default class WSConnection {
         this.wsConnection.send(messageToSend);
       } else {
         // Reject it
-        return rejectCallback(`Web socket closed for Message ID '${messageId}' with content '${messageToSend}' (${Tenant.getTenant(this.tenantID)})`);
+        return rejectCallback(`Web socket closed for Message ID '${messageId}' with content '${messageToSend}' (${Tenant.getTenant(this.tenantID).then((Tnt) => { return Tnt.getName(); })})`);
       }
       // Request?
       if (messageType !== Constants.OCPP_JSON_CALL_MESSAGE) {
@@ -255,7 +256,7 @@ export default class WSConnection {
       } else {
         // Send timeout
         setTimeout(() => {
-          return rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${Tenant.getTenant(this.tenantID)})'`);
+          return rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${Tenant.getTenant(this.tenantID).then((Tnt) => { return Tnt.getName(); })})`);
         }, Constants.OCPP_SOCKET_TIMEOUT);
       }
 
