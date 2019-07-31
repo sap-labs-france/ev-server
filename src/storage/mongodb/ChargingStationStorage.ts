@@ -28,7 +28,7 @@ export default class ChargingStationStorage {
 
   public static async getChargingStations(tenantID: string,
     params: { search?: string; siteAreaID?: string; withNoSiteArea?: boolean; siteIDs?: string[]; withSite?: boolean;
-      errorType?: 'missingSettings'|'connectionBroken'|'connectorError'|'missingSiteArea'|'all'; includeDeleted?: boolean; },
+      errorType?: ('missingSettings'|'connectionBroken'|'connectorError'|'missingSiteArea'|'all')[]; includeDeleted?: boolean; },
     dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: ChargingStation[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
@@ -108,16 +108,18 @@ export default class ChargingStationStorage {
     }
     // Build facets meaning each different error scenario
     let facets: any = { $facet:{} };
-    if (params.errorType && params.errorType !== 'all') {
+    if (params.errorType && !params.errorType.includes('all')) {
       // Check allowed
-      if (!(await Tenant.getTenant(tenantID)).isComponentActive(Constants.COMPONENTS.ORGANIZATION) && params.errorType === 'missingSiteArea') {
+      if (!(await Tenant.getTenant(tenantID)).isComponentActive(Constants.COMPONENTS.ORGANIZATION) && params.errorType.includes('missingSiteArea')) {
         throw new BackendError(null, 'Organization is not active whereas filter is on missing site.',
           'ChargingStationStorage', 'getChargingStationsInError');
       }
       // Build facet only for one error type
       facets.$facet = {};
-      facets.$facet[params.errorType] = ChargingStationStorage._buildChargerInErrorFacet(params.errorType);
-    } else if (params.errorType && params.errorType === 'all') {
+      params.errorType.forEach((type) => {
+        facets.$facet[type] = ChargingStationStorage._buildChargerInErrorFacet(type);
+      });
+    } else if (params.errorType && params.errorType.includes('all')) {
       facets = {
         '$facet':
         {
@@ -477,8 +479,9 @@ export default class ChargingStationStorage {
     });
   }
 
-  private static _buildChargerInErrorFacet(errorType: 'missingSettings'|'connectionBroken'|'connectorError'|'missingSiteArea') {
+  private static _buildChargerInErrorFacet(errorType: 'missingSettings'|'connectionBroken'|'connectorError'|'missingSiteArea'|'all') {
     switch (errorType) {
+      case 'all': return [];
       case 'missingSettings':
         return [{
           $match: {

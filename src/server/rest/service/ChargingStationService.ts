@@ -355,7 +355,9 @@ export default class ChargingStationService {
 
   public static async handleGetChargingStationsInError(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (! req.query.ErrorType) {
-      req.query.ErrorType = 'all';
+      req.query.ErrorType = ['all'];
+    } else {
+      req.query.ErrorType = req.query.ErrorType.split('|');
     }
     ChargingStationService.handleGetChargingStations(action, req, res, next);
   }
