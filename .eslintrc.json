@@ -95,7 +95,7 @@
     "max-len": [
       "warn",
       {
-        "code": 100
+        "code": 140
       }
     ],
     "no-lonely-if": "error",
@@ -122,7 +122,7 @@
     "switch-colon-spacing": "error",
     "arrow-body-style": [
       "error",
-      "always"
+      "as-needed"
     ],
     "arrow-parens": [
       "error",

@@ -71,7 +71,7 @@ export default class ChargingStationService {
       }
     }
     // Save
-    if (action.toLowerCase().includes('add')) {
+    if (action === 'AddChargingStationsToSiteArea') {
       await ChargingStationStorage.addChargingStationsToSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.chargingStationIDs);
     } else {
       await ChargingStationStorage.removeChargingStationsFromSiteArea(req.user.tenantID, filteredRequest.siteAreaID, filteredRequest.chargingStationIDs);
@@ -125,6 +125,8 @@ export default class ChargingStationService {
     if (filteredRequest.siteArea) {
       chargingStation.siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteArea.id);
       chargingStation.siteAreaID = chargingStation.siteArea.id;
+    } else {
+      chargingStation.siteAreaID = null;
     }
     // Update Site Area
     if (filteredRequest.hasOwnProperty('powerLimitUnit')) {
@@ -216,7 +218,7 @@ export default class ChargingStationService {
     UtilsService.assertObjectExists(chargingStation, `ChargingStation '${filteredRequest.ChargeBoxID}' doesn't exist anymore.`,
         'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
     // Get the Config
-    const result = await ChargingStationService.requestAndSaveConfiguration(req.user.tenantID, chargingStation);
+    const result = await OCPPUtils.requestAndSaveChargingStationConfiguration(req.user.tenantID, chargingStation);
     // Ok
     res.json(result);
     next();
@@ -563,7 +565,7 @@ export default class ChargingStationService {
         message: `Max Instensity Socket has been set to '${filteredRequest.maxIntensity}'`
       });
       // Change the config
-      result = await ChargingStationService.requestChangeConfiguration(req.user.tenantID, chargingStation,
+      result = await OCPPUtils.requestChangeChargingStationConfiguration(req.user.tenantID, chargingStation,
         { key: 'maxintensitysocket', value: filteredRequest.maxIntensity });
     } else {
       // Invalid value
@@ -575,129 +577,6 @@ export default class ChargingStationService {
     // Return the result
     res.json(result);
     next();
-  }
-
-  public static async getClient(tenantID: string, chargingStation: ChargingStation): Promise<ChargingStationClient> {
-    if (!chargingStation.client) {
-      chargingStation.client = await buildChargingStationClient(tenantID, chargingStation);
-    }
-    return chargingStation.client;
-  }
-
-  public static async requestExecuteCommand(tenantID: string, chargingStation: ChargingStation, method: string, params?) {
-    try {
-      // Get the client
-      const chargingStationClient = await ChargingStationService.getClient(tenantID, chargingStation);
-      // Set Charging Profile
-      const result = await chargingStationClient[method](params);
-      // Log
-      Logging.logInfo({
-        tenantID: tenantID, source: chargingStation.id,
-        module: 'ChargingStation', method: '_requestExecuteCommand',
-        action: Utils.firstLetterInUpperCase(method),
-        message: 'Command sent with success',
-        detailedMessages: result
-      });
-      // Return
-      return result;
-    } catch (error) {
-      // OCPP 1.6?
-      if (Array.isArray(error.error)) {
-        const response = error.error;
-        throw new BackendError(chargingStation.id, response[3], 'ChargingStationService',
-          'requestExecuteCommand', Utils.firstLetterInUpperCase(method));
-      } else {
-        throw error;
-      }
-    }
-  }
-
-  public static async requestAndSaveConfiguration(tenantID: string, chargingStation: ChargingStation) {
-    let configuration = null;
-    try {
-      // In case of error. the boot should no be denied
-      configuration = await ChargingStationService.requestExecuteCommand(tenantID, chargingStation, 'getConfiguration', {});
-      // Log
-      Logging.logInfo({
-        tenantID: tenantID, source: chargingStation.id, module: 'ChargingStationService',
-        method: 'requestAndSaveConfiguration', action: 'RequestConfiguration',
-        message: 'Command sent with success', detailedMessages: configuration
-      });
-      // Override with Conf
-      configuration = {
-        'configuration': configuration.configurationKey
-      };
-      // Set default?
-      if (!configuration) {
-        // Check if there is an already existing config
-        const existingConfiguration = await ChargingStationStorage.getConfiguration(tenantID, chargingStation.id);
-        if (!existingConfiguration) {
-          // No config at all: Set default OCCP configuration
-          configuration = OCPPConstants.DEFAULT_OCPP_CONFIGURATION;
-        } else {
-          // Set default
-          configuration = existingConfiguration;
-        }
-      }
-      // Set the charger ID
-      configuration.chargeBoxID = chargingStation.id;
-      configuration.timestamp = new Date();
-      // Save config
-      await OCPPStorage.saveConfiguration(tenantID, configuration);
-      // Update connector power
-      await OCPPUtils.updateConnectorsPower(tenantID, chargingStation); //TODO might be wrong
-      // Ok
-      Logging.logInfo({
-        tenantID: tenantID, source: chargingStation.id, module: 'ChargingStation',
-        method: 'requestAndSaveConfiguration', action: 'RequestConfiguration',
-        message: 'Configuration has been saved'
-      });
-      return { status: 'Accepted' };
-    } catch (error) {
-      // Log error
-      Logging.logActionExceptionMessage(tenantID, 'RequestConfiguration', error);
-      return { status: 'Rejected' };
-    }
-  }
-
-  public static async requestChangeConfiguration(tenantID: string, chargingStation: ChargingStation, params) {
-    const result = await ChargingStationService.requestExecuteCommand(tenantID, chargingStation, 'changeConfiguration', params);
-    // Request the new Configuration?
-    if (result.status === 'Accepted') {
-      // Retrieve and Save it in the DB
-      await ChargingStationService.requestAndSaveConfiguration(tenantID, chargingStation);
-    }
-    // Return
-    return result;
-  }
-
-  public static async checkAndFreeConnector(tenantID: string, chargingStation: ChargingStation, connectorId: number, saveOtherConnectors: boolean = false) {
-    // Cleanup connector transaction data
-    let connector = chargingStation.connectors.find(c=>c.connectorId===connectorId);
-    if (connector) {
-      connector.currentConsumption = 0;
-      connector.totalConsumption = 0;
-      connector.totalInactivitySecs = 0;
-      connector.currentStateOfCharge = 0;
-      connector.activeTransactionID = 0;
-    }
-    // Check if Charger can charge in //
-    if (chargingStation.cannotChargeInParallel) {
-      // Set all the other connectors to Available
-      chargingStation.connectors.forEach(async (connector) => {
-        // Only other Occupied connectors
-        if ((connector.status === Constants.CONN_STATUS_OCCUPIED ||
-          connector.status === Constants.CONN_STATUS_UNAVAILABLE) &&
-          connector.connectorId !== connectorId) {
-          // Set connector Available again
-          connector.status = Constants.CONN_STATUS_AVAILABLE;
-          // Save other updated connectors?
-          if (saveOtherConnectors) {
-            await ChargingStationStorage.saveChargingStationConnector(tenantID, chargingStation, connector);
-          }
-        }
-      });
-    }
   }
 
   public static chargingStationIsInactive(chargingStation: ChargingStation): boolean {
@@ -759,37 +638,6 @@ export default class ChargingStationService {
     return chargingStations;
   }
 
-  private static async _handleAction(tenantID: string, chargingStation: ChargingStation, action: string, args: any) {
-    switch (action) {
-      case 'ClearCache':
-        return this.requestExecuteCommand(tenantID, chargingStation, 'clearCache');
-      case 'GetConfiguration':
-        return this.requestExecuteCommand(tenantID, chargingStation, 'getConfiguration', args);
-      case 'ChangeConfiguration':
-        return ChargingStationService.requestChangeConfiguration(tenantID, chargingStation, args);
-      case 'RemoteStopTransaction':
-        return this.requestExecuteCommand(tenantID, chargingStation, 'remoteStopTransaction', args);
-      case 'RemoteStartTransaction':
-        return this.requestExecuteCommand(tenantID, chargingStation, 'remoteStartTransaction', args);
-      case 'UnlockConnector':
-        return this.requestExecuteCommand(tenantID, chargingStation, 'unlockConnector', args);
-      case 'Reset':
-        return this.requestExecuteCommand(tenantID, chargingStation, 'reset', args);
-      case 'SetChargingProfile':
-        return this.requestExecuteCommand(tenantID, chargingStation, 'setChargingProfile', args);
-      case 'GetCompositeSchedule':
-        return this.requestExecuteCommand(tenantID, chargingStation, 'getCompositeSchedule', args);
-      case 'ClearChargingProfile':
-        return this.requestExecuteCommand(tenantID, chargingStation, 'clearChargingProfile', args);
-      case 'GetDiagnostics':
-        return this.requestExecuteCommand(tenantID, chargingStation, 'getDiagnostics', args);
-      case 'ChangeAvailability':
-        return this.requestExecuteCommand(tenantID, chargingStation, 'changeAvailability', args);
-      case 'UpdateFirmware':
-        return this.requestExecuteCommand(tenantID, chargingStation, 'updateFirmware', args);
-    }
-  }
-
   private static _convertToCSV(chargingStations: ChargingStation[]): string {
     let csv = 'id,createdOn,connectors,siteAreaID,latitude,longitude,chargePointSerialNumber,chargePointModel,chargeBoxSerialNumber,chargePointVendor,firmwareVersion,endpoint,ocppVersion,ocppProtocol,lastHeartBeat,deleted,inactive,lastReboot,numberOfConnectedPhase,maximumPower,cannotChargeInParallel,powerLimitUnit\r\n';
     for (const chargingStation of chargingStations) {
@@ -818,4 +666,36 @@ export default class ChargingStationService {
     }
     return csv;
   }
+
+  private static async _handleAction(tenantID: string, chargingStation: ChargingStation, action: string, args: any) {
+    switch (action) {
+      case 'ClearCache':
+        return await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'clearCache');
+      case 'GetConfiguration':
+        return await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'getConfiguration', args);
+      case 'ChangeConfiguration':
+        return await OCPPUtils.requestChangeChargingStationConfiguration(tenantID, chargingStation, args);
+      case 'RemoteStopTransaction':
+        return await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'remoteStopTransaction', args);
+      case 'RemoteStartTransaction':
+        return await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'remoteStartTransaction', args);
+      case 'UnlockConnector':
+        return await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'unlockConnector', args);
+      case 'Reset':
+        return await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'reset', args);
+      case 'SetChargingProfile':
+        return await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'setChargingProfile', args);
+      case 'GetCompositeSchedule':
+        return await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'getCompositeSchedule', args);
+      case 'ClearChargingProfile':
+        return await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'clearChargingProfile', args);
+      case 'GetDiagnostics':
+        return await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'getDiagnostics', args);
+      case 'ChangeAvailability':
+        return await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'changeAvailability', args);
+      case 'UpdateFirmware':
+        return await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'updateFirmware', args);
+    }
+  }
+
 }

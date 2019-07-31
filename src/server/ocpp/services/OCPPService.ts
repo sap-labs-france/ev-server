@@ -16,7 +16,6 @@ import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import ChargingStationService from '../../rest/service/ChargingStationService';
 import tzlookup from 'tz-lookup';
 import Connector from '../../../types/Connector';
 import Tenant from '../../../entity/Tenant';
@@ -102,7 +101,7 @@ export default class OCPPService {
       await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
 
       // Send Notification
-      NotificationHandler.sendChargingStationRegistered(
+      await NotificationHandler.sendChargingStationRegistered(
         headers.tenantID,
         Utils.generateGUID(),
         chargingStation,
@@ -122,9 +121,9 @@ export default class OCPPService {
         action: 'BootNotification', message: 'Boot notification saved'
       });
       // Handle the get of configuration later on
-      setTimeout(() => {
+      setTimeout(async () => {
         // Get config and save it
-        ChargingStationService.requestAndSaveConfiguration(headers.tenantID, chargingStation);
+        await OCPPUtils.requestAndSaveChargingStationConfiguration(headers.tenantID, chargingStation);
       }, 3000);
       // Return the result
       return {
@@ -239,9 +238,7 @@ export default class OCPPService {
 
   async _updateConnectorStatus(tenantID: string, chargingStation: ChargingStation, statusNotification, bothConnectorsUpdated) {
     // Get it
-    let connector = chargingStation.connectors.find((connector) => {
-      return connector.connectorId === statusNotification.connectorId
-    });
+    let connector = chargingStation.connectors.find((localConnector) => localConnector.connectorId === statusNotification.connectorId);
     if (!connector) {
       // Does not exist: Create
       connector = {
@@ -284,9 +281,10 @@ export default class OCPPService {
     // Check if transaction is ongoing (ABB bug)!!!
     await this._checkStatusNotificationOngoingTransaction(tenantID, chargingStation, statusNotification, connector, bothConnectorsUpdated);
     // Notify admins
-    this._notifyStatusNotification(tenantID, chargingStation, statusNotification);
+    await this._notifyStatusNotification(tenantID, chargingStation, statusNotification);
     // Save Connector
-    await ChargingStationStorage.saveChargingStationConnector(tenantID, chargingStation, chargingStation.connectors.find(c=>c.connectorId===statusNotification.connectorId));
+    await ChargingStationStorage.saveChargingStationConnector(tenantID, chargingStation, chargingStation.connectors.find((localConnector) =>
+      localConnector.connectorId === statusNotification.connectorId));
   }
 
   async _checkStatusNotificationInactivity(tenantID: string, chargingStation: ChargingStation, statusNotification, connector: Connector) {
@@ -320,7 +318,7 @@ export default class OCPPService {
       await this._stopOrDeleteActiveTransactions(
         tenantID, chargingStation.id, statusNotification.connectorId);
       // Clean up connector
-      await ChargingStationService.checkAndFreeConnector(tenantID, chargingStation, statusNotification.connectorId, true);
+      await OCPPUtils.checkAndFreeChargingStationConnector(tenantID, chargingStation, statusNotification.connectorId, true);
     }
   }
 
@@ -334,7 +332,7 @@ export default class OCPPService {
         message: `Error on Connector '${statusNotification.connectorId}': '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}'`
       });
       // Send Notification
-      NotificationHandler.sendChargingStationStatusError(
+      await NotificationHandler.sendChargingStationStatusError(
         tenantID,
         Utils.generateGUID(),
         chargingStation,
@@ -990,7 +988,7 @@ export default class OCPPService {
       }
       // Check Org
       const tenant = await TenantStorage.getTenant(headers.tenantID);
-      const isOrgCompActive = await tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
+      const isOrgCompActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
       if (isOrgCompActive) {
         // Set the Site Area ID
         startTransaction.siteAreaID = chargingStation.siteAreaID;
@@ -1040,7 +1038,7 @@ export default class OCPPService {
         OCPPUtils.lockAllConnectors(chargingStation);
       }
       // Clean up Charger's connector transaction info
-      let connector = chargingStation.connectors.find(c=>c.connectorId===transaction.getConnectorId());
+      let connector = chargingStation.connectors.find((connector1) => connector1.connectorId === transaction.getConnectorId());
       if(connector){
         connector.currentConsumption = 0;
         connector.totalConsumption = 0;
@@ -1049,7 +1047,7 @@ export default class OCPPService {
         connector.activeTransactionID = 0;
       }
       // Set the active transaction on the connector
-      connector = chargingStation.connectors.find(c=>c.connectorId===transaction.getConnectorId());
+      connector = chargingStation.connectors.find((connector1) => connector1.connectorId === transaction.getConnectorId());
       connector.activeTransactionID = transaction.getID();
       // Update Heartbeat
       chargingStation.lastHeartBeat = new Date();
@@ -1240,7 +1238,7 @@ export default class OCPPService {
           (alternateUser ? (user ? user : null) : null));
       }
       // Check and free the connector
-      await ChargingStationService.checkAndFreeConnector(headers.tenantID, chargingStation, transaction.getConnectorId(), false);
+      await OCPPUtils.checkAndFreeChargingStationConnector(headers.tenantID, chargingStation, transaction.getConnectorId(), false);
       // Update Heartbeat
       chargingStation.lastHeartBeat = new Date();
       // Save Charger

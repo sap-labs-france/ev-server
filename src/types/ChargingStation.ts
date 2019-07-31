@@ -32,10 +32,8 @@ export default interface ChargingStation extends CreatedUpdatedProps {
   latitude: number;
   longitude: number;
   connectors: Connector[];
+
   errorCode?: string;
   currentIPAddress?: string;
-
   siteArea?: SiteArea;
-
-  client?: ChargingStationClient;
 }
