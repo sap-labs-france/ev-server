@@ -88,7 +88,7 @@ export default class SettingService {
       res.json(
         // Filter
         SettingSecurity.filterSettingResponse(
-          setting.getModel(), req.user)
+          setting.getModel(), req.user, filteredRequest.ContentFilter)
       );
       next();
     } catch (error) {
@@ -125,7 +125,7 @@ export default class SettingService {
       });
       // Filter
       settings.result = SettingSecurity.filterSettingsResponse(
-        settings.result, req.user);
+        settings.result, req.user, filteredRequest.ContentFilter);
       // Process the sensitive data if any
       settings.result.forEach((setting) => {
         // Hash sensitive data before being sent to the front end

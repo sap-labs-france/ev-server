@@ -1,6 +1,7 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import UtilsSecurity from './UtilsSecurity';
+import Constants from '../../../../utils/Constants';
 
 export default class SettingSecurity {
   // eslint-disable-next-line no-unused-vars
@@ -15,6 +16,7 @@ export default class SettingSecurity {
   static filterSettingRequest(request, loggedUser) {
     const filteredRequest: any = {};
     filteredRequest.ID = sanitize(request.ID);
+    filteredRequest.ContentFilter = UtilsSecurity.filterBoolean(request.ContentFilter)
     return filteredRequest;
   }
 
@@ -23,6 +25,7 @@ export default class SettingSecurity {
     const filteredRequest: any = {};
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.Identifier = sanitize(request.Identifier);
+    filteredRequest.ContentFilter = UtilsSecurity.filterBoolean(request.ContentFilter);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
@@ -50,23 +53,18 @@ export default class SettingSecurity {
     return filteredRequest;
   }
 
-  static filterSettingResponse(setting, loggedUser) {
+  static filterSettingResponse(setting, loggedUser, contentFilter = false) {
     let filteredSetting;
 
     if (!setting) {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadSetting(loggedUser)) {
-      // Admin?
-      // if (Authorizations.isAdmin(loggedUser)) {
-      // Yes: set all params
+    if (Authorizations.canReadSetting(loggedUser, setting)) {
       filteredSetting = setting;
-      // } else {
-      //   // Set only necessary info
-      //   return null;
-      // }
-
+      if (contentFilter) {
+        filteredSetting.content = SettingSecurity._filterAuthorizedSettingContent(loggedUser, setting);
+      }
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(
         filteredSetting, setting, loggedUser);
@@ -74,7 +72,7 @@ export default class SettingSecurity {
     return filteredSetting;
   }
 
-  static filterSettingsResponse(settings, loggedUser) {
+  static filterSettingsResponse(settings, loggedUser, contentFilter = false) {
     const filteredSettings = [];
 
     if (!settings) {
@@ -85,7 +83,7 @@ export default class SettingSecurity {
     }
     for (const setting of settings) {
       // Filter
-      const filteredSetting = SettingSecurity.filterSettingResponse(setting, loggedUser);
+      const filteredSetting = SettingSecurity.filterSettingResponse(setting, loggedUser, contentFilter);
       // Ok?
       if (filteredSetting) {
         // Add
@@ -94,5 +92,22 @@ export default class SettingSecurity {
     }
     return filteredSettings;
   }
-}
 
+  private static _filterAuthorizedSettingContent(loggedUser, setting) {
+    if (!setting.content) {
+      return null;
+    }
+    if (Authorizations.isSuperAdmin(loggedUser.role) || setting.identifier !== Constants.COMPONENTS.ANALYTICS) {
+      return setting.content;
+    }
+    if (setting.content.links && Array.isArray(setting.content.links)) {
+      const filteredLinks = setting.content.links.filter((link) => {
+        return !link.role || link.role === '' ||
+          (link.role && link.role.includes(loggedUser.role));
+      });
+      setting.content.links = filteredLinks;
+    }
+    return setting.content;
+  }
+
+}
