@@ -23,7 +23,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('Authentication Service', function () {
+describe('Authentication Service', function() {
   this.timeout(50000);
 
   before(() => {
@@ -36,6 +36,7 @@ describe('Authentication Service', function () {
   });
 
   after(() => {
+    // Delete all created users again
     if (testData.centralServiceDefaultTenant) {
       testData.createdUsersDefaultTenant.forEach(async (user) => {
         await testData.centralServiceDefaultTenant.userApi.delete(user.id);
