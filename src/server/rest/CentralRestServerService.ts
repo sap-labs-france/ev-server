@@ -70,8 +70,8 @@ class RequestMapper {
         );
         // Register REST actions
         this.registerJsonActionsPaths({
-          AddChargingStationsToSiteArea: ChargingStationService.handleAddChargingStationsToSiteArea,
-          RemoveChargingStationsFromSiteArea: ChargingStationService.handleRemoveChargingStationsFromSiteArea,
+          AddChargingStationsToSiteArea: ChargingStationService.handleAssignChargingStationsToSiteArea,
+          RemoveChargingStationsFromSiteArea: ChargingStationService.handleAssignChargingStationsToSiteArea,
           UserCreate: UserService.handleCreateUser,
           CompanyCreate: CompanyService.handleCreateCompany,
           TenantCreate: TenantService.handleCreateTenant,
