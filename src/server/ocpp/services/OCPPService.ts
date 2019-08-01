@@ -87,7 +87,6 @@ export default class OCPPService {
         // Back again
         chargingStation.deleted = false;
       }
-
       chargingStation.ocppVersion = headers.ocppVersion;
       chargingStation.ocppProtocol = headers.ocppProtocol;
       chargingStation.lastHeartBeat = bootNotification.lastHeartBeat;

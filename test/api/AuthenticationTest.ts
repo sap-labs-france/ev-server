@@ -168,7 +168,7 @@ describe('Authentication Service', function() {
       expect(validResponse.status).to.be.eql(HttpStatus.OK);
       expect(validResponse.data.id).to.be.eql(newUser.id);
 
-      // same list in a different order
+      // Same list in a different order
       newUser.tagIDs = [tag2, tag1];
       await CentralServerService.DefaultInstance.updateEntity(
         CentralServerService.DefaultInstance.userApi, newUser);
@@ -258,5 +258,4 @@ describe('Authentication Service', function() {
     });
   });
 });
-
 
