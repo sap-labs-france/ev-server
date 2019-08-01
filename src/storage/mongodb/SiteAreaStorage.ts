@@ -105,7 +105,7 @@ export default class SiteAreaStorage {
     // Set the filters
     const filters: any = {};
     // Query by Site Area ID if available
-    if (params.siteAreaID && ObjectID.isValid(params.siteAreaID)) {
+    if (params.siteAreaID) {
       filters._id = Utils.convertToObjectID(params.siteAreaID);
     // Otherwise check if search is present
     } else if (params.search) {

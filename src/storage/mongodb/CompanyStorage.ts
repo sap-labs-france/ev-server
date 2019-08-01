@@ -8,6 +8,7 @@ import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import SiteStorage from './SiteStorage';
 import Utils from '../../utils/Utils';
+import { filter } from 'bluebird';
 
 export default class CompanyStorage {
 
@@ -86,7 +87,7 @@ export default class CompanyStorage {
   }
 
   public static async getCompanies(tenantID: string,
-    params: {search?: string; companyIDs?: string[]; withSites?: boolean; withLogo?: boolean} = {},
+    params: {search?: string; companyID?: string; companyIDs?: string[]; withSites?: boolean; withLogo?: boolean} = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<{count: number; result: Company[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompanies');
@@ -99,7 +100,9 @@ export default class CompanyStorage {
     // Set the filters
     let filters: ({_id?: ObjectID; $or?: any[]}|undefined);
     // Build filter
-    if (params.search) {
+    if(params.companyID) {
+      filters._id = Utils.convertToObjectID(params.companyID);
+    } else if (params.search) {
       filters = {};
       filters.$or = [
         { 'name': { $regex: params.search, $options: 'i' } },

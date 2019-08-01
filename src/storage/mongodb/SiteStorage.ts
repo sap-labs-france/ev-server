@@ -18,7 +18,7 @@ export default class SiteStorage {
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getSite');
     // Query single Site
     const sitesMDB = await SiteStorage.getSites(tenantID, {
-      siteIDs: [id],
+      siteID: id,
       withCompany: true,
     }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
@@ -279,7 +279,7 @@ export default class SiteStorage {
   public static async getSites(tenantID: string,
     params: {
       search?: string; companyIDs?: string[]; withAutoUserAssignment?: boolean; siteIDs?: string[];
-      userID?: string; excludeSitesOfUserID?: boolean;
+      userID?: string; excludeSitesOfUserID?: boolean; siteID?: string;
       withAvailableChargers?: boolean; withCompany?: boolean; } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: Site[]}> {
     // Debug
@@ -294,7 +294,9 @@ export default class SiteStorage {
     const aggregation = [];
     // Search filters
     const filters: any = {};
-    if (params.search) {
+    if(params.siteID) {
+      filters._id = Utils.convertToObjectID(params.siteID);
+    } else if (params.search) {
       if (ObjectID.isValid(params.search)) {
         filters._id = Utils.convertToObjectID(params.search);
       } else {
