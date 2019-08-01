@@ -19,7 +19,7 @@ export default class ChargingStationSecurity {
   }
 
   // Charging Station
-  public static filterChargingStationResponse(chargingStation: ChargingStation, loggedUser: UserToken, organizationIsActive: boolean) {
+  public static filterChargingStationResponse(chargingStation: ChargingStation, loggedUser: UserToken, organizationIsActive: boolean): Partial<ChargingStation> {
     let filteredChargingStation;
 
     if (!chargingStation || !Authorizations.canReadChargingStation(loggedUser)) {
@@ -46,7 +46,7 @@ export default class ChargingStationSecurity {
       // Set only necessary info
       filteredChargingStation = {};
       filteredChargingStation.id = chargingStation.id;
-      filteredChargingStation.chargeBoxID = chargingStation.id; // TODO ????
+      filteredChargingStation.chargeBoxID = chargingStation.id;
       filteredChargingStation.inactive = chargingStation.inactive;
       filteredChargingStation.connectors = chargingStation.connectors.map((connector) => {
         if (!connector) {
@@ -83,7 +83,7 @@ export default class ChargingStationSecurity {
     return filteredChargingStation;
   }
 
-  public static filterChargingStationsResponse(chargingStations: {result: ChargingStation[]}, loggedUser: UserToken, organizationIsActive: boolean) {
+  public static filterChargingStationsResponse(chargingStations: {result: ChargingStation[]}, loggedUser: UserToken, organizationIsActive: boolean): Promise<void> {
     const filteredChargingStations = [];
     // Check
     if (!chargingStations.result) {
@@ -95,9 +95,7 @@ export default class ChargingStationSecurity {
     for (const chargingStation of chargingStations.result) {
       // Filter
       const filteredChargingStation = ChargingStationSecurity.filterChargingStationResponse(chargingStation, loggedUser, organizationIsActive);
-      // Ok?
       if (filteredChargingStation) {
-        // Add
         filteredChargingStations.push(filteredChargingStation);
       }
     }
@@ -212,7 +210,7 @@ export default class ChargingStationSecurity {
     return {
       chargeBoxID: sanitize(request.chargeBoxID),
       maxIntensity: request.args ? sanitize(request.args.maxIntensity) : null
-    }
+    };
   }
 }
 

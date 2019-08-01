@@ -41,7 +41,7 @@ export default class SiteAreaStorage {
     await Utils.checkTenant(tenantID);
     // Exec
     const siteAreaResult = await SiteAreaStorage.getSiteAreas(
-      tenantID, { search: id,
+      tenantID, { siteAreaID: id,
         withSite: params.withSite, withChargeBoxes: params.withChargeBoxes, withAvailableChargers: true },
       { limit: 1, skip: 0, onlyRecordCount: false }
     );
@@ -91,7 +91,7 @@ export default class SiteAreaStorage {
   }
 
   public static async getSiteAreas(tenantID: string,
-    params: {search?: string; siteIDs?: string[]; withSite?: boolean;
+    params: {siteAreaID?: string; search?: string; siteIDs?: string[]; withSite?: boolean;
       withChargeBoxes?: boolean; withAvailableChargers?: boolean; } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: SiteArea[]}> {
     // Debug
@@ -104,15 +104,14 @@ export default class SiteAreaStorage {
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
     const filters: any = {};
-    // Build filter
-    if (params.search) {
-      if (ObjectID.isValid(params.search)) {
-        filters._id = Utils.convertToObjectID(params.search);
-      } else {
-        filters.$or = [
-          { 'name': { $regex: params.search, $options: 'i' } }
-        ];
-      }
+    // Query by Site Area ID if available
+    if (params.siteAreaID && ObjectID.isValid(params.siteAreaID)) {
+      filters._id = Utils.convertToObjectID(params.siteAreaID);
+    // Otherwise check if search is present
+    } else if (params.search) {
+      filters.$or = [
+        { 'name': { $regex: params.search, $options: 'i' } }
+      ];
     }
     // Set Site thru a filter in the dashboard
     if (params.siteIDs && Array.isArray(params.siteIDs) && params.siteIDs.length > 0) {

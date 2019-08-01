@@ -23,6 +23,7 @@ import User from '../types/User';
 import UserToken from '../types/UserToken';
 import ChargingStation from '../types/ChargingStation';
 import tzlookup from 'tz-lookup';
+import UserStorage from '../storage/mongodb/UserStorage';
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
 
@@ -599,6 +600,23 @@ export default class Utils {
         'Vehicle Manufacturer Name is mandatory', Constants.HTTP_GENERAL_ERROR,
         'VehicleManufacturer', 'checkIfVehicleManufacturerValid',
         req.user.id, filteredRequest.id);
+    }
+  }
+
+  public static async checkIfUserTagIDsAreValid(user: User, tagIDs: string[], req: Request) {
+    // Check that the Badge ID is not already used
+    if (Authorizations.isAdmin(req.user.role) || Authorizations.isSuperAdmin(req.user.role)) {
+      for (const tagID of tagIDs) {
+        const foundUser = await UserStorage.getUserByTagId(req.user.tenantID, tagID);
+        if (foundUser && (!user || (foundUser.id !== user.id))) {
+          // Tag already used!
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `The Tag ID '${tagID}' is already used by User '${Utils.buildUserFullName(foundUser)}'`,
+            Constants.HTTP_USER_TAG_ID_ALREADY_USED_ERROR,
+            'Utils', 'checkIfUserTagsAreValid', req.user);
+        }
+      }
     }
   }
 

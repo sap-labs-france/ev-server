@@ -12,6 +12,7 @@ class TestData {
   public centralServerService: CentralServerService;
   public tenantID: string;
   public dataHelper16: any;
+  public currentPricingSetting;
 
   public constructor() {
     this.centralServerService = new CentralServerService();
@@ -30,11 +31,21 @@ describe('Transaction tests', function() {
   before(async () => {
     testData = new TestData();
     await testData.init();
+    const allSettings = await testData.centralServerService.settingApi.readAll({});
+    testData.currentPricingSetting = allSettings.data.result.find((s) => {
+      return s.identifier === 'pricing';
+    });
+    if (testData.currentPricingSetting) {
+      await testData.centralServerService.updatePriceSetting(1, 'EUR');
+    }
   });
 
   after(async () => {
-    testData.dataHelper16.close();
+    await testData.dataHelper16.close();
     await testData.dataHelper16.destroyData();
+    if (testData.currentPricingSetting) {
+      await testData.centralServerService.settingApi.update(testData.currentPricingSetting);
+    }
   });
 
   describe('readById', () => {
@@ -1007,8 +1018,6 @@ describe('Transaction tests', function() {
       const meterStart = 180;
       const startDate = moment();
       const transactionId = await testData.dataHelper16.startTransaction(chargingStation, connectorId, tagId, meterStart, startDate);
-      await testData.centralServerService.updatePriceSetting(1.5, 'EUR');
-
       const currentDate = startDate.clone();
 
       const meterValues = [
@@ -1051,7 +1060,9 @@ describe('Transaction tests', function() {
         id: transactionId,
         stop: {
           totalDurationSecs: 7 * 3600,
-          totalInactivitySecs: 5 * 3600
+          totalInactivitySecs: 5 * 3600,
+          price: 0.15,
+          roundedPrice: 0.15
         }
       });
     });

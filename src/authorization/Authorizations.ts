@@ -430,8 +430,8 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SETTINGS, Constants.ACTION_LIST);
   }
 
-  public static canReadSetting(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SETTING, Constants.ACTION_READ);
+  public static canReadSetting(loggedUser: UserToken, context?): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SETTING, Constants.ACTION_READ, context);
   }
 
   public static canDeleteSetting(loggedUser: UserToken): boolean {
@@ -677,16 +677,17 @@ export default class Authorizations {
     if (!user) {
       // Create an empty user
       user = {
+        ...UserStorage.getEmptyUser(),
         name: 'Unknown',
         firstName: 'User',
         status: Constants.USER_STATUS_INACTIVE,
         role: Constants.ROLE_BASIC,
-        email: tagID + '@chargeangels.fr',
-        tagIDs: [tagID],
-        ...UserStorage.getEmptyUser()
+        email: tagID + '@e-mobility.com'
       };
-      await UserStorage.saveUser(tenantID, user);
-
+      // Save
+      user.id = await UserStorage.saveUser(tenantID, user);
+      // Save TagIDs
+      await UserStorage.saveUserTags(tenantID, user.id, [tagID]);
       // Notify
       NotificationHandler.sendUnknownUserBadged(
         tenantID,

@@ -15,7 +15,7 @@ export default class CompanyStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompany');
     // Reuse
-    const companiesMDB = await CompanyStorage.getCompanies(tenantID, { search: id }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const companiesMDB = await CompanyStorage.getCompanies(tenantID, { companyIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
     let company: Company = null;
     // Check
     if (companiesMDB && companiesMDB.count > 0) {
@@ -101,16 +101,11 @@ export default class CompanyStorage {
     // Build filter
     if (params.search) {
       filters = {};
-      // Valid ID?
-      if (ObjectID.isValid(params.search)) {
-        filters._id = Utils.convertToObjectID(params.search);
-      } else {
-        filters.$or = [
-          { 'name': { $regex: params.search, $options: 'i' } },
-          { 'address.city': { $regex: params.search, $options: 'i' } },
-          { 'address.country': { $regex: params.search, $options: 'i' } }
-        ];
-      }
+      filters.$or = [
+        { 'name': { $regex: params.search, $options: 'i' } },
+        { 'address.city': { $regex: params.search, $options: 'i' } },
+        { 'address.country': { $regex: params.search, $options: 'i' } }
+      ];
     }
     // Create Aggregation
     const aggregation = [];
