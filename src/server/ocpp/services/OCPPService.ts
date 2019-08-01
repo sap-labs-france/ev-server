@@ -1421,7 +1421,7 @@ export default class OCPPService {
             'relativeCost': (transaction.getStopPrice() / (transaction.getStopTotalConsumption() / 1000)),
             'startSignedData': transaction.getSignedData(),
             'endSignedData': transaction.getEndSignedData(),
-            'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).getSubdomain())
+            'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
           },
           user.locale,
           {
