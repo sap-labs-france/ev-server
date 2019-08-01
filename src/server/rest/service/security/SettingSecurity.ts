@@ -16,7 +16,7 @@ export default class SettingSecurity {
   static filterSettingRequest(request, loggedUser) {
     const filteredRequest: any = {};
     filteredRequest.ID = sanitize(request.ID);
-    filteredRequest.ContentFilter = UtilsSecurity.filterBoolean(request.ContentFilter)
+    filteredRequest.ContentFilter = UtilsSecurity.filterBoolean(request.ContentFilter);
     return filteredRequest;
   }
 

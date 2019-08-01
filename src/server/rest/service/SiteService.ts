@@ -451,7 +451,7 @@ export default class SiteService {
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.companyID);
     UtilsService.assertObjectExists(company, `The Company ID '${filteredRequest.companyID}' does not exist`, 'SiteService', 'handleCreateSite', req.user);
     // Create site
-    const usr = {id: req.user.id};
+    const usr = { id: req.user.id };
     const date = new Date();
     const site: Site = {
       ...filteredRequest,
@@ -470,7 +470,7 @@ export default class SiteService {
       action: action, detailedMessages: site
     });
     // Ok
-    res.json(Object.assign({id: site.id}, Constants.REST_RESPONSE_SUCCESS));
+    res.json(Object.assign({ id: site.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
@@ -497,10 +497,10 @@ export default class SiteService {
     const site: Site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.id);
     UtilsService.assertObjectExists(site, `Site with ID '${filteredRequest.id}' does not exist`, 'SiteService', 'handleUpdateSite', req.user);
     // Update
-    site.lastChangedBy = {'id': req.user.id};
+    site.lastChangedBy = { 'id': req.user.id };
     site.lastChangedOn = new Date();
     // Save
-    await SiteStorage.saveSite(req.user.tenantID, {...site, ...filteredRequest}, true);
+    await SiteStorage.saveSite(req.user.tenantID, { ...site, ...filteredRequest }, true);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
