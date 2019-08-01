@@ -14,7 +14,7 @@ export default class TenantStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'getTenant');
     // Delegate querying
-    const tenantsMDB = await TenantStorage.getTenants({search: id}, Constants.DB_PARAMS_SINGLE_RECORD);
+    const tenantsMDB = await TenantStorage.getTenants({tenantID: id}, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('TenantStorage', 'getTenant', uniqueTimerID, { id });
 
@@ -49,17 +49,14 @@ export default class TenantStorage {
       tenantFilter._id = new ObjectID();
     }
     // Properties to save
-    const tenantMDB = {
-      ...tenantToSave,
+    let tenantMDB = {
       _id: tenantFilter._id,
-      createdBy: tenantToSave.createdBy ? tenantToSave.createdBy.id : null,
-      lastChangedBy: tenantToSave.lastChangedBy ? tenantToSave.lastChangedBy.id : null,
+      name: tenantToSave.name,
+      email: tenantToSave.email,
+      subdomain: tenantToSave.subdomain,
       components: tenantToSave.components ? tenantToSave.components : {}
     }
-    // Clean up mongo request
-    delete tenantMDB.id;
-    delete tenantMDB._eMI3;
-    DatabaseUtils.addLastChangedCreatedProps(tenantMDB, tenantMDB);
+    DatabaseUtils.addLastChangedCreatedProps(tenantMDB, tenantToSave);
     // Modify
     const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants').findOneAndUpdate(
       tenantFilter,
@@ -87,7 +84,7 @@ export default class TenantStorage {
   }
 
   // Delegate
-  public static async getTenants(params: {search?: string, exact?: boolean}, dbParams: DbParams, projectFields?: string[]) {
+  public static async getTenants(params: {tenantID?: string; search?: string, exact?: boolean}, dbParams: DbParams, projectFields?: string[]) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'getTenants');
     // Check Limit
@@ -96,21 +93,19 @@ export default class TenantStorage {
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
     const filters: any = {};
-    if (params.search) {
+    if (params.tenantID && ObjectID.isValid(params.tenantID)) {
+      filters._id = Utils.convertToObjectID(params.tenantID);
+    } else if (params.search) {
       if(params.exact){
         filters.$or = [
           { 'name': params.search },
           { 'subdomain': params.search }
         ]
-      }else{
-        if (ObjectID.isValid(params.search)) {
-          filters._id = Utils.convertToObjectID(params.search);
-        } else {
-          filters.$or = [
-            { 'name': { $regex: params.search, $options: 'i' } },
-            { 'subdomain': { $regex: params.search, $options: 'i' } }
-          ];
-        }
+      } else {
+        filters.$or = [
+          { 'name': { $regex: params.search, $options: 'i' } },
+          { 'subdomain': { $regex: params.search, $options: 'i' } }
+        ];
       }
     }
     // Create Aggregation
