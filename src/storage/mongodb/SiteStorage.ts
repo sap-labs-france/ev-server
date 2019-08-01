@@ -294,7 +294,7 @@ export default class SiteStorage {
     const aggregation = [];
     // Search filters
     const filters: any = {};
-    if(params.siteID) {
+    if (params.siteID) {
       filters._id = Utils.convertToObjectID(params.siteID);
     } else if (params.search) {
       if (ObjectID.isValid(params.search)) {

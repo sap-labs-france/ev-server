@@ -41,8 +41,8 @@ export default class SiteAreaStorage {
     await Utils.checkTenant(tenantID);
     // Exec
     const siteAreaResult = await SiteAreaStorage.getSiteAreas(
-      tenantID, { siteAreaID: id,
-        withSite: params.withSite, withChargeBoxes: params.withChargeBoxes, withAvailableChargers: true },
+      tenantID,
+      { siteAreaID: id, withSite: params.withSite, withChargeBoxes: params.withChargeBoxes, withAvailableChargers: true },
       { limit: 1, skip: 0, onlyRecordCount: false }
     );
     // Debug
@@ -109,9 +109,13 @@ export default class SiteAreaStorage {
       filters._id = Utils.convertToObjectID(params.siteAreaID);
     // Otherwise check if search is present
     } else if (params.search) {
-      filters.$or = [
-        { 'name': { $regex: params.search, $options: 'i' } }
-      ];
+      if (ObjectID.isValid(params.search)) {
+        filters._id = Utils.convertToObjectID(params.search);
+      } else {
+        filters.$or = [
+          { 'name': { $regex: params.search, $options: 'i' } }
+        ];
+      }
     }
     // Set Site thru a filter in the dashboard
     if (params.siteIDs && Array.isArray(params.siteIDs) && params.siteIDs.length > 0) {
