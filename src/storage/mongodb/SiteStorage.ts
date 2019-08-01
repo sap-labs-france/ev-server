@@ -129,7 +129,6 @@ export default class SiteStorage {
       }
     });
     // Another match for searching on Users
-    // TODO Should we search by ID here as well?
     if (params.search) {
       aggregation.push({
         $match: {

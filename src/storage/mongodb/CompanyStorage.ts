@@ -8,7 +8,6 @@ import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import SiteStorage from './SiteStorage';
 import Utils from '../../utils/Utils';
-import { filter } from 'bluebird';
 
 export default class CompanyStorage {
 

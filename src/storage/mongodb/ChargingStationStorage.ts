@@ -8,7 +8,6 @@ import Logging from '../../utils/Logging';
 import Tenant from '../../entity/Tenant';
 import Utils from '../../utils/Utils';
 import Connector from '../../types/Connector';
-import { ObjectID } from 'bson';
 import UtilsService from '../../server/rest/service/UtilsService';
 
 export default class ChargingStationStorage {
@@ -261,7 +260,7 @@ export default class ChargingStationStorage {
       _id: chargingStationToSave.id
     };
     // Properties to save
-    let chargingStationMDB = { // DO *_NOT_* CHANGE TO "const" !!!!!!!
+    const chargingStationMDB = {
       _id: chargingStationToSave.id,
       siteAreaID: Utils.convertToObjectID(chargingStationToSave.siteAreaID),
       chargePointSerialNumber: chargingStationToSave.chargePointSerialNumber,
@@ -387,12 +386,9 @@ export default class ChargingStationStorage {
       configuration.configuration.every((param) => {
         // Check
         if (param.key === paramName) {
-          // Found!
           value = param.value;
-          // Break
           return false;
         }
-        // Continue
         return true;
       });
     }

@@ -4,7 +4,6 @@ import moment from 'moment';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
-import ChargingStation from '../../../types/ChargingStation';
 import ConcurConnector from '../../../integration/refund/ConcurConnector';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
@@ -18,8 +17,6 @@ import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import ChargingStationService from './ChargingStationService';
-import Transaction from '../../../entity/Transaction';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 
 export default class TransactionService {
@@ -184,9 +181,11 @@ export default class TransactionService {
             `Charging Station with ID ${transaction.getChargeBoxID()} does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
             'TransactionService', 'handleDeleteTransaction', req.user);
         }
-        const foundConnector = chargingStation.connectors.find((connector) => connector.connectorId === transaction.getConnectorId());
+        const foundConnector = chargingStation.connectors.find((connector) => {
+          return connector.connectorId === transaction.getConnectorId();
+        });
         if (foundConnector && transaction.getID() === foundConnector.activeTransactionID) {
-          await OCPPUtils.checkAndFreeChargingStationConnector(req.user.tenantID, chargingStation, transaction.getConnectorId());
+          OCPPUtils.checkAndFreeChargingStationConnector(req.user.tenantID, chargingStation, transaction.getConnectorId());
           await ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);
         }
       }

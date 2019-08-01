@@ -213,7 +213,7 @@ export default class OCPPStorage {
     Logging.traceEnd('OCPPStorage', 'saveBootNotification', uniqueTimerID);
   }
 
-  public static async getBootNotifications(tenantID: string, params: {chargeBoxID?: string}, {limit, skip, sort}: DbParams) {
+  public static async getBootNotifications(tenantID: string, params: {chargeBoxID?: string}, { limit, skip, sort }: DbParams) {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPPStorage', 'getBootNotifications');
     // Check Tenant
