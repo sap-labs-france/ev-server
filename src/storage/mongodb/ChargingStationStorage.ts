@@ -18,7 +18,7 @@ export default class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStation');
     // Query single Charging Station
     const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID, {
-      search: id,
+      chargingStationID: id,
       withSite: true
     }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
@@ -27,7 +27,7 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingStations(tenantID: string,
-    params: { search?: string; siteAreaID?: string; withNoSiteArea?: boolean; siteIDs?: string[]; withSite?: boolean;
+    params: { search?: string; chargingStationID?: string; siteAreaID?: string; withNoSiteArea?: boolean; siteIDs?: string[]; withSite?: boolean;
       errorType?: ('missingSettings'|'connectionBroken'|'connectorError'|'missingSiteArea'|'all')[]; includeDeleted?: boolean; },
     dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: ChargingStation[]}> {
     // Debug
@@ -54,8 +54,12 @@ export default class ChargingStationStorage {
         'deleted': true
       });
     }
+    if (params.chargingStationID) {
+      filters.$and.push({
+        _id: params.chargingStationID
+      });
     // Search filters
-    if (params.search) {
+    } else if (params.search) {
       // Build filter
       filters.$and.push({
         '$or': [

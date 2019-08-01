@@ -152,7 +152,7 @@ export default class UserStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUser');
     // Get user
-    const user = await UserStorage.getUsers(tenantID, { search: id }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const user = await UserStorage.getUsers(tenantID, { userID: id }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('UserStorage', 'getUser', uniqueTimerID, { id });
     return user.count > 0 ? user.result[0] : null;
@@ -346,22 +346,21 @@ export default class UserStorage {
         '$or': DatabaseUtils.getNotDeletedFilter()
       }]
     };
-    // Source?
-    if (params.search) {
-      if (ObjectID.isValid(params.search)) {
-        filters.$and.push({ _id: Utils.convertToObjectID(params.search) });
-      } else {
-        // Build filter
-        filters.$and.push({
-          '$or': [
-            { 'name': { $regex: params.search, $options: 'i' } },
-            { 'firstName': { $regex: params.search, $options: 'i' } },
-            { 'tagIDs': { $regex: params.search, $options: 'i' } },
-            { 'email': { $regex: params.search, $options: 'i' } },
-            { 'plateID': { $regex: params.search, $options: 'i' } }
-          ]
-        });
-      }
+    // Filter by ID
+    if (params.userID && ObjectID.isValid(params.userID)) {
+      filters.$and.push({ _id: Utils.convertToObjectID(params.userID) });
+    }
+    // Filter by other properties
+    else if (params.search) {
+      filters.$and.push({
+        '$or': [
+          { 'name': { $regex: params.search, $options: 'i' } },
+          { 'firstName': { $regex: params.search, $options: 'i' } },
+          { 'tagIDs': { $regex: params.search, $options: 'i' } },
+          { 'email': { $regex: params.search, $options: 'i' } },
+          { 'plateID': { $regex: params.search, $options: 'i' } }
+        ]
+      });
     }
     // Email
     if (params.email) {
