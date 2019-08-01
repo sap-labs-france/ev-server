@@ -110,12 +110,12 @@ export default class OCPPCommonTests {
         max: 500
       });
     }).concat([0, 0]);
-    this.transactionMeterSoCValues = Array.from({ length: 10 }, () => {
+    this.transactionMeterSoCValues = Array.from({ length: 8 }, () => {
       return faker.random.number({
-        min: 0,
+        min: 10,
         max: 90
       });
-    }).concat([98, 99, 100, 100]).sort((a, b) => {
+    }).concat([8, 8, 98, 99, 100, 100]).sort((a, b) => {
       return (a - b);
     });
     this.transactionStartSoC = this.transactionMeterSoCValues[0];
@@ -467,17 +467,9 @@ export default class OCPPCommonTests {
       });
       if (withSoC) {
         // Check
-        if (!value.stateOfCharge) {
-          console.log(i);
-          console.log(value);
-        }
-        //        } else {
-        //          console.log(value);
-        //        if (value.stateOfCharge || i > 0) {
         expect(value).to.include({
           'stateOfCharge': (i > 0 ? this.transactionMeterSoCValues[i - 1] : this.transactionStartSoC)
         });
-        //        }
       }
       // Add time
       transactionCurrentTime.add(this.transactionMeterValueIntervalSecs, 's');
