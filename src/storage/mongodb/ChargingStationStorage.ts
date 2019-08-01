@@ -288,7 +288,8 @@ export default class ChargingStationStorage {
       powerLimitUnit: chargingStationToSave.powerLimitUnit,
       latitude: chargingStationToSave.latitude,
       longitude: chargingStationToSave.longitude,
-      connectors: chargingStationToSave.connectors
+      connectors: chargingStationToSave.connectors,
+      currentIPAddress: chargingStationToSave.currentIPAddress
     };
     if (!chargingStationMDB.connectors) {
       chargingStationMDB.connectors = [];
