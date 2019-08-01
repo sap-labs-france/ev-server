@@ -16,12 +16,15 @@ class TestData {
   public superAdminEmail: any;
   public superAdminPassword: any;
   public adminTenant: any;
+  public createdUsersAdminTenant: any[] = [];
+  public centralServiceDefaultTenant: any;
+  public createdUsersDefaultTenant: any[] = [];
 }
 
 const testData: TestData = new TestData();
 
 describe('Authentication Service', function() {
-  this.timeout(5000);
+  this.timeout(50000);
 
   before(() => {
     // Get credentials
@@ -30,6 +33,18 @@ describe('Authentication Service', function() {
     testData.superAdminEmail = config.get('superadmin.username');
     testData.superAdminPassword = config.get('superadmin.password');
     testData.adminTenant = config.get('admin.tenant');
+  });
+
+  after(() => {
+    // Delete all created users again
+    if (testData.centralServiceDefaultTenant) {
+      testData.createdUsersDefaultTenant.forEach(async (user) => {
+        await testData.centralServiceDefaultTenant.userApi.delete(user.id);
+      });
+    }
+    testData.createdUsersAdminTenant.forEach(async (user) => {
+      await CentralServerService.DefaultInstance.userApi.delete(user.id);
+    });
   });
 
   describe('Success cases', () => {
@@ -62,6 +77,7 @@ describe('Authentication Service', function() {
       expect(response.status).to.be.eql(200);
       expect(response.data).to.have.property('count', 1);
       const user = response.data.result[0];
+      testData.createdUsersAdminTenant.push(user);
       expect(user).to.have.property('email', newUser.email);
       expect(user).to.have.property('name', newUser.name);
       expect(user).to.have.property('firstName', newUser.firstName);
@@ -76,7 +92,7 @@ describe('Authentication Service', function() {
       expect(response.status).to.be.eql(200);
       expect(response.data).to.have.property('status', 'Success');
 
-      const centralServiceSuperAdmin = new CentralServerService('',
+      testData.centralServiceDefaultTenant = new CentralServerService('',
         {
           email: testData.superAdminEmail,
           password: testData.superAdminPassword
@@ -85,10 +101,11 @@ describe('Authentication Service', function() {
           email: testData.superAdminEmail,
           password: testData.superAdminPassword
         });
-      response = await centralServiceSuperAdmin.userApi.getByEmail(newUser.email);
+      response = await testData.centralServiceDefaultTenant.userApi.getByEmail(newUser.email);
       expect(response.status).to.be.eql(200);
       expect(response.data).to.have.property('count', 1);
       const user = response.data.result[0];
+      testData.createdUsersDefaultTenant.push(user);
       expect(user).to.have.property('email', newUser.email);
       expect(user).to.have.property('name', newUser.name);
       expect(user).to.have.property('firstName', newUser.firstName);
@@ -99,7 +116,7 @@ describe('Authentication Service', function() {
     it('Should be possible to reset a user password', async () => {
       const newUser = await CentralServerService.DefaultInstance.createEntity(
         CentralServerService.DefaultInstance.userApi, UserFactory.build());
-
+      testData.createdUsersAdminTenant.push(newUser);
       const response = await CentralServerService.DefaultInstance.authenticationApi.resetUserPassword(newUser.email, testData.adminTenant);
       // Check
       expect(response.status).to.be.eql(200);
@@ -109,7 +126,7 @@ describe('Authentication Service', function() {
     it('Should be logged off when the locale is updated', async () => {
       const newUser = await CentralServerService.DefaultInstance.createEntity(
         CentralServerService.DefaultInstance.userApi, UserFactory.build());
-
+      testData.createdUsersAdminTenant.push(newUser);
       const userAPI = new CentralServerService(testData.adminTenant, {
         email: newUser.email,
         password: newUser.passwords.password
@@ -139,7 +156,7 @@ describe('Authentication Service', function() {
     it('Should be logged off when the tags are updated', async () => {
       const newUser = await CentralServerService.DefaultInstance.createEntity(
         CentralServerService.DefaultInstance.userApi, UserFactory.build());
-
+      testData.createdUsersAdminTenant.push(newUser);
       const userAPI = new CentralServerService(testData.adminTenant, {
         email: newUser.email,
         password: newUser.passwords.password
