@@ -93,8 +93,8 @@ export default class TenantStorage {
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
     const filters: any = {};
-    if (params.tenantID && ObjectID.isValid(params.tenantID)) {
-      filters._id = Utils.convertToObjectID(params.tenantID);
+    if (params.tenantID) {
+      filters._id = ObjectID.isValid(params.tenantID) ? Utils.convertToObjectID(params.tenantID) : 'bogus';
     } else if (params.search) {
       if(params.exact){
         filters.$or = [
