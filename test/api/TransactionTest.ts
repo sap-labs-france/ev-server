@@ -55,6 +55,7 @@ describe('Transaction tests', function() {
 
     after(async () => {
       await testData.transactionCommonTests.after();
+      await testData.chargingStationContext.cleanUpCreatedData();
     });
 
     describe('Where basic user', () => {
@@ -65,11 +66,11 @@ describe('Transaction tests', function() {
         );
       });
 
-      afterEach(async () => {
-        await testData.chargingStationContext.cleanUpCreatedData();
-      });
-
       describe('Using function "readById"', () => {
+
+        afterEach(async () => {
+          await testData.chargingStationContext.cleanUpCreatedData();
+        });
 
         it('Cannot read a not existing transaction', async () => {
           await testData.transactionCommonTests.testReadNonExistingTransaction();
@@ -107,6 +108,10 @@ describe('Transaction tests', function() {
 
       describe('Using function "readAllCompleted"', () => {
 
+        afterEach(async () => {
+          await testData.chargingStationContext.cleanUpCreatedData();
+        });
+
         it('Cannot find any completed transactions if all transactions are still running', async () => {
           await testData.transactionCommonTests.testReadNoCompletedTransactions();
         });
@@ -127,6 +132,10 @@ describe('Transaction tests', function() {
 
       describe('Using function "readAllInError"', () => {
 
+        afterEach(async () => {
+          await testData.chargingStationContext.cleanUpCreatedData();
+        });
+
         it('Cannot find any transactions in error if all transactions are still running', async () => {
           await testData.transactionCommonTests.testReadNoTransactionsInError();
         });
@@ -138,6 +147,10 @@ describe('Transaction tests', function() {
       });
 
       describe('Using function "readAllConsumption"', () => {
+
+        afterEach(async () => {
+          await testData.chargingStationContext.cleanUpCreatedData();
+        });
 
         it('Can read consumption of a started transaction without meter values', async () => {
           await testData.transactionCommonTests.testReadConsumptionStartedTransactionWithoutMeterValues();
@@ -159,6 +172,10 @@ describe('Transaction tests', function() {
 
       describe('Using function "getTransactionsActive"', () => {
 
+        afterEach(async () => {
+          await testData.chargingStationContext.cleanUpCreatedData();
+        });
+
         it('Can read on a charger without active transactions', async () => {
           await testData.transactionCommonTests.testReadActiveTransactionsWithoutActiveTransactions();
         });
@@ -170,6 +187,10 @@ describe('Transaction tests', function() {
       });
 
       describe('Using function "delete"', () => {
+
+        afterEach(async () => {
+          await testData.chargingStationContext.cleanUpCreatedData();
+        });
 
         it('Cannot delete a not existing transaction', async () => {
           await testData.transactionCommonTests.testDeleteNotExistingTransaction();
@@ -195,6 +216,10 @@ describe('Transaction tests', function() {
 
       describe('Using other functionalities', () => {
 
+        afterEach(async () => {
+          await testData.chargingStationContext.cleanUpCreatedData();
+        });
+
         it('Should read correct price in a stopped transaction', async () => {
           await testData.transactionCommonTests.testReadPriceForStoppedTransaction();
         });
@@ -219,11 +244,11 @@ describe('Transaction tests', function() {
         );
       });
 
-      afterEach(async () => {
-        await testData.chargingStationContext.cleanUpCreatedData();
-      });
-
       describe('Using function "readAllInError"', () => {
+
+        afterEach(async () => {
+          await testData.chargingStationContext.cleanUpCreatedData();
+        });
 
         it('Cannot find any transactions in error if all transactions are still running', async () => {
           await testData.transactionCommonTests.testReadNoTransactionsInError();
@@ -236,6 +261,10 @@ describe('Transaction tests', function() {
       });
 
       describe('Using function "delete"', () => {
+
+        afterEach(async () => {
+          await testData.chargingStationContext.cleanUpCreatedData();
+        });
 
         it('Can delete a started transaction', async () => {
           await testData.transactionCommonTests.testDeleteStartedTransaction();
