@@ -219,8 +219,6 @@ export default class EMailNotificationTask extends NotificationTask {
     // Send the email
     const message = await this.sendEmail({
       to: this.getUserEmailsFromData(data),
-      // to: 'willy.lellouch@sap.com',
-      cc: null,
       bcc: adminEmails,
       subject: subject,
       text: html,
@@ -247,8 +245,7 @@ export default class EMailNotificationTask extends NotificationTask {
     // Create the message
     const messageToSend = {
       from: (!retry ? _emailConfig.smtp.from : _emailConfig.smtpBackup.from),
-      // to: email.to,
-      to: 'willy.lellouch@sap.com',
+      to: email.to,
       cc: email.cc,
       bcc: email.bcc,
       subject: email.subject,
