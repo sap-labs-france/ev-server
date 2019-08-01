@@ -1373,6 +1373,44 @@ export default class OCPPService {
           'connectorId': transaction.getConnectorId()
         }
       );
+      if (transaction.getEndSignedData() !== '') {
+        // Send Notification
+        await NotificationHandler.sendEndOfSignedSession(
+          chargingStation.getTenantID(),
+          transaction.getID() + '-EOSS',
+          user,
+          chargingStation.getModel(),
+          {
+            'user': user,
+            'alternateUser': (alternateUser ? alternateUser : null),
+            'transactionId': transaction.getID(),
+            'chargeBoxID': chargingStation.getID(),
+            'connectorId': transaction.getConnectorId(),
+            'tagId': transaction.getTagID(),
+            'startDate': transaction.getStartDate().toLocaleString('de-DE'),
+            'endDate': transaction.getStopDate().toLocaleString('de-DE'),
+            'meterStart': (transaction.getMeterStart() / 1000).toLocaleString(
+              (user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
+              { minimumIntegerDigits: 1, minimumFractionDigits: 4, maximumFractionDigits: 4 }),
+            'meterStop': (transaction.getStopMeter() / 1000).toLocaleString(
+              (user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
+              { minimumIntegerDigits: 1, minimumFractionDigits: 4, maximumFractionDigits: 4 }),
+            'totalConsumption': (transaction.getStopTotalConsumption() / 1000).toLocaleString(
+              (user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
+              { minimumIntegerDigits: 1, minimumFractionDigits: 4, maximumFractionDigits: 4 }),
+            'price': transaction.getStopPrice(),
+            'relativeCost': (transaction.getStopPrice() / (transaction.getStopTotalConsumption() / 1000)),
+            'startSignedData': transaction.getSignedData(),
+            'endSignedData': transaction.getEndSignedData(),
+            'evseDashboardURL': Utils.buildEvseURL((await chargingStation.getTenant()).getSubdomain())
+          },
+          user.locale,
+          {
+            'transactionId': transaction.getID(),
+            'connectorId': transaction.getConnectorId()
+          }
+        );
+      }
     }
   }
 }
