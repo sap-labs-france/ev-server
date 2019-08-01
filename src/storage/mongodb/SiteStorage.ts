@@ -403,34 +403,16 @@ export default class SiteStorage {
       for (const siteMDB of sitesMDB) {
         // Count Available/Occupied Chargers/Connectors
         if (params.withAvailableChargers) {
-          let availableChargers = 0, totalChargers = 0, availableConnectors = 0, totalConnectors = 0;
           // Get the chargers
           const chargingStations = await ChargingStationStorage.getChargingStations(tenantID,
             { siteIDs: [siteMDB.id], includeDeleted: false }, Constants.DB_PARAMS_MAX_LIMIT);
-          for (const chargingStation of chargingStations.result) {
-            totalChargers++;
-            // Handle Connectors
-            for (const connector of chargingStation.connectors) {
-              totalConnectors++;
-              // Check Available
-              if (!chargingStation.inactive && connector.status === Constants.CONN_STATUS_AVAILABLE) {
-                availableConnectors++;
-              }
-            }
-            // Handle Chargers
-            for (const connector of chargingStation.connectors) {
-              // Check Available
-              if (!chargingStation.inactive && connector.status === Constants.CONN_STATUS_AVAILABLE) {
-                availableChargers++;
-                break;
-              }
-            }
-          }
+          // Get the Charging Stations' Connector statuses
+          const connectorStats = Utils.getConnectorStatusesFromChargingStations(chargingStations.result);
           // Set
-          siteMDB.availableChargers = availableChargers;
-          siteMDB.totalChargers = totalChargers;
-          siteMDB.availableConnectors = availableConnectors;
-          siteMDB.totalConnectors = totalConnectors;
+          siteMDB.availableChargers = connectorStats.availableChargers;
+          siteMDB.totalChargers = connectorStats.totalChargers;
+          siteMDB.availableConnectors = connectorStats.availableConnectors;
+          siteMDB.totalConnectors = connectorStats.totalConnectors;
         }
         if (!siteMDB.allowAllUsersToStopTransactions) {
           siteMDB.allowAllUsersToStopTransactions = false;

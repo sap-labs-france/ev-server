@@ -213,50 +213,15 @@ export default class SiteAreaStorage {
     if (siteAreasMDB && siteAreasMDB.length > 0) {
       // Create
       for (const siteAreaMDB of siteAreasMDB) {
-        // pragma let chargingStations: ChargingStation[];
-        let availableChargers = 0, totalChargers = 0, availableConnectors = 0, totalConnectors = 0;
         // Count Available/Occupied Chargers/Connectors
         if (params.withAvailableChargers) {
-          // Chargers
-          for (const chargeBox of siteAreaMDB.chargingStations) {
-            // Check not deleted
-            if (chargeBox.deleted) {
-              continue;
-            }
-            // Set Inactive flag
-            chargeBox.inactive = DatabaseUtils.chargingStationIsInactive(chargeBox);
-            totalChargers++;
-            // Handle Connectors
-            if(!chargeBox.connectors) {
-              chargeBox.connectors = [];
-            }
-            for (const connector of chargeBox.connectors) {
-              if (!connector) {
-                continue;
-              }
-              totalConnectors++;
-              // Check if Available
-              if (!chargeBox.inactive && connector.status === Constants.CONN_STATUS_AVAILABLE) {
-                availableConnectors++;
-              }
-            }
-            // Handle Chargers
-            for (const connector of chargeBox.connectors) {
-              if (!connector) {
-                continue;
-              }
-              // Check if Available
-              if (!chargeBox.inactive && connector.status === Constants.CONN_STATUS_AVAILABLE) {
-                availableChargers++;
-                break;
-              }
-            }
-          }
+          // Get the Charging Stations' Connector statuses
+          const connectorStats = Utils.getConnectorStatusesFromChargingStations(siteAreaMDB.chargingStations);
           // Set
-          siteAreaMDB.availableChargers = availableChargers;
-          siteAreaMDB.totalChargers = totalChargers;
-          siteAreaMDB.availableConnectors = availableConnectors;
-          siteAreaMDB.totalConnectors = totalConnectors;
+          siteAreaMDB.availableChargers = connectorStats.availableChargers;
+          siteAreaMDB.totalChargers = connectorStats.totalChargers;
+          siteAreaMDB.availableConnectors = connectorStats.availableConnectors;
+          siteAreaMDB.totalConnectors = connectorStats.totalConnectors;
         }
         // Chargers
         if (!params.withChargeBoxes && siteAreaMDB.chargingStations) {

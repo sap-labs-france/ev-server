@@ -235,7 +235,7 @@ export default class ChargingStationStorage {
           chargingStation.connectors = cleanedConnectors;
         }
         // Add Inactive flag
-        chargingStation.inactive = DatabaseUtils.chargingStationIsInactive(chargingStation);
+        chargingStation.inactive = Utils.getIfChargingStationIsInactive(chargingStation);
       }
     }
     // Debug
