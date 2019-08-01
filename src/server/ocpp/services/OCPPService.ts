@@ -609,7 +609,6 @@ export default class OCPPService {
         if (pricingImpl) {
           // Set
           pricedConsumption = await pricingImpl.stopSession(consumption);
-
           if (pricedConsumption) {
             // Update consumption
             consumption.amount = pricedConsumption.amount;
@@ -635,8 +634,8 @@ export default class OCPPService {
 
   async _updateChargingStationConsumption(tenantID: string, chargingStation: ChargingStation, transaction: Transaction) {
     // Get the connector
-    const connector = chargingStation.connectors.find((connector)=> {
-      return connector.connectorId === transaction.getConnectorId()
+    const connector = chargingStation.connectors.find((connector) => {
+      return connector.connectorId === transaction.getConnectorId();
     });
     // Active transaction?
     if (transaction.isActive() && connector) {

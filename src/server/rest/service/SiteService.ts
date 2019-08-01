@@ -15,16 +15,6 @@ import UtilsService from './UtilsService';
 
 export default class SiteService {
 
-  // CURRENTLY NOT USED (WIP). LEAVE ALONE
-  public static async handleAssignUsersToSites(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_UPDATE, Constants.ENTITY_SITE, 'SiteService', 'handleAssignUsersToSites');
-
-    // TODO: Fill this in based on content of both other files
-  }
-
   public static async handleAddUsersToSite(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
