@@ -2,7 +2,6 @@ import Constants from '../../../../utils/Constants';
 import global from '../../../../types/GlobalType';
 import Logging from '../../../../utils/Logging';
 import Utils from '../../../../utils/Utils';
-import ChargingStation from '../../../../entity/ChargingStation';
 
 const MODULE_NAME = 'SoapCentralSystemService12';
 export default { /* Services */

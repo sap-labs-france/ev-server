@@ -8,7 +8,7 @@ import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import AuthSecurity from './security/AuthSecurity';
 import BadRequestError from '../../../exception/BadRequestError';
-import ChargingStation from '../../../entity/ChargingStation';
+import ChargingStation from '../../../types/ChargingStation';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import { HttpIsAuthorizedRequest, HttpLoginRequest, HttpResetPasswordRequest } from '../../../types/requests/HttpUserRequest';
@@ -23,6 +23,7 @@ import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
@@ -81,7 +82,7 @@ export default class AuthService {
             Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleIsAuthorized');
         }
         // Get the Charging station
-        chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.Arg1);
+        chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.Arg1);
         // Found?
         if (!chargingStation) {
           // Not Found!
@@ -94,18 +95,22 @@ export default class AuthService {
         if (!filteredRequest.Arg2) {
           const results = [];
           // Check authorization for each connectors
-          for (let index = 0; index < chargingStation.getConnectors().length; index++) {
-            const connector = chargingStation.getConnector(index + 1);
+          for (let index = 0; index < chargingStation.connectors.length; index++) {
+            const foundConnector = chargingStation.connectors.find((connector) => {
+              return connector.connectorId === index + 1;
+            });
             const tempResult = { 'IsAuthorized': false };
-            if (connector.activeTransactionID) {
-              tempResult.IsAuthorized = await AuthService.isStopTransactionAuthorized(filteredRequest, chargingStation, connector.activeTransactionID, req.user);
+            if (foundConnector && foundConnector.activeTransactionID) {
+              tempResult.IsAuthorized = await AuthService.isStopTransactionAuthorized(
+                filteredRequest, chargingStation, foundConnector.activeTransactionID, req.user);
             }
             results.push(tempResult);
           }
           // Return table of result (will be in the connector order)
           result = results;
         } else {
-          result[0].IsAuthorized = await AuthService.isStopTransactionAuthorized(filteredRequest, chargingStation, filteredRequest.Arg2, req.user);
+          result[0].IsAuthorized = await AuthService.isStopTransactionAuthorized(
+            filteredRequest, chargingStation, filteredRequest.Arg2, req.user);
         }
         break;
       // Action on connectors of a charger
@@ -119,7 +124,7 @@ export default class AuthService {
             Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleIsAuthorized');
         }
         // Get the Charging station
-        chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.Arg1);
+        chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.Arg1);
         // Found?
         if (!chargingStation) {
           // Not Found!
@@ -146,7 +151,7 @@ export default class AuthService {
     next();
   }
 
-  public static async checkConnectorsActionAuthorizations(tenantID: string, user: UserToken, chargingStation) {
+  public static async checkConnectorsActionAuthorizations(tenantID: string, user: UserToken, chargingStation: ChargingStation) {
     const results = [];
     // Check if organization component is active
     const isOrganizationComponentActive = Utils.isComponentActiveFromToken(user, Constants.COMPONENTS.ORGANIZATION);
@@ -154,13 +159,13 @@ export default class AuthService {
     let site: Site;
     if (isOrganizationComponentActive) {
       // Site Area -----------------------------------------------
-      siteArea = await chargingStation.getSiteArea();
+      siteArea = chargingStation.siteArea;
       try {
         // Site is mandatory
         if (!siteArea) {
           throw new AppError(
-            chargingStation.getID(),
-            `Charging Station '${chargingStation.getID()}' is not assigned to a Site Area!`,
+            chargingStation.id,
+            `Charging Station '${chargingStation.id}' is not assigned to a Site Area!`,
             Constants.HTTP_AUTH_CHARGER_WITH_NO_SITE_AREA_ERROR,
             'AuthService', 'checkConnectorsActionAuthorizations');
         }
@@ -169,7 +174,7 @@ export default class AuthService {
         site = await SiteStorage.getSite(tenantID, siteArea.siteID);
         if (!site) {
           throw new AppError(
-            chargingStation.getID(),
+            chargingStation.id,
             `Site Area '${siteArea.name}' is not assigned to a Site!`,
             Constants.HTTP_AUTH_SITE_AREA_WITH_NO_SITE_ERROR,
             'AuthService', 'checkConnectorsActionAuthorizations',
@@ -177,7 +182,7 @@ export default class AuthService {
         }
       } catch (error) {
         // Problem with site assignment so do not allow any action
-        for (let index = 0; index < chargingStation.getConnectors().length; index++) {
+        for (let index = 0; index < chargingStation.connectors.length; index++) {
           results.push(
             {
               'isStartAuthorized': false,
@@ -190,16 +195,19 @@ export default class AuthService {
       }
     }
     // Check authorization for each connectors
-    for (let index = 0; index < chargingStation.getConnectors().length; index++) {
-      const connector = chargingStation.getConnector(index + 1);
-      results.push(await Authorizations.getConnectorActionAuthorizations({ tenantID, user, chargingStation, connector, siteArea, site }));
+    for (let index = 0; index < chargingStation.connectors.length; index++) {
+      const foundConnector = chargingStation.connectors.find((connector) => {
+        return connector.connectorId === index + 1;
+      });
+      results.push(await Authorizations.getConnectorActionAuthorizations(
+        { tenantID, user, chargingStation, connector: foundConnector, siteArea, site }));
     }
     return results;
   }
 
-  public static async isStopTransactionAuthorized(filteredRequest: HttpIsAuthorizedRequest, chargingStation, transactionId: string, user: UserToken) {
+  public static async isStopTransactionAuthorized(filteredRequest: HttpIsAuthorizedRequest, chargingStation: ChargingStation, transactionId: number, user: UserToken) {
     // Get Transaction
-    const transaction = await TransactionStorage.getTransaction(chargingStation.getTenantID(), transactionId);
+    const transaction = await TransactionStorage.getTransaction(user.tenantID, transactionId);
     if (!transaction) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
@@ -207,15 +215,15 @@ export default class AuthService {
         Constants.HTTP_AUTH_ERROR, 'AuthService', 'isStopTransactionAuthorized');
     }
     // Check Charging Station
-    if (transaction.getChargeBoxID() !== chargingStation.getID()) {
+    if (transaction.getChargeBoxID() !== chargingStation.id) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Transaction ID '${filteredRequest.Arg2}' has a Charging Station '${transaction.getChargeBoxID()}' that differs from '${chargingStation.getID()}'`,
+        `Transaction ID '${filteredRequest.Arg2}' has a Charging Station '${transaction.getChargeBoxID()}' that differs from '${chargingStation.id}'`,
         565, 'AuthService', 'isStopTransactionAuthorized');
     }
     try {
       // Check
-      await Authorizations.isTagIDsAuthorizedOnChargingStation(
+      await Authorizations.isTagIDsAuthorizedOnChargingStation(user.tenantID,
         chargingStation, user.tagIDs[0], transaction.getTagID(), filteredRequest.Action);
       // Ok
       return true;

@@ -412,7 +412,7 @@ export default class OCPIClient {
     const params = { 'dateFrom': lastPatchJobOn };
 
     // Get last status notifications
-    const statusNotificationsResult = await OCPPStorage.getStatusNotifications(tenant.getID(), params);
+    const statusNotificationsResult = await OCPPStorage.getStatusNotifications(tenant.getID(), params, Constants.DB_PARAMS_MAX_LIMIT);
 
     // Loop through notifications
     if (statusNotificationsResult.count > 0) {

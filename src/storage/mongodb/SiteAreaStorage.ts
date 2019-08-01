@@ -1,6 +1,5 @@
 import { ObjectID } from 'mongodb';
 import BackendError from '../../exception/BackendError';
-import ChargingStation from '../../entity/ChargingStation';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
@@ -41,8 +40,8 @@ export default class SiteAreaStorage {
     await Utils.checkTenant(tenantID);
     // Exec
     const siteAreaResult = await SiteAreaStorage.getSiteAreas(
-      tenantID, { search: id,
-        withSite: params.withSite, withChargeBoxes: params.withChargeBoxes, withAvailableChargers: true },
+      tenantID,
+      { siteAreaID: id, withSite: params.withSite, withChargeBoxes: params.withChargeBoxes, withAvailableChargers: true },
       { limit: 1, skip: 0, onlyRecordCount: false }
     );
     // Debug
@@ -91,7 +90,7 @@ export default class SiteAreaStorage {
   }
 
   public static async getSiteAreas(tenantID: string,
-    params: {search?: string; siteIDs?: string[]; withSite?: boolean;
+    params: {siteAreaID?: string; search?: string; siteIDs?: string[]; withSite?: boolean;
       withChargeBoxes?: boolean; withAvailableChargers?: boolean; } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: SiteArea[]}> {
     // Debug
@@ -104,8 +103,11 @@ export default class SiteAreaStorage {
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
     const filters: any = {};
-    // Build filter
-    if (params.search) {
+    // Query by Site Area ID if available
+    if (params.siteAreaID) {
+      filters._id = Utils.convertToObjectID(params.siteAreaID);
+    // Otherwise check if search is present
+    } else if (params.search) {
       if (ObjectID.isValid(params.search)) {
         filters._id = Utils.convertToObjectID(params.search);
       } else {
@@ -225,6 +227,9 @@ export default class SiteAreaStorage {
             chargeBox.inactive = DatabaseUtils.chargingStationIsInactive(chargeBox);
             totalChargers++;
             // Handle Connectors
+            if(!chargeBox.connectors) {
+              chargeBox.connectors = [];
+            }
             for (const connector of chargeBox.connectors) {
               if (!connector) {
                 continue;
@@ -254,11 +259,7 @@ export default class SiteAreaStorage {
           siteAreaMDB.totalConnectors = totalConnectors;
         }
         // Chargers
-        if (params.withChargeBoxes && siteAreaMDB.chargingStations) {
-          siteAreaMDB.chargingStations = siteAreaMDB.chargingStations.map((chargeBox) => {
-            return new ChargingStation(tenantID, chargeBox);
-          });
-        } else {
+        if (!params.withChargeBoxes && siteAreaMDB.chargingStations) {
           delete siteAreaMDB.chargingStations;
         }
         // Add

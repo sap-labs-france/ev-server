@@ -16,9 +16,9 @@ export default class SiteStorage {
   public static async getSite(tenantID: string, id: string): Promise<Site> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getSite');
-    // Get
+    // Query single Site
     const sitesMDB = await SiteStorage.getSites(tenantID, {
-      search: id,
+      siteID: id,
       withCompany: true,
     }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
@@ -230,7 +230,7 @@ export default class SiteStorage {
     } else {
       siteFilter._id = new ObjectID();
     }
-    // Check Created By/On
+    // Properties to save
     const siteMDB: any = {
       _id: siteFilter._id,
       address: siteToSave.address,
@@ -241,11 +241,11 @@ export default class SiteStorage {
     };
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(siteMDB, siteToSave);
-    // Modify
+    // Modify and return the modified document
     const result = await global.database.getCollection<any>(tenantID, 'sites').findOneAndUpdate(
       siteFilter,
       { $set: siteMDB },
-      { upsert: true, returnOriginal: false }
+      { upsert: true }
     );
     if (!result.ok) {
       throw new BackendError(
@@ -279,7 +279,7 @@ export default class SiteStorage {
   public static async getSites(tenantID: string,
     params: {
       search?: string; companyIDs?: string[]; withAutoUserAssignment?: boolean; siteIDs?: string[];
-      userID?: string; excludeSitesOfUserID?: boolean;
+      userID?: string; excludeSitesOfUserID?: boolean; siteID?: string;
       withAvailableChargers?: boolean; withCompany?: boolean; } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: Site[]}> {
     // Debug
@@ -290,9 +290,13 @@ export default class SiteStorage {
     const limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
-    // Set the filters
+    // Create Aggregation
+    const aggregation = [];
+    // Search filters
     const filters: any = {};
-    if (params.search) {
+    if (params.siteID) {
+      filters._id = Utils.convertToObjectID(params.siteID);
+    } else if (params.search) {
       if (ObjectID.isValid(params.search)) {
         filters._id = Utils.convertToObjectID(params.search);
       } else {
@@ -301,7 +305,7 @@ export default class SiteStorage {
         ];
       }
     }
-    // Set Company?
+    // Query by companyIDs
     if (params.companyIDs && Array.isArray(params.companyIDs) && params.companyIDs.length > 0) {
       filters.companyID = {
         $in: params.companyIDs.map((company) => {
@@ -313,8 +317,6 @@ export default class SiteStorage {
     if (params.withAutoUserAssignment) {
       filters.autoUserSiteAssignment = true;
     }
-    // Create Aggregation
-    const aggregation = [];
     // Limit on Site for Basic Users
     if (params.siteIDs && params.siteIDs.length > 0) {
       aggregation.push({
@@ -404,33 +406,21 @@ export default class SiteStorage {
           let availableChargers = 0, totalChargers = 0, availableConnectors = 0, totalConnectors = 0;
           // Get the chargers
           const chargingStations = await ChargingStationStorage.getChargingStations(tenantID,
-            { siteIDs: [siteMDB.id] }, Constants.DB_PARAMS_MAX_LIMIT);
+            { siteIDs: [siteMDB.id], includeDeleted: false }, Constants.DB_PARAMS_MAX_LIMIT);
           for (const chargingStation of chargingStations.result) {
-            // Set Inactive flag
-            chargingStation.setInactive(DatabaseUtils.chargingStationIsInactive(chargingStation.getModel()));
-            // Check not deleted
-            if (chargingStation.isDeleted()) {
-              continue;
-            }
             totalChargers++;
             // Handle Connectors
-            for (const connector of chargingStation.getConnectors()) {
-              if (!connector) {
-                continue;
-              }
+            for (const connector of chargingStation.connectors) {
               totalConnectors++;
               // Check Available
-              if (!chargingStation.isInactive() && connector.status === Constants.CONN_STATUS_AVAILABLE) {
+              if (!chargingStation.inactive && connector.status === Constants.CONN_STATUS_AVAILABLE) {
                 availableConnectors++;
               }
             }
             // Handle Chargers
-            for (const connector of chargingStation.getConnectors()) {
-              if (!connector) {
-                continue;
-              }
+            for (const connector of chargingStation.connectors) {
               // Check Available
-              if (!chargingStation.isInactive() && connector.status === Constants.CONN_STATUS_AVAILABLE) {
+              if (!chargingStation.inactive && connector.status === Constants.CONN_STATUS_AVAILABLE) {
                 availableChargers++;
                 break;
               }

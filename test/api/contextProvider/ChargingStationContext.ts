@@ -3,10 +3,11 @@ import CentralServerService from '../client/CentralServerService';
 import CONTEXTS from '../contextProvider/ContextConstants';
 import TenantContext from './TenantContext';
 import Utils from '../../../src/utils/Utils';
+import ChargingStation from '../../types/ChargingStation';
 
 export default class ChargingStationContext {
 
-  private chargingStation: any;
+  private chargingStation: ChargingStation;
   private tenantContext: TenantContext;
   private transactionsStarted: any;
   private transactionsStopped: any;

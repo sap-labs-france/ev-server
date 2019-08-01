@@ -4,7 +4,10 @@ import Logging from '../../../utils/Logging';
 import Pricing, { PricedConsumption, PricingSettings } from '../Pricing';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import StatefulChargingService from './StatefulChargingService';
+import ChargingStationService from '../../../server/rest/service/ChargingStationService';
+import ChargingStation from '../../../types/ChargingStation';
 import Transaction from '../../../entity/Transaction';
+import OCPPUtils from '../../../server/ocpp/utils/OCPPUtils';
 
 export class ConvergentChargingPricingSettings extends PricingSettings {
   constructor(readonly url: string, readonly user: string, readonly password: string, readonly chargeableItemName: string) {
@@ -141,9 +144,9 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
     if (chargingResult.status === 'error') {
 
       if (chargingResult.error.category === 'invalid' && chargingResult.error.message.startsWith('Not authorized')) {
-        const chargingStation = await this.transaction.getChargingStation();
+        const chargingStation: ChargingStation = await this.transaction.getChargingStation();
         if (chargingStation) {
-          chargingStation.requestRemoteStopTransaction({
+          await OCPPUtils.requestExecuteChargingStationCommand(this.tenantId, chargingStation, 'remoteStopTransaction', {
             tagID: consumptionData.tagID,
             connectorID: consumptionData.connectorId
           });
@@ -167,7 +170,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
    * @param notification {RateResult}
    */
   async handleAlertNotification(consumptionData, rateResult) {
-    let chargingStation = null;
+    let chargingStation: ChargingStation = null;
     if (rateResult.transactionsToConfirm) {
       for (const ccTransaction of rateResult.transactionsToConfirm.ccTransactions) {
         if (ccTransaction.notifications) {
@@ -176,7 +179,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
               case 'CSMS_INFO':
                 chargingStation = await this.transaction.getChargingStation();
                 if (chargingStation) {
-                  chargingStation.requestSetChargingProfile({
+                  await OCPPUtils.requestExecuteChargingStationCommand(this.tenantId, chargingStation, 'setChargingProfile', {
                     chargingProfileId: 42,
                     transactionId: consumptionData.transactionId,
                     message: JSON.stringify(notification)

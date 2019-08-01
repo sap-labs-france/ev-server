@@ -135,7 +135,6 @@ export default class UserService {
     }
     if (req.user.activeComponents.includes(Constants.COMPONENTS.ORGANIZATION)) {
       // Delete from site
-      // TODO: Add argument to getSites to be able to only query IDs
       const siteIDs: string[] = (await UserStorage.getSites(req.user.tenantID, { userID: id },
         Constants.DB_PARAMS_MAX_LIMIT)).result.map(
         (siteUser) => {
@@ -220,18 +219,22 @@ export default class UserService {
     filteredRequest.lastChangedOn = new Date();
     // Clean up request
     delete filteredRequest.passwords;
-    // Check Mandatory fields
+    // Resolve tagIDS
+    let newTagIDs;
+    if (filteredRequest.tagIDs) {
+      newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? filteredRequest.tagIDs.split(',') : filteredRequest.tagIDs;
+      newTagIDs = newTagIDs.filter((newTagID) => {
+        return typeof newTagID === 'string';
+      });
+    }
+    // Check User validity
     Utils.checkIfUserValid(filteredRequest, user, req);
+    // Check if Tag IDs are valid
+    await Utils.checkIfUserTagIDsAreValid(user, newTagIDs, req);
     // Update User
     await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: [] }, true);
     // Update Tag IDs
     if (Authorizations.isAdmin(req.user.role) || Authorizations.isSuperAdmin(req.user.role)) {
-      let newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? [] : filteredRequest.tagIDs;
-      // Check types
-      newTagIDs = newTagIDs.filter((newTagID) => {
-        return typeof newTagID === 'string';
-      });
-      // Save
       await UserStorage.saveUserTags(req.user.tenantID, filteredRequest.id, newTagIDs);
     }
     // Log
@@ -439,6 +442,14 @@ export default class UserService {
     }
     // Filter
     const filteredRequest = UserSecurity.filterUserCreateRequest(req.body, req.user);
+    // Resolve tagIDS
+    let newTagIDs;
+    if (filteredRequest.tagIDs) {
+      newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? filteredRequest.tagIDs.split(',') : filteredRequest.tagIDs;
+      newTagIDs = newTagIDs.filter((newTagID) => {
+        return typeof newTagID === 'string';
+      });
+    }
     // Check Mandatory fields
     Utils.checkIfUserValid(filteredRequest, null, req);
     // Get the email
@@ -449,13 +460,14 @@ export default class UserService {
         `Email '${filteredRequest.email}' already exists`, Constants.HTTP_USER_EMAIL_ALREADY_EXIST_ERROR,
         'UserService', 'handleCreateUser', req.user);
     }
+    // Check if Tag IDs are valid
+    await Utils.checkIfUserTagIDsAreValid(null, newTagIDs, req);
     // Clean request
     delete filteredRequest.passwords;
     // Set the password
     if (filteredRequest.password) {
       // Generate a hash for the given password
       const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
-      // Generate a hash
       filteredRequest.password = newPasswordHashed;
     }
     // Set timestamp
@@ -470,12 +482,6 @@ export default class UserService {
     const newUserId = await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: [] }, true);
     // Save the Tag IDs
     if (Authorizations.isAdmin(req.user.role) || Authorizations.isSuperAdmin(req.user.role)) {
-      let newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? [] : filteredRequest.tagIDs;
-      // Check types
-      newTagIDs = newTagIDs.filter((newTagID) => {
-        return typeof newTagID === 'string';
-      });
-      // Save
       await UserStorage.saveUserTags(req.user.tenantID, newUserId, newTagIDs);
     }
     // Log
@@ -570,17 +576,17 @@ export default class UserService {
           'UserService', 'handleGetUserInvoice', req.user);
       }
       const filename = 'invoice.pdf';
-      fs.writeFile(filename, invoice, (err) => { // TODO: potential problem at sccale; two pple generating invoice at same time?
+      fs.writeFile(filename, invoice, (err) => {
         if (err) {
           throw err;
         }
-        res.download(filename, (err) => {
-          if (err) {
-            throw err;
+        res.download(filename, (err2) => {
+          if (err2) {
+            throw err2;
           }
-          fs.unlink(filename, (err) => {
-            if (err) {
-              throw err;
+          fs.unlink(filename, (err3) => {
+            if (err3) {
+              throw err3;
             }
           });
         });
