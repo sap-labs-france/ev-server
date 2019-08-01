@@ -7,7 +7,7 @@
       <table>
         <% for (var i = 0; i < body.stats.length; i++) { %>
           <tr>
-            <td><%- body.stats[i].label %></td>
+            <td style="padding-right: 5px;"><%- body.stats[i].label %></td>
             <td><%- body.stats[i].value %></td>
           </tr>
         <% } %>
@@ -17,10 +17,10 @@
       === Anfang der eichrechtlich gesicherte Daten zur Überprüfung der Vollständigkeit und Integrität === <br>
       Transaktionssignatur für Transparenzsoftware: <br>
       ---8&lt;----Signatur ab hier---8&lt;--- <br>
-      &lt;?xml version="1.0"?&gt;&lt;values&gt;&lt;value transactionId="1527108" context="Transaction.Begin"&gt;&lt;signedData&gt;<br>
-      <%- body.signedData.start %><br>
-      &lt;/signedData&gt;&lt;/value&gt;&lt;value transactionId="1527108" context="Transaction.End"&gt;&lt;signedData&gt;<br>
-      <%- body.signedData.stop %><br>
+      &lt;?xml version="1.0"?&gt;&lt;values&gt;&lt;value transactionId="<%- body.transactionId %>" context="Transaction.Begin"&gt;&lt;signedData&gt;<br>
+      <%- body.startSignedData %><br>
+      &lt;/signedData&gt;&lt;/value&gt;&lt;value transactionId="<%- body.transactionId %>" context="Transaction.End"&gt;&lt;signedData&gt;<br>
+      <%- body.endSignedData %><br>
       &lt;/signedData&gt;&lt;/value&gt;&lt;/values&gt;<br>
       ---8&lt;----Signatur bis hier---8&lt;--- <br>
     </p>

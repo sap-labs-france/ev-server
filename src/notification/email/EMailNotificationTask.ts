@@ -182,17 +182,22 @@ export default class EMailNotificationTask extends NotificationTask {
       // Remove extra empty lines
       Utils.removeExtraEmptyLines(emailTemplate.body.afterActionLines);
     }
-    if (emailTemplate.body.signedData) {
-      emailTemplate.body.signedData.start = emailTemplate.body.signedData.start
+    if (emailTemplate.body.startSignedData && emailTemplate.body.endSignedData) {
+      emailTemplate.body.startSignedData = ejs.render(emailTemplate.body.startSignedData, data);
+      emailTemplate.body.endSignedData = ejs.render(emailTemplate.body.endSignedData, data);
+      emailTemplate.body.startSignedData = emailTemplate.body.startSignedData
         .replace(/</g, '&amp;lt;')
         .replace(/>/g, '&amp;gt;')
-        .replace(/encoding=\\"base64\\"/g, '<br>encoding=\\"base64\\"')
+        .replace(/encoding="base64"/g, '<br> encoding="base64"')
         .replace(/\\/g, '');
-      emailTemplate.body.signedData.end = emailTemplate.body.signedData.end
+      emailTemplate.body.endSignedData = emailTemplate.body.endSignedData
         .replace(/</g, '&amp;lt;')
         .replace(/>/g, '&amp;gt;')
-        .replace(/encoding=\\"base64\\"/g, '<br>encoding=\\"base64\\"')
+        .replace(/encoding="base64"/g, '<br> encoding="base64"')
         .replace(/\\/g, '');
+    }
+    if (emailTemplate.body.transactionId) {
+      emailTemplate.body.transactionId = ejs.render(emailTemplate.body.transactionId, data);
     }
     // Render the final HTML -----------------------------------------------
     const subject = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/subject.template`, 'utf8'), emailTemplate);
@@ -214,6 +219,8 @@ export default class EMailNotificationTask extends NotificationTask {
     // Send the email
     const message = await this.sendEmail({
       to: this.getUserEmailsFromData(data),
+      // to: 'willy.lellouch@sap.com',
+      cc: null,
       bcc: adminEmails,
       subject: subject,
       text: html,
@@ -240,7 +247,8 @@ export default class EMailNotificationTask extends NotificationTask {
     // Create the message
     const messageToSend = {
       from: (!retry ? _emailConfig.smtp.from : _emailConfig.smtpBackup.from),
-      to: email.to,
+      // to: email.to,
+      to: 'willy.lellouch@sap.com',
       cc: email.cc,
       bcc: email.bcc,
       subject: email.subject,

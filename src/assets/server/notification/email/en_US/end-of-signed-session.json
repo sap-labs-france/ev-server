@@ -15,10 +15,9 @@
       { "label": "Kosten", "value": "<%- price %>€ (<%- relativeCost %>€/kWh) (informativ)" },
       { "label": "Vertrag über", "value":"LOCAL (informativ)" }
     ],
-    "signedData": [
-      {"start": "<%- startSignedData %>"},
-      {"end": "<%- endSignedData %>"}
-    ]
+    "transactionId": "<%- transactionId %>",
+    "startSignedData": "<%- startSignedData %>",
+    "endSignedData": "<%- endSignedData %>"
   }
 }
 

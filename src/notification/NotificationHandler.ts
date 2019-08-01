@@ -131,7 +131,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendEndOfSession(tenantID, sourceId, user: User, chargingStation, sourceData, locale, data, signedData = false) {
+  static async sendEndOfSession(tenantID, sourceId, user: User, chargingStation, sourceData, locale, data) {
     try {
       // Check notification
       const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
@@ -143,12 +143,30 @@ export default class NotificationHandler {
           await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
             SOURCE_END_OF_SESSION, user, chargingStation, data);
           // Send email
-          if (signedData) {
-            const result = await _email.sendEndOfSignedSession(sourceData, locale, tenantID);
-            // Return
-            return result;
-          }
           const result = await _email.sendEndOfSession(sourceData, locale, tenantID);
+          // Return
+          return result;
+        }
+      }
+    } catch (error) {
+      // Log error
+      Logging.logActionExceptionMessage(tenantID, SOURCE_END_OF_SESSION, error);
+    }
+  }
+
+  static async sendEndOfSignedSession(tenantID, sourceId, user: User, chargingStation, sourceData, locale, data) {
+    try {
+      // Check notification
+      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
+      // Notified?
+      if (!hasBeenNotified) {
+        // Email enabled?
+        if (_notificationConfig.Email.enabled) {
+          // Save notif
+          await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
+            SOURCE_END_OF_SESSION, user, chargingStation, data);
+          // Send email
+          const result = await _email.sendEndOfSignedSession(sourceData, locale, tenantID);
           // Return
           return result;
         }
