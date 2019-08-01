@@ -1392,6 +1392,44 @@ export default class OCPPService {
           'connectorId': transaction.getConnectorId()
         }
       );
+      if (transaction.getEndSignedData() !== '') {
+        // Send Notification
+        await NotificationHandler.sendEndOfSignedSession(
+          tenantID,
+          transaction.getID() + '-EOSS',
+          user,
+          chargingStation,
+          {
+            'user': user,
+            'alternateUser': (alternateUser ? alternateUser : null),
+            'transactionId': transaction.getID(),
+            'chargeBoxID': chargingStation.id,
+            'connectorId': transaction.getConnectorId(),
+            'tagId': transaction.getTagID(),
+            'startDate': transaction.getStartDate().toLocaleString('de-DE'),
+            'endDate': transaction.getStopDate().toLocaleString('de-DE'),
+            'meterStart': (transaction.getMeterStart() / 1000).toLocaleString(
+              (user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
+              { minimumIntegerDigits: 1, minimumFractionDigits: 4, maximumFractionDigits: 4 }),
+            'meterStop': (transaction.getStopMeter() / 1000).toLocaleString(
+              (user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
+              { minimumIntegerDigits: 1, minimumFractionDigits: 4, maximumFractionDigits: 4 }),
+            'totalConsumption': (transaction.getStopTotalConsumption() / 1000).toLocaleString(
+              (user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
+              { minimumIntegerDigits: 1, minimumFractionDigits: 4, maximumFractionDigits: 4 }),
+            'price': transaction.getStopPrice(),
+            'relativeCost': (transaction.getStopPrice() / (transaction.getStopTotalConsumption() / 1000)),
+            'startSignedData': transaction.getSignedData(),
+            'endSignedData': transaction.getEndSignedData(),
+            'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).getSubdomain())
+          },
+          user.locale,
+          {
+            'transactionId': transaction.getID(),
+            'connectorId': transaction.getConnectorId()
+          }
+        );
+      }
     }
   }
 }
