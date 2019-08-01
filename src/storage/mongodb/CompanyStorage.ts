@@ -16,7 +16,7 @@ export default class CompanyStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompany');
     // Reuse
-    const companiesMDB = await CompanyStorage.getCompanies(tenantID, { companyIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const companiesMDB = await CompanyStorage.getCompanies(tenantID, { companyID: id }, Constants.DB_PARAMS_SINGLE_RECORD);
     let company: Company = null;
     // Check
     if (companiesMDB && companiesMDB.count > 0) {
