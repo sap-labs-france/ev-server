@@ -263,7 +263,7 @@ export default class ChargingStationStorage {
     // Properties to save
     let chargingStationMDB = { // DO *_NOT_* CHANGE TO "const" !!!!!!!
       _id: chargingStationToSave.id,
-      siteAreaID: chargingStationToSave.siteAreaID,
+      siteAreaID: Utils.convertToObjectID(chargingStationToSave.siteAreaID),
       chargePointSerialNumber: chargingStationToSave.chargePointSerialNumber,
       chargePointModel: chargingStationToSave.chargePointModel,
       chargeBoxSerialNumber: chargingStationToSave.chargeBoxSerialNumber,
