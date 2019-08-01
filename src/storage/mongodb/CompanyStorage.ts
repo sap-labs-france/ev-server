@@ -104,11 +104,15 @@ export default class CompanyStorage {
       filters._id = Utils.convertToObjectID(params.companyID);
     } else if (params.search) {
       filters = {};
-      filters.$or = [
-        { 'name': { $regex: params.search, $options: 'i' } },
-        { 'address.city': { $regex: params.search, $options: 'i' } },
-        { 'address.country': { $regex: params.search, $options: 'i' } }
-      ];
+      if (ObjectID.isValid(params.search)) {
+        filters._id = Utils.convertToObjectID(params.search);
+      } else {
+        filters.$or = [
+          { 'name': { $regex: params.search, $options: 'i' } },
+          { 'address.city': { $regex: params.search, $options: 'i' } },
+          { 'address.country': { $regex: params.search, $options: 'i' } }
+        ];
+      }
     }
     // Create Aggregation
     const aggregation = [];
