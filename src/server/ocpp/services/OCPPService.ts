@@ -1395,15 +1395,15 @@ export default class OCPPService {
       if (transaction.getEndSignedData() !== '') {
         // Send Notification
         await NotificationHandler.sendEndOfSignedSession(
-          chargingStation.getTenantID(),
+          tenantID,
           transaction.getID() + '-EOSS',
           user,
-          chargingStation.getModel(),
+          chargingStation,
           {
             'user': user,
             'alternateUser': (alternateUser ? alternateUser : null),
             'transactionId': transaction.getID(),
-            'chargeBoxID': chargingStation.getID(),
+            'chargeBoxID': chargingStation.id,
             'connectorId': transaction.getConnectorId(),
             'tagId': transaction.getTagID(),
             'startDate': transaction.getStartDate().toLocaleString('de-DE'),
@@ -1421,7 +1421,7 @@ export default class OCPPService {
             'relativeCost': (transaction.getStopPrice() / (transaction.getStopTotalConsumption() / 1000)),
             'startSignedData': transaction.getSignedData(),
             'endSignedData': transaction.getEndSignedData(),
-            'evseDashboardURL': Utils.buildEvseURL((await chargingStation.getTenant()).getSubdomain())
+            'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).getSubdomain())
           },
           user.locale,
           {
