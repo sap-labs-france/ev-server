@@ -220,18 +220,22 @@ export default class UserService {
     filteredRequest.lastChangedOn = new Date();
     // Clean up request
     delete filteredRequest.passwords;
-    // Check Mandatory fields
+    // Resolve tagIDS
+    let newTagIDs;
+    if (filteredRequest.tagIDs) {
+      newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? filteredRequest.tagIDs.split(',') : filteredRequest.tagIDs;
+      newTagIDs = newTagIDs.filter((newTagID) => {
+        return typeof newTagID === 'string';
+      });
+    }
+    // Check User validity
     Utils.checkIfUserValid(filteredRequest, user, req);
+    // Check if Tag IDs are valid
+    await Utils.checkIfUserTagIDsAreValid(user, newTagIDs, req);
     // Update User
     await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: [] }, true);
     // Update Tag IDs
     if (Authorizations.isAdmin(req.user.role) || Authorizations.isSuperAdmin(req.user.role)) {
-      let newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? [] : filteredRequest.tagIDs;
-      // Check types
-      newTagIDs = newTagIDs.filter((newTagID) => {
-        return typeof newTagID === 'string';
-      });
-      // Save
       await UserStorage.saveUserTags(req.user.tenantID, filteredRequest.id, newTagIDs);
     }
     // Log
@@ -439,6 +443,14 @@ export default class UserService {
     }
     // Filter
     const filteredRequest = UserSecurity.filterUserCreateRequest(req.body, req.user);
+    // Resolve tagIDS
+    let newTagIDs;
+    if (filteredRequest.tagIDs) {
+      newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? filteredRequest.tagIDs.split(',') : filteredRequest.tagIDs;
+      newTagIDs = newTagIDs.filter((newTagID) => {
+        return typeof newTagID === 'string';
+      });
+    }
     // Check Mandatory fields
     Utils.checkIfUserValid(filteredRequest, null, req);
     // Get the email
@@ -449,13 +461,14 @@ export default class UserService {
         `Email '${filteredRequest.email}' already exists`, Constants.HTTP_USER_EMAIL_ALREADY_EXIST_ERROR,
         'UserService', 'handleCreateUser', req.user);
     }
+    // Check if Tag IDs are valid
+    await Utils.checkIfUserTagIDsAreValid(null, newTagIDs, req);
     // Clean request
     delete filteredRequest.passwords;
     // Set the password
     if (filteredRequest.password) {
       // Generate a hash for the given password
       const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
-      // Generate a hash
       filteredRequest.password = newPasswordHashed;
     }
     // Set timestamp
@@ -470,12 +483,6 @@ export default class UserService {
     const newUserId = await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: [] }, true);
     // Save the Tag IDs
     if (Authorizations.isAdmin(req.user.role) || Authorizations.isSuperAdmin(req.user.role)) {
-      let newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? [] : filteredRequest.tagIDs;
-      // Check types
-      newTagIDs = newTagIDs.filter((newTagID) => {
-        return typeof newTagID === 'string';
-      });
-      // Save
       await UserStorage.saveUserTags(req.user.tenantID, newUserId, newTagIDs);
     }
     // Log

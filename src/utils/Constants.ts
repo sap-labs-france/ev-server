@@ -21,9 +21,10 @@ export default class Constants {
 
   public static readonly HTTP_EXISTING_TRANSACTION_ERROR = 570;
 
-  public static readonly HTTP_USER_EULA_ERROR = 520;
   public static readonly HTTP_USER_EMAIL_ALREADY_EXIST_ERROR = 510;
+  public static readonly HTTP_USER_EULA_ERROR = 520;
   public static readonly HTTP_USER_ACCOUNT_ALREADY_ACTIVE_ERROR = 530;
+  public static readonly HTTP_USER_TAG_ID_ALREADY_USED_ERROR = 540;
   public static readonly HTTP_USER_LOCKED_ERROR = 570;
   public static readonly HTTP_USER_NO_BADGE_ERROR = 570;
   public static readonly HTTP_USER_ACCOUNT_INACTIVE_ERROR = 580;

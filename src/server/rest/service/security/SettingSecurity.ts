@@ -5,6 +5,8 @@ import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { HttpSettingRequest, HttpSettingsRequest } from '../../../../types/requests/HttpSettingRequest';
 import Setting from '../../../../types/Setting';
 import UserToken from '../../../../types/UserToken';
+import Constants from '../../../../utils/Constants';
+import User from '../../../../types/User';
 
 export default class SettingSecurity {
 
@@ -13,12 +15,13 @@ export default class SettingSecurity {
   }
 
   public static filterSettingRequest(request: HttpSettingRequest): HttpSettingRequest {
-    return { ID: sanitize(request.ID) };
+    return { ID: sanitize(request.ID), ContentFilter: UtilsSecurity.filterBoolean(request.ContentFilter) };
   }
 
   public static filterSettingsRequest(request: HttpSettingsRequest): HttpSettingsRequest {
     const filteredRequest: HttpSettingsRequest = {} as HttpSettingsRequest;
     filteredRequest.Identifier = sanitize(request.Identifier);
+    filteredRequest.ContentFilter = UtilsSecurity.filterBoolean(request.ContentFilter);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
@@ -42,26 +45,18 @@ export default class SettingSecurity {
     };
   }
 
-  public static filterSettingResponse(setting: Setting, loggedUser: UserToken) {
+  public static filterSettingResponse(setting: Setting, loggedUser: UserToken, contentFilter = false) {
     let filteredSetting;
 
     if (!setting) {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadSetting(loggedUser)) {
-      // Admin?
-      // if (Authorizations.isAdmin(loggedUser)) {
-      // Yes: set all params
+    if (Authorizations.canReadSetting(loggedUser, setting)) {
       filteredSetting = setting;
-      if(! filteredSetting.sensitiveData) {
-        filteredSetting.sensitiveData = [];
+      if (contentFilter) {
+        filteredSetting.content = SettingSecurity._filterAuthorizedSettingContent(loggedUser, setting);
       }
-      // } else {
-      //   // Set only necessary info
-      //   return null;
-      // }
-
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(
         filteredSetting, setting, loggedUser);
@@ -69,7 +64,7 @@ export default class SettingSecurity {
     return filteredSetting;
   }
 
-  public static filterSettingsResponse(settings, loggedUser: UserToken) {
+  public static filterSettingsResponse(settings, loggedUser: UserToken, contentFilter = false) {
     const filteredSettings = [];
 
     if (!settings) {
@@ -80,7 +75,7 @@ export default class SettingSecurity {
     }
     for (const setting of settings) {
       // Filter
-      const filteredSetting = SettingSecurity.filterSettingResponse(setting, loggedUser);
+      const filteredSetting = SettingSecurity.filterSettingResponse(setting, loggedUser, contentFilter);
       // Ok?
       if (filteredSetting) {
         // Add
@@ -89,5 +84,22 @@ export default class SettingSecurity {
     }
     return filteredSettings;
   }
-}
 
+  private static _filterAuthorizedSettingContent(loggedUser: UserToken, setting: Setting) {
+    if (!setting.content) {
+      return null;
+    }
+    if (Authorizations.isSuperAdmin(loggedUser.role) || setting.identifier !== Constants.COMPONENTS.ANALYTICS) {
+      return setting.content;
+    }
+    if (setting.content.links && Array.isArray(setting.content.links)) {
+      const filteredLinks = setting.content.links.filter((link) => {
+        return !link.role || link.role === '' ||
+          (link.role && link.role.includes(loggedUser.role));
+      });
+      setting.content.links = filteredLinks;
+    }
+    return setting.content;
+  }
+
+}

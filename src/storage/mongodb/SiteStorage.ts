@@ -18,7 +18,7 @@ export default class SiteStorage {
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getSite');
     // Query single Site
     const sitesMDB = await SiteStorage.getSites(tenantID, {
-      search: id,
+      siteIDs: [id],
       withCompany: true,
     }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
