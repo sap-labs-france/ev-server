@@ -301,22 +301,22 @@ export default class ChargingStationContext {
     let response;
     // OCPP 1.6?
     if (this.chargingStation.ocppVersion === '1.6') {
-    response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeMeterValues(this.chargingStation.id, {
-      connectorId: connectorId,
-      transactionId: transactionId,
-      meterValue: {
-        timestamp: timestamp.toISOString(),
-        sampledValue: [{
-          value: meterValue,
-          format: 'Raw',
-          measurand: 'Energy.Active.Import.Register',
-          unit: 'Wh',
-          location: 'Outlet',
-          context: 'Sample.Clock'
-        }]
+      response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeMeterValues(this.chargingStation.id, {
+        connectorId: connectorId,
+        transactionId: transactionId,
+        meterValue: {
+          timestamp: timestamp.toISOString(),
+          sampledValue: [{
+            value: meterValue,
+            format: 'Raw',
+            measurand: 'Energy.Active.Import.Register',
+            unit: 'Wh',
+            location: 'Outlet',
+            context: 'Sample.Clock'
+          }]
 
-      },
-    });
+        },
+      });
       // OCPP 1.5
     } else {
       response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeMeterValues(this.chargingStation.id, {

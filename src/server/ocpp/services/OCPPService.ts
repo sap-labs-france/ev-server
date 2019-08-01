@@ -88,7 +88,7 @@ export default class OCPPService {
       chargingStation.setOcppVersion(headers.ocppVersion);
       chargingStation.setOcppProtocol(headers.ocppProtocol);
       chargingStation.setLastHeartBeat(bootNotification.lastHeartBeat);
-      chargingStation.setCurrentIPAddress(bootNotification.currentIPAddress)
+      chargingStation.setCurrentIPAddress(bootNotification.currentIPAddress);
       // Set the charger URL?
       if (headers.chargingStationURL) {
         chargingStation.setChargingStationURL(headers.chargingStationURL);
