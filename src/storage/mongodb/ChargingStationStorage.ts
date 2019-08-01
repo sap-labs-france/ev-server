@@ -63,7 +63,7 @@ export default class ChargingStationStorage {
       // Build filter
       filters.$and.push({
         '$or': [
-          { '_id': params.search },
+          { '_id': { $regex: params.search, $options: 'i' } },
           { 'chargePointModel': { $regex: params.search, $options: 'i' } },
           { 'chargePointVendor': { $regex: params.search, $options: 'i' } }
         ]
