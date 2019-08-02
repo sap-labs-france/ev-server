@@ -7,3 +7,6 @@ default: mongo-tools
 
 mongo-tools:
   docker build -t $(PROJECT_NAME)$(NAME) .
+
+mongo-tools-cf-push:
+  cf push
