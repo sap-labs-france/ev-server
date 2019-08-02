@@ -4,6 +4,7 @@ import chaiSubset from 'chai-subset';
 import responseHelper from '../helpers/responseHelper';
 import CONTEXTS from './contextProvider/ContextConstants';
 import ContextProvider from './contextProvider/ContextProvider';
+import chargingStationContext from './contextProvider/ChargingStationContext';
 import TransactionCommonTests from './TransactionCommonTests';
 
 chai.use(chaiDatetime);
@@ -16,7 +17,7 @@ class TestData {
   public transactionCommonTests: TransactionCommonTests;
   public siteContext: any;
   public siteAreaContext: any;
-  public chargingStationContext: any;
+  public chargingStationContext: chargingStationContext;
 }
 
 const testData: TestData = new TestData();
@@ -68,7 +69,7 @@ describe('Transaction tests', function() {
 
       describe('Using function "readById"', () => {
 
-        afterEach(async () => {
+        after(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
@@ -108,6 +109,10 @@ describe('Transaction tests', function() {
 
       describe('Using function "readAllCompleted"', () => {
 
+        after(async () => {
+          await testData.chargingStationContext.cleanUpCreatedData();
+        });
+
         afterEach(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
@@ -132,6 +137,10 @@ describe('Transaction tests', function() {
 
       describe('Using function "readAllInError"', () => {
 
+        after(async () => {
+          await testData.chargingStationContext.cleanUpCreatedData();
+        });
+
         afterEach(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
@@ -147,6 +156,10 @@ describe('Transaction tests', function() {
       });
 
       describe('Using function "readAllConsumption"', () => {
+
+        after(async () => {
+          await testData.chargingStationContext.cleanUpCreatedData();
+        });
 
         afterEach(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
@@ -172,6 +185,10 @@ describe('Transaction tests', function() {
 
       describe('Using function "getTransactionsActive"', () => {
 
+        after(async () => {
+          await testData.chargingStationContext.cleanUpCreatedData();
+        });
+
         afterEach(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
@@ -188,7 +205,7 @@ describe('Transaction tests', function() {
 
       describe('Using function "delete"', () => {
 
-        afterEach(async () => {
+        after(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
@@ -216,7 +233,7 @@ describe('Transaction tests', function() {
 
       describe('Using other functionalities', () => {
 
-        afterEach(async () => {
+        after(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
@@ -246,6 +263,10 @@ describe('Transaction tests', function() {
 
       describe('Using function "readAllInError"', () => {
 
+        after(async () => {
+          await testData.chargingStationContext.cleanUpCreatedData();
+        });
+
         afterEach(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
@@ -262,7 +283,7 @@ describe('Transaction tests', function() {
 
       describe('Using function "delete"', () => {
 
-        afterEach(async () => {
+        after(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
 
