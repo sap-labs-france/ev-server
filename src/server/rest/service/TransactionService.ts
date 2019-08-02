@@ -233,6 +233,8 @@ export default class TransactionService {
     // Filter
     const filteredRequest = TransactionSecurity.filterChargingStationConsumptionFromTransactionRequest(req.query, req.user);
     // Transaction Id is mandatory
+    UtilsService.assertIdIsProvided(filteredRequest.TransactionId, 'TransactionService',
+      'handleGetCa')// TODO HERE
     if (!filteredRequest.TransactionId) {
       // Not Found!
       throw new AppError(
