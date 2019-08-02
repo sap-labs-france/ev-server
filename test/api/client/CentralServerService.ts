@@ -101,9 +101,7 @@ export default class CentralServerService {
   public async updatePriceSetting(priceKWH, priceUnit) {
     const settings = await this.settingApi.readAll({});
     let newSetting = false;
-    let setting = settings.data.result.find((s) => {
-      return s.identifier === 'pricing';
-    });
+    let setting = settings.data.result.find((s) => s.identifier === 'pricing');
     if (!setting) {
       setting = {};
       setting.identifier = 'pricing';

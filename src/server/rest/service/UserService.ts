@@ -137,9 +137,7 @@ export default class UserService {
       // Delete from site
       const siteIDs: string[] = (await UserStorage.getSites(req.user.tenantID, { userID: id },
         Constants.DB_PARAMS_MAX_LIMIT)).result.map(
-        (siteUser) => {
-          return siteUser.site.id;
-        }
+        (siteUser) => siteUser.site.id
       );
       await UserStorage.removeSitesFromUser(req.user.tenantID, user.id, siteIDs);
     }
@@ -223,9 +221,7 @@ export default class UserService {
     let newTagIDs;
     if (filteredRequest.tagIDs) {
       newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? filteredRequest.tagIDs.split(',') : filteredRequest.tagIDs;
-      newTagIDs = newTagIDs.filter((newTagID) => {
-        return typeof newTagID === 'string';
-      });
+      newTagIDs = newTagIDs.filter((newTagID) => typeof newTagID === 'string');
     }
     // Check User validity
     Utils.checkIfUserValid(filteredRequest, user, req);
@@ -446,9 +442,7 @@ export default class UserService {
     let newTagIDs;
     if (filteredRequest.tagIDs) {
       newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? filteredRequest.tagIDs.split(',') : filteredRequest.tagIDs;
-      newTagIDs = newTagIDs.filter((newTagID) => {
-        return typeof newTagID === 'string';
-      });
+      newTagIDs = newTagIDs.filter((newTagID) => typeof newTagID === 'string');
     }
     // Check Mandatory fields
     Utils.checkIfUserValid(filteredRequest, null, req);

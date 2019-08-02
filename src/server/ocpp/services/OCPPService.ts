@@ -1,8 +1,11 @@
 import momentDurationFormatSetup from 'moment-duration-format'; // TODO: what?
+import tzlookup from 'tz-lookup';
 import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
 import ChargingStation from '../../../types/ChargingStation';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
+import Connector from '../../../types/Connector';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
@@ -10,15 +13,12 @@ import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../utils/OCPPUtils';
 import OCPPValidation from '../validation/OCPPValidation';
 import PricingFactory from '../../../integration/pricing/PricingFactory';
+import Tenant from '../../../entity/Tenant';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Transaction from '../../../entity/Transaction';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import tzlookup from 'tz-lookup';
-import Connector from '../../../types/Connector';
-import Tenant from '../../../entity/Tenant';
 // FIXME
 const moment = require('moment');
 momentDurationFormatSetup(moment);
@@ -526,9 +526,7 @@ export default class OCPPService {
         if (consumption) {
           // Existing Consumption (SoC or Consumption MeterValue)?
           const existingConsumption = consumptions.find(
-            (c) => {
-              return c.endedAt.getTime() === consumption.endedAt.getTime();
-            });
+            (c) => c.endedAt.getTime() === consumption.endedAt.getTime());
           if (existingConsumption) {
             // Update existing
             for (const property in consumption) {
@@ -634,9 +632,7 @@ export default class OCPPService {
 
   async _updateChargingStationConsumption(tenantID: string, chargingStation: ChargingStation, transaction: Transaction) {
     // Get the connector
-    const connector = chargingStation.connectors.find((connector) => {
-      return connector.connectorId === transaction.getConnectorId();
-    });
+    const connector = chargingStation.connectors.find((connector) => connector.connectorId === transaction.getConnectorId());
     // Active transaction?
     if (transaction.isActive() && connector) {
       // Set consumption
@@ -653,7 +649,7 @@ export default class OCPPService {
       await this._checkNotificationEndOfCharge(tenantID, chargingStation, transaction);
     } else {
       // Cleanup connector transaction data
-      if(connector){
+      if (connector) {
         connector.currentConsumption = 0;
         connector.totalConsumption = 0;
         connector.totalInactivitySecs = 0;
@@ -1037,7 +1033,7 @@ export default class OCPPService {
       }
       // Clean up Charger's connector transaction info
       let connector = chargingStation.connectors.find((connector1) => connector1.connectorId === transaction.getConnectorId());
-      if(connector){
+      if (connector) {
         connector.currentConsumption = 0;
         connector.totalConsumption = 0;
         connector.totalInactivitySecs = 0;

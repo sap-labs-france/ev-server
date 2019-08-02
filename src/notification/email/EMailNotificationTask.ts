@@ -151,9 +151,7 @@ export default class EMailNotificationTask extends NotificationTask {
     if (emailTemplate.body.beforeActionLines) {
       // Render Lines Before Action
       emailTemplate.body.beforeActionLines =
-        emailTemplate.body.beforeActionLines.map((beforeActionLine) => {
-          return ejs.render(beforeActionLine, data);
-        });
+        emailTemplate.body.beforeActionLines.map((beforeActionLine) => ejs.render(beforeActionLine, data));
       // Remove extra empty lines
       Utils.removeExtraEmptyLines(emailTemplate.body.beforeActionLines);
     }
@@ -176,9 +174,7 @@ export default class EMailNotificationTask extends NotificationTask {
     if (emailTemplate.body.afterActionLines) {
       // Render Lines After Action
       emailTemplate.body.afterActionLines =
-        emailTemplate.body.afterActionLines.map((afterActionLine) => {
-          return ejs.render(afterActionLine, data);
-        });
+        emailTemplate.body.afterActionLines.map((afterActionLine) => ejs.render(afterActionLine, data));
       // Remove extra empty lines
       Utils.removeExtraEmptyLines(emailTemplate.body.afterActionLines);
     }
@@ -212,9 +208,7 @@ export default class EMailNotificationTask extends NotificationTask {
     let adminEmails = null;
     if (data.adminUsers && data.adminUsers.length > 0) {
       // Add Admins
-      adminEmails = data.adminUsers.map((adminUser) => {
-        return adminUser.email;
-      }).join(';');
+      adminEmails = data.adminUsers.map((adminUser) => adminUser.email).join(';');
     }
     // Send the email
     const message = await this.sendEmail({
@@ -235,9 +229,7 @@ export default class EMailNotificationTask extends NotificationTask {
       return (data.user ? data.user.email : null);
     } else if (data.users) {
       // Return a list of emails
-      return data.users.map((user) => {
-        return user.email;
-      }).join(',');
+      return data.users.map((user) => user.email).join(',');
     }
   }
 

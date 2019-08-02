@@ -48,11 +48,9 @@ export default class ContextProvider {
       if (!Array.isArray(tenantContextNames)) {
         tenantContextNames = [tenantContextNames];
       }
-      tenantContexts = tenantContextNames.map((tenantName) => {
-        return CONTEXTS.TENANT_CONTEXT_LIST.find((tenantContext) => {
-          tenantContext.tenantName === tenantName;
-        });
-      });
+      tenantContexts = tenantContextNames.map((tenantName) => CONTEXTS.TENANT_CONTEXT_LIST.find((tenantContext) => {
+        tenantContext.tenantName === tenantName;
+      }));
     }
     // Build each tenant context
     for (const tenantContextDef of tenantContexts) {
@@ -75,9 +73,7 @@ export default class ContextProvider {
 
   async _tenantEntityContext(tenantContextDef) {
     // Check if tenant exist
-    const tenantEntity = this.tenantEntities.find((tenant) => {
-      return tenant.name === tenantContextDef.tenantName;
-    });
+    const tenantEntity = this.tenantEntities.find((tenant) => tenant.name === tenantContextDef.tenantName);
     expect(tenantEntity).to.not.be.empty;
 
     // Create Central Server Service for admin user defined in config
@@ -94,8 +90,8 @@ export default class ContextProvider {
       siteList = (await defaultAdminCentralServiceService.siteApi.readAll({}, { limit: 0, skip: 0 })).data.result;
       companyList = (await defaultAdminCentralServiceService.companyApi.readAll({}, { limit: 0, skip: 0 })).data.result;
       chargingStationList = (await defaultAdminCentralServiceService.chargingStationApi.readAll({}, Constants.DB_PARAMS_MAX_LIMIT)).data.result;
-    }else{
-      chargingStationList = (await defaultAdminCentralServiceService.chargingStationApi.readAll({WithNoSiteArea: true}, Constants.DB_PARAMS_MAX_LIMIT)).data.result;
+    } else {
+      chargingStationList = (await defaultAdminCentralServiceService.chargingStationApi.readAll({ WithNoSiteArea: true }, Constants.DB_PARAMS_MAX_LIMIT)).data.result;
     }
     userList = (await defaultAdminCentralServiceService.userApi.readAll({}, { limit: 0, skip: 0 })).data.result;
     for (const user of userList) {
@@ -112,18 +108,12 @@ export default class ContextProvider {
     if (tenantEntity.components && tenantEntity.components[Constants.COMPONENTS.ORGANIZATION] &&
       tenantEntity.components[Constants.COMPONENTS.ORGANIZATION].active) {
       for (const siteContextDef of CONTEXTS.TENANT_SITE_LIST) {
-        const jsonSite = siteList.find((site) => {
-          return site.name === siteContextDef.name;
-        });
+        const jsonSite = siteList.find((site) => site.name === siteContextDef.name);
         const siteContext = new SiteContext(jsonSite, newTenantContext);
-        const siteAreas = siteAreaList.filter((siteArea) => {
-          return siteContext.getSite().id === siteArea.siteID;
-        });
+        const siteAreas = siteAreaList.filter((siteArea) => siteContext.getSite().id === siteArea.siteID);
         for (const siteArea of siteAreas) {
           const siteAreaContext = siteContext.addSiteArea(siteArea);
-          const chargingStations = chargingStationList.filter((chargingStation) => {
-            return siteArea.id === chargingStation.siteAreaID;
-          });
+          const chargingStations = chargingStationList.filter((chargingStation) => siteArea.id === chargingStation.siteAreaID);
           for (const chargingStation of chargingStations) {
             siteAreaContext.addChargingStation(chargingStation);
           }
@@ -132,9 +122,7 @@ export default class ContextProvider {
       }
     }
     // Create list of unassigned charging stations
-    const chargingStations = chargingStationList.filter((chargingStation) => {
-      return !chargingStation.siteAreaID;
-    });
+    const chargingStations = chargingStationList.filter((chargingStation) => !chargingStation.siteAreaID);
     for (const chargingStation of chargingStations) {
       newTenantContext.addChargingStation(chargingStation);
     }
@@ -149,9 +137,7 @@ export default class ContextProvider {
   }
 
   _getTenantContextDef(tenantContextName, checkValid = true) {
-    const tenantContext = CONTEXTS.TENANT_CONTEXT_LIST.find((context) => {
-      return context.tenantName === tenantContextName;
-    });
+    const tenantContext = CONTEXTS.TENANT_CONTEXT_LIST.find((context) => context.tenantName === tenantContextName);
     if (!tenantContext && checkValid) {
       throw new Error('Unknown context name ' + tenantContextName);
     }
@@ -160,9 +146,7 @@ export default class ContextProvider {
 
   _getTenantContext(tenantContextName, checkValid = true) {
     const tenantContextDef = this._getTenantContextDef(tenantContextName, checkValid);
-    return this.tenantsContexts.find((tenantContext) => {
-      return (tenantContext.getTenant().name === tenantContextName);
-    });
+    return this.tenantsContexts.find((tenantContext) => (tenantContext.getTenant().name === tenantContextName));
   }
 
 }

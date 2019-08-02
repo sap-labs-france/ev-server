@@ -23,9 +23,7 @@ export default class OCPIServices {
    */
   public getVersions(req: Request, res: Response): void {
     // Get all the versions
-    const versions = this.ocpiServices.map((ocpiService) => {
-      return { 'version': ocpiService.getVersion(), 'url': ocpiService.getServiceUrl(req) };
-    });
+    const versions = this.ocpiServices.map((ocpiService) => ({ 'version': ocpiService.getVersion(), 'url': ocpiService.getServiceUrl(req) }));
     // Send available versions
     res.json(OCPIUtils.success(versions));
   }

@@ -1,9 +1,9 @@
 import faker from 'faker';
 import CentralServerService from '../client/CentralServerService';
+import ChargingStation from '../../types/ChargingStation';
 import CONTEXTS from '../contextProvider/ContextConstants';
 import TenantContext from './TenantContext';
 import Utils from '../../../src/utils/Utils';
-import ChargingStation from '../../types/ChargingStation';
 
 export default class ChargingStationContext {
 

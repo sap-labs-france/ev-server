@@ -437,14 +437,10 @@ export default class StatisticService {
           index = -1;
           if (transactions && transactions.length > 0) {
             if (dataCategory === 'C') {
-              index = transactions.findIndex((record) => {
-                return (record._id.chargeBox === transaction._id.chargeBox);
-              });
+              index = transactions.findIndex((record) => (record._id.chargeBox === transaction._id.chargeBox));
             } else {
-              index = transactions.findIndex((record) => {
-                return ((record.user.name === transaction.user.name)
-                  && (record.user.firstName === transaction.user.firstName));
-              });
+              index = transactions.findIndex((record) => ((record.user.name === transaction.user.name)
+                  && (record.user.firstName === transaction.user.firstName)));
             }
           }
           if (index < 0) {
@@ -456,11 +452,9 @@ export default class StatisticService {
           transactions.push(transaction);
         } else {
           // Duplicate names are possible, like 'Unknown'
-          index = transactions.findIndex((record) => {
-            return ((record._id.month === transaction._id.month) &&
+          index = transactions.findIndex((record) => ((record._id.month === transaction._id.month) &&
               (record.user.name === transaction.user.name) &&
-              (record.user.firstName === transaction.user.firstName));
-          });
+              (record.user.firstName === transaction.user.firstName)));
           if (index < 0) {
             transactions.push(transaction);
           } else {

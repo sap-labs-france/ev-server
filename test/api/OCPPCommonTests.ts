@@ -81,9 +81,7 @@ export default class OCPPCommonTests {
 
   public async before() {
     const allSettings = await this.centralUserService.settingApi.readAll({});
-    this.currentPricingSetting = allSettings.data.result.find((s) => {
-      return s.identifier === 'pricing';
-    });
+    this.currentPricingSetting = allSettings.data.result.find((s) => s.identifier === 'pricing');
     if (this.currentPricingSetting) {
       await this.centralUserService.updatePriceSetting(this.priceKWH, 'EUR');
     }
@@ -104,32 +102,22 @@ export default class OCPPCommonTests {
     this.transactionStartMeterValue = 0;
     this.transactionSignedData = '<?xml version=\"1.0\" encoding=\"UTF-8\" ?><signedMeterValue>  <publicKey encoding=\"base64\">8Y5UzWD+TZeMKBDkKLpHhwzSfGsnCvo00ndCXv/LVRD5pAVtRZEA49bqpr/DY3KL</publicKey>  <meterValueSignature encoding=\"base64\">wQdZJR1CLRe+QhS3C+kHpkfVL4hqPhc8YIt/+4uHBBb9N6JNygltdEhYufTfaM++AJ8=</meterValueSignature>  <signatureMethod>ECDSA192SHA256</signatureMethod>  <encodingMethod>EDL</encodingMethod>  <encodedMeterValue encoding=\"base64\">CQFFTUgAAH+eoQxVP10I4Zf9ACcAAAABAAERAP8e/5KqWwEAAAAAAJ9sYQoCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAtVP10AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</encodedMeterValue></signedMeterValue>';
     this.transactionEndSignedData = '<?xml version=\"1.0\" encoding=\"UTF-8\" ?><signedMeterValue>  <publicKey encoding=\"base64\">8Y5UzWD+TZeMKBDkKLpHhwzSfGsnCvo00ndCXv/LVRD5pAVtRZEA49bqpr/DY3KL</publicKey>  <meterValueSignature encoding=\"base64\">GChPf/f+0Rw6DDWI0mujec6dOMDqm5cuCLXdEVV6MRua6OVqcHNP85q7K70tRPJKAJ8=</meterValueSignature>  <signatureMethod>ECDSA192SHA256</signatureMethod>  <encodingMethod>EDL</encodingMethod>  <encodedMeterValue encoding=\"base64\">CQFFTUgAAH+eodYDQF0IrEb+ACgAAAABAAERAP8e/8OtYQEAAAAAAJ9sYQoCAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAtVP10AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</encodedMeterValue></signedMeterValue>';
-    this.transactionMeterValues = Array.from({ length: 12 }, () => {
-      return faker.random.number({
-        min: 200,
-        max: 500
-      });
-    }).concat([0, 0]);
-    this.transactionMeterSoCValues = Array.from({ length: 8 }, () => {
-      return faker.random.number({
-        min: 10,
-        max: 90
-      });
-    }).concat([8, 8, 98, 99, 100, 100]).sort((a, b) => {
-      return (a - b);
-    });
+    this.transactionMeterValues = Array.from({ length: 12 }, () => faker.random.number({
+      min: 200,
+      max: 500
+    })).concat([0, 0]);
+    this.transactionMeterSoCValues = Array.from({ length: 8 }, () => faker.random.number({
+      min: 10,
+      max: 90
+    })).concat([8, 8, 98, 99, 100, 100]).sort((a, b) => (a - b));
     this.transactionStartSoC = this.transactionMeterSoCValues[0];
     this.transactionMeterValueIntervalSecs = 60;
     this.transactionStartTime = moment().subtract(this.transactionMeterValues.length * this.transactionMeterValueIntervalSecs + 1, 'seconds');
-    this.transactionTotalConsumption = this.transactionMeterValues.reduce((sum, meterValue) => {
-      return sum + meterValue;
-    });
+    this.transactionTotalConsumption = this.transactionMeterValues.reduce((sum, meterValue) => sum + meterValue);
     this.transactionEndMeterValue = this.transactionStartMeterValue + this.transactionTotalConsumption;
     this.transactionEndSoC = 100;
     this.transactionTotalInactivity = this.transactionMeterValues.reduce(
-      (sum, meterValue) => {
-        return (meterValue === 0 ? sum + this.transactionMeterValueIntervalSecs : sum);
-      }, 0);
+      (sum, meterValue) => (meterValue === 0 ? sum + this.transactionMeterValueIntervalSecs : sum), 0);
     this.totalPrice = this.priceKWH * (this.transactionTotalConsumption / 1000);
 
     this.validTag = faker.random.alphaNumeric(20).toString();

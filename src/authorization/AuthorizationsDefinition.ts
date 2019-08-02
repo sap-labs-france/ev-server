@@ -1,6 +1,6 @@
 import AccessControl from 'role-acl';
-import InternalError from '../exception/InternalError';
 import Constants from '../utils/Constants';
+import InternalError from '../exception/InternalError';
 
 const GRANTS = {
   superAdmin: {
@@ -176,9 +176,7 @@ export default class AuthorizationsDefinition {
       this.accessControl.allowedResources({ role: groups }).forEach(
         (resource: string): void => {
           this.accessControl.allowedActions({ role: groups, resource: resource }).forEach(
-            (action: string): number => {
-              return scopes.push(`${resource}:${action}`);
-            }
+            (action: string): number => scopes.push(`${resource}:${action}`)
           );
         }
       );

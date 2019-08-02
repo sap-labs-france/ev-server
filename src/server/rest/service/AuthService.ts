@@ -9,6 +9,7 @@ import Authorizations from '../../../authorization/Authorizations';
 import AuthSecurity from './security/AuthSecurity';
 import BadRequestError from '../../../exception/BadRequestError';
 import ChargingStation from '../../../types/ChargingStation';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import { HttpIsAuthorizedRequest, HttpLoginRequest, HttpResetPasswordRequest } from '../../../types/requests/HttpUserRequest';
@@ -23,7 +24,6 @@ import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
@@ -38,10 +38,10 @@ if (_centralSystemRestConfig) {
     // audience: 'evse-dashboard'
   };
   // Use
-  passport.use(new Strategy(jwtOptions, (jwtPayload, done) => {
+  passport.use(new Strategy(jwtOptions, (jwtPayload, done) =>
     // Return the token decoded right away
-    return done(null, jwtPayload);
-  }));
+    done(null, jwtPayload)
+  ));
 }
 
 export default class AuthService {
@@ -96,9 +96,7 @@ export default class AuthService {
           const results = [];
           // Check authorization for each connectors
           for (let index = 0; index < chargingStation.connectors.length; index++) {
-            const foundConnector = chargingStation.connectors.find((connector) => {
-              return connector.connectorId === index + 1;
-            });
+            const foundConnector = chargingStation.connectors.find((connector) => connector.connectorId === index + 1);
             const tempResult = { 'IsAuthorized': false };
             if (foundConnector && foundConnector.activeTransactionID) {
               tempResult.IsAuthorized = await AuthService.isStopTransactionAuthorized(
@@ -196,9 +194,7 @@ export default class AuthService {
     }
     // Check authorization for each connectors
     for (let index = 0; index < chargingStation.connectors.length; index++) {
-      const foundConnector = chargingStation.connectors.find((connector) => {
-        return connector.connectorId === index + 1;
-      });
+      const foundConnector = chargingStation.connectors.find((connector) => connector.connectorId === index + 1);
       results.push(await Authorizations.getConnectorActionAuthorizations(
         { tenantID, user, chargingStation, connector: foundConnector, siteArea, site }));
     }
@@ -412,9 +408,7 @@ export default class AuthService {
       Constants.DB_PARAMS_MAX_LIMIT
     );
     if (sites.count > 0) {
-      const siteIDs = sites.result.map((site) => {
-        return site.id;
-      });
+      const siteIDs = sites.result.map((site) => site.id);
       if (siteIDs && siteIDs.length > 0) {
         await UserStorage.addSitesToUser(tenantID, newUser.id, siteIDs);
       }

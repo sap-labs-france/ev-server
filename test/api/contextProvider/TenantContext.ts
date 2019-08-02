@@ -70,9 +70,7 @@ export default class TenantContext {
 
   getSiteContext(siteName = null) {
     if (siteName) {
-      return this.context.siteContexts.concat(this.context.createdSites).find((siteContext) => {
-        return siteContext.getSiteName() === siteName;
-      });
+      return this.context.siteContexts.concat(this.context.createdSites).find((siteContext) => siteContext.getSiteName() === siteName);
     }
     return this.context.siteContexts[0]; // By default return the first context
   }
@@ -87,16 +85,12 @@ export default class TenantContext {
 
   getChargingStation(chargingStationID) {
     // Search in context list
-    return this.context.chargingStations.find((chargingStationContext) => {
-      return chargingStationContext.getChargingStation().id === chargingStationID;
-    });
+    return this.context.chargingStations.find((chargingStationContext) => chargingStationContext.getChargingStation().id === chargingStationID);
   }
 
   getChargingStationContext(chargingStationContext) {
     // Search in context list
-    return this.context.chargingStations.find((chargingStation) => {
-      return chargingStation.getChargingStation().id.startsWith(chargingStationContext);
-    });
+    return this.context.chargingStations.find((chargingStation) => chargingStation.getChargingStation().id.startsWith(chargingStationContext));
   }
 
   addChargingStation(chargingStation) {
@@ -138,16 +132,12 @@ export default class TenantContext {
 
   getUserContext(params) { // Structure { id = user ID, email = user mail, role = user role, status = user status, assignedToSite = boolean) {
     if (params.id || params.email) {
-      return this.context.users.find((user) => {
-        return user.id === params.id || user.email === params.email;
-      });
+      return this.context.users.find((user) => user.id === params.id || user.email === params.email);
     }
     return this.context.users.find((user) => {
       let conditionMet = null;
       for (const key in params) {
-        const userContextDef = CONTEXTS.TENANT_USER_LIST.find((userList) => {
-          return userList.id === user.id;
-        });
+        const userContextDef = CONTEXTS.TENANT_USER_LIST.find((userList) => userList.id === user.id);
         if (user.hasOwnProperty(key)) {
           if (conditionMet !== null) {
             conditionMet = conditionMet && user[key] === params[key];
@@ -213,9 +203,7 @@ export default class TenantContext {
 
   async createSite(company, users, site = Factory.site.build({
     companyID: company.id,
-    userIDs: users.map((user) => {
-      return user.id;
-    })
+    userIDs: users.map((user) => user.id)
   }), loggedUser = null) {
     const siteContext = new SiteContext(site.name, this);
     const createdSite = await this.centralAdminServerService.createEntity(this.centralAdminServerService.siteApi, site);
@@ -226,9 +214,7 @@ export default class TenantContext {
 
   async createSiteArea(site, chargingStations, siteArea) {
     siteArea.siteID = (site && site.id ? (!siteArea.siteID || siteArea.siteID !== site.id ? site.id : siteArea.siteID) : null);
-    siteArea.chargeBoxIDs = (Array.isArray(chargingStations) && (!siteArea.chargeBoxIDs || siteArea.chargeBoxIDs.length === 0) ? chargingStations.map((chargingStation) => {
-      return chargingStation.id;
-    }) : []);
+    siteArea.chargeBoxIDs = (Array.isArray(chargingStations) && (!siteArea.chargeBoxIDs || siteArea.chargeBoxIDs.length === 0) ? chargingStations.map((chargingStation) => chargingStation.id) : []);
     const createdSiteArea = await this.centralAdminServerService.createEntity(this.centralAdminServerService.siteAreaApi, siteArea);
     this.context.createdSiteAreas.push(new SiteAreaContext(createdSiteArea, this));
     return createdSiteArea;
@@ -271,19 +257,11 @@ export default class TenantContext {
   }
 
   findSiteContextFromSiteArea(siteArea) {
-    return this.getSiteContexts().find((context) => {
-      return context.siteAreas.find((tmpSiteArea) => {
-        return siteArea.id === tmpSiteArea.id;
-      });
-    });
+    return this.getSiteContexts().find((context) => context.siteAreas.find((tmpSiteArea) => siteArea.id === tmpSiteArea.id));
   }
 
   findSiteContextFromChargingStation(chargingStation) {
-    return this.getSiteContexts().find((context) => {
-      return context.chargingStations.find((tmpChargingStation) => {
-        return tmpChargingStation.id === chargingStation.id;
-      });
-    });
+    return this.getSiteContexts().find((context) => context.chargingStations.find((tmpChargingStation) => tmpChargingStation.id === chargingStation.id));
   }
 
   async close() {

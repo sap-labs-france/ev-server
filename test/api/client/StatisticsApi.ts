@@ -29,9 +29,7 @@ export default class StatisticsApi extends CrudApi {
 
   public static convertExportFileToRawArray(fileData: string): Array<string> {
     let fileArray = fileData.split('\r\n');
-    fileArray = fileArray.filter((record: string) => {
-      return record.length > 0;
-    });
+    fileArray = fileArray.filter((record: string) => record.length > 0);
     return fileArray;
   }
 

@@ -274,13 +274,11 @@ export default class SiteService {
       ['user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteID']
     );
     // Filter
-    users.result = users.result.map((siteuser) => {
-      return {
-        siteID: siteuser.siteID,
-        siteAdmin: siteuser.siteAdmin,
-        user: UserSecurity.filterUserResponse(siteuser.user, req.user)
-      };
-    });
+    users.result = users.result.map((siteuser) => ({
+      siteID: siteuser.siteID,
+      siteAdmin: siteuser.siteAdmin,
+      user: UserSecurity.filterUserResponse(siteuser.user, req.user)
+    }));
     res.json(users);
     next();
   }
@@ -330,7 +328,7 @@ export default class SiteService {
     const filteredRequest = SiteSecurity.filterSiteRequest(req.query);
     UtilsService.assertIdIsProvided(filteredRequest.ID, 'SiteService', 'handleGetSite', req.user);
     // Check auth
-    if(!Authorizations.canReadSite(req.user, filteredRequest.ID)) {
+    if (!Authorizations.canReadSite(req.user, filteredRequest.ID)) {
       throw new AppAuthError(
         Constants.ACTION_READ,
         Constants.ENTITY_SITE,
@@ -387,7 +385,7 @@ export default class SiteService {
         'autoUserSiteAssignment', 'allowAllUsersToStopTransactions']
     );
     // Build the result
-    if(sites.result && sites.result.length > 0) {
+    if (sites.result && sites.result.length > 0) {
       // Filter
       SiteSecurity.filterSitesResponse(sites, req.user);
     }

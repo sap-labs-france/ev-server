@@ -1,11 +1,11 @@
 import fs from 'fs';
 import BackendError from '../../../exception/BackendError';
+import ChargingStation from '../../../types/ChargingStation';
 import Constants from '../../../utils/Constants';
 import global from '../../../types/GlobalType';
 import Logging from '../../../utils/Logging';
 import SchemaValidator from '../../rest/validation/SchemaValidator';
 import Utils from '../../../utils/Utils';
-import ChargingStation from '../../../types/ChargingStation';
 
 export default class OCPPValidation extends SchemaValidator {
   private static instance: OCPPValidation|null = null;
@@ -63,9 +63,7 @@ export default class OCPPValidation extends SchemaValidator {
   validateStartTransaction(chargingStation: ChargingStation, startTransaction) {
     this.validate(this._startTransactionRequest, startTransaction);
     // Check Connector ID
-    const foundConnector = chargingStation.connectors.find((connector) => {
-      return connector.connectorId === startTransaction.connectorId;
-    });
+    const foundConnector = chargingStation.connectors.find((connector) => connector.connectorId === startTransaction.connectorId);
     if (!foundConnector) {
       throw new BackendError(chargingStation.id,
         `The Connector ID '${startTransaction.connectorId}' is invalid`,
@@ -99,7 +97,7 @@ export default class OCPPValidation extends SchemaValidator {
       meterValues.connectorId = 1;
     }
     // Check if the transaction ID matches
-    const connector = chargingStation.connectors.find(c => c.connectorId === meterValues.connectorId);
+    const connector = chargingStation.connectors.find((c) => c.connectorId === meterValues.connectorId);
     const chargerTransactionId = Utils.convertToInt(connector ? connector.activeTransactionID : 0);
     // Transaction is provided in MeterValue?
     if (meterValues.hasOwnProperty('transactionId')) {

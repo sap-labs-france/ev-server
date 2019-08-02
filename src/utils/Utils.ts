@@ -8,23 +8,23 @@ import _ from 'lodash';
 import { ObjectID } from 'mongodb';
 import passwordGenerator = require('password-generator');
 import path from 'path';
+import tzlookup from 'tz-lookup';
 import url from 'url';
 import uuidV4 from 'uuid/v4';
 import AppError from '../exception/AppError';
 import Authorizations from '../authorization/Authorizations';
 import BackendError from '../exception/BackendError';
+import ChargingStation from '../types/ChargingStation';
 import Configuration from './Configuration';
+import ConnectorStats from '../types/ConnectorStats';
 import Constants from './Constants';
 import { HttpUserRequest } from '../types/requests/HttpUserRequest';
 import Logging from './Logging';
 import Tenant from '../entity/Tenant';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import User from '../types/User';
-import UserToken from '../types/UserToken';
-import ChargingStation from '../types/ChargingStation';
-import ConnectorStats from '../types/ConnectorStats';
-import tzlookup from 'tz-lookup';
 import UserStorage from '../storage/mongodb/UserStorage';
+import UserToken from '../types/UserToken';
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
 
@@ -74,13 +74,13 @@ export default class Utils {
     return inactive;
   }
 
-  public static getConnectorStatusesFromChargingStations(chargingStations: ChargingStation[]) : ConnectorStats {
+  public static getConnectorStatusesFromChargingStations(chargingStations: ChargingStation[]): ConnectorStats {
     const connectorStats: ConnectorStats = {
       totalChargers: 0,
       availableChargers: 0,
       totalConnectors: 0,
       availableConnectors: 0
-    }
+    };
     // Chargers
     for (const chargingStation of chargingStations) {
       // Check not deleted
@@ -805,6 +805,13 @@ export default class Utils {
     }
   }
 
+  public static getTimezone(lat: number, lon: number) {
+    if (lat && lon) {
+      return tzlookup(lat, lon);
+    }
+    return null;
+  }
+
   private static _isPasswordValid(password: string): boolean {
     // eslint-disable-next-line no-useless-escape
     return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
@@ -818,9 +825,7 @@ export default class Utils {
     if (typeof tagIDs === 'string') {
       return /^[A-Za-z0-9,]*$/.test(tagIDs);
     }
-    return tagIDs.filter((tagID) => {
-      return /^[A-Za-z0-9,]*$/.test(tagID);
-    }).length === tagIDs.length;
+    return tagIDs.filter((tagID) => /^[A-Za-z0-9,]*$/.test(tagID)).length === tagIDs.length;
   }
 
   private static _isPhoneValid(phone: string): boolean {
@@ -833,12 +838,5 @@ export default class Utils {
 
   private static _isPlateIDValid(plateID) {
     return /^[A-Z0-9-]*$/.test(plateID);
-  }
-
-  public static getTimezone(lat: number, lon: number) {
-    if(lat && lon) {
-      return tzlookup(lat, lon);
-    }
-    return null;
   }
 }

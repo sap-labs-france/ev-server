@@ -1,13 +1,13 @@
 import crypto from 'crypto';
 import { NextFunction, Request, Response } from 'express';
 import HttpStatus from 'http-status-codes';
-import Tenant from '../../../entity/Tenant';
 import AppError from '../../../exception/AppError';
-import UserStorage from '../../../storage/mongodb/UserStorage';
-import global from '../../../types/GlobalType';
-import User from '../../../types/User';
 import Constants from '../../../utils/Constants';
+import global from '../../../types/GlobalType';
 import Logging from '../../../utils/Logging';
+import Tenant from '../../../entity/Tenant';
+import User from '../../../types/User';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 
 export default class SessionHashService {
   // Check if Session has been updated and require new login

@@ -62,7 +62,5 @@ describe('Template for Dev Unit Test', function() {
 });
 
 async function timeout(ms) {
-  return await new Promise((resolve) => {
-    return setTimeout(resolve, ms);
-  });
+  return await new Promise((resolve) => setTimeout(resolve, ms));
 }

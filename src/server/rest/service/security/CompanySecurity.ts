@@ -71,9 +71,7 @@ export default class CompanySecurity {
         filteredCompany.address = UtilsSecurity.filterAddressRequest(company.address);
       }
       if (company.sites) {
-        filteredCompany.sites = company.sites.map((site) => {
-          return SiteSecurity.filterSiteResponse(site, loggedUser);
-        });
+        filteredCompany.sites = company.sites.map((site) => SiteSecurity.filterSiteResponse(site, loggedUser));
       }
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(

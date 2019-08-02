@@ -99,9 +99,7 @@ export default class TransactionStorage {
     // User
     if (params.userIDs) {
       match.userID = {
-        $in: params.userIDs.map((user) => {
-          return Utils.convertToObjectID(user);
-        })
+        $in: params.userIDs.map((user) => Utils.convertToObjectID(user))
       };
     }
     // Charge Box
@@ -130,9 +128,7 @@ export default class TransactionStorage {
     }
     if (params.siteAreaIDs) {
       match.siteAreaID = {
-        $in: params.siteAreaIDs.map((area) => {
-          return Utils.convertToObjectID(area);
-        })
+        $in: params.siteAreaIDs.map((area) => Utils.convertToObjectID(area))
       };
     }
     if (params.siteID) {
@@ -383,9 +379,7 @@ export default class TransactionStorage {
     // User
     if (params.userIDs) {
       match.userID = {
-        $in: params.userIDs.map((user) => {
-          return Utils.convertToObjectID(user);
-        })
+        $in: params.userIDs.map((user) => Utils.convertToObjectID(user))
       };
     }
     // Charge Box
@@ -410,9 +404,7 @@ export default class TransactionStorage {
     }
     if (params.siteAreaIDs) {
       match.siteAreaID = {
-        $in: params.siteAreaIDs.map((area) => {
-          return Utils.convertToObjectID(area);
-        })
+        $in: params.siteAreaIDs.map((area) => Utils.convertToObjectID(area))
       };
     }
     if (params.siteID) {
@@ -525,13 +517,11 @@ export default class TransactionStorage {
     };
     if (params.errorType && Array.isArray(params.errorType) && params.errorType.length > 0) {
       const filteredFacets: any = Object.keys(facets.$facet)
-        .filter(key => params.errorType.includes(key))
-        .reduce((obj, key) => {
-          return {
-            ...obj,
-            [key]: facets.$facet[key]
-          };
-        }, {});     
+        .filter((key) => params.errorType.includes(key))
+        .reduce((obj, key) => ({
+          ...obj,
+          [key]: facets.$facet[key]
+        }), {});
       facets.$facet = filteredFacets;
     }
     // Merge in each facet the join for sitearea and siteareaid

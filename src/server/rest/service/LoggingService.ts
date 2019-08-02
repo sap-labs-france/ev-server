@@ -40,9 +40,7 @@ export default class LoggingService {
           filteredRequest.Source = sources;
         } else {
           // Add all Site Admin Chargers in filter
-          filteredRequest.Source = chargingStations.result.map((chargingStation) => {
-            return chargingStation.id;
-          });
+          filteredRequest.Source = chargingStations.result.map((chargingStation) => chargingStation.id);
         }
       }
 

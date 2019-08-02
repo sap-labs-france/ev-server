@@ -26,9 +26,7 @@ export default class SiteSecurity {
     const filteredRequest: HttpSiteAssignUsersRequest = {
       siteID: sanitize(request.siteID)
     } as HttpSiteAssignUsersRequest;
-    filteredRequest.userIDs = request.userIDs.map((userID) => {
-      return sanitize(userID);
-    });
+    filteredRequest.userIDs = request.userIDs.map((userID) => sanitize(userID));
     return filteredRequest;
   }
 

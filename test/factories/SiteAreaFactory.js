@@ -3,11 +3,7 @@ const faker = require('faker');
 const address = require('./AddressFactory');
 
 module.exports = Factory.define('siteArea')
-  .attr('name', () => {
-    return faker.company.companyName();
-  })
+  .attr('name', () => faker.company.companyName())
   .attr('siteID', null)
   .attr('accessControl', true)
-  .attr('address',() => {
-    return address.build();
-  });
+  .attr('address',() => address.build());

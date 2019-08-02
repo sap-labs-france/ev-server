@@ -42,9 +42,7 @@ export default class TransactionCommonTests {
 
   public async before() {
     const allSettings = await this.centralUserService.settingApi.readAll({});
-    this.currentPricingSetting = allSettings.data.result.find((s) => {
-      return s.identifier === 'pricing';
-    });
+    this.currentPricingSetting = allSettings.data.result.find((s) => s.identifier === 'pricing');
     if (this.currentPricingSetting) {
       await this.centralUserService.updatePriceSetting(this.priceKWH, 'EUR');
     }

@@ -1,3 +1,4 @@
+import { expect } from 'chai';
 import config from '../../config';
 import faker from 'faker';
 import moment from 'moment';
@@ -20,7 +21,6 @@ import User from '../../../src/types/User';
 import UserFactory from '../../factories/UserFactory';
 import UserStorage from '../../../src/storage/mongodb/UserStorage';
 import Utils from '../../../src/utils/Utils';
-import { expect } from 'chai';
 
 export default class ContextBuilder {
 
@@ -212,7 +212,7 @@ export default class ContextBuilder {
       }
       // Set back password to clear value for login/logout
       const userModel = user;
-      (userModel as any).passwordClear = config.get('admin.password'); // TODO ?
+      (userModel as any).passwordClear = config.get('admin.password'); // TODO?
       userList.push(userModel);
     }
     // Persist tenant context
@@ -223,13 +223,12 @@ export default class ContextBuilder {
     if (buildTenant.components && buildTenant.components.hasOwnProperty(Constants.COMPONENTS.ORGANIZATION) &&
       buildTenant.components[Constants.COMPONENTS.ORGANIZATION].active) {
       // Create the company
-      let company = null;
       for (const companyDef of CONTEXTS.TENANT_COMPANY_LIST) {
         const dummyCompany: any = Factory.company.build();
         dummyCompany.id = companyDef.id;
         dummyCompany.createdBy = { id: adminUser.id };
         dummyCompany.createdOn = moment().toISOString();
-        company = await CompanyStorage.saveCompany(buildTenant.id, dummyCompany);
+        await CompanyStorage.saveCompany(buildTenant.id, dummyCompany);
         newTenantContext.getContext().companies.push(dummyCompany);
       }
       // Build sites/sitearea according to tenant definition
@@ -248,14 +247,10 @@ export default class ContextBuilder {
         siteTemplate.id = siteContextDef.id;
         site = siteTemplate;
         site.id = await SiteStorage.saveSite(buildTenant.id, siteTemplate, true);
-        await SiteStorage.addUsersToSite(buildTenant.id, site.id, userListToAssign.map((user) => {
-          return user.id;
-        }));
+        await SiteStorage.addUsersToSite(buildTenant.id, site.id, userListToAssign.map((user) => user.id));
         const siteContext = new SiteContext(site, newTenantContext);
         // Create site areas of current site
-        for (const siteAreaDef of CONTEXTS.TENANT_SITEAREA_LIST.filter((siteArea) => {
-          return siteArea.siteName === site.name;
-        })) {
+        for (const siteAreaDef of CONTEXTS.TENANT_SITEAREA_LIST.filter((siteArea) => siteArea.siteName === site.name)) {
           const siteAreaTemplate = Factory.siteArea.build();
           siteAreaTemplate.id = siteAreaDef.id;
           siteAreaTemplate.name = siteAreaDef.name;

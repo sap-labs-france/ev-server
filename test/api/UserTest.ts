@@ -70,9 +70,7 @@ describe('User tests', function() {
         CentralServerService.DefaultInstance.userApi, Factory.user.build({ status: 'A' }));
       const response = await CentralServerService.DefaultInstance.userApi.readAllInError({}, { limit: 100, skip: 0 });
       expect(response.status).to.equal(200);
-      response.data.result.forEach((u) => {
-        return expect(u.id).to.not.equal(user.id);
-      });
+      response.data.result.forEach((u) => expect(u.id).to.not.equal(user.id));
 
       await CentralServerService.DefaultInstance.deleteEntity(
         CentralServerService.DefaultInstance.userApi, user);
@@ -83,9 +81,7 @@ describe('User tests', function() {
         CentralServerService.DefaultInstance.userApi, Factory.user.build({ status: 'P' }));
       const response = await CentralServerService.DefaultInstance.userApi.readAllInError({}, { limit: 100, skip: 0 });
       expect(response.status).to.equal(200);
-      const found = response.data.result.find((u) => {
-        return u.id === user.id;
-      });
+      const found = response.data.result.find((u) => u.id === user.id);
       expect(found).to.not.be.null;
 
       await CentralServerService.DefaultInstance.deleteEntity(
@@ -97,9 +93,7 @@ describe('User tests', function() {
         CentralServerService.DefaultInstance.userApi, Factory.user.build({ status: 'B' }));
       const response = await CentralServerService.DefaultInstance.userApi.readAllInError({}, { limit: 100, skip: 0 });
       expect(response.status).to.equal(200);
-      const found = response.data.result.find((u) => {
-        return u.id === user.id;
-      });
+      const found = response.data.result.find((u) => u.id === user.id);
       expect(found).to.not.be.null;
 
       await CentralServerService.DefaultInstance.deleteEntity(
@@ -111,9 +105,7 @@ describe('User tests', function() {
         CentralServerService.DefaultInstance.userApi, Factory.user.build({ status: 'L' }));
       const response = await CentralServerService.DefaultInstance.userApi.readAllInError({}, { limit: 100, skip: 0 });
       expect(response.status).to.equal(200);
-      const found = response.data.result.find((u) => {
-        return u.id === user.id;
-      });
+      const found = response.data.result.find((u) => u.id === user.id);
       expect(found).to.not.be.null;
 
       await CentralServerService.DefaultInstance.deleteEntity(
@@ -125,9 +117,7 @@ describe('User tests', function() {
         CentralServerService.DefaultInstance.userApi, Factory.user.build({ status: 'I' }));
       const response = await CentralServerService.DefaultInstance.userApi.readAllInError({}, { limit: 100, skip: 0 });
       expect(response.status).to.equal(200);
-      const found = response.data.result.find((u) => {
-        return u.id === user.id;
-      });
+      const found = response.data.result.find((u) => u.id === user.id);
       expect(found).to.not.be.null;
 
       await CentralServerService.DefaultInstance.deleteEntity(

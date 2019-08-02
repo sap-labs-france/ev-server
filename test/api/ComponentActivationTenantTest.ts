@@ -1,10 +1,10 @@
 import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import config from '../config';
+import HttpStatus from 'http-status-codes';
 import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
 import Constants from './client/utils/Constants';
-import HttpStatus from 'http-status-codes';
 import Utils from './Utils';
 
 chai.use(chaiSubset);

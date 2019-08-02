@@ -2,10 +2,10 @@ import crypto from 'crypto';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import DbParams from '../../types/database/DbParams';
 
 export default class OCPPStorage {
   static async saveAuthorize(tenantID, authorize) {
@@ -36,7 +36,7 @@ export default class OCPPStorage {
     Logging.traceEnd('OCPPStorage', 'saveAuthorize', uniqueTimerID);
   }
 
-  static async getStatusNotifications(tenantID: string, params: {dateFrom?:Date,chargeBoxID?:string,connectorId?:number,status?:string}, dbParams: DbParams) {
+  static async getStatusNotifications(tenantID: string, params: {dateFrom?: Date; chargeBoxID?: string; connectorId?: number; status?: string}, dbParams: DbParams) {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getStatusNotifications');
     // Check Tenant
@@ -449,9 +449,7 @@ export default class OCPPStorage {
       meterValueMDB.timestamp = new Date(meterValueMDB.timestamp);
     }
     // Sort
-    meterValuesMDB.sort((meterValue1, meterValue2) => {
-      return meterValue1.timestamp.getTime() - meterValue2.timestamp.getTime();
-    });
+    meterValuesMDB.sort((meterValue1, meterValue2) => meterValue1.timestamp.getTime() - meterValue2.timestamp.getTime());
     // Create
     const meterValues = [];
     for (const meterValueMDB of meterValuesMDB) {

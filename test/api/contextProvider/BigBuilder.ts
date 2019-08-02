@@ -3,24 +3,24 @@ import faker from 'faker';
 import moment from 'moment';
 import { ObjectID } from 'mongodb';
 import CentralServerService from '../client/CentralServerService';
-import CompanyStorage from '../../../src/storage/mongodb/CompanyStorage';
-import Constants from '../../../src/utils/Constants';
+import CompanyStorage from '../../storage/mongodb/CompanyStorage';
+import Constants from '../../utils/Constants';
 import CONTEXTS from './ContextConstants';
 import Factory from '../../factories/Factory';
-import global from '../../../src/types/GlobalType';
-import MongoDBStorage from '../../../src/storage/mongodb/MongoDBStorage';
-import Site from '../../../src/types/Site';
+import global from '../../types/GlobalType';
+import MongoDBStorage from '../../storage/mongodb/MongoDBStorage';
+import Site from '../../types/Site';
 import SiteAreaContext from './SiteAreaContext';
-import SiteAreaStorage from '../../../src/storage/mongodb/SiteAreaStorage';
+import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import SiteContext from './SiteContext';
-import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
-import Tenant from '../../../src/entity/Tenant';
+import SiteStorage from '../../storage/mongodb/SiteStorage';
+import Tenant from '../../entity/Tenant';
 import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
-import User from '../../../src/types/User';
+import User from '../../types/User';
 import UserFactory from '../../factories/UserFactory';
-import UserStorage from '../../../src/storage/mongodb/UserStorage';
-import Utils from '../../../src/utils/Utils';
+import UserStorage from '../../storage/mongodb/UserStorage';
+import Utils from '../../utils/Utils';
 
 const NBR_USERS = 10; // Number of total users : they are all connected to the sites
 const NBR_COMPANIES = 5; // Number of companies
@@ -200,9 +200,7 @@ export default class ContextBuilder {
       for (const setting in tenantContextDef.componentSettings) {
         let foundSetting: any = null;
         if (allSettings && allSettings.data && allSettings.data.result && allSettings.data.result.length > 0) {
-          foundSetting = allSettings.data.result.find((existingSetting) => {
-            return existingSetting.identifier === setting;
-          });
+          foundSetting = allSettings.data.result.find((existingSetting) => existingSetting.identifier === setting);
         }
         if (!foundSetting) {
           // Create new settings
@@ -270,7 +268,6 @@ export default class ContextBuilder {
       buildTenant.components[Constants.COMPONENTS.ORGANIZATION].active) {
       // Create the company
       for (let counterComp = 1; counterComp <= NBR_COMPANIES; counterComp++) {
-        let company = null;
         const companyDef = {
           id: new ObjectID().toHexString()
         };
@@ -278,7 +275,7 @@ export default class ContextBuilder {
         dummyCompany.id = companyDef.id;
         dummyCompany.createdBy = { id: adminUser.id };
         dummyCompany.createdOn = moment().toISOString();
-        company = await CompanyStorage.saveCompany(buildTenant.id, dummyCompany);
+        await CompanyStorage.saveCompany(buildTenant.id, dummyCompany);
         newTenantContext.getContext().companies.push(dummyCompany);
         console.log(`Create company : ${dummyCompany.id}`);
         // Build sites/sitearea according to tenant definition
@@ -294,9 +291,7 @@ export default class ContextBuilder {
           // Create site
           const siteTemplate = Factory.site.build({
             companyID: siteContextDef.companyID,
-            userIDs: userListToAssign.map((user) => {
-              return user.id;
-            })
+            userIDs: userListToAssign.map((user) => user.id)
           });
           siteTemplate.name = siteContextDef.name;
           siteTemplate.allowAllUsersToStopTransactions = siteContextDef.allowAllUsersToStopTransactions;
@@ -305,9 +300,7 @@ export default class ContextBuilder {
           site = siteTemplate;
           site.id = await SiteStorage.saveSite(buildTenant.id, siteTemplate, true);
           console.log(`* Create site : ${siteTemplate.id}`);
-          await SiteStorage.addUsersToSite(buildTenant.id, site.id, userListToAssign.map((user) => {
-            return user.id;
-          }));
+          await SiteStorage.addUsersToSite(buildTenant.id, site.id, userListToAssign.map((user) => user.id));
           const siteContext = new SiteContext(site, newTenantContext);
           newTenantContext.addSiteContext(siteContext);
           // Create site areas of current site

@@ -144,7 +144,7 @@
     "clean-install-win": "rmdir node_modules /S /Q && del package-lock.json && npm cache clear --force && npm install",
     "clean-install-lin": "rm -rf ./node_modules && rm -f ./package-lock.json && npm cache clear --force && npm install",
     "lint": "cross-env TIMING=1 eslint --ext .js,.ts build/types src test",
-    "lint-fix": "cross-env TIMING=1 eslint --ext .js,.ts --fix build/types src test",
+    "lint:fix": "cross-env TIMING=1 eslint --debug --ext .js,.ts --fix src",
     "test": "cross-env TS_NODE_FILES=true mocha test/**/*Test.ts --exit",
     "test:ts-mocha": "ts-mocha test/**/*Test.ts",
     "test:parallel": "cross-env TS_NODE_FILES=true mocha-parallel-tests test/**/*Test.ts --exit",
@@ -165,8 +165,7 @@
     "test:createBigContext": "cross-env TS_NODE_FILES=true mocha test/**/BigBuilderRunner.ts --exit",
     "test:encryptionSetting": "cross-env TS_NODE_FILES=true mocha test/**/EncryptionSettingTest.ts --exit",
     "test:filter": "cross-env TS_NODE_FILES=true mocha test/**/FilterTest.ts --exit",
-    "test:ocppnew":"cross-env TS_NODE_FILES=true mocha test/**/OCPPNewTest.ts --exit",
-    "test:tenantsetting":"cross-env TS_NODE_FILES=true mocha test/**/ComponentActivationTenantTest.ts --exit",
+    "test:tenantsetting": "cross-env TS_NODE_FILES=true mocha test/**/ComponentActivationTenantTest.ts --exit",
     "clinic:clean": "clinic clean",
     "npm-check": "npm-check"
   },

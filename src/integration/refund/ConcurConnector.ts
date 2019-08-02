@@ -6,16 +6,16 @@ import querystring from 'querystring';
 import AbstractConnector from '../AbstractConnector';
 import AppError from '../../exception/AppError';
 import ChargingStation from '../../types/ChargingStation';
+import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import ConnectionStorage from '../../storage/mongodb/ConnectionStorage';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
 import InternalError from '../../exception/InternalError';
 import Logging from '../../utils/Logging';
 import Site from '../../types/Site';
+import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import Transaction from '../../entity/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
-import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
-import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 
 const MODULE_NAME = 'ConcurConnector';
 const CONNECTOR_ID = 'concur';
@@ -34,9 +34,7 @@ export default class ConcurConnector extends AbstractConnector {
     axiosRetry(axios,
       {
         retries: 3,
-        retryCondition: (error) => {
-          return error.response.status === Constants.HTTP_GENERAL_ERROR;
-        },
+        retryCondition: (error) => error.response.status === Constants.HTTP_GENERAL_ERROR,
         retryDelay: (retryCount, error) => {
           if (error.config.method === 'post') {
             if (error.config.url.endsWith('/token')) {
@@ -170,7 +168,7 @@ export default class ConcurConnector extends AbstractConnector {
         try {
           const chargingStation = await ChargingStationStorage.getChargingStation(transaction.getTenantID(), transaction.getChargeBoxID());
           const locationId = await this.getLocation(connection, (chargingStation.siteArea && chargingStation.siteArea.site) ? chargingStation.siteArea.site :
-            (await SiteAreaStorage.getSiteArea(transaction.getTenantID(), chargingStation.siteAreaID, {withSite: true})).site);
+            (await SiteAreaStorage.getSiteArea(transaction.getTenantID(), chargingStation.siteAreaID, { withSite: true })).site);
           if (quickRefund) {
             const entryId = await this.createQuickExpense(connection, transaction, locationId, userId);
             transaction.setRefundData({ refundId: entryId, type: 'quick', refundedAt: new Date() });

@@ -161,9 +161,7 @@ class RequestMapper {
           IntegrationConnections: ConnectorService.handleGetConnections,
           IntegrationConnection: ConnectorService.handleGetConnection,
           _default: UtilsService.handleUnknownAction,
-          Ping: (action: string, req: Request, res: Response, next: NextFunction) => {
-            return res.sendStatus(200);
-          }
+          Ping: (action: string, req: Request, res: Response, next: NextFunction) => res.sendStatus(200)
         });
         break;
 

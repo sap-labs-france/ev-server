@@ -159,9 +159,7 @@ export default class VehicleManufacturerStorage {
     if (params.manufacturerIDs) {
       aggregation.push({
         $match: {
-          _id: { $in: params.manufacturerIDs.map((id) => {
-            return Utils.convertToObjectID(id);
-          }) }
+          _id: { $in: params.manufacturerIDs.map((id) => Utils.convertToObjectID(id)) }
         }
       });
     }

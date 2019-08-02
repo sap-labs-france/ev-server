@@ -48,7 +48,5 @@ describe('Unit test Context Builder', function() {
 });
 
 async function timeout(ms) {
-  return await new Promise((resolve) => {
-    return setTimeout(resolve, ms);
-  });
+  return await new Promise((resolve) => setTimeout(resolve, ms));
 }

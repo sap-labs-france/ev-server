@@ -1,13 +1,13 @@
 import moment from 'moment-timezone';
+import ChargingStation from '../../../types/ChargingStation';
+import ChargingStationService from '../../../server/rest/service/ChargingStationService';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
+import OCPPUtils from '../../../server/ocpp/utils/OCPPUtils';
 import Pricing, { PricedConsumption, PricingSettings } from '../Pricing';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import StatefulChargingService from './StatefulChargingService';
-import ChargingStationService from '../../../server/rest/service/ChargingStationService';
-import ChargingStation from '../../../types/ChargingStation';
 import Transaction from '../../../entity/Transaction';
-import OCPPUtils from '../../../server/ocpp/utils/OCPPUtils';
 
 export class ConvergentChargingPricingSettings extends PricingSettings {
   constructor(readonly url: string, readonly user: string, readonly password: string, readonly chargeableItemName: string) {
@@ -470,21 +470,15 @@ export class TransactionSet {
 
   constructor(model) {
     if (Array.isArray(model)) {
-      this.ccTransactions = model.map((cctrModel) => {
-        return new CCTransaction(cctrModel.master);
-      });
+      this.ccTransactions = model.map((cctrModel) => new CCTransaction(cctrModel.master));
     } else {
       this.ccTransactions = [new CCTransaction(model.master)];
     }
   }
 
   getTotalUnroundedAmount() {
-    return this.ccTransactions.map((t) => {
-      return parseFloat(t.details['default.unrounded_amount']);
-    })
-      .reduce((previousValue, currentValue) => {
-        return previousValue + currentValue;
-      }, 0);
+    return this.ccTransactions.map((t) => parseFloat(t.details['default.unrounded_amount']))
+      .reduce((previousValue, currentValue) => previousValue + currentValue, 0);
   }
 
   getCurrencyCode() {
@@ -509,16 +503,10 @@ export class Notification {
     this.prettyName = model['$attributes'].prettyName;
     this.severityLevel = model['$attributes'].severityLevel;
 
-    model.arg.map((detail) => {
-      return detail['$attributes'];
-    }).forEach((detail) => {
-      return this[detail.name] = detail.value;
-    });
+    model.arg.map((detail) => detail['$attributes']).forEach((detail) => this[detail.name] = detail.value);
     if (this.properties) {
       const props: any = {};
-      this.properties.split('\n').filter((s) => {
-        return s.length > 0;
-      })
+      this.properties.split('\n').filter((s) => s.length > 0)
         .forEach((propString) => {
           const array = propString.split(' = ');
           props[array[0]] = array[1];
@@ -547,9 +535,7 @@ export class CCTransaction {
       this[key] = model['$attributes'][key];
     }
     this.details = {};
-    model.detail.map((detail) => {
-      return detail['$attributes'];
-    }).forEach(
+    model.detail.map((detail) => detail['$attributes']).forEach(
       (detail) => {
         let value;
         switch (detail.type) {
@@ -567,9 +553,7 @@ export class CCTransaction {
       });
     if (model.notification) {
       if (Array.isArray(model.notification)) {
-        this.notifications = model.notification.map((n) => {
-          return new Notification(n);
-        });
+        this.notifications = model.notification.map((n) => new Notification(n));
       } else {
         this.notifications = [new Notification(model.notification)];
       }

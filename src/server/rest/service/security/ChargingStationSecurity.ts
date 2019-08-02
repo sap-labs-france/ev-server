@@ -1,19 +1,19 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
+import ChargingStation from '../../../../types/ChargingStation';
 import Constants from '../../../../utils/Constants';
+import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
-import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationsRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationCommandRequest } from '../../../../types/requests/HttpChargingStationRequest';
-import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
-import ChargingStation from '../../../../types/ChargingStation';
 
 export default class ChargingStationSecurity {
 
   public static filterAssignChargingStationsToSiteAreaRequest(request: Partial<HttpAssignChargingStationToSiteAreaRequest>): HttpAssignChargingStationToSiteAreaRequest {
     return {
       siteAreaID: sanitize(request.siteAreaID),
-      chargingStationIDs: request.chargingStationIDs.map(id=>sanitize(id))
+      chargingStationIDs: request.chargingStationIDs.map(sanitize)
     };
   }
 
@@ -144,7 +144,7 @@ export default class ChargingStationSecurity {
   }
 
   public static filterNotificationsRequest(request: HttpDatabaseRequest, loggedUser: UserToken): HttpDatabaseRequest {
-    let filteredRequest: HttpDatabaseRequest = {} as HttpDatabaseRequest;
+    const filteredRequest: HttpDatabaseRequest = {} as HttpDatabaseRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;

@@ -139,9 +139,7 @@ export default class TenantService {
       },
       filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
     // Set
-    tenants.result = tenants.result.map((tenant) => {
-      return tenant.getModel();
-    });
+    tenants.result = tenants.result.map((tenant) => tenant.getModel());
     // Filter
     TenantSecurity.filterTenantsResponse(tenants, req.user);
     // Return

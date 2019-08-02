@@ -120,9 +120,7 @@ export default class CompanyStorage {
       // Build filter
       aggregation.push({
         $match: {
-          _id: { $in: params.companyIDs.map((companyID) => {
-            return Utils.convertToObjectID(companyID);
-          }) }
+          _id: { $in: params.companyIDs.map((companyID) => Utils.convertToObjectID(companyID)) }
         }
       });
     }

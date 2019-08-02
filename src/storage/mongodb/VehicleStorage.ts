@@ -30,9 +30,7 @@ export default class VehicleStorage {
     if (params.IDs) {
       aggregation.push({
         $match: {
-          _id: { $in: params.IDs.map((ID) => {
-            return Utils.convertToObjectID(ID);
-          }) }
+          _id: { $in: params.IDs.map((ID) => Utils.convertToObjectID(ID)) }
         }
       });
     }

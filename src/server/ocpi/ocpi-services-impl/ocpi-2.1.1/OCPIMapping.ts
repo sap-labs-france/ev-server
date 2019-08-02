@@ -1,9 +1,9 @@
+import ChargingStation from '../../../../types/ChargingStation';
 import Constants from '../../../../utils/Constants';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
-import ChargingStation from '../../../../types/ChargingStation';
 
 /**
  * OCPI Mapping 2.1.1 - Mapping class
@@ -117,9 +117,7 @@ export default class OCPIMapping {
     const evse_id = OCPIMapping.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.id}`);
 
     // Loop through connectors and send one evse per connector
-    const connectors = chargingStation.connectors.filter((connector) => {
-      return connector !== null;
-    });
+    const connectors = chargingStation.connectors.filter((connector) => connector !== null);
     const evses = connectors.map((connector: any) => {
       const evse: any = {
         'uid': `${chargingStation.id}*${connector.connectorId}`,
@@ -150,9 +148,7 @@ export default class OCPIMapping {
     const evse_id = OCPIMapping.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.id}`);
 
     // Get all connectors
-    const connectors = chargingStation.connectors.map((connector: any) => {
-      return OCPIMapping.convertConnector2OCPIConnector(chargingStation, connector, evse_id);
-    });
+    const connectors = chargingStation.connectors.map((connector: any) => OCPIMapping.convertConnector2OCPIConnector(chargingStation, connector, evse_id));
 
     // Build evse
     const evse: any = {

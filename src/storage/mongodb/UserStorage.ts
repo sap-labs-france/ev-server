@@ -183,9 +183,7 @@ export default class UserStorage {
         // Create the lis
         await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
           'userID': Utils.convertToObjectID(userID),
-          'siteID': { $in: siteIDs.map((siteID) => {
-            return Utils.convertToObjectID(siteID);
-          }) }
+          'siteID': { $in: siteIDs.map((siteID) => Utils.convertToObjectID(siteID)) }
         });
       }
     }
@@ -241,7 +239,8 @@ export default class UserStorage {
       userFilter.email = userToSave.email;
     }
     // Properties to save
-    let userMDB = { // DO NOT CHANGE TO const!!!!
+    // eslint-disable-next-line prefer-const
+    let userMDB = {
       _id: userToSave.id ? Utils.convertToObjectID(userToSave.id) : new ObjectID(),
       email: userToSave.email,
       phone: userToSave.phone,
@@ -290,18 +289,14 @@ export default class UserStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Cleanup Tags
-    const userTagIDsToSave = userTagIDs.filter((tagID) => {
-      return tagID && tagID !== '';
-    });
+    const userTagIDsToSave = userTagIDs.filter((tagID) => tagID && tagID !== '');
     // Delete former Tag IDs
     await global.database.getCollection<any>(tenantID, 'tags')
       .deleteMany({ 'userID': Utils.convertToObjectID(userID) });
     // Add new ones
     if (userTagIDsToSave.length > 0) {
       await global.database.getCollection<any>(tenantID, 'tags')
-        .insertMany(userTagIDsToSave.map((userTagIDToSave) => {
-          return { _id: userTagIDToSave, userID: Utils.convertToObjectID(userID) };
-        }));
+        .insertMany(userTagIDsToSave.map((userTagIDToSave) => ({ _id: userTagIDToSave, userID: Utils.convertToObjectID(userID) })));
     }
     // Debug
     Logging.traceEnd('UserStorage', 'saveUserTags', uniqueTimerID, { id: userID, tags: userTagIDs });
@@ -425,9 +420,7 @@ export default class UserStorage {
         aggregation.push({
           $match: {
             'siteusers.siteID': {
-              $in: params.siteIDs.map((site) => {
-                return Utils.convertToObjectID(site);
-              })
+              $in: params.siteIDs.map((site) => Utils.convertToObjectID(site))
             }
           }
         });

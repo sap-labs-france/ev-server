@@ -1,9 +1,9 @@
 import { soap } from 'strong-soap';
+import ChargingStation from '../../../types/ChargingStation';
 import ChargingStationClient from '../ChargingStationClient';
 import Configuration from '../../../utils/Configuration';
 import global from '../../../types/GlobalType';
 import Logging from '../../../utils/Logging';
-import ChargingStation from '../../../types/ChargingStation';
 
 // Default Module name
 const _moduleName = 'SoapChargingStationClient';

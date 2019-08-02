@@ -1,5 +1,6 @@
 import BackendError from '../../exception/BackendError';
 import ChargingStation from '../../types/ChargingStation';
+import Connector from '../../types/Connector';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
@@ -7,7 +8,6 @@ import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Tenant from '../../entity/Tenant';
 import Utils from '../../utils/Utils';
-import Connector from '../../types/Connector';
 import UtilsService from '../../server/rest/service/UtilsService';
 
 export default class ChargingStationStorage {
@@ -110,7 +110,7 @@ export default class ChargingStationStorage {
       DatabaseUtils.convertObjectIDToString(siteJoin, 'siteArea.siteID', 'siteArea.siteID');
     }
     // Build facets meaning each different error scenario
-    let facets: any = { $facet:{} };
+    let facets: any = { $facet: {} };
     if (params.errorType && !params.errorType.includes('all')) {
       // Check allowed
       if (!(await Tenant.getTenant(tenantID)).isComponentActive(Constants.COMPONENTS.ORGANIZATION) && params.errorType.includes('missingSiteArea')) {

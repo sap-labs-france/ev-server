@@ -3,13 +3,16 @@ import AppError from '../exception/AppError';
 import AuthorizationsDefinition from './AuthorizationsDefinition';
 import BackendError from '../exception/BackendError';
 import ChargingStation from '../types/ChargingStation';
+import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
 import Configuration from '../utils/Configuration';
+import Connector from '../types/Connector';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import NotificationHandler from '../notification/NotificationHandler';
 import SessionHashService from '../server/rest/service/SessionHashService';
 import Site from '../types/Site';
 import SiteArea from '../types/SiteArea';
+import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../storage/mongodb/SiteStorage';
 import Tenant from '../entity/Tenant';
 import TenantStorage from '../storage/mongodb/TenantStorage';
@@ -18,9 +21,6 @@ import User from '../types/User';
 import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
 import Utils from '../utils/Utils';
-import Connector from '../types/Connector';
-import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
-import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
 
 export default class Authorizations {
 
@@ -67,9 +67,7 @@ export default class Authorizations {
       // Get User's site
       const sites = (await UserStorage.getSites(tenantID, { userID: user.id },
         Constants.DB_PARAMS_MAX_LIMIT))
-        .result.map((siteUser) => {
-          return siteUser.site;
-        });
+        .result.map((siteUser) => siteUser.site);
       // Get User's Site Admin
       const sitesAdmin = await UserStorage.getSites(
         tenantID, { userID: user.id, siteAdmin: true },
@@ -77,15 +75,9 @@ export default class Authorizations {
         ['site.id']
       );
       // Assign
-      siteIDs = sites.map((site) => {
-        return site.id;
-      });
-      companyIDs = [...new Set(sites.map((site) => {
-        return site.companyID;
-      }))];
-      siteAdminIDs = sitesAdmin.result.map((siteUser) => {
-        return siteUser.site.id;
-      });
+      siteIDs = sites.map((site) => site.id);
+      companyIDs = [...new Set(sites.map((site) => site.companyID))];
+      siteAdminIDs = sitesAdmin.result.map((siteUser) => siteUser.site.id);
     }
 
     let tenantHashID = Constants.DEFAULT_TENANT;
@@ -116,7 +108,7 @@ export default class Authorizations {
   }
 
   public static async getConnectorActionAuthorizations(
-      params: { tenantID: string; user: UserToken; chargingStation: ChargingStation; connector: Connector; siteArea: SiteArea; site: Site }) {
+    params: { tenantID: string; user: UserToken; chargingStation: ChargingStation; connector: Connector; siteArea: SiteArea; site: Site }) {
     const tenant: Tenant | null = await Tenant.getTenant(params.tenantID);
     if (!tenant) {
       throw new BackendError('Authorizations.ts#getConnectorActionAuthorizations', 'Tenant null');
@@ -211,19 +203,17 @@ export default class Authorizations {
     if (isOrgCompActive) {
       let foundSiteArea = true;
       // Site Area -----------------------------------------------
-      if(! chargingStation.siteAreaID) {
+      if (!chargingStation.siteAreaID) {
         foundSiteArea = false;
-      } else {
-        if(! chargingStation.siteArea) {
-          chargingStation.siteArea =
-            await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID, {withSite: true});
-          if(! chargingStation.siteArea) {
-            foundSiteArea = false;
-          }
+      } else if (!chargingStation.siteArea) {
+        chargingStation.siteArea =
+            await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID, { withSite: true });
+        if (!chargingStation.siteArea) {
+          foundSiteArea = false;
         }
       }
       // Site is mandatory
-      if (! foundSiteArea) {
+      if (!foundSiteArea) {
         // Reject Site Not Found
         throw new AppError(
           chargingStation.id,

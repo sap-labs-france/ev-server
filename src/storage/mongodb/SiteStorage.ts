@@ -60,9 +60,7 @@ export default class SiteStorage {
       if (userIDs && userIDs.length > 0) {
         // Execute
         const res = await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
-          'userID': { $in: userIDs.map((userID) => {
-            return Utils.convertToObjectID(userID);
-          }) },
+          'userID': { $in: userIDs.map((userID) => Utils.convertToObjectID(userID)) },
           'siteID': Utils.convertToObjectID(siteID)
         });
       }
@@ -308,9 +306,7 @@ export default class SiteStorage {
     // Query by companyIDs
     if (params.companyIDs && Array.isArray(params.companyIDs) && params.companyIDs.length > 0) {
       filters.companyID = {
-        $in: params.companyIDs.map((company) => {
-          return Utils.convertToObjectID(company);
-        })
+        $in: params.companyIDs.map((company) => Utils.convertToObjectID(company))
       };
     }
     // Auto User Site Assignment
@@ -321,9 +317,7 @@ export default class SiteStorage {
     if (params.siteIDs && params.siteIDs.length > 0) {
       aggregation.push({
         $match: {
-          _id: { $in: params.siteIDs.map((siteID) => {
-            return Utils.convertToObjectID(siteID);
-          }) }
+          _id: { $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID)) }
         }
       });
     }
@@ -451,9 +445,7 @@ export default class SiteStorage {
     // Delete all Site Areas
     await SiteAreaStorage.deleteSiteAreasFromSites(tenantID, ids);
     // Convert
-    const cids: ObjectID[] = ids.map((id) => {
-      return Utils.convertToObjectID(id);
-    });
+    const cids: ObjectID[] = ids.map((id) => Utils.convertToObjectID(id));
     // Delete Site
     await global.database.getCollection<any>(tenantID, 'sites')
       .deleteMany({ '_id': { $in: cids } });
@@ -477,9 +469,7 @@ export default class SiteStorage {
       .find({ companyID: Utils.convertToObjectID(companyID) })
       .project({ _id: 1 })
       .toArray())
-      .map((site): string => {
-        return site._id.toHexString();
-      }
+      .map((site): string => site._id.toHexString()
       );
     // Delete all Site Areas
     await SiteAreaStorage.deleteSiteAreasFromSites(tenantID, siteIDs);

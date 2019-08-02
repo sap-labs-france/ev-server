@@ -1,14 +1,14 @@
 import BackendError from '../../../exception/BackendError';
 import ChargingStation from '../../../types/ChargingStation';
-import Constants from '../../../utils/Constants';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import Logging from '../../../utils/Logging';
 import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
 import buildChargingStationClient from '../../../client/ocpp/ChargingStationClientFactory';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
-import Utils from '../../../utils/Utils';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
 import OCPPConstants from './OCPPConstants';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
+import Utils from '../../../utils/Utils';
 
 export default class OCPPUtils {
 
@@ -237,9 +237,7 @@ export default class OCPPUtils {
 
   public static checkAndFreeChargingStationConnector(tenantID: string, chargingStation: ChargingStation, connectorId: number, saveOtherConnectors: boolean = false) {
     // Cleanup connector transaction data
-    const foundConnector = chargingStation.connectors.find((connector) => {
-      return connector.connectorId === connectorId;
-    });
+    const foundConnector = chargingStation.connectors.find((connector) => connector.connectorId === connectorId);
     if (foundConnector) {
       foundConnector.currentConsumption = 0;
       foundConnector.totalConsumption = 0;

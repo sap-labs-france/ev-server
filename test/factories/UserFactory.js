@@ -2,15 +2,9 @@ const Factory = require('rosie').Factory;
 const faker = require('faker');
 
 const userFactory = Factory.define('user')
-  .attr('firstName', () => {
-    return faker.name.firstName();
-  })
-  .attr('name', () => {
-    return faker.name.lastName().toUpperCase();
-  })
-  .attr('email', () => {
-    return faker.internet.email();
-  })
+  .attr('firstName', () => faker.name.firstName())
+  .attr('name', () => faker.name.lastName().toUpperCase())
+  .attr('email', () => faker.internet.email())
   .attr('passwords', () => {
     const password = faker.internet.password() + '@1Aa';
     return {
@@ -21,20 +15,12 @@ const userFactory = Factory.define('user')
   .attr('role', 'B')
   .attr('status', 'A')
   .attr('locale', 'en_US')
-  .attr('tagIDs', () => {
-    return [faker.random.alphaNumeric(8).toUpperCase()];
-  });
+  .attr('tagIDs', () => [faker.random.alphaNumeric(8).toUpperCase()]);
 
 const registerUserFactory = Factory.define('user')
-  .attr('firstName', () => {
-    return faker.name.firstName();
-  })
-  .attr('name', () => {
-    return faker.name.lastName();
-  })
-  .attr('email', () => {
-    return faker.internet.email();
-  })
+  .attr('firstName', () => faker.name.firstName())
+  .attr('name', () => faker.name.lastName())
+  .attr('email', () => faker.internet.email())
   .attr('passwords', () => {
     const password = faker.internet.password() + '@1Aa';
     return {
