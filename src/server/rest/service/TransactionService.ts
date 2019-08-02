@@ -18,250 +18,190 @@ import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import UtilsService from './UtilsService';
+import Transaction from '../../../types/Transaction';
+import Utils from '../../../utils/Utils';
 
 export default class TransactionService {
-  static async handleSynchronizeRefundedTransactions(action: string, req: Request, res: Response, next: NextFunction) {
-    try {
-      if (!Authorizations.isAdmin(req.user.role)) {
+  public static async handleSynchronizeRefundedTransactions(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    if (!Authorizations.isAdmin(req.user.role)) {
+      // Not Authorized!
+      throw new AppAuthError(
+        Constants.ACTION_UPDATE,
+        Constants.ENTITY_TRANSACTION,
+        null,
+        Constants.HTTP_AUTH_ERROR, 'TransactionService', 'handleSynchronizeRefundedTransactions',
+        req.user);
+    }
+
+    const tenant = await TenantStorage.getTenant(req.user.tenantID);
+    const task = new SynchronizeRefundTransactionsTask();
+    await task.processTenant(tenant, null);
+
+    const response: any = {
+      ...Constants.REST_RESPONSE_SUCCESS,
+    };
+    res.json(response);
+    next();
+  }
+
+  public static async handleRefundTransactions(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = TransactionSecurity.filterTransactionsRefund(req.body);
+    if (!filteredRequest.transactionIds) {
+      // Not Found!
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Transaction IDs must be provided', Constants.HTTP_GENERAL_ERROR,
+        'TransactionService', 'handleRefundTransactions', req.user);
+    }
+    const transactionsToRefund: Transaction[] = [];
+    for (const transactionId of filteredRequest.transactionIds) {
+      const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
+      if (!transaction) {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
+          module: 'TransactionService', method: 'handleRefundTransactions',
+          message: `Transaction '${transaction.id}' does not exist`,
+          action: action, detailedMessages: transaction.id
+        });
+        continue;
+      }
+      if (transaction.refundData && !!transaction.refundData.refundId && transaction.refundData.status !== Constants.REFUND_STATUS_CANCELLED) {
+        Logging.logError({
+          tenantID: req.user.tenantID,
+          user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
+          module: 'TransactionService', method: 'handleRefundTransactions',
+          message: `Transaction '${transaction.id}' is already refunded`,
+          action: action, detailedMessages: transaction
+        });
+        continue;
+      }
+      // Check auth
+      if (!Authorizations.canRefundTransaction(req.user, transaction)) {
         // Not Authorized!
         throw new AppAuthError(
-          Constants.ACTION_UPDATE,
+          Constants.ACTION_REFUND_TRANSACTION,
           Constants.ENTITY_TRANSACTION,
-          null,
-          Constants.HTTP_AUTH_ERROR, 'TransactionService', 'handleSynchronizeRefundedTransactions',
+          transaction.id,
+          Constants.HTTP_AUTH_ERROR, 'TransactionService', 'handleRefundTransactions',
           req.user);
       }
-
-      const tenant = await Tenant.getTenant(req.user.tenantID);
-      const task = new SynchronizeRefundTransactionsTask();
-      await task.processTenant(tenant, null);
-
-      const response: any = {
-        ...Constants.REST_RESPONSE_SUCCESS,
-      };
-      res.json(response);
-      next();
-    } catch (error) {
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+      transactionsToRefund.push(transaction);
     }
+    if (transactionsToRefund.length === 0) {
+      res.json({
+        ...Constants.REST_RESPONSE_SUCCESS,
+        inSuccess: 0,
+        inError: filteredRequest.transactionIds.length
+      });
+      next();
+      return;
+    }
+    // Get Transaction User
+    const user = await UserStorage.getUser(req.user.tenantID, req.user.id);
+    // Check
+    UtilsService.assertObjectExists(user, `User '${req.user.id}' doesn't exist.`, 'TransactionService', 'handleRefundTransactions', req.user);
+    if (!transactionsToRefund.every((tr) => tr.userID === req.user.id)) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `The user with ID '${req.user.id}' cannot refund another user's transaction`,
+        Constants.HTTP_REFUND_SESSION_OTHER_USER_ERROR,
+        'TransactionService', 'handleRefundTransactions', req.user);
+    }
+    let setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, 'refund');
+    setting = setting.getContent()['concur'];
+    const connector = new ConcurConnector(req.user.tenantID, setting);
+    const refundedTransactions = await connector.refund(user.id, transactionsToRefund);
+    // // Transfer it to the Revenue Cloud
+    // pragma await Utils.pushTransactionToRevenueCloud(action, transaction, req.user, transaction.getUserJson());
+
+    const response: any = {
+      ...Constants.REST_RESPONSE_SUCCESS,
+      inSuccess: refundedTransactions.length
+    };
+    const notRefundedTransactions = transactionsToRefund.length - refundedTransactions.length;
+    if (notRefundedTransactions > 0) {
+      response.inError = notRefundedTransactions;
+    }
+    res.json(response);
+    next();
   }
 
-  static async handleRefundTransactions(action: string, req: Request, res: Response, next: NextFunction) {
-    try {
+  public static async handleDeleteTransaction(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
       // Filter
-      const filteredRequest = TransactionSecurity.filterTransactionsRefund(req.body, req.user);
-      if (!filteredRequest.transactionIds) {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          'Transaction IDs must be provided', Constants.HTTP_GENERAL_ERROR,
-          'TransactionService', 'handleRefundTransactions', req.user);
-      }
-      const transactionsToRefund = [];
-      for (const transactionId of filteredRequest.transactionIds) {
-        const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
-        if (!transaction) {
-          Logging.logError({
-            tenantID: req.user.tenantID,
-            user: req.user, actionOnUser: (transaction.getUserJson() ? transaction.getUserJson() : null),
-            module: 'TransactionService', method: 'handleRefundTransactions',
-            message: `Transaction '${transaction.getID()}' does not exist`,
-            action: action, detailedMessages: transaction.getModel()
-          });
-          continue;
-        }
-        if (transaction.isRefunded()) {
-          Logging.logError({
-            tenantID: req.user.tenantID,
-            user: req.user, actionOnUser: (transaction.getUserJson() ? transaction.getUserJson() : null),
-            module: 'TransactionService', method: 'handleRefundTransactions',
-            message: `Transaction '${transaction.getID()}' is already refunded`,
-            action: action, detailedMessages: transaction.getModel()
-          });
-          continue;
-        }
-        // Check auth
-        if (!Authorizations.canRefundTransaction(req.user, transaction)) {
-          // Not Authorized!
-          throw new AppAuthError(
-            Constants.ACTION_REFUND_TRANSACTION,
-            Constants.ENTITY_TRANSACTION,
-            transaction.getID(),
-            Constants.HTTP_AUTH_ERROR, 'TransactionService', 'handleRefundTransactions',
-            req.user);
-        }
-        transactionsToRefund.push(transaction);
-      }
-      if (transactionsToRefund.length === 0) {
-        res.json({
-          ...Constants.REST_RESPONSE_SUCCESS,
-          inSuccess: 0,
-          inError: filteredRequest.transactionIds.length
-        });
-        next();
-        return;
-      }
-      // Get Transaction User
-      const user = await UserStorage.getUser(req.user.tenantID, req.user.id);
-      // Check
-      if (!user) {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The user with ID '${req.user.id}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-          'TransactionService', 'handleRefundTransactions', req.user);
-      }
-      if (!transactionsToRefund.every((tr) => tr.getUserID() === req.user.id)) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The user with ID '${req.user.id}' cannot refund another user's transaction`,
-          Constants.HTTP_REFUND_SESSION_OTHER_USER_ERROR,
-          'TransactionService', 'handleRefundTransactions', req.user);
-      }
-      let setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, 'refund');
-      setting = setting.getContent()['concur'];
-      const connector = new ConcurConnector(req.user.tenantID, setting);
-      const refundedTransactions = await connector.refund(user.id, transactionsToRefund);
-      // // Transfer it to the Revenue Cloud
-      // pragma await Utils.pushTransactionToRevenueCloud(action, transaction, req.user, transaction.getUserJson());
-
-      const response: any = {
-        ...Constants.REST_RESPONSE_SUCCESS,
-        inSuccess: refundedTransactions.length
-      };
-      const notRefundedTransactions = transactionsToRefund.length - refundedTransactions.length;
-      if (notRefundedTransactions > 0) {
-        response.inError = notRefundedTransactions;
-      }
-      res.json(response);
-      next();
-    } catch (error) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
-    }
-  }
-
-  static async handleDeleteTransaction(action: string, req: Request, res: Response, next: NextFunction) {
-    try {
-      // Filter
-      const filteredRequest = TransactionSecurity.filterTransactionDelete(req.query, req.user);
-      // Transaction Id is mandatory
-      if (!filteredRequest.ID) {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          'The Transaction\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
-          'TransactionService', 'handleDeleteTransaction', req.user);
-      }
-      // Get Transaction
-      const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.ID);
-      // Found?
-      if (!transaction) {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `Transaction '${filteredRequest.ID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-          'TransactionService', 'handleDeleteTransaction', req.user);
-      }
+      const ID = TransactionSecurity.filterTransactionDelete(req.query);
       // Check auth
       if (!Authorizations.canDeleteTransaction(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_DELETE,
           Constants.ENTITY_TRANSACTION,
-          transaction.getID(),
+          ID,
           Constants.HTTP_AUTH_ERROR, 'TransactionService', 'handleDeleteTransaction',
           req.user);
       }
-      const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, transaction.getChargeBoxID());
-      if (transaction.isActive()) {
-        if (!chargingStation) {
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            `Charging Station with ID ${transaction.getChargeBoxID()} does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-            'TransactionService', 'handleDeleteTransaction', req.user);
-        }
-        const foundConnector = chargingStation.connectors.find((connector) => {
-          return connector.connectorId === transaction.getConnectorId();
-        });
-        if (foundConnector && transaction.getID() === foundConnector.activeTransactionID) {
-          OCPPUtils.checkAndFreeChargingStationConnector(req.user.tenantID, chargingStation, transaction.getConnectorId());
+      // Transaction Id is mandatory
+      UtilsService.assertIdIsProvided(ID, 'TransactionsService', 'handleDeleteTransaction', req.user);
+      // Get Transaction
+      const transaction = await TransactionStorage.getTransaction(req.user.tenantID, ID);
+      // Found?
+      UtilsService.assertObjectExists(transaction, `Transaction '${ID}' doesn't exist`, 'TransactionService', 'handleDeleteTransaction', req.user);
+      // Handle active transactions
+      const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, transaction.chargeBoxID);
+      if (!transaction.stop) {
+        UtilsService.assertObjectExists(chargingStation, `ChargingStation ${transaction.chargeBoxID} doesn't exist`, 'TransactionService', 'handleDeleteTransaction', req.user);
+        const foundConnector = chargingStation.connectors.find((connector) => connector.connectorId === transaction.connectorId);
+        if (foundConnector && transaction.id === foundConnector.activeTransactionID) {
+          OCPPUtils.checkAndFreeChargingStationConnector(req.user.tenantID, chargingStation, transaction.connectorId);
           await ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);
         }
       }
       // Delete Transaction
-      await transaction.delete();
+      await TransactionStorage.deleteTransaction(req.user.tenantID, transaction);
       // Log
       Logging.logSecurityInfo({
         tenantID: req.user.tenantID,
-        user: req.user, actionOnUser: (transaction.getUserJson() ? transaction.getUserJson() : null),
+        user: req.user, actionOnUser: (transaction.user ? transaction.user : null),
         module: 'TransactionService', method: 'handleDeleteTransaction',
-        message: `Transaction ID '${filteredRequest.ID}' on '${transaction.getChargeBoxID()}'-'${transaction.getConnectorId()}' has been deleted successfully`,
-        action: action, detailedMessages: transaction.getModel()
+        message: `Transaction ID '${ID}' on '${transaction.chargeBoxID}'-'${transaction.connectorId}' has been deleted successfully`,
+        action: action, detailedMessages: transaction
       });
       // Ok
       res.json(Constants.REST_RESPONSE_SUCCESS);
       next();
-    } catch (error) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
-    }
   }
 
-  static async handleTransactionSoftStop(action: string, req: Request, res: Response, next: NextFunction) {
-    try {
+  public static async handleTransactionSoftStop(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
       // Filter
-      const filteredRequest = TransactionSecurity.filterTransactionSoftStop(req.body, req.user);
-      // Transaction Id is mandatory
-      if (!filteredRequest.transactionId) {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          'The Transaction\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
-          'TransactionService', 'handleTransactionSoftStop', req.user);
-      }
-      // Get Transaction
-      const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.transactionId);
-      if (!transaction) {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `Transaction '${filteredRequest.transactionId}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-          'TransactionService', 'handleTransactionSoftStop', req.user);
-      }
+      const transactionId = TransactionSecurity.filterTransactionSoftStop(req.body);
       // Check auth
       if (!Authorizations.canUpdateTransaction(req.user)) {
         // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
           Constants.ENTITY_TRANSACTION,
-          transaction.getID(),
+          transactionId,
           Constants.HTTP_AUTH_ERROR, 'TransactionService', 'handleTransactionSoftStop',
           req.user);
       }
+      // Transaction Id is mandatory
+      UtilsService.assertIdIsProvided(transactionId, 'TransactionService', 'handleTransactionSoftStop', req.user);
+      // Get Transaction
+      const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
+      UtilsService.assertObjectExists(transaction, `Transaction ${transactionId} doesn't exist.`, 'TransactionService', 'handleTransactionSoftStop', req.user);
       // Get the Charging Station
-      const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, transaction.getChargeBoxID());
-      // Found?
-      if (!chargingStation) {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `Charging Station with ID '${transaction.getChargeBoxID()}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-          'TransactionService', 'handleTransactionSoftStop', req.user);
-      }
+      const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, transaction.chargeBoxID);
+      UtilsService.assertObjectExists(chargingStation, `Transaction ${transaction.chargeBoxID} doesn't exist.`, 'TransactionService', 'handleTransactionSoftStop', req.user);
       // Check User
       let user: User;
-      if (transaction.getUserID()) {
+      if (!transaction.user && transaction.userID) {
         // Get Transaction User
-        user = await UserStorage.getUser(req.user.tenantID, transaction.getUserID());
+        user = await UserStorage.getUser(req.user.tenantID, transaction.userID);
         // Check
-        if (!user) {
-          // Not Found!
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            `The user with ID '${req.user.id}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-            'TransactionService', 'handleTransactionSoftStop', req.user);
-        }
+        UtilsService.assertObjectExists(user, `User ${transaction.userID} doesn't exist.`, 'TransactionService', 'handleTransactionSoftStop', req.user);
       }
       // Stop Transaction
       const result = await new OCPPService().handleStopTransaction(
@@ -270,10 +210,10 @@ export default class TransactionService {
           tenantID: req.user.tenantID
         },
         {
-          transactionId: transaction.getID(),
+          transactionId: transactionId,
           idTag: req.user.tagIDs[0],
-          timestamp: transaction.getLastMeterValue().timestamp,
-          meterStop: transaction.getLastMeterValue().value
+          timestamp: transaction.lastMeterValue.timestamp,
+          meterStop: transaction.lastMeterValue.value
         },
         true);
       // Log
@@ -281,74 +221,65 @@ export default class TransactionService {
         tenantID: req.user.tenantID, source: chargingStation.id,
         user: req.user, actionOnUser: user,
         module: 'TransactionService', method: 'handleTransactionSoftStop',
-        message: `Transaction ID '${transaction.getID()}' on '${transaction.getChargeBoxID()}'-'${transaction.getConnectorId()}' has been stopped successfully`,
+        message: `Transaction ID '${transactionId}' on '${transaction.chargeBoxID}'-'${transaction.connectorId}' has been stopped successfully`,
         action: action, detailedMessages: result
       });
       // Ok
       res.json(Constants.REST_RESPONSE_SUCCESS);
       next();
-    } catch (error) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
-    }
   }
 
-  static async handleGetChargingStationConsumptionFromTransaction(action: string, req: Request, res: Response, next: NextFunction) {
-    try {
-      // Filter
-      const filteredRequest = TransactionSecurity.filterChargingStationConsumptionFromTransactionRequest(req.query, req.user);
-      // Transaction Id is mandatory
-      if (!filteredRequest.TransactionId) {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          'The Transaction\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
-          'TransactionService', 'handleGetChargingStationConsumptionFromTransaction', req.user);
-      }
-      // Get Transaction
-      const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.TransactionId);
-      if (!transaction) {
-        // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `Transaction '${filteredRequest.TransactionId}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-          'TransactionService', 'handleGetChargingStationConsumptionFromTransaction', req.user);
-      }
-      // Check auth
-      if (!Authorizations.canReadTransaction(req.user, transaction)) {
-        // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_READ,
-          Constants.ENTITY_TRANSACTION,
-          transaction.getID(),
-          Constants.HTTP_AUTH_ERROR, 'TransactionService', 'handleGetChargingStationConsumptionFromTransaction',
-          req.user);
-      }
-      // Check dates
-      if (filteredRequest.StartDateTime && filteredRequest.EndDateTime && moment(filteredRequest.StartDateTime).isAfter(moment(filteredRequest.EndDateTime))) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The requested start date '${new Date(filteredRequest.StartDateTime).toISOString()}' is after the requested end date '${new Date(filteredRequest.StartDateTime).toISOString()}' `, Constants.HTTP_GENERAL_ERROR,
-          'TransactionService', 'handleGetChargingStationConsumptionFromTransaction', req.user);
-      }
-      // Get the consumption
-      let consumptions = await transaction.getConsumptions();
-
-      // Dates provided?
-      const startDateTime = filteredRequest.StartDateTime ? filteredRequest.StartDateTime : Constants.MIN_DATE;
-      const endDateTime = filteredRequest.EndDateTime ? filteredRequest.EndDateTime : Constants.MAX_DATE;
-      // Filter?
-      if (consumptions && (filteredRequest.StartDateTime || filteredRequest.EndDateTime)) {
-        consumptions = consumptions.filter((consumption) =>
-          moment(consumption.getEndedAt()).isBetween(startDateTime, endDateTime, null, '[]'));
-      }
-      // Return the result
-      res.json(TransactionSecurity.filterConsumptionsFromTransactionResponse(transaction, consumptions, req.user));
-      next();
-    } catch (error) {
-      // Log
-      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+  public static async handleGetChargingStationConsumptionFromTransaction(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Filter
+    const filteredRequest = TransactionSecurity.filterChargingStationConsumptionFromTransactionRequest(req.query, req.user);
+    // Transaction Id is mandatory
+    if (!filteredRequest.TransactionId) {
+      // Not Found!
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'The Transaction\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
+        'TransactionService', 'handleGetChargingStationConsumptionFromTransaction', req.user);
     }
+    // Get Transaction
+    const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.TransactionId);
+    if (!transaction) {
+      // Not Found!
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `Transaction '${filteredRequest.TransactionId}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        'TransactionService', 'handleGetChargingStationConsumptionFromTransaction', req.user);
+    }
+    // Check auth
+    if (!Authorizations.canReadTransaction(req.user, transaction)) {
+      // Not Authorized!
+      throw new AppAuthError(
+        Constants.ACTION_READ,
+        Constants.ENTITY_TRANSACTION,
+        transaction.getID(),
+        Constants.HTTP_AUTH_ERROR, 'TransactionService', 'handleGetChargingStationConsumptionFromTransaction',
+        req.user);
+    }
+    // Check dates
+    if (filteredRequest.StartDateTime && filteredRequest.EndDateTime && moment(filteredRequest.StartDateTime).isAfter(moment(filteredRequest.EndDateTime))) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `The requested start date '${new Date(filteredRequest.StartDateTime).toISOString()}' is after the requested end date '${new Date(filteredRequest.StartDateTime).toISOString()}' `, Constants.HTTP_GENERAL_ERROR,
+        'TransactionService', 'handleGetChargingStationConsumptionFromTransaction', req.user);
+    }
+    // Get the consumption
+    let consumptions = await transaction.getConsumptions();
+
+    // Dates provided?
+    const startDateTime = filteredRequest.StartDateTime ? filteredRequest.StartDateTime : Constants.MIN_DATE;
+    const endDateTime = filteredRequest.EndDateTime ? filteredRequest.EndDateTime : Constants.MAX_DATE;
+    // Filter?
+    if (consumptions && (filteredRequest.StartDateTime || filteredRequest.EndDateTime)) {
+      consumptions = consumptions.filter((consumption) =>
+        moment(consumption.getEndedAt()).isBetween(startDateTime, endDateTime, null, '[]'));
+    }
+    // Return the result
+    res.json(TransactionSecurity.filterConsumptionsFromTransactionResponse(transaction, consumptions, req.user));
+    next();
   }
 
   static async handleGetTransaction(action: string, req: Request, res: Response, next: NextFunction) {

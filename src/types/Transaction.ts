@@ -41,6 +41,7 @@ export default interface Transaction {
     refundedAt: Date;
     type: any;
     reportId: string;
+    status: any;
   }
   lastMeterValue?: {
     value: number;
