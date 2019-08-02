@@ -127,9 +127,9 @@ export default class TransactionStorage {
     return transactionYears;
   }
 
-  public static async getTransactions(tenantID: string, 
+  public static async getTransactions(tenantID: string,
     params:{search?:string,userIDs?:string,chargeBoxIDs?:string,siteAreaID?:string,siteID?:string,connectorId?:number,startTime?:Date,endTime?:Date,stop?:any,type?:'refunded'|'notRefunded',minimalPrice?:boolean,withChargeBoxes?:boolean,statistics?:'refund'|'history'},//TODO change the any
-    dbParams: DbParams, projectFields?: string[]): 
+    dbParams: DbParams, projectFields?: string[]):
   Promise<{count: number, stats: {
     totalConsumptionWattHours?: number,
     totalPriceRefund?: number,
@@ -643,7 +643,7 @@ export default class TransactionStorage {
     };
   }
 
-  public static async getTransaction(tenantID: string, id: number): Promise<{count: number, result: Transaction[]}> {
+  public static async getTransaction(tenantID: string, id: number): Promise<Transaction> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransaction');
     // Check

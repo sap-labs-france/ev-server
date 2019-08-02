@@ -208,16 +208,16 @@ export default class AuthService {
         Constants.HTTP_AUTH_ERROR, 'AuthService', 'isStopTransactionAuthorized');
     }
     // Check Charging Station
-    if (transaction.getChargeBoxID() !== chargingStation.id) {
+    if (transaction.chargeBoxID !== chargingStation.id) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Transaction ID '${filteredRequest.Arg2}' has a Charging Station '${transaction.getChargeBoxID()}' that differs from '${chargingStation.id}'`,
+        `Transaction ID '${filteredRequest.Arg2}' has a Charging Station '${transaction.chargeBoxID}' that differs from '${chargingStation.id}'`,
         565, 'AuthService', 'isStopTransactionAuthorized');
     }
     try {
       // Check
       await Authorizations.isTagIDsAuthorizedOnChargingStation(user.tenantID,
-        chargingStation, user.tagIDs[0], transaction.getTagID(), filteredRequest.Action);
+        chargingStation, user.tagIDs[0], transaction.tagID, filteredRequest.Action);
       // Ok
       return true;
     } catch (e) {

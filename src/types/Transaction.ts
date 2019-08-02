@@ -1,5 +1,5 @@
 import User from "./User";
-import ChargingStation from "../entity/ChargingStation";
+import ChargingStation from "../types/ChargingStation";
 
 export default interface Transaction {
 

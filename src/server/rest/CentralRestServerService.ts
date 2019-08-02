@@ -70,8 +70,8 @@ class RequestMapper {
         );
         // Register REST actions
         this.registerJsonActionsPaths({
-          AddChargingStationsToSiteArea: ChargingStationService.handleAddChargingStationsToSiteArea,
-          RemoveChargingStationsFromSiteArea: ChargingStationService.handleRemoveChargingStationsFromSiteArea,
+          AddChargingStationsToSiteArea: ChargingStationService.handleAssignChargingStationsToSiteArea,
+          RemoveChargingStationsFromSiteArea: ChargingStationService.handleAssignChargingStationsToSiteArea,
           UserCreate: UserService.handleCreateUser,
           CompanyCreate: CompanyService.handleCreateCompany,
           TenantCreate: TenantService.handleCreateTenant,
@@ -281,7 +281,7 @@ export default {
       const handleRequest = RequestMapper.getInstanceFromHTTPVerb(req.method).getActionFromPath(action);
       // Execute
       await handleRequest(action, req, res, next);
-    } catch (error) {console.log(error);
+    } catch (error) {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
