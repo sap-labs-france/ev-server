@@ -5,7 +5,6 @@ import Address from '../types/Address';
 import Company from '../types/Company';
 import Configuration from './Configuration';
 import Constants from './Constants';
-import DatabaseUtils from '../storage/mongodb/DatabaseUtils';
 import Utils from './Utils';
 
 export default class Database {
@@ -64,7 +63,7 @@ export default class Database {
     dest.deleted = src.deleted;
     // Check Inactive Chargers
     if (forFrontEnd) {
-      dest.inactive = DatabaseUtils.chargingStationIsInactive(dest);
+      dest.inactive = Utils.getIfChargingStationIsInactive(dest);
     }
     dest.lastReboot = Utils.convertToDate(src.lastReboot);
     if (src.chargingStationURL) {

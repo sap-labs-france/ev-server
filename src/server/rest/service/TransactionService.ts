@@ -4,7 +4,6 @@ import moment from 'moment';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
-import ChargingStation from '../../../types/ChargingStation';
 import ConcurConnector from '../../../integration/refund/ConcurConnector';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
@@ -18,8 +17,7 @@ import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import ChargingStationService from './ChargingStationService';
-import Transaction from '../../../entity/Transaction';
+import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 
 export default class TransactionService {
   static async handleSynchronizeRefundedTransactions(action: string, req: Request, res: Response, next: NextFunction) {
@@ -113,9 +111,7 @@ export default class TransactionService {
           `The user with ID '${req.user.id}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'TransactionService', 'handleRefundTransactions', req.user);
       }
-      if (!transactionsToRefund.every((tr) => {
-        return tr.getUserID() === req.user.id;
-      })) {
+      if (!transactionsToRefund.every((tr) => tr.getUserID() === req.user.id)) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
           `The user with ID '${req.user.id}' cannot refund another user's transaction`,
@@ -185,8 +181,11 @@ export default class TransactionService {
             `Charging Station with ID ${transaction.getChargeBoxID()} does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
             'TransactionService', 'handleDeleteTransaction', req.user);
         }
-        if (transaction.getID() === chargingStation.connectors.find(c => c.connectorId === transaction.getConnectorId()).activeTransactionID) {
-          await ChargingStationService.checkAndFreeConnector(req.user.tenantID, chargingStation, transaction.getConnectorId());
+        const foundConnector = chargingStation.connectors.find((connector) => {
+          return connector.connectorId === transaction.getConnectorId();
+        });
+        if (foundConnector && transaction.getID() === foundConnector.activeTransactionID) {
+          OCPPUtils.checkAndFreeChargingStationConnector(req.user.tenantID, chargingStation, transaction.getConnectorId());
           await ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);
         }
       }
@@ -340,9 +339,8 @@ export default class TransactionService {
       const endDateTime = filteredRequest.EndDateTime ? filteredRequest.EndDateTime : Constants.MAX_DATE;
       // Filter?
       if (consumptions && (filteredRequest.StartDateTime || filteredRequest.EndDateTime)) {
-        consumptions = consumptions.filter((consumption) => {
-          return moment(consumption.getEndedAt()).isBetween(startDateTime, endDateTime, null, '[]');
-        });
+        consumptions = consumptions.filter((consumption) =>
+          moment(consumption.getEndedAt()).isBetween(startDateTime, endDateTime, null, '[]'));
       }
       // Return the result
       res.json(TransactionSecurity.filterConsumptionsFromTransactionResponse(transaction, consumptions, req.user));
@@ -642,13 +640,13 @@ export default class TransactionService {
         if (err) {
           throw err;
         }
-        res.download(filename, (err) => {
-          if (err) {
-            throw err;
+        res.download(filename, (err2) => {
+          if (err2) {
+            throw err2;
           }
-          fs.unlink(filename, (err) => {
-            if (err) {
-              throw err;
+          fs.unlink(filename, (err3) => {
+            if (err3) {
+              throw err3;
             }
           });
         });

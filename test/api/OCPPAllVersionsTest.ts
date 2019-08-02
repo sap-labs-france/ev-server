@@ -74,7 +74,7 @@ describe('OCPP tests (all versions)', function() {
           await testData.ocppCommonTests.testAuthorizeInvalidTag();
         });
 
-        it('Unknown Badge ID should create an unknown user ', async () => {
+        it('With unknown badge ID should create an unknown user', async () => {
           await testData.ocppCommonTests.testAuthorizeUnknownTag();
         });
 
@@ -132,6 +132,10 @@ describe('OCPP tests (all versions)', function() {
 
         it('Charging station should send its heartbeat', async () => {
           await testData.ocppCommonTests.testHeartbeat();
+        });
+
+        it('Charging station should have saved the connection\'s IP address', async () => {
+          await testData.ocppCommonTests.testIP();
         });
 
         it('Charging station can change its connector status to Occupied', async () => {
@@ -195,7 +199,7 @@ describe('OCPP tests (all versions)', function() {
           await testData.ocppCommonTests.testAuthorizeInvalidTag();
         });
 
-        it('Unknown Badge ID should create an unknown user ', async () => {
+        it('With unknown badge ID should create an unknown user', async () => {
           await testData.ocppCommonTests.testAuthorizeUnknownTag();
         });
 
@@ -253,6 +257,10 @@ describe('OCPP tests (all versions)', function() {
 
         it('Charging station should send its heartbeat', async () => {
           await testData.ocppCommonTests.testHeartbeat();
+        });
+
+        it('Charging station should have saved the connection\'s IP address', async () => {
+          await testData.ocppCommonTests.testIP();
         });
 
         it('Charging station can change its connector status to Occupied', async () => {
@@ -638,7 +646,7 @@ describe('OCPP tests (all versions)', function() {
           await testData.ocppCommonTests.testAuthorizeInvalidTag();
         });
 
-        it('Unknown Badge ID should create an unknown user ', async () => {
+        it('With unknown badge ID should create an unknown user', async () => {
           await testData.ocppCommonTests.testAuthorizeUnknownTag();
         });
 
@@ -696,6 +704,10 @@ describe('OCPP tests (all versions)', function() {
 
         it('Charging station should send its heartbeat', async () => {
           await testData.ocppCommonTests.testHeartbeat();
+        });
+
+        it('Charging station should have saved the connection\'s IP address', async () => {
+          await testData.ocppCommonTests.testIP();
         });
 
         it('Charging station can change its connector status to Occupied', async () => {
@@ -824,7 +836,7 @@ describe('OCPP tests (all versions)', function() {
           await testData.ocppCommonTests.testAuthorizeInvalidTag();
         });
 
-        it('Unknown Badge ID should create an unknown user ', async () => {
+        it('With unknown badge ID should create an unknown user', async () => {
           await testData.ocppCommonTests.testAuthorizeUnknownTag();
         });
 
@@ -882,6 +894,10 @@ describe('OCPP tests (all versions)', function() {
 
         it('Charging station should send its heartbeat', async () => {
           await testData.ocppCommonTests.testHeartbeat();
+        });
+
+        it('Charging station should have saved the connection\'s IP address', async () => {
+          await testData.ocppCommonTests.testIP();
         });
 
         it('Charging station can change its connector status to Occupied', async () => {

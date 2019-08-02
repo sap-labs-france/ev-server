@@ -7,6 +7,7 @@ import StatefulChargingService from './StatefulChargingService';
 import ChargingStationService from '../../../server/rest/service/ChargingStationService';
 import ChargingStation from '../../../types/ChargingStation';
 import Transaction from '../../../entity/Transaction';
+import OCPPUtils from '../../../server/ocpp/utils/OCPPUtils';
 
 export class ConvergentChargingPricingSettings extends PricingSettings {
   constructor(readonly url: string, readonly user: string, readonly password: string, readonly chargeableItemName: string) {
@@ -145,7 +146,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
       if (chargingResult.error.category === 'invalid' && chargingResult.error.message.startsWith('Not authorized')) {
         const chargingStation: ChargingStation = await this.transaction.getChargingStation();
         if (chargingStation) {
-          ChargingStationService.requestExecuteCommand(this.tenantId, chargingStation, 'remoteStopTransaction', {
+          await OCPPUtils.requestExecuteChargingStationCommand(this.tenantId, chargingStation, 'remoteStopTransaction', {
             tagID: consumptionData.tagID,
             connectorID: consumptionData.connectorId
           });
@@ -178,7 +179,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
               case 'CSMS_INFO':
                 chargingStation = await this.transaction.getChargingStation();
                 if (chargingStation) {
-                  ChargingStationService.requestExecuteCommand(this.tenantId, chargingStation, 'setChargingProfile', {
+                  await OCPPUtils.requestExecuteChargingStationCommand(this.tenantId, chargingStation, 'setChargingProfile', {
                     chargingProfileId: 42,
                     transactionId: consumptionData.transactionId,
                     message: JSON.stringify(notification)

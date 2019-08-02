@@ -96,17 +96,21 @@ export default class AuthService {
           const results = [];
           // Check authorization for each connectors
           for (let index = 0; index < chargingStation.connectors.length; index++) {
-            const connector = chargingStation.connectors.find(c=>c.connectorId===index + 1);
+            const foundConnector = chargingStation.connectors.find((connector) => {
+              return connector.connectorId === index + 1;
+            });
             const tempResult = { 'IsAuthorized': false };
-            if (connector.activeTransactionID) {
-              tempResult.IsAuthorized = await AuthService.isStopTransactionAuthorized(filteredRequest, chargingStation, connector.activeTransactionID, req.user);
+            if (foundConnector && foundConnector.activeTransactionID) {
+              tempResult.IsAuthorized = await AuthService.isStopTransactionAuthorized(
+                filteredRequest, chargingStation, foundConnector.activeTransactionID, req.user);
             }
             results.push(tempResult);
           }
           // Return table of result (will be in the connector order)
           result = results;
         } else {
-          result[0].IsAuthorized = await AuthService.isStopTransactionAuthorized(filteredRequest, chargingStation, filteredRequest.Arg2, req.user);
+          result[0].IsAuthorized = await AuthService.isStopTransactionAuthorized(
+            filteredRequest, chargingStation, filteredRequest.Arg2, req.user);
         }
         break;
       // Action on connectors of a charger
@@ -155,7 +159,7 @@ export default class AuthService {
     let site: Site;
     if (isOrganizationComponentActive) {
       // Site Area -----------------------------------------------
-      siteArea = await chargingStation.siteArea;
+      siteArea = chargingStation.siteArea;
       try {
         // Site is mandatory
         if (!siteArea) {
@@ -192,8 +196,11 @@ export default class AuthService {
     }
     // Check authorization for each connectors
     for (let index = 0; index < chargingStation.connectors.length; index++) {
-      const connector = chargingStation.connectors.find(c=>c.connectorId===index+1);
-      results.push(await Authorizations.getConnectorActionAuthorizations({ tenantID, user, chargingStation, connector, siteArea, site }));
+      const foundConnector = chargingStation.connectors.find((connector) => {
+        return connector.connectorId === index + 1;
+      });
+      results.push(await Authorizations.getConnectorActionAuthorizations(
+        { tenantID, user, chargingStation, connector: foundConnector, siteArea, site }));
     }
     return results;
   }

@@ -15,7 +15,7 @@ export default class CompanyStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompany');
     // Reuse
-    const companiesMDB = await CompanyStorage.getCompanies(tenantID, { search: id }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const companiesMDB = await CompanyStorage.getCompanies(tenantID, { companyID: id }, Constants.DB_PARAMS_SINGLE_RECORD);
     let company: Company = null;
     // Check
     if (companiesMDB && companiesMDB.count > 0) {
@@ -86,7 +86,7 @@ export default class CompanyStorage {
   }
 
   public static async getCompanies(tenantID: string,
-    params: {search?: string; companyIDs?: string[]; withSites?: boolean; withLogo?: boolean} = {},
+    params: {search?: string; companyID?: string; companyIDs?: string[]; withSites?: boolean; withLogo?: boolean} = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<{count: number; result: Company[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompanies');
@@ -99,9 +99,10 @@ export default class CompanyStorage {
     // Set the filters
     let filters: ({_id?: ObjectID; $or?: any[]}|undefined);
     // Build filter
-    if (params.search) {
-      filters = {};
-      // Valid ID?
+    filters = {};
+    if (params.companyID) {
+      filters._id = Utils.convertToObjectID(params.companyID);
+    } else if (params.search) {
       if (ObjectID.isValid(params.search)) {
         filters._id = Utils.convertToObjectID(params.search);
       } else {

@@ -115,7 +115,8 @@ export default class Authorizations {
     };
   }
 
-  public static async getConnectorActionAuthorizations(params: { tenantID: string; user: UserToken; chargingStation: ChargingStation; connector: Connector; siteArea: SiteArea; site: Site }) {
+  public static async getConnectorActionAuthorizations(
+      params: { tenantID: string; user: UserToken; chargingStation: ChargingStation; connector: Connector; siteArea: SiteArea; site: Site }) {
     const tenant: Tenant | null = await Tenant.getTenant(params.tenantID);
     if (!tenant) {
       throw new BackendError('Authorizations.ts#getConnectorActionAuthorizations', 'Tenant null');
@@ -203,27 +204,26 @@ export default class Authorizations {
   }
 
   public static async isTagIDAuthorizedOnChargingStation(tenantID: string, chargingStation: ChargingStation, tagID: string, action: string) {
-    let site: Site;
     // Get the Organization component
     const tenant = await TenantStorage.getTenant(tenantID);
     const isOrgCompActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
     // Org component enabled?
     if (isOrgCompActive) {
-      let throwError = false;
+      let foundSiteArea = true;
       // Site Area -----------------------------------------------
       if(! chargingStation.siteAreaID) {
-        throwError = true;
+        foundSiteArea = false;
       } else {
         if(! chargingStation.siteArea) {
           chargingStation.siteArea =
             await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID, {withSite: true});
           if(! chargingStation.siteArea) {
-            throwError = true;
+            foundSiteArea = false;
           }
         }
       }
       // Site is mandatory
-      if (throwError) {
+      if (! foundSiteArea) {
         // Reject Site Not Found
         throw new AppError(
           chargingStation.id,
@@ -239,9 +239,8 @@ export default class Authorizations {
       }
       // Site -----------------------------------------------------
       // TODO: consider changing structure of CS->SA->S entirely; It's a little inconvenient that sometimes CS includes SA with includes S, which can also include SA, but not always
-      site = chargingStation.siteArea.site ? chargingStation.siteArea.site : (chargingStation.siteArea.siteID ? await SiteStorage.getSite(tenantID, chargingStation.siteArea.siteID) : null);
-      chargingStation.siteArea.site = site;
-      if (!site) {
+      chargingStation.siteArea.site = chargingStation.siteArea.site ? chargingStation.siteArea.site : (chargingStation.siteArea.siteID ? await SiteStorage.getSite(tenantID, chargingStation.siteArea.siteID) : null);
+      if (!chargingStation.siteArea.site) {
         // Reject Site Not Found
         throw new AppError(
           chargingStation.id,
@@ -272,7 +271,7 @@ export default class Authorizations {
 
       const userToken = await Authorizations.buildUserToken(tenantID, user);
       await Authorizations._checkAndGetUserOnChargingStation(tenantID,
-        chargingStation, userToken, isOrgCompActive, site, action);
+        chargingStation, userToken, isOrgCompActive, chargingStation.siteArea.site, action);
     }
     return user;
   }
@@ -294,7 +293,7 @@ export default class Authorizations {
           const isOrgCompActive = tenant.isComponentActive(Constants.COMPONENTS.ORGANIZATION);
           if (isOrgCompActive) {
             // Get the site (site existence is already checked by isTagIDAuthorizedOnChargingStation())
-            const site: Site = await chargingStation.siteArea.site; // TODO: This might break
+            const site: Site = chargingStation.siteArea.site;
             // Check if the site allows to stop the transaction of another user
             if (!Authorizations.isAdmin(alternateUser.role) &&
               !site.allowAllUsersToStopTransactions) {
@@ -432,8 +431,8 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SETTINGS, Constants.ACTION_LIST);
   }
 
-  public static canReadSetting(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SETTING, Constants.ACTION_READ);
+  public static canReadSetting(loggedUser: UserToken, context?): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SETTING, Constants.ACTION_READ, context);
   }
 
   public static canDeleteSetting(loggedUser: UserToken): boolean {

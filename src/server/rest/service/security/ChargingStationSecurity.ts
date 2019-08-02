@@ -4,7 +4,6 @@ import Constants from '../../../../utils/Constants';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationsRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationCommandRequest } from '../../../../types/requests/HttpChargingStationRequest';
-import { filter } from 'bluebird';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
 import ChargingStation from '../../../../types/ChargingStation';
@@ -19,7 +18,7 @@ export default class ChargingStationSecurity {
   }
 
   // Charging Station
-  public static filterChargingStationResponse(chargingStation: ChargingStation, loggedUser: UserToken, organizationIsActive: boolean) {
+  public static filterChargingStationResponse(chargingStation: ChargingStation, loggedUser: UserToken, organizationIsActive: boolean): Partial<ChargingStation> {
     let filteredChargingStation;
 
     if (!chargingStation || !Authorizations.canReadChargingStation(loggedUser)) {
@@ -46,7 +45,7 @@ export default class ChargingStationSecurity {
       // Set only necessary info
       filteredChargingStation = {};
       filteredChargingStation.id = chargingStation.id;
-      filteredChargingStation.chargeBoxID = chargingStation.id; // TODO ????
+      filteredChargingStation.chargeBoxID = chargingStation.id;
       filteredChargingStation.inactive = chargingStation.inactive;
       filteredChargingStation.connectors = chargingStation.connectors.map((connector) => {
         if (!connector) {
@@ -83,7 +82,7 @@ export default class ChargingStationSecurity {
     return filteredChargingStation;
   }
 
-  public static filterChargingStationsResponse(chargingStations: {result: ChargingStation[]}, loggedUser: UserToken, organizationIsActive: boolean) {
+  public static filterChargingStationsResponse(chargingStations: {result: ChargingStation[]}, loggedUser: UserToken, organizationIsActive: boolean): void {
     const filteredChargingStations = [];
     // Check
     if (!chargingStations.result) {
@@ -95,9 +94,7 @@ export default class ChargingStationSecurity {
     for (const chargingStation of chargingStations.result) {
       // Filter
       const filteredChargingStation = ChargingStationSecurity.filterChargingStationResponse(chargingStation, loggedUser, organizationIsActive);
-      // Ok?
       if (filteredChargingStation) {
-        // Add
         filteredChargingStations.push(filteredChargingStation);
       }
     }
@@ -124,9 +121,12 @@ export default class ChargingStationSecurity {
     return { ChargeBoxID: sanitize(request.ChargeBoxID) };
   }
 
-  // eslint-disable-next-line no-unused-vars
   public static filterChargingStationRequest(request: HttpByIDRequest): HttpByIDRequest {
-    return {ID: sanitize(request.ID)};
+    return { ID: sanitize(request.ID) };
+  }
+
+  public static filterChargingStationByIDRequest(request: HttpByIDRequest): string {
+    return sanitize(request.ID);
   }
 
   public static filterChargingStationsRequest(request: HttpChargingStationsRequest): HttpChargingStationsRequest {
@@ -135,7 +135,6 @@ export default class ChargingStationSecurity {
     filteredRequest.WithNoSiteArea = UtilsSecurity.filterBoolean(request.WithNoSiteArea);
     filteredRequest.SiteID = sanitize(request.SiteID);
     filteredRequest.WithSite = UtilsSecurity.filterBoolean(request.WithSite);
-    filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
     filteredRequest.IncludeDeleted = UtilsSecurity.filterBoolean(request.IncludeDeleted);
     filteredRequest.ErrorType = sanitize(request.ErrorType);
@@ -210,7 +209,7 @@ export default class ChargingStationSecurity {
     return {
       chargeBoxID: sanitize(request.chargeBoxID),
       maxIntensity: request.args ? sanitize(request.args.maxIntensity) : null
-    }
+    };
   }
 }
 

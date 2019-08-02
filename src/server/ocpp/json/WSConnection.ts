@@ -248,7 +248,9 @@ export default class WSConnection {
         this.wsConnection.send(messageToSend);
       } else {
         // Reject it
-        return rejectCallback(`Web socket closed for Message ID '${messageId}' with content '${messageToSend}' (${Tenant.getTenant(this.tenantID).then((Tnt) => { return Tnt.getName(); })})`);
+        return rejectCallback(`Web socket closed for Message ID '${messageId}' with content '${messageToSend}' (${Tenant.getTenant(this.tenantID).then((Tnt) => {
+          return Tnt.getName();
+        })})`);
       }
       // Request?
       if (messageType !== Constants.OCPP_JSON_CALL_MESSAGE) {
@@ -257,7 +259,9 @@ export default class WSConnection {
       } else {
         // Send timeout
         setTimeout(() => {
-          return rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${Tenant.getTenant(this.tenantID).then((Tnt) => { return Tnt.getName(); })})`);
+          return rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${Tenant.getTenant(this.tenantID).then((Tnt) => {
+            return Tnt.getName();
+          })})`);
         }, Constants.OCPP_SOCKET_TIMEOUT);
       }
 

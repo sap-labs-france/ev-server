@@ -22,7 +22,9 @@ import TenantStorage from '../storage/mongodb/TenantStorage';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
 import ChargingStation from '../types/ChargingStation';
+import ConnectorStats from '../types/ConnectorStats';
 import tzlookup from 'tz-lookup';
+import UserStorage from '../storage/mongodb/UserStorage';
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
 
@@ -52,6 +54,69 @@ export default class Utils {
       return typeof obj[Symbol.iterator] === 'function';
     }
     return false;
+  }
+
+  static getIfChargingStationIsInactive(chargingStation): boolean {
+    let inactive = false;
+    // Get Heartbeat Interval from conf
+    const config = Configuration.getChargingStationConfig();
+    if (config) {
+      const heartbeatIntervalSecs = config.heartbeatIntervalSecs;
+      // Compute against the last Heartbeat
+      if (chargingStation.lastHeartBeat) {
+        const inactivitySecs = Math.floor((Date.now() - chargingStation.lastHeartBeat.getTime()) / 1000);
+        // Inactive?
+        if (inactivitySecs > (heartbeatIntervalSecs * 5)) {
+          inactive = true;
+        }
+      }
+    }
+    return inactive;
+  }
+
+  public static getConnectorStatusesFromChargingStations(chargingStations: ChargingStation[]) : ConnectorStats {
+    const connectorStats: ConnectorStats = {
+      totalChargers: 0,
+      availableChargers: 0,
+      totalConnectors: 0,
+      availableConnectors: 0
+    }
+    // Chargers
+    for (const chargingStation of chargingStations) {
+      // Check not deleted
+      if (chargingStation.deleted) {
+        continue;
+      }
+      // Set Inactive flag
+      chargingStation.inactive = Utils.getIfChargingStationIsInactive(chargingStation);
+      connectorStats.totalChargers++;
+      // Handle Connectors
+      if (!chargingStation.connectors) {
+        chargingStation.connectors = [];
+      }
+      for (const connector of chargingStation.connectors) {
+        if (!connector) {
+          continue;
+        }
+        connectorStats.totalConnectors++;
+        // Check if Available
+        if (!chargingStation.inactive && connector.status === Constants.CONN_STATUS_AVAILABLE) {
+          connectorStats.availableConnectors++;
+        }
+      }
+      // Handle Chargers
+      for (const connector of chargingStation.connectors) {
+        if (!connector) {
+          continue;
+        }
+        // Check if Available
+        if (!chargingStation.inactive && connector.status === Constants.CONN_STATUS_AVAILABLE) {
+          connectorStats.availableChargers++;
+          break;
+        }
+      }
+    }
+    return connectorStats;
   }
 
   // Temporary method for Revenue Cloud concept
@@ -599,6 +664,23 @@ export default class Utils {
         'Vehicle Manufacturer Name is mandatory', Constants.HTTP_GENERAL_ERROR,
         'VehicleManufacturer', 'checkIfVehicleManufacturerValid',
         req.user.id, filteredRequest.id);
+    }
+  }
+
+  public static async checkIfUserTagIDsAreValid(user: User, tagIDs: string[], req: Request) {
+    // Check that the Badge ID is not already used
+    if (Authorizations.isAdmin(req.user.role) || Authorizations.isSuperAdmin(req.user.role)) {
+      for (const tagID of tagIDs) {
+        const foundUser = await UserStorage.getUserByTagId(req.user.tenantID, tagID);
+        if (foundUser && (!user || (foundUser.id !== user.id))) {
+          // Tag already used!
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `The Tag ID '${tagID}' is already used by User '${Utils.buildUserFullName(foundUser)}'`,
+            Constants.HTTP_USER_TAG_ID_ALREADY_USED_ERROR,
+            'Utils', 'checkIfUserTagsAreValid', req.user);
+        }
+      }
     }
   }
 

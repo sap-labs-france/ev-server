@@ -15,15 +15,6 @@ import UtilsService from './UtilsService';
 
 export default class SiteService {
 
-  public static async handleAssignUsersToSites(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check if component is active
-    UtilsService.assertComponentIsActiveFromToken(
-      req.user, Constants.COMPONENTS.ORGANIZATION,
-      Constants.ACTION_UPDATE, Constants.ENTITY_SITE, 'SiteService', 'handleAssignUsersToSites');
-
-    // TODO: Fill this in based on content of both other files
-  }
-
   public static async handleAddUsersToSite(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check if component is active
     UtilsService.assertComponentIsActiveFromToken(
@@ -41,12 +32,7 @@ export default class SiteService {
         'SiteService', 'handleAddUsersToSite',
         req.user);
     }
-    if (!filteredRequest.siteID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The Site\'s ID must be provided', 500,
-        'SiteSecurity', 'filterAssignSiteUsers', req.user);
-    }
+    UtilsService.assertIdIsProvided(filteredRequest.siteID, 'SiteSecurity', 'filterAssignSiteUsers', req.user);
     if (!filteredRequest.userIDs || (filteredRequest.userIDs && filteredRequest.userIDs.length <= 0)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
@@ -343,6 +329,14 @@ export default class SiteService {
     // Filter
     const filteredRequest = SiteSecurity.filterSiteRequest(req.query);
     UtilsService.assertIdIsProvided(filteredRequest.ID, 'SiteService', 'handleGetSite', req.user);
+    // Check auth
+    if(!Authorizations.canReadSite(req.user, filteredRequest.ID)) {
+      throw new AppAuthError(
+        Constants.ACTION_READ,
+        Constants.ENTITY_SITE,
+        filteredRequest.ID, Constants.HTTP_AUTH_ERROR, 'SiteService',
+        'handleGetSite', req.user);
+    }
     // Get it
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.ID);
     UtilsService.assertObjectExists(site, `The Site with ID '${filteredRequest.ID}' does not exist`, 'SiteService', 'handleGetSite', req.user);
@@ -392,9 +386,11 @@ export default class SiteService {
       ['id', 'name', 'address.latitude', 'address.longitude', 'address.city', 'address.country', 'company.name',
         'autoUserSiteAssignment', 'allowAllUsersToStopTransactions']
     );
-    // Filter
-    SiteSecurity.filterSitesResponse(sites, req.user);
-    // Return
+    // Build the result
+    if(sites.result && sites.result.length > 0) {
+      // Filter
+      SiteSecurity.filterSitesResponse(sites, req.user);
+    }
     res.json(sites);
     next();
   }
@@ -451,7 +447,7 @@ export default class SiteService {
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.companyID);
     UtilsService.assertObjectExists(company, `The Company ID '${filteredRequest.companyID}' does not exist`, 'SiteService', 'handleCreateSite', req.user);
     // Create site
-    const usr = {id: req.user.id};
+    const usr = { id: req.user.id };
     const date = new Date();
     const site: Site = {
       ...filteredRequest,
@@ -470,7 +466,7 @@ export default class SiteService {
       action: action, detailedMessages: site
     });
     // Ok
-    res.json(Object.assign({id: site.id}, Constants.REST_RESPONSE_SUCCESS));
+    res.json(Object.assign({ id: site.id }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
@@ -497,10 +493,10 @@ export default class SiteService {
     const site: Site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.id);
     UtilsService.assertObjectExists(site, `Site with ID '${filteredRequest.id}' does not exist`, 'SiteService', 'handleUpdateSite', req.user);
     // Update
-    site.lastChangedBy = {'id': req.user.id};
+    site.lastChangedBy = { 'id': req.user.id };
     site.lastChangedOn = new Date();
     // Save
-    await SiteStorage.saveSite(req.user.tenantID, {...site, ...filteredRequest}, true);
+    await SiteStorage.saveSite(req.user.tenantID, { ...site, ...filteredRequest }, true);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
