@@ -99,10 +99,10 @@ export default class CompanyStorage {
     // Set the filters
     let filters: ({_id?: ObjectID; $or?: any[]}|undefined);
     // Build filter
+    filters = {};
     if (params.companyID) {
       filters._id = Utils.convertToObjectID(params.companyID);
     } else if (params.search) {
-      filters = {};
       if (ObjectID.isValid(params.search)) {
         filters._id = Utils.convertToObjectID(params.search);
       } else {
