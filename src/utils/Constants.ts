@@ -81,6 +81,8 @@ export default class Constants {
   public static readonly ENTITY_PRICING = 'Pricing';
   public static readonly ENTITY_SETTING = 'Setting';
   public static readonly ENTITY_SETTINGS = 'Settings';
+  public static readonly ENTITY_TOKENS = 'Tokens';
+  public static readonly ENTITY_TOKEN = 'Token';
   public static readonly ENTITY_OCPI_ENDPOINT = 'OcpiEndpoint';
   public static readonly ENTITY_OCPI_ENDPOINTS = 'OcpiEndpoints';
   public static readonly ENTITY_CONNECTION = 'Connection';

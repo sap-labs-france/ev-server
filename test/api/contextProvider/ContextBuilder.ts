@@ -216,7 +216,7 @@ export default class ContextBuilder {
       userList.push(userModel);
     }
     // Persist tenant context
-    const newTenantContext = new TenantContext(tenantContextDef.tenantName, buildTenant, localCentralServiceService, null);
+    const newTenantContext = new TenantContext(tenantContextDef.tenantName, buildTenant, '', localCentralServiceService, null);
     this.tenantsContexts.push(newTenantContext);
     newTenantContext.addUsers(userList);
     // Check if Organization is active
@@ -274,7 +274,7 @@ export default class ContextBuilder {
             chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
             console.log(chargingStationTemplate.id);
             const newChargingStationContext = await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
-            siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
+            await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
           }
         }
         newTenantContext.addSiteContext(siteContext);
@@ -285,14 +285,20 @@ export default class ContextBuilder {
       return chargingStation.siteAreaNames === null;
     });
     // Create Charging Station for site area
-    const siteContext = new SiteContext({ id: 1, name: CONTEXTS.SITE_CONTEXTS.NO_SITE }, newTenantContext);
-    const emptySiteAreaContext = siteContext.addSiteArea({ id: 1, name: CONTEXTS.SITE_AREA_CONTEXTS.NO_SITE });
+    const siteContext = new SiteContext({
+      id: 1,
+      name: CONTEXTS.SITE_CONTEXTS.NO_SITE
+    }, newTenantContext);
+    const emptySiteAreaContext = siteContext.addSiteArea({
+      id: 1,
+      name: CONTEXTS.SITE_AREA_CONTEXTS.NO_SITE
+    });
     for (const chargingStationDef of relevantCS) {
       const chargingStationTemplate = Factory.chargingStation.build();
       chargingStationTemplate.id = chargingStationDef.baseName;
       console.log(chargingStationTemplate.id);
       const newChargingStationContext = await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, null);
-      emptySiteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
+      await emptySiteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
     }
     newTenantContext.addSiteContext(siteContext);
     // Create transaction/session data for a specific tenants:

@@ -15,10 +15,13 @@ import Transaction from '../../../entity/Transaction';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
+import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationTokenStorage';
+import RegistrationToken from '../../../types/RegistrationToken';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import tzlookup from 'tz-lookup';
 import Connector from '../../../types/Connector';
 import Tenant from '../../../entity/Tenant';
+
 // FIXME
 const moment = require('moment');
 momentDurationFormatSetup(moment);
@@ -61,6 +64,19 @@ export default class OCPPService {
       // Get the charging station
       let chargingStation = await ChargingStationStorage.getChargingStation(headers.tenantID, headers.chargeBoxIdentity);
       if (!chargingStation) {
+        if (!headers.token) {
+          throw new BackendError(
+            headers.chargeBoxIdentity,
+            `Registration rejected: Token is required for: '${headers.chargeBoxIdentity}' on ip '${headers.currentIPAddress}'`,
+            'OCPPService', 'handleBootNotification', 'BootNotification');
+        }
+        const token: RegistrationToken = await RegistrationTokenStorage.getRegistrationToken(headers.tenantID, headers.token);
+        if (!token || !token.expirationDate || moment().isAfter(token.expirationDate)) {
+          throw new BackendError(
+            headers.chargeBoxIdentity,
+            `Registration rejected: Token '${headers.token}' is invalid or expired for: '${headers.chargeBoxIdentity}' on ip '${headers.currentIPAddress}'`,
+            'OCPPService', 'handleBootNotification', 'BootNotification');
+        }
         // New Charging Station: Create
         chargingStation = bootNotification; // TODO: VERIFY THIS. WHAT IS BOOT NOTIFICATION?
         // Update timestamp
@@ -326,8 +342,11 @@ export default class OCPPService {
     if (statusNotification.status === Constants.CONN_STATUS_FAULTED) {
       // Log
       Logging.logError({
-        tenantID: tenantID, source: chargingStation.id, module: 'OCPPService',
-        method: '_notifyStatusNotification', action: 'StatusNotification',
+        tenantID: tenantID,
+        source: chargingStation.id,
+        module: 'OCPPService',
+        method: '_notifyStatusNotification',
+        action: 'StatusNotification',
         message: `Error on Connector '${statusNotification.connectorId}': '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}'`
       });
       // Send Notification
@@ -784,7 +803,9 @@ export default class OCPPService {
           // Log
           Logging.logWarning({
             tenantID: tenantID,
-            source: chargingStation.id, module: 'OCPPService', method: '_filterMeterValuesOnCharger',
+            source: chargingStation.id,
+            module: 'OCPPService',
+            method: '_filterMeterValuesOnCharger',
             action: 'MeterValues',
             message: 'Removed Meter Value with attribute context \'Sample.Clock\'',
             detailedMessages: meterValue
@@ -924,8 +945,11 @@ export default class OCPPService {
       // Log
       Logging.logInfo({
         tenantID: headers.tenantID,
-        source: chargingStation.id, module: 'OCPPService', method: 'handleDiagnosticsStatusNotification',
-        action: 'DiagnosticsStatusNotification', message: 'Diagnostics Status Notification has been saved'
+        source: chargingStation.id,
+        module: 'OCPPService',
+        method: 'handleDiagnosticsStatusNotification',
+        action: 'DiagnosticsStatusNotification',
+        message: 'Diagnostics Status Notification has been saved'
       });
       // Return
       return {};
@@ -953,8 +977,11 @@ export default class OCPPService {
       // Log
       Logging.logInfo({
         tenantID: headers.tenantID,
-        source: chargingStation.id, module: 'OCPPService', method: 'handleFirmwareStatusNotification',
-        action: 'FirmwareStatusNotification', message: 'Firmware Status Notification has been saved'
+        source: chargingStation.id,
+        module: 'OCPPService',
+        method: 'handleFirmwareStatusNotification',
+        action: 'FirmwareStatusNotification',
+        message: 'Firmware Status Notification has been saved'
       });
       // Return
       return {};
@@ -1102,8 +1129,12 @@ export default class OCPPService {
         if (activeTransaction.getCurrentTotalConsumption() <= 0) {
           // No consumption: delete
           Logging.logWarning({
-            tenantID: tenantID, source: chargeBoxID, module: 'OCPPService', method: '_stopOrDeleteActiveTransactions',
-            action: 'CleanupTransaction', actionOnUser: activeTransaction.getUserID(),
+            tenantID: tenantID,
+            source: chargeBoxID,
+            module: 'OCPPService',
+            method: '_stopOrDeleteActiveTransactions',
+            action: 'CleanupTransaction',
+            actionOnUser: activeTransaction.getUserID(),
             message: `Pending Transaction ID '${activeTransaction.getID()}' with no consumption has been deleted on Connector '${activeTransaction.getConnectorId()}'`
           });
           // Delete
@@ -1122,15 +1153,23 @@ export default class OCPPService {
           if (result.status === 'Invalid') {
             // No consumption: delete
             Logging.logError({
-              tenantID: tenantID, source: chargeBoxID, module: 'OCPPService', method: '_stopOrDeleteActiveTransactions',
-              action: 'CleanupTransaction', actionOnUser: activeTransaction.getUserID(),
+              tenantID: tenantID,
+              source: chargeBoxID,
+              module: 'OCPPService',
+              method: '_stopOrDeleteActiveTransactions',
+              action: 'CleanupTransaction',
+              actionOnUser: activeTransaction.getUserID(),
               message: `Cannot delete pending Transaction ID '${activeTransaction.getID()}' with no consumption on Connector '${activeTransaction.getConnectorId()}'`
             });
           } else {
             // Has consumption: close it!
             Logging.logWarning({
-              tenantID: tenantID, source: chargeBoxID, module: 'OCPPService', method: '_stopOrDeleteActiveTransactions',
-              action: 'CleanupTransaction', actionOnUser: activeTransaction.getUserID(),
+              tenantID: tenantID,
+              source: chargeBoxID,
+              module: 'OCPPService',
+              method: '_stopOrDeleteActiveTransactions',
+              action: 'CleanupTransaction',
+              actionOnUser: activeTransaction.getUserID(),
               message: `Pending Transaction ID '${activeTransaction.getID()}' has been stopped on Connector '${activeTransaction.getConnectorId()}'`
             });
           }

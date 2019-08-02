@@ -1,3 +1,5 @@
+import faker from 'faker';
+
 /**
  * Available contexts that can be used in the unit tests
  */
@@ -26,8 +28,10 @@ export default class CONTEXTS {
   };
 
   static readonly CHARGING_STATION_CONTEXTS: any = {
+    UNREGISTERED_OCPP16: faker.random.alphaNumeric(10),
     ASSIGNED_OCPP16: 'cs-16', // Charging Station is assigned to each site area with OCPP16
     UNASSIGNED_OCPP16: 'cs-notassigned16', // Charging station is not assigned and use OCPP16
+    UNREGISTERED_OCPP15: faker.random.alphaNumeric(10),
     ASSIGNED_OCPP15: 'cs-15', // Charging Station is assigned to each site area with OCPP15
     UNASSIGNED_OCPP15: 'cs-notassigned15' // Charging station is not assigned and use OCPP15
   };
@@ -88,10 +92,8 @@ export default class CONTEXTS {
           }
         }
       },
-      organization: {
-      },
-      statistics: {
-      },
+      organization: {},
+      statistics: {},
       refund: {
         type: 'concur',
         content: {
@@ -116,100 +118,99 @@ export default class CONTEXTS {
       }
     },
   },
-  {
-    // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
-    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
-    id: 'aaaaaaaaaaaaaaaaaaaaaaa2',
-    subdomain: 'utnothing',
-  },
-  {
-    // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION,
-    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION,
-    id: 'aaaaaaaaaaaaaaaaaaaaaaa3',
-    subdomain: 'utorg',
-    componentSettings: {
-      organization: {
-      }
-    }
-  },
-  {
-    // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_SIMPLE_PRICING,
-    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_SIMPLE_PRICING,
-    id: 'aaaaaaaaaaaaaaaaaaaaaaa4',
-    subdomain: 'utprice',
-    componentSettings: {
-      pricing: {
-        type: 'simple',
-        content: {
-          simple: {
-            price: 1,
-            currency: 'EUR'
-          }
-        }
+    {
+      // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+      tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+      id: 'aaaaaaaaaaaaaaaaaaaaaaa2',
+      subdomain: 'utnothing',
+    },
+    {
+      // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION,
+      tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION,
+      id: 'aaaaaaaaaaaaaaaaaaaaaaa3',
+      subdomain: 'utorg',
+      componentSettings: {
+        organization: {}
       }
     },
-  },
-  {
-    // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
-    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
-    id: 'aaaaaaaaaaaaaaaaaaaaaaa5',
-    subdomain: 'utconvcharg',
-    componentSettings: {
-      pricing: {
-        type: 'convergentCharging',
-        content: {
-          convergentCharging: {
-            url: '',
-            chargeableItemName: '',
-            user: '',
-            password: ''
-          }
-        }
-      }
-    },
-  },
-  {
-    // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_OCPI,
-    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_OCPI,
-    id: 'aaaaaaaaaaaaaaaaaaaaaaa6',
-    subdomain: 'utocpi',
-    componentSettings: {
-      ocpi: {
-        type: 'gireve',
-        content: {
-          countryCode: 'FR',
-          partyId: 'UT',
-          businessDetails: {
-            name: 'Test OCPI',
-            website: 'http://www.uttest.net'
+    {
+      // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_SIMPLE_PRICING,
+      tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_SIMPLE_PRICING,
+      id: 'aaaaaaaaaaaaaaaaaaaaaaa4',
+      subdomain: 'utprice',
+      componentSettings: {
+        pricing: {
+          type: 'simple',
+          content: {
+            simple: {
+              price: 1,
+              currency: 'EUR'
+            }
           }
         }
       },
     },
-  },
-  {
-    // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_FUNDING,
-    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_FUNDING,
-    id: 'aaaaaaaaaaaaaaaaaaaaaaa7',
-    subdomain: 'utrefund',
-    componentSettings: {
-      refund: {
-        type: 'concur',
-        content: {
-          concur: {
-            authenticationUrl: '',
-            apiUrl: '',
-            clientId: '',
-            clientSecret: '',
-            paymentTypeId: '',
-            expenseTypeCode: '',
-            policyId: '',
-            reportName: ''
+    {
+      // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
+      tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
+      id: 'aaaaaaaaaaaaaaaaaaaaaaa5',
+      subdomain: 'utconvcharg',
+      componentSettings: {
+        pricing: {
+          type: 'convergentCharging',
+          content: {
+            convergentCharging: {
+              url: '',
+              chargeableItemName: '',
+              user: '',
+              password: ''
+            }
+          }
+        }
+      },
+    },
+    {
+      // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_OCPI,
+      tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_OCPI,
+      id: 'aaaaaaaaaaaaaaaaaaaaaaa6',
+      subdomain: 'utocpi',
+      componentSettings: {
+        ocpi: {
+          type: 'gireve',
+          content: {
+            countryCode: 'FR',
+            partyId: 'UT',
+            businessDetails: {
+              name: 'Test OCPI',
+              website: 'http://www.uttest.net'
+            }
+          }
+        },
+      },
+    },
+    {
+      // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_FUNDING,
+      tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_FUNDING,
+      id: 'aaaaaaaaaaaaaaaaaaaaaaa7',
+      subdomain: 'utrefund',
+      componentSettings: {
+        refund: {
+          type: 'concur',
+          content: {
+            concur: {
+              authenticationUrl: '',
+              apiUrl: '',
+              clientId: '',
+              clientSecret: '',
+              paymentTypeId: '',
+              expenseTypeCode: '',
+              policyId: '',
+              reportName: ''
+            }
           }
         }
       }
-    }
-  }];
+    }];
 
   // List of users created in a tenant
   static readonly TENANT_USER_LIST: any = [

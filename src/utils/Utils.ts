@@ -167,10 +167,12 @@ export default class Utils {
     // Parse the request (lower case for fucking charging station DBT URL registration)
     const urlParts = url.parse(req.url.toLowerCase(), true);
     const tenantID = urlParts.query.tenantid;
+    const token = urlParts.query.token;
     // Check
     await Utils.checkTenant(tenantID);
     // Set the Tenant ID
     headers.tenantID = tenantID;
+    headers.token = token;
   }
 
   static _normalizeOneSOAPParam(headers, name) {

@@ -46,6 +46,8 @@ const GRANTS = {
       { resource: 'Pricing', action: ['Read', 'Update'], attributes: ['*'] },
       { resource: 'Settings', action: 'List', attributes: ['*'] },
       { resource: 'Setting', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
+      { resource: 'Tokens', action: 'List', attributes: ['*'] },
+      { resource: 'Token', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'] },
       { resource: 'OcpiEndpoints', action: 'List', attributes: ['*'] },
       {
         resource: 'OcpiEndpoint',
@@ -146,6 +148,8 @@ const GRANTS = {
       },
       { resource: 'Loggings', action: 'List', attributes: ['*'] },
       { resource: 'Logging', action: 'Read', attributes: ['*'], args: { 'sites': '$.site' } },
+      { resource: 'Tokens', action: 'List', attributes: ['*'] },
+      { resource: 'Token', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'], args: { 'sites': '$.site' } },
     ]
   }
 };

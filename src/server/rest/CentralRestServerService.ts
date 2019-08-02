@@ -19,6 +19,7 @@ import UserService from './service/UserService';
 import UtilsService from './service/UtilsService';
 import VehicleManufacturerService from './service/VehicleManufacturerService';
 import VehicleService from './service/VehicleService';
+import RegistrationTokenService from './service/RegistrationTokenService';
 class RequestMapper {
   private static instances = new Map<string, RequestMapper>();
 
@@ -72,6 +73,7 @@ class RequestMapper {
         this.registerJsonActionsPaths({
           AddChargingStationsToSiteArea: ChargingStationService.handleAssignChargingStationsToSiteArea,
           RemoveChargingStationsFromSiteArea: ChargingStationService.handleAssignChargingStationsToSiteArea,
+          RegistrationTokenCreate: RegistrationTokenService.handleCreateRegistrationToken,
           UserCreate: UserService.handleCreateUser,
           CompanyCreate: CompanyService.handleCreateCompany,
           TenantCreate: TenantService.handleCreateTenant,
@@ -106,6 +108,7 @@ class RequestMapper {
           ChargingStations: ChargingStationService.handleGetChargingStations,
           ChargingStationsExport: ChargingStationService.handleGetChargingStationsExport,
           ChargingStation: ChargingStationService.handleGetChargingStation,
+          RegistrationTokens: RegistrationTokenService.handleGetRegistrationTokens,
           StatusNotifications: ChargingStationService.handleGetStatusNotifications,
           BootNotifications: ChargingStationService.handleGetBootNotifications,
           Companies: CompanyService.handleGetCompanies,
