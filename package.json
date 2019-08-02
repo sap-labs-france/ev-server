@@ -30,7 +30,6 @@
     "emailjs": "^2.2.0",
     "express": "^4.17.1",
     "express-sanitizer": "^1.0.5",
-    "fsevents": "^2.0.7",
     "helmet": "^3.20.0",
     "hpp": "^0.2.2",
     "http-status-codes": "^1.3.2",
@@ -166,8 +165,8 @@
     "test:createBigContext": "cross-env TS_NODE_FILES=true mocha test/**/BigBuilderRunner.ts --exit",
     "test:encryptionSetting": "cross-env TS_NODE_FILES=true mocha test/**/EncryptionSettingTest.ts --exit",
     "test:filter": "cross-env TS_NODE_FILES=true mocha test/**/FilterTest.ts --exit",
-    "test:ocppnew":"cross-env TS_NODE_FILES=true mocha test/**/OCPPNewTest.ts --exit",
-    "test:tenantsetting":"cross-env TS_NODE_FILES=true mocha test/**/ComponentActivationTenantTest.ts --exit",
+    "test:ocppnew": "cross-env TS_NODE_FILES=true mocha test/**/OCPPNewTest.ts --exit",
+    "test:tenantsetting": "cross-env TS_NODE_FILES=true mocha test/**/ComponentActivationTenantTest.ts --exit",
     "clinic:clean": "clinic clean",
     "npm-check": "npm-check"
   },
