@@ -43,7 +43,7 @@ export default class ODataRestAdapter {
         return;
       }
       // Check if sac setting is active
-      if (!Utils.tenantComponentActive(tenant, Constants.COMPONENTS.ANALYTICS)) {
+      if (!Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.ANALYTICS)) {
         cb(Error('SAP Analytics Cloud Interface not enabled'));
         return;
       }

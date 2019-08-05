@@ -193,8 +193,9 @@ export default class AuthService {
     }
     // Check authorization for each connectors
     for (let index = 0; index < chargingStation.connectors.length; index++) {
-      const connector = chargingStation.connectors.find(c=>c.connectorId===index+1);
-      results.push(await Authorizations.getConnectorActionAuthorizations({ tenantID, user, chargingStation, connector, siteArea, site }));
+      const foundConnector = chargingStation.connectors.find(
+        (connector) => connector.connectorId === index+1);
+      results.push(await Authorizations.getConnectorActionAuthorizations({ tenantID, user, chargingStation, connector: foundConnector, siteArea, site }));
     }
     return results;
   }
@@ -426,8 +427,8 @@ export default class AuthService {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Send notification
       const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
-        '/#/verify-email?VerificationToken=' + newUser.verificationToken + '&Email=' +
-        newUser.email;
+        '/#/verify-email?VerificationToken=' + newUser.verificationToken + '&Email=' + newUser.email;
+      // Notify (Async)
       NotificationHandler.sendNewRegisteredUser(
         tenantID,
         Utils.generateGUID(),
@@ -506,7 +507,7 @@ export default class AuthService {
     const evseDashboardResetPassURL = Utils.buildEvseURL(filteredRequest.tenant) +
       '/#/reset-password?hash=' + resetHash + '&email=' +
       user.email;
-    // Send email
+    // Send Request Password (Async)
     NotificationHandler.sendRequestPassword(
       tenantID,
       Utils.generateGUID(),
@@ -575,7 +576,7 @@ export default class AuthService {
       message: 'User\'s password has been reset successfully',
       detailedMessages: req.body
     });
-    // Send notification
+    // Send Password (Async)
     NotificationHandler.sendNewPassword(
       tenantID,
       Utils.generateGUID(),
@@ -831,6 +832,7 @@ export default class AuthService {
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
       '/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
       user.email;
+    // Send Verification Email (Async)
     NotificationHandler.sendVerificationEmail(
       tenantID,
       Utils.generateGUID(),

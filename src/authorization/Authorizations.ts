@@ -20,7 +20,6 @@ import UserToken from '../types/UserToken';
 import Utils from '../utils/Utils';
 import Connector from '../types/Connector';
 import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
-import ChargingStationStorage from '../storage/mongodb/ChargingStationStorage';
 
 export default class Authorizations {
 
@@ -93,7 +92,7 @@ export default class Authorizations {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       const tenant = await TenantStorage.getTenant(tenantID);
       tenantHashID = SessionHashService.buildTenantHashID(tenant);
-      activeComponents = Utils.tenantActiveComponents(tenant);
+      activeComponents = Utils.getTenantActiveComponents(tenant);
     }
 
     return {
@@ -205,24 +204,22 @@ export default class Authorizations {
   public static async isTagIDAuthorizedOnChargingStation(tenantID: string, chargingStation: ChargingStation, tagID: string, action: string) {
     // Get the Organization component
     const tenant = await TenantStorage.getTenant(tenantID);
-    const isOrgCompActive = Utils.tenantComponentActive(tenant, Constants.COMPONENTS.ORGANIZATION);
+    const isOrgCompActive = Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.ORGANIZATION);
     // Org component enabled?
     if (isOrgCompActive) {
       let foundSiteArea = true;
       // Site Area -----------------------------------------------
-      if(! chargingStation.siteAreaID) {
+      if (!chargingStation.siteAreaID) {
         foundSiteArea = false;
-      } else {
-        if(! chargingStation.siteArea) {
-          chargingStation.siteArea =
-            await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID, {withSite: true});
-          if(! chargingStation.siteArea) {
-            foundSiteArea = false;
-          }
+      } else if (!chargingStation.siteArea) {
+        chargingStation.siteArea =
+          await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID, {withSite: true});
+        if (!chargingStation.siteArea) {
+          foundSiteArea = false;
         }
       }
       // Site is mandatory
-      if (! foundSiteArea) {
+      if (!foundSiteArea) {
         // Reject Site Not Found
         throw new AppError(
           chargingStation.id,
@@ -289,7 +286,7 @@ export default class Authorizations {
           // Not Check if Alternate User belongs to a Site --------------------------------
           // Organization component active?
           const tenant = await TenantStorage.getTenant(tenantID);
-          const isOrgCompActive = Utils.tenantComponentActive(tenant, Constants.COMPONENTS.ORGANIZATION);
+          const isOrgCompActive = Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.ORGANIZATION);
           if (isOrgCompActive) {
             // Get the site (site existence is already checked by isTagIDAuthorizedOnChargingStation())
             const site: Site = chargingStation.siteArea.site;
@@ -303,16 +300,14 @@ export default class Authorizations {
                 'Authorizations', 'isTagIDsAuthorizedOnChargingStation', action,
                 (alternateUser ? alternateUser : null), (user ? user : null));
             }
-          } else {
             // Only Admins can stop a transaction when org is not active
-            if (!Authorizations.isAdmin(alternateUser.role)) {
-              // Reject the User
-              throw new BackendError(
-                chargingStation.id,
-                `User '${Utils.buildUserFullName(alternateUser)}' is not allowed to perform 'Stop Transaction' on User '${Utils.buildUserFullName(user)}'!`,
-                'Authorizations', 'isTagIDsAuthorizedOnChargingStation', action,
-                (alternateUser ? alternateUser : null), (user ? user : null));
-            }
+          } else if (!Authorizations.isAdmin(alternateUser.role)) {
+            // Reject the User
+            throw new BackendError(
+              chargingStation.id,
+              `User '${Utils.buildUserFullName(alternateUser)}' is not allowed to perform 'Stop Transaction' on User '${Utils.buildUserFullName(user)}'!`,
+              'Authorizations', 'isTagIDsAuthorizedOnChargingStation', action,
+              (alternateUser ? alternateUser : null), (user ? user : null));
           }
         }
       }
@@ -688,7 +683,7 @@ export default class Authorizations {
       user.id = await UserStorage.saveUser(tenantID, user);
       // Save TagIDs
       await UserStorage.saveUserTags(tenantID, user.id, [tagID]);
-      // Notify
+      // Notify (Async)
       NotificationHandler.sendUnknownUserBadged(
         tenantID,
         Utils.generateGUID(),

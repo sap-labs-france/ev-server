@@ -86,6 +86,7 @@ export default class Constants {
   public static readonly ENTITY_CONNECTION = 'Connection';
   public static readonly ENTITY_CONNECTIONS = 'Connections';
 
+  public static readonly VENDOR_SCHNEIDER = 'Schneider Electric';
 
   public static readonly NOTIF_TYPE_CHARGING_STATION_CONFIGURATION = 'Configuration';
 

@@ -4,7 +4,6 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
-import Tenant from '../../types/Tenant';
 import OCPIEndpoint from '../../entity/OCPIEndpoint';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 

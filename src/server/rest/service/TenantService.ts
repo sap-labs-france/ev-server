@@ -181,6 +181,7 @@ export default class TenantService {
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.subdomain) +
       '/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
       tenantUser.email;
+    // Send Register User (Async)
     NotificationHandler.sendNewRegisteredUser(
       filteredRequest.id,
       Utils.generateGUID(),
@@ -192,7 +193,7 @@ export default class TenantService {
       },
       tenantUser.locale
     );
-    // Send temporary password
+    // Send password (Async)
     NotificationHandler.sendNewPassword(
       filteredRequest.id,
       Utils.generateGUID(),

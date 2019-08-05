@@ -185,7 +185,8 @@ export default class TransactionService {
             `Charging Station with ID ${transaction.getChargeBoxID()} does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
             'TransactionService', 'handleDeleteTransaction', req.user);
         }
-        const foundConnector = chargingStation.connectors.find((connector) => connector.connectorId === transaction.getConnectorId());
+        const foundConnector = chargingStation.connectors.find(
+          (connector) => connector.connectorId === transaction.getConnectorId());
         if (foundConnector && transaction.getID() === foundConnector.activeTransactionID) {
           await OCPPUtils.checkAndFreeChargingStationConnector(req.user.tenantID, chargingStation, transaction.getConnectorId());
           await ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);

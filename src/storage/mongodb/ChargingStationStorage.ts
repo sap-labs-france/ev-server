@@ -115,7 +115,7 @@ export default class ChargingStationStorage {
     let facets: any = { $facet:{} };
     if (params.errorType && !params.errorType.includes('all')) {
       // Check allowed
-      if (!Utils.tenantComponentActive(await TenantStorage.getTenant(tenantID), Constants.COMPONENTS.ORGANIZATION) && params.errorType.includes('missingSiteArea')) {
+      if (!Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), Constants.COMPONENTS.ORGANIZATION) && params.errorType.includes('missingSiteArea')) {
         throw new BackendError(null, 'Organization is not active whereas filter is on missing site.',
           'ChargingStationStorage', 'getChargingStationsInError');
       }
@@ -133,7 +133,7 @@ export default class ChargingStationStorage {
           'connectorError': ChargingStationStorage._buildChargerInErrorFacet('connectorError'),
         }
       };
-      if (Utils.tenantComponentActive(await TenantStorage.getTenant(tenantID), Constants.COMPONENTS.ORGANIZATION)) {
+      if (Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), Constants.COMPONENTS.ORGANIZATION)) {
         // Add facet for missing Site Area ID
         facets.$facet.missingSiteArea = ChargingStationStorage._buildChargerInErrorFacet('missingSiteArea');
       }
@@ -342,8 +342,10 @@ export default class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStationHeartBeat');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Set data
     const updatedFields: any = {};
     updatedFields['lastHeartBeat'] = Utils.convertToDate(chargingStation.lastHeartBeat);
+    updatedFields['currentIPAddress'] = chargingStation.currentIPAddress;
     // Modify and return the modified document
     const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': chargingStation.id },

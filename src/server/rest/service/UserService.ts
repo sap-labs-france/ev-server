@@ -248,7 +248,7 @@ export default class UserService {
     });
     // Notify
     if (statusHasChanged) {
-      // Send notification
+      // Send notification (Async)
       NotificationHandler.sendUserAccountStatusChanged(
         req.user.tenantID,
         Utils.generateGUID(),

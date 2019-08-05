@@ -12,15 +12,9 @@ import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UtilsService from './UtilsService';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import buildChargingStationClient from '../../../client/ocpp/ChargingStationClientFactory';
-import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
-import Utils from '../../../utils/Utils';
-import BackendError from '../../../exception/BackendError';
-import OCPPConstants from '../../ocpp/utils/OCPPConstants';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import { HttpChargingStationCommandRequest } from '../../../types/requests/HttpChargingStationRequest';
 import Configuration from '../../../utils/Configuration';
-import OCPPService from '../../ocpp/services/OCPPService';
 
 export default class ChargingStationService {
 
@@ -252,9 +246,8 @@ export default class ChargingStationService {
         'ChargingStationService', 'handleDeleteChargingStation', req.user);
     }
     // Check no active transaction
-    const foundIndex = chargingStation.connectors.findIndex((connector) => {
-      return (connector ? connector.activeTransactionID > 0 : false);
-    });
+    const foundIndex = chargingStation.connectors.findIndex(
+      (connector) => connector ? connector.activeTransactionID > 0 : false);
     if (foundIndex >= 0) {
       // Can' t be deleted
       throw new AppError(

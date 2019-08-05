@@ -778,7 +778,7 @@ export default class Utils {
     return null;
   }
 
-  public static tenantActiveComponents(tenant: Tenant): string[] {
+  public static getTenantActiveComponents(tenant: Tenant): string[] {
     let components: string[] = [];
     for(let componentName in tenant.components) {
       if(tenant.components[componentName].active)
@@ -787,7 +787,7 @@ export default class Utils {
     return components;
   }
 
-  public static tenantComponentActive(tenant: Tenant, component: string): boolean {
+  public static isTenantComponentActive(tenant: Tenant, component: string): boolean {
     for(let componentName in tenant.components) {
       if(componentName===component) {
         return tenant.components[componentName].active;
