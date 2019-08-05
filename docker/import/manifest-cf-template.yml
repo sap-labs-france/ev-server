@@ -1,0 +1,9 @@
+applications:
+- name: ev-mongo-tools
+  memory: 2048M
+  disk_quota: 4096M
+  instances: 1
+  host: ev-mongo-tools
+  services:
+  - sap-ev-db
+

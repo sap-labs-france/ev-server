@@ -14,7 +14,6 @@ import UtilsService from './UtilsService';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import { HttpChargingStationCommandRequest } from '../../../types/requests/HttpChargingStationRequest';
-import Configuration from '../../../utils/Configuration';
 
 export default class ChargingStationService {
 
@@ -88,7 +87,7 @@ export default class ChargingStationService {
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.id);
     // Check
     UtilsService.assertObjectExists(chargingStation, `ChargingStation '${filteredRequest.id}' doesn't exist.`,
-        'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
+      'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
     // Get the Site Area
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, chargingStation.siteAreaID);
     // Check Auth
@@ -150,7 +149,7 @@ export default class ChargingStationService {
     chargingStation.lastChangedBy = { 'id': req.user.id };
     chargingStation.lastChangedOn = new Date();
     // Update
-    ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);
+    await ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -177,7 +176,7 @@ export default class ChargingStationService {
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
     // Found?
     UtilsService.assertObjectExists(chargingStation, `ChargingStation '${filteredRequest.ChargeBoxID}' doesn't exist anymore.`,
-        'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
+      'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
     // Check auth
     if (!Authorizations.canReadChargingStation(req.user)) {
       throw new AppAuthError(
@@ -210,7 +209,7 @@ export default class ChargingStationService {
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.ChargeBoxID);
     // Found?
     UtilsService.assertObjectExists(chargingStation, `ChargingStation '${filteredRequest.ChargeBoxID}' doesn't exist anymore.`,
-        'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
+      'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
     // Get the Config
     const result = await OCPPUtils.requestAndSaveChargingStationConfiguration(req.user.tenantID, chargingStation);
     // Ok
@@ -333,13 +332,13 @@ export default class ChargingStationService {
       if (err) {
         throw err;
       }
-      res.download(filename, (err) => {
-        if (err) {
-          throw err;
+      res.download(filename, (err2) => {
+        if (err2) {
+          throw err2;
         }
-        fs.unlink(filename, (err) => {
-          if (err) {
-            throw err;
+        fs.unlink(filename, (err3) => {
+          if (err3) {
+            throw err3;
           }
         });
       });
@@ -347,12 +346,13 @@ export default class ChargingStationService {
   }
 
   public static async handleGetChargingStationsInError(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
-    if (! req.query.ErrorType) {
+    if (!req.query.ErrorType) {
       req.query.ErrorType = ['all'];
     } else {
       req.query.ErrorType = req.query.ErrorType.split('|');
     }
-    ChargingStationService.handleGetChargingStations(action, req, res, next);
+    const chargingStationsInError = await ChargingStationService.handleGetChargingStations(action, req, res, next);
+    return chargingStationsInError;
   }
 
   public static async handleGetStatusNotifications(action: string, req: Request, res: Response, next: NextFunction) {
@@ -450,7 +450,7 @@ export default class ChargingStationService {
           Constants.HTTP_USER_NO_BADGE_ERROR,
           'ChargingStationService', 'handleAction', req.user, null, action);
       }
-      // Check if user is authorized -- TODO: Nothing is being done with the returned User?
+      // Check if user is authorized
       await Authorizations.isTagIDAuthorizedOnChargingStation(req.user.tenantID, chargingStation, filteredRequest.args.tagID, action);
       // Ok: Execute it
       result = await this._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
@@ -574,24 +574,6 @@ export default class ChargingStationService {
     next();
   }
 
-  public static chargingStationIsInactive(chargingStation: ChargingStation): boolean {
-    let inactive = false;
-    // Get Heartbeat Interval from conf
-    const config = Configuration.getChargingStationConfig();
-    if (config) {
-      const heartbeatIntervalSecs = config.heartbeatIntervalSecs;
-      // Compute against the last Heartbeat
-      if (chargingStation.lastHeartBeat) {
-        const inactivitySecs = Math.floor((Date.now() - chargingStation.lastHeartBeat.getTime()) / 1000);
-        // Inactive?
-        if (inactivitySecs > (heartbeatIntervalSecs * 5)) {
-          inactive = true;
-        }
-      }
-    }
-    return inactive;
-  }
-
   private static async _getChargingStations(req: Request): Promise<{count: number, result: ChargingStation[]}> {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
@@ -623,12 +605,13 @@ export default class ChargingStationService {
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
     );
     chargingStations.result.forEach((chargingStation) => {
-      chargingStation.inactive = ChargingStationService.chargingStationIsInactive(chargingStation);
+      chargingStation.inactive = OCPPUtils.getIfChargingStationIsInactive(chargingStation);
     });
     // Build the result
     if (chargingStations.result && chargingStations.result.length > 0) {
       // Filter
-      ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user, req.user.activeComponents.includes(Constants.COMPONENTS.ORGANIZATION));
+      ChargingStationSecurity.filterChargingStationsResponse(
+        chargingStations, req.user, req.user.activeComponents.includes(Constants.COMPONENTS.ORGANIZATION));
     }
     return chargingStations;
   }
@@ -692,5 +675,4 @@ export default class ChargingStationService {
         return await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'updateFirmware', args);
     }
   }
-
 }

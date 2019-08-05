@@ -45,6 +45,7 @@ export default class OCPPCommonTests {
   public validTag: any;
   public invalidTag: any;
   public anyUser: any;
+  public createdUsers: any[] = [];
 
   public constructor(tenantContext, centralUserContext, createAnyUser = false) {
     expect(tenantContext).to.exist;
@@ -109,12 +110,12 @@ export default class OCPPCommonTests {
         max: 500
       });
     }).concat([0, 0]);
-    this.transactionMeterSoCValues = Array.from({ length: 10 }, () => {
+    this.transactionMeterSoCValues = Array.from({ length: 8 }, () => {
       return faker.random.number({
-        min: 0,
+        min: 10,
         max: 90
       });
-    }).concat([98, 99, 100, 100]).sort((a, b) => {
+    }).concat([8, 8, 98, 99, 100, 100]).sort((a, b) => {
       return (a - b);
     });
     this.transactionStartSoC = this.transactionMeterSoCValues[0];
@@ -136,6 +137,10 @@ export default class OCPPCommonTests {
     this.numberTag = faker.random.number(10000);
     if (this.createAnyUser) {
       this.anyUser = await this.createUser(Factory.user.build({ tagIDs: [this.validTag, this.invalidTag, this.numberTag.toString()] }));
+      if (!this.createdUsers) {
+        this.createdUsers = [];
+      }
+      this.createdUsers.push(this.anyUser);
     }
   }
 
@@ -143,9 +148,11 @@ export default class OCPPCommonTests {
     if (this.currentPricingSetting) {
       await this.centralUserService.settingApi.update(this.currentPricingSetting);
     }
-    if (this.anyUser) {
-      await this.centralUserService.deleteEntity(
-        this.centralUserService.userApi, this.anyUser);
+    if (this.createdUsers && Array.isArray(this.createdUsers)) {
+      this.createdUsers.forEach(async (user) => {
+        await this.centralUserService.deleteEntity(
+          this.centralUserService.userApi, user);
+      });
     }
   }
 
@@ -468,11 +475,9 @@ export default class OCPPCommonTests {
       });
       if (withSoC) {
         // Check
-        if (value.stateOfCharge || i > 0) {
-          expect(value).to.include({
-            'stateOfCharge': (i > 0 ? this.transactionMeterSoCValues[i - 1] : this.transactionStartSoC)
-          });
-        }
+        expect(value).to.include({
+          'stateOfCharge': (i > 0 ? this.transactionMeterSoCValues[i - 1] : this.transactionStartSoC)
+        });
       }
       // Add time
       transactionCurrentTime.add(this.transactionMeterValueIntervalSecs, 's');
@@ -547,6 +552,7 @@ export default class OCPPCommonTests {
     expect(usersResponse.status).eq(200);
     expect(usersResponse.data.count).eq(1);
     const user = usersResponse.data.result[0];
+    this.createdUsers.push(user);
     expect(user.name).eq('Unknown');
     expect(user.firstName).eq('User');
     expect(user.email).eq(`${unknownTag}@e-mobility.com`);

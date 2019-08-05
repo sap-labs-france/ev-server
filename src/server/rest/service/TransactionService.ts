@@ -4,7 +4,6 @@ import moment from 'moment';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
-import ChargingStation from '../../../types/ChargingStation';
 import ConcurConnector from '../../../integration/refund/ConcurConnector';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
@@ -12,14 +11,11 @@ import Logging from '../../../utils/Logging';
 import OCPPService from '../../../server/ocpp/services/OCPPService';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import SynchronizeRefundTransactionsTask from '../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
-import Tenant from '../../../types/Tenant';
 import TransactionSecurity from './security/TransactionSecurity';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import ChargingStationService from './ChargingStationService';
-import Transaction from '../../../entity/Transaction';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 
@@ -188,7 +184,7 @@ export default class TransactionService {
         const foundConnector = chargingStation.connectors.find(
           (connector) => connector.connectorId === transaction.getConnectorId());
         if (foundConnector && transaction.getID() === foundConnector.activeTransactionID) {
-          await OCPPUtils.checkAndFreeChargingStationConnector(req.user.tenantID, chargingStation, transaction.getConnectorId());
+          OCPPUtils.checkAndFreeChargingStationConnector(req.user.tenantID, chargingStation, transaction.getConnectorId());
           await ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);
         }
       }

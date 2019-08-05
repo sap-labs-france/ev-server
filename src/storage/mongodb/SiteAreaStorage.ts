@@ -1,6 +1,5 @@
 import { ObjectID } from 'mongodb';
 import BackendError from '../../exception/BackendError';
-import ChargingStation from '../../types/ChargingStation';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
@@ -41,8 +40,8 @@ export default class SiteAreaStorage {
     await Utils.checkTenant(tenantID);
     // Exec
     const siteAreaResult = await SiteAreaStorage.getSiteAreas(
-      tenantID, { siteAreaID: id,
-        withSite: params.withSite, withChargeBoxes: params.withChargeBoxes, withAvailableChargers: true },
+      tenantID,
+      { siteAreaID: id, withSite: params.withSite, withChargeBoxes: params.withChargeBoxes, withAvailableChargers: true },
       { limit: 1, skip: 0, onlyRecordCount: false }
     );
     // Debug
@@ -105,13 +104,17 @@ export default class SiteAreaStorage {
     // Set the filters
     const filters: any = {};
     // Query by Site Area ID if available
-    if (params.siteAreaID && ObjectID.isValid(params.siteAreaID)) {
+    if (params.siteAreaID) {
       filters._id = Utils.convertToObjectID(params.siteAreaID);
     // Otherwise check if search is present
     } else if (params.search) {
-      filters.$or = [
-        { 'name': { $regex: params.search, $options: 'i' } }
-      ];
+      if (ObjectID.isValid(params.search)) {
+        filters._id = Utils.convertToObjectID(params.search);
+      } else {
+        filters.$or = [
+          { 'name': { $regex: params.search, $options: 'i' } }
+        ];
+      }
     }
     // Set Site thru a filter in the dashboard
     if (params.siteIDs && Array.isArray(params.siteIDs) && params.siteIDs.length > 0) {
@@ -210,50 +213,15 @@ export default class SiteAreaStorage {
     if (siteAreasMDB && siteAreasMDB.length > 0) {
       // Create
       for (const siteAreaMDB of siteAreasMDB) {
-        // pragma let chargingStations: ChargingStation[];
-        let availableChargers = 0, totalChargers = 0, availableConnectors = 0, totalConnectors = 0;
         // Count Available/Occupied Chargers/Connectors
         if (params.withAvailableChargers) {
-          // Chargers
-          for (const chargeBox of siteAreaMDB.chargingStations) {
-            // Check not deleted
-            if (chargeBox.deleted) {
-              continue;
-            }
-            // Set Inactive flag
-            chargeBox.inactive = DatabaseUtils.chargingStationIsInactive(chargeBox);
-            totalChargers++;
-            // Handle Connectors
-            if(! chargeBox.connectors) {
-              chargeBox.connectors = [];
-            }
-            for (const connector of chargeBox.connectors) {
-              if (!connector) {
-                continue;
-              }
-              totalConnectors++;
-              // Check if Available
-              if (!chargeBox.inactive && connector.status === Constants.CONN_STATUS_AVAILABLE) {
-                availableConnectors++;
-              }
-            }
-            // Handle Chargers
-            for (const connector of chargeBox.connectors) {
-              if (!connector) {
-                continue;
-              }
-              // Check if Available
-              if (!chargeBox.inactive && connector.status === Constants.CONN_STATUS_AVAILABLE) {
-                availableChargers++;
-                break;
-              }
-            }
-          }
+          // Get the Charging Stations' Connector statuses
+          const connectorStats = Utils.getConnectorStatusesFromChargingStations(siteAreaMDB.chargingStations);
           // Set
-          siteAreaMDB.availableChargers = availableChargers;
-          siteAreaMDB.totalChargers = totalChargers;
-          siteAreaMDB.availableConnectors = availableConnectors;
-          siteAreaMDB.totalConnectors = totalConnectors;
+          siteAreaMDB.availableChargers = connectorStats.availableChargers;
+          siteAreaMDB.totalChargers = connectorStats.totalChargers;
+          siteAreaMDB.availableConnectors = connectorStats.availableConnectors;
+          siteAreaMDB.totalConnectors = connectorStats.totalConnectors;
         }
         // Chargers
         if (!params.withChargeBoxes && siteAreaMDB.chargingStations) {

@@ -18,7 +18,7 @@ export default class SiteStorage {
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getSite');
     // Query single Site
     const sitesMDB = await SiteStorage.getSites(tenantID, {
-      siteIDs: [id],
+      siteID: id,
       withCompany: true,
     }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
@@ -279,7 +279,7 @@ export default class SiteStorage {
   public static async getSites(tenantID: string,
     params: {
       search?: string; companyIDs?: string[]; withAutoUserAssignment?: boolean; siteIDs?: string[];
-      userID?: string; excludeSitesOfUserID?: boolean;
+      userID?: string; excludeSitesOfUserID?: boolean; siteID?: string;
       withAvailableChargers?: boolean; withCompany?: boolean; } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: Site[]}> {
     // Debug
@@ -294,7 +294,9 @@ export default class SiteStorage {
     const aggregation = [];
     // Search filters
     const filters: any = {};
-    if (params.search) {
+    if (params.siteID) {
+      filters._id = Utils.convertToObjectID(params.siteID);
+    } else if (params.search) {
       if (ObjectID.isValid(params.search)) {
         filters._id = Utils.convertToObjectID(params.search);
       } else {
@@ -401,34 +403,16 @@ export default class SiteStorage {
       for (const siteMDB of sitesMDB) {
         // Count Available/Occupied Chargers/Connectors
         if (params.withAvailableChargers) {
-          let availableChargers = 0, totalChargers = 0, availableConnectors = 0, totalConnectors = 0;
           // Get the chargers
           const chargingStations = await ChargingStationStorage.getChargingStations(tenantID,
             { siteIDs: [siteMDB.id], includeDeleted: false }, Constants.DB_PARAMS_MAX_LIMIT);
-          for (const chargingStation of chargingStations.result) {
-            totalChargers++;
-            // Handle Connectors
-            for (const connector of chargingStation.connectors) {
-              totalConnectors++;
-              // Check Available
-              if (!chargingStation.inactive && connector.status === Constants.CONN_STATUS_AVAILABLE) {
-                availableConnectors++;
-              }
-            }
-            // Handle Chargers
-            for (const connector of chargingStation.connectors) {
-              // Check Available
-              if (!chargingStation.inactive && connector.status === Constants.CONN_STATUS_AVAILABLE) {
-                availableChargers++;
-                break;
-              }
-            }
-          }
+          // Get the Charging Stations' Connector statuses
+          const connectorStats = Utils.getConnectorStatusesFromChargingStations(chargingStations.result);
           // Set
-          siteMDB.availableChargers = availableChargers;
-          siteMDB.totalChargers = totalChargers;
-          siteMDB.availableConnectors = availableConnectors;
-          siteMDB.totalConnectors = totalConnectors;
+          siteMDB.availableChargers = connectorStats.availableChargers;
+          siteMDB.totalChargers = connectorStats.totalChargers;
+          siteMDB.availableConnectors = connectorStats.availableConnectors;
+          siteMDB.totalConnectors = connectorStats.totalConnectors;
         }
         if (!siteMDB.allowAllUsersToStopTransactions) {
           siteMDB.allowAllUsersToStopTransactions = false;

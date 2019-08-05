@@ -515,7 +515,7 @@ export default class TransactionStorage {
               $match: {
                 $and: [
                   { 'stop': { $exists: true } },
-                  { 'stop.totalInactivitySecs': { $lt: 0} }
+                  { 'stop.totalInactivitySecs': { $lt: 0 } }
                 ]
               }
             },

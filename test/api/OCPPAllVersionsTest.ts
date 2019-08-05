@@ -74,7 +74,7 @@ describe('OCPP tests (all versions)', function() {
           await testData.ocppCommonTests.testAuthorizeInvalidTag();
         });
 
-        it('Unknown Badge ID should create an unknown user ', async () => {
+        it('With unknown badge ID should create an unknown user', async () => {
           await testData.ocppCommonTests.testAuthorizeUnknownTag();
         });
 
@@ -199,7 +199,7 @@ describe('OCPP tests (all versions)', function() {
           await testData.ocppCommonTests.testAuthorizeInvalidTag();
         });
 
-        it('Unknown Badge ID should create an unknown user ', async () => {
+        it('With unknown badge ID should create an unknown user', async () => {
           await testData.ocppCommonTests.testAuthorizeUnknownTag();
         });
 
@@ -646,7 +646,7 @@ describe('OCPP tests (all versions)', function() {
           await testData.ocppCommonTests.testAuthorizeInvalidTag();
         });
 
-        it('Unknown Badge ID should create an unknown user ', async () => {
+        it('With unknown badge ID should create an unknown user', async () => {
           await testData.ocppCommonTests.testAuthorizeUnknownTag();
         });
 
@@ -836,7 +836,7 @@ describe('OCPP tests (all versions)', function() {
           await testData.ocppCommonTests.testAuthorizeInvalidTag();
         });
 
-        it('Unknown Badge ID should create an unknown user ', async () => {
+        it('With unknown badge ID should create an unknown user', async () => {
           await testData.ocppCommonTests.testAuthorizeUnknownTag();
         });
 

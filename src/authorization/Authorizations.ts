@@ -114,7 +114,8 @@ export default class Authorizations {
     };
   }
 
-  public static async getConnectorActionAuthorizations(params: { tenantID: string; user: UserToken; chargingStation: ChargingStation; connector: Connector; siteArea: SiteArea; site: Site }) {
+  public static async getConnectorActionAuthorizations(
+      params: { tenantID: string; user: UserToken; chargingStation: ChargingStation; connector: Connector; siteArea: SiteArea; site: Site }) {
     const tenant: Tenant = await TenantStorage.getTenant(params.tenantID);
     if (!tenant) {
       throw new BackendError('Authorizations.ts#getConnectorActionAuthorizations', 'Tenant null');
@@ -234,8 +235,9 @@ export default class Authorizations {
         return;
       }
       // Site -----------------------------------------------------
-      // TODO: consider changing structure of CS->SA->S entirely; It's a little inconvenient that sometimes CS includes SA with includes S, which can also include SA, but not always
-      chargingStation.siteArea.site = chargingStation.siteArea.site ? chargingStation.siteArea.site : (chargingStation.siteArea.siteID ? await SiteStorage.getSite(tenantID, chargingStation.siteArea.siteID) : null);
+      chargingStation.siteArea.site = chargingStation.siteArea.site ?
+        chargingStation.siteArea.site : (chargingStation.siteArea.siteID ?
+          await SiteStorage.getSite(tenantID, chargingStation.siteArea.siteID) : null);
       if (!chargingStation.siteArea.site) {
         // Reject Site Not Found
         throw new AppError(

@@ -347,20 +347,24 @@ export default class UserStorage {
       }]
     };
     // Filter by ID
-    if (params.userID && ObjectID.isValid(params.userID)) {
+    if (params.userID) {
       filters.$and.push({ _id: Utils.convertToObjectID(params.userID) });
-    }
     // Filter by other properties
-    else if (params.search) {
-      filters.$and.push({
-        '$or': [
-          { 'name': { $regex: params.search, $options: 'i' } },
-          { 'firstName': { $regex: params.search, $options: 'i' } },
-          { 'tagIDs': { $regex: params.search, $options: 'i' } },
-          { 'email': { $regex: params.search, $options: 'i' } },
-          { 'plateID': { $regex: params.search, $options: 'i' } }
-        ]
-      });
+    } else if (params.search) {
+      // Search is an ID?
+      if (ObjectID.isValid(params.search)) {
+        filters.$and.push({ _id: Utils.convertToObjectID(params.search) });
+      } else {
+        filters.$and.push({
+          '$or': [
+            { 'name': { $regex: params.search, $options: 'i' } },
+            { 'firstName': { $regex: params.search, $options: 'i' } },
+            { 'tagIDs': { $regex: params.search, $options: 'i' } },
+            { 'email': { $regex: params.search, $options: 'i' } },
+            { 'plateID': { $regex: params.search, $options: 'i' } }
+          ]
+        });
+      }
     }
     // Email
     if (params.email) {

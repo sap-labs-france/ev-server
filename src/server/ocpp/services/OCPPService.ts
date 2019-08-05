@@ -603,7 +603,6 @@ export default class OCPPService {
         if (pricingImpl) {
           // Set
           pricedConsumption = await pricingImpl.stopSession(consumption);
-
           if (pricedConsumption) {
             // Update consumption
             consumption.amount = pricedConsumption.amount;
@@ -629,38 +628,36 @@ export default class OCPPService {
 
   async _updateChargingStationConsumption(tenantID: string, chargingStation: ChargingStation, transaction: Transaction) {
     // Get the connector
-    const connector = chargingStation.connectors.find(
-      (connector)=> connector.connectorId === transaction.getConnectorId());
+    const foundConnector = chargingStation.connectors.find(
+      (connector) => connector.connectorId === transaction.getConnectorId());
     // Active transaction?
-    if (transaction.isActive() && connector) {
+    if (transaction.isActive() && foundConnector) {
       // Set consumption
-      connector.currentConsumption = transaction.getCurrentConsumption();
-      connector.totalConsumption = transaction.getCurrentTotalConsumption();
-      connector.totalInactivitySecs = transaction.getCurrentTotalInactivitySecs();
-      connector.currentStateOfCharge = transaction.getCurrentStateOfCharge();
-      connector.totalInactivitySecs = transaction.getCurrentTotalInactivitySecs();
+      foundConnector.currentConsumption = transaction.getCurrentConsumption();
+      foundConnector.totalConsumption = transaction.getCurrentTotalConsumption();
+      foundConnector.totalInactivitySecs = transaction.getCurrentTotalInactivitySecs();
+      foundConnector.currentStateOfCharge = transaction.getCurrentStateOfCharge();
+      foundConnector.totalInactivitySecs = transaction.getCurrentTotalInactivitySecs();
       // Set Transaction ID
-      connector.activeTransactionID = transaction.getID();
+      foundConnector.activeTransactionID = transaction.getID();
       // Update Heartbeat
       chargingStation.lastHeartBeat = new Date();
       // Handle End Of charge
       await this._checkNotificationEndOfCharge(tenantID, chargingStation, transaction);
-    } else {
-      // Cleanup connector transaction data
-      if(connector){
-        connector.currentConsumption = 0;
-        connector.totalConsumption = 0;
-        connector.totalInactivitySecs = 0;
-        connector.currentStateOfCharge = 0;
-        connector.activeTransactionID = 0;
-      }
+    // Cleanup connector transaction data
+    } else if (foundConnector) {
+      foundConnector.currentConsumption = 0;
+      foundConnector.totalConsumption = 0;
+      foundConnector.totalInactivitySecs = 0;
+      foundConnector.currentStateOfCharge = 0;
+      foundConnector.activeTransactionID = 0;
     }
     // Log
     Logging.logInfo({
       tenantID: tenantID,
       source: chargingStation.id, module: 'OCPPService',
       method: 'updateChargingStationConsumption', action: 'ChargingStationConsumption',
-      message: `Connector '${connector.connectorId}' - Consumption ${connector.currentConsumption}, Total: ${connector.totalConsumption}, SoC: ${connector.currentStateOfCharge}`
+      message: `Connector '${foundConnector.connectorId}' - Consumption ${foundConnector.currentConsumption}, Total: ${foundConnector.totalConsumption}, SoC: ${foundConnector.currentStateOfCharge}`
     });
   }
 
@@ -758,12 +755,12 @@ export default class OCPPService {
   }
 
   // Build duration
-  _buildCurrentTransactionDuration(transaction) {
+  _buildCurrentTransactionDuration(transaction): string {
     return moment.duration(transaction.getCurrentTotalDurationSecs(), 's').format('h[h]mm', { trim: false });
   }
 
   // Build duration
-  _buildTransactionDuration(transaction) {
+  _buildTransactionDuration(transaction): string {
     return moment.duration(transaction.getStopTotalDurationSecs(), 's').format('h[h]mm', { trim: false });
   }
 
@@ -1030,9 +1027,9 @@ export default class OCPPService {
         OCPPUtils.lockAllConnectors(chargingStation);
       }
       // Clean up Charger's connector transaction info
-      let foundConnector = chargingStation.connectors.find(
+      const foundConnector = chargingStation.connectors.find(
         (connector) => connector.connectorId === transaction.getConnectorId());
-      if (foundConnector){
+      if (foundConnector) {
         foundConnector.currentConsumption = 0;
         foundConnector.totalConsumption = 0;
         foundConnector.totalInactivitySecs = 0;
@@ -1230,7 +1227,8 @@ export default class OCPPService {
           (alternateUser ? (user ? user : null) : null));
       }
       // Check and free the connector
-      await OCPPUtils.checkAndFreeChargingStationConnector(headers.tenantID, chargingStation, transaction.getConnectorId(), false);
+      await OCPPUtils.checkAndFreeChargingStationConnector(
+        headers.tenantID, chargingStation, transaction.getConnectorId(), false);
       // Update Heartbeat
       chargingStation.lastHeartBeat = new Date();
       // Save Charger
