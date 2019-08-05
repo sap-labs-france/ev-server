@@ -393,7 +393,11 @@ export default class Utils {
   }
 
   public static getRequestIP(request): string {
-    if (request.connection.remoteAddress) {
+    if (request.ip) {
+      return request.ip;
+    } else if (request.headers['x-forwarded-for']) {
+      return request.headers['x-forwarded-for'];
+    } else if (request.connection.remoteAddress) {
       return request.connection.remoteAddress;
     } else if (request.headers.host) {
       const host = request.headers.host.split(':', 2);
