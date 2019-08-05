@@ -13,7 +13,7 @@ export default class ChargingStationSecurity {
   public static filterAssignChargingStationsToSiteAreaRequest(request: Partial<HttpAssignChargingStationToSiteAreaRequest>): HttpAssignChargingStationToSiteAreaRequest {
     return {
       siteAreaID: sanitize(request.siteAreaID),
-      chargingStationIDs: request.chargingStationIDs.map(id => sanitize(id))
+      chargingStationIDs: request.chargingStationIDs.map(sanitize)
     };
   }
 

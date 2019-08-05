@@ -16,10 +16,10 @@ import SiteContext from './SiteContext';
 import SiteStorage from '../../storage/mongodb/SiteStorage';
 import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
+import TenantStorage from '../../../src/storage/mongodb/TenantStorage';
 import User from '../../types/User';
 import UserFactory from '../../factories/UserFactory';
 import UserStorage from '../../storage/mongodb/UserStorage';
-import TenantStorage from '../../../src/storage/mongodb/TenantStorage';
 
 const NBR_USERS = 10; // Number of total users : they are all connected to the sites
 const NBR_COMPANIES = 5; // Number of companies

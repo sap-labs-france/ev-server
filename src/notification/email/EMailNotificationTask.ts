@@ -8,8 +8,8 @@ import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import NotificationTask from '../NotificationTask';
 import Tenant from '../../types/Tenant';
-import Utils from '../../utils/Utils';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
+import Utils from '../../utils/Utils';
 
 
 // Email

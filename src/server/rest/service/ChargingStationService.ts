@@ -14,7 +14,6 @@ import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UtilsService from './UtilsService';
-import { HttpChargingStationCommandRequest } from '../../../types/requests/HttpChargingStationRequest';
 
 export default class ChargingStationService {
 

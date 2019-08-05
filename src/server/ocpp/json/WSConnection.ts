@@ -6,8 +6,8 @@ import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import OCPPError from '../../../exception/OcppError';
-import Utils from '../../../utils/Utils';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'WSConnection';
 export default class WSConnection {
@@ -256,8 +256,8 @@ export default class WSConnection {
       } else {
         // Send timeout
         setTimeout(() => rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${Tenant.getTenant(this.tenantID).then((Tnt) => Tnt.getName())})`), Constants.OCPP_SOCKET_TIMEOUT);
-          return rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${TenantStorage.getTenant(this.tenantID).then(
-            (tenant) => tenant.name)})'`);
+        return rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${TenantStorage.getTenant(this.tenantID).then(
+          (tenant) => tenant.name)})'`);
       }
 
       // Function that will receive the request's response

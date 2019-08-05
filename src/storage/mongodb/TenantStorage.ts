@@ -2,11 +2,11 @@ import { ObjectID } from 'mongodb';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
-import DbParams from '../../types/database/DbParams';
 
 export default class TenantStorage {
   public static async getTenant(id: string): Promise<Tenant> {
@@ -49,13 +49,13 @@ export default class TenantStorage {
       tenantFilter._id = new ObjectID();
     }
     // Properties to save
-    let tenantMDB = {
+    const tenantMDB = {
       _id: tenantFilter._id,
       name: tenantToSave.name,
       email: tenantToSave.email,
       subdomain: tenantToSave.subdomain,
       components: tenantToSave.components ? tenantToSave.components : {}
-    }
+    };
     DatabaseUtils.addLastChangedCreatedProps(tenantMDB, tenantToSave);
     // Modify
     const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants').findOneAndUpdate(

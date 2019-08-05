@@ -2,9 +2,9 @@ import chai from 'chai';
 import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
 import responseHelper from '../helpers/responseHelper';
+import chargingStationContext from './contextProvider/ChargingStationContext';
 import CONTEXTS from './contextProvider/ContextConstants';
 import ContextProvider from './contextProvider/ContextProvider';
-import chargingStationContext from './contextProvider/ChargingStationContext';
 import TransactionCommonTests from './TransactionCommonTests';
 
 chai.use(chaiDatetime);

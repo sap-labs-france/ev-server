@@ -843,22 +843,23 @@ export default class Utils {
   private static _isPlateIDValid(plateID) {
     return /^[A-Z0-9-]*$/.test(plateID);
   }
-  }
 
   public static getTenantActiveComponents(tenant: Tenant): string[] {
-    let components: string[] = [];
-    for(let componentName in tenant.components) {
-      if(tenant.components[componentName].active)
+    const components: string[] = [];
+    for (const componentName in tenant.components) {
+      if (tenant.components[componentName].active) {
         components.push(componentName);
+      }
     }
     return components;
   }
 
   public static isTenantComponentActive(tenant: Tenant, component: string): boolean {
-    for(let componentName in tenant.components) {
-      if(componentName===component) {
+    for (const componentName in tenant.components) {
+      if (componentName === component) {
         return tenant.components[componentName].active;
       }
     }
     return false;
+  }
 }

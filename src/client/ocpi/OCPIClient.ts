@@ -2,9 +2,9 @@ import axios from 'axios';
 import _ from 'lodash';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
+import OCPIEndpoint from '../../entity/OCPIEndpoint';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
-import OCPIEndpoint from '../../entity/OCPIEndpoint';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 
 export default class OCPIClient {

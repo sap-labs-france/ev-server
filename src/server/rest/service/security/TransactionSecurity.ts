@@ -10,7 +10,7 @@ export default class TransactionSecurity {
   static filterTransactionsRefund(request, loggedUser: UserToken) {
     const filteredRequest: any = {};
     // Set
-    filteredRequest.transactionIds = request.transactionIds.map((id) => sanitize(id));
+    filteredRequest.transactionIds = request.transactionIds.map(sanitize);
     return filteredRequest;
   }
 

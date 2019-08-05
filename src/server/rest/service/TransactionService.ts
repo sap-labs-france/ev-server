@@ -13,11 +13,11 @@ import OCPPService from '../../../server/ocpp/services/OCPPService';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import SynchronizeRefundTransactionsTask from '../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionSecurity from './security/TransactionSecurity';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
 
 export default class TransactionService {
   static async handleSynchronizeRefundedTransactions(action: string, req: Request, res: Response, next: NextFunction) {

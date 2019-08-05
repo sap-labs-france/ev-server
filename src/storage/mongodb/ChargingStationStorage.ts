@@ -6,8 +6,8 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
 import TenantStorage from './TenantStorage';
+import Utils from '../../utils/Utils';
 import UtilsService from '../../server/rest/service/UtilsService';
 
 export default class ChargingStationStorage {

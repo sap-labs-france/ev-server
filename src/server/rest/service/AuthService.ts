@@ -18,12 +18,12 @@ import NotificationHandler from '../../../notification/NotificationHandler';
 import Site from '../../../types/Site';
 import SiteArea from '../../../types/SiteArea';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;

@@ -17,11 +17,11 @@ import StatisticsContext from './StatisticsContext';
 import Tenant from '../../../src/types/Tenant';
 import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
+import TenantStorage from '../../../src/storage/mongodb/TenantStorage';
 import User from '../../../src/types/User';
 import UserFactory from '../../factories/UserFactory';
 import UserStorage from '../../../src/storage/mongodb/UserStorage';
 import Utils from '../../../src/utils/Utils';
-import TenantStorage from '../../../src/storage/mongodb/TenantStorage';
 
 export default class ContextBuilder {
 
