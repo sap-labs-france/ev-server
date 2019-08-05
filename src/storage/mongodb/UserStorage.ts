@@ -259,7 +259,6 @@ export default class UserStorage {
       eulaAcceptedOn: userToSave.eulaAcceptedOn,
       name: userToSave.name,
       firstName: userToSave.firstName,
-      password: userToSave.password,
       passwordResetHash: userToSave.passwordResetHash,
       passwordWrongNbrTrials: userToSave.passwordWrongNbrTrials,
       passwordBlockedUntil: userToSave.passwordBlockedUntil,
@@ -300,6 +299,28 @@ export default class UserStorage {
     }
     // Debug
     Logging.traceEnd('UserStorage', 'saveUserTags', uniqueTimerID, { id: userID, tags: userTagIDs });
+  }
+
+  public static async saveUserPassword(tenantID: string, userID: string, newPassword: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserPassword');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Set data
+    const updatedFields: any = {};
+    updatedFields['password'] = newPassword;
+    // Modify and return the modified document
+    const result = await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
+      { '_id': Utils.convertToObjectID(userID) },
+      { $set: updatedFields });
+    if (!result.ok) {
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Couldn\'t update User password',
+        'UserStorage', 'saveUserPassword');
+    }
+    // Debug
+    Logging.traceEnd('UserStorage', 'saveUserPassword', uniqueTimerID);
   }
 
   public static async saveUserImage(tenantID: string, userImageToSave: {id: string; image: string}): Promise<void> {

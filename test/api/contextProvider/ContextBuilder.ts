@@ -131,9 +131,8 @@ export default class ContextBuilder {
     console.log('CREATE tenant context ' + buildTenant.id +
       ' ' + buildTenant.subdomain);
 
-    await UserStorage.saveUser(buildTenant.id, {
+    const userId = await UserStorage.saveUser(buildTenant.id, {
       'id': CONTEXTS.TENANT_USER_LIST[0].id,
-      'password': await Utils.hashPasswordBcrypt(config.get('admin.password')),
       'email': config.get('admin.username'),
       'status': CONTEXTS.TENANT_USER_LIST[0].status,
       'role': CONTEXTS.TENANT_USER_LIST[0].role,
@@ -143,6 +142,7 @@ export default class ContextBuilder {
       'plateID': faker.random.alphaNumeric(8),
       'deleted': false
     });
+    await UserStorage.saveUserPassword(buildTenant.id, userId, await Utils.hashPasswordBcrypt(config.get('admin.password')));
     if (CONTEXTS.TENANT_USER_LIST[0].tagIDs) {
       await UserStorage.saveUserTags(buildTenant.id, CONTEXTS.TENANT_USER_LIST[0].id, CONTEXTS.TENANT_USER_LIST[0].tagIDs);
     }
@@ -198,13 +198,13 @@ export default class ContextBuilder {
       createUser.email = userDef.emailPrefix + defaultAdminUser.email;
       // Update the password
       const newPasswordHashed = await Utils.hashPasswordBcrypt(config.get('admin.password'));
-      createUser.password = newPasswordHashed;
       createUser.role = userDef.role;
       createUser.status = userDef.status;
       createUser.id = userDef.id;
       createUser.tagIDs = userDef.tagIDs;
       const user: User = createUser;
       await UserStorage.saveUser(buildTenant.id, user);
+      await UserStorage.saveUserPassword(buildTenant.id, user.id, newPasswordHashed);
       if (userDef.tagIDs) {
         await UserStorage.saveUserTags(buildTenant.id, userDef.id, userDef.tagIDs);
       }

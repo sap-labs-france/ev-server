@@ -380,7 +380,6 @@ export default class AuthService {
     const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
     // Create the user
     const newUser = UserStorage.getEmptyUser();
-    newUser.password = newPasswordHashed;
     newUser.email = filteredRequest.email;
     newUser.name = filteredRequest.name;
     newUser.firstName = filteredRequest.firstName;
@@ -398,6 +397,8 @@ export default class AuthService {
     newUser.eulaAcceptedHash = endUserLicenseAgreement.hash;
     // Save User
     newUser.id = await UserStorage.saveUser(tenantID, newUser);
+    // Save User password
+    await UserStorage.saveUserPassword(tenantID, newUser.id, newPasswordHashed);
     // Save Tags
     const tagIDs = [newUser.name[0] + newUser.firstName[0] + Utils.getRandomInt()];
     await UserStorage.saveUserTags(tenantID, newUser.id, tagIDs);
@@ -564,7 +565,9 @@ export default class AuthService {
     // Reset the hash
     user.passwordResetHash = null;
     // Save the user
-    await UserStorage.saveUser(tenantID, user);
+    const currentId = await UserStorage.saveUser(tenantID, user);
+    // Save new password
+    await UserStorage.saveUserPassword(tenantID, currentId, user.password);
     // Log
     Logging.logSecurityInfo({
       tenantID: tenantID,
