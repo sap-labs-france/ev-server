@@ -22,22 +22,22 @@ export default class TenantService {
 
   public static async handleDeleteTenant(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
-    const tenantID = TenantSecurity.filterTenantDeleteRequest(req.query);
-    UtilsService.assertIdIsProvided(tenantID, MODULE_NAME, 'handleDeleteTenant', req.user);
+    const filteredRequest = TenantSecurity.filterTenantDeleteRequest(req.query);
+    UtilsService.assertIdIsProvided(filteredRequest.ID, MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check auth
     if (!Authorizations.canDeleteTenant(req.user)) {
       throw new AppAuthError(
         Constants.ACTION_DELETE,
         Constants.ENTITY_TENANT,
-        tenantID,
+        filteredRequest.ID,
         Constants.HTTP_AUTH_ERROR,
         'TenantService', 'handleDeleteTenant',
         req.user);
     }
     // Get
-    const tenant = await TenantStorage.getTenant(tenantID);
+    const tenant = await TenantStorage.getTenant(filteredRequest.ID);
     // Found?
-    UtilsService.assertObjectExists(tenant, `Tenant '${tenantID}' does not exist`,
+    UtilsService.assertObjectExists(tenant, `Tenant '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check if current tenant
     if (tenant.id === req.user.tenantID) {
@@ -71,21 +71,21 @@ export default class TenantService {
 
   public static async handleGetTenant(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
-    const filteredRequest = TenantSecurity.filterTenantRequestByID(req.query);
-    UtilsService.assertIdIsProvided(filteredRequest.ID, MODULE_NAME, 'handleGetTenant', req.user);
+    const tenantID = TenantSecurity.filterTenantRequestByID(req.query);
+    UtilsService.assertIdIsProvided(tenantID, MODULE_NAME, 'handleGetTenant', req.user);
     // Check auth
     if (!Authorizations.canReadTenant(req.user)) {
       throw new AppAuthError(
         Constants.ACTION_READ,
         Constants.ENTITY_TENANT,
-        filteredRequest.ID,
+        tenantID,
         Constants.HTTP_AUTH_ERROR,
         'TenantService', 'handleGetTenant',
         req.user);
     }
     // Get it
-    const tenant = await TenantStorage.getTenant(filteredRequest.ID);
-    UtilsService.assertObjectExists(tenant, `Tenant '${filteredRequest.ID}' doesn't exist.`, MODULE_NAME, 'handleGetTenant', req.user);
+    const tenant = await TenantStorage.getTenant(tenantID);
+    UtilsService.assertObjectExists(tenant, `Tenant with ID '${tenantID}' doesn't exist.`, MODULE_NAME, 'handleGetTenant', req.user);
     // Return
     res.json(
       // Filter

@@ -276,12 +276,12 @@ export default class OCPIClient {
     // Get ocpi service configuration
     const ocpiSetting = await SettingStorage.getSettingByIdentifier(this.ocpiEndpoint.getTenantID(), Constants.COMPONENTS.OCPI);
     // Define eMI3
-    tenant._eMI3 = {};
+    tenant['_eMI3'] = {};
 
     if (ocpiSetting && ocpiSetting.getContent()) {
       const configuration = ocpiSetting.getContent().ocpi;
-      tenant._eMI3.country_id = configuration.countryCode;
-      tenant._eMI3.party_id = configuration.partyID;
+      tenant['_eMI3']['country_id'] = configuration.countryCode;
+      tenant['_eMI3']['party_id'] = configuration.partyID;
     } else {
       // Log error if failure
       Logging.logError({

@@ -14,7 +14,7 @@ export default class TenantSecurity {
     };
   }
 
-  public static filterTenantRequestByID(request: HttpByIDRequest): HttpByIDRequest {
+  public static filterTenantRequestByID(request: HttpByIDRequest): string {
     return sanitize(request.ID);
   }
 
@@ -43,7 +43,7 @@ export default class TenantSecurity {
   }
 
   static filterTenantResponse(tenant: Tenant, loggedUser: UserToken): Partial<Tenant> {
-    const filteredTenant: Partial<Tenant>;
+    let filteredTenant: Partial<Tenant>;
     if (!tenant) {
       return null;
     }
