@@ -6,20 +6,15 @@ import { HttpSettingRequest, HttpSettingsRequest } from '../../../../types/reque
 import Setting from '../../../../types/Setting';
 import UserToken from '../../../../types/UserToken';
 import Constants from '../../../../utils/Constants';
-import User from '../../../../types/User';
 
 export default class SettingSecurity {
 
-  public static filterSettingDeleteRequest(request: HttpByIDRequest): string {
+  public static filterSettingRequestByID(request: HttpByIDRequest): string {
     return sanitize(request.ID);
   }
 
   public static filterSettingRequest(request: HttpSettingRequest): HttpSettingRequest {
     return { ID: sanitize(request.ID), ContentFilter: UtilsSecurity.filterBoolean(request.ContentFilter) };
-  }
-
-  public static filterSettingRequestByID(request: HttpByIDRequest): string {
-    return sanitize(request.ID);
   }
 
 

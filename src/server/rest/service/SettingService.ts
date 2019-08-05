@@ -17,7 +17,7 @@ import HttpStatusCodes from 'http-status-codes';
 export default class SettingService {
   public static async handleDeleteSetting(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
-    const settingId = SettingSecurity.filterSettingDeleteRequest(req.query);
+    const settingId = SettingSecurity.filterSettingRequestByID(req.query);
     UtilsService.assertIdIsProvided(settingId, 'SettingService', 'handleDeleteSetting', req.user);
     // Check auth
     if (!Authorizations.canDeleteSetting(req.user)) {
@@ -101,6 +101,7 @@ export default class SettingService {
     // Process the sensitive data if any
     settings.result.forEach((setting) => {
       // Hash sensitive data before being sent to the front end
+      console.log(setting);
       Cypher.hashSensitiveDataInJSON(setting);
     });
     // Return
