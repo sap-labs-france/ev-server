@@ -685,6 +685,7 @@ export default class Authorizations {
       user.id = await UserStorage.saveUser(tenantID, user);
       // Save TagIDs
       await UserStorage.saveUserTags(tenantID, user.id, [tagID]);
+      // No need to save the password as it is empty anyway
       // Notify (Async)
       NotificationHandler.sendUnknownUserBadged(
         tenantID,

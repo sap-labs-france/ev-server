@@ -179,15 +179,15 @@ export default class ContextBuilder {
       defaultAdminUser.status = CONTEXTS.TENANT_USER_LIST[0].status;
       // Generate the password hash
       const newPasswordHashed = await Utils.hashPasswordBcrypt(config.get('admin.password'));
-      // Update the password
-      defaultAdminUser.password = newPasswordHashed;
       // Update the email
       defaultAdminUser.email = config.get('admin.username');
       // Add a Tag ID
       defaultAdminUser.tagIDs = CONTEXTS.TENANT_USER_LIST[0].tagIDs ? CONTEXTS.TENANT_USER_LIST[0].tagIDs : [faker.random.alphaNumeric(8).toUpperCase()];
       // Fix id
       defaultAdminUser.id = CONTEXTS.TENANT_USER_LIST[0].id;
-      await UserStorage.saveUser(buildTenant.id, defaultAdminUser);
+      const userId = await UserStorage.saveUser(buildTenant.id, defaultAdminUser);
+      // Save password
+      await UserStorage.saveUserPassword(buildTenant.id, userId, newPasswordHashed);
     }
 
     // Create Central Server Service
@@ -244,7 +244,6 @@ export default class ContextBuilder {
       userDef.tagIDs.push(`A1234${index}`);
       // Update the password
       const newPasswordHashed = await Utils.hashPasswordBcrypt(config.get('admin.password'));
-      createUser.password = newPasswordHashed;
       createUser.role = userDef.role;
       createUser.status = userDef.status;
       createUser.id = userDef.id;
@@ -253,6 +252,7 @@ export default class ContextBuilder {
       }
       const user: User = createUser;
       await UserStorage.saveUser(buildTenant.id, user, false);
+      await UserStorage.saveUserPassword(buildTenant.id, user.id, newPasswordHashed);
       if (userDef.assignedToSite) {
         userListToAssign.push(user);
       }

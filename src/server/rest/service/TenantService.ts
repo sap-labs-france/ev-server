@@ -174,6 +174,7 @@ export default class TenantService {
     tenantUser.verificationToken = verificationToken;
     // Save
     tenantUser.id = await UserStorage.saveUser(filteredRequest.id, tenantUser);
+    await UserStorage.saveUserPassword(filteredRequest.id, tenantUser.id, tenantUser.password);
     // Send activation link
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.subdomain) +
       '/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
