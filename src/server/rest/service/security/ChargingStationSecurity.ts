@@ -4,7 +4,6 @@ import Constants from '../../../../utils/Constants';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationsRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationCommandRequest } from '../../../../types/requests/HttpChargingStationRequest';
-import { filter } from 'bluebird';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
 import ChargingStation from '../../../../types/ChargingStation';
@@ -14,11 +13,10 @@ export default class ChargingStationSecurity {
   public static filterAssignChargingStationsToSiteAreaRequest(request: Partial<HttpAssignChargingStationToSiteAreaRequest>): HttpAssignChargingStationToSiteAreaRequest {
     return {
       siteAreaID: sanitize(request.siteAreaID),
-      chargingStationIDs: request.chargingStationIDs.map(id=>sanitize(id))
+      chargingStationIDs: request.chargingStationIDs.map(id => sanitize(id))
     };
   }
 
-  // Charging Station
   public static filterChargingStationResponse(chargingStation: ChargingStation, loggedUser: UserToken, organizationIsActive: boolean): Partial<ChargingStation> {
     let filteredChargingStation;
 
@@ -83,7 +81,7 @@ export default class ChargingStationSecurity {
     return filteredChargingStation;
   }
 
-  public static filterChargingStationsResponse(chargingStations: {result: ChargingStation[]}, loggedUser: UserToken, organizationIsActive: boolean): Promise<void> {
+  public static filterChargingStationsResponse(chargingStations: {result: ChargingStation[]}, loggedUser: UserToken, organizationIsActive: boolean): void {
     const filteredChargingStations = [];
     // Check
     if (!chargingStations.result) {
@@ -126,7 +124,7 @@ export default class ChargingStationSecurity {
     return { ID: sanitize(request.ID) };
   }
 
-  public static filterChargingStationByIDRequest(request: HttpByIDRequest): string {
+  public static filterChargingStationRequestByID(request: HttpByIDRequest): string {
     return sanitize(request.ID);
   }
 

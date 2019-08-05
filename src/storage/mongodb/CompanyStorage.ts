@@ -15,7 +15,7 @@ export default class CompanyStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompany');
     // Reuse
-    const companiesMDB = await CompanyStorage.getCompanies(tenantID, { companyIDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const companiesMDB = await CompanyStorage.getCompanies(tenantID, { companyID: id }, Constants.DB_PARAMS_SINGLE_RECORD);
     let company: Company = null;
     // Check
     if (companiesMDB && companiesMDB.count > 0) {
@@ -86,7 +86,7 @@ export default class CompanyStorage {
   }
 
   public static async getCompanies(tenantID: string,
-    params: {search?: string; companyIDs?: string[]; withSites?: boolean; withLogo?: boolean} = {},
+    params: {search?: string; companyID?: string; companyIDs?: string[]; withSites?: boolean; withLogo?: boolean} = {},
     dbParams?: DbParams, projectFields?: string[]): Promise<{count: number; result: Company[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompanies');
@@ -97,15 +97,20 @@ export default class CompanyStorage {
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    let filters: ({_id?: ObjectID; $or?: any[]}|undefined);
+    const filters: ({_id?: ObjectID; $or?: any[]}|undefined) = {};
     // Build filter
-    if (params.search) {
-      filters = {};
-      filters.$or = [
-        { 'name': { $regex: params.search, $options: 'i' } },
-        { 'address.city': { $regex: params.search, $options: 'i' } },
-        { 'address.country': { $regex: params.search, $options: 'i' } }
-      ];
+    if (params.companyID) {
+      filters._id = Utils.convertToObjectID(params.companyID);
+    } else if (params.search) {
+      if (ObjectID.isValid(params.search)) {
+        filters._id = Utils.convertToObjectID(params.search);
+      } else {
+        filters.$or = [
+          { 'name': { $regex: params.search, $options: 'i' } },
+          { 'address.city': { $regex: params.search, $options: 'i' } },
+          { 'address.country': { $regex: params.search, $options: 'i' } }
+        ];
+      }
     }
     // Create Aggregation
     const aggregation = [];
@@ -114,9 +119,7 @@ export default class CompanyStorage {
       // Build filter
       aggregation.push({
         $match: {
-          _id: { $in: params.companyIDs.map((companyID) => {
-            return Utils.convertToObjectID(companyID);
-          }) }
+          _id: { $in: params.companyIDs.map((companyID) => Utils.convertToObjectID(companyID)) }
         }
       });
     }

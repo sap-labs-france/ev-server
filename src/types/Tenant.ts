@@ -8,7 +8,7 @@ export default interface Tenant extends CreatedUpdatedProps {
   components: {
     ocpi?: {
       active: boolean,
-      type: any
+      type: string
     },
     organization?: {
       active: boolean
@@ -21,11 +21,13 @@ export default interface Tenant extends CreatedUpdatedProps {
       active: boolean,
       type: string
     },
+    statistics?: {
+      active: boolean,
+      type: string
+    }
     analytics?: {
       active: boolean,
       type: string
     }
   };
-  _eMI3?: any;
-
 }

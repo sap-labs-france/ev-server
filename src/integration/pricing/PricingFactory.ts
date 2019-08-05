@@ -10,7 +10,7 @@ export default class PricingFactory {
     // Get the tenant
     const tenant: Tenant = await transaction.getTenant();
     // Check if the pricing is active
-    if (Utils.tenantComponentActive(tenant, Constants.COMPONENTS.PRICING)) {
+    if (Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.PRICING)) {
       // Get the pricing's settings
       const setting = await SettingStorage.getSettingByIdentifier(transaction.getTenantID(), Constants.COMPONENTS.PRICING);
       // Check

@@ -12,7 +12,7 @@ export default class OCPIPatchLocationsTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     try {
       // Check if OCPI component is active
-      if (!Utils.tenantComponentActive(tenant, Constants.COMPONENTS.OCPI)) {
+      if (!Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.OCPI)) {
         Logging.logDebug({
           tenantID: tenant.id,
           module: 'OCPIPatchLocationsTask',

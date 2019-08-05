@@ -10,7 +10,7 @@ import Utils from '../../utils/Utils';
 
 export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
-    if (!Utils.tenantComponentActive(tenant, Constants.COMPONENTS.REFUND)) {
+    if (!Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.REFUND)) {
       Logging.logDebug({
         tenantID: tenant.id,
         module: 'SynchronizeRefundTransactionsTask',

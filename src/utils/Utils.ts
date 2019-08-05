@@ -22,6 +22,7 @@ import TenantStorage from '../storage/mongodb/TenantStorage';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
 import ChargingStation from '../types/ChargingStation';
+import ConnectorStats from '../types/ConnectorStats';
 import tzlookup from 'tz-lookup';
 import UserStorage from '../storage/mongodb/UserStorage';
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
@@ -53,6 +54,69 @@ export default class Utils {
       return typeof obj[Symbol.iterator] === 'function';
     }
     return false;
+  }
+
+  static getIfChargingStationIsInactive(chargingStation): boolean {
+    let inactive = false;
+    // Get Heartbeat Interval from conf
+    const config = Configuration.getChargingStationConfig();
+    if (config) {
+      const heartbeatIntervalSecs = config.heartbeatIntervalSecs;
+      // Compute against the last Heartbeat
+      if (chargingStation.lastHeartBeat) {
+        const inactivitySecs = Math.floor((Date.now() - chargingStation.lastHeartBeat.getTime()) / 1000);
+        // Inactive?
+        if (inactivitySecs > (heartbeatIntervalSecs * 5)) {
+          inactive = true;
+        }
+      }
+    }
+    return inactive;
+  }
+
+  public static getConnectorStatusesFromChargingStations(chargingStations: ChargingStation[]) : ConnectorStats {
+    const connectorStats: ConnectorStats = {
+      totalChargers: 0,
+      availableChargers: 0,
+      totalConnectors: 0,
+      availableConnectors: 0
+    }
+    // Chargers
+    for (const chargingStation of chargingStations) {
+      // Check not deleted
+      if (chargingStation.deleted) {
+        continue;
+      }
+      // Set Inactive flag
+      chargingStation.inactive = Utils.getIfChargingStationIsInactive(chargingStation);
+      connectorStats.totalChargers++;
+      // Handle Connectors
+      if (!chargingStation.connectors) {
+        chargingStation.connectors = [];
+      }
+      for (const connector of chargingStation.connectors) {
+        if (!connector) {
+          continue;
+        }
+        connectorStats.totalConnectors++;
+        // Check if Available
+        if (!chargingStation.inactive && connector.status === Constants.CONN_STATUS_AVAILABLE) {
+          connectorStats.availableConnectors++;
+        }
+      }
+      // Handle Chargers
+      for (const connector of chargingStation.connectors) {
+        if (!connector) {
+          continue;
+        }
+        // Check if Available
+        if (!chargingStation.inactive && connector.status === Constants.CONN_STATUS_AVAILABLE) {
+          connectorStats.availableChargers++;
+          break;
+        }
+      }
+    }
+    return connectorStats;
   }
 
   // Temporary method for Revenue Cloud concept
@@ -778,7 +842,7 @@ export default class Utils {
     return null;
   }
 
-  public static tenantActiveComponents(tenant: Tenant): string[] {
+  public static getTenantActiveComponents(tenant: Tenant): string[] {
     let components: string[] = [];
     for(let componentName in tenant.components) {
       if(tenant.components[componentName].active)
@@ -787,7 +851,7 @@ export default class Utils {
     return components;
   }
 
-  public static tenantComponentActive(tenant: Tenant, component: string): boolean {
+  public static isTenantComponentActive(tenant: Tenant, component: string): boolean {
     for(let componentName in tenant.components) {
       if(componentName===component) {
         return tenant.components[componentName].active;

@@ -2,10 +2,10 @@ import BackendError from '../../../exception/BackendError';
 import ChargingStation from '../../../types/ChargingStation';
 import Constants from '../../../utils/Constants';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import ChargingStationService from '../../rest/service/ChargingStationService';
 import Logging from '../../../utils/Logging';
 import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
 import buildChargingStationClient from '../../../client/ocpp/ChargingStationClientFactory';
+import Configuration from '../../../utils/Configuration';
 import Utils from '../../../utils/Utils';
 import OCPPConstants from './OCPPConstants';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
@@ -14,7 +14,6 @@ export default class OCPPUtils {
 
   static lockAllConnectors(chargingStation: ChargingStation) {
     chargingStation.connectors.forEach((connector) => {
-      // Check
       if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
         // Check OCPP Version
         if (chargingStation.ocppVersion === Constants.OCPP_VERSION_15) {
@@ -26,6 +25,24 @@ export default class OCPPUtils {
         }
       }
     });
+  }
+
+  public static getIfChargingStationIsInactive(chargingStation: ChargingStation): boolean {
+    let inactive = false;
+    // Get Heartbeat Interval from conf
+    const config = Configuration.getChargingStationConfig();
+    if (config) {
+      const heartbeatIntervalSecs = config.heartbeatIntervalSecs;
+      // Compute against the last Heartbeat
+      if (chargingStation.lastHeartBeat) {
+        const inactivitySecs = Math.floor((Date.now() - chargingStation.lastHeartBeat.getTime()) / 1000);
+        // Inactive?
+        if (inactivitySecs > (heartbeatIntervalSecs * 5)) {
+          inactive = true;
+        }
+      }
+    }
+    return inactive;
   }
 
   static isSocMeterValue(meterValue) {
@@ -54,9 +71,8 @@ export default class OCPPUtils {
       throw new BackendError(chargeBoxIdentity, 'Charging Station does not exist',
         'OCPPUtils', '_checkAndGetChargingStation');
     }
-    // Found?
+    // Deleted?
     if (chargingStation.deleted) {
-      // Error
       throw new BackendError(chargeBoxIdentity, 'Charging Station is deleted',
         'OCPPUtils', '_checkAndGetChargingStation');
     }
@@ -71,9 +87,9 @@ export default class OCPPUtils {
     let totalPower = 0;
 
     // Only for Schneider
-    if (chargingStation.chargePointVendor === 'Schneider Electric') {
+    if (chargingStation.chargePointVendor === Constants.VENDOR_SCHNEIDER) {
       // Get the configuration
-      const configuration = await ChargingStationStorage.getConfiguration(tenantID, chargingStation.id);//TODO
+      const configuration = await ChargingStationStorage.getConfiguration(tenantID, chargingStation.id);
       // Config Provided?
       if (configuration && configuration.configuration) {
         // Search for params
@@ -85,13 +101,11 @@ export default class OCPPUtils {
               // Get the meter interval
               voltageRerefence = parseInt(configuration.configuration[i].value);
               break;
-
             // Current
             case 'currentpb1':
               // Get the meter interval
               current = parseInt(configuration.configuration[i].value);
               break;
-
             // Nb Phase
             case 'nbphase':
               // Get the meter interval
@@ -123,14 +137,13 @@ export default class OCPPUtils {
       }
       // Set total power
       if (totalPower && !chargingStation.maximumPower) {
-        // Set
         chargingStation.maximumPower = totalPower;
       }
     }
   }
 
-  public static async getChargingStationClient(tenantID: string, chargingStation: ChargingStation): Promise<ChargingStationClient> {
-    return await buildChargingStationClient(tenantID, chargingStation);
+  public static getChargingStationClient(tenantID: string, chargingStation: ChargingStation): Promise<ChargingStationClient> {
+    return buildChargingStationClient(tenantID, chargingStation);
   }
 
   public static async requestExecuteChargingStationCommand(tenantID: string, chargingStation: ChargingStation, method: string, params?) {
@@ -147,7 +160,6 @@ export default class OCPPUtils {
         message: 'Command sent with success',
         detailedMessages: result
       });
-      // Return
       return result;
     } catch (error) {
       // OCPP 1.6?
@@ -194,7 +206,7 @@ export default class OCPPUtils {
       // Save config
       await OCPPStorage.saveConfiguration(tenantID, configuration);
       // Update connector power
-      await OCPPUtils.updateConnectorsPower(tenantID, chargingStation); //TODO might be wrong
+      await OCPPUtils.updateConnectorsPower(tenantID, chargingStation);
       // Ok
       Logging.logInfo({
         tenantID: tenantID, source: chargingStation.id, module: 'ChargingStation',
@@ -213,16 +225,18 @@ export default class OCPPUtils {
     const result = await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'changeConfiguration', params);
     // Request the new Configuration?
     if (result.status === 'Accepted') {
-      // Retrieve and Save it in the DB
-      await OCPPUtils.requestAndSaveChargingStationConfiguration(tenantID, chargingStation);
+      // Retrieve and Save it in the DB (Async)
+      OCPPUtils.requestAndSaveChargingStationConfiguration(tenantID, chargingStation);
     }
     // Return
     return result;
   }
 
-  public static async checkAndFreeChargingStationConnector(tenantID: string, chargingStation: ChargingStation, connectorId: number, saveOtherConnectors: boolean = false) {
+  public static checkAndFreeChargingStationConnector(tenantID: string, chargingStation: ChargingStation, connectorId: number, saveOtherConnectors: boolean = false) {
     // Cleanup connector transaction data
-    let foundConnector = chargingStation.connectors.find(c=>c.connectorId===connectorId);
+    const foundConnector = chargingStation.connectors.find((connector) => {
+      return connector.connectorId === connectorId;
+    });
     if (foundConnector) {
       foundConnector.currentConsumption = 0;
       foundConnector.totalConsumption = 0;

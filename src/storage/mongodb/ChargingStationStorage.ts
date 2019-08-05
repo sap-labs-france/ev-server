@@ -5,11 +5,9 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
-import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 import Connector from '../../types/Connector';
 import TenantStorage from './TenantStorage';
-import { ObjectID } from 'bson';
 import UtilsService from '../../server/rest/service/UtilsService';
 
 export default class ChargingStationStorage {
@@ -115,7 +113,7 @@ export default class ChargingStationStorage {
     let facets: any = { $facet:{} };
     if (params.errorType && !params.errorType.includes('all')) {
       // Check allowed
-      if (!Utils.tenantComponentActive(await TenantStorage.getTenant(tenantID), Constants.COMPONENTS.ORGANIZATION) && params.errorType.includes('missingSiteArea')) {
+      if (!Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), Constants.COMPONENTS.ORGANIZATION) && params.errorType.includes('missingSiteArea')) {
         throw new BackendError(null, 'Organization is not active whereas filter is on missing site.',
           'ChargingStationStorage', 'getChargingStationsInError');
       }
@@ -133,7 +131,7 @@ export default class ChargingStationStorage {
           'connectorError': ChargingStationStorage._buildChargerInErrorFacet('connectorError'),
         }
       };
-      if (Utils.tenantComponentActive(await TenantStorage.getTenant(tenantID), Constants.COMPONENTS.ORGANIZATION)) {
+      if (Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), Constants.COMPONENTS.ORGANIZATION)) {
         // Add facet for missing Site Area ID
         facets.$facet.missingSiteArea = ChargingStationStorage._buildChargerInErrorFacet('missingSiteArea');
       }
@@ -237,7 +235,7 @@ export default class ChargingStationStorage {
           chargingStation.connectors = cleanedConnectors;
         }
         // Add Inactive flag
-        chargingStation.inactive = DatabaseUtils.chargingStationIsInactive(chargingStation);
+        chargingStation.inactive = Utils.getIfChargingStationIsInactive(chargingStation);
       }
     }
     // Debug
@@ -262,7 +260,7 @@ export default class ChargingStationStorage {
       _id: chargingStationToSave.id
     };
     // Properties to save
-    let chargingStationMDB = { // DO *_NOT_* CHANGE TO "const" !!!!!!!
+    const chargingStationMDB = {
       _id: chargingStationToSave.id,
       siteAreaID: Utils.convertToObjectID(chargingStationToSave.siteAreaID),
       chargePointSerialNumber: chargingStationToSave.chargePointSerialNumber,
@@ -342,8 +340,10 @@ export default class ChargingStationStorage {
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStationHeartBeat');
     // Check Tenant
     await Utils.checkTenant(tenantID);
+    // Set data
     const updatedFields: any = {};
     updatedFields['lastHeartBeat'] = Utils.convertToDate(chargingStation.lastHeartBeat);
+    updatedFields['currentIPAddress'] = chargingStation.currentIPAddress;
     // Modify and return the modified document
     const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': chargingStation.id },
@@ -388,12 +388,9 @@ export default class ChargingStationStorage {
       configuration.configuration.every((param) => {
         // Check
         if (param.key === paramName) {
-          // Found!
           value = param.value;
-          // Break
           return false;
         }
-        // Continue
         return true;
       });
     }

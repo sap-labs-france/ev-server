@@ -135,7 +135,6 @@ export default class UserService {
     }
     if (req.user.activeComponents.includes(Constants.COMPONENTS.ORGANIZATION)) {
       // Delete from site
-      // TODO: Add argument to getSites to be able to only query IDs
       const siteIDs: string[] = (await UserStorage.getSites(req.user.tenantID, { userID: id },
         Constants.DB_PARAMS_MAX_LIMIT)).result.map(
         (siteUser) => {
@@ -248,7 +247,7 @@ export default class UserService {
     });
     // Notify
     if (statusHasChanged) {
-      // Send notification
+      // Send notification (Async)
       NotificationHandler.sendUserAccountStatusChanged(
         req.user.tenantID,
         Utils.generateGUID(),
@@ -577,17 +576,17 @@ export default class UserService {
           'UserService', 'handleGetUserInvoice', req.user);
       }
       const filename = 'invoice.pdf';
-      fs.writeFile(filename, invoice, (err) => { // TODO: potential problem at sccale; two pple generating invoice at same time?
+      fs.writeFile(filename, invoice, (err) => {
         if (err) {
           throw err;
         }
-        res.download(filename, (err) => {
-          if (err) {
-            throw err;
+        res.download(filename, (err2) => {
+          if (err2) {
+            throw err2;
           }
-          fs.unlink(filename, (err) => {
-            if (err) {
-              throw err;
+          fs.unlink(filename, (err3) => {
+            if (err3) {
+              throw err3;
             }
           });
         });

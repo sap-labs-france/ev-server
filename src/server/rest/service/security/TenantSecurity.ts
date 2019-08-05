@@ -8,12 +8,14 @@ import UserToken from '../../../../types/UserToken';
 
 export default class TenantSecurity {
   public static filterTenantDeleteRequest(request: HttpTenantDeleteRequest): HttpTenantDeleteRequest {
-    return { ID: sanitize(request.ID),
-      forced: sanitize(request.forced) };
+    return {
+      ID: sanitize(request.ID),
+      forced: sanitize(request.forced)
+    };
   }
 
-  public static filterTenantByIDRequest(request: HttpByIDRequest): HttpByIDRequest {
-    return { ID: sanitize(request.ID) };
+  public static filterTenantRequestByID(request: HttpByIDRequest): string {
+    return sanitize(request.ID);
   }
 
   public static filterVerifyTenantRequest(request: HttpTenantVerifyRequest): HttpTenantVerifyRequest {
@@ -40,9 +42,8 @@ export default class TenantSecurity {
     return filteredRequest;
   }
 
-  static filterTenantResponse(tenant: Tenant, loggedUser: UserToken) {
-    let filteredTenant: any;
-
+  static filterTenantResponse(tenant: Tenant, loggedUser: UserToken): Partial<Tenant> {
+    let filteredTenant: Partial<Tenant>;
     if (!tenant) {
       return null;
     }
@@ -63,9 +64,8 @@ export default class TenantSecurity {
     return filteredTenant;
   }
 
-  static filterTenantsResponse(tenants, loggedUser: UserToken) {
+  static filterTenantsResponse(tenants, loggedUser: UserToken): Tenant[] {
     const filteredTenants = [];
-
     if (!tenants.result) {
       return null;
     }

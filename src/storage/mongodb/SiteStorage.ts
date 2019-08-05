@@ -18,12 +18,12 @@ export default class SiteStorage {
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getSite');
     // Query single Site
     const sitesMDB = await SiteStorage.getSites(tenantID, {
-      siteIDs: [id],
+      siteID: id,
       withCompany: true,
     }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('SiteStorage', 'getSite', uniqueTimerID, { id });
-    return sitesMDB.count>0 ? sitesMDB.result[0] : null;
+    return sitesMDB.count > 0 ? sitesMDB.result[0] : null;
   }
 
   public static async getSiteImage(tenantID: string, id: string): Promise<{id: string; image: string}> {
@@ -60,9 +60,7 @@ export default class SiteStorage {
       if (userIDs && userIDs.length > 0) {
         // Execute
         const res = await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
-          'userID': { $in: userIDs.map((userID) => {
-            return Utils.convertToObjectID(userID);
-          }) },
+          'userID': { $in: userIDs.map((userID) => Utils.convertToObjectID(userID)) },
           'siteID': Utils.convertToObjectID(siteID)
         });
       }
@@ -181,7 +179,6 @@ export default class SiteStorage {
     });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
-
     // Read DB
     const siteUsersMDB = await global.database.getCollection<{user: User; siteID: string; siteAdmin: boolean}>(tenantID, 'siteusers')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
@@ -279,7 +276,7 @@ export default class SiteStorage {
   public static async getSites(tenantID: string,
     params: {
       search?: string; companyIDs?: string[]; withAutoUserAssignment?: boolean; siteIDs?: string[];
-      userID?: string; excludeSitesOfUserID?: boolean;
+      userID?: string; excludeSitesOfUserID?: boolean; siteID?: string;
       withAvailableChargers?: boolean; withCompany?: boolean; } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: Site[]}> {
     // Debug
@@ -294,7 +291,9 @@ export default class SiteStorage {
     const aggregation = [];
     // Search filters
     const filters: any = {};
-    if (params.search) {
+    if (params.siteID) {
+      filters._id = Utils.convertToObjectID(params.siteID);
+    } else if (params.search) {
       if (ObjectID.isValid(params.search)) {
         filters._id = Utils.convertToObjectID(params.search);
       } else {
@@ -306,9 +305,7 @@ export default class SiteStorage {
     // Query by companyIDs
     if (params.companyIDs && Array.isArray(params.companyIDs) && params.companyIDs.length > 0) {
       filters.companyID = {
-        $in: params.companyIDs.map((company) => {
-          return Utils.convertToObjectID(company);
-        })
+        $in: params.companyIDs.map((company) => Utils.convertToObjectID(company))
       };
     }
     // Auto User Site Assignment
@@ -319,9 +316,7 @@ export default class SiteStorage {
     if (params.siteIDs && params.siteIDs.length > 0) {
       aggregation.push({
         $match: {
-          _id: { $in: params.siteIDs.map((siteID) => {
-            return Utils.convertToObjectID(siteID);
-          }) }
+          _id: { $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID)) }
         }
       });
     }
@@ -401,34 +396,16 @@ export default class SiteStorage {
       for (const siteMDB of sitesMDB) {
         // Count Available/Occupied Chargers/Connectors
         if (params.withAvailableChargers) {
-          let availableChargers = 0, totalChargers = 0, availableConnectors = 0, totalConnectors = 0;
           // Get the chargers
           const chargingStations = await ChargingStationStorage.getChargingStations(tenantID,
             { siteIDs: [siteMDB.id], includeDeleted: false }, Constants.DB_PARAMS_MAX_LIMIT);
-          for (const chargingStation of chargingStations.result) {
-            totalChargers++;
-            // Handle Connectors
-            for (const connector of chargingStation.connectors) {
-              totalConnectors++;
-              // Check Available
-              if (!chargingStation.inactive && connector.status === Constants.CONN_STATUS_AVAILABLE) {
-                availableConnectors++;
-              }
-            }
-            // Handle Chargers
-            for (const connector of chargingStation.connectors) {
-              // Check Available
-              if (!chargingStation.inactive && connector.status === Constants.CONN_STATUS_AVAILABLE) {
-                availableChargers++;
-                break;
-              }
-            }
-          }
+          // Get the Charging Stations' Connector statuses
+          const connectorStats = Utils.getConnectorStatusesFromChargingStations(chargingStations.result);
           // Set
-          siteMDB.availableChargers = availableChargers;
-          siteMDB.totalChargers = totalChargers;
-          siteMDB.availableConnectors = availableConnectors;
-          siteMDB.totalConnectors = totalConnectors;
+          siteMDB.availableChargers = connectorStats.availableChargers;
+          siteMDB.totalChargers = connectorStats.totalChargers;
+          siteMDB.availableConnectors = connectorStats.availableConnectors;
+          siteMDB.totalConnectors = connectorStats.totalConnectors;
         }
         if (!siteMDB.allowAllUsersToStopTransactions) {
           siteMDB.allowAllUsersToStopTransactions = false;
@@ -467,9 +444,7 @@ export default class SiteStorage {
     // Delete all Site Areas
     await SiteAreaStorage.deleteSiteAreasFromSites(tenantID, ids);
     // Convert
-    const cids: ObjectID[] = ids.map((id) => {
-      return Utils.convertToObjectID(id);
-    });
+    const cids: ObjectID[] = ids.map((id) => Utils.convertToObjectID(id));
     // Delete Site
     await global.database.getCollection<any>(tenantID, 'sites')
       .deleteMany({ '_id': { $in: cids } });
@@ -493,10 +468,7 @@ export default class SiteStorage {
       .find({ companyID: Utils.convertToObjectID(companyID) })
       .project({ _id: 1 })
       .toArray())
-      .map((site): string => {
-        return site._id.toHexString();
-      }
-      );
+      .map((site): string => site._id.toHexString());
     // Delete all Site Areas
     await SiteAreaStorage.deleteSiteAreasFromSites(tenantID, siteIDs);
     // Delete Sites

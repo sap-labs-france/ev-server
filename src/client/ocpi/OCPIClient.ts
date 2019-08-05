@@ -4,7 +4,6 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
-import Tenant from '../../types/Tenant';
 import OCPIEndpoint from '../../entity/OCPIEndpoint';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 
@@ -277,12 +276,12 @@ export default class OCPIClient {
     // Get ocpi service configuration
     const ocpiSetting = await SettingStorage.getSettingByIdentifier(this.ocpiEndpoint.getTenantID(), Constants.COMPONENTS.OCPI);
     // Define eMI3
-    tenant._eMI3 = {};
+    tenant['_eMI3'] = {};
 
     if (ocpiSetting && ocpiSetting.content) {
       const configuration = ocpiSetting.content.ocpi;
-      tenant._eMI3.country_id = configuration.countryCode;
-      tenant._eMI3.party_id = configuration.partyID;
+      tenant['_eMI3'].country_id = configuration.countryCode;
+      tenant['_eMI3'].party_id = configuration.partyID;
     } else {
       // Log error if failure
       Logging.logError({

@@ -118,14 +118,8 @@ export default class SiteSecurity {
       }
       if (site.hasOwnProperty('availableChargers')) {
         filteredSite.availableChargers = site.availableChargers;
-      }
-      if (site.hasOwnProperty('totalChargers')) {
         filteredSite.totalChargers = site.totalChargers;
-      }
-      if (site.hasOwnProperty('availableConnectors')) {
         filteredSite.availableConnectors = site.availableConnectors;
-      }
-      if (site.hasOwnProperty('totalConnectors')) {
         filteredSite.totalConnectors = site.totalConnectors;
       }
       // Created By / Last Changed By

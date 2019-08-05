@@ -83,14 +83,8 @@ export default class SiteAreaSecurity {
       }
       if (siteArea.hasOwnProperty('availableChargers')) {
         filteredSiteArea.availableChargers = siteArea.availableChargers;
-      }
-      if (siteArea.hasOwnProperty('totalChargers')) {
         filteredSiteArea.totalChargers = siteArea.totalChargers;
-      }
-      if (siteArea.hasOwnProperty('availableConnectors')) {
         filteredSiteArea.availableConnectors = siteArea.availableConnectors;
-      }
-      if (siteArea.hasOwnProperty('totalConnectors')) {
         filteredSiteArea.totalConnectors = siteArea.totalConnectors;
       }
       if (siteArea.hasOwnProperty('accessControl')) {
