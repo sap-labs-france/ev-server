@@ -1,7 +1,6 @@
 import { ObjectID } from 'mongodb';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
-import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
@@ -14,21 +13,22 @@ export default class TenantStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'getTenant');
     // Delegate querying
-    const tenantsMDB = await TenantStorage.getTenants({tenantID: id}, Constants.DB_PARAMS_SINGLE_RECORD);
+    const tenantsMDB = await TenantStorage.getTenants({ tenantID: id }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('TenantStorage', 'getTenant', uniqueTimerID, { id });
-
-    return tenantsMDB.count>0 ? tenantsMDB.result[0] : null;
+    return tenantsMDB.count > 0 ? tenantsMDB.result[0] : null;
   }
 
   public static async getTenantByName(name: string): Promise<Tenant> {
-    const tenantsResult =  await TenantStorage.getTenants({ search: name, exact: true }, {limit: 1, skip: 0});
-    return tenantsResult.count>0 ? tenantsResult.result[0] : null;
+    // Delegate querying
+    const tenantsResult = await TenantStorage.getTenants({ tenantName: name }, Constants.DB_PARAMS_SINGLE_RECORD);
+    return tenantsResult.count > 0 ? tenantsResult.result[0] : null;
   }
 
   public static async getTenantBySubdomain(subdomain: string): Promise<Tenant> {
-    const tenantsResult =  await TenantStorage.getTenants({ search: subdomain, exact: true }, {limit: 1, skip: 0});
-    return tenantsResult.count>0 ? tenantsResult.result[0] : null;
+    // Delegate querying
+    const tenantsResult = await TenantStorage.getTenants({ tenantSubdomain: subdomain }, Constants.DB_PARAMS_SINGLE_RECORD);
+    return tenantsResult.count > 0 ? tenantsResult.result[0] : null;
   }
 
   public static async saveTenant(tenantToSave: Partial<Tenant>): Promise<string> {
@@ -84,7 +84,9 @@ export default class TenantStorage {
   }
 
   // Delegate
-  public static async getTenants(params: {tenantID?: string; search?: string, exact?: boolean}, dbParams: DbParams, projectFields?: string[]) {
+  public static async getTenants(
+    params: { tenantID?: string; tenantName?: string; tenantSubdomain?: string; search?: string },
+    dbParams: DbParams, projectFields?: string[]) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'getTenants');
     // Check Limit
@@ -94,19 +96,24 @@ export default class TenantStorage {
     // Set the filters
     const filters: any = {};
     if (params.tenantID) {
-      filters._id = ObjectID.isValid(params.tenantID) ? Utils.convertToObjectID(params.tenantID) : 'bogus';
+      filters._id = Utils.convertToObjectID(params.tenantID);
     } else if (params.search) {
-      if(params.exact){
-        filters.$or = [
-          { 'name': params.search },
-          { 'subdomain': params.search }
-        ]
+      if (ObjectID.isValid(params.search)) {
+        filters._id = Utils.convertToObjectID(params.search);
       } else {
         filters.$or = [
           { 'name': { $regex: params.search, $options: 'i' } },
           { 'subdomain': { $regex: params.search, $options: 'i' } }
         ];
       }
+    }
+    // Name
+    if (params.tenantName) {
+      filters.name = params.tenantName;
+    }
+    // Subdomain
+    if (params.tenantSubdomain) {
+      filters.subdomain = params.tenantSubdomain;
     }
     // Create Aggregation
     const aggregation = [];
@@ -122,14 +129,14 @@ export default class TenantStorage {
       .toArray();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation('', aggregation);
+    // Handle the ID
+    DatabaseUtils.renameDatabaseID(aggregation);
     // Sort
     if (dbParams.sort) {
-      // Sort
       aggregation.push({
         $sort: dbParams.sort
       });
     } else {
-      // Default
       aggregation.push({
         $sort: {
           name: 1
@@ -144,8 +151,8 @@ export default class TenantStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
-    // Change ID
-    DatabaseUtils.renameDatabaseID(aggregation);
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const tenantsMDB = await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenants')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })

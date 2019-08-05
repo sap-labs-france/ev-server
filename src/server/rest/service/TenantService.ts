@@ -3,9 +3,7 @@ import HttpStatusCodes from 'http-status-codes';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
-import ConflictError from '../../../exception/ConflictError';
 import Constants from '../../../utils/Constants';
-import Database from '../../../utils/Database';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import Setting from '../../../entity/Setting';
@@ -24,22 +22,22 @@ export default class TenantService {
 
   public static async handleDeleteTenant(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
-    const filteredRequest = TenantSecurity.filterTenantDeleteRequest(req.query);
-    UtilsService.assertIdIsProvided(filteredRequest.ID, MODULE_NAME, 'handleDeleteTenant', req.user);
+    const tenantID = TenantSecurity.filterTenantDeleteRequest(req.query);
+    UtilsService.assertIdIsProvided(tenantID, MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check auth
     if (!Authorizations.canDeleteTenant(req.user)) {
       throw new AppAuthError(
         Constants.ACTION_DELETE,
         Constants.ENTITY_TENANT,
-        filteredRequest.ID,
+        tenantID,
         Constants.HTTP_AUTH_ERROR,
         'TenantService', 'handleDeleteTenant',
         req.user);
     }
     // Get
-    const tenant = await TenantStorage.getTenant(filteredRequest.ID);
+    const tenant = await TenantStorage.getTenant(tenantID);
     // Found?
-    UtilsService.assertObjectExists(tenant, `Tenant '${filteredRequest.ID}' does not exist`,
+    UtilsService.assertObjectExists(tenant, `Tenant '${tenantID}' does not exist`,
       MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check if current tenant
     if (tenant.id === req.user.tenantID) {
@@ -73,7 +71,7 @@ export default class TenantService {
 
   public static async handleGetTenant(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
-    const filteredRequest = TenantSecurity.filterTenantByIDRequest(req.query);
+    const filteredRequest = TenantSecurity.filterTenantRequestByID(req.query);
     UtilsService.assertIdIsProvided(filteredRequest.ID, MODULE_NAME, 'handleGetTenant', req.user);
     // Check auth
     if (!Authorizations.canReadTenant(req.user)) {
@@ -140,21 +138,20 @@ export default class TenantService {
     // Check the Tenant's name
     let foundTenant = await TenantStorage.getTenantByName(filteredRequest.name);
     if (foundTenant) {
-      throw new ConflictError(`The tenant with name '${filteredRequest.name}' already exists`, 'tenants.name_already_used',
-        {
-          'name': filteredRequest.name,
-          'module': MODULE_NAME,
-          'source': 'handleCreateTenant',
-          'user': req.user,
-          'action': action
-        });
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `The tenant with name '${filteredRequest.name}' already exists`,
+        Constants.HTTP_USER_EMAIL_ALREADY_EXIST_ERROR,
+        MODULE_NAME, 'handleCreateTenant', req.user, null, action);
     }
     // Get the Tenant with ID (subdomain)
     foundTenant = await TenantStorage.getTenantBySubdomain(filteredRequest.subdomain);
     if (foundTenant) {
-      throw new ConflictError(`The tenant with subdomain '${filteredRequest.subdomain}' already exists`, 'tenants.subdomain_already_used', {
-        'subdomain': filteredRequest.subdomain
-      });
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `The tenant with subdomain '${filteredRequest.subdomain}' already exists`,
+        Constants.HTTP_USER_EMAIL_ALREADY_EXIST_ERROR,
+        MODULE_NAME, 'handleCreateTenant', req.user, null, action);
     }
     // Update timestamp
     filteredRequest.createdBy = { 'id': req.user.id };
@@ -234,14 +231,14 @@ export default class TenantService {
         'TenantService', 'handleUpdateTenant',
         req.user);
     }
-    // Check email
-    let tenant = await TenantStorage.getTenant(tenantUpdate.id);
+    // Get
+    const tenant = await TenantStorage.getTenant(tenantUpdate.id);
     UtilsService.assertObjectExists(tenant, `Tenant '${tenantUpdate.id}' doesn't exist.`, MODULE_NAME, 'handleUpdateTenant', req.user);
     // Update timestamp
     tenantUpdate.lastChangedBy = { 'id': req.user.id };
     tenantUpdate.lastChangedOn = new Date();
     // Update Tenant
-    tenantUpdate.id = await TenantStorage.saveTenant(tenantUpdate);
+    await TenantStorage.saveTenant(tenantUpdate);
     // Update with components
     await TenantService._updateSettingsWithComponents(tenantUpdate, req);
     // Log
@@ -272,7 +269,7 @@ export default class TenantService {
       }
       // Create
       const newSettingContent = Setting.createDefaultSettingContent(
-        {...tenant.components[componentName], name: componentName}, (currentSetting ? currentSetting.getContent() : null));
+        { ...tenant.components[componentName], name: componentName }, (currentSetting ? currentSetting.getContent() : null));
       if (newSettingContent) {
         // Create & Save
         if (!currentSetting) {
