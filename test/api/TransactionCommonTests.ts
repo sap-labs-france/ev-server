@@ -4,6 +4,7 @@ import faker from 'faker';
 import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
+import TenantContext from './contextProvider/TenantContext';
 import ChargingStationContext from './contextProvider/ChargingStationContext';
 import Utils from './Utils';
 
@@ -12,7 +13,7 @@ chai.use(responseHelper);
 
 export default class TransactionCommonTests {
 
-  public tenantContext: any;
+  public tenantContext: TenantContext;
   public chargingStationContext: ChargingStationContext;
   public centralUserContext: any;
   public centralUserService: CentralServerService;
@@ -26,7 +27,13 @@ export default class TransactionCommonTests {
     this.tenantContext = tenantContext;
     this.centralUserContext = centralUserContext;
     expect(centralUserContext).to.exist;
-    this.centralUserService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.centralUserContext);
+    // Avoid double login for identical user contexts
+    const centralAdminUserService = this.tenantContext.getAdminCentralServerService();
+    if (this.centralUserContext.email === centralAdminUserService.getAuthenticatedUserEmail()) {
+      this.centralUserService = centralAdminUserService;
+    } else {
+      this.centralUserService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.centralUserContext);
+    }
   }
 
   public setChargingStation(chargingStationContext) {
@@ -37,7 +44,12 @@ export default class TransactionCommonTests {
   public setUser(userContext) {
     expect(userContext).to.exist;
     this.transactionUser = userContext;
-    this.transactionUserService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.transactionUser);
+    // Avoid double login for identical user contexts
+    if (this.transactionUser === this.centralUserContext) {
+      this.transactionUserService = this.centralUserService
+    } else {
+      this.transactionUserService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.transactionUser);
+    }
   }
 
   public async before() {
