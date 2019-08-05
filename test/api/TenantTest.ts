@@ -80,7 +80,7 @@ describe('Tenant tests', function() {
       const response = await CentralServerService.DefaultInstance.getEntityById(
         CentralServerService.DefaultInstance.tenantApi, { id: 'youAreInvalid' }, false);
       // Check
-      expect(response.status).to.equal(550);
+      expect(response.status).to.equal(500);
     });
 
     it('Should not be possible to read an unknown tenant', async () => {
