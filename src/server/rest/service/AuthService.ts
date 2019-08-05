@@ -954,8 +954,6 @@ export default class AuthService {
     }
 
     // Check password
-    console.log(filteredRequest);
-    console.log(user);
     const match = await Utils.checkPasswordBCrypt(filteredRequest.password, user.password);
     // Check new and old version of hashing the password
     if (match || (user.password === Utils.hashPassword(filteredRequest.password))) {
