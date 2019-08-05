@@ -97,9 +97,8 @@ export default class CompanyStorage {
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    let filters: ({_id?: ObjectID; $or?: any[]}|undefined);
+    const filters: ({_id?: ObjectID; $or?: any[]}|undefined) = {};
     // Build filter
-    filters = {};
     if (params.companyID) {
       filters._id = Utils.convertToObjectID(params.companyID);
     } else if (params.search) {

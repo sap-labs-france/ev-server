@@ -5,7 +5,6 @@ import moment from 'moment-timezone';
 import querystring from 'querystring';
 import AbstractConnector from '../AbstractConnector';
 import AppError from '../../exception/AppError';
-import ChargingStation from '../../types/ChargingStation';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import ConnectionStorage from '../../storage/mongodb/ConnectionStorage';
 import Constants from '../../utils/Constants';

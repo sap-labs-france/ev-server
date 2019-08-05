@@ -13,11 +13,10 @@ export default class ChargingStationSecurity {
   public static filterAssignChargingStationsToSiteAreaRequest(request: Partial<HttpAssignChargingStationToSiteAreaRequest>): HttpAssignChargingStationToSiteAreaRequest {
     return {
       siteAreaID: sanitize(request.siteAreaID),
-      chargingStationIDs: request.chargingStationIDs.map(sanitize)
+      chargingStationIDs: request.chargingStationIDs.map(id => sanitize(id))
     };
   }
 
-  // Charging Station
   public static filterChargingStationResponse(chargingStation: ChargingStation, loggedUser: UserToken, organizationIsActive: boolean): Partial<ChargingStation> {
     let filteredChargingStation;
 
@@ -125,7 +124,7 @@ export default class ChargingStationSecurity {
     return { ID: sanitize(request.ID) };
   }
 
-  public static filterChargingStationByIDRequest(request: HttpByIDRequest): string {
+  public static filterChargingStationRequestByID(request: HttpByIDRequest): string {
     return sanitize(request.ID);
   }
 

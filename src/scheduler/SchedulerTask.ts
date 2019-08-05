@@ -2,7 +2,8 @@ import moment from 'moment';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import { TaskConfig } from './TaskConfig';
-import Tenant from '../entity/Tenant';
+import Tenant from '../types/Tenant';
+import TenantStorage from '../storage/mongodb/TenantStorage';
 
 export default abstract class SchedulerTask {
   async run(name: string, config: TaskConfig): Promise<void> {
@@ -14,12 +15,12 @@ export default abstract class SchedulerTask {
       message: `The task '${name}' is running...`
     });
     // Get the Tenants
-    const tenants = await Tenant.getTenants();
+    const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
     // Process them
     for (const tenant of tenants.result) {
       const startMigrationTimeInTenant = moment();
       Logging.logInfo({
-        tenantID: tenant.getID(),
+        tenantID: tenant.id,
         module: 'SchedulerTask', method: 'run',
         action: 'Scheduler',
         message: `The task '${name}' is running...`
@@ -29,7 +30,7 @@ export default abstract class SchedulerTask {
       // Log Total Processing Time in Tenant
       const totalMigrationTimeSecsInTenant = moment.duration(moment().diff(startMigrationTimeInTenant)).asSeconds();
       Logging.logInfo({
-        tenantID: tenant.getID(),
+        tenantID: tenant.id,
         module: 'SchedulerTask', method: 'run',
         action: 'Scheduler',
         message: `The task '${name}' has been run successfully in ${totalMigrationTimeSecsInTenant} secs`

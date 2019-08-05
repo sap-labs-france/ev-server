@@ -42,7 +42,7 @@ export default class SiteAreaStorage {
     const siteAreaResult = await SiteAreaStorage.getSiteAreas(
       tenantID,
       { siteAreaID: id, withSite: params.withSite, withChargeBoxes: params.withChargeBoxes, withAvailableChargers: true },
-      { limit: 1, skip: 0, onlyRecordCount: false }
+      Constants.DB_PARAMS_SINGLE_RECORD
     );
     // Debug
     Logging.traceEnd('SiteAreaStorage', 'getSiteArea', uniqueTimerID, { id, withChargeBoxes: params.withChargeBoxes, withSite: params.withSite });
@@ -278,11 +278,7 @@ export default class SiteAreaStorage {
     // Find site areas to delete
     const siteareas: string[] = (await global.database.getCollection<any>(tenantID, 'siteareas')
       .find({ siteID: { $in: siteIDs.map((id) => Utils.convertToObjectID(id)) } })
-      .project({ _id: 1 }).toArray()).map((idWrapper): string =>
-      /* eslint-disable @typescript-eslint/indent */
-         idWrapper._id.toHexString()
-      );
-    /* eslint-enable @typescript-eslint/indent */
+      .project({ _id: 1 }).toArray()).map((idWrapper): string => idWrapper._id.toHexString());
     // Delete site areas
     await SiteAreaStorage.deleteSiteAreas(tenantID, siteareas);
     // Debug

@@ -23,7 +23,7 @@ export default class SiteStorage {
     }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('SiteStorage', 'getSite', uniqueTimerID, { id });
-    return sitesMDB.result[0];
+    return sitesMDB.count > 0 ? sitesMDB.result[0] : null;
   }
 
   public static async getSiteImage(tenantID: string, id: string): Promise<{id: string; image: string}> {
@@ -179,7 +179,6 @@ export default class SiteStorage {
     });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
-
     // Read DB
     const siteUsersMDB = await global.database.getCollection<{user: User; siteID: string; siteAdmin: boolean}>(tenantID, 'siteusers')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
@@ -469,8 +468,7 @@ export default class SiteStorage {
       .find({ companyID: Utils.convertToObjectID(companyID) })
       .project({ _id: 1 })
       .toArray())
-      .map((site): string => site._id.toHexString()
-      );
+      .map((site): string => site._id.toHexString());
     // Delete all Site Areas
     await SiteAreaStorage.deleteSiteAreasFromSites(tenantID, siteIDs);
     // Delete Sites

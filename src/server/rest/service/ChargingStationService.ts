@@ -14,6 +14,7 @@ import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UtilsService from './UtilsService';
+import { HttpChargingStationCommandRequest } from '../../../types/requests/HttpChargingStationRequest';
 
 export default class ChargingStationService {
 
@@ -219,7 +220,7 @@ export default class ChargingStationService {
 
   public static async handleDeleteChargingStation(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const chargingStationID = ChargingStationSecurity.filterChargingStationByIDRequest(req.query);
+    const chargingStationID = ChargingStationSecurity.filterChargingStationRequestByID(req.query);
     // Check Mandatory fields
     UtilsService.assertIdIsProvided(chargingStationID, 'ChargingStationService',
       'handleDeleteChargingStation', req.user);
@@ -245,7 +246,8 @@ export default class ChargingStationService {
         'ChargingStationService', 'handleDeleteChargingStation', req.user);
     }
     // Check no active transaction
-    const foundIndex = chargingStation.connectors.findIndex((connector) => (connector ? connector.activeTransactionID > 0 : false));
+    const foundIndex = chargingStation.connectors.findIndex(
+      (connector) => connector ? connector.activeTransactionID > 0 : false);
     if (foundIndex >= 0) {
       // Can' t be deleted
       throw new AppError(
@@ -449,7 +451,7 @@ export default class ChargingStationService {
           Constants.HTTP_USER_NO_BADGE_ERROR,
           'ChargingStationService', 'handleAction', req.user, null, action);
       }
-      // Check if user is authorized -- TODO: Nothing is being done with the returned User?
+      // Check if user is authorized
       await Authorizations.isTagIDAuthorizedOnChargingStation(req.user.tenantID, chargingStation, filteredRequest.args.tagID, action);
       // Ok: Execute it
       result = await ChargingStationService._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
