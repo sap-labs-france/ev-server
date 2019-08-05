@@ -1,5 +1,5 @@
 import BackendError from '../exception/BackendError';
-import Tenant from './Tenant';
+import Tenant from '../types/Tenant';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 
 export default abstract class TenantHolder {

@@ -17,13 +17,13 @@ import NotificationHandler from '../../../notification/NotificationHandler';
 import Site from '../../../types/Site';
 import SiteArea from '../../../types/SiteArea';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
-import Tenant from '../../../entity/Tenant';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
@@ -57,7 +57,7 @@ export default class AuthService {
   public static async handleIsAuthorized(action: string, req: Request, res: Response, next: NextFunction) {
     let user: User;
     // Default
-    let result = [{ 'IsAuthorized': false }]; // TODO: Change style
+    let result = [{ 'IsAuthorized': false }];
     // Filter
     const filteredRequest = AuthSecurity.filterIsAuthorizedRequest(req.query);
     // Check
@@ -70,7 +70,6 @@ export default class AuthService {
     let chargingStation: ChargingStation = null;
     // Action
     switch (filteredRequest.Action) {
-      // TODO: To Remove
       // Hack for mobile app not sending the RemoteStopTransaction yet
       case 'StopTransaction':
       case 'RemoteStopTransaction':
@@ -196,11 +195,9 @@ export default class AuthService {
     }
     // Check authorization for each connectors
     for (let index = 0; index < chargingStation.connectors.length; index++) {
-      const foundConnector = chargingStation.connectors.find((connector) => {
-        return connector.connectorId === index + 1;
-      });
-      results.push(await Authorizations.getConnectorActionAuthorizations(
-        { tenantID, user, chargingStation, connector: foundConnector, siteArea, site }));
+      const foundConnector = chargingStation.connectors.find(
+        (connector) => connector.connectorId === index + 1);
+      results.push(await Authorizations.getConnectorActionAuthorizations({ tenantID, user, chargingStation, connector: foundConnector, siteArea, site }));
     }
     return results;
   }
@@ -239,7 +236,7 @@ export default class AuthService {
     const filteredRequest = AuthSecurity.filterLoginRequest(req.body);
     // Get Tenant
     tenantID = await AuthService.getTenantID(filteredRequest.tenant);
-    req.user = { tenantID: tenantID };
+    req.user = { tenantID };
     if (!tenantID) {
       tenantID = Constants.DEFAULT_TENANT;
       throw new AppError(
@@ -341,7 +338,7 @@ export default class AuthService {
       next(error);
       return;
     }
-    req.user = { tenantID: tenantID };
+    req.user = { tenantID };
     // Check EULA
     if (!filteredRequest.acceptEula) {
       throw new AppError(
@@ -432,8 +429,8 @@ export default class AuthService {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Send notification
       const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
-        '/#/verify-email?VerificationToken=' + newUser.verificationToken + '&Email=' +
-        newUser.email;
+        '/#/verify-email?VerificationToken=' + newUser.verificationToken + '&Email=' + newUser.email;
+      // Notify (Async)
       NotificationHandler.sendNewRegisteredUser(
         tenantID,
         Utils.generateGUID(),
@@ -512,7 +509,7 @@ export default class AuthService {
     const evseDashboardResetPassURL = Utils.buildEvseURL(filteredRequest.tenant) +
       '/#/reset-password?hash=' + resetHash + '&email=' +
       user.email;
-    // Send email
+    // Send Request Password (Async)
     NotificationHandler.sendRequestPassword(
       tenantID,
       Utils.generateGUID(),
@@ -581,7 +578,7 @@ export default class AuthService {
       message: 'User\'s password has been reset successfully',
       detailedMessages: req.body
     });
-    // Send notification
+    // Send Password (Async)
     NotificationHandler.sendNewPassword(
       tenantID,
       Utils.generateGUID(),
@@ -837,6 +834,7 @@ export default class AuthService {
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
       '/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
       user.email;
+    // Send Verification Email (Async)
     NotificationHandler.sendVerificationEmail(
       tenantID,
       Utils.generateGUID(),
@@ -937,9 +935,9 @@ export default class AuthService {
       return Constants.DEFAULT_TENANT;
     }
     // Get it
-    const tenant = await Tenant.getTenantBySubdomain(subdomain);
+    const tenant = await TenantStorage.getTenantBySubdomain(subdomain);
     // Return
-    return (tenant ? tenant.getID() : null);
+    return (tenant ? tenant.id : null);
   }
 
   public static async checkUserLogin(action: string, tenantID: string, user: User, filteredRequest: Partial<HttpLoginRequest>, req: Request, res: Response, next: NextFunction) {

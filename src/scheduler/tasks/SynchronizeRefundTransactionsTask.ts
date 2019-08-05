@@ -4,14 +4,15 @@ import Logging from '../../utils/Logging';
 import SchedulerTask from '../SchedulerTask';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import { TaskConfig } from '../TaskConfig';
-import Tenant from '../../entity/Tenant';
+import Tenant from '../../types/Tenant';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
+import Utils from '../../utils/Utils';
 
 export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
-    if (!tenant.isComponentActive(Constants.COMPONENTS.REFUND)) {
+    if (!Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.REFUND)) {
       Logging.logDebug({
-        tenantID: tenant.getID(),
+        tenantID: tenant.id,
         module: 'SynchronizeRefundTransactionsTask',
         method: 'run', action: 'RefundSynchronize',
         message: 'Refund not active in this Tenant'
@@ -19,10 +20,10 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
       return;
     }
     // Get Concur Settings
-    const setting = await SettingStorage.getSettingByIdentifier(tenant.getID(), Constants.COMPONENTS.REFUND);
+    const setting = await SettingStorage.getSettingByIdentifier(tenant.id, Constants.COMPONENTS.REFUND);
     if (!setting || !setting.getContent()[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]) {
       Logging.logDebug({
-        tenantID: tenant.getID(),
+        tenantID: tenant.id,
         module: 'SynchronizeRefundTransactionsTask',
         method: 'run', action: 'RefundSynchronize',
         message: 'Refund settings are not configured'
@@ -31,9 +32,9 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
     }
     // Create the Concur Connector
     const connector = new ConcurConnector(
-      tenant.getID(), setting.getContent()[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]);
+      tenant.id, setting.getContent()[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]);
     // Get the 'Submitted' transactions
-    const transactions = await TransactionStorage.getTransactions(tenant.getID(), {
+    const transactions = await TransactionStorage.getTransactions(tenant.id, {
       'refundType': Constants.REFUND_TYPE_REFUNDED,
       'refundStatus': Constants.REFUND_STATUS_SUBMITTED
     }, { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { 'userID' : 1, 'refundData.reportId' : 1 } });
@@ -41,7 +42,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
     if (transactions.count > 0) {
       // Process them
       Logging.logInfo({
-        tenantID: tenant.getID(),
+        tenantID: tenant.id,
         module: 'SynchronizeRefundTransactionsTask',
         method: 'run', action: 'RefundSynchronize',
         message: `${transactions.count} Refunded Transaction(s) are going to be synchronized`
@@ -68,12 +69,12 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
           }
         } catch (error) {
           actionsDone.error++;
-          Logging.logActionExceptionMessage(tenant.getID(), 'RefundSynchronize', error);
+          Logging.logActionExceptionMessage(tenant.id, 'RefundSynchronize', error);
         }
       }
       // Log result
       Logging.logInfo({
-        tenantID: tenant.getID(),
+        tenantID: tenant.id,
         module: 'SynchronizeRefundTransactionsTask',
         method: 'run', action: 'RefundSynchronize',
         message: `Synchronized: ${actionsDone.approved} Approved, ${actionsDone.cancelled} Cancelled, ${actionsDone.notUpdated} Not updated, ${actionsDone.error} In Error`
@@ -81,7 +82,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
     } else {
       // Process them
       Logging.logInfo({
-        tenantID: tenant.getID(),
+        tenantID: tenant.id,
         module: 'SynchronizeRefundTransactionsTask',
         method: 'run', action: 'RefundSynchronize',
         message: 'No Refunded Transaction found to synchronize'

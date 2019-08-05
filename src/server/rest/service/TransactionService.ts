@@ -11,12 +11,12 @@ import Logging from '../../../utils/Logging';
 import OCPPService from '../../../server/ocpp/services/OCPPService';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import SynchronizeRefundTransactionsTask from '../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
-import Tenant from '../../../entity/Tenant';
 import TransactionSecurity from './security/TransactionSecurity';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 
 export default class TransactionService {
@@ -32,7 +32,7 @@ export default class TransactionService {
           req.user);
       }
 
-      const tenant = await Tenant.getTenant(req.user.tenantID);
+      const tenant = await TenantStorage.getTenant(req.user.tenantID);
       const task = new SynchronizeRefundTransactionsTask();
       await task.processTenant(tenant, null);
 
@@ -181,9 +181,8 @@ export default class TransactionService {
             `Charging Station with ID ${transaction.getChargeBoxID()} does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
             'TransactionService', 'handleDeleteTransaction', req.user);
         }
-        const foundConnector = chargingStation.connectors.find((connector) => {
-          return connector.connectorId === transaction.getConnectorId();
-        });
+        const foundConnector = chargingStation.connectors.find(
+          (connector) => connector.connectorId === transaction.getConnectorId());
         if (foundConnector && transaction.getID() === foundConnector.activeTransactionID) {
           OCPPUtils.checkAndFreeChargingStationConnector(req.user.tenantID, chargingStation, transaction.getConnectorId());
           await ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);

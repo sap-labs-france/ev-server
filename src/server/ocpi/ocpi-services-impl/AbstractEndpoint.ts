@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import OCPIService from '../OCPIServices';
 import OCPIUtils from '../OCPIUtils';
-import Tenant from '../../../entity/Tenant';
+import Tenant from '../../../types/Tenant';
 
 /**
  * Abstract Endpoint

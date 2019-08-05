@@ -1,75 +1,37 @@
 import { ObjectID } from 'mongodb';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
-import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
-import Tenant from '../../entity/Tenant';
+import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
+import DbParams from '../../types/database/DbParams';
 
 export default class TenantStorage {
-  static async getTenant(id: string): Promise<Tenant|null> {
+  public static async getTenant(id: string): Promise<Tenant> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'getTenant');
-    // Create Aggregation
-    const aggregation = [];
-    // Filters
-    aggregation.push({
-      $match: {
-        _id: Utils.convertToObjectID(id)
-      }
-    });
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation('', aggregation);
-    // Read DB
-    const tenantsMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants')
-      .aggregate(aggregation)
-      .limit(1)
-      .toArray();
-
-    let tenant = null;
-    // Found?
-    if (tenantsMDB && tenantsMDB.length > 0) {
-      // Create
-      tenant = new Tenant(tenantsMDB[0]);
-    }
+    // Delegate querying
+    const tenantsMDB = await TenantStorage.getTenants({ tenantID: id }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('TenantStorage', 'getTenant', uniqueTimerID, { id });
-
-    return tenant;
+    return tenantsMDB.count > 0 ? tenantsMDB.result[0] : null;
   }
 
-  static async getTenantByName(name) {
-    // Get
-    return await TenantStorage.getTenantByFilter({ 'name': name });
+  public static async getTenantByName(name: string): Promise<Tenant> {
+    // Delegate querying
+    const tenantsResult = await TenantStorage.getTenants({ tenantName: name }, Constants.DB_PARAMS_SINGLE_RECORD);
+    return tenantsResult.count > 0 ? tenantsResult.result[0] : null;
   }
 
-  static async getTenantBySubdomain(subdomain) {
-    // Get
-    return await TenantStorage.getTenantByFilter({ 'subdomain': subdomain });
+  public static async getTenantBySubdomain(subdomain: string): Promise<Tenant> {
+    // Delegate querying
+    const tenantsResult = await TenantStorage.getTenants({ tenantSubdomain: subdomain }, Constants.DB_PARAMS_SINGLE_RECORD);
+    return tenantsResult.count > 0 ? tenantsResult.result[0] : null;
   }
 
-  static async getTenantByFilter(filter) {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('TenantStorage', 'getTenantByFilter');
-    // Read DB
-    const tenantsMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants')
-      .find(filter)
-      .limit(1)
-      .toArray();
-    let tenant = null;
-    // Found?
-    if (tenantsMDB && tenantsMDB.length > 0) {
-      // Create
-      tenant = new Tenant(tenantsMDB[0]);
-    }
-    // Debug
-    Logging.traceEnd('TenantStorage', 'getTenantByFilter', uniqueTimerID, { filter });
-    return tenant;
-  }
-
-  static async saveTenant(tenantToSave) {
+  public static async saveTenant(tenantToSave: Partial<Tenant>): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'saveTenant');
     // Check
@@ -86,27 +48,33 @@ export default class TenantStorage {
     } else {
       tenantFilter._id = new ObjectID();
     }
-    // Check Created By/On
-    tenantToSave.createdBy = Utils.convertUserToObjectID(tenantToSave.createdBy);
-    tenantToSave.lastChangedBy = Utils.convertUserToObjectID(tenantToSave.lastChangedBy);
-    // Transfer
-    const tenant: any = {};
-    Database.updateTenant(tenantToSave, tenant, false);
+    // Properties to save
+    let tenantMDB = {
+      _id: tenantFilter._id,
+      name: tenantToSave.name,
+      email: tenantToSave.email,
+      subdomain: tenantToSave.subdomain,
+      components: tenantToSave.components ? tenantToSave.components : {}
+    }
+    DatabaseUtils.addLastChangedCreatedProps(tenantMDB, tenantToSave);
     // Modify
     const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants').findOneAndUpdate(
-      tenantFilter, {
-        $set: tenant
-      }, {
-        upsert: true,
-        returnOriginal: false
-      });
+      tenantFilter,
+      { $set: tenantMDB },
+      { upsert: true, returnOriginal: false });
+    if (!result.ok) {
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Couldn\'t update Tenant',
+        'TenantStorage', 'saveTenant');
+    }
     // Debug
     Logging.traceEnd('TenantStorage', 'saveTenant', uniqueTimerID, { tenantToSave });
     // Create
-    return new Tenant(result.value);
+    return tenantFilter._id.toHexString();
   }
 
-  static async createTenantDB(tenantID) {
+  public static async createTenantDB(tenantID: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'createTenantDB');
     // Create DB
@@ -116,23 +84,36 @@ export default class TenantStorage {
   }
 
   // Delegate
-  static async getTenants(params: any = {}, limit?, skip?, sort?) {
+  public static async getTenants(
+    params: { tenantID?: string; tenantName?: string; tenantSubdomain?: string; search?: string },
+    dbParams: DbParams, projectFields?: string[]) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'getTenants');
     // Check Limit
-    limit = Utils.checkRecordLimit(limit);
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    skip = Utils.checkRecordSkip(skip);
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
     const filters: any = {};
-    if (params.search) {
+    if (params.tenantID) {
+      filters._id = Utils.convertToObjectID(params.tenantID);
+    } else if (params.search) {
       if (ObjectID.isValid(params.search)) {
         filters._id = Utils.convertToObjectID(params.search);
       } else {
         filters.$or = [
-          { 'name': { $regex: params.search, $options: 'i' } }
+          { 'name': { $regex: params.search, $options: 'i' } },
+          { 'subdomain': { $regex: params.search, $options: 'i' } }
         ];
       }
+    }
+    // Name
+    if (params.tenantName) {
+      filters.name = params.tenantName;
+    }
+    // Subdomain
+    if (params.tenantSubdomain) {
+      filters.subdomain = params.tenantSubdomain;
     }
     // Create Aggregation
     const aggregation = [];
@@ -148,14 +129,14 @@ export default class TenantStorage {
       .toArray();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation('', aggregation);
+    // Handle the ID
+    DatabaseUtils.renameDatabaseID(aggregation);
     // Sort
-    if (sort) {
-      // Sort
+    if (dbParams.sort) {
       aggregation.push({
-        $sort: sort
+        $sort: dbParams.sort
       });
     } else {
-      // Default
       aggregation.push({
         $sort: {
           name: 1
@@ -164,33 +145,29 @@ export default class TenantStorage {
     }
     // Skip
     aggregation.push({
-      $skip: skip
+      $skip: dbParams.skip
     });
     // Limit
     aggregation.push({
-      $limit: limit
+      $limit: dbParams.limit
     });
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const tenantsMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants')
+    const tenantsMDB = await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenants')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
 
-    const tenants = [];
-    // Create
-    for (const tenantMDB of tenantsMDB) {
-      // Add
-      tenants.push(new Tenant(tenantMDB));
-    }
     // Debug
-    Logging.traceEnd('TenantStorage', 'getTenants', uniqueTimerID, { params, limit, skip, sort });
+    Logging.traceEnd('TenantStorage', 'getTenants', uniqueTimerID, { params, dbParams });
     // Ok
     return {
       count: (tenantsCountMDB.length > 0 ? tenantsCountMDB[0].count : 0),
-      result: tenants
+      result: tenantsMDB
     };
   }
 
-  static async deleteTenant(id) {
+  public static async deleteTenant(id: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'deleteTenant');
     // Delete
@@ -202,7 +179,7 @@ export default class TenantStorage {
     Logging.traceEnd('TenantStorage', 'deleteTenant', uniqueTimerID, { id });
   }
 
-  static async deleteTenantDB(id) {
+  public static async deleteTenantDB(id: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'deleteTenantDB');
     // Delete

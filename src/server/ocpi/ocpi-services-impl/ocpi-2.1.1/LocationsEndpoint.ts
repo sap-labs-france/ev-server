@@ -125,7 +125,7 @@ const RECORDS_LIMIT = 20;
     const result = { count: 0, locations: [] };
 
     // Get all sites
-    const sites = await SiteStorage.getSites(tenant.getID(), {}, { limit, skip });
+    const sites = await SiteStorage.getSites(tenant.id, {}, { limit, skip });
 
     // Convert Sites to Locations
     for (const site of sites.result) {
@@ -146,7 +146,7 @@ const RECORDS_LIMIT = 20;
    */
   async getLocation(tenant, locationId) {
     // Get site
-    const site = await SiteStorage.getSite(tenant.getID(), locationId);
+    const site = await SiteStorage.getSite(tenant.id, locationId);
     if (!site) {
       return null;
     }
@@ -163,7 +163,7 @@ const RECORDS_LIMIT = 20;
    */
   async getEvse(tenant, locationId, evseUid) {
     // Get site
-    const site = await SiteStorage.getSite(tenant.getID(), locationId);
+    const site = await SiteStorage.getSite(tenant.id, locationId);
 
     // Convert to location
     const location = await OCPIMapping.convertSite2Location(tenant, site);

@@ -42,7 +42,7 @@ export default class SiteAreaStorage {
     const siteAreaResult = await SiteAreaStorage.getSiteAreas(
       tenantID,
       { siteAreaID: id, withSite: params.withSite, withChargeBoxes: params.withChargeBoxes, withAvailableChargers: true },
-      { limit: 1, skip: 0, onlyRecordCount: false }
+      Constants.DB_PARAMS_SINGLE_RECORD
     );
     // Debug
     Logging.traceEnd('SiteAreaStorage', 'getSiteArea', uniqueTimerID, { id, withChargeBoxes: params.withChargeBoxes, withSite: params.withSite });
@@ -119,9 +119,7 @@ export default class SiteAreaStorage {
     // Set Site thru a filter in the dashboard
     if (params.siteIDs && Array.isArray(params.siteIDs) && params.siteIDs.length > 0) {
       filters.siteID = {
-        $in: params.siteIDs.map((site) => {
-          return Utils.convertToObjectID(site);
-        })
+        $in: params.siteIDs.map((site) => Utils.convertToObjectID(site))
       };
     }
     // Create Aggregation
@@ -136,9 +134,7 @@ export default class SiteAreaStorage {
     if (params.siteIDs && params.siteIDs.length > 0) {
       aggregation.push({
         $match: {
-          siteID: { $in: params.siteIDs.map((siteID) => {
-            return Utils.convertToObjectID(siteID);
-          }) }
+          siteID: { $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID)) }
         }
       });
     }
@@ -258,23 +254,17 @@ export default class SiteAreaStorage {
     await Utils.checkTenant(tenantID);
     // Remove Charging Station's Site Area
     await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany(
-      { siteAreaID: { $in: siteAreaIDs.map((ID) => {
-        return Utils.convertToObjectID(ID);
-      }) } },
+      { siteAreaID: { $in: siteAreaIDs.map((ID) => Utils.convertToObjectID(ID)) } },
       { $set: { siteAreaID: null } },
       { upsert: false }
     );
     // Delete SiteArea
     await global.database.getCollection<any>(tenantID, 'siteareas').deleteMany(
-      { '_id': { $in: siteAreaIDs.map((ID) => {
-        return Utils.convertToObjectID(ID);
-      }) } }
+      { '_id': { $in: siteAreaIDs.map((ID) => Utils.convertToObjectID(ID)) } }
     );
     // Delete Image
     await global.database.getCollection<any>(tenantID, 'sitesareaimages').deleteMany(
-      { '_id': { $in: siteAreaIDs.map((ID) => {
-        return Utils.convertToObjectID(ID);
-      }) } }
+      { '_id': { $in: siteAreaIDs.map((ID) => Utils.convertToObjectID(ID)) } }
     );
     // Debug
     Logging.traceEnd('SiteAreaStorage', 'deleteSiteAreas', uniqueTimerID, { siteAreaIDs });
@@ -287,14 +277,8 @@ export default class SiteAreaStorage {
     await Utils.checkTenant(tenantID);
     // Find site areas to delete
     const siteareas: string[] = (await global.database.getCollection<any>(tenantID, 'siteareas')
-      .find({ siteID: { $in: siteIDs.map((id) => {
-        return Utils.convertToObjectID(id);
-      }) } })
-      .project({ _id: 1 }).toArray()).map((idWrapper): string => {
-      /* eslint-disable @typescript-eslint/indent */
-        return idWrapper._id.toHexString();
-      });
-    /* eslint-enable @typescript-eslint/indent */
+      .find({ siteID: { $in: siteIDs.map((id) => Utils.convertToObjectID(id)) } })
+      .project({ _id: 1 }).toArray()).map((idWrapper): string => idWrapper._id.toHexString());
     // Delete site areas
     await SiteAreaStorage.deleteSiteAreas(tenantID, siteareas);
     // Debug

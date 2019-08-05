@@ -154,7 +154,7 @@ export default class OCPIEndpoint extends TenantHolder {
     // Generate random
     newToken.ak = Math.floor(Math.random() * 100);
     // Fill new Token with tenant subdmain
-    newToken.tid = tenant.getSubdomain();
+    newToken.tid = tenant.subdomain;
     // Generate random
     newToken.zk = Math.floor(Math.random() * 100);
     // Base64 encoding

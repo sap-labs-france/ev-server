@@ -14,7 +14,6 @@ export default class OCPPUtils {
 
   static lockAllConnectors(chargingStation: ChargingStation) {
     chargingStation.connectors.forEach((connector) => {
-      // Check
       if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
         // Check OCPP Version
         if (chargingStation.ocppVersion === Constants.OCPP_VERSION_15) {
@@ -72,9 +71,8 @@ export default class OCPPUtils {
       throw new BackendError(chargeBoxIdentity, 'Charging Station does not exist',
         'OCPPUtils', '_checkAndGetChargingStation');
     }
-    // Found?
+    // Deleted?
     if (chargingStation.deleted) {
-      // Error
       throw new BackendError(chargeBoxIdentity, 'Charging Station is deleted',
         'OCPPUtils', '_checkAndGetChargingStation');
     }
@@ -89,7 +87,7 @@ export default class OCPPUtils {
     let totalPower = 0;
 
     // Only for Schneider
-    if (chargingStation.chargePointVendor === 'Schneider Electric') {
+    if (chargingStation.chargePointVendor === Constants.VENDOR_SCHNEIDER) {
       // Get the configuration
       const configuration = await ChargingStationStorage.getConfiguration(tenantID, chargingStation.id);
       // Config Provided?
@@ -144,8 +142,8 @@ export default class OCPPUtils {
     }
   }
 
-  public static async getChargingStationClient(tenantID: string, chargingStation: ChargingStation): Promise<ChargingStationClient> {
-    return await buildChargingStationClient(tenantID, chargingStation);
+  public static getChargingStationClient(tenantID: string, chargingStation: ChargingStation): Promise<ChargingStationClient> {
+    return buildChargingStationClient(tenantID, chargingStation);
   }
 
   public static async requestExecuteChargingStationCommand(tenantID: string, chargingStation: ChargingStation, method: string, params?) {
@@ -162,7 +160,6 @@ export default class OCPPUtils {
         message: 'Command sent with success',
         detailedMessages: result
       });
-      // Return
       return result;
     } catch (error) {
       // OCPP 1.6?
@@ -228,8 +225,8 @@ export default class OCPPUtils {
     const result = await OCPPUtils.requestExecuteChargingStationCommand(tenantID, chargingStation, 'changeConfiguration', params);
     // Request the new Configuration?
     if (result.status === 'Accepted') {
-      // Retrieve and Save it in the DB
-      await OCPPUtils.requestAndSaveChargingStationConfiguration(tenantID, chargingStation);
+      // Retrieve and Save it in the DB (Async)
+      OCPPUtils.requestAndSaveChargingStationConfiguration(tenantID, chargingStation);
     }
     // Return
     return result;

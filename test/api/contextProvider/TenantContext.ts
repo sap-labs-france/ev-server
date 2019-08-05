@@ -9,17 +9,18 @@ import OCPPJsonService16 from '../ocpp/json/OCPPJsonService16';
 import OCPPJsonService15 from '../ocpp/soap/OCPPSoapService15';
 import SiteAreaContext from './SiteAreaContext';
 import SiteContext from './SiteContext';
+import Tenant from '../../types/Tenant';
 
 export default class TenantContext {
 
   private tenantName: string;
-  private tenant: any;
+  private tenant: Tenant;
   private centralAdminServerService: CentralServerService;
   private ocpp16: OCPPJsonService16;
   private ocpp15: OCPPJsonService15;
   private context: any;
 
-  constructor(tenantName, tenant, centralService, ocppRequestHandler) {
+  constructor(tenantName, tenant: Tenant, centralService, ocppRequestHandler) {
     this.tenantName = tenantName;
     this.tenant = tenant;
     this.centralAdminServerService = centralService;
