@@ -93,7 +93,7 @@ export default class ContextBuilder {
     for (const tenantContextDef of BIG_CONTEXT) {
       const tenantEntity = await TenantStorage.getTenantByName(tenantContextDef.tenantName);
       if (tenantEntity) {
-        await this.superAdminCentralServerService.tenantApi.delete(tenantEntity.getID());
+        await this.superAdminCentralServerService.tenantApi.delete(tenantEntity.id);
       }
     }
 
@@ -143,9 +143,9 @@ export default class ContextBuilder {
       }
     }
     // Check if tenant exist
-    const existingTenant = await Tenant.getTenant(tenantContextDef.id);
+    const existingTenant = await TenantStorage.getTenant(tenantContextDef.id);
     if (existingTenant) {
-      console.log(`Tenant ${tenantContextDef.id} already exist with name ${existingtenant.name}. Please run a destroy context`);
+      console.log(`Tenant ${tenantContextDef.id} already exist with name ${existingTenant.name}. Please run a destroy context`);
       throw new Error('Tenant id exist already');
     }
     let buildTenant: any = {};
