@@ -14,12 +14,12 @@ import SiteAreaContext from './SiteAreaContext';
 import SiteAreaStorage from '../../../src/storage/mongodb/SiteAreaStorage';
 import SiteContext from './SiteContext';
 import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
-import Tenant from '../../../src/types/Tenant';
 import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
 import User from '../../../src/types/User';
 import UserFactory from '../../factories/UserFactory';
 import UserStorage from '../../../src/storage/mongodb/UserStorage';
+import TenantStorage from '../../../src/storage/mongodb/TenantStorage';
 import Utils from '../../../src/utils/Utils';
 
 const NBR_USERS = 10; // Number of total users : they are all connected to the sites
