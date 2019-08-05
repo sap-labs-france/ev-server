@@ -18,7 +18,7 @@ export default class SettingStorage {
     // Debug
     Logging.traceEnd('SettingStorage', 'getSetting', uniqueTimerID, { id });
 
-    return settingMDB.count>0 ? settingMDB.result[0] : null;
+    return settingMDB.count > 0 ? settingMDB.result[0] : null;
   }
 
   public static async getSettingByIdentifier(tenantID: string, identifier: string): Promise<Setting> {
@@ -48,14 +48,12 @@ export default class SettingStorage {
     }
     // Properties to save
     const settingMDB = {
-      ...settingToSave,
       _id: settingFilter._id,
-      createdBy: settingToSave.createdBy ? settingToSave.createdBy.id : null,
-      lastChangedBy: settingToSave.lastChangedBy ? settingToSave.lastChangedBy.id : null
+      identifier: settingToSave.identifier,
+      content: settingToSave.content,
+      sensitiveData: settingToSave.sensitiveData
     }
-    // Clean up mongo request
-    delete settingMDB.id;
-    DatabaseUtils.addLastChangedCreatedProps(settingMDB, settingMDB);
+    DatabaseUtils.addLastChangedCreatedProps(settingMDB, settingToSave);
     // Modify
     const result = await global.database.getCollection<any>(tenantID, 'settings').findOneAndUpdate(
       settingFilter,
@@ -73,7 +71,7 @@ export default class SettingStorage {
     return settingFilter._id.toHexString();
   }
 
-  public static async getSettings(tenantID: string, params: {identifier?:string, id?:string}, dbParams: DbParams) {
+  public static async getSettings(tenantID: string, params: {identifier?:string, id?:string}, dbParams: DbParams, projectFields?: string[]) {
     // Debug
     const uniqueTimerID = Logging.traceStart('SettingStorage', 'getSettings');
     // Check Tenant
@@ -85,9 +83,11 @@ export default class SettingStorage {
     // Set the filters
     const filters: any = {};
     // Source?
-    if(params.id && ObjectID.isValid(params.id)) {
+    if (params.id) {
       filters._id = Utils.convertToObjectID(params.id);
-    }else if(params.identifier){
+    }
+    // Identifier
+    if (params.identifier) {
       filters.identifier = params.identifier;
     }
     // Create Aggregation
@@ -128,6 +128,8 @@ export default class SettingStorage {
     });
     // Rename ID
     DatabaseUtils.renameDatabaseID(aggregation);
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const settingsMDB = await global.database.getCollection<Setting>(tenantID, 'settings')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })

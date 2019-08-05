@@ -50,21 +50,21 @@ export default class SettingService {
 
   public static async handleGetSetting(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
-    const filteredRequest = SettingSecurity.filterSettingRequest(req.query);
-    UtilsService.assertIdIsProvided(filteredRequest.ID, 'SettingService', 'handleGetSetting', req.user);
+    const settingID = SettingSecurity.filterSettingRequestByID(req.query);
+    UtilsService.assertIdIsProvided(settingID, 'SettingService', 'handleGetSetting', req.user);
     // Check auth
     if(!Authorizations.canReadSetting(req.user)) {
       throw new AppAuthError(
         Constants.ACTION_READ,
         Constants.ENTITY_SETTING,
-        filteredRequest.ID,
+        settingID,
         Constants.HTTP_AUTH_ERROR,
         'SettingService', 'handleGetSetting',
         req.user);
     }
     // Get it
-    const setting = await SettingStorage.getSetting(req.user.tenantID, filteredRequest.ID);
-    UtilsService.assertObjectExists(setting, `Setting '${filteredRequest.ID}' doesn't exist.`, 'SettingService', 'handleGetSetting', req.user);
+    const setting = await SettingStorage.getSetting(req.user.tenantID, settingID);
+    UtilsService.assertObjectExists(setting, `Setting '${settingID}' doesn't exist.`, 'SettingService', 'handleGetSetting', req.user);
     // Process the sensitive data if any
     // Hash sensitive data before being sent to the front end
     Cypher.hashSensitiveDataInJSON(setting);
@@ -92,7 +92,8 @@ export default class SettingService {
     // Filter
     const filteredRequest = SettingSecurity.filterSettingsRequest(req.query);
     // Get the all settings identifier
-    const settings = await SettingStorage.getSettings(req.user.tenantID, { 'identifier': filteredRequest.Identifier },
+    const settings = await SettingStorage.getSettings(req.user.tenantID,
+      { identifier: filteredRequest.Identifier },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort });
     // Filter
     settings.result = SettingSecurity.filterSettingsResponse(

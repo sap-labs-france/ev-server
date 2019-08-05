@@ -18,6 +18,11 @@ export default class SettingSecurity {
     return { ID: sanitize(request.ID), ContentFilter: UtilsSecurity.filterBoolean(request.ContentFilter) };
   }
 
+  public static filterSettingRequestByID(request: HttpByIDRequest): string {
+    return sanitize(request.ID);
+  }
+
+
   public static filterSettingsRequest(request: HttpSettingsRequest): HttpSettingsRequest {
     const filteredRequest: HttpSettingsRequest = {} as HttpSettingsRequest;
     filteredRequest.Identifier = sanitize(request.Identifier);
@@ -41,7 +46,7 @@ export default class SettingSecurity {
     return {
       identifier: sanitize(request.identifier),
       content: sanitize(request.content),
-      sensitiveData: request.sensitiveData?sanitize(request.sensitiveData):[]
+      sensitiveData: request.sensitiveData ? sanitize(request.sensitiveData) : []
     };
   }
 
