@@ -243,6 +243,7 @@ export default class OCPPUtils {
       foundConnector.totalInactivitySecs = 0;
       foundConnector.currentStateOfCharge = 0;
       foundConnector.activeTransactionID = 0;
+      foundConnector.activeTagID = null;
     }
     // Check if Charger can charge in //
     if (chargingStation.cannotChargeInParallel) {

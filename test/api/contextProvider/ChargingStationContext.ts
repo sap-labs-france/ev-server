@@ -54,18 +54,14 @@ export default class ChargingStationContext {
   }
 
   async readChargingStation(userService?: CentralServerService) {
-    if (userService) {
-      userService = userService;
-    } else {
+    if (!userService) {
       userService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN));
     }
-    const response = await userService.chargingStationApi.readById(this.chargingStation.id);
-    return response;
+    return await userService.chargingStationApi.readById(this.chargingStation.id);
   }
 
   async sendHeartbeat() {
-    const response = await await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeHeartbeat(this.chargingStation.id, {});
-    return response;
+    return await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeHeartbeat(this.chargingStation.id, {});
   }
 
   async startTransaction(connectorId, tagId, meterStart, startDate) {

@@ -236,6 +236,7 @@ export default class OCPPService {
       // Does not exist: Create
       foundConnector = {
         activeTransactionID: 0,
+        activeTagID: null,
         connectorId: statusNotification.connectorId,
         currentConsumption: 0,
         status: 'Unknown',
@@ -640,6 +641,7 @@ export default class OCPPService {
       foundConnector.totalInactivitySecs = transaction.getCurrentTotalInactivitySecs();
       // Set Transaction ID
       foundConnector.activeTransactionID = transaction.getID();
+      foundConnector.activeTagID = transaction.getTagID();
       // Update Heartbeat
       chargingStation.lastHeartBeat = new Date();
       // Handle End Of charge
@@ -651,6 +653,7 @@ export default class OCPPService {
       foundConnector.totalInactivitySecs = 0;
       foundConnector.currentStateOfCharge = 0;
       foundConnector.activeTransactionID = 0;
+      foundConnector.activeTagID = null;
     }
     // Log
     Logging.logInfo({
@@ -1042,10 +1045,10 @@ export default class OCPPService {
         foundConnector.totalConsumption = 0;
         foundConnector.totalInactivitySecs = 0;
         foundConnector.currentStateOfCharge = 0;
-        foundConnector.activeTransactionID = 0;
+        foundConnector.activeTransactionID = transaction.getID();
+        foundConnector.activeTagID = transaction.getTagID();
       }
       // Set the active transaction on the connector
-      foundConnector.activeTransactionID = transaction.getID();
       // Update Heartbeat
       chargingStation.lastHeartBeat = new Date();
       // Save
