@@ -7,17 +7,13 @@ import ChargingStation from '../../../types/ChargingStation';
 import ChargingStationSecurity from './security/ChargingStationSecurity';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../utils/Constants';
-import { HttpChargingStationCommandRequest } from '../../../types/requests/HttpChargingStationRequest';
+import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 import Logging from '../../../utils/Logging';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UtilsService from './UtilsService';
-import {
-  HttpChargingStationCommandRequest,
-  HttpIsAuthorizedRequest
-} from '../../../types/requests/HttpChargingStationRequest';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
@@ -625,9 +621,7 @@ export default class ChargingStationService {
           const results = [];
           // Check authorization for each connectors
           for (let index = 0; index < chargingStation.connectors.length; index++) {
-            const foundConnector = chargingStation.connectors.find((connector) => {
-              return connector.connectorId === index + 1;
-            });
+            const foundConnector = chargingStation.connectors.find((connector) => connector.connectorId === index + 1);
             const tempResult = { 'IsAuthorized': false };
             if (foundConnector && foundConnector.activeTransactionID) {
               tempResult.IsAuthorized = await ChargingStationService.isStopTransactionAuthorized(

@@ -3,7 +3,7 @@ import Authorizations from '../../../../authorization/Authorizations';
 import ChargingStation from '../../../../types/ChargingStation';
 import Constants from '../../../../utils/Constants';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest } from '../../../../types/requests/HttpChargingStationRequest';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';

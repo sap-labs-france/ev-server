@@ -82,7 +82,7 @@ describe('Transaction tests', function() {
         });
 
         it('Should not be authorized on a transaction started by another', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN)
+          const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
           await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, false, false, anotherUser.tagIDs[0]);
         });
 
@@ -91,7 +91,7 @@ describe('Transaction tests', function() {
         });
 
         it('Should not be authorized to stop a transaction started by another', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN)
+          const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
           await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, false, anotherUser.tagIDs[0]);
         });
 
@@ -298,7 +298,7 @@ describe('Transaction tests', function() {
         });
 
         it('Should be authorized on a transaction started by another', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER)
+          const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
           await testData.transactionCommonTests.testIsAuthorizedOnStartedTransaction(true, true, true, anotherUser.tagIDs[0]);
         });
 
@@ -307,7 +307,7 @@ describe('Transaction tests', function() {
         });
 
         it('Should be authorized to stop a transaction started by another', async () => {
-          const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER)
+          const anotherUser = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
           await testData.transactionCommonTests.testIsAuthorizedToStopTransaction(true, true, anotherUser.tagIDs[0]);
         });
       });
