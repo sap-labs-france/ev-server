@@ -114,6 +114,40 @@ export default class StatisticService {
     }
   }
 
+  static async handleGetChargingStationSessionsStatistics(action: string, req: Request, res: Response, next: NextFunction) {
+    try {
+      // Check if component is active
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
+        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationSessionsStatistics');
+      // Check auth
+      if (!Authorizations.canListTransactions(req.user)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_LIST,
+          Constants.ENTITY_TRANSACTIONS,
+          null, 560,
+          'StatisticService', 'handleGetChargingStationSessionsStatistics',
+          req.user);
+      }
+      // Filter
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
+      // Build filter
+      const filter = StatisticService.buildFilter(filteredRequest, req.user);
+      // Get Stats
+      const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
+        req.user.tenantID, filter, Constants.STATS_GROUP_BY_SESSIONS);
+      // Convert
+      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'C');
+      // Return
+      res.json(transactions);
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
   static async handleGetUserConsumptionStatistics(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check if component is active
@@ -216,6 +250,40 @@ export default class StatisticService {
     }
   }
 
+  static async handleGetUserSessionsStatistics(action: string, req: Request, res: Response, next: NextFunction) {
+    try {
+      // Check if component is active
+      UtilsService.assertComponentIsActiveFromToken(
+        req.user, Constants.COMPONENTS.STATISTICS,
+        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserSessionsStatistics');
+      // Check auth
+      if (!Authorizations.canListTransactions(req.user)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          Constants.ACTION_LIST,
+          Constants.ENTITY_TRANSACTIONS,
+          null, 560,
+          'StatisticService', 'handleGetUserSessionsStatistics',
+          req.user);
+      }
+      // Filter
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
+      // Build filter
+      const filter = StatisticService.buildFilter(filteredRequest, req.user);
+      // Get Stats
+      const transactionStatsMDB = await StatisticsStorage.getUserStats(
+        req.user.tenantID, filter, Constants.STATS_GROUP_BY_SESSIONS);
+      // Convert
+      const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
+      // Return
+      res.json(transactions);
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
   static async handleGetCurrentMetrics(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
@@ -273,6 +341,9 @@ export default class StatisticService {
         case 'Inactivity':
           groupBy = Constants.STATS_GROUP_BY_INACTIVITY;
           break;
+        case 'Sessions':
+          groupBy = Constants.STATS_GROUP_BY_SESSIONS;
+          break;
         default:
           groupBy = Constants.STATS_GROUP_BY_CONSUMPTION;
       }
@@ -290,20 +361,20 @@ export default class StatisticService {
       const filename = 'export' + filteredRequest.DataType + 'Statistics.csv';
       fs.writeFile(filename, StatisticService.convertToCSV(transactionStatsMDB, filteredRequest.DataCategory,
         filteredRequest.DataType, filteredRequest.Year, filteredRequest.DataScope), (createError) => {
-        if (createError) {
-          throw createError;
-        }
-        res.download(filename, (downloadError) => {
-          if (downloadError) {
-            throw downloadError;
+          if (createError) {
+            throw createError;
           }
-          fs.unlink(filename, (unlinkError) => {
-            if (unlinkError) {
-              throw unlinkError;
+          res.download(filename, (downloadError) => {
+            if (downloadError) {
+              throw downloadError;
             }
+            fs.unlink(filename, (unlinkError) => {
+              if (unlinkError) {
+                throw unlinkError;
+              }
+            });
           });
         });
-      });
     } catch (error) {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
@@ -411,6 +482,9 @@ export default class StatisticService {
         break;
       case 'Inactivity':
         csv += 'inactivityHours\r\n';
+        break;
+      case 'Sessions':
+        csv += 'numberOfSessions\r\n';
         break;
       default:
         return csv;
