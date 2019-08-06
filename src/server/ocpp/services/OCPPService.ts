@@ -13,7 +13,6 @@ import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../utils/OCPPUtils';
 import OCPPValidation from '../validation/OCPPValidation';
 import PricingFactory from '../../../integration/pricing/PricingFactory';
-import Tenant from '../../../entity/Tenant';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Transaction from '../../../entity/Transaction';
 import User from '../../../types/User';

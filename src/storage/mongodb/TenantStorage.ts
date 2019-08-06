@@ -49,7 +49,8 @@ export default class TenantStorage {
       tenantFilter._id = new ObjectID();
     }
     // Properties to save
-    const tenantMDB = {
+    // eslint-disable-next-line prefer-const
+    let tenantMDB = {
       _id: tenantFilter._id,
       name: tenantToSave.name,
       email: tenantToSave.email,

@@ -7,6 +7,7 @@ import global from '../../../types/GlobalType';
 import Logging from '../../../utils/Logging';
 import Tenant from '../../../types/Tenant';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 

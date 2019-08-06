@@ -3,25 +3,24 @@ import config from '../../config';
 import faker from 'faker';
 import moment from 'moment';
 import CentralServerService from '../client/CentralServerService';
-import CompanyStorage from '../../storage/mongodb/CompanyStorage';
-import Constants from '../../utils/Constants';
+import CompanyStorage from '../../../src/storage/mongodb/CompanyStorage';
+import Constants from '../../../src/utils/Constants';
 import CONTEXTS from './ContextConstants';
 import Factory from '../../factories/Factory';
-import global from '../../types/GlobalType';
-import MongoDBStorage from '../../storage/mongodb/MongoDBStorage';
-import Site from '../../types/Site';
-import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
+import global from '../../../src/types/GlobalType';
+import MongoDBStorage from '../../../src/storage/mongodb/MongoDBStorage';
+import Site from '../../../src/types/Site';
+import SiteAreaStorage from '../../../src/storage/mongodb/SiteAreaStorage';
 import SiteContext from './SiteContext';
-import SiteStorage from '../../storage/mongodb/SiteStorage';
+import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
 import StatisticsContext from './StatisticsContext';
-import Tenant from '../../types/Tenant';
 import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
-import User from '../../types/User';
+import TenantStorage from '../../../src/storage/mongodb/TenantStorage';
+import User from '../../../src/types/User';
 import UserFactory from '../../factories/UserFactory';
-import UserStorage from '../../storage/mongodb/UserStorage';
-import Utils from '../../utils/Utils';
+import UserStorage from '../../../src/storage/mongodb/UserStorage';
+import Utils from '../../../src/utils/Utils';
 
 export default class ContextBuilder {
 

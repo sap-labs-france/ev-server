@@ -196,7 +196,7 @@ export default class ChargingStationSecurity {
   }
 
   public static filterChargingStationActionRequest(request: HttpChargingStationCommandRequest, action: string, loggedUser: UserToken): HttpChargingStationCommandRequest {
-    const filteredRequest: any = {} as HttpChargingStationCommandRequest;
+    const filteredRequest: HttpChargingStationCommandRequest = {} as HttpChargingStationCommandRequest;
     // Check
     filteredRequest.chargeBoxID = sanitize(request.chargeBoxID);
     // Do not check action?
