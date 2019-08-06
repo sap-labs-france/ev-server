@@ -237,6 +237,7 @@ export default class OCPPService {
       // Does not exist: Create
       foundConnector = {
         activeTransactionID: 0,
+        activeTagID: null,
         connectorId: statusNotification.connectorId,
         currentConsumption: 0,
         status: 'Unknown',
@@ -639,17 +640,19 @@ export default class OCPPService {
       foundConnector.totalInactivitySecs = transaction.getCurrentTotalInactivitySecs();
       // Set Transaction ID
       foundConnector.activeTransactionID = transaction.getID();
+      foundConnector.activeTagID = transaction.getTagID();
       // Update Heartbeat
       chargingStation.lastHeartBeat = new Date();
       // Handle End Of charge
       await this._checkNotificationEndOfCharge(tenantID, chargingStation, transaction);
-    // Cleanup connector transaction data
+      // Cleanup connector transaction data
     } else if (foundConnector) {
       foundConnector.currentConsumption = 0;
       foundConnector.totalConsumption = 0;
       foundConnector.totalInactivitySecs = 0;
       foundConnector.currentStateOfCharge = 0;
       foundConnector.activeTransactionID = 0;
+      foundConnector.activeTagID = null;
     }
     // Log
     Logging.logInfo({
@@ -774,7 +777,9 @@ export default class OCPPService {
           // Log
           Logging.logWarning({
             tenantID: tenantID,
-            source: chargingStation.id, module: 'OCPPService', method: '_filterMeterValuesOnCharger',
+            source: chargingStation.id,
+            module: 'OCPPService',
+            method: '_filterMeterValuesOnCharger',
             action: 'MeterValues',
             message: 'Removed Meter Value with attribute context \'Sample.Clock\'',
             detailedMessages: meterValue
@@ -874,7 +879,7 @@ export default class OCPPService {
       authorize.timestamp = new Date();
       authorize.timezone = Utils.getTimezone(chargingStation.latitude, chargingStation.longitude);
       // Check
-      authorize.user = await Authorizations.isTagIDAuthorizedOnChargingStation(headers.tenantID, chargingStation, authorize.idTag, Constants.ACTION_AUTHORIZE);
+      authorize.user = await Authorizations.isAuthorizedOnChargingStation(headers.tenantID, chargingStation, authorize.idTag);
       // Save
       await OCPPStorage.saveAuthorize(headers.tenantID, authorize);
       // Log
@@ -914,8 +919,11 @@ export default class OCPPService {
       // Log
       Logging.logInfo({
         tenantID: headers.tenantID,
-        source: chargingStation.id, module: 'OCPPService', method: 'handleDiagnosticsStatusNotification',
-        action: 'DiagnosticsStatusNotification', message: 'Diagnostics Status Notification has been saved'
+        source: chargingStation.id,
+        module: 'OCPPService',
+        method: 'handleDiagnosticsStatusNotification',
+        action: 'DiagnosticsStatusNotification',
+        message: 'Diagnostics Status Notification has been saved'
       });
       // Return
       return {};
@@ -943,8 +951,11 @@ export default class OCPPService {
       // Log
       Logging.logInfo({
         tenantID: headers.tenantID,
-        source: chargingStation.id, module: 'OCPPService', method: 'handleFirmwareStatusNotification',
-        action: 'FirmwareStatusNotification', message: 'Firmware Status Notification has been saved'
+        source: chargingStation.id,
+        module: 'OCPPService',
+        method: 'handleFirmwareStatusNotification',
+        action: 'FirmwareStatusNotification',
+        message: 'Firmware Status Notification has been saved'
       });
       // Return
       return {};
@@ -969,8 +980,8 @@ export default class OCPPService {
       startTransaction.tagID = startTransaction.idTag;
       startTransaction.timezone = Utils.getTimezone(chargingStation.latitude, chargingStation.longitude);
       // Check Authorization with Tag ID
-      const user = await Authorizations.isTagIDAuthorizedOnChargingStation(headers.tenantID,
-        chargingStation, startTransaction.tagID, Constants.ACTION_REMOTE_START_TRANSACTION);
+      const user = await Authorizations.isAuthorizedToStartTransaction(headers.tenantID,
+        chargingStation, startTransaction.tagID);
       if (user) {
         startTransaction.user = user;
       }
@@ -1033,10 +1044,10 @@ export default class OCPPService {
         foundConnector.totalConsumption = 0;
         foundConnector.totalInactivitySecs = 0;
         foundConnector.currentStateOfCharge = 0;
-        foundConnector.activeTransactionID = 0;
+        foundConnector.activeTransactionID = transaction.getID();
+        foundConnector.activeTagID = transaction.getTagID();
       }
       // Set the active transaction on the connector
-      foundConnector.activeTransactionID = transaction.getID();
       // Update Heartbeat
       chargingStation.lastHeartBeat = new Date();
       // Save
@@ -1092,8 +1103,12 @@ export default class OCPPService {
         if (activeTransaction.getCurrentTotalConsumption() <= 0) {
           // No consumption: delete
           Logging.logWarning({
-            tenantID: tenantID, source: chargeBoxID, module: 'OCPPService', method: '_stopOrDeleteActiveTransactions',
-            action: 'CleanupTransaction', actionOnUser: activeTransaction.getUserID(),
+            tenantID: tenantID,
+            source: chargeBoxID,
+            module: 'OCPPService',
+            method: '_stopOrDeleteActiveTransactions',
+            action: 'CleanupTransaction',
+            actionOnUser: activeTransaction.getUserID(),
             message: `Pending Transaction ID '${activeTransaction.getID()}' with no consumption has been deleted on Connector '${activeTransaction.getConnectorId()}'`
           });
           // Delete
@@ -1112,15 +1127,23 @@ export default class OCPPService {
           if (result.status === 'Invalid') {
             // No consumption: delete
             Logging.logError({
-              tenantID: tenantID, source: chargeBoxID, module: 'OCPPService', method: '_stopOrDeleteActiveTransactions',
-              action: 'CleanupTransaction', actionOnUser: activeTransaction.getUserID(),
+              tenantID: tenantID,
+              source: chargeBoxID,
+              module: 'OCPPService',
+              method: '_stopOrDeleteActiveTransactions',
+              action: 'CleanupTransaction',
+              actionOnUser: activeTransaction.getUserID(),
               message: `Cannot delete pending Transaction ID '${activeTransaction.getID()}' with no consumption on Connector '${activeTransaction.getConnectorId()}'`
             });
           } else {
             // Has consumption: close it!
             Logging.logWarning({
-              tenantID: tenantID, source: chargeBoxID, module: 'OCPPService', method: '_stopOrDeleteActiveTransactions',
-              action: 'CleanupTransaction', actionOnUser: activeTransaction.getUserID(),
+              tenantID: tenantID,
+              source: chargeBoxID,
+              module: 'OCPPService',
+              method: '_stopOrDeleteActiveTransactions',
+              action: 'CleanupTransaction',
+              actionOnUser: activeTransaction.getUserID(),
               message: `Pending Transaction ID '${activeTransaction.getID()}' has been stopped on Connector '${activeTransaction.getConnectorId()}'`
             });
           }
@@ -1209,8 +1232,8 @@ export default class OCPPService {
       // Transaction is stopped by central system?
       if (!stoppedByCentralSystem) {
         // Check and get users
-        const users = await Authorizations.isTagIDsAuthorizedOnChargingStation(headers.tenantID,
-          chargingStation, tagId, transaction.getTagID(), Constants.ACTION_REMOTE_STOP_TRANSACTION);
+        const users = await Authorizations.isAuthorizedToStopTransaction(headers.tenantID,
+          chargingStation, transaction, tagId);
         user = users.user;
         alternateUser = users.alternateUser;
       } else {
@@ -1331,7 +1354,7 @@ export default class OCPPService {
     return lastMeterValue;
   }
 
-  _getStopTransactionTagId(stopTransaction, transaction) {
+  _getStopTransactionTagId(stopTransaction, transaction): string {
     // Stopped Remotely?
     if (transaction.isRemotelyStopped()) {
       // Yes: Get the diff from now

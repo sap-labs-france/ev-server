@@ -83,6 +83,14 @@ export default class StatisticsApi extends CrudApi {
     return super.read(params, '/client/api/UserInactivityStatistics');
   }
 
+  public readChargingStationSessions(params) {
+    return super.read(params, '/client/api/ChargingStationSessionsStatistics');
+  }
+
+  public readUserSessions(params) {
+    return super.read(params, '/client/api/UserSessionsStatistics');
+  }
+
   public async exportStatistics(params) {
     return await super.read(params, '/client/api/StatisticsExport');
   }
