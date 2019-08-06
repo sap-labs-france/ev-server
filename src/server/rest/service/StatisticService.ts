@@ -542,6 +542,25 @@ export default class StatisticService {
           }
         }
       }
+      if (dataCategory === 'U') {
+        // Sort by user name
+        transactions.sort((rec1, rec2) => {
+          if (rec1.user.name > rec2.user.name) {
+            return 1;
+          }
+          if (rec1.user.name < rec2.user.name) {
+            return -1;
+          }
+          // Names are identical, now compare first name
+          if (rec1.user.firstName > rec2.user.firstName) {
+            return 1;
+          }
+          if (rec1.user.firstName < rec2.user.firstName) {
+            return -1;
+          }
+          return 0;
+        });
+      }
       let number: number;
       for (transaction of transactions) {
         csv += (dataCategory === 'C') ? `${transaction._id.chargeBox},` :
