@@ -167,10 +167,8 @@ export default class ContextBuilder {
     let defaultAdminUser: User = null;
     // Search existing admin
     if (existingUserList && Array.isArray(existingUserList)) {
-      defaultAdminUser = existingUserList.find((user) => {
-        return user.id === CONTEXTS.TENANT_USER_LIST[0].id || user.email === config.get('admin.username') ||
-          user.role === 'A';
-      });
+      defaultAdminUser = existingUserList.find((user) => user.id === CONTEXTS.TENANT_USER_LIST[0].id || user.email === config.get('admin.username') ||
+          user.role === 'A');
     }
     if ((defaultAdminUser.id !== CONTEXTS.TENANT_USER_LIST[0].id) || (defaultAdminUser.status !== 'A')) {
       // It is a different default user so first delete it

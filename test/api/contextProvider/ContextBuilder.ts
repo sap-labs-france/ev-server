@@ -158,9 +158,7 @@ export default class ContextBuilder {
       for (const setting in tenantContextDef.componentSettings) {
         let foundSetting: any = null;
         if (allSettings && allSettings.data && allSettings.data.result && allSettings.data.result.length > 0) {
-          foundSetting = allSettings.data.result.find((existingSetting) => {
-            return existingSetting.identifier === setting;
-          });
+          foundSetting = allSettings.data.result.find((existingSetting) => existingSetting.identifier === setting);
         }
         if (!foundSetting) {
           // Create new settings
@@ -237,9 +235,7 @@ export default class ContextBuilder {
         // Create site
         const siteTemplate = Factory.site.build({
           companyID: siteContextDef.companyID,
-          userIDs: userListToAssign.map((user) => {
-            return user.id;
-          })
+          userIDs: userListToAssign.map((user) => user.id)
         });
         siteTemplate.name = siteContextDef.name;
         siteTemplate.allowAllUsersToStopTransactions = siteContextDef.allowAllUsersToStopTransactions;
@@ -260,9 +256,7 @@ export default class ContextBuilder {
           const sireAreaID = await SiteAreaStorage.saveSiteArea(buildTenant.id, siteAreaTemplate);
           const siteAreaModel = await SiteAreaStorage.getSiteArea(buildTenant.id, sireAreaID);
           const siteAreaContext = siteContext.addSiteArea(siteAreaModel);
-          const relevantCS = CONTEXTS.TENANT_CHARGINGSTATION_LIST.filter((chargingStation) => {
-            return chargingStation.siteAreaNames && chargingStation.siteAreaNames.includes(siteAreaModel.name) === true;
-          });
+          const relevantCS = CONTEXTS.TENANT_CHARGINGSTATION_LIST.filter((chargingStation) => chargingStation.siteAreaNames && chargingStation.siteAreaNames.includes(siteAreaModel.name) === true);
           // Create Charging Station for site area
           for (const chargingStationDef of relevantCS) {
             const chargingStationTemplate = Factory.chargingStation.build();
@@ -276,9 +270,7 @@ export default class ContextBuilder {
       }
     }
     // Create unassigned Charging station
-    const relevantCS = CONTEXTS.TENANT_CHARGINGSTATION_LIST.filter((chargingStation) => {
-      return chargingStation.siteAreaNames === null;
-    });
+    const relevantCS = CONTEXTS.TENANT_CHARGINGSTATION_LIST.filter((chargingStation) => chargingStation.siteAreaNames === null);
     // Create Charging Station for site area
     const siteContext = new SiteContext({ id: 1, name: CONTEXTS.SITE_CONTEXTS.NO_SITE }, newTenantContext);
     const emptySiteAreaContext = siteContext.addSiteArea({ id: 1, name: CONTEXTS.SITE_AREA_CONTEXTS.NO_SITE });
