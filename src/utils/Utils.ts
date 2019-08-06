@@ -816,6 +816,25 @@ export default class Utils {
     return null;
   }
 
+  public static getTenantActiveComponents(tenant: Tenant): string[] {
+    const components: string[] = [];
+    for (const componentName in tenant.components) {
+      if (tenant.components[componentName].active) {
+        components.push(componentName);
+      }
+    }
+    return components;
+  }
+
+  public static isTenantComponentActive(tenant: Tenant, component: string): boolean {
+    for (const componentName in tenant.components) {
+      if (componentName === component) {
+        return tenant.components[componentName].active;
+      }
+    }
+    return false;
+  }
+
   private static _isPasswordValid(password: string): boolean {
     // eslint-disable-next-line no-useless-escape
     return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
@@ -842,24 +861,5 @@ export default class Utils {
 
   private static _isPlateIDValid(plateID) {
     return /^[A-Z0-9-]*$/.test(plateID);
-  }
-
-  public static getTenantActiveComponents(tenant: Tenant): string[] {
-    const components: string[] = [];
-    for (const componentName in tenant.components) {
-      if (tenant.components[componentName].active) {
-        components.push(componentName);
-      }
-    }
-    return components;
-  }
-
-  public static isTenantComponentActive(tenant: Tenant, component: string): boolean {
-    for (const componentName in tenant.components) {
-      if (componentName === component) {
-        return tenant.components[componentName].active;
-      }
-    }
-    return false;
   }
 }

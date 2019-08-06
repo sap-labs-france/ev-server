@@ -68,6 +68,7 @@
   "include": [
     "build/types/**/*.ts",
     "src/**/*.ts",
-    "test/**/*.ts"
+    "test/**/*.ts",
+    "test/**/*.js"
   ]
 }

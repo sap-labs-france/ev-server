@@ -4,8 +4,8 @@ import faker from 'faker';
 import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
-import TenantContext from './contextProvider/TenantContext';
 import ChargingStationContext from './contextProvider/ChargingStationContext';
+import TenantContext from './contextProvider/TenantContext';
 import Utils from './Utils';
 
 chai.use(chaiSubset);
