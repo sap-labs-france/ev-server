@@ -46,7 +46,7 @@ export default class TransactionCommonTests {
     this.transactionUser = userContext;
     // Avoid double login for identical user contexts
     if (this.transactionUser === this.centralUserContext) {
-      this.transactionUserService = this.centralUserService
+      this.transactionUserService = this.centralUserService;
     } else {
       this.transactionUserService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.transactionUser);
     }
