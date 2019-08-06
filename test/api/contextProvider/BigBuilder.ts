@@ -16,7 +16,7 @@ import SiteContext from './SiteContext';
 import SiteStorage from '../../storage/mongodb/SiteStorage';
 import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
-import TenantStorage from '../../../src/storage/mongodb/TenantStorage';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
 import User from '../../types/User';
 import UserFactory from '../../factories/UserFactory';
 import UserStorage from '../../storage/mongodb/UserStorage';

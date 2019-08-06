@@ -151,7 +151,7 @@ describe('User tests', function() {
           testData.createdUsers.push(user);
           const response = await testData.userService.userApi.readAllInError({}, { limit: 100, skip: 0 });
           expect(response.status).to.equal(200);
-      response.data.result.forEach((u) => expect(u.id).to.not.equal(user.id));
+          response.data.result.forEach((u) => expect(u.id).to.not.equal(user.id));
 
           await testData.userService.deleteEntity(
             testData.userService.userApi,
@@ -167,7 +167,7 @@ describe('User tests', function() {
           testData.createdUsers.push(user);
           const response = await testData.userService.userApi.readAllInError({}, { limit: 100, skip: 0 });
           expect(response.status).to.equal(200);
-      const found = response.data.result.find((u) => u.id === user.id);
+          const found = response.data.result.find((u) => u.id === user.id);
           expect(found).to.not.be.null;
 
           await testData.userService.deleteEntity(
@@ -184,7 +184,7 @@ describe('User tests', function() {
           testData.createdUsers.push(user);
           const response = await testData.userService.userApi.readAllInError({}, { limit: 100, skip: 0 });
           expect(response.status).to.equal(200);
-      const found = response.data.result.find((u) => u.id === user.id);
+          const found = response.data.result.find((u) => u.id === user.id);
           expect(found).to.not.be.null;
 
           await testData.userService.deleteEntity(
@@ -201,7 +201,7 @@ describe('User tests', function() {
           testData.createdUsers.push(user);
           const response = await testData.userService.userApi.readAllInError({}, { limit: 100, skip: 0 });
           expect(response.status).to.equal(200);
-      const found = response.data.result.find((u) => u.id === user.id);
+          const found = response.data.result.find((u) => u.id === user.id);
           expect(found).to.not.be.null;
 
           await testData.userService.deleteEntity(
