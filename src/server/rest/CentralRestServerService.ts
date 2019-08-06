@@ -153,7 +153,7 @@ class RequestMapper {
           ChargingStationConfiguration: ChargingStationService.handleGetChargingStationConfiguration,
           ChargingStationRequestConfiguration: ChargingStationService.handleRequestChargingStationConfiguration,
           ChargingStationsInError: ChargingStationService.handleGetChargingStationsInError,
-          IsAuthorized: AuthService.handleIsAuthorized,
+          IsAuthorized: ChargingStationService.handleIsAuthorized,
           Settings: SettingService.handleGetSettings,
           Setting: SettingService.handleGetSetting,
           OcpiEndpoints: OCPIEndpointService.handleGetOcpiEndpoints,

@@ -28,3 +28,10 @@ export interface HttpChargingStationCommandRequest {
   chargeBoxID: string;
   args?: any;
 }
+
+export interface HttpIsAuthorizedRequest {
+  Action: string;
+  Arg1: any;
+  Arg2: any;
+  Arg3: any;
+}

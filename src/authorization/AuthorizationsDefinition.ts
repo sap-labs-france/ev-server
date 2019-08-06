@@ -40,7 +40,11 @@ const GRANTS = {
           'GetDiagnostics', 'UpdateFirmware'], attributes: ['*']
       },
       { resource: 'Transactions', action: 'List', attributes: ['*'] },
-      { resource: 'Transaction', action: ['Read', 'Update', 'Delete', 'RefundTransaction'], attributes: ['*'] },
+      {
+        resource: 'Transaction',
+        action: ['Read', 'Update', 'Delete', 'RefundTransaction'],
+        attributes: ['*']
+      },
       { resource: 'Loggings', action: 'List', attributes: ['*'] },
       { resource: 'Logging', action: 'Read', attributes: ['*'] },
       { resource: 'Pricing', action: ['Read', 'Update'], attributes: ['*'] },
@@ -82,13 +86,103 @@ const GRANTS = {
       { resource: 'ChargingStations', action: 'List', attributes: ['*'] },
       {
         resource: 'ChargingStation',
-        action: ['Read', 'RemoteStartTransaction', 'RemoteStopTransaction', 'UnlockConnector', 'Authorize'],
+        action: ['Read', 'UnlockConnector'],
         attributes: ['*']
+      },
+      {
+        resource: 'ChargingStation',
+        action: ['RemoteStartTransaction', 'Authorize'],
+        attributes: ['*'],
+        condition: {
+          Fn: 'OR',
+          args: [
+            {
+              Fn: 'EQUALS',
+              args: { 'site': null }
+            },
+            {
+              Fn: 'LIST_CONTAINS',
+              args: {
+                'sites': '$.site'
+              }
+            }
+          ]
+        }
+      },
+      {
+        resource: 'ChargingStation',
+        action: 'RemoteStopTransaction',
+        attributes: ['*'],
+        condition: {
+          Fn: 'AND',
+          args: [
+            {
+              Fn: 'OR',
+              args: [
+                {
+                  Fn: 'EQUALS',
+                  args: { 'user': null }
+                },
+                {
+                  Fn: 'EQUALS',
+                  args: { 'user': '$.owner' }
+                }
+              ]
+            },
+            {
+              Fn: 'OR',
+              args: [
+                {
+                  Fn: 'EQUALS',
+                  args: { 'site': null }
+                },
+                {
+                  Fn: 'LIST_CONTAINS',
+                  args: {
+                    'sites': '$.site'
+                  }
+                }
+              ]
+            }
+          ]
+        }
       },
       { resource: 'Transactions', action: 'List', attributes: ['*'] },
       {
         resource: 'Transaction', action: ['Read', 'RefundTransaction'], attributes: ['*'],
-        condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
+        condition: {
+          Fn: 'AND',
+          args: [
+            {
+              Fn: 'OR',
+              args: [
+                {
+                  Fn: 'EQUALS',
+                  args: { 'user': null }
+                },
+                {
+                  Fn: 'EQUALS',
+                  args: { 'user': '$.owner' }
+                }
+              ]
+            },
+            {
+              Fn: 'OR',
+              args: [
+                {
+                  Fn: 'EQUALS',
+                  args: { 'site': null }
+                },
+                {
+                  Fn: 'LIST_CONTAINS',
+                  args: {
+                    'sites': '$.site'
+                  }
+                }
+              ]
+            }
+          ]
+        }
       },
       { resource: 'Settings', action: 'List', attributes: ['*'] },
       { resource: 'Setting', action: 'Read', attributes: ['*'] },
@@ -111,9 +205,27 @@ const GRANTS = {
       { resource: 'ChargingStations', action: 'List', attributes: ['*'] },
       { resource: 'ChargingStation', action: 'Read', attributes: ['*'] },
       { resource: 'Transactions', action: 'List', attributes: ['*'] },
-      { resource: 'Transaction', action: 'Read', attributes: ['*'] },
+      {
+        resource: 'Transaction', action: 'Read', attributes: ['*'],
+        condition: {
+          Fn: 'OR',
+          args: [
+            {
+              Fn: 'EQUALS',
+              args: { 'site': null }
+            },
+            {
+              Fn: 'LIST_CONTAINS',
+              args: {
+                'sites': '$.site'
+              }
+            }
+          ]
+        }
+      },
       { resource: 'Settings', action: 'List', attributes: ['*'] },
-      { resource: 'Setting', action: 'Read', attributes: ['*'],
+      {
+        resource: 'Setting', action: 'Read', attributes: ['*'],
         condition: { Fn: 'EQUALS', args: { 'identifier': Constants.COMPONENTS.ANALYTICS } }
       },
     ]
@@ -142,7 +254,7 @@ const GRANTS = {
       },
       {
         resource: 'Transaction', action: 'Read', attributes: ['*'],
-        condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
+        condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } }
       },
       { resource: 'Loggings', action: 'List', attributes: ['*'] },
       { resource: 'Logging', action: 'Read', attributes: ['*'], args: { 'sites': '$.site' } },
@@ -176,9 +288,7 @@ export default class AuthorizationsDefinition {
       this.accessControl.allowedResources({ role: groups }).forEach(
         (resource: string): void => {
           this.accessControl.allowedActions({ role: groups, resource: resource }).forEach(
-            (action: string): number => {
-              return scopes.push(`${resource}:${action}`);
-            }
+            (action: string): number => scopes.push(`${resource}:${action}`)
           );
         }
       );
