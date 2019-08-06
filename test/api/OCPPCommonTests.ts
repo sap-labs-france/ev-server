@@ -52,7 +52,13 @@ export default class OCPPCommonTests {
     this.tenantContext = tenantContext;
     this.centralUserContext = centralUserContext;
     expect(centralUserContext).to.exist;
-    this.centralUserService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.centralUserContext);
+    // Avoid double login for identical user contexts
+    const centralAdminUserService = this.tenantContext.getAdminCentralServerService();
+    if (this.centralUserContext.email === centralAdminUserService.getAuthenticatedUserEmail()) {
+      this.centralUserService = centralAdminUserService;
+    } else {
+      this.centralUserService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.centralUserContext);
+    }
     this.createAnyUser = createAnyUser;
   }
 
@@ -69,7 +75,12 @@ export default class OCPPCommonTests {
     } else {
       this.transactionStopUser = this.transactionStartUser;
     }
-    this.transactionStartUserService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.transactionStartUser);
+    // Avoid double login for identical user contexts
+    if (this.transactionStartUser === this.centralUserContext) {
+      this.transactionStartUserService = this.centralUserService;
+    } else {
+      this.transactionStartUserService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.transactionStartUser);
+    }
   }
 
   public async assignAnyUserToSite(siteContext) {

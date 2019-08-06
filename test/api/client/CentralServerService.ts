@@ -98,6 +98,10 @@ export default class CentralServerService {
     return CentralServerService._defaultInstance;
   }
 
+  public getAuthenticatedUserEmail() {
+    return this._authenticatedUser.email;
+  }
+
   public async updatePriceSetting(priceKWH, priceUnit) {
     const settings = await this.settingApi.readAll({});
     let newSetting = false;
