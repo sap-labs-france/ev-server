@@ -106,8 +106,8 @@ export default class ChargingStationStorage {
       DatabaseUtils.pushSiteLookupInAggregation(
         { tenantID, aggregation: siteJoin, localField: 'siteArea.siteID', foreignField: '_id',
           asField: 'siteArea.site', oneToOneCardinality: true });
-      // Convert siteID back to string after having queried the site
     }
+    // Convert siteID back to string after having queried the site
     DatabaseUtils.convertObjectIDToString(siteJoin, 'siteArea.siteID', 'siteArea.siteID');
     // Build facets meaning each different error scenario
     let facets: any = { $facet:{} };
