@@ -85,8 +85,8 @@ export default class StatisticsStorage {
         });
         break;
 
-        // By Sessions
-      case Constants.STATS_GROUP_BY_SESSIONS:
+        // By Transactions
+      case Constants.STATS_GROUP_BY_TRANSACTIONS:
         aggregation.push({
           $group: {
             _id: { chargeBox: '$chargeBoxID', month: { $month: '$timestamp' } },
@@ -188,8 +188,8 @@ export default class StatisticsStorage {
         });
         break;
 
-      // By Sessions
-      case Constants.STATS_GROUP_BY_SESSIONS:
+      // By Transactions
+      case Constants.STATS_GROUP_BY_TRANSACTIONS:
         aggregation.push({
           $group: {
             _id: { userID: '$userID', month: { $month: '$timestamp' } },
