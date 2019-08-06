@@ -1,5 +1,7 @@
 PROJECT_NAME:=evse
 NAME:=mongo-tools
+DOCKER_USER:=
+DOCKER_PASSWORD:=
 
 .PHONY: $(NAME)-start
 
@@ -22,8 +24,15 @@ clean-$(NAME)-containers:
 
 clean clean-$(NAME): clean-$(NAME)-containers clean-mongodb-image clean-$(NAME)-image
 
+$(NAME)-docker-tag:
+	docker tag $(PROJECT_NAME)-$(NAME) $(DOCKER_USER)/$(PROJECT_NAME)-$(NAME)
+
+$(NAME)-docker-push: $(NAME)-docker-tag
+	docker push $(DOCKER_USER)/$(PROJECT_NAME)-$(NAME)
+
 $(NAME)-cf-push:
-	cf push
+	CF_DOCKER_PASSWORD=$(DOCKER_PASSWORD) cf push --docker-image $(DOCKER_USER)/$(PROJECT_NAME)-$(NAME) --docker-username $(DOCKER_USER)
+	#cf push --docker-image $(PROJECT_NAME)-$(NAME)
 
 dist-clean-images:
 	docker image prune -a -f
