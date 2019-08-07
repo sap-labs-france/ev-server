@@ -84,6 +84,16 @@ export default class StatisticsStorage {
           }
         });
         break;
+
+        // By Transactions
+      case Constants.STATS_GROUP_BY_TRANSACTIONS:
+        aggregation.push({
+          $group: {
+            _id: { chargeBox: '$chargeBoxID', month: { $month: '$timestamp' } },
+            total: { $sum: 1 }
+          }
+        });
+        break;
     }
 
     // Sort
@@ -168,12 +178,22 @@ export default class StatisticsStorage {
         });
         break;
 
-        // By Inactivity
+      // By Inactivity
       case Constants.STATS_GROUP_BY_INACTIVITY:
         aggregation.push({
           $group: {
             _id: { userID: '$userID', month: { $month: '$timestamp' } },
             total: { $sum: { $divide: [{ $add: ['$stop.totalInactivitySecs', '$stop.extraInactivitySecs'] }, 60 * 60] } }
+          }
+        });
+        break;
+
+      // By Transactions
+      case Constants.STATS_GROUP_BY_TRANSACTIONS:
+        aggregation.push({
+          $group: {
+            _id: { userID: '$userID', month: { $month: '$timestamp' } },
+            total: { $sum: 1 }
           }
         });
         break;

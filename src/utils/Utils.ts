@@ -17,7 +17,7 @@ import Configuration from './Configuration';
 import Constants from './Constants';
 import { HttpUserRequest } from '../types/requests/HttpUserRequest';
 import Logging from './Logging';
-import Tenant from '../entity/Tenant';
+import Tenant from '../types/Tenant';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
@@ -166,7 +166,7 @@ export default class Utils {
     Utils._normalizeOneSOAPParam(headers, 'ReplyTo.Address');
     // Parse the request (lower case for fucking charging station DBT URL registration)
     const urlParts = url.parse(req.url.toLowerCase(), true);
-    const tenantID = urlParts.query.tenantid;
+    const tenantID = urlParts.query.tenantid as string;
     const token = urlParts.query.token;
     // Check
     await Utils.checkTenant(tenantID);
@@ -182,7 +182,7 @@ export default class Utils {
     }
   }
 
-  static async checkTenant(tenantID) {
+  public static async checkTenant(tenantID: string) {
     if (!tenantID) {
       throw new BackendError(null, 'The Tenant ID is mandatory');
     }
@@ -196,7 +196,7 @@ export default class Utils {
         throw new BackendError(null, `Invalid Tenant ID '${tenantID}'`);
       }
       // Get the Tenant
-      const tenant = await Tenant.getTenant(tenantID);
+      const tenant = await TenantStorage.getTenant(tenantID);
       if (!tenant) {
         throw new BackendError(null, `Invalid Tenant ID '${tenantID}'`);
       }
@@ -362,21 +362,21 @@ export default class Utils {
   static async buildEvseUserURL(tenantID: string, user: User, hash = '') {
 
     const tenant = await TenantStorage.getTenant(tenantID);
-    const _evseBaseURL = Utils.buildEvseURL(tenant.getSubdomain());
+    const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
     // Add
     return _evseBaseURL + '/users?UserID=' + user.id + hash;
   }
 
   static async buildEvseChargingStationURL(tenantID: string, chargingStation: ChargingStation, hash = '') {
     const tenant = await TenantStorage.getTenant(tenantID);
-    const _evseBaseURL = Utils.buildEvseURL(tenant.getSubdomain());
+    const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
 
     return _evseBaseURL + '/charging-stations?ChargingStationID=' + chargingStation.id + hash;
   }
 
   static async buildEvseTransactionURL(tenantID: string, chargingStation: ChargingStation, transactionId, hash = '') {
     const tenant = await TenantStorage.getTenant(tenantID);
-    const _evseBaseURL = Utils.buildEvseURL(tenant.getSubdomain());
+    const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
     // Add
     return _evseBaseURL + '/transactions?TransactionID=' + transactionId + hash;
   }
@@ -395,7 +395,11 @@ export default class Utils {
   }
 
   public static getRequestIP(request): string {
-    if (request.connection.remoteAddress) {
+    if (request.ip) {
+      return request.ip;
+    } else if (request.headers['x-forwarded-for']) {
+      return request.headers['x-forwarded-for'];
+    } else if (request.connection.remoteAddress) {
       return request.connection.remoteAddress;
     } else if (request.headers.host) {
       const host = request.headers.host.split(':', 2);
@@ -842,5 +846,23 @@ export default class Utils {
       return tzlookup(lat, lon);
     }
     return null;
+  }
+
+  public static getTenantActiveComponents(tenant: Tenant): string[] {
+    let components: string[] = [];
+    for(let componentName in tenant.components) {
+      if(tenant.components[componentName].active)
+        components.push(componentName);
+    }
+    return components;
+  }
+
+  public static isTenantComponentActive(tenant: Tenant, component: string): boolean {
+    for(let componentName in tenant.components) {
+      if(componentName===component) {
+        return tenant.components[componentName].active;
+      }
+    }
+    return false;
   }
 }

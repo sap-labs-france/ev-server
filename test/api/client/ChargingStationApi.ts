@@ -48,6 +48,15 @@ export default class ChargingStationApi extends CrudApi {
     return super.readAll(params, Constants.DEFAULT_PAGING, Constants.DEFAULT_ORDERING, '/client/api/TransactionYears');
   }
 
+  public async isAuthorized(action: string, chargingStationId: string, transactionId?: string) {
+    const params = {
+      'Action': action,
+      'Arg1': chargingStationId,
+      'Arg2': transactionId
+    }
+    return await super.read(params, '/client/api/IsAuthorized');
+  }
+
   public updateParams(data) {
     return super.update(data, '/client/api/ChargingStationUpdateParams');
   }

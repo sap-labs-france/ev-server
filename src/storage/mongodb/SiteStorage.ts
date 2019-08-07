@@ -23,7 +23,7 @@ export default class SiteStorage {
     }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('SiteStorage', 'getSite', uniqueTimerID, { id });
-    return sitesMDB.result[0];
+    return sitesMDB.count > 0 ? sitesMDB.result[0] : null;
   }
 
   public static async getSiteImage(tenantID: string, id: string): Promise<{id: string; image: string}> {
@@ -60,9 +60,7 @@ export default class SiteStorage {
       if (userIDs && userIDs.length > 0) {
         // Execute
         const res = await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
-          'userID': { $in: userIDs.map((userID) => {
-            return Utils.convertToObjectID(userID);
-          }) },
+          'userID': { $in: userIDs.map((userID) => Utils.convertToObjectID(userID)) },
           'siteID': Utils.convertToObjectID(siteID)
         });
       }
@@ -181,7 +179,6 @@ export default class SiteStorage {
     });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
-
     // Read DB
     const siteUsersMDB = await global.database.getCollection<{user: User; siteID: string; siteAdmin: boolean}>(tenantID, 'siteusers')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
@@ -235,7 +232,6 @@ export default class SiteStorage {
       _id: siteFilter._id,
       address: siteToSave.address,
       companyID: Utils.convertToObjectID(siteToSave.companyID),
-      allowAllUsersToStopTransactions: siteToSave.allowAllUsersToStopTransactions,
       autoUserSiteAssignment: siteToSave.autoUserSiteAssignment,
       name: siteToSave.name,
     };
@@ -308,9 +304,7 @@ export default class SiteStorage {
     // Query by companyIDs
     if (params.companyIDs && Array.isArray(params.companyIDs) && params.companyIDs.length > 0) {
       filters.companyID = {
-        $in: params.companyIDs.map((company) => {
-          return Utils.convertToObjectID(company);
-        })
+        $in: params.companyIDs.map((company) => Utils.convertToObjectID(company))
       };
     }
     // Auto User Site Assignment
@@ -321,9 +315,7 @@ export default class SiteStorage {
     if (params.siteIDs && params.siteIDs.length > 0) {
       aggregation.push({
         $match: {
-          _id: { $in: params.siteIDs.map((siteID) => {
-            return Utils.convertToObjectID(siteID);
-          }) }
+          _id: { $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID)) }
         }
       });
     }
@@ -414,9 +406,6 @@ export default class SiteStorage {
           siteMDB.availableConnectors = connectorStats.availableConnectors;
           siteMDB.totalConnectors = connectorStats.totalConnectors;
         }
-        if (!siteMDB.allowAllUsersToStopTransactions) {
-          siteMDB.allowAllUsersToStopTransactions = false;
-        }
         if (!siteMDB.autoUserSiteAssignment) {
           siteMDB.autoUserSiteAssignment = false;
         }
@@ -451,9 +440,7 @@ export default class SiteStorage {
     // Delete all Site Areas
     await SiteAreaStorage.deleteSiteAreasFromSites(tenantID, ids);
     // Convert
-    const cids: ObjectID[] = ids.map((id) => {
-      return Utils.convertToObjectID(id);
-    });
+    const cids: ObjectID[] = ids.map((id) => Utils.convertToObjectID(id));
     // Delete Site
     await global.database.getCollection<any>(tenantID, 'sites')
       .deleteMany({ '_id': { $in: cids } });
@@ -477,10 +464,7 @@ export default class SiteStorage {
       .find({ companyID: Utils.convertToObjectID(companyID) })
       .project({ _id: 1 })
       .toArray())
-      .map((site): string => {
-        return site._id.toHexString();
-      }
-      );
+      .map((site): string => site._id.toHexString());
     // Delete all Site Areas
     await SiteAreaStorage.deleteSiteAreasFromSites(tenantID, siteIDs);
     // Delete Sites

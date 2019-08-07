@@ -27,7 +27,7 @@ export default class DatabaseUtils {
     return `${prefix}.${collectionNameSuffix}`;
   }
 
-  public static getNotDeletedFilter(fieldName?: string) {
+  public static getNotDeletedFilter(fieldName?: string): object {
     if (fieldName) {
       return JSON.parse(`[
         { "${fieldName}.deleted": { "$exists": false } },

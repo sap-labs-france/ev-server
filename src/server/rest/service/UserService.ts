@@ -237,6 +237,10 @@ export default class UserService {
     if (Authorizations.isAdmin(req.user.role) || Authorizations.isSuperAdmin(req.user.role)) {
       await UserStorage.saveUserTags(req.user.tenantID, filteredRequest.id, newTagIDs);
     }
+    // Save password
+    if (filteredRequest.password) {
+      await UserStorage.saveUserPassword(req.user.tenantID, filteredRequest.id, filteredRequest.password);
+    }
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -247,14 +251,14 @@ export default class UserService {
     });
     // Notify
     if (statusHasChanged) {
-      // Send notification
+      // Send notification (Async)
       NotificationHandler.sendUserAccountStatusChanged(
         req.user.tenantID,
         Utils.generateGUID(),
         user,
         {
           'user': user,
-          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(req.user.tenantID)).getSubdomain())
+          'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(req.user.tenantID)).subdomain)
         },
         user.locale
       );
@@ -480,6 +484,8 @@ export default class UserService {
     filteredRequest.createdOn = new Date();
     // Create the User
     const newUserId = await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: [] }, true);
+    // Save password
+    await UserStorage.saveUserPassword(req.user.tenantID, newUserId, filteredRequest.password);
     // Save the Tag IDs
     if (Authorizations.isAdmin(req.user.role) || Authorizations.isSuperAdmin(req.user.role)) {
       await UserStorage.saveUserTags(req.user.tenantID, newUserId, newTagIDs);

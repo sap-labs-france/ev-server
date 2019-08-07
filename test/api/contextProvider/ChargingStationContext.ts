@@ -12,7 +12,6 @@ export default class ChargingStationContext {
   private tenantContext: TenantContext;
   private transactionsStarted: any;
   private transactionsStopped: any;
-  private userService: CentralServerService;
 
   constructor(chargingStation, tenantContext) {
     this.chargingStation = chargingStation;
@@ -51,19 +50,23 @@ export default class ChargingStationContext {
     return response;
   }
 
+  async isAuthorized(userService: CentralServerService) {
+    return await userService.chargingStationApi.isAuthorized('ConnectorsAction', this.chargingStation.id);
+  }
+
+  async isAuthorizedToStopTransaction(userService: CentralServerService, transactionId: string) {
+    return await userService.chargingStationApi.isAuthorized('StopTransaction', this.chargingStation.id, transactionId);
+  }
+
   async readChargingStation(userService?: CentralServerService) {
-    if (userService) {
-      this.userService = userService;
-    } else if (!this.userService) {
-      this.userService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN));
+    if (!userService) {
+      userService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN));
     }
-    const response = await this.userService.chargingStationApi.readById(this.chargingStation.id);
-    return response;
+    return await userService.chargingStationApi.readById(this.chargingStation.id);
   }
 
   async sendHeartbeat() {
-    const response = await this.ocppService.executeHeartbeat(this.chargingStation.id, {});
-    return response;
+    return await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeHeartbeat(this.chargingStation.id, {});
   }
 
   async startTransaction(connectorId, tagId, meterStart, startDate) {

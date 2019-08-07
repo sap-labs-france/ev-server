@@ -1,14 +1,13 @@
 import uuid from 'uuid/v4';
 import { OPEN } from 'ws';
 import BackendError from '../../../exception/BackendError';
-import ChargingStation from '../../../types/ChargingStation';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import OCPPError from '../../../exception/OcppError';
-import Tenant from '../../../entity/Tenant';
 import Utils from '../../../utils/Utils';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
 
 const MODULE_NAME = 'WSConnection';
 export default class WSConnection {
@@ -193,11 +192,11 @@ export default class WSConnection {
     return this.wsServer;
   }
 
-  getURL() {
+  getURL(): string {
     return this.url;
   }
 
-  getIP() {
+  getIP(): string {
     return this.ip;
   }
 
@@ -251,9 +250,7 @@ export default class WSConnection {
         this.wsConnection.send(messageToSend);
       } else {
         // Reject it
-        return rejectCallback(`Web socket closed for Message ID '${messageId}' with content '${messageToSend}' (${Tenant.getTenant(this.tenantID).then((Tnt) => {
-          return Tnt.getName();
-        })})`);
+        return rejectCallback(`Web socket closed for Message ID '${messageId}' with content '${messageToSend}' (${TenantStorage.getTenant(this.tenantID).then((tenant) => tenant.name)})`);
       }
       // Request?
       if (messageType !== Constants.OCPP_JSON_CALL_MESSAGE) {
@@ -262,9 +259,8 @@ export default class WSConnection {
       } else {
         // Send timeout
         setTimeout(() => {
-          return rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${Tenant.getTenant(this.tenantID).then((Tnt) => {
-            return Tnt.getName();
-          })})`);
+          return rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${TenantStorage.getTenant(this.tenantID).then(
+            (tenant) => tenant.name)})'`);
         }, Constants.OCPP_SOCKET_TIMEOUT);
       }
 
