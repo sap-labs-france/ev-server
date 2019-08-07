@@ -18,17 +18,16 @@ export class PricedConsumption {
 
 }
 
-export default abstract class Pricing {
+export default abstract class Pricing<T extends PricingSettings> {
 
   // Protected because only used in subclasses at the moment
   protected readonly tenantId: string; // Assuming GUID or other string format ID
-
-  // pragma protected readonly setting: PricingSettings;
+  protected readonly setting: T;
   protected readonly transaction: Transaction;
 
-  constructor(tenantId: string, setting: PricingSettings, transaction: Transaction) {
+  protected constructor(tenantId: string, setting: T, transaction: Transaction) {
     this.tenantId = tenantId;
-    // pragma this.setting = setting;
+    this.setting = setting;
     this.transaction = transaction;
   }
 
@@ -41,5 +40,7 @@ export default abstract class Pricing {
   // eslint-disable-next-line no-unused-vars
   async abstract stopSession(consumptionData: {consumption: any}): Promise<PricedConsumption>;
 
-  protected abstract getSettings(): PricingSettings;
+  protected getSettings(): T {
+    return this.setting;
+  }
 }

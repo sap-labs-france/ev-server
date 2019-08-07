@@ -97,6 +97,9 @@ export default class JsonWSConnection extends WSConnection {
     Logging.logReceivedAction(MODULE_NAME, this.getTenantID(), this.getChargingStationID(), commandName, commandPayload);
     // Check if method exist in the service
     if (typeof this.chargingStationService['handle' + commandName] === 'function') {
+      if ((commandName === 'BootNotification') || (commandName === 'Heartbeat')) {
+        this.headers.currentIPAddress = this.getIP();
+      }
       // Call it
       const result = await this.chargingStationService['handle' + commandName](this.headers, commandPayload);
       // Log

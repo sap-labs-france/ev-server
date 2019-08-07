@@ -321,17 +321,6 @@ export default class AuthService {
   public static async handleRegisterUser(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterRegisterUserRequest(req.body);
-    // Check
-    if (!filteredRequest.tenant) {
-      const error = new BadRequestError({
-        path: 'tenant',
-        message: 'The Tenant is mandatory'
-      });
-      // Log Error
-      Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleRegisterUser', Constants.DEFAULT_TENANT);
-      next(error);
-      return;
-    }
     // Get the Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
@@ -392,7 +381,11 @@ export default class AuthService {
     newUser.email = filteredRequest.email;
     newUser.name = filteredRequest.name;
     newUser.firstName = filteredRequest.firstName;
-    newUser.role = Constants.ROLE_BASIC;
+    if (tenantID === Constants.DEFAULT_TENANT) {
+      newUser.role = Constants.ROLE_SUPER_ADMIN;
+    } else {
+      newUser.role = Constants.ROLE_BASIC;
+    }
     newUser.status = Constants.USER_STATUS_PENDING;
     newUser.locale = req.locale.substring(0, 5);
     newUser.verificationToken = Utils.generateToken(req.body.email);
@@ -411,7 +404,9 @@ export default class AuthService {
       Constants.DB_PARAMS_MAX_LIMIT
     );
     if (sites.count > 0) {
-      const siteIDs = sites.result.map((site) => site.id);
+      const siteIDs = sites.result.map((site) => {
+        return site.id;
+      });
       if (siteIDs && siteIDs.length > 0) {
         await UserStorage.addSitesToUser(tenantID, newUser.id, siteIDs);
       }
@@ -425,21 +420,24 @@ export default class AuthService {
       message: `User with Email '${req.body.email}' has been created successfully`,
       detailedMessages: req.body
     });
-    // Send notification
-    const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
-      '/#/verify-email?VerificationToken=' + newUser.verificationToken + '&Email=' +
-      newUser.email;
-    NotificationHandler.sendNewRegisteredUser(
-      tenantID,
-      Utils.generateGUID(),
-      newUser,
-      {
-        'user': newUser,
-        'evseDashboardURL': Utils.buildEvseURL(filteredRequest.tenant),
-        'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
-      },
-      newUser.locale
-    );
+
+    if (tenantID !== Constants.DEFAULT_TENANT) {
+      // Send notification
+      const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
+        '/#/verify-email?VerificationToken=' + newUser.verificationToken + '&Email=' +
+        newUser.email;
+      NotificationHandler.sendNewRegisteredUser(
+        tenantID,
+        Utils.generateGUID(),
+        newUser,
+        {
+          'user': newUser,
+          'evseDashboardURL': Utils.buildEvseURL(filteredRequest.tenant),
+          'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
+        },
+        newUser.locale
+      );
+    }
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
@@ -460,12 +458,14 @@ export default class AuthService {
     if (!response.data.success) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        'The captcha is invalid', Constants.HTTP_GENERAL_ERROR,
+        'The reCaptcha is invalid',
+        Constants.HTTP_AUTH_INVALID_CAPTCHA,
         'AuthService', 'handleRegisterUser');
     } else if (response.data.score < 0.5) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        'The captcha score is too low', Constants.HTTP_GENERAL_ERROR,
+        `The reCaptcha score is too low, got ${response.data.score} and expected to be >= 0.5`,
+        Constants.HTTP_AUTH_INVALID_CAPTCHA,
         'AuthService', 'handleRegisterUser');
     }
     // Yes: Generate new password
@@ -476,14 +476,16 @@ export default class AuthService {
     if (!user) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `User with email '${filteredRequest.email}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        `User with email '${filteredRequest.email}' does not exist`,
+        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'AuthService', 'handleUserPasswordReset');
     }
     // Deleted
     if (user.deleted) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `User with email '${filteredRequest.email}' is logically deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        `User with email '${filteredRequest.email}' is logically deleted`,
+        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'AuthService', 'handleUserPasswordReset');
     }
     // Hash it
@@ -590,9 +592,8 @@ export default class AuthService {
   }
 
   public static async handleUserPasswordReset(action: string, req: Request, res: Response, next: NextFunction) {
-    // Filter
     const filteredRequest = AuthSecurity.filterResetPasswordRequest(req.body);
-
+    // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
       const error = new BadRequestError({
@@ -617,7 +618,7 @@ export default class AuthService {
   public static async handleGetEndUserLicenseAgreement(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterEndUserLicenseAgreementRequest(req);
-
+    // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
       const error = new BadRequestError({
@@ -642,8 +643,7 @@ export default class AuthService {
   public static async handleVerifyEmail(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterVerifyEmailRequest(req.query);
-
-    // Get the tenant
+    // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
       const error = new BadRequestError({
@@ -655,7 +655,13 @@ export default class AuthService {
       next(error);
       return;
     }
-
+    // Check that this is not the super tenant
+    if (tenantID === Constants.DEFAULT_TENANT) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Cannot verify email in the Super Tenant', Constants.HTTP_GENERAL_ERROR,
+        'AuthService', 'handleVerifyEmail');
+    }
     // Check email
     if (!filteredRequest.Email) {
       throw new AppError(
@@ -697,7 +703,7 @@ export default class AuthService {
     if (user.verificationToken !== filteredRequest.VerificationToken) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        'Wrong Verification Token', Constants.HTTP_INVALID_TOKEN_ERROR,
+        'Wrong Verification Token', Constants.HTTP_AUTH_INVALID_TOKEN_ERROR,
         'AuthService', 'handleVerifyEmail', user);
     }
     // Activate user
@@ -724,7 +730,6 @@ export default class AuthService {
   public static async handleResendVerificationEmail(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterResendVerificationEmail(req.body);
-
     // Get the tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
@@ -736,6 +741,13 @@ export default class AuthService {
       Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleResendVerificationEmail', Constants.DEFAULT_TENANT);
       next(error);
       return;
+    }
+    // Check that this is not the super tenant
+    if (tenantID === Constants.DEFAULT_TENANT) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Cannot request a verification Email in the Super Tenant', Constants.HTTP_GENERAL_ERROR,
+        'AuthService', 'handleResendVerificationEmail');
     }
     // Check email
     if (!filteredRequest.email) {
@@ -789,7 +801,6 @@ export default class AuthService {
         'Account is already active', Constants.HTTP_USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
         'AuthService', 'handleResendVerificationEmail', user);
     }
-
     let verificationToken;
     // Check verificationToken
     if (!user.verificationToken) {

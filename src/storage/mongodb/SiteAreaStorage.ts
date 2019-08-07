@@ -198,8 +198,10 @@ export default class SiteAreaStorage {
       $limit: limit
     });
     // Project
-    DatabaseUtils.projectFields(aggregation,
-      [...projectFields, 'chargingStations.id', 'chargingStations.connectors', 'chargingStations.lastHeartBeat', 'chargingStations.deleted']);
+    if (projectFields) {
+      DatabaseUtils.projectFields(aggregation,
+        [...projectFields, 'chargingStations.id', 'chargingStations.connectors', 'chargingStations.lastHeartBeat', 'chargingStations.deleted']);
+    }
     // Read DB
     const siteAreasMDB = await global.database.getCollection<any>(tenantID, 'siteareas')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })

@@ -107,21 +107,10 @@ export default class LoggingStorage {
       filters.timestamp.$lte = new Date(params.dateUntil);
     }
 
-    // Log level
-    switch (params.level) {
-      // Build filter
-      // Error
-      case 'E':
-        filters.level = 'E';
-        break;
-      // Warning
-      case 'W':
-        filters.level = { $in: ['E', 'W'] };
-        break;
-      // Info
-      case 'I':
-        filters.level = { $in: ['E', 'W', 'I'] };
-        break;
+    // Filter on log levels
+    if (params.level && Array.isArray(params.level)) {
+      // Yes, add in filter
+      filters.level = { $in: params.level };
     }
     // Filter on charging Stations
     if (params.sources && Array.isArray(params.sources) && params.sources.length > 0) {
@@ -157,6 +146,7 @@ export default class LoggingStorage {
       // Set
       const searchArray = [
         { 'source': { $regex: params.search, $options: 'i' } },
+        { 'host': { $regex: params.search, $options: 'i' } },
         { 'message': { $regex: params.search, $options: 'i' } },
         { 'detailedMessages': { $regex: params.search, $options: 'i' } },
         { 'action': { $regex: params.search, $options: 'i' } }

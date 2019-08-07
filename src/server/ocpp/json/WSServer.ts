@@ -5,6 +5,7 @@ import https from 'https';
 import WebSocket from 'ws';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
+import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'WSServer';
 export default class WSServer extends WebSocket.Server {
@@ -36,8 +37,9 @@ export default class WSServer extends WebSocket.Server {
     this.serverConfig = serverConfig;
     this.keepAliveIntervalValue = (this.serverConfig.keepaliveinterval ?
       this.serverConfig.keepaliveinterval : Constants.WS_DEFAULT_KEEPALIVE) * 1000; // Ms
-    this.on('connection', (ws: any): void => {
+    this.on('connection', (ws: any, req: any): void => {
       ws.isAlive = true;
+      ws.ip = Utils.getRequestIP(req);
       ws.on('pong', (): void => {
         ws.isAlive = true;
       });
@@ -51,7 +53,7 @@ export default class WSServer extends WebSocket.Server {
               tenantID: Constants.DEFAULT_TENANT,
               module: MODULE_NAME,
               method: 'constructor',
-              message: `Web Socket on ${ws.url} do not respond to ping, terminating`
+              message: `Web Socket from ${ws.ip} do not respond to ping, terminating`
             });
             return ws.terminate();
           }

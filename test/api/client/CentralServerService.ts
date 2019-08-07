@@ -24,14 +24,6 @@ chai.use(chaiSubset);
 
 export default class CentralServerService {
 
-  public static get DefaultInstance(): CentralServerService {
-    if (CentralServerService._defaultInstance) {
-      return CentralServerService._defaultInstance;
-    }
-    CentralServerService._defaultInstance = new CentralServerService();
-    return CentralServerService._defaultInstance;
-  }
-
   private static _defaultInstance = new CentralServerService();
   public authenticatedApi: AuthenticatedBaseApi;
   public companyApi: CompanyApi;
@@ -48,13 +40,13 @@ export default class CentralServerService {
   public mailApi: MailApi;
   public logsApi: LogsApi;
   public statisticsApi: StatisticsApi;
-
   private _tenantSubdomain: string;
   private _baseURL: string;
   private _baseApi: BaseApi;
   private _authenticatedUser: any;
+  private _authenticatedSuperAdmin: any;
 
-  public constructor(tenantSubdomain = null, user: Partial<User> = null, superAdminUser = null) {
+  public constructor(tenantSubdomain = null, user: Partial<User> = null, superAdminUser: Partial<User> = null) {
     this._tenantSubdomain = tenantSubdomain;
     this._baseURL = `${config.get('server.scheme')}://${config.get('server.host')}:${config.get('server.port')}`;
     // Create the Base API
@@ -67,12 +59,21 @@ export default class CentralServerService {
         password: config.get('admin.password')
       };
     }
+    if (superAdminUser) {
+      this._authenticatedSuperAdmin = superAdminUser;
+    } else {
+      this._authenticatedSuperAdmin = {
+        email: config.get('superadmin.username'),
+        password: config.get('superadmin.password')
+      };
+    }
     // Create the Authenticated API
-    if (!tenantSubdomain) {
+    if (!tenantSubdomain && tenantSubdomain !== '') {
       this.authenticatedApi = new AuthenticatedBaseApi(this._baseURL, this._authenticatedUser.email, this._authenticatedUser.password, config.get('admin.tenant'));
     } else {
       this.authenticatedApi = new AuthenticatedBaseApi(this._baseURL, this._authenticatedUser.email, this._authenticatedUser.password, tenantSubdomain);
     }
+    this.authenticatedSuperAdminApi = new AuthenticatedBaseApi(this._baseURL, this._authenticatedSuperAdmin.email, this._authenticatedSuperAdmin.password, '');
     // Create the Company
     this.companyApi = new CompanyApi(this.authenticatedApi);
     this.siteApi = new SiteApi(this.authenticatedApi);
@@ -83,15 +84,18 @@ export default class CentralServerService {
     this.settingApi = new SettingApi(this.authenticatedApi);
     this.logsApi = new LogsApi(this.authenticatedApi);
     this.ocpiEndpointApi = new OCPIEndpointApi(this.authenticatedApi);
-    if (superAdminUser) {
-      this.authenticatedSuperAdminApi = new AuthenticatedBaseApi(this._baseURL, superAdminUser.email, superAdminUser.password, '');
-    } else {
-      this.authenticatedSuperAdminApi = new AuthenticatedBaseApi(this._baseURL, this._authenticatedUser.email, this._authenticatedUser.password, '');
-    }
     this.authenticationApi = new AuthenticationApi(this._baseApi);
     this.tenantApi = new TenantApi(this.authenticatedSuperAdminApi, this._baseApi);
     this.mailApi = new MailApi(new BaseApi(`http://${config.get('mailServer.host')}:${config.get('mailServer.port')}`));
     this.statisticsApi = new StatisticsApi(this.authenticatedApi);
+  }
+
+  public static get DefaultInstance(): CentralServerService {
+    if (CentralServerService._defaultInstance) {
+      return CentralServerService._defaultInstance;
+    }
+    CentralServerService._defaultInstance = new CentralServerService();
+    return CentralServerService._defaultInstance;
   }
 
   public async updatePriceSetting(priceKWH, priceUnit) {
@@ -250,6 +254,10 @@ export default class CentralServerService {
       // Let the caller to handle response
       return response;
     }
+  }
+
+  public async reconnect() {
+    await this.authenticatedApi.authenticate(true);
   }
 }
 

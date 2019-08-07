@@ -4,6 +4,8 @@ import config from '../config';
 import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
 import Constants from './client/utils/Constants';
+import HttpStatus from 'http-status-codes';
+import Utils from './Utils';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -25,11 +27,20 @@ describe('Tenant Settings test', function() {
 
   before(async function() {
     // Init values
-    testData.superAdminCentralService = new CentralServerService(null, { email: config.get('superadmin.username'), password: config.get('superadmin.password') });
-    testData.centralService = new CentralServerService('utnothing', { email: config.get('admin.username'), password: config.get('admin.password') });
+    testData.superAdminCentralService = new CentralServerService(null, {
+      email: config.get('superadmin.username'),
+      password: config.get('superadmin.password')
+    });
+    testData.centralService = new CentralServerService('utnothing', {
+      email: config.get('admin.username'),
+      password: config.get('admin.password')
+    });
     testData.credentials.email = config.get('admin.username');
     // Retrieve the tenant id from the name
-    const response = await testData.superAdminCentralService.tenantApi.readAll({ 'Search' : 'ut-nothing' }, { limit: Constants.UNLIMITED, skip: 0 });
+    const response = await testData.superAdminCentralService.tenantApi.readAll({ 'Search': 'ut-nothing' }, {
+      limit: Constants.UNLIMITED,
+      skip: 0
+    });
     testData.credentials.tenantId = response ? response.data.result[0].id : '';
   });
 
@@ -62,6 +73,13 @@ describe('Tenant Settings test', function() {
       testData.data = JSON.parse(`{"id":"${testData.credentials.tenantId}","name":"ut-nothing","email":"${testData.credentials.email}","subdomain":"utnothing","components":{"ocpi":{"active":false,"type":null},"organization":{"active":false,"type":null},"pricing":{"active":true,"type":"simple"},"refund":{"active":false,"type":null},"statistics":{"active":false,"type":null},"analytics":{"active":false,"type":null}}}`);
       const res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
       expect(res.status).to.equal(200);
+
+      await Utils.sleep(500);
+      const settingsResponse = await testData.centralService.settingApi.readAll({});
+      expect(settingsResponse.status).to.equal(HttpStatus.FORBIDDEN);
+      expect(settingsResponse.data.message).to.equal('Tenant has been updated and all users will be logged off');
+      await testData.centralService.reconnect();
+
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.data.count).to.equal(1);
       expect(settings.data.result[0]).to.be.validatedSetting('pricing', 'simple');
@@ -72,6 +90,13 @@ describe('Tenant Settings test', function() {
       testData.data = JSON.parse(`{"id":"${testData.credentials.tenantId}","name":"ut-nothing","email":"${testData.credentials.email}","subdomain":"utnothing","components":{"ocpi":{"active":false,"type":null},"organization":{"active":false,"type":null},"pricing":{"active":false,"type":null},"refund":{"active":true,"type":"concur"},"statistics":{"active":false,"type":null},"analytics":{"active":false,"type":null}}}`);
       const res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
       expect(res.status).to.equal(200);
+
+      await Utils.sleep(500);
+      const settingsResponse = await testData.centralService.settingApi.readAll({});
+      expect(settingsResponse.status).to.equal(HttpStatus.FORBIDDEN);
+      expect(settingsResponse.data.message).to.equal('Tenant has been updated and all users will be logged off');
+      await testData.centralService.reconnect();
+
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.data.count).to.equal(1);
       expect(settings.data.result[0]).to.be.validatedSetting('refund', 'concur');
@@ -82,6 +107,13 @@ describe('Tenant Settings test', function() {
       testData.data = JSON.parse(`{"id":"${testData.credentials.tenantId}","name":"ut-nothing","email":"${testData.credentials.email}","subdomain":"utnothing","components":{"ocpi":{"active":false,"type":null},"organization":{"active":false,"type":null},"pricing":{"active":true,"type":"convergentCharging"},"refund":{"active":false,"type":null},"statistics":{"active":false,"type":null},"analytics":{"active":false,"type":null}}}`);
       const res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
       expect(res.status).to.equal(200);
+
+      await Utils.sleep(500);
+      const settingsResponse = await testData.centralService.settingApi.readAll({});
+      expect(settingsResponse.status).to.equal(HttpStatus.FORBIDDEN);
+      expect(settingsResponse.data.message).to.equal('Tenant has been updated and all users will be logged off');
+      await testData.centralService.reconnect();
+
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.data.count).to.equal(1);
       expect(settings.data.result[0]).to.be.validatedSetting('pricing', 'convergentCharging');
@@ -92,11 +124,16 @@ describe('Tenant Settings test', function() {
       testData.data = JSON.parse(`{"id":"${testData.credentials.tenantId}","name":"ut-nothing","email":"${testData.credentials.email}","subdomain":"utnothing","components":{"ocpi":{"active":false,"type":null},"organization":{"active":false,"type":null},"pricing":{"active":false,"type":null},"refund":{"active":false,"type":null},"statistics":{"active":false,"type":null},"analytics":{"active":true,"type":"sac"}}}`);
       const res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
       expect(res.status).to.equal(200);
+
+      await Utils.sleep(500);
+      const settingsResponse = await testData.centralService.settingApi.readAll({});
+      expect(settingsResponse.status).to.equal(HttpStatus.FORBIDDEN);
+      expect(settingsResponse.data.message).to.equal('Tenant has been updated and all users will be logged off');
+      await testData.centralService.reconnect();
+
       const settings = await testData.centralService.settingApi.readAll({});
       expect(settings.data.count).to.equal(1);
       expect(settings.data.result[0]).to.be.validatedSetting('analytics', 'sac');
     });
-
   });
-
 });

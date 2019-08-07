@@ -2,6 +2,7 @@ import Constants from '../../../../utils/Constants';
 import global from '../../../../types/GlobalType';
 import Logging from '../../../../utils/Logging';
 import Utils from '../../../../utils/Utils';
+import ChargingStation from '../../../../entity/ChargingStation';
 
 const MODULE_NAME = 'SoapCentralSystemService16';
 export default { /* Services */
@@ -46,6 +47,8 @@ export default { /* Services */
           // Add OCPP Version
           headers.ocppVersion = Constants.OCPP_VERSION_16;
           headers.ocppProtocol = Constants.OCPP_PROTOCOL_SOAP;
+          // Add current IP to charging station properties
+          headers.currentIPAddress = Utils.getRequestIP(req);
           // Log
           Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, 'BootNotification', [ headers, args ]);
           // Handle
@@ -154,6 +157,8 @@ export default { /* Services */
       Heartbeat: function(args, callback, headers, req) {
         // Check SOAP params
         Utils.normalizeAndCheckSOAPParams(headers, req).then(async () => {
+          // Add current IP to charging station properties
+          headers.currentIPAddress = Utils.getRequestIP(req);
           // Log
           Logging.logReceivedAction(MODULE_NAME, headers.tenantID, headers.chargeBoxIdentity, 'Heartbeat', [ headers, args ]);
           // Handle

@@ -11,7 +11,6 @@ import RatingService from '../../../integration/pricing/convergent-charging/Rati
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import User from '../../../types/User';
 import UserSecurity from './security/UserSecurity';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
@@ -24,7 +23,7 @@ export default class UserService {
       req.user, Constants.COMPONENTS.ORGANIZATION,
       Constants.ACTION_UPDATE, Constants.ENTITY_SITES, 'SiteService', 'handleAssignSitesToUser');
     // Filter
-    const filteredRequest = UserSecurity.filterAssignSitesToUserRequest(req.body, req.user);
+    const filteredRequest = UserSecurity.filterAssignSitesToUserRequest(req.body);
     // Check Mandatory fields
     if (!filteredRequest.userID) {
       throw new AppError(
@@ -227,7 +226,12 @@ export default class UserService {
     await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: [] }, true);
     // Update Tag IDs
     if (Authorizations.isAdmin(req.user.role) || Authorizations.isSuperAdmin(req.user.role)) {
-      const newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? [] : filteredRequest.tagIDs;
+      let newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? [] : filteredRequest.tagIDs;
+      // Check types
+      newTagIDs = newTagIDs.filter((newTagID) => {
+        return typeof newTagID === 'string';
+      });
+      // Save
       await UserStorage.saveUserTags(req.user.tenantID, filteredRequest.id, newTagIDs);
     }
     // Log
@@ -353,7 +357,7 @@ export default class UserService {
         req.user);
     }
     // Filter
-    const filteredRequest = UserSecurity.filterUsersRequest(req.query, req.user);
+    const filteredRequest = UserSecurity.filterUsersRequest(req.query);
     // Check component
     if (filteredRequest.SiteID || filteredRequest.ExcludeSiteID) {
       UtilsService.assertComponentIsActiveFromToken(req.user,
@@ -394,7 +398,7 @@ export default class UserService {
         req.user);
     }
     // Filter
-    const filteredRequest = UserSecurity.filterUsersRequest(req.query, req.user);
+    const filteredRequest = UserSecurity.filterUsersRequest(req.query);
     // Check component
     if (filteredRequest.SiteID || filteredRequest.ExcludeSiteID) {
       UtilsService.assertComponentIsActiveFromToken(req.user,
@@ -466,7 +470,12 @@ export default class UserService {
     const newUserId = await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: [] }, true);
     // Save the Tag IDs
     if (Authorizations.isAdmin(req.user.role) || Authorizations.isSuperAdmin(req.user.role)) {
-      const newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? [] : filteredRequest.tagIDs;
+      let newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? [] : filteredRequest.tagIDs;
+      // Check types
+      newTagIDs = newTagIDs.filter((newTagID) => {
+        return typeof newTagID === 'string';
+      });
+      // Save
       await UserStorage.saveUserTags(req.user.tenantID, newUserId, newTagIDs);
     }
     // Log

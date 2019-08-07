@@ -1,3 +1,4 @@
+import { NextFunction, Request, Response } from 'express';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
@@ -8,7 +9,7 @@ import PricingSecurity from './security/PricingSecurity';
 import PricingStorage from '../../../storage/mongodb/PricingStorage';
 
 export default class PricingService {
-  static async handleGetPricing(action, req, res, next) {
+  static async handleGetPricing(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canReadPricing(req.user)) {
@@ -38,7 +39,7 @@ export default class PricingService {
     }
   }
 
-  static async handleUpdatePricing(action, req, res, next) {
+  static async handleUpdatePricing(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check auth
       if (!Authorizations.canUpdatePricing(req.user)) {

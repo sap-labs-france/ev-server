@@ -50,6 +50,7 @@ export default class OCPPService {
           'OCPPUtils', '_checkAndGetChargingStation');
       }
       bootNotification.id = headers.chargeBoxIdentity;
+      bootNotification.currentIPAddress = headers.currentIPAddress;
       // Set the default Heart Beat
       bootNotification.lastReboot = new Date();
       bootNotification.lastHeartBeat = bootNotification.lastReboot;
@@ -90,6 +91,7 @@ export default class OCPPService {
       chargingStation.setOcppVersion(headers.ocppVersion);
       chargingStation.setOcppProtocol(headers.ocppProtocol);
       chargingStation.setLastHeartBeat(bootNotification.lastHeartBeat);
+      chargingStation.setCurrentIPAddress(bootNotification.currentIPAddress)
       // Set the charger URL?
       if (headers.chargingStationURL) {
         chargingStation.setChargingStationURL(headers.chargingStationURL);
@@ -148,6 +150,11 @@ export default class OCPPService {
     try {
       // Get Charging Station
       const chargingStation = await OCPPUtils.checkAndGetChargingStation(headers.chargeBoxIdentity, headers.tenantID);
+      // Check and replace IP
+      if (chargingStation.getCurrentIPAddress() !== headers.currentIPAddress) {
+        chargingStation.setCurrentIPAddress(headers.currentIPAddress);
+        await chargingStation.save();
+      }
       // Check props
       OCPPValidation.getInstance().validateHeartbeat(heartbeat);
       // Set Heartbeat
@@ -236,7 +243,13 @@ export default class OCPPService {
     let connector = chargingStation.getConnector(statusNotification.connectorId);
     if (!connector) {
       // Does not exist: Create
-      connector = { connectorId: statusNotification.connectorId, currentConsumption: 0, status: 'Unknown', power: 0, type: Constants.CONNECTOR_TYPES.UNKNOWN };
+      connector = {
+        connectorId: statusNotification.connectorId,
+        currentConsumption: 0,
+        status: 'Unknown',
+        power: 0,
+        type: Constants.CONNECTOR_TYPES.UNKNOWN
+      };
       chargingStation.getConnectors().push(connector);
     }
     // Check if status has changed
@@ -407,7 +420,7 @@ export default class OCPPService {
     if (OCPPUtils.isSocMeterValue(meterValue)) {
       // Set current
       transaction.setCurrentStateOfCharge(meterValue.value);
-    // Consumption?
+      // Consumption?
     } else if (OCPPUtils.isConsumptionMeterValue(meterValue)) {
       // Update
       transaction.setNumberOfConsumptionMeterValues(transaction.getNumberOfMeterValues() + 1);
@@ -462,7 +475,7 @@ export default class OCPPService {
       if (OCPPUtils.isSocMeterValue(meterValue)) {
         // Set SoC
         consumption.stateOfCharge = transaction.getCurrentStateOfCharge();
-      // Consumption
+        // Consumption
       } else {
         // Set Consumption
         consumption.consumption = transaction.getCurrentConsumptionWh();
@@ -500,7 +513,7 @@ export default class OCPPService {
         if (meterValue.attribute.context === 'Transaction.Begin') {
           transaction.setStateOfCharge(meterValue.value);
           continue;
-        // Set the Last SoC
+          // Set the Last SoC
         } else if (meterValue.attribute.context === 'Transaction.End') {
           transaction.setCurrentStateOfCharge(meterValue.value);
           continue;
@@ -551,13 +564,16 @@ export default class OCPPService {
         if (pricingImpl) {
           // Set
           pricedConsumption = await pricingImpl.startSession(consumption);
-          // Set the initial pricing
-          transaction.setStartPrice(pricedConsumption.amount);
-          transaction.setStartRoundedPrice(pricedConsumption.roundedAmount);
-          transaction.setStartPriceUnit(pricedConsumption.currencyCode);
-          transaction.setStartPricingSource(pricedConsumption.pricingSource);
-          // Init the cumulated price
-          transaction.setCurrentCumulatedPrice(pricedConsumption.amount);
+
+          if (pricedConsumption) {
+            // Set the initial pricing
+            transaction.setStartPrice(pricedConsumption.amount);
+            transaction.setStartRoundedPrice(pricedConsumption.roundedAmount);
+            transaction.setStartPriceUnit(pricedConsumption.currencyCode);
+            transaction.setStartPricingSource(pricedConsumption.pricingSource);
+            // Init the cumulated price
+            transaction.setCurrentCumulatedPrice(pricedConsumption.amount);
+          }
         } else {
           // Default
           transaction.setStartPrice(0);
@@ -572,17 +588,20 @@ export default class OCPPService {
         if (pricingImpl) {
           // Set
           pricedConsumption = await pricingImpl.updateSession(consumption);
-          // Update consumption
-          consumption.amount = pricedConsumption.amount;
-          consumption.roundedAmount = pricedConsumption.roundedAmount;
-          consumption.currencyCode = pricedConsumption.currencyCode;
-          consumption.pricingSource = pricedConsumption.pricingSource;
-          if (pricedConsumption.cumulatedAmount) {
-            consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
-          } else {
-            consumption.cumulatedAmount = parseFloat((transaction.getCurrentCumulatedPrice() + consumption.amount).toFixed(6));
+
+          if (pricedConsumption) {
+            // Update consumption
+            consumption.amount = pricedConsumption.amount;
+            consumption.roundedAmount = pricedConsumption.roundedAmount;
+            consumption.currencyCode = pricedConsumption.currencyCode;
+            consumption.pricingSource = pricedConsumption.pricingSource;
+            if (pricedConsumption.cumulatedAmount) {
+              consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
+            } else {
+              consumption.cumulatedAmount = parseFloat((transaction.getCurrentCumulatedPrice() + consumption.amount).toFixed(6));
+            }
+            transaction.setCurrentCumulatedPrice(consumption.cumulatedAmount);
           }
-          transaction.setCurrentCumulatedPrice(consumption.cumulatedAmount);
         }
         break;
       // Stop Transaction
@@ -591,22 +610,25 @@ export default class OCPPService {
         if (pricingImpl) {
           // Set
           pricedConsumption = await pricingImpl.stopSession(consumption);
-          // Update consumption
-          consumption.amount = pricedConsumption.amount;
-          consumption.roundedAmount = pricedConsumption.roundedAmount;
-          consumption.currencyCode = pricedConsumption.currencyCode;
-          consumption.pricingSource = pricedConsumption.pricingSource;
-          if (pricedConsumption.cumulatedAmount) {
-            consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
-          } else {
-            consumption.cumulatedAmount = parseFloat((transaction.getCurrentCumulatedPrice() + consumption.amount).toFixed(6));
+
+          if (pricedConsumption) {
+            // Update consumption
+            consumption.amount = pricedConsumption.amount;
+            consumption.roundedAmount = pricedConsumption.roundedAmount;
+            consumption.currencyCode = pricedConsumption.currencyCode;
+            consumption.pricingSource = pricedConsumption.pricingSource;
+            if (pricedConsumption.cumulatedAmount) {
+              consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
+            } else {
+              consumption.cumulatedAmount = parseFloat((transaction.getCurrentCumulatedPrice() + consumption.amount).toFixed(6));
+            }
+            transaction.setCurrentCumulatedPrice(consumption.cumulatedAmount);
+            // Update Transaction
+            transaction.setStopPrice(parseFloat(transaction.getCurrentCumulatedPrice().toFixed(6)));
+            transaction.setStopRoundedPrice(parseFloat((transaction.getCurrentCumulatedPrice()).toFixed(2)));
+            transaction.setStopPriceUnit(pricedConsumption.currencyCode);
+            transaction.setStopPricingSource(pricedConsumption.pricingSource);
           }
-          transaction.setCurrentCumulatedPrice(consumption.cumulatedAmount);
-          // Update Transaction
-          transaction.setStopPrice(parseFloat(transaction.getCurrentCumulatedPrice().toFixed(6)));
-          transaction.setStopRoundedPrice(parseFloat((transaction.getCurrentCumulatedPrice()).toFixed(2)));
-          transaction.setStopPriceUnit(pricedConsumption.currencyCode);
-          transaction.setStopPricingSource(pricedConsumption.pricingSource);
         }
         break;
     }
@@ -708,7 +730,7 @@ export default class OCPPService {
             // Send Notification
             await this._notifyEndOfCharge(chargingStation, transaction);
           }
-        // Optimal Charge? (SoC)
+          // Optimal Charge? (SoC)
         } else if (_configChargingStation.notifBeforeEndOfChargeEnabled &&
           transaction.getCurrentStateOfCharge() >= _configChargingStation.notifBeforeEndOfChargePercent) {
           // Notify User?
@@ -802,7 +824,7 @@ export default class OCPPService {
             // Data is to be interpreted as integer/decimal numeric data
             if (newLocalMeterValue.attribute.format === 'Raw') {
               newLocalMeterValue.value = parseFloat(sampledValue.value);
-            // Data is represented as a signed binary data block, encoded as hex data
+              // Data is represented as a signed binary data block, encoded as hex data
             } else if (newLocalMeterValue.attribute.format === 'SignedData') {
               newLocalMeterValue.value = sampledValue.value;
             }
@@ -816,7 +838,7 @@ export default class OCPPService {
           // Add
           newMeterValues.values.push(newLocalMeterValue);
         }
-      // OCPP < 1.6
+        // OCPP < 1.6
       } else if (value.value) {
         // OCPP 1.2
         if (value.value.$value) {
