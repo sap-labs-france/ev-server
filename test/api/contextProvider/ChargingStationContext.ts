@@ -66,7 +66,7 @@ export default class ChargingStationContext {
   }
 
   async sendHeartbeat() {
-    return await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeHeartbeat(this.chargingStation.id, {});
+    return await this.ocppService.executeHeartbeat(this.chargingStation.id, {});
   }
 
   async startTransaction(connectorId, tagId, meterStart, startDate) {
