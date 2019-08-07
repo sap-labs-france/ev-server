@@ -292,7 +292,6 @@ export default class CONTEXTS {
       // contextName: CONTEXTS.SITE_CONTEXTS.SITE_BASIC,
       id: '5ce249a2372f0b1c8caf9294',
       name: CONTEXTS.SITE_CONTEXTS.SITE_BASIC,
-      allowAllUsersToStopTransactions: false,
       autoUserSiteAssignment: false,
       companyID: '5ce249a2372f0b1c8caf928f'
     },
@@ -300,7 +299,6 @@ export default class CONTEXTS {
       // contextName: CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION,
       id: '5ce249a2372f0b1c8caf8367',
       name: CONTEXTS.SITE_CONTEXTS.SITE_WITH_OTHER_USER_STOP_AUTHORIZATION,
-      allowAllUsersToStopTransactions: true,
       autoUserSiteAssignment: false,
       companyID: '5ce249a2372f0b1c8caf928f'
     },
@@ -308,7 +306,6 @@ export default class CONTEXTS {
       // contextName: CONTEXTS.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT,
       id: '5ce249a2372f0b1c8caf6532',
       name: CONTEXTS.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT,
-      allowAllUsersToStopTransactions: false,
       autoUserSiteAssignment: true,
       companyID: '5ce249a2372f0b1c8caf928f'
     }

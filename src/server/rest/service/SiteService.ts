@@ -382,7 +382,7 @@ export default class SiteService {
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
       ['id', 'name', 'address.latitude', 'address.longitude', 'address.city', 'address.country', 'company.name',
-        'autoUserSiteAssignment', 'allowAllUsersToStopTransactions']
+        'autoUserSiteAssignment']
     );
     // Build the result
     if (sites.result && sites.result.length > 0) {

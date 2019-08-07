@@ -232,7 +232,6 @@ export default class SiteStorage {
       _id: siteFilter._id,
       address: siteToSave.address,
       companyID: Utils.convertToObjectID(siteToSave.companyID),
-      allowAllUsersToStopTransactions: siteToSave.allowAllUsersToStopTransactions,
       autoUserSiteAssignment: siteToSave.autoUserSiteAssignment,
       name: siteToSave.name,
     };
@@ -406,9 +405,6 @@ export default class SiteStorage {
           siteMDB.totalChargers = connectorStats.totalChargers;
           siteMDB.availableConnectors = connectorStats.availableConnectors;
           siteMDB.totalConnectors = connectorStats.totalConnectors;
-        }
-        if (!siteMDB.allowAllUsersToStopTransactions) {
-          siteMDB.allowAllUsersToStopTransactions = false;
         }
         if (!siteMDB.autoUserSiteAssignment) {
           siteMDB.autoUserSiteAssignment = false;

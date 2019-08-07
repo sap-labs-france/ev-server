@@ -238,7 +238,6 @@ export default class ContextBuilder {
           userIDs: userListToAssign.map((user) => user.id)
         });
         siteTemplate.name = siteContextDef.name;
-        siteTemplate.allowAllUsersToStopTransactions = siteContextDef.allowAllUsersToStopTransactions;
         siteTemplate.autoUserSiteAssignment = siteContextDef.autoUserSiteAssignment;
         siteTemplate.id = siteContextDef.id;
         site = siteTemplate;

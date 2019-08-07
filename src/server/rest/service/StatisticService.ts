@@ -114,12 +114,12 @@ export default class StatisticService {
     }
   }
 
-  static async handleGetChargingStationSessionsStatistics(action: string, req: Request, res: Response, next: NextFunction) {
+  static async handleGetChargingStationTransactionsStatistics(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check if component is active
       UtilsService.assertComponentIsActiveFromToken(
         req.user, Constants.COMPONENTS.STATISTICS,
-        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationSessionsStatistics');
+        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationTransactionsStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
         // Not Authorized!
@@ -127,7 +127,7 @@ export default class StatisticService {
           Constants.ACTION_LIST,
           Constants.ENTITY_TRANSACTIONS,
           null, 560,
-          'StatisticService', 'handleGetChargingStationSessionsStatistics',
+          'StatisticService', 'handleGetChargingStationTransactionsStatistics',
           req.user);
       }
       // Filter
@@ -136,7 +136,7 @@ export default class StatisticService {
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
       const transactionStatsMDB = await StatisticsStorage.getChargingStationStats(
-        req.user.tenantID, filter, Constants.STATS_GROUP_BY_SESSIONS);
+        req.user.tenantID, filter, Constants.STATS_GROUP_BY_TRANSACTIONS);
       // Convert
       const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'C');
       // Return
@@ -250,12 +250,12 @@ export default class StatisticService {
     }
   }
 
-  static async handleGetUserSessionsStatistics(action: string, req: Request, res: Response, next: NextFunction) {
+  static async handleGetUserTransactionsStatistics(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Check if component is active
       UtilsService.assertComponentIsActiveFromToken(
         req.user, Constants.COMPONENTS.STATISTICS,
-        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserSessionsStatistics');
+        Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserTransactionsStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
         // Not Authorized!
@@ -263,7 +263,7 @@ export default class StatisticService {
           Constants.ACTION_LIST,
           Constants.ENTITY_TRANSACTIONS,
           null, 560,
-          'StatisticService', 'handleGetUserSessionsStatistics',
+          'StatisticService', 'handleGetUserTransactionsStatistics',
           req.user);
       }
       // Filter
@@ -272,7 +272,7 @@ export default class StatisticService {
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
       const transactionStatsMDB = await StatisticsStorage.getUserStats(
-        req.user.tenantID, filter, Constants.STATS_GROUP_BY_SESSIONS);
+        req.user.tenantID, filter, Constants.STATS_GROUP_BY_TRANSACTIONS);
       // Convert
       const transactions = StatisticService.convertToGraphData(transactionStatsMDB, 'U');
       // Return
@@ -341,8 +341,8 @@ export default class StatisticService {
         case 'Inactivity':
           groupBy = Constants.STATS_GROUP_BY_INACTIVITY;
           break;
-        case 'Sessions':
-          groupBy = Constants.STATS_GROUP_BY_SESSIONS;
+        case 'Transactions':
+          groupBy = Constants.STATS_GROUP_BY_TRANSACTIONS;
           break;
         default:
           groupBy = Constants.STATS_GROUP_BY_CONSUMPTION;
@@ -483,7 +483,7 @@ export default class StatisticService {
       case 'Inactivity':
         csv += 'inactivityHours\r\n';
         break;
-      case 'Sessions':
+      case 'Transactions':
         csv += 'numberOfSessions\r\n';
         break;
       default:

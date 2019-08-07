@@ -78,8 +78,6 @@ export default class SiteSecurity {
     filteredRequest.name = sanitize(request.name);
     filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address);
     filteredRequest.image = sanitize(request.image);
-    filteredRequest.allowAllUsersToStopTransactions =
-      UtilsSecurity.filterBoolean(request.allowAllUsersToStopTransactions);
     filteredRequest.autoUserSiteAssignment =
       UtilsSecurity.filterBoolean(request.autoUserSiteAssignment);
     filteredRequest.companyID = sanitize(request.companyID);

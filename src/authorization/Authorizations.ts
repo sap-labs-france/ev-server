@@ -60,6 +60,8 @@ export default class Authorizations {
     const context = {
       user: transaction.getUserJson() ? transaction.getUserJson().id : null,
       owner: loggedUser.id,
+      tagIDs: loggedUser.tagIDs,
+      tagID: transaction.getTagID(),
       site: transaction.getSiteID(),
       sites: loggedUser.sites,
       sitesAdmin: loggedUser.sitesAdmin
@@ -538,6 +540,8 @@ export default class Authorizations {
       // Authorized?
       const context = {
         user: transaction && transaction.getUserJson() ? transaction.getUserJson().id : null,
+        tagIDs: userToken.tagIDs,
+        tagID: transaction && transaction.getTagID() ? transaction.getTagID() : null,
         owner: userToken.id,
         site: isOrgCompActive ? chargingStation.siteArea.site.id : null,
         sites: userToken.sites,
