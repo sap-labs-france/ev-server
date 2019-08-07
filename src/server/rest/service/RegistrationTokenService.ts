@@ -92,6 +92,11 @@ export default class RegistrationTokenService {
       };
 
       const registrationTokens = await RegistrationTokenStorage.getRegistrationTokens(req.user.tenantID, params, dbParams);
+      registrationTokens.result.forEach((registrationToken) => {
+        registrationToken.ocpp15Url = Utils.buildOCPPServerURL(req.user.tenantID, Constants.OCPP_PROTOCOL_SOAP, registrationToken.id);
+        registrationToken.ocpp16Url = Utils.buildOCPPServerURL(req.user.tenantID, Constants.OCPP_PROTOCOL_JSON, registrationToken.id);
+        return registrationToken;
+      });
       // Ok
       res.json(RegistrationTokenSecurity.filterRegistrationTokensResponse(registrationTokens, req.user));
       next();

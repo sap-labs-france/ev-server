@@ -359,6 +359,25 @@ export default class Utils {
       _centralSystemFrontEndConfig.port}`;
   }
 
+  static buildOCPPServerURL(tenantID: string, ocppProtocol: string, token?: string): string {
+    let ocppUrl;
+    switch (ocppProtocol) {
+      case Constants.OCPP_PROTOCOL_JSON:
+        ocppUrl = `${Configuration.getJsonEndpointConfig().baseUrl}/OCPP16/${tenantID}`;
+        if (token) {
+          ocppUrl += `/${token}`;
+        }
+        return ocppUrl;
+      case Constants.OCPP_PROTOCOL_SOAP:
+      default:
+        ocppUrl = `${Configuration.getWSDLEndpointConfig().baseUrl}/OCPP15?TenantID=${tenantID}`;
+        if (token) {
+          ocppUrl += `&Token=${token}`;
+        }
+        return ocppUrl;
+    }
+  }
+
   static async buildEvseUserURL(tenantID: string, user: User, hash = '') {
 
     const tenant = await TenantStorage.getTenant(tenantID);
