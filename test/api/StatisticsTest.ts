@@ -268,7 +268,7 @@ describe('Statistics tests', function() {
         if (Array.isArray(adminUserListResponse.data)) {
           expect(StatisticsApi.calculateTotalsPerMonth(adminUserListResponse.data[0]),
             `The number of sessions should be ${numberOfUsers * numberOfYears * expectedTransactions}`
-            ).to.be.eql(numberOfUsers * numberOfYears * expectedTransactions);
+          ).to.be.eql(numberOfUsers * numberOfYears * expectedTransactions);
         }
       });
 
