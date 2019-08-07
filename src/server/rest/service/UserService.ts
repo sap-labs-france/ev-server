@@ -490,9 +490,7 @@ export default class UserService {
       Constants.DB_PARAMS_MAX_LIMIT
     );
     if (sites.count > 0) {
-      const siteIDs = sites.result.map((site) => {
-        return site.id;
-      });
+      const siteIDs = sites.result.map((site) => site.id);
       if (siteIDs && siteIDs.length > 0) {
         await UserStorage.addSitesToUser(req.user.tenantID, newUserId, siteIDs);
       }
