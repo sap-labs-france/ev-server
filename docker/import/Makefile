@@ -31,11 +31,21 @@ $(NAME)-docker-push: $(NAME)-docker-tag
 	docker push $(DOCKER_USER)/$(PROJECT_NAME)-$(NAME)
 
 ifeq ($(OS),Windows_NT)
-$(NAME)-cf-push: set CF_DOCKER_PASSWORD=$(DOCKER_PASSWORD)
+# FIXME
+# $(NAME)-cf-push: set CF_DOCKER_PASSWORD=$(DOCKER_PASSWORD)
 else
 $(NAME)-cf-push: export CF_DOCKER_PASSWORD=$(DOCKER_PASSWORD)
 endif
 $(NAME)-cf-push: $(NAME)-build $(NAME)-docker-push
+	cf push --docker-image $(DOCKER_USER)/$(PROJECT_NAME)-$(NAME) --docker-username $(DOCKER_USER)
+
+ifeq ($(OS),Windows_NT)
+# FIXME
+# $(NAME)-cf-push-only: set CF_DOCKER_PASSWORD=$(DOCKER_PASSWORD)
+else
+$(NAME)-cf-push-only: export CF_DOCKER_PASSWORD=$(DOCKER_PASSWORD)
+endif
+$(NAME)-cf-push-only:
 	cf push --docker-image $(DOCKER_USER)/$(PROJECT_NAME)-$(NAME) --docker-username $(DOCKER_USER)
 
 dist-clean-images:
