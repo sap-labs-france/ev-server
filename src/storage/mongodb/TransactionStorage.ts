@@ -527,7 +527,6 @@ export default class TransactionStorage {
           ...obj,
           [key]: facets.$facet[key]
         }), {});
-        }, {});
       facets.$facet = filteredFacets;
     }
     // Merge in each facet the join for sitearea and siteareaid

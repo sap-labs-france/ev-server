@@ -5,6 +5,7 @@ import CONTEXTS from './contextProvider/ContextConstants';
 import ContextProvider from './contextProvider/ContextProvider';
 import Factory from '../factories/Factory';
 import SiteContext from './ContextProvider/SiteContext';
+import TenantContext from './ContextProvider/TenantContext';
 
 chai.use(chaiSubset);
 
