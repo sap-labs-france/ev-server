@@ -83,7 +83,10 @@ export default class OCPPService {
         // Back again
         chargingStation.setDeleted(false);
       }
-
+      // Update CF Instance
+      if (Configuration.isCloudFoundry()) {
+        chargingStation.setCFApplicationIDAndInstanceIndex(Configuration.getCFApplicationIDAndInstanceIndex());
+      }
       chargingStation.setOcppVersion(headers.ocppVersion);
       chargingStation.setOcppProtocol(headers.ocppProtocol);
       chargingStation.setLastHeartBeat(bootNotification.lastHeartBeat);
