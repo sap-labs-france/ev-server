@@ -323,22 +323,6 @@ export default class Database {
     dest.verificationToken = src.verificationToken;
   }
 
-  static updateSite(src, dest, forFrontEnd = true) {
-    if (forFrontEnd) {
-      Database.updateID(src, dest);
-      dest.image = src.image;
-      dest.companyID = Database.validateId(src.companyID);
-    } else {
-      dest.companyID = Utils.convertToObjectID(src.companyID);
-    }
-    dest.name = src.name;
-    dest.address = {};
-    dest.allowAllUsersToStopTransactions = src.allowAllUsersToStopTransactions;
-    dest.autoUserSiteAssignment = src.autoUserSiteAssignment;
-    Database.updateAddress(src.address, dest.address);
-    Database.updateCreatedAndLastChanged(src, dest);
-  }
-
   static updateVehicleManufacturer(src, dest, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);

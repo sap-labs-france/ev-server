@@ -8,7 +8,6 @@ export default interface Site extends CreatedUpdatedProps {
   name: string;
   address: Address;
   companyID: string;
-  allowAllUsersToStopTransactions: boolean;
   autoUserSiteAssignment: boolean;
   image?: string;
   availableChargers?: number;
