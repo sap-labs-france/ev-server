@@ -6,4 +6,6 @@ export default interface RegistrationToken extends CreatedUpdatedProps {
   expirationDate: Date;
   siteAreaID?: string;
   siteArea?: SiteArea;
+  ocpp15Url?: string;
+  ocpp16Url?: string;
 }
