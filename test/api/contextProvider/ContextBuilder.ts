@@ -244,7 +244,6 @@ export default class ContextBuilder {
           })
         });
         siteTemplate.name = siteContextDef.name;
-        siteTemplate.allowAllUsersToStopTransactions = siteContextDef.allowAllUsersToStopTransactions;
         siteTemplate.autoUserSiteAssignment = siteContextDef.autoUserSiteAssignment;
         siteTemplate.id = siteContextDef.id;
         site = siteTemplate;
