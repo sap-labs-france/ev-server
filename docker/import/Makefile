@@ -1,7 +1,7 @@
 PROJECT_NAME:=evse
 NAME:=mongo-tools
-DOCKER_USER:=fraggle0
-DOCKER_PASSWORD:=$$Love79!
+DOCKER_USER:=
+DOCKER_PASSWORD:=
 
 .PHONY: $(NAME)-start
 
@@ -30,9 +30,12 @@ $(NAME)-docker-tag:
 $(NAME)-docker-push: $(NAME)-docker-tag
 	docker push $(DOCKER_USER)/$(PROJECT_NAME)-$(NAME)
 
-$(NAME)-cf-push:
-	-export CF_DOCKER_PASSWORD=$(DOCKER_PASSWORD)
-	-set CF_DOCKER_PASSWORD=$(DOCKER_PASSWORD)
+ifeq ($(OS),Windows_NT)
+$(NAME)-cf-push: set CF_DOCKER_PASSWORD=$(DOCKER_PASSWORD)
+else
+$(NAME)-cf-push: export CF_DOCKER_PASSWORD=$(DOCKER_PASSWORD)
+endif
+$(NAME)-cf-push: $(NAME)-build $(NAME)-docker-push
 	cf push --docker-image $(DOCKER_USER)/$(PROJECT_NAME)-$(NAME) --docker-username $(DOCKER_USER)
 
 dist-clean-images:
