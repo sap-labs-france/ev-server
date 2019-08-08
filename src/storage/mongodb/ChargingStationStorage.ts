@@ -411,7 +411,7 @@ export default class ChargingStationStorage {
       });
     // Found?
     let configuration = null;
-    if (configurationsMDB.configuration && configurationsMDB.configuration.length > 0) {
+    if (configurationsMDB && configurationsMDB.configuration && configurationsMDB.configuration.length > 0) {
       // Set values
       configuration = {
         id: configurationsMDB._id,
