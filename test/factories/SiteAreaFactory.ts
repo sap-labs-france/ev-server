@@ -1,5 +1,4 @@
 import faker from 'faker';
-
 import { Factory } from 'rosie';
 import address from './AddressFactory';
 
