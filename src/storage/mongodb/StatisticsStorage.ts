@@ -30,20 +30,28 @@ export default class StatisticsStorage {
       match.stop = filter.stop;
     }
     // Filter on Site?
-    if (filter.siteID) {
-      match.siteID = Utils.convertToObjectID(filter.siteID);
+    if (filter.siteIDs && Array.isArray(filter.siteIDs) && filter.siteIDs.length > 0) {
+      match.siteID = {
+        $in: filter.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
+      };
     }
     // Filter on Site Area?
-    if (filter.siteAreaID) {
-      match.siteAreaID = Utils.convertToObjectID(filter.siteAreaID);
+    if (filter.siteAreaIDs && Array.isArray(filter.siteAreaIDs) && filter.siteAreaIDs.length > 0) {
+      match.siteAreaID = {
+        $in: filter.siteAreaIDs.map((siteAreaID) => Utils.convertToObjectID(siteAreaID))
+      };
     }
     // Filter on Charge Box?
-    if (filter.chargeBoxID) {
-      match.chargeBoxID = filter.chargeBoxID;
+    if (filter.chargeBoxIDs && Array.isArray(filter.chargeBoxIDs) && filter.chargeBoxIDs.length > 0) {
+      match.chargeBoxID = {
+        $in: filter.chargeBoxIDs.map((chargeBoxID) => { return chargeBoxID; })
+      };
     }
     // Filter on User?
-    if (filter.userID) {
-      match.userID = Utils.convertToObjectID(filter.userID);
+    if (filter.userIDs && Array.isArray(filter.userIDs) && filter.userIDs.length > 0) {
+      match.userID = {
+        $in: filter.userIDs.map((userID) => Utils.convertToObjectID(userID))
+      };
     }
     // Create Aggregation
     const aggregation = [];
@@ -58,8 +66,8 @@ export default class StatisticsStorage {
       case Constants.STATS_GROUP_BY_CONSUMPTION:
         aggregation.push({
           $group: {
-            // _id: { chargeBox: "$chargeBoxID", year: { $year: "$timestamp" }, month: { $month: "$timestamp" } },
-            _id: { chargeBox: '$chargeBoxID', month: { $month: '$timestamp' } },
+            // _id: { chargeBox: "$chargeBoxID", year: { $year: "$timestamp" }, month: { $month: "$timestamp" }, unit: '' },
+            _id: { chargeBox: '$chargeBoxID', month: { $month: '$timestamp' }, unit: '' },
             total: { $sum: { $divide: ['$stop.totalConsumption', 1000] } }
           }
         });
@@ -69,7 +77,7 @@ export default class StatisticsStorage {
       case Constants.STATS_GROUP_BY_USAGE:
         aggregation.push({
           $group: {
-            _id: { chargeBox: '$chargeBoxID', month: { $month: '$timestamp' } },
+            _id: { chargeBox: '$chargeBoxID', month: { $month: '$timestamp' }, unit: '' },
             total: { $sum: { $divide: [{ $subtract: ['$stop.timestamp', '$timestamp'] }, 60 * 60 * 1000] } }
           }
         });
@@ -79,18 +87,28 @@ export default class StatisticsStorage {
       case Constants.STATS_GROUP_BY_INACTIVITY:
         aggregation.push({
           $group: {
-            _id: { chargeBox: '$chargeBoxID', month: { $month: '$timestamp' } },
+            _id: { chargeBox: '$chargeBoxID', month: { $month: '$timestamp' }, unit: '' },
             total: { $sum: { $divide: [{ $add: ['$stop.totalInactivitySecs', '$stop.extraInactivitySecs'] }, 60 * 60] } }
           }
         });
         break;
 
-        // By Transactions
+      // By Transactions
       case Constants.STATS_GROUP_BY_TRANSACTIONS:
         aggregation.push({
           $group: {
-            _id: { chargeBox: '$chargeBoxID', month: { $month: '$timestamp' } },
+            _id: { chargeBox: '$chargeBoxID', month: { $month: '$timestamp' }, unit: '' },
             total: { $sum: 1 }
+          }
+        });
+        break;
+
+      // By Pricing
+      case Constants.STATS_GROUP_BY_PRICING:
+        aggregation.push({
+          $group: {
+            _id: { chargeBox: '$chargeBoxID', month: { $month: '$timestamp' }, unit: '$stop.priceUnit' },
+            total: { $sum: '$stop.price' }
           }
         });
         break;
@@ -98,7 +116,7 @@ export default class StatisticsStorage {
 
     // Sort
     aggregation.push({
-      $sort: { '_id.month': 1, '_id.chargeBox': 1 }
+      $sort: { '_id.month': 1, '_id.unit': 1, '_id.chargeBox': 1 }
     });
     // Read DB
     const transactionStatsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
@@ -133,20 +151,28 @@ export default class StatisticsStorage {
       match.stop = filter.stop;
     }
     // Filter on Site?
-    if (filter.siteID) {
-      match.siteID = Utils.convertToObjectID(filter.siteID);
+    if (filter.siteIDs && Array.isArray(filter.siteIDs) && filter.siteIDs.length > 0) {
+      match.siteID = {
+        $in: filter.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
+      };
     }
     // Filter on Site Area?
-    if (filter.siteAreaID) {
-      match.siteAreaID = Utils.convertToObjectID(filter.siteAreaID);
+    if (filter.siteAreaIDs && Array.isArray(filter.siteAreaIDs) && filter.siteAreaIDs.length > 0) {
+      match.siteAreaID = {
+        $in: filter.siteAreaIDs.map((siteAreaID) => Utils.convertToObjectID(siteAreaID))
+      };
     }
     // Filter on Charge Box?
-    if (filter.chargeBoxID) {
-      match.chargeBoxID = filter.chargeBoxID;
+    if (filter.chargeBoxIDs && Array.isArray(filter.chargeBoxIDs) && filter.chargeBoxIDs.length > 0) {
+      match.chargeBoxID = {
+        $in: filter.chargeBoxIDs.map((chargeBoxID) => { return chargeBoxID; })
+      };
     }
     // Filter on User?
-    if (filter.userID) {
-      match.userID = Utils.convertToObjectID(filter.userID);
+    if (filter.userIDs && Array.isArray(filter.userIDs) && filter.userIDs.length > 0) {
+      match.userID = {
+        $in: filter.userIDs.map((userID) => Utils.convertToObjectID(userID))
+      };
     }
     // Create Aggregation
     const aggregation = [];
@@ -161,8 +187,8 @@ export default class StatisticsStorage {
       case Constants.STATS_GROUP_BY_CONSUMPTION:
         aggregation.push({
           $group: {
-            // _id: { userID: "$userID", year: { $year: "$timestamp" }, month: { $month: "$timestamp" } },
-            _id: { userID: '$userID', month: { $month: '$timestamp' } },
+            // _id: { userID: "$userID", year: { $year: "$timestamp" }, month: { $month: "$timestamp" }, unit: '' },
+            _id: { userID: '$userID', month: { $month: '$timestamp' }, unit: '' },
             total: { $sum: { $divide: ['$stop.totalConsumption', 1000] } }
           }
         });
@@ -172,7 +198,7 @@ export default class StatisticsStorage {
       case Constants.STATS_GROUP_BY_USAGE:
         aggregation.push({
           $group: {
-            _id: { userID: '$userID', month: { $month: '$timestamp' } },
+            _id: { userID: '$userID', month: { $month: '$timestamp' }, unit: '' },
             total: { $sum: { $divide: [{ $subtract: ['$stop.timestamp', '$timestamp'] }, 60 * 60 * 1000] } }
           }
         });
@@ -182,7 +208,7 @@ export default class StatisticsStorage {
       case Constants.STATS_GROUP_BY_INACTIVITY:
         aggregation.push({
           $group: {
-            _id: { userID: '$userID', month: { $month: '$timestamp' } },
+            _id: { userID: '$userID', month: { $month: '$timestamp' }, unit: '' },
             total: { $sum: { $divide: [{ $add: ['$stop.totalInactivitySecs', '$stop.extraInactivitySecs'] }, 60 * 60] } }
           }
         });
@@ -192,8 +218,18 @@ export default class StatisticsStorage {
       case Constants.STATS_GROUP_BY_TRANSACTIONS:
         aggregation.push({
           $group: {
-            _id: { userID: '$userID', month: { $month: '$timestamp' } },
+            _id: { userID: '$userID', month: { $month: '$timestamp' }, unit: '' },
             total: { $sum: 1 }
+          }
+        });
+        break;
+
+      // By Pricing
+      case Constants.STATS_GROUP_BY_PRICING:
+        aggregation.push({
+          $group: {
+            _id: { userID: '$userID', month: { $month: '$timestamp' }, unit: '$stop.priceUnit' },
+            total: { $sum: '$stop.price' }
           }
         });
         break;
@@ -214,7 +250,7 @@ export default class StatisticsStorage {
     });
     // Sort
     aggregation.push({
-      $sort: { '_id.month': 1, '_id.chargeBox': 1 }
+      $sort: { '_id.month': 1, '_id.unit': 1, '_id.chargeBox': 1 } // Instead of chargeBox userID ?
     });
     // Read DB
     const transactionStatsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
