@@ -30,20 +30,28 @@ export default class StatisticsStorage {
       match.stop = filter.stop;
     }
     // Filter on Site?
-    if (filter.siteID) {
-      match.siteID = Utils.convertToObjectID(filter.siteID);
+    if (filter.siteIDs && Array.isArray(filter.siteIDs) && filter.siteIDs.length > 0) {
+      match.siteID = {
+        $in: filter.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
+      };
     }
     // Filter on Site Area?
-    if (filter.siteAreaID) {
-      match.siteAreaID = Utils.convertToObjectID(filter.siteAreaID);
+    if (filter.siteAreaIDs && Array.isArray(filter.siteAreaIDs) && filter.siteAreaIDs.length > 0) {
+      match.siteAreaID = {
+        $in: filter.siteAreaIDs.map((siteAreaID) => Utils.convertToObjectID(siteAreaID))
+      };
     }
     // Filter on Charge Box?
-    if (filter.chargeBoxID) {
-      match.chargeBoxID = filter.chargeBoxID;
+    if (filter.chargeBoxIDs && Array.isArray(filter.chargeBoxIDs) && filter.chargeBoxIDs.length > 0) {
+      match.chargeBoxID = {
+        $in: filter.chargeBoxIDs.map((chargeBoxID) => { return chargeBoxID; })
+      };
     }
     // Filter on User?
-    if (filter.userID) {
-      match.userID = Utils.convertToObjectID(filter.userID);
+    if (filter.userIDs && Array.isArray(filter.userIDs) && filter.userIDs.length > 0) {
+      match.userID = {
+        $in: filter.userIDs.map((userID) => Utils.convertToObjectID(userID))
+      };
     }
     // Create Aggregation
     const aggregation = [];
@@ -143,20 +151,28 @@ export default class StatisticsStorage {
       match.stop = filter.stop;
     }
     // Filter on Site?
-    if (filter.siteID) {
-      match.siteID = Utils.convertToObjectID(filter.siteID);
+    if (filter.siteIDs && Array.isArray(filter.siteIDs) && filter.siteIDs.length > 0) {
+      match.siteID = {
+        $in: filter.siteIDs.map((siteID) => Utils.convertToObjectID(siteID))
+      };
     }
     // Filter on Site Area?
-    if (filter.siteAreaID) {
-      match.siteAreaID = Utils.convertToObjectID(filter.siteAreaID);
+    if (filter.siteAreaIDs && Array.isArray(filter.siteAreaIDs) && filter.siteAreaIDs.length > 0) {
+      match.siteAreaID = {
+        $in: filter.siteAreaIDs.map((siteAreaID) => Utils.convertToObjectID(siteAreaID))
+      };
     }
     // Filter on Charge Box?
-    if (filter.chargeBoxID) {
-      match.chargeBoxID = filter.chargeBoxID;
+    if (filter.chargeBoxIDs && Array.isArray(filter.chargeBoxIDs) && filter.chargeBoxIDs.length > 0) {
+      match.chargeBoxID = {
+        $in: filter.chargeBoxIDs.map((chargeBoxID) => { return chargeBoxID; })
+      };
     }
     // Filter on User?
-    if (filter.userID) {
-      match.userID = Utils.convertToObjectID(filter.userID);
+    if (filter.userIDs && Array.isArray(filter.userIDs) && filter.userIDs.length > 0) {
+      match.userID = {
+        $in: filter.userIDs.map((userID) => Utils.convertToObjectID(userID))
+      };
     }
     // Create Aggregation
     const aggregation = [];

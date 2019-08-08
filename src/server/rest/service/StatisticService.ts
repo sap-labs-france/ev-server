@@ -453,8 +453,8 @@ export default class StatisticService {
     }
   }
 
-  static buildFilter(filteredRequest, loggedUser) {
-    // Only completed transactions
+  // Only completed transactions
+    static buildFilter(filteredRequest, loggedUser) {
     const filter: any = { stop: { $exists: true } };
     // Date
     if ('Year' in filteredRequest) {
@@ -468,23 +468,23 @@ export default class StatisticService {
       filter.endDateTime = moment().endOf('year').toDate().toISOString();
     }
     // Site
-    if (filteredRequest.SiteID) {
-      filter.siteID = filteredRequest.SiteID;
+    if (filteredRequest.SiteIDs) {
+      filter.siteIDs = filteredRequest.SiteIDs;
     }
     // Site Area
-    if (filteredRequest.SiteAreaID) {
-      filter.siteAreaID = filteredRequest.SiteAreaID;
+    if (filteredRequest.SiteAreaIDs) {
+      filter.siteAreaIDs = filteredRequest.SiteAreaIDs;
     }
     // Charge Box
-    if (filteredRequest.ChargeBoxID) {
-      filter.chargeBoxID = filteredRequest.ChargeBoxID;
+    if (filteredRequest.ChargeBoxIDs) {
+      filter.chargeBoxIDs = filteredRequest.ChargeBoxIDs;
     }
     // User
     if (Authorizations.isBasic(loggedUser.role)) {
       // Only for current user
-      filter.userID = loggedUser.id;
-    } else if (!Authorizations.isBasic(loggedUser.role) && filteredRequest.UserID) {
-      filter.userID = filteredRequest.UserID;
+      filter.userIDs = [loggedUser.id];
+    } else if (!Authorizations.isBasic(loggedUser.role) && filteredRequest.UserIDs) {
+      filter.userIDs = filteredRequest.UserIDs;
     }
     return filter;
   }
