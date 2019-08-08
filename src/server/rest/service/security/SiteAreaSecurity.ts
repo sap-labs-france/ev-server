@@ -58,7 +58,7 @@ export default class SiteAreaSecurity {
     };
   }
 
-  static filterSiteAreaResponse(siteArea, loggedUser: UserToken) {
+  static filterSiteAreaResponse(siteArea, loggedUser: UserToken): SiteArea {
     let filteredSiteArea;
 
     if (!siteArea) {
@@ -70,6 +70,10 @@ export default class SiteAreaSecurity {
       if (Authorizations.isAdmin(loggedUser.role)) {
         // Yes: set all params
         filteredSiteArea = siteArea;
+        if (filteredSiteArea.connectorStats) {
+          // TODO: To keep backward compat with Mobile App: remove it once new version is deployed
+          filteredSiteArea = { ...filteredSiteArea, ...siteArea.connectorStats };
+        }
       } else {
         // Set only necessary info
         filteredSiteArea = {};
@@ -81,11 +85,10 @@ export default class SiteAreaSecurity {
       if (siteArea.hasOwnProperty('address')) {
         filteredSiteArea.address = UtilsSecurity.filterAddressRequest(siteArea.address);
       }
-      if (siteArea.hasOwnProperty('availableChargers')) {
-        filteredSiteArea.availableChargers = siteArea.availableChargers;
-        filteredSiteArea.totalChargers = siteArea.totalChargers;
-        filteredSiteArea.availableConnectors = siteArea.availableConnectors;
-        filteredSiteArea.totalConnectors = siteArea.totalConnectors;
+      if (siteArea.connectorStats) {
+        filteredSiteArea.connectorStats = siteArea.connectorStats;
+        // TODO: To keep backward compat with Mobile App: remove it once new version is deployed
+        filteredSiteArea = { ...filteredSiteArea, ...siteArea.connectorStats };
       }
       if (siteArea.hasOwnProperty('accessControl')) {
         filteredSiteArea.accessControl = siteArea.accessControl;
@@ -105,7 +108,7 @@ export default class SiteAreaSecurity {
     return filteredSiteArea;
   }
 
-  static filterSiteAreasResponse(siteAreas, loggedUser) {
+  static filterSiteAreasResponse(siteAreas, loggedUser): SiteArea[] {
     const filteredSiteAreas = [];
     if (!siteAreas.result) {
       return null;

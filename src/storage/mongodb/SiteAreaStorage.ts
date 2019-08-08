@@ -211,13 +211,8 @@ export default class SiteAreaStorage {
       for (const siteAreaMDB of siteAreasMDB) {
         // Count Available/Occupied Chargers/Connectors
         if (params.withAvailableChargers) {
-          // Get the Charging Stations' Connector statuses
-          const connectorStats = Utils.getConnectorStatusesFromChargingStations(siteAreaMDB.chargingStations);
-          // Set
-          siteAreaMDB.availableChargers = connectorStats.availableChargers;
-          siteAreaMDB.totalChargers = connectorStats.totalChargers;
-          siteAreaMDB.availableConnectors = connectorStats.availableConnectors;
-          siteAreaMDB.totalConnectors = connectorStats.totalConnectors;
+          // Set the Charging Stations' Connector statuses
+          siteAreaMDB.connectorStats = Utils.getConnectorStatusesFromChargingStations(siteAreaMDB.chargingStations);
         }
         // Chargers
         if (!params.withChargeBoxes && siteAreaMDB.chargingStations) {

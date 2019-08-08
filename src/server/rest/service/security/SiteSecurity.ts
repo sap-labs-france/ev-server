@@ -84,7 +84,7 @@ export default class SiteSecurity {
     return filteredRequest;
   }
 
-  static filterSiteResponse(site: Site, loggedUser: UserToken) {
+  static filterSiteResponse(site: Site, loggedUser: UserToken): Site {
     let filteredSite;
 
     if (!site) {
@@ -96,6 +96,10 @@ export default class SiteSecurity {
       if (Authorizations.isAdmin(loggedUser.role)) {
         // Yes: set all params
         filteredSite = site;
+        if (filteredSite.connectorStats) {
+          // TODO: To keep backward compat with Mobile App: remove it once new version is deployed
+          filteredSite = { ...filteredSite, ...site.connectorStats };
+        }
       } else {
         // Set only necessary info
         filteredSite = {};
@@ -107,16 +111,15 @@ export default class SiteSecurity {
         filteredSite.address = UtilsSecurity.filterAddressRequest(site.address);
       }
       if (site.company) {
-        filteredSite.company = CompanySecurity.filterCompanyResponse(site.company, loggedUser); // TODO: change
+        filteredSite.company = CompanySecurity.filterCompanyResponse(site.company, loggedUser);
       }
       if (site.siteAreas) {
         filteredSite.siteAreas = SiteAreaSecurity.filterSiteAreasResponse(site.siteAreas, loggedUser);
       }
-      if (site.hasOwnProperty('availableChargers')) {
-        filteredSite.availableChargers = site.availableChargers;
-        filteredSite.totalChargers = site.totalChargers;
-        filteredSite.availableConnectors = site.availableConnectors;
-        filteredSite.totalConnectors = site.totalConnectors;
+      if (site.connectorStats) {
+        filteredSite.connectorStats = site.connectorStats;
+        // TODO: To keep backward compat with Mobile App: remove it once new version is deployed
+        filteredSite = { ...filteredSite, ...site.connectorStats };
       }
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(
@@ -125,7 +128,7 @@ export default class SiteSecurity {
     return filteredSite;
   }
 
-  static filterSitesResponse(sites: {result: Site[]; count: number}, loggedUser) {
+  static filterSitesResponse(sites: {result: Site[]; count: number}, loggedUser): Site[] {
     const filteredSites = [];
 
     if (!sites.result) {
