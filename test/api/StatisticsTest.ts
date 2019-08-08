@@ -268,29 +268,36 @@ describe('Statistics tests', function() {
         }
       });
 
-      it('Should see overall sessions data for a specific charger', async () => {
+      it('Should see overall sessions data for multiple chargers', async () => {
         const siteContext = tenantContextAll.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_BASIC);
         const siteAreaContext = siteContext.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
-        const chargingStationContext = siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
-        let adminUserListResponse = await adminUserServerService.statisticsApi.readChargingStationTransactions({ ChargeBoxID: chargingStationContext.getChargingStation().id });
+        const chargingStationContext1 = siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
+        const chargingStationContext2 = siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+        let adminUserListResponse = await adminUserServerService.statisticsApi.readChargingStationTransactions({
+          ChargeBoxID: `${chargingStationContext1.getChargingStation().id}` + `|${chargingStationContext2.getChargingStation().id}`
+        });
         expect(adminUserListResponse.status).to.be.eql(200);
         expect(adminUserListResponse.data,
-          `Query response for all years and charger ${chargingStationContext.getChargingStation().id} on data per charging station should not be empty`
+          `Query response for all years and chargers ${chargingStationContext1.getChargingStation().id}` +
+          ` and ${chargingStationContext2.getChargingStation().id} on data per charging station should not be empty`
         ).not.to.be.empty;
         if (Array.isArray(adminUserListResponse.data)) {
           expect(StatisticsApi.calculateTotalsPerMonth(adminUserListResponse.data[0]),
-            `The number of sessions should be ${numberOfUsers * numberOfYears * expectedTransactions}`
-          ).to.be.eql(numberOfUsers * numberOfYears * expectedTransactions);
+            `The number of sessions should be ${numberOfUsers * 2 * numberOfYears * expectedTransactions}`
+          ).to.be.eql(numberOfUsers * 2 * numberOfYears * expectedTransactions);
         }
-        adminUserListResponse = await adminUserServerService.statisticsApi.readUserTransactions({ ChargeBoxID: chargingStationContext.getChargingStation().id });
+        adminUserListResponse = await adminUserServerService.statisticsApi.readUserTransactions({
+          ChargeBoxID: `${chargingStationContext1.getChargingStation().id}` + `|${chargingStationContext2.getChargingStation().id}`
+        });
         expect(adminUserListResponse.status).to.be.eql(200);
         expect(adminUserListResponse.data,
-          `Query response for all years and charger ${chargingStationContext.getChargingStation().id} on data per user should not be empty`
+          `Query response for all years and chargers ${chargingStationContext1.getChargingStation().id}` +
+          ` and ${chargingStationContext2.getChargingStation().id} on data per user should not be empty`
         ).not.to.be.empty;
         if (Array.isArray(adminUserListResponse.data)) {
           expect(StatisticsApi.calculateTotalsPerMonth(adminUserListResponse.data[0]),
-            `The number of sessions should be ${numberOfUsers * numberOfYears * expectedTransactions}`
-          ).to.be.eql(numberOfUsers * numberOfYears * expectedTransactions);
+            `The number of sessions should be ${numberOfUsers * 2 * numberOfYears * expectedTransactions}`
+          ).to.be.eql(numberOfUsers * 2 * numberOfYears * expectedTransactions);
         }
       });
 
