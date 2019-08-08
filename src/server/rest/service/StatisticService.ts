@@ -1,3 +1,4 @@
+import { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } from 'constants';
 import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
 import moment from 'moment';
@@ -10,7 +11,6 @@ import StatisticSecurity from './security/StatisticSecurity';
 import User from '../../../types/User';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
-import { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } from 'constants';
 
 export default class StatisticService {
   static async handleGetChargingStationConsumptionStatistics(action: string, req: Request, res: Response, next: NextFunction) {

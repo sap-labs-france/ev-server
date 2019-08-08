@@ -1,7 +1,7 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpTenantDeleteRequest, HttpTenantVerifyRequest, HttpTenantsRequest } from '../../../../types/requests/HttpTenantRequest';
+import { HttpTenantsRequest, HttpTenantDeleteRequest, HttpTenantVerifyRequest } from '../../../../types/requests/HttpTenantRequest';
 import Tenant from '../../../../types/Tenant';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';

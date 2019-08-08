@@ -19,7 +19,7 @@ const testData = {
   createdUsersAdminTenant: [],
   centralServiceDefaultTenant: null,
   createdUsersDefaultTenant: []
-}
+};
 
 describe('Authentication Service', function () {
   this.timeout(50000);

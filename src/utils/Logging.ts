@@ -2,7 +2,7 @@ import CFLog from 'cf-nodejs-logging-support';
 import cfenv from 'cfenv';
 import cluster from 'cluster';
 import os from 'os';
-import { PerformanceObserver, performance } from 'perf_hooks';
+import { performance, PerformanceObserver } from 'perf_hooks';
 import uuid from 'uuid/v4';
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';

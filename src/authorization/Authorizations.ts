@@ -133,11 +133,11 @@ export default class Authorizations {
   }
 
   public static async isAuthorizedOnChargingStation(tenantID: string, chargingStation: ChargingStation, tagID: string): Promise<User> {
-    return await this.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, null, tagID, Constants.ACTION_AUTHORIZE);
+    return await Authorizations.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, null, tagID, Constants.ACTION_AUTHORIZE);
   }
 
   public static async isAuthorizedToStartTransaction(tenantID: string, chargingStation: ChargingStation, tagID: string): Promise<User> {
-    return await this.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, null, tagID, Constants.ACTION_REMOTE_START_TRANSACTION);
+    return await Authorizations.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, null, tagID, Constants.ACTION_REMOTE_START_TRANSACTION);
   }
 
   public static async isAuthorizedToStopTransaction(tenantID: string, chargingStation: ChargingStation, transaction: Transaction, tagId: string) {

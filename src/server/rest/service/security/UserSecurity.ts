@@ -1,7 +1,7 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpSitesAssignUserRequest, HttpUserRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpSitesAssignUserRequest, HttpUsersRequest, HttpUserRequest } from '../../../../types/requests/HttpUserRequest';
 import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';

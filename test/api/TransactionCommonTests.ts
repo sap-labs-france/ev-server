@@ -6,8 +6,8 @@ import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './contextProvider/ChargingStationContext';
 import TenantContext from './contextProvider/TenantContext';
-import Utils from './Utils';
 import User from '../../src/types/User';
+import Utils from './Utils';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);

@@ -7,4 +7,4 @@ export default Factory.define('siteArea')
   .attr('name', () => faker.company.companyName())
   .attr('siteID', null)
   .attr('accessControl', true)
-  .attr('address',() => address.build());
+  .attr('address', () => address.build());

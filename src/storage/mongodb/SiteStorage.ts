@@ -399,7 +399,7 @@ export default class SiteStorage {
           const chargingStations = await ChargingStationStorage.getChargingStations(tenantID,
             { siteIDs: [siteMDB.id], includeDeleted: false }, Constants.DB_PARAMS_MAX_LIMIT);
           // Set the Charging Stations' Connector statuses
-          siteMDB.connectorStats = Utils.getConnectorStatusesFromChargingStations(chargingStations.result);;
+          siteMDB.connectorStats = Utils.getConnectorStatusesFromChargingStations(chargingStations.result);
         }
         if (!siteMDB.autoUserSiteAssignment) {
           siteMDB.autoUserSiteAssignment = false;
