@@ -607,14 +607,15 @@ export default class StatisticService {
           index = -1;
           if (transactions && transactions.length > 0) {
             if (dataCategory === 'C') {
-              index = transactions.findIndex((record) => (record._id.chargeBox === transaction._id.chargeBox));
+              index = transactions.findIndex((record) => {
                 if (!record._id.unit || !transaction._id.unit) {
                   return (record._id.chargeBox === transaction._id.chargeBox);
                 }
                 return ((record._id.chargeBox === transaction._id.chargeBox)
                   && (record._id.unit === transaction._id.unit));
+              });
             } else {
-              index = transactions.findIndex((record) => ((record.user.name === transaction.user.name)
+              index = transactions.findIndex((record) => {
                 if (!record._id.unit || !transaction._id.unit) {
                   return ((record.user.name === transaction.user.name)
                     && (record.user.firstName === transaction.user.firstName));
@@ -622,6 +623,7 @@ export default class StatisticService {
                 return ((record.user.name === transaction.user.name)
                   && (record.user.firstName === transaction.user.firstName)
                   && (record._id.unit === transaction._id.unit));
+              });
             }
           }
           if (index < 0) {
@@ -633,7 +635,7 @@ export default class StatisticService {
           transactions.push(transaction);
         } else {
           // Treat duplicate names (like 'Unknown')
-          index = transactions.findIndex((record) => ((record._id.month === transaction._id.month) &&
+          index = transactions.findIndex((record) => {
             if (!record._id.unit || !transaction._id.unit) {
               return ((record._id.month === transaction._id.month)
                 && (record.user.name === transaction.user.name)
@@ -643,6 +645,7 @@ export default class StatisticService {
               && (record.user.name === transaction.user.name)
               && (record.user.firstName === transaction.user.firstName)
               && (record._id.unit === transaction._id.unit));
+          });
           if (index < 0) {
             transactions.push(transaction);
           } else {
