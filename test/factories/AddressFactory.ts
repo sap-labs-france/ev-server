@@ -1,7 +1,8 @@
-const Factory = require('rosie').Factory;
-const faker = require('faker');
+import faker from 'faker';
 
-module.exports = Factory.define('address')
+import { Factory } from 'rosie';
+
+export default Factory.define('address')
   .attr('address1', () => faker.address.streetAddress())
   .attr('address2', () => faker.address.secondaryAddress())
   .attr('postalCode', () => faker.address.zipCode())

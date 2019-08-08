@@ -1,5 +1,6 @@
-const Factory = require('rosie').Factory;
-const faker = require('faker');
+import faker from 'faker';
+
+import { Factory } from 'rosie';
 
 const userFactory = Factory.define('user')
   .attr('firstName', () => faker.name.firstName())
@@ -32,14 +33,12 @@ const registerUserFactory = Factory.define('user')
   .attr('locale', 'en_US')
   .attr('captcha', '03AMGVjXiyflPJpUOJF-AW2YP9-uQZvbVKsnx2CaESTX7mr59laYB0KKn7QERpWk-cadi1e2D0oYyjClv6UcYJ3IrYI951f2uopiLQv8ykAKEz3TQ3ZWgYJQSvItSZ7cd8wSFl7EF9aVEIHJobWg4OljtmSf2YUyXFnma76ih089LfUe0uSQC8piAT6DJ5WVcNaR827jbJrzCtYSPFX8u_GSFM6jCQU0RdnFgTuFIst2hyZ_FfiKJSpG9pSF2avSie1R-y6PVJktxNHdDaTuN4PK-AucjKrHSO9A');
 
-class UserFactory {
-  static build(attributes, options) {
+export default class UserFactory {
+  static build(attributes?, options?) {
     return userFactory.build(attributes, options);
   }
 
-  static buildRegisterUser(attributes, options) {
+  static buildRegisterUser(attributes?, options?) {
     return registerUserFactory.build(attributes, options);
   }
 }
-
-module.exports = UserFactory;

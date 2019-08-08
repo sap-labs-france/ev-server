@@ -176,6 +176,8 @@ export default class Authorizations {
     const context = {
       user: transaction.getUserJson() ? transaction.getUserJson().id : null,
       owner: loggedUser.id,
+      tagIDs: loggedUser.tagIDs,
+      tagID: transaction.getTagID(),
       site: transaction.getSiteID(),
       sites: loggedUser.sites,
       sitesAdmin: loggedUser.sitesAdmin

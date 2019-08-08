@@ -1,7 +1,8 @@
-const Factory = require('rosie').Factory;
-const faker = require('faker');
+import faker from 'faker';
 
-module.exports = Factory.define('ocpiEndpoint')
+import { Factory } from 'rosie';
+
+export default  Factory.define('ocpiEndpoint')
   .attr('name', () => faker.name.lastName())
   .attr('baseUrl', () => faker.internet.url())
   .attr('countryCode', 'FR')

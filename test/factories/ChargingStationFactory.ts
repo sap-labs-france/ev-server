@@ -1,7 +1,8 @@
-const Factory = require('rosie').Factory;
-const faker = require('faker');
+import faker from 'faker';
 
-module.exports = Factory.define('chargingStation')
+import { Factory } from 'rosie';
+
+export default Factory.define('chargingStation')
   .attr('chargePointVendor', () => faker.random.alphaNumeric(15))
   .attr('chargePointModel', () => faker.random.alphaNumeric(15))
   .attr('chargePointSerialNumber', () => faker.random.alphaNumeric(25))

@@ -10,20 +10,18 @@ import Utils from './Utils';
 
 chai.use(chaiSubset);
 
-class TestData {
-  public adminEmail: any;
-  public adminPassword: any;
-  public superAdminEmail: any;
-  public superAdminPassword: any;
-  public adminTenant: any;
-  public createdUsersAdminTenant: any[] = [];
-  public centralServiceDefaultTenant: any;
-  public createdUsersDefaultTenant: any[] = [];
+const testData = {
+  adminEmail: null,
+  adminPassword: null,
+  superAdminEmail: null,
+  superAdminPassword: null,
+  adminTenant: null,
+  createdUsersAdminTenant: [],
+  centralServiceDefaultTenant: null,
+  createdUsersDefaultTenant: []
 }
 
-const testData: TestData = new TestData();
-
-describe('Authentication Service', function() {
+describe('Authentication Service', function () {
   this.timeout(50000);
 
   before(() => {
