@@ -84,6 +84,26 @@ export default class TransactionCommonTests {
     expect(response.status).to.equal(500);
   }
 
+  public async testReadTransactionOfUser(allowed: boolean = true, transactionTag: string) {
+    const connectorId = 1;
+    const tagId = transactionTag ? transactionTag : this.transactionUser.tagIDs[0];
+    const meterStart = 180;
+    const startDate = moment();
+    const response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
+    expect(response).to.be.transactionValid;
+
+    const transactionResponse = await this.transactionUserService.transactionApi.readById(response.data.transactionId);
+    if (allowed) {
+      expect(transactionResponse.status).eq(200);
+      expect(transactionResponse.data).not.null;
+      expect(transactionResponse.data.tagID).eq(tagId);
+    } else {
+      expect(transactionResponse.status).eq(560);
+      expect(transactionResponse.data).not.null;
+      expect(transactionResponse.data.message).eq(`Role Basic is not authorized to perform Read on Transaction '${response.data.transactionId}'`);
+    }
+  }
+
   public async testReadStartedTransactionWithoutMeterValue() {
     const connectorId = 1;
     const tagId = this.transactionUser.tagIDs[0];
@@ -103,13 +123,15 @@ export default class TransactionCommonTests {
       currentConsumption: 0,
       currentTotalConsumption: 0,
       currentTotalInactivitySecs: 0,
-      meterStart: meterStart,
-      user: {
+      meterStart: meterStart
+    });
+    if (response.data.user) {
+      expect(response.data.user).contain({
         id: this.transactionUser.id,
         firstName: this.transactionUser.firstName,
         name: this.transactionUser.name,
-      }
-    });
+      });
+    }
   }
 
   public async testReadStartedTransactionWithOneMeterValue() {
@@ -135,13 +157,15 @@ export default class TransactionCommonTests {
       currentConsumption: load,
       currentTotalConsumption: load,
       currentTotalInactivitySecs: 0,
-      meterStart: meterStart,
-      user: {
+      meterStart: meterStart
+    });
+    if (response.data.user) {
+      expect(response.data.user).contain({
         id: this.transactionUser.id,
         firstName: this.transactionUser.firstName,
         name: this.transactionUser.name,
-      }
-    });
+      });
+    }
   }
 
   public async testReadStartedTransactionWithMultipleMeterValues() {
@@ -308,12 +332,12 @@ export default class TransactionCommonTests {
     expect(response.status).to.equal(200);
     expect(response.data.count).to.equal(2);
     expect(response.data.stats).to.containSubset({
-      totalConsumptionWattHours: 2000,
-      totalDurationSecs: 7200,
-      totalPrice: 4,
-      totalInactivitySecs: 0,
-      count: 2
-    }
+        totalConsumptionWattHours: 2000,
+        totalDurationSecs: 7200,
+        totalPrice: 4,
+        totalInactivitySecs: 0,
+        count: 2
+      }
     );
     expect(response.data.result).to.containSubset([{
       id: transactionId1,
@@ -363,15 +387,15 @@ export default class TransactionCommonTests {
     expect(response.status).to.equal(200);
     expect(response.data.count).to.equal(2);
     expect(response.data.stats).to.containSubset({
-      totalConsumptionWattHours: 2000,
-      totalPriceRefund: 0,
-      totalPricePending: 4,
-      currency: 'EUR',
-      countRefundTransactions: 0,
-      countPendingTransactions: 2,
-      countRefundedReports: 0,
-      count: 2
-    }
+        totalConsumptionWattHours: 2000,
+        totalPriceRefund: 0,
+        totalPricePending: 4,
+        currency: 'EUR',
+        countRefundTransactions: 0,
+        countPendingTransactions: 2,
+        countRefundedReports: 0,
+        count: 2
+      }
     );
     expect(response.data.result).to.containSubset([{
       id: transactionId1,
