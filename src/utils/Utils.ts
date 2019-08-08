@@ -80,7 +80,7 @@ export default class Utils {
       availableChargers: 0,
       totalConnectors: 0,
       chargingConnectors: 0,
-      supendedConnectors: 0,
+      suspendedConnectors: 0,
       availableConnectors: 0,
       unavailableConnectors: 0,
       preparingConnectors: 0,
@@ -115,7 +115,7 @@ export default class Utils {
         // Suspended?
         } else if (connector.status === Constants.CONN_STATUS_SUSPENDED_EV ||
             connector.status === Constants.CONN_STATUS_SUSPENDED_EVSE) {
-          connectorStats.supendedConnectors++;
+          connectorStats.suspendedConnectors++;
         // Charging?
         } else if (connector.status === Constants.CONN_STATUS_CHARGING ||
             connector.status === Constants.CONN_STATUS_OCCUPIED) {

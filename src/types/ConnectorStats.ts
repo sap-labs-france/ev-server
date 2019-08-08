@@ -4,7 +4,7 @@ export default interface ConnectorStats {
   totalConnectors: number;
   unavailableConnectors: number;
   chargingConnectors: number;
-  supendedConnectors: number;
+  suspendedConnectors: number;
   availableConnectors: number;
   faultedConnectors: number;
   preparingConnectors: number;
