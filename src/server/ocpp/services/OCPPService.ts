@@ -93,6 +93,10 @@ export default class OCPPService {
       if (headers.chargingStationURL) {
         chargingStation.chargingStationURL = headers.chargingStationURL;
       }
+      // Update CF Instance
+      if (Configuration.isCloudFoundry()) {
+        chargingStation.cfApplicationIDAndInstanceIndex = Configuration.getCFApplicationIDAndInstanceIndex();
+      }
       // Save Charging Station
       await ChargingStationStorage.saveChargingStation(headers.tenantID, chargingStation);
       // Save Boot Notification

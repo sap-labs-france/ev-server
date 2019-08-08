@@ -286,7 +286,6 @@ export default class ContextBuilder {
           const siteContextDef = {
             id: new ObjectID().toHexString(),
             name: CONTEXTS.SITE_CONTEXTS.SITE_BASIC,
-            allowAllUsersToStopTransactions: false,
             autoUserSiteAssignment: false,
             companyID: companyDef.id
           };
@@ -299,7 +298,6 @@ export default class ContextBuilder {
             })
           });
           siteTemplate.name = siteContextDef.name;
-          siteTemplate.allowAllUsersToStopTransactions = siteContextDef.allowAllUsersToStopTransactions;
           siteTemplate.autoUserSiteAssignment = siteContextDef.autoUserSiteAssignment;
           siteTemplate.id = siteContextDef.id;
           site = siteTemplate;

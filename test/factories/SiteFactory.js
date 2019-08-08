@@ -7,7 +7,6 @@ module.exports = Factory.define('site')
     return faker.company.companyName() + '_' + faker.random.alphaNumeric(8).toUpperCase();
   })
   .attr('companyID', null)
-  .attr('allowAllUsersToStopTransactions', false)
   .attr('address',() => {
     return address.build();
   });
