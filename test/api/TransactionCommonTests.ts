@@ -330,12 +330,12 @@ export default class TransactionCommonTests {
     expect(response.status).to.equal(200);
     expect(response.data.count).to.equal(2);
     expect(response.data.stats).to.containSubset({
-        totalConsumptionWattHours: 2000,
-        totalDurationSecs: 7200,
-        totalPrice: 4,
-        totalInactivitySecs: 0,
-        count: 2
-      }
+      totalConsumptionWattHours: 2000,
+      totalDurationSecs: 7200,
+      totalPrice: 4,
+      totalInactivitySecs: 0,
+      count: 2
+    }
     );
     expect(response.data.result).to.containSubset([{
       id: transactionId1,
@@ -385,15 +385,15 @@ export default class TransactionCommonTests {
     expect(response.status).to.equal(200);
     expect(response.data.count).to.equal(2);
     expect(response.data.stats).to.containSubset({
-        totalConsumptionWattHours: 2000,
-        totalPriceRefund: 0,
-        totalPricePending: 4,
-        currency: 'EUR',
-        countRefundTransactions: 0,
-        countPendingTransactions: 2,
-        countRefundedReports: 0,
-        count: 2
-      }
+      totalConsumptionWattHours: 2000,
+      totalPriceRefund: 0,
+      totalPricePending: 4,
+      currency: 'EUR',
+      countRefundTransactions: 0,
+      countPendingTransactions: 2,
+      countRefundedReports: 0,
+      count: 2
+    }
     );
     expect(response.data.result).to.containSubset([{
       id: transactionId1,

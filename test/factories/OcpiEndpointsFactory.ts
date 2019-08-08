@@ -2,7 +2,7 @@ import faker from 'faker';
 
 import { Factory } from 'rosie';
 
-export default  Factory.define('ocpiEndpoint')
+export default Factory.define('ocpiEndpoint')
   .attr('name', () => faker.name.lastName())
   .attr('baseUrl', () => faker.internet.url())
   .attr('countryCode', 'FR')

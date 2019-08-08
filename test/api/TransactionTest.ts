@@ -23,7 +23,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('Transaction tests', function () {
+describe('Transaction tests', function() {
   this.timeout(1000000); // Will automatically stop the unit test after that period of time
 
   before(async () => {

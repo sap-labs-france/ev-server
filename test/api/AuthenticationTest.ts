@@ -21,7 +21,7 @@ const testData = {
   createdUsersDefaultTenant: []
 };
 
-describe('Authentication Service', function () {
+describe('Authentication Service', function() {
   this.timeout(50000);
 
   before(() => {
