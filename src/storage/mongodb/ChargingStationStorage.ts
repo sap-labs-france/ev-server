@@ -183,8 +183,6 @@ export default class ChargingStationStorage {
     aggregation.pop();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
-    // Change ID
-    DatabaseUtils.renameDatabaseID(aggregation);
     // Sort
     if (dbParams.sort) {
       // Sort
@@ -195,10 +193,11 @@ export default class ChargingStationStorage {
       // Default
       aggregation.push({
         $sort: {
-          id: 1
+          _id: 1
         }
       });
     }
+
     // Skip
     aggregation.push({
       $skip: dbParams.skip
@@ -207,6 +206,8 @@ export default class ChargingStationStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
+    // Change ID
+    DatabaseUtils.renameDatabaseID(aggregation);
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
