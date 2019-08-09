@@ -5,13 +5,11 @@ import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
-import Database from '../../../utils/Database';
 import Logging from '../../../utils/Logging';
 import Setting from '../../../types/Setting';
 import SettingSecurity from './security/SettingSecurity';
 import UtilsService from './UtilsService';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
-import { filter } from 'bluebird';
 import HttpStatusCodes from 'http-status-codes';
 
 export default class SettingService {

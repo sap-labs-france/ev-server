@@ -14,7 +14,10 @@ export default class SettingSecurity {
   }
 
   public static filterSettingRequest(request: HttpSettingRequest): HttpSettingRequest {
-    return { ID: sanitize(request.ID), ContentFilter: UtilsSecurity.filterBoolean(request.ContentFilter) };
+    return {
+      ID: sanitize(request.ID),
+      ContentFilter: UtilsSecurity.filterBoolean(request.ContentFilter)
+    };
   }
 
 
