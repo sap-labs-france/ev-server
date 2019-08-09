@@ -240,6 +240,7 @@ export default class OCPPService {
       // Does not exist: Create
       foundConnector = {
         activeTransactionID: 0,
+        activeTransactionDate: null,
         activeTagID: null,
         connectorId: statusNotification.connectorId,
         currentConsumption: 0,
@@ -650,13 +651,14 @@ export default class OCPPService {
       chargingStation.lastHeartBeat = new Date();
       // Handle End Of charge
       await this._checkNotificationEndOfCharge(tenantID, chargingStation, transaction);
-      // Cleanup connector transaction data
+    // Cleanup connector transaction data
     } else if (foundConnector) {
       foundConnector.currentConsumption = 0;
       foundConnector.totalConsumption = 0;
       foundConnector.totalInactivitySecs = 0;
       foundConnector.currentStateOfCharge = 0;
       foundConnector.activeTransactionID = 0;
+      foundConnector.activeTransactionDate = null;
       foundConnector.activeTagID = null;
     }
     // Log
@@ -1050,6 +1052,7 @@ export default class OCPPService {
         foundConnector.totalInactivitySecs = 0;
         foundConnector.currentStateOfCharge = 0;
         foundConnector.activeTransactionID = transaction.getID();
+        foundConnector.activeTransactionDate = transaction.getStartDate();
         foundConnector.activeTagID = transaction.getTagID();
       }
       // Set the active transaction on the connector
