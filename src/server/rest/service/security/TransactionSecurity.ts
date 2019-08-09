@@ -138,7 +138,6 @@ export default class TransactionSecurity {
         filteredTransaction.currentTotalDurationSecs = transaction.getCurrentTotalDurationSecs();
         filteredTransaction.currentCumulatedPrice = transaction.getCurrentCumulatedPrice();
         filteredTransaction.currentStateOfCharge = transaction.getCurrentStateOfCharge();
-        filteredTransaction.currentStateOfCharge = transaction.getCurrentStateOfCharge();
         filteredTransaction.currentSignedData = transaction.getCurrentSignedData();
       }
       filteredTransaction.status = transaction.getChargerStatus();
