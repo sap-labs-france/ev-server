@@ -12,8 +12,17 @@ import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UtilsService from './UtilsService';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import { HttpChargingStationCommandRequest } from '../../../types/requests/HttpChargingStationRequest';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
+import {
+  HttpChargingStationCommandRequest,
+  HttpIsAuthorizedRequest
+} from '../../../types/requests/HttpChargingStationRequest';
+import User from '../../../types/User';
+import UserStorage from '../../../storage/mongodb/UserStorage';
+import UserToken from '../../../types/UserToken';
+import Utils from '../../../utils/Utils';
+import SiteStorage from '../../../storage/mongodb/SiteStorage';
+import Transaction from '../../../entity/Transaction';
 
 export default class ChargingStationService {
 
@@ -219,7 +228,7 @@ export default class ChargingStationService {
 
   public static async handleDeleteChargingStation(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const chargingStationID = ChargingStationSecurity.filterChargingStationByIDRequest(req.query);
+    const chargingStationID = ChargingStationSecurity.filterChargingStationRequestByID(req.query);
     // Check Mandatory fields
     UtilsService.assertIdIsProvided(chargingStationID, 'ChargingStationService',
       'handleDeleteChargingStation', req.user);
@@ -245,9 +254,8 @@ export default class ChargingStationService {
         'ChargingStationService', 'handleDeleteChargingStation', req.user);
     }
     // Check no active transaction
-    const foundIndex = chargingStation.connectors.findIndex((connector) => {
-      return (connector ? connector.activeTransactionID > 0 : false);
-    });
+    const foundIndex = chargingStation.connectors.findIndex(
+      (connector) => connector ? connector.activeTransactionID > 0 : false);
     if (foundIndex >= 0) {
       // Can' t be deleted
       throw new AppError(
@@ -433,7 +441,7 @@ export default class ChargingStationService {
           'ChargingStationService', 'handleAction', req.user, null, action);
       }
       // Check if user is authorized
-      await Authorizations.isTagIDsAuthorizedOnChargingStation(req.user.tenantID, chargingStation, req.user.tagIDs[0], transaction.getTagID(), action);
+      await Authorizations.isAuthorizedToStopTransaction(req.user.tenantID, chargingStation, transaction, req.user.tagIDs[0]);
       // Set the tag ID to handle the Stop Transaction afterwards
       transaction.setRemoteStopDate(new Date().toISOString());
       transaction.setRemoteStopTagID(req.user.tagIDs[0]);
@@ -451,8 +459,8 @@ export default class ChargingStationService {
           Constants.HTTP_USER_NO_BADGE_ERROR,
           'ChargingStationService', 'handleAction', req.user, null, action);
       }
-      // Check if user is authorized -- TODO: Nothing is being done with the returned User?
-      await Authorizations.isTagIDAuthorizedOnChargingStation(req.user.tenantID, chargingStation, filteredRequest.args.tagID, action);
+      // Check if user is authorized
+      await Authorizations.isAuthorizedToStartTransaction(req.user.tenantID, chargingStation, filteredRequest.args.tagID);
       // Ok: Execute it
       result = await this._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
     } else if (action === 'GetCompositeSchedule') {
@@ -573,6 +581,180 @@ export default class ChargingStationService {
     // Return the result
     res.json(result);
     next();
+  }
+
+  public static async handleIsAuthorized(action: string, req: Request, res: Response, next: NextFunction) {
+    let user: User;
+    // Default
+    let result = [{ 'IsAuthorized': false }];
+    // Filter
+    const filteredRequest = ChargingStationSecurity.filterIsAuthorizedRequest(req.query);
+    // Check
+    if (!filteredRequest.Action) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'The Action is mandatory',
+        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'ChargingStationService', 'handleIsAuthorized');
+    }
+    let chargingStation: ChargingStation = null;
+    // Action
+    switch (filteredRequest.Action) {
+      // Hack for mobile app not sending the RemoteStopTransaction yet
+      case 'StopTransaction':
+      case 'RemoteStopTransaction':
+        // Check
+        if (!filteredRequest.Arg1) {
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            'The Charging Station ID is mandatory',
+            Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'ChargingStationService', 'handleIsAuthorized');
+        }
+        // Get the Charging station
+        chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.Arg1);
+        // Found?
+        if (!chargingStation) {
+          // Not Found!
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `Charging Station with ID '${filteredRequest.Arg1}' does not exist`,
+            Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'ChargingStationService', 'handleIsAuthorized');
+        }
+        // Check
+        if (!filteredRequest.Arg2) {
+          const results = [];
+          // Check authorization for each connectors
+          for (let index = 0; index < chargingStation.connectors.length; index++) {
+            const foundConnector = chargingStation.connectors.find((connector) => {
+              return connector.connectorId === index + 1;
+            });
+            const tempResult = { 'IsAuthorized': false };
+            if (foundConnector && foundConnector.activeTransactionID) {
+              tempResult.IsAuthorized = await ChargingStationService.isStopTransactionAuthorized(
+                filteredRequest, chargingStation, foundConnector.activeTransactionID, req.user);
+            }
+            results.push(tempResult);
+          }
+          // Return table of result (will be in the connector order)
+          result = results;
+        } else {
+          result[0].IsAuthorized = await ChargingStationService.isStopTransactionAuthorized(
+            filteredRequest, chargingStation, filteredRequest.Arg2, req.user);
+        }
+        break;
+      // Action on connectors of a charger
+      case 'ConnectorsAction':
+        // Arg1 contains the charger ID
+        // Check
+        if (!filteredRequest.Arg1) {
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            'The Charging Station ID is mandatory',
+            Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'ChargingStationService', 'handleIsAuthorized');
+        }
+        // Get the Charging station
+        chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.Arg1);
+        // Found?
+        if (!chargingStation) {
+          // Not Found!
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `Charging Station with ID '${filteredRequest.Arg1}' does not exist`,
+            Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'ChargingStationService', 'handleIsAuthorized');
+        }
+
+        user = await UserStorage.getUser(req.user.tenantID, req.user.id);
+        // Found?
+        if (!user) {
+          // Not Found!
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `User with ID '${filteredRequest.Arg1}' does not exist`,
+            Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'ChargingStationService', 'handleIsAuthorized');
+        }
+        result = await ChargingStationService.checkConnectorsActionAuthorizations(req.user.tenantID, req.user, chargingStation);
+        break;
+    }
+    // Return the result
+    res.json(result.length === 1 ? result[0] : result);
+    next();
+  }
+
+  private static async checkConnectorsActionAuthorizations(tenantID: string, user: UserToken, chargingStation: ChargingStation) {
+    const results = [];
+    if (Utils.isComponentActiveFromToken(user, Constants.COMPONENTS.ORGANIZATION)) {
+      try {
+        // Site is mandatory
+        if (!chargingStation.siteArea) {
+          throw new AppError(
+            chargingStation.id,
+            `Charging Station '${chargingStation.id}' is not assigned to a Site Area!`,
+            Constants.HTTP_AUTH_CHARGER_WITH_NO_SITE_AREA_ERROR,
+            'AuthService', 'checkConnectorsActionAuthorizations');
+        }
+
+        // Site -----------------------------------------------------
+        chargingStation.siteArea.site = await SiteStorage.getSite(tenantID, chargingStation.siteArea.siteID);
+        if (!chargingStation.siteArea.site) {
+          throw new AppError(
+            chargingStation.id,
+            `Site Area '${chargingStation.siteArea.name}' is not assigned to a Site!`,
+            Constants.HTTP_AUTH_SITE_AREA_WITH_NO_SITE_ERROR,
+            'AuthService', 'checkConnectorsActionAuthorizations',
+            user);
+        }
+      } catch (error) {
+        // Problem with site assignment so do not allow any action
+        for (let index = 0; index < chargingStation.connectors.length; index++) {
+          results.push(
+            {
+              'isStartAuthorized': false,
+              'isStopAuthorized': false,
+              'isTransactionDisplayAuthorized': false
+            }
+          );
+        }
+        return results;
+      }
+    }
+    // Check authorization for each connectors
+    for (let index = 0; index < chargingStation.connectors.length; index++) {
+      const foundConnector = chargingStation.connectors.find(
+        (connector) => connector.connectorId === index + 1);
+      if (foundConnector.activeTransactionID > 0) {
+        const transaction = await Transaction.getTransaction(user.tenantID, foundConnector.activeTransactionID);
+        results.push({
+          'isStartAuthorized': false,
+          'isStopAuthorized': Authorizations.canStopTransaction(user, transaction),
+          'isTransactionDisplayAuthorized': Authorizations.canReadTransaction(user, transaction),
+        });
+      } else {
+        results.push({
+          'isStartAuthorized': Authorizations.canStartTransaction(user, chargingStation),
+          'isStopAuthorized': false,
+          'isTransactionDisplayAuthorized': false,
+        });
+      }
+    }
+    return results;
+  }
+
+  private static async isStopTransactionAuthorized(filteredRequest: HttpIsAuthorizedRequest, chargingStation: ChargingStation, transactionId: number, user: UserToken) {
+    // Get Transaction
+    const transaction = await TransactionStorage.getTransaction(user.tenantID, transactionId);
+    if (!transaction) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `Transaction ID '${filteredRequest.Arg2}' does not exist`,
+        Constants.HTTP_AUTH_ERROR, 'AuthService', 'isStopTransactionAuthorized');
+    }
+    // Check Charging Station
+    if (transaction.getChargeBoxID() !== chargingStation.id) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `Transaction ID '${filteredRequest.Arg2}' has a Charging Station '${transaction.getChargeBoxID()}' that differs from '${chargingStation.id}'`,
+        565, 'AuthService', 'isStopTransactionAuthorized');
+    }
+    return Authorizations.canStopTransaction(user, transaction);
   }
 
   private static async _getChargingStations(req: Request): Promise<{count: number, result: ChargingStation[]}> {

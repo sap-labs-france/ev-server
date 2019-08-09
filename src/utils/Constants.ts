@@ -36,7 +36,7 @@ export default class Constants {
 
   public static readonly DB_PARAMS_MAX_LIMIT = { limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0 };
   public static readonly DB_PARAMS_SINGLE_RECORD = { limit: 1, skip: 0 };
-  public static readonly DB_PARAMS_COUNT_ONLY = {limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0, onlyRecordCount: true};
+  public static readonly DB_PARAMS_COUNT_ONLY = {limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0, onlyRecordCount: true };
   public static readonly DEFAULT_TENANT = 'default';
 
   public static readonly REST_RESPONSE_SUCCESS = { status: 'Success' };
@@ -55,6 +55,8 @@ export default class Constants {
   public static readonly STATS_GROUP_BY_CONSUMPTION = 'C';
   public static readonly STATS_GROUP_BY_USAGE = 'U';
   public static readonly STATS_GROUP_BY_INACTIVITY = 'I';
+  public static readonly STATS_GROUP_BY_TRANSACTIONS = 'T';
+  public static readonly STATS_GROUP_BY_PRICING = 'P';
 
   public static readonly ENTITY_SITE = 'Site';
   public static readonly ENTITY_SITES = 'Sites';
@@ -86,6 +88,7 @@ export default class Constants {
   public static readonly ENTITY_CONNECTION = 'Connection';
   public static readonly ENTITY_CONNECTIONS = 'Connections';
 
+  public static readonly VENDOR_SCHNEIDER = 'Schneider Electric';
 
   public static readonly NOTIF_TYPE_CHARGING_STATION_CONFIGURATION = 'Configuration';
 

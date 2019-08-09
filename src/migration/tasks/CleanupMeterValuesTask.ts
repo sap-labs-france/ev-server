@@ -4,7 +4,8 @@ import DatabaseUtils from '../../storage/mongodb/DatabaseUtils';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import MigrationTask from '../MigrationTask';
-import Tenant from '../../entity/Tenant';
+import Tenant from '../../types/Tenant';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
 
 export default class CleanupMeterValuesTask extends MigrationTask {
   public totalCount: any;
@@ -12,7 +13,7 @@ export default class CleanupMeterValuesTask extends MigrationTask {
   public startTime: any;
 
   async migrate() {
-    const tenants = await Tenant.getTenants();
+    const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
 
     for (const tenant of tenants.result) {
       await this.migrateTenant(tenant);
@@ -28,7 +29,7 @@ export default class CleanupMeterValuesTask extends MigrationTask {
     // Add Charger
     aggregation.push({
       $lookup: {
-        from: DatabaseUtils.getCollectionName(tenant.getID(), 'transactions'),
+        from: DatabaseUtils.getCollectionName(tenant.id, 'transactions'),
         localField: 'transactionId',
         foreignField: '_id',
         as: 'transactions'
@@ -38,12 +39,12 @@ export default class CleanupMeterValuesTask extends MigrationTask {
       '$match': { 'transactions': { '$eq': [] } }
     });
     // Read all transactions
-    const meterValuesMDB = await global.database.getCollection<any>(tenant.getID(), 'metervalues')
+    const meterValuesMDB = await global.database.getCollection<any>(tenant.id, 'metervalues')
       .aggregate(aggregation).toArray();
     // Delete
     for (const meterValueMDB of meterValuesMDB) {
       // Delete
-      await global.database.getCollection<any>(tenant.getID(), 'metervalues')
+      await global.database.getCollection<any>(tenant.id, 'metervalues')
         .findOneAndDelete({ '_id': meterValueMDB._id });
     }
     // Log
@@ -52,7 +53,7 @@ export default class CleanupMeterValuesTask extends MigrationTask {
         tenantID: Constants.DEFAULT_TENANT,
         source: 'CleanupMeterValuesTask', action: 'Migration',
         module: 'CleanupMeterValuesTask', method: 'migrate',
-        message: `Tenant ${tenant.getName()} (${tenant.getID()}): ${meterValuesMDB.length} orphan Meter Values have been deleted`
+        message: `Tenant ${tenant.name} (${tenant.id}): ${meterValuesMDB.length} orphan Meter Values have been deleted`
       });
     }
   }

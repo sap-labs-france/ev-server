@@ -4,6 +4,8 @@ import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import ChargingStation from '../../../../types/ChargingStation';
+import Tenant from '../../../../types/Tenant';
+import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 
 /**
  * OCPI Mapping 2.1.1 - Mapping class
@@ -17,7 +19,7 @@ export default class OCPIMapping {
    * @param options
    * @return OCPI Location
    */
-  static async convertSite2Location(tenant: any, site: Site, options: any = {}) {
+  static async convertSite2Location(tenant: Tenant, site: Site, options: any = {}) {
     // Build object
     return {
       'id': site.id,
@@ -41,15 +43,11 @@ export default class OCPIMapping {
    * @param {SiteArea} siteArea
    * @return Array of OCPI EVSES
    */
-  static async getEvsesFromSiteaArea(tenant: any, siteArea: SiteArea, options: any) {
+  static getEvsesFromSiteaArea(tenant: Tenant, siteArea: SiteArea, options: any) {
     // Build evses array
     const evses: any = [];
-
-    // Get charging stations from SiteArea
-    const chargingStations = await siteArea.chargingStations;
-
     // Convert charging stations to evse(s)
-    chargingStations.forEach((chargingStation) => {
+    siteArea.chargingStations.forEach((chargingStation) => {
       if (!chargingStation.cannotChargeInParallel) {
         evses.push(...OCPIMapping.convertCharginStation2MultipleEvses(tenant, chargingStation, options));
       } else {
@@ -68,10 +66,10 @@ export default class OCPIMapping {
  * @param options
  * @return Array of OCPI EVSES
  */
-  static async getEvsesFromSite(tenant: any, site: Site, options: any) {
+  static async getEvsesFromSite(tenant: Tenant, site: Site, options: any) {
     // Build evses array
     const evses = [];
-    const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.getID(), { withChargeBoxes: true, siteIDs: [site.id] },
+    const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id, { withChargeBoxes: true, siteIDs: [site.id] },
       Constants.DB_PARAMS_MAX_LIMIT);
     for (const siteArea of siteAreas.result) {
       // Get charging stations from SiteArea
@@ -86,12 +84,12 @@ export default class OCPIMapping {
    * Get All OCPI Locations from given tenant
    * @param {Tenant} tenant
    */
-  static async getAllLocations(tenant: any, limit: any, skip: any, options: any) {
+  static async getAllLocations(tenant: Tenant, limit: any, skip: any, options: any) {
     // Result
     const result: any = { count: 0, locations: [] };
 
     // Get all sites
-    const sites = await SiteStorage.getSites(tenant.getID(), {}, { limit, skip });
+    const sites = await SiteStorage.getSites(tenant.id, {}, { limit, skip });
 
     // Convert Sites to Locations
     for (const site of sites.result) {
@@ -112,20 +110,18 @@ export default class OCPIMapping {
    * @param {*} chargingStation
    * @return Array of OCPI EVSES
    */
-  static convertCharginStation2MultipleEvses(tenant: any, chargingStation: ChargingStation, options: any) {
-    // Build evse_id
-    const evse_id = OCPIMapping.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.id}`);
+  static convertCharginStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation, options: any) {
+    // Build evse ID
+    const evseID = OCPIMapping.convert2evseid(`${tenant['_eMI3']['country_id']}*${tenant['_eMI3']['party_id']}*E${chargingStation.id}`);
 
     // Loop through connectors and send one evse per connector
-    const connectors = chargingStation.connectors.filter((connector) => {
-      return connector !== null;
-    });
+    const connectors = chargingStation.connectors.filter((connector) => connector !== null);
     const evses = connectors.map((connector: any) => {
       const evse: any = {
         'uid': `${chargingStation.id}*${connector.connectorId}`,
-        'id': OCPIMapping.convert2evseid(`${evse_id}*${connector.connectorId}`),
+        'id': OCPIMapping.convert2evseid(`${evseID}*${connector.connectorId}`),
         'status': OCPIMapping.convertStatus2OCPIStatus(connector.status),
-        'connectors': [OCPIMapping.convertConnector2OCPIConnector(chargingStation, connector, evse_id)]
+        'connectors': [OCPIMapping.convertConnector2OCPIConnector(chargingStation, connector, evseID)]
       };
       // Check addChargeBoxID flag
       if (options && options.addChargeBoxID) {
@@ -145,20 +141,19 @@ export default class OCPIMapping {
    * @param options
    * @return OCPI EVSE
    */
-  static convertChargingStation2UniqueEvse(tenant: any, chargingStation: ChargingStation, options: any) {
-    // Build evse_id
-    const evse_id = OCPIMapping.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.id}`);
+  static convertChargingStation2UniqueEvse(tenant: Tenant, chargingStation: ChargingStation, options: any) {
+    // Build evse id
+    const evseID = OCPIMapping.convert2evseid(`${tenant['_eMI3']['country_id']}*${tenant['_eMI3']['party_id']}*E${chargingStation.id}`);
 
     // Get all connectors
-    const connectors = chargingStation.connectors.map((connector: any) => {
-      return OCPIMapping.convertConnector2OCPIConnector(chargingStation, connector, evse_id);
-    });
+    const connectors = chargingStation.connectors.map(
+      (connector: any) => OCPIMapping.convertConnector2OCPIConnector(chargingStation, connector, evseID));
 
     // Build evse
     const evse: any = {
       'uid': `${chargingStation.id}`,
       // "id": this.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.id}`),
-      'id': evse_id,
+      'id': evseID,
       'status': OCPIMapping.convertStatus2OCPIStatus(OCPIMapping.aggregateConnectorsStatus(connectors)),
       'connectors': connectors
     };
@@ -198,12 +193,12 @@ export default class OCPIMapping {
    * Converter Connector to OCPI Connector
    * @param {ChargingStation} chargingStation
    * @param connector
-   * @param evse_id pass evse_id in order to buid connector id (specs for Gireve)
+   * @param evseID pass evse ID in order to build connector id (specs for Gireve)
    * @param {*} connector
    */
-  static convertConnector2OCPIConnector(chargingStation: ChargingStation, connector: any, evse_id: any) {
+  static convertConnector2OCPIConnector(chargingStation: ChargingStation, connector: any, evseID: any) {
     return {
-      'id': `${evse_id}*${connector.connectorId}`,
+      'id': `${evseID}*${connector.connectorId}`,
       'type': Constants.MAPPING_CONNECTOR_TYPE[connector.type],
       'voltage': connector.voltage,
       'amperage': connector.amperage,
@@ -228,9 +223,9 @@ export default class OCPIMapping {
   }
 
   /**
-   * Convert ID to EVSE_ID compliant to eMI3 by replacing all non alphanumeric characters tby '*'
+   * Convert ID to evse ID compliant to eMI3 by replacing all non alphanumeric characters tby '*'
    */
-  static convert2evseid(id: any) {
+  static convert2evseid(id: any): string {
     if (id) {
       return id.replace(/[\W_]+/g, '*').toUpperCase();
     }
@@ -278,12 +273,12 @@ export default class OCPIMapping {
    * @param {*} tenant
    * @param {*} token
    */
-  static async buildOCPICredentialObject(tenant, token, versionUrl?) {
+  static async buildOCPICredentialObject(tenant: Tenant, token, versionUrl?) {
     // Credential
     const credential: any = {};
 
     // Get ocpi service configuration
-    const ocpiSetting = await tenant.getSetting(Constants.COMPONENTS.OCPI);
+    const ocpiSetting = await SettingStorage.getSettingByIdentifier(tenant.id, Constants.COMPONENTS.OCPI);
 
     // Define version url
     credential.url = (versionUrl ? versionUrl : 'https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/cpo/versions');
@@ -317,7 +312,6 @@ export default class OCPIMapping {
         endpoints[endpoint.identifier] = endpoint.url;
       }
     }
-
     return endpoints;
   }
 }

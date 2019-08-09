@@ -3,7 +3,7 @@ import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
-import { HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
+import { HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest, HttpConsumptionFromTransactionRequest } from '../../../../types/requests/HttpTransactionRequest';
 import UtilsSecurity from './UtilsSecurity';
 
 export default class TransactionSecurity {
@@ -37,8 +37,8 @@ export default class TransactionSecurity {
     return filtered;
   }
 
-  public static filterTransactionsCompletedRequest(request, loggedUser) {
-    const filteredRequest: any = {};
+  public static filterTransactionsCompletedRequest(request: HttpTransactionsRequest): HttpTransactionsRequest {
+    const filteredRequest: HttpTransactionsRequest = {} as HttpTransactionsRequest;
     // Handle picture
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
     filteredRequest.StartDateTime = sanitize(request.StartDateTime);
@@ -59,8 +59,8 @@ export default class TransactionSecurity {
     return filteredRequest;
   }
 
-  static filterTransactionsInErrorRequest(request) {
-    const filteredRequest: any = {};
+  public static filterTransactionsInErrorRequest(request: HttpTransactionsRequest): HttpTransactionsRequest {
+    const filteredRequest: HttpTransactionsRequest = {} as HttpTransactionsRequest;
     // Handle picture
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
     filteredRequest.StartDateTime = sanitize(request.StartDateTime);
@@ -211,9 +211,8 @@ export default class TransactionSecurity {
     return filteredUser;
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterChargingStationConsumptionFromTransactionRequest(request, loggedUser: UserToken) {
-    const filteredRequest: any = {};
+  public static filterChargingStationConsumptionFromTransactionRequest(request: HttpConsumptionFromTransactionRequest): HttpConsumptionFromTransactionRequest {
+    const filteredRequest: HttpConsumptionFromTransactionRequest = {} as HttpConsumptionFromTransactionRequest;
     // Set
     filteredRequest.TransactionId = sanitize(request.TransactionId);
     filteredRequest.StartDateTime = sanitize(request.StartDateTime);
@@ -221,9 +220,8 @@ export default class TransactionSecurity {
     return filteredRequest;
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterChargingStationTransactionsRequest(request, loggedUser: UserToken) {
-    const filteredRequest: any = {};
+  public static filterChargingStationTransactionsRequest(request: HttpTransactionsRequest): HttpTransactionsRequest {
+    const filteredRequest: HttpTransactionsRequest = {} as HttpTransactionsRequest;
     // Set
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
     filteredRequest.ConnectorId = sanitize(request.ConnectorId);

@@ -385,8 +385,8 @@ describe('OCPP tests (all versions)', function() {
             );
           });
 
-          it('Should not authorize transaction', async () => {
-            await testData.ocppCommonTests.testStartTransaction(false, false);
+          it('Should authorize transaction', async () => {
+            await testData.ocppCommonTests.testStartTransaction();
           });
 
         });
@@ -527,8 +527,8 @@ describe('OCPP tests (all versions)', function() {
             );
           });
 
-          it('Should not authorize transaction', async () => {
-            await testData.ocppCommonTests.testStartTransaction(false, false);
+          it('Should authorize transaction', async () => {
+            await testData.ocppCommonTests.testStartTransaction();
           });
 
         });

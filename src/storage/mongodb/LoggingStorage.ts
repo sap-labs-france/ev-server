@@ -131,14 +131,10 @@ export default class LoggingStorage {
     if (params.userIDs && Array.isArray(params.userIDs) && params.userIDs.length > 0) {
       // Yes, add in filter
       filters.userID = {
-        $in: params.userIDs.map((user) => {
-          return Utils.convertToObjectID(user);
-        })
+        $in: params.userIDs.map((user) => Utils.convertToObjectID(user))
       };
       filters.actionOnUserID = {
-        $in: params.userIDs.map((user) => {
-          return Utils.convertToObjectID(user);
-        })
+        $in: params.userIDs.map((user) => Utils.convertToObjectID(user))
       };
     }
     // Search

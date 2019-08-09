@@ -4,9 +4,11 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
+import OCPIEndpoint from '../../entity/OCPIEndpoint';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
 
 export default class OCPIClient {
-  private ocpiEndpoint: any;
+  private ocpiEndpoint: OCPIEndpoint;
 
   constructor(ocpiEndpoint: any) {
     this.ocpiEndpoint = ocpiEndpoint;
@@ -163,7 +165,7 @@ export default class OCPIClient {
 
     // Log
     Logging.logInfo({
-      tenantID: tenant.getID(),
+      tenantID: tenant.id,
       action: 'OCPIPostCredentials',
       message: `Post credentials at ${credentialsUrl}`,
       source: 'OCPI Client',
@@ -207,8 +209,7 @@ export default class OCPIClient {
     }
 
     // Read configuration to retrieve
-    const tenant = await this.ocpiEndpoint.getTenant();
-    const ocpiSetting = await tenant.getSetting(Constants.COMPONENTS.OCPI);
+    const ocpiSetting = await SettingStorage.getSettingByIdentifier(this.ocpiEndpoint.getTenantID(), Constants.COMPONENTS.OCPI);
 
     if (!ocpiSetting || !ocpiSetting.getContent()) {
       throw new Error('OCPI Settings not found');
@@ -230,7 +231,7 @@ export default class OCPIClient {
 
     // Log
     Logging.logDebug({
-      tenantID: tenant.getID(),
+      tenantID: this.ocpiEndpoint.getTenantID(),
       action: 'OCPIPatchLocations',
       message: `Patch location at ${fullUrl}`,
       source: 'OCPI Client',
@@ -273,18 +274,18 @@ export default class OCPIClient {
     // Read configuration to retrieve
     const tenant = await this.ocpiEndpoint.getTenant();
     // Get ocpi service configuration
-    const ocpiSetting = await tenant.getSetting(Constants.COMPONENTS.OCPI);
+    const ocpiSetting = await SettingStorage.getSettingByIdentifier(this.ocpiEndpoint.getTenantID(), Constants.COMPONENTS.OCPI);
     // Define eMI3
-    tenant._eMI3 = {};
+    tenant['_eMI3'] = {};
 
     if (ocpiSetting && ocpiSetting.getContent()) {
       const configuration = ocpiSetting.getContent().ocpi;
-      tenant._eMI3.country_id = configuration.countryCode;
-      tenant._eMI3.party_id = configuration.partyID;
+      tenant['_eMI3']['country_id'] = configuration.countryCode;
+      tenant['_eMI3']['party_id'] = configuration.partyID;
     } else {
       // Log error if failure
       Logging.logError({
-        tenantID: tenant.getID(),
+        tenantID: tenant.id,
         action: 'OCPISendEVSEStatuses',
         message: 'OCPI Configuration not active',
         source: 'OCPI Client',
@@ -356,7 +357,7 @@ export default class OCPIClient {
     if (sendResult.failure > 0) {
       // Log error if failure
       Logging.logError({
-        tenantID: tenant.getID(),
+        tenantID: tenant.id,
         action: 'OCPISendEVSEStatuses',
         message: `Patching of ${sendResult.logs.length} EVSE statuses has been done with errors (see details)`,
         detailedMessages: sendResult.logs,
@@ -367,7 +368,7 @@ export default class OCPIClient {
     } else if (sendResult.success > 0) {
       // Log info
       Logging.logInfo({
-        tenantID: tenant.getID(),
+        tenantID: tenant.id,
         action: 'OCPISendEVSEStatuses',
         message: `Patching of ${sendResult.logs.length} EVSE statuses has been done successfully (see details)`,
         detailedMessages: sendResult.logs,
@@ -412,7 +413,7 @@ export default class OCPIClient {
     const params = { 'dateFrom': lastPatchJobOn };
 
     // Get last status notifications
-    const statusNotificationsResult = await OCPPStorage.getStatusNotifications(tenant.getID(), params, Constants.DB_PARAMS_MAX_LIMIT);
+    const statusNotificationsResult = await OCPPStorage.getStatusNotifications(tenant.id, params, Constants.DB_PARAMS_MAX_LIMIT);
 
     // Loop through notifications
     if (statusNotificationsResult.count > 0) {

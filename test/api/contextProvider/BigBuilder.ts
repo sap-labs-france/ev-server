@@ -14,12 +14,12 @@ import SiteAreaContext from './SiteAreaContext';
 import SiteAreaStorage from '../../../src/storage/mongodb/SiteAreaStorage';
 import SiteContext from './SiteContext';
 import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
-import Tenant from '../../../src/entity/Tenant';
 import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
 import User from '../../../src/types/User';
 import UserFactory from '../../factories/UserFactory';
 import UserStorage from '../../../src/storage/mongodb/UserStorage';
+import TenantStorage from '../../../src/storage/mongodb/TenantStorage';
 import Utils from '../../../src/utils/Utils';
 
 const NBR_USERS = 10; // Number of total users : they are all connected to the sites
@@ -91,9 +91,9 @@ export default class ContextBuilder {
     }
     // Delete all tenants
     for (const tenantContextDef of BIG_CONTEXT) {
-      const tenantEntity = await Tenant.getTenantByName(tenantContextDef.tenantName);
+      const tenantEntity = await TenantStorage.getTenantByName(tenantContextDef.tenantName);
       if (tenantEntity) {
-        await this.superAdminCentralServerService.tenantApi.delete(tenantEntity.getID());
+        await this.superAdminCentralServerService.tenantApi.delete(tenantEntity.id);
       }
     }
 
@@ -143,9 +143,9 @@ export default class ContextBuilder {
       }
     }
     // Check if tenant exist
-    const existingTenant = await Tenant.getTenant(tenantContextDef.id);
+    const existingTenant = await TenantStorage.getTenant(tenantContextDef.id);
     if (existingTenant) {
-      console.log(`Tenant ${tenantContextDef.id} already exist with name ${existingTenant.getName()}. Please run a destroy context`);
+      console.log(`Tenant ${tenantContextDef.id} already exist with name ${existingTenant.name}. Please run a destroy context`);
       throw new Error('Tenant id exist already');
     }
     let buildTenant: any = {};
@@ -179,15 +179,15 @@ export default class ContextBuilder {
       defaultAdminUser.status = CONTEXTS.TENANT_USER_LIST[0].status;
       // Generate the password hash
       const newPasswordHashed = await Utils.hashPasswordBcrypt(config.get('admin.password'));
-      // Update the password
-      defaultAdminUser.password = newPasswordHashed;
       // Update the email
       defaultAdminUser.email = config.get('admin.username');
       // Add a Tag ID
       defaultAdminUser.tagIDs = CONTEXTS.TENANT_USER_LIST[0].tagIDs ? CONTEXTS.TENANT_USER_LIST[0].tagIDs : [faker.random.alphaNumeric(8).toUpperCase()];
       // Fix id
       defaultAdminUser.id = CONTEXTS.TENANT_USER_LIST[0].id;
-      await UserStorage.saveUser(buildTenant.id, defaultAdminUser);
+      const userId = await UserStorage.saveUser(buildTenant.id, defaultAdminUser);
+      // Save password
+      await UserStorage.saveUserPassword(buildTenant.id, userId, newPasswordHashed);
     }
 
     // Create Central Server Service
@@ -244,7 +244,6 @@ export default class ContextBuilder {
       userDef.tagIDs.push(`A1234${index}`);
       // Update the password
       const newPasswordHashed = await Utils.hashPasswordBcrypt(config.get('admin.password'));
-      createUser.password = newPasswordHashed;
       createUser.role = userDef.role;
       createUser.status = userDef.status;
       createUser.id = userDef.id;
@@ -253,6 +252,7 @@ export default class ContextBuilder {
       }
       const user: User = createUser;
       await UserStorage.saveUser(buildTenant.id, user, false);
+      await UserStorage.saveUserPassword(buildTenant.id, user.id, newPasswordHashed);
       if (userDef.assignedToSite) {
         userListToAssign.push(user);
       }
@@ -286,7 +286,6 @@ export default class ContextBuilder {
           const siteContextDef = {
             id: new ObjectID().toHexString(),
             name: CONTEXTS.SITE_CONTEXTS.SITE_BASIC,
-            allowAllUsersToStopTransactions: false,
             autoUserSiteAssignment: false,
             companyID: companyDef.id
           };
@@ -299,7 +298,6 @@ export default class ContextBuilder {
             })
           });
           siteTemplate.name = siteContextDef.name;
-          siteTemplate.allowAllUsersToStopTransactions = siteContextDef.allowAllUsersToStopTransactions;
           siteTemplate.autoUserSiteAssignment = siteContextDef.autoUserSiteAssignment;
           siteTemplate.id = siteContextDef.id;
           site = siteTemplate;

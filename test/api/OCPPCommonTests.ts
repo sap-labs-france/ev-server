@@ -6,6 +6,7 @@ import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './contextProvider/ChargingStationContext';
 import Factory from '../factories/Factory';
+import User from '../../src/types/User';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -21,9 +22,9 @@ export default class OCPPCommonTests {
   public priceKWH = 2;
   public chargingStationConnector1: any;
   public chargingStationConnector2: any;
-  public transactionStartUser: any;
-  public transactionStartUserService: any;
-  public transactionStopUser: any;
+  public transactionStartUser: User;
+  public transactionStartUserService: CentralServerService;
+  public transactionStopUser: User;
   public transactionStartMeterValue: any;
   public transactionStartSoC: any;
   public transactionMeterValues: any;
@@ -52,7 +53,13 @@ export default class OCPPCommonTests {
     this.tenantContext = tenantContext;
     this.centralUserContext = centralUserContext;
     expect(centralUserContext).to.exist;
-    this.centralUserService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.centralUserContext);
+    // Avoid double login for identical user contexts
+    const centralAdminUserService = this.tenantContext.getAdminCentralServerService();
+    if (this.centralUserContext.email === centralAdminUserService.getAuthenticatedUserEmail()) {
+      this.centralUserService = centralAdminUserService;
+    } else {
+      this.centralUserService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.centralUserContext);
+    }
     this.createAnyUser = createAnyUser;
   }
 
@@ -69,7 +76,12 @@ export default class OCPPCommonTests {
     } else {
       this.transactionStopUser = this.transactionStartUser;
     }
-    this.transactionStartUserService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.transactionStartUser);
+    // Avoid double login for identical user contexts
+    if (this.transactionStartUser === this.centralUserContext) {
+      this.transactionStartUserService = this.centralUserService;
+    } else {
+      this.transactionStartUserService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.transactionStartUser);
+    }
   }
 
   public async assignAnyUserToSite(siteContext) {
@@ -259,6 +271,14 @@ export default class OCPPCommonTests {
         this.transactionStartTime);
       this.newTransaction = (await this.centralUserService.transactionApi.readById(transactionId)).data;
       expect(this.newTransaction).to.not.be.null;
+
+      const chargingStationResponse = await this.chargingStationContext.readChargingStation(this.transactionStartUserService);
+      expect(chargingStationResponse.status).eq(200);
+      expect(chargingStationResponse.data).not.null;
+      const connector = chargingStationResponse.data.connectors[this.chargingStationConnector1.connectorId - 1];
+      expect(connector).not.null;
+      expect(connector.activeTransactionID).eq(transactionId);
+      expect(connector.activeTagID).eq(this.transactionStartUser.tagIDs[0]);
     } else {
       this.newTransaction = null;
       expect(response).to.be.transactionStatus('Invalid');

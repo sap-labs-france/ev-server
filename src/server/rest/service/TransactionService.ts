@@ -11,14 +11,13 @@ import Logging from '../../../utils/Logging';
 import OCPPService from '../../../server/ocpp/services/OCPPService';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import SynchronizeRefundTransactionsTask from '../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
-import Tenant from '../../../entity/Tenant';
 import TransactionSecurity from './security/TransactionSecurity';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import UtilsService from './UtilsService';
 import Transaction from '../../../types/Transaction';
 import Utils from '../../../utils/Utils';
@@ -39,10 +38,7 @@ export default class TransactionService {
     const task = new SynchronizeRefundTransactionsTask();
     await task.processTenant(tenant, null);
 
-    const response: any = {
-      ...Constants.REST_RESPONSE_SUCCESS,
-    };
-    res.json(response);
+    res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
@@ -104,7 +100,7 @@ export default class TransactionService {
     const user = await UserStorage.getUser(req.user.tenantID, req.user.id);
     // Check
     UtilsService.assertObjectExists(user, `User '${req.user.id}' doesn't exist.`, 'TransactionService', 'handleRefundTransactions', req.user);
-    if (!transactionsToRefund.every((tr) => tr.userID === req.user.id)) {
+    if (!transactionsToRefund.every((transaction) => transaction.userID === req.user.id)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `The user with ID '${req.user.id}' cannot refund another user's transaction`,

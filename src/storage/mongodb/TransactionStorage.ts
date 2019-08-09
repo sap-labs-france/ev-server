@@ -444,6 +444,11 @@ export default class TransactionStorage {
               }
             },
             { $addFields: { 'errorCode': 'negative_inactivity' } }
+          ],
+        'incorrect_starting_date':
+          [
+            { $match: { 'timestamp': { $lte : Utils.convertToDate('2017-01-01 00:00:00.000Z') } } },
+            { $addFields: { 'errorCode': 'incorrect_starting_date' } }
           ]
       }
     };

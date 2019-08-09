@@ -97,9 +97,8 @@ export default class CompanyStorage {
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
     // Set the filters
-    let filters: ({_id?: ObjectID; $or?: any[]}|undefined);
+    const filters: ({_id?: ObjectID; $or?: any[]}|undefined) = {};
     // Build filter
-    filters = {};
     if (params.companyID) {
       filters._id = Utils.convertToObjectID(params.companyID);
     } else if (params.search) {
@@ -120,9 +119,7 @@ export default class CompanyStorage {
       // Build filter
       aggregation.push({
         $match: {
-          _id: { $in: params.companyIDs.map((companyID) => {
-            return Utils.convertToObjectID(companyID);
-          }) }
+          _id: { $in: params.companyIDs.map((companyID) => Utils.convertToObjectID(companyID)) }
         }
       });
     }

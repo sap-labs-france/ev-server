@@ -2,11 +2,12 @@ import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
 import global from '../../types/GlobalType';
 import MigrationTask from '../MigrationTask';
-import Tenant from '../../entity/Tenant';
+import Tenant from '../../types/Tenant';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
 
 export default class AddSensitiveDataInSettingsTask extends MigrationTask {
   public async migrate() {
-    const tenants = await Tenant.getTenants();
+    const tenants = await TenantStorage.getTenants({}, Constants.DB_PARAMS_MAX_LIMIT);
 
     for (const tenant of tenants.result) {
       await this.migrateTenant(tenant);
@@ -15,7 +16,7 @@ export default class AddSensitiveDataInSettingsTask extends MigrationTask {
 
   public async migrateTenant(tenant) {
     // Read all Settings
-    const settings: any = await global.database.getCollection(tenant.getID(), 'settings')
+    const settings: any = await global.database.getCollection(tenant.id, 'settings')
       .aggregate([{
         $match: {
           'sensitiveData': { $exists: false }
@@ -45,7 +46,7 @@ export default class AddSensitiveDataInSettingsTask extends MigrationTask {
         }
       }
       // Update
-      await global.database.getCollection(tenant.getID(), 'settings').findOneAndUpdate(
+      await global.database.getCollection(tenant.id, 'settings').findOneAndUpdate(
         { '_id': setting._id },
         { $set: setting },
         { upsert: true, returnOriginal: false }
