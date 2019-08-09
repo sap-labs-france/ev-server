@@ -101,7 +101,6 @@ export default class SettingService {
     // Process the sensitive data if any
     settings.result.forEach((setting) => {
       // Hash sensitive data before being sent to the front end
-      console.log(setting);
       Cypher.hashSensitiveDataInJSON(setting);
     });
     // Return
