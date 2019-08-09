@@ -551,8 +551,8 @@ export default class UserService {
         'UserService', 'handleGetUserInvoice', req.user);
     }
     // Get the settings
-    let setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, Constants.COMPONENTS.PRICING);
-    setting = setting.getContent().convergentCharging;
+    const setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, Constants.COMPONENTS.PRICING);
+    let settingInner = setting.content.convergentCharging;
     if (!setting) {
       Logging.logException({ 'message': 'Convergent Charging setting is missing' }, 'UserInvoice', Constants.CENTRAL_SERVER, 'UserService', 'handleGetUserInvoice', req.user.tenantID, req.user);
       throw new AppError(
@@ -561,8 +561,8 @@ export default class UserService {
         'UserService', 'handleGetUserInvoice', req.user);
     }
     // Create services
-    const ratingService = new RatingService(setting.url, setting.user, setting.password);
-    const erpService = new ERPService(setting.url, setting.user, setting.password);
+    const ratingService = new RatingService(settingInner.url, settingInner.user, settingInner.password);
+    const erpService = new ERPService(settingInner.url, settingInner.user, settingInner.password);
     let invoiceNumber;
     try {
       await ratingService.loadChargedItemsToInvoicing();

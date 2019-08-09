@@ -52,7 +52,7 @@ export default class ODataRestAdapter {
       // Get settings
       const sacSetting = await SettingStorage.getSettingByIdentifier(tenant.id, Constants.COMPONENTS.ANALYTICS);
       if (sacSetting) {
-        const configuration = sacSetting.getContent();
+        const configuration = sacSetting.content;
         if (configuration && configuration.sac && configuration.sac.timezone) {
           req.timezone = configuration.sac.timezone;
         }

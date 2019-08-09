@@ -129,8 +129,6 @@ export default class TenantStorage {
       .toArray();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation('', aggregation);
-    // Handle the ID
-    DatabaseUtils.renameDatabaseID(aggregation);
     // Sort
     if (dbParams.sort) {
       aggregation.push({
@@ -151,6 +149,8 @@ export default class TenantStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
+    // Handle the ID
+    DatabaseUtils.renameDatabaseID(aggregation);
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB

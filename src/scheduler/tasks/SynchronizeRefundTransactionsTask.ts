@@ -21,7 +21,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
     }
     // Get Concur Settings
     const setting = await SettingStorage.getSettingByIdentifier(tenant.id, Constants.COMPONENTS.REFUND);
-    if (!setting || !setting.getContent()[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]) {
+    if (!setting || !setting.content[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]) {
       Logging.logDebug({
         tenantID: tenant.id,
         module: 'SynchronizeRefundTransactionsTask',
@@ -32,7 +32,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
     }
     // Create the Concur Connector
     const connector = new ConcurConnector(
-      tenant.id, setting.getContent()[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]);
+      tenant.id, setting.content[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]);
     // Get the 'Submitted' transactions
     const transactions = await TransactionStorage.getTransactions(tenant.id, {
       'refundType': Constants.REFUND_TYPE_REFUNDED,
