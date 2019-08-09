@@ -1,4 +1,4 @@
-import Transaction from '../../entity/Transaction';
+import Transaction from '../../types/Transaction';
 import User from '../../types/User';
 
 export abstract class PricingSettings {}

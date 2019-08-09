@@ -40,8 +40,8 @@ export default interface Transaction {
     refundId: string;
     refundedAt: Date;
     type: any;
-    reportId: string;
-    status: any;
+    reportId?: string;
+    status?: any;
   }
   lastMeterValue?: {
     value: number;

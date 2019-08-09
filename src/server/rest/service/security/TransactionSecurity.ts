@@ -84,7 +84,7 @@ export default class TransactionSecurity {
    * @param loggedUser
    * @returns {*}
    */
-  static filterTransactionResponse(transaction, loggedUser: UserToken) {
+  static filterTransactionResponse(transaction: Transaction, loggedUser: UserToken) {
     let filteredTransaction;
 
     if (!transaction) {
@@ -94,19 +94,19 @@ export default class TransactionSecurity {
     if (Authorizations.canReadTransaction(loggedUser, transaction)) {
       // Set only necessary info
       filteredTransaction = {};
-      filteredTransaction.id = transaction.getID();
-      if (transaction.getModel().errorCode) {
-        filteredTransaction.uniqueId = transaction.getModel().uniqueId;
-        filteredTransaction.errorCode = transaction.getModel().errorCode;
+      filteredTransaction.id = transaction.id;
+      if (transaction.errorCode) {
+        filteredTransaction.uniqueId = transaction.uniqueId;
+        filteredTransaction.errorCode = transaction.errorCode;
       }
-      filteredTransaction.chargeBoxID = transaction.getChargeBoxID();
-      filteredTransaction.siteID = transaction.getSiteID();
+      filteredTransaction.chargeBoxID = transaction.chargeBoxID;
+      filteredTransaction.siteID = transaction.siteID;
       filteredTransaction.siteAreaID = transaction.getSiteAreaID();
-      filteredTransaction.connectorId = transaction.getConnectorId();
+      filteredTransaction.connectorId = transaction.connectorId;
       filteredTransaction.meterStart = transaction.getMeterStart();
-      filteredTransaction.timestamp = transaction.getStartDate();
-      filteredTransaction.timezone = transaction.getTimezone();
-      // If (Authorizations.isAdmin(loggedUser) && transaction.getModel().hasOwnProperty('price')) {
+      filteredTransaction.timestamp = transaction.timestamp;
+      filteredTransaction.timezone = transaction.timezone;
+      // If (Authorizations.isAdmin(loggedUser) && transaction.hasOwnProperty('price')) {
       if (transaction.hasStartPrice()) {
         filteredTransaction.price = transaction.getStartPrice();
         filteredTransaction.roundedPrice = transaction.getStartRoundedPrice();
@@ -145,14 +145,14 @@ export default class TransactionSecurity {
         filteredTransaction.stop.timestamp = transaction.getStopDate();
         filteredTransaction.stop.totalConsumption = transaction.getStopTotalConsumption();
         filteredTransaction.stop.totalInactivitySecs = transaction.getStopTotalInactivitySecs() + transaction.getStopExtraInactivitySecs();
-        filteredTransaction.stop.totalDurationSecs = transaction.getStopTotalDurationSecs();
+        filteredTransaction.stop.totalDurationSecs = transaction.stop.totalDurationSecs;
         filteredTransaction.stop.stateOfCharge = transaction.getStopStateOfCharge();
         filteredTransaction.stop.signedData = transaction.getEndSignedData();
         // pragma if (Authorizations.isAdmin(loggedUser) && transaction.hasStopPrice()) {
         if (transaction.hasStopPrice()) {
-          filteredTransaction.stop.price = transaction.getStopPrice();
+          filteredTransaction.stop.price = transaction.stop.price;
           filteredTransaction.stop.roundedPrice = transaction.getStopRoundedPrice();
-          filteredTransaction.stop.priceUnit = transaction.getStopPriceUnit();
+          filteredTransaction.stop.priceUnit = transaction.stop.priceUnit;
           filteredTransaction.stop.pricingSource = transaction.getStopPricingSource();
         }
         // Demo user?

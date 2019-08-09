@@ -25,6 +25,7 @@ import ChargingStation from '../types/ChargingStation';
 import ConnectorStats from '../types/ConnectorStats';
 import tzlookup from 'tz-lookup';
 import UserStorage from '../storage/mongodb/UserStorage';
+import Transaction from '../types/Transaction';
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
 
@@ -148,7 +149,7 @@ export default class Utils {
   }
 
   // Temporary method for Revenue Cloud concept
-  static async pushTransactionToRevenueCloud(action, transaction, user: User, actionOnUser: User) {
+  static async pushTransactionToRevenueCloud(tenantID: string, action: string, transaction: Transaction, user: User, actionOnUser: User) {
     // Refund Transaction
     const cloudRevenueAuth = new ClientOAuth2({
       clientId: 'sb-revenue-cloud!b1122|revenue-cloud!b1532',
@@ -162,10 +163,10 @@ export default class Utils {
       'https://eu10.revenue.cloud.sap/api/usage-record/v1/usage-records',
       {
         'metricId': 'ChargeCurrent_Trial',
-        'quantity': transaction.getStopTotalConsumption() / 1000,
-        'startedAt': transaction.getstartedAt(),
-        'endedAt': transaction.getendedAt(),
-        'userTechnicalId': transaction.getTagID()
+        'quantity': transaction.stop.totalConsumption / 1000,
+        'startedAt': transaction.timestamp,
+        'endedAt': transaction.stop.timestamp,
+        'userTechnicalId': transaction.tagID
       },
       {
         'headers': {
@@ -177,10 +178,10 @@ export default class Utils {
     // Log
     Logging.logSecurityInfo({
       user, actionOnUser, action,
-      tenantID: transaction.getTenantID(),
-      source: transaction.getChargeBoxID(),
+      tenantID: tenantID,
+      source: transaction.chargeBoxID,
       module: 'Utils', method: 'pushTransactionToRevenueCloud',
-      message: `Transaction ID '${transaction.getID()}' has been refunded successfully`,
+      message: `Transaction ID '${transaction.id}' has been refunded successfully`,
       detailedMessages: result.data
     });
   }
