@@ -139,7 +139,7 @@ export default class TransactionStorage {
   }
 
   public static async getTransactions(tenantID: string,
-    params:{ transactionId?: number; search?: string; userIDs?: string[]; chargeBoxIDs?: string; siteAreaIDs?: string[]; siteID?: string;
+    params:{ transactionId?: number; search?: string; userIDs?: string[]; chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteID?: string;
       connectorId?: number; startTime?: Date; endTime?: Date; stop?: any; refundType?: 'refunded'|'notRefunded'; minimalPrice?: boolean;
       withChargeBoxes?: boolean; statistics?: 'refund'|'history', refundStatus?: string;
       errorType?: ('negative_inactivity'|'average_consumption_greater_than_connector_capacity'|'no_consumption')[] },//TODO change the any
