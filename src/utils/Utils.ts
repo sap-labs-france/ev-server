@@ -79,8 +79,14 @@ export default class Utils {
       totalChargers: 0,
       availableChargers: 0,
       totalConnectors: 0,
-      availableConnectors: 0
-    }
+      chargingConnectors: 0,
+      suspendedConnectors: 0,
+      availableConnectors: 0,
+      unavailableConnectors: 0,
+      preparingConnectors: 0,
+      finishingConnectors: 0,
+      faultedConnectors: 0
+    };
     // Chargers
     for (const chargingStation of chargingStations) {
       // Check not deleted
@@ -99,9 +105,31 @@ export default class Utils {
           continue;
         }
         connectorStats.totalConnectors++;
-        // Check if Available
-        if (!chargingStation.inactive && connector.status === Constants.CONN_STATUS_AVAILABLE) {
+        // Not Available?
+        if (chargingStation.inactive ||
+            connector.status === Constants.CONN_STATUS_UNAVAILABLE) {
+          connectorStats.unavailableConnectors++;
+        // Available?
+        } else if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
           connectorStats.availableConnectors++;
+        // Suspended?
+        } else if (connector.status === Constants.CONN_STATUS_SUSPENDED_EV ||
+            connector.status === Constants.CONN_STATUS_SUSPENDED_EVSE) {
+          connectorStats.suspendedConnectors++;
+        // Charging?
+        } else if (connector.status === Constants.CONN_STATUS_CHARGING ||
+            connector.status === Constants.CONN_STATUS_OCCUPIED) {
+          connectorStats.chargingConnectors++;
+        // Faulted?
+        } else if (connector.status === Constants.CONN_STATUS_FAULTED ||
+            connector.status === Constants.CONN_STATUS_OCCUPIED) {
+          connectorStats.faultedConnectors++;
+        // Preparing?
+        } else if (connector.status === Constants.CONN_STATUS_PREPARING) {
+          connectorStats.preparingConnectors++;
+        // Finishing?
+        } else if (connector.status === Constants.CONN_STATUS_FINISHING) {
+          connectorStats.finishingConnectors++;
         }
       }
       // Handle Chargers

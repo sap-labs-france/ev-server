@@ -4,7 +4,7 @@
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Account <%- (user.status === 'A' ? 'Active' : 'Supended'); %>",
+      "title": "Account <%- (user.status === 'A' ? 'Active' : 'Suspended'); %>",
       "image": {
         "left": {
           "height": 60,

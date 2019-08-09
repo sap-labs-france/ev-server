@@ -13,5 +13,6 @@ export default interface Connector {
   voltage?: number;
   amperage?: number;
   activeTransactionID: number;
+  activeTagID: string;
   timestamp?: number;
 }

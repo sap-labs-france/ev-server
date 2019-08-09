@@ -106,9 +106,9 @@ export default class ChargingStationStorage {
       DatabaseUtils.pushSiteLookupInAggregation(
         { tenantID, aggregation: siteJoin, localField: 'siteArea.siteID', foreignField: '_id',
           asField: 'siteArea.site', oneToOneCardinality: true });
-      // Convert siteID back to string after having queried the site
-      DatabaseUtils.convertObjectIDToString(siteJoin, 'siteArea.siteID', 'siteArea.siteID');
     }
+    // Convert siteID back to string after having queried the site
+    DatabaseUtils.convertObjectIDToString(siteJoin, 'siteArea.siteID', 'siteArea.siteID');
     // Build facets meaning each different error scenario
     let facets: any = { $facet:{} };
     if (params.errorType && !params.errorType.includes('all')) {
@@ -411,10 +411,10 @@ export default class ChargingStationStorage {
       });
     // Found?
     let configuration = null;
-    if (configurationsMDB && configurationsMDB.length > 0) {
+    if (configurationsMDB && configurationsMDB.configuration && configurationsMDB.configuration.length > 0) {
       // Set values
       configuration = {
-        id: configurationsMDB._id.toHexString(),
+        id: configurationsMDB._id,
         timestamp: Utils.convertToDate(configurationsMDB.timestamp),
         configuration: configurationsMDB.configuration
       };

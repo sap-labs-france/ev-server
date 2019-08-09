@@ -232,7 +232,6 @@ export default class SiteStorage {
       _id: siteFilter._id,
       address: siteToSave.address,
       companyID: Utils.convertToObjectID(siteToSave.companyID),
-      allowAllUsersToStopTransactions: siteToSave.allowAllUsersToStopTransactions,
       autoUserSiteAssignment: siteToSave.autoUserSiteAssignment,
       name: siteToSave.name,
     };
@@ -399,16 +398,8 @@ export default class SiteStorage {
           // Get the chargers
           const chargingStations = await ChargingStationStorage.getChargingStations(tenantID,
             { siteIDs: [siteMDB.id], includeDeleted: false }, Constants.DB_PARAMS_MAX_LIMIT);
-          // Get the Charging Stations' Connector statuses
-          const connectorStats = Utils.getConnectorStatusesFromChargingStations(chargingStations.result);
-          // Set
-          siteMDB.availableChargers = connectorStats.availableChargers;
-          siteMDB.totalChargers = connectorStats.totalChargers;
-          siteMDB.availableConnectors = connectorStats.availableConnectors;
-          siteMDB.totalConnectors = connectorStats.totalConnectors;
-        }
-        if (!siteMDB.allowAllUsersToStopTransactions) {
-          siteMDB.allowAllUsersToStopTransactions = false;
+          // Set the Charging Stations' Connector statuses
+          siteMDB.connectorStats = Utils.getConnectorStatusesFromChargingStations(chargingStations.result);;
         }
         if (!siteMDB.autoUserSiteAssignment) {
           siteMDB.autoUserSiteAssignment = false;

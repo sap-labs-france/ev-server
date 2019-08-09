@@ -3,7 +3,14 @@ import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
-import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationsRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationCommandRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import {
+  HttpAssignChargingStationToSiteAreaRequest,
+  HttpChargingStationsRequest,
+  HttpChargingStationRequest,
+  HttpChargingStationSetMaxIntensitySocketRequest,
+  HttpChargingStationCommandRequest,
+  HttpIsAuthorizedRequest
+} from '../../../../types/requests/HttpChargingStationRequest';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
 import ChargingStation from '../../../../types/ChargingStation';
@@ -58,6 +65,7 @@ export default class ChargingStationSecurity {
           'totalConsumption': (filteredChargingStation.inactive ? 0 : connector.totalConsumption),
           'totalInactivitySecs': (filteredChargingStation.inactive ? 0 : connector.totalInactivitySecs),
           'activeTransactionID': connector.activeTransactionID,
+          'activeTagID': connector.activeTagID,
           'errorCode': connector.errorCode,
           'type': connector.type,
           'power': connector.power,
@@ -209,6 +217,19 @@ export default class ChargingStationSecurity {
       chargeBoxID: sanitize(request.chargeBoxID),
       maxIntensity: request.args ? sanitize(request.args.maxIntensity) : null
     };
+  }
+
+  public static filterIsAuthorizedRequest(request: Partial<HttpIsAuthorizedRequest>): HttpIsAuthorizedRequest {
+    const filteredRequest: HttpIsAuthorizedRequest = {
+      Action: sanitize(request.Action),
+      Arg1: sanitize(request.Arg1),
+      Arg2: sanitize(request.Arg2),
+      Arg3: sanitize(request.Arg3)
+    };
+    if (filteredRequest.Action === 'StopTransaction') {
+      filteredRequest.Action = 'RemoteStopTransaction';
+    }
+    return filteredRequest;
   }
 }
 

@@ -2,19 +2,16 @@ import Address from './Address';
 import Company from './Company';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import SiteArea from './SiteArea';
+import ConnectorStats from './ConnectorStats';
 
 export default interface Site extends CreatedUpdatedProps {
   id: string;
   name: string;
   address: Address;
   companyID: string;
-  allowAllUsersToStopTransactions: boolean;
   autoUserSiteAssignment: boolean;
   image?: string;
-  availableChargers?: number;
-  totalChargers?: number;
-  availableConnectors?: number;
-  totalConnectors?: number;
+  connectorStats: ConnectorStats;
   siteAreas?: SiteArea[];
   company?: Company;
 }

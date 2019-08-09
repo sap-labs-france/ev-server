@@ -1,24 +1,19 @@
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
 import AuthorizationsDefinition from './AuthorizationsDefinition';
-import BackendError from '../exception/BackendError';
 import ChargingStation from '../types/ChargingStation';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import NotificationHandler from '../notification/NotificationHandler';
 import SessionHashService from '../server/rest/service/SessionHashService';
-import Site from '../types/Site';
-import SiteArea from '../types/SiteArea';
 import SiteStorage from '../storage/mongodb/SiteStorage';
-import Tenant from '../types/Tenant';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import Transaction from '../entity/Transaction';
 import User from '../types/User';
 import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
 import Utils from '../utils/Utils';
-import Connector from '../types/Connector';
 import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
 
 export default class Authorizations {
@@ -34,16 +29,45 @@ export default class Authorizations {
       Constants.ACTION_REFUND_TRANSACTION, { 'UserID': userId });
   }
 
-  public static canStartTransaction(user: UserToken, chargingStation: ChargingStation) {
-    return Authorizations.canPerformActionOnChargingStation(
-      user,
-      Constants.ACTION_REMOTE_START_TRANSACTION);
+  public static canStartTransaction(loggedUser: UserToken, chargingStation: ChargingStation) {
+    let context;
+    if (Utils.isComponentActiveFromToken(loggedUser, Constants.COMPONENTS.ORGANIZATION)) {
+      if (!chargingStation || !chargingStation.siteArea || !chargingStation.siteArea.site) {
+        return false;
+      }
+      context = {
+        site: chargingStation.siteArea.site.id,
+        sites: loggedUser.sites,
+        sitesAdmin: loggedUser.sitesAdmin
+      };
+    } else {
+      context = {
+        site: null
+      };
+    }
+
+    return Authorizations.canPerformAction(
+      loggedUser, Constants.ENTITY_CHARGING_STATION,
+      Constants.ACTION_REMOTE_START_TRANSACTION, context);
   }
 
-  public static canStopTransaction(user: UserToken, chargingStation: ChargingStation) {
-    return Authorizations.canPerformActionOnChargingStation(
-      user,
-      Constants.ACTION_REMOTE_STOP_TRANSACTION);
+  public static canStopTransaction(loggedUser: UserToken, transaction: Transaction) {
+    if (!transaction) {
+      return false;
+    }
+    const context = {
+      user: transaction.getUserJson() ? transaction.getUserJson().id : null,
+      owner: loggedUser.id,
+      tagIDs: loggedUser.tagIDs,
+      tagID: transaction.getTagID(),
+      site: transaction.getSiteID(),
+      sites: loggedUser.sites,
+      sitesAdmin: loggedUser.sitesAdmin
+    };
+
+    return Authorizations.canPerformAction(
+      loggedUser, Constants.ENTITY_CHARGING_STATION,
+      Constants.ACTION_REMOTE_STOP_TRANSACTION, context);
   }
 
   public static getAuthorizedCompanyIDs(loggedUser: UserToken): string[] {
@@ -114,208 +138,23 @@ export default class Authorizations {
     };
   }
 
-  public static async getConnectorActionAuthorizations(
-      params: { tenantID: string; user: UserToken; chargingStation: ChargingStation; connector: Connector; siteArea: SiteArea; site: Site }) {
-    const tenant: Tenant = await TenantStorage.getTenant(params.tenantID);
-    if (!tenant) {
-      throw new BackendError('Authorizations.ts#getConnectorActionAuthorizations', 'Tenant null');
-    }
-    const isOrgCompActive = Utils.isComponentActiveFromToken(params.user, Constants.COMPONENTS.ORGANIZATION);
-    if (isOrgCompActive && (!params.siteArea || !params.site)) {
-      throw new AppError(
-        params.chargingStation.id,
-        `Site area and site not provided for Charging Station '${params.chargingStation.id}'!`, Constants.HTTP_GENERAL_ERROR,
-        'Authorizations', 'getConnectorActionAuthorizations',
-        params.user
-      );
-    }
-    // Set default value
-    let isUserAssignedToSite = false;
-    let accessControlEnable = true;
-    let userAllowedToStopAllTransactions = false;
-    let isSameUserAsTransaction = false;
-    if (isOrgCompActive) {
-      // Acces Control Enabled?
-      accessControlEnable = params.siteArea.accessControl;
-      // Allow to stop all transactions
-      userAllowedToStopAllTransactions = params.site.allowAllUsersToStopTransactions;
-      // Check if User belongs to the charging station Site
-      isUserAssignedToSite = await SiteStorage.siteHasUser(params.tenantID, params.site.id, params.user.id);
-    }
-    if (params.connector.activeTransactionID > 0) {
-      // Get Transaction
-      const transaction = await Transaction.getTransaction(params.tenantID, params.connector.activeTransactionID);
-      if (!transaction) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `Transaction ID '${params.connector.activeTransactionID}' does not exist`,
-          Constants.HTTP_AUTH_ERROR, 'Authorizations', 'getConnectorActionAuthorizations');
-      }
-      // Check if transaction user is the same as request user
-      isSameUserAsTransaction = transaction.getUserID() === params.user.id;
-    }
-
-    // Prepare default authorizations
-    const result = {
-      'isStartAuthorized': Authorizations.canStartTransaction(params.user, params.chargingStation),
-      'isStopAuthorized': Authorizations.canStopTransaction(params.user, params.chargingStation),
-      'isTransactionDisplayAuthorized': false
-    };
-    if (params.user.role === Constants.ROLE_ADMIN) {
-      // An admin has all authorizations except for site where he is not assigned and in case site management is not active
-      const defaultAuthorization = (isOrgCompActive && isUserAssignedToSite) || (!isOrgCompActive);
-      result.isStartAuthorized = result.isStartAuthorized && defaultAuthorization;
-      result.isStopAuthorized = result.isStopAuthorized && defaultAuthorization;
-      result.isTransactionDisplayAuthorized = defaultAuthorization;
-    }
-    if (params.user.role === Constants.ROLE_DEMO) {
-      // Demon user can never start nor stop transaction and can display details only for assigned site
-      const defaultAuthorization = (isOrgCompActive && isUserAssignedToSite) || (!isOrgCompActive);
-      result.isStartAuthorized = false;
-      result.isStopAuthorized = false;
-      result.isTransactionDisplayAuthorized = defaultAuthorization;
-    }
-    if (params.user.role === Constants.ROLE_BASIC) {
-      // Basic user can start a transaction if he is assigned to the site or site management is not active
-      result.isStartAuthorized = result.isStartAuthorized &&
-        (isOrgCompActive && isUserAssignedToSite) || (!isOrgCompActive);
-      // Basic user can start a transaction if he is assigned to the site or site management is not active
-      result.isStopAuthorized = result.isStopAuthorized &&
-        // Site Management is active  and user assigned to site and anyone allowed to stop or same user as transaction
-        // Or access control disable
-        (isOrgCompActive && isUserAssignedToSite &&
-          (userAllowedToStopAllTransactions || isSameUserAsTransaction || !accessControlEnable)) ||
-        // Site management inactive and badge access control and user identical to transaction
-        (!isOrgCompActive && accessControlEnable && isSameUserAsTransaction) ||
-        // Site management inactive and no badge access control
-        (!isOrgCompActive && !accessControlEnable);
-      result.isTransactionDisplayAuthorized =
-        // Site Management is active  and user assigned to site and same user as transaction
-        // Or access control disable
-        (isOrgCompActive && isUserAssignedToSite &&
-          (isSameUserAsTransaction || !accessControlEnable)) ||
-        // Site management inactive and badge access control and user identical to transaction
-        (!isOrgCompActive && accessControlEnable && isSameUserAsTransaction) ||
-        // Site management inactive and no badge access control
-        (!isOrgCompActive && !accessControlEnable);
-    }
-    return result;
+  public static async isAuthorizedOnChargingStation(tenantID: string, chargingStation: ChargingStation, tagID: string): Promise<User> {
+    return await this.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, null, tagID, Constants.ACTION_AUTHORIZE);
   }
 
-  public static async isTagIDAuthorizedOnChargingStation(tenantID: string, chargingStation: ChargingStation, tagID: string, action: string) {
-    // Get the Organization component
-    const tenant = await TenantStorage.getTenant(tenantID);
-    const isOrgCompActive = Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.ORGANIZATION);
-    // Org component enabled?
-    if (isOrgCompActive) {
-      let foundSiteArea = true;
-      // Site Area -----------------------------------------------
-      if (!chargingStation.siteAreaID) {
-        foundSiteArea = false;
-      } else if (!chargingStation.siteArea) {
-        chargingStation.siteArea =
-          await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID, {withSite: true});
-        if (!chargingStation.siteArea) {
-          foundSiteArea = false;
-        }
-      }
-      // Site is mandatory
-      if (!foundSiteArea) {
-        // Reject Site Not Found
-        throw new AppError(
-          chargingStation.id,
-          `Charging Station '${chargingStation.id}' is not assigned to a Site Area!`,
-          Constants.HTTP_AUTH_CHARGER_WITH_NO_SITE_AREA_ERROR,
-          'Authorizations', '_checkAndGetUserOnChargingStation');
-      }
-
-      // Access Control Enabled?
-      if (!chargingStation.siteArea.accessControl) {
-        // No control
-        return;
-      }
-      // Site -----------------------------------------------------
-      chargingStation.siteArea.site = chargingStation.siteArea.site ?
-        chargingStation.siteArea.site : (chargingStation.siteArea.siteID ?
-          await SiteStorage.getSite(tenantID, chargingStation.siteArea.siteID) : null);
-      if (!chargingStation.siteArea.site) {
-        // Reject Site Not Found
-        throw new AppError(
-          chargingStation.id,
-          `Site Area '${chargingStation.siteArea.name}' is not assigned to a Site!`,
-          Constants.HTTP_AUTH_SITE_AREA_WITH_NO_SITE_ERROR,
-          'Authorizations', 'checkAndGetUserOnChargingStation');
-      }
-    }
-    // Get user
-    let user: User = null;
-    // Get the user
-    if (tagID) {
-      user = await Authorizations.checkAndGetUserTagIDOnChargingStation(tenantID,
-        chargingStation, tagID, action);
-    }
-    // Found?
-    if (user) {
-      // Check Authorization
-      // Check User status
-      if (user.status !== Constants.USER_STATUS_ACTIVE) {
-        // Reject but save ok
-        throw new AppError(
-          chargingStation.id,
-          `${Utils.buildUserFullName(user)} is '${Utils.getStatusDescription(user.status)}'`, Constants.HTTP_GENERAL_ERROR,
-          'Authorizations', '_checkAndGetUserOnChargingStation',
-          user);
-      }
-
-      const userToken = await Authorizations.buildUserToken(tenantID, user);
-      await Authorizations._checkAndGetUserOnChargingStation(tenantID,
-        chargingStation, userToken, isOrgCompActive, chargingStation.siteArea.site, action);
-    }
-    return user;
+  public static async isAuthorizedToStartTransaction(tenantID: string, chargingStation: ChargingStation, tagID: string): Promise<User> {
+    return await this.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, null, tagID, Constants.ACTION_REMOTE_START_TRANSACTION);
   }
 
-  public static async isTagIDsAuthorizedOnChargingStation(tenantID: string, chargingStation: ChargingStation, tagId: string, transactionTagId: string, action: string) {
+  public static async isAuthorizedToStopTransaction(tenantID: string, chargingStation: ChargingStation, transaction: Transaction, tagId: string) {
     let user: User, alternateUser: User;
     // Check if same user
-    if (tagId !== transactionTagId) {
-      // No: Check alternate user
-      alternateUser = await Authorizations.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, tagId, action);
-      // Anonymous?
-      if (alternateUser) {
-        // Get the user
-        user = await UserStorage.getUserByTagId(tenantID, transactionTagId);
-        if (user.id !== alternateUser.id) {
-          // Not Check if Alternate User belongs to a Site --------------------------------
-          // Organization component active?
-          const tenant = await TenantStorage.getTenant(tenantID);
-          const isOrgCompActive = Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.ORGANIZATION);
-          if (isOrgCompActive) {
-            // Get the site (site existence is already checked by isTagIDAuthorizedOnChargingStation())
-            const site: Site = chargingStation.siteArea.site;
-            // Check if the site allows to stop the transaction of another user
-            if (!Authorizations.isAdmin(alternateUser.role) &&
-              !site.allowAllUsersToStopTransactions) {
-              // Reject the User
-              throw new BackendError(
-                chargingStation.id,
-                `User '${Utils.buildUserFullName(alternateUser)}' is not allowed to perform 'Stop Transaction' on User '${Utils.buildUserFullName(user)}' on Site '${site.name}'!`,
-                'Authorizations', 'isTagIDsAuthorizedOnChargingStation', action,
-                (alternateUser ? alternateUser : null), (user ? user : null));
-            }
-            // Only Admins can stop a transaction when org is not active
-          } else if (!Authorizations.isAdmin(alternateUser.role)) {
-            // Reject the User
-            throw new BackendError(
-              chargingStation.id,
-              `User '${Utils.buildUserFullName(alternateUser)}' is not allowed to perform 'Stop Transaction' on User '${Utils.buildUserFullName(user)}'!`,
-              'Authorizations', 'isTagIDsAuthorizedOnChargingStation', action,
-              (alternateUser ? alternateUser : null), (user ? user : null));
-          }
-        }
-      }
+    if (tagId !== transaction.getTagID()) {
+      alternateUser = await Authorizations.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, transaction, tagId, Constants.ACTION_REMOTE_STOP_TRANSACTION);
+      user = await UserStorage.getUserByTagId(tenantID, transaction.getTagID());
     } else {
       // Check user
-      user = await Authorizations.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, transactionTagId, action);
+      user = await Authorizations.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, transaction, transaction.getTagID(), Constants.ACTION_REMOTE_STOP_TRANSACTION);
     }
     return { user, alternateUser };
   }
@@ -337,11 +176,17 @@ export default class Authorizations {
   }
 
   public static canReadTransaction(loggedUser: UserToken, transaction: Transaction): boolean {
+    if (!transaction) {
+      return false;
+    }
     const context = {
       user: transaction.getUserJson() ? transaction.getUserJson().id : null,
       owner: loggedUser.id,
+      tagIDs: loggedUser.tagIDs,
+      tagID: transaction.getTagID(),
       site: transaction.getSiteID(),
-      sites: loggedUser.sitesAdmin
+      sites: loggedUser.sites,
+      sitesAdmin: loggedUser.sitesAdmin
     };
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION, Constants.ACTION_READ, context);
   }
@@ -358,8 +203,8 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATIONS, Constants.ACTION_LIST);
   }
 
-  public static canPerformActionOnChargingStation(loggedUser: UserToken, action: any): boolean {
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION, action);
+  public static canPerformActionOnChargingStation(loggedUser: UserToken, action: string, context?: any): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION, action, context);
   }
 
   public static canReadChargingStation(loggedUser: UserToken): boolean {
@@ -633,32 +478,94 @@ export default class Authorizations {
     return userRole === Constants.ROLE_DEMO;
   }
 
-  private static async _checkAndGetUserOnChargingStation(tenantID: string, chargingStation: ChargingStation, loggedUser: UserToken, isOrgCompActive: boolean, site: Site, action: string) {
-    // Check if User belongs to a Site ------------------------------------------
+  private static async isTagIDAuthorizedOnChargingStation(tenantID: string, chargingStation: ChargingStation, transaction: Transaction, tagID: string, action: string): Promise<User> {
+    // Get the Organization component
+    const tenant = await TenantStorage.getTenant(tenantID);
+    const isOrgCompActive = Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.ORGANIZATION);
     // Org component enabled?
     if (isOrgCompActive) {
-      const foundUser = await SiteStorage.siteHasUser(tenantID, site.id, loggedUser.id);
-      // User not found and Access Control Enabled?
-      if (!foundUser) {
-        // Yes: Reject the User
+      let foundSiteArea = true;
+      // Site Area -----------------------------------------------
+      if (!chargingStation.siteAreaID) {
+        foundSiteArea = false;
+      } else if (!chargingStation.siteArea) {
+        chargingStation.siteArea =
+          await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID, { withSite: true });
+        if (!chargingStation.siteArea) {
+          foundSiteArea = false;
+        }
+      }
+      // Site is mandatory
+      if (!foundSiteArea) {
+        // Reject Site Not Found
         throw new AppError(
           chargingStation.id,
-          `User is not assigned to the site '${site.name}'!`,
-          Constants.HTTP_AUTH_USER_WITH_NO_SITE_ERROR,
-          'Authorizations', '_checkAndGetUserOnChargingStation',
-          loggedUser);
+          `Charging Station '${chargingStation.id}' is not assigned to a Site Area!`,
+          Constants.HTTP_AUTH_CHARGER_WITH_NO_SITE_AREA_ERROR,
+          'Authorizations', 'isTagIDAuthorizedOnChargingStation');
+      }
+
+      // Access Control Enabled?
+      if (!chargingStation.siteArea.accessControl) {
+        // No control
+        return;
+      }
+      // Site -----------------------------------------------------
+      chargingStation.siteArea.site = chargingStation.siteArea.site ?
+        chargingStation.siteArea.site : (chargingStation.siteArea.siteID ?
+          await SiteStorage.getSite(tenantID, chargingStation.siteArea.siteID) : null);
+      if (!chargingStation.siteArea.site) {
+        // Reject Site Not Found
+        throw new AppError(
+          chargingStation.id,
+          `Site Area '${chargingStation.siteArea.name}' is not assigned to a Site!`,
+          Constants.HTTP_AUTH_SITE_AREA_WITH_NO_SITE_ERROR,
+          'Authorizations', 'checkAndGetUserOnChargingStation');
       }
     }
-    // Authorized?
-    if (!Authorizations.canPerformActionOnChargingStation(loggedUser, action)) {
-      // Not Authorized!
-      throw new AppAuthError(
-        action,
-        Constants.ENTITY_CHARGING_STATION,
-        chargingStation.id,
-        Constants.HTTP_GENERAL_ERROR, 'Authorizations', '_checkAndGetUserOnChargingStation',
-        loggedUser);
+    // Get user
+    let user: User = null;
+    // Get the user
+    if (tagID) {
+      user = await Authorizations.checkAndGetUserTagIDOnChargingStation(tenantID,
+        chargingStation, tagID, action);
     }
+    // Found?
+    if (user) {
+      // Check Authorization
+      // Check User status
+      if (user.status !== Constants.USER_STATUS_ACTIVE) {
+        // Reject but save ok
+        throw new AppError(
+          chargingStation.id,
+          `${Utils.buildUserFullName(user)} is '${Utils.getStatusDescription(user.status)}'`, Constants.HTTP_GENERAL_ERROR,
+          'Authorizations', 'isTagIDAuthorizedOnChargingStation',
+          user);
+      }
+
+      const userToken = await Authorizations.buildUserToken(tenantID, user);
+
+      // Authorized?
+      const context = {
+        user: transaction && transaction.getUserJson() ? transaction.getUserJson().id : null,
+        tagIDs: userToken.tagIDs,
+        tagID: transaction && transaction.getTagID() ? transaction.getTagID() : null,
+        owner: userToken.id,
+        site: isOrgCompActive ? chargingStation.siteArea.site.id : null,
+        sites: userToken.sites,
+        sitesAdmin: userToken.sitesAdmin
+      };
+      if (!Authorizations.canPerformActionOnChargingStation(userToken, action, context)) {
+        // Not Authorized!
+        throw new AppAuthError(
+          action,
+          Constants.ENTITY_CHARGING_STATION,
+          chargingStation.id,
+          Constants.HTTP_GENERAL_ERROR, 'Authorizations', '_checkAndGetUserOnChargingStation',
+          userToken);
+      }
+    }
+    return user;
   }
 
   private static getUserScopes(tenantID: string, user: User, sitesAdminCount: number): ReadonlyArray<string> {
