@@ -5,7 +5,6 @@ import Address from '../types/Address';
 import Company from '../types/Company';
 import Configuration from './Configuration';
 import Constants from './Constants';
-import DatabaseUtils from '../storage/mongodb/DatabaseUtils';
 import Utils from './Utils';
 
 export default class Database {
@@ -64,7 +63,7 @@ export default class Database {
     dest.deleted = src.deleted;
     // Check Inactive Chargers
     if (forFrontEnd) {
-      dest.inactive = DatabaseUtils.chargingStationIsInactive(dest);
+      dest.inactive = Utils.getIfChargingStationIsInactive(dest);
     }
     dest.lastReboot = Utils.convertToDate(src.lastReboot);
     if (src.chargingStationURL) {
@@ -322,22 +321,6 @@ export default class Database {
     }
     // No check of if(src.verificationToken), otherwise we cannot set it back to null (after being verified)
     dest.verificationToken = src.verificationToken;
-  }
-
-  static updateSite(src, dest, forFrontEnd = true) {
-    if (forFrontEnd) {
-      Database.updateID(src, dest);
-      dest.image = src.image;
-      dest.companyID = Database.validateId(src.companyID);
-    } else {
-      dest.companyID = Utils.convertToObjectID(src.companyID);
-    }
-    dest.name = src.name;
-    dest.address = {};
-    dest.allowAllUsersToStopTransactions = src.allowAllUsersToStopTransactions;
-    dest.autoUserSiteAssignment = src.autoUserSiteAssignment;
-    Database.updateAddress(src.address, dest.address);
-    Database.updateCreatedAndLastChanged(src, dest);
   }
 
   static updateVehicleManufacturer(src, dest, forFrontEnd = true) {

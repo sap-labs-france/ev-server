@@ -8,21 +8,17 @@ import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import AuthSecurity from './security/AuthSecurity';
 import BadRequestError from '../../../exception/BadRequestError';
-import ChargingStation from '../../../entity/ChargingStation';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
-import { HttpIsAuthorizedRequest, HttpLoginRequest, HttpResetPasswordRequest } from '../../../types/requests/HttpUserRequest';
+import { HttpLoginRequest, HttpResetPasswordRequest } from '../../../types/requests/HttpUserRequest';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
-import Site from '../../../types/Site';
-import SiteArea from '../../../types/SiteArea';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
-import Tenant from '../../../entity/Tenant';
-import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
@@ -53,185 +49,13 @@ export default class AuthService {
     return passport.authenticate('jwt', { session: false });
   }
 
-  public static async handleIsAuthorized(action: string, req: Request, res: Response, next: NextFunction) {
-    let user: User;
-    // Default
-    let result = [{ 'IsAuthorized': false }]; // TODO: Change style
-    // Filter
-    const filteredRequest = AuthSecurity.filterIsAuthorizedRequest(req.query);
-    // Check
-    if (!filteredRequest.Action) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The Action is mandatory',
-        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleIsAuthorized');
-    }
-    let chargingStation: ChargingStation = null;
-    // Action
-    switch (filteredRequest.Action) {
-      // TODO: To Remove
-      // Hack for mobile app not sending the RemoteStopTransaction yet
-      case 'StopTransaction':
-      case 'RemoteStopTransaction':
-        // Check
-        if (!filteredRequest.Arg1) {
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            'The Charging Station ID is mandatory',
-            Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleIsAuthorized');
-        }
-        // Get the Charging station
-        chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.Arg1);
-        // Found?
-        if (!chargingStation) {
-          // Not Found!
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            `Charging Station with ID '${filteredRequest.Arg1}' does not exist`,
-            Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleIsAuthorized');
-        }
-        // Check
-        if (!filteredRequest.Arg2) {
-          const results = [];
-          // Check authorization for each connectors
-          for (let index = 0; index < chargingStation.getConnectors().length; index++) {
-            const connector = chargingStation.getConnector(index + 1);
-            const tempResult = { 'IsAuthorized': false };
-            if (connector.activeTransactionID) {
-              tempResult.IsAuthorized = await AuthService.isStopTransactionAuthorized(filteredRequest, chargingStation, connector.activeTransactionID, req.user);
-            }
-            results.push(tempResult);
-          }
-          // Return table of result (will be in the connector order)
-          result = results;
-        } else {
-          result[0].IsAuthorized = await AuthService.isStopTransactionAuthorized(filteredRequest, chargingStation, filteredRequest.Arg2, req.user);
-        }
-        break;
-      // Action on connectors of a charger
-      case 'ConnectorsAction':
-        // Arg1 contains the charger ID
-        // Check
-        if (!filteredRequest.Arg1) {
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            'The Charging Station ID is mandatory',
-            Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleIsAuthorized');
-        }
-        // Get the Charging station
-        chargingStation = await ChargingStation.getChargingStation(req.user.tenantID, filteredRequest.Arg1);
-        // Found?
-        if (!chargingStation) {
-          // Not Found!
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            `Charging Station with ID '${filteredRequest.Arg1}' does not exist`,
-            Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleIsAuthorized');
-        }
-
-        user = await UserStorage.getUser(req.user.tenantID, req.user.id);
-        // Found?
-        if (!user) {
-          // Not Found!
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            `User with ID '${filteredRequest.Arg1}' does not exist`,
-            Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleIsAuthorized');
-        }
-        result = await AuthService.checkConnectorsActionAuthorizations(req.user.tenantID, req.user, chargingStation);
-        break;
-    }
-    // Return the result
-    res.json(result.length === 1 ? result[0] : result);
-    next();
-  }
-
-  public static async checkConnectorsActionAuthorizations(tenantID: string, user: UserToken, chargingStation) {
-    const results = [];
-    // Check if organization component is active
-    const isOrganizationComponentActive = Utils.isComponentActiveFromToken(user, Constants.COMPONENTS.ORGANIZATION);
-    let siteArea: SiteArea;
-    let site: Site;
-    if (isOrganizationComponentActive) {
-      // Site Area -----------------------------------------------
-      siteArea = await chargingStation.getSiteArea();
-      try {
-        // Site is mandatory
-        if (!siteArea) {
-          throw new AppError(
-            chargingStation.getID(),
-            `Charging Station '${chargingStation.getID()}' is not assigned to a Site Area!`,
-            Constants.HTTP_AUTH_CHARGER_WITH_NO_SITE_AREA_ERROR,
-            'AuthService', 'checkConnectorsActionAuthorizations');
-        }
-
-        // Site -----------------------------------------------------
-        site = await SiteStorage.getSite(tenantID, siteArea.siteID);
-        if (!site) {
-          throw new AppError(
-            chargingStation.getID(),
-            `Site Area '${siteArea.name}' is not assigned to a Site!`,
-            Constants.HTTP_AUTH_SITE_AREA_WITH_NO_SITE_ERROR,
-            'AuthService', 'checkConnectorsActionAuthorizations',
-            user);
-        }
-      } catch (error) {
-        // Problem with site assignment so do not allow any action
-        for (let index = 0; index < chargingStation.getConnectors().length; index++) {
-          results.push(
-            {
-              'isStartAuthorized': false,
-              'isStopAuthorized': false,
-              'isTransactionDisplayAuthorized': false
-            }
-          );
-        }
-        return results;
-      }
-    }
-    // Check authorization for each connectors
-    for (let index = 0; index < chargingStation.getConnectors().length; index++) {
-      const connector = chargingStation.getConnector(index + 1);
-      results.push(await Authorizations.getConnectorActionAuthorizations({ tenantID, user, chargingStation, connector, siteArea, site }));
-    }
-    return results;
-  }
-
-  public static async isStopTransactionAuthorized(filteredRequest: HttpIsAuthorizedRequest, chargingStation, transactionId: string, user: UserToken) {
-    // Get Transaction
-    const transaction = await TransactionStorage.getTransaction(chargingStation.getTenantID(), transactionId);
-    if (!transaction) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Transaction ID '${filteredRequest.Arg2}' does not exist`,
-        Constants.HTTP_AUTH_ERROR, 'AuthService', 'isStopTransactionAuthorized');
-    }
-    // Check Charging Station
-    if (transaction.getChargeBoxID() !== chargingStation.getID()) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Transaction ID '${filteredRequest.Arg2}' has a Charging Station '${transaction.getChargeBoxID()}' that differs from '${chargingStation.getID()}'`,
-        565, 'AuthService', 'isStopTransactionAuthorized');
-    }
-    try {
-      // Check
-      await Authorizations.isTagIDsAuthorizedOnChargingStation(
-        chargingStation, user.tagIDs[0], transaction.getTagID(), filteredRequest.Action);
-      // Ok
-      return true;
-    } catch (e) {
-      // Ko
-      return false;
-    }
-  }
-
   public static async handleLogIn(action: string, req: Request, res: Response, next: NextFunction) {
     let tenantID: string;
     // Filter
     const filteredRequest = AuthSecurity.filterLoginRequest(req.body);
     // Get Tenant
     tenantID = await AuthService.getTenantID(filteredRequest.tenant);
-    req.user = { tenantID: tenantID };
+    req.user = { tenantID };
     if (!tenantID) {
       tenantID = Constants.DEFAULT_TENANT;
       throw new AppError(
@@ -333,7 +157,7 @@ export default class AuthService {
       next(error);
       return;
     }
-    req.user = { tenantID: tenantID };
+    req.user = { tenantID };
     // Check EULA
     if (!filteredRequest.acceptEula) {
       throw new AppError(
@@ -377,7 +201,6 @@ export default class AuthService {
     const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
     // Create the user
     const newUser = UserStorage.getEmptyUser();
-    newUser.password = newPasswordHashed;
     newUser.email = filteredRequest.email;
     newUser.name = filteredRequest.name;
     newUser.firstName = filteredRequest.firstName;
@@ -395,6 +218,8 @@ export default class AuthService {
     newUser.eulaAcceptedHash = endUserLicenseAgreement.hash;
     // Save User
     newUser.id = await UserStorage.saveUser(tenantID, newUser);
+    // Save User password
+    await UserStorage.saveUserPassword(tenantID, newUser.id, newPasswordHashed);
     // Save Tags
     const tagIDs = [newUser.name[0] + newUser.firstName[0] + Utils.getRandomInt()];
     await UserStorage.saveUserTags(tenantID, newUser.id, tagIDs);
@@ -424,8 +249,8 @@ export default class AuthService {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Send notification
       const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
-        '/#/verify-email?VerificationToken=' + newUser.verificationToken + '&Email=' +
-        newUser.email;
+        '/#/verify-email?VerificationToken=' + newUser.verificationToken + '&Email=' + newUser.email;
+      // Notify (Async)
       NotificationHandler.sendNewRegisteredUser(
         tenantID,
         Utils.generateGUID(),
@@ -504,7 +329,7 @@ export default class AuthService {
     const evseDashboardResetPassURL = Utils.buildEvseURL(filteredRequest.tenant) +
       '/#/reset-password?hash=' + resetHash + '&email=' +
       user.email;
-    // Send email
+    // Send Request Password (Async)
     NotificationHandler.sendRequestPassword(
       tenantID,
       Utils.generateGUID(),
@@ -563,7 +388,9 @@ export default class AuthService {
     // Reset the hash
     user.passwordResetHash = null;
     // Save the user
-    await UserStorage.saveUser(tenantID, user);
+    const currentId = await UserStorage.saveUser(tenantID, user);
+    // Save new password
+    await UserStorage.saveUserPassword(tenantID, currentId, user.password);
     // Log
     Logging.logSecurityInfo({
       tenantID: tenantID,
@@ -573,7 +400,7 @@ export default class AuthService {
       message: 'User\'s password has been reset successfully',
       detailedMessages: req.body
     });
-    // Send notification
+    // Send Password (Async)
     NotificationHandler.sendNewPassword(
       tenantID,
       Utils.generateGUID(),
@@ -829,6 +656,7 @@ export default class AuthService {
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
       '/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
       user.email;
+    // Send Verification Email (Async)
     NotificationHandler.sendVerificationEmail(
       tenantID,
       Utils.generateGUID(),
@@ -929,9 +757,9 @@ export default class AuthService {
       return Constants.DEFAULT_TENANT;
     }
     // Get it
-    const tenant = await Tenant.getTenantBySubdomain(subdomain);
+    const tenant = await TenantStorage.getTenantBySubdomain(subdomain);
     // Return
-    return (tenant ? tenant.getID() : null);
+    return (tenant ? tenant.id : null);
   }
 
   public static async checkUserLogin(action: string, tenantID: string, user: User, filteredRequest: Partial<HttpLoginRequest>, req: Request, res: Response, next: NextFunction) {

@@ -56,7 +56,7 @@ const MODULE_NAME = 'CredentialsEndpoint';
 
     // Log body
     Logging.logInfo({
-      tenantID: tenant.getID(),
+      tenantID: tenant.id,
       action: 'DELETE credentials',
       message: 'Received unregister',
       source: 'OCPI Server',
@@ -66,7 +66,7 @@ const MODULE_NAME = 'CredentialsEndpoint';
     });
 
     // Get ocpiEndpoints based on the given token
-    const ocpiEndpoint = await OCPIEndpoint.getOcpiEndpointWithToken(tenant.getID(), token);
+    const ocpiEndpoint = await OCPIEndpoint.getOcpiEndpointWithToken(tenant.id, token);
 
     // Check if ocpiEndpoint available
     if (!ocpiEndpoint || ocpiEndpoint.getStatus() === Constants.OCPI_REGISTERING_STATUS.OCPI_UNREGISTERED) {
@@ -94,7 +94,7 @@ const MODULE_NAME = 'CredentialsEndpoint';
 
     // Log body
     Logging.logDebug({
-      tenantID: tenant.getID(),
+      tenantID: tenant.id,
       action: 'POST credentials',
       message: 'Received credential object',
       source: 'OCPI Server',
@@ -119,7 +119,7 @@ const MODULE_NAME = 'CredentialsEndpoint';
 
     // Log body
     Logging.logDebug({
-      tenantID: tenant.getID(),
+      tenantID: tenant.id,
       action: 'POST credentials',
       message: 'Received token',
       source: 'OCPI Server',
@@ -129,7 +129,7 @@ const MODULE_NAME = 'CredentialsEndpoint';
     });
 
     // Get ocpiEndpoints based on the given token
-    const ocpiEndpoint = await OCPIEndpoint.getOcpiEndpointWithToken(tenant.getID(), token);
+    const ocpiEndpoint = await OCPIEndpoint.getOcpiEndpointWithToken(tenant.id, token);
 
     // Check if ocpiEndpoint available
     if (!ocpiEndpoint) {
@@ -148,7 +148,7 @@ const MODULE_NAME = 'CredentialsEndpoint';
 
     // Log updated ocpi endpoint
     Logging.logDebug({
-      tenantID: tenant.getID(),
+      tenantID: tenant.id,
       action: 'POST credentials',
       message: 'OCPI Server found and updated with credential object',
       source: 'OCPI Server',
@@ -171,7 +171,7 @@ const MODULE_NAME = 'CredentialsEndpoint';
 
       // Log available OCPI Versions
       Logging.logDebug({
-        tenantID: tenant.getID(),
+        tenantID: tenant.id,
         action: 'POST credentials',
         message: 'Available OCPI Versions',
         source: 'OCPI Server',
@@ -195,7 +195,7 @@ const MODULE_NAME = 'CredentialsEndpoint';
 
           // Log correct OCPI service found
           Logging.logDebug({
-            tenantID: tenant.getID(),
+            tenantID: tenant.id,
             action: 'POST credentials',
             message: 'Correct OCPI version found',
             source: 'OCPI Server',
@@ -222,7 +222,7 @@ const MODULE_NAME = 'CredentialsEndpoint';
 
       // Log available OCPI services
       Logging.logDebug({
-        tenantID: tenant.getID(),
+        tenantID: tenant.id,
         action: 'POST credentials',
         message: 'Available OCPI services',
         source: 'OCPI Server',
@@ -260,7 +260,7 @@ const MODULE_NAME = 'CredentialsEndpoint';
 
     // Log available OCPI Versions
     Logging.logDebug({
-      tenantID: tenant.getID(),
+      tenantID: tenant.id,
       action: 'POST credentials',
       message: 'Response with credential object',
       source: 'OCPI Server',

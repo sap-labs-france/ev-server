@@ -56,6 +56,7 @@ export default class SiteSecurity {
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.UserID = sanitize(request.UserID);
     filteredRequest.CompanyID = sanitize(request.CompanyID);
+    filteredRequest.SiteID = sanitize(request.SiteID);
     filteredRequest.ExcludeSitesOfUserID = sanitize(request.ExcludeSitesOfUserID);
     filteredRequest.WithCompany = UtilsSecurity.filterBoolean(request.WithCompany);
     filteredRequest.WithAvailableChargers = UtilsSecurity.filterBoolean(request.WithAvailableChargers);
@@ -79,15 +80,13 @@ export default class SiteSecurity {
     filteredRequest.name = sanitize(request.name);
     filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address);
     filteredRequest.image = sanitize(request.image);
-    filteredRequest.allowAllUsersToStopTransactions =
-      UtilsSecurity.filterBoolean(request.allowAllUsersToStopTransactions);
     filteredRequest.autoUserSiteAssignment =
       UtilsSecurity.filterBoolean(request.autoUserSiteAssignment);
     filteredRequest.companyID = sanitize(request.companyID);
     return filteredRequest;
   }
 
-  static filterSiteResponse(site: Site, loggedUser: UserToken) {
+  static filterSiteResponse(site: Site, loggedUser: UserToken): Site {
     let filteredSite;
 
     if (!site) {
@@ -99,6 +98,10 @@ export default class SiteSecurity {
       if (Authorizations.isAdmin(loggedUser.role)) {
         // Yes: set all params
         filteredSite = site;
+        if (filteredSite.connectorStats) {
+          // TODO: To keep backward compat with Mobile App: remove it once new version is deployed
+          filteredSite = { ...filteredSite, ...site.connectorStats };
+        }
       } else {
         // Set only necessary info
         filteredSite = {};
@@ -110,22 +113,15 @@ export default class SiteSecurity {
         filteredSite.address = UtilsSecurity.filterAddressRequest(site.address);
       }
       if (site.company) {
-        filteredSite.company = CompanySecurity.filterCompanyResponse(site.company, loggedUser); // TODO: change
+        filteredSite.company = CompanySecurity.filterCompanyResponse(site.company, loggedUser);
       }
       if (site.siteAreas) {
         filteredSite.siteAreas = SiteAreaSecurity.filterSiteAreasResponse(site.siteAreas, loggedUser);
       }
-      if (site.hasOwnProperty('availableChargers')) {
-        filteredSite.availableChargers = site.availableChargers;
-      }
-      if (site.hasOwnProperty('totalChargers')) {
-        filteredSite.totalChargers = site.totalChargers;
-      }
-      if (site.hasOwnProperty('availableConnectors')) {
-        filteredSite.availableConnectors = site.availableConnectors;
-      }
-      if (site.hasOwnProperty('totalConnectors')) {
-        filteredSite.totalConnectors = site.totalConnectors;
+      if (site.connectorStats) {
+        filteredSite.connectorStats = site.connectorStats;
+        // TODO: To keep backward compat with Mobile App: remove it once new version is deployed
+        filteredSite = { ...filteredSite, ...site.connectorStats };
       }
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(
@@ -134,7 +130,7 @@ export default class SiteSecurity {
     return filteredSite;
   }
 
-  static filterSitesResponse(sites: {result: Site[]; count: number}, loggedUser) {
+  static filterSitesResponse(sites: {result: Site[]; count: number}, loggedUser): Site[] {
     const filteredSites = [];
 
     if (!sites.result) {

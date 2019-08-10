@@ -94,7 +94,7 @@ export default class Notification extends TenantHolder {
   }
 
   setChargingStation(chargingStation) {
-    this._model.chargingStation = chargingStation.getModel();
+    this._model.chargingStation = chargingStation;
   }
 
   save() {

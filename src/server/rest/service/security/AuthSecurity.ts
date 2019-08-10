@@ -1,23 +1,10 @@
 import { Request } from 'express';
 import sanitize from 'mongo-sanitize';
 import Constants from '../../../../utils/Constants';
-import { HttpIsAuthorizedRequest, HttpLoginRequest, HttpRegisterUserRequest, HttpResendVerificationMailRequest, HttpResetPasswordRequest, HttpVerifyEmailRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpLoginRequest, HttpRegisterUserRequest, HttpResendVerificationMailRequest, HttpResetPasswordRequest, HttpVerifyEmailRequest } from '../../../../types/requests/HttpUserRequest';
 import UtilsSecurity from './UtilsSecurity';
 
 export default class AuthSecurity {
-
-  public static filterIsAuthorizedRequest(request: Partial<HttpIsAuthorizedRequest>): HttpIsAuthorizedRequest {
-    const filteredRequest: HttpIsAuthorizedRequest = {
-      Action: sanitize(request.Action),
-      Arg1: sanitize(request.Arg1),
-      Arg2: sanitize(request.Arg2),
-      Arg3: sanitize(request.Arg3)
-    };
-    if (filteredRequest.Action === 'StopTransaction') {
-      filteredRequest.Action = 'RemoteStopTransaction';
-    }
-    return filteredRequest;
-  }
 
   public static filterResetPasswordRequest(request: Partial<HttpResetPasswordRequest>): Partial<HttpResetPasswordRequest> {
     const filteredRequest: any = {};

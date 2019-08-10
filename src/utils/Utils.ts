@@ -17,11 +17,14 @@ import Configuration from './Configuration';
 import Constants from './Constants';
 import { HttpUserRequest } from '../types/requests/HttpUserRequest';
 import Logging from './Logging';
-import Tenant from '../entity/Tenant';
+import Tenant from '../types/Tenant';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
-
+import ChargingStation from '../types/ChargingStation';
+import ConnectorStats from '../types/ConnectorStats';
+import tzlookup from 'tz-lookup';
+import UserStorage from '../storage/mongodb/UserStorage';
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
 
@@ -51,6 +54,97 @@ export default class Utils {
       return typeof obj[Symbol.iterator] === 'function';
     }
     return false;
+  }
+
+  static getIfChargingStationIsInactive(chargingStation): boolean {
+    let inactive = false;
+    // Get Heartbeat Interval from conf
+    const config = Configuration.getChargingStationConfig();
+    if (config) {
+      const heartbeatIntervalSecs = config.heartbeatIntervalSecs;
+      // Compute against the last Heartbeat
+      if (chargingStation.lastHeartBeat) {
+        const inactivitySecs = Math.floor((Date.now() - chargingStation.lastHeartBeat.getTime()) / 1000);
+        // Inactive?
+        if (inactivitySecs > (heartbeatIntervalSecs * 5)) {
+          inactive = true;
+        }
+      }
+    }
+    return inactive;
+  }
+
+  public static getConnectorStatusesFromChargingStations(chargingStations: ChargingStation[]) : ConnectorStats {
+    const connectorStats: ConnectorStats = {
+      totalChargers: 0,
+      availableChargers: 0,
+      totalConnectors: 0,
+      chargingConnectors: 0,
+      suspendedConnectors: 0,
+      availableConnectors: 0,
+      unavailableConnectors: 0,
+      preparingConnectors: 0,
+      finishingConnectors: 0,
+      faultedConnectors: 0
+    };
+    // Chargers
+    for (const chargingStation of chargingStations) {
+      // Check not deleted
+      if (chargingStation.deleted) {
+        continue;
+      }
+      // Set Inactive flag
+      chargingStation.inactive = Utils.getIfChargingStationIsInactive(chargingStation);
+      connectorStats.totalChargers++;
+      // Handle Connectors
+      if (!chargingStation.connectors) {
+        chargingStation.connectors = [];
+      }
+      for (const connector of chargingStation.connectors) {
+        if (!connector) {
+          continue;
+        }
+        connectorStats.totalConnectors++;
+        // Not Available?
+        if (chargingStation.inactive ||
+            connector.status === Constants.CONN_STATUS_UNAVAILABLE) {
+          connectorStats.unavailableConnectors++;
+        // Available?
+        } else if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
+          connectorStats.availableConnectors++;
+        // Suspended?
+        } else if (connector.status === Constants.CONN_STATUS_SUSPENDED_EV ||
+            connector.status === Constants.CONN_STATUS_SUSPENDED_EVSE) {
+          connectorStats.suspendedConnectors++;
+        // Charging?
+        } else if (connector.status === Constants.CONN_STATUS_CHARGING ||
+            connector.status === Constants.CONN_STATUS_OCCUPIED) {
+          connectorStats.chargingConnectors++;
+        // Faulted?
+        } else if (connector.status === Constants.CONN_STATUS_FAULTED ||
+            connector.status === Constants.CONN_STATUS_OCCUPIED) {
+          connectorStats.faultedConnectors++;
+        // Preparing?
+        } else if (connector.status === Constants.CONN_STATUS_PREPARING) {
+          connectorStats.preparingConnectors++;
+        // Finishing?
+        } else if (connector.status === Constants.CONN_STATUS_FINISHING) {
+          connectorStats.finishingConnectors++;
+        }
+      }
+      // Handle Chargers
+      for (const connector of chargingStation.connectors) {
+        if (!connector) {
+          continue;
+        }
+        // Check if Available
+        if (!chargingStation.inactive && connector.status === Constants.CONN_STATUS_AVAILABLE) {
+          connectorStats.availableChargers++;
+          break;
+        }
+      }
+    }
+    return connectorStats;
   }
 
   // Temporary method for Revenue Cloud concept
@@ -100,7 +194,7 @@ export default class Utils {
     Utils._normalizeOneSOAPParam(headers, 'ReplyTo.Address');
     // Parse the request (lower case for fucking charging station DBT URL registration)
     const urlParts = url.parse(req.url.toLowerCase(), true);
-    const tenantID = urlParts.query.tenantid;
+    const tenantID = urlParts.query.tenantid as string;
     // Check
     await Utils.checkTenant(tenantID);
     // Set the Tenant ID
@@ -114,7 +208,7 @@ export default class Utils {
     }
   }
 
-  static async checkTenant(tenantID) {
+  public static async checkTenant(tenantID: string) {
     if (!tenantID) {
       throw new BackendError(null, 'The Tenant ID is mandatory');
     }
@@ -128,7 +222,7 @@ export default class Utils {
         throw new BackendError(null, `Invalid Tenant ID '${tenantID}'`);
       }
       // Get the Tenant
-      const tenant = await Tenant.getTenant(tenantID);
+      const tenant = await TenantStorage.getTenant(tenantID);
       if (!tenant) {
         throw new BackendError(null, `Invalid Tenant ID '${tenantID}'`);
       }
@@ -294,21 +388,21 @@ export default class Utils {
   static async buildEvseUserURL(tenantID: string, user: User, hash = '') {
 
     const tenant = await TenantStorage.getTenant(tenantID);
-    const _evseBaseURL = Utils.buildEvseURL(tenant.getSubdomain());
+    const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
     // Add
     return _evseBaseURL + '/users?UserID=' + user.id + hash;
   }
 
-  static async buildEvseChargingStationURL(chargingStation, hash = '') {
-    const tenant = await chargingStation.getTenant();
-    const _evseBaseURL = Utils.buildEvseURL(tenant.getSubdomain());
+  static async buildEvseChargingStationURL(tenantID: string, chargingStation: ChargingStation, hash = '') {
+    const tenant = await TenantStorage.getTenant(tenantID);
+    const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
 
-    return _evseBaseURL + '/charging-stations?ChargingStationID=' + chargingStation.getID() + hash;
+    return _evseBaseURL + '/charging-stations?ChargingStationID=' + chargingStation.id + hash;
   }
 
-  static async buildEvseTransactionURL(chargingStation, transactionId, hash = '') {
-    const tenant = await chargingStation.getTenant();
-    const _evseBaseURL = Utils.buildEvseURL(tenant.getSubdomain());
+  static async buildEvseTransactionURL(tenantID: string, chargingStation: ChargingStation, transactionId, hash = '') {
+    const tenant = await TenantStorage.getTenant(tenantID);
+    const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
     // Add
     return _evseBaseURL + '/transactions?TransactionID=' + transactionId + hash;
   }
@@ -327,7 +421,11 @@ export default class Utils {
   }
 
   public static getRequestIP(request): string {
-    if (request.connection.remoteAddress) {
+    if (request.ip) {
+      return request.ip;
+    } else if (request.headers['x-forwarded-for']) {
+      return request.headers['x-forwarded-for'];
+    } else if (request.connection.remoteAddress) {
       return request.connection.remoteAddress;
     } else if (request.headers.host) {
       const host = request.headers.host.split(':', 2);
@@ -601,6 +699,23 @@ export default class Utils {
     }
   }
 
+  public static async checkIfUserTagIDsAreValid(user: User, tagIDs: string[], req: Request) {
+    // Check that the Badge ID is not already used
+    if (Authorizations.isAdmin(req.user.role) || Authorizations.isSuperAdmin(req.user.role)) {
+      for (const tagID of tagIDs) {
+        const foundUser = await UserStorage.getUserByTagId(req.user.tenantID, tagID);
+        if (foundUser && (!user || (foundUser.id !== user.id))) {
+          // Tag already used!
+          throw new AppError(
+            Constants.CENTRAL_SERVER,
+            `The Tag ID '${tagID}' is already used by User '${Utils.buildUserFullName(foundUser)}'`,
+            Constants.HTTP_USER_TAG_ID_ALREADY_USED_ERROR,
+            'Utils', 'checkIfUserTagsAreValid', req.user);
+        }
+      }
+    }
+  }
+
   public static checkIfUserValid(filteredRequest: Partial<HttpUserRequest>, user: User, req: Request) {
     const tenantID = req.user.tenantID;
     if (!tenantID) {
@@ -750,5 +865,30 @@ export default class Utils {
 
   private static _isPlateIDValid(plateID) {
     return /^[A-Z0-9-]*$/.test(plateID);
+  }
+
+  public static getTimezone(lat: number, lon: number) {
+    if(lat && lon) {
+      return tzlookup(lat, lon);
+    }
+    return null;
+  }
+
+  public static getTenantActiveComponents(tenant: Tenant): string[] {
+    let components: string[] = [];
+    for(let componentName in tenant.components) {
+      if(tenant.components[componentName].active)
+        components.push(componentName);
+    }
+    return components;
+  }
+
+  public static isTenantComponentActive(tenant: Tenant, component: string): boolean {
+    for(let componentName in tenant.components) {
+      if(componentName===component) {
+        return tenant.components[componentName].active;
+      }
+    }
+    return false;
   }
 }

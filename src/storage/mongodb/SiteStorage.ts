@@ -16,14 +16,14 @@ export default class SiteStorage {
   public static async getSite(tenantID: string, id: string): Promise<Site> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getSite');
-    // Get
+    // Query single Site
     const sitesMDB = await SiteStorage.getSites(tenantID, {
-      search: id,
+      siteID: id,
       withCompany: true,
     }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('SiteStorage', 'getSite', uniqueTimerID, { id });
-    return sitesMDB.result[0];
+    return sitesMDB.count > 0 ? sitesMDB.result[0] : null;
   }
 
   public static async getSiteImage(tenantID: string, id: string): Promise<{id: string; image: string}> {
@@ -60,9 +60,7 @@ export default class SiteStorage {
       if (userIDs && userIDs.length > 0) {
         // Execute
         const res = await global.database.getCollection<any>(tenantID, 'siteusers').deleteMany({
-          'userID': { $in: userIDs.map((userID) => {
-            return Utils.convertToObjectID(userID);
-          }) },
+          'userID': { $in: userIDs.map((userID) => Utils.convertToObjectID(userID)) },
           'siteID': Utils.convertToObjectID(siteID)
         });
       }
@@ -181,7 +179,6 @@ export default class SiteStorage {
     });
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
-
     // Read DB
     const siteUsersMDB = await global.database.getCollection<{user: User; siteID: string; siteAdmin: boolean}>(tenantID, 'siteusers')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
@@ -230,22 +227,21 @@ export default class SiteStorage {
     } else {
       siteFilter._id = new ObjectID();
     }
-    // Check Created By/On
+    // Properties to save
     const siteMDB: any = {
       _id: siteFilter._id,
       address: siteToSave.address,
       companyID: Utils.convertToObjectID(siteToSave.companyID),
-      allowAllUsersToStopTransactions: siteToSave.allowAllUsersToStopTransactions,
       autoUserSiteAssignment: siteToSave.autoUserSiteAssignment,
       name: siteToSave.name,
     };
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(siteMDB, siteToSave);
-    // Modify
+    // Modify and return the modified document
     const result = await global.database.getCollection<any>(tenantID, 'sites').findOneAndUpdate(
       siteFilter,
       { $set: siteMDB },
-      { upsert: true, returnOriginal: false }
+      { upsert: true }
     );
     if (!result.ok) {
       throw new BackendError(
@@ -279,7 +275,7 @@ export default class SiteStorage {
   public static async getSites(tenantID: string,
     params: {
       search?: string; companyIDs?: string[]; withAutoUserAssignment?: boolean; siteIDs?: string[];
-      userID?: string; excludeSitesOfUserID?: boolean;
+      userID?: string; excludeSitesOfUserID?: boolean; siteID?: string;
       withAvailableChargers?: boolean; withCompany?: boolean; } = {},
     dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: Site[]}> {
     // Debug
@@ -290,9 +286,13 @@ export default class SiteStorage {
     const limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     const skip = Utils.checkRecordSkip(dbParams.skip);
-    // Set the filters
+    // Create Aggregation
+    const aggregation = [];
+    // Search filters
     const filters: any = {};
-    if (params.search) {
+    if (params.siteID) {
+      filters._id = Utils.convertToObjectID(params.siteID);
+    } else if (params.search) {
       if (ObjectID.isValid(params.search)) {
         filters._id = Utils.convertToObjectID(params.search);
       } else {
@@ -301,27 +301,21 @@ export default class SiteStorage {
         ];
       }
     }
-    // Set Company?
+    // Query by companyIDs
     if (params.companyIDs && Array.isArray(params.companyIDs) && params.companyIDs.length > 0) {
       filters.companyID = {
-        $in: params.companyIDs.map((company) => {
-          return Utils.convertToObjectID(company);
-        })
+        $in: params.companyIDs.map((company) => Utils.convertToObjectID(company))
       };
     }
     // Auto User Site Assignment
     if (params.withAutoUserAssignment) {
       filters.autoUserSiteAssignment = true;
     }
-    // Create Aggregation
-    const aggregation = [];
     // Limit on Site for Basic Users
     if (params.siteIDs && params.siteIDs.length > 0) {
       aggregation.push({
         $match: {
-          _id: { $in: params.siteIDs.map((siteID) => {
-            return Utils.convertToObjectID(siteID);
-          }) }
+          _id: { $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID)) }
         }
       });
     }
@@ -401,49 +395,11 @@ export default class SiteStorage {
       for (const siteMDB of sitesMDB) {
         // Count Available/Occupied Chargers/Connectors
         if (params.withAvailableChargers) {
-          let availableChargers = 0, totalChargers = 0, availableConnectors = 0, totalConnectors = 0;
           // Get the chargers
           const chargingStations = await ChargingStationStorage.getChargingStations(tenantID,
-            { siteIDs: [siteMDB.id] }, Constants.DB_PARAMS_MAX_LIMIT);
-          for (const chargingStation of chargingStations.result) {
-            // Set Inactive flag
-            chargingStation.setInactive(DatabaseUtils.chargingStationIsInactive(chargingStation.getModel()));
-            // Check not deleted
-            if (chargingStation.isDeleted()) {
-              continue;
-            }
-            totalChargers++;
-            // Handle Connectors
-            for (const connector of chargingStation.getConnectors()) {
-              if (!connector) {
-                continue;
-              }
-              totalConnectors++;
-              // Check Available
-              if (!chargingStation.isInactive() && connector.status === Constants.CONN_STATUS_AVAILABLE) {
-                availableConnectors++;
-              }
-            }
-            // Handle Chargers
-            for (const connector of chargingStation.getConnectors()) {
-              if (!connector) {
-                continue;
-              }
-              // Check Available
-              if (!chargingStation.isInactive() && connector.status === Constants.CONN_STATUS_AVAILABLE) {
-                availableChargers++;
-                break;
-              }
-            }
-          }
-          // Set
-          siteMDB.availableChargers = availableChargers;
-          siteMDB.totalChargers = totalChargers;
-          siteMDB.availableConnectors = availableConnectors;
-          siteMDB.totalConnectors = totalConnectors;
-        }
-        if (!siteMDB.allowAllUsersToStopTransactions) {
-          siteMDB.allowAllUsersToStopTransactions = false;
+            { siteIDs: [siteMDB.id], includeDeleted: false }, Constants.DB_PARAMS_MAX_LIMIT);
+          // Set the Charging Stations' Connector statuses
+          siteMDB.connectorStats = Utils.getConnectorStatusesFromChargingStations(chargingStations.result);;
         }
         if (!siteMDB.autoUserSiteAssignment) {
           siteMDB.autoUserSiteAssignment = false;
@@ -479,9 +435,7 @@ export default class SiteStorage {
     // Delete all Site Areas
     await SiteAreaStorage.deleteSiteAreasFromSites(tenantID, ids);
     // Convert
-    const cids: ObjectID[] = ids.map((id) => {
-      return Utils.convertToObjectID(id);
-    });
+    const cids: ObjectID[] = ids.map((id) => Utils.convertToObjectID(id));
     // Delete Site
     await global.database.getCollection<any>(tenantID, 'sites')
       .deleteMany({ '_id': { $in: cids } });
@@ -505,10 +459,7 @@ export default class SiteStorage {
       .find({ companyID: Utils.convertToObjectID(companyID) })
       .project({ _id: 1 })
       .toArray())
-      .map((site): string => {
-        return site._id.toHexString();
-      }
-      );
+      .map((site): string => site._id.toHexString());
     // Delete all Site Areas
     await SiteAreaStorage.deleteSiteAreasFromSites(tenantID, siteIDs);
     // Delete Sites

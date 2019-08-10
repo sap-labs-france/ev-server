@@ -1,13 +1,13 @@
 import uuid from 'uuid/v4';
 import { OPEN } from 'ws';
 import BackendError from '../../../exception/BackendError';
-import ChargingStation from '../../../entity/ChargingStation';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import OCPPError from '../../../exception/OcppError';
-import Tenant from '../../../entity/Tenant';
 import Utils from '../../../utils/Utils';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
 
 const MODULE_NAME = 'WSConnection';
 export default class WSConnection {
@@ -77,13 +77,13 @@ export default class WSConnection {
       // Cloud Foundry?
       if (Configuration.isCloudFoundry()) {
         // Yes: Save the CF App and Instance ID to call the charger from the Rest server
-        const chargingStation = await ChargingStation.getChargingStation(this.tenantID, this.getChargingStationID());
+        const chargingStation = await ChargingStationStorage.getChargingStation(this.tenantID, this.getChargingStationID());
         // Found?
         if (chargingStation) {
           // Update CF Instance
-          chargingStation.setCFApplicationIDAndInstanceIndex(Configuration.getCFApplicationIDAndInstanceIndex());
+          chargingStation.cfApplicationIDAndInstanceIndex = Configuration.getCFApplicationIDAndInstanceIndex();
           // Save it
-          await chargingStation.save();
+          await ChargingStationStorage.saveChargingStation(this.tenantID, chargingStation);
         }
       }
     } catch (error) {
@@ -189,11 +189,11 @@ export default class WSConnection {
     return this.wsServer;
   }
 
-  getURL() {
+  getURL(): string {
     return this.url;
   }
 
-  getIP() {
+  getIP(): string {
     return this.ip;
   }
 
@@ -247,7 +247,7 @@ export default class WSConnection {
         this.wsConnection.send(messageToSend);
       } else {
         // Reject it
-        return rejectCallback(`Web socket closed for Message ID '${messageId}' with content '${messageToSend}' (${Tenant.getTenant(this.tenantID)})`);
+        return rejectCallback(`Web socket closed for Message ID '${messageId}' with content '${messageToSend}' (${TenantStorage.getTenant(this.tenantID).then((tenant) => tenant.name)})`);
       }
       // Request?
       if (messageType !== Constants.OCPP_JSON_CALL_MESSAGE) {
@@ -256,7 +256,8 @@ export default class WSConnection {
       } else {
         // Send timeout
         setTimeout(() => {
-          return rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${Tenant.getTenant(this.tenantID)})'`);
+          return rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${TenantStorage.getTenant(this.tenantID).then(
+            (tenant) => tenant.name)})'`);
         }, Constants.OCPP_SOCKET_TIMEOUT);
       }
 
@@ -277,7 +278,7 @@ export default class WSConnection {
     });
   }
 
-  getChargingStationID() {
+  getChargingStationID(): string {
     return this.chargingStationID;
   }
 
@@ -285,7 +286,7 @@ export default class WSConnection {
     this.chargingStationID = chargingStationID;
   }
 
-  getTenantID() {
+  getTenantID(): string {
     // Check
     if (this.isTenantValid()) {
       // Ok verified

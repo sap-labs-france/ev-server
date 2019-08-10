@@ -152,7 +152,7 @@ export default class UserStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUser');
     // Get user
-    const user = await UserStorage.getUsers(tenantID, { search: id }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const user = await UserStorage.getUsers(tenantID, { userID: id }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('UserStorage', 'getUser', uniqueTimerID, { id });
     return user.count > 0 ? user.result[0] : null;
@@ -241,17 +241,34 @@ export default class UserStorage {
       userFilter.email = userToSave.email;
     }
     // Properties to save
-    const userMDB = {
+    let userMDB = { // DO NOT CHANGE TO const!!!!
       _id: userToSave.id ? Utils.convertToObjectID(userToSave.id) : new ObjectID(),
-      createdBy: userToSave.createdBy ? userToSave.createdBy.id : null,
-      lastChangedBy: userToSave.lastChangedBy ? userToSave.lastChangedBy.id : null,
-      ...userToSave
+      email: userToSave.email,
+      phone: userToSave.phone,
+      mobile: userToSave.mobile,
+      role: userToSave.role,
+      status: userToSave.status,
+      locale: userToSave.locale,
+      plateID: userToSave.plateID,
+      address: userToSave.address,
+      notificationsActive: userToSave.notificationsActive,
+      iNumber: userToSave.iNumber,
+      costCenter: userToSave.costCenter,
+      deleted: userToSave.deleted,
+      eulaAcceptedHash: userToSave.eulaAcceptedHash,
+      eulaAcceptedVersion: userToSave.eulaAcceptedVersion,
+      eulaAcceptedOn: userToSave.eulaAcceptedOn,
+      name: userToSave.name,
+      firstName: userToSave.firstName,
+      passwordResetHash: userToSave.passwordResetHash,
+      passwordWrongNbrTrials: userToSave.passwordWrongNbrTrials,
+      passwordBlockedUntil: userToSave.passwordBlockedUntil,
+      verificationToken: userToSave.verificationToken,
+      verifiedAt: userToSave.verifiedAt,
+      tagIDs: userToSave.tagIDs
     };
-    // Clean up mongo request
-    delete userMDB.id;
-    delete userMDB.image;
     // Check Created/Last Changed By
-    DatabaseUtils.addLastChangedCreatedProps(userMDB, userMDB);
+    DatabaseUtils.addLastChangedCreatedProps(userMDB, userToSave);
     // Modify and return the modified document
     await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
       userFilter,
@@ -287,6 +304,28 @@ export default class UserStorage {
     }
     // Debug
     Logging.traceEnd('UserStorage', 'saveUserTags', uniqueTimerID, { id: userID, tags: userTagIDs });
+  }
+
+  public static async saveUserPassword(tenantID: string, userID: string, newPassword: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserPassword');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Set data
+    const updatedFields: any = {};
+    updatedFields['password'] = newPassword;
+    // Modify and return the modified document
+    const result = await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
+      { '_id': Utils.convertToObjectID(userID) },
+      { $set: updatedFields });
+    if (!result.ok) {
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Couldn\'t update User password',
+        'UserStorage', 'saveUserPassword');
+    }
+    // Debug
+    Logging.traceEnd('UserStorage', 'saveUserPassword', uniqueTimerID);
   }
 
   public static async saveUserImage(tenantID: string, userImageToSave: {id: string; image: string}): Promise<void> {
@@ -328,12 +367,15 @@ export default class UserStorage {
         '$or': DatabaseUtils.getNotDeletedFilter()
       }]
     };
-    // Source?
-    if (params.search) {
+    // Filter by ID
+    if (params.userID) {
+      filters.$and.push({ _id: Utils.convertToObjectID(params.userID) });
+    // Filter by other properties
+    } else if (params.search) {
+      // Search is an ID?
       if (ObjectID.isValid(params.search)) {
         filters.$and.push({ _id: Utils.convertToObjectID(params.search) });
       } else {
-        // Build filter
         filters.$and.push({
           '$or': [
             { 'name': { $regex: params.search, $options: 'i' } },

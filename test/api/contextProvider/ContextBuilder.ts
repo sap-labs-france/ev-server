@@ -13,7 +13,7 @@ import SiteAreaStorage from '../../../src/storage/mongodb/SiteAreaStorage';
 import SiteContext from './SiteContext';
 import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
 import StatisticsContext from './StatisticsContext';
-import Tenant from '../../../src/entity/Tenant';
+import Tenant from '../../../src/types/Tenant';
 import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
 import User from '../../../src/types/User';
@@ -21,6 +21,7 @@ import UserFactory from '../../factories/UserFactory';
 import UserStorage from '../../../src/storage/mongodb/UserStorage';
 import Utils from '../../../src/utils/Utils';
 import { expect } from 'chai';
+import TenantStorage from '../../../src/storage/mongodb/TenantStorage';
 
 export default class ContextBuilder {
 
@@ -58,9 +59,9 @@ export default class ContextBuilder {
     // Delete all tenants
     for (const tenantContextDef of CONTEXTS.TENANT_CONTEXT_LIST) {
       console.log('Delete tenant ' + tenantContextDef.id + ' ' + tenantContextDef.subdomain);
-      const tenantEntity = await Tenant.getTenantByName(tenantContextDef.tenantName);
+      const tenantEntity = await TenantStorage.getTenantByName(tenantContextDef.tenantName);
       if (tenantEntity) {
-        await this.superAdminCentralServerService.tenantApi.delete(tenantEntity.getID());
+        await this.superAdminCentralServerService.tenantApi.delete(tenantEntity.id);
       }
     }
   }
@@ -109,9 +110,9 @@ export default class ContextBuilder {
       }
     }
     // Check if tenant exist
-    const existingTenant = await Tenant.getTenant(tenantContextDef.id);
+    const existingTenant = await TenantStorage.getTenant(tenantContextDef.id);
     if (existingTenant) {
-      console.log(`Tenant ${tenantContextDef.id} already exist with name ${existingTenant.getName()}. Please run a destroy context`);
+      console.log(`Tenant ${tenantContextDef.id} already exist with name ${existingTenant.name}. Please run a destroy context`);
       throw new Error('Tenant id exist already');
 
     }
@@ -130,9 +131,8 @@ export default class ContextBuilder {
     console.log('CREATE tenant context ' + buildTenant.id +
       ' ' + buildTenant.subdomain);
 
-    await UserStorage.saveUser(buildTenant.id, {
+    const userId = await UserStorage.saveUser(buildTenant.id, {
       'id': CONTEXTS.TENANT_USER_LIST[0].id,
-      'password': await Utils.hashPasswordBcrypt(config.get('admin.password')),
       'email': config.get('admin.username'),
       'status': CONTEXTS.TENANT_USER_LIST[0].status,
       'role': CONTEXTS.TENANT_USER_LIST[0].role,
@@ -142,6 +142,7 @@ export default class ContextBuilder {
       'plateID': faker.random.alphaNumeric(8),
       'deleted': false
     });
+    await UserStorage.saveUserPassword(buildTenant.id, userId, await Utils.hashPasswordBcrypt(config.get('admin.password')));
     if (CONTEXTS.TENANT_USER_LIST[0].tagIDs) {
       await UserStorage.saveUserTags(buildTenant.id, CONTEXTS.TENANT_USER_LIST[0].id, CONTEXTS.TENANT_USER_LIST[0].tagIDs);
     }
@@ -197,13 +198,13 @@ export default class ContextBuilder {
       createUser.email = userDef.emailPrefix + defaultAdminUser.email;
       // Update the password
       const newPasswordHashed = await Utils.hashPasswordBcrypt(config.get('admin.password'));
-      createUser.password = newPasswordHashed;
       createUser.role = userDef.role;
       createUser.status = userDef.status;
       createUser.id = userDef.id;
       createUser.tagIDs = userDef.tagIDs;
       const user: User = createUser;
       await UserStorage.saveUser(buildTenant.id, user);
+      await UserStorage.saveUserPassword(buildTenant.id, user.id, newPasswordHashed);
       if (userDef.tagIDs) {
         await UserStorage.saveUserTags(buildTenant.id, userDef.id, userDef.tagIDs);
       }
@@ -243,7 +244,6 @@ export default class ContextBuilder {
           })
         });
         siteTemplate.name = siteContextDef.name;
-        siteTemplate.allowAllUsersToStopTransactions = siteContextDef.allowAllUsersToStopTransactions;
         siteTemplate.autoUserSiteAssignment = siteContextDef.autoUserSiteAssignment;
         siteTemplate.id = siteContextDef.id;
         site = siteTemplate;

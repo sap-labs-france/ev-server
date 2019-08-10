@@ -7,8 +7,9 @@ import Constants from '../../utils/Constants';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import NotificationTask from '../NotificationTask';
-import Tenant from '../../entity/Tenant';
+import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
 
 
 // Email
@@ -72,6 +73,10 @@ export default class EMailNotificationTask extends NotificationTask {
     return this._prepareAndSendEmail('end-of-session', data, locale, tenantID);
   }
 
+  sendEndOfSignedSession(data, locale, tenantID) {
+    return this._prepareAndSendEmail('end-of-signed-session', data, locale, tenantID);
+  }
+
   sendChargingStationStatusError(data, locale, tenantID) {
     // Send it
     return this._prepareAndSendEmail('charging-station-status-error', data, locale, tenantID);
@@ -128,28 +133,31 @@ export default class EMailNotificationTask extends NotificationTask {
     emailTemplate.subject = ejs.render(emailTemplate.subject, data);
     // Render the tenant name
     if (tenantID !== Constants.DEFAULT_TENANT) {
-      const tenant = await Tenant.getTenant(tenantID);
-      emailTemplate.tenant = tenant.getName();
+      const tenant = await TenantStorage.getTenant(tenantID);
+      emailTemplate.tenant = tenant.name;
     } else {
       emailTemplate.tenant = Constants.DEFAULT_TENANT;
     }
     // Render Base URL
     emailTemplate.baseURL = ejs.render(emailTemplate.baseURL, data);
     emailTemplate.body.template = templateName;
-    // Render the title
-    emailTemplate.body.header.title = ejs.render(emailTemplate.body.header.title, data);
-    // Charge Angels Logo
-    emailTemplate.body.header.image.left.url = ejs.render(emailTemplate.body.header.image.left.url, data);
-
-    // Company Logo
-    emailTemplate.body.header.image.right.url = ejs.render(emailTemplate.body.header.image.right.url, data);
-    // Render Lines Before Action
-    emailTemplate.body.beforeActionLines =
-      emailTemplate.body.beforeActionLines.map((beforeActionLine) => {
-        return ejs.render(beforeActionLine, data);
-      });
-    // Remove extra empty lines
-    Utils.removeExtraEmptyLines(emailTemplate.body.beforeActionLines);
+    if (emailTemplate.body.header) {
+      // Render the title
+      emailTemplate.body.header.title = ejs.render(emailTemplate.body.header.title, data);
+      // Charge Angels Logo
+      emailTemplate.body.header.image.left.url = ejs.render(emailTemplate.body.header.image.left.url, data);
+      // Company Logo
+      emailTemplate.body.header.image.right.url = ejs.render(emailTemplate.body.header.image.right.url, data);
+    }
+    if (emailTemplate.body.beforeActionLines) {
+      // Render Lines Before Action
+      emailTemplate.body.beforeActionLines =
+        emailTemplate.body.beforeActionLines.map((beforeActionLine) => {
+          return ejs.render(beforeActionLine, data);
+        });
+      // Remove extra empty lines
+      Utils.removeExtraEmptyLines(emailTemplate.body.beforeActionLines);
+    }
     // Render Stats
     if (emailTemplate.body.stats) {
       emailTemplate.body.stats =
@@ -166,16 +174,41 @@ export default class EMailNotificationTask extends NotificationTask {
       emailTemplate.body.action.url =
         ejs.render(emailTemplate.body.action.url, data);
     }
-    // Render Lines After Action
-    emailTemplate.body.afterActionLines =
-      emailTemplate.body.afterActionLines.map((afterActionLine) => {
-        return ejs.render(afterActionLine, data);
-      });
-    // Remove extra empty lines
-    Utils.removeExtraEmptyLines(emailTemplate.body.afterActionLines);
+    if (emailTemplate.body.afterActionLines) {
+      // Render Lines After Action
+      emailTemplate.body.afterActionLines =
+        emailTemplate.body.afterActionLines.map((afterActionLine) => {
+          return ejs.render(afterActionLine, data);
+        });
+      // Remove extra empty lines
+      Utils.removeExtraEmptyLines(emailTemplate.body.afterActionLines);
+    }
+    if (emailTemplate.body.startSignedData && emailTemplate.body.endSignedData) {
+      emailTemplate.body.startSignedData = ejs.render(emailTemplate.body.startSignedData, data);
+      emailTemplate.body.endSignedData = ejs.render(emailTemplate.body.endSignedData, data);
+      emailTemplate.body.startSignedData = emailTemplate.body.startSignedData
+        .replace(/</g, '&amp;lt;')
+        .replace(/>/g, '&amp;gt;')
+        .replace(/encoding="base64"/g, '<br> encoding="base64"')
+        .replace(/\\/g, '');
+      emailTemplate.body.endSignedData = emailTemplate.body.endSignedData
+        .replace(/</g, '&amp;lt;')
+        .replace(/>/g, '&amp;gt;')
+        .replace(/encoding="base64"/g, '<br> encoding="base64"')
+        .replace(/\\/g, '');
+    }
+    if (emailTemplate.body.transactionId) {
+      emailTemplate.body.transactionId = ejs.render(emailTemplate.body.transactionId, data);
+    }
     // Render the final HTML -----------------------------------------------
     const subject = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/subject.template`, 'utf8'), emailTemplate);
-    const html = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/body-html.template`, 'utf8'), emailTemplate);
+    let htmlTemp;
+    if (templateName === 'end-of-signed-session') {
+      htmlTemp = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/body-signed-transaction.template`, 'utf8'), emailTemplate);
+    } else {
+      htmlTemp = ejs.render(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/body-html.template`, 'utf8'), emailTemplate);
+    }
+    const html = htmlTemp;
     // Add Admins in BCC from Configuration
     let adminEmails = null;
     if (data.adminUsers && data.adminUsers.length > 0) {

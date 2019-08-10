@@ -3,14 +3,14 @@ import CentralServerService from '../client/CentralServerService';
 import CONTEXTS from '../contextProvider/ContextConstants';
 import TenantContext from './TenantContext';
 import Utils from '../../../src/utils/Utils';
+import ChargingStation from '../../types/ChargingStation';
 
 export default class ChargingStationContext {
 
-  private chargingStation: any;
+  private chargingStation: ChargingStation;
   private tenantContext: TenantContext;
   private transactionsStarted: any;
   private transactionsStopped: any;
-  private userService: CentralServerService;
 
   constructor(chargingStation, tenantContext) {
     this.chargingStation = chargingStation;
@@ -45,19 +45,23 @@ export default class ChargingStationContext {
     return response;
   }
 
+  async isAuthorized(userService: CentralServerService) {
+    return await userService.chargingStationApi.isAuthorized('ConnectorsAction', this.chargingStation.id);
+  }
+
+  async isAuthorizedToStopTransaction(userService: CentralServerService, transactionId: string) {
+    return await userService.chargingStationApi.isAuthorized('StopTransaction', this.chargingStation.id, transactionId);
+  }
+
   async readChargingStation(userService?: CentralServerService) {
-    if (userService) {
-      this.userService = userService;
-    } else if (!this.userService) {
-      this.userService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN));
+    if (!userService) {
+      userService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN));
     }
-    const response = await this.userService.chargingStationApi.readById(this.chargingStation.id);
-    return response;
+    return await userService.chargingStationApi.readById(this.chargingStation.id);
   }
 
   async sendHeartbeat() {
-    const response = await await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeHeartbeat(this.chargingStation.id, {});
-    return response;
+    return await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeHeartbeat(this.chargingStation.id, {});
   }
 
   async startTransaction(connectorId, tagId, meterStart, startDate) {
@@ -301,22 +305,22 @@ export default class ChargingStationContext {
     let response;
     // OCPP 1.6?
     if (this.chargingStation.ocppVersion === '1.6') {
-    response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeMeterValues(this.chargingStation.id, {
-      connectorId: connectorId,
-      transactionId: transactionId,
-      meterValue: {
-        timestamp: timestamp.toISOString(),
-        sampledValue: [{
-          value: meterValue,
-          format: 'Raw',
-          measurand: 'Energy.Active.Import.Register',
-          unit: 'Wh',
-          location: 'Outlet',
-          context: 'Sample.Clock'
-        }]
+      response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeMeterValues(this.chargingStation.id, {
+        connectorId: connectorId,
+        transactionId: transactionId,
+        meterValue: {
+          timestamp: timestamp.toISOString(),
+          sampledValue: [{
+            value: meterValue,
+            format: 'Raw',
+            measurand: 'Energy.Active.Import.Register',
+            unit: 'Wh',
+            location: 'Outlet',
+            context: 'Sample.Clock'
+          }]
 
-      },
-    });
+        },
+      });
       // OCPP 1.5
     } else {
       response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeMeterValues(this.chargingStation.id, {

@@ -5,7 +5,8 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import OCPIServerError from '../../exception/OCPIServerError';
 import OCPIUtils from './OCPIUtils';
-import Tenant from '../../entity/Tenant';
+import Tenant from '../../types/Tenant';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
 
 const MODULE_NAME = 'AbstractOCPIService';
 export interface TenantIdHoldingRequest extends Request {
@@ -164,7 +165,7 @@ export default abstract class AbstractOCPIService {
       const tenantSubdomain = (decodedToken.tenant ? decodedToken.tenant : decodedToken.tid);
 
       // Get tenant from database
-      const tenant: any = await Tenant.getTenantBySubdomain(tenantSubdomain);
+      const tenant: any = await TenantStorage.getTenantBySubdomain(tenantSubdomain);
 
       // Check if tenant is found
       if (!tenant) {
@@ -175,7 +176,7 @@ export default abstract class AbstractOCPIService {
       }
 
       // Pass tenant id to req
-      req.user.tenantID = tenant.getID();
+      req.user.tenantID = tenant.id;
 
       // Check if service is enabled for tenant
       if (!this.ocpiRestConfig.tenantEnabled.includes(tenantSubdomain)) {

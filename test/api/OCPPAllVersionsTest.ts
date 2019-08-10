@@ -22,7 +22,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('OCPP tests (all versions)', function () {
+describe('OCPP tests (all versions)', function() {
   this.timeout(300000); // Will automatically stop the unit test after that period of time
 
   before(async () => {
@@ -72,6 +72,10 @@ describe('OCPP tests (all versions)', function () {
 
         it('With invalid tag should not be authorized to start a transaction', async () => {
           await testData.ocppCommonTests.testAuthorizeInvalidTag();
+        });
+
+        it('With unknown badge ID should create an unknown user', async () => {
+          await testData.ocppCommonTests.testAuthorizeUnknownTag();
         });
 
         it('Should be able to start transaction with tag as integer', async () => {
@@ -128,6 +132,10 @@ describe('OCPP tests (all versions)', function () {
 
         it('Charging station should send its heartbeat', async () => {
           await testData.ocppCommonTests.testHeartbeat();
+        });
+
+        it('Charging station should have saved the connection\'s IP address', async () => {
+          await testData.ocppCommonTests.testIP();
         });
 
         it('Charging station can change its connector status to Occupied', async () => {
@@ -191,6 +199,10 @@ describe('OCPP tests (all versions)', function () {
           await testData.ocppCommonTests.testAuthorizeInvalidTag();
         });
 
+        it('With unknown badge ID should create an unknown user', async () => {
+          await testData.ocppCommonTests.testAuthorizeUnknownTag();
+        });
+
         it('Should be able to start transaction with tag as integer', async () => {
           await testData.ocppCommonTests.testStartTransactionWithTagAsInteger();
         });
@@ -245,6 +257,10 @@ describe('OCPP tests (all versions)', function () {
 
         it('Charging station should send its heartbeat', async () => {
           await testData.ocppCommonTests.testHeartbeat();
+        });
+
+        it('Charging station should have saved the connection\'s IP address', async () => {
+          await testData.ocppCommonTests.testIP();
         });
 
         it('Charging station can change its connector status to Occupied', async () => {
@@ -369,8 +385,8 @@ describe('OCPP tests (all versions)', function () {
             );
           });
 
-          it('Should not authorize transaction', async () => {
-            await testData.ocppCommonTests.testStartTransaction(false, false);
+          it('Should authorize transaction', async () => {
+            await testData.ocppCommonTests.testStartTransaction();
           });
 
         });
@@ -511,8 +527,8 @@ describe('OCPP tests (all versions)', function () {
             );
           });
 
-          it('Should not authorize transaction', async () => {
-            await testData.ocppCommonTests.testStartTransaction(false, false);
+          it('Should authorize transaction', async () => {
+            await testData.ocppCommonTests.testStartTransaction();
           });
 
         });
@@ -630,6 +646,10 @@ describe('OCPP tests (all versions)', function () {
           await testData.ocppCommonTests.testAuthorizeInvalidTag();
         });
 
+        it('With unknown badge ID should create an unknown user', async () => {
+          await testData.ocppCommonTests.testAuthorizeUnknownTag();
+        });
+
         it('Should be able to start transaction with tag as integer', async () => {
           await testData.ocppCommonTests.testStartTransactionWithTagAsInteger();
         });
@@ -684,6 +704,10 @@ describe('OCPP tests (all versions)', function () {
 
         it('Charging station should send its heartbeat', async () => {
           await testData.ocppCommonTests.testHeartbeat();
+        });
+
+        it('Charging station should have saved the connection\'s IP address', async () => {
+          await testData.ocppCommonTests.testIP();
         });
 
         it('Charging station can change its connector status to Occupied', async () => {
@@ -812,6 +836,10 @@ describe('OCPP tests (all versions)', function () {
           await testData.ocppCommonTests.testAuthorizeInvalidTag();
         });
 
+        it('With unknown badge ID should create an unknown user', async () => {
+          await testData.ocppCommonTests.testAuthorizeUnknownTag();
+        });
+
         it('Should be able to start transaction with tag as integer', async () => {
           await testData.ocppCommonTests.testStartTransactionWithTagAsInteger();
         });
@@ -866,6 +894,10 @@ describe('OCPP tests (all versions)', function () {
 
         it('Charging station should send its heartbeat', async () => {
           await testData.ocppCommonTests.testHeartbeat();
+        });
+
+        it('Charging station should have saved the connection\'s IP address', async () => {
+          await testData.ocppCommonTests.testIP();
         });
 
         it('Charging station can change its connector status to Occupied', async () => {

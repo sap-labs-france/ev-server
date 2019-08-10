@@ -30,6 +30,8 @@ describe('Statistics tests', function() {
   let expectedConsumption = 0;
   let expectedUsage = 0;
   let expectedInactivity = 0;
+  let expectedTransactions = 0;
+  let expectedPricing = 0;
 
   before(async () => {
     chai.config.includeStack = true;
@@ -65,6 +67,9 @@ describe('Statistics tests', function() {
     expectedConsumption = StatisticsContext.CONSTANTS.ENERGY_PER_MINUTE * StatisticsContext.CONSTANTS.CHARGING_MINUTES / 1000;
     expectedUsage = (StatisticsContext.CONSTANTS.CHARGING_MINUTES + StatisticsContext.CONSTANTS.IDLE_MINUTES) / 60;
     expectedInactivity = StatisticsContext.CONSTANTS.IDLE_MINUTES / 60;
+
+    expectedTransactions = 1;
+    expectedPricing = 1 * expectedConsumption;
   });
 
   afterEach(() => {
@@ -122,6 +127,33 @@ describe('Statistics tests', function() {
         ).to.contain('inactive');
       });
 
+      it('Is not authorized to access sessions data', async () => {
+        let adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readChargingStationTransactions({ Year: firstYear });
+        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.data.message,
+          `Message from query for year ${firstYear} on data per charging station should contain "inactive"`
+        ).to.contain('inactive');
+
+        adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readUserTransactions({ Year: firstYear });
+        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.data.message,
+          `Message from query for year ${firstYear} on data per user should contain "inactive"`
+        ).to.contain('inactive');
+      });
+
+      it('Is not authorized to access pricing data', async () => {
+        let adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readChargingStationPricing({ Year: firstYear });
+        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.data.message,
+          `Message from query for year ${firstYear} on data per charging station should contain "inactive"`
+        ).to.contain('inactive');
+
+        adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.readUserPricing({ Year: firstYear });
+        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.data.message,
+          `Message from query for year ${firstYear} on data per user should contain "inactive"`
+        ).to.contain('inactive');
+      });
 
       it('Is not authorized to export data to file', async () => {
         let adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Consumption', DataCategory: 'C', DataScope: 'month' });
@@ -141,9 +173,22 @@ describe('Statistics tests', function() {
         expect(adminUserListResponse.data.message,
           `Message from query for year ${firstYear} on inactivity data per user should contain "inactive"`
         ).to.contain('inactive');
+
+        adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Transactions', DataCategory: 'C', DataScope: 'total' });
+        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.data.message,
+          `Message from query for year ${firstYear} on sessions data per charging station should contain "inactive"`
+        ).to.contain('inactive');
+
+        adminUserListResponse = await adminUserServerServiceNothing.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Pricing', DataCategory: 'U', DataScope: 'month' });
+        expect(adminUserListResponse.status).to.be.eql(560);
+        expect(adminUserListResponse.data.message,
+          `Message from query for year ${firstYear} on pricing data per charging station should contain "inactive"`
+        ).to.contain('inactive');
       });
 
     });
+
   });
 
   describe('With activated component (tenant ut-all)', () => {
@@ -223,7 +268,64 @@ describe('Statistics tests', function() {
         }
       });
 
-      it('Should be able to export consumption data to file', async () => {
+      it('Should see overall sessions data for multiple chargers', async () => {
+        const siteContext = tenantContextAll.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_BASIC);
+        const siteAreaContext = siteContext.getSiteAreaContext(CONTEXTS.SITE_AREA_CONTEXTS.WITH_ACL);
+        const chargingStationContext1 = siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP15);
+        const chargingStationContext2 = siteAreaContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16);
+        let adminUserListResponse = await adminUserServerService.statisticsApi.readChargingStationTransactions({
+          ChargeBoxID: `${chargingStationContext1.getChargingStation().id}` + `|${chargingStationContext2.getChargingStation().id}`
+        });
+        expect(adminUserListResponse.status).to.be.eql(200);
+        expect(adminUserListResponse.data,
+          `Query response for all years and chargers ${chargingStationContext1.getChargingStation().id}` +
+          ` and ${chargingStationContext2.getChargingStation().id} on data per charging station should not be empty`
+        ).not.to.be.empty;
+        if (Array.isArray(adminUserListResponse.data)) {
+          expect(StatisticsApi.calculateTotalsPerMonth(adminUserListResponse.data[0]),
+            `The number of sessions should be ${numberOfUsers * 2 * numberOfYears * expectedTransactions}`
+          ).to.be.eql(numberOfUsers * 2 * numberOfYears * expectedTransactions);
+        }
+        adminUserListResponse = await adminUserServerService.statisticsApi.readUserTransactions({
+          ChargeBoxID: `${chargingStationContext1.getChargingStation().id}` + `|${chargingStationContext2.getChargingStation().id}`
+        });
+        expect(adminUserListResponse.status).to.be.eql(200);
+        expect(adminUserListResponse.data,
+          `Query response for all years and chargers ${chargingStationContext1.getChargingStation().id}` +
+          ` and ${chargingStationContext2.getChargingStation().id} on data per user should not be empty`
+        ).not.to.be.empty;
+        if (Array.isArray(adminUserListResponse.data)) {
+          expect(StatisticsApi.calculateTotalsPerMonth(adminUserListResponse.data[0]),
+            `The number of sessions should be ${numberOfUsers * 2 * numberOfYears * expectedTransactions}`
+          ).to.be.eql(numberOfUsers * 2 * numberOfYears * expectedTransactions);
+        }
+      });
+
+      it('Should see annual pricing data for another user', async () => {
+        const user = tenantContextAll.getUserContext(CONTEXTS.USER_CONTEXTS.BASIC_USER);
+        let adminUserListResponse = await adminUserServerService.statisticsApi.readChargingStationPricing({ Year: firstYear, UserID: user.id });
+        expect(adminUserListResponse.status).to.be.eql(200);
+        expect(adminUserListResponse.data,
+          `Query response for year ${firstYear} and user ${user.name} (basic user) on data per charging station should not be empty`
+        ).not.to.be.empty;
+        if (Array.isArray(adminUserListResponse.data)) {
+          expect(StatisticsApi.calculateTotalsPerMonth(adminUserListResponse.data[0]),
+            `Pricing data should be ${numberOfChargers * expectedPricing} EUR`
+          ).to.be.eql(numberOfChargers * expectedPricing);
+        }
+        adminUserListResponse = await adminUserServerService.statisticsApi.readUserPricing({ Year: firstYear, UserID: user.id });
+        expect(adminUserListResponse.status).to.be.eql(200);
+        expect(adminUserListResponse.data,
+          `Query response for year ${firstYear} and user ${user.name} (basic user) on data per user should not be empty`
+        ).not.to.be.empty;
+        if (Array.isArray(adminUserListResponse.data)) {
+          expect(StatisticsApi.calculateTotalsPerMonth(adminUserListResponse.data[0]),
+            `Usage data should be ${numberOfChargers * expectedPricing} EUR`
+          ).to.be.eql(numberOfChargers * expectedPricing);
+        }
+      });
+
+      it('Should be able to export annual consumption data to file', async () => {
         let adminUserListResponse = await adminUserServerService.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Consumption', DataCategory: 'C', DataScope: 'month' });
         expect(adminUserListResponse.status).to.be.eql(200);
         expect(adminUserListResponse.data,
@@ -320,7 +422,54 @@ describe('Statistics tests', function() {
         }
       });
 
-      it('Should be able to export own usage data to file', async () => {
+      it('Should see annual sessions data of a specific site only for own user', async () => {
+        const siteContext = tenantContextAll.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_BASIC);
+        let basicUserListResponse = await basicUserServerService.statisticsApi.readChargingStationTransactions({ Year: firstYear, SiteID: siteContext.getSite().id });
+        expect(basicUserListResponse.status).to.be.eql(200);
+        expect(basicUserListResponse.data,
+          `Query response for year ${firstYear} and site ${siteContext.getSite().name} on data per charging station should not be empty`
+        ).not.to.be.empty;
+        if (Array.isArray(basicUserListResponse.data)) {
+          expect(StatisticsApi.calculateTotalsPerMonth(basicUserListResponse.data[0]),
+            `The number of sessions should be ${numberOfChargers * expectedTransactions}`
+          ).to.be.eql(numberOfChargers * expectedTransactions);
+        }
+        basicUserListResponse = await basicUserServerService.statisticsApi.readUserTransactions({ Year: firstYear, SiteID: siteContext.getSite().id });
+        expect(basicUserListResponse.status).to.be.eql(200);
+        expect(basicUserListResponse.data,
+          `Query response for year ${firstYear} and site ${siteContext.getSite().name} on data per user should not be empty`
+        ).not.to.be.empty;
+        if (Array.isArray(basicUserListResponse.data)) {
+          expect(StatisticsApi.calculateTotalsPerMonth(basicUserListResponse.data[0]),
+            `The number of sessions should be ${numberOfChargers * expectedTransactions}`
+          ).to.be.eql(numberOfChargers * expectedTransactions);
+        }
+      });
+
+      it('Should see overall pricing data only for own user', async () => {
+        let basicUserListResponse = await basicUserServerService.statisticsApi.readChargingStationPricing({});
+        expect(basicUserListResponse.status).to.be.eql(200);
+        expect(basicUserListResponse.data,
+          'Query response for all years on data per charging station should not be empty'
+        ).not.to.be.empty;
+        if (Array.isArray(basicUserListResponse.data)) {
+          expect(StatisticsApi.calculateTotalsPerMonth(basicUserListResponse.data[0]),
+            `Consumption data should be ${numberOfChargers * numberOfYears * expectedPricing} EUR`
+          ).to.be.eql(numberOfChargers * numberOfYears * expectedPricing);
+        }
+        basicUserListResponse = await basicUserServerService.statisticsApi.readUserPricing({});
+        expect(basicUserListResponse.status).to.be.eql(200);
+        expect(basicUserListResponse.data,
+          'Query response for all years on data per user should not be empty'
+        ).not.to.be.empty;
+        if (Array.isArray(basicUserListResponse.data)) {
+          expect(StatisticsApi.calculateTotalsPerMonth(basicUserListResponse.data[0]),
+            `Consumption data should be ${numberOfChargers * numberOfYears * expectedPricing} EUR`
+          ).to.be.eql(numberOfChargers * numberOfYears * expectedPricing);
+        }
+      });
+
+      it('Should be able to export own overall usage data to file', async () => {
         let basicUserListResponse = await basicUserServerService.statisticsApi.exportStatistics({ DataType: 'Usage', DataCategory: 'C', DataScope: 'total' });
         expect(basicUserListResponse.status).to.be.eql(200);
         expect(basicUserListResponse.data,
@@ -418,8 +567,55 @@ describe('Statistics tests', function() {
         }
       });
 
-      it('Should be able to export inactivity data to file for all users', async () => {
-        let demoUserListResponse = await demoUserServerService.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Inactivity', DataCategory: 'C', DataScope: 'total' });
+      it('Should see annual sessions data for another user', async () => {
+        const user = tenantContextAll.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+        let demoUserListResponse = await demoUserServerService.statisticsApi.readChargingStationTransactions({ Year: firstYear, UserID: user.id });
+        expect(demoUserListResponse.status).to.be.eql(200);
+        expect(demoUserListResponse.data,
+          `Query response for year ${firstYear} and user ${user.name} (admin user) on data per charging station should not be empty`
+        ).not.to.be.empty;
+        if (Array.isArray(demoUserListResponse.data)) {
+          expect(StatisticsApi.calculateTotalsPerMonth(demoUserListResponse.data[0]),
+            `The number of sessions should be ${numberOfChargers * expectedTransactions}`
+          ).to.be.eql(numberOfChargers * expectedTransactions);
+        }
+        demoUserListResponse = await demoUserServerService.statisticsApi.readUserTransactions({ Year: firstYear, UserID: user.id });
+        expect(demoUserListResponse.status).to.be.eql(200);
+        expect(demoUserListResponse.data,
+          `Query response for year ${firstYear} and user ${user.name} (admin user) on data per user should not be empty`
+        ).not.to.be.empty;
+        if (Array.isArray(demoUserListResponse.data)) {
+          expect(StatisticsApi.calculateTotalsPerMonth(demoUserListResponse.data[0]),
+            `The number of sessions should be ${numberOfChargers * expectedTransactions}`
+          ).to.be.eql(numberOfChargers * expectedTransactions);
+        }
+      });
+
+      it('Should see annual pricing data for all users', async () => {
+        let demoUserListResponse = await demoUserServerService.statisticsApi.readChargingStationPricing({ Year: firstYear });
+        expect(demoUserListResponse.status).to.be.eql(200);
+        expect(demoUserListResponse.data,
+          `Query response for year ${firstYear} on data per charging station should not be empty`
+        ).not.to.be.empty;
+        if (Array.isArray(demoUserListResponse.data)) {
+          expect(StatisticsApi.calculateTotalsPerMonth(demoUserListResponse.data[0]),
+            `Consumption data should be ${numberOfChargers * numberOfUsers * expectedPricing} EUR`
+          ).to.be.eql(numberOfChargers * numberOfUsers * expectedPricing);
+        }
+        demoUserListResponse = await demoUserServerService.statisticsApi.readUserPricing({ Year: firstYear });
+        expect(demoUserListResponse.status).to.be.eql(200);
+        expect(demoUserListResponse.data,
+          `Query response for year ${firstYear} on data per user should not be empty`
+        ).not.to.be.empty;
+        if (Array.isArray(demoUserListResponse.data)) {
+          expect(StatisticsApi.calculateTotalsPerMonth(demoUserListResponse.data[0]),
+            `Consumption data should be ${numberOfChargers * numberOfUsers * expectedPricing} EUR`
+          ).to.be.eql(numberOfChargers * numberOfUsers * expectedPricing);
+        }
+      });
+
+      it('Should be able to export annual pricing data to file for all users', async () => {
+        let demoUserListResponse = await demoUserServerService.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Pricing', DataCategory: 'C', DataScope: 'total' });
         expect(demoUserListResponse.status).to.be.eql(200);
         expect(demoUserListResponse.data,
           `Query response for year ${firstYear} on data per charging station should not be empty`
@@ -428,7 +624,7 @@ describe('Statistics tests', function() {
         expect(objectArray.length,
           `Number of exported chargers should be ${numberOfChargers}`
         ).to.be.eql(numberOfChargers);
-        demoUserListResponse = await demoUserServerService.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Inactivity', DataCategory: 'U', DataScope: 'month' });
+        demoUserListResponse = await demoUserServerService.statisticsApi.exportStatistics({ Year: firstYear, DataType: 'Pricing', DataCategory: 'U', DataScope: 'month' });
         expect(demoUserListResponse.status).to.be.eql(200);
         expect(demoUserListResponse.data,
           `Query response for year ${firstYear} on data per user should not be empty`
@@ -442,6 +638,7 @@ describe('Statistics tests', function() {
     });
 
   });
+
 });
 
 async function timeout(ms) {

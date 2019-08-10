@@ -515,20 +515,30 @@ export default class TransactionStorage {
               $match: {
                 $and: [
                   { 'stop': { $exists: true } },
-                  { 'stop.totalInactivitySecs': { $lt: 0} }
+                  { 'stop.totalInactivitySecs': { $lt: 0 } }
                 ]
               }
             },
             { $addFields: { 'errorCode': 'negative_inactivity' } }
+          ],
+        'incorrect_starting_date':
+          [
+            { $match: { 'timestamp': { $lte : Utils.convertToDate('2017-01-01 00:00:00.000Z') } } },
+            { $addFields: { 'errorCode': 'incorrect_starting_date' } }
           ]
       }
     };
-    if (params.errorType) {
-      const newFacet: any = {};
-      newFacet[params.errorType] = facets.$facet[params.errorType];
-      facets.$facet = newFacet;
+    if (params.errorType && Array.isArray(params.errorType) && params.errorType.length > 0) {
+      const filteredFacets: any = Object.keys(facets.$facet)
+        .filter(key => params.errorType.includes(key))
+        .reduce((obj, key) => {
+          return {
+            ...obj,
+            [key]: facets.$facet[key]
+          };
+        }, {});
+      facets.$facet = filteredFacets;
     }
-
     // Merge in each facet the join for sitearea and siteareaid
     const facetNames = [];
     for (const facet in facets.$facet) {
