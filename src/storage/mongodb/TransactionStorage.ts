@@ -138,22 +138,18 @@ export default class TransactionStorage {
     if (params.siteID) {
       match.siteID = Utils.convertToObjectID(params.siteID);
     }
-    console.log(`>>> params:${JSON.stringify(params)}`);
-    if (params.refundType && Array.isArray(params.refundType) && params.refundType.length > 0) {
-      params.refundType.forEach((type: string) => {
-        switch (type) {
-          case Constants.REFUND_TYPE_REFUNDED:
-            match.refundData = { $exists: true };
-            if (params.refundStatus) {
-              match['refundData.status'] = params.refundStatus;
-            }
-            console.log(`>>> match:${JSON.stringify(match)}`);
-            break;
-          case Constants.REFUND_TYPE_NOT_REFUNDED:
-            match.refundData = { $exists: false };
-            break;
-        }
-      });
+    if (params.refundType && Array.isArray(params.refundType) && params.refundType.length === 1) {
+      switch (params.refundType[0]) {
+        case Constants.REFUND_TYPE_REFUNDED:
+          match.refundData = { $exists: true };
+          if (params.refundStatus) {
+            match['refundData.status'] = params.refundStatus;
+          }
+          break;
+        case Constants.REFUND_TYPE_NOT_REFUNDED:
+          match.refundData = { $exists: false };
+          break;
+      }
     }
     if (params.minimalPrice) {
       match['stop.price'] = { $gt: 0 };
@@ -188,7 +184,6 @@ export default class TransactionStorage {
       // Always limit the nbr of record to avoid perfs issues
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
-    console.log(`>>> agg:${JSON.stringify(aggregation)}`);
     // Prepare statistics query
     let statsQuery = null;
     switch (params.statistics) {
@@ -235,7 +230,6 @@ export default class TransactionStorage {
           allowDiskUse: true
         })
       .toArray();
-      console.log(`>>> records:${JSON.stringify(transactionsCountMDB)}`);
       let transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ? transactionsCountMDB[0] : null;
     // Initialize statistics
     if (!transactionCountMDB) {
