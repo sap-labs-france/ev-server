@@ -5,6 +5,8 @@ import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
 import { HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest, HttpConsumptionFromTransactionRequest } from '../../../../types/requests/HttpTransactionRequest';
 import UtilsSecurity from './UtilsSecurity';
+import Transaction from '../../../../types/Transaction';
+import moment = require('moment');
 
 export default class TransactionSecurity {
   public static filterTransactionsRefund(request: Partial<HttpTransactionsRefundRequest>): HttpTransactionsRefundRequest {
@@ -101,71 +103,75 @@ export default class TransactionSecurity {
       }
       filteredTransaction.chargeBoxID = transaction.chargeBoxID;
       filteredTransaction.siteID = transaction.siteID;
-      filteredTransaction.siteAreaID = transaction.getSiteAreaID();
+      filteredTransaction.siteAreaID = transaction.siteAreaID;
       filteredTransaction.connectorId = transaction.connectorId;
-      filteredTransaction.meterStart = transaction.getMeterStart();
+      filteredTransaction.meterStart = transaction.meterStart;
       filteredTransaction.timestamp = transaction.timestamp;
       filteredTransaction.timezone = transaction.timezone;
       // If (Authorizations.isAdmin(loggedUser) && transaction.hasOwnProperty('price')) {
-      if (transaction.hasStartPrice()) {
-        filteredTransaction.price = transaction.getStartPrice();
-        filteredTransaction.roundedPrice = transaction.getStartRoundedPrice();
-        filteredTransaction.priceUnit = transaction.getStartPriceUnit();
-        filteredTransaction.pricingSource = transaction.getStartPricingSource();
+      if (transaction.price) {
+        filteredTransaction.price = transaction.price;
+        filteredTransaction.roundedPrice = transaction.roundedPrice;
+        filteredTransaction.priceUnit = transaction.priceUnit;
+        filteredTransaction.pricingSource = transaction.pricingSource;
       }
       // Runtime Data
-      if (transaction.isActive()) {
-        filteredTransaction.currentConsumption = transaction.getCurrentConsumption();
-        filteredTransaction.currentTotalConsumption = transaction.getCurrentTotalConsumption();
-        filteredTransaction.currentTotalInactivitySecs = transaction.getCurrentTotalInactivitySecs();
-        filteredTransaction.currentTotalDurationSecs = transaction.getCurrentTotalDurationSecs();
-        filteredTransaction.currentCumulatedPrice = transaction.getCurrentCumulatedPrice();
-        filteredTransaction.currentStateOfCharge = transaction.getCurrentStateOfCharge();
-        filteredTransaction.currentStateOfCharge = transaction.getCurrentStateOfCharge();
-        filteredTransaction.currentSignedData = transaction.getCurrentSignedData();
+      if (!transaction.stop) {
+        filteredTransaction.currentConsumption = transaction.currentConsumption;
+        filteredTransaction.currentTotalConsumption = transaction.currentTotalConsumption;
+        filteredTransaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs;
+        filteredTransaction.currentTotalDurationSecs =
+          moment.duration(moment(!transaction.stop ? transaction.lastMeterValue.timestamp : transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds()
+        filteredTransaction.currentCumulatedPrice = transaction.currentCumulatedPrice;
+        filteredTransaction.currentStateOfCharge = transaction.currentStateOfCharge;
+        filteredTransaction.currentStateOfCharge = transaction.currentStateOfCharge;
+        filteredTransaction.currentSignedData = transaction.currentSignedData;
       }
-      filteredTransaction.status = transaction.getChargerStatus();
-      filteredTransaction.isLoading = transaction.isLoading();
-      filteredTransaction.stateOfCharge = transaction.getStateOfCharge();
-      filteredTransaction.signedData = transaction.getSignedData();
-      filteredTransaction.refundData = transaction.getRefundData();
+      if (!transaction.stop && transaction.chargeBox && transaction.chargeBox.connectors) {
+        const foundConnector = transaction.chargeBox.connectors.find((connector) => connector.connectorId === transaction.connectorId);
+        filteredTransaction.status = foundConnector ? foundConnector.status : null;
+      }
+      filteredTransaction.isLoading = !transaction.stop && transaction.currentTotalInactivitySecs > 60;
+      filteredTransaction.stateOfCharge = transaction.stateOfCharge;
+      filteredTransaction.signedData = transaction.signedData;
+      filteredTransaction.refundData = transaction.refundData;
       // Demo user?
       if (Authorizations.isDemo(loggedUser.role)) {
         filteredTransaction.tagID = Constants.ANONYMIZED_VALUE;
       } else {
-        filteredTransaction.tagID = transaction.getTagID();
+        filteredTransaction.tagID = transaction.tagID;
       }
       // Filter user
       filteredTransaction.user = TransactionSecurity._filterUserInTransactionResponse(
-        transaction.getUserJson(), loggedUser);
+        transaction.user, loggedUser);
       // Transaction Stop
-      if (transaction.isFinished()) {
+      if (transaction.stop) {
         filteredTransaction.stop = {};
-        filteredTransaction.stop.meterStop = transaction.getStopMeter();
-        filteredTransaction.stop.timestamp = transaction.getStopDate();
-        filteredTransaction.stop.totalConsumption = transaction.getStopTotalConsumption();
-        filteredTransaction.stop.totalInactivitySecs = transaction.getStopTotalInactivitySecs() + transaction.getStopExtraInactivitySecs();
+        filteredTransaction.stop.meterStop = transaction.stop.meterStop;
+        filteredTransaction.stop.timestamp = transaction.stop.timestamp;
+        filteredTransaction.stop.totalConsumption = transaction.stop.totalConsumption;
+        filteredTransaction.stop.totalInactivitySecs = transaction.stop.totalInactivitySecs + transaction.stop.extraInactivitySecs;
         filteredTransaction.stop.totalDurationSecs = transaction.stop.totalDurationSecs;
-        filteredTransaction.stop.stateOfCharge = transaction.getStopStateOfCharge();
-        filteredTransaction.stop.signedData = transaction.getEndSignedData();
+        filteredTransaction.stop.stateOfCharge = transaction.stop.stateOfCharge;
+        filteredTransaction.stop.signedData = transaction.stop.signedData;
         // pragma if (Authorizations.isAdmin(loggedUser) && transaction.hasStopPrice()) {
-        if (transaction.hasStopPrice()) {
+        if (transaction.stop.price) {
           filteredTransaction.stop.price = transaction.stop.price;
-          filteredTransaction.stop.roundedPrice = transaction.getStopRoundedPrice();
+          filteredTransaction.stop.roundedPrice = transaction.stop.roundedPrice;
           filteredTransaction.stop.priceUnit = transaction.stop.priceUnit;
-          filteredTransaction.stop.pricingSource = transaction.getStopPricingSource();
+          filteredTransaction.stop.pricingSource = transaction.stop.pricingSource;
         }
         // Demo user?
         if (Authorizations.isDemo(loggedUser.role)) {
           filteredTransaction.stop.tagID = Constants.ANONYMIZED_VALUE;
         } else {
-          filteredTransaction.stop.tagID = transaction.getStopTagID();
+          filteredTransaction.stop.tagID = transaction.stop.tagID;
         }
         // Stop User
-        if (transaction.getStopUserJson()) {
+        if (transaction.stop.user) {
           // Filter user
           filteredTransaction.stop.user = TransactionSecurity._filterUserInTransactionResponse(
-            transaction.getStopUserJson(), loggedUser);
+            transaction.stop.user, loggedUser);
         }
       }
     }
@@ -239,16 +245,16 @@ export default class TransactionSecurity {
    * @param loggedUser
    * @returns {*}
    */
-  static filterConsumptionsFromTransactionResponse(transaction, consumptions, loggedUser: UserToken) {
+  static filterConsumptionsFromTransactionResponse(transaction: Transaction, consumptions, loggedUser: UserToken) {
     if (!consumptions) {
       consumptions = [];
     }
     // Check Authorisation
-    if (transaction.getUserJson()) {
-      if (!Authorizations.canReadUser(loggedUser, transaction.getUserJson().id)) {
+    if (transaction.user) {
+      if (!Authorizations.canReadUser(loggedUser, transaction.userID)) {
         return null;
       }
-    } else if (!transaction.getUserJson() && !Authorizations.isAdmin(loggedUser.role)) {
+    } else if (!transaction.user && !Authorizations.isAdmin(loggedUser.role)) {
       return null;
     }
     const filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser);

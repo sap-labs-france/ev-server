@@ -272,6 +272,7 @@ export default class TransactionService {
   public static async handleGetTransaction(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
     const ID = TransactionSecurity.filterTransactionRequest(req.query);
+    console.log(ID);
     UtilsService.assertIdIsProvided(ID, 'TransactionService', 'handleGetTransaction', req.user);
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, ID);
