@@ -226,7 +226,7 @@ export default class TransactionStorage {
           allowDiskUse: true
         })
       .toArray();
-      let transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ? transactionsCountMDB[0] : null;
+    let transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ? transactionsCountMDB[0] : null;
     // Initialize statistics
     if (!transactionCountMDB) {
       switch (params.statistics) {
