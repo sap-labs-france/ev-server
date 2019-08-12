@@ -133,7 +133,7 @@
     "active": true,
     "tasks": [
       {
-        "name": "loggingDatabaseTableCleanup",
+        "name": "LoggingDatabaseTableCleanupTask",
         "active": true,
         "periodicity": "0 0 * * 1",
         "config": {
