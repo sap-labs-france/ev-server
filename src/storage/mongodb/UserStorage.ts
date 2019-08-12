@@ -293,9 +293,10 @@ export default class UserStorage {
     await global.database.getCollection<any>(tenantID, 'tags')
       .deleteMany({ 'userID': Utils.convertToObjectID(userID) });
     // Add new ones
-    if (userTagIDsToSave.length > 0) {
+    const uniqueUserTagIDsToSave = [...new Set(userTagIDsToSave)];
+    if (uniqueUserTagIDsToSave.length > 0) {
       await global.database.getCollection<any>(tenantID, 'tags')
-        .insertMany(userTagIDsToSave.map((userTagIDToSave) => ({ _id: userTagIDToSave, userID: Utils.convertToObjectID(userID) })));
+        .insertMany(uniqueUserTagIDsToSave.map((userTagIDToSave) => {
     }
     // Debug
     Logging.traceEnd('UserStorage', 'saveUserTags', uniqueTimerID, { id: userID, tags: userTagIDs });
