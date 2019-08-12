@@ -284,6 +284,7 @@ export default class OCPPCommonTests {
       const connector = chargingStationResponse.data.connectors[this.chargingStationConnector1.connectorId - 1];
       expect(connector).not.null;
       expect(connector.activeTransactionID).eq(transactionId);
+      expect(connector.activeTransactionDate).eq(this.transactionStartTime.toISOString());
       expect(connector.activeTagID).eq(this.transactionStartUser.tagIDs[0]);
     } else {
       this.newTransaction = null;

@@ -162,11 +162,13 @@ const GRANTS = {
               args: [
                 {
                   Fn: 'EQUALS',
-                  args: { 'user': null }
+                  args: { 'user': '$.owner' }
                 },
                 {
-                  Fn: 'EQUALS',
-                  args: { 'user': '$.owner' }
+                  Fn: 'LIST_CONTAINS',
+                  args: {
+                    'tagIDs': '$.tagID'
+                  }
                 }
               ]
             },

@@ -1,4 +1,16 @@
-module.exports = function(chai, utils) {
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  export namespace Chai {
+    interface Assertion {
+      transaction(expected: any): Assertion;
+      transactionValid(expected: any): Assertion;
+      transactionStatus(expectedStatus: string): void;
+      validatedSetting(identifier: string, type: string): void;
+    }
+  }
+}
+
+export default function(chai, utils) {
   const Assertion = chai.Assertion;
 
   utils.addProperty(Assertion.prototype, 'transaction', function() {
@@ -61,5 +73,4 @@ module.exports = function(chai, utils) {
       new Assertion(this._obj.content.type).to.equal(type);
     }
   });
-
 };

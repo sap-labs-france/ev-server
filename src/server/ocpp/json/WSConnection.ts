@@ -313,4 +313,3 @@ export default class WSConnection {
     return this.wsConnection.readyState === OPEN;
   }
 }
-

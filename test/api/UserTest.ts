@@ -5,6 +5,7 @@ import ContextProvider from './contextProvider/ContextProvider';
 import CentralServerService from '../api/client/CentralServerService';
 import TenantContext from './contextProvider/TenantContext';
 import Factory from '../factories/Factory';
+import SiteContext from './ContextProvider/SiteContext';
 
 chai.use(chaiSubset);
 
@@ -14,6 +15,7 @@ class TestData {
   public centralUserService: CentralServerService;
   public userContext: any;
   public userService: CentralServerService;
+  public siteContext: SiteContext;
   public newUser: any;
   public createdUsers: any[] = [];
 }
@@ -42,6 +44,7 @@ describe('User tests', function() {
     before(async () => {
       testData.tenantContext = await ContextProvider.DefaultInstance.getTenantContext(CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION);
       testData.centralUserContext = testData.tenantContext.getUserContext(CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN);
+      testData.siteContext = testData.tenantContext.getSiteContext(CONTEXTS.SITE_CONTEXTS.SITE_WITH_AUTO_USER_ASSIGNMENT);
       testData.centralUserService = new CentralServerService(
         testData.tenantContext.getTenant().subdomain,
         testData.centralUserContext
@@ -86,6 +89,15 @@ describe('User tests', function() {
           // Remove Passwords
           delete testData.newUser.passwords;
           testData.createdUsers.push(testData.newUser);
+        });
+
+        it('Should find the created user in the auto-assign site', async () => {
+          // Checks if the sites to which the new user is assigned contains the auto-assign site
+          await testData.userService.checkEntityInListWithParams(
+            testData.userService.siteApi,
+            testData.siteContext.getSite(),
+            { 'UserID': testData.newUser.id }
+          );
         });
 
         it('Should find the created user by id', async () => {

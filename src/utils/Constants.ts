@@ -56,6 +56,7 @@ export default class Constants {
   public static readonly STATS_GROUP_BY_USAGE = 'U';
   public static readonly STATS_GROUP_BY_INACTIVITY = 'I';
   public static readonly STATS_GROUP_BY_TRANSACTIONS = 'T';
+  public static readonly STATS_GROUP_BY_PRICING = 'P';
 
   public static readonly ENTITY_SITE = 'Site';
   public static readonly ENTITY_SITES = 'Sites';
