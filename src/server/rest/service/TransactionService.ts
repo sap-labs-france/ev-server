@@ -557,7 +557,7 @@ export default class TransactionService {
         filter.endDateTime = filteredRequest.EndDateTime;
       }
       if (filteredRequest.Type) {
-        filter.type = filteredRequest.Type;
+        filter.refundType = filteredRequest.Type.split('|');
       }
       if (filteredRequest.MinimalPrice) {
         filter.minimalPrice = filteredRequest.MinimalPrice;
