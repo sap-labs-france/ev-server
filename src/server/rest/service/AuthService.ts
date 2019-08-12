@@ -8,7 +8,6 @@ import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import AuthSecurity from './security/AuthSecurity';
 import BadRequestError from '../../../exception/BadRequestError';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import { HttpLoginRequest, HttpResetPasswordRequest } from '../../../types/requests/HttpUserRequest';

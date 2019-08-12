@@ -4,8 +4,8 @@ import CentralServerService from '../api/client/CentralServerService';
 import CONTEXTS from './contextProvider/ContextConstants';
 import ContextProvider from './contextProvider/ContextProvider';
 import Factory from '../factories/Factory';
-import SiteContext from './ContextProvider/SiteContext';
-import TenantContext from './ContextProvider/TenantContext';
+import SiteContext from './contextProvider/SiteContext';
+import TenantContext from './contextProvider/TenantContext';
 
 chai.use(chaiSubset);
 

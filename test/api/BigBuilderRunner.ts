@@ -1,5 +1,5 @@
 import chai, { expect } from 'chai';
-import BigBuilder from './ContextProvider/BigBuilder';
+import BigBuilder from './contextProvider/BigBuilder';
 
 // For Visual Studio it is recommended to install Mocha sidebar and Chai snippets
 // Mocha is the test framework and chai provides functions to check expectations
