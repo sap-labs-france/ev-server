@@ -244,6 +244,12 @@ export default class OCPPCommonTests {
     expect(response.data.status).to.equal('Accepted');
   }
 
+  public async testChargingStationRegistrationWithInvalidToken() {
+    const response = await this.chargingStationContext.sendBootNotification();
+    expect(response.data).not.to.be.null;
+    expect(response.data.status).eq('Rejected');
+  }
+
   public async testAuthorizeUsers() {
     // Asserts that the start user is authorized.
     await this.testAuthorize(this.transactionStartUser.tagIDs[0], 'Accepted');

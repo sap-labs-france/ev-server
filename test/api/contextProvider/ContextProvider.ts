@@ -6,6 +6,8 @@ import Constants from '../../../src/utils/Constants';
 import CONTEXTS from './ContextConstants';
 import SiteContext from './SiteContext';
 import TenantContext from './TenantContext';
+import Factory from '../../factories/Factory';
+import faker from 'faker';
 
 chai.use(chaiSubset);
 
@@ -104,7 +106,7 @@ export default class ContextProvider {
     }
 
     // Create tenant context
-    const newTenantContext = new TenantContext(tenantContextDef.tenantName, tenantEntity, defaultAdminCentralServiceService, null);
+    const newTenantContext = new TenantContext(tenantContextDef.tenantName, tenantEntity, '', defaultAdminCentralServiceService, null);
     this.tenantsContexts.push(newTenantContext);
     newTenantContext.addUsers(userList); // pragma getContext().users = userList;
     newTenantContext.getContext().companies = companyList;
@@ -125,7 +127,7 @@ export default class ContextProvider {
             return siteArea.id === chargingStation.siteAreaID;
           });
           for (const chargingStation of chargingStations) {
-            siteAreaContext.addChargingStation(chargingStation);
+            await siteAreaContext.addChargingStation(chargingStation);
           }
         }
         newTenantContext.addSiteContext(siteContext);
@@ -136,8 +138,14 @@ export default class ContextProvider {
       return !chargingStation.siteAreaID;
     });
     for (const chargingStation of chargingStations) {
-      newTenantContext.addChargingStation(chargingStation);
+      await newTenantContext.addChargingStation(chargingStation);
     }
+
+    const registrationToken = faker.random.alphaNumeric(10);
+    const unregisteredChargingStation15 = await Factory.chargingStation.build({ id: CONTEXTS.CHARGING_STATION_CONTEXTS.UNREGISTERED_OCPP15, ocppVersion: '1.5'});
+    await newTenantContext.addChargingStation(unregisteredChargingStation15, registrationToken);
+    const unregisteredChargingStation16 = await Factory.chargingStation.build({ id: CONTEXTS.CHARGING_STATION_CONTEXTS.UNREGISTERED_OCPP16, ocppVersion: '1.6'});
+    await newTenantContext.addChargingStation(unregisteredChargingStation16, registrationToken);
 
     return newTenantContext;
   }
