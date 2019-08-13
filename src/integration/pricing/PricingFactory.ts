@@ -4,24 +4,26 @@ import SettingStorage from '../../storage/mongodb/SettingStorage';
 import SimplePricing from '../pricing/simple-pricing/SimplePricing';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import Transaction from '../../types/Transaction';
 
 export default class PricingFactory {
-  static async getPricingImpl(transaction) {
+  static async getPricingImpl(tenantID: string, transaction: Transaction) {
     // Get the tenant
-    const tenant: Tenant = await transaction.getTenant();
+    const tenant: Tenant = await TenantStorage.getTenant(tenantID);
     // Check if the pricing is active
     if (Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.PRICING)) {
       // Get the pricing's settings
-      const setting = await SettingStorage.getSettingByIdentifier(transaction.getTenantID(), Constants.COMPONENTS.PRICING);
+      const setting = await SettingStorage.getSettingByIdentifier(tenantID, Constants.COMPONENTS.PRICING);
       // Check
       if (setting) {
         // Check if CC
-        if (setting.getContent()['convergentCharging']) {
+        if (setting.content['convergentCharging']) {
           // Return the CC implementation
-          return new ConvergentChargingPricing(transaction.getTenantID(), setting.getContent()['convergentCharging'], transaction);
-        } else if (setting.getContent()['simple']) {
+          return new ConvergentChargingPricing(tenantID, setting.content['convergentCharging'], transaction);
+        } else if (setting.content['simple']) {
           // Return the Simple Pricing implementation
-          return new SimplePricing(transaction.getTenantID(), setting.getContent()['simple'], transaction);
+          return new SimplePricing(tenantID, setting.content['simple'], transaction);
         }
       }
     }

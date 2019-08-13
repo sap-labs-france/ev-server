@@ -12,7 +12,7 @@ import SessionHashService from '../server/rest/service/SessionHashService';
 import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../storage/mongodb/SiteStorage';
 import TenantStorage from '../storage/mongodb/TenantStorage';
-import Transaction from '../entity/Transaction';
+import Transaction from '../types/Transaction';
 import User from '../types/User';
 import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
@@ -22,11 +22,8 @@ export default class Authorizations {
 
   private static configuration: any;
 
-  public static canRefundTransaction(loggedUser: UserToken, transaction: any) {
-    let userId;
-    if (transaction.getUserJson()) {
-      userId = transaction.getUserJson().id;
-    }
+  public static canRefundTransaction(loggedUser: UserToken, transaction: Transaction) {
+    let userId = transaction.userID;
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION,
       Constants.ACTION_REFUND_TRANSACTION, { 'UserID': userId });
   }
@@ -58,11 +55,11 @@ export default class Authorizations {
       return false;
     }
     const context = {
-      user: transaction.getUserJson() ? transaction.getUserJson().id : null,
+      user: transaction.userID,
       owner: loggedUser.id,
       tagIDs: loggedUser.tagIDs,
-      tagID: transaction.getTagID(),
-      site: transaction.getSiteID(),
+      tagID: transaction.tagID,
+      site: transaction.siteID,
       sites: loggedUser.sites,
       sitesAdmin: loggedUser.sitesAdmin
     };
@@ -143,12 +140,12 @@ export default class Authorizations {
   public static async isAuthorizedToStopTransaction(tenantID: string, chargingStation: ChargingStation, transaction: Transaction, tagId: string) {
     let user: User, alternateUser: User;
     // Check if same user
-    if (tagId !== transaction.getTagID()) {
+    if (tagId !== transaction.tagID) {
       alternateUser = await Authorizations.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, transaction, tagId, Constants.ACTION_REMOTE_STOP_TRANSACTION);
-      user = await UserStorage.getUserByTagId(tenantID, transaction.getTagID());
+      user = await UserStorage.getUserByTagId(tenantID, transaction.tagID);
     } else {
       // Check user
-      user = await Authorizations.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, transaction, transaction.getTagID(), Constants.ACTION_REMOTE_STOP_TRANSACTION);
+      user = await Authorizations.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, transaction, transaction.tagID, Constants.ACTION_REMOTE_STOP_TRANSACTION);
     }
     return { user, alternateUser };
   }
@@ -174,11 +171,11 @@ export default class Authorizations {
       return false;
     }
     const context = {
-      user: transaction.getUserJson() ? transaction.getUserJson().id : null,
+      user: transaction.userID,
       owner: loggedUser.id,
       tagIDs: loggedUser.tagIDs,
-      tagID: transaction.getTagID(),
-      site: transaction.getSiteID(),
+      tagID: transaction.tagID,
+      site: transaction.siteID,
       sites: loggedUser.sites,
       sitesAdmin: loggedUser.sitesAdmin
     };
@@ -541,9 +538,9 @@ export default class Authorizations {
 
       // Authorized?
       const context = {
-        user: transaction && transaction.getUserJson() ? transaction.getUserJson().id : null,
+        user: transaction ? transaction.userID : null,
         tagIDs: userToken.tagIDs,
-        tagID: transaction && transaction.getTagID() ? transaction.getTagID() : null,
+        tagID: transaction ? transaction.tagID : null,
         owner: userToken.id,
         site: isOrgCompActive ? chargingStation.siteArea.site.id : null,
         sites: userToken.sites,

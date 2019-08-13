@@ -7,7 +7,8 @@ import OCPPUtils from '../../../server/ocpp/utils/OCPPUtils';
 import Pricing, { PricedConsumption, PricingSettings } from '../Pricing';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import StatefulChargingService from './StatefulChargingService';
-import Transaction from '../../../entity/Transaction';
+import Transaction from '../../../types/Transaction';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 
 export class ConvergentChargingPricingSettings extends PricingSettings {
   constructor(readonly url: string, readonly user: string, readonly password: string, readonly chargeableItemName: string) {
@@ -24,7 +25,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
   }
 
   consumptionToChargeableItemProperties(consumptionData) {
-    const timezone = this.transaction.getTimezone();
+    const timezone = this.transaction.timezone;
     const startedAt = timezone ? moment.tz(consumptionData.startedAt, timezone) : moment.utc(consumptionData.startedAt).local();
     const endedAt = timezone ? moment.tz(consumptionData.endedAt, timezone) : moment.utc(consumptionData.endedAt).local();
     return [
@@ -43,7 +44,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
 
   computeSessionId(consumptionData) {
 
-    const dataId = consumptionData.userID + consumptionData.chargeBoxID + consumptionData.connectorId + this.transaction.getStartDate();
+    const dataId = consumptionData.userID + consumptionData.chargeBoxID + consumptionData.connectorId + this.transaction.timestamp;
 
     let hash = 0, i, chr;
     if (dataId.length === 0) {
@@ -58,7 +59,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
   }
 
   async startSession(consumptionData): Promise<PricedConsumption | null> {
-    const siteArea = await SiteAreaStorage.getSiteArea(this.tenantId, this.transaction.getSiteAreaID());
+    const siteArea = await SiteAreaStorage.getSiteArea(this.tenantId, this.transaction.siteAreaID);
     const sessionId = this.computeSessionId(consumptionData);
     const chargeableItemProperties = this.consumptionToChargeableItemProperties(consumptionData);
     chargeableItemProperties.push(new ChargeableItemProperty('status', Type.string, 'start'));
@@ -84,7 +85,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
   }
 
   async updateSession(consumptionData): Promise<PricedConsumption | null> {
-    const siteArea = await SiteAreaStorage.getSiteArea(this.tenantId, this.transaction.getSiteAreaID());
+    const siteArea = await SiteAreaStorage.getSiteArea(this.tenantId, this.transaction.siteAreaID);
     const sessionId = this.computeSessionId(consumptionData);
 
     const chargeableItemProperties = this.consumptionToChargeableItemProperties(consumptionData);
@@ -113,7 +114,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
   }
 
   async stopSession(consumptionData): Promise<PricedConsumption | null> {
-    const siteArea = await SiteAreaStorage.getSiteArea(this.tenantId, this.transaction.getSiteAreaID());
+    const siteArea = await SiteAreaStorage.getSiteArea(this.tenantId, this.transaction.siteAreaID);
     const sessionId = this.computeSessionId(consumptionData);
     const chargeableItemProperties = this.consumptionToChargeableItemProperties(consumptionData);
     chargeableItemProperties.push(new ChargeableItemProperty('status', Type.string, 'stop'));
@@ -144,7 +145,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
     if (chargingResult.status === 'error') {
 
       if (chargingResult.error.category === 'invalid' && chargingResult.error.message.startsWith('Not authorized')) {
-        const chargingStation: ChargingStation = await this.transaction.getChargingStation();
+        const chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(this.tenantId, this.transaction.chargeBoxID);
         if (chargingStation) {
           await OCPPUtils.requestExecuteChargingStationCommand(this.tenantId, chargingStation, 'remoteStopTransaction', {
             tagID: consumptionData.tagID,
@@ -177,7 +178,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
           for (const notification of ccTransaction.notifications) {
             switch (notification.code) {
               case 'CSMS_INFO':
-                chargingStation = await this.transaction.getChargingStation();
+                chargingStation = await ChargingStationStorage.getChargingStation(this.tenantId, this.transaction.chargeBoxID);
                 if (chargingStation) {
                   await OCPPUtils.requestExecuteChargingStationCommand(this.tenantId, chargingStation, 'setChargingProfile', {
                     chargingProfileId: 42,

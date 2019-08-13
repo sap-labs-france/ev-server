@@ -20,7 +20,7 @@ export default class UtilsService {
     }
   }
 
-  public static assertIdIsProvided(id: string, module: string, method: string, userToken) {
+  public static assertIdIsProvided(id: string|number, module: string, method: string, userToken) {
     if (!id) {
       // Object does not exist
       throw new AppError(
@@ -31,7 +31,7 @@ export default class UtilsService {
     }
   }
 
-  public static assertObjectExists(object: any, errorMsg: string, module: string, method: string, userToken) {
+  public static assertObjectExists(object: any, errorMsg, module: string, method: string, userToken: UserToken) {
     if (!object) {
       // Object does not exist
       throw new AppError(

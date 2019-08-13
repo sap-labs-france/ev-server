@@ -14,10 +14,13 @@ import OCPPUtils from '../utils/OCPPUtils';
 import OCPPValidation from '../validation/OCPPValidation';
 import PricingFactory from '../../../integration/pricing/PricingFactory';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import Transaction from '../../../entity/Transaction';
+import Transaction from '../../../types/Transaction';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
+import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
+import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
+import UtilsService from '../../rest/service/UtilsService';
 
 const moment = require('moment');
 momentDurationFormatSetup(moment);
@@ -294,17 +297,17 @@ export default class OCPPService {
       statusNotification.status === Constants.CONN_STATUS_AVAILABLE &&
       statusNotification.hasOwnProperty('timestamp')) {
       // Get the last transaction
-      const lastTransaction = await Transaction.getLastTransaction(
+      const lastTransaction = await TransactionStorage.getLastTransaction(
         tenantID, chargingStation.id, connector.connectorId);
       // FInished?
-      if (lastTransaction && lastTransaction.isFinished()) {
+      if (lastTransaction && lastTransaction.stop) {
         // Compute Extra inactivity
-        const transactionStopTimestamp = lastTransaction.getStopDate();
+        const transactionStopTimestamp = lastTransaction.stop.timestamp;
         const statusNotifTimestamp = new Date(statusNotification.timestamp);
         const extraInactivitySecs = Math.floor((statusNotifTimestamp.getTime() - transactionStopTimestamp.getTime()) / 1000);
-        lastTransaction.setStopExtraInactivitySecs(extraInactivitySecs);
+        lastTransaction.stop.extraInactivitySecs = extraInactivitySecs;
         // Save
-        await lastTransaction.save();
+        await TransactionStorage.saveTransaction(tenantID, lastTransaction);
       }
     }
   }
@@ -375,11 +378,11 @@ export default class OCPPService {
         // eslint-disable-next-line no-lonely-if
         if (meterValues.transactionId) {
           // Get the transaction
-          const transaction = await Transaction.getTransaction(headers.tenantID, meterValues.transactionId);
+          const transaction = await TransactionStorage.getTransaction(headers.tenantID, meterValues.transactionId);
           // Handle Meter Values
-          await this._updateTransactionWithMeterValues(transaction, newMeterValues);
+          await this._updateTransactionWithMeterValues(headers.tenantID, transaction, newMeterValues);
           // Save Transaction
-          await transaction.save();
+          await TransactionStorage.saveTransaction(headers.tenantID, transaction);
           // Update Charging Station Consumption
           await this._updateChargingStationConsumption(headers.tenantID, chargingStation, transaction);
           // Save Charging Station
@@ -413,21 +416,21 @@ export default class OCPPService {
     }
   }
 
-  _buildConsumptionAndUpdateTransactionFromMeterValue(transaction, meterValue) {
+  _buildConsumptionAndUpdateTransactionFromMeterValue(transaction: Transaction, meterValue) {
     // Get the last one
-    const lastMeterValue = transaction.getLastMeterValue();
+    const lastMeterValue = transaction.lastMeterValue;
     // State of Charge?
     if (OCPPUtils.isSocMeterValue(meterValue)) {
       // Set current
-      transaction.setCurrentStateOfCharge(meterValue.value);
+      transaction.currentStateOfCharge = meterValue.value;
       // Consumption?
     } else if (OCPPUtils.isConsumptionMeterValue(meterValue)) {
       // Update
-      transaction.setNumberOfConsumptionMeterValues(transaction.getNumberOfMeterValues() + 1);
-      transaction.setLastConsumptionMeterValue({
+      transaction.numberOfMeterValues = transaction.numberOfMeterValues + 1;
+      transaction.lastMeterValue = {
         value: Utils.convertToInt(meterValue.value),
-        timestamp: Utils.convertToDate(meterValue.timestamp).toISOString()
-      });
+        timestamp: Utils.convertToDate(meterValue.timestamp)
+      };
       // Compute duration
       const diffSecs = moment(meterValue.timestamp).diff(lastMeterValue.timestamp, 'milliseconds') / 1000;
       // Check if the new value is greater
@@ -437,18 +440,18 @@ export default class OCPPService {
         const consumption = meterValue.value - lastMeterValue.value;
         const currentConsumption = consumption * sampleMultiplier;
         // Update current consumption
-        transaction.setCurrentConsumption(currentConsumption);
-        transaction.setCurrentConsumptionWh(consumption);
-        transaction.setLastUpdateDate(meterValue.timestamp);
-        transaction.setCurrentTotalConsumption(transaction.getCurrentTotalConsumption() + consumption);
+        transaction.currentConsumption = currentConsumption;
+        transaction.currentConsumptionWh = consumption;
+        transaction.lastUpdate = meterValue.timestamp;
+        transaction.currentTotalConsumption = transaction.currentTotalConsumption + consumption;
         // Inactivity?
         if (consumption === 0) {
-          transaction.setCurrentTotalInactivitySecs(transaction.getCurrentTotalInactivitySecs() + diffSecs);
+          transaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs + diffSecs;
         }
       } else {
         // Update current consumption
-        transaction.setCurrentConsumption(0);
-        transaction.setCurrentTotalInactivitySecs(transaction.getCurrentTotalInactivitySecs() + diffSecs);
+        transaction.currentConsumption = 0;
+        transaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs + diffSecs;
       }
     }
     // Compute consumption
@@ -456,34 +459,36 @@ export default class OCPPService {
       transaction, lastMeterValue.timestamp, meterValue.timestamp, meterValue);
   }
 
-  _buildConsumptionFromTransactionAndMeterValue(transaction, startedAt, endedAt, meterValue) {
+  _buildConsumptionFromTransactionAndMeterValue(transaction: Transaction, startedAt: Date, endedAt: Date, meterValue) {
     // Only Consumption and SoC (No consumption for Transaction Begin/End: scenario already handled in Start/Stop Transaction)
     if (OCPPUtils.isSocMeterValue(meterValue) ||
       OCPPUtils.isConsumptionMeterValue(meterValue)) {
       // Init
       const consumption: any = {
-        transactionId: transaction.getID(),
-        connectorId: transaction.getConnectorId(),
-        chargeBoxID: transaction.getChargeBoxID(),
-        siteAreaID: transaction.getSiteAreaID(),
-        siteID: transaction.getSiteID(),
-        userID: transaction.getUserID(),
+        transactionId: transaction.id,
+        connectorId: transaction.connectorId,
+        chargeBoxID: transaction.chargeBoxID,
+        siteAreaID: transaction.siteAreaID,
+        siteID: transaction.siteID,
+        userID: transaction.userID,
         startedAt: new Date(startedAt),
         endedAt: new Date(endedAt)
       };
       // SoC?
       if (OCPPUtils.isSocMeterValue(meterValue)) {
         // Set SoC
-        consumption.stateOfCharge = transaction.getCurrentStateOfCharge();
+        consumption.stateOfCharge = transaction.currentStateOfCharge;
         // Consumption
       } else {
         // Set Consumption
-        consumption.consumption = transaction.getCurrentConsumptionWh();
-        consumption.instantPower = Math.round(transaction.getCurrentConsumption());
-        consumption.cumulatedConsumption = transaction.getCurrentTotalConsumption();
-        consumption.totalInactivitySecs = transaction.getCurrentTotalInactivitySecs();
-        consumption.totalDurationSecs = transaction.getCurrentTotalDurationSecs();
-        consumption.stateOfCharge = transaction.getCurrentStateOfCharge();
+        consumption.consumption = transaction.currentConsumptionWh;
+        consumption.instantPower = Math.round(transaction.currentConsumption);
+        consumption.cumulatedConsumption = transaction.currentTotalConsumption;
+        consumption.totalInactivitySecs = transaction.currentTotalInactivitySecs;
+        consumption.totalDurationSecs = !transaction.stop ?
+          moment.duration(moment(transaction.lastMeterValue.timestamp).diff(moment(transaction.timestamp))).asSeconds() :
+          moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds()
+        consumption.stateOfCharge = transaction.currentStateOfCharge;
         consumption.toPrice = true;
       }
       // Return
@@ -491,19 +496,19 @@ export default class OCPPService {
     }
   }
 
-  async _updateTransactionWithMeterValues(transaction, meterValues) {
+  public async _updateTransactionWithMeterValues(tenantID: string, transaction: Transaction, meterValues: any) {
     // Save Meter Values
-    await OCPPStorage.saveMeterValues(transaction.getTenantID(), meterValues);
+    await OCPPStorage.saveMeterValues(tenantID, meterValues);
     // Build consumptions
     const consumptions = [];
     for (const meterValue of meterValues.values) {
       // Handles Signed Data values
       if (meterValue.attribute.format === 'SignedData') {
         if (meterValue.attribute.context === 'Transaction.Begin') {
-          transaction.setSignedData(meterValue.value);
+          transaction.signedData = meterValue.value;
           continue;
         } else if (meterValue.attribute.context === 'Transaction.End') {
-          transaction.setCurrentSignedData(meterValue.value);
+          transaction.currentSignedData = meterValue.value;
           continue;
         }
       }
@@ -511,11 +516,11 @@ export default class OCPPService {
       if (meterValue.attribute.measurand === 'SoC') {
         // Set the first SoC
         if (meterValue.attribute.context === 'Transaction.Begin') {
-          transaction.setStateOfCharge(meterValue.value);
+          transaction.stateOfCharge = meterValue.value;
           continue;
           // Set the Last SoC
         } else if (meterValue.attribute.context === 'Transaction.End') {
-          transaction.setCurrentStateOfCharge(meterValue.value);
+          transaction.currentStateOfCharge = meterValue.value;
           continue;
         }
       }
@@ -544,17 +549,17 @@ export default class OCPPService {
     for (const consumption of consumptions) {
       // Price
       if (consumption.toPrice) {
-        await this._priceTransactionFromConsumption(transaction, consumption, 'update');
+        await this._priceTransactionFromConsumption(tenantID, transaction, consumption, 'update');
       }
       // Save
-      await transaction.saveConsumption(consumption);
+      await ConsumptionStorage.saveConsumption(tenantID, consumption);
     }
   }
 
-  async _priceTransactionFromConsumption(transaction, consumption, action) {
+  public async _priceTransactionFromConsumption(tenantID: string, transaction: Transaction, consumption: any, action: string) {
     let pricedConsumption;
     // Get the pricing impl
-    const pricingImpl = await PricingFactory.getPricingImpl(transaction);
+    const pricingImpl = await PricingFactory.getPricingImpl(tenantID, transaction);
     switch (action) {
       // Start Transaction
       case 'start':
@@ -565,19 +570,19 @@ export default class OCPPService {
 
           if (pricedConsumption) {
             // Set the initial pricing
-            transaction.setStartPrice(pricedConsumption.amount);
-            transaction.setStartRoundedPrice(pricedConsumption.roundedAmount);
-            transaction.setStartPriceUnit(pricedConsumption.currencyCode);
-            transaction.setStartPricingSource(pricedConsumption.pricingSource);
+            transaction.price = pricedConsumption.amount;
+            transaction.roundedPrice = pricedConsumption.roundedAmount;
+            transaction.priceUnit = pricedConsumption.currencyCode;
+            transaction.pricingSource = pricedConsumption.pricingSource;
             // Init the cumulated price
-            transaction.setCurrentCumulatedPrice(pricedConsumption.amount);
+            transaction.currentCumulatedPrice = pricedConsumption.amount;
           }
         } else {
           // Default
-          transaction.setStartPrice(0);
-          transaction.setStartRoundedPrice(0);
-          transaction.setStartPriceUnit('');
-          transaction.setStartPricingSource('');
+          transaction.price = 0;
+          transaction.roundedPrice = 0;
+          transaction.priceUnit = '';
+          transaction.pricingSource = '';
         }
         break;
       // Meter Values
@@ -596,9 +601,9 @@ export default class OCPPService {
             if (pricedConsumption.cumulatedAmount) {
               consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
             } else {
-              consumption.cumulatedAmount = parseFloat((transaction.getCurrentCumulatedPrice() + consumption.amount).toFixed(6));
+              consumption.cumulatedAmount = parseFloat((transaction.currentCumulatedPrice + consumption.amount).toFixed(6));
             }
-            transaction.setCurrentCumulatedPrice(consumption.cumulatedAmount);
+            transaction.currentCumulatedPrice = consumption.cumulatedAmount;
           }
         }
         break;
@@ -617,14 +622,17 @@ export default class OCPPService {
             if (pricedConsumption.cumulatedAmount) {
               consumption.cumulatedAmount = pricedConsumption.cumulatedAmount;
             } else {
-              consumption.cumulatedAmount = parseFloat((transaction.getCurrentCumulatedPrice() + consumption.amount).toFixed(6));
+              consumption.cumulatedAmount = parseFloat((transaction.currentCumulatedPrice + consumption.amount).toFixed(6));
             }
-            transaction.setCurrentCumulatedPrice(consumption.cumulatedAmount);
+            transaction.currentCumulatedPrice = consumption.cumulatedAmount;
             // Update Transaction
-            transaction.setStopPrice(parseFloat(transaction.getCurrentCumulatedPrice().toFixed(6)));
-            transaction.setStopRoundedPrice(parseFloat((transaction.getCurrentCumulatedPrice()).toFixed(2)));
-            transaction.setStopPriceUnit(pricedConsumption.currencyCode);
-            transaction.setStopPricingSource(pricedConsumption.pricingSource);
+            if(! transaction.stop) {
+              (transaction as any).stop = {};
+            }
+            transaction.stop.price = parseFloat(transaction.currentCumulatedPrice.toFixed(6));
+            transaction.stop.roundedPrice = parseFloat((transaction.currentCumulatedPrice).toFixed(2));
+            transaction.stop.priceUnit = pricedConsumption.currencyCode;
+            transaction.stop.pricingSource = pricedConsumption.pricingSource;
           }
         }
         break;
@@ -634,18 +642,18 @@ export default class OCPPService {
   async _updateChargingStationConsumption(tenantID: string, chargingStation: ChargingStation, transaction: Transaction) {
     // Get the connector
     const foundConnector = chargingStation.connectors.find(
-      (connector) => connector.connectorId === transaction.getConnectorId());
+      (connector) => connector.connectorId === transaction.connectorId);
     // Active transaction?
-    if (transaction.isActive() && foundConnector) {
+    if (!transaction.stop && foundConnector) {
       // Set consumption
-      foundConnector.currentConsumption = transaction.getCurrentConsumption();
-      foundConnector.totalConsumption = transaction.getCurrentTotalConsumption();
-      foundConnector.totalInactivitySecs = transaction.getCurrentTotalInactivitySecs();
-      foundConnector.currentStateOfCharge = transaction.getCurrentStateOfCharge();
-      foundConnector.totalInactivitySecs = transaction.getCurrentTotalInactivitySecs();
+      foundConnector.currentConsumption = transaction.currentConsumption;
+      foundConnector.totalConsumption = transaction.currentTotalConsumption;
+      foundConnector.totalInactivitySecs = transaction.currentTotalInactivitySecs;
+      foundConnector.currentStateOfCharge = transaction.currentStateOfCharge;
+      foundConnector.totalInactivitySecs = transaction.currentTotalInactivitySecs;
       // Set Transaction ID
-      foundConnector.activeTransactionID = transaction.getID();
-      foundConnector.activeTagID = transaction.getTagID();
+      foundConnector.activeTransactionID = transaction.id;
+      foundConnector.activeTagID = transaction.tagID;
       // Update Heartbeat
       chargingStation.lastHeartBeat = new Date();
       // Handle End Of charge
@@ -673,25 +681,25 @@ export default class OCPPService {
     // Notify (Async)
     NotificationHandler.sendEndOfCharge(
       tenantID,
-      transaction.getID() + '-EOC',
-      transaction.getUserJson(),
+      transaction.id + '-EOC',
+      transaction.user,
       chargingStation,
       {
-        'user': transaction.getUserJson(),
+        'user': transaction.user,
         'chargeBoxID': chargingStation.id,
-        'connectorId': transaction.getConnectorId(),
-        'totalConsumption': (transaction.getCurrentTotalConsumption() / 1000).toLocaleString(
-          (transaction.getUserJson().locale ? transaction.getUserJson().locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
+        'connectorId': transaction.connectorId,
+        'totalConsumption': (transaction.currentTotalConsumption / 1000).toLocaleString(
+          (transaction.user.locale ? transaction.user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
           { minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2 }),
-        'stateOfCharge': transaction.getCurrentStateOfCharge(),
+        'stateOfCharge': transaction.currentStateOfCharge,
         'totalDuration': this._buildCurrentTransactionDuration(transaction),
-        'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.getID(), '#inprogress'),
+        'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#inprogress'),
         'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
       },
-      transaction.getUserJson().locale,
+      transaction.user.locale,
       {
-        'transactionId': transaction.getID(),
-        'connectorId': transaction.getConnectorId()
+        'transactionId': transaction.id,
+        'connectorId': transaction.connectorId
       }
     );
   }
@@ -700,46 +708,46 @@ export default class OCPPService {
     // Notifcation Before End Of Charge (Async)
     NotificationHandler.sendOptimalChargeReached(
       tenantID,
-      transaction.getID() + '-OCR',
-      transaction.getUserJson(),
+      transaction.id + '-OCR',
+      transaction.user,
       chargingStation,
       {
-        'user': transaction.getUserJson(),
+        'user': transaction.user,
         'chargeBoxID': chargingStation.id,
-        'connectorId': transaction.getConnectorId(),
-        'totalConsumption': (transaction.getCurrentTotalConsumption() / 1000).toLocaleString(
-          (transaction.getUserJson().locale ? transaction.getUserJson().locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
+        'connectorId': transaction.connectorId,
+        'totalConsumption': (transaction.currentTotalConsumption / 1000).toLocaleString(
+          (transaction.user.locale ? transaction.user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
           { minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2 }),
-        'stateOfCharge': transaction.getCurrentStateOfCharge(),
-        'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.getID(), '#inprogress'),
+        'stateOfCharge': transaction.currentStateOfCharge,
+        'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#inprogress'),
         'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
       },
-      transaction.getUserJson().locale,
+      transaction.user.locale,
       {
-        'transactionId': transaction.getID(),
-        'connectorId': transaction.getConnectorId()
+        'transactionId': transaction.id,
+        'connectorId': transaction.connectorId
       }
     );
   }
 
   async _checkNotificationEndOfCharge(tenantID: string, chargingStation: ChargingStation, transaction: Transaction) {
     // Transaction in progress?
-    if (transaction && transaction.isActive()) {
+    if (transaction && !transaction.stop) {
       // Has consumption?
-      if (transaction.hasMultipleConsumptions()) {
+      if (transaction.numberOfMeterValues > 1) {
         // End of charge?
         if (_configChargingStation.notifEndOfChargeEnabled &&
-          (transaction.getCurrentTotalInactivitySecs() > 60 || transaction.getCurrentStateOfCharge() === 100)) {
+          (transaction.currentTotalInactivitySecs > 60 || transaction.currentStateOfCharge === 100)) {
           // Notify User?
-          if (transaction.getUserJson()) {
+          if (transaction.user) {
             // Send Notification
             await this._notifyEndOfCharge(tenantID, chargingStation, transaction);
           }
           // Optimal Charge? (SoC)
         } else if (_configChargingStation.notifBeforeEndOfChargeEnabled &&
-          transaction.getCurrentStateOfCharge() >= _configChargingStation.notifBeforeEndOfChargePercent) {
+          transaction.currentStateOfCharge >= _configChargingStation.notifBeforeEndOfChargePercent) {
           // Notify User?
-          if (transaction.getUserJson()) {
+          if (transaction.user) {
             // Send Notification
             await this._notifyOptimalChargeReached(tenantID, chargingStation, transaction);
           }
@@ -749,27 +757,33 @@ export default class OCPPService {
   }
 
   // Build Inactivity
-  _buildTransactionInactivity(transaction, i18nHourShort = 'h') {
+  _buildTransactionInactivity(transaction: Transaction, i18nHourShort = 'h') {
     // Get total
-    const totalInactivitySecs = transaction.getStopTotalInactivitySecs();
+    const totalInactivitySecs = transaction.stop.totalInactivitySecs;
     // None?
     if (totalInactivitySecs === 0) {
       return `0${i18nHourShort}00 (0%)`;
     }
     // Build the inactivity percentage
-    const totalInactivityPercent = Math.round((totalInactivitySecs * 100) / transaction.getStopTotalDurationSecs());
+    const totalInactivityPercent = Math.round((totalInactivitySecs * 100) / transaction.stop.totalDurationSecs);
     // Format
     return moment.duration(totalInactivitySecs, 's').format(`h[${i18nHourShort}]mm`, { trim: false }) + ` (${totalInactivityPercent}%)`;
   }
 
   // Build duration
-  _buildCurrentTransactionDuration(transaction): string {
-    return moment.duration(transaction.getCurrentTotalDurationSecs(), 's').format('h[h]mm', { trim: false });
+  _buildCurrentTransactionDuration(transaction: Transaction): string {
+    let totalDuration;
+    if (!transaction.stop) {
+      totalDuration = moment.duration(moment(transaction.lastMeterValue.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+    } else {
+      totalDuration = moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+    }
+    return moment.duration(totalDuration, 's').format('h[h]mm', { trim: false });
   }
 
   // Build duration
-  _buildTransactionDuration(transaction): string {
-    return moment.duration(transaction.getStopTotalDurationSecs(), 's').format('h[h]mm', { trim: false });
+  _buildTransactionDuration(transaction: Transaction): string {
+    return moment.duration(transaction.stop.totalDurationSecs, 's').format('h[h]mm', { trim: false });
   }
 
   _filterMeterValuesOnCharger(tenantID: string, chargingStation: ChargingStation, meterValues) {
@@ -1007,52 +1021,52 @@ export default class OCPPService {
       await this._stopOrDeleteActiveTransactions(
         headers.tenantID, chargingStation.id, startTransaction.connectorId);
       // Create
-      let transaction = new Transaction(headers.tenantID, startTransaction);
+      let transaction: Transaction = startTransaction;
       // Init
-      transaction.setNumberOfConsumptionMeterValues(0);
-      transaction.setLastConsumptionMeterValue({
-        value: transaction.getMeterStart(),
-        timestamp: transaction.getStartDate()
-      });
-      transaction.setCurrentTotalInactivitySecs(0);
-      transaction.setCurrentStateOfCharge(0);
-      transaction.setCurrentSignedData('');
-      transaction.setStateOfCharge(0);
-      transaction.setSignedData('');
-      transaction.setCurrentConsumption(0);
-      transaction.setCurrentTotalConsumption(0);
-      transaction.setCurrentConsumptionWh(0);
-      transaction.setUser(user);
+      transaction.numberOfMeterValues = 0;
+      transaction.lastMeterValue = {
+        value: transaction.meterStart,
+        timestamp: transaction.timestamp
+      };
+      transaction.currentTotalInactivitySecs = 0;
+      transaction.currentStateOfCharge = 0;
+      transaction.signedData = '';
+      transaction.stateOfCharge = 0;
+      transaction.signedData = '';
+      transaction.currentConsumption = 0;
+      transaction.currentTotalConsumption = 0;
+      transaction.currentConsumptionWh = 0;
+      transaction.user = user;
       // Build first Dummy consumption for pricing the Start Transaction
       const consumption = await this._buildConsumptionFromTransactionAndMeterValue(
-        transaction, transaction.getStartDate(), transaction.getStartDate(), {
+        transaction, transaction.timestamp, transaction.timestamp, {
           id: '666',
-          connectorId: transaction.getConnectorId(),
-          transactionId: transaction.getID(),
-          timestamp: transaction.getStartDate(),
-          value: transaction.getMeterStart(),
+          connectorId: transaction.connectorId,
+          transactionId: transaction.id,
+          timestamp: transaction.timestamp,
+          value: transaction.meterStart,
           attribute: DEFAULT_CONSUMPTION_ATTRIBUTE
         }
       );
       // Price it
-      await this._priceTransactionFromConsumption(transaction, consumption, 'start');
+      await this._priceTransactionFromConsumption(headers.tenantID, transaction, consumption, 'start');
       // Save it
-      transaction = await transaction.save();
+      transaction.id = await TransactionStorage.saveTransaction(headers.tenantID, transaction);
       // Lock the other connectors?
       if (chargingStation.cannotChargeInParallel) {
         OCPPUtils.lockAllConnectors(chargingStation);
       }
       // Clean up Charger's connector transaction info
       const foundConnector = chargingStation.connectors.find(
-        (connector) => connector.connectorId === transaction.getConnectorId());
+        (connector) => connector.connectorId === transaction.connectorId);
       if (foundConnector) {
         foundConnector.currentConsumption = 0;
         foundConnector.totalConsumption = 0;
         foundConnector.totalInactivitySecs = 0;
         foundConnector.currentStateOfCharge = 0;
-        foundConnector.activeTransactionID = transaction.getID();
-        foundConnector.activeTransactionDate = transaction.getStartDate();
-        foundConnector.activeTagID = transaction.getTagID();
+        foundConnector.activeTransactionID = transaction.id;
+        foundConnector.activeTransactionDate = transaction.timestamp;
+        foundConnector.activeTagID = transaction.tagID;
       }
       // Set the active transaction on the connector
       // Update Heartbeat
@@ -1067,19 +1081,19 @@ export default class OCPPService {
           tenantID: headers.tenantID,
           source: chargingStation.id, module: 'OCPPService', method: 'handleStartTransaction',
           action: 'StartTransaction', user: user,
-          message: `Transaction ID '${transaction.getID()}' has been started on Connector '${transaction.getConnectorId()}'`
+          message: `Transaction ID '${transaction.id}' has been started on Connector '${transaction.connectorId}'`
         });
       } else {
         // Log
         Logging.logInfo({
           tenantID: headers.tenantID, source: chargingStation.id,
           module: 'OCPPService', method: 'handleStartTransaction', action: 'StartTransaction',
-          message: `Transaction ID '${transaction.getID()}' has been started on Connector '${transaction.getConnectorId()}'`
+          message: `Transaction ID '${transaction.id}' has been started on Connector '${transaction.connectorId}'`
         });
       }
       // Return
       return {
-        'transactionId': transaction.getID(),
+        'transactionId': transaction.id,
         'status': 'Accepted'
       };
     } catch (error) {
@@ -1099,15 +1113,15 @@ export default class OCPPService {
     let activeTransaction: Transaction, lastCheckedTransactionID;
     do {
       // Check if the charging station has already a transaction
-      activeTransaction = await Transaction.getActiveTransaction(tenantID, chargeBoxID, connectorId);
+      activeTransaction = await TransactionStorage.getActiveTransaction(tenantID, chargeBoxID, connectorId);
       // Exists already?
       if (activeTransaction) {
         // Avoid infinite Loop
-        if (lastCheckedTransactionID === activeTransaction.getID()) {
+        if (lastCheckedTransactionID === activeTransaction.id) {
           return;
         }
         // Has consumption?
-        if (activeTransaction.getCurrentTotalConsumption() <= 0) {
+        if (activeTransaction.currentTotalConsumption <= 0) {
           // No consumption: delete
           Logging.logWarning({
             tenantID: tenantID,
@@ -1115,20 +1129,20 @@ export default class OCPPService {
             module: 'OCPPService',
             method: '_stopOrDeleteActiveTransactions',
             action: 'CleanupTransaction',
-            actionOnUser: activeTransaction.getUserID(),
-            message: `Pending Transaction ID '${activeTransaction.getID()}' with no consumption has been deleted on Connector '${activeTransaction.getConnectorId()}'`
+            actionOnUser: activeTransaction.user,
+            message: `Pending Transaction ID '${activeTransaction.id}' with no consumption has been deleted on Connector '${activeTransaction.connectorId}'`
           });
           // Delete
-          await activeTransaction.delete();
+          await TransactionStorage.deleteTransaction(tenantID, activeTransaction);
         } else {
           // Simulate a Stop Transaction
           const result = await this.handleStopTransaction({
-            'tenantID': activeTransaction.getTenantID(),
-            'chargeBoxIdentity': activeTransaction.getChargeBoxID()
+            'tenantID': tenantID,
+            'chargeBoxIdentity': activeTransaction.chargeBoxID
           }, {
-            'transactionId': activeTransaction.getID(),
-            'meterStop': activeTransaction.getLastMeterValue().value,
-            'timestamp': activeTransaction.getLastMeterValue().timestamp,
+            'transactionId': activeTransaction.id,
+            'meterStop': activeTransaction.lastMeterValue.value,
+            'timestamp': activeTransaction.lastMeterValue.timestamp,
           }, false, true);
           // Check
           if (result.status === 'Invalid') {
@@ -1139,8 +1153,8 @@ export default class OCPPService {
               module: 'OCPPService',
               method: '_stopOrDeleteActiveTransactions',
               action: 'CleanupTransaction',
-              actionOnUser: activeTransaction.getUserID(),
-              message: `Cannot delete pending Transaction ID '${activeTransaction.getID()}' with no consumption on Connector '${activeTransaction.getConnectorId()}'`
+              actionOnUser: activeTransaction.userID,
+              message: `Cannot delete pending Transaction ID '${activeTransaction.id}' with no consumption on Connector '${activeTransaction.connectorId}'`
             });
           } else {
             // Has consumption: close it!
@@ -1150,13 +1164,13 @@ export default class OCPPService {
               module: 'OCPPService',
               method: '_stopOrDeleteActiveTransactions',
               action: 'CleanupTransaction',
-              actionOnUser: activeTransaction.getUserID(),
-              message: `Pending Transaction ID '${activeTransaction.getID()}' has been stopped on Connector '${activeTransaction.getConnectorId()}'`
+              actionOnUser: activeTransaction.userID,
+              message: `Pending Transaction ID '${activeTransaction.id}' has been stopped on Connector '${activeTransaction.connectorId}'`
             });
           }
         }
         // Keep last Transaction ID
-        lastCheckedTransactionID = activeTransaction.getID();
+        lastCheckedTransactionID = activeTransaction.id;
       }
     } while (activeTransaction);
   }
@@ -1165,21 +1179,21 @@ export default class OCPPService {
     // Notify (Async)
     NotificationHandler.sendTransactionStarted(
       tenantID,
-      transaction.getID(),
+      transaction.id,
       user,
       chargingStation,
       {
         'user': user,
         'chargeBoxID': chargingStation.id,
-        'connectorId': transaction.getConnectorId(),
+        'connectorId': transaction.connectorId,
         'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain),
         'evseDashboardChargingStationURL':
-          await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.getID(), '#inprogress')
+          await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#inprogress')
       },
       user.locale,
       {
-        'transactionId': transaction.getID(),
-        'connectorId': transaction.getConnectorId()
+        'transactionId': transaction.id,
+        'connectorId': transaction.connectorId
       }
     );
   }
@@ -1226,13 +1240,9 @@ export default class OCPPService {
       // Set header
       stopTransaction.chargeBoxID = chargingStation.id;
       // Get the transaction
-      let transaction = await Transaction.getTransaction(headers.tenantID, stopTransaction.transactionId);
-      if (!transaction) {
-        // Wrong Transaction ID!
-        throw new BackendError(chargingStation.id,
-          `Transaction ID '${stopTransaction.transactionId}' does not exist`,
-          'OCPPService', 'handleStopTransaction', Constants.ACTION_REMOTE_STOP_TRANSACTION);
-      }
+      let transaction = await TransactionStorage.getTransaction(headers.tenantID, stopTransaction.transactionId);
+      UtilsService.assertObjectExists(transaction, `Transaction${stopTransaction.transactionId} doesn't exist`,
+        'OCPPService', 'handleStopTransaction', null);
       // Get the TagID that stopped the transaction
       const tagId = this._getStopTransactionTagId(stopTransaction, transaction);
       let user: User, alternateUser: User;
@@ -1248,7 +1258,7 @@ export default class OCPPService {
         user = await UserStorage.getUserByTagId(headers.tenantID, tagId);
       }
       // Check if the transaction has already been stopped
-      if (!transaction.isActive()) {
+      if (transaction.stop) {
         throw new BackendError(chargingStation.id,
           `Transaction ID '${stopTransaction.transactionId}' has already been stopped`,
           'OCPPService', 'handleStopTransaction', Constants.ACTION_REMOTE_STOP_TRANSACTION,
@@ -1257,7 +1267,7 @@ export default class OCPPService {
       }
       // Check and free the connector
       await OCPPUtils.checkAndFreeChargingStationConnector(
-        headers.tenantID, chargingStation, transaction.getConnectorId(), false);
+        headers.tenantID, chargingStation, transaction.connectorId, false);
       // Update Heartbeat
       chargingStation.lastHeartBeat = new Date();
       // Save Charger
@@ -1265,8 +1275,8 @@ export default class OCPPService {
       // Soft Stop?
       if (isSoftStop) {
         // Yes: Add the latest Meter Value
-        if (transaction.getLastMeterValue()) {
-          stopTransaction.meterStop = transaction.getLastMeterValue().value;
+        if (transaction.lastMeterValue) {
+          stopTransaction.meterStop = transaction.lastMeterValue.value;
         } else {
           stopTransaction.meterStop = 0;
         }
@@ -1276,23 +1286,30 @@ export default class OCPPService {
         transaction, stopTransaction, user, alternateUser, tagId);
       // Build final consumption
       const consumption = await this._buildConsumptionFromTransactionAndMeterValue(
-        transaction, lastMeterValue.timestamp, transaction.getStopDate(), {
+        transaction, lastMeterValue.timestamp, transaction.stop.timestamp, {
           id: '6969',
-          connectorId: transaction.getConnectorId(),
-          transactionId: transaction.getID(),
-          timestamp: transaction.getStopDate(),
-          value: transaction.getStopMeter(),
+          connectorId: transaction.connectorId,
+          transactionId: transaction.id,
+          timestamp: transaction.stop.timestamp,
+          value: transaction.stop.meterStop,
           attribute: DEFAULT_CONSUMPTION_ATTRIBUTE
         }
       );
       // Update the price
-      await this._priceTransactionFromConsumption(transaction, consumption, 'stop');
+      await this._priceTransactionFromConsumption(headers.tenantID, transaction, consumption, 'stop');
       // Save Consumption
-      await transaction.saveConsumption(consumption);
+      await ConsumptionStorage.saveConsumption(headers.tenantID, consumption);
       // Remove runtime data
-      transaction.clearRuntimeData();
+      delete transaction.currentConsumption;
+      delete transaction.currentCumulatedPrice;
+      delete transaction.currentSignedData;
+      delete transaction.currentTotalInactivitySecs;
+      delete transaction.currentTotalConsumption;
+      delete transaction.currentStateOfCharge;
+      delete transaction.lastMeterValue;
+      delete transaction.numberOfMeterValues;
       // Save the transaction
-      transaction = await transaction.save();
+      transaction.id = await TransactionStorage.saveTransaction(headers.tenantID, transaction);
       // Notify User
       await this._notifyStopTransaction(headers.tenantID, chargingStation, transaction, user, alternateUser);
       // Log
@@ -1302,7 +1319,7 @@ export default class OCPPService {
         action: Constants.ACTION_REMOTE_STOP_TRANSACTION,
         user: (alternateUser ? alternateUser : (user ? user : null)),
         actionOnUser: (alternateUser ? (user ? user : null) : null),
-        message: `Transaction ID '${transaction.getID()}' has been stopped successfully`
+        message: `Transaction ID '${transaction.id}' has been stopped successfully`
       });
       // Success
       return {
@@ -1319,58 +1336,61 @@ export default class OCPPService {
   }
 
   _updateTransactionWithStopTransaction(transaction: Transaction, stopTransaction, user: User, alternateUser: User, tagId) {
-    transaction.setStopMeter(Utils.convertToInt(stopTransaction.meterStop));
-    transaction.setStopDate(new Date(stopTransaction.timestamp));
-    transaction.setStopUserID((alternateUser ? alternateUser.id : (user ? user.id : null)));
-    transaction.setStopTagID(tagId);
-    transaction.setStopStateOfCharge(transaction.getCurrentStateOfCharge());
-    transaction.setEndSignedData(transaction.getCurrentSignedData());
+    if(!transaction.stop) {
+      (transaction as any).stop = {};
+    }
+    transaction.stop.meterStop = Utils.convertToInt(stopTransaction.meterStop);
+    transaction.stop.timestamp = new Date(stopTransaction.timestamp);
+    transaction.stop.userID = (alternateUser ? alternateUser.id : (user ? user.id : null));
+    transaction.stop.tagID = tagId;
+    transaction.stop.stateOfCharge = transaction.currentStateOfCharge;
+    transaction.stop.signedData = transaction.signedData;
     // Keep the last Meter Value
-    const lastMeterValue = transaction.getLastMeterValue();
+    const lastMeterValue = transaction.lastMeterValue;
     // Compute duration
-    const diffSecs = moment(transaction.getStopDate()).diff(lastMeterValue.timestamp, 'milliseconds') / 1000;
+    const diffSecs = moment(transaction.stop.timestamp).diff(lastMeterValue.timestamp, 'milliseconds') / 1000;
     // Check if the new value is greater
-    if (transaction.getStopMeter() >= lastMeterValue.value) {
+    if (transaction.stop.meterStop >= lastMeterValue.value) {
       // Compute consumption
-      const consumption = transaction.getStopMeter() - lastMeterValue.value;
+      const consumption = transaction.stop.meterStop - lastMeterValue.value;
       const sampleMultiplier = diffSecs > 0 ? 3600 / diffSecs : 0;
       const currentConsumption = consumption * sampleMultiplier;
       // Update current consumption
-      transaction.setCurrentConsumption(currentConsumption);
-      transaction.setCurrentTotalConsumption(transaction.getCurrentTotalConsumption() + consumption);
-      transaction.setCurrentConsumptionWh(consumption);
+      transaction.currentConsumption = currentConsumption;
+      transaction.currentTotalConsumption = transaction.currentTotalConsumption + consumption;
+      transaction.currentConsumptionWh = consumption;
       // Inactivity?
       if (consumption === 0) {
-        transaction.setCurrentTotalInactivitySecs(transaction.getCurrentTotalInactivitySecs() + diffSecs);
+        transaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs + diffSecs;
       }
     } else {
       // Update current consumption
-      transaction.setCurrentConsumption(0);
-      transaction.setCurrentTotalInactivitySecs(transaction.getCurrentTotalInactivitySecs() + diffSecs);
+      transaction.currentConsumption = 0;
+      transaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs + diffSecs;
     }
     // Set Total data
-    transaction.setStopTotalConsumption(transaction.getCurrentTotalConsumption());
-    transaction.setStopTotalInactivitySecs(transaction.getCurrentTotalInactivitySecs());
-    transaction.setStopTotalDurationSecs(Math.round(moment.duration(moment(transaction.getStopDate()).diff(moment(transaction.getStartDate()))).asSeconds()));
+    transaction.stop.totalConsumption = transaction.currentTotalConsumption;
+    transaction.stop.totalInactivitySecs = transaction.currentTotalInactivitySecs;
+    transaction.stop.totalDurationSecs = Math.round(moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds());
     // No Duration?
-    if (transaction.getStopTotalDurationSecs() === 0) {
+    if (transaction.stop.totalDurationSecs === 0) {
       // Compute it from now
-      transaction.setStopTotalDurationSecs(Math.round(moment.duration(moment().diff(moment(transaction.getStartDate()))).asSeconds()));
-      transaction.setStopTotalInactivitySecs(transaction.getStopTotalDurationSecs());
+      transaction.stop.totalDurationSecs = Math.round(moment.duration(moment().diff(moment(transaction.timestamp))).asSeconds());
+      transaction.stop.totalInactivitySecs = transaction.stop.totalDurationSecs;
     }
     return lastMeterValue;
   }
 
-  _getStopTransactionTagId(stopTransaction, transaction): string {
+  _getStopTransactionTagId(stopTransaction, transaction: Transaction): string {
     // Stopped Remotely?
-    if (transaction.isRemotelyStopped()) {
+    if (transaction.remotestop) {
       // Yes: Get the diff from now
       const secs = moment.duration(moment().diff(
-        moment(transaction.getRemoteStopDate()))).asSeconds();
+        moment(transaction.remotestop.timestamp))).asSeconds();
       // In a minute
       if (secs < 60) {
         // Return tag that remotely stopped the transaction
-        return transaction.getRemoteStopTagID();
+        return transaction.remotestop.tagID;
       }
     }
     // Already provided?
@@ -1379,7 +1399,7 @@ export default class OCPPService {
       return stopTransaction.idTag;
     }
     // Default: return tag that started the transaction
-    return transaction.getTagID();
+    return transaction.tagID;
   }
 
   async _notifyStopTransaction(tenantID: string, chargingStation: ChargingStation, transaction: Transaction, user: User, alternateUser: User) {
@@ -1388,64 +1408,64 @@ export default class OCPPService {
       // Send Notification (Async)
       NotificationHandler.sendEndOfSession(
         tenantID,
-        transaction.getID() + '-EOS',
+        transaction.id + '-EOS',
         user,
         chargingStation,
         {
           'user': user,
           'alternateUser': (alternateUser ? alternateUser : null),
           'chargeBoxID': chargingStation.id,
-          'connectorId': transaction.getConnectorId(),
-          'totalConsumption': (transaction.getStopTotalConsumption() / 1000).toLocaleString(
+          'connectorId': transaction.connectorId,
+          'totalConsumption': (transaction.stop.totalConsumption / 1000).toLocaleString(
             (user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
             { minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2 }),
           'totalDuration': this._buildTransactionDuration(transaction),
           'totalInactivity': this._buildTransactionInactivity(transaction),
-          'stateOfCharge': transaction.getStopStateOfCharge(),
-          'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.getID(), '#history'),
+          'stateOfCharge': transaction.stop.stateOfCharge,
+          'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#history'),
           'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
         },
         user.locale,
         {
-          'transactionId': transaction.getID(),
-          'connectorId': transaction.getConnectorId()
+          'transactionId': transaction.id,
+          'connectorId': transaction.connectorId
         }
       );
-      if (transaction.getEndSignedData() !== '') {
+      if (transaction.stop.signedData !== '') {
         // Send Notification (Async)
         NotificationHandler.sendEndOfSignedSession(
           tenantID,
-          transaction.getID() + '-EOSS',
+          transaction.id + '-EOSS',
           user,
           chargingStation,
           {
             'user': user,
             'alternateUser': (alternateUser ? alternateUser : null),
-            'transactionId': transaction.getID(),
+            'transactionId': transaction.id,
             'chargeBoxID': chargingStation.id,
-            'connectorId': transaction.getConnectorId(),
-            'tagId': transaction.getTagID(),
-            'startDate': transaction.getStartDate().toLocaleString('de-DE'),
-            'endDate': transaction.getStopDate().toLocaleString('de-DE'),
-            'meterStart': (transaction.getMeterStart() / 1000).toLocaleString(
+            'connectorId': transaction.connectorId,
+            'tagId': transaction.tagID,
+            'startDate': transaction.timestamp.toLocaleString('de-DE'),
+            'endDate': transaction.stop.timestamp.toLocaleString('de-DE'),
+            'meterStart': (transaction.meterStart / 1000).toLocaleString(
               (user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
               { minimumIntegerDigits: 1, minimumFractionDigits: 4, maximumFractionDigits: 4 }),
-            'meterStop': (transaction.getStopMeter() / 1000).toLocaleString(
+            'meterStop': (transaction.stop.meterStop / 1000).toLocaleString(
               (user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
               { minimumIntegerDigits: 1, minimumFractionDigits: 4, maximumFractionDigits: 4 }),
-            'totalConsumption': (transaction.getStopTotalConsumption() / 1000).toLocaleString(
+            'totalConsumption': (transaction.stop.totalConsumption / 1000).toLocaleString(
               (user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
               { minimumIntegerDigits: 1, minimumFractionDigits: 4, maximumFractionDigits: 4 }),
-            'price': transaction.getStopPrice(),
-            'relativeCost': (transaction.getStopPrice() / (transaction.getStopTotalConsumption() / 1000)),
-            'startSignedData': transaction.getSignedData(),
-            'endSignedData': transaction.getEndSignedData(),
+            'price': transaction.stop.price,
+            'relativeCost': (transaction.stop.price / (transaction.stop.totalConsumption / 1000)),
+            'startSignedData': transaction.signedData,
+            'endSignedData': transaction.stop.signedData,
             'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
           },
           user.locale,
           {
-            'transactionId': transaction.getID(),
-            'connectorId': transaction.getConnectorId()
+            'transactionId': transaction.id,
+            'connectorId': transaction.connectorId
           }
         );
       }

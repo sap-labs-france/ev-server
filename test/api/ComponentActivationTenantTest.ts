@@ -71,10 +71,12 @@ describe('Tenant Settings test', function() {
     it('Pricing/Simple : Check that the setting has been created in the tenant after activation', async function() {
       // Fill in the data
       testData.data = JSON.parse(`{"id":"${testData.credentials.tenantId}","name":"ut-nothing","email":"${testData.credentials.email}","subdomain":"utnothing","components":{"ocpi":{"active":false,"type":null},"organization":{"active":false,"type":null},"pricing":{"active":true,"type":"simple"},"refund":{"active":false,"type":null},"statistics":{"active":false,"type":null},"analytics":{"active":false,"type":null}}}`);
-      const res = await testData.superAdminCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
+      const res = await testData.superAdminCentralService.updateEntity(
+        testData.centralService.tenantApi, testData.data);
       expect(res.status).to.equal(200);
 
       const settings = await testData.centralService.settingApi.readAll({});
+      expect(settings.status).to.equal(200);
       expect(settings.data.count).to.equal(1);
       expect(settings.data.result[0]).to.be.validatedSetting('pricing', 'simple');
     });
@@ -86,6 +88,7 @@ describe('Tenant Settings test', function() {
       expect(res.status).to.equal(200);
 
       const settings = await testData.centralService.settingApi.readAll({});
+      expect(settings.status).to.equal(200);
       expect(settings.data.count).to.equal(1);
       expect(settings.data.result[0]).to.be.validatedSetting('refund', 'concur');
     });
@@ -97,6 +100,7 @@ describe('Tenant Settings test', function() {
       expect(res.status).to.equal(200);
 
       const settings = await testData.centralService.settingApi.readAll({});
+      expect(settings.status).to.equal(200);
       expect(settings.data.count).to.equal(1);
       expect(settings.data.result[0]).to.be.validatedSetting('pricing', 'convergentCharging');
     });
@@ -108,6 +112,7 @@ describe('Tenant Settings test', function() {
       expect(res.status).to.equal(200);
 
       const settings = await testData.centralService.settingApi.readAll({});
+      expect(settings.status).to.equal(200);
       expect(settings.data.count).to.equal(1);
       expect(settings.data.result[0]).to.be.validatedSetting('analytics', 'sac');
     });

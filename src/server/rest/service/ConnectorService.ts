@@ -90,7 +90,7 @@ export default class ConnectorService {
     // Filter
     const filteredRequest = ConnectorSecurity.filterConnectionCreateRequest(req.body, req.user);
     const setting = await AbstractConnector.getConnectorSetting(req.user.tenantID, filteredRequest.settingId);
-    const connector = ConnectorService.instantiateConnector(req.user.tenantID, filteredRequest.connectorId, setting.getContent()[filteredRequest.connectorId]);
+    const connector = ConnectorService.instantiateConnector(req.user.tenantID, filteredRequest.connectorId, setting.content[filteredRequest.connectorId]);
     const connection = await connector.createConnection(filteredRequest.userId, filteredRequest.data);
 
     ConnectionValidator.getInstance().validateConnectionCreation(req.body);

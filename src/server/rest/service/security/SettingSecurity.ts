@@ -1,29 +1,28 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
+import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import { HttpSettingRequest, HttpSettingsRequest } from '../../../../types/requests/HttpSettingRequest';
+import Setting from '../../../../types/Setting';
+import UserToken from '../../../../types/UserToken';
 import Constants from '../../../../utils/Constants';
 import UtilsSecurity from './UtilsSecurity';
 
 export default class SettingSecurity {
-  // eslint-disable-next-line no-unused-vars
-  static filterSettingDeleteRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.ID = sanitize(request.ID);
-    return filteredRequest;
+
+  public static filterSettingRequestByID(request: HttpByIDRequest): string {
+    return sanitize(request.ID);
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterSettingRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    filteredRequest.ID = sanitize(request.ID);
-    filteredRequest.ContentFilter = UtilsSecurity.filterBoolean(request.ContentFilter);
-    return filteredRequest;
+  public static filterSettingRequest(request: HttpSettingRequest): HttpSettingRequest {
+    return {
+      ID: sanitize(request.ID),
+      ContentFilter: UtilsSecurity.filterBoolean(request.ContentFilter)
+    };
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterSettingsRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    filteredRequest.Search = sanitize(request.Search);
+
+  public static filterSettingsRequest(request: HttpSettingsRequest): HttpSettingsRequest {
+    const filteredRequest: HttpSettingsRequest = {} as HttpSettingsRequest;
     filteredRequest.Identifier = sanitize(request.Identifier);
     filteredRequest.ContentFilter = UtilsSecurity.filterBoolean(request.ContentFilter);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
@@ -31,29 +30,25 @@ export default class SettingSecurity {
     return filteredRequest;
   }
 
-  static filterSettingUpdateRequest(request, loggedUser) {
-    // Set Setting
-    const filteredRequest = SettingSecurity._filterSettingRequest(request, loggedUser);
+  public static filterSettingUpdateRequest(request: Partial<Setting>): Partial<Setting> {
+    const filteredRequest = SettingSecurity._filterSettingRequest(request);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  static filterSettingCreateRequest(request, loggedUser) {
-    return SettingSecurity._filterSettingRequest(request, loggedUser);
+  public static filterSettingCreateRequest(request: Partial<Setting>): Partial<Setting> {
+    return SettingSecurity._filterSettingRequest(request);
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static _filterSettingRequest(request, loggedUser) {
-    const filteredRequest: any = {};
-    filteredRequest.identifier = sanitize(request.identifier);
-    if ('sensitiveData' in request) {
-      filteredRequest.sensitiveData = sanitize(request.sensitiveData);
-    }
-    filteredRequest.content = sanitize(request.content);
-    return filteredRequest;
+  public static _filterSettingRequest(request: Partial<Setting>): Partial<Setting> {
+    return {
+      identifier: sanitize(request.identifier),
+      content: sanitize(request.content),
+      sensitiveData: request.sensitiveData ? sanitize(request.sensitiveData) : []
+    };
   }
 
-  static filterSettingResponse(setting, loggedUser, contentFilter = false) {
+  public static filterSettingResponse(setting: Setting, loggedUser: UserToken, contentFilter = false) {
     let filteredSetting;
 
     if (!setting) {
@@ -72,7 +67,7 @@ export default class SettingSecurity {
     return filteredSetting;
   }
 
-  static filterSettingsResponse(settings, loggedUser, contentFilter = false) {
+  public static filterSettingsResponse(settings, loggedUser: UserToken, contentFilter = false) {
     const filteredSettings = [];
 
     if (!settings) {
@@ -93,7 +88,7 @@ export default class SettingSecurity {
     return filteredSettings;
   }
 
-  private static _filterAuthorizedSettingContent(loggedUser, setting) {
+  private static _filterAuthorizedSettingContent(loggedUser: UserToken, setting: Setting) {
     if (!setting.content) {
       return null;
     }

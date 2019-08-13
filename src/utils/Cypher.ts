@@ -62,6 +62,8 @@ export default class Cypher {
           }
         }
       });
+    }else{
+      obj.sensitiveData = [];
     }
   }
 
@@ -97,7 +99,7 @@ export default class Cypher {
         `The parameter ${obj} is not an object`,
         'Cypher', 'hashSensitiveDataInJSON');
     }
-    if ('sensitiveData' in obj) {
+    if (obj.sensitiveData) {
       // Check that sensitive data is an array
       if (!Array.isArray(obj.sensitiveData)) {
         throw new BackendError(Constants.CENTRAL_SERVER,

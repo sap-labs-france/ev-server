@@ -9,6 +9,7 @@ import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
 import Constants from './client/utils/Constants';
 import TestData from './client/utils/TestData';
+import Utils from './Utils';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -90,6 +91,8 @@ describe('Setting tests', function() {
       });
       expect(read.status).to.equal(200);
       expect(read.data.count).to.equal(1);
+      // Wait a little bit
+      Utils.sleep(1500);
       // Store the old setting
       const oldSetting = read.data.result[0];
       // Activate convergent charging
@@ -111,13 +114,17 @@ describe('Setting tests', function() {
               }
           }
       }`);
+      // Wait a little bit
+      Utils.sleep(1500);
       let update = await testData.centralService.updateEntity(testData.centralService.settingApi, testData.data);
       expect(update.status).to.equal(200);
-      // Activate back simple pricing
+      // Activate back simple pricing after waiting
+      Utils.sleep(1500);
       testData.data = JSON.parse(`{"id":"${testData.credentials.tenantId}","name":"ut-all","email":"${testData.credentials.email}","subdomain":"utall","components":{"ocpi":{"active":true,"type":"gireve"},"organization":{"active":true,"type":null},"pricing":{"active":true,"type":"simple"},"refund":{"active":true,"type":"concur"},"statistics":{"active":true,"type":null},"analytics":{"active":true,"type":null}}}`);
       activation = await testData.superCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
       expect(activation.status).to.equal(200);
-      // Restore default simple pricing setting and check
+      // Restore default simple pricing setting and check after waiting
+      Utils.sleep(1500);
       update = await testData.centralService.updateEntity(testData.centralService.settingApi, oldSetting);
       expect(update.status).to.equal(200);
     });
