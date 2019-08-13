@@ -132,7 +132,11 @@ export default class TransactionStorage {
       };
     }
     if (params.siteID) {
-      match.siteID = Utils.convertToObjectID(params.siteID);
+      match.siteID = {
+        $in: params.siteID.map((site) => {
+          return Utils.convertToObjectID(site);
+        })
+      };
     }
     if (params.refundType && Array.isArray(params.refundType) && params.refundType.length === 1) {
       switch (params.refundType[0]) {
@@ -408,7 +412,11 @@ export default class TransactionStorage {
       };
     }
     if (params.siteID) {
-      match.siteID = Utils.convertToObjectID(params.siteID);
+      match.siteID = {
+        $in: params.siteID.map((site) => {
+          return Utils.convertToObjectID(site);
+        })
+      };
     }
     // Filters
     if (match) {
