@@ -82,5 +82,20 @@ describe('Filters with multiple values tests', function() {
       expect(read.status).to.equal(200);
     });
 
+    it('Sessions history : Check that multi-filtering based on sites works', async () => {
+      const read = await testData.centralService.transactionApi.readAllCompleted({ 'SiteID' : '5abeba9e4bae1457eb565e66|5abeba8d4bae1457eb565e5b' }, { limit: 10, skip: 0 });
+      expect(read.status).to.equal(200);
+    });
+
+    it('Sessions in error : Check that multi-filtering based on sites works', async () => {
+      const read = await testData.centralService.transactionApi.readAllInError({ 'SiteID' : '5abeba9e4bae1457eb565e66|5abeba8d4bae1457eb565e5b' }, { limit: 10, skip: 0 });
+      expect(read.status).to.equal(200);
+    });
+
+    it('Sessions active : Check that multi-filtering based on sites works', async () => {
+      const read = await testData.centralService.transactionApi.readAllActive({ 'SiteID' : '5abeba9e4bae1457eb565e66|5abeba8d4bae1457eb565e5b' }, { limit: 10, skip: 0 });
+      expect(read.status).to.equal(200);
+    });
+
   });
 });

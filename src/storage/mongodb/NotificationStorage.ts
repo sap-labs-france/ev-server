@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import Cypher from '../../utils/Cypher';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
@@ -130,9 +130,7 @@ export default class NotificationStorage {
     const notification: any = {};
     Database.updateNotification(notificationToSave, notification, false);
     // Set the ID
-    notification._id = crypto.createHash('sha256')
-      .update(`${notificationToSave.sourceId}~${notificationToSave.channel}`)
-      .digest('hex');
+    notification._id = Cypher.hash(`${notificationToSave.sourceId}~${notificationToSave.channel}`);
     // Create
     await global.database.getCollection<any>(tenantID, 'notifications')
       .insertOne(notification);

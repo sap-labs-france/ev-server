@@ -1,7 +1,7 @@
 import axios from 'axios';
 import bcrypt from 'bcrypt';
 import ClientOAuth2 from 'client-oauth2';
-import crypto from 'crypto';
+import Cypher from './Cypher';
 import { Request } from 'express';
 import fs from 'fs';
 import _ from 'lodash';
@@ -493,7 +493,7 @@ export default class Utils {
   }
 
   static generateToken(email) {
-    return crypto.createHash('sha1').update(`${new Date().toISOString()}~${email}`).digest('hex');
+    return Cypher.hash(`${new Date().toISOString()}~${email}`);
   }
 
   /**
@@ -600,7 +600,7 @@ export default class Utils {
   }
 
   static hashPassword(password) {
-    return crypto.createHash('sha256').update(password).digest('hex');
+    return Cypher.hash(password);
   }
 
   public static checkIfSiteValid(filteredRequest: any, req: Request): void {
