@@ -10,6 +10,7 @@ import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationToken
 import RegistrationTokenSecurity from './security/RegistrationTokenSecurity';
 import Utils from '../../../utils/Utils';
 import DbParams from '../../../types/database/DbParams';
+import RegistrationToken from '../../../types/RegistrationToken';
 
 export default class RegistrationTokenService {
   static async handleCreateRegistrationToken(action: string, req: Request, res: Response, next: NextFunction) {
@@ -45,15 +46,18 @@ export default class RegistrationTokenService {
           'RegistrationTokenService', 'handleCreateRegistrationToken',
           req.user);
       }
-
-      const registrationTokenID = await RegistrationTokenStorage.saveRegistrationToken(req.user.tenantID, {
+      const registrationToken: RegistrationToken = {
         siteAreaID: filteredRequest.siteAreaID,
         expirationDate: moment().add(1, 'days').toDate(),
         createdBy: { id: req.user.id },
         createdOn: new Date()
-      });
+      };
+      const registrationTokenID = await RegistrationTokenStorage.saveRegistrationToken(req.user.tenantID, registrationToken);
+      registrationToken.id = registrationTokenID;
+      registrationToken.ocpp15Url = Utils.buildOCPPServerURL(req.user.tenantID, Constants.OCPP_PROTOCOL_SOAP, registrationToken.id);
+      registrationToken.ocpp16Url = Utils.buildOCPPServerURL(req.user.tenantID, Constants.OCPP_PROTOCOL_JSON, registrationToken.id);
       // Ok
-      res.json(Object.assign({ id: registrationTokenID }, Constants.REST_RESPONSE_SUCCESS));
+      res.json(RegistrationTokenSecurity.filterRegistrationTokenResponse(registrationToken, req.user));
       next();
     } catch (error) {
       // Log

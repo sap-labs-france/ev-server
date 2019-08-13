@@ -41,7 +41,7 @@ export default class RegistrationTokenSecurity {
     return registrationTokens;
   }
 
-  private static filterRegistrationTokenResponse(registrationToken: RegistrationToken, loggedUser: UserToken): RegistrationToken {
+  static filterRegistrationTokenResponse(registrationToken: RegistrationToken, loggedUser: UserToken): RegistrationToken {
     if (registrationToken || Authorizations.canReadRegistrationToken(loggedUser,
       registrationToken.siteArea ? registrationToken.siteArea.siteID : null)) {
       return registrationToken;
