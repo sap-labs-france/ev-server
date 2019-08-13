@@ -1,5 +1,5 @@
 import { ObjectID } from 'bson';
-import crypto from 'crypto';
+import Cypher from '../../utils/Cypher';
 import fs from 'fs';
 import Mustache from 'mustache';
 import BackendError from '../../exception/BackendError';
@@ -72,9 +72,7 @@ export default class UserStorage {
       // Get
       const eulaMDB = eulasMDB[0];
       // Check if eula has changed
-      currentEulaHash = crypto.createHash('sha256')
-        .update(currentEula)
-        .digest('hex');
+      currentEulaHash = Cypher.hash(currentEula);
       if (currentEulaHash !== eulaMDB.hash) {
         // New Version
         const eula = {
@@ -101,7 +99,7 @@ export default class UserStorage {
       language: language,
       version: 1,
       text: currentEula,
-      hash: crypto.createHash('sha256').update(currentEula).digest('hex')
+      hash: Cypher.hash(currentEula)
     };
     // Create
     await global.database.getCollection<Eula>(tenantID, 'eulas').insertOne(eula);
@@ -207,7 +205,7 @@ export default class UserStorage {
         for (const siteID of siteIDs) {
           // Add
           siteUsers.push({
-            '_id': crypto.createHash('sha256').update(`${siteID}~${userID}`).digest('hex'),
+            '_id': Cypher.hash(`${siteID}~${userID}`),
             'userID': Utils.convertToObjectID(userID),
             'siteID': Utils.convertToObjectID(siteID),
             'siteAdmin': false
