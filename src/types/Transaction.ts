@@ -1,5 +1,5 @@
-import User from "./User";
-import ChargingStation from "../types/ChargingStation";
+import ChargingStation from '../types/ChargingStation';
+import User from './User';
 
 export default interface Transaction {
 
@@ -31,18 +31,18 @@ export default interface Transaction {
     timestamp: Date;
     transactionData?: any;
     signedData?: any;
-  }
+  };
   remotestop?: {
     timestamp: Date;
     tagID: string;
-  }
+  };
   refundData?: {
     refundId: string;
     refundedAt: Date;
     type: any;
     reportId?: string;
     status?: any;
-  }
+  };
   lastMeterValue?: {
     value: number;
     timestamp: Date;

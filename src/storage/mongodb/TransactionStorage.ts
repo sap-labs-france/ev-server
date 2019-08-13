@@ -2,12 +2,12 @@ import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
+import DbLookup from '../../types/database/DBLookup';
 import global from './../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import PricingStorage from './PricingStorage';
 import Transaction from '../../types/Transaction';
 import Utils from '../../utils/Utils';
-import DbLookup from '../../types/database/DBLookup';
 
 export default class TransactionStorage {
   public static async deleteTransaction(tenantID: string, transaction: Transaction): Promise<void> {
@@ -39,7 +39,7 @@ export default class TransactionStorage {
       transactionToSave.id = await TransactionStorage._findAvailableID(tenantID);
     }
     // Transfer
-    let transactionMDB: any = {
+    const transactionMDB: any = {
       _id: transactionToSave.id,
       siteID: transactionToSave.siteID,
       siteAreaID: transactionToSave.siteAreaID,
@@ -83,15 +83,15 @@ export default class TransactionStorage {
         roundedPrice: transactionToSave.stop.roundedPrice,
         priceUnit: transactionToSave.priceUnit,
         pricingSource: transactionToSave.stop.pricingSource
-      }
+      };
     }
-    if(transactionToSave.remotestop) {
+    if (transactionToSave.remotestop) {
       transactionMDB.remotestop = {
         timestamp: transactionToSave.remotestop.timestamp,
         tagID: transactionToSave.remotestop.tagID
-      }
+      };
     }
-    if(transactionToSave.refundData) {
+    if (transactionToSave.refundData) {
       transactionMDB.refundData = {
         refundId: transactionToSave.refundData.refundId,
         refundedAt: transactionToSave.refundData.refundedAt,
@@ -139,24 +139,24 @@ export default class TransactionStorage {
   }
 
   public static async getTransactions(tenantID: string,
-    params:{ transactionId?: number; search?: string; userIDs?: string[]; chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteID?: string;
+    params: { transactionId?: number; search?: string; userIDs?: string[]; chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteID?: string;
       connectorId?: number; startTime?: Date; endTime?: Date; stop?: any; refundType?: 'refunded'|'notRefunded'; minimalPrice?: boolean;
-      withChargeBoxes?: boolean; statistics?: 'refund'|'history', refundStatus?: string;
-      errorType?: ('negative_inactivity'|'average_consumption_greater_than_connector_capacity'|'no_consumption')[] },//TODO change the any
+      withChargeBoxes?: boolean; statistics?: 'refund'|'history'; refundStatus?: string;
+      errorType?: ('negative_inactivity'|'average_consumption_greater_than_connector_capacity'|'no_consumption')[]; }, // TODO change the any
     dbParams: DbParams, projectFields?: string[]):
-  Promise<{count: number, stats: {
-    totalConsumptionWattHours?: number,
-    totalPriceRefund?: number,
-    totalPricePending?: number,
-    countRefundTransactions?: number,
-    countPendingTransactions?: number,
-    countRefundedReports?: number,
-    totalDurationSecs?: number,
-    totalPrice?: number,
-    currency?: string,
-    totalInactivitySecs?: number,
-    count: number
-  }, result: Transaction[]}> {
+    Promise<{count: number; stats: {
+      totalConsumptionWattHours?: number;
+      totalPriceRefund?: number;
+      totalPricePending?: number;
+      countRefundTransactions?: number;
+      countPendingTransactions?: number;
+      countRefundedReports?: number;
+      totalDurationSecs?: number;
+      totalPrice?: number;
+      currency?: string;
+      totalInactivitySecs?: number;
+      count: number;
+    }; result: Transaction[];}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactions');
     // Check
@@ -209,15 +209,11 @@ export default class TransactionStorage {
       match.stop = params.stop;
     }
     if (params.siteAreaIDs) {
-      match.siteAreaID = {
-        $in: params.siteAreaIDs.map((area) => Utils.convertToObjectID(area))
-      };
+      match.siteAreaID = { $in: params.siteAreaIDs.map((area) => Utils.convertToObjectID(area)) };
     }
     if (params.siteID) {
       match.siteID = {
-        $in: params.siteID.map((site) => {
-          return Utils.convertToObjectID(site);
-        })
+        $in: Utils.convertToObjectID(params.siteID)
       };
     }
     if (params.refundType && Array.isArray(params.refundType) && params.refundType.length === 1) {
@@ -419,84 +415,13 @@ export default class TransactionStorage {
     };
   }
 
-  private static _filterTransactionsInErrorFacets(tenantID: string,
-    errorType?: ('negative_inactivity'|'average_consumption_greater_than_connector_capacity'|'no_consumption')[]) {
-        $in: params.siteID.map((site) => {
-          return Utils.convertToObjectID(site);
-        })
-      };
-    const facets = {
-      '$facet':
-      {
-        'no_consumption':
-          [
-            {
-              $match: {
-                $and: [
-                  { 'stop': { $exists: true } },
-                  { 'stop.totalConsumption': { $lte: 0 } }
-                ]
-              }
-            },
-            { $addFields: { 'errorCode': 'no_consumption' } }
-          ],
-        'average_consumption_greater_than_connector_capacity': [],
-        'negative_inactivity':
-          [
-            {
-              $match: {
-                $and: [
-                  { 'stop': { $exists: true } },
-                  { 'stop.totalInactivitySecs': { $lt: 0 } }
-                ]
-              }
-            },
-            { $addFields: { 'errorCode': 'negative_inactivity' } }
-          ],
-        'incorrect_starting_date':
-          [
-            { $match: { 'timestamp': { $lte : Utils.convertToDate('2017-01-01 00:00:00.000Z') } } },
-            { $addFields: { 'errorCode': 'incorrect_starting_date' } }
-          ]
-      }
-    };
-    facets.$facet.average_consumption_greater_than_connector_capacity.push(
-      { $match: { 'stop': { $exists: true } } },
-      { $addFields: { activeDuration: { $subtract: ['$stop.totalDurationSecs', '$stop.totalInactivitySecs'] } } },
-      { $match: { 'activeDuration': { $gt: 0 } } }
-    );
-    DatabaseUtils.pushChargingStationLookupInAggregation({ tenantID, aggregation: facets.$facet.average_consumption_greater_than_connector_capacity,
-     localField: 'chargeBoxID', foreignField: '_id', asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false})
-    facets.$facet.average_consumption_greater_than_connector_capacity.push(
-      { $addFields: { connector: { $arrayElemAt: ['$chargeBox.connectors', { $subtract: ['$connectorId', 1] }] } } },
-      { $addFields: { averagePower: { $multiply: [{ $divide: ['$stop.totalConsumption', '$activeDuration'] }, 3600] } } },
-      { $addFields: { impossiblePower: { $lte: [{ $subtract: ['$connector.power', '$averagePower'] }, 0] } } },
-      { $match: { 'impossiblePower': { $eq: true } } },
-      { $addFields: { 'errorCode': 'average_consumption_greater_than_connector_capacity' } }
-    );
-    let filteredFacets: any = null;
-    if (errorType) {
-      filteredFacets = { $facet: {} };
-      if(errorType.includes('no_consumption')) {
-        filteredFacets.$facet.no_consumption = facets.$facet.no_consumption;
-      }
-      if(errorType.includes('negative_inactivity')) {
-        filteredFacets.$facet.negative_activity = facets.$facet.negative_inactivity;
-      }
-      if(errorType.includes('average_consumption_greater_than_connector_capacity')) {
-        filteredFacets.$facet.average_consumption_greater_than_connector_capacity = facets.$facet.average_consumption_greater_than_connector_capacity;
-      }
-    }
-    return filteredFacets;
-  }
-
   public static async getTransaction(tenantID: string, id: number): Promise<Transaction> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransaction');
     // Check
     await Utils.checkTenant(tenantID);
 
-    //Delegate work
+    // Delegate work
     const transactionsMDB = await TransactionStorage.getTransactions(tenantID, { transactionId: id }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('TransactionStorage', 'getTransaction', uniqueTimerID, { id });
@@ -568,7 +493,7 @@ export default class TransactionStorage {
     return null;
   }
 
-  public static async _findAvailableID(tenantID: string): Promise<number> { //TODO ...Why not just increment it??
+  public static async _findAvailableID(tenantID: string): Promise<number> { // TODO ...Why not just increment it??
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', '_findAvailableID');
     // Check
@@ -591,5 +516,75 @@ export default class TransactionStorage {
     } while (existingTransaction);
     // Debug
     Logging.traceEnd('TransactionStorage', '_findAvailableID', uniqueTimerID);
+  }
+
+  private static _filterTransactionsInErrorFacets(tenantID: string,
+    errorType?: ('negative_inactivity'|'average_consumption_greater_than_connector_capacity'|'no_consumption')[]) {
+    // $in: params.siteID.map((site) => {
+    //   return Utils.convertToObjectID(site);
+    // })
+    const facets = {
+      '$facet':
+      {
+        'no_consumption':
+          [
+            {
+              $match: {
+                $and: [
+                  { 'stop': { $exists: true } },
+                  { 'stop.totalConsumption': { $lte: 0 } }
+                ]
+              }
+            },
+            { $addFields: { 'errorCode': 'no_consumption' } }
+          ],
+        'average_consumption_greater_than_connector_capacity': [],
+        'negative_inactivity':
+          [
+            {
+              $match: {
+                $and: [
+                  { 'stop': { $exists: true } },
+                  { 'stop.totalInactivitySecs': { $lt: 0 } }
+                ]
+              }
+            },
+            { $addFields: { 'errorCode': 'negative_inactivity' } }
+          ],
+        'incorrect_starting_date':
+          [
+            { $match: { 'timestamp': { $lte : Utils.convertToDate('2017-01-01 00:00:00.000Z') } } },
+            { $addFields: { 'errorCode': 'incorrect_starting_date' } }
+          ]
+      }
+    };
+    facets.$facet.average_consumption_greater_than_connector_capacity.push(
+      { $match: { 'stop': { $exists: true } } },
+      { $addFields: { activeDuration: { $subtract: ['$stop.totalDurationSecs', '$stop.totalInactivitySecs'] } } },
+      { $match: { 'activeDuration': { $gt: 0 } } }
+    );
+    DatabaseUtils.pushChargingStationLookupInAggregation({ tenantID, aggregation: facets.$facet.average_consumption_greater_than_connector_capacity,
+      localField: 'chargeBoxID', foreignField: '_id', asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false });
+    facets.$facet.average_consumption_greater_than_connector_capacity.push(
+      { $addFields: { connector: { $arrayElemAt: ['$chargeBox.connectors', { $subtract: ['$connectorId', 1] }] } } },
+      { $addFields: { averagePower: { $multiply: [{ $divide: ['$stop.totalConsumption', '$activeDuration'] }, 3600] } } },
+      { $addFields: { impossiblePower: { $lte: [{ $subtract: ['$connector.power', '$averagePower'] }, 0] } } },
+      { $match: { 'impossiblePower': { $eq: true } } },
+      { $addFields: { 'errorCode': 'average_consumption_greater_than_connector_capacity' } }
+    );
+    let filteredFacets: any = null;
+    if (errorType) {
+      filteredFacets = { $facet: {} };
+      if (errorType.includes('no_consumption')) {
+        filteredFacets.$facet.no_consumption = facets.$facet.no_consumption;
+      }
+      if (errorType.includes('negative_inactivity')) {
+        filteredFacets.$facet.negative_activity = facets.$facet.negative_inactivity;
+      }
+      if (errorType.includes('average_consumption_greater_than_connector_capacity')) {
+        filteredFacets.$facet.average_consumption_greater_than_connector_capacity = facets.$facet.average_consumption_greater_than_connector_capacity;
+      }
+    }
+    return filteredFacets;
   }
 }

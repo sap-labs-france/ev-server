@@ -7,6 +7,8 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import Setting from '../../../types/Setting';
+import SettingService from './SettingService';
+import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import Tenant from '../../../types/Tenant';
 import TenantSecurity from './security/TenantSecurity';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
@@ -15,8 +17,6 @@ import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
-import SettingStorage from '../../../storage/mongodb/SettingStorage';
-import SettingService from './SettingService';
 
 const MODULE_NAME = 'TenantService';
 
@@ -271,7 +271,7 @@ export default class TenantService {
       }
       // Create
       const newSettingContent = SettingService.createDefaultSettingContent(
-        {...tenant.components[componentName], name: componentName}, (currentSetting ? currentSetting.content : null));
+        { ...tenant.components[componentName], name: componentName }, (currentSetting ? currentSetting.content : null));
       if (newSettingContent) {
         // Create & Save
         if (!currentSetting) {

@@ -7,6 +7,7 @@ import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStor
 import Configuration from '../../../utils/Configuration';
 import Connector from '../../../types/Connector';
 import Constants from '../../../utils/Constants';
+import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
@@ -15,11 +16,10 @@ import OCPPValidation from '../validation/OCPPValidation';
 import PricingFactory from '../../../integration/pricing/PricingFactory';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Transaction from '../../../types/Transaction';
+import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
-import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
-import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UtilsService from '../../rest/service/UtilsService';
 
 const moment = require('moment');
@@ -487,7 +487,7 @@ export default class OCPPService {
         consumption.totalInactivitySecs = transaction.currentTotalInactivitySecs;
         consumption.totalDurationSecs = !transaction.stop ?
           moment.duration(moment(transaction.lastMeterValue.timestamp).diff(moment(transaction.timestamp))).asSeconds() :
-          moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds()
+          moment.duration(moment(transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
         consumption.stateOfCharge = transaction.currentStateOfCharge;
         consumption.toPrice = true;
       }
@@ -626,7 +626,7 @@ export default class OCPPService {
             }
             transaction.currentCumulatedPrice = consumption.cumulatedAmount;
             // Update Transaction
-            if(! transaction.stop) {
+            if (!transaction.stop) {
               (transaction as any).stop = {};
             }
             transaction.stop.price = parseFloat(transaction.currentCumulatedPrice.toFixed(6));
@@ -1021,7 +1021,7 @@ export default class OCPPService {
       await this._stopOrDeleteActiveTransactions(
         headers.tenantID, chargingStation.id, startTransaction.connectorId);
       // Create
-      let transaction: Transaction = startTransaction;
+      const transaction: Transaction = startTransaction;
       // Init
       transaction.numberOfMeterValues = 0;
       transaction.lastMeterValue = {
@@ -1240,7 +1240,7 @@ export default class OCPPService {
       // Set header
       stopTransaction.chargeBoxID = chargingStation.id;
       // Get the transaction
-      let transaction = await TransactionStorage.getTransaction(headers.tenantID, stopTransaction.transactionId);
+      const transaction = await TransactionStorage.getTransaction(headers.tenantID, stopTransaction.transactionId);
       UtilsService.assertObjectExists(transaction, `Transaction${stopTransaction.transactionId} doesn't exist`,
         'OCPPService', 'handleStopTransaction', null);
       // Get the TagID that stopped the transaction
@@ -1336,7 +1336,7 @@ export default class OCPPService {
   }
 
   _updateTransactionWithStopTransaction(transaction: Transaction, stopTransaction, user: User, alternateUser: User, tagId) {
-    if(!transaction.stop) {
+    if (!transaction.stop) {
       (transaction as any).stop = {};
     }
     transaction.stop.meterStop = Utils.convertToInt(stopTransaction.meterStop);

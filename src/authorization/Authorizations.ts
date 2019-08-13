@@ -23,7 +23,7 @@ export default class Authorizations {
   private static configuration: any;
 
   public static canRefundTransaction(loggedUser: UserToken, transaction: Transaction) {
-    let userId = transaction.userID;
+    const userId = transaction.userID;
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION,
       Constants.ACTION_REFUND_TRANSACTION, { 'UserID': userId });
   }

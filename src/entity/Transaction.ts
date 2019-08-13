@@ -594,7 +594,7 @@ export default class Transaction extends TenantHolder {
   }
 
   delete() {
-    return TransactionStorage.deleteTransaction(this.getTenantID(), this);
+    return TransactionStorage.deleteTransaction(this.getTenantID(), this.getModel());
   }
 
   save() {

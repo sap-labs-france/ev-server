@@ -1,7 +1,6 @@
 import axios from 'axios';
 import bcrypt from 'bcrypt';
 import ClientOAuth2 from 'client-oauth2';
-import Cypher from './Cypher';
 import { Request } from 'express';
 import fs from 'fs';
 import _ from 'lodash';
@@ -18,13 +17,16 @@ import ChargingStation from '../types/ChargingStation';
 import Configuration from './Configuration';
 import ConnectorStats from '../types/ConnectorStats';
 import Constants from './Constants';
+import Cypher from './Cypher';
 import { HttpUserRequest } from '../types/requests/HttpUserRequest';
 import Logging from './Logging';
 import Tenant from '../types/Tenant';
 import TenantStorage from '../storage/mongodb/TenantStorage';
+import Transaction from '../types/Transaction';
 import User from '../types/User';
 import UserStorage from '../storage/mongodb/UserStorage';
-import Transaction from '../types/Transaction';
+import UserToken from '../types/UserToken';
+
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
 

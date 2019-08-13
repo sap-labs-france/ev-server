@@ -1,19 +1,19 @@
+import moment = require('moment');
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
+import { HttpConsumptionFromTransactionRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
+import Transaction from '../../../../types/Transaction';
 import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
-import { HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest, HttpConsumptionFromTransactionRequest } from '../../../../types/requests/HttpTransactionRequest';
 import UtilsSecurity from './UtilsSecurity';
-import Transaction from '../../../../types/Transaction';
-import moment = require('moment');
 
 export default class TransactionSecurity {
   public static filterTransactionsRefund(request: Partial<HttpTransactionsRefundRequest>): HttpTransactionsRefundRequest {
-    if(! request.transactionIds) {
-      return {transactionIds: []};
+    if (!request.transactionIds) {
+      return { transactionIds: [] };
     }
-    return {transactionIds: request.transactionIds.map(id => sanitize(id))};
+    return { transactionIds: request.transactionIds.map(sanitize) };
   }
 
   public static filterTransactionDelete(request: Partial<HttpTransactionRequest>): number {
@@ -29,11 +29,11 @@ export default class TransactionSecurity {
   }
 
   public static filterTransactionsActiveRequest(request: Partial<HttpTransactionsRequest>): HttpTransactionsRequest {
-    let filtered: HttpTransactionsRequest = {} as HttpTransactionsRequest;
+    const filtered: HttpTransactionsRequest = {} as HttpTransactionsRequest;
     filtered.ChargeBoxID = sanitize(request.ChargeBoxID);
     filtered.ConnectorId = sanitize(request.ConnectorId);
     filtered.SiteAreaID = sanitize(request.SiteAreaID);
-    filtered.UserID = request.UserID?sanitize(request.UserID):null;
+    filtered.UserID = request.UserID ? sanitize(request.UserID) : null;
     UtilsSecurity.filterSkipAndLimit(request, filtered);
     UtilsSecurity.filterSort(request, filtered);
     return filtered;
@@ -121,7 +121,7 @@ export default class TransactionSecurity {
         filteredTransaction.currentTotalConsumption = transaction.currentTotalConsumption;
         filteredTransaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs;
         filteredTransaction.currentTotalDurationSecs =
-          moment.duration(moment(!transaction.stop ? transaction.lastMeterValue.timestamp : transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds()
+          moment.duration(moment(!transaction.stop ? transaction.lastMeterValue.timestamp : transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
         filteredTransaction.currentCumulatedPrice = transaction.currentCumulatedPrice;
         filteredTransaction.currentStateOfCharge = transaction.currentStateOfCharge;
         filteredTransaction.currentStateOfCharge = transaction.currentStateOfCharge;

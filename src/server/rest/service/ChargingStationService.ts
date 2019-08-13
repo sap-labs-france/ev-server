@@ -13,14 +13,13 @@ import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
-import Transaction from '../../../entity/Transaction';
+import Transaction from '../../../types/Transaction';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
-import Transaction from '../../../types/Transaction';
 
 export default class ChargingStationService {
 

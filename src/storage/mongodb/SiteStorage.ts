@@ -1,8 +1,8 @@
-import Cypher from '../../utils/Cypher';
 import { ObjectID } from 'mongodb';
 import BackendError from '../../exception/BackendError';
 import ChargingStationStorage from './ChargingStationStorage';
 import Constants from '../../utils/Constants';
+import Cypher from '../../utils/Cypher';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
@@ -228,7 +228,7 @@ export default class SiteStorage {
       siteFilter._id = new ObjectID();
     }
     // Properties to save
-    let siteMDB: any = {
+    const siteMDB: any = {
       _id: siteFilter._id,
       address: siteToSave.address,
       companyID: Utils.convertToObjectID(siteToSave.companyID),

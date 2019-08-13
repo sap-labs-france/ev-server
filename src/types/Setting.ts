@@ -1,4 +1,4 @@
-import CreatedUpdatedProps from "./CreatedUpdatedProps";
+import CreatedUpdatedProps from './CreatedUpdatedProps';
 
 export default interface Setting extends CreatedUpdatedProps {
 

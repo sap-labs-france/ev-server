@@ -3,18 +3,18 @@ import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Setting from '../../types/Setting';
 import Utils from '../../utils/Utils';
-import DbParams from '../../types/database/DbParams';
 
 export default class SettingStorage {
   public static async getSetting(tenantID: string, id: string): Promise<Setting> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SettingStorage', 'getSetting');
-     // Delegate querying
-     let settingMDB = await SettingStorage.getSettings(tenantID, {id: id}, Constants.DB_PARAMS_SINGLE_RECORD);
+    // Delegate querying
+    const settingMDB = await SettingStorage.getSettings(tenantID, { id: id }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('SettingStorage', 'getSetting', uniqueTimerID, { id });
 
@@ -22,8 +22,8 @@ export default class SettingStorage {
   }
 
   public static async getSettingByIdentifier(tenantID: string, identifier: string): Promise<Setting> {
-    let settingResult = await SettingStorage.getSettings(tenantID, {identifier: identifier}, Constants.DB_PARAMS_SINGLE_RECORD);
-    return settingResult.count>0 ? settingResult.result[0] : null;
+    const settingResult = await SettingStorage.getSettings(tenantID, { identifier: identifier }, Constants.DB_PARAMS_SINGLE_RECORD);
+    return settingResult.count > 0 ? settingResult.result[0] : null;
   }
 
   public static async saveSetting(tenantID: string, settingToSave: Partial<Setting>): Promise<string> {
@@ -52,7 +52,7 @@ export default class SettingStorage {
       identifier: settingToSave.identifier,
       content: settingToSave.content,
       sensitiveData: settingToSave.sensitiveData
-    }
+    };
     DatabaseUtils.addLastChangedCreatedProps(settingMDB, settingToSave);
     // Modify
     const result = await global.database.getCollection<any>(tenantID, 'settings').findOneAndUpdate(
@@ -71,7 +71,7 @@ export default class SettingStorage {
     return settingFilter._id.toHexString();
   }
 
-  public static async getSettings(tenantID: string, params: {identifier?:string, id?:string}, dbParams: DbParams, projectFields?: string[]) {
+  public static async getSettings(tenantID: string, params: {identifier?: string; id?: string}, dbParams: DbParams, projectFields?: string[]) {
     // Debug
     const uniqueTimerID = Logging.traceStart('SettingStorage', 'getSettings');
     // Check Tenant

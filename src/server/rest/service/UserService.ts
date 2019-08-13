@@ -544,7 +544,7 @@ export default class UserService {
     }
     // Get the settings
     const setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, Constants.COMPONENTS.PRICING);
-    let settingInner = setting.content.convergentCharging;
+    const settingInner = setting.content.convergentCharging;
     if (!setting) {
       Logging.logException({ 'message': 'Convergent Charging setting is missing' }, 'UserInvoice', Constants.CENTRAL_SERVER, 'UserService', 'handleGetUserInvoice', req.user.tenantID, req.user);
       throw new AppError(

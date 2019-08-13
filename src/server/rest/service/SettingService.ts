@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import HttpStatusCodes from 'http-status-codes';
 import _ from 'lodash';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
@@ -6,11 +7,9 @@ import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
-import Setting from '../../../types/Setting';
 import SettingSecurity from './security/SettingSecurity';
-import UtilsService from './UtilsService';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
-import HttpStatusCodes from 'http-status-codes';
+import UtilsService from './UtilsService';
 
 export default class SettingService {
   public static async handleDeleteSetting(action: string, req: Request, res: Response, next: NextFunction) {
@@ -30,8 +29,7 @@ export default class SettingService {
     }
     // Get
     const setting = await SettingStorage.getSetting(req.user.tenantID, settingId);
-    UtilsService.assertObjectExists(setting, `Tenant '${settingId}' does not exist`,
-    'SettingService', 'handleDeleteSetting', req.user);
+    UtilsService.assertObjectExists(setting, `Tenant '${settingId}' does not exist`, 'SettingService', 'handleDeleteSetting', req.user);
     // Delete
     await SettingStorage.deleteSetting(req.user.tenantID, settingId);
     // Log
@@ -51,7 +49,7 @@ export default class SettingService {
     const settingID = SettingSecurity.filterSettingRequestByID(req.query);
     UtilsService.assertIdIsProvided(settingID, 'SettingService', 'handleGetSetting', req.user);
     // Check auth
-    if(!Authorizations.canReadSetting(req.user)) {
+    if (!Authorizations.canReadSetting(req.user)) {
       throw new AppAuthError(
         Constants.ACTION_READ,
         Constants.ENTITY_SETTING,
@@ -93,7 +91,7 @@ export default class SettingService {
     const settings = await SettingStorage.getSettings(req.user.tenantID,
       { identifier: filteredRequest.Identifier },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort });
-      settings.result = settings.result.map((setting) => setting.getModel());
+    settings.result = settings.result.map((setting) => setting);
     // Filter
     settings.result = SettingSecurity.filterSettingsResponse(
       settings.result, req.user);
@@ -191,7 +189,7 @@ export default class SettingService {
           }
         }
       }
-    }else{
+    } else {
       settingUpdate.sensitiveData = [];
     }
     // Update timestamp

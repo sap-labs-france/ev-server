@@ -1,5 +1,5 @@
-import HttpByIDRequest from "./HttpByIDRequest";
-import HttpDatabaseRequest from "./HttpDatabaseRequest";
+import HttpByIDRequest from './HttpByIDRequest';
+import HttpDatabaseRequest from './HttpDatabaseRequest';
 
 export interface HttpTransactionsRefundRequest {
   transactionIds: number[];
@@ -24,7 +24,7 @@ export interface HttpTransactionsRequest extends HttpDatabaseRequest {
   Statistics?: 'refund'|'history';
 }
 
-export interface  HttpConsumptionFromTransactionRequest {
+export interface HttpConsumptionFromTransactionRequest {
   TransactionId: number;
   StartDateTime: Date;
   EndDateTime: Date;

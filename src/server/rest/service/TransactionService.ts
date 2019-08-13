@@ -7,6 +7,7 @@ import Authorizations from '../../../authorization/Authorizations';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import ConcurConnector from '../../../integration/refund/ConcurConnector';
 import Constants from '../../../utils/Constants';
+import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import OCPPService from '../../../server/ocpp/services/OCPPService';
@@ -14,14 +15,13 @@ import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import SynchronizeRefundTransactionsTask from '../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import Transaction from '../../../types/Transaction';
 import TransactionSecurity from './security/TransactionSecurity';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
-import UtilsService from './UtilsService';
-import Transaction from '../../../types/Transaction';
 import Utils from '../../../utils/Utils';
-import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
+import UtilsService from './UtilsService';
 
 export default class TransactionService {
   public static async handleSynchronizeRefundedTransactions(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
@@ -338,7 +338,7 @@ export default class TransactionService {
     if (transactionsYears) {
       result.years = [];
       result.years.push(new Date().getFullYear());
-    }//TODO this is unused??
+    }// TODO this is unused??
     // Return
     res.json(transactionsYears);
     next();
@@ -366,7 +366,7 @@ export default class TransactionService {
       filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
     }
     if (filteredRequest.SiteID) {
-        filter.siteID = filteredRequest.SiteID.split('|');
+      filter.siteID = filteredRequest.SiteID.split('|');
     }
     if (filteredRequest.UserID) {
       filter.userIDs = filteredRequest.UserID.split('|');
@@ -409,9 +409,9 @@ export default class TransactionService {
     if (filteredRequest.SiteAreaID) {
       filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
     }
-      if (filteredRequest.SiteID) {
-        filter.siteID = filteredRequest.SiteID.split('|');
-      }
+    if (filteredRequest.SiteID) {
+      filter.siteID = filteredRequest.SiteID.split('|');
+    }
     if (filteredRequest.UserID) {
       filter.userIDs = filteredRequest.UserID.split('|');
     }
@@ -468,9 +468,9 @@ export default class TransactionService {
     if (filteredRequest.SiteAreaID) {
       filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
     }
-      if (filteredRequest.SiteID) {
-        filter.siteID = filteredRequest.SiteID.split('|');
-      }
+    if (filteredRequest.SiteID) {
+      filter.siteID = filteredRequest.SiteID.split('|');
+    }
     if (filteredRequest.UserID) {
       filter.userIDs = filteredRequest.UserID.split('|');
     }
@@ -539,9 +539,9 @@ export default class TransactionService {
     if (filteredRequest.SiteAreaID) {
       filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
     }
-      if (filteredRequest.SiteID) {
-        filter.siteID = filteredRequest.SiteID.split('|');
-      }
+    if (filteredRequest.SiteID) {
+      filter.siteID = filteredRequest.SiteID.split('|');
+    }
     if (filteredRequest.UserID) {
       filter.userIDs = filteredRequest.UserID.split('|');
     }
@@ -555,7 +555,7 @@ export default class TransactionService {
     if (filteredRequest.ErrorType) {
       filter.errorType = filteredRequest.ErrorType.split('|');
     } else {
-      filter.errorType = ['negative_inactivity','average_consumption_greater_than_connector_capacity','no_consumption'];
+      filter.errorType = ['negative_inactivity', 'average_consumption_greater_than_connector_capacity', 'no_consumption'];
     }
     // Site Area
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID,

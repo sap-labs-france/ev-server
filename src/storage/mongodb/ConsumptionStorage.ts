@@ -1,5 +1,5 @@
-import Cypher from '../../utils/Cypher';
 import Consumption from '../../entity/Consumption';
+import Cypher from '../../utils/Cypher';
 import Database from '../../utils/Database';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';

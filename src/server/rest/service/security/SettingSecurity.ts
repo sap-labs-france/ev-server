@@ -1,10 +1,10 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
+import Constants from '../../../../utils/Constants';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { HttpSettingRequest, HttpSettingsRequest } from '../../../../types/requests/HttpSettingRequest';
 import Setting from '../../../../types/Setting';
 import UserToken from '../../../../types/UserToken';
-import Constants from '../../../../utils/Constants';
 import UtilsSecurity from './UtilsSecurity';
 
 export default class SettingSecurity {

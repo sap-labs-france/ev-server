@@ -1,5 +1,5 @@
-import Cypher from '../../utils/Cypher';
 import Constants from '../../utils/Constants';
+import Cypher from '../../utils/Cypher';
 import global from '../../types/GlobalType';
 import MigrationTask from '../MigrationTask';
 import Tenant from '../../types/Tenant';

@@ -1,5 +1,5 @@
-import Cypher from '../../utils/Cypher';
 import Constants from '../../utils/Constants';
+import Cypher from '../../utils/Cypher';
 import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';

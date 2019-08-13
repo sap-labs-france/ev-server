@@ -3,9 +3,9 @@ import ConvergentChargingPricing from '../pricing/convergent-charging/Convergent
 import SettingStorage from '../../storage/mongodb/SettingStorage';
 import SimplePricing from '../pricing/simple-pricing/SimplePricing';
 import Tenant from '../../types/Tenant';
-import Utils from '../../utils/Utils';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Transaction from '../../types/Transaction';
+import Utils from '../../utils/Utils';
 
 export default class PricingFactory {
   static async getPricingImpl(tenantID: string, transaction: Transaction) {

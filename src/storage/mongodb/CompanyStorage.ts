@@ -55,7 +55,7 @@ export default class CompanyStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Set
-    let companyMDB: any = {
+    const companyMDB: any = {
       _id: !companyToSave.id ? new ObjectID() : Utils.convertToObjectID(companyToSave.id),
       name: companyToSave.name
     };

@@ -12,6 +12,7 @@ import Cypher from '../../utils/Cypher';
 import InternalError from '../../exception/InternalError';
 import Logging from '../../utils/Logging';
 import Site from '../../types/Site';
+import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import Transaction from '../../types/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 
@@ -166,7 +167,7 @@ export default class ConcurConnector extends AbstractConnector {
         try {
           const chargingStation = await ChargingStationStorage.getChargingStation(tenantID, transaction.chargeBoxID);
           const locationId = await this.getLocation(connection, (chargingStation.siteArea && chargingStation.siteArea.site) ? chargingStation.siteArea.site :
-            (await SiteAreaStorage.getSiteArea(transaction.getTenantID(), chargingStation.siteAreaID, { withSite: true })).site);
+            (await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID, { withSite: true })).site);
           if (quickRefund) {
             const entryId = await this.createQuickExpense(connection, transaction, locationId, userId);
             transaction.refundData = { refundId: entryId, type: 'quick', refundedAt: new Date() };

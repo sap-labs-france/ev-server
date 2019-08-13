@@ -1,6 +1,7 @@
 import moment from 'moment-timezone';
 import ChargingStation from '../../../types/ChargingStation';
 import ChargingStationService from '../../../server/rest/service/ChargingStationService';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import OCPPUtils from '../../../server/ocpp/utils/OCPPUtils';
@@ -8,7 +9,6 @@ import Pricing, { PricedConsumption, PricingSettings } from '../Pricing';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import StatefulChargingService from './StatefulChargingService';
 import Transaction from '../../../types/Transaction';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 
 export class ConvergentChargingPricingSettings extends PricingSettings {
   constructor(readonly url: string, readonly user: string, readonly password: string, readonly chargeableItemName: string) {

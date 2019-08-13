@@ -1,10 +1,10 @@
 import { ObjectID } from 'bson';
-import Cypher from '../../utils/Cypher';
 import fs from 'fs';
 import Mustache from 'mustache';
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
+import Cypher from '../../utils/Cypher';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import Eula from '../../types/Eula';
@@ -238,7 +238,7 @@ export default class UserStorage {
     }
     // Properties to save
     // eslint-disable-next-line prefer-const
-    let userMDB = {
+    const userMDB = {
       _id: userToSave.id ? Utils.convertToObjectID(userToSave.id) : new ObjectID(),
       email: userToSave.email,
       phone: userToSave.phone,
