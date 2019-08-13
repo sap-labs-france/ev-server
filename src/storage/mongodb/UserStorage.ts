@@ -238,7 +238,7 @@ export default class UserStorage {
     }
     // Properties to save
     // eslint-disable-next-line prefer-const
-    const userMDB = {
+    let userMDB = {
       _id: userToSave.id ? Utils.convertToObjectID(userToSave.id) : new ObjectID(),
       email: userToSave.email,
       phone: userToSave.phone,
