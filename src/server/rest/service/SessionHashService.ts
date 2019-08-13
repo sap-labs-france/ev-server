@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import Cypher from '../../../utils/Cypher';
 import { NextFunction, Request, Response } from 'express';
 import HttpStatus from 'http-status-codes';
 import AppError from '../../../exception/AppError';
@@ -55,14 +55,14 @@ export default class SessionHashService {
     // Get all field that need to be hashed
     const tags = user.tagIDs && user.tagIDs.length > 0 ? user.tagIDs.sort().join('-') : '';
     const data = `${user.locale.substring(0, 2)}/${user.role}/${user.status}/${tags}`;
-    return crypto.createHash('sha256').update(data).digest('hex');
+    return Cypher.hash(data);
   }
 
   // Build Tenant Hash ID
   static buildTenantHashID(tenant: Tenant) {
     // Get all field that need to be hashed
     const data = JSON.stringify(Utils.getTenantActiveComponents(tenant));
-    return crypto.createHash('sha256').update(data).digest('hex');
+    return Cypher.hash(data);
   }
 
   // Rebuild and store User Hash ID

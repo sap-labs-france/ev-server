@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import Cypher from '../../utils/Cypher';
 import Constants from '../../utils/Constants';
 import global from '../../types/GlobalType';
 import MigrationTask from '../MigrationTask';
@@ -31,8 +31,7 @@ export default class SiteUsersHashIDsTask extends MigrationTask {
     for (const userSiteMDB of userSitesMDB) {
       const idToDelete = userSiteMDB._id;
       // Convert ID
-      userSiteMDB._id = crypto.createHash('sha256').update(
-        `${userSiteMDB.siteID.toString()}~${userSiteMDB.userID.toString()}`).digest('hex'),
+      userSiteMDB._id = Cypher.hash(`${userSiteMDB.siteID.toString()}~${userSiteMDB.userID.toString()}`);
       // Delete
       await global.database.getCollection<any>(
         tenant.id, 'siteusers').deleteOne(

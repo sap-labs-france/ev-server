@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import Cypher from '../../utils/Cypher';
 import { ObjectID } from 'mongodb';
 import BackendError from '../../exception/BackendError';
 import ChargingStationStorage from './ChargingStationStorage';
@@ -83,7 +83,7 @@ export default class SiteStorage {
         for (const userID of userIDs) {
           // Add
           siteUsers.push({
-            '_id': crypto.createHash('sha256').update(`${siteID}~${userID}`).digest('hex'),
+            '_id': Cypher.hash(`${siteID}~${userID}`),
             'userID': Utils.convertToObjectID(userID),
             'siteID': Utils.convertToObjectID(siteID),
             'siteAdmin': false

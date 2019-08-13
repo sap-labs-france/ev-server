@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import Cypher from '../../utils/Cypher';
 import Consumption from '../../entity/Consumption';
 import Database from '../../utils/Database';
 import global from '../../types/GlobalType';
@@ -15,9 +15,7 @@ export default class ConsumptionStorage {
     if (!consumptionToSave.id) {
       // Set the ID
       const timestamp = Utils.convertToDate(consumptionToSave.endedAt);
-      consumptionToSave.id = crypto.createHash('sha256')
-        .update(`${consumptionToSave.transactionId}~${timestamp.toISOString()}`)
-        .digest('hex');
+      consumptionToSave.id = Cypher.hash(`${consumptionToSave.transactionId}~${timestamp.toISOString()}`);
     }
     // Transfer
     const consumption: any = {};
