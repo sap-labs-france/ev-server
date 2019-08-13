@@ -302,6 +302,14 @@ export default class Authorizations {
     });
   }
 
+  public static canDeleteRegistrationToken(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TOKEN, Constants.ACTION_DELETE);
+  }
+
+  public static canUpdateRegistrationToken(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TOKEN, Constants.ACTION_UPDATE);
+  }
+
   public static canListRegistrationTokens(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TOKENS, Constants.ACTION_LIST);
   }

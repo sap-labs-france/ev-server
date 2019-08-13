@@ -3,6 +3,7 @@ import HttpDatabaseRequest from './HttpDatabaseRequest';
 
 export interface HttpRegistrationTokenRequest {
   siteAreaID: string;
+  expirationDate: Date;
 }
 
 export interface HttpRegistrationTokensRequest extends HttpDatabaseRequest {

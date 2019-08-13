@@ -7,12 +7,18 @@ import UserToken from '../../../../types/UserToken';
 import RegistrationToken from '../../../../types/RegistrationToken';
 import Authorizations from '../../../../authorization/Authorizations';
 import UtilsSecurity from './UtilsSecurity';
+import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 
 export default class RegistrationTokenSecurity {
   static filterRegistrationTokenCreateRequest(request: HttpRegistrationTokenRequest): HttpRegistrationTokenRequest {
     return {
-      siteAreaID: sanitize(request.siteAreaID)
+      siteAreaID: sanitize(request.siteAreaID),
+      expirationDate: sanitize(request.expirationDate)
     };
+  }
+
+  public static filterRegistrationTokenByIDRequest(request: Partial<HttpByIDRequest>): string {
+    return sanitize(request.ID);
   }
 
   static filterRegistrationTokensRequest(request: HttpRegistrationTokensRequest): HttpRegistrationTokensRequest {

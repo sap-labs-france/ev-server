@@ -265,7 +265,7 @@ const GRANTS = {
       { resource: 'Loggings', action: 'List', attributes: ['*'] },
       { resource: 'Logging', action: 'Read', attributes: ['*'], args: { 'sites': '$.site' } },
       { resource: 'Tokens', action: 'List', attributes: ['*'] },
-      { resource: 'Token', action: ['Create', 'Read', 'Update', 'Delete'], attributes: ['*'], args: { 'sites': '$.site' } },
+      { resource: 'Token', action: ['Create', 'Read'], attributes: ['*'], args: { 'sites': '$.site' } },
     ]
   }
 };

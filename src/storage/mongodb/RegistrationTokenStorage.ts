@@ -18,7 +18,8 @@ export default class RegistrationTokenStorage {
     const registrationTokenMDB = {
       _id: !registrationToken.id ? new ObjectID() : Utils.convertToObjectID(registrationToken.id),
       siteAreaID: registrationToken.siteAreaID ? Utils.convertToObjectID(registrationToken.siteAreaID) : null,
-      expirationDate: registrationToken.expirationDate
+      expirationDate: registrationToken.expirationDate,
+      revocationDate: registrationToken.revocationDate
     };
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(registrationTokenMDB, registrationToken);
@@ -165,5 +166,14 @@ export default class RegistrationTokenStorage {
     // Debug
     Logging.traceEnd('RegistrationTokenStorage', 'getRegistrationToken', uniqueTimerID, { id });
     return registrationToken;
+  }
+
+  static async deleteRegistrationToken(tenantID: string, id: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('RegistrationTokenStorage', 'deleteRegistrationToken');
+    await global.database.getCollection<any>(tenantID, 'registrationtokens')
+      .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
+    // Debug
+    Logging.traceEnd('RegistrationTokenStorage', 'deleteRegistrationToken', uniqueTimerID, { id });
   }
 }

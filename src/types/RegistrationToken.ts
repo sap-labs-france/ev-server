@@ -4,6 +4,7 @@ import SiteArea from './SiteArea';
 export default interface RegistrationToken extends CreatedUpdatedProps {
   id?: string;
   expirationDate: Date;
+  revocationDate?: Date;
   siteAreaID?: string;
   siteArea?: SiteArea;
   ocpp15Url?: string;

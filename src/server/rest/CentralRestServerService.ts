@@ -202,6 +202,8 @@ class RequestMapper {
         this.registerJsonActionsPaths({
           UserDelete: UserService.handleDeleteUser,
           TenantDelete: TenantService.handleDeleteTenant,
+          RegistrationTokenDelete: RegistrationTokenService.handleDeleteRegistrationToken,
+          RegistrationTokenRevoke: RegistrationTokenService.handleRevokeRegistrationToken,
           SiteDelete: SiteService.handleDeleteSite,
           SiteAreaDelete: SiteAreaService.handleDeleteSiteArea,
           CompanyDelete: CompanyService.handleDeleteCompany,

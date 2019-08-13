@@ -73,6 +73,12 @@ export default class OCPPService {
             `Registration rejected: Token '${headers.token}' is invalid or expired for: '${headers.chargeBoxIdentity}' on ip '${headers.currentIPAddress}'`,
             'OCPPService', 'handleBootNotification', 'BootNotification');
         }
+        if (token.revocationDate || moment().isAfter(token.revocationDate)) {
+          throw new BackendError(
+            headers.chargeBoxIdentity,
+            `Registration rejected: Token '${headers.token}' is revoked for: '${headers.chargeBoxIdentity}' on ip '${headers.currentIPAddress}'`,
+            'OCPPService', 'handleBootNotification', 'BootNotification');
+        }
         // New Charging Station: Create
         chargingStation = bootNotification;
         // Update timestamp

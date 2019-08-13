@@ -48,7 +48,7 @@ export default class RegistrationTokenService {
       }
       const registrationToken: RegistrationToken = {
         siteAreaID: filteredRequest.siteAreaID,
-        expirationDate: moment().add(1, 'days').toDate(),
+        expirationDate: filteredRequest.expirationDate ? filteredRequest.expirationDate : moment().add(1, 'days').toDate(),
         createdBy: { id: req.user.id },
         createdOn: new Date()
       };
@@ -58,6 +58,103 @@ export default class RegistrationTokenService {
       registrationToken.ocpp16Url = Utils.buildOCPPServerURL(req.user.tenantID, Constants.OCPP_PROTOCOL_JSON, registrationToken.id);
       // Ok
       res.json(RegistrationTokenSecurity.filterRegistrationTokenResponse(registrationToken, req.user));
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
+  static async handleDeleteRegistrationToken(action: string, req: Request, res: Response, next: NextFunction) {
+    try {
+      const tokenID = RegistrationTokenSecurity.filterRegistrationTokenByIDRequest(req.query);
+      // Check Mandatory fields
+      if (!tokenID) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          'Registration Token\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
+          'RegistrationTokenService', 'handleDeleteRegistrationToken', req.user);
+      }
+      // Check auth
+      if (!Authorizations.canDeleteRegistrationToken(req.user)) {
+        throw new AppAuthError(
+          Constants.ACTION_DELETE,
+          Constants.ENTITY_TOKEN,
+          tokenID,
+          Constants.HTTP_AUTH_ERROR,
+          'RegistrationTokenService', 'handleDeleteRegistrationToken',
+          req.user);
+      }
+      // Check user
+      const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.user.tenantID, tokenID);
+      if (!registrationToken) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `Token with ID '${tokenID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+          'RegistrationTokenService', 'handleDeleteRegistrationToken', req.user);
+      }
+
+      await RegistrationTokenStorage.deleteRegistrationToken(req.user.tenantID, tokenID);
+      // Log
+      Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
+        user: req.user,
+        module: 'RegistrationTokenService', method: 'handleDeleteRegistrationToken',
+        message: `Registration token with ID '${tokenID}' has been deleted successfully`,
+        action: action
+      });
+      // Ok
+      res.json(Constants.REST_RESPONSE_SUCCESS);
+      next();
+    } catch (error) {
+      // Log
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
+    }
+  }
+
+  static async handleRevokeRegistrationToken(action: string, req: Request, res: Response, next: NextFunction) {
+    try {
+      const tokenID = RegistrationTokenSecurity.filterRegistrationTokenByIDRequest(req.query);
+      // Check Mandatory fields
+      if (!tokenID) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          'Registration Token\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
+          'RegistrationTokenService', 'handleRevokeRegistrationToken', req.user);
+      }
+      // Check auth
+      if (!Authorizations.canUpdateRegistrationToken(req.user)) {
+        throw new AppAuthError(
+          Constants.ACTION_DELETE,
+          Constants.ENTITY_TOKEN,
+          tokenID,
+          Constants.HTTP_AUTH_ERROR,
+          'RegistrationTokenService', 'handleRevokeRegistrationToken',
+          req.user);
+      }
+      // Check user
+      const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.user.tenantID, tokenID);
+      if (!registrationToken) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          `Token with ID '${tokenID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+          'RegistrationTokenService', 'handleRevokeRegistrationToken', req.user);
+      }
+
+      registrationToken.revocationDate = new Date();
+      registrationToken.lastChangedBy = { 'id': req.user.id };
+      registrationToken.lastChangedOn = new Date();
+      await RegistrationTokenStorage.saveRegistrationToken(req.user.tenantID, registrationToken);
+      // Log
+      Logging.logSecurityInfo({
+        tenantID: req.user.tenantID,
+        user: req.user,
+        module: 'RegistrationTokenService', method: 'handleRevokeRegistrationToken',
+        message: `Registration token with ID '${tokenID}' has been revoked successfully`,
+        action: action
+      });
+      // Ok
+      res.json(Constants.REST_RESPONSE_SUCCESS);
       next();
     } catch (error) {
       // Log
