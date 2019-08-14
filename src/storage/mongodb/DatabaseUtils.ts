@@ -217,6 +217,9 @@ export default class DatabaseUtils {
     if (!obj || !obj[prop]) {
       return null;
     }
+    if (ObjectID.isValid(obj[prop])) {
+      return obj[prop];
+    }
     if (obj[prop].id) {
       return Utils.convertToObjectID(obj[prop].id);
     }

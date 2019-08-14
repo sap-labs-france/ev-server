@@ -197,10 +197,12 @@ export default class Utils {
     // Parse the request (lower case for fucking charging station DBT URL registration)
     const urlParts = url.parse(req.url.toLowerCase(), true);
     const tenantID = urlParts.query.tenantid as string;
+    const token = urlParts.query.token;
     // Check
     await Utils.checkTenant(tenantID);
     // Set the Tenant ID
     headers.tenantID = tenantID;
+    headers.token = token;
   }
 
   static _normalizeOneSOAPParam(headers, name) {
@@ -385,6 +387,25 @@ export default class Utils {
     }
     return `${_centralSystemFrontEndConfig.protocol}://${_centralSystemFrontEndConfig.host}:${
       _centralSystemFrontEndConfig.port}`;
+  }
+
+  static buildOCPPServerURL(tenantID: string, ocppProtocol: string, token?: string): string {
+    let ocppUrl;
+    switch (ocppProtocol) {
+      case Constants.OCPP_PROTOCOL_JSON:
+        ocppUrl = `${Configuration.getJsonEndpointConfig().baseUrl}/OCPP16/${tenantID}`;
+        if (token) {
+          ocppUrl += `/${token}`;
+        }
+        return ocppUrl;
+      case Constants.OCPP_PROTOCOL_SOAP:
+      default:
+        ocppUrl = `${Configuration.getWSDLEndpointConfig().baseUrl}/OCPP15?TenantID=${tenantID}`;
+        if (token) {
+          ocppUrl += `&Token=${token}`;
+        }
+        return ocppUrl;
+    }
   }
 
   static async buildEvseUserURL(tenantID: string, user: User, hash = '') {

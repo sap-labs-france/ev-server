@@ -185,7 +185,7 @@ export default class SoapChargingStationClient extends ChargingStationClient {
       // Log
       Logging.logError({
         tenantID: this.tenantID,
-        source: this.chargingStation.id, module: 'SoapChargingStationClient', method: 'unlockConnector',
+        source: this.chargingStation.id, module: 'SoapChargingStationClient', method:  'unlockConnector',
         message: `Error when trying to unlock the connector '${connectorId}': ${error.toString()}`,
         detailedMessages: [
           { 'stack': error.stack },

@@ -279,6 +279,32 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SETTING, Constants.ACTION_UPDATE);
   }
 
+  public static canCreateRegistrationToken(loggedUser: UserToken, siteID: string): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TOKEN, Constants.ACTION_CREATE, {
+      'site': siteID,
+      'sites': loggedUser.sitesAdmin
+    });
+  }
+
+  public static canReadRegistrationToken(loggedUser: UserToken, siteID: string): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TOKEN, Constants.ACTION_READ, {
+      'site': siteID,
+      'sites': loggedUser.sitesAdmin
+    });
+  }
+
+  public static canDeleteRegistrationToken(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TOKEN, Constants.ACTION_DELETE);
+  }
+
+  public static canUpdateRegistrationToken(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TOKEN, Constants.ACTION_UPDATE);
+  }
+
+  public static canListRegistrationTokens(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TOKENS, Constants.ACTION_LIST);
+  }
+
   public static canListOcpiEndpoints(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_OCPI_ENDPOINTS, Constants.ACTION_LIST);
   }

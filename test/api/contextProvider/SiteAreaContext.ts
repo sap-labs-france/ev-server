@@ -47,8 +47,9 @@ export default class SiteAreaContext {
     return this.chargingStations.find((chargingStation) => chargingStation.getChargingStation().id.startsWith(chargingStationContext));
   }
 
-  addChargingStation(chargingStation) {
+  async addChargingStation(chargingStation) {
     const chargingStationContext = new ChargingStationContext(chargingStation, this.tenantContext);
+    await chargingStationContext.initialize();
     this.chargingStations.push(chargingStationContext);
   }
 
