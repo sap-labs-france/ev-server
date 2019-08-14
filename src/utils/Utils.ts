@@ -25,6 +25,7 @@ import ChargingStation from '../types/ChargingStation';
 import ConnectorStats from '../types/ConnectorStats';
 import tzlookup from 'tz-lookup';
 import UserStorage from '../storage/mongodb/UserStorage';
+import { SettingContent } from '../types/Setting';
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
 
@@ -913,7 +914,7 @@ export default class Utils {
     return false;
   }
 
-  public static createDefaultSettingContent(activeComponent, currentSettingContent) {
+  public static createDefaultSettingContent(activeComponent, currentSettingContent) : SettingContent {
     switch (activeComponent.name) {
       // Pricing
       case Constants.COMPONENTS.PRICING:
@@ -923,12 +924,14 @@ export default class Utils {
             // Simple Pricing
             return {
               'type': Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE,
-              'simple': {} };
+              'simple': {}
+            } as SettingContent;
           } else if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING) {
             // SAP CC
             return {
               'type': Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING,
-              'convergentCharging': {} };
+              'convergentCharging': {}
+            } as SettingContent;
           }
         }
         break;
@@ -940,7 +943,7 @@ export default class Utils {
           return {
             'type': Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR,
             'concur': {}
-          };
+          } as SettingContent;
         }
         break;
 
@@ -951,7 +954,7 @@ export default class Utils {
           return {
             'type': Constants.SETTING_REFUND_CONTENT_TYPE_GIREVE,
             'ocpi': {}
-          };
+          } as SettingContent;
         }
         break;
 
@@ -962,7 +965,7 @@ export default class Utils {
           return {
             'type': Constants.SETTING_REFUND_CONTENT_TYPE_SAC,
             'sac': {}
-          };
+          } as SettingContent;
         }
         break;
     }
