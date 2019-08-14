@@ -83,6 +83,10 @@ export default class OCPPService {
         chargingStation = bootNotification;
         // Update timestamp
         chargingStation.createdOn = new Date();
+
+        if (token.siteAreaID) {
+          chargingStation.siteAreaID = token.siteAreaID;
+        }
       } else {
         // Existing Charging Station: Update
         // Check if same vendor and model
