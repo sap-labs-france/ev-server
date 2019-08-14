@@ -740,8 +740,8 @@ export default class UserStorage {
   public static getEmptyUser(): Partial<User> {
     return {
       id: new ObjectID().toHexString(),
-      name: 'User',
-      firstName: 'Unknown',
+      name: 'Unknown',
+      firstName: 'User',
       email: '',
       address: null,
       createdBy: null,
