@@ -6,6 +6,7 @@ import OCPIEndpoint from '../../entity/OCPIEndpoint';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
+import Setting from '../../types/Setting';
 
 export default class OCPIClient {
   private ocpiEndpoint: OCPIEndpoint;
@@ -209,7 +210,8 @@ export default class OCPIClient {
     }
 
     // Read configuration to retrieve
-    const ocpiSetting = await SettingStorage.getSettingByIdentifier(this.ocpiEndpoint.getTenantID(), Constants.COMPONENTS.OCPI);
+    const ocpiSetting: Setting = await SettingStorage.getSettingByIdentifier(
+      this.ocpiEndpoint.getTenantID(), Constants.COMPONENTS.OCPI);
 
     if (!ocpiSetting || !ocpiSetting.content) {
       throw new Error('OCPI Settings not found');

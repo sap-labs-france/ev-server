@@ -6,7 +6,7 @@ import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
-import Setting from '../../../types/Setting';
+import Setting, { SettingContent } from '../../../types/Setting';
 import SettingService from './SettingService';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import Tenant from '../../../types/Tenant';
@@ -255,7 +255,7 @@ export default class TenantService {
     next();
   }
 
-  private static async _updateSettingsWithComponents(tenant: Partial<Tenant>, req: Request) {
+  private static async _updateSettingsWithComponents(tenant: Partial<Tenant>, req: Request) : Promise<void> {
     // Create settings
     for (const componentName in tenant.components) {
       // Get the settings
@@ -269,15 +269,15 @@ export default class TenantService {
         continue;
       }
       // Create
-      const newSettingContent = Utils.createDefaultSettingContent(
+      const newSettingContent : SettingContent = Utils.createDefaultSettingContent(
         { ...tenant.components[componentName], name: componentName }, (currentSetting ? currentSetting.content : null));
       if (newSettingContent) {
         // Create & Save
         if (!currentSetting) {
-          const newSetting: Partial<Setting> = {
+          const newSetting: Setting = {
             identifier: componentName,
             content: newSettingContent
-          };
+          } as Setting;
           newSetting.createdOn = new Date();
           newSetting.createdBy = { 'id': req.user.id };
           // Save Setting
