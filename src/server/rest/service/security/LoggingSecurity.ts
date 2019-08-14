@@ -13,7 +13,7 @@ export default class LoggingSecurity {
     filteredRequest.DateUntil = sanitize(request.DateUntil);
     filteredRequest.Level = request.Level ? sanitize(request.Level).split('|') : null;
     filteredRequest.Source = request.Source ? sanitize(request.Source).split('|') : null;
-    filteredRequest.Host = sanitize(request.Host);
+    filteredRequest.Host = request.Host ? sanitize(request.Host).split('|') : null;
     filteredRequest.Process = sanitize(request.Process);
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.SortDate = sanitize(request.SortDate);
