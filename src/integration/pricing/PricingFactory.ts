@@ -16,12 +16,13 @@ export default class PricingFactory {
       // Check
       if (setting) {
         // Check if CC
-        if (setting.getContent()['convergentCharging']) {
+        if (setting.content[Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING]) {
           // Return the CC implementation
-          return new ConvergentChargingPricing(transaction.getTenantID(), setting.getContent()['convergentCharging'], transaction);
-        } else if (setting.getContent()['simple']) {
+          return new ConvergentChargingPricing(transaction.getTenantID(),
+            setting.content[Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING], transaction);
+        } else if (setting.content[Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE]) {
           // Return the Simple Pricing implementation
-          return new SimplePricing(transaction.getTenantID(), setting.getContent()['simple'], transaction);
+          return new SimplePricing(transaction.getTenantID(), setting.content[Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE], transaction);
         }
       }
     }

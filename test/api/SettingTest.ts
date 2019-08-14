@@ -9,6 +9,7 @@ import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
 import Constants from './client/utils/Constants';
 import TestData from './client/utils/TestData';
+import Utils from './Utils';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -117,7 +118,7 @@ describe('Setting tests', function() {
       testData.data = JSON.parse(`{"id":"${testData.credentials.tenantId}","name":"ut-all","email":"${testData.credentials.email}","subdomain":"utall","components":{"ocpi":{"active":true,"type":"gireve"},"organization":{"active":true,"type":null},"pricing":{"active":true,"type":"simple"},"refund":{"active":true,"type":"concur"},"statistics":{"active":true,"type":null},"analytics":{"active":true,"type":null}}}`);
       activation = await testData.superCentralService.updateEntity(testData.centralService.tenantApi, testData.data);
       expect(activation.status).to.equal(200);
-      // Restore default simple pricing setting and check
+      // Restore default simple pricing setting
       update = await testData.centralService.updateEntity(testData.centralService.settingApi, oldSetting);
       expect(update.status).to.equal(200);
     });
