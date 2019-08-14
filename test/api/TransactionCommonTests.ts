@@ -82,7 +82,7 @@ export default class TransactionCommonTests {
     expect(response.status).to.equal(500);
   }
 
-  public async testReadTransactionOfUser(allowed: boolean = true, transactionTag: string) {
+  public async testReadTransactionOfUser(allowed = true, transactionTag: string) {
     const connectorId = 1;
     const tagId = transactionTag ? transactionTag : this.transactionUser.tagIDs[0];
     const meterStart = 180;

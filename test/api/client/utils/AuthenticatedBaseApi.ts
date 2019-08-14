@@ -35,7 +35,7 @@ export default class AuthenticatedBaseApi extends BaseApi {
     return this._tenant;
   }
 
-  public async authenticate(force: boolean = false) {
+  public async authenticate(force = false) {
     // Already logged?
     if (!this._token || force) {
       // No, try to log in

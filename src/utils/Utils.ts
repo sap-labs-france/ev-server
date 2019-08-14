@@ -218,7 +218,7 @@ export default class Utils {
       throw new BackendError(null, 'The Tenant ID is mandatory');
     }
     // Check in cache
-    if (_tenants.indexOf(tenantID) >= 0) {
+    if (_tenants.includes(tenantID)) {
       return;
     }
     if (tenantID !== Constants.DEFAULT_TENANT) {

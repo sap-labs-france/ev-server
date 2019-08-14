@@ -56,10 +56,10 @@ export default class JsonCentralSystemServer extends CentralSystemServer {
       // Check the protocols
       // Ensure protocol used as ocpp1.6 or nothing (should create an error)
       if (Array.isArray(protocols)) {
-        if (protocols.indexOf('ocpp1.6') >= 0) {
+        if (protocols.includes('ocpp1.6')) {
           return 'ocpp1.6';
         }
-        if (protocols.indexOf('rest') >= 0) {
+        if (protocols.includes('rest')) {
           return 'rest';
         }
         return false;

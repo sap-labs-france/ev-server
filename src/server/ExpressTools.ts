@@ -17,7 +17,7 @@ import Logging from '../utils/Logging';
 bodyParserXml(bodyParser);
 
 export default {
-  init: function(bodyLimit: string = '1mb'): express.Application {
+  init: function(bodyLimit = '1mb'): express.Application {
     const app = express();
     // Secure the application
     app.use(helmet());
@@ -78,7 +78,7 @@ export default {
     return server;
   },
 
-  startServer: function(serverConfig: any, httpServer: any, serverName: string, serverModuleName: any, listenCb: Function = null, listen: boolean = true): void {
+  startServer: function(serverConfig: any, httpServer: any, serverName: string, serverModuleName: any, listenCb: Function = null, listen = true): void {
     // Default listen callback
     function defaultListenCb(): void {
       // Log

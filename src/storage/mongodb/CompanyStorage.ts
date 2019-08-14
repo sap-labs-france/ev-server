@@ -33,7 +33,7 @@ export default class CompanyStorage {
     await Utils.checkTenant(tenantID);
     // Read DB
     const companyLogosMDB = await global.database.getCollection<{_id: string; logo: string}>(tenantID, 'companylogos')
-      .find({ _id: Utils.convertToObjectID(id) })
+      .find({ _id: id })
       .limit(1)
       .toArray();
     let companyLogo: {id: string; logo: string} = null;

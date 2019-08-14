@@ -234,7 +234,7 @@ export default class EMailNotificationTask extends NotificationTask {
     }
   }
 
-  async sendEmail(email, data, tenantID, retry: boolean = false) {
+  async sendEmail(email, data, tenantID, retry = false) {
     // Create the message
     const messageToSend = {
       from: (!retry ? _emailConfig.smtp.from : _emailConfig.smtpBackup.from),

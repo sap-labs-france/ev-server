@@ -16,7 +16,7 @@ export default class SiteAreaStorage {
     await Utils.checkTenant(tenantID);
     // Read DB
     const siteAreaImagesMDB = await global.database.getCollection<{_id: string; image: string}>(tenantID, 'siteareaimages')
-      .find({ _id: Utils.convertToObjectID(id) })
+      .find({ _id: id })
       .limit(1)
       .toArray();
     let siteAreaImage: {id: string; image: string} = null;

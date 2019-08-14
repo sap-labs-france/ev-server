@@ -17,7 +17,7 @@ import Utils from '../../utils/Utils';
 
 export default class UserStorage {
 
-  public static getLatestEndUserLicenseAgreement(language: string = 'en'): string {
+  public static getLatestEndUserLicenseAgreement(language = 'en'): string {
     const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getLatestEndUserLicenseAgreement');
@@ -163,7 +163,7 @@ export default class UserStorage {
     await Utils.checkTenant(tenantID);
     // Read DB
     const userImageMDB = await global.database.getCollection<{_id: string; image: string}>(tenantID, 'userimages')
-      .findOne({ _id: Utils.convertToObjectID(id) });
+      .findOne({ _id: id });
     // Debug
     Logging.traceEnd('UserStorage', 'getUserImage', uniqueTimerID, { id });
     return { id: id, image: (userImageMDB ? userImageMDB.image : null) };
@@ -217,7 +217,7 @@ export default class UserStorage {
     Logging.traceEnd('UserStorage', 'addSitesToUser', uniqueTimerID, { userID, siteIDs });
   }
 
-  public static async saveUser(tenantID: string, userToSave: Partial<User>, saveImage: boolean = false): Promise<string> {
+  public static async saveUser(tenantID: string, userToSave: Partial<User>, saveImage = false): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUser');
     // Check Tenant

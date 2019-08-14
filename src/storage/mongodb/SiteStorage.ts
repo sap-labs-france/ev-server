@@ -33,7 +33,7 @@ export default class SiteStorage {
     await Utils.checkTenant(tenantID);
     // Read DB
     const siteImagesMDB = await global.database.getCollection<{_id: string; image: string}>(tenantID, 'siteimages')
-      .find({ _id: Utils.convertToObjectID(id) })
+      .find({ _id: id })
       .limit(1)
       .toArray();
     let siteImage: {id: string; image: string} = null;
@@ -264,7 +264,7 @@ export default class SiteStorage {
     await Utils.checkTenant(tenantID);
     // Modify
     await global.database.getCollection<{_id: string; image: string}>(tenantID, 'siteimages').findOneAndUpdate(
-      { '_id': Utils.convertToObjectID(siteID) },
+      { _id: siteID },
       { $set: { image: siteImageToSave } },
       { upsert: true, returnOriginal: false }
     );
