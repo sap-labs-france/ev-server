@@ -886,35 +886,6 @@ export default class Utils {
     return false;
   }
 
-  private static _isPasswordValid(password: string): boolean {
-    // eslint-disable-next-line no-useless-escape
-    return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
-  }
-
-  private static _isUserEmailValid(email: string) {
-    return /^(([^<>()\[\]\\.,;:\s@']+(\.[^<>()\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email);
-  }
-
-  private static _areTagIDsValid(tagIDs: string[]|string) {
-    if (typeof tagIDs === 'string') {
-      return /^[A-Za-z0-9,]*$/.test(tagIDs);
-    }
-    return tagIDs.filter((tagID) => /^[A-Za-z0-9,]*$/.test(tagID)).length === tagIDs.length;
-  }
-
-  private static _isPhoneValid(phone: string): boolean {
-    return /^\+?([0-9] ?){9,14}[0-9]$/.test(phone);
-  }
-
-  private static _isINumberValid(iNumber) {
-    return /^[A-Z]{1}[0-9]{6}$/.test(iNumber);
-  }
-
-  private static _isPlateIDValid(plateID) {
-    return /^[A-Z0-9-]*$/.test(plateID);
-  }
-  }
-
   public static createDefaultSettingContent(activeComponent, currentSettingContent) {
     switch (activeComponent.name) {
       // Pricing
@@ -968,4 +939,33 @@ export default class Utils {
         }
         break;
     }
+  }
+
+  private static _isPasswordValid(password: string): boolean {
+    // eslint-disable-next-line no-useless-escape
+    return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
+  }
+
+  private static _isUserEmailValid(email: string) {
+    return /^(([^<>()\[\]\\.,;:\s@']+(\.[^<>()\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email);
+  }
+
+  private static _areTagIDsValid(tagIDs: string[]|string) {
+    if (typeof tagIDs === 'string') {
+      return /^[A-Za-z0-9,]*$/.test(tagIDs);
+    }
+    return tagIDs.filter((tagID) => /^[A-Za-z0-9,]*$/.test(tagID)).length === tagIDs.length;
+  }
+
+  private static _isPhoneValid(phone: string): boolean {
+    return /^\+?([0-9] ?){9,14}[0-9]$/.test(phone);
+  }
+
+  private static _isINumberValid(iNumber) {
+    return /^[A-Z]{1}[0-9]{6}$/.test(iNumber);
+  }
+
+  private static _isPlateIDValid(plateID) {
+    return /^[A-Z0-9-]*$/.test(plateID);
+  }
 }

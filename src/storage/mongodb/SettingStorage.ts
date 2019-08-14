@@ -13,15 +13,15 @@ export default class SettingStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('SettingStorage', 'getSetting');
     // Delegate querying
-     let settingMDB = await SettingStorage.getSettings(tenantID, { settingID: id }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const settingMDB = await SettingStorage.getSettings(tenantID, { settingID: id }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('SettingStorage', 'getSetting', uniqueTimerID, { id });
     return settingMDB.count > 0 ? settingMDB.result[0] : null;
   }
 
   public static async getSettingByIdentifier(tenantID: string, identifier: string): Promise<Setting> {
-    let settingResult = await SettingStorage.getSettings(
-      tenantID, {identifier: identifier}, Constants.DB_PARAMS_SINGLE_RECORD);
+    const settingResult = await SettingStorage.getSettings(
+      tenantID, { identifier: identifier }, Constants.DB_PARAMS_SINGLE_RECORD);
     return settingResult.count > 0 ? settingResult.result[0] : null;
   }
 
@@ -71,8 +71,8 @@ export default class SettingStorage {
   }
 
   public static async getSettings(tenantID: string,
-      params: {identifier?:string, settingID?:string},
-      dbParams: DbParams, projectFields?: string[]) {
+    params: {identifier?: string; settingID?: string},
+    dbParams: DbParams, projectFields?: string[]) {
     // Debug
     const uniqueTimerID = Logging.traceStart('SettingStorage', 'getSettings');
     // Check Tenant

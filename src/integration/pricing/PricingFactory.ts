@@ -20,7 +20,7 @@ export default class PricingFactory {
         // Check if CC
         if (setting.content[Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING]) {
           // Return the CC implementation
-          return new ConvergentChargingPricing(tenantID, setting.content['convergentCharging'], transaction);
+          return new ConvergentChargingPricing(tenantID,
             setting.content[Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING], transaction);
         } else if (setting.content[Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE]) {
           // Return the Simple Pricing implementation
