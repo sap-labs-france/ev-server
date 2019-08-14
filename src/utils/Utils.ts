@@ -913,4 +913,59 @@ export default class Utils {
   private static _isPlateIDValid(plateID) {
     return /^[A-Z0-9-]*$/.test(plateID);
   }
+  }
+
+  public static createDefaultSettingContent(activeComponent, currentSettingContent) {
+    switch (activeComponent.name) {
+      // Pricing
+      case Constants.COMPONENTS.PRICING:
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+          // Create default settings
+          if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE) {
+            // Simple Pricing
+            return {
+              'type': Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE,
+              'simple': {} };
+          } else if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING) {
+            // SAP CC
+            return {
+              'type': Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING,
+              'convergentCharging': {} };
+          }
+        }
+        break;
+
+      // Refund
+      case Constants.COMPONENTS.REFUND:
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+          // Only Concur
+          return {
+            'type': Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR,
+            'concur': {}
+          };
+        }
+        break;
+
+      // Refund
+      case Constants.COMPONENTS.OCPI:
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+          // Only Gireve
+          return {
+            'type': Constants.SETTING_REFUND_CONTENT_TYPE_GIREVE,
+            'ocpi': {}
+          };
+        }
+        break;
+
+      // SAC
+      case Constants.COMPONENTS.ANALYTICS:
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+          // Only SAP Analytics
+          return {
+            'type': Constants.SETTING_REFUND_CONTENT_TYPE_SAC,
+            'sac': {}
+          };
+        }
+        break;
+    }
 }

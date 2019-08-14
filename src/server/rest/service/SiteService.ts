@@ -353,7 +353,6 @@ export default class SiteService {
       Constants.ACTION_LIST, Constants.ENTITY_SITES, 'SiteService', 'handleGetSites');
     // Check auth
     if (!Authorizations.canListSites(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_LIST,
         Constants.ENTITY_SITES,

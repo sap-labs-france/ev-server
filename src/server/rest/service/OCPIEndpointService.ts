@@ -33,7 +33,6 @@ export default class OCPIEndpointService {
       }
       // Check auth
       if (!Authorizations.canDeleteOcpiEndpoint(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_DELETE,
           Constants.ENTITY_OCPI_ENDPOINT,
@@ -97,7 +96,6 @@ export default class OCPIEndpointService {
     try {
       // Check auth
       if (!Authorizations.canListOcpiEndpoints(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_LIST,
           Constants.ENTITY_OCPI_ENDPOINTS,
@@ -132,7 +130,6 @@ export default class OCPIEndpointService {
     try {
       // Check auth
       if (!Authorizations.canCreateOcpiEndpoint(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_CREATE,
           Constants.ENTITY_OCPI_ENDPOINT,
@@ -187,7 +184,6 @@ export default class OCPIEndpointService {
       OCPIEndpoint.checkIfOcpiEndpointValid(filteredRequest, req);
       // Check auth
       if (!Authorizations.canUpdateOcpiEndpoint(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
           Constants.ENTITY_OCPI_ENDPOINT,
@@ -223,7 +219,6 @@ export default class OCPIEndpointService {
     try {
       // Check auth
       if (!Authorizations.canPingOcpiEndpoint(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_PING,
           Constants.ENTITY_OCPI_ENDPOINT,
@@ -273,7 +268,6 @@ export default class OCPIEndpointService {
     try {
       // Check auth
       if (!Authorizations.canSendEVSEStatusesOcpiEndpoint(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_SEND_EVSE_STATUSES,
           Constants.ENTITY_OCPI_ENDPOINT,
@@ -318,7 +312,6 @@ export default class OCPIEndpointService {
       OCPIEndpoint.checkIfOcpiEndpointValid(filteredRequest, req);
       // Check auth
       if (!Authorizations.canRegisterOcpiEndpoint(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_REGISTER,
           Constants.ENTITY_OCPI_ENDPOINT,
@@ -363,7 +356,6 @@ export default class OCPIEndpointService {
     try {
       // Check auth
       if (!Authorizations.canGenerateLocalTokenOcpiEndpoint(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_GENERATE_LOCAL_TOKEN,
           Constants.ENTITY_OCPI_ENDPOINT,

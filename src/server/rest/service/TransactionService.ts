@@ -26,7 +26,6 @@ import UtilsService from './UtilsService';
 export default class TransactionService {
   public static async handleSynchronizeRefundedTransactions(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     if (!Authorizations.isAdmin(req.user.role)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_UPDATE,
         Constants.ENTITY_TRANSACTION,
@@ -78,7 +77,6 @@ export default class TransactionService {
       }
       // Check auth
       if (!Authorizations.canRefundTransaction(req.user, transaction)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_REFUND_TRANSACTION,
           Constants.ENTITY_TRANSACTION,
@@ -109,7 +107,7 @@ export default class TransactionService {
         'TransactionService', 'handleRefundTransactions', req.user);
     }
     let setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, 'refund');
-    setting = setting.content['concur'];
+      const settingInner = setting.content[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR];
     const connector = new ConcurConnector(req.user.tenantID, setting);
     const refundedTransactions = await connector.refund(req.user.tenantID, user.id, transactionsToRefund);
     // // Transfer it to the Revenue Cloud
@@ -132,7 +130,6 @@ export default class TransactionService {
     const ID = TransactionSecurity.filterTransactionDelete(req.query);
     // Check auth
     if (!Authorizations.canDeleteTransaction(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_DELETE,
         Constants.ENTITY_TRANSACTION,
@@ -178,7 +175,6 @@ export default class TransactionService {
     UtilsService.assertIdIsProvided(transactionId, 'TransactionService', 'handleTransactionSoftStop', req.user);
     // Check auth
     if (!Authorizations.canUpdateTransaction(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_UPDATE,
         Constants.ENTITY_TRANSACTION,
@@ -238,7 +234,6 @@ export default class TransactionService {
       'TransactionService', 'handleGetChargingStationConsumptionFromTransaction', req.user);
     // Check auth
     if (!Authorizations.canReadTransaction(req.user, transaction)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_READ,
         Constants.ENTITY_TRANSACTION,
@@ -280,7 +275,6 @@ export default class TransactionService {
       'handleGetTransaction', req.user);
     // Check auth
     if (!Authorizations.canReadTransaction(req.user, transaction)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_READ,
         Constants.ENTITY_TRANSACTION,
@@ -301,7 +295,6 @@ export default class TransactionService {
   public static async handleGetChargingStationTransactions(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_LIST,
         Constants.ENTITY_TRANSACTION,
@@ -347,7 +340,6 @@ export default class TransactionService {
   public static async handleGetTransactionsActive(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_LIST,
         Constants.ENTITY_TRANSACTION,
@@ -391,7 +383,6 @@ export default class TransactionService {
   public static async handleGetTransactionsCompleted(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_LIST,
         Constants.ENTITY_TRANSACTION,
@@ -450,7 +441,6 @@ export default class TransactionService {
   public static async handleGetTransactionsExport(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_LIST,
         Constants.ENTITY_TRANSACTIONS,
@@ -521,7 +511,6 @@ export default class TransactionService {
   public static async handleGetTransactionsInError(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactionsInError(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_LIST,
         Constants.ENTITY_TRANSACTION,

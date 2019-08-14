@@ -14,24 +14,23 @@ import UtilsService from './UtilsService';
 export default class SettingService {
   public static async handleDeleteSetting(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
-    const settingId = SettingSecurity.filterSettingRequestByID(req.query);
-    UtilsService.assertIdIsProvided(settingId, 'SettingService', 'handleDeleteSetting', req.user);
+    const settingID = SettingSecurity.filterSettingRequestByID(req.query);
+    UtilsService.assertIdIsProvided(settingID, 'SettingService', 'handleDeleteSetting', req.user);
     // Check auth
     if (!Authorizations.canDeleteSetting(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_DELETE,
         Constants.ENTITY_SETTING,
-        settingId,
+        settingID,
         Constants.HTTP_AUTH_ERROR,
         'SettingService', 'handleDeleteSetting',
         req.user);
     }
     // Get
-    const setting = await SettingStorage.getSetting(req.user.tenantID, settingId);
-    UtilsService.assertObjectExists(setting, `Tenant '${settingId}' does not exist`, 'SettingService', 'handleDeleteSetting', req.user);
+    const setting = await SettingStorage.getSetting(req.user.tenantID, settingID);
+    UtilsService.assertObjectExists(setting, `Tenant '${settingID}' does not exist`, 'SettingService', 'handleDeleteSetting', req.user);
     // Delete
-    await SettingStorage.deleteSetting(req.user.tenantID, settingId);
+    await SettingStorage.deleteSetting(req.user.tenantID, settingID);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -67,8 +66,7 @@ export default class SettingService {
     // Return
     res.json(
       // Filter
-      SettingSecurity.filterSettingResponse(
-        setting, req.user)
+      SettingSecurity.filterSettingResponse(setting, req.user)
     );
     next();
   }
@@ -76,7 +74,6 @@ export default class SettingService {
   public static async handleGetSettings(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListSettings(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_LIST,
         Constants.ENTITY_SETTINGS,
@@ -93,8 +90,7 @@ export default class SettingService {
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort });
     settings.result = settings.result.map((setting) => setting);
     // Filter
-    settings.result = SettingSecurity.filterSettingsResponse(
-      settings.result, req.user);
+    settings.result = SettingSecurity.filterSettingsResponse(settings.result, req.user);
     // Process the sensitive data if any
     settings.result.forEach((setting) => {
       // Hash sensitive data before being sent to the front end
@@ -108,7 +104,6 @@ export default class SettingService {
   public static async handleCreateSetting(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canCreateSetting(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_CREATE,
         Constants.ENTITY_SETTING,
@@ -144,7 +139,6 @@ export default class SettingService {
     UtilsService.assertIdIsProvided(settingUpdate.id, 'SettingService', 'handleUpdateSetting', req.user);
     // Check auth
     if (!Authorizations.canUpdateSetting(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_UPDATE,
         Constants.ENTITY_SETTING,
@@ -207,48 +201,5 @@ export default class SettingService {
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
-  }
-
-  public static createDefaultSettingContent(activeComponent, currentSettingContent) {
-    switch (activeComponent.name) {
-      // Pricing
-      case Constants.COMPONENTS.PRICING:
-        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
-          // Create default settings
-          if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE) {
-            return { 'type': 'simple', 'simple': {} };
-          } else if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING) {
-            return { 'type': 'convergentCharging', 'convergentCharging': {} };
-          }
-        }
-        break;
-
-      // Refund
-      case Constants.COMPONENTS.REFUND:
-        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
-          // Only Concur
-          return { 'type': 'concur', 'concur': {} };
-        }
-
-        break;
-
-      // Refund
-      case Constants.COMPONENTS.OCPI:
-        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
-          // Only Gireve
-          return { 'type': 'gireve', 'ocpi': {} };
-        }
-
-        break;
-
-      // SAC
-      case Constants.COMPONENTS.ANALYTICS:
-        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
-          // Only SAP Analytics
-          return { 'type': 'sac', 'sac': {} };
-        }
-
-        break;
-    }
   }
 }

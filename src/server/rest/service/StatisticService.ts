@@ -21,7 +21,6 @@ export default class StatisticService {
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationConsumptionStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_LIST,
           Constants.ENTITY_TRANSACTIONS,
@@ -55,7 +54,6 @@ export default class StatisticService {
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationUsageStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_LIST,
           Constants.ENTITY_TRANSACTIONS,
@@ -89,7 +87,6 @@ export default class StatisticService {
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationInactivityStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_LIST,
           Constants.ENTITY_TRANSACTIONS,
@@ -123,7 +120,6 @@ export default class StatisticService {
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationTransactionsStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_LIST,
           Constants.ENTITY_TRANSACTIONS,
@@ -157,7 +153,6 @@ export default class StatisticService {
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationPricingStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_LIST,
           Constants.ENTITY_TRANSACTIONS,
@@ -191,7 +186,6 @@ export default class StatisticService {
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserConsumptionStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_LIST,
           Constants.ENTITY_TRANSACTIONS,
@@ -225,7 +219,6 @@ export default class StatisticService {
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserUsageStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_LIST,
           Constants.ENTITY_TRANSACTIONS,
@@ -259,7 +252,6 @@ export default class StatisticService {
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserInactivityStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_LIST,
           Constants.ENTITY_TRANSACTIONS,
@@ -293,7 +285,6 @@ export default class StatisticService {
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserTransactionsStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_LIST,
           Constants.ENTITY_TRANSACTIONS,
@@ -327,7 +318,6 @@ export default class StatisticService {
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserPricingStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_LIST,
           Constants.ENTITY_TRANSACTIONS,
@@ -357,7 +347,6 @@ export default class StatisticService {
     try {
       // Check auth
       if (!Authorizations.canListChargingStations(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_LIST,
           Constants.ENTITY_CHARGING_STATIONS,
@@ -386,7 +375,6 @@ export default class StatisticService {
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetStatisticsExport');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_LIST,
           Constants.ENTITY_TRANSACTIONS,
