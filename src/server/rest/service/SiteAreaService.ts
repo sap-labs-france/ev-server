@@ -167,14 +167,10 @@ export default class SiteAreaService {
         req.user);
     }
     // Create site
-    const usr = { id: req.user.id };
-    const date = new Date();
     const newSiteArea: SiteArea = {
       ...filteredRequest,
-      createdBy: usr,
-      createdOn: date,
-      lastChangedBy: usr,
-      lastChangedOn: date
+      createdBy: { id: req.user.id },
+      createdOn: new Date()
     } as SiteArea;
     // Save
     newSiteArea.id = await SiteAreaStorage.saveSiteArea(req.user.tenantID, newSiteArea, true);

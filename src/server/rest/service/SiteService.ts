@@ -446,14 +446,10 @@ export default class SiteService {
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.companyID);
     UtilsService.assertObjectExists(company, `The Company ID '${filteredRequest.companyID}' does not exist`, 'SiteService', 'handleCreateSite', req.user);
     // Create site
-    const usr = { id: req.user.id };
-    const date = new Date();
     const site: Site = {
       ...filteredRequest,
-      createdBy: usr,
-      createdOn: date,
-      lastChangedBy: usr,
-      lastChangedOn: date
+      createdBy: { id: req.user.id },
+      createdOn: new Date()
     } as Site;
     // Save
     site.id = await SiteStorage.saveSite(req.user.tenantID, site, true);

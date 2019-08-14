@@ -161,19 +161,22 @@ export default class TenantService {
     await TenantService._updateSettingsWithComponents(filteredRequest, req);
     // Create DB collections
     await TenantStorage.createTenantDB(filteredRequest.id);
-    // Create user in tenant
-    const password = Utils.generatePassword();
-    const verificationToken = Utils.generateToken(filteredRequest.email);
-    const tenantUser: User = UserStorage.getEmptyUser();
+    // Create Admin user in tenant
+    const tenantUser: User = UserStorage.getEmptyUser() as User;
     tenantUser.name = filteredRequest.name;
     tenantUser.firstName = 'Admin';
-    tenantUser.password = await Utils.hashPasswordBcrypt(password);
-    tenantUser.role = Constants.ROLE_ADMIN;
     tenantUser.email = filteredRequest.email;
-    tenantUser.verificationToken = verificationToken;
-    // Save
+    // Save User
     tenantUser.id = await UserStorage.saveUser(filteredRequest.id, tenantUser);
-    await UserStorage.saveUserPassword(filteredRequest.id, tenantUser.id, tenantUser.password);
+    // Save User Password
+    const password = await Utils.hashPasswordBcrypt(Utils.generatePassword());
+    await UserStorage.saveUserPassword(filteredRequest.id, tenantUser.id,
+      { password: password, passwordWrongNbrTrials: 0, passwordResetHash: null, passwordBlockedUntil: null });
+    // Save User Role
+    await UserStorage.saveUserRole(filteredRequest.id, tenantUser.id, Constants.ROLE_ADMIN);
+    // Save User Account Verification
+    const verificationToken = Utils.generateToken(filteredRequest.email);
+    await UserStorage.saveUserAccountVerification(filteredRequest.id, tenantUser.id, { verificationToken });
     // Send activation link
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.subdomain) +
       '/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
