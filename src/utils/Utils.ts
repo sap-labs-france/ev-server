@@ -194,7 +194,7 @@ export default class Utils {
     Utils._normalizeOneSOAPParam(headers, 'From.Address');
     Utils._normalizeOneSOAPParam(headers, 'ReplyTo.Address');
     // Parse the request (lower case for fucking charging station DBT URL registration)
-    const urlParts = url.parse(req.url.toLowerCase(), true);
+    const urlParts = url.parse(decodeURIComponent(req.url.toLowerCase()), true);
     const tenantID = urlParts.query.tenantid as string;
     const token = urlParts.query.token;
     // Check
@@ -401,7 +401,7 @@ export default class Utils {
       default:
         ocppUrl = `${Configuration.getWSDLEndpointConfig().baseUrl}/OCPP15?TenantID=${tenantID}`;
         if (token) {
-          ocppUrl += `&Token=${token}`;
+          ocppUrl += `%26Token=${token}`;
         }
         return ocppUrl;
     }
