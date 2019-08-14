@@ -868,7 +868,7 @@ export default class Utils {
   }
 
   public static getTimezone(lat: number, lon: number) {
-    if(lat && lon) {
+    if (lat && lon) {
       return tzlookup(lat, lon);
     }
     return null;
@@ -877,7 +877,7 @@ export default class Utils {
   public static getTenantActiveComponents(tenant: Tenant): string[] {
     let components: string[] = [];
     for(let componentName in tenant.components) {
-      if(tenant.components[componentName].active)
+      if (tenant.components[componentName].active)
         components.push(componentName);
     }
     return components;
@@ -885,7 +885,7 @@ export default class Utils {
 
   public static isTenantComponentActive(tenant: Tenant, component: string): boolean {
     for(let componentName in tenant.components) {
-      if(componentName===component) {
+      if (componentName===component) {
         return tenant.components[componentName].active;
       }
     }

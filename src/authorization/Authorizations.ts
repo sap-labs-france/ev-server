@@ -556,7 +556,6 @@ export default class Authorizations {
         sitesAdmin: userToken.sitesAdmin
       };
       if (!Authorizations.canPerformActionOnChargingStation(userToken, action, context)) {
-        // Not Authorized!
         throw new AppAuthError(
           action,
           Constants.ENTITY_CHARGING_STATION,

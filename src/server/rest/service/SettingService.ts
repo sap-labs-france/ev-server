@@ -6,7 +6,6 @@ import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
-import Setting from '../../../types/Setting';
 import SettingSecurity from './security/SettingSecurity';
 import UtilsService from './UtilsService';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
@@ -15,25 +14,23 @@ import HttpStatusCodes from 'http-status-codes';
 export default class SettingService {
   public static async handleDeleteSetting(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
-    const settingId = SettingSecurity.filterSettingRequestByID(req.query);
-    UtilsService.assertIdIsProvided(settingId, 'SettingService', 'handleDeleteSetting', req.user);
+    const settingID = SettingSecurity.filterSettingRequestByID(req.query);
+    UtilsService.assertIdIsProvided(settingID, 'SettingService', 'handleDeleteSetting', req.user);
     // Check auth
     if (!Authorizations.canDeleteSetting(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_DELETE,
         Constants.ENTITY_SETTING,
-        settingId,
+        settingID,
         Constants.HTTP_AUTH_ERROR,
         'SettingService', 'handleDeleteSetting',
         req.user);
     }
     // Get
-    const setting = await SettingStorage.getSetting(req.user.tenantID, settingId);
-    UtilsService.assertObjectExists(setting, `Tenant '${settingId}' does not exist`,
-    'SettingService', 'handleDeleteSetting', req.user);
+    const setting = await SettingStorage.getSetting(req.user.tenantID, settingID);
+    UtilsService.assertObjectExists(setting, `Tenant '${settingID}' does not exist`, 'SettingService', 'handleDeleteSetting', req.user);
     // Delete
-    await SettingStorage.deleteSetting(req.user.tenantID, settingId);
+    await SettingStorage.deleteSetting(req.user.tenantID, settingID);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -51,7 +48,7 @@ export default class SettingService {
     const settingID = SettingSecurity.filterSettingRequestByID(req.query);
     UtilsService.assertIdIsProvided(settingID, 'SettingService', 'handleGetSetting', req.user);
     // Check auth
-    if(!Authorizations.canReadSetting(req.user)) {
+    if (!Authorizations.canReadSetting(req.user)) {
       throw new AppAuthError(
         Constants.ACTION_READ,
         Constants.ENTITY_SETTING,
@@ -69,8 +66,7 @@ export default class SettingService {
     // Return
     res.json(
       // Filter
-      SettingSecurity.filterSettingResponse(
-        setting, req.user)
+      SettingSecurity.filterSettingResponse(setting, req.user)
     );
     next();
   }
@@ -78,7 +74,6 @@ export default class SettingService {
   public static async handleGetSettings(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListSettings(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_LIST,
         Constants.ENTITY_SETTINGS,
@@ -109,7 +104,6 @@ export default class SettingService {
   public static async handleCreateSetting(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canCreateSetting(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_CREATE,
         Constants.ENTITY_SETTING,
@@ -145,7 +139,6 @@ export default class SettingService {
     UtilsService.assertIdIsProvided(settingUpdate.id, 'SettingService', 'handleUpdateSetting', req.user);
     // Check auth
     if (!Authorizations.canUpdateSetting(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_UPDATE,
         Constants.ENTITY_SETTING,

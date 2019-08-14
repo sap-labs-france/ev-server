@@ -330,7 +330,7 @@ export default class SiteService {
     const filteredRequest = SiteSecurity.filterSiteRequest(req.query);
     UtilsService.assertIdIsProvided(filteredRequest.ID, 'SiteService', 'handleGetSite', req.user);
     // Check auth
-    if(!Authorizations.canReadSite(req.user, filteredRequest.ID)) {
+    if (!Authorizations.canReadSite(req.user, filteredRequest.ID)) {
       throw new AppAuthError(
         Constants.ACTION_READ,
         Constants.ENTITY_SITE,
@@ -355,7 +355,6 @@ export default class SiteService {
       Constants.ACTION_LIST, Constants.ENTITY_SITES, 'SiteService', 'handleGetSites');
     // Check auth
     if (!Authorizations.canListSites(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_LIST,
         Constants.ENTITY_SITES,
@@ -387,7 +386,7 @@ export default class SiteService {
         'autoUserSiteAssignment']
     );
     // Build the result
-    if(sites.result && sites.result.length > 0) {
+    if (sites.result && sites.result.length > 0) {
       // Filter
       SiteSecurity.filterSitesResponse(sites, req.user);
     }

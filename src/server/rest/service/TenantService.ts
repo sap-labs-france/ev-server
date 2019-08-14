@@ -123,7 +123,6 @@ export default class TenantService {
   public static async handleCreateTenant(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canCreateTenant(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_CREATE,
         Constants.ENTITY_TENANT,

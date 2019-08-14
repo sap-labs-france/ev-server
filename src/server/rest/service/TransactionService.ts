@@ -23,7 +23,6 @@ export default class TransactionService {
   static async handleSynchronizeRefundedTransactions(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       if (!Authorizations.isAdmin(req.user.role)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
           Constants.ENTITY_TRANSACTION,
@@ -82,7 +81,6 @@ export default class TransactionService {
         }
         // Check auth
         if (!Authorizations.canRefundTransaction(req.user, transaction)) {
-          // Not Authorized!
           throw new AppAuthError(
             Constants.ACTION_REFUND_TRANSACTION,
             Constants.ENTITY_TRANSACTION,
@@ -165,7 +163,6 @@ export default class TransactionService {
       }
       // Check auth
       if (!Authorizations.canDeleteTransaction(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_DELETE,
           Constants.ENTITY_TRANSACTION,
@@ -230,7 +227,6 @@ export default class TransactionService {
       }
       // Check auth
       if (!Authorizations.canUpdateTransaction(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
           Constants.ENTITY_TRANSACTION,
@@ -315,7 +311,6 @@ export default class TransactionService {
       }
       // Check auth
       if (!Authorizations.canReadTransaction(req.user, transaction)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_READ,
           Constants.ENTITY_TRANSACTION,
@@ -374,7 +369,6 @@ export default class TransactionService {
       }
       // Check auth
       if (!Authorizations.canReadTransaction(req.user, transaction)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_READ,
           Constants.ENTITY_TRANSACTION,
@@ -401,7 +395,6 @@ export default class TransactionService {
     try {
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_LIST,
           Constants.ENTITY_TRANSACTION,
@@ -477,7 +470,6 @@ export default class TransactionService {
     try {
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_LIST,
           Constants.ENTITY_TRANSACTION,
@@ -526,7 +518,6 @@ export default class TransactionService {
     try {
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_LIST,
           Constants.ENTITY_TRANSACTION,
@@ -587,7 +578,6 @@ export default class TransactionService {
     try {
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_LIST,
           Constants.ENTITY_TRANSACTIONS,
@@ -660,7 +650,6 @@ export default class TransactionService {
     try {
       // Check auth
       if (!Authorizations.canListTransactionsInError(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_LIST,
           Constants.ENTITY_TRANSACTION,
