@@ -22,7 +22,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('OCPP tests (all versions)', function() {
+describe('OCPP tests (all versions)', function () {
   this.timeout(300000); // Will automatically stop the unit test after that period of time
 
   before(async () => {
@@ -323,6 +323,20 @@ describe('OCPP tests (all versions)', function() {
     });
 
     describe('For OCPP Version 1.5 (SOAP)', () => {
+      describe('With unregistered charger', () => {
+        before(() => {
+          testData.chargingStationContext = testData.tenantContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.UNREGISTERED_OCPP15);
+          testData.ocppCommonTests.setChargingStation(testData.chargingStationContext);
+        });
+
+        after(async () => {
+          await testData.chargingStationContext.cleanUpCreatedData();
+        });
+
+        it('Should not be possible to register a charging station with invalid token', async () => {
+          await testData.ocppCommonTests.testChargingStationRegistrationWithInvalidToken();
+        });
+      });
 
       describe('With charger assigned to a site area', () => {
 
@@ -465,6 +479,20 @@ describe('OCPP tests (all versions)', function() {
     });
 
     describe('For OCPP Version 1.6 (JSON)', () => {
+      describe('With unregistered charger', () => {
+        before(() => {
+          testData.chargingStationContext = testData.tenantContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.UNREGISTERED_OCPP16);
+          testData.ocppCommonTests.setChargingStation(testData.chargingStationContext);
+        });
+
+        after(async () => {
+          await testData.chargingStationContext.cleanUpCreatedData();
+        });
+
+        it('Should not be possible to register a charging station with invalid token', async () => {
+          await testData.ocppCommonTests.testChargingStationRegistrationWithInvalidToken();
+        });
+      });
 
       describe('With charger assigned to a site area', () => {
 

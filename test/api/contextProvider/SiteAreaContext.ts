@@ -51,8 +51,9 @@ export default class SiteAreaContext {
     });
   }
 
-  addChargingStation(chargingStation) {
+  async addChargingStation(chargingStation) {
     const chargingStationContext = new ChargingStationContext(chargingStation, this.tenantContext);
+    await chargingStationContext.initialize();
     this.chargingStations.push(chargingStationContext);
   }
 

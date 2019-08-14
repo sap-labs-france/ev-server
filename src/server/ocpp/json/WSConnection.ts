@@ -11,19 +11,20 @@ import TenantStorage from '../../../storage/mongodb/TenantStorage';
 
 const MODULE_NAME = 'WSConnection';
 export default class WSConnection {
-  public tenantIsValid: boolean;
   public code: any;
   public message: any;
   public details: any;
   protected initialized: any;
   protected wsServer: any;
-  private url: any;
-  private ip: any;
-  private wsConnection: any;
+  private readonly url: string;
+  private readonly ip: string;
+  private readonly wsConnection: any;
   private req: any;
   private _requests: any = {};
-  private chargingStationID: any;
-  private tenantID: any;
+  private tenantIsValid: boolean;
+  private readonly chargingStationID: string;
+  private readonly tenantID: string;
+  private readonly token: string;
 
   constructor(wsConnection, req, wsServer) {
     // Init
@@ -31,13 +32,11 @@ export default class WSConnection {
     this.ip = Utils.getRequestIP(req);
     this.wsConnection = wsConnection;
     this.req = req;
-    this.chargingStationID = null;
-    this.tenantID = null;
     this.initialized = false;
     this.wsServer = wsServer;
 
     // Default
-    this.setTenantValid(false);
+    this.tenantIsValid = false;
     // Check URL: remove starting and trailing '/'
     if (this.url.endsWith('/')) {
       // Remove '/'
@@ -47,14 +46,18 @@ export default class WSConnection {
       // Remove '/'
       this.url = this.url.substring(1, this.url.length);
     }
-    // Parse URL: should like /OCPP16/TENANTID/CHARGEBOXID
+    // Parse URL: should like /OCPP16/TENANTID/TOKEN/CHARGEBOXID
+    // We support previous format for existing charging station without token /OCPP16/TENANTID/CHARGEBOXID
     const splittedURL = this.getURL().split('/');
-    // URL with 4 parts?
-    if (splittedURL.length === 3) {
-      // Yes: Tenant is then provided in the third part
-      this.setTenantID(splittedURL[1]);
-      // The Charger is in the 4th position
-      this.setChargingStationID(splittedURL[2]);
+    if (splittedURL.length === 4) {
+      // URL /OCPP16/TENANTID/TOKEN/CHARGEBOXID
+      this.tenantID = splittedURL[1];
+      this.token = splittedURL[2];
+      this.chargingStationID = splittedURL[3];
+    } else if (splittedURL.length === 3) {
+      // URL /OCPP16/TENANTID/CHARGEBOXID
+      this.tenantID = splittedURL[1];
+      this.chargingStationID = splittedURL[2];
     } else {
       // Error
       throw new BackendError(null, `The URL '${req.url}' is invalid (/OCPPxx/TENANT_ID/CHARGEBOX_ID)`,
@@ -73,7 +76,7 @@ export default class WSConnection {
       // Check Tenant?
       await Utils.checkTenant(this.tenantID);
       // Ok
-      this.setTenantValid(true);
+      this.tenantIsValid = true;
       // Cloud Foundry?
       if (Configuration.isCloudFoundry()) {
         // Yes: Save the CF App and Instance ID to call the charger from the Rest server
@@ -270,7 +273,9 @@ export default class WSConnection {
       // Function that will receive the request's rejection
       function rejectCallback(reason) {
         // Build Exception
-        self._requests[messageId] = [() => { }, () => { }];
+        self._requests[messageId] = [() => {
+        }, () => {
+        }];
         const error = reason instanceof OCPPError ? reason : new Error(reason);
         // Send error
         reject(error);
@@ -280,10 +285,6 @@ export default class WSConnection {
 
   getChargingStationID(): string {
     return this.chargingStationID;
-  }
-
-  setChargingStationID(chargingStationID) {
-    this.chargingStationID = chargingStationID;
   }
 
   getTenantID(): string {
@@ -296,24 +297,19 @@ export default class WSConnection {
     return Constants.DEFAULT_TENANT;
   }
 
-  setTenantID(tenantID) {
-    this.tenantID = tenantID;
+  getToken(): string {
+    return this.token;
   }
 
-  getID() {
+  getID(): string {
     return `${this.getTenantID()}~${this.getChargingStationID()}}`;
-  }
-
-  setTenantValid(valid) {
-    this.tenantIsValid = valid;
   }
 
   isTenantValid(): boolean {
     return this.tenantIsValid;
   }
 
-  isWSConnectionOpen() {
+  isWSConnectionOpen(): boolean {
     return this.wsConnection.readyState === OPEN;
   }
 }
-

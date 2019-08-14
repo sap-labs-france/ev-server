@@ -46,6 +46,7 @@ export default class JsonWSConnection extends WSConnection {
         ocppProtocol: Constants.OCPP_PROTOCOL_JSON,
         chargingStationURL: Configuration.getJsonEndpointConfig().baseUrl,
         tenantID: this.getTenantID(),
+        token: this.getToken(),
         From: {
           Address: this.getIP()
         }

@@ -4,7 +4,7 @@ import OCPPService from './services/OCPPService';
 export default class CentralSystemServer {
   protected centralSystemConfig: any;
   protected chargingStationConfig: any;
-  private chargingStationService: any;
+  private chargingStationService: OCPPService;
 
   // Common constructor for Central System Server
   constructor(centralSystemConfig, chargingStationConfig) {
@@ -21,7 +21,7 @@ export default class CentralSystemServer {
   start() {
   }
 
-  getChargingStationService(protocol) {
+  getChargingStationService(protocol): OCPPService {
     switch (protocol) {
       case Constants.OCPP_VERSION_12:
       case Constants.OCPP_VERSION_15:

@@ -32,7 +32,6 @@ export default class CentralRestServer {
     // Initialize express app
     this.express = expressTools.init('2mb');
 
-    // FIXME?: Should be useless now that helmet() is mounted at the beginning
     // Mount express-sanitizer middleware
     this.express.use(sanitize());
 
@@ -77,32 +76,12 @@ export default class CentralRestServer {
 
     // Check if the front-end has to be served also
     const centralSystemConfig = Configuration.getCentralSystemFrontEndConfig();
-    // Serve it?
-    // TODO: Remove distEnabled support
-    if (centralSystemConfig.distEnabled) {
-      // Serve all the static files of the front-end
-      // eslint-disable-next-line no-unused-vars
-      this.express.get(/^\/(?!client\/)(.+)$/, function(req: Request, res: Response, next: NextFunction) {
-        // Filter to not handle other server requests
-        if (!res.headersSent) {
-          // Not already processed: serve the file
-          res.sendFile(path.join(__dirname, centralSystemConfig.distPath, sanitize(req.params[0])));
-        }
-      });
-      // Default, serve the index.html
-      // eslint-disable-next-line no-unused-vars
-      this.express.get('/', function(req, res, next) {
-        // Return the index.html
-        res.sendFile(path.join(__dirname, centralSystemConfig.distPath, 'index.html'));
-      });
-    }
   }
 
   get httpServer() {
     return CentralRestServer.restHttpServer;
   }
 
-  // TODO: never used?
   private static socketIOListenCb() {
     // Log
     const logMsg = `REST SocketIO Server listening on '${CentralRestServer.centralSystemRestConfig.protocol}://${CentralRestServer.restHttpServer.address().address}:${CentralRestServer.restHttpServer.address().port}'`;

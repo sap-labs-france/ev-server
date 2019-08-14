@@ -488,7 +488,7 @@ export default class TransactionService {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
       if (filteredRequest.SiteID) {
-        filter.siteID = filteredRequest.SiteID;
+        filter.siteID = filteredRequest.SiteID.split('|');
       }
       if (filteredRequest.UserID) {
         filter.userIDs = filteredRequest.UserID.split('|');
@@ -535,6 +535,9 @@ export default class TransactionService {
       if (filteredRequest.SiteAreaID) {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
+      if (filteredRequest.SiteID) {
+        filter.siteID = filteredRequest.SiteID.split('|');
+      }
       if (filteredRequest.UserID) {
         filter.userIDs = filteredRequest.UserID.split('|');
       }
@@ -548,7 +551,7 @@ export default class TransactionService {
         filter.endDateTime = filteredRequest.EndDateTime;
       }
       if (filteredRequest.Type) {
-        filter.type = filteredRequest.Type;
+        filter.refundType = filteredRequest.Type.split('|');
       }
       if (filteredRequest.MinimalPrice) {
         filter.minimalPrice = filteredRequest.MinimalPrice;
@@ -560,7 +563,7 @@ export default class TransactionService {
         {
           ...filter,
           'search': filteredRequest.Search,
-          'siteID': filteredRequest.SiteID
+          'siteID': filter.siteID
         },
         { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
       // Filter
@@ -595,6 +598,9 @@ export default class TransactionService {
       if (filteredRequest.SiteAreaID) {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
+      if (filteredRequest.SiteID) {
+        filter.siteID = filteredRequest.SiteID.split('|');
+      }
       if (filteredRequest.UserID) {
         filter.userIDs = filteredRequest.UserID.split('|');
       }
@@ -612,7 +618,7 @@ export default class TransactionService {
         filter.type = filteredRequest.Type;
       }
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-        { ...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID },
+        { ...filter, 'search': filteredRequest.Search, 'siteID': filter.siteID },
         { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
       // Filter
       TransactionSecurity.filterTransactionsResponse(transactions, req.user);
@@ -667,6 +673,9 @@ export default class TransactionService {
       if (filteredRequest.SiteAreaID) {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
+      if (filteredRequest.SiteID) {
+        filter.siteID = filteredRequest.SiteID.split('|');
+      }
       if (filteredRequest.UserID) {
         filter.userIDs = filteredRequest.UserID.split('|');
       }
@@ -682,7 +691,7 @@ export default class TransactionService {
       }
       // Site Area
       const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
-        { ...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID },
+        { ...filter, 'search': filteredRequest.Search, 'siteID': filter.siteID },
         { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
       // Filter
       TransactionSecurity.filterTransactionsResponse(transactions, req.user);

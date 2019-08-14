@@ -244,6 +244,12 @@ export default class OCPPCommonTests {
     expect(response.data.status).to.equal('Accepted');
   }
 
+  public async testChargingStationRegistrationWithInvalidToken() {
+    const response = await this.chargingStationContext.sendBootNotification();
+    expect(response.data).not.to.be.null;
+    expect(response.data.status).eq('Rejected');
+  }
+
   public async testAuthorizeUsers() {
     // Asserts that the start user is authorized.
     await this.testAuthorize(this.transactionStartUser.tagIDs[0], 'Accepted');
@@ -278,6 +284,7 @@ export default class OCPPCommonTests {
       const connector = chargingStationResponse.data.connectors[this.chargingStationConnector1.connectorId - 1];
       expect(connector).not.null;
       expect(connector.activeTransactionID).eq(transactionId);
+      expect(connector.activeTransactionDate).eq(this.transactionStartTime.toISOString());
       expect(connector.activeTagID).eq(this.transactionStartUser.tagIDs[0]);
     } else {
       this.newTransaction = null;

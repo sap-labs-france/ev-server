@@ -52,8 +52,7 @@ const BIG_CONTEXT = [{
         }
       }
     },
-    organization: {
-    },
+    organization: {},
   },
 }];
 
@@ -65,7 +64,10 @@ export default class ContextBuilder {
 
   constructor() {
     // Create a super admin interface
-    this.superAdminCentralServerService = new CentralServerService(null, { email: config.get('superadmin.username'), password: config.get('superadmin.password') });
+    this.superAdminCentralServerService = new CentralServerService(null, {
+      email: config.get('superadmin.username'),
+      password: config.get('superadmin.password')
+    });
     this.tenantsContexts = [];
     // Create MongoDB
     global.database = new MongoDBStorage(config.get('storage'));
@@ -261,8 +263,9 @@ export default class ContextBuilder {
       (userModel as any).passwordClear = config.get('admin.password'); // FIXME: What is this?
       userList.push(userModel);
     }
+    const registrationTokenResponse = await localCentralServiceService.registrationApi.create();
     // Persist tenant context
-    const newTenantContext = new TenantContext(tenantContextDef.tenantName, buildTenant, localCentralServiceService, null);
+    const newTenantContext = new TenantContext(tenantContextDef.tenantName, buildTenant, registrationTokenResponse.data.id, localCentralServiceService, null);
     this.tenantsContexts.push(newTenantContext);
     newTenantContext.addUsers(userList);
     // Check if Organization is active

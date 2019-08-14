@@ -127,6 +127,11 @@ export default class LoggingStorage {
       // Yes, add in filter
       filters.action = { $in: params.actions };
     }
+    // Filter on host
+    if (params.host && Array.isArray(params.host) && params.host.length > 0) {
+      // Yes, add in filter
+      filters.host = { $in: params.host };
+    }
     // Filter on users
     if (params.userIDs && Array.isArray(params.userIDs) && params.userIDs.length > 0) {
       // Yes, add in filter
