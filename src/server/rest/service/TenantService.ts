@@ -269,7 +269,7 @@ export default class TenantService {
         continue;
       }
       // Create
-      const newSettingContent = SettingService.createDefaultSettingContent(
+      const newSettingContent = Utils.createDefaultSettingContent(
         {...tenant.components[componentName], name: componentName}, (currentSetting ? currentSetting.content : null));
       if (newSettingContent) {
         // Create & Save

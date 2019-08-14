@@ -117,7 +117,7 @@ export default class TransactionService {
           'TransactionService', 'handleRefundTransactions', req.user);
       }
       const setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, 'refund');
-      const settingInner = setting.content['concur'];
+      const settingInner = setting.content[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR];
       const connector = new ConcurConnector(req.user.tenantID, settingInner);
       const refundedTransactions = await connector.refund(user.id, transactionsToRefund);
       // // Transfer it to the Revenue Cloud

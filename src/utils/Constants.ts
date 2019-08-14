@@ -155,6 +155,8 @@ export default class Constants {
   public static readonly SETTING_PRICING_CONTENT_TYPE_SIMPLE = 'simple';
   public static readonly SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING = 'convergentCharging';
   public static readonly SETTING_REFUND_CONTENT_TYPE_CONCUR = 'concur';
+  public static readonly SETTING_REFUND_CONTENT_TYPE_GIREVE = 'gireve';
+  public static readonly SETTING_REFUND_CONTENT_TYPE_SAC = 'sac';
 
   public static readonly METER_VALUE_CTX_SAMPLE_PERIODIC = 'Sample.Periodic';
   public static readonly METER_VALUE_CTX_SAMPLE_CLOCK = 'Sample.Clock';

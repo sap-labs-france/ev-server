@@ -62,7 +62,7 @@ export default class Cypher {
           }
         }
       });
-    }else{
+    } else {
       obj.sensitiveData = [];
     }
   }

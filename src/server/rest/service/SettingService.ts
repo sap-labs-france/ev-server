@@ -89,8 +89,7 @@ export default class SettingService {
       { identifier: filteredRequest.Identifier },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort });
     // Filter
-    settings.result = SettingSecurity.filterSettingsResponse(
-      settings.result, req.user);
+    settings.result = SettingSecurity.filterSettingsResponse(settings.result, req.user);
     // Process the sensitive data if any
     settings.result.forEach((setting) => {
       // Hash sensitive data before being sent to the front end
@@ -183,7 +182,7 @@ export default class SettingService {
           }
         }
       }
-    }else{
+    } else {
       settingUpdate.sensitiveData = [];
     }
     // Update timestamp
@@ -201,48 +200,5 @@ export default class SettingService {
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
-  }
-
-  public static createDefaultSettingContent(activeComponent, currentSettingContent) {
-    switch (activeComponent.name) {
-      // Pricing
-      case Constants.COMPONENTS.PRICING:
-        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
-          // Create default settings
-          if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE) {
-            return { 'type': 'simple', 'simple': {} };
-          } else if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING) {
-            return { 'type': 'convergentCharging', 'convergentCharging': {} };
-          }
-        }
-        break;
-
-      // Refund
-      case Constants.COMPONENTS.REFUND:
-        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
-          // Only Concur
-          return { 'type': 'concur', 'concur': {} };
-        }
-
-        break;
-
-      // Refund
-      case Constants.COMPONENTS.OCPI:
-        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
-          // Only Gireve
-          return { 'type': 'gireve', 'ocpi': {} };
-        }
-
-        break;
-
-      // SAC
-      case Constants.COMPONENTS.ANALYTICS:
-        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
-          // Only SAP Analytics
-          return { 'type': 'sac', 'sac': {} };
-        }
-
-        break;
-    }
   }
 }
