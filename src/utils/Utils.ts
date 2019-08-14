@@ -20,12 +20,13 @@ import Constants from './Constants';
 import Cypher from './Cypher';
 import { HttpUserRequest } from '../types/requests/HttpUserRequest';
 import Logging from './Logging';
+import { SettingContent } from '../types/Setting';
 import Tenant from '../types/Tenant';
 import TenantStorage from '../storage/mongodb/TenantStorage';
 import Transaction from '../types/Transaction';
 import User from '../types/User';
 import UserStorage from '../storage/mongodb/UserStorage';
-import { SettingContent } from '../types/Setting';
+import UserToken from '../types/UserToken';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
@@ -886,7 +887,7 @@ export default class Utils {
     return false;
   }
 
-  public static createDefaultSettingContent(activeComponent, currentSettingContent) : SettingContent {
+  public static createDefaultSettingContent(activeComponent, currentSettingContent): SettingContent {
     switch (activeComponent.name) {
       // Pricing
       case Constants.COMPONENTS.PRICING:

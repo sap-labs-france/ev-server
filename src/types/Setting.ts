@@ -42,7 +42,7 @@ export interface OcpiSettings {
       type: string;
       width: string;
       height: string;
-    }
+    };
   };
 }
 

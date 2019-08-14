@@ -255,7 +255,7 @@ export default class TenantService {
     next();
   }
 
-  private static async _updateSettingsWithComponents(tenant: Partial<Tenant>, req: Request) : Promise<void> {
+  private static async _updateSettingsWithComponents(tenant: Partial<Tenant>, req: Request): Promise<void> {
     // Create settings
     for (const componentName in tenant.components) {
       // Get the settings
@@ -269,7 +269,7 @@ export default class TenantService {
         continue;
       }
       // Create
-      const newSettingContent : SettingContent = Utils.createDefaultSettingContent(
+      const newSettingContent: SettingContent = Utils.createDefaultSettingContent(
         { ...tenant.components[componentName], name: componentName }, (currentSetting ? currentSetting.content : null));
       if (newSettingContent) {
         // Create & Save
