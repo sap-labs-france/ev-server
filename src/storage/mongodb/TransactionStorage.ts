@@ -156,7 +156,7 @@ export default class TransactionStorage {
       currency?: string;
       totalInactivitySecs?: number;
       count: number;
-    }; result: Transaction[];}> {
+    }; result: Transaction[]; }> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactions');
     // Check

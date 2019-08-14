@@ -1,5 +1,5 @@
-import RegistrationToken from '../RegistrationToken';
 import HttpDatabaseRequest from './HttpDatabaseRequest';
+import RegistrationToken from '../RegistrationToken';
 
 export interface HttpRegistrationTokenRequest {
   siteAreaID: string;

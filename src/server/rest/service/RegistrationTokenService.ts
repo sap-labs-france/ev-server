@@ -1,16 +1,16 @@
 import { NextFunction, Request, Response } from 'express';
-import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
-import AppError from '../../../exception/AppError';
-import Constants from '../../../utils/Constants';
-import Authorizations from '../../../authorization/Authorizations';
-import AppAuthError from '../../../exception/AppAuthError';
 import moment from 'moment';
-import Logging from '../../../utils/Logging';
-import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationTokenStorage';
-import RegistrationTokenSecurity from './security/RegistrationTokenSecurity';
-import Utils from '../../../utils/Utils';
+import AppAuthError from '../../../exception/AppAuthError';
+import AppError from '../../../exception/AppError';
+import Authorizations from '../../../authorization/Authorizations';
+import Constants from '../../../utils/Constants';
 import DbParams from '../../../types/database/DbParams';
+import Logging from '../../../utils/Logging';
 import RegistrationToken from '../../../types/RegistrationToken';
+import RegistrationTokenSecurity from './security/RegistrationTokenSecurity';
+import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationTokenStorage';
+import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import Utils from '../../../utils/Utils';
 
 export default class RegistrationTokenService {
   static async handleCreateRegistrationToken(action: string, req: Request, res: Response, next: NextFunction) {

@@ -6,11 +6,11 @@ import ChargingStationContext from './ChargingStationContext';
 import CONTEXTS from './ContextConstants';
 import Factory from '../../factories/Factory';
 import OCPPJsonService16 from '../ocpp/json/OCPPJsonService16';
+import OCPPService from '../ocpp/OCPPService';
 import OCPPJsonService15 from '../ocpp/soap/OCPPSoapService15';
 import SiteAreaContext from './SiteAreaContext';
 import SiteContext from './SiteContext';
 import Tenant from '../../types/Tenant';
-import OCPPService from '../ocpp/OCPPService';
 
 export default class TenantContext {
 
@@ -273,7 +273,7 @@ export default class TenantContext {
   }
 
   async createRegistrationToken(siteAreaID: string = null): Promise<string> {
-    const registrationTokenResponse = await this.centralAdminServerService.registrationApi.create({siteAreaID: siteAreaID});
+    const registrationTokenResponse = await this.centralAdminServerService.registrationApi.create({ siteAreaID: siteAreaID });
     expect(registrationTokenResponse.status).eq(200);
     expect(registrationTokenResponse.data).not.null;
     expect(registrationTokenResponse.data.id).not.null;

@@ -168,7 +168,7 @@
     "test:tenantsetting": "cross-env TS_NODE_FILES=true mocha test/**/ComponentActivationTenantTest.ts --exit",
     "clinic:clean": "clinic clean",
     "npm-check": "npm-check",
-    "tslint:fix": "tslint --fix test/**/*.ts"
+    "tslint:fix": "tslint --fix src/**/*.ts"
   },
   "license": "MIT"
 }

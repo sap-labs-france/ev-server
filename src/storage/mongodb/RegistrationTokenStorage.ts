@@ -1,12 +1,12 @@
-import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
 import { ObjectID } from 'bson';
-import DatabaseUtils from './DatabaseUtils';
-import global from '../../types/GlobalType';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
+import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
+import global from '../../types/GlobalType';
+import Logging from '../../utils/Logging';
 import RegistrationToken from '../../types/RegistrationToken';
+import Utils from '../../utils/Utils';
 
 export default class RegistrationTokenStorage {
   static async saveRegistrationToken(tenantID: string, registrationToken: RegistrationToken): Promise<string> {
@@ -65,9 +65,7 @@ export default class RegistrationTokenStorage {
       // Build filter
       filters.push({
         'siteArea.siteID': {
-          $in: params.siteIDs.map((site) => {
-            return Utils.convertToObjectID(site);
-          })
+          $in: params.siteIDs.map((site) => Utils.convertToObjectID(site))
         }
       });
     }

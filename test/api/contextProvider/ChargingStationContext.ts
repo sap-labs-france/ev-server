@@ -2,8 +2,8 @@ import faker from 'faker';
 import CentralServerService from '../client/CentralServerService';
 import ChargingStation from '../../types/ChargingStation';
 import CONTEXTS from '../contextProvider/ContextConstants';
-import TenantContext from './TenantContext';
 import OCPPService from '../ocpp/OCPPService';
+import TenantContext from './TenantContext';
 
 export default class ChargingStationContext {
 

@@ -1,13 +1,13 @@
+import sanitize from 'mongo-sanitize';
+import Authorizations from '../../../../authorization/Authorizations';
+import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import {
   HttpRegistrationTokenRequest, HttpRegistrationTokensRequest,
   HttpRegistrationTokensResponse
 } from '../../../../types/requests/HttpRegistrationToken';
-import sanitize from 'mongo-sanitize';
-import UserToken from '../../../../types/UserToken';
 import RegistrationToken from '../../../../types/RegistrationToken';
-import Authorizations from '../../../../authorization/Authorizations';
+import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
-import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 
 export default class RegistrationTokenSecurity {
   static filterRegistrationTokenCreateRequest(request: HttpRegistrationTokenRequest): HttpRegistrationTokenRequest {

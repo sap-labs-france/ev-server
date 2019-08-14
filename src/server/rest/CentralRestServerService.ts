@@ -8,6 +8,7 @@ import LoggingService from './service/LoggingService';
 import NotificationService from './service/NotificationService';
 import OCPIEndpointService from './service/OCPIEndpointService';
 import PricingService from './service/PricingService';
+import RegistrationTokenService from './service/RegistrationTokenService';
 import SessionHashService from './service/SessionHashService';
 import SettingService from './service/SettingService';
 import SiteAreaService from './service/SiteAreaService';
@@ -19,7 +20,6 @@ import UserService from './service/UserService';
 import UtilsService from './service/UtilsService';
 import VehicleManufacturerService from './service/VehicleManufacturerService';
 import VehicleService from './service/VehicleService';
-import RegistrationTokenService from './service/RegistrationTokenService';
 class RequestMapper {
   private static instances = new Map<string, RequestMapper>();
 
