@@ -1,7 +1,6 @@
 import { ObjectID } from 'mongodb';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
-import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
@@ -14,16 +13,16 @@ export default class SettingStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('SettingStorage', 'getSetting');
      // Delegate querying
-     let settingMDB = await SettingStorage.getSettings(tenantID, {id: id}, Constants.DB_PARAMS_SINGLE_RECORD);
+     let settingMDB = await SettingStorage.getSettings(tenantID, { settingID: id }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('SettingStorage', 'getSetting', uniqueTimerID, { id });
-
     return settingMDB.count > 0 ? settingMDB.result[0] : null;
   }
 
   public static async getSettingByIdentifier(tenantID: string, identifier: string): Promise<Setting> {
-    let settingResult = await SettingStorage.getSettings(tenantID, {identifier: identifier}, Constants.DB_PARAMS_SINGLE_RECORD);
-    return settingResult.count>0 ? settingResult.result[0] : null;
+    let settingResult = await SettingStorage.getSettings(
+      tenantID, {identifier: identifier}, Constants.DB_PARAMS_SINGLE_RECORD);
+    return settingResult.count > 0 ? settingResult.result[0] : null;
   }
 
   public static async saveSetting(tenantID: string, settingToSave: Partial<Setting>): Promise<string> {
@@ -71,7 +70,9 @@ export default class SettingStorage {
     return settingFilter._id.toHexString();
   }
 
-  public static async getSettings(tenantID: string, params: {identifier?:string, id?:string}, dbParams: DbParams, projectFields?: string[]) {
+  public static async getSettings(tenantID: string,
+      params: {identifier?:string, settingID?:string},
+      dbParams: DbParams, projectFields?: string[]) {
     // Debug
     const uniqueTimerID = Logging.traceStart('SettingStorage', 'getSettings');
     // Check Tenant
@@ -83,8 +84,8 @@ export default class SettingStorage {
     // Set the filters
     const filters: any = {};
     // Source?
-    if (params.id) {
-      filters._id = Utils.convertToObjectID(params.id);
+    if (params.settingID) {
+      filters._id = Utils.convertToObjectID(params.settingID);
     }
     // Identifier
     if (params.identifier) {
@@ -104,14 +105,14 @@ export default class SettingStorage {
       .toArray();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
+    // Rename ID
+    DatabaseUtils.renameDatabaseID(aggregation);
     // Sort
     if (dbParams.sort) {
-      // Sort
       aggregation.push({
         $sort: dbParams.sort
       });
     } else {
-      // Default
       aggregation.push({
         $sort: {
           identifier: 1
@@ -126,8 +127,6 @@ export default class SettingStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
-    // Rename ID
-    DatabaseUtils.renameDatabaseID(aggregation);
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
