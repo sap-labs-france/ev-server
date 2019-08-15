@@ -1,4 +1,4 @@
-import { ObjectID } from 'bson';
+import { ObjectID } from 'mongodb';
 import fs from 'fs';
 import Mustache from 'mustache';
 import BackendError from '../../exception/BackendError';
