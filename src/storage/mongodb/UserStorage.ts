@@ -237,7 +237,7 @@ export default class UserStorage {
       userFilter.email = userToSave.email;
     }
     // Properties to save
-  // eslint-disable-next-line prefer-const
+    // eslint-disable-next-line prefer-const
     let userMDB = {
       _id: userToSave.id ? Utils.convertToObjectID(userToSave.id) : new ObjectID(),
       name: userToSave.name,
@@ -248,11 +248,9 @@ export default class UserStorage {
       locale: userToSave.locale,
       address: userToSave.address,
       iNumber: userToSave.iNumber,
-      costCenter: userToSave.costCenter
+      costCenter: userToSave.costCenter,
+      deleted: userToSave.hasOwnProperty('deleted') ? userToSave.deleted : false
     };
-    if (userToSave.hasOwnProperty('deleted')) {
-      userMDB.deleted = userToSave.deleted;
-    }
     // Check Created/Last Changed By
     DatabaseUtils.addLastChangedCreatedProps(userMDB, userToSave);
     // Modify and return the modified document
