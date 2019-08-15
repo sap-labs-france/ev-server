@@ -1,4 +1,4 @@
-import { ObjectID } from 'bson';
+import { ObjectID } from 'mongodb';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
