@@ -1,5 +1,5 @@
-import { ObjectID } from 'mongodb';
 import fs from 'fs';
+import { ObjectID } from 'mongodb';
 import Mustache from 'mustache';
 import BackendError from '../../exception/BackendError';
 import Configuration from '../../utils/Configuration';
@@ -288,8 +288,8 @@ export default class UserStorage {
   }
 
   public static async saveUserPassword(tenantID: string, userID: string,
-      params: { password?: string; passwordResetHash?: string; passwordWrongNbrTrials?: number;
-        passwordBlockedUntil?: Date }): Promise<void> {
+    params: { password?: string; passwordResetHash?: string; passwordWrongNbrTrials?: number;
+      passwordBlockedUntil?: Date; }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserPassword');
     // Check Tenant
@@ -347,7 +347,7 @@ export default class UserStorage {
   }
 
   public static async saveUserEULA(tenantID: string, userID: string,
-      params: { eulaAcceptedHash: string; eulaAcceptedOn: Date; eulaAcceptedVersion: number }): Promise<void> {
+    params: { eulaAcceptedHash: string; eulaAcceptedOn: Date; eulaAcceptedVersion: number }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserRole');
     // Check Tenant
@@ -367,7 +367,7 @@ export default class UserStorage {
   }
 
   public static async saveUserAccountVerification(tenantID: string, userID: string,
-      params: { verificationToken?: string; verifiedAt?: Date; }): Promise<void> {
+    params: { verificationToken?: string; verifiedAt?: Date }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserAccountVerification');
     // Check Tenant
@@ -387,7 +387,7 @@ export default class UserStorage {
   }
 
   public static async saveUserAdminData(tenantID: string, userID: string,
-      params: { plateID?: string; notificationsActive?: boolean; }): Promise<void> {
+    params: { plateID?: string; notificationsActive?: boolean }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserAdminData');
     // Check Tenant
@@ -398,7 +398,7 @@ export default class UserStorage {
     if (params.plateID) {
       updatedUserMDB.plateID = params.plateID;
     }
-    if (params.hasOwnProperty("notificationsActive")) {
+    if (params.hasOwnProperty('notificationsActive')) {
       updatedUserMDB.notificationsActive = params.notificationsActive;
     }
     // Modify and return the modified document

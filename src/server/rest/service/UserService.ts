@@ -244,7 +244,7 @@ export default class UserService {
       }
       // Save Admin Data
       if (filteredRequest.plateID || filteredRequest.hasOwnProperty('notificationsActive')) {
-        const adminData: { plateID?: string; notificationsActive?: boolean; } = {};
+        const adminData: { plateID?: string; notificationsActive?: boolean } = {};
         if (filteredRequest.plateID) {
           adminData.plateID = filteredRequest.plateID;
         }
@@ -505,7 +505,7 @@ export default class UserService {
       }
       // Save Admin Data
       if (filteredRequest.plateID || filteredRequest.hasOwnProperty('notificationsActive')) {
-        const adminData: { plateID?: string; notificationsActive?: boolean; } = {};
+        const adminData: { plateID?: string; notificationsActive?: boolean } = {};
         if (filteredRequest.plateID) {
           adminData.plateID = filteredRequest.plateID;
         }

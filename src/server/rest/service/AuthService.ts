@@ -227,7 +227,7 @@ export default class AuthService {
       { password: newPasswordHashed, passwordWrongNbrTrials: 0, passwordResetHash: null, passwordBlockedUntil: null });
     // Save User Account Verification
     await UserStorage.saveUserAccountVerification(tenantID, newUser.id, { verificationToken });
-      // Save User EULA
+    // Save User EULA
     await UserStorage.saveUserEULA(tenantID, newUser.id,
       { eulaAcceptedOn: new Date(), eulaAcceptedVersion: endUserLicenseAgreement.version, eulaAcceptedHash: endUserLicenseAgreement.hash });
     // Assign user to all sites with auto-assign flag set
