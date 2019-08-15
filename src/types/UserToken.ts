@@ -7,6 +7,7 @@ export default interface UserToken {
   language?: string;
   tagIDs?: string[];
   tenantID: string;
+  tenantName?: string;
   userHashID?: string;
   tenantHashID?: string;
   scopes?: readonly string[];
