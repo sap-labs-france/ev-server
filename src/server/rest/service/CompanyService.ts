@@ -158,7 +158,7 @@ export default class CompanyService {
     const newCompany: Company = {
       ...filteredRequest,
       createdBy: { id: req.user.id },
-      createdOn: new Date(),
+      createdOn: new Date()
     } as Company;
     // Save
     newCompany.id = await CompanyStorage.saveCompany(req.user.tenantID, newCompany);

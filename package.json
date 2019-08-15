@@ -82,7 +82,7 @@
     "@types/mongo-sanitize": "^1.0.1",
     "@types/mongodb": "^3.2.2",
     "@types/mustache": "^0.8.32",
-    "@types/node": "^12.7.1",
+    "@types/node": "^12.7.2",
     "@types/passport-jwt": "^3.0.1",
     "@types/socket.io": "^2.1.2",
     "@types/urlencode": "^1.1.1",

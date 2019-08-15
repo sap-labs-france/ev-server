@@ -598,16 +598,20 @@ export default class Authorizations {
       // Create an empty user
       user = {
         ...UserStorage.getEmptyUser(),
-        name: 'Unknown',
-        firstName: 'User',
+        email: tagID + '@e-mobility.com',
         status: Constants.USER_STATUS_INACTIVE,
-        role: Constants.ROLE_BASIC,
-        email: tagID + '@e-mobility.com'
-      };
-      // Save
+        role: Constants.ROLE_BASIC
+      } as User;
+      // Save User
       user.id = await UserStorage.saveUser(tenantID, user);
-      // Save TagIDs
+      // Save User TagIDs
       await UserStorage.saveUserTags(tenantID, user.id, [tagID]);
+      // Save User Status
+      await UserStorage.saveUserStatus(tenantID, user.id, user.status);
+      // Save User Role
+      await UserStorage.saveUserRole(tenantID, user.id, user.role);
+      // Save User Admin data
+      await UserStorage.saveUserAdminData(tenantID, user.id, { notificationsActive: user.notificationsActive });
       // No need to save the password as it is empty anyway
       // Notify (Async)
       NotificationHandler.sendUnknownUserBadged(
@@ -628,10 +632,7 @@ export default class Authorizations {
         'Authorizations', '_checkAndGetUserTagIDOnChargingStation', user
       );
     } else if (user.status === Constants.USER_STATUS_DELETED) {
-      // Yes: Restore it!
-      user.deleted = false;
       // Set default user's value
-      user.status = Constants.USER_STATUS_INACTIVE;
       user.name = 'Unknown';
       user.firstName = 'User';
       user.email = tagID + '@chargeangels.fr';
@@ -649,7 +650,13 @@ export default class Authorizations {
         action: action
       });
       // Save
-      await UserStorage.saveUser(tenantID, user);
+      user.id = await UserStorage.saveUser(tenantID, user);
+      // Save User Status
+      await UserStorage.saveUserStatus(tenantID, user.id, Constants.USER_STATUS_INACTIVE);
+      // Save User Role
+      await UserStorage.saveUserRole(tenantID, user.id, Constants.ROLE_BASIC);
+      // Save User Admin data
+      await UserStorage.saveUserAdminData(tenantID, user.id, { notificationsActive: user.notificationsActive });
     }
     return user;
   }

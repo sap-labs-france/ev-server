@@ -175,8 +175,6 @@ export default class ContextBuilder {
     if ((defaultAdminUser.id !== CONTEXTS.TENANT_USER_LIST[0].id) || (defaultAdminUser.status !== 'A')) {
       // It is a different default user so first delete it
       await UserStorage.deleteUser(buildTenant.id, defaultAdminUser.id);
-      // Activate user
-      defaultAdminUser.status = CONTEXTS.TENANT_USER_LIST[0].status;
       // Generate the password hash
       const newPasswordHashed = await Utils.hashPasswordBcrypt(config.get('admin.password'));
       // Update the email
@@ -186,8 +184,9 @@ export default class ContextBuilder {
       // Fix id
       defaultAdminUser.id = CONTEXTS.TENANT_USER_LIST[0].id;
       const userId = await UserStorage.saveUser(buildTenant.id, defaultAdminUser);
-      // Save password
-      await UserStorage.saveUserPassword(buildTenant.id, userId, newPasswordHashed);
+      await UserStorage.saveUserStatus(buildTenant.id, userId, CONTEXTS.TENANT_USER_LIST[0].status);
+      await UserStorage.saveUserRole(buildTenant.id, userId, CONTEXTS.TENANT_USER_LIST[0].role);
+      await UserStorage.saveUserPassword(buildTenant.id, userId, { password: newPasswordHashed });
     }
 
     // Create Central Server Service
@@ -242,21 +241,21 @@ export default class ContextBuilder {
       userDef.tagIDs.push(`A1234${index}`);
       // Update the password
       const newPasswordHashed = await Utils.hashPasswordBcrypt(config.get('admin.password'));
-      createUser.role = userDef.role;
-      createUser.status = userDef.status;
       createUser.id = userDef.id;
       if (userDef.tagIDs) {
         createUser.tagIDs = userDef.tagIDs;
       }
       const user: User = createUser;
       await UserStorage.saveUser(buildTenant.id, user, false);
-      await UserStorage.saveUserPassword(buildTenant.id, user.id, newPasswordHashed);
+      await UserStorage.saveUserPassword(buildTenant.id, user.id, { password: newPasswordHashed });
+      await UserStorage.saveUserStatus(buildTenant.id, user.id, userDef.status);
+      await UserStorage.saveUserRole(buildTenant.id, user.id, userDef.role);
       if (userDef.assignedToSite) {
         userListToAssign.push(user);
       }
       // Set back password to clear value for login/logout
       const userModel = user;
-      (userModel as any).passwordClear = config.get('admin.password'); // FIXME: What is this?
+      (userModel as any).passwordClear = config.get('admin.password');
       userList.push(userModel);
     }
     const registrationTokenResponse = await localCentralServiceService.registrationApi.create();

@@ -132,6 +132,7 @@ export default class CentralServerService {
     // Check
     if (performCheck) {
       expect(response.status).to.equal(200);
+      expect(response.data).not.null;
       expect(response.data.status).to.eql('Success');
       expect(response.data).to.have.property('id');
       expect(response.data.id).to.match(/^[a-f0-9]+$/);
