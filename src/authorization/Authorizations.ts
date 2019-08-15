@@ -104,8 +104,10 @@ export default class Authorizations {
 
     let tenantHashID = Constants.DEFAULT_TENANT;
     let activeComponents = [];
+    let tenantName;
     if (tenantID !== Constants.DEFAULT_TENANT) {
       const tenant = await TenantStorage.getTenant(tenantID);
+      tenantName = tenant.name;
       tenantHashID = SessionHashService.buildTenantHashID(tenant);
       activeComponents = Utils.getTenantActiveComponents(tenant);
     }
@@ -119,6 +121,7 @@ export default class Authorizations {
       'locale': user.locale,
       'language': user.locale.substring(0, 2),
       'tenantID': tenantID,
+      'tenantName': tenantName,
       'userHashID': SessionHashService.buildUserHashID(user),
       'tenantHashID': tenantHashID,
       'scopes': Authorizations.getUserScopes(tenantID, user, siteAdminIDs.length),
