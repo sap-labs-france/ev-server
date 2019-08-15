@@ -189,7 +189,7 @@ export default class ContextBuilder {
       defaultAdminUser.id = CONTEXTS.TENANT_USER_LIST[0].id;
       const userId = await UserStorage.saveUser(buildTenant.id, defaultAdminUser);
       // Save password
-      await UserStorage.saveUserPassword(buildTenant.id, userId, newPasswordHashed);
+      await UserStorage.saveUserPassword(buildTenant.id, userId, { password: newPasswordHashed });
     }
 
     // Create Central Server Service
@@ -260,7 +260,7 @@ export default class ContextBuilder {
       }
       // Set back password to clear value for login/logout
       const userModel = user;
-      (userModel as any).passwordClear = config.get('admin.password'); // FIXME: What is this?
+      (userModel as any).passwordClear = config.get('admin.password');
       userList.push(userModel);
     }
     const registrationTokenResponse = await localCentralServiceService.registrationApi.create();
