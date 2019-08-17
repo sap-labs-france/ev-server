@@ -136,10 +136,14 @@ export default class TransactionStorage {
       };
     }
     if (params.siteID) {
-      match.siteID = Utils.convertToObjectID(params.siteID);
+      match.siteID = {
+        $in: params.siteID.map((site) => {
+          return Utils.convertToObjectID(site);
+        })
+      };
     }
-    if (params.refundType) {
-      switch (params.refundType) {
+    if (params.refundType && Array.isArray(params.refundType) && params.refundType.length === 1) {
+      switch (params.refundType[0]) {
         case Constants.REFUND_TYPE_REFUNDED:
           match.refundData = { $exists: true };
           if (params.refundStatus) {
@@ -230,7 +234,7 @@ export default class TransactionStorage {
           allowDiskUse: true
         })
       .toArray();
-    let transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ? transactionsCountMDB[0] : null;
+      let transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ? transactionsCountMDB[0] : null;
     // Initialize statistics
     if (!transactionCountMDB) {
       switch (params.statistics) {
@@ -416,7 +420,11 @@ export default class TransactionStorage {
       };
     }
     if (params.siteID) {
-      match.siteID = Utils.convertToObjectID(params.siteID);
+      match.siteID = {
+        $in: params.siteID.map((site) => {
+          return Utils.convertToObjectID(site);
+        })
+      };
     }
     // Filters
     if (match) {

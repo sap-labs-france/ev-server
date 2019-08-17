@@ -208,12 +208,6 @@ export default class UserService {
       filteredRequest.status !== user.status) {
       statusHasChanged = true;
     }
-    // Check the password
-    if (filteredRequest.password && filteredRequest.password.length > 0) {
-      // Update the password
-      const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
-      filteredRequest.password = newPasswordHashed;
-    }
     // Update timestamp
     filteredRequest.lastChangedBy = { id: req.user.id };
     filteredRequest.lastChangedOn = new Date();
@@ -231,15 +225,39 @@ export default class UserService {
     Utils.checkIfUserValid(filteredRequest, user, req);
     // Check if Tag IDs are valid
     await Utils.checkIfUserTagIDsAreValid(user, newTagIDs, req);
-    // Update User
+    // Update User (override TagIDs because it's not of the same type as in filteredRequest)
     await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: [] }, true);
-    // Update Tag IDs
-    if (Authorizations.isAdmin(req.user.role) || Authorizations.isSuperAdmin(req.user.role)) {
-      await UserStorage.saveUserTags(req.user.tenantID, filteredRequest.id, newTagIDs);
-    }
-    // Save password
+    // Save User password
     if (filteredRequest.password) {
-      await UserStorage.saveUserPassword(req.user.tenantID, filteredRequest.id, filteredRequest.password);
+      // Update the password
+      const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
+      await UserStorage.saveUserPassword(req.user.tenantID, filteredRequest.id,
+        { password: newPasswordHashed, passwordWrongNbrTrials: 0, passwordResetHash: null, passwordBlockedUntil: null });
+    }
+    // Save Admin info
+    if (Authorizations.isAdmin(req.user.role) || Authorizations.isSuperAdmin(req.user.role)) {
+      // Save Tags
+      await UserStorage.saveUserTags(req.user.tenantID, filteredRequest.id, newTagIDs);
+      // Save User Status
+      if (filteredRequest.status) {
+        await UserStorage.saveUserStatus(req.user.tenantID, user.id, filteredRequest.status);
+      }
+      // Save User Role
+      if (filteredRequest.role) {
+        await UserStorage.saveUserRole(req.user.tenantID, user.id, filteredRequest.role);
+      }
+      // Save Admin Data
+      if (filteredRequest.plateID || filteredRequest.hasOwnProperty('notificationsActive')) {
+        const adminData: { plateID?: string; notificationsActive?: boolean; } = {};
+        if (filteredRequest.plateID) {
+          adminData.plateID = filteredRequest.plateID;
+        }
+        if (filteredRequest.hasOwnProperty('notificationsActive')) {
+          adminData.notificationsActive = filteredRequest.notificationsActive;
+        }
+        // Save User Admin data
+        await UserStorage.saveUserAdminData(req.user.tenantID, user.id, adminData);
+      }
     }
     // Log
     Logging.logSecurityInfo({
@@ -468,27 +486,41 @@ export default class UserService {
     await Utils.checkIfUserTagIDsAreValid(null, newTagIDs, req);
     // Clean request
     delete filteredRequest.passwords;
-    // Set the password
-    if (filteredRequest.password) {
-      // Generate a hash for the given password
-      const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
-      filteredRequest.password = newPasswordHashed;
-    }
     // Set timestamp
     filteredRequest.createdBy = { id: req.user.id };
     filteredRequest.createdOn = new Date();
-    // Set default
-    if (!filteredRequest.notificationsActive) {
-      filteredRequest.notificationsActive = true;
-    }
-    filteredRequest.createdOn = new Date();
     // Create the User
-    const newUserId = await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: [] }, true);
+    const newUserID = await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: [] }, true);
     // Save password
-    await UserStorage.saveUserPassword(req.user.tenantID, newUserId, filteredRequest.password);
-    // Save the Tag IDs
+    if (filteredRequest.password) {
+      const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
+      await UserStorage.saveUserPassword(req.user.tenantID, newUserID,
+        { password: newPasswordHashed, passwordWrongNbrTrials: 0, passwordResetHash: null, passwordBlockedUntil: null });
+    }
+    // Save Admin Data
     if (Authorizations.isAdmin(req.user.role) || Authorizations.isSuperAdmin(req.user.role)) {
-      await UserStorage.saveUserTags(req.user.tenantID, newUserId, newTagIDs);
+      // Save the Tag IDs
+      await UserStorage.saveUserTags(req.user.tenantID, newUserID, newTagIDs);
+      // Save User Status
+      if (filteredRequest.status) {
+        await UserStorage.saveUserStatus(req.user.tenantID, newUserID, filteredRequest.status);
+      }
+      // Save User Role
+      if (filteredRequest.role) {
+        await UserStorage.saveUserRole(req.user.tenantID, newUserID, filteredRequest.role);
+      }
+      // Save Admin Data
+      if (filteredRequest.plateID || filteredRequest.hasOwnProperty('notificationsActive')) {
+        const adminData: { plateID?: string; notificationsActive?: boolean; } = {};
+        if (filteredRequest.plateID) {
+          adminData.plateID = filteredRequest.plateID;
+        }
+        if (filteredRequest.hasOwnProperty('notificationsActive')) {
+          adminData.notificationsActive = filteredRequest.notificationsActive;
+        }
+        // Save User Admin data
+        await UserStorage.saveUserAdminData(req.user.tenantID, newUserID, adminData);
+      }
     }
     // Assign user to all sites with auto-assign flag set
     const sites = await SiteStorage.getSites(req.user.tenantID,
@@ -500,7 +532,7 @@ export default class UserService {
         return site.id;
       });
       if (siteIDs && siteIDs.length > 0) {
-        await UserStorage.addSitesToUser(req.user.tenantID, newUserId, siteIDs);
+        await UserStorage.addSitesToUser(req.user.tenantID, newUserID, siteIDs);
       }
     }
     // Log
@@ -508,11 +540,11 @@ export default class UserService {
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: filteredRequest,
       module: 'UserService', method: 'handleCreateUser',
-      message: `User with ID '${newUserId}' has been created successfully`,
+      message: `User with ID '${newUserID}' has been created successfully`,
       action: action
     });
     // Ok
-    res.json(Object.assign({ id: newUserId }, Constants.REST_RESPONSE_SUCCESS));
+    res.json(Object.assign({ id: newUserID }, Constants.REST_RESPONSE_SUCCESS));
     next();
   }
 
@@ -551,8 +583,8 @@ export default class UserService {
         'UserService', 'handleGetUserInvoice', req.user);
     }
     // Get the settings
-    let setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, Constants.COMPONENTS.PRICING);
-    setting = setting.getContent().convergentCharging;
+    const setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, Constants.COMPONENTS.PRICING);
+    let settingInner = setting.content.convergentCharging;
     if (!setting) {
       Logging.logException({ 'message': 'Convergent Charging setting is missing' }, 'UserInvoice', Constants.CENTRAL_SERVER, 'UserService', 'handleGetUserInvoice', req.user.tenantID, req.user);
       throw new AppError(
@@ -561,8 +593,8 @@ export default class UserService {
         'UserService', 'handleGetUserInvoice', req.user);
     }
     // Create services
-    const ratingService = new RatingService(setting.url, setting.user, setting.password);
-    const erpService = new ERPService(setting.url, setting.user, setting.password);
+    const ratingService = new RatingService(settingInner.url, settingInner.user, settingInner.password);
+    const erpService = new ERPService(settingInner.url, settingInner.user, settingInner.password);
     let invoiceNumber;
     try {
       await ratingService.loadChargedItemsToInvoicing();

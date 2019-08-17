@@ -1,5 +1,5 @@
 import { ObjectID } from 'bson';
-import crypto from 'crypto';
+import Cypher from '../../utils/Cypher';
 import fs from 'fs';
 import Mustache from 'mustache';
 import BackendError from '../../exception/BackendError';
@@ -72,9 +72,7 @@ export default class UserStorage {
       // Get
       const eulaMDB = eulasMDB[0];
       // Check if eula has changed
-      currentEulaHash = crypto.createHash('sha256')
-        .update(currentEula)
-        .digest('hex');
+      currentEulaHash = Cypher.hash(currentEula);
       if (currentEulaHash !== eulaMDB.hash) {
         // New Version
         const eula = {
@@ -101,7 +99,7 @@ export default class UserStorage {
       language: language,
       version: 1,
       text: currentEula,
-      hash: crypto.createHash('sha256').update(currentEula).digest('hex')
+      hash: Cypher.hash(currentEula)
     };
     // Create
     await global.database.getCollection<Eula>(tenantID, 'eulas').insertOne(eula);
@@ -207,7 +205,7 @@ export default class UserStorage {
         for (const siteID of siteIDs) {
           // Add
           siteUsers.push({
-            '_id': crypto.createHash('sha256').update(`${siteID}~${userID}`).digest('hex'),
+            '_id': Cypher.hash(`${siteID}~${userID}`),
             'userID': Utils.convertToObjectID(userID),
             'siteID': Utils.convertToObjectID(siteID),
             'siteAdmin': false
@@ -241,32 +239,21 @@ export default class UserStorage {
       userFilter.email = userToSave.email;
     }
     // Properties to save
-    let userMDB = { // DO NOT CHANGE TO const!!!!
+    let userMDB: any = { // DO NOT CHANGE TO const!!!!
       _id: userToSave.id ? Utils.convertToObjectID(userToSave.id) : new ObjectID(),
+      name: userToSave.name,
+      firstName: userToSave.firstName,
       email: userToSave.email,
       phone: userToSave.phone,
       mobile: userToSave.mobile,
-      role: userToSave.role,
-      status: userToSave.status,
       locale: userToSave.locale,
-      plateID: userToSave.plateID,
       address: userToSave.address,
-      notificationsActive: userToSave.notificationsActive,
       iNumber: userToSave.iNumber,
-      costCenter: userToSave.costCenter,
-      deleted: userToSave.deleted,
-      eulaAcceptedHash: userToSave.eulaAcceptedHash,
-      eulaAcceptedVersion: userToSave.eulaAcceptedVersion,
-      eulaAcceptedOn: userToSave.eulaAcceptedOn,
-      name: userToSave.name,
-      firstName: userToSave.firstName,
-      passwordResetHash: userToSave.passwordResetHash,
-      passwordWrongNbrTrials: userToSave.passwordWrongNbrTrials,
-      passwordBlockedUntil: userToSave.passwordBlockedUntil,
-      verificationToken: userToSave.verificationToken,
-      verifiedAt: userToSave.verifiedAt,
-      tagIDs: userToSave.tagIDs
+      costCenter: userToSave.costCenter
     };
+    if (userToSave.hasOwnProperty('deleted')) {
+      userMDB.deleted = userToSave.deleted;
+    }
     // Check Created/Last Changed By
     DatabaseUtils.addLastChangedCreatedProps(userMDB, userToSave);
     // Modify and return the modified document
@@ -296,9 +283,10 @@ export default class UserStorage {
     await global.database.getCollection<any>(tenantID, 'tags')
       .deleteMany({ 'userID': Utils.convertToObjectID(userID) });
     // Add new ones
-    if (userTagIDsToSave.length > 0) {
+    const uniqueUserTagIDsToSave = [...new Set(userTagIDsToSave)];
+    if (uniqueUserTagIDsToSave.length > 0) {
       await global.database.getCollection<any>(tenantID, 'tags')
-        .insertMany(userTagIDsToSave.map((userTagIDToSave) => {
+        .insertMany(uniqueUserTagIDsToSave.map((userTagIDToSave) => {
           return { _id: userTagIDToSave, userID: Utils.convertToObjectID(userID) };
         }));
     }
@@ -306,18 +294,17 @@ export default class UserStorage {
     Logging.traceEnd('UserStorage', 'saveUserTags', uniqueTimerID, { id: userID, tags: userTagIDs });
   }
 
-  public static async saveUserPassword(tenantID: string, userID: string, newPassword: string): Promise<void> {
+  public static async saveUserPassword(tenantID: string, userID: string,
+      params: { password?: string; passwordResetHash?: string; passwordWrongNbrTrials?: number;
+        passwordBlockedUntil?: Date }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserPassword');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Set data
-    const updatedFields: any = {};
-    updatedFields['password'] = newPassword;
     // Modify and return the modified document
     const result = await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(userID) },
-      { $set: updatedFields });
+      { $set: params });
     if (!result.ok) {
       throw new BackendError(
         Constants.CENTRAL_SERVER,
@@ -326,6 +313,113 @@ export default class UserStorage {
     }
     // Debug
     Logging.traceEnd('UserStorage', 'saveUserPassword', uniqueTimerID);
+  }
+
+  public static async saveUserStatus(tenantID: string, userID: string, status: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserStatus');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Modify and return the modified document
+    const result = await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
+      { '_id': Utils.convertToObjectID(userID) },
+      { $set: { status } });
+    if (!result.ok) {
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Couldn\'t update User status',
+        'UserStorage', 'saveUserStatus');
+    }
+    // Debug
+    Logging.traceEnd('UserStorage', 'saveUserStatus', uniqueTimerID);
+  }
+
+  public static async saveUserRole(tenantID: string, userID: string, role: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserRole');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Modify and return the modified document
+    const result = await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
+      { '_id': Utils.convertToObjectID(userID) },
+      { $set: { role } });
+    if (!result.ok) {
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Couldn\'t update User role',
+        'UserStorage', 'saveUserRole');
+    }
+    // Debug
+    Logging.traceEnd('UserStorage', 'saveUserRole', uniqueTimerID);
+  }
+
+  public static async saveUserEULA(tenantID: string, userID: string,
+      params: { eulaAcceptedHash: string; eulaAcceptedOn: Date; eulaAcceptedVersion: number }): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserRole');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Modify and return the modified document
+    const result = await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
+      { '_id': Utils.convertToObjectID(userID) },
+      { $set: params });
+    if (!result.ok) {
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Couldn\'t update User role',
+        'UserStorage', 'saveUserRole');
+    }
+    // Debug
+    Logging.traceEnd('UserStorage', 'saveUserRole', uniqueTimerID);
+  }
+
+  public static async saveUserAccountVerification(tenantID: string, userID: string,
+      params: { verificationToken?: string; verifiedAt?: Date; }): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserAccountVerification');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Modify and return the modified document
+    const result = await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
+      { '_id': Utils.convertToObjectID(userID) },
+      { $set: params });
+    if (!result.ok) {
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Couldn\'t update User account verification',
+        'UserStorage', 'saveUserAccountVerification');
+    }
+    // Debug
+    Logging.traceEnd('UserStorage', 'saveUserAccountVerification', uniqueTimerID);
+  }
+
+  public static async saveUserAdminData(tenantID: string, userID: string,
+      params: { plateID?: string; notificationsActive?: boolean; }): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserAdminData');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Set data
+    const updatedUserMDB: any = {};
+    // Set only provided values
+    if (params.plateID) {
+      updatedUserMDB.plateID = params.plateID;
+    }
+    if (params.hasOwnProperty("notificationsActive")) {
+      updatedUserMDB.notificationsActive = params.notificationsActive;
+    }
+    // Modify and return the modified document
+    const result = await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
+      { '_id': Utils.convertToObjectID(userID) },
+      { $set: updatedUserMDB });
+    if (!result.ok) {
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Couldn\'t update User admin data',
+        'UserStorage', 'saveUserAdminData');
+    }
+    // Debug
+    Logging.traceEnd('UserStorage', 'saveUserAdminData', uniqueTimerID);
   }
 
   public static async saveUserImage(tenantID: string, userImageToSave: {id: string; image: string}): Promise<void> {
@@ -643,38 +737,20 @@ export default class UserStorage {
   }
 
   // Alternative system of registering new users by badging should be found - for now, an empty user is created and saved.
-  public static getEmptyUser(): User {
+  public static getEmptyUser(): Partial<User> {
     return {
       id: new ObjectID().toHexString(),
+      name: 'Unknown',
+      firstName: 'User',
+      email: '',
       address: null,
-      costCenter: '',
       createdBy: null,
       createdOn: new Date(),
-      lastChangedBy: null,
-      lastChangedOn: new Date(),
-      deleted: false,
-      email: '',
-      eulaAcceptedHash: null,
-      eulaAcceptedOn: null,
-      eulaAcceptedVersion: 0,
-      firstName: 'Unknown',
-      name: 'User',
-      iNumber: null,
-      image: null,
       locale: 'en',
-      mobile: '',
       notificationsActive: true,
-      password: '',
-      passwordBlockedUntil: null,
-      passwordResetHash: '',
-      passwordWrongNbrTrials: 0,
-      phone: '',
-      plateID: '',
       role: Constants.ROLE_BASIC,
       status: Constants.USER_STATUS_PENDING,
-      tagIDs: [],
-      verificationToken: '',
-      verifiedAt: null
+      tagIDs: []
     };
   }
 }

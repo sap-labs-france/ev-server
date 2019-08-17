@@ -15,9 +15,10 @@ import Transaction from '../../../entity/Transaction';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
+import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationTokenStorage';
+import RegistrationToken from '../../../types/RegistrationToken';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Connector from '../../../types/Connector';
-
 const moment = require('moment');
 momentDurationFormatSetup(moment);
 const _configChargingStation = Configuration.getChargingStationConfig();
@@ -59,10 +60,33 @@ export default class OCPPService {
       // Get the charging station
       let chargingStation = await ChargingStationStorage.getChargingStation(headers.tenantID, headers.chargeBoxIdentity);
       if (!chargingStation) {
+        if (!headers.token) {
+          throw new BackendError(
+            headers.chargeBoxIdentity,
+            `Registration rejected: Token is required for: '${headers.chargeBoxIdentity}' on ip '${headers.currentIPAddress}'`,
+            'OCPPService', 'handleBootNotification', 'BootNotification');
+        }
+        const token: RegistrationToken = await RegistrationTokenStorage.getRegistrationToken(headers.tenantID, headers.token);
+        if (!token || !token.expirationDate || moment().isAfter(token.expirationDate)) {
+          throw new BackendError(
+            headers.chargeBoxIdentity,
+            `Registration rejected: Token '${headers.token}' is invalid or expired for: '${headers.chargeBoxIdentity}' on ip '${headers.currentIPAddress}'`,
+            'OCPPService', 'handleBootNotification', 'BootNotification');
+        }
+        if (token.revocationDate || moment().isAfter(token.revocationDate)) {
+          throw new BackendError(
+            headers.chargeBoxIdentity,
+            `Registration rejected: Token '${headers.token}' is revoked for: '${headers.chargeBoxIdentity}' on ip '${headers.currentIPAddress}'`,
+            'OCPPService', 'handleBootNotification', 'BootNotification');
+        }
         // New Charging Station: Create
         chargingStation = bootNotification;
         // Update timestamp
         chargingStation.createdOn = new Date();
+
+        if (token.siteAreaID) {
+          chargingStation.siteAreaID = token.siteAreaID;
+        }
       } else {
         // Existing Charging Station: Update
         // Check if same vendor and model
@@ -326,8 +350,11 @@ export default class OCPPService {
     if (statusNotification.status === Constants.CONN_STATUS_FAULTED) {
       // Log
       Logging.logError({
-        tenantID: tenantID, source: chargingStation.id, module: 'OCPPService',
-        method: '_notifyStatusNotification', action: 'StatusNotification',
+        tenantID: tenantID,
+        source: chargingStation.id,
+        module: 'OCPPService',
+        method: '_notifyStatusNotification',
+        action: 'StatusNotification',
         message: `Error on Connector '${statusNotification.connectorId}': '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}'`
       });
       // Send Notification (Async)

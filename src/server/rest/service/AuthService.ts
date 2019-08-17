@@ -104,22 +104,23 @@ export default class AuthService {
       // Check if the user is still locked
       if (user.status === Constants.USER_STATUS_LOCKED) {
         // Yes: Check date to reset pass
-        if (moment(user.passwordBlockedUntil).isBefore(moment())) {
+        if (user.passwordBlockedUntil && moment(user.passwordBlockedUntil).isBefore(moment())) {
           // Time elapsed: activate the account again
           Logging.logSecurityInfo({
             tenantID: req.user.tenantID,
             actionOnUser: user,
             module: 'AuthService', method: 'handleLogIn', action: action,
-            message: 'User has been unlocked and can try to login again'
+            message: 'User has been unlocked after a period of time can try to login again'
           });
-          // Reinit nbr of trial and status
-          user.passwordWrongNbrTrials = 0;
-          user.passwordBlockedUntil = null;
-          user.status = Constants.USER_STATUS_ACTIVE;
-          // Save
-          await UserStorage.saveUser(req.user.tenantID, user);
+          // Save User Status
+          await UserStorage.saveUserStatus(req.user.tenantID, user.id, Constants.USER_STATUS_ACTIVE);
+          // Init User Password
+          await UserStorage.saveUserPassword(req.user.tenantID, user.id,
+            { passwordWrongNbrTrials: 0, passwordBlockedUntil: null, passwordResetHash: null });
+          // Read user again
+          const updatedUser = await UserStorage.getUser(tenantID, user.id);
           // Check user
-          await AuthService.checkUserLogin(action, tenantID, user, filteredRequest, req, res, next);
+          await AuthService.checkUserLogin(action, tenantID, updatedUser, filteredRequest, req, res, next);
         } else {
           // Return data
           throw new AppError(
@@ -200,29 +201,35 @@ export default class AuthService {
     // Generate a password
     const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
     // Create the user
-    const newUser = UserStorage.getEmptyUser();
+    const newUser = UserStorage.getEmptyUser() as User;
     newUser.email = filteredRequest.email;
     newUser.name = filteredRequest.name;
     newUser.firstName = filteredRequest.firstName;
-    if (tenantID === Constants.DEFAULT_TENANT) {
-      newUser.role = Constants.ROLE_SUPER_ADMIN;
-    } else {
-      newUser.role = Constants.ROLE_BASIC;
-    }
-    newUser.status = Constants.USER_STATUS_PENDING;
     newUser.locale = req.locale.substring(0, 5);
-    newUser.verificationToken = Utils.generateToken(req.body.email);
+    newUser.createdOn = new Date();
+    const verificationToken = Utils.generateToken(req.body.email);
     const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, newUser.locale.substring(0, 2));
-    newUser.eulaAcceptedOn = new Date();
-    newUser.eulaAcceptedVersion = endUserLicenseAgreement.version;
-    newUser.eulaAcceptedHash = endUserLicenseAgreement.hash;
     // Save User
     newUser.id = await UserStorage.saveUser(tenantID, newUser);
-    // Save User password
-    await UserStorage.saveUserPassword(tenantID, newUser.id, newPasswordHashed);
-    // Save Tags
+    // Save User Status
+    if (tenantID === Constants.DEFAULT_TENANT) {
+      await UserStorage.saveUserRole(tenantID, newUser.id, Constants.ROLE_SUPER_ADMIN);
+    } else {
+      await UserStorage.saveUserRole(tenantID, newUser.id, Constants.ROLE_BASIC);
+    }
+    // Save User Status
+    await UserStorage.saveUserStatus(tenantID, newUser.id, Constants.USER_STATUS_PENDING);
+    // Save User Tags
     const tagIDs = [newUser.name[0] + newUser.firstName[0] + Utils.getRandomInt()];
     await UserStorage.saveUserTags(tenantID, newUser.id, tagIDs);
+    // Save User password
+    await UserStorage.saveUserPassword(tenantID, newUser.id,
+      { password: newPasswordHashed, passwordWrongNbrTrials: 0, passwordResetHash: null, passwordBlockedUntil: null });
+    // Save User Account Verification
+    await UserStorage.saveUserAccountVerification(tenantID, newUser.id, { verificationToken });
+      // Save User EULA
+    await UserStorage.saveUserEULA(tenantID, newUser.id,
+      { eulaAcceptedOn: new Date(), eulaAcceptedVersion: endUserLicenseAgreement.version, eulaAcceptedHash: endUserLicenseAgreement.hash });
     // Assign user to all sites with auto-assign flag set
     const sites = await SiteStorage.getSites(tenantID,
       { withAutoUserAssignment: true },
@@ -249,7 +256,7 @@ export default class AuthService {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Send notification
       const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.tenant) +
-        '/#/verify-email?VerificationToken=' + newUser.verificationToken + '&Email=' + newUser.email;
+        '/#/verify-email?VerificationToken=' + verificationToken + '&Email=' + newUser.email;
       // Notify (Async)
       NotificationHandler.sendNewRegisteredUser(
         tenantID,
@@ -313,10 +320,8 @@ export default class AuthService {
         Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'AuthService', 'handleUserPasswordReset');
     }
-    // Hash it
-    user.passwordResetHash = resetHash;
-    // Save the user
-    await UserStorage.saveUser(tenantID, user);
+    // Init Password info
+    await UserStorage.saveUserPassword(tenantID, user.id, { passwordResetHash: resetHash });
     // Log
     Logging.logSecurityInfo({
       tenantID: tenantID,
@@ -347,10 +352,6 @@ export default class AuthService {
   }
 
   public static async generateNewPasswordAndSendEmail(tenantID: string, filteredRequest, action: string, req: Request, res: Response, next: NextFunction) {
-    // Create the password
-    const newPassword = Utils.generatePassword();
-    // Hash it
-    const newHashedPassword = await Utils.hashPasswordBcrypt(newPassword);
     // Get the user
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
     // Found?
@@ -383,14 +384,13 @@ export default class AuthService {
         540, 'AuthService', 'handleUserPasswordReset',
         user);
     }
-    // Set the hashed password
-    user.password = newHashedPassword;
-    // Reset the hash
-    user.passwordResetHash = null;
-    // Save the user
-    const currentId = await UserStorage.saveUser(tenantID, user);
+    // Create the password
+    const newPassword = Utils.generatePassword();
+    // Hash it
+    const newHashedPassword = await Utils.hashPasswordBcrypt(newPassword);
     // Save new password
-    await UserStorage.saveUserPassword(tenantID, currentId, user.password);
+    await UserStorage.saveUserPassword(tenantID, user.id,
+      { password: newHashedPassword, passwordWrongNbrTrials: 0, passwordResetHash: null, passwordBlockedUntil: null });
     // Log
     Logging.logSecurityInfo({
       tenantID: tenantID,
@@ -533,14 +533,11 @@ export default class AuthService {
         'Wrong Verification Token', Constants.HTTP_AUTH_INVALID_TOKEN_ERROR,
         'AuthService', 'handleVerifyEmail', user);
     }
-    // Activate user
-    user.status = Constants.USER_STATUS_ACTIVE;
-    // Clear verificationToken
-    user.verificationToken = null;
-    // Set verifiedAt
-    user.verifiedAt = new Date();
-    // Save
-    await UserStorage.saveUser(tenantID, user);
+    // Save User Status
+    await UserStorage.saveUserStatus(tenantID, user.id, Constants.USER_STATUS_ACTIVE);
+    // Save User Verification Account
+    await UserStorage.saveUserAccountVerification(tenantID, user.id,
+      { verificationToken: null, verifiedAt: new Date() });
     // Log
     Logging.logSecurityInfo({
       tenantID: tenantID,
@@ -636,8 +633,8 @@ export default class AuthService {
       // Generate new verificationToken
       verificationToken = Utils.generateToken(filteredRequest.email);
       user.verificationToken = verificationToken;
-      // Save
-      await UserStorage.saveUser(tenantID, user);
+      // Save User Verification Account
+      await UserStorage.saveUserAccountVerification(tenantID, user.id, { verificationToken });
     } else {
       // Get existing verificationToken
       verificationToken = user.verificationToken;
@@ -680,16 +677,15 @@ export default class AuthService {
 
   public static async userLoginWrongPassword(action: string, tenantID: string, user: User, req: Request, res: Response, next: NextFunction) {
     // Add wrong trial + 1
-    user.passwordWrongNbrTrials = user.passwordWrongNbrTrials + 1;
+    const passwordWrongNbrTrials = user.passwordWrongNbrTrials + 1;
     // Check if the number of trial is reached
-    if (user.passwordWrongNbrTrials >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
+    if (passwordWrongNbrTrials >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
       // Too many attempts, lock user
-      // User locked
-      user.status = Constants.USER_STATUS_LOCKED;
-      // Set blocking date
-      user.passwordBlockedUntil = moment().add(_centralSystemRestConfig.passwordBlockedWaitTimeMin, 'm').toDate();
-      // Save nbr of trials
-      await UserStorage.saveUser(tenantID, user);
+      // Save User Status
+      await UserStorage.saveUserStatus(tenantID, user.id, Constants.USER_STATUS_LOCKED);
+      // Save User Blocked Date
+      await UserStorage.saveUserPassword(tenantID, user.id,
+        { passwordWrongNbrTrials, passwordBlockedUntil: moment().add(_centralSystemRestConfig.passwordBlockedWaitTimeMin, 'm').toDate() });
       // Log
       throw new AppError(
         Constants.CENTRAL_SERVER,
@@ -699,8 +695,8 @@ export default class AuthService {
         user
       );
     } else {
-      // Wrong logon
-      await UserStorage.saveUser(tenantID, user);
+      // Save User Nbr Password Trials
+      await UserStorage.saveUserPassword(tenantID, user.id, { passwordWrongNbrTrials });
       // Log
       throw new AppError(
         Constants.CENTRAL_SERVER,
@@ -719,20 +715,16 @@ export default class AuthService {
       module: 'AuthService', method: 'checkUserLogin',
       action: action, message: 'User logged in successfully'
     });
-    // Get EULA
-    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, user.locale.substring(0, 2));
     // Set Eula Info on Login Only
     if (action === 'Login') {
-      user.eulaAcceptedOn = new Date();
-      user.eulaAcceptedVersion = endUserLicenseAgreement.version;
-      user.eulaAcceptedHash = endUserLicenseAgreement.hash;
+      // Save EULA
+      const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, user.locale.substring(0, 2));
+      await UserStorage.saveUserEULA(tenantID, user.id,
+        { eulaAcceptedOn: new Date(), eulaAcceptedVersion: endUserLicenseAgreement.version, eulaAcceptedHash: endUserLicenseAgreement.hash });
     }
     // Reset wrong number of trial
-    user.passwordWrongNbrTrials = 0;
-    user.passwordBlockedUntil = null;
-    user.passwordResetHash = null;
-    // Save
-    await UserStorage.saveUser(tenantID, user);
+    await UserStorage.saveUserPassword(tenantID, user.id,
+      { passwordWrongNbrTrials: 0, passwordBlockedUntil: null, passwordResetHash: null });
     // Yes: build payload
     const payload: UserToken = await Authorizations.buildUserToken(tenantID, user);
     // Build token

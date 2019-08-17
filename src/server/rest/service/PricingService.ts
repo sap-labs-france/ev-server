@@ -13,7 +13,6 @@ export default class PricingService {
     try {
       // Check auth
       if (!Authorizations.canReadPricing(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           action, Constants.ENTITY_PRICING,
           null,
@@ -43,7 +42,6 @@ export default class PricingService {
     try {
       // Check auth
       if (!Authorizations.canUpdatePricing(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           action, Constants.ENTITY_PRICING,
           null,

@@ -134,15 +134,15 @@ export default class ContextBuilder {
     const userId = await UserStorage.saveUser(buildTenant.id, {
       'id': CONTEXTS.TENANT_USER_LIST[0].id,
       'email': config.get('admin.username'),
-      'status': CONTEXTS.TENANT_USER_LIST[0].status,
-      'role': CONTEXTS.TENANT_USER_LIST[0].role,
       'locale': 'en-US',
       'phone': faker.phone.phoneNumber(),
       'mobile': faker.phone.phoneNumber(),
       'plateID': faker.random.alphaNumeric(8),
       'deleted': false
     });
-    await UserStorage.saveUserPassword(buildTenant.id, userId, await Utils.hashPasswordBcrypt(config.get('admin.password')));
+    await UserStorage.saveUserStatus(buildTenant.id, userId, CONTEXTS.TENANT_USER_LIST[0].status);
+    await UserStorage.saveUserRole(buildTenant.id, userId, CONTEXTS.TENANT_USER_LIST[0].role);
+    await UserStorage.saveUserPassword(buildTenant.id, userId, { password: await Utils.hashPasswordBcrypt(config.get('admin.password')) });
     if (CONTEXTS.TENANT_USER_LIST[0].tagIDs) {
       await UserStorage.saveUserTags(buildTenant.id, CONTEXTS.TENANT_USER_LIST[0].id, CONTEXTS.TENANT_USER_LIST[0].tagIDs);
     }
@@ -198,13 +198,12 @@ export default class ContextBuilder {
       createUser.email = userDef.emailPrefix + defaultAdminUser.email;
       // Update the password
       const newPasswordHashed = await Utils.hashPasswordBcrypt(config.get('admin.password'));
-      createUser.role = userDef.role;
-      createUser.status = userDef.status;
       createUser.id = userDef.id;
-      createUser.tagIDs = userDef.tagIDs;
       const user: User = createUser;
       await UserStorage.saveUser(buildTenant.id, user);
-      await UserStorage.saveUserPassword(buildTenant.id, user.id, newPasswordHashed);
+      await UserStorage.saveUserStatus(buildTenant.id, user.id, userDef.status);
+      await UserStorage.saveUserRole(buildTenant.id, user.id, userDef.role);
+      await UserStorage.saveUserPassword(buildTenant.id, user.id, { password: newPasswordHashed });
       if (userDef.tagIDs) {
         await UserStorage.saveUserTags(buildTenant.id, userDef.id, userDef.tagIDs);
       }
@@ -217,7 +216,7 @@ export default class ContextBuilder {
       userList.push(userModel);
     }
     // Persist tenant context
-    const newTenantContext = new TenantContext(tenantContextDef.tenantName, buildTenant, localCentralServiceService, null);
+    const newTenantContext = new TenantContext(tenantContextDef.tenantName, buildTenant, '', localCentralServiceService, null);
     this.tenantsContexts.push(newTenantContext);
     newTenantContext.addUsers(userList);
     // Check if Organization is active
@@ -274,7 +273,7 @@ export default class ContextBuilder {
             chargingStationTemplate.id = chargingStationDef.baseName + '-' + siteAreaModel.name;
             console.log(chargingStationTemplate.id);
             const newChargingStationContext = await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, siteAreaModel);
-            siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
+            await siteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
           }
         }
         newTenantContext.addSiteContext(siteContext);
@@ -285,14 +284,20 @@ export default class ContextBuilder {
       return chargingStation.siteAreaNames === null;
     });
     // Create Charging Station for site area
-    const siteContext = new SiteContext({ id: 1, name: CONTEXTS.SITE_CONTEXTS.NO_SITE }, newTenantContext);
-    const emptySiteAreaContext = siteContext.addSiteArea({ id: 1, name: CONTEXTS.SITE_AREA_CONTEXTS.NO_SITE });
+    const siteContext = new SiteContext({
+      id: 1,
+      name: CONTEXTS.SITE_CONTEXTS.NO_SITE
+    }, newTenantContext);
+    const emptySiteAreaContext = siteContext.addSiteArea({
+      id: 1,
+      name: CONTEXTS.SITE_AREA_CONTEXTS.NO_SITE
+    });
     for (const chargingStationDef of relevantCS) {
       const chargingStationTemplate = Factory.chargingStation.build();
       chargingStationTemplate.id = chargingStationDef.baseName;
       console.log(chargingStationTemplate.id);
       const newChargingStationContext = await newTenantContext.createChargingStation(chargingStationDef.ocppVersion, chargingStationTemplate, null, null);
-      emptySiteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
+      await emptySiteAreaContext.addChargingStation(newChargingStationContext.getChargingStation());
     }
     newTenantContext.addSiteContext(siteContext);
     // Create transaction/session data for a specific tenants:

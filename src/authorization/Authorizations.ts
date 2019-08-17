@@ -113,8 +113,10 @@ export default class Authorizations {
 
     let tenantHashID = Constants.DEFAULT_TENANT;
     let activeComponents = [];
+    let tenantName;
     if (tenantID !== Constants.DEFAULT_TENANT) {
       const tenant = await TenantStorage.getTenant(tenantID);
+      tenantName = tenant.name;
       tenantHashID = SessionHashService.buildTenantHashID(tenant);
       activeComponents = Utils.getTenantActiveComponents(tenant);
     }
@@ -128,6 +130,7 @@ export default class Authorizations {
       'locale': user.locale,
       'language': user.locale.substring(0, 2),
       'tenantID': tenantID,
+      'tenantName': tenantName,
       'userHashID': SessionHashService.buildUserHashID(user),
       'tenantHashID': tenantHashID,
       'scopes': Authorizations.getUserScopes(tenantID, user, siteAdminIDs.length),
@@ -286,6 +289,32 @@ export default class Authorizations {
 
   public static canUpdateSetting(loggedUser: UserToken): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SETTING, Constants.ACTION_UPDATE);
+  }
+
+  public static canCreateRegistrationToken(loggedUser: UserToken, siteID: string): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TOKEN, Constants.ACTION_CREATE, {
+      'site': siteID,
+      'sites': loggedUser.sitesAdmin
+    });
+  }
+
+  public static canReadRegistrationToken(loggedUser: UserToken, siteID: string): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TOKEN, Constants.ACTION_READ, {
+      'site': siteID,
+      'sites': loggedUser.sitesAdmin
+    });
+  }
+
+  public static canDeleteRegistrationToken(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TOKEN, Constants.ACTION_DELETE);
+  }
+
+  public static canUpdateRegistrationToken(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TOKEN, Constants.ACTION_UPDATE);
+  }
+
+  public static canListRegistrationTokens(loggedUser: UserToken): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TOKENS, Constants.ACTION_LIST);
   }
 
   public static canListOcpiEndpoints(loggedUser: UserToken): boolean {
@@ -556,7 +585,6 @@ export default class Authorizations {
         sitesAdmin: userToken.sitesAdmin
       };
       if (!Authorizations.canPerformActionOnChargingStation(userToken, action, context)) {
-        // Not Authorized!
         throw new AppAuthError(
           action,
           Constants.ENTITY_CHARGING_STATION,
@@ -582,16 +610,20 @@ export default class Authorizations {
       // Create an empty user
       user = {
         ...UserStorage.getEmptyUser(),
-        name: 'Unknown',
-        firstName: 'User',
+        email: tagID + '@e-mobility.com',
         status: Constants.USER_STATUS_INACTIVE,
-        role: Constants.ROLE_BASIC,
-        email: tagID + '@e-mobility.com'
-      };
-      // Save
+        role: Constants.ROLE_BASIC
+      } as User;
+      // Save User
       user.id = await UserStorage.saveUser(tenantID, user);
-      // Save TagIDs
+      // Save User TagIDs
       await UserStorage.saveUserTags(tenantID, user.id, [tagID]);
+      // Save User Status
+      await UserStorage.saveUserStatus(tenantID, user.id, user.status);
+      // Save User Role
+      await UserStorage.saveUserRole(tenantID, user.id, user.role);
+      // Save User Admin data
+      await UserStorage.saveUserAdminData(tenantID, user.id, { notificationsActive: user.notificationsActive });
       // No need to save the password as it is empty anyway
       // Notify (Async)
       NotificationHandler.sendUnknownUserBadged(
@@ -612,10 +644,7 @@ export default class Authorizations {
         'Authorizations', '_checkAndGetUserTagIDOnChargingStation', user
       );
     } else if (user.status === Constants.USER_STATUS_DELETED) {
-      // Yes: Restore it!
-      user.deleted = false;
       // Set default user's value
-      user.status = Constants.USER_STATUS_INACTIVE;
       user.name = 'Unknown';
       user.firstName = 'User';
       user.email = tagID + '@chargeangels.fr';
@@ -633,7 +662,13 @@ export default class Authorizations {
         action: action
       });
       // Save
-      await UserStorage.saveUser(tenantID, user);
+      user.id = await UserStorage.saveUser(tenantID, user);
+      // Save User Status
+      await UserStorage.saveUserStatus(tenantID, user.id, Constants.USER_STATUS_INACTIVE);
+      // Save User Role
+      await UserStorage.saveUserRole(tenantID, user.id, Constants.ROLE_BASIC);
+      // Save User Admin data
+      await UserStorage.saveUserAdminData(tenantID, user.id, { notificationsActive: user.notificationsActive });
     }
     return user;
   }

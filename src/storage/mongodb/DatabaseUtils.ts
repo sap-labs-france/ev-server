@@ -171,15 +171,14 @@ export default class DatabaseUtils {
     }`));
   }
 
-  // TODO: Can probably be removed once user gets typed. For now use as shortcut.
   public static addLastChangedCreatedProps(dest: any, entity: any) {
     dest.createdBy = null;
     dest.lastChangedBy = null;
-    if (entity.createdBy && entity.createdOn) {
+    if (entity.createdBy || entity.createdOn) {
       dest.createdBy = DatabaseUtils._mongoConvertUserID(entity, 'createdBy');
       dest.createdOn = entity.createdOn;
     }
-    if (entity.lastChangedBy && entity.lastChangedOn) {
+    if (entity.lastChangedBy || entity.lastChangedOn) {
       dest.lastChangedBy = DatabaseUtils._mongoConvertUserID(entity, 'lastChangedBy');
       dest.lastChangedOn = entity.lastChangedOn;
     }
@@ -217,6 +216,9 @@ export default class DatabaseUtils {
   private static _mongoConvertUserID(obj: any, prop: string): ObjectID|null {
     if (!obj || !obj[prop]) {
       return null;
+    }
+    if (ObjectID.isValid(obj[prop])) {
+      return obj[prop];
     }
     if (obj[prop].id) {
       return Utils.convertToObjectID(obj[prop].id);

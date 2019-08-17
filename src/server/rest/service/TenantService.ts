@@ -6,7 +6,7 @@ import Authorizations from '../../../authorization/Authorizations';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
-import Setting from '../../../entity/Setting';
+import Setting, { SettingContent } from '../../../types/Setting';
 import Tenant from '../../../types/Tenant';
 import TenantSecurity from './security/TenantSecurity';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
@@ -15,6 +15,7 @@ import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
+import SettingStorage from '../../../storage/mongodb/SettingStorage';
 
 const MODULE_NAME = 'TenantService';
 
@@ -36,7 +37,6 @@ export default class TenantService {
     }
     // Get
     const tenant = await TenantStorage.getTenant(filteredRequest.ID);
-    // Found?
     UtilsService.assertObjectExists(tenant, `Tenant '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check if current tenant
@@ -122,7 +122,6 @@ export default class TenantService {
   public static async handleCreateTenant(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canCreateTenant(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_CREATE,
         Constants.ENTITY_TENANT,
@@ -162,19 +161,22 @@ export default class TenantService {
     await TenantService._updateSettingsWithComponents(filteredRequest, req);
     // Create DB collections
     await TenantStorage.createTenantDB(filteredRequest.id);
-    // Create user in tenant
-    const password = Utils.generatePassword();
-    const verificationToken = Utils.generateToken(filteredRequest.email);
-    const tenantUser: User = UserStorage.getEmptyUser();
+    // Create Admin user in tenant
+    const tenantUser: User = UserStorage.getEmptyUser() as User;
     tenantUser.name = filteredRequest.name;
     tenantUser.firstName = 'Admin';
-    tenantUser.password = await Utils.hashPasswordBcrypt(password);
-    tenantUser.role = Constants.ROLE_ADMIN;
     tenantUser.email = filteredRequest.email;
-    tenantUser.verificationToken = verificationToken;
-    // Save
+    // Save User
     tenantUser.id = await UserStorage.saveUser(filteredRequest.id, tenantUser);
-    await UserStorage.saveUserPassword(filteredRequest.id, tenantUser.id, tenantUser.password);
+    // Save User Password
+    const password = await Utils.hashPasswordBcrypt(Utils.generatePassword());
+    await UserStorage.saveUserPassword(filteredRequest.id, tenantUser.id,
+      { password: password, passwordWrongNbrTrials: 0, passwordResetHash: null, passwordBlockedUntil: null });
+    // Save User Role
+    await UserStorage.saveUserRole(filteredRequest.id, tenantUser.id, Constants.ROLE_ADMIN);
+    // Save User Account Verification
+    const verificationToken = Utils.generateToken(filteredRequest.email);
+    await UserStorage.saveUserAccountVerification(filteredRequest.id, tenantUser.id, { verificationToken });
     // Send activation link
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.subdomain) +
       '/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
@@ -255,43 +257,39 @@ export default class TenantService {
     next();
   }
 
-  private static async _updateSettingsWithComponents(tenant: Partial<Tenant>, req: Request) {
+  private static async _updateSettingsWithComponents(tenant: Partial<Tenant>, req: Request) : Promise<void> {
     // Create settings
     for (const componentName in tenant.components) {
       // Get the settings
-      const currentSetting = await Setting.getSettingByIdentifier(tenant.id, componentName);
+      const currentSetting = await SettingStorage.getSettingByIdentifier(tenant.id, componentName);
       // Check if Component is active
       if (!tenant.components[componentName] || !tenant.components[componentName].active) {
         // Delete settings
         if (currentSetting) {
-          await currentSetting.delete();
+          await SettingStorage.deleteSetting(tenant.id, currentSetting.id);
         }
         continue;
       }
       // Create
-      const newSettingContent = Setting.createDefaultSettingContent(
-        { ...tenant.components[componentName], name: componentName }, (currentSetting ? currentSetting.getContent() : null));
+      const newSettingContent : SettingContent = Utils.createDefaultSettingContent(
+        {...tenant.components[componentName], name: componentName}, (currentSetting ? currentSetting.content : null));
       if (newSettingContent) {
         // Create & Save
         if (!currentSetting) {
-          const newSetting = new Setting(tenant.id, {
+          const newSetting: Setting = {
             identifier: componentName,
             content: newSettingContent
-          });
-          newSetting.setCreatedOn(new Date());
-          newSetting.setCreatedBy({
-            'id': req.user.id
-          });
+          } as Setting;
+          newSetting.createdOn = new Date();
+          newSetting.createdBy = { 'id': req.user.id };
           // Save Setting
-          await newSetting.save();
+          await SettingStorage.saveSetting(tenant.id, newSetting);
         } else {
-          currentSetting.setContent(newSettingContent);
-          currentSetting.setLastChangedOn(new Date());
-          currentSetting.setLastChangedBy({
-            'id': req.user.id
-          });
+          currentSetting.content = newSettingContent;
+          currentSetting.lastChangedOn = new Date();
+          currentSetting.lastChangedBy = { 'id': req.user.id };
           // Save Setting
-          await currentSetting.save();
+          await SettingStorage.saveSetting(tenant.id, currentSetting);
         }
       }
     }

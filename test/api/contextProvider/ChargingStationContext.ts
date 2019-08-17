@@ -2,12 +2,13 @@ import faker from 'faker';
 import CentralServerService from '../client/CentralServerService';
 import CONTEXTS from '../contextProvider/ContextConstants';
 import TenantContext from './TenantContext';
-import Utils from '../../../src/utils/Utils';
 import ChargingStation from '../../types/ChargingStation';
+import OCPPService from '../ocpp/OCPPService';
 
 export default class ChargingStationContext {
 
   private chargingStation: ChargingStation;
+  private ocppService: OCPPService;
   private tenantContext: TenantContext;
   private transactionsStarted: any;
   private transactionsStopped: any;
@@ -17,6 +18,10 @@ export default class ChargingStationContext {
     this.tenantContext = tenantContext;
     this.transactionsStarted = [];
     this.transactionsStopped = [];
+  }
+
+  async initialize(token: string = null) {
+    this.ocppService = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion, token);
   }
 
   async cleanUpCreatedData() {
@@ -39,7 +44,7 @@ export default class ChargingStationContext {
   }
 
   async authorize(tagId) {
-    const response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeAuthorize(this.chargingStation.id, {
+    const response = await this.ocppService.executeAuthorize(this.chargingStation.id, {
       idTag: tagId
     });
     return response;
@@ -61,11 +66,11 @@ export default class ChargingStationContext {
   }
 
   async sendHeartbeat() {
-    return await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeHeartbeat(this.chargingStation.id, {});
+    return await this.ocppService.executeHeartbeat(this.chargingStation.id, {});
   }
 
   async startTransaction(connectorId, tagId, meterStart, startDate) {
-    const response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeStartTransaction(this.chargingStation.id, {
+    const response = await this.ocppService.executeStartTransaction(this.chargingStation.id, {
       connectorId: connectorId,
       idTag: tagId,
       meterStart: meterStart,
@@ -78,7 +83,7 @@ export default class ChargingStationContext {
   }
 
   async stopTransaction(transactionId, tagId, meterStop, stopDate, transactionData?) {
-    const response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeStopTransaction(this.chargingStation.id, {
+    const response = await this.ocppService.executeStopTransaction(this.chargingStation.id, {
       transactionId: transactionId,
       idTag: tagId,
       meterStop: meterStop,
@@ -98,7 +103,7 @@ export default class ChargingStationContext {
       // Yes
       if (withSoC) {
         // With State of Charge ?
-        response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeMeterValues(this.chargingStation.id, {
+        response = await this.ocppService.executeMeterValues(this.chargingStation.id, {
           connectorId: connectorId,
           transactionId: transactionId,
           meterValue: {
@@ -118,7 +123,7 @@ export default class ChargingStationContext {
         });
       } else {
         // Regular case
-        response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeMeterValues(this.chargingStation.id, {
+        response = await this.ocppService.executeMeterValues(this.chargingStation.id, {
           connectorId: connectorId,
           transactionId: transactionId,
           meterValue: {
@@ -136,7 +141,7 @@ export default class ChargingStationContext {
       }
       // OCPP 1.5 (only without SoC)
     } else {
-      response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeMeterValues(this.chargingStation.id, {
+      response = await this.ocppService.executeMeterValues(this.chargingStation.id, {
         connectorId: connectorId,
         transactionId: transactionId,
         values: {
@@ -164,7 +169,7 @@ export default class ChargingStationContext {
       // Yes
       if (withSoC) {
         // With State of Charge ?
-        response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeMeterValues(this.chargingStation.id, {
+        response = await this.ocppService.executeMeterValues(this.chargingStation.id, {
           connectorId: connectorId,
           transactionId: transactionId,
           meterValue: {
@@ -184,7 +189,7 @@ export default class ChargingStationContext {
         });
       } else if (withSignedData) {
         // With SignedData ?
-        response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeMeterValues(this.chargingStation.id, {
+        response = await this.ocppService.executeMeterValues(this.chargingStation.id, {
           connectorId: connectorId,
           transactionId: transactionId,
           meterValue: {
@@ -203,7 +208,7 @@ export default class ChargingStationContext {
         });
       } else {
         // Regular case
-        response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeMeterValues(this.chargingStation.id, {
+        response = await this.ocppService.executeMeterValues(this.chargingStation.id, {
           connectorId: connectorId,
           transactionId: transactionId,
           meterValue: {
@@ -227,7 +232,7 @@ export default class ChargingStationContext {
       // Yes
       if (withSoC) {
         // With State of Charge ?
-        response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeMeterValues(this.chargingStation.id, {
+        response = await this.ocppService.executeMeterValues(this.chargingStation.id, {
           connectorId: connectorId,
           transactionId: transactionId,
           meterValue: {
@@ -247,7 +252,7 @@ export default class ChargingStationContext {
         });
       } else if (withSignedData) {
         // With SignedData ?
-        response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeMeterValues(this.chargingStation.id, {
+        response = await this.ocppService.executeMeterValues(this.chargingStation.id, {
           connectorId: connectorId,
           transactionId: transactionId,
           meterValue: {
@@ -266,7 +271,7 @@ export default class ChargingStationContext {
         });
       } else {
         // Regular case
-        response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeMeterValues(this.chargingStation.id, {
+        response = await this.ocppService.executeMeterValues(this.chargingStation.id, {
           connectorId: connectorId,
           transactionId: transactionId,
           meterValue: {
@@ -284,7 +289,7 @@ export default class ChargingStationContext {
   }
 
   async sendSoCMeterValue(connectorId, transactionId, meterValue, timestamp) {
-    const response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeMeterValues(this.chargingStation.id, {
+    const response = await this.ocppService.executeMeterValues(this.chargingStation.id, {
       connectorId: connectorId,
       transactionId: transactionId,
       meterValue: {
@@ -305,7 +310,7 @@ export default class ChargingStationContext {
     let response;
     // OCPP 1.6?
     if (this.chargingStation.ocppVersion === '1.6') {
-      response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeMeterValues(this.chargingStation.id, {
+      response = await this.ocppService.executeMeterValues(this.chargingStation.id, {
         connectorId: connectorId,
         transactionId: transactionId,
         meterValue: {
@@ -323,7 +328,7 @@ export default class ChargingStationContext {
       });
       // OCPP 1.5
     } else {
-      response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeMeterValues(this.chargingStation.id, {
+      response = await this.ocppService.executeMeterValues(this.chargingStation.id, {
         connectorId: connectorId,
         transactionId: transactionId,
         values: {
@@ -357,7 +362,7 @@ export default class ChargingStationContext {
     if (!('timestamp' in connector)) {
       connector.timestamp = new Date().toISOString;
     }
-    const response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeStatusNotification(this.chargingStation.id, connector);
+    const response = await this.ocppService.executeStatusNotification(this.chargingStation.id, connector);
     this.chargingStation.connectors[connector.connectorId - 1].status = connector.status;
     this.chargingStation.connectors[connector.connectorId - 1].errorCode = connector.errorCode;
     this.chargingStation.connectors[connector.connectorId - 1].timestamp = connector.timestamp;
@@ -365,12 +370,12 @@ export default class ChargingStationContext {
   }
 
   async transferData(data) {
-    const response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeDataTransfer(this.chargingStation.id, data);
+    const response = await this.ocppService.executeDataTransfer(this.chargingStation.id, data);
     return response;
   }
 
   async sendBootNotification() {
-    const response = await this.tenantContext.getOCPPService(this.chargingStation.ocppVersion).executeBootNotification(
+    const response = await this.ocppService.executeBootNotification(
       this.chargingStation.id, {
         chargeBoxSerialNumber: this.chargingStation.chargeBoxSerialNumber,
         chargePointModel: this.chargingStation.chargePointModel,

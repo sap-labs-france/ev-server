@@ -13,7 +13,6 @@ export default class LoggingService {
     try {
       // Check auth
       if (!Authorizations.canListLogging(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_LIST,
           Constants.ENTITY_LOGGINGS,
@@ -79,7 +78,6 @@ export default class LoggingService {
     try {
       // Check auth
       if (!Authorizations.canListLogging(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_LIST,
           Constants.ENTITY_LOGGINGS,
@@ -139,7 +137,6 @@ export default class LoggingService {
       const logging = await Logging.getLog(req.user.tenantID, filteredRequest.ID);
       // Check auth
       if (!Authorizations.canReadLogging(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_READ,
           Constants.ENTITY_LOGGING,

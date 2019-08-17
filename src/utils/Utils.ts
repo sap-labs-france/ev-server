@@ -1,7 +1,7 @@
 import axios from 'axios';
 import bcrypt from 'bcrypt';
 import ClientOAuth2 from 'client-oauth2';
-import crypto from 'crypto';
+import Cypher from './Cypher';
 import { Request } from 'express';
 import fs from 'fs';
 import _ from 'lodash';
@@ -25,6 +25,7 @@ import ChargingStation from '../types/ChargingStation';
 import ConnectorStats from '../types/ConnectorStats';
 import tzlookup from 'tz-lookup';
 import UserStorage from '../storage/mongodb/UserStorage';
+import { SettingContent } from '../types/Setting';
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
 
@@ -193,12 +194,14 @@ export default class Utils {
     Utils._normalizeOneSOAPParam(headers, 'From.Address');
     Utils._normalizeOneSOAPParam(headers, 'ReplyTo.Address');
     // Parse the request (lower case for fucking charging station DBT URL registration)
-    const urlParts = url.parse(req.url.toLowerCase(), true);
+    const urlParts = url.parse(decodeURIComponent(req.url.toLowerCase()), true);
     const tenantID = urlParts.query.tenantid as string;
+    const token = urlParts.query.token;
     // Check
     await Utils.checkTenant(tenantID);
     // Set the Tenant ID
     headers.tenantID = tenantID;
+    headers.token = token;
   }
 
   static _normalizeOneSOAPParam(headers, name) {
@@ -385,6 +388,25 @@ export default class Utils {
       _centralSystemFrontEndConfig.port}`;
   }
 
+  static buildOCPPServerURL(tenantID: string, ocppProtocol: string, token?: string): string {
+    let ocppUrl;
+    switch (ocppProtocol) {
+      case Constants.OCPP_PROTOCOL_JSON:
+        ocppUrl = `${Configuration.getJsonEndpointConfig().baseUrl}/OCPP16/${tenantID}`;
+        if (token) {
+          ocppUrl += `/${token}`;
+        }
+        return ocppUrl;
+      case Constants.OCPP_PROTOCOL_SOAP:
+      default:
+        ocppUrl = `${Configuration.getWSDLEndpointConfig().baseUrl}/OCPP15?TenantID=${tenantID}`;
+        if (token) {
+          ocppUrl += `%26Token=${token}`;
+        }
+        return ocppUrl;
+    }
+  }
+
   static async buildEvseUserURL(tenantID: string, user: User, hash = '') {
 
     const tenant = await TenantStorage.getTenant(tenantID);
@@ -472,7 +494,7 @@ export default class Utils {
   }
 
   static generateToken(email) {
-    return crypto.createHash('sha1').update(`${new Date().toISOString()}~${email}`).digest('hex');
+    return Cypher.hash(`${new Date().toISOString()}~${email}`);
   }
 
   /**
@@ -579,7 +601,7 @@ export default class Utils {
   }
 
   static hashPassword(password) {
-    return crypto.createHash('sha256').update(password).digest('hex');
+    return Cypher.hash(password);
   }
 
   public static checkIfSiteValid(filteredRequest: any, req: Request): void {
@@ -868,7 +890,7 @@ export default class Utils {
   }
 
   public static getTimezone(lat: number, lon: number) {
-    if(lat && lon) {
+    if (lat && lon) {
       return tzlookup(lat, lon);
     }
     return null;
@@ -877,7 +899,7 @@ export default class Utils {
   public static getTenantActiveComponents(tenant: Tenant): string[] {
     let components: string[] = [];
     for(let componentName in tenant.components) {
-      if(tenant.components[componentName].active)
+      if (tenant.components[componentName].active)
         components.push(componentName);
     }
     return components;
@@ -885,10 +907,67 @@ export default class Utils {
 
   public static isTenantComponentActive(tenant: Tenant, component: string): boolean {
     for(let componentName in tenant.components) {
-      if(componentName===component) {
+      if (componentName===component) {
         return tenant.components[componentName].active;
       }
     }
     return false;
+  }
+
+  public static createDefaultSettingContent(activeComponent, currentSettingContent) : SettingContent {
+    switch (activeComponent.name) {
+      // Pricing
+      case Constants.COMPONENTS.PRICING:
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+          // Create default settings
+          if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE) {
+            // Simple Pricing
+            return {
+              'type': Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE,
+              'simple': {}
+            } as SettingContent;
+          } else if (activeComponent.type === Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING) {
+            // SAP CC
+            return {
+              'type': Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING,
+              'convergentCharging': {}
+            } as SettingContent;
+          }
+        }
+        break;
+
+      // Refund
+      case Constants.COMPONENTS.REFUND:
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+          // Only Concur
+          return {
+            'type': Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR,
+            'concur': {}
+          } as SettingContent;
+        }
+        break;
+
+      // Refund
+      case Constants.COMPONENTS.OCPI:
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+          // Only Gireve
+          return {
+            'type': Constants.SETTING_REFUND_CONTENT_TYPE_GIREVE,
+            'ocpi': {}
+          } as SettingContent;
+        }
+        break;
+
+      // SAC
+      case Constants.COMPONENTS.ANALYTICS:
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+          // Only SAP Analytics
+          return {
+            'type': Constants.SETTING_REFUND_CONTENT_TYPE_SAC,
+            'sac': {}
+          } as SettingContent;
+        }
+        break;
+    }
   }
 }

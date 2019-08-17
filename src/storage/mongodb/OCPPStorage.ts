@@ -1,4 +1,4 @@
-import crypto from 'crypto';
+import Cypher from '../../utils/Cypher';
 import Constants from '../../utils/Constants';
 import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
@@ -15,9 +15,7 @@ export default class OCPPStorage {
     await Utils.checkTenant(tenantID);
     // Set the ID
     const timestamp = Utils.convertToDate(authorize.timestamp);
-    authorize.id = crypto.createHash('sha256')
-      .update(`${authorize.chargeBoxID}~${timestamp.toISOString()}`)
-      .digest('hex');
+    authorize.id = Cypher.hash(`${authorize.chargeBoxID}~${timestamp.toISOString()}`);
     // Set the User
     if (authorize.user) {
       authorize.userID = Utils.convertToObjectID(authorize.user.id);
@@ -127,9 +125,7 @@ export default class OCPPStorage {
     const statusNotification: any = {};
     // Set the ID
     const timestamp = Utils.convertToDate(statusNotificationToSave.timestamp);
-    statusNotification._id = crypto.createHash('sha256')
-      .update(`${statusNotificationToSave.chargeBoxID}~${statusNotificationToSave.connectorId}~${statusNotificationToSave.status}~${timestamp.toISOString()}`)
-      .digest('hex');
+    statusNotification._id = Cypher.hash(`${statusNotificationToSave.chargeBoxID}~${statusNotificationToSave.connectorId}~${statusNotificationToSave.status}~${timestamp.toISOString()}`);
     // Set
     Database.updateStatusNotification(statusNotificationToSave, statusNotification, false);
     // Insert
@@ -167,9 +163,7 @@ export default class OCPPStorage {
     await Utils.checkTenant(tenantID);
     // Set the ID
     const timestamp = Utils.convertToDate(dataTransfer.timestamp);
-    dataTransfer.id = crypto.createHash('sha256')
-      .update(`${dataTransfer.chargeBoxID}~${dataTransfer.data}~${timestamp.toISOString()}`)
-      .digest('hex');
+    dataTransfer.id = Cypher.hash(`${dataTransfer.chargeBoxID}~${dataTransfer.data}~${timestamp.toISOString()}`);
     // Insert
     await global.database.getCollection<any>(tenantID, 'datatransfers')
       .insertOne({
@@ -194,9 +188,7 @@ export default class OCPPStorage {
     const timestamp = Utils.convertToDate(bootNotification.timestamp);
     await global.database.getCollection<any>(tenantID, 'bootnotifications')
       .insertOne({
-        _id: crypto.createHash('sha256')
-          .update(`${bootNotification.chargeBoxID}~${timestamp.toISOString()}`)
-          .digest('hex'),
+        _id: Cypher.hash(`${bootNotification.chargeBoxID}~${timestamp.toISOString()}`),
         chargeBoxID: bootNotification.chargeBoxID,
         chargePointVendor: bootNotification.chargePointVendor,
         chargePointModel: bootNotification.chargePointModel,
@@ -293,9 +285,7 @@ export default class OCPPStorage {
     await Utils.checkTenant(tenantID);
     // Set the ID
     const timestamp = Utils.convertToDate(diagnosticsStatusNotification.timestamp);
-    diagnosticsStatusNotification.id = crypto.createHash('sha256')
-      .update(`${diagnosticsStatusNotification.chargeBoxID}~${timestamp.toISOString()}`)
-      .digest('hex');
+    diagnosticsStatusNotification.id = Cypher.hash(`${diagnosticsStatusNotification.chargeBoxID}~${timestamp.toISOString()}`);
     // Insert
     await global.database.getCollection<any>(tenantID, 'diagnosticsstatusnotifications')
       .insertOne({
@@ -316,9 +306,7 @@ export default class OCPPStorage {
     await Utils.checkTenant(tenantID);
     // Set the ID
     const timestamp = Utils.convertToDate(firmwareStatusNotification.timestamp);
-    firmwareStatusNotification.id = crypto.createHash('sha256')
-      .update(`${firmwareStatusNotification.chargeBoxID}~${timestamp.toISOString()}`)
-      .digest('hex');
+    firmwareStatusNotification.id = Cypher.hash(`${firmwareStatusNotification.chargeBoxID}~${timestamp.toISOString()}`);
     // Insert
     await global.database.getCollection<any>(tenantID, 'firmwarestatusnotifications')
       .insertOne({
@@ -332,78 +320,6 @@ export default class OCPPStorage {
     Logging.traceEnd('OCPPStorage', 'saveFirmwareStatusNotification', uniqueTimerID);
   }
 
-  static async removeChargingStationsFromSiteArea(tenantID, siteAreaID, chargingStationIDs) {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('OCPPStorage', 'removeChargingStationsFromSiteArea');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Site provided?
-    if (siteAreaID) {
-      // At least one User
-      if (chargingStationIDs && chargingStationIDs.length > 0) {
-        // Update all chargers
-        await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany({
-          $and: [{
-            '_id': {
-              $in: chargingStationIDs
-            }
-          },
-          {
-            'siteAreaID': Utils.convertToObjectID(siteAreaID)
-          }
-          ]
-        }, {
-          $set: {
-            siteAreaID: null
-          }
-        }, {
-          upsert: false
-        });
-      }
-    }
-    // Debug
-    Logging.traceEnd('OCPPStorage', 'removeChargingStationsFromSiteArea', uniqueTimerID, {
-      siteAreaID,
-      chargingStationIDs
-    });
-  }
-
-  static async addChargingStationsToSiteArea(tenantID, siteAreaID, chargingStationIDs) {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('OCPPStorage', 'addChargingStationsToSiteArea');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Site provided?
-    if (siteAreaID) {
-      // At least one User
-      if (chargingStationIDs && chargingStationIDs.length > 0) {
-        // Update all chargers
-        await global.database.getCollection<any>(tenantID, 'chargingstations').updateMany({
-          $and: [{
-            '_id': {
-              $in: chargingStationIDs
-            }
-          },
-          {
-            'siteAreaID': null
-          }
-          ]
-        }, {
-          $set: {
-            siteAreaID: Utils.convertToObjectID(siteAreaID)
-          }
-        }, {
-          upsert: false
-        });
-      }
-    }
-    // Debug
-    Logging.traceEnd('OCPPStorage', 'addChargingStationsToSiteArea', uniqueTimerID, {
-      siteAreaID,
-      chargingStationIDs
-    });
-  }
-
   static async saveMeterValues(tenantID, meterValuesToSave) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'saveMeterValues');
@@ -415,9 +331,7 @@ export default class OCPPStorage {
       const meterValue: any = {};
       // Id
       const timestamp = Utils.convertToDate(meterValueToSave.timestamp);
-      meterValue._id = crypto.createHash('sha256')
-        .update(`${meterValueToSave.chargeBoxID}~${meterValueToSave.connectorId}~${timestamp.toISOString()}~${meterValueToSave.value}~${JSON.stringify(meterValueToSave.attribute)}`)
-        .digest('hex');
+      meterValue._id = Cypher.hash(`${meterValueToSave.chargeBoxID}~${meterValueToSave.connectorId}~${timestamp.toISOString()}~${meterValueToSave.value}~${JSON.stringify(meterValueToSave.attribute)}`);
       // Set
       Database.updateMeterValue(meterValueToSave, meterValue, false);
       // Add

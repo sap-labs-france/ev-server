@@ -23,7 +23,6 @@ export default class TransactionService {
   static async handleSynchronizeRefundedTransactions(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       if (!Authorizations.isAdmin(req.user.role)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
           Constants.ENTITY_TRANSACTION,
@@ -82,7 +81,6 @@ export default class TransactionService {
         }
         // Check auth
         if (!Authorizations.canRefundTransaction(req.user, transaction)) {
-          // Not Authorized!
           throw new AppAuthError(
             Constants.ACTION_REFUND_TRANSACTION,
             Constants.ENTITY_TRANSACTION,
@@ -118,9 +116,9 @@ export default class TransactionService {
           Constants.HTTP_REFUND_SESSION_OTHER_USER_ERROR,
           'TransactionService', 'handleRefundTransactions', req.user);
       }
-      let setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, 'refund');
-      setting = setting.getContent()['concur'];
-      const connector = new ConcurConnector(req.user.tenantID, setting);
+      const setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, 'refund');
+      const settingInner = setting.content[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR];
+      const connector = new ConcurConnector(req.user.tenantID, settingInner);
       const refundedTransactions = await connector.refund(user.id, transactionsToRefund);
       // // Transfer it to the Revenue Cloud
       // pragma await Utils.pushTransactionToRevenueCloud(action, transaction, req.user, transaction.getUserJson());
@@ -165,7 +163,6 @@ export default class TransactionService {
       }
       // Check auth
       if (!Authorizations.canDeleteTransaction(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_DELETE,
           Constants.ENTITY_TRANSACTION,
@@ -230,7 +227,6 @@ export default class TransactionService {
       }
       // Check auth
       if (!Authorizations.canUpdateTransaction(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
           Constants.ENTITY_TRANSACTION,
@@ -315,7 +311,6 @@ export default class TransactionService {
       }
       // Check auth
       if (!Authorizations.canReadTransaction(req.user, transaction)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_READ,
           Constants.ENTITY_TRANSACTION,
@@ -374,7 +369,6 @@ export default class TransactionService {
       }
       // Check auth
       if (!Authorizations.canReadTransaction(req.user, transaction)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_READ,
           Constants.ENTITY_TRANSACTION,
@@ -401,7 +395,6 @@ export default class TransactionService {
     try {
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_LIST,
           Constants.ENTITY_TRANSACTION,
@@ -477,7 +470,6 @@ export default class TransactionService {
     try {
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_LIST,
           Constants.ENTITY_TRANSACTION,
@@ -496,7 +488,7 @@ export default class TransactionService {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
       if (filteredRequest.SiteID) {
-        filter.siteID = filteredRequest.SiteID;
+        filter.siteID = filteredRequest.SiteID.split('|');
       }
       if (filteredRequest.UserID) {
         filter.userIDs = filteredRequest.UserID.split('|');
@@ -526,7 +518,6 @@ export default class TransactionService {
     try {
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_LIST,
           Constants.ENTITY_TRANSACTION,
@@ -544,6 +535,9 @@ export default class TransactionService {
       if (filteredRequest.SiteAreaID) {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
+      if (filteredRequest.SiteID) {
+        filter.siteID = filteredRequest.SiteID.split('|');
+      }
       if (filteredRequest.UserID) {
         filter.userIDs = filteredRequest.UserID.split('|');
       }
@@ -557,7 +551,7 @@ export default class TransactionService {
         filter.endDateTime = filteredRequest.EndDateTime;
       }
       if (filteredRequest.Type) {
-        filter.type = filteredRequest.Type;
+        filter.refundType = filteredRequest.Type.split('|');
       }
       if (filteredRequest.MinimalPrice) {
         filter.minimalPrice = filteredRequest.MinimalPrice;
@@ -569,7 +563,7 @@ export default class TransactionService {
         {
           ...filter,
           'search': filteredRequest.Search,
-          'siteID': filteredRequest.SiteID
+          'siteID': filter.siteID
         },
         { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
       // Filter
@@ -587,7 +581,6 @@ export default class TransactionService {
     try {
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_LIST,
           Constants.ENTITY_TRANSACTIONS,
@@ -604,6 +597,9 @@ export default class TransactionService {
       }
       if (filteredRequest.SiteAreaID) {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
+      }
+      if (filteredRequest.SiteID) {
+        filter.siteID = filteredRequest.SiteID.split('|');
       }
       if (filteredRequest.UserID) {
         filter.userIDs = filteredRequest.UserID.split('|');
@@ -622,7 +618,7 @@ export default class TransactionService {
         filter.type = filteredRequest.Type;
       }
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-        { ...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID },
+        { ...filter, 'search': filteredRequest.Search, 'siteID': filter.siteID },
         { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
       // Filter
       TransactionSecurity.filterTransactionsResponse(transactions, req.user);
@@ -660,7 +656,6 @@ export default class TransactionService {
     try {
       // Check auth
       if (!Authorizations.canListTransactionsInError(req.user)) {
-        // Not Authorized!
         throw new AppAuthError(
           Constants.ACTION_LIST,
           Constants.ENTITY_TRANSACTION,
@@ -678,6 +673,9 @@ export default class TransactionService {
       if (filteredRequest.SiteAreaID) {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
+      if (filteredRequest.SiteID) {
+        filter.siteID = filteredRequest.SiteID.split('|');
+      }
       if (filteredRequest.UserID) {
         filter.userIDs = filteredRequest.UserID.split('|');
       }
@@ -693,7 +691,7 @@ export default class TransactionService {
       }
       // Site Area
       const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
-        { ...filter, 'search': filteredRequest.Search, 'siteID': filteredRequest.SiteID },
+        { ...filter, 'search': filteredRequest.Search, 'siteID': filter.siteID },
         { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
       // Filter
       TransactionSecurity.filterTransactionsResponse(transactions, req.user);

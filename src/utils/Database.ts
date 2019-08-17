@@ -319,7 +319,7 @@ export default class Database {
     if (src.hasOwnProperty('verifiedAt')) {
       dest.verifiedAt = Utils.convertToDate(src.verifiedAt);
     }
-    // No check of if(src.verificationToken), otherwise we cannot set it back to null (after being verified)
+    // No check of if (src.verificationToken), otherwise we cannot set it back to null (after being verified)
     dest.verificationToken = src.verificationToken;
   }
 

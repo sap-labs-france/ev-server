@@ -22,7 +22,6 @@ export default class CompanyService {
     UtilsService.assertIdIsProvided(companyID, 'CompanyService', 'handleDeleteCompany', req.user);
     // Check auth
     if (!Authorizations.canDeleteCompany(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_DELETE,
         Constants.ENTITY_COMPANY,
@@ -59,7 +58,6 @@ export default class CompanyService {
     UtilsService.assertIdIsProvided(filteredRequest.ID, 'CompanyService', 'handleGetCompany', req.user);
     // Check auth
     if (!Authorizations.canReadCompany(req.user, filteredRequest.ID)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_READ,
         Constants.ENTITY_COMPANY,
@@ -89,7 +87,6 @@ export default class CompanyService {
     UtilsService.assertIdIsProvided(companyID, 'CompanyService', 'handleGetCompanyLogo', req.user);
     // Check auth
     if (!Authorizations.canReadCompany(req.user, companyID)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_READ, Constants.ENTITY_COMPANY,
         companyID,
@@ -112,7 +109,6 @@ export default class CompanyService {
       Constants.ACTION_LIST, Constants.ENTITY_COMPANIES, 'CompanyService', 'handleGetCompanies');
     // Check auth
     if (!Authorizations.canListCompanies(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_LIST,
         Constants.ENTITY_COMPANIES,
@@ -147,7 +143,6 @@ export default class CompanyService {
       Constants.ACTION_CREATE, Constants.ENTITY_COMPANY, 'CompanyService', 'handleCreateCompany');
     // Check auth
     if (!Authorizations.canCreateCompany(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_CREATE,
         Constants.ENTITY_COMPANY,
@@ -163,7 +158,7 @@ export default class CompanyService {
     const newCompany: Company = {
       ...filteredRequest,
       createdBy: { id: req.user.id },
-      createdOn: new Date(),
+      createdOn: new Date()
     } as Company;
     // Save
     newCompany.id = await CompanyStorage.saveCompany(req.user.tenantID, newCompany);
@@ -188,7 +183,6 @@ export default class CompanyService {
     const filteredRequest = CompanySecurity.filterCompanyUpdateRequest(req.body);
     // Check auth
     if (!Authorizations.canUpdateCompany(req.user)) {
-      // Not Authorized!
       throw new AppAuthError(
         Constants.ACTION_UPDATE,
         Constants.ENTITY_COMPANY,

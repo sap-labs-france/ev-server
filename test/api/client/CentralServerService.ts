@@ -18,6 +18,7 @@ import TenantApi from './TenantApi';
 import TransactionApi from './TransactionApi';
 import User from '../../../src/types/User';
 import UserApi from './UserApi';
+import RegistrationTokenApi from './RegistrationTokenApi';
 
 // Set
 chai.use(chaiSubset);
@@ -31,6 +32,7 @@ export default class CentralServerService {
   public siteAreaApi: SiteAreaApi;
   public userApi: UserApi;
   public chargingStationApi: ChargingStationApi;
+  public registrationApi: RegistrationTokenApi;
   public transactionApi: TransactionApi;
   public settingApi: SettingApi;
   public ocpiEndpointApi: OCPIEndpointApi;
@@ -88,6 +90,7 @@ export default class CentralServerService {
     this.tenantApi = new TenantApi(this.authenticatedSuperAdminApi, this._baseApi);
     this.mailApi = new MailApi(new BaseApi(`http://${config.get('mailServer.host')}:${config.get('mailServer.port')}`));
     this.statisticsApi = new StatisticsApi(this.authenticatedApi);
+    this.registrationApi = new RegistrationTokenApi(this.authenticatedApi);
   }
 
   public static get DefaultInstance(): CentralServerService {
@@ -131,6 +134,7 @@ export default class CentralServerService {
     // Check
     if (performCheck) {
       expect(response.status).to.equal(200);
+      expect(response.data).not.null;
       expect(response.data.status).to.eql('Success');
       expect(response.data).to.have.property('id');
       expect(response.data.id).to.match(/^[a-f0-9]+$/);

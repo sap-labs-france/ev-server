@@ -10,6 +10,7 @@ import OCPPJsonService15 from '../ocpp/soap/OCPPSoapService15';
 import SiteAreaContext from './SiteAreaContext';
 import SiteContext from './SiteContext';
 import Tenant from '../../types/Tenant';
+import OCPPService from '../ocpp/OCPPService';
 
 export default class TenantContext {
 
@@ -18,14 +19,14 @@ export default class TenantContext {
   private centralAdminServerService: CentralServerService;
   private ocpp16: OCPPJsonService16;
   private ocpp15: OCPPJsonService15;
+  private ocppRequestHandler: any;
   private context: any;
 
-  constructor(tenantName, tenant: Tenant, centralService, ocppRequestHandler) {
+  constructor(tenantName, tenant: Tenant, token, centralService, ocppRequestHandler) {
     this.tenantName = tenantName;
     this.tenant = tenant;
     this.centralAdminServerService = centralService;
-    this.ocpp16 = new OCPPJsonService16(`${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP16/${this.tenant.id}`, ocppRequestHandler);
-    this.ocpp15 = new OCPPJsonService15(`${config.get('ocpp.soap.scheme')}://${config.get('ocpp.soap.host')}:${config.get('ocpp.soap.port')}/OCPP15?TenantID=${this.tenant.id}`);
+    this.ocppRequestHandler = ocppRequestHandler;
     this.context = {
       companies: [],
       users: [],
@@ -37,6 +38,14 @@ export default class TenantContext {
       createdSiteAreas: [],
       createdChargingStations: []
     };
+  }
+
+  async initialize(token: string = null) {
+    if (!token) {
+      token = await this.createRegistrationToken();
+    }
+    this.ocpp16 = new OCPPJsonService16(`${config.get('ocpp.json.scheme')}://${config.get('ocpp.json.host')}:${config.get('ocpp.json.port')}/OCPP16/${this.tenant.id}/${token}`, this.ocppRequestHandler);
+    this.ocpp15 = new OCPPJsonService15(`${config.get('ocpp.soap.scheme')}://${config.get('ocpp.soap.host')}:${config.get('ocpp.soap.port')}/OCPP15?TenantID=${this.tenant.id}%26Token=${token}`);
   }
 
   getTenant() {
@@ -52,13 +61,16 @@ export default class TenantContext {
     return user.centralServerService;
   }
 
-  getOCPPService(ocppVersion) {
+  async getOCPPService(ocppVersion: string, token: string = null): Promise<OCPPService> {
+    if (!this.ocpp15 || !this.ocpp16 || token) {
+      await this.initialize(token);
+    }
     if (ocppVersion === '1.6') {
       return this.ocpp16;
     } else if (ocppVersion === '1.5') {
       return this.ocpp15;
     }
-    throw new Error('unkown ocpp version');
+    throw new Error('unknown ocpp version');
   }
 
   getContext() {
@@ -100,8 +112,9 @@ export default class TenantContext {
     });
   }
 
-  addChargingStation(chargingStation) {
+  async addChargingStation(chargingStation, registrationToken?: string) {
     const chargingStationContext = new ChargingStationContext(chargingStation, this);
+    await chargingStationContext.initialize(registrationToken);
     this.context.chargingStations.push(chargingStationContext);
   }
 
@@ -238,7 +251,8 @@ export default class TenantContext {
   async createChargingStation(ocppVersion, chargingStation = Factory.chargingStation.build({
     id: faker.random.alphaNumeric(12)
   }), connectorsDef = null, siteArea = null) {
-    const response = await this.getOCPPService(ocppVersion).executeBootNotification(
+    const ocppService = await this.getOCPPService(ocppVersion);
+    const response = await ocppService.executeBootNotification(
       chargingStation.id, chargingStation);
     // Check
     expect(response.data).to.not.be.null;
@@ -258,7 +272,7 @@ export default class TenantContext {
       };
     }
     for (const connector of createdChargingStation.connectors) {
-      const responseNotif = await this.getOCPPService(ocppVersion).executeStatusNotification(createdChargingStation.id, connector);
+      const responseNotif = await ocppService.executeStatusNotification(createdChargingStation.id, connector);
     }
     if (siteArea) {
       // Assign to Site Area
@@ -267,8 +281,17 @@ export default class TenantContext {
         this.getAdminCentralServerService().chargingStationApi, createdChargingStation);
     }
     const createdCS = new ChargingStationContext(createdChargingStation, this);
+    await createdCS.initialize();
     this.context.createdChargingStations.push(createdCS);
     return createdCS;
+  }
+
+  async createRegistrationToken(siteAreaID: string = null): Promise<string> {
+    const registrationTokenResponse = await this.centralAdminServerService.registrationApi.create({siteAreaID: siteAreaID});
+    expect(registrationTokenResponse.status).eq(200);
+    expect(registrationTokenResponse.data).not.null;
+    expect(registrationTokenResponse.data.id).not.null;
+    return registrationTokenResponse.data.id;
   }
 
   findSiteContextFromSiteArea(siteArea) {
