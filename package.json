@@ -117,7 +117,6 @@
     "ts-mocha": "^6.0.0",
     "ts-node": "^8.3.0",
     "ts-node-dev": "^1.0.0-pre.40",
-    "tslint": "^5.18.0",
     "webpack": "^4.39.2",
     "webpack-cli": "^3.3.7",
     "webpack-merge": "^4.2.1",
@@ -167,8 +166,7 @@
     "test:filter": "cross-env TS_NODE_FILES=true mocha test/**/FilterTest.ts --exit",
     "test:tenantsetting": "cross-env TS_NODE_FILES=true mocha test/**/ComponentActivationTenantTest.ts --exit",
     "clinic:clean": "clinic clean",
-    "npm-check": "npm-check",
-    "tslint:fix": "tslint --fix src/**/*.ts"
+    "npm-check": "npm-check"
   },
   "license": "MIT"
 }
