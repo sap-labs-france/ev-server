@@ -12,26 +12,26 @@ import UserStorage from '../storage/mongodb/UserStorage';
 export default class Transaction extends TenantHolder {
   private _model: any = {};
 
-  constructor(tenantID: any, transaction: any) {
+  constructor(tenantID: string, transaction: Transaction) {
     super(tenantID);
     Database.updateTransaction(transaction, this._model);
   }
 
-  static getTransaction(tenantID, id) {
-    return TransactionStorage.getTransaction(tenantID, id);
-  }
+  // static getTransaction(tenantID, id) {
+  //   return TransactionStorage.getTransaction(tenantID, id);
+  // }
 
-  static getTransactions(tenantID, filter, dbParams) {
-    return TransactionStorage.getTransactions(tenantID, filter, dbParams);
-  }
+  // static getTransactions(tenantID, filter, dbParams) {
+  //   return TransactionStorage.getTransactions(tenantID, filter, dbParams);
+  // }
 
-  static getActiveTransaction(tenantID, chargeBoxID, connectorId) {
-    return TransactionStorage.getActiveTransaction(tenantID, chargeBoxID, connectorId);
-  }
+  // static getActiveTransaction(tenantID, chargeBoxID, connectorId) {
+  //   return TransactionStorage.getActiveTransaction(tenantID, chargeBoxID, connectorId);
+  // }
 
-  static getLastTransaction(tenantID, chargeBoxID, connectorId) {
-    return TransactionStorage.getLastTransaction(tenantID, chargeBoxID, connectorId);
-  }
+  // static getLastTransaction(tenantID, chargeBoxID, connectorId) {
+  //   return TransactionStorage.getLastTransaction(tenantID, chargeBoxID, connectorId);
+  // }
 
   public getModel(): any {
     return this._model;
@@ -381,7 +381,7 @@ export default class Transaction extends TenantHolder {
     return this.isFinished() && this.getStopPrice() >= 0;
   }
 
-  getMeterValues() {
+  async getMeterValues() {
     return OCPPStorage.getMeterValues(this.getTenantID(), this.getID());
   }
 
@@ -593,19 +593,19 @@ export default class Transaction extends TenantHolder {
     }
   }
 
-  delete() {
+  async delete() {
     return TransactionStorage.deleteTransaction(this.getTenantID(), this.getModel());
   }
 
-  save() {
+  async save() {
     return TransactionStorage.saveTransaction(this.getTenantID(), this.getModel());
   }
 
-  getConsumptions() {
+  async getConsumptions() {
     return ConsumptionStorage.getConsumptions(this.getTenantID(), this.getID());
   }
 
-  saveConsumption(consumption) {
+  async saveConsumption(consumption) {
     return ConsumptionStorage.saveConsumption(this.getTenantID(), consumption);
   }
 }

@@ -117,7 +117,7 @@ export default class OCPPStorage {
     };
   }
 
-  static async saveStatusNotification(tenantID, statusNotificationToSave) {
+  static async saveStatusNotification(tenantID: string, statusNotificationToSave) {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveStatusNotification');
     // Check Tenant
@@ -135,7 +135,7 @@ export default class OCPPStorage {
     Logging.traceEnd('OCPPStorage', 'saveStatusNotification', uniqueTimerID);
   }
 
-  static async saveConfiguration(tenantID, configuration) {
+  static async saveConfiguration(tenantID: string, configuration) {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveConfiguration');
     // Check Tenant
@@ -156,7 +156,7 @@ export default class OCPPStorage {
     Logging.traceEnd('OCPPStorage', 'saveConfiguration', uniqueTimerID);
   }
 
-  static async saveDataTransfer(tenantID, dataTransfer) {
+  static async saveDataTransfer(tenantID: string, dataTransfer) {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveDataTransfer');
     // Check Tenant
@@ -179,7 +179,7 @@ export default class OCPPStorage {
     Logging.traceEnd('OCPPStorage', 'saveDataTransfer', uniqueTimerID);
   }
 
-  static async saveBootNotification(tenantID, bootNotification) {
+  static async saveBootNotification(tenantID: string, bootNotification) {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveBootNotification');
     // Check Tenant
@@ -299,7 +299,7 @@ export default class OCPPStorage {
     Logging.traceEnd('OCPPStorage', 'saveDiagnosticsStatusNotification', uniqueTimerID);
   }
 
-  static async saveFirmwareStatusNotification(tenantID, firmwareStatusNotification) {
+  static async saveFirmwareStatusNotification(tenantID: string, firmwareStatusNotification) {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveFirmwareStatusNotification');
     // Check Tenant
@@ -320,7 +320,7 @@ export default class OCPPStorage {
     Logging.traceEnd('OCPPStorage', 'saveFirmwareStatusNotification', uniqueTimerID);
   }
 
-  static async saveMeterValues(tenantID, meterValuesToSave) {
+  static async saveMeterValues(tenantID: string, meterValuesToSave) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'saveMeterValues');
     // Check
@@ -343,7 +343,7 @@ export default class OCPPStorage {
     Logging.traceEnd('TransactionStorage', 'saveMeterValues', uniqueTimerID, { meterValuesToSave });
   }
 
-  static async getMeterValues(tenantID, transactionID) {
+  static async getMeterValues(tenantID: string, transactionID) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getMeterValues');
     // Check

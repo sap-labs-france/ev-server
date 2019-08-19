@@ -24,7 +24,7 @@ export default class PricingFactory {
             setting.content[Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING], transaction);
         } else if (setting.content[Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE]) {
           // Return the Simple Pricing implementation
-          return new SimplePricing(tenantID, setting.content['simple'], transaction);
+          return new SimplePricing(tenantID, setting.content[Constants.SETTING_PRICING_CONTENT_TYPE_SIMPLE], transaction);
         }
       }
     }

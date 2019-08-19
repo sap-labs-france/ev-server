@@ -152,14 +152,14 @@ export default class ConcurConnector extends AbstractConnector {
     }
   }
 
-  async refund(tenantID: string, userId: string, transactions, quickRefund = false): Promise<any> {
+  async refund(tenantID: string, userId: string, transactions: Transaction[], quickRefund = false): Promise<any> {
     const startDate = moment();
     const refundedTransactions = [];
     const connection = await this.getRefreshedConnection(userId);
     let expenseReportId;
 
     if (!quickRefund) {
-      expenseReportId = await this.createExpenseReport(connection, transactions[0].getTimezone(), userId);
+      expenseReportId = await this.createExpenseReport(connection, transactions[0].timezone, userId);
     }
 
     await Promise.map(transactions,
