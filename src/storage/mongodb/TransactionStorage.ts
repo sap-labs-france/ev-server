@@ -86,57 +86,70 @@ export default class TransactionStorage {
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Build filter
-    const match: any = {};
+    const ownerMatch = { $or: [] };
+    const filterMatch: any = {};
+    const match: any = {
+      $and: []
+    };
+
+    // User / Site Admin
+    if (params.userIDs) {
+      ownerMatch.$or.push({
+        userID: {
+          $in: params.userIDs.map((user) => Utils.convertToObjectID(user))
+        }
+      });
+    }
+    if (params.siteAdminIDs) {
+      ownerMatch.$or.push({
+        siteID: {
+          $in: params.siteAdminIDs.map((siteID) => Utils.convertToObjectID(siteID))
+        }
+      });
+    }
+
     // Filter?
     if (params.search) {
       // Build filter
-      match.$or = [
+      filterMatch.$or = [
         { '_id': parseInt(params.search) },
         { 'tagID': { $regex: params.search, $options: 'i' } },
         { 'chargeBoxID': { $regex: params.search, $options: 'i' } }
       ];
     }
-    // User
-    if (params.userIDs) {
-      match.userID = {
-        $in: params.userIDs.map((user) => {
-          return Utils.convertToObjectID(user);
-        })
-      };
-    }
     // Charge Box
     if (params.chargeBoxIDs) {
-      match.chargeBoxID = { $in : params.chargeBoxIDs };
+      filterMatch.chargeBoxID = { $in: params.chargeBoxIDs };
     }
     // Connector
     if (params.connectorId) {
-      match.connectorId = Utils.convertToInt(params.connectorId);
+      filterMatch.connectorId = Utils.convertToInt(params.connectorId);
     }
     // Date provided?
     if (params.startDateTime || params.endDateTime) {
-      match.timestamp = {};
+      filterMatch.timestamp = {};
     }
     // Start date
     if (params.startDateTime) {
-      match.timestamp.$gte = Utils.convertToDate(params.startDateTime);
+      filterMatch.timestamp.$gte = Utils.convertToDate(params.startDateTime);
     }
     // End date
     if (params.endDateTime) {
-      match.timestamp.$lte = Utils.convertToDate(params.endDateTime);
+      filterMatch.timestamp.$lte = Utils.convertToDate(params.endDateTime);
     }
     // Check stop transaction
     if (params.stop) {
-      match.stop = params.stop;
+      filterMatch.stop = params.stop;
     }
     if (params.siteAreaIDs) {
-      match.siteAreaID = {
+      filterMatch.siteAreaID = {
         $in: params.siteAreaIDs.map((area) => {
           return Utils.convertToObjectID(area);
         })
       };
     }
     if (params.siteID) {
-      match.siteID = {
+      filterMatch.siteID = {
         $in: params.siteID.map((site) => {
           return Utils.convertToObjectID(site);
         })
@@ -145,27 +158,27 @@ export default class TransactionStorage {
     if (params.refundType && Array.isArray(params.refundType) && params.refundType.length === 1) {
       switch (params.refundType[0]) {
         case Constants.REFUND_TYPE_REFUNDED:
-          match.refundData = { $exists: true };
+          filterMatch.refundData = { $exists: true };
           if (params.refundStatus) {
-            match['refundData.status'] = params.refundStatus;
+            filterMatch['refundData.status'] = params.refundStatus;
           }
           break;
         case Constants.REFUND_TYPE_NOT_REFUNDED:
-          match.refundData = { $exists: false };
+          filterMatch.refundData = { $exists: false };
           break;
       }
     }
     if (params.minimalPrice) {
-      match['stop.price'] = { $gt: 0 };
+      filterMatch['stop.price'] = { $gt: 0 };
     }
     // Create Aggregation
     const aggregation = [];
     // Filters
-    if (match) {
-      aggregation.push({
-        $match: match
-      });
-    }
+    match.$and.push(ownerMatch);
+    match.$and.push(filterMatch);
+    aggregation.push({
+      $match: match
+    });
     // Charger?
     if (params.withChargeBoxes) {
       // Add Charge Box
@@ -208,10 +221,10 @@ export default class TransactionStorage {
           $group: {
             _id: null,
             totalConsumptionWattHours: { $sum: '$stop.totalConsumption' },
-            totalPriceRefund: { $sum: { $cond: [ { '$eq': [ { $type : '$refundData' }, 'missing' ] }, 0, '$stop.price' ] } },
-            totalPricePending: { $sum: { $cond: [ { '$eq': [ { $type : '$refundData' }, 'missing' ] }, '$stop.price', 0 ] } },
-            countRefundTransactions: { $sum: { $cond: [ { '$eq': [ { $type : '$refundData' }, 'missing' ] }, 0, 1 ] } },
-            countPendingTransactions: { $sum: { $cond: [ { '$eq': [ { $type : '$refundData' }, 'missing' ] }, 1, 0 ] } },
+            totalPriceRefund: { $sum: { $cond: [{ '$eq': [{ $type: '$refundData' }, 'missing'] }, 0, '$stop.price'] } },
+            totalPricePending: { $sum: { $cond: [{ '$eq': [{ $type: '$refundData' }, 'missing'] }, '$stop.price', 0] } },
+            countRefundTransactions: { $sum: { $cond: [{ '$eq': [{ $type: '$refundData' }, 'missing'] }, 0, 1] } },
+            countPendingTransactions: { $sum: { $cond: [{ '$eq': [{ $type: '$refundData' }, 'missing'] }, 1, 0] } },
             currency: { $addToSet: '$stop.priceUnit' },
             countRefundedReports: { $addToSet: '$refundData.reportId' },
             count: { $sum: 1 }
@@ -234,7 +247,7 @@ export default class TransactionStorage {
           allowDiskUse: true
         })
       .toArray();
-      let transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ? transactionsCountMDB[0] : null;
+    let transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ? transactionsCountMDB[0] : null;
     // Initialize statistics
     if (!transactionCountMDB) {
       switch (params.statistics) {
@@ -339,7 +352,10 @@ export default class TransactionStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const transactionsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, {
+        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
+        allowDiskUse: true
+      })
       .toArray();
     // Set
     const transactions = [];
@@ -394,7 +410,7 @@ export default class TransactionStorage {
     }
     // Charge Box
     if (params.chargeBoxIDs) {
-      match.chargeBoxID = { $in : params.chargeBoxIDs };
+      match.chargeBoxID = { $in: params.chargeBoxIDs };
     }
     // Connector
     if (params.connectorId) {
@@ -484,57 +500,57 @@ export default class TransactionStorage {
 
     const facets = {
       '$facet':
-      {
-        'no_consumption':
-          [
-            {
-              $match: {
-                $and: [
-                  { 'stop': { $exists: true } },
-                  { 'stop.totalConsumption': { $lte: 0 } }
-                ]
-              }
-            },
-            { $addFields: { 'errorCode': 'no_consumption' } }
-          ],
-        'average_consumption_greater_than_connector_capacity':
-          [
-            { $match: { 'stop': { $exists: true } } },
-            { $addFields: { activeDuration: { $subtract: ['$stop.totalDurationSecs', '$stop.totalInactivitySecs'] } } },
-            { $match: { 'activeDuration': { $gt: 0 } } },
-            {
-              $lookup: {
-                'from': DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
-                'localField': 'chargeBoxID',
-                'foreignField': '_id',
-                'as': 'chargeBox'
-              }
-            },
-            { $unwind: { 'path': '$chargeBox', 'preserveNullAndEmptyArrays': true } },
-            { $addFields: { connector: { $arrayElemAt: ['$chargeBox.connectors', { $subtract: ['$connectorId', 1] }] } } },
-            { $addFields: { averagePower: { $multiply: [{ $divide: ['$stop.totalConsumption', '$activeDuration'] }, 3600] } } },
-            { $addFields: { impossiblePower: { $lte: [{ $subtract: ['$connector.power', '$averagePower'] }, 0] } } },
-            { $match: { 'impossiblePower': { $eq: true } } },
-            { $addFields: { 'errorCode': 'average_consumption_greater_than_connector_capacity' } }
-          ],
-        'negative_inactivity':
-          [
-            {
-              $match: {
-                $and: [
-                  { 'stop': { $exists: true } },
-                  { 'stop.totalInactivitySecs': { $lt: 0 } }
-                ]
-              }
-            },
-            { $addFields: { 'errorCode': 'negative_inactivity' } }
-          ],
-        'incorrect_starting_date':
-          [
-            { $match: { 'timestamp': { $lte : Utils.convertToDate('2017-01-01 00:00:00.000Z') } } },
-            { $addFields: { 'errorCode': 'incorrect_starting_date' } }
-          ]
-      }
+        {
+          'no_consumption':
+            [
+              {
+                $match: {
+                  $and: [
+                    { 'stop': { $exists: true } },
+                    { 'stop.totalConsumption': { $lte: 0 } }
+                  ]
+                }
+              },
+              { $addFields: { 'errorCode': 'no_consumption' } }
+            ],
+          'average_consumption_greater_than_connector_capacity':
+            [
+              { $match: { 'stop': { $exists: true } } },
+              { $addFields: { activeDuration: { $subtract: ['$stop.totalDurationSecs', '$stop.totalInactivitySecs'] } } },
+              { $match: { 'activeDuration': { $gt: 0 } } },
+              {
+                $lookup: {
+                  'from': DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
+                  'localField': 'chargeBoxID',
+                  'foreignField': '_id',
+                  'as': 'chargeBox'
+                }
+              },
+              { $unwind: { 'path': '$chargeBox', 'preserveNullAndEmptyArrays': true } },
+              { $addFields: { connector: { $arrayElemAt: ['$chargeBox.connectors', { $subtract: ['$connectorId', 1] }] } } },
+              { $addFields: { averagePower: { $multiply: [{ $divide: ['$stop.totalConsumption', '$activeDuration'] }, 3600] } } },
+              { $addFields: { impossiblePower: { $lte: [{ $subtract: ['$connector.power', '$averagePower'] }, 0] } } },
+              { $match: { 'impossiblePower': { $eq: true } } },
+              { $addFields: { 'errorCode': 'average_consumption_greater_than_connector_capacity' } }
+            ],
+          'negative_inactivity':
+            [
+              {
+                $match: {
+                  $and: [
+                    { 'stop': { $exists: true } },
+                    { 'stop.totalInactivitySecs': { $lt: 0 } }
+                  ]
+                }
+              },
+              { $addFields: { 'errorCode': 'negative_inactivity' } }
+            ],
+          'incorrect_starting_date':
+            [
+              { $match: { 'timestamp': { $lte: Utils.convertToDate('2017-01-01 00:00:00.000Z') } } },
+              { $addFields: { 'errorCode': 'incorrect_starting_date' } }
+            ]
+        }
     };
     if (params.errorType && Array.isArray(params.errorType) && params.errorType.length > 0) {
       const filteredFacets: any = Object.keys(facets.$facet)
@@ -602,7 +618,10 @@ export default class TransactionStorage {
     });
     // Read DB
     const transactionsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, {
+        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
+        allowDiskUse: true
+      })
       .toArray();
     // Set
     const transactions = [];
@@ -617,7 +636,10 @@ export default class TransactionStorage {
       }
     }
     // Debug
-    Logging.traceEnd('TransactionStorage', 'getTransactionsInError', uniqueTimerID, { params, dbParams });
+    Logging.traceEnd('TransactionStorage', 'getTransactionsInError', uniqueTimerID, {
+      params,
+      dbParams
+    });
     // Ok
     return {
       count: (transactionCountMDB ? (transactionCountMDB.count === Constants.DB_RECORD_COUNT_CEIL ? -1 : transactionCountMDB.count) : 0),
@@ -721,7 +743,10 @@ export default class TransactionStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd('TransactionStorage', 'getActiveTransaction', uniqueTimerID, { chargeBoxID, connectorId });
+    Logging.traceEnd('TransactionStorage', 'getActiveTransaction', uniqueTimerID, {
+      chargeBoxID,
+      connectorId
+    });
     // Found?
     if (transactionsMDB && transactionsMDB.length > 0) {
       return new Transaction(tenantID, transactionsMDB[0]);
@@ -750,7 +775,10 @@ export default class TransactionStorage {
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd('TransactionStorage', 'getLastTransaction', uniqueTimerID, { chargeBoxID, connectorId });
+    Logging.traceEnd('TransactionStorage', 'getLastTransaction', uniqueTimerID, {
+      chargeBoxID,
+      connectorId
+    });
     // Found?
     if (transactionsMDB && transactionsMDB.length > 0) {
       return new Transaction(tenantID, transactionsMDB[0]);
