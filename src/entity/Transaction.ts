@@ -17,22 +17,6 @@ export default class Transaction extends TenantHolder {
     Database.updateTransaction(transaction, this._model);
   }
 
-  // static getTransaction(tenantID, id) {
-  //   return TransactionStorage.getTransaction(tenantID, id);
-  // }
-
-  // static getTransactions(tenantID, filter, dbParams) {
-  //   return TransactionStorage.getTransactions(tenantID, filter, dbParams);
-  // }
-
-  // static getActiveTransaction(tenantID, chargeBoxID, connectorId) {
-  //   return TransactionStorage.getActiveTransaction(tenantID, chargeBoxID, connectorId);
-  // }
-
-  // static getLastTransaction(tenantID, chargeBoxID, connectorId) {
-  //   return TransactionStorage.getLastTransaction(tenantID, chargeBoxID, connectorId);
-  // }
-
   public getModel(): any {
     return this._model;
   }
