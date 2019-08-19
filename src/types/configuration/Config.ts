@@ -40,8 +40,8 @@ export default interface Config {
     protocol: string;
     host: string;
     port: number;
-    distEnabled: boolean;
-    distPath: string;
+    distEnabled?: boolean;
+    distPath?: string;
   };
   WSDLEndpoint: {
     baseUrl: string;
