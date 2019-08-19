@@ -63,21 +63,21 @@ export default class RegistrationTokenStorage {
 
     if (params.siteIDs && Array.isArray(params.siteIDs) && params.siteIDs.length > 0) {
       // Build filter
+<<<<<<< HEAD
       filters.push({
         'siteArea.siteID': {
           $in: params.siteIDs.map((site) => Utils.convertToObjectID(site))
         }
       });
+=======
+      filters['siteArea.siteID'] = {
+        $in: params.siteIDs
+      };
+>>>>>>> cafd96d9909e81418142af3f7e13168dfd36f988
     }
 
     // Create Aggregation
     const aggregation = [];
-    // Filters
-    if (filters) {
-      aggregation.push({
-        $match: filters
-      });
-    }
 
     DatabaseUtils.pushSiteAreaLookupInAggregation(
       {
@@ -88,6 +88,13 @@ export default class RegistrationTokenStorage {
         asField: 'siteArea',
         oneToOneCardinality: true
       });
+
+    // Filters
+    if (filters) {
+      aggregation.push({
+        $match: filters
+      });
+    }
 
     // Limit records?
     if (!dbParams.onlyRecordCount) {
