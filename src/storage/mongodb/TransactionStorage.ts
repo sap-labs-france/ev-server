@@ -88,9 +88,6 @@ export default class TransactionStorage {
     // Build filter
     const ownerMatch = { $or: [] };
     const filterMatch: any = {};
-    const match: any = {
-      $and: []
-    };
 
     // User / Site Admin
     if (params.userIDs) {
@@ -174,11 +171,19 @@ export default class TransactionStorage {
     // Create Aggregation
     const aggregation = [];
     // Filters
-    match.$and.push(ownerMatch);
-    match.$and.push(filterMatch);
-    aggregation.push({
-      $match: match
-    });
+    if (ownerMatch.$or && ownerMatch.$or.length > 0) {
+      aggregation.push({
+        $match: {
+          $and: [
+            ownerMatch, filterMatch
+          ]
+        }
+      });
+    } else {
+      aggregation.push({
+        $match: filterMatch
+      });
+    }
     // Charger?
     if (params.withChargeBoxes) {
       // Add Charge Box
@@ -390,64 +395,82 @@ export default class TransactionStorage {
     const aggregation = [];
     const toSubRequests = [];
     // Build filter
-    const match: any = {};
+    const ownerMatch = { $or: [] };
+    const filterMatch: any = {};
+
+    // User / Site Admin
+    if (params.userIDs) {
+      ownerMatch.$or.push({
+        userID: {
+          $in: params.userIDs.map((user) => Utils.convertToObjectID(user))
+        }
+      });
+    }
+    if (params.siteAdminIDs) {
+      ownerMatch.$or.push({
+        siteID: {
+          $in: params.siteAdminIDs.map((siteID) => Utils.convertToObjectID(siteID))
+        }
+      });
+    }
     // Filter?
     if (params.search) {
       // Build filter
-      match.$or = [
+      filterMatch.$or = [
         { '_id': parseInt(params.search) },
         { 'tagID': { $regex: params.search, $options: 'i' } },
         { 'chargeBoxID': { $regex: params.search, $options: 'i' } }
       ];
     }
-    // User
-    if (params.userIDs) {
-      match.userID = {
-        $in: params.userIDs.map((user) => {
-          return Utils.convertToObjectID(user);
-        })
-      };
-    }
     // Charge Box
     if (params.chargeBoxIDs) {
-      match.chargeBoxID = { $in: params.chargeBoxIDs };
+      filterMatch.chargeBoxID = { $in: params.chargeBoxIDs };
     }
     // Connector
     if (params.connectorId) {
-      match.connectorId = Utils.convertToInt(params.connectorId);
+      filterMatch.connectorId = Utils.convertToInt(params.connectorId);
     }
     // Date provided?
     if (params.startDateTime || params.endDateTime) {
-      match.timestamp = {};
+      filterMatch.timestamp = {};
     }
     // Start date
     if (params.startDateTime) {
-      match.timestamp.$gte = Utils.convertToDate(params.startDateTime);
+      filterMatch.timestamp.$gte = Utils.convertToDate(params.startDateTime);
     }
     // End date
     if (params.endDateTime) {
-      match.timestamp.$lte = Utils.convertToDate(params.endDateTime);
+      filterMatch.timestamp.$lte = Utils.convertToDate(params.endDateTime);
     }
     if (params.siteAreaIDs) {
-      match.siteAreaID = {
+      filterMatch.siteAreaID = {
         $in: params.siteAreaIDs.map((area) => {
           return Utils.convertToObjectID(area);
         })
       };
     }
     if (params.siteID) {
-      match.siteID = {
+      filterMatch.siteID = {
         $in: params.siteID.map((site) => {
           return Utils.convertToObjectID(site);
         })
       };
     }
-    // Filters
-    if (match) {
+
+    if (ownerMatch.$or && ownerMatch.$or.length > 0) {
       aggregation.push({
-        $match: match
+        $match: {
+          $and: [
+            ownerMatch, filterMatch
+          ]
+        }
+      });
+    } else {
+      aggregation.push({
+        $match: filterMatch
       });
     }
+
     // Transaction Duration Secs
     toSubRequests.push({
       $addFields: {
