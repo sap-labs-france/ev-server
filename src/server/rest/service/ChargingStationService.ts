@@ -357,8 +357,7 @@ export default class ChargingStationService {
     } else {
       req.query.ErrorType = req.query.ErrorType.split('|');
     }
-    const chargingStationsInError = await ChargingStationService.handleGetChargingStations(action, req, res, next);
-    return chargingStationsInError;
+    return await ChargingStationService.handleGetChargingStations(action, req, res, next);
   }
 
   public static async handleGetStatusNotifications(action: string, req: Request, res: Response, next: NextFunction) {
