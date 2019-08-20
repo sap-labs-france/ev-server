@@ -1,11 +1,8 @@
 import Constants from '../../utils/Constants';
-import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
-import DbLookup from '../../types/database/DbLookup';
 import DbParams from '../../types/database/DbParams';
 import global from './../../types/GlobalType';
 import Logging from '../../utils/Logging';
-import PricingStorage from './PricingStorage';
 import Transaction from '../../types/Transaction';
 import Utils from '../../utils/Utils';
 
@@ -118,7 +115,7 @@ export default class TransactionStorage {
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactionYears');
     // Check
     await Utils.checkTenant(tenantID);
-    const firstTransactionsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
+    const firstTransactionsMDB = await global.database.getCollection<Transaction>(tenantID, 'transactions')
       .find({})
       .sort({ timestamp: 1 })
       .limit(1)
@@ -139,10 +136,10 @@ export default class TransactionStorage {
   }
 
   public static async getTransactions(tenantID: string,
-    params: { transactionId?: number; search?: string; userIDs?: string[]; chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteID?: string;
-      connectorId?: number; startTime?: Date; endTime?: Date; stop?: any; refundType?: 'refunded'|'notRefunded'; minimalPrice?: boolean;
+    params: { transactionId?: number; search?: string; userIDs?: string[]; siteAdminIDs?: string[]; chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteID?: string;
+      connectorId?: number; startDateTime?: Date; endDateTime?: Date; stop?: any; refundType?: 'refunded'|'notRefunded'; minimalPrice?: boolean;
       withChargeBoxes?: boolean; statistics?: 'refund'|'history'; refundStatus?: string;
-      errorType?: ('negative_inactivity'|'average_consumption_greater_than_connector_capacity'|'no_consumption')[]; }, // TODO change the any
+      errorType?: ('negative_inactivity'|'average_consumption_greater_than_connector_capacity'|'no_consumption')[]; },
     dbParams: DbParams, projectFields?: string[]):
     Promise<{count: number; stats: {
       totalConsumptionWattHours?: number;
@@ -187,7 +184,7 @@ export default class TransactionStorage {
 
     // Filter?
     if (params.transactionId) {
-      match._id = params.transactionId;
+      filterMatch._id = params.transactionId;
     } else if (params.search) {
       // Build filter
       filterMatch.$or = [
@@ -227,7 +224,7 @@ export default class TransactionStorage {
     }
     if (params.siteID) {
       filterMatch.siteID = {
-        $in: params.siteID.map((site) => Utils.convertToObjectID(site))
+        $in: Utils.convertToObjectID(params.siteID)
       };
     }
     if (params.refundType && Array.isArray(params.refundType) && params.refundType.length === 1) {
@@ -436,291 +433,7 @@ export default class TransactionStorage {
     return {
       count: transactionCountMDB ? (transactionCountMDB.count === Constants.DB_RECORD_COUNT_CEIL ? -1 : transactionCountMDB.count) : 0,
       stats: transactionCountMDB ? transactionCountMDB : {},
-      result: transactions
-    };
-  }
-
-  static async getTransactionsInError(tenantID, params: any = {}, dbParams: DbParams) {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactionsInError');
-    // Check
-    await Utils.checkTenant(tenantID);
-    const pricing = await PricingStorage.getPricing(tenantID);
-
-    // Check Limit
-    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
-    // Check Skip
-    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
-    // Create Aggregation
-    const aggregation = [];
-    const toSubRequests = [];
-    // Build filter
-    const ownerMatch = { $or: [] };
-    const filterMatch: any = {};
-
-    // User / Site Admin
-    if (params.userIDs) {
-      ownerMatch.$or.push({
-        userID: {
-          $in: params.userIDs.map((user) => Utils.convertToObjectID(user))
-        }
-      });
-    }
-    if (params.siteAdminIDs) {
-      ownerMatch.$or.push({
-        siteID: {
-          $in: params.siteAdminIDs.map((siteID) => Utils.convertToObjectID(siteID))
-        }
-      });
-    }
-    // Filter?
-    if (params.search) {
-      // Build filter
-      filterMatch.$or = [
-        { '_id': parseInt(params.search) },
-        { 'tagID': { $regex: params.search, $options: 'i' } },
-        { 'chargeBoxID': { $regex: params.search, $options: 'i' } }
-      ];
-    }
-    // Charge Box
-    if (params.chargeBoxIDs) {
-      filterMatch.chargeBoxID = { $in: params.chargeBoxIDs };
-    }
-    // Connector
-    if (params.connectorId) {
-      filterMatch.connectorId = Utils.convertToInt(params.connectorId);
-    }
-    // Date provided?
-    if (params.startDateTime || params.endDateTime) {
-      filterMatch.timestamp = {};
-    }
-    // Start date
-    if (params.startDateTime) {
-      filterMatch.timestamp.$gte = Utils.convertToDate(params.startDateTime);
-    }
-    // End date
-    if (params.endDateTime) {
-      filterMatch.timestamp.$lte = Utils.convertToDate(params.endDateTime);
-    }
-    if (params.siteAreaIDs) {
-      filterMatch.siteAreaID = {
-        $in: params.siteAreaIDs.map((area) => Utils.convertToObjectID(area))
-      };
-    }
-    if (params.siteID) {
-      filterMatch.siteID = {
-        $in: params.siteID.map((site) => Utils.convertToObjectID(site))
-      };
-    }
-
-    if (ownerMatch.$or && ownerMatch.$or.length > 0) {
-      aggregation.push({
-        $match: {
-          $and: [
-            ownerMatch, filterMatch
-          ]
-        }
-      });
-    } else {
-      aggregation.push({
-        $match: filterMatch
-      });
-    }
-
-    // Transaction Duration Secs
-    toSubRequests.push({
-      $addFields: {
-        'totalDurationSecs': { $divide: [{ $subtract: ['$stop.timestamp', '$timestamp'] }, 1000] },
-        'idAsString': { $substr: ['$_id', 0, -1] }
-      }
-    });
-    // Charger?
-    if (params.withChargeBoxes) {
-      // Add Charge Box
-      toSubRequests.push({
-        $lookup: {
-          from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
-          localField: 'chargeBoxID',
-          foreignField: '_id',
-          as: 'chargeBox'
-        }
-      });
-      // Single Record
-      toSubRequests.push({
-        $unwind: { 'path': '$chargeBox', 'preserveNullAndEmptyArrays': true }
-      });
-    }
-    // Add User that started the transaction
-    toSubRequests.push({
-      $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
-        localField: 'userID',
-        foreignField: '_id',
-        as: 'user'
-      }
-    });
-    // Single Record
-    toSubRequests.push({
-      $unwind: { 'path': '$user', 'preserveNullAndEmptyArrays': true }
-    });
-    // Add User that stopped the transaction
-    toSubRequests.push({
-      $lookup: {
-        from: DatabaseUtils.getCollectionName(tenantID, 'users'),
-        localField: 'stop.userID',
-        foreignField: '_id',
-        as: 'stop.user'
-      }
-    });
-    // Single Record
-    toSubRequests.push({
-      $unwind: { 'path': '$stop.user', 'preserveNullAndEmptyArrays': true }
-    });
-
-    const facets = {
-      '$facet':
-        {
-          'no_consumption':
-            [
-              {
-                $match: {
-                  $and: [
-                    { 'stop': { $exists: true } },
-                    { 'stop.totalConsumption': { $lte: 0 } }
-                  ]
-                }
-              },
-              { $addFields: { 'errorCode': 'no_consumption' } }
-            ],
-          'average_consumption_greater_than_connector_capacity':
-            [
-              { $match: { 'stop': { $exists: true } } },
-              { $addFields: { activeDuration: { $subtract: ['$stop.totalDurationSecs', '$stop.totalInactivitySecs'] } } },
-              { $match: { 'activeDuration': { $gt: 0 } } },
-              {
-                $lookup: {
-                  'from': DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
-                  'localField': 'chargeBoxID',
-                  'foreignField': '_id',
-                  'as': 'chargeBox'
-                }
-              },
-              { $unwind: { 'path': '$chargeBox', 'preserveNullAndEmptyArrays': true } },
-              { $addFields: { connector: { $arrayElemAt: ['$chargeBox.connectors', { $subtract: ['$connectorId', 1] }] } } },
-              { $addFields: { averagePower: { $multiply: [{ $divide: ['$stop.totalConsumption', '$activeDuration'] }, 3600] } } },
-              { $addFields: { impossiblePower: { $lte: [{ $subtract: ['$connector.power', '$averagePower'] }, 0] } } },
-              { $match: { 'impossiblePower': { $eq: true } } },
-              { $addFields: { 'errorCode': 'average_consumption_greater_than_connector_capacity' } }
-            ],
-          'negative_inactivity':
-            [
-              {
-                $match: {
-                  $and: [
-                    { 'stop': { $exists: true } },
-                    { 'stop.totalInactivitySecs': { $lt: 0 } }
-                  ]
-                }
-              },
-              { $addFields: { 'errorCode': 'negative_inactivity' } }
-            ],
-          'incorrect_starting_date':
-            [
-              { $match: { 'timestamp': { $lte: Utils.convertToDate('2017-01-01 00:00:00.000Z') } } },
-              { $addFields: { 'errorCode': 'incorrect_starting_date' } }
-            ]
-        }
-    };
-    if (params.errorType && Array.isArray(params.errorType) && params.errorType.length > 0) {
-      const filteredFacets: any = Object.keys(facets.$facet)
-        .filter((key) => params.errorType.includes(key))
-        .reduce((obj, key) => ({
-          ...obj,
-          [key]: facets.$facet[key]
-        }), {});
-      facets.$facet = filteredFacets;
-    }
-    // Merge in each facet the join for sitearea and siteareaid
-    const facetNames = [];
-    for (const facet in facets.$facet) {
-      facets.$facet[facet] = [...facets.$facet[facet], ...toSubRequests];
-      facetNames.push(`$${facet}`);
-    }
-    aggregation.push(facets);
-    // Manipulate the results to convert it to an array of document on root level
-    aggregation.push({ $project: { 'allItems': { $concatArrays: facetNames } } });
-    aggregation.push({ $unwind: { 'path': '$allItems' } });
-    aggregation.push({ $replaceRoot: { newRoot: '$allItems' } });
-    // Add a unique identifier as we may have the same charger several time
-    aggregation.push({ $addFields: { 'uniqueId': { $concat: ['$idAsString', '#', '$errorCode'] } } });
-    // Limit records?
-    if (!dbParams.onlyRecordCount) {
-      // Always limit the nbr of record to avoid perfs issues
-      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
-    }
-    // Count Records
-    const transactionsCountMDB = await global.database.getCollection<any>(tenantID, 'transactions')
-      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
-      .toArray();
-    // Check if only the total count is requested
-    const transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ? transactionsCountMDB[0] : null;
-    if (dbParams.onlyRecordCount) {
-      // Return only the count
-      return {
-        count: (transactionCountMDB ? transactionCountMDB.count : 0),
-        result: []
-      };
-    }
-    // Remove the limit
-    aggregation.pop();
-    // Sort
-    if (dbParams.sort) {
-      // Sort
-      aggregation.push({
-        $sort: dbParams.sort
-      });
-    } else {
-      // Default
-      aggregation.push({
-        $sort: { timestamp: -1 }
-      });
-    }
-    // Skip
-    aggregation.push({
-      $skip: dbParams.skip
-    });
-    // Limit
-    aggregation.push({
-      $limit: dbParams.limit
-    });
-    // Read DB
-    const transactionsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
-      .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
-        allowDiskUse: true
-      })
-      .toArray();
-    // Set
-    const transactions = [];
-    // Create
-    if (transactionsMDB && transactionsMDB.length > 0) {
-      // Create
-      for (const transactionMDB of transactionsMDB) {
-        const transaction = new Transaction(tenantID, { ...transactionMDB, pricing: pricing });
-        transaction.getModel().errorCode = transactionMDB.errorCode;
-        transaction.getModel().uniqueId = transactionMDB.uniqueId;
-        transactions.push(transaction);
-      }
-    }
-    // Debug
-    Logging.traceEnd('TransactionStorage', 'getTransactionsInError', uniqueTimerID, {
-      params,
-      dbParams
-    });
-    // Ok
-    return {
-      count: (transactionCountMDB ? (transactionCountMDB.count === Constants.DB_RECORD_COUNT_CEIL ? -1 : transactionCountMDB.count) : 0),
-      result: transactions
+      result: transactionsMDB
     };
   }
 
@@ -761,7 +474,7 @@ export default class TransactionStorage {
     // Rename ID
     DatabaseUtils.renameField(aggregation, '_id', 'id');
     // Read DB
-    const transactionsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
+    const transactionsMDB = await global.database.getCollection<Transaction>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
@@ -771,7 +484,7 @@ export default class TransactionStorage {
     });
     // Found?
     if (transactionsMDB && transactionsMDB.length > 0) {
-      return new transactionsMDB[0];
+      return transactionsMDB[0];
     }
     return null;
   }
@@ -791,9 +504,9 @@ export default class TransactionStorage {
     });
     aggregation.push({ $sort: { timestamp: -1 } });
     // The last one
-    aggregation.push({ $limit: 1 }); // TODO Use getTransactions so that I dont need to query charging stations etc here as well oof
+    aggregation.push({ $limit: 1 }); // TODO: Use getTransactions()
     // Read DB
-    const transactionsMDB = await global.database.getCollection<any>(tenantID, 'transactions')
+    const transactionsMDB = await global.database.getCollection<Transaction>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
@@ -808,7 +521,7 @@ export default class TransactionStorage {
     return null;
   }
 
-  public static async _findAvailableID(tenantID: string): Promise<number> { // TODO ...Why not just increment it??
+  public static async _findAvailableID(tenantID: string): Promise<number> { // TODO: Why not just increment it??
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', '_findAvailableID');
     // Check
