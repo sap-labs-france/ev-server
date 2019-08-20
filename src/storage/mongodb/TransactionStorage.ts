@@ -1,6 +1,7 @@
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
+import DbTcParams from '../../types/database/DbTcParams';
 import global from './../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Transaction from '../../types/Transaction';
@@ -135,25 +136,20 @@ export default class TransactionStorage {
     return transactionYears;
   }
 
-  public static async getTransactions(tenantID: string,
-    params: { transactionId?: number; search?: string; userIDs?: string[]; siteAdminIDs?: string[]; chargeBoxIDs?: string[]; siteAreaIDs?: string[]; siteID?: string;
-      connectorId?: number; startDateTime?: Date; endDateTime?: Date; stop?: any; refundType?: 'refunded'|'notRefunded'; minimalPrice?: boolean;
-      withChargeBoxes?: boolean; statistics?: 'refund'|'history'; refundStatus?: string;
-      errorType?: ('negative_inactivity'|'average_consumption_greater_than_connector_capacity'|'no_consumption')[]; },
-    dbParams: DbParams, projectFields?: string[]):
-    Promise<{count: number; stats: {
-      totalConsumptionWattHours?: number;
-      totalPriceRefund?: number;
-      totalPricePending?: number;
-      countRefundTransactions?: number;
-      countPendingTransactions?: number;
-      countRefundedReports?: number;
-      totalDurationSecs?: number;
-      totalPrice?: number;
-      currency?: string;
-      totalInactivitySecs?: number;
-      count: number;
-    }; result: Transaction[]; }> {
+  public static async getTransactions(tenantID: string, params: DbTcParams, dbParams: DbParams, projectFields?: string[]):
+  Promise<{count: number; stats: {
+    totalConsumptionWattHours?: number;
+    totalPriceRefund?: number;
+    totalPricePending?: number;
+    countRefundTransactions?: number;
+    countPendingTransactions?: number;
+    countRefundedReports?: number;
+    totalDurationSecs?: number;
+    totalPrice?: number;
+    currency?: string;
+    totalInactivitySecs?: number;
+    count: number;
+  }; result: Transaction[]; }> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactions');
     // Check

@@ -59,7 +59,7 @@ export default class TenantStorage {
     };
     DatabaseUtils.addLastChangedCreatedProps(tenantMDB, tenantToSave);
     // Modify
-    const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants').findOneAndUpdate(
+    const result = await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenants').findOneAndUpdate(
       tenantFilter,
       { $set: tenantMDB },
       { upsert: true, returnOriginal: false });
@@ -172,7 +172,7 @@ export default class TenantStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'deleteTenant');
     // Delete
-    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants')
+    await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenants')
       .findOneAndDelete({
         '_id': Utils.convertToObjectID(id)
       });
