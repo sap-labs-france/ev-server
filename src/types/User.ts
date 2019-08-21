@@ -31,6 +31,7 @@ export default interface User extends CreatedUpdatedProps {
   passwordBlockedUntil: Date;
   verificationToken?: string;
   verifiedAt?: Date;
+  errorCode?: string;
 
   tagIDs?: string[];
 }

@@ -680,7 +680,7 @@ export default class UserStorage {
         '$facet': {
           'unactive_users': [
             { $match: { status: { $in: [Constants.USER_STATUS_BLOCKED, Constants.USER_STATUS_INACTIVE, Constants.USER_STATUS_LOCKED, Constants.USER_STATUS_PENDING] } } },
-            { $addFields : { 'error_code' : 'unactive_users' } },
+            { $addFields : { 'errorCode' : 'unactive_users' } },
           ],
           'unassigned_users': [
             { $match : { status: Constants.USER_STATUS_ACTIVE }},
@@ -692,7 +692,7 @@ export default class UserStorage {
               }
             },
             { $match : { sites: { $size: 0 } } },
-            { $addFields : { 'error_code' : 'unassigned_users' } },
+            { $addFields : { 'errorCode' : 'unassigned_users' } },
           ]
         }
       });
@@ -703,7 +703,7 @@ export default class UserStorage {
         '$facet': {
           'unactive_users': [
             { $match: { status: { $in: [Constants.USER_STATUS_BLOCKED, Constants.USER_STATUS_INACTIVE, Constants.USER_STATUS_LOCKED, Constants.USER_STATUS_PENDING] } } },
-            { $addFields : { 'error_code' : 'unactive_users' } },
+            { $addFields : { 'errorCode' : 'unactive_users' } },
           ]
         }
       });
@@ -719,6 +719,14 @@ export default class UserStorage {
     const usersCountMDB = await global.database.getCollection<any>(tenantID, 'users')
       .aggregate([...pipeline, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
+    // Check if only the total count is requested
+    if (onlyRecordCount) {
+      // Return only the count
+      return {
+        count: (usersCountMDB.length > 0 ? usersCountMDB[0].count : 0),
+        result: []
+      };
+    }
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, pipeline);
     // Mongodb sort, skip and limit block
