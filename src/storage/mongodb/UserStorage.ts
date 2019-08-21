@@ -680,7 +680,7 @@ export default class UserStorage {
         '$facet': {
           'unactive_users': [
             { $match: { status: { $in: [Constants.USER_STATUS_BLOCKED, Constants.USER_STATUS_INACTIVE, Constants.USER_STATUS_LOCKED, Constants.USER_STATUS_PENDING] } } },
-            { $addFields : { 'error_code' : 'unactive_users' } },
+            { $addFields : { 'errorCode' : 'unactive_users' } },
           ],
           'unassigned_users': [
             { $match : { status: Constants.USER_STATUS_ACTIVE }},
@@ -692,7 +692,7 @@ export default class UserStorage {
               }
             },
             { $match : { sites: { $size: 0 } } },
-            { $addFields : { 'error_code' : 'unassigned_users' } },
+            { $addFields : { 'errorCode' : 'unassigned_users' } },
           ]
         }
       });
@@ -703,7 +703,7 @@ export default class UserStorage {
         '$facet': {
           'unactive_users': [
             { $match: { status: { $in: [Constants.USER_STATUS_BLOCKED, Constants.USER_STATUS_INACTIVE, Constants.USER_STATUS_LOCKED, Constants.USER_STATUS_PENDING] } } },
-            { $addFields : { 'error_code' : 'unactive_users' } },
+            { $addFields : { 'errorCode' : 'unactive_users' } },
           ]
         }
       });
