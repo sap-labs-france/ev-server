@@ -568,6 +568,18 @@ export default class TransactionStorage {
               },
               { $addFields: { 'errorCode': 'negative_inactivity' } }
             ],
+          'negative_duration':
+            [
+              {
+                $match: {
+                  $and: [
+                    { 'stop': { $exists: true } },
+                    { 'stop.totalDurationSecs': { $lt: 0 } }
+                  ]
+                }
+              },
+              { $addFields: { 'errorCode': 'negative_duration' } }
+            ],
           'incorrect_starting_date':
             [
               { $match: { 'timestamp': { $lte: Utils.convertToDate('2017-01-01 00:00:00.000Z') } } },
@@ -650,7 +662,6 @@ export default class TransactionStorage {
     const transactions = [];
     // Create
     if (transactionsMDB && transactionsMDB.length > 0) {
-      // Create
       for (const transactionMDB of transactionsMDB) {
         const transaction = new Transaction(tenantID, { ...transactionMDB, pricing: pricing });
         transaction.getModel().errorCode = transactionMDB.errorCode;

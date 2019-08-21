@@ -96,13 +96,6 @@ export default class TransactionSecurity {
     return filteredRequest;
   }
 
-  // Transaction
-  /**
-   *
-   * @param transaction {Transaction}
-   * @param loggedUser
-   * @returns {*}
-   */
   static filterTransactionResponse(transaction, loggedUser: UserToken) {
     let filteredTransaction;
 
@@ -125,14 +118,12 @@ export default class TransactionSecurity {
       filteredTransaction.meterStart = transaction.getMeterStart();
       filteredTransaction.timestamp = transaction.getStartDate();
       filteredTransaction.timezone = transaction.getTimezone();
-      // If (Authorizations.isAdmin(loggedUser) && transaction.getModel().hasOwnProperty('price')) {
       if (transaction.hasStartPrice()) {
         filteredTransaction.price = transaction.getStartPrice();
         filteredTransaction.roundedPrice = transaction.getStartRoundedPrice();
         filteredTransaction.priceUnit = transaction.getStartPriceUnit();
         filteredTransaction.pricingSource = transaction.getStartPricingSource();
       }
-      // Runtime Data
       if (transaction.isActive()) {
         filteredTransaction.currentConsumption = transaction.getCurrentConsumption();
         filteredTransaction.currentTotalConsumption = transaction.getCurrentTotalConsumption();
