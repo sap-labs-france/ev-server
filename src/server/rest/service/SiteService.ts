@@ -380,7 +380,7 @@ export default class SiteService {
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      ['id', 'name', 'address.latitude', 'address.longitude', 'address.city', 'address.country', 'company.name',
+      ['id', 'name', 'address.latitude', 'address.longitude', 'address.city', 'address.country', 'companyID', 'company.name',
         'autoUserSiteAssignment']
     );
     // Build the result
