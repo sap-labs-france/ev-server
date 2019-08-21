@@ -12,9 +12,9 @@ import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Site, { SiteUser } from '../../types/Site';
 import Tag from '../../types/Tag';
+import TenantStorage from './TenantStorage';
 import User from '../../types/User';
 import Utils from '../../utils/Utils';
-import TenantStorage from './TenantStorage';
 
 export default class UserStorage {
 
@@ -606,7 +606,7 @@ export default class UserStorage {
   }
 
   public static async getUsersInError(tenantID: string,
-    params: {search?: string; roles?: string[]; },
+    params: {search?: string; roles?: string[] },
     { limit, skip, onlyRecordCount, sort }: DbParams) {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
@@ -619,9 +619,9 @@ export default class UserStorage {
     // Mongodb pipeline creation
     const pipeline = [];
     // Mongodb filter block ($match)
-    const match: any = { '$and': [{ '$or': DatabaseUtils.getNotDeletedFilter() }]};
+    const match: any = { '$and': [{ '$or': DatabaseUtils.getNotDeletedFilter() }] };
     if (params.roles) {
-      match.$and.push({ role: { '$in': params.roles }})
+      match.$and.push({ role: { '$in': params.roles } });
     }
     if (params.search) {
       // Search is an ID?
@@ -650,7 +650,7 @@ export default class UserStorage {
         as: 'tagIDs'
       }
     });
-  // Mongodb adding common fields
+    // Mongodb adding common fields
     pipeline.push({
       $addFields: {
         tagIDs: {
@@ -665,7 +665,7 @@ export default class UserStorage {
     // Mongodb facets block
     // If the organization component is active the system looks for non active users or active users that
     // are not assigned yet to at least one site.
-    // If the organization component is not active then the system just looks for non active users.    
+    // If the organization component is not active then the system just looks for non active users.
     if (Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), Constants.COMPONENTS.ORGANIZATION)) {
       pipeline.push({
         '$facet': {
@@ -674,13 +674,13 @@ export default class UserStorage {
             { $addFields : { 'error_code' : 'unactive_users' } },
           ],
           'unassigned_users': [
-            { $match : { status: Constants.USER_STATUS_ACTIVE }},
+            { $match : { status: Constants.USER_STATUS_ACTIVE } },
             { $lookup : {
-                from : DatabaseUtils.getCollectionName(tenantID, 'siteusers'),
-                localField : '_id',
-                foreignField : 'userID',
-                as : 'sites'
-              }
+              from : DatabaseUtils.getCollectionName(tenantID, 'siteusers'),
+              localField : '_id',
+              foreignField : 'userID',
+              as : 'sites'
+            }
             },
             { $match : { sites: { $size: 0 } } },
             { $addFields : { 'error_code' : 'unassigned_users' } },
@@ -688,7 +688,7 @@ export default class UserStorage {
         }
       });
       // Take out the facet names from the result
-      pipeline.push({ $project: { 'allItems': { $concatArrays: ['$unactive_users','$unassigned_users'] }}});
+      pipeline.push({ $project: { 'allItems': { $concatArrays: ['$unactive_users','$unassigned_users'] } } });
     } else {
       pipeline.push({
         '$facet': {
@@ -699,11 +699,11 @@ export default class UserStorage {
         }
       });
       // Take out the facet name from the result
-      pipeline.push({ $project: { 'allItems': { $concatArrays: ['$unactive_users'] }}});
+      pipeline.push({ $project: { 'allItems': { $concatArrays: ['$unactive_users'] } } });
     }
     // Finish the preparation of the result
     pipeline.push({ $unwind: { 'path': '$allItems' } });
-    pipeline.push({ $replaceRoot: { newRoot: '$allItems' }});
+    pipeline.push({ $replaceRoot: { newRoot: '$allItems' } });
     // Change ID
     DatabaseUtils.renameDatabaseID(pipeline);
     // Count Records
@@ -742,7 +742,7 @@ export default class UserStorage {
     // Debug
     Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID, { params, limit, skip, sort });
     // Ok
-      return {
+    return {
       count: (usersCountMDB.length > 0 ?
         (usersCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : usersCountMDB[0].count) : 0),
       result: usersMDB
