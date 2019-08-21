@@ -17,6 +17,7 @@ export default class RegistrationTokenStorage {
     // Set
     const registrationTokenMDB = {
       _id: !registrationToken.id ? new ObjectID() : Utils.convertToObjectID(registrationToken.id),
+      description: registrationToken.description,
       siteAreaID: registrationToken.siteAreaID ? Utils.convertToObjectID(registrationToken.siteAreaID) : null,
       expirationDate: registrationToken.expirationDate,
       revocationDate: registrationToken.revocationDate
