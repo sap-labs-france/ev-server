@@ -48,6 +48,7 @@ export default class RegistrationTokenService {
       }
       const registrationToken: RegistrationToken = {
         siteAreaID: filteredRequest.siteAreaID,
+        description: filteredRequest.description,
         expirationDate: filteredRequest.expirationDate ? filteredRequest.expirationDate : moment().add(1, 'days').toDate(),
         createdBy: { id: req.user.id },
         createdOn: new Date()

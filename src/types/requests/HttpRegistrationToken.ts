@@ -2,6 +2,7 @@ import HttpDatabaseRequest from './HttpDatabaseRequest';
 import RegistrationToken from '../RegistrationToken';
 
 export interface HttpRegistrationTokenRequest {
+  description: string;
   siteAreaID: string;
   expirationDate: Date;
 }
