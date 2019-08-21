@@ -719,6 +719,14 @@ export default class UserStorage {
     const usersCountMDB = await global.database.getCollection<any>(tenantID, 'users')
       .aggregate([...pipeline, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
+    // Check if only the total count is requested
+    if (onlyRecordCount) {
+      // Return only the count
+      return {
+        count: (usersCountMDB.length > 0 ? usersCountMDB[0].count : 0),
+        result: []
+      };
+    }
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, pipeline);
     // Mongodb sort, skip and limit block
