@@ -543,7 +543,7 @@ export default class TransactionStorage {
   }
 
   private static _filterTransactionsInErrorFacets(tenantID: string,
-    errorType?: ('negative_inactivity'|'average_consumption_greater_than_connector_capacity'|'no_consumption')[]) {
+    errorType?: ('negative_inactivity'|'negative_duration'|'average_consumption_greater_than_connector_capacity'|'incorrect_starting_date'|'no_consumption')[]) {
     const facets = {
       '$facet':
       {
