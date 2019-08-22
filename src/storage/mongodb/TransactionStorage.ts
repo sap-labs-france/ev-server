@@ -572,6 +572,18 @@ export default class TransactionStorage {
             },
             { $addFields: { 'errorCode': 'negative_inactivity' } }
           ],
+        'negative_duration':
+            [
+              {
+                $match: {
+                  $and: [
+                    { 'stop': { $exists: true } },
+                    { 'stop.totalDurationSecs': { $lt: 0 } }
+                  ]
+                }
+              },
+              { $addFields: { 'errorCode': 'negative_duration' } }
+            ],
         'incorrect_starting_date':
           [
             { $match: { 'timestamp': { $lte : Utils.convertToDate('2017-01-01 00:00:00.000Z') } } },

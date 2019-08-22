@@ -20,6 +20,7 @@ import UserService from './service/UserService';
 import UtilsService from './service/UtilsService';
 import VehicleManufacturerService from './service/VehicleManufacturerService';
 import VehicleService from './service/VehicleService';
+
 class RequestMapper {
   private static instances = new Map<string, RequestMapper>();
 

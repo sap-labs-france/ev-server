@@ -345,7 +345,7 @@ export default class OCPPService {
       await this._stopOrDeleteActiveTransactions(
         tenantID, chargingStation.id, statusNotification.connectorId);
       // Clean up connector
-      await OCPPUtils.checkAndFreeChargingStationConnector(tenantID, chargingStation, statusNotification.connectorId, true);
+      OCPPUtils.checkAndFreeChargingStationConnector(tenantID, chargingStation, statusNotification.connectorId, true);
     }
   }
 
@@ -1034,7 +1034,7 @@ export default class OCPPService {
       }
       // Check Org
       const tenant = await TenantStorage.getTenant(headers.tenantID);
-      const isOrgCompActive = await Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.ORGANIZATION);
+      const isOrgCompActive = Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.ORGANIZATION);
       if (isOrgCompActive) {
         // Set the Site Area ID
         startTransaction.siteAreaID = chargingStation.siteAreaID;
@@ -1293,7 +1293,7 @@ export default class OCPPService {
           (alternateUser ? (user ? user : null) : null));
       }
       // Check and free the connector
-      await OCPPUtils.checkAndFreeChargingStationConnector(
+      OCPPUtils.checkAndFreeChargingStationConnector(
         headers.tenantID, chargingStation, transaction.connectorId, false);
       // Update Heartbeat
       chargingStation.lastHeartBeat = new Date();

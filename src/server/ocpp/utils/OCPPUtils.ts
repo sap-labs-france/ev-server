@@ -193,7 +193,7 @@ export default class OCPPUtils {
         // Check if there is an already existing config
         const existingConfiguration = await ChargingStationStorage.getConfiguration(tenantID, chargingStation.id);
         if (!existingConfiguration) {
-          // No config at all: Set default OCCP configuration
+          // No config at all: Set default OCPP configuration
           configuration = OCPPConstants.DEFAULT_OCPP_CONFIGURATION;
         } else {
           // Set default
