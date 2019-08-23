@@ -268,8 +268,8 @@ export default class TransactionService {
         {
           transactionId: transaction.getID(),
           idTag: req.user.tagIDs[0],
-          timestamp: transaction.getLastMeterValue().timestamp,
-          meterStop: transaction.getLastMeterValue().value
+          timestamp: transaction.getLastMeterValue() ? transaction.getLastMeterValue().timestamp : transaction.getStartDate(),
+          meterStop: transaction.getLastMeterValue().value ? transaction.getLastMeterValue().value : transaction.getMeterStart()
         },
         true);
       // Log
