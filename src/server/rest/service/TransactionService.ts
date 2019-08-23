@@ -311,7 +311,7 @@ export default class TransactionService {
       chargeBoxIDs: [chargingStation.id], connectorId: filteredRequest.ConnectorId,
       startDateTime: filteredRequest.StartDateTime, endDateTime: filteredRequest.EndDateTime,
       withChargeBoxes: true
-    }, Constants.DB_PARAMS_MAX_LIMIT);
+    }, { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
     // Filter
     TransactionSecurity.filterTransactionsResponse(transactions, req.user);
     // Return
