@@ -16,7 +16,6 @@ export default class SoapChargingStationClient extends ChargingStationClient {
   public envelope: any;
   public tagID: string;
   public connectorID: any;
-  public connectorId: any;
   public type: any;
   public keys: any;
   public key: any;
