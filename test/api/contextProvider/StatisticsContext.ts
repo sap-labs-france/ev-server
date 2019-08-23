@@ -69,8 +69,6 @@ export default class StatisticsContext {
           const endTime = startTime.clone().add(StatisticsContext.CONSTANTS.CHARGING_MINUTES + StatisticsContext.CONSTANTS.IDLE_MINUTES, 'minutes');
           response = await chargingStation.stopTransaction(transactionId, user.tagIDs[0], StatisticsContext.CONSTANTS.ENERGY_PER_MINUTE * StatisticsContext.CONSTANTS.CHARGING_MINUTES, endTime);
           expect(response).to.be.transactionStatus('Accepted');
-          response = await this.transactionUserService.transactionApi.readById(transactionId);
-          expect(response.status).to.eql(200);
         }
       }
     }

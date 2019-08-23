@@ -88,7 +88,7 @@ export default class TransactionSecurity {
     // Check auth
     if (Authorizations.canReadTransaction(loggedUser, transaction)) {
       // Set only necessary info
-      filteredTransaction = {};
+      filteredTransaction = {} as Transaction;
       filteredTransaction.id = transaction.id;
       if (transaction.errorCode) {
         filteredTransaction.uniqueId = transaction.uniqueId;
@@ -145,7 +145,6 @@ export default class TransactionSecurity {
         filteredTransaction.stop.totalDurationSecs = transaction.stop.totalDurationSecs;
         filteredTransaction.stop.stateOfCharge = transaction.stop.stateOfCharge;
         filteredTransaction.stop.signedData = transaction.stop.signedData;
-        // pragma if (Authorizations.isAdmin(loggedUser) && transaction.hasStopPrice()) {
         if (transaction.stop.price) {
           filteredTransaction.stop.price = transaction.stop.price;
           filteredTransaction.stop.roundedPrice = transaction.stop.roundedPrice;
@@ -240,7 +239,7 @@ export default class TransactionSecurity {
     if (!consumptions) {
       consumptions = [];
     }
-    // Check Authorisation
+    // Check Authorization
     if (transaction.user) {
       if (!Authorizations.canReadUser(loggedUser, transaction.userID)) {
         return null;

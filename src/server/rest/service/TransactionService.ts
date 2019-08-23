@@ -201,8 +201,8 @@ export default class TransactionService {
       {
         transactionId: transactionId,
         idTag: req.user.tagIDs[0],
-        timestamp: transaction.lastMeterValue.timestamp,
-        meterStop: transaction.lastMeterValue.value
+        timestamp: transaction.lastMeterValue ? transaction.lastMeterValue.timestamp : transaction.timestamp,
+        meterStop: transaction.lastMeterValue.value ? transaction.lastMeterValue.value : transaction.meterStart
       },
       true);
     // Log

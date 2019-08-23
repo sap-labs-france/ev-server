@@ -68,7 +68,6 @@ export default interface Transaction {
   currentTotalConsumption: number;
   currentSignedData?: number;
 
-
   uniqueId?: string;
   errorCode?: number;
 }

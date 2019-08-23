@@ -212,8 +212,11 @@ export default class Authorizations {
     });
   }
 
-  public static canDeleteChargingStation(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION, Constants.ACTION_DELETE);
+  public static canDeleteChargingStation(loggedUser: UserToken, siteID: string): boolean {
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION, Constants.ACTION_DELETE, {
+      'site': siteID,
+      'sites': loggedUser.sitesAdmin
+    });
   }
 
   public static canListUsers(loggedUser: UserToken): boolean {

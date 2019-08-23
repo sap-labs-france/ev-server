@@ -202,13 +202,13 @@ export default class ContextBuilder {
       await UserStorage.saveUserRole(buildTenant.id, user.id, userDef.role);
       await UserStorage.saveUserPassword(buildTenant.id, user.id, { password: newPasswordHashed });
       if (userDef.tagIDs) {
-        await UserStorage.saveUserTags(buildTenant.id, userDef.id, userDef.tagIDs);
+        await UserStorage.saveUserTags(buildTenant.id, user.id, userDef.tagIDs);
       }
+      const userModel = await UserStorage.getUser(buildTenant.id, user.id);
       if (userDef.assignedToSite) {
-        userListToAssign.push(user);
+        userListToAssign.push(userModel);
       }
       // Set back password to clear value for login/logout
-      const userModel = user;
       (userModel as any).passwordClear = config.get('admin.password'); // TODO?
       userList.push(userModel);
     }

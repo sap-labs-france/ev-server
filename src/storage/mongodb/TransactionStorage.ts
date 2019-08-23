@@ -14,7 +14,7 @@ export default class TransactionStorage {
     // Check
     await Utils.checkTenant(tenantID);
     // Delete
-    await global.database.getCollection<any>(tenantID, 'transactions')
+    await global.database.getCollection<Transaction>(tenantID, 'transactions')
       .findOneAndDelete({ '_id': transaction.id });
     // Delete Meter Values
     await global.database.getCollection<any>(tenantID, 'metervalues')
