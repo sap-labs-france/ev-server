@@ -17,6 +17,7 @@ export default class RegistrationTokenStorage {
     // Set
     const registrationTokenMDB = {
       _id: !registrationToken.id ? new ObjectID() : Utils.convertToObjectID(registrationToken.id),
+      description: registrationToken.description,
       siteAreaID: registrationToken.siteAreaID ? Utils.convertToObjectID(registrationToken.siteAreaID) : null,
       expirationDate: registrationToken.expirationDate,
       revocationDate: registrationToken.revocationDate
@@ -63,23 +64,13 @@ export default class RegistrationTokenStorage {
 
     if (params.siteIDs && Array.isArray(params.siteIDs) && params.siteIDs.length > 0) {
       // Build filter
-      filters.push({
-        'siteArea.siteID': {
-          $in: params.siteIDs.map((site) => {
-            return Utils.convertToObjectID(site);
-          })
-        }
-      });
+      filters['siteArea.siteID'] = {
+        $in: params.siteIDs
+      };
     }
 
     // Create Aggregation
     const aggregation = [];
-    // Filters
-    if (filters) {
-      aggregation.push({
-        $match: filters
-      });
-    }
 
     DatabaseUtils.pushSiteAreaLookupInAggregation(
       {
@@ -90,6 +81,13 @@ export default class RegistrationTokenStorage {
         asField: 'siteArea',
         oneToOneCardinality: true
       });
+
+    // Filters
+    if (filters) {
+      aggregation.push({
+        $match: filters
+      });
+    }
 
     // Limit records?
     if (!dbParams.onlyRecordCount) {

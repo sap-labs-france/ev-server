@@ -14,6 +14,7 @@ import Site, { SiteUser } from '../../types/Site';
 import Tag from '../../types/Tag';
 import User from '../../types/User';
 import Utils from '../../utils/Utils';
+import TenantStorage from './TenantStorage';
 
 export default class UserStorage {
 
@@ -607,6 +608,158 @@ export default class UserStorage {
     Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID, { params, limit, skip, sort });
     // Ok
     return {
+      count: (usersCountMDB.length > 0 ?
+        (usersCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : usersCountMDB[0].count) : 0),
+      result: usersMDB
+    };
+  }
+
+  public static async getUsersInError(tenantID: string,
+    params: {search?: string; roles?: string[]; },
+    { limit, skip, onlyRecordCount, sort }: DbParams) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Check Limit
+    limit = Utils.checkRecordLimit(limit);
+    // Check Skip
+    skip = Utils.checkRecordSkip(skip);
+    // Mongodb pipeline creation
+    const pipeline = [];
+    // Mongodb filter block ($match)
+    const match: any = { '$and': [{ '$or': DatabaseUtils.getNotDeletedFilter() }]};
+    if (params.roles) {
+      match.$and.push({ role: { '$in': params.roles }})
+    }
+    if (params.search) {
+      // Search is an ID?
+      if (ObjectID.isValid(params.search)) {
+        match.$and.push({ _id: Utils.convertToObjectID(params.search) });
+      } else {
+        match.$and.push({
+          '$or': [
+            { 'name': { $regex: params.search, $options: 'i' } },
+            { 'firstName': { $regex: params.search, $options: 'i' } },
+            { 'tagIDs': { $regex: params.search, $options: 'i' } },
+            { 'email': { $regex: params.search, $options: 'i' } },
+            { 'plateID': { $regex: params.search, $options: 'i' } }
+          ]
+        });
+      }
+    }
+    pipeline.push({ $match: match });
+    // Mongodb Lookup block
+    // Add TagIDs
+    pipeline.push({
+      $lookup: {
+        from: DatabaseUtils.getCollectionName(tenantID, 'tags'),
+        localField: '_id',
+        foreignField: 'userID',
+        as: 'tagIDs'
+      }
+    });
+  // Mongodb adding common fields
+    pipeline.push({
+      $addFields: {
+        tagIDs: {
+          $map: {
+            input: '$tagIDs',
+            as: 't',
+            in: '$$t._id'
+          }
+        }
+      }
+    });
+    // Mongodb facets block
+    // If the organization component is active the system looks for non active users or active users that
+    // are not assigned yet to at least one site.
+    // If the organization component is not active then the system just looks for non active users.    
+    if (Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), Constants.COMPONENTS.ORGANIZATION)) {
+      pipeline.push({
+        '$facet': {
+          'unactive_users': [
+            { $match: { status: { $in: [Constants.USER_STATUS_BLOCKED, Constants.USER_STATUS_INACTIVE, Constants.USER_STATUS_LOCKED, Constants.USER_STATUS_PENDING] } } },
+            { $addFields : { 'errorCode' : 'unactive_users' } },
+          ],
+          'unassigned_users': [
+            { $match : { status: Constants.USER_STATUS_ACTIVE }},
+            { $lookup : {
+                from : DatabaseUtils.getCollectionName(tenantID, 'siteusers'),
+                localField : '_id',
+                foreignField : 'userID',
+                as : 'sites'
+              }
+            },
+            { $match : { sites: { $size: 0 } } },
+            { $addFields : { 'errorCode' : 'unassigned_users' } },
+          ]
+        }
+      });
+      // Take out the facet names from the result
+      pipeline.push({ $project: { 'allItems': { $concatArrays: ['$unactive_users','$unassigned_users'] }}});
+    } else {
+      pipeline.push({
+        '$facet': {
+          'unactive_users': [
+            { $match: { status: { $in: [Constants.USER_STATUS_BLOCKED, Constants.USER_STATUS_INACTIVE, Constants.USER_STATUS_LOCKED, Constants.USER_STATUS_PENDING] } } },
+            { $addFields : { 'errorCode' : 'unactive_users' } },
+          ]
+        }
+      });
+      // Take out the facet name from the result
+      pipeline.push({ $project: { 'allItems': { $concatArrays: ['$unactive_users'] }}});
+    }
+    // Finish the preparation of the result
+    pipeline.push({ $unwind: { 'path': '$allItems' } });
+    pipeline.push({ $replaceRoot: { newRoot: '$allItems' }});
+    // Change ID
+    DatabaseUtils.renameDatabaseID(pipeline);
+    // Count Records
+    const usersCountMDB = await global.database.getCollection<any>(tenantID, 'users')
+      .aggregate([...pipeline, { $count: 'count' }], { allowDiskUse: true })
+      .toArray();
+    // Check if only the total count is requested
+    if (onlyRecordCount) {
+      // Return only the count
+      return {
+        count: (usersCountMDB.length > 0 ? usersCountMDB[0].count : 0),
+        result: []
+      };
+    }
+    // Add Created By / Last Changed By
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, pipeline);
+    // Mongodb sort, skip and limit block
+    if (sort) {
+      pipeline.push({
+        $sort: sort
+      });
+    } else {
+      pipeline.push({
+        $sort: { status: -1, name: 1, firstName: 1 }
+      });
+    }
+    // Skip
+    pipeline.push({
+      $skip: skip
+    });
+    // Limit
+    pipeline.push({
+      $limit: limit
+    });
+    // Read DB
+    const usersMDB = await global.database.getCollection<User>(tenantID, 'users')
+      .aggregate(pipeline, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: false })
+      .toArray();
+    // Clean user object
+    for (const userMDB of usersMDB) {
+      delete (userMDB as any).siteusers;
+      delete (userMDB as any).sites;
+    }
+    // Debug
+    Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID, { params, limit, skip, sort });
+    // Ok
+      return {
       count: (usersCountMDB.length > 0 ?
         (usersCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : usersCountMDB[0].count) : 0),
       result: usersMDB

@@ -12,6 +12,7 @@ import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 export default class RegistrationTokenSecurity {
   static filterRegistrationTokenCreateRequest(request: HttpRegistrationTokenRequest): HttpRegistrationTokenRequest {
     return {
+      description: sanitize(request.description),
       siteAreaID: sanitize(request.siteAreaID),
       expirationDate: sanitize(request.expirationDate)
     };

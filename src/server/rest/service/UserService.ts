@@ -430,12 +430,10 @@ export default class UserService {
         Constants.COMPONENTS.ORGANIZATION, Constants.ACTION_READ, Constants.ENTITY_USER, 'UserService', 'handleGetUsersInError');
     }
     // Get users
-    const users = await UserStorage.getUsers(req.user.tenantID,
+    const users = await UserStorage.getUsersInError(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
-        roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
-        statuses: [Constants.USER_STATUS_BLOCKED, Constants.USER_STATUS_INACTIVE, Constants.USER_STATUS_LOCKED, Constants.USER_STATUS_PENDING]
+        roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null)
       },
       {
         limit: filteredRequest.Limit,

@@ -18,6 +18,7 @@ import UserStorage from '../../../storage/mongodb/UserStorage';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
+import Utils from '../../../utils/Utils';
 
 export default class TransactionService {
   static async handleSynchronizeRefundedTransactions(action: string, req: Request, res: Response, next: NextFunction) {
@@ -267,8 +268,8 @@ export default class TransactionService {
         {
           transactionId: transaction.getID(),
           idTag: req.user.tagIDs[0],
-          timestamp: transaction.getLastMeterValue().timestamp,
-          meterStop: transaction.getLastMeterValue().value
+          timestamp: transaction.getLastMeterValue() ? transaction.getLastMeterValue().timestamp : transaction.getStartDate(),
+          meterStop: transaction.getLastMeterValue().value ? transaction.getLastMeterValue().value : transaction.getMeterStart()
         },
         true);
       // Log
@@ -433,10 +434,10 @@ export default class TransactionService {
       }
       // Set the model
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID, {
-        chargeBoxID: chargingStation.id, connectorId: filteredRequest.ConnectorId,
+        chargeBoxIDs: [chargingStation.id], connectorId: filteredRequest.ConnectorId,
         startDateTime: filteredRequest.StartDateTime, endDateTime: filteredRequest.EndDateTime,
         withChargeBoxes: true
-      }, Constants.DB_PARAMS_MAX_LIMIT);
+      }, { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
       // Filter
       TransactionSecurity.filterTransactionsResponse(transactions, req.user);
       // Return
@@ -496,6 +497,9 @@ export default class TransactionService {
       if (Authorizations.isBasic(req.user.role)) {
         filter.userIDs = [req.user.id];
       }
+      if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
+        filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
+      }
       if (filteredRequest.ConnectorId) {
         filter.connectorId = filteredRequest.ConnectorId;
       }
@@ -544,6 +548,9 @@ export default class TransactionService {
       if (Authorizations.isBasic(req.user.role)) {
         filter.userIDs = [req.user.id];
       }
+      if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
+        filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
+      }
       if (filteredRequest.StartDateTime) {
         filter.startDateTime = filteredRequest.StartDateTime;
       }
@@ -562,8 +569,7 @@ export default class TransactionService {
       const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
         {
           ...filter,
-          'search': filteredRequest.Search,
-          'siteID': filter.siteID
+          'search': filteredRequest.Search
         },
         { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
       // Filter
@@ -606,6 +612,9 @@ export default class TransactionService {
       }
       if (Authorizations.isBasic(req.user.role)) {
         filter.userIDs = [req.user.id];
+      }
+      if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
+        filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
       }
       // Date
       if (filteredRequest.StartDateTime) {
@@ -678,6 +687,9 @@ export default class TransactionService {
       }
       if (filteredRequest.UserID) {
         filter.userIDs = filteredRequest.UserID.split('|');
+      }
+      if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
+        filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
       }
       // Date
       if (filteredRequest.StartDateTime) {

@@ -1,6 +1,14 @@
+import chai, { expect } from 'chai';
+import chaiSubset from 'chai-subset';
 import moment from 'moment';
+import responseHelper from '../../helpers/responseHelper';
 import CONTEXTS from '../contextProvider/ContextConstants';
 import TenantContext from './TenantContext';
+import User from '../../types/User';
+import CentralServerService from '../client/CentralServerService';
+
+chai.use(chaiSubset);
+chai.use(responseHelper);
 
 export default class StatisticsContext {
 
@@ -16,6 +24,9 @@ export default class StatisticsContext {
     ENERGY_PER_MINUTE: 150,
     INTERVAL_METER_VALUES: 10
   };
+
+  public transactionUser: User;
+  public transactionUserService: CentralServerService;
 
   private tenantContext: TenantContext;
   private chargingStations: any[] = [];
@@ -40,8 +51,10 @@ export default class StatisticsContext {
       let startTime = moment().year(firstYear).startOf('year').add({ hours: 12 });
       for (const chargingStation of this.chargingStations) {
         for (const user of users) {
+          this.setUser(user);
           startTime = startTime.clone().add(1, 'days');
           let response = await chargingStation.startTransaction(1, user.tagIDs[0], 0, startTime);
+          expect(response).to.be.transactionValid;
           const transactionId = response.data.transactionId;
 
           for (let m = 1; m < StatisticsContext.CONSTANTS.CHARGING_MINUTES + StatisticsContext.CONSTANTS.IDLE_MINUTES; m++) {
@@ -57,6 +70,7 @@ export default class StatisticsContext {
           }
           const endTime = startTime.clone().add(StatisticsContext.CONSTANTS.CHARGING_MINUTES + StatisticsContext.CONSTANTS.IDLE_MINUTES, 'minutes');
           response = await chargingStation.stopTransaction(transactionId, user.tagIDs[0], StatisticsContext.CONSTANTS.ENERGY_PER_MINUTE * StatisticsContext.CONSTANTS.CHARGING_MINUTES, endTime);
+          expect(response).to.be.transactionStatus('Accepted');
         }
       }
     }
@@ -69,6 +83,12 @@ export default class StatisticsContext {
         await chargingStation.cleanUpCreatedData();
       }
     }
+  }
+
+  public setUser(userContext) {
+    expect(userContext).to.exist;
+    this.transactionUser = userContext;
+    this.transactionUserService = new CentralServerService(this.tenantContext.getTenant().subdomain, this.transactionUser);
   }
 
 }
