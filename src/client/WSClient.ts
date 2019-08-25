@@ -32,7 +32,7 @@ export default class WSClient {
   private url: any;
   private options: any;
   private callbacks: any;
-  private dbLogging: any;
+  private dbLogging: boolean;
   private autoReconnectRetryCount: number;
   private autoReconnectMaxRetries: number;
   private autoReconnectTimeout: number;

@@ -107,7 +107,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       message: `Try to connect to '${this.serverURL}', CF Instance '${this.chargingStation.cfApplicationIDAndInstanceIndex}'`
     });
     // Create Promise
-    // eslint-disable-next-line no-undef
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return await new Promise((resolve, reject) => {
       // Create WS
       let WSOptions = {};
