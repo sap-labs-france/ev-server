@@ -1,7 +1,6 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Company from '../../../../types/Company';
-import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requests/HttpCompanyRequest';
 import SiteSecurity from './SiteSecurity';
 import UserToken from '../../../../types/UserToken';
@@ -9,17 +8,17 @@ import UtilsSecurity from './UtilsSecurity';
 
 export default class CompanySecurity {
 
-  public static filterCompanyRequestByID(request: HttpByIDRequest): string {
+  public static filterCompanyRequestByID(request: any): string {
     return sanitize(request.ID);
   }
 
-  public static filterCompanyRequest(request: HttpByIDRequest): HttpCompanyRequest {
+  public static filterCompanyRequest(request: any): HttpCompanyRequest {
     return {
       ID: sanitize(request.ID)
     };
   }
 
-  public static filterCompaniesRequest(request: Partial<HttpCompaniesRequest>): HttpCompaniesRequest {
+  public static filterCompaniesRequest(request: any): HttpCompaniesRequest {
     const filteredRequest: HttpCompaniesRequest = {
       Search: sanitize(request.Search),
       WithSites: UtilsSecurity.filterBoolean(request.WithSites),
@@ -30,7 +29,7 @@ export default class CompanySecurity {
     return filteredRequest;
   }
 
-  static filterCompanyUpdateRequest(request: Partial<Company>): Partial<Company> {
+  static filterCompanyUpdateRequest(request: any): Partial<Company> {
     const filteredRequest = CompanySecurity._filterCompanyRequest(request);
     return {
       id: sanitize(request.id),
@@ -38,11 +37,11 @@ export default class CompanySecurity {
     };
   }
 
-  public static filterCompanyCreateRequest(request: Partial<Company>): Partial<Company> {
+  public static filterCompanyCreateRequest(request: any): Partial<Company> {
     return CompanySecurity._filterCompanyRequest(request);
   }
 
-  public static _filterCompanyRequest(request: Partial<Company>): Partial<Company> {
+  public static _filterCompanyRequest(request: any): Partial<Company> {
     return {
       name: sanitize(request.name),
       address: UtilsSecurity.filterAddressRequest(request.address),
@@ -80,7 +79,7 @@ export default class CompanySecurity {
     return filteredCompany;
   }
 
-  public static filterCompaniesResponse(companies, loggedUser) {
+  public static filterCompaniesResponse(companies: {result: Company[]; count: number}, loggedUser) {
     const filteredCompanies = [];
 
     if (!companies.result) {
@@ -90,9 +89,8 @@ export default class CompanySecurity {
       return null;
     }
     for (const company of companies.result) {
-      // Filter
-      const filteredCompany = CompanySecurity.filterCompanyResponse(company, loggedUser);
       // Add
+      const filteredCompany = CompanySecurity.filterCompanyResponse(company, loggedUser);
       if (filteredCompany) {
         filteredCompanies.push(filteredCompany);
       }

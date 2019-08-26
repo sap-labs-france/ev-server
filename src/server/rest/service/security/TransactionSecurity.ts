@@ -2,33 +2,33 @@ import moment = require('moment');
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
-import { HttpConsumptionFromTransactionRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
+import { HttpConsumptionFromTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
 import Transaction from '../../../../types/Transaction';
 import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 
 export default class TransactionSecurity {
-  public static filterTransactionsRefund(request: Partial<HttpTransactionsRefundRequest>): HttpTransactionsRefundRequest {
+  public static filterTransactionsRefund(request: any): HttpTransactionsRefundRequest {
     if (!request.transactionIds) {
       return { transactionIds: [] };
     }
     return { transactionIds: request.transactionIds.map(sanitize) };
   }
 
-  public static filterTransactionDelete(request: Partial<HttpTransactionRequest>): number {
+  public static filterTransactionDelete(request: any): number {
     return sanitize(request.ID);
   }
 
-  public static filterTransactionSoftStop(request: Partial<HttpTransactionRequest>): number {
+  public static filterTransactionSoftStop(request: any): number {
     return sanitize(request.ID);
   }
 
-  public static filterTransactionRequest(request: Partial<HttpTransactionRequest>): number {
+  public static filterTransactionRequest(request: any): number {
     return sanitize(request.ID);
   }
 
-  public static filterTransactionsActiveRequest(request: Partial<HttpTransactionsRequest>): HttpTransactionsRequest {
+  public static filterTransactionsActiveRequest(request: any): HttpTransactionsRequest {
     const filtered: HttpTransactionsRequest = {} as HttpTransactionsRequest;
     filtered.ChargeBoxID = sanitize(request.ChargeBoxID);
     filtered.ConnectorId = sanitize(request.ConnectorId);
@@ -39,7 +39,7 @@ export default class TransactionSecurity {
     return filtered;
   }
 
-  public static filterTransactionsCompletedRequest(request: HttpTransactionsRequest): HttpTransactionsRequest {
+  public static filterTransactionsCompletedRequest(request: any): HttpTransactionsRequest {
     const filteredRequest: HttpTransactionsRequest = {} as HttpTransactionsRequest;
     // Handle picture
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
@@ -61,7 +61,7 @@ export default class TransactionSecurity {
     return filteredRequest;
   }
 
-  public static filterTransactionsInErrorRequest(request: HttpTransactionsRequest): HttpTransactionsRequest {
+  public static filterTransactionsInErrorRequest(request: any): HttpTransactionsRequest {
     const filteredRequest: HttpTransactionsRequest = {} as HttpTransactionsRequest;
     // Handle picture
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
@@ -168,7 +168,7 @@ export default class TransactionSecurity {
     return filteredTransaction;
   }
 
-  static filterTransactionsResponse(transactions, loggedUser: UserToken) {
+  static filterTransactionsResponse(transactions: {result: Transaction[]; count: number}, loggedUser: UserToken) {
     const filteredTransactions = [];
     if (!transactions.result) {
       return null;
@@ -207,16 +207,18 @@ export default class TransactionSecurity {
     return filteredUser;
   }
 
-  public static filterChargingStationConsumptionFromTransactionRequest(request: HttpConsumptionFromTransactionRequest): HttpConsumptionFromTransactionRequest {
+  public static filterChargingStationConsumptionFromTransactionRequest(request: any): HttpConsumptionFromTransactionRequest {
     const filteredRequest: HttpConsumptionFromTransactionRequest = {} as HttpConsumptionFromTransactionRequest;
     // Set
-    filteredRequest.TransactionId = sanitize(request.TransactionId);
+    if (request.hasOwnProperty("TransactionId")) {
+      filteredRequest.TransactionId = parseInt(sanitize(request.TransactionId));
+    }
     filteredRequest.StartDateTime = sanitize(request.StartDateTime);
     filteredRequest.EndDateTime = sanitize(request.EndDateTime);
     return filteredRequest;
   }
 
-  public static filterChargingStationTransactionsRequest(request: HttpTransactionsRequest): HttpTransactionsRequest {
+  public static filterChargingStationTransactionsRequest(request: any): HttpTransactionsRequest {
     const filteredRequest: HttpTransactionsRequest = {} as HttpTransactionsRequest;
     // Set
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
@@ -228,13 +230,6 @@ export default class TransactionSecurity {
     return filteredRequest;
   }
 
-  /**
-   *
-   * @param transaction {Transaction}
-   * @param consumptions {Consumption[]}
-   * @param loggedUser
-   * @returns {*}
-   */
   static filterConsumptionsFromTransactionResponse(transaction: Transaction, consumptions, loggedUser: UserToken) {
     if (!consumptions) {
       consumptions = [];
