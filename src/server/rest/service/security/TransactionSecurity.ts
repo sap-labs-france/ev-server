@@ -17,7 +17,7 @@ export default class TransactionSecurity {
   }
 
   public static filterTransactionDelete(request: any): number {
-    return sanitize(request.ID);
+    return parseInt(sanitize(request.ID));
   }
 
   public static filterTransactionSoftStop(request: any): number {

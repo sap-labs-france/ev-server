@@ -96,23 +96,24 @@ export default class TransactionService {
     }
     // Get Transaction User
     const user: User = await UserStorage.getUser(req.user.tenantID, req.user.id);
-    // Check
     UtilsService.assertObjectExists(user, `User '${req.user.id}' doesn't exist.`, 'TransactionService', 'handleRefundTransactions', req.user);
+    // Check Auth
     if (!transactionsToRefund.every((transaction) => transaction.userID === req.user.id)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The user with ID '${req.user.id}' cannot refund another user's transaction`,
+        `The User with ID '${req.user.id}' cannot refund another User's transaction`,
         Constants.HTTP_REFUND_SESSION_OTHER_USER_ERROR,
         'TransactionService', 'handleRefundTransactions', req.user);
     }
+    // Refund the Transaction
     const setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, 'refund');
     const connector = new ConcurConnector(req.user.tenantID, setting);
     const refundedTransactions = await connector.refund(req.user.tenantID, user.id, transactionsToRefund);
-
     const response: any = {
       ...Constants.REST_RESPONSE_SUCCESS,
       inSuccess: refundedTransactions.length
     };
+    // Send result
     const notRefundedTransactions = transactionsToRefund.length - refundedTransactions.length;
     if (notRefundedTransactions > 0) {
       response.inError = notRefundedTransactions;
@@ -142,6 +143,7 @@ export default class TransactionService {
     // Handle active transactions
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, transaction.chargeBoxID);
     if (!transaction.stop) {
+      // Free the Charging Station
       UtilsService.assertObjectExists(chargingStation, `ChargingStation ${transaction.chargeBoxID} doesn't exist`, 'TransactionService', 'handleDeleteTransaction', req.user);
       const foundConnector = chargingStation.connectors.find((connector) => connector.connectorId === transaction.connectorId);
       if (foundConnector && transaction.id === foundConnector.activeTransactionID) {
