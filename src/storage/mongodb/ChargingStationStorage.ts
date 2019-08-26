@@ -185,19 +185,16 @@ export default class ChargingStationStorage {
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
     if (dbParams.sort) {
-      // Sort
       aggregation.push({
         $sort: dbParams.sort
       });
     } else {
-      // Default
       aggregation.push({
         $sort: {
           _id: 1
         }
       });
     }
-
     // Skip
     aggregation.push({
       $skip: dbParams.skip
@@ -212,12 +209,7 @@ export default class ChargingStationStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const chargingStationsFacetMDB = await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
-      .aggregate(aggregation, {
-        collation: {
-          locale: Constants.DEFAULT_LOCALE,
-          strength: 2
-        }
-      })
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
     if (chargingStationsCountMDB.length > 0) {
       for (const chargingStation of chargingStationsFacetMDB) {
@@ -232,7 +224,6 @@ export default class ChargingStationStorage {
               cleanedConnectors.push(connector);
             }
           }
-          // TODO Clean them a bit more?
           chargingStation.connectors = cleanedConnectors;
         }
         // Add Inactive flag

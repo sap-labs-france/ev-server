@@ -657,7 +657,6 @@ public static async handleGetChargingStationsInError(action: string, req: Reques
         chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.Arg1);
         // Found?
         if (!chargingStation) {
-          // Not Found!
           throw new AppError(
             Constants.CENTRAL_SERVER,
             `Charging Station with ID '${filteredRequest.Arg1}' does not exist`,
@@ -680,7 +679,7 @@ public static async handleGetChargingStationsInError(action: string, req: Reques
           result = results;
         } else {
           result[0].IsAuthorized = await ChargingStationService.isStopTransactionAuthorized(
-            filteredRequest, chargingStation, filteredRequest.Arg2, req.user);
+            filteredRequest, chargingStation, parseInt(filteredRequest.Arg2), req.user);
         }
         break;
       // Action on connectors of a charger
@@ -782,6 +781,7 @@ public static async handleGetChargingStationsInError(action: string, req: Reques
 
   private static async isStopTransactionAuthorized(filteredRequest: HttpIsAuthorizedRequest, chargingStation: ChargingStation, transactionId: number, user: UserToken) {
     // Get Transaction
+    console.log(typeof transactionId);
     const transaction = await TransactionStorage.getTransaction(user.tenantID, transactionId);
     if (!transaction) {
       throw new AppError(
