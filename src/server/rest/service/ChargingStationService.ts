@@ -369,14 +369,43 @@ export default class ChargingStationService {
   }
 
   public static async handleGetChargingStationsInError(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
-    if (!req.query.ErrorType) {
-      req.query.ErrorType = ['all'];
-    } else {
-      req.query.ErrorType = req.query.ErrorType.split('|');
+    // Check auth
+    if (!Authorizations.canListChargingStations(req.user)) {
+      throw new AppAuthError(
+        Constants.ACTION_LIST,
+        Constants.ENTITY_CHARGING_STATIONS,
+        null, Constants.HTTP_AUTH_ERROR,
+        'ChargingStationService', 'handleGetChargingStations',
+        req.user);
     }
-    return await ChargingStationService.handleGetChargingStations(action, req, res, next);
+    // Filter
+    const filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query);
+    // Check component
+    if (filteredRequest.SiteID) {
+      UtilsService.assertComponentIsActiveFromToken(req.user,
+        Constants.COMPONENTS.ORGANIZATION, Constants.ACTION_READ, Constants.ENTITY_CHARGING_STATIONS, 'ChargingStationService', 'handleGetChargingStations');
+    }
+    // Get Charging Stations
+    const chargingStations = await ChargingStationStorage.getChargingStationsInError(req.user.tenantID,
+      {
+        search: filteredRequest.Search,
+        siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : Authorizations.getAuthorizedSiteIDs(req.user)),
+        errorType: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : ['missingSettings','connectionBroken','connectorError','missingSiteArea'])
+      },
+      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
+    );
+    // Build the result
+    ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user, req.user.activeComponents.includes(Constants.COMPONENTS.ORGANIZATION));
+    // Return
+    res.json(chargingStations);
+    next();
   }
 
+/*
+public static async handleGetChargingStationsInError(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  return await ChargingStationService.handleGetChargingStations(action, req, res, next);
+}
+*/
   public static async handleGetStatusNotifications(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
@@ -480,7 +509,7 @@ export default class ChargingStationService {
       result = await ChargingStationService._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
     } else if (action === 'GetCompositeSchedule') {
       // Check auth
-      if (!Authorizations.canPerformActionOnChargingStation(req.user, action)) {
+      if (!Authorizations.canPerformActionOnChargingStation(req.user, action, chargingStation)) {
         throw new AppAuthError(action,
           Constants.ENTITY_CHARGING_STATION,
           chargingStation.id,
@@ -516,7 +545,7 @@ export default class ChargingStationService {
       }
     } else {
       // Check auth
-      if (!Authorizations.canPerformActionOnChargingStation(req.user, action)) {
+      if (!Authorizations.canPerformActionOnChargingStation(req.user, action, chargingStation)) {
         throw new AppAuthError(action,
           Constants.ENTITY_CHARGING_STATION,
           chargingStation.id,
@@ -545,18 +574,18 @@ export default class ChargingStationService {
     // Charge Box is mandatory
     UtilsService.assertIdIsProvided(filteredRequest.chargeBoxID, 'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
     // Check auth
-    if (!Authorizations.canPerformActionOnChargingStation(req.user, 'ChangeConfiguration')) {
+    // Get the Charging station
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
+    UtilsService.assertObjectExists(chargingStation, `Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`,
+      'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
+    // Get the Config
+    if (!Authorizations.canPerformActionOnChargingStation(req.user, 'ChangeConfiguration', chargingStation)) {
       throw new AppAuthError(action,
         Constants.ENTITY_CHARGING_STATION,
         filteredRequest.chargeBoxID,
         Constants.HTTP_AUTH_ERROR, 'ChargingStationService', 'handleActionSetMaxIntensitySocket',
         req.user);
     }
-    // Get the Charging station
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
-    UtilsService.assertObjectExists(chargingStation, `Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`,
-      'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
-    // Get the Config
     const chargerConfiguration = await ChargingStationStorage.getConfiguration(req.user.tenantID, chargingStation.id);
     UtilsService.assertObjectExists(chargerConfiguration, 'Cannot retrieve the configuration',
       'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
@@ -796,7 +825,7 @@ export default class ChargingStationService {
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : Authorizations.getAuthorizedSiteIDs(req.user)),
         siteAreaID: filteredRequest.SiteAreaID,
         includeDeleted: filteredRequest.IncludeDeleted,
-        errorType: filteredRequest.ErrorType
+        errorType: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : ['all'])
       },
       {
         limit: filteredRequest.Limit,

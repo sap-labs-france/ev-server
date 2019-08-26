@@ -57,16 +57,6 @@ export default class SiteService {
           `The User with ID '${userID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'SiteService', 'handleAddUsersToSite', req.user);
       }
-      // Check auth
-      if (!Authorizations.canUpdateUser(req.user, userID)) {
-        throw new AppAuthError(
-          Constants.ACTION_UPDATE,
-          Constants.ENTITY_USER,
-          userID,
-          Constants.HTTP_AUTH_ERROR,
-          'SiteService', 'handleAddUsersToSite',
-          req.user, user);
-      }
     }
     // Save
     await SiteStorage.addUsersToSite(req.user.tenantID, filteredRequest.siteID, filteredRequest.userIDs);
@@ -118,15 +108,6 @@ export default class SiteService {
         Constants.ACTION_UPDATE,
         Constants.ENTITY_SITE,
         filteredRequest.siteID,
-        Constants.HTTP_AUTH_ERROR,
-        'SiteService', 'handleUpdateSiteUserAdmin',
-        req.user, filteredRequest.userID);
-    }
-    if (!Authorizations.canUpdateUser(req.user, filteredRequest.userID)) {
-      throw new AppAuthError(
-        Constants.ACTION_UPDATE,
-        Constants.ENTITY_USER,
-        filteredRequest.userID,
         Constants.HTTP_AUTH_ERROR,
         'SiteService', 'handleUpdateSiteUserAdmin',
         req.user, filteredRequest.userID);
@@ -202,16 +183,6 @@ export default class SiteService {
           `The User with ID '${userID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'SiteService', 'handleRemoveUsersFromSite', req.user);
       }
-      // Check auth
-      if (!Authorizations.canUpdateUser(req.user, userID)) {
-        throw new AppAuthError(
-          Constants.ACTION_UPDATE,
-          Constants.ENTITY_USER,
-          userID,
-          Constants.HTTP_AUTH_ERROR,
-          'SiteService', 'handleRemoveUsersFromSite',
-          req.user, user);
-      }
     }
     // Save
     await SiteStorage.removeUsersFromSite(req.user.tenantID, filteredRequest.siteID, filteredRequest.userIDs);
@@ -277,7 +248,7 @@ export default class SiteService {
     users.result = users.result.map((siteuser) => ({
       siteID: siteuser.siteID,
       siteAdmin: siteuser.siteAdmin,
-      user: UserSecurity.filterUserResponse(siteuser.user, req.user)
+        user: siteuser.user
     }));
     res.json(users);
     next();
