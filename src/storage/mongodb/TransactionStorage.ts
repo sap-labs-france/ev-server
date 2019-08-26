@@ -33,7 +33,6 @@ export default class TransactionStorage {
     await Utils.checkTenant(tenantID);
     // ID not provided?
     if (!transactionToSave.id) {
-      // No: Check for a new ID
       transactionToSave.id = await TransactionStorage._findAvailableID(tenantID);
     }
     // Transfer
@@ -54,7 +53,6 @@ export default class TransactionStorage {
       stateOfCharge: transactionToSave.stateOfCharge,
       timezone: transactionToSave.timezone,
       signedData: transactionToSave.signedData,
-
       numberOfMeterValues: transactionToSave.numberOfMeterValues,
       currentStateOfCharge: transactionToSave.currentStateOfCharge,
       currentSignedData: transactionToSave.currentSignedData,

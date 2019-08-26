@@ -70,17 +70,11 @@ export default class SiteAreaStorage {
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(siteAreaMDB, siteAreaToSave);
     // Modify
-    const result = await global.database.getCollection<SiteArea>(tenantID, 'siteareas').findOneAndUpdate(
+    await global.database.getCollection<SiteArea>(tenantID, 'siteareas').findOneAndUpdate(
       { _id: siteAreaMDB._id },
       { $set: siteAreaMDB },
       { upsert: true, returnOriginal: false }
     );
-    if (!result.ok) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Couldn\'t update SiteArea',
-        'SiteAreaStorage', 'saveSiteArea');
-    }
     if (saveImage) {
       await SiteAreaStorage._saveSiteAreaImage(tenantID, siteAreaMDB._id.toHexString(), siteAreaToSave.image);
     }

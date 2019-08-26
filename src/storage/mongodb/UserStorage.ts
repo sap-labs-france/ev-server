@@ -296,15 +296,9 @@ export default class UserStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(userID) },
       { $set: params });
-    if (!result.ok) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Couldn\'t update User password',
-        'UserStorage', 'saveUserPassword');
-    }
     // Debug
     Logging.traceEnd('UserStorage', 'saveUserPassword', uniqueTimerID);
   }
@@ -315,15 +309,9 @@ export default class UserStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(userID) },
       { $set: { status } });
-    if (!result.ok) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Couldn\'t update User status',
-        'UserStorage', 'saveUserStatus');
-    }
     // Debug
     Logging.traceEnd('UserStorage', 'saveUserStatus', uniqueTimerID);
   }
@@ -334,15 +322,9 @@ export default class UserStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(userID) },
       { $set: { role } });
-    if (!result.ok) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Couldn\'t update User role',
-        'UserStorage', 'saveUserRole');
-    }
     // Debug
     Logging.traceEnd('UserStorage', 'saveUserRole', uniqueTimerID);
   }
@@ -354,15 +336,9 @@ export default class UserStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(userID) },
       { $set: params });
-    if (!result.ok) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Couldn\'t update User role',
-        'UserStorage', 'saveUserRole');
-    }
     // Debug
     Logging.traceEnd('UserStorage', 'saveUserRole', uniqueTimerID);
   }
@@ -374,15 +350,9 @@ export default class UserStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(userID) },
       { $set: params });
-    if (!result.ok) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Couldn\'t update User account verification',
-        'UserStorage', 'saveUserAccountVerification');
-    }
     // Debug
     Logging.traceEnd('UserStorage', 'saveUserAccountVerification', uniqueTimerID);
   }
@@ -403,15 +373,9 @@ export default class UserStorage {
       updatedUserMDB.notificationsActive = params.notificationsActive;
     }
     // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(userID) },
       { $set: updatedUserMDB });
-    if (!result.ok) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Couldn\'t update User admin data',
-        'UserStorage', 'saveUserAdminData');
-    }
     // Debug
     Logging.traceEnd('UserStorage', 'saveUserAdminData', uniqueTimerID);
   }

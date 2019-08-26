@@ -297,16 +297,10 @@ export default class ChargingStationStorage {
     // Add Created/LastChanged By
     DatabaseUtils.addLastChangedCreatedProps(chargingStationMDB, chargingStationToSave);
     // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
       chargingStationFilter,
       { $set: chargingStationMDB },
       { upsert: true });
-    if (!result.ok) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Couldn\'t update ChargingStation',
-        'ChargingStationStorage', 'saveChargingStation');
-    }
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'saveChargingStation', uniqueTimerID);
     return chargingStationMDB._id;
@@ -322,16 +316,10 @@ export default class ChargingStationStorage {
     // Update model
     chargingStation.connectors[connector.connectorId - 1] = connector;
     // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': chargingStation.id },
       { $set: updatedFields },
       { upsert: true });
-    if (!result.ok) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Couldn\'t update ChargingStation connector',
-        'ChargingStationStorage', 'saveChargingStationConnector');
-    }
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'saveChargingStationConnector', uniqueTimerID);
   }
@@ -346,16 +334,10 @@ export default class ChargingStationStorage {
     updatedFields['lastHeartBeat'] = Utils.convertToDate(chargingStation.lastHeartBeat);
     updatedFields['currentIPAddress'] = chargingStation.currentIPAddress;
     // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': chargingStation.id },
       { $set: updatedFields },
       { upsert: true });
-    if (!result.ok) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Couldn\'t update ChargingStation heartbeat',
-        'ChargingStationStorage', 'saveChargingStationHeartBeat');
-    }
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'saveChargingStationHeartBeat', uniqueTimerID);
   }

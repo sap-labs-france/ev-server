@@ -25,17 +25,11 @@ export default class RegistrationTokenStorage {
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(registrationTokenMDB, registrationToken);
     // Modify
-    const result = await global.database.getCollection<RegistrationTokenStorage>(tenantID, 'registrationtokens').findOneAndUpdate(
+    await global.database.getCollection<RegistrationTokenStorage>(tenantID, 'registrationtokens').findOneAndUpdate(
       { _id: registrationTokenMDB._id },
       { $set: registrationTokenMDB },
       { upsert: true, returnOriginal: false }
     );
-    if (!result.ok) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Couldn\'t update RegistrationTokenStorage',
-        'RegistrationTokenStorage', 'saveRegistrationToken');
-    }
     // Debug
     Logging.traceEnd('RegistrationTokenStorage', 'saveRegistrationToken', uniqueTimerID, { registrationToken });
     return registrationTokenMDB._id.toHexString();

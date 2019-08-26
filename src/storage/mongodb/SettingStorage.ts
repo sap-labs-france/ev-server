@@ -54,16 +54,10 @@ export default class SettingStorage {
     };
     DatabaseUtils.addLastChangedCreatedProps(settingMDB, settingToSave);
     // Modify
-    const result = await global.database.getCollection<any>(tenantID, 'settings').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'settings').findOneAndUpdate(
       settingFilter,
       { $set: settingMDB },
       { upsert: true, returnOriginal: false });
-    if (!result.ok) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Couldn\'t update Setting',
-        'SettingStorage', 'saveSetting');
-    }
     // Debug
     Logging.traceEnd('SettingStorage', 'saveSetting', uniqueTimerID, { settingToSave });
     // Create
