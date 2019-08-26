@@ -7,7 +7,6 @@ import chargingStationContext from './contextProvider/ChargingStationContext';
 import CONTEXTS from './contextProvider/ContextConstants';
 import ContextProvider from './contextProvider/ContextProvider';
 import TransactionCommonTests from './TransactionCommonTests';
-import Utils from '../utils/Utils';
 
 chai.use(chaiDatetime);
 chai.use(chaiSubset);

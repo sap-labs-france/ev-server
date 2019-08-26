@@ -74,7 +74,7 @@ export default class TransactionCommonTests {
 
   public async testReadTransactionWithInvalidId() {
     const response = await this.transactionUserService.transactionApi.readById('&é"\'(§è!çà)');
-    expect(response.status).to.equal(550);
+    expect(response.status).to.equal(500);
   }
 
   public async testReadTransactionWithoutId() {

@@ -124,7 +124,7 @@ export default class TransactionService {
 
   public static async handleDeleteTransaction(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const transactionId = TransactionSecurity.filterTransactionDelete(req.query);
+    const transactionId = TransactionSecurity.filterTransactionRequestByID(req.query);
     // Check auth
     if (!Authorizations.canDeleteTransaction(req.user)) {
       throw new AppAuthError(
@@ -261,18 +261,18 @@ export default class TransactionService {
 
   public static async handleGetTransaction(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const transactionId = TransactionSecurity.filterTransactionRequest(req.query);
-    UtilsService.assertIdIsProvided(transactionId, 'TransactionService', 'handleGetTransaction', req.user);
+    const filteredRequest = TransactionSecurity.filterTransactionRequest(req.query);
+    UtilsService.assertIdIsProvided(filteredRequest.ID, 'TransactionService', 'handleGetTransaction', req.user);
     // Get Transaction
-    const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
-    UtilsService.assertObjectExists(transaction, `Transaction with ID '${transactionId}' does not exist`, 'TransactionService',
+    const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.ID);
+    UtilsService.assertObjectExists(transaction, `Transaction with ID '${filteredRequest.ID}' does not exist`, 'TransactionService',
       'handleGetTransaction', req.user);
     // Check auth
     if (!Authorizations.canReadTransaction(req.user, transaction)) {
       throw new AppAuthError(
         Constants.ACTION_READ,
         Constants.ENTITY_TRANSACTION,
-        transactionId,
+        filteredRequest.ID,
         Constants.HTTP_AUTH_ERROR,
         'TransactionService', 'handleGetTransaction',
         req.user);

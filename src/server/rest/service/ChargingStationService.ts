@@ -781,7 +781,6 @@ public static async handleGetChargingStationsInError(action: string, req: Reques
 
   private static async isStopTransactionAuthorized(filteredRequest: HttpIsAuthorizedRequest, chargingStation: ChargingStation, transactionId: number, user: UserToken) {
     // Get Transaction
-    console.log(typeof transactionId);
     const transaction = await TransactionStorage.getTransaction(user.tenantID, transactionId);
     if (!transaction) {
       throw new AppError(

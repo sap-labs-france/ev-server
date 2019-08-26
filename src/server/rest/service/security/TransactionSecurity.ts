@@ -2,7 +2,7 @@ import moment = require('moment');
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
-import { HttpConsumptionFromTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
+import { HttpConsumptionFromTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest, HttpTransactionRequest } from '../../../../types/requests/HttpTransactionRequest';
 import Transaction from '../../../../types/Transaction';
 import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
@@ -16,16 +16,18 @@ export default class TransactionSecurity {
     return { transactionIds: request.transactionIds.map(sanitize) };
   }
 
-  public static filterTransactionDelete(request: any): number {
+  public static filterTransactionRequestByID(request: any): number {
     return parseInt(sanitize(request.ID));
   }
 
   public static filterTransactionSoftStop(request: any): number {
-    return sanitize(request.ID);
+    return parseInt(sanitize(request.ID));
   }
 
-  public static filterTransactionRequest(request: any): number {
-    return sanitize(request.ID);
+  public static filterTransactionRequest(request: any): HttpTransactionRequest {
+    return {
+      ID: parseInt(sanitize(request.ID))
+    };
   }
 
   public static filterTransactionsActiveRequest(request: any): HttpTransactionsRequest {
@@ -81,7 +83,6 @@ export default class TransactionSecurity {
 
   static filterTransactionResponse(transaction: Transaction, loggedUser: UserToken) {
     let filteredTransaction;
-
     if (!transaction) {
       return null;
     }
@@ -177,7 +178,6 @@ export default class TransactionSecurity {
     for (const transaction of transactions.result) {
       // Filter
       const filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser);
-      // Ok?
       if (filteredTransaction) {
         filteredTransactions.push(filteredTransaction);
       }
@@ -187,7 +187,6 @@ export default class TransactionSecurity {
 
   static _filterUserInTransactionResponse(user: User, loggedUser: UserToken) {
     const filteredUser: any = {};
-
     if (!user) {
       return null;
     }
@@ -247,7 +246,6 @@ export default class TransactionSecurity {
       filteredTransaction.values = [];
       return filteredTransaction;
     }
-
     // Admin?
     if (Authorizations.isAdmin(loggedUser.role)) {
       // Set them all
@@ -298,4 +296,3 @@ export default class TransactionSecurity {
     return filteredTransaction;
   }
 }
-
