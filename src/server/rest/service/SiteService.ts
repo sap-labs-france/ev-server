@@ -333,7 +333,7 @@ export default class SiteService {
         req.user);
     }
     // Filter
-    const filteredRequest = SiteSecurity.filterSitesRequest(req.query, req.user);
+    const filteredRequest = SiteSecurity.filterSitesRequest(req.query);
     // Get the sites
     const sites = await SiteStorage.getSites(req.user.tenantID,
       {

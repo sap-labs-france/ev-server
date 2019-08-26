@@ -91,7 +91,7 @@ export default class ChargingStationService {
 
   public static async handleUpdateChargingStationParams(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationParamsUpdateRequest(req.body, req.user);
+    const filteredRequest = ChargingStationSecurity.filterChargingStationParamsUpdateRequest(req.body);
     // Check existence
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.id);
     // Check
@@ -417,7 +417,7 @@ public static async handleGetChargingStationsInError(action: string, req: Reques
         req.user);
     }
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterNotificationsRequest(req.query, req.user);
+    const filteredRequest = ChargingStationSecurity.filterNotificationsRequest(req.query);
     // Get all Status Notifications
     const statusNotifications = await OCPPStorage.getStatusNotifications(req.user.tenantID, {},
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort });
@@ -439,7 +439,7 @@ public static async handleGetChargingStationsInError(action: string, req: Reques
         req.user);
     }
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterNotificationsRequest(req.query, req.user);
+    const filteredRequest = ChargingStationSecurity.filterNotificationsRequest(req.query);
     // Get all Status Notifications
     const bootNotifications = await OCPPStorage.getBootNotifications(req.user.tenantID, {},
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort });
@@ -452,7 +452,7 @@ public static async handleGetChargingStationsInError(action: string, req: Reques
 
   public static async handleAction(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
-    const filteredRequest: HttpChargingStationCommandRequest & { loadAllConnectors?: boolean } = ChargingStationSecurity.filterChargingStationActionRequest(req.body, action, req.user);
+    const filteredRequest: HttpChargingStationCommandRequest & { loadAllConnectors?: boolean } = ChargingStationSecurity.filterChargingStationActionRequest(req.body);
     UtilsService.assertIdIsProvided(filteredRequest.chargeBoxID, 'ChargingSTationService', 'handleAction', req.user);
     // Get the Charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);

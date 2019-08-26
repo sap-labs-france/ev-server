@@ -1,4 +1,3 @@
-import { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } from 'constants';
 import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
 import moment from 'moment';
@@ -29,7 +28,7 @@ export default class StatisticService {
           req.user);
       }
       // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
@@ -62,7 +61,7 @@ export default class StatisticService {
           req.user);
       }
       // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
@@ -95,7 +94,7 @@ export default class StatisticService {
           req.user);
       }
       // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
@@ -128,7 +127,7 @@ export default class StatisticService {
           req.user);
       }
       // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
@@ -161,7 +160,7 @@ export default class StatisticService {
           req.user);
       }
       // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
@@ -194,7 +193,7 @@ export default class StatisticService {
           req.user);
       }
       // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
@@ -227,7 +226,7 @@ export default class StatisticService {
           req.user);
       }
       // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
@@ -260,7 +259,7 @@ export default class StatisticService {
           req.user);
       }
       // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
@@ -293,7 +292,7 @@ export default class StatisticService {
           req.user);
       }
       // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
@@ -326,7 +325,7 @@ export default class StatisticService {
           req.user);
       }
       // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
@@ -355,7 +354,7 @@ export default class StatisticService {
           req.user);
       }
       // Filter
-      const filteredRequest = StatisticSecurity.filterMetricsStatisticsRequest(req.query, req.user);
+      const filteredRequest = StatisticSecurity.filterMetricsStatisticsRequest(req.query);
       // Get Data
       const metrics = await StatisticsStorage.getCurrentMetrics(req.user.tenantID, filteredRequest);
       // Return
@@ -383,7 +382,7 @@ export default class StatisticService {
           req.user);
       }
       // Filter
-      const filteredRequest = StatisticSecurity.filterExportStatisticsRequest(req.query, req.user);
+      const filteredRequest = StatisticSecurity.filterExportStatisticsRequest(req.query);
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Decisions

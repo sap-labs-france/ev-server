@@ -7,7 +7,7 @@ export default class NotificationService {
   static async handleGetNotifications(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
-      const filteredRequest = NotificationSecurity.filterNotificationsRequest(req.query, req.user);
+      const filteredRequest = NotificationSecurity.filterNotificationsRequest(req.query);
       // Get the Notification
       const notifications = await Notification.getNotifications(req.user.tenantID, {
         'userID': filteredRequest.UserID,

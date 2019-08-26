@@ -49,7 +49,7 @@ export default class PricingService {
           req.user);
       }
       // Filter
-      const filteredRequest = PricingSecurity.filterPricingUpdateRequest(req.body, req.user);
+      const filteredRequest = PricingSecurity.filterPricingUpdateRequest(req.body);
       // Check
       if (!filteredRequest.priceKWH || isNaN(filteredRequest.priceKWH)) {
         // Not Found!
