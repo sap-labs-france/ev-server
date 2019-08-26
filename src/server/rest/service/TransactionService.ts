@@ -191,7 +191,6 @@ export default class TransactionService {
     if (!transaction.user && transaction.userID) {
       // Get Transaction User
       user = await UserStorage.getUser(req.user.tenantID, transaction.userID);
-      // Check
       UtilsService.assertObjectExists(user, `User ${transaction.userID} doesn't exist.`, 'TransactionService', 'handleTransactionSoftStop', req.user);
     }
     // Stop Transaction
@@ -248,7 +247,6 @@ export default class TransactionService {
     }
     // Get the consumption
     let consumptions: Consumption[] = await ConsumptionStorage.getConsumptions(req.user.tenantID, transaction.id);
-
     // Dates provided?
     const startDateTime = filteredRequest.StartDateTime ? filteredRequest.StartDateTime : Constants.MIN_DATE;
     const endDateTime = filteredRequest.EndDateTime ? filteredRequest.EndDateTime : Constants.MAX_DATE;
@@ -264,18 +262,18 @@ export default class TransactionService {
 
   public static async handleGetTransaction(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const TransactionId = TransactionSecurity.filterTransactionRequest(req.query);
-    UtilsService.assertIdIsProvided(TransactionId, 'TransactionService', 'handleGetTransaction', req.user);
+    const transactionId = TransactionSecurity.filterTransactionRequest(req.query);
+    UtilsService.assertIdIsProvided(transactionId, 'TransactionService', 'handleGetTransaction', req.user);
     // Get Transaction
-    const transaction = await TransactionStorage.getTransaction(req.user.tenantID, TransactionId);
-    UtilsService.assertObjectExists(transaction, `Transaction ${TransactionId} doesn't exist`, 'TransactionService',
+    const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
+    UtilsService.assertObjectExists(transaction, `Transaction ${transactionId} doesn't exist`, 'TransactionService',
       'handleGetTransaction', req.user);
     // Check auth
     if (!Authorizations.canReadTransaction(req.user, transaction)) {
       throw new AppAuthError(
         Constants.ACTION_READ,
         Constants.ENTITY_TRANSACTION,
-        transaction.id,
+        transactionId,
         Constants.HTTP_AUTH_ERROR,
         'TransactionService', 'handleGetTransaction',
         req.user);
@@ -328,7 +326,7 @@ export default class TransactionService {
     if (transactionsYears) {
       result.years = [];
       result.years.push(new Date().getFullYear());
-    } // TODO: is it unused??
+    }
     // Return
     res.json(transactionsYears);
     next();
@@ -369,9 +367,9 @@ export default class TransactionService {
     if (filteredRequest.ConnectorId) {
       filter.connectorId = filteredRequest.ConnectorId;
     }
+    filter.withChargeBoxes = true;
     // Get Transactions
-    const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-      { ...filter, withChargeBoxes: true },
+    const transactions = await TransactionStorage.getTransactions(req.user.tenantID, filter,
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
     // Filter
     TransactionSecurity.filterTransactionsResponse(transactions, req.user);
@@ -427,11 +425,10 @@ export default class TransactionService {
     if (filteredRequest.Statistics) {
       filter.statistics = filteredRequest.Statistics;
     }
-    const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-      {
-        ...filter,
-        'search': filteredRequest.Search
-      },
+    if (filteredRequest.Search) {
+      filter.search = filteredRequest.Search;
+    }
+    const transactions = await TransactionStorage.getTransactions(req.user.tenantID, filter,
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
     // Filter
     TransactionSecurity.filterTransactionsResponse(transactions, req.user);
@@ -494,7 +491,6 @@ export default class TransactionService {
       }
       transaction.tagID = transaction.tagID ? Cypher.hash(transaction.tagID) : '';
     }
-
     const filename = 'transactions_export.csv';
     fs.writeFile(filename, TransactionService.convertToCSV(transactions.result), (err) => {
       if (err) {
