@@ -46,6 +46,14 @@ export default class RegistrationTokenService {
           'RegistrationTokenService', 'handleCreateRegistrationToken',
           req.user);
       }
+
+      if (!filteredRequest.description) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          'The description must be provided', Constants.HTTP_GENERAL_ERROR,
+          'RegistrationTokenService', 'handleCreateRegistrationToken', req.user);
+      }
+
       const registrationToken: RegistrationToken = {
         siteAreaID: filteredRequest.siteAreaID,
         description: filteredRequest.description,
