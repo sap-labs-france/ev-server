@@ -32,6 +32,9 @@ export default class UserSecurity {
     if (request.Status) {
       request.Status = sanitize(request.Status);
     }
+    if (request.ErrorType) {
+      request.ErrorType = sanitize(request.ErrorType);
+    }
     if (request.ExcludeSiteID) {
       request.ExcludeSiteID = sanitize(request.ExcludeSiteID);
     }

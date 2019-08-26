@@ -273,7 +273,10 @@ export default class TenantContext {
   }
 
   async createRegistrationToken(siteAreaID: string = null): Promise<string> {
-    const registrationTokenResponse = await this.centralAdminServerService.registrationApi.create({ siteAreaID: siteAreaID });
+    const registrationTokenResponse = await this.centralAdminServerService.registrationApi.create({
+      description: `Test Token for site area ${siteAreaID}`,
+      siteAreaID: siteAreaID
+    });
     expect(registrationTokenResponse.status).eq(200);
     expect(registrationTokenResponse.data).not.null;
     expect(registrationTokenResponse.data.id).not.null;
