@@ -1268,7 +1268,7 @@ export default class OCPPService {
       stopTransaction.chargeBoxID = chargingStation.id;
       // Get the transaction
       const transaction = await TransactionStorage.getTransaction(headers.tenantID, stopTransaction.transactionId);
-      UtilsService.assertObjectExists(transaction, `Transaction${stopTransaction.transactionId} doesn't exist`,
+      UtilsService.assertObjectExists(transaction, `Transaction with ID '${stopTransaction.transactionId}' doesn't exist`,
         'OCPPService', 'handleStopTransaction', null);
       // Get the TagID that stopped the transaction
       const tagId = this._getStopTransactionTagId(stopTransaction, transaction);

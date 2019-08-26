@@ -95,7 +95,7 @@ export default class ChargingStationService {
     // Check existence
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.id);
     // Check
-    UtilsService.assertObjectExists(chargingStation, `ChargingStation '${filteredRequest.id}' doesn't exist.`,
+    UtilsService.assertObjectExists(chargingStation, `ChargingStation '${filteredRequest.id}' doesn't exist`,
       'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
 
     let siteID = null;
