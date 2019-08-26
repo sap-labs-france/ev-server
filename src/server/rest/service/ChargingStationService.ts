@@ -510,7 +510,7 @@ public static async handleGetChargingStationsInError(action: string, req: Reques
       result = await this._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
     } else if (action === 'GetCompositeSchedule') {
       // Check auth
-      if (!Authorizations.canPerformActionOnChargingStation(req.user, action)) {
+      if (!Authorizations.canPerformActionOnChargingStation(req.user, action, chargingStation)) {
         throw new AppAuthError(action,
           Constants.ENTITY_CHARGING_STATION,
           chargingStation.id,
@@ -546,7 +546,7 @@ public static async handleGetChargingStationsInError(action: string, req: Reques
       }
     } else {
       // Check auth
-      if (!Authorizations.canPerformActionOnChargingStation(req.user, action)) {
+      if (!Authorizations.canPerformActionOnChargingStation(req.user, action, chargingStation)) {
         throw new AppAuthError(action,
           Constants.ENTITY_CHARGING_STATION,
           chargingStation.id,
@@ -575,18 +575,18 @@ public static async handleGetChargingStationsInError(action: string, req: Reques
     // Charge Box is mandatory
     UtilsService.assertIdIsProvided(filteredRequest.chargeBoxID, 'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
     // Check auth
-    if (!Authorizations.canPerformActionOnChargingStation(req.user, 'ChangeConfiguration')) {
+    // Get the Charging station
+    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
+    UtilsService.assertObjectExists(chargingStation, `Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`,
+      'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
+    // Get the Config
+    if (!Authorizations.canPerformActionOnChargingStation(req.user, 'ChangeConfiguration', chargingStation)) {
       throw new AppAuthError(action,
         Constants.ENTITY_CHARGING_STATION,
         filteredRequest.chargeBoxID,
         Constants.HTTP_AUTH_ERROR, 'ChargingStationService', 'handleActionSetMaxIntensitySocket',
         req.user);
     }
-    // Get the Charging station
-    const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
-    UtilsService.assertObjectExists(chargingStation, `Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`,
-      'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
-    // Get the Config
     const chargerConfiguration = await ChargingStationStorage.getConfiguration(req.user.tenantID, chargingStation.id);
     UtilsService.assertObjectExists(chargerConfiguration, 'Cannot retrieve the configuration',
       'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
