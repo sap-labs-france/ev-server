@@ -52,6 +52,11 @@ describe('Filters with multiple values tests', function() {
       expect(read.status).to.equal(200);
     });
 
+    it('Charging stations in Error: Check that multi-filtering based on error types works', async () => {
+      const read = await testData.centralService.chargingStationApi.readAllInError({ 'ErrorType' : 'missingSettings|connectionBroken|connectorError|missingSiteArea' }, { limit: 10, skip: 0 });
+      expect(read.status).to.equal(200);
+    });
+
     it('Organization-Sites : Check that multi-filtering based on companies works', async () => {
       const read = await testData.centralService.siteApi.readAll({ 'CompanyID' : '5abeba344bae1457eb565e27|5b3f5587000337ca85cee337' }, { limit: 10, skip: 0 });
       expect(read.status).to.equal(200);
