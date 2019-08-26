@@ -1,5 +1,4 @@
 import { ObjectID } from 'mongodb';
-import BackendError from '../../exception/BackendError';
 import ChargingStationStorage from './ChargingStationStorage';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';

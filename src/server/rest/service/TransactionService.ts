@@ -226,7 +226,7 @@ export default class TransactionService {
       'handleGetChargingStationConsumptionFromTransaction', req.user);
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.TransactionId);
-    UtilsService.assertObjectExists(transaction, `Transaction ${transaction.id} doesn't exist.`,
+    UtilsService.assertObjectExists(transaction, `Transaction ${filteredRequest.TransactionId} doesn't exist.`,
       'TransactionService', 'handleGetChargingStationConsumptionFromTransaction', req.user);
     // Check auth
     if (!Authorizations.canReadTransaction(req.user, transaction)) {
@@ -553,7 +553,7 @@ export default class TransactionService {
       filter.errorType = ['negative_inactivity', 'average_consumption_greater_than_connector_capacity', 'no_consumption'];
     }
     // Site Area
-    const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
+    const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
       { ...filter, search: filteredRequest.Search, siteID: filteredRequest.SiteID },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
     // Filter
