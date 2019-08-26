@@ -20,6 +20,10 @@ export default class ChargingStationApi extends CrudApi {
     return super.readAll(params, paging, ordering, '/client/api/ChargingStations');
   }
 
+  public readAllInError(params, paging = Constants.DEFAULT_PAGING, ordering = Constants.DEFAULT_ORDERING) {
+    return super.readAll(params, paging, ordering, '/client/api/ChargingStationsInError');
+  }
+
   public update(data) {
     return super.update(data, '/client/api/ChargingStationUpdateParams');
   }
