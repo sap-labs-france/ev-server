@@ -16,6 +16,7 @@ export interface HttpUsersRequest extends HttpDatabaseRequest {
   SiteID: string;
   Role: string;
   Status: string;
+  ErrorType?: string;
   ExcludeSiteID: string;
 }
 
