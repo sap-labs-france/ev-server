@@ -487,7 +487,8 @@ public static async handleGetChargingStationsInError(action: string, req: Reques
       // Set the tag ID to handle the Stop Transaction afterwards
       transaction.remotestop = {
         timestamp: new Date(),
-        tagID: req.user.tagIDs[0]
+        tagID: req.user.tagIDs[0],
+        userID: req.user.id
       };
       // Save Transaction
       await TransactionStorage.saveTransaction(req.user.tenantID, transaction);

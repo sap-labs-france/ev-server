@@ -41,7 +41,7 @@ export default class TransactionStorage {
       siteAreaID: transactionToSave.siteAreaID,
       connectorId: transactionToSave.connectorId,
       tagID: transactionToSave.tagID,
-      userID: transactionToSave.userID,
+      userID: Utils.convertToObjectID(transactionToSave.userID),
       chargeBoxID: transactionToSave.chargeBoxID,
       meterStart: transactionToSave.meterStart,
       timestamp: transactionToSave.timestamp,
@@ -83,7 +83,8 @@ export default class TransactionStorage {
     if (transactionToSave.remotestop) {
       transactionMDB.remotestop = {
         timestamp: transactionToSave.remotestop.timestamp,
-        tagID: transactionToSave.remotestop.tagID
+        tagID: transactionToSave.remotestop.tagID,
+        userID: Utils.convertToObjectID(transactionToSave.remotestop.userID)
       };
     }
     if (transactionToSave.refundData) {

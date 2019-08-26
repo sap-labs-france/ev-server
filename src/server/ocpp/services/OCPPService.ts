@@ -1,5 +1,4 @@
 import momentDurationFormatSetup from 'moment-duration-format'; // TODO: what?
-import tzlookup from 'tz-lookup';
 import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
 import ChargingStation from '../../../types/ChargingStation';
@@ -1030,7 +1029,7 @@ export default class OCPPService {
       const user = await Authorizations.isAuthorizedToStartTransaction(headers.tenantID,
         chargingStation, startTransaction.tagID);
       if (user) {
-        startTransaction.user = user;
+        startTransaction.userID = user.id;
       }
       // Check Org
       const tenant = await TenantStorage.getTenant(headers.tenantID);
@@ -1063,7 +1062,6 @@ export default class OCPPService {
       transaction.currentConsumption = 0;
       transaction.currentTotalConsumption = 0;
       transaction.currentConsumptionWh = 0;
-      transaction.user = user;
       // Build first Dummy consumption for pricing the Start Transaction
       const consumption = await this._buildConsumptionFromTransactionAndMeterValue(
         transaction, transaction.timestamp, transaction.timestamp, {
@@ -1169,7 +1167,7 @@ export default class OCPPService {
           }, {
             'transactionId': activeTransaction.id,
             'meterStop': activeTransaction.lastMeterValue.value,
-            'timestamp': activeTransaction.lastMeterValue.timestamp,
+            'timestamp': new Date(activeTransaction.lastMeterValue.timestamp).toISOString(),
           }, false, true);
           // Check
           if (result.status === 'Invalid') {
@@ -1276,8 +1274,8 @@ export default class OCPPService {
       // Transaction is stopped by central system?
       if (!stoppedByCentralSystem) {
         // Check and get users
-        const users = await Authorizations.isAuthorizedToStopTransaction(headers.tenantID,
-          chargingStation, transaction, tagId);
+        const users = await Authorizations.isAuthorizedToStopTransaction(
+          headers.tenantID, chargingStation, transaction, tagId);
         user = users.user;
         alternateUser = users.alternateUser;
       } else {
