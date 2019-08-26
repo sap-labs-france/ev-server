@@ -615,9 +615,9 @@ export default class UserStorage {
   }
 
   public static async getUsersInError(tenantID: string,
-    params: {search?: string; roles?: string[]; },
+    params: {search?: string; roles?: string[]; errorTypes?: string[]},
     { limit, skip, onlyRecordCount, sort }: DbParams) {
-    // Debug
+      // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
     // Check Tenant
     await Utils.checkTenant(tenantID);
@@ -675,45 +675,32 @@ export default class UserStorage {
     // If the organization component is active the system looks for non active users or active users that
     // are not assigned yet to at least one site.
     // If the organization component is not active then the system just looks for non active users.    
+    const facets: any = { $facet: {} };
     if (Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), Constants.COMPONENTS.ORGANIZATION)) {
-      pipeline.push({
-        '$facet': {
-          'unactive_users': [
-            { $match: { status: { $in: [Constants.USER_STATUS_BLOCKED, Constants.USER_STATUS_INACTIVE, Constants.USER_STATUS_LOCKED, Constants.USER_STATUS_PENDING] } } },
-            { $addFields : { 'errorCode' : 'unactive_users' } },
-          ],
-          'unassigned_users': [
-            { $match : { status: Constants.USER_STATUS_ACTIVE }},
-            { $lookup : {
-                from : DatabaseUtils.getCollectionName(tenantID, 'siteusers'),
-                localField : '_id',
-                foreignField : 'userID',
-                as : 'sites'
-              }
-            },
-            { $match : { sites: { $size: 0 } } },
-            { $addFields : { 'errorCode' : 'unassigned_users' } },
-          ]
-        }
+      const array = [];
+      params.errorTypes.forEach((type) => {
+        array.push(`$${type}`);
+        facets.$facet[type] = this._buildUserInErrorFacet(tenantID, type);
       });
-      // Take out the facet names from the result
-      pipeline.push({ $project: { 'allItems': { $concatArrays: ['$unactive_users','$unassigned_users'] }}});
+      pipeline.push(facets);
+      // Manipulate the results to convert it to an array of document on root level
+      pipeline.push({$project: {usersInError:{$setUnion:array}}});
     } else {
       pipeline.push({
         '$facet': {
-          'unactive_users': [
+          'unactive_user': [
             { $match: { status: { $in: [Constants.USER_STATUS_BLOCKED, Constants.USER_STATUS_INACTIVE, Constants.USER_STATUS_LOCKED, Constants.USER_STATUS_PENDING] } } },
-            { $addFields : { 'errorCode' : 'unactive_users' } },
+            { $addFields : { 'errorCode' : 'unactive_user' } },
           ]
         }
       });
       // Take out the facet name from the result
-      pipeline.push({ $project: { 'allItems': { $concatArrays: ['$unactive_users'] }}});
+      pipeline.push({ $project: { usersInError:{ $setUnion:['$unactive_user'] }}});
     }
     // Finish the preparation of the result
-    pipeline.push({ $unwind: { 'path': '$allItems' } });
-    pipeline.push({ $replaceRoot: { newRoot: '$allItems' }});
-    // Change ID
+    pipeline.push({$unwind: '$usersInError'});
+    pipeline.push({$replaceRoot: { newRoot: "$usersInError" }});
+  // Change ID
     DatabaseUtils.renameDatabaseID(pipeline);
     // Count Records
     const usersCountMDB = await global.database.getCollection<any>(tenantID, 'users')
@@ -764,6 +751,32 @@ export default class UserStorage {
         (usersCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : usersCountMDB[0].count) : 0),
       result: usersMDB
     };
+  }
+
+  private static _buildUserInErrorFacet(tenantID: string, errorType: string) {
+    switch (errorType) {
+      case 'unactive_user':
+        return [
+          { $match: { status: { $in: [Constants.USER_STATUS_BLOCKED, Constants.USER_STATUS_INACTIVE, Constants.USER_STATUS_LOCKED, Constants.USER_STATUS_PENDING] }}},
+          { $addFields : { 'errorCode' : 'unactive_user' }}
+        ];
+      case 'unassigned_user': {
+        return [
+          { $match : { status: Constants.USER_STATUS_ACTIVE }},
+          { $lookup : {
+              from : DatabaseUtils.getCollectionName(tenantID, 'siteusers'),
+              localField : '_id',
+              foreignField : 'userID',
+              as : 'sites'
+            }
+          },
+          { $match : { sites: { $size: 0 } } },
+          { $addFields : { 'errorCode' : 'unassigned_user' }}
+        ];
+      }
+      default:
+        return [];
+    }
   }
 
   public static async deleteUser(tenantID: string, id: string): Promise<void> {
