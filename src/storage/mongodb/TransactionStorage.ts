@@ -304,7 +304,6 @@ export default class TransactionStorage {
         break;
     }
     // Count Records
-    console.log(JSON.stringify(aggregation, null, ' '));
     const transactionsCountMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate([...aggregation, statsQuery],
         {

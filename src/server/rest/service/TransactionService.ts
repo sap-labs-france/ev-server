@@ -245,7 +245,7 @@ export default class TransactionService {
         'TransactionService', 'handleGetChargingStationConsumptionFromTransaction', req.user);
     }
     // Get the consumption
-    let consumptions: Promise<Consumption[]> = ConsumptionStorage.getConsumptions(req.user.tenantID, transaction.id);
+    let consumptions: Consumption[] = await ConsumptionStorage.getConsumptions(req.user.tenantID, transaction.id);
 
     // Dates provided?
     const startDateTime = filteredRequest.StartDateTime ? filteredRequest.StartDateTime : Constants.MIN_DATE;
