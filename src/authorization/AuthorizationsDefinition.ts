@@ -242,7 +242,7 @@ const GRANTS = {
     },
     grants: [
       { resource: 'Users', action: 'List', attributes: ['*'] },
-      { resource: 'User', action: ['Read', 'Update'], attributes: ['*'] },
+      { resource: 'User', action: ['Read'], attributes: ['*'] },
       {
         resource: 'Site', action: ['Update'], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
