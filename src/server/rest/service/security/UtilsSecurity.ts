@@ -3,6 +3,7 @@ import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
+import Address from '../../../../types/Address';
 
 export default class UtilsSecurity {
   static filterBoolean(value) {
@@ -103,7 +104,7 @@ export default class UtilsSecurity {
     }
   }
 
-  static filterAddressRequest(address) {
+  static filterAddressRequest(address): Address {
     const filteredAddress: any = {};
     if (address) {
       filteredAddress.address1 = sanitize(address.address1);

@@ -74,7 +74,7 @@ export default class TransactionCommonTests {
 
   public async testReadTransactionWithInvalidId() {
     const response = await this.transactionUserService.transactionApi.readById('&é"\'(§è!çà)');
-    expect(response.status).to.equal(550);
+    expect(response.status).to.equal(500);
   }
 
   public async testReadTransactionWithoutId() {
@@ -267,8 +267,8 @@ export default class TransactionCommonTests {
     const tagId = this.transactionUser.tagIDs[0];
     const meterStart = 0;
     const meterStop = 1000;
-    const startDate = moment();
-    const stopDate = startDate.clone().add(1, 'hour');
+    const startDate = moment().toDate();
+    const stopDate = moment(startDate).add(1, 'hour');
     let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
     expect(response).to.be.transactionValid;
     const transactionId1 = response.data.transactionId;

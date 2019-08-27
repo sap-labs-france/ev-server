@@ -2,33 +2,35 @@ import moment = require('moment');
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
-import { HttpConsumptionFromTransactionRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
+import { HttpConsumptionFromTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest, HttpTransactionRequest } from '../../../../types/requests/HttpTransactionRequest';
 import Transaction from '../../../../types/Transaction';
 import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 
 export default class TransactionSecurity {
-  public static filterTransactionsRefund(request: Partial<HttpTransactionsRefundRequest>): HttpTransactionsRefundRequest {
+  public static filterTransactionsRefund(request: any): HttpTransactionsRefundRequest {
     if (!request.transactionIds) {
       return { transactionIds: [] };
     }
     return { transactionIds: request.transactionIds.map(sanitize) };
   }
 
-  public static filterTransactionDelete(request: Partial<HttpTransactionRequest>): number {
-    return sanitize(request.ID);
+  public static filterTransactionRequestByID(request: any): number {
+    return parseInt(sanitize(request.ID));
   }
 
-  public static filterTransactionSoftStop(request: Partial<HttpTransactionRequest>): number {
-    return sanitize(request.ID);
+  public static filterTransactionSoftStop(request: any): number {
+    return parseInt(sanitize(request.ID));
   }
 
-  public static filterTransactionRequest(request: Partial<HttpTransactionRequest>): number {
-    return sanitize(request.ID);
+  public static filterTransactionRequest(request: any): HttpTransactionRequest {
+    return {
+      ID: parseInt(sanitize(request.ID))
+    };
   }
 
-  public static filterTransactionsActiveRequest(request: Partial<HttpTransactionsRequest>): HttpTransactionsRequest {
+  public static filterTransactionsActiveRequest(request: any): HttpTransactionsRequest {
     const filtered: HttpTransactionsRequest = {} as HttpTransactionsRequest;
     filtered.ChargeBoxID = sanitize(request.ChargeBoxID);
     filtered.ConnectorId = sanitize(request.ConnectorId);
@@ -39,7 +41,7 @@ export default class TransactionSecurity {
     return filtered;
   }
 
-  public static filterTransactionsCompletedRequest(request: HttpTransactionsRequest): HttpTransactionsRequest {
+  public static filterTransactionsCompletedRequest(request: any): HttpTransactionsRequest {
     const filteredRequest: HttpTransactionsRequest = {} as HttpTransactionsRequest;
     // Handle picture
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
@@ -61,7 +63,7 @@ export default class TransactionSecurity {
     return filteredRequest;
   }
 
-  public static filterTransactionsInErrorRequest(request: HttpTransactionsRequest): HttpTransactionsRequest {
+  public static filterTransactionsInErrorRequest(request: any): HttpTransactionsRequest {
     const filteredRequest: HttpTransactionsRequest = {} as HttpTransactionsRequest;
     // Handle picture
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
@@ -81,7 +83,6 @@ export default class TransactionSecurity {
 
   static filterTransactionResponse(transaction: Transaction, loggedUser: UserToken) {
     let filteredTransaction;
-
     if (!transaction) {
       return null;
     }
@@ -168,7 +169,7 @@ export default class TransactionSecurity {
     return filteredTransaction;
   }
 
-  static filterTransactionsResponse(transactions, loggedUser: UserToken) {
+  static filterTransactionsResponse(transactions: {result: Transaction[]; count: number}, loggedUser: UserToken) {
     const filteredTransactions = [];
     if (!transactions.result) {
       return null;
@@ -177,7 +178,6 @@ export default class TransactionSecurity {
     for (const transaction of transactions.result) {
       // Filter
       const filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser);
-      // Ok?
       if (filteredTransaction) {
         filteredTransactions.push(filteredTransaction);
       }
@@ -187,7 +187,6 @@ export default class TransactionSecurity {
 
   static _filterUserInTransactionResponse(user: User, loggedUser: UserToken) {
     const filteredUser: any = {};
-
     if (!user) {
       return null;
     }
@@ -207,16 +206,18 @@ export default class TransactionSecurity {
     return filteredUser;
   }
 
-  public static filterChargingStationConsumptionFromTransactionRequest(request: HttpConsumptionFromTransactionRequest): HttpConsumptionFromTransactionRequest {
+  public static filterChargingStationConsumptionFromTransactionRequest(request: any): HttpConsumptionFromTransactionRequest {
     const filteredRequest: HttpConsumptionFromTransactionRequest = {} as HttpConsumptionFromTransactionRequest;
     // Set
-    filteredRequest.TransactionId = sanitize(request.TransactionId);
+    if (request.hasOwnProperty("TransactionId")) {
+      filteredRequest.TransactionId = parseInt(sanitize(request.TransactionId));
+    }
     filteredRequest.StartDateTime = sanitize(request.StartDateTime);
     filteredRequest.EndDateTime = sanitize(request.EndDateTime);
     return filteredRequest;
   }
 
-  public static filterChargingStationTransactionsRequest(request: HttpTransactionsRequest): HttpTransactionsRequest {
+  public static filterChargingStationTransactionsRequest(request: any): HttpTransactionsRequest {
     const filteredRequest: HttpTransactionsRequest = {} as HttpTransactionsRequest;
     // Set
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
@@ -228,13 +229,6 @@ export default class TransactionSecurity {
     return filteredRequest;
   }
 
-  /**
-   *
-   * @param transaction {Transaction}
-   * @param consumptions {Consumption[]}
-   * @param loggedUser
-   * @returns {*}
-   */
   static filterConsumptionsFromTransactionResponse(transaction: Transaction, consumptions, loggedUser: UserToken) {
     if (!consumptions) {
       consumptions = [];
@@ -242,17 +236,16 @@ export default class TransactionSecurity {
     // Check Authorization
     if (transaction.user) {
       if (!Authorizations.canReadUser(loggedUser, transaction.userID)) {
-        return null;
+        return consumptions;
       }
     } else if (!transaction.user && !Authorizations.isAdmin(loggedUser.role)) {
-      return null;
+      return consumptions;
     }
     const filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser);
     if (consumptions.length === 0) {
       filteredTransaction.values = [];
       return filteredTransaction;
     }
-
     // Admin?
     if (Authorizations.isAdmin(loggedUser.role)) {
       // Set them all
@@ -303,4 +296,3 @@ export default class TransactionSecurity {
     return filteredTransaction;
   }
 }
-

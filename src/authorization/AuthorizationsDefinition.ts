@@ -1,6 +1,6 @@
 import AccessControl from 'role-acl';
-import Constants from '../utils/Constants';
 import InternalError from '../exception/InternalError';
+import Constants from '../utils/Constants';
 
 const GRANTS = {
   superAdmin: {

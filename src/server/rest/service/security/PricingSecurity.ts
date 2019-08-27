@@ -20,7 +20,7 @@ export default class PricingSecurity {
   }
 
   // eslint-disable-next-line no-unused-vars
-  static filterPricingUpdateRequest(request, loggedUser) {
+  static filterPricingUpdateRequest(request: any) {
     const filteredRequest: any = {};
     // Set
     filteredRequest.priceKWH = sanitize(request.priceKWH);

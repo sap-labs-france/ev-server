@@ -64,7 +64,6 @@
     "@babel/core": "^7.5.5",
     "@types/bcrypt": "^3.0.0",
     "@types/bluebird": "^3.5.27",
-    "@types/bluebird-global": "^3.5.12",
     "@types/chai": "^4.2.0",
     "@types/chai-datetime": "0.0.33",
     "@types/chai-subset": "^1.3.3",

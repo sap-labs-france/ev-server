@@ -153,6 +153,13 @@ export default class DatabaseUtils {
         }
       }
     }`));
+    // Remove if null
+    // Available only in MongoDB 4.2 :-(
+    // aggregation.push(JSON.parse(`{
+    //   "$unset": {
+    //     "${renamedFieldName}": ${null}
+    //   }
+    // }`));
   }
 
   public static renameField(aggregation: any[], fieldName: string, renamedFieldName: string) {

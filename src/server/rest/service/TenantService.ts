@@ -38,7 +38,7 @@ export default class TenantService {
     }
     // Get
     const tenant = await TenantStorage.getTenant(filteredRequest.ID);
-    UtilsService.assertObjectExists(tenant, `Tenant '${filteredRequest.ID}' does not exist`,
+    UtilsService.assertObjectExists(tenant, `Tenant with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check if current tenant
     if (tenant.id === req.user.tenantID) {
@@ -86,7 +86,7 @@ export default class TenantService {
     }
     // Get it
     const tenant = await TenantStorage.getTenant(tenantID);
-    UtilsService.assertObjectExists(tenant, `Tenant with ID '${tenantID}' doesn't exist.`, MODULE_NAME, 'handleGetTenant', req.user);
+    UtilsService.assertObjectExists(tenant, `Tenant with ID '${tenantID}' does not exist`, MODULE_NAME, 'handleGetTenant', req.user);
     // Return
     res.json(
       // Filter
@@ -237,7 +237,7 @@ export default class TenantService {
     }
     // Get
     const tenant = await TenantStorage.getTenant(tenantUpdate.id);
-    UtilsService.assertObjectExists(tenant, `Tenant '${tenantUpdate.id}' doesn't exist.`, MODULE_NAME, 'handleUpdateTenant', req.user);
+    UtilsService.assertObjectExists(tenant, `Tenant with ID '${tenantUpdate.id}' does not exist`, MODULE_NAME, 'handleUpdateTenant', req.user);
     // Update timestamp
     tenantUpdate.lastChangedBy = { 'id': req.user.id };
     tenantUpdate.lastChangedOn = new Date();

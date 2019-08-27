@@ -65,17 +65,11 @@ export default class CompanyStorage {
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(companyMDB, companyToSave);
     // Modify
-    const result = await global.database.getCollection<Company>(tenantID, 'companies').findOneAndUpdate(
+    await global.database.getCollection<Company>(tenantID, 'companies').findOneAndUpdate(
       { _id: companyMDB._id },
       { $set: companyMDB },
       { upsert: true }
     );
-    if (!result.ok) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Couldn\'t update company',
-        'CompanyStorage', 'saveCompany');
-    }
     // Save Logo
     if (saveLogo) {
       await CompanyStorage._saveCompanyLogo(tenantID, companyMDB._id.toHexString(), companyToSave.logo);

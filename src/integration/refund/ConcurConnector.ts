@@ -15,6 +15,7 @@ import Site from '../../types/Site';
 import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import Transaction from '../../types/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
+import * as Bluebird from 'bluebird';
 
 const MODULE_NAME = 'ConcurConnector';
 const CONNECTOR_ID = 'concur';
@@ -162,7 +163,7 @@ export default class ConcurConnector extends AbstractConnector {
       expenseReportId = await this.createExpenseReport(connection, transactions[0].timezone, userId);
     }
 
-    await Promise.map(transactions,
+    await Bluebird.Promise.map(transactions,
       async (transaction: Transaction) => {
         try {
           const chargingStation = await ChargingStationStorage.getChargingStation(tenantID, transaction.chargeBoxID);

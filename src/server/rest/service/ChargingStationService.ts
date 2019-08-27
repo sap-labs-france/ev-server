@@ -91,11 +91,11 @@ export default class ChargingStationService {
 
   public static async handleUpdateChargingStationParams(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationParamsUpdateRequest(req.body, req.user);
+    const filteredRequest = ChargingStationSecurity.filterChargingStationParamsUpdateRequest(req.body);
     // Check existence
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.id);
     // Check
-    UtilsService.assertObjectExists(chargingStation, `ChargingStation '${filteredRequest.id}' doesn't exist.`,
+    UtilsService.assertObjectExists(chargingStation, `ChargingStation '${filteredRequest.id}' doesn't exist`,
       'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
 
     let siteID = null;
@@ -418,7 +418,7 @@ public static async handleGetChargingStationsInError(action: string, req: Reques
         req.user);
     }
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterNotificationsRequest(req.query, req.user);
+    const filteredRequest = ChargingStationSecurity.filterNotificationsRequest(req.query);
     // Get all Status Notifications
     const statusNotifications = await OCPPStorage.getStatusNotifications(req.user.tenantID, {},
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort });
@@ -440,7 +440,7 @@ public static async handleGetChargingStationsInError(action: string, req: Reques
         req.user);
     }
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterNotificationsRequest(req.query, req.user);
+    const filteredRequest = ChargingStationSecurity.filterNotificationsRequest(req.query);
     // Get all Status Notifications
     const bootNotifications = await OCPPStorage.getBootNotifications(req.user.tenantID, {},
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort });
@@ -453,7 +453,7 @@ public static async handleGetChargingStationsInError(action: string, req: Reques
 
   public static async handleAction(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
-    const filteredRequest: HttpChargingStationCommandRequest & { loadAllConnectors?: boolean } = ChargingStationSecurity.filterChargingStationActionRequest(req.body, action, req.user);
+    const filteredRequest: HttpChargingStationCommandRequest & { loadAllConnectors?: boolean } = ChargingStationSecurity.filterChargingStationActionRequest(req.body);
     UtilsService.assertIdIsProvided(filteredRequest.chargeBoxID, 'ChargingSTationService', 'handleAction', req.user);
     // Get the Charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
@@ -488,7 +488,8 @@ public static async handleGetChargingStationsInError(action: string, req: Reques
       // Set the tag ID to handle the Stop Transaction afterwards
       transaction.remotestop = {
         timestamp: new Date(),
-        tagID: req.user.tagIDs[0]
+        tagID: req.user.tagIDs[0],
+        userID: req.user.id
       };
       // Save Transaction
       await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
@@ -658,7 +659,6 @@ public static async handleGetChargingStationsInError(action: string, req: Reques
         chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.Arg1);
         // Found?
         if (!chargingStation) {
-          // Not Found!
           throw new AppError(
             Constants.CENTRAL_SERVER,
             `Charging Station with ID '${filteredRequest.Arg1}' does not exist`,
@@ -681,7 +681,7 @@ public static async handleGetChargingStationsInError(action: string, req: Reques
           result = results;
         } else {
           result[0].IsAuthorized = await ChargingStationService.isStopTransactionAuthorized(
-            filteredRequest, chargingStation, filteredRequest.Arg2, req.user);
+            filteredRequest, chargingStation, parseInt(filteredRequest.Arg2), req.user);
         }
         break;
       // Action on connectors of a charger

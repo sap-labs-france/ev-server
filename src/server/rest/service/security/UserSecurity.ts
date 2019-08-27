@@ -8,18 +8,18 @@ import UtilsSecurity from './UtilsSecurity';
 
 export default class UserSecurity {
 
-  public static filterAssignSitesToUserRequest(request: Partial<HttpSitesAssignUserRequest>): HttpSitesAssignUserRequest {
+  public static filterAssignSitesToUserRequest(request: any): HttpSitesAssignUserRequest {
     return {
       userID: sanitize(request.userID),
       siteIDs: request.siteIDs ? request.siteIDs.map(sanitize) : []
     };
   }
 
-  public static filterUserByIDRequest(request: Partial<HttpByIDRequest>): string {
+  public static filterUserByIDRequest(request: any): string {
     return sanitize(request.ID);
   }
 
-  public static filterUsersRequest(request: Partial<HttpUsersRequest>): HttpUsersRequest {
+  public static filterUsersRequest(request: any): HttpUsersRequest {
     if (request.Search) {
       request.Search = sanitize(request.Search);
     }
@@ -43,17 +43,17 @@ export default class UserSecurity {
     return request as HttpUsersRequest;
   }
 
-  public static filterUserUpdateRequest(request: Partial<HttpUserRequest>, loggedUser: UserToken): Partial<HttpUserRequest> {
+  public static filterUserUpdateRequest(request: any, loggedUser: UserToken): Partial<HttpUserRequest> {
     const filteredRequest = UserSecurity._filterUserRequest(request, loggedUser);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  public static filterUserCreateRequest(request: Partial<HttpUserRequest>, loggedUser: UserToken): Partial<HttpUserRequest> {
+  public static filterUserCreateRequest(request: any, loggedUser: UserToken): Partial<HttpUserRequest> {
     return UserSecurity._filterUserRequest(request, loggedUser);
   }
 
-  public static _filterUserRequest(request: Partial<HttpUserRequest>, loggedUser: UserToken): Partial<HttpUserRequest> {
+  public static _filterUserRequest(request: any, loggedUser: UserToken): Partial<HttpUserRequest> {
     const filteredRequest: Partial<HttpUserRequest> = {};
     if (request.costCenter) {
       filteredRequest.costCenter = sanitize(request.costCenter);
@@ -180,7 +180,7 @@ export default class UserSecurity {
     return filteredUser;
   }
 
-  static filterUsersResponse(users, loggedUser: UserToken): void {
+  static filterUsersResponse(users: {result: User[]; count: number}, loggedUser: UserToken) {
     const filteredUsers = [];
     if (!users.result) {
       return null;
@@ -195,4 +195,3 @@ export default class UserSecurity {
     users.result = filteredUsers;
   }
 }
-

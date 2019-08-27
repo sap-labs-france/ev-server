@@ -296,15 +296,9 @@ export default class UserStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(userID) },
       { $set: params });
-    if (!result.ok) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Couldn\'t update User password',
-        'UserStorage', 'saveUserPassword');
-    }
     // Debug
     Logging.traceEnd('UserStorage', 'saveUserPassword', uniqueTimerID);
   }
@@ -315,15 +309,9 @@ export default class UserStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(userID) },
       { $set: { status } });
-    if (!result.ok) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Couldn\'t update User status',
-        'UserStorage', 'saveUserStatus');
-    }
     // Debug
     Logging.traceEnd('UserStorage', 'saveUserStatus', uniqueTimerID);
   }
@@ -334,15 +322,9 @@ export default class UserStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(userID) },
       { $set: { role } });
-    if (!result.ok) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Couldn\'t update User role',
-        'UserStorage', 'saveUserRole');
-    }
     // Debug
     Logging.traceEnd('UserStorage', 'saveUserRole', uniqueTimerID);
   }
@@ -354,15 +336,9 @@ export default class UserStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(userID) },
       { $set: params });
-    if (!result.ok) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Couldn\'t update User role',
-        'UserStorage', 'saveUserRole');
-    }
     // Debug
     Logging.traceEnd('UserStorage', 'saveUserRole', uniqueTimerID);
   }
@@ -374,15 +350,9 @@ export default class UserStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(userID) },
       { $set: params });
-    if (!result.ok) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Couldn\'t update User account verification',
-        'UserStorage', 'saveUserAccountVerification');
-    }
     // Debug
     Logging.traceEnd('UserStorage', 'saveUserAccountVerification', uniqueTimerID);
   }
@@ -403,15 +373,9 @@ export default class UserStorage {
       updatedUserMDB.notificationsActive = params.notificationsActive;
     }
     // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(userID) },
       { $set: updatedUserMDB });
-    if (!result.ok) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Couldn\'t update User admin data',
-        'UserStorage', 'saveUserAdminData');
-    }
     // Debug
     Logging.traceEnd('UserStorage', 'saveUserAdminData', uniqueTimerID);
   }
@@ -608,7 +572,7 @@ export default class UserStorage {
   public static async getUsersInError(tenantID: string,
     params: {search?: string; roles?: string[]; errorTypes?: string[]},
     { limit, skip, onlyRecordCount, sort }: DbParams) {
-      // Debug
+    // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
     // Check Tenant
     await Utils.checkTenant(tenantID);
@@ -675,7 +639,7 @@ export default class UserStorage {
       });
       pipeline.push(facets);
       // Manipulate the results to convert it to an array of document on root level
-      pipeline.push({$project: {usersInError:{$setUnion:array}}});
+      pipeline.push({ $project: { usersInError: { $setUnion: array } } });
     } else {
       pipeline.push({
         '$facet': {
@@ -686,12 +650,12 @@ export default class UserStorage {
         }
       });
       // Take out the facet name from the result
-      pipeline.push({ $project: { usersInError:{ $setUnion:['$unactive_user'] }}});
+      pipeline.push({ $project: { usersInError:{ $setUnion:['$unactive_user'] } } });
     }
     // Finish the preparation of the result
-    pipeline.push({$unwind: '$usersInError'});
-    pipeline.push({$replaceRoot: { newRoot: "$usersInError" }});
-  // Change ID
+    pipeline.push({ $unwind: '$usersInError' });
+    pipeline.push({ $replaceRoot: { newRoot: '$usersInError' } });
+    // Change ID
     DatabaseUtils.renameDatabaseID(pipeline);
     // Count Records
     const usersCountMDB = await global.database.getCollection<any>(tenantID, 'users')
@@ -742,32 +706,6 @@ export default class UserStorage {
         (usersCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : usersCountMDB[0].count) : 0),
       result: usersMDB
     };
-  }
-
-  private static _buildUserInErrorFacet(tenantID: string, errorType: string) {
-    switch (errorType) {
-      case 'unactive_user':
-        return [
-          { $match: { status: { $in: [Constants.USER_STATUS_BLOCKED, Constants.USER_STATUS_INACTIVE, Constants.USER_STATUS_LOCKED, Constants.USER_STATUS_PENDING] }}},
-          { $addFields : { 'errorCode' : 'unactive_user' }}
-        ];
-      case 'unassigned_user': {
-        return [
-          { $match : { status: Constants.USER_STATUS_ACTIVE }},
-          { $lookup : {
-              from : DatabaseUtils.getCollectionName(tenantID, 'siteusers'),
-              localField : '_id',
-              foreignField : 'userID',
-              as : 'sites'
-            }
-          },
-          { $match : { sites: { $size: 0 } } },
-          { $addFields : { 'errorCode' : 'unassigned_user' }}
-        ];
-      }
-      default:
-        return [];
-    }
   }
 
   public static async deleteUser(tenantID: string, id: string): Promise<void> {
@@ -909,5 +847,32 @@ export default class UserStorage {
       status: Constants.USER_STATUS_PENDING,
       tagIDs: []
     };
+  }
+
+  private static _buildUserInErrorFacet(tenantID: string, errorType: string) {
+    switch (errorType) {
+      case 'unactive_user':
+        return [
+          { $match: { status: { $in: [Constants.USER_STATUS_BLOCKED, Constants.USER_STATUS_INACTIVE, Constants.USER_STATUS_LOCKED, Constants.USER_STATUS_PENDING] } } },
+          { $addFields : { 'errorCode' : 'unactive_user' } }
+        ];
+      case 'unassigned_user': {
+        return [
+          { $match : { status: Constants.USER_STATUS_ACTIVE } },
+          {
+            $lookup : {
+              from : DatabaseUtils.getCollectionName(tenantID, 'siteusers'),
+              localField : '_id',
+              foreignField : 'userID',
+              as : 'sites'
+            }
+          },
+          { $match : { sites: { $size: 0 } } },
+          { $addFields : { 'errorCode' : 'unassigned_user' } }
+        ];
+      }
+      default:
+        return [];
+    }
   }
 }

@@ -248,7 +248,7 @@ export default class SiteService {
     users.result = users.result.map((siteuser) => ({
       siteID: siteuser.siteID,
       siteAdmin: siteuser.siteAdmin,
-        user: siteuser.user
+      user: UserSecurity.filterUserResponse(siteuser.user, req.user)
     }));
     res.json(users);
     next();
@@ -308,7 +308,7 @@ export default class SiteService {
     }
     // Get it
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.ID);
-    UtilsService.assertObjectExists(site, `The Site with ID '${filteredRequest.ID}' does not exist`, 'SiteService', 'handleGetSite', req.user);
+    UtilsService.assertObjectExists(site, `Site with ID '${filteredRequest.ID}' does not exist`, 'SiteService', 'handleGetSite', req.user);
     // Return
     res.json(
       // Filter
@@ -333,7 +333,7 @@ export default class SiteService {
         req.user);
     }
     // Filter
-    const filteredRequest = SiteSecurity.filterSitesRequest(req.query, req.user);
+    const filteredRequest = SiteSecurity.filterSitesRequest(req.query);
     // Get the sites
     const sites = await SiteStorage.getSites(req.user.tenantID,
       {
@@ -413,7 +413,7 @@ export default class SiteService {
     Utils.checkIfSiteValid(filteredRequest, req);
     // Check Company
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.companyID);
-    UtilsService.assertObjectExists(company, `The Company ID '${filteredRequest.companyID}' does not exist`, 'SiteService', 'handleCreateSite', req.user);
+    UtilsService.assertObjectExists(company, `Company ID '${filteredRequest.companyID}' does not exist`, 'SiteService', 'handleCreateSite', req.user);
     // Create site
     const site: Site = {
       ...filteredRequest,

@@ -59,16 +59,10 @@ export default class TenantStorage {
     };
     DatabaseUtils.addLastChangedCreatedProps(tenantMDB, tenantToSave);
     // Modify
-    const result = await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenants').findOneAndUpdate(
+    await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenants').findOneAndUpdate(
       tenantFilter,
       { $set: tenantMDB },
       { upsert: true, returnOriginal: false });
-    if (!result.ok) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Couldn\'t update Tenant',
-        'TenantStorage', 'saveTenant');
-    }
     // Debug
     Logging.traceEnd('TenantStorage', 'saveTenant', uniqueTimerID, { tenantToSave });
     // Create

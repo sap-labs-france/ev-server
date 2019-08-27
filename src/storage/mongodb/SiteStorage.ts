@@ -1,5 +1,4 @@
 import { ObjectID } from 'mongodb';
-import BackendError from '../../exception/BackendError';
 import ChargingStationStorage from './ChargingStationStorage';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
@@ -238,17 +237,11 @@ export default class SiteStorage {
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(siteMDB, siteToSave);
     // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'sites').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'sites').findOneAndUpdate(
       siteFilter,
       { $set: siteMDB },
       { upsert: true }
     );
-    if (!result.ok) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Couldn\'t update Site',
-        'SiteStorage', 'saveSite');
-    }
     if (saveImage) {
       await SiteStorage.saveSiteImage(tenantID, siteFilter._id.toHexString(), siteToSave.image);
     }
@@ -410,7 +403,6 @@ export default class SiteStorage {
     }
     // Debug
     Logging.traceEnd('SiteStorage', 'getSites', uniqueTimerID, { params, limit, skip, sort: dbParams.sort });
-    // Ok
     return {
       count: (sitesCountMDB.length > 0 ?
         (sitesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : sitesCountMDB[0].count) : 0),

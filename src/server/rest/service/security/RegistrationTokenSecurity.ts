@@ -1,16 +1,12 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import {
-  HttpRegistrationTokenRequest, HttpRegistrationTokensRequest,
-  HttpRegistrationTokensResponse
-} from '../../../../types/requests/HttpRegistrationToken';
+import { HttpRegistrationTokenRequest, HttpRegistrationTokensRequest, HttpRegistrationTokensResponse } from '../../../../types/requests/HttpRegistrationToken';
 import RegistrationToken from '../../../../types/RegistrationToken';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 
 export default class RegistrationTokenSecurity {
-  static filterRegistrationTokenCreateRequest(request: HttpRegistrationTokenRequest): HttpRegistrationTokenRequest {
+  static filterRegistrationTokenCreateRequest(request: any): HttpRegistrationTokenRequest {
     return {
       description: sanitize(request.description),
       siteAreaID: sanitize(request.siteAreaID),
@@ -18,11 +14,11 @@ export default class RegistrationTokenSecurity {
     };
   }
 
-  public static filterRegistrationTokenByIDRequest(request: Partial<HttpByIDRequest>): string {
+  public static filterRegistrationTokenByIDRequest(request: any): string {
     return sanitize(request.ID);
   }
 
-  static filterRegistrationTokensRequest(request: HttpRegistrationTokensRequest): HttpRegistrationTokensRequest {
+  static filterRegistrationTokensRequest(request: any): HttpRegistrationTokensRequest {
     const filteredRequest = {
       siteAreaID: sanitize(request.siteAreaID)
     };
