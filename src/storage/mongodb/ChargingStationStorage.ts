@@ -26,7 +26,7 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingStations(tenantID: string,
-    params: { search?: string; chargingStationID?: string; siteAreaID?: string; withNoSiteArea?: boolean; siteIDs?: string[]; withSite?: boolean;
+    params: { search?: string; chargingStationID?: string; siteAreaID?: string[]; withNoSiteArea?: boolean; siteIDs?: string[]; withSite?: boolean;
       errorType?: string[]; includeDeleted?: boolean; },
     dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: ChargingStation[]}> {
     // Debug
@@ -76,10 +76,10 @@ export default class ChargingStationStorage {
       });
     } else {
       // Query by siteAreaID
-      if (params.siteAreaID) {
+      if (params.siteAreaID && Array.isArray(params.siteAreaID) && params.siteAreaID.length > 0) {
         // Build filter
         filters.$and.push({
-          'siteAreaID': Utils.convertToObjectID(params.siteAreaID)
+          'siteAreaID': { $in: params.siteAreaID.map((id) => Utils.convertToObjectID(id)) }
         });
       }
       // Site Area
@@ -250,7 +250,7 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingStationsInError(tenantID: string,
-    params: { search?: string; siteIDs?: string[]; errorType?: string[]; },
+    params: { search?: string; siteIDs?: string[]; siteAreaID: string[]; errorType?: string[]; },
     dbParams: DbParams): Promise<{count: number; result: ChargingStation[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
@@ -275,7 +275,13 @@ export default class ChargingStationStorage {
         ]
       });
     }
-    pipeline.push({ $match: match });
+    if (params.siteAreaID && Array.isArray(params.siteAreaID) && params.siteAreaID.length > 0) {
+      // Build filter
+      match.$and.push({
+        'siteAreaID': { $in: params.siteAreaID.map((id) => Utils.convertToObjectID(id)) }
+      });
+    }
+  pipeline.push({ $match: match });
     // Build lookups to fetch sites from chargers
     pipeline.push({
       $lookup: {
