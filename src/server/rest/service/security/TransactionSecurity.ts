@@ -2,7 +2,7 @@ import moment = require('moment');
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
-import { HttpConsumptionFromTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest, HttpTransactionRequest } from '../../../../types/requests/HttpTransactionRequest';
+import { HttpConsumptionFromTransactionRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
 import Transaction from '../../../../types/Transaction';
 import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
@@ -209,7 +209,7 @@ export default class TransactionSecurity {
   public static filterChargingStationConsumptionFromTransactionRequest(request: any): HttpConsumptionFromTransactionRequest {
     const filteredRequest: HttpConsumptionFromTransactionRequest = {} as HttpConsumptionFromTransactionRequest;
     // Set
-    if (request.hasOwnProperty("TransactionId")) {
+    if (request.hasOwnProperty('TransactionId')) {
       filteredRequest.TransactionId = parseInt(sanitize(request.TransactionId));
     }
     filteredRequest.StartDateTime = sanitize(request.StartDateTime);

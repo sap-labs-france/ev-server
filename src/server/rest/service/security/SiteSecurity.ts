@@ -111,7 +111,7 @@ export default class SiteSecurity {
         filteredSite.company = CompanySecurity.filterCompanyResponse(site.company, loggedUser);
       }
       if (site.siteAreas) {
-        filteredSite.siteAreas = SiteAreaSecurity.filterSiteAreasResponse({count: site.siteAreas.length, result: site.siteAreas}, loggedUser);
+        filteredSite.siteAreas = SiteAreaSecurity.filterSiteAreasResponse({ count: site.siteAreas.length, result: site.siteAreas }, loggedUser);
       }
       if (site.connectorStats) {
         filteredSite.connectorStats = site.connectorStats;

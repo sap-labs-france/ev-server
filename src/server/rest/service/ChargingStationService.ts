@@ -402,8 +402,8 @@ export default class ChargingStationService {
     next();
   }
 
-/*
-public static async handleGetChargingStationsInError(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  /*
+Public static async handleGetChargingStationsInError(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
   return await ChargingStationService.handleGetChargingStations(action, req, res, next);
 }
 */
