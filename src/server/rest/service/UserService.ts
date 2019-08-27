@@ -429,7 +429,8 @@ export default class UserService {
     const users = await UserStorage.getUsersInError(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null)
+        roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
+        errorTypes: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : ['unactive_user','unassigned_user'])
       },
       {
         limit: filteredRequest.Limit,

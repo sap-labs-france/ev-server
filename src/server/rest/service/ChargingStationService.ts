@@ -390,6 +390,7 @@ export default class ChargingStationService {
       {
         search: filteredRequest.Search,
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : Authorizations.getAuthorizedSiteIDs(req.user)),
+        siteAreaID: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
         errorType: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : ['missingSettings','connectionBroken','connectorError','missingSiteArea'])
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
@@ -823,7 +824,7 @@ public static async handleGetChargingStationsInError(action: string, req: Reques
         withNoSiteArea: filteredRequest.WithNoSiteArea,
         withSite: filteredRequest.WithSite,
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : Authorizations.getAuthorizedSiteIDs(req.user)),
-        siteAreaID: filteredRequest.SiteAreaID,
+        siteAreaID: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
         includeDeleted: filteredRequest.IncludeDeleted,
         errorType: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : ['all'])
       },
