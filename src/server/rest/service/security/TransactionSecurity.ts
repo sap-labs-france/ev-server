@@ -236,10 +236,10 @@ export default class TransactionSecurity {
     // Check Authorization
     if (transaction.user) {
       if (!Authorizations.canReadUser(loggedUser, transaction.userID)) {
-        return null;
+        return consumptions;
       }
     } else if (!transaction.user && !Authorizations.isAdmin(loggedUser.role)) {
-      return null;
+      return consumptions;
     }
     const filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser);
     if (consumptions.length === 0) {

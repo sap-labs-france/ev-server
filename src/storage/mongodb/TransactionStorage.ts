@@ -403,6 +403,11 @@ export default class TransactionStorage {
       .toArray();
     // Convert Object IDs to String
     for (const transactionMDB of transactionsMDB) {
+      // Check Stop created by the join
+      if (transactionMDB.stop && Utils.isEmptyJSon(transactionMDB.stop)) {
+        delete transactionMDB.stop;
+      }
+      // Check convertion of MongoDB IDs in sub-document
       if (transactionMDB.stop && transactionMDB.stop.userID) {
         transactionMDB.stop.userID = transactionMDB.stop.userID.toString();
       }
