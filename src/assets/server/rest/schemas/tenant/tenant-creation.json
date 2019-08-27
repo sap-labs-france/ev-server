@@ -6,7 +6,7 @@
         "id": {
           "type": "string",
           "description": "identifier of the tenant",
-          "pattern": "^[0-9a-fA-F]{24}$"
+          "pattern": "^$|^[0-9a-fA-F]{24}$"
         },
         "name": {
             "type": "string",
