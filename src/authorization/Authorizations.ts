@@ -195,11 +195,13 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATIONS, Constants.ACTION_LIST);
   }
 
-  public static canPerformActionOnChargingStation(loggedUser: UserToken, action: string, context?: any): boolean {
+  public static canPerformActionOnChargingStation(loggedUser: UserToken, action: string, chargingStation: ChargingStation, context?: any): boolean {
     if (!context) {
+      const isOrgCompActive = Utils.isComponentActiveFromToken(loggedUser, Constants.COMPONENTS.ORGANIZATION);
       context = {
         tagIDs: loggedUser.tagIDs,
         owner: loggedUser.id,
+        site: isOrgCompActive ? chargingStation.siteArea.site.id : null,
         sites: loggedUser.sites,
         sitesAdmin: loggedUser.sitesAdmin
       };
@@ -214,14 +216,14 @@ export default class Authorizations {
   public static canUpdateChargingStation(loggedUser: UserToken, siteID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION, Constants.ACTION_UPDATE, {
       'site': siteID,
-      'sites': loggedUser.sitesAdmin
+      'sitesAdmin': loggedUser.sitesAdmin
     });
   }
 
   public static canDeleteChargingStation(loggedUser: UserToken, siteID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION, Constants.ACTION_DELETE, {
       'site': siteID,
-      'sites': loggedUser.sitesAdmin
+      'sitesAdmin': loggedUser.sitesAdmin
     });
   }
 
@@ -571,7 +573,9 @@ export default class Authorizations {
           'Authorizations', 'isTagIDAuthorizedOnChargingStation',
           user);
       }
+
       const userToken = await Authorizations.buildUserToken(tenantID, user);
+
       // Authorized?
       const context = {
         user: transaction ? transaction.userID : null,
@@ -582,7 +586,7 @@ export default class Authorizations {
         sites: userToken.sites,
         sitesAdmin: userToken.sitesAdmin
       };
-      if (!Authorizations.canPerformActionOnChargingStation(userToken, action, context)) {
+      if (!Authorizations.canPerformActionOnChargingStation(userToken, action, chargingStation, context)) {
         throw new AppAuthError(
           action,
           Constants.ENTITY_CHARGING_STATION,

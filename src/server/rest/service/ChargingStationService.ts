@@ -510,7 +510,7 @@ public static async handleGetChargingStationsInError(action: string, req: Reques
       result = await ChargingStationService._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
     } else if (action === 'GetCompositeSchedule') {
       // Check auth
-      if (!Authorizations.canPerformActionOnChargingStation(req.user, action)) {
+      if (!Authorizations.canPerformActionOnChargingStation(req.user, action, chargingStation)) {
         throw new AppAuthError(action,
           Constants.ENTITY_CHARGING_STATION,
           chargingStation.id,
@@ -546,7 +546,7 @@ public static async handleGetChargingStationsInError(action: string, req: Reques
       }
     } else {
       // Check auth
-      if (!Authorizations.canPerformActionOnChargingStation(req.user, action)) {
+      if (!Authorizations.canPerformActionOnChargingStation(req.user, action, chargingStation)) {
         throw new AppAuthError(action,
           Constants.ENTITY_CHARGING_STATION,
           chargingStation.id,
@@ -580,7 +580,7 @@ public static async handleGetChargingStationsInError(action: string, req: Reques
     UtilsService.assertObjectExists(chargingStation, `Charging Station with ID '${filteredRequest.chargeBoxID}' does not exist`,
       'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
     // Get the Config
-    if (!Authorizations.canPerformActionOnChargingStation(req.user, 'ChangeConfiguration')) {
+    if (!Authorizations.canPerformActionOnChargingStation(req.user, 'ChangeConfiguration', chargingStation)) {
       throw new AppAuthError(action,
         Constants.ENTITY_CHARGING_STATION,
         filteredRequest.chargeBoxID,

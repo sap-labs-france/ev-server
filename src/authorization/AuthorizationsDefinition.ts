@@ -1,6 +1,6 @@
 import AccessControl from 'role-acl';
-import Constants from '../utils/Constants';
 import InternalError from '../exception/InternalError';
+import Constants from '../utils/Constants';
 
 const GRANTS = {
   superAdmin: {
@@ -256,7 +256,7 @@ const GRANTS = {
           'Reset', 'ClearCache', 'GetConfiguration', 'ChangeConfiguration',
           'SetChargingProfile', 'GetCompositeSchedule', 'ClearChargingProfile',
           'GetDiagnostics', 'UpdateFirmware'], attributes: ['*'],
-        condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
+        condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } }
       },
       {
         resource: 'Transaction', action: 'Read', attributes: ['*'],

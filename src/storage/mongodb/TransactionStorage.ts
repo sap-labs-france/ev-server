@@ -232,8 +232,7 @@ export default class TransactionStorage {
       filterMatch['stop.price'] = { $gt: 0 };
     }
     // Create Aggregation
-    let aggregation = [];
-    const toSubRequests = [];
+    const aggregation = [];
     // Filters
     if (ownerMatch.$or && ownerMatch.$or.length > 0) {
       aggregation.push({
@@ -252,13 +251,13 @@ export default class TransactionStorage {
     if (params.withChargeBoxes) {
       // Add Charge Box
       DatabaseUtils.pushChargingStationLookupInAggregation(
-        { tenantID, aggregation: toSubRequests, localField: 'chargeBoxID', foreignField: '_id',
+        { tenantID, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
           asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false });
     }
     // Add respective users
-    DatabaseUtils.pushUserLookupInAggregation({ tenantID, aggregation: toSubRequests, asField: 'user',
+    DatabaseUtils.pushUserLookupInAggregation({ tenantID, aggregation: aggregation, asField: 'user',
       localField: 'userID', foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false });
-    DatabaseUtils.pushUserLookupInAggregation({ tenantID, aggregation: toSubRequests, asField: 'stop.user',
+    DatabaseUtils.pushUserLookupInAggregation({ tenantID, aggregation: aggregation, asField: 'stop.user',
       localField: 'stop.userID', foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false });
     // Limit records?
     if (!dbParams.onlyRecordCount) {

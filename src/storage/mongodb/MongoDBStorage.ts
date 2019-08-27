@@ -282,7 +282,8 @@ export default class MongoDBStorage {
         loggerLevel: (this.dbConfig.debug ? 'debug' : null),
         reconnectTries: Number.MAX_VALUE,
         reconnectInterval: 1000,
-        autoReconnect: true
+        autoReconnect: true,
+        useUnifiedTopology: true
       }
     );
     // Get the EVSE DB
