@@ -176,7 +176,6 @@ export default class TransactionSecurity {
     }
     // Filter result
     for (const transaction of transactions.result) {
-      // Filter
       const filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser);
       if (filteredTransaction) {
         filteredTransactions.push(filteredTransaction);

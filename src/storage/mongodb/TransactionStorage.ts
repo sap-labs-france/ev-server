@@ -402,19 +402,7 @@ export default class TransactionStorage {
       })
       .toArray();
     // Convert Object IDs to String
-    for (const transactionMDB of transactionsMDB) {
-      // Check Stop created by the join
-      if (transactionMDB.stop && Utils.isEmptyJSon(transactionMDB.stop)) {
-        delete transactionMDB.stop;
-      }
-      // Check convertion of MongoDB IDs in sub-document
-      if (transactionMDB.stop && transactionMDB.stop.userID) {
-        transactionMDB.stop.userID = transactionMDB.stop.userID.toString();
-      }
-      if (transactionMDB.remotestop && transactionMDB.remotestop.userID) {
-        transactionMDB.remotestop.userID = transactionMDB.remotestop.userID.toString();
-      }
-    }
+    this._convertTransactionIDs(transactionsMDB);
     // Debug
     Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, { params, dbParams });
     return {
@@ -560,7 +548,13 @@ export default class TransactionStorage {
     aggregation.pop();
     // Rename ID
     DatabaseUtils.renameField(aggregation, '_id', 'id');
-    // Sort
+    // Sort    // Convert Object ID to string
+    DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
+    DatabaseUtils.convertObjectIDToString(aggregation, 'siteAreaID');
+    // Not yet possible to remove the fields if stop/remoteStop does not exist (MongoDB 4.2)
+    // DatabaseUtils.convertObjectIDToString(aggregation, 'stop.userID');
+    // DatabaseUtils.convertObjectIDToString(aggregation, 'remotestop.userID');
     if (dbParams.sort) {
       if (!dbParams.sort.timestamp) {
         aggregation.push({
@@ -593,8 +587,8 @@ export default class TransactionStorage {
         allowDiskUse: true
       })
       .toArray();
-    // Set
-    const transactions = [];
+    // Convert Object IDs to String
+    this._convertTransactionIDs(transactionsMDB);
     // Debug
     Logging.traceEnd('TransactionStorage', 'getTransactionsInError', uniqueTimerID, { params, dbParams });
     return {
@@ -788,5 +782,21 @@ export default class TransactionStorage {
       }
     }
     return filteredFacets;
+  }
+
+  private static _convertTransactionIDs(transactionsMDB: Transaction[]) {
+    for (const transactionMDB of transactionsMDB) {
+      // Check Stop created by the join
+      if (transactionMDB.stop && Utils.isEmptyJSon(transactionMDB.stop)) {
+        delete transactionMDB.stop;
+      }
+      // Check convertion of MongoDB IDs in sub-document
+      if (transactionMDB.stop && transactionMDB.stop.userID) {
+        transactionMDB.stop.userID = transactionMDB.stop.userID.toString();
+      }
+      if (transactionMDB.remotestop && transactionMDB.remotestop.userID) {
+        transactionMDB.remotestop.userID = transactionMDB.remotestop.userID.toString();
+      }
+    }
   }
 }
