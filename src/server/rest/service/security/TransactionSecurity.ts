@@ -102,7 +102,7 @@ export default class TransactionSecurity {
       filteredTransaction.meterStart = transaction.meterStart;
       filteredTransaction.timestamp = transaction.timestamp;
       filteredTransaction.timezone = transaction.timezone;
-      if (transaction.price) {
+      if (transaction.hasOwnProperty('price')) {
         filteredTransaction.price = transaction.price;
         filteredTransaction.roundedPrice = transaction.roundedPrice;
         filteredTransaction.priceUnit = transaction.priceUnit;

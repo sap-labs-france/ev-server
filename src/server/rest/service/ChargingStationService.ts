@@ -812,11 +812,6 @@ Public static async handleGetChargingStationsInError(action: string, req: Reques
     }
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query);
-    // Check component
-    if (filteredRequest.SiteID || filteredRequest.WithSite || filteredRequest.SiteAreaID || !filteredRequest.WithNoSiteArea) {
-      UtilsService.assertComponentIsActiveFromToken(req.user,
-        Constants.COMPONENTS.ORGANIZATION, Constants.ACTION_READ, Constants.ENTITY_CHARGING_STATIONS, 'ChargingStationService', 'handleGetChargingStations');
-    }
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStations(req.user.tenantID,
       {

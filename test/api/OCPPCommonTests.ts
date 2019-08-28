@@ -413,7 +413,6 @@ export default class OCPPCommonTests {
     response = await this.basicTransactionValidation(this.newTransaction.id, this.newTransaction.connectorId, this.newTransaction.meterStart, this.newTransaction.timestamp);
     expect(response.data).to.deep['containSubset']({
       'isLoading': false,
-      //      'stateOfCharge': (withSoC ? this.transactionStartSoC : 0),
       'stop': {
         'meterStop': this.transactionEndMeterValue,
         'totalConsumption': this.transactionTotalConsumption,
@@ -449,7 +448,6 @@ export default class OCPPCommonTests {
     expect(response.data).to.deep['containSubset']({
       'chargeBoxID': this.newTransaction.chargeBoxID,
       'connectorId': this.newTransaction.connectorId,
-      //      'stateOfCharge': (withSoC ? this.transactionStartSoC : 0),
       'signedData': (withSignedData ? this.transactionSignedData : ''),
       'stop': {
         'price': this.totalPrice,
