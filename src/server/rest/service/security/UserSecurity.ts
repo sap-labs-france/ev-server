@@ -16,9 +16,7 @@ export default class UserSecurity {
   public static filterAssignSitesToUserRequest(request: Partial<HttpSitesAssignUserRequest>): HttpSitesAssignUserRequest {
     return {
       userID: sanitize(request.userID),
-      siteIDs: request.siteIDs ? request.siteIDs.map((sid) => {
-        return sanitize(sid);
-      }) : []
+      siteIDs: request.siteIDs ? request.siteIDs.map((sid) => sanitize(sid)) : []
     };
   }
 
