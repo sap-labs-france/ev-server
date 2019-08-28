@@ -817,8 +817,9 @@ export default class ChargingStationService {
     }
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query);
+console.log(`>>> filters:${JSON.stringify(filteredRequest)}`);
     // Check component
-    if (filteredRequest.SiteID || filteredRequest.WithSite || filteredRequest.SiteAreaID || !filteredRequest.WithNoSiteArea) {
+    if (filteredRequest.SiteID || filteredRequest.WithSite || filteredRequest.SiteAreaID) {
       UtilsService.assertComponentIsActiveFromToken(req.user,
         Constants.COMPONENTS.ORGANIZATION, Constants.ACTION_READ, Constants.ENTITY_CHARGING_STATIONS, 'ChargingStationService', 'handleGetChargingStations');
     }
