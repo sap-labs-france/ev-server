@@ -37,8 +37,8 @@ export default class TransactionStorage {
     // Transfer
     const transactionMDB: any = {
       _id: Utils.convertToInt(transactionToSave.id),
-      siteID: transactionToSave.siteID,
-      siteAreaID: transactionToSave.siteAreaID,
+      siteID: Utils.convertToObjectID(transactionToSave.siteID),
+      siteAreaID: Utils.convertToObjectID(transactionToSave.siteAreaID),
       connectorId: Utils.convertToInt(transactionToSave.connectorId),
       tagID: transactionToSave.tagID,
       userID: Utils.convertToObjectID(transactionToSave.userID),

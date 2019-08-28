@@ -411,17 +411,19 @@ export default class ChargingStationStorage {
       _id: chargingStationToSave.id
     };
     // Convert
-    for (const connector of chargingStationToSave.connectors) {
-      if (connector) {
-        connector.connectorId = Utils.convertToInt(connector.connectorId);
-        connector.currentConsumption = Utils.convertToFloat(connector.currentConsumption);
-        connector.totalInactivitySecs = Utils.convertToInt(connector.totalInactivitySecs);
-        connector.totalConsumption = Utils.convertToFloat(connector.totalConsumption);
-        connector.power = Utils.convertToInt(connector.power);
-        connector.voltage = Utils.convertToInt(connector.voltage);
-        connector.amperage = Utils.convertToInt(connector.amperage);
-        connector.activeTransactionID = Utils.convertToInt(connector.activeTransactionID);
-        connector.activeTransactionDate = Utils.convertToDate(connector.activeTransactionDate);
+    if (chargingStationToSave.connectors && Array.isArray(chargingStationToSave.connectors)) {
+      for (const connector of chargingStationToSave.connectors) {
+        if (connector) {
+          connector.connectorId = Utils.convertToInt(connector.connectorId);
+          connector.currentConsumption = Utils.convertToFloat(connector.currentConsumption);
+          connector.totalInactivitySecs = Utils.convertToInt(connector.totalInactivitySecs);
+          connector.totalConsumption = Utils.convertToFloat(connector.totalConsumption);
+          connector.power = Utils.convertToInt(connector.power);
+          connector.voltage = Utils.convertToInt(connector.voltage);
+          connector.amperage = Utils.convertToInt(connector.amperage);
+          connector.activeTransactionID = Utils.convertToInt(connector.activeTransactionID);
+          connector.activeTransactionDate = Utils.convertToDate(connector.activeTransactionDate);
+        }
       }
     }
     // Properties to save

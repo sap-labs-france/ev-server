@@ -365,7 +365,6 @@ export default class ChargingStationContext {
     const response = await this.ocppService.executeStatusNotification(this.chargingStation.id, connector);
     this.chargingStation.connectors[connector.connectorId - 1].status = connector.status;
     this.chargingStation.connectors[connector.connectorId - 1].errorCode = connector.errorCode;
-    this.chargingStation.connectors[connector.connectorId - 1].timestamp = connector.timestamp;
     return response;
   }
 
