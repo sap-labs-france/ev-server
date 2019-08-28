@@ -20,6 +20,11 @@ export interface HttpUsersRequest extends HttpDatabaseRequest {
   ExcludeSiteID: string;
 }
 
+export interface HttpUserSitesRequest extends HttpDatabaseRequest {
+  Search: string;
+  UserID: string;
+}
+
 export interface HttpLoginRequest {
   email: string;
   password: string;
