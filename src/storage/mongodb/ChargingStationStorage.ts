@@ -383,7 +383,6 @@ export default class ChargingStationStorage {
               cleanedConnectors.push(connector);
             }
           }
-          // TODO: Clean them a bit more?
           chargingStation.connectors = cleanedConnectors;
         }
         // Add Inactive flag
@@ -411,6 +410,20 @@ export default class ChargingStationStorage {
     const chargingStationFilter = {
       _id: chargingStationToSave.id
     };
+    // Convert
+    for (const connector of chargingStationToSave.connectors) {
+      if (connector) {
+        connector.connectorId = Utils.convertToInt(connector.connectorId);
+        connector.currentConsumption = Utils.convertToFloat(connector.currentConsumption);
+        connector.totalInactivitySecs = Utils.convertToInt(connector.totalInactivitySecs);
+        connector.totalConsumption = Utils.convertToFloat(connector.totalConsumption);
+        connector.power = Utils.convertToInt(connector.power);
+        connector.voltage = Utils.convertToInt(connector.voltage);
+        connector.amperage = Utils.convertToInt(connector.amperage);
+        connector.activeTransactionID = Utils.convertToInt(connector.activeTransactionID);
+        connector.activeTransactionDate = Utils.convertToDate(connector.activeTransactionDate);
+      }
+    }
     // Properties to save
     const chargingStationMDB = {
       _id: chargingStationToSave.id,
@@ -466,6 +479,18 @@ export default class ChargingStationStorage {
   public static async saveChargingStationConnector(tenantID: string, chargingStation: ChargingStation, connector: Connector): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStationConnector');
+    // Ensure good typing
+    if (connector) {
+      connector.connectorId = Utils.convertToInt(connector.connectorId);
+      connector.currentConsumption = Utils.convertToFloat(connector.currentConsumption);
+      connector.totalInactivitySecs = Utils.convertToInt(connector.totalInactivitySecs);
+      connector.totalConsumption = Utils.convertToFloat(connector.totalConsumption);
+      connector.power = Utils.convertToInt(connector.power);
+      connector.voltage = Utils.convertToInt(connector.voltage);
+      connector.amperage = Utils.convertToInt(connector.amperage);
+      connector.activeTransactionID = Utils.convertToInt(connector.activeTransactionID);
+      connector.activeTransactionDate = Utils.convertToDate(connector.activeTransactionDate);
+    }
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const updatedFields: any = {};
