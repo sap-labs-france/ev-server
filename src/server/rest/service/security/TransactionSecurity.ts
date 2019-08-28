@@ -7,6 +7,7 @@ import Transaction from '../../../../types/Transaction';
 import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
+import { DataResult } from '../../../../types/DataResult';
 
 export default class TransactionSecurity {
   public static filterTransactionsRefund(request: any): HttpTransactionsRefundRequest {
@@ -169,7 +170,7 @@ export default class TransactionSecurity {
     return filteredTransaction;
   }
 
-  static filterTransactionsResponse(transactions: {result: Transaction[]; count: number}, loggedUser: UserToken) {
+  static filterTransactionsResponse(transactions: DataResult<Transaction>, loggedUser: UserToken) {
     const filteredTransactions = [];
     if (!transactions.result) {
       return null;

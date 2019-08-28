@@ -7,6 +7,7 @@ import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandR
 import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
+import { DataResult } from '../../../../types/DataResult';
 
 export default class ChargingStationSecurity {
 
@@ -83,7 +84,7 @@ export default class ChargingStationSecurity {
     return filteredChargingStation;
   }
 
-  public static filterChargingStationsResponse(chargingStations: {result: ChargingStation[]}, loggedUser: UserToken, organizationIsActive: boolean) {
+  public static filterChargingStationsResponse(chargingStations: DataResult<ChargingStation>, loggedUser: UserToken, organizationIsActive: boolean) {
     const filteredChargingStations = [];
     // Check
     if (!chargingStations.result) {

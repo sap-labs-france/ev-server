@@ -7,9 +7,10 @@ import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import SiteArea from '../../types/SiteArea';
 import Utils from '../../utils/Utils';
+import { DataResult, ImageResult } from '../../types/DataResult';
 
 export default class SiteAreaStorage {
-  public static async getSiteAreaImage(tenantID: string, id: string): Promise<{id: string; image: string}> {
+  public static async getSiteAreaImage(tenantID: string, id: string): Promise<ImageResult> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'getSiteAreaImage');
     // Check Tenant
@@ -19,7 +20,7 @@ export default class SiteAreaStorage {
       .find({ _id: id })
       .limit(1)
       .toArray();
-    let siteAreaImage: {id: string; image: string} = null;
+    let siteAreaImage: ImageResult = null;
     // Set
     if (siteAreaImagesMDB && siteAreaImagesMDB.length > 0) {
       siteAreaImage = {
@@ -86,7 +87,7 @@ export default class SiteAreaStorage {
   public static async getSiteAreas(tenantID: string,
     params: {siteAreaID?: string; search?: string; siteIDs?: string[]; withSite?: boolean;
       withChargeBoxes?: boolean; withAvailableChargers?: boolean; } = {},
-    dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: SiteArea[]}> {
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteArea>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'getSiteAreas');
     // Check Tenant
@@ -144,7 +145,7 @@ export default class SiteAreaStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const siteAreasCountMDB = await global.database.getCollection<{count: number}>(tenantID, 'siteareas')
+    const siteAreasCountMDB = await global.database.getCollection<DataResult<SiteArea>>(tenantID, 'siteareas')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested

@@ -9,6 +9,7 @@ import Logging from '../../utils/Logging';
 import TenantStorage from './TenantStorage';
 import Utils from '../../utils/Utils';
 import UtilsService from '../../server/rest/service/UtilsService';
+import { DataResult } from '../../types/DataResult';
 
 export default class ChargingStationStorage {
 
@@ -28,7 +29,7 @@ export default class ChargingStationStorage {
   public static async getChargingStations(tenantID: string,
     params: { search?: string; chargingStationID?: string; siteAreaID?: string[]; withNoSiteArea?: boolean; siteIDs?: string[]; withSite?: boolean;
       errorType?: string[]; includeDeleted?: boolean; },
-    dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: ChargingStation[]}> {
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
     // Check Tenant
@@ -248,7 +249,7 @@ export default class ChargingStationStorage {
 
   public static async getChargingStationsInError(tenantID: string,
     params: { search?: string; siteIDs?: string[]; siteAreaID: string[]; errorType?: string[] },
-    dbParams: DbParams): Promise<{count: number; result: ChargingStation[]}> {
+    dbParams: DbParams): Promise<DataResult<ChargingStation>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
     // Check Tenant

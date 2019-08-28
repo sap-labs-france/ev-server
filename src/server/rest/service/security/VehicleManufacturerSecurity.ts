@@ -5,6 +5,7 @@ import { HttpVehicleManufacturersRequest } from '../../../../types/requests/Http
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import VehicleManufacturer from '../../../../types/VehicleManufacturer';
+import { DataResult } from '../../../../types/DataResult';
 
 export default class VehicleManufacturerSecurity {
 
@@ -62,7 +63,7 @@ export default class VehicleManufacturerSecurity {
     return filteredVehicleManufacturer;
   }
 
-  public static filterVehicleManufacturersResponse(vehicleManufacturers: {count: number; result: VehicleManufacturer[]}, loggedUser: UserToken) {
+  public static filterVehicleManufacturersResponse(vehicleManufacturers: DataResult<VehicleManufacturer>, loggedUser: UserToken) {
     const filteredVehicleManufacturers = [];
 
     if (!vehicleManufacturers.result) {

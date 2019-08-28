@@ -6,6 +6,7 @@ import Site from '../../../../types/Site';
 import SiteAreaSecurity from './SiteAreaSecurity';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
+import { DataResult } from '../../../../types/DataResult';
 
 export default class SiteSecurity {
   public static filterUpdateSiteUserAdminRequest(request: any): HttpSiteUserAdminRequest {
@@ -125,7 +126,7 @@ export default class SiteSecurity {
     return filteredSite;
   }
 
-  static filterSitesResponse(sites: {result: Site[]; count: number}, loggedUser) {
+  static filterSitesResponse(sites: DataResult<Site>, loggedUser) {
     const filteredSites = [];
 
     if (!sites.result) {

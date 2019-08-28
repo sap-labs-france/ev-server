@@ -8,6 +8,7 @@ import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import SiteStorage from './SiteStorage';
 import Utils from '../../utils/Utils';
+import { DataResult } from '../../types/DataResult';
 
 export default class CompanyStorage {
 
@@ -81,7 +82,7 @@ export default class CompanyStorage {
 
   public static async getCompanies(tenantID: string,
     params: {search?: string; companyID?: string; companyIDs?: string[]; withSites?: boolean; withLogo?: boolean} = {},
-    dbParams?: DbParams, projectFields?: string[]): Promise<{count: number; result: Company[]}> {
+    dbParams?: DbParams, projectFields?: string[]): Promise<DataResult<Company>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('CompanyStorage', 'getCompanies');
     // Check Tenant
@@ -129,7 +130,7 @@ export default class CompanyStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const companiesCountMDB = await global.database.getCollection<{count: number}>(tenantID, 'companies')
+    const companiesCountMDB = await global.database.getCollection<DataResult<Company>>(tenantID, 'companies')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested

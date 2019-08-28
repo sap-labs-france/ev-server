@@ -15,6 +15,7 @@ import Tag from '../../types/Tag';
 import TenantStorage from './TenantStorage';
 import User from '../../types/User';
 import Utils from '../../utils/Utils';
+import { DataResult, ImageResult } from '../../types/DataResult';
 
 export default class UserStorage {
 
@@ -157,7 +158,7 @@ export default class UserStorage {
     return user.count > 0 ? user.result[0] : null;
   }
 
-  public static async getUserImage(tenantID: string, id: string): Promise<{id: string; image: string}> {
+  public static async getUserImage(tenantID: string, id: string): Promise<ImageResult> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserImage');
     // Check Tenant
@@ -261,7 +262,7 @@ export default class UserStorage {
       { upsert: true, returnOriginal: false });
     // Delegate saving image as well if specified
     if (saveImage) {
-      await UserStorage.saveUserImage(tenantID, { id: userMDB._id.toHexString(), image: userToSave.image });
+      await UserStorage.saveUserImage(tenantID, userMDB._id.toHexString(), userToSave.image);
     }
     // Debug
     Logging.traceEnd('UserStorage', 'saveUser', uniqueTimerID, { userToSave });
@@ -380,13 +381,13 @@ export default class UserStorage {
     Logging.traceEnd('UserStorage', 'saveUserAdminData', uniqueTimerID);
   }
 
-  public static async saveUserImage(tenantID: string, userImageToSave: {id: string; image: string}): Promise<void> {
+  public static async saveUserImage(tenantID: string, userID: string, userImageToSave: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserImage');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check if ID is provided
-    if (!userImageToSave.id) {
+    if (!userID) {
       // ID must be provided!
       throw new BackendError(
         Constants.CENTRAL_SERVER,
@@ -395,25 +396,25 @@ export default class UserStorage {
     }
     // Modify and return the modified document
     await global.database.getCollection<any>(tenantID, 'userimages').findOneAndUpdate(
-      { '_id': Utils.convertToObjectID(userImageToSave.id) },
-      { $set: { image: userImageToSave.image } },
+      { '_id': Utils.convertToObjectID(userID) },
+      { $set: { image: userImageToSave } },
       { upsert: true, returnOriginal: false });
     // Debug
-    Logging.traceEnd('UserStorage', 'saveUserImage', uniqueTimerID, { userImageToSave });
+    Logging.traceEnd('UserStorage', 'saveUserImage', uniqueTimerID, { userID });
   }
 
   public static async getUsers(tenantID: string,
     params: {notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string; userID?: string; email?: string;
       roles?: string[]; statuses?: string[]; withImage?: boolean; },
-    { limit, skip, onlyRecordCount, sort }: DbParams, projectFields?: string[]) {
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
-    limit = Utils.checkRecordLimit(limit);
+    const limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    skip = Utils.checkRecordSkip(skip);
+    const skip = Utils.checkRecordSkip(dbParams.skip);
     const filters: any = {
       '$and': [{
         '$or': DatabaseUtils.getNotDeletedFilter()
@@ -511,7 +512,7 @@ export default class UserStorage {
     // Change ID
     DatabaseUtils.renameDatabaseID(aggregation);
     // Limit records?
-    if (!onlyRecordCount) {
+    if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
@@ -520,7 +521,7 @@ export default class UserStorage {
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
-    if (onlyRecordCount) {
+    if (dbParams.onlyRecordCount) {
       // Return only the count
       return {
         count: (usersCountMDB.length > 0 ? usersCountMDB[0].count : 0),
@@ -532,9 +533,9 @@ export default class UserStorage {
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
-    if (sort) {
+    if (dbParams.sort) {
       aggregation.push({
-        $sort: sort
+        $sort: dbParams.sort
       });
     } else {
       aggregation.push({
@@ -560,7 +561,7 @@ export default class UserStorage {
       delete (userMDB as any).siteusers;
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID, { params, limit, skip, sort });
+    Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID, { params, limit, skip, sort: dbParams.sort });
     // Ok
     return {
       count: (usersCountMDB.length > 0 ?
@@ -570,18 +571,18 @@ export default class UserStorage {
   }
 
   public static async getUsersInError(tenantID: string,
-    params: {search?: string; roles?: string[]; errorTypes?: string[]},
-    { limit, skip, onlyRecordCount, sort }: DbParams) {
+    params: { search?: string; roles?: string[]; errorTypes?: string[] },
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
-    limit = Utils.checkRecordLimit(limit);
+    const limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    skip = Utils.checkRecordSkip(skip);
-    // Mongodb pipeline creation
-    const pipeline = [];
+    const skip = Utils.checkRecordSkip(dbParams.skip);
+    // Mongodb aggregation creation
+    const aggregation = [];
     // Mongodb filter block ($match)
     const match: any = { '$and': [{ '$or': DatabaseUtils.getNotDeletedFilter() }] };
     if (params.roles) {
@@ -603,10 +604,10 @@ export default class UserStorage {
         });
       }
     }
-    pipeline.push({ $match: match });
+    aggregation.push({ $match: match });
     // Mongodb Lookup block
     // Add TagIDs
-    pipeline.push({
+    aggregation.push({
       $lookup: {
         from: DatabaseUtils.getCollectionName(tenantID, 'tags'),
         localField: '_id',
@@ -615,7 +616,7 @@ export default class UserStorage {
       }
     });
     // Mongodb adding common fields
-    pipeline.push({
+    aggregation.push({
       $addFields: {
         tagIDs: {
           $map: {
@@ -637,11 +638,11 @@ export default class UserStorage {
         array.push(`$${type}`);
         facets.$facet[type] = UserStorage._buildUserInErrorFacet(tenantID, type);
       });
-      pipeline.push(facets);
+      aggregation.push(facets);
       // Manipulate the results to convert it to an array of document on root level
-      pipeline.push({ $project: { usersInError: { $setUnion: array } } });
+      aggregation.push({ $project: { usersInError: { $setUnion: array } } });
     } else {
-      pipeline.push({
+      aggregation.push({
         '$facet': {
           'unactive_user': [
             { $match: { status: { $in: [Constants.USER_STATUS_BLOCKED, Constants.USER_STATUS_INACTIVE, Constants.USER_STATUS_LOCKED, Constants.USER_STATUS_PENDING] } } },
@@ -650,19 +651,19 @@ export default class UserStorage {
         }
       });
       // Take out the facet name from the result
-      pipeline.push({ $project: { usersInError: { $setUnion: ['$unactive_user'] } } });
+      aggregation.push({ $project: { usersInError: { $setUnion: ['$unactive_user'] } } });
     }
     // Finish the preparation of the result
-    pipeline.push({ $unwind: '$usersInError' });
-    pipeline.push({ $replaceRoot: { newRoot: '$usersInError' } });
+    aggregation.push({ $unwind: '$usersInError' });
+    aggregation.push({ $replaceRoot: { newRoot: '$usersInError' } });
     // Change ID
-    DatabaseUtils.renameDatabaseID(pipeline);
+    DatabaseUtils.renameDatabaseID(aggregation);
     // Count Records
     const usersCountMDB = await global.database.getCollection<any>(tenantID, 'users')
-      .aggregate([...pipeline, { $count: 'count' }], { allowDiskUse: true })
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
-    if (onlyRecordCount) {
+    if (dbParams.onlyRecordCount) {
       // Return only the count
       return {
         count: (usersCountMDB.length > 0 ? usersCountMDB[0].count : 0),
@@ -670,28 +671,30 @@ export default class UserStorage {
       };
     }
     // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, pipeline);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Mongodb sort, skip and limit block
-    if (sort) {
-      pipeline.push({
-        $sort: sort
+    if (dbParams.sort) {
+      aggregation.push({
+        $sort: dbParams.sort
       });
     } else {
-      pipeline.push({
+      aggregation.push({
         $sort: { status: -1, name: 1, firstName: 1 }
       });
     }
     // Skip
-    pipeline.push({
+    aggregation.push({
       $skip: skip
     });
     // Limit
-    pipeline.push({
+    aggregation.push({
       $limit: limit
     });
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const usersMDB = await global.database.getCollection<User>(tenantID, 'users')
-      .aggregate(pipeline, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: false })
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: false })
       .toArray();
     // Clean user object
     for (const userMDB of usersMDB) {
@@ -699,7 +702,7 @@ export default class UserStorage {
       delete (userMDB as any).sites;
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID, { params, limit, skip, sort });
+    Logging.traceEnd('UserStorage', 'getUsers', uniqueTimerID, { params, limit, skip, sort: dbParams.sort });
     // Ok
     return {
       count: (usersCountMDB.length > 0 ?
@@ -731,7 +734,7 @@ export default class UserStorage {
 
   public static async getSites(tenantID: string,
     params: { search?: string; userID: string; siteAdmin?: boolean },
-    dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: SiteUser[]}> {
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteUser>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getSites');
     // Check Tenant

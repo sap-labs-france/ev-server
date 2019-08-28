@@ -5,6 +5,7 @@ import global from './../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Transaction from '../../types/Transaction';
 import Utils from '../../utils/Utils';
+import { DataResult } from '../../types/DataResult';
 
 export default class TransactionStorage {
   public static async deleteTransaction(tenantID: string, transaction: Transaction): Promise<void> {
@@ -140,10 +141,9 @@ export default class TransactionStorage {
     statistics?: 'refund' | 'history'; refundStatus?: string;
     },
     dbParams: DbParams, projectFields?: string[]):
-    Promise<{count: number; stats: { totalConsumptionWattHours?: number; totalPriceRefund?: number; totalPricePending?: number;
+    Promise<{count: number; result: Transaction[]; stats: { totalConsumptionWattHours?: number; totalPriceRefund?: number; totalPricePending?: number;
       countRefundTransactions?: number; countPendingTransactions?: number; countRefundedReports?: number; totalDurationSecs?: number;
-      totalPrice?: number; currency?: string; totalInactivitySecs?: number; count: number; };
-    result: Transaction[]; }> {
+      totalPrice?: number; currency?: string; totalInactivitySecs?: number; count: number; };}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactions');
     // Check
@@ -417,7 +417,7 @@ export default class TransactionStorage {
     string[]; siteAreaIDs?: string[]; siteID?: string; startDateTime?: Date; endDateTime?: Date; withChargeBoxes?: boolean;
     errorType?: ('negative_inactivity' | 'average_consumption_greater_than_connector_capacity' | 'no_consumption')[];
     },
-    dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: Transaction[] }> {
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Transaction>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactionsInError');
     // Check
@@ -663,7 +663,7 @@ export default class TransactionStorage {
     });
     aggregation.push({ $sort: { timestamp: -1 } });
     // The last one
-    aggregation.push({ $limit: 1 }); // TODO: Use getTransactions()
+    aggregation.push({ $limit: 1 });
     // Read DB
     const transactionsMDB = await global.database.getCollection<Transaction>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })

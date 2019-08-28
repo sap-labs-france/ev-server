@@ -22,6 +22,7 @@ import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
+import { DataResult } from '../../../types/DataResult';
 
 export default class ChargingStationService {
 
@@ -805,7 +806,7 @@ export default class ChargingStationService {
     return Authorizations.canStopTransaction(user, transaction);
   }
 
-  private static async _getChargingStations(req: Request): Promise<{count: number; result: ChargingStation[]}> {
+  private static async _getChargingStations(req: Request): Promise<DataResult<ChargingStation>> {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError(

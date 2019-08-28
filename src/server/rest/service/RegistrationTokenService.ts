@@ -207,8 +207,9 @@ export default class RegistrationTokenService {
         registrationToken.ocpp16Url = Utils.buildOCPPServerURL(req.user.tenantID, Constants.OCPP_PROTOCOL_JSON, registrationToken.id);
         return registrationToken;
       });
-      // Ok
-      res.json(RegistrationTokenSecurity.filterRegistrationTokensResponse(registrationTokens, req.user));
+      // Filter
+      RegistrationTokenSecurity.filterRegistrationTokensResponse(registrationTokens, req.user);
+      res.json(registrationTokens);
       next();
     } catch (error) {
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
