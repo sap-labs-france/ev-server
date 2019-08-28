@@ -1,7 +1,12 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpSitesAssignUserRequest, HttpUserRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
+import {
+  HttpSitesAssignUserRequest,
+  HttpUserRequest,
+  HttpUserSitesRequest,
+  HttpUsersRequest
+} from '../../../../types/requests/HttpUserRequest';
 import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
@@ -43,6 +48,15 @@ export default class UserSecurity {
     UtilsSecurity.filterSkipAndLimit(request, request);
     UtilsSecurity.filterSort(request, request);
     return request as HttpUsersRequest;
+  }
+
+  public static filterUserSitesRequest(request: Partial<HttpUserSitesRequest>): HttpUserSitesRequest {
+    const filteredRequest: HttpUserSitesRequest = {} as HttpUserSitesRequest;
+    filteredRequest.UserID = sanitize(request.UserID);
+    filteredRequest.Search = sanitize(request.Search);
+    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+    UtilsSecurity.filterSort(request, filteredRequest);
+    return filteredRequest;
   }
 
   public static filterUserUpdateRequest(request: Partial<HttpUserRequest>, loggedUser: UserToken): Partial<HttpUserRequest> {

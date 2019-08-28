@@ -370,6 +370,62 @@ export default class UserService {
     next();
   }
 
+  public static async handleGetSites(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    UtilsService.assertComponentIsActiveFromToken(
+      req.user, Constants.COMPONENTS.ORGANIZATION,
+      Constants.ACTION_UPDATE, Constants.ENTITY_USER, 'UserService', 'handleGetSites');
+    // Filter
+    const filteredRequest = UserSecurity.filterUserSitesRequest(req.query);
+    // Check Mandatory fields
+    if (!filteredRequest.UserID) {
+      // Not Found!
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'The User\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
+        'UserService', 'handleGetSites', req.user);
+    }
+    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
+    if (!user) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `The User with ID '${filteredRequest.UserID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        'UserService', 'handleGetSites', req.user);
+    }
+    // Check auth
+    if (!Authorizations.canUpdateUser(req.user, filteredRequest.UserID)) {
+      throw new AppAuthError(
+        Constants.ACTION_UPDATE,
+        Constants.ENTITY_SITE,
+        user.id,
+        Constants.HTTP_AUTH_ERROR,
+        'UserService', 'handleGetSites',
+        req.user);
+    }
+    // Get users
+    const userSites = await UserStorage.getSites(req.user.tenantID,
+      {
+        search: filteredRequest.Search,
+        userID: filteredRequest.UserID
+      },
+      {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.Sort,
+        onlyRecordCount: filteredRequest.OnlyRecordCount
+      },
+      ['site.id', 'site.name', 'site.address.city', 'site.address.country', 'userID']
+    );
+    // Filter
+    userSites.result = userSites.result.map((userSite) => {
+      return {
+        userID: userSite.userID,
+        siteAdmin: userSite.siteAdmin,
+        site: userSite.site
+      };
+    });
+    res.json(userSites);
+    next();
+  }
   public static async handleGetUsers(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListUsers(req.user)) {
