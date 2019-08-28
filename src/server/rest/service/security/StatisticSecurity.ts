@@ -1,6 +1,6 @@
 import sanitize from 'mongo-sanitize';
-import Utils from '../../../../utils/Utils';
 import HttpStatisticsRequest from '../../../../types/requests/HttpStatisticRequest';
+import Utils from '../../../../utils/Utils';
 
 export default class StatisticSecurity {
   // eslint-disable-next-line no-unused-vars

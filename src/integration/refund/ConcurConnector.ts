@@ -1,5 +1,6 @@
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
+import * as Bluebird from 'bluebird';
 import jwt from 'jsonwebtoken';
 import moment from 'moment-timezone';
 import querystring from 'querystring';
@@ -15,7 +16,6 @@ import Site from '../../types/Site';
 import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import Transaction from '../../types/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
-import * as Bluebird from 'bluebird';
 
 const MODULE_NAME = 'ConcurConnector';
 const CONNECTOR_ID = 'concur';
