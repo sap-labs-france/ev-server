@@ -241,7 +241,7 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingStationsInError(tenantID: string,
-    params: { search?: string; siteIDs?: string[]; siteAreaID: string[]; errorType?: string[]; },
+    params: { search?: string; siteID?: string[]; siteAreaID: string[]; errorType?: string[]; },
     dbParams: DbParams): Promise<{count: number; result: ChargingStation[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
@@ -255,6 +255,12 @@ export default class ChargingStationStorage {
     const pipeline = [];
     // Set the filters
     const match: any = { '$and': [{ '$or': DatabaseUtils.getNotDeletedFilter() }]};
+    if (params.siteAreaID && Array.isArray(params.siteAreaID) && params.siteAreaID.length > 0) {
+      // Build filter
+      match.$and.push({
+        'siteAreaID': { $in: params.siteAreaID.map((id) => Utils.convertToObjectID(id)) }
+      });
+    }
     // Search filters
     if (params.search) {
       // Build filter
@@ -266,19 +272,13 @@ export default class ChargingStationStorage {
         ]
       });
     }
-    if (params.siteAreaID && Array.isArray(params.siteAreaID) && params.siteAreaID.length > 0) {
-      // Build filter
-      match.$and.push({
-        'siteAreaID': { $in: params.siteAreaID.map((id) => Utils.convertToObjectID(id)) }
-      });
-    }
-  pipeline.push({ $match: match });
+    pipeline.push({ $match: match });
     // Build lookups to fetch sites from chargers
     pipeline.push({
       $lookup: {
         from: DatabaseUtils.getCollectionName(tenantID, 'siteareas'),
-        localField: "_id",
-        foreignField: "siteAreaID",
+        localField: "siteAreaID",
+        foreignField: "_id",
         as: "sitearea"
       }
     });
@@ -287,11 +287,11 @@ export default class ChargingStationStorage {
       $unwind: { 'path': '$sitearea', 'preserveNullAndEmptyArrays': true }
     });
     // Check Site ID
-    if (params.siteIDs && Array.isArray(params.siteIDs) && params.siteIDs.length > 0) {
+    if (params.siteID && Array.isArray(params.siteID) && params.siteID.length > 0) {
       pipeline.push({ $match: {
         'sitearea.siteID': {
           // Still ObjectId because we need it for the site inclusion
-          $in: params.siteIDs.map((id) => Utils.convertToObjectID(id))
+          $in: params.siteID.map((id) => Utils.convertToObjectID(id))
         }
       }});
     }

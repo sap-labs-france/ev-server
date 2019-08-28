@@ -385,13 +385,20 @@ export default class ChargingStationService {
       UtilsService.assertComponentIsActiveFromToken(req.user,
         Constants.COMPONENTS.ORGANIZATION, Constants.ACTION_READ, Constants.ENTITY_CHARGING_STATIONS, 'ChargingStationService', 'handleGetChargingStations');
     }
+    let _errorType = [];
+    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+      // Get the Site Area
+      _errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : ['missingSettings','connectionBroken','connectorError','missingSiteArea']);
+    } else {
+      _errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : ['missingSettings','connectionBroken','connectorError']);
+    }
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStationsInError(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : Authorizations.getAuthorizedSiteIDs(req.user)),
+        siteID: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : Authorizations.getAuthorizedSiteIDs(req.user)),
         siteAreaID: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
-        errorType: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : ['missingSettings','connectionBroken','connectorError','missingSiteArea'])
+        errorType: _errorType
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
     );
@@ -402,11 +409,6 @@ export default class ChargingStationService {
     next();
   }
 
-/*
-public static async handleGetChargingStationsInError(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
-  return await ChargingStationService.handleGetChargingStations(action, req, res, next);
-}
-*/
   public static async handleGetStatusNotifications(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
