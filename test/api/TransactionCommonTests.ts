@@ -844,17 +844,17 @@ export default class TransactionCommonTests {
 
   public async testDeleteNotExistingTransaction() {
     const response = await this.transactionUserService.transactionApi.delete(faker.random.number(100000));
-    expect(response.status).to.equal(550);
+    expect(response.status).to.equal(560);
   }
 
   public async testDeleteTransactionWithInvalidId() {
     const response = await this.transactionUserService.transactionApi.delete('&é"\'(§è!çà)');
-    expect(response.status).to.equal(550);
+    expect(response.status).to.equal(560);
   }
 
   public async testDeleteTransactionWithoutId() {
     const response = await this.transactionUserService.transactionApi.delete(null);
-    expect(response.status).to.equal(500);
+    expect(response.status).to.equal(560);
   }
 
   public async testDeleteStartedTransaction(allowed = true) {
