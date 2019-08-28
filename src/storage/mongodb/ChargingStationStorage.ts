@@ -1,13 +1,13 @@
 import BackendError from '../../exception/BackendError';
 import ChargingStation from '../../types/ChargingStation';
+import Connector from '../../types/Connector';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
-import Connector from '../../types/Connector';
 import TenantStorage from './TenantStorage';
+import Utils from '../../utils/Utils';
 import UtilsService from '../../server/rest/service/UtilsService';
 
 export default class ChargingStationStorage {
@@ -250,7 +250,7 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingStationsInError(tenantID: string,
-    params: { search?: string; siteID?: string[]; siteAreaID: string[]; errorType?: string[] },
+    params: { search?: string; siteIDs?: string[]; siteAreaID: string[]; errorType?: string[] },
     dbParams: DbParams): Promise<{count: number; result: ChargingStation[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
@@ -296,11 +296,11 @@ export default class ChargingStationStorage {
       $unwind: { 'path': '$sitearea', 'preserveNullAndEmptyArrays': true }
     });
     // Check Site ID
-    if (params.siteID && Array.isArray(params.siteID) && params.siteID.length > 0) {
+    if (params.siteIDs && Array.isArray(params.siteIDs) && params.siteIDs.length > 0) {
       pipeline.push({ $match: {
         'sitearea.siteID': {
           // Still ObjectId because we need it for the site inclusion
-          $in: params.siteID.map((id) => Utils.convertToObjectID(id))
+          $in: params.siteIDs.map((id) => Utils.convertToObjectID(id))
         }
       } });
     }
@@ -320,7 +320,7 @@ export default class ChargingStationStorage {
       });
       pipeline.push(facets);
       // Manipulate the results to convert it to an array of document on root level
-      pipeline.push({ $project: { chargersInError:{ $setUnion:array } } });
+      pipeline.push({ $project: { chargersInError: { $setUnion: array } } });
       pipeline.push({ $unwind: '$chargersInError' });
       pipeline.push({ $replaceRoot: { newRoot: '$chargersInError' } });
       // Add a unique identifier as we may have the same charger several time

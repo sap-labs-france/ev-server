@@ -5,24 +5,23 @@ import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import ChargingStation from '../../../types/ChargingStation';
 import ChargingStationSecurity from './security/ChargingStationSecurity';
-import Constants from '../../../utils/Constants';
-import Logging from '../../../utils/Logging';
-import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
-import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
-import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import UtilsService from './UtilsService';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import OCPPUtils from '../../ocpp/utils/OCPPUtils';
+import Constants from '../../../utils/Constants';
 import {
   HttpChargingStationCommandRequest,
   HttpIsAuthorizedRequest
 } from '../../../types/requests/HttpChargingStationRequest';
+import Logging from '../../../utils/Logging';
+import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
+import OCPPUtils from '../../ocpp/utils/OCPPUtils';
+import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import SiteStorage from '../../../storage/mongodb/SiteStorage';
+import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
-import SiteStorage from '../../../storage/mongodb/SiteStorage';
-import Transaction from '../../../entity/Transaction';
+import UtilsService from './UtilsService';
 
 export default class ChargingStationService {
 
@@ -391,9 +390,9 @@ export default class ChargingStationService {
     let _errorType = [];
     if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
       // Get the Site Area
-      _errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : ['missingSettings','connectionBroken','connectorError','missingSiteArea']);
+      _errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : ['missingSettings', 'connectionBroken', 'connectorError', 'missingSiteArea']);
     } else {
-      _errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : ['missingSettings','connectionBroken','connectorError']);
+      _errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : ['missingSettings', 'connectionBroken', 'connectorError']);
     }
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStationsInError(req.user.tenantID,

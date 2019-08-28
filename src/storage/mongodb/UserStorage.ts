@@ -239,7 +239,7 @@ export default class UserStorage {
     }
     // Properties to save
     // eslint-disable-next-line prefer-const
-    let userMDB = {
+    const userMDB = {
       _id: userToSave.id ? Utils.convertToObjectID(userToSave.id) : new ObjectID(),
       name: userToSave.name,
       firstName: userToSave.firstName,
@@ -635,7 +635,7 @@ export default class UserStorage {
       const array = [];
       params.errorTypes.forEach((type) => {
         array.push(`$${type}`);
-        facets.$facet[type] = this._buildUserInErrorFacet(tenantID, type);
+        facets.$facet[type] = UserStorage._buildUserInErrorFacet(tenantID, type);
       });
       pipeline.push(facets);
       // Manipulate the results to convert it to an array of document on root level
@@ -650,7 +650,7 @@ export default class UserStorage {
         }
       });
       // Take out the facet name from the result
-      pipeline.push({ $project: { usersInError:{ $setUnion:['$unactive_user'] } } });
+      pipeline.push({ $project: { usersInError: { $setUnion: ['$unactive_user'] } } });
     }
     // Finish the preparation of the result
     pipeline.push({ $unwind: '$usersInError' });

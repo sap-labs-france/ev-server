@@ -2,10 +2,10 @@ import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import moment from 'moment';
 import responseHelper from '../../helpers/responseHelper';
+import CentralServerService from '../client/CentralServerService';
 import CONTEXTS from '../contextProvider/ContextConstants';
 import TenantContext from './TenantContext';
 import User from '../../types/User';
-import CentralServerService from '../client/CentralServerService';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
