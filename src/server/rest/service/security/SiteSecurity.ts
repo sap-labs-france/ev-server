@@ -1,17 +1,15 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import CompanySecurity from './CompanySecurity';
-import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUserAdminRequest, HttpSiteUsersRequest, HttpSitesRequest } from '../../../../types/requests/HttpSiteRequest';
 import Site from '../../../../types/Site';
 import SiteAreaSecurity from './SiteAreaSecurity';
-import UserSecurity from './UserSecurity';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
+import { DataResult } from '../../../../types/DataResult';
 
 export default class SiteSecurity {
-
-  public static filterUpdateSiteUserAdminRequest(request: Partial<HttpSiteUserAdminRequest>): HttpSiteUserAdminRequest {
+  public static filterUpdateSiteUserAdminRequest(request: any): HttpSiteUserAdminRequest {
     const filteredRequest: HttpSiteUserAdminRequest = {
       siteID: sanitize(request.siteID),
       userID: sanitize(request.userID)
@@ -22,27 +20,25 @@ export default class SiteSecurity {
     return filteredRequest;
   }
 
-  public static filterAssignSiteUsers(request: Partial<HttpSiteAssignUsersRequest>): HttpSiteAssignUsersRequest {
+  public static filterAssignSiteUsers(request: any): HttpSiteAssignUsersRequest {
     const filteredRequest: HttpSiteAssignUsersRequest = {
       siteID: sanitize(request.siteID)
     } as HttpSiteAssignUsersRequest;
-    filteredRequest.userIDs = request.userIDs.map((userID) => {
-      return sanitize(userID);
-    });
+    filteredRequest.userIDs = request.userIDs.map(sanitize);
     return filteredRequest;
   }
 
-  public static filterSiteRequest(request: HttpByIDRequest): HttpSiteRequest {
+  public static filterSiteRequest(request: any): HttpSiteRequest {
     return {
       ID: sanitize(request.ID)
     };
   }
 
-  public static filterSiteRequestByID(request: HttpByIDRequest): string {
+  public static filterSiteRequestByID(request: any): string {
     return sanitize(request.ID);
   }
 
-  public static filterSiteUsersRequest(request: Partial<HttpSiteUsersRequest>): HttpSiteUsersRequest {
+  public static filterSiteUsersRequest(request: any): HttpSiteUsersRequest {
     const filteredRequest: HttpSiteUsersRequest = {} as HttpSiteUsersRequest;
     filteredRequest.SiteID = sanitize(request.SiteID);
     filteredRequest.Search = sanitize(request.Search);
@@ -51,7 +47,7 @@ export default class SiteSecurity {
     return filteredRequest;
   }
 
-  public static filterSitesRequest(request: Partial<HttpSitesRequest>, userToken): HttpSitesRequest {
+  public static filterSitesRequest(request: any): HttpSitesRequest {
     const filteredRequest: HttpSitesRequest = {} as HttpSitesRequest;
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.UserID = sanitize(request.UserID);
@@ -65,17 +61,17 @@ export default class SiteSecurity {
     return filteredRequest;
   }
 
-  public static filterSiteUpdateRequest(request: Partial<Site>): Partial<Site> {
+  public static filterSiteUpdateRequest(request: any): Partial<Site> {
     const filteredRequest = SiteSecurity._filterSiteRequest(request);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  public static filterSiteCreateRequest(request: Partial<Site>): Partial<Site> {
+  public static filterSiteCreateRequest(request: any): Partial<Site> {
     return SiteSecurity._filterSiteRequest(request);
   }
 
-  public static _filterSiteRequest(request: Partial<Site>): Partial<Site> {
+  public static _filterSiteRequest(request: any): Partial<Site> {
     const filteredRequest: any = {};
     filteredRequest.name = sanitize(request.name);
     filteredRequest.address = UtilsSecurity.filterAddressRequest(request.address);
@@ -116,7 +112,7 @@ export default class SiteSecurity {
         filteredSite.company = CompanySecurity.filterCompanyResponse(site.company, loggedUser);
       }
       if (site.siteAreas) {
-        filteredSite.siteAreas = SiteAreaSecurity.filterSiteAreasResponse(site.siteAreas, loggedUser);
+        filteredSite.siteAreas = SiteAreaSecurity.filterSiteAreasResponse({ count: site.siteAreas.length, result: site.siteAreas }, loggedUser);
       }
       if (site.connectorStats) {
         filteredSite.connectorStats = site.connectorStats;
@@ -130,7 +126,7 @@ export default class SiteSecurity {
     return filteredSite;
   }
 
-  static filterSitesResponse(sites: {result: Site[]; count: number}, loggedUser): Site[] {
+  static filterSitesResponse(sites: DataResult<Site>, loggedUser) {
     const filteredSites = [];
 
     if (!sites.result) {

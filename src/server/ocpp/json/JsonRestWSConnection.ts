@@ -1,10 +1,10 @@
 import BackendError from '../../../exception/BackendError';
 import ChargingStation from '../../../types/ChargingStation';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../utils/Constants';
 import global from '../../../types/GlobalType';
 import Logging from '../../../utils/Logging';
 import WSConnection from './WSConnection';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 
 const MODULE_NAME = 'JsonRestWSConnection';
 export default class JsonRestWSConnection extends WSConnection {

@@ -10,15 +10,14 @@ import {
 import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
+import { DataResult } from '../../../../types/DataResult';
 
 export default class UserSecurity {
 
   public static filterAssignSitesToUserRequest(request: Partial<HttpSitesAssignUserRequest>): HttpSitesAssignUserRequest {
     return {
       userID: sanitize(request.userID),
-      siteIDs: request.siteIDs ? request.siteIDs.map((sid) => {
-        return sanitize(sid);
-      }) : []
+      siteIDs: request.siteIDs ? request.siteIDs.map(sanitize) : []
     };
   }
 
@@ -196,7 +195,7 @@ export default class UserSecurity {
     return filteredUser;
   }
 
-  static filterUsersResponse(users, loggedUser: UserToken): void {
+  static filterUsersResponse(users: DataResult<User>, loggedUser: UserToken): void {
     const filteredUsers = [];
     if (!users.result) {
       return null;

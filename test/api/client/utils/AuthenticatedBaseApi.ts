@@ -9,6 +9,7 @@ export default class AuthenticatedBaseApi extends BaseApi {
   private _password;
   private _tenant;
   private _token;
+  private _decodedToken;
   private _tenantID;
 
   public constructor(baseURL, user, password, tenant) {
@@ -35,7 +36,7 @@ export default class AuthenticatedBaseApi extends BaseApi {
     return this._tenant;
   }
 
-  public async authenticate(force: boolean = false) {
+  public async authenticate(force = false) {
     // Already logged?
     if (!this._token || force) {
       // No, try to log in
@@ -44,6 +45,7 @@ export default class AuthenticatedBaseApi extends BaseApi {
       expect(response.status).to.be.eql(200);
       expect(response.data).to.have.property('token');
       this._token = response.data.token;
+      this._decodedToken = jwt.decode(this._token);
       this._tenantID = jwt.decode(this._token)['tenantID'];
     }
   }

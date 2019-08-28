@@ -1,14 +1,15 @@
 import BackendError from '../../exception/BackendError';
 import ChargingStation from '../../types/ChargingStation';
+import Connector from '../../types/Connector';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
-import Connector from '../../types/Connector';
 import TenantStorage from './TenantStorage';
+import Utils from '../../utils/Utils';
 import UtilsService from '../../server/rest/service/UtilsService';
+import { DataResult } from '../../types/DataResult';
 
 export default class ChargingStationStorage {
 
@@ -28,7 +29,7 @@ export default class ChargingStationStorage {
   public static async getChargingStations(tenantID: string,
     params: { search?: string; chargingStationID?: string; siteAreaID?: string[]; withNoSiteArea?: boolean; siteIDs?: string[]; withSite?: boolean;
       errorType?: string[]; includeDeleted?: boolean; },
-    dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: ChargingStation[]}> {
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
     // Check Tenant
@@ -108,9 +109,9 @@ export default class ChargingStationStorage {
           asField: 'siteArea.site', oneToOneCardinality: true });
     }
     // Convert siteID back to string after having queried the site
-    DatabaseUtils.convertObjectIDToString(siteJoin, 'siteArea.siteID', 'siteArea.siteID');
+    DatabaseUtils.convertObjectIDToString(siteJoin, 'siteArea.siteID');
     // Build facets meaning each different error scenario
-    let facets: any = { $facet:{} };
+    let facets: any = { $facet: {} };
     if (params.errorType && !params.errorType.includes('all')) {
       // Check allowed
       if (!Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), Constants.COMPONENTS.ORGANIZATION) && params.errorType.includes('missingSiteArea')) {
@@ -185,19 +186,16 @@ export default class ChargingStationStorage {
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
     if (dbParams.sort) {
-      // Sort
       aggregation.push({
         $sort: dbParams.sort
       });
     } else {
-      // Default
       aggregation.push({
         $sort: {
           _id: 1
         }
       });
     }
-
     // Skip
     aggregation.push({
       $skip: dbParams.skip
@@ -232,7 +230,7 @@ export default class ChargingStationStorage {
               cleanedConnectors.push(connector);
             }
           }
-          // TODO Clean them a bit more?
+          // TODO: Clean them a bit more?
           chargingStation.connectors = cleanedConnectors;
         }
         // Add Inactive flag
@@ -250,8 +248,8 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingStationsInError(tenantID: string,
-    params: { search?: string; siteID?: string[]; siteAreaID: string[]; errorType?: string[]; },
-    dbParams: DbParams): Promise<{count: number; result: ChargingStation[]}> {
+    params: { search?: string; siteIDs?: string[]; siteAreaID: string[]; errorType?: string[] },
+    dbParams: DbParams): Promise<DataResult<ChargingStation>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
     // Check Tenant
@@ -263,7 +261,7 @@ export default class ChargingStationStorage {
     // Create Aggregation
     const pipeline = [];
     // Set the filters
-    const match: any = { '$and': [{ '$or': DatabaseUtils.getNotDeletedFilter() }]};
+    const match: any = { '$and': [{ '$or': DatabaseUtils.getNotDeletedFilter() }] };
     if (params.siteAreaID && Array.isArray(params.siteAreaID) && params.siteAreaID.length > 0) {
       // Build filter
       match.$and.push({
@@ -286,9 +284,9 @@ export default class ChargingStationStorage {
     pipeline.push({
       $lookup: {
         from: DatabaseUtils.getCollectionName(tenantID, 'siteareas'),
-        localField: "siteAreaID",
-        foreignField: "_id",
-        as: "sitearea"
+        localField: 'siteAreaID',
+        foreignField: '_id',
+        as: 'sitearea'
       }
     });
     // Single Record
@@ -296,13 +294,13 @@ export default class ChargingStationStorage {
       $unwind: { 'path': '$sitearea', 'preserveNullAndEmptyArrays': true }
     });
     // Check Site ID
-    if (params.siteID && Array.isArray(params.siteID) && params.siteID.length > 0) {
+    if (params.siteIDs && Array.isArray(params.siteIDs) && params.siteIDs.length > 0) {
       pipeline.push({ $match: {
         'sitearea.siteID': {
           // Still ObjectId because we need it for the site inclusion
-          $in: params.siteID.map((id) => Utils.convertToObjectID(id))
+          $in: params.siteIDs.map((id) => Utils.convertToObjectID(id))
         }
-      }});
+      } });
     }
     // Build facets for each type of error if any
     const facets: any = { $facet: {} };
@@ -320,9 +318,9 @@ export default class ChargingStationStorage {
       });
       pipeline.push(facets);
       // Manipulate the results to convert it to an array of document on root level
-      pipeline.push({$project: {chargersInError:{$setUnion:array}}});
-      pipeline.push({$unwind: '$chargersInError'});
-      pipeline.push({$replaceRoot: { newRoot: "$chargersInError" }});
+      pipeline.push({ $project: { chargersInError: { $setUnion: array } } });
+      pipeline.push({ $unwind: '$chargersInError' });
+      pipeline.push({ $replaceRoot: { newRoot: '$chargersInError' } });
       // Add a unique identifier as we may have the same charger several time
       pipeline.push({ $addFields: { 'uniqueId': { $concat: ['$_id', '#', '$errorCode'] } } });
     }
@@ -386,7 +384,6 @@ export default class ChargingStationStorage {
               cleanedConnectors.push(connector);
             }
           }
-          // TODO Clean them a bit more?
           chargingStation.connectors = cleanedConnectors;
         }
         // Add Inactive flag
@@ -414,6 +411,22 @@ export default class ChargingStationStorage {
     const chargingStationFilter = {
       _id: chargingStationToSave.id
     };
+    // Convert
+    if (chargingStationToSave.connectors && Array.isArray(chargingStationToSave.connectors)) {
+      for (const connector of chargingStationToSave.connectors) {
+        if (connector) {
+          connector.connectorId = Utils.convertToInt(connector.connectorId);
+          connector.currentConsumption = Utils.convertToFloat(connector.currentConsumption);
+          connector.totalInactivitySecs = Utils.convertToInt(connector.totalInactivitySecs);
+          connector.totalConsumption = Utils.convertToFloat(connector.totalConsumption);
+          connector.power = Utils.convertToInt(connector.power);
+          connector.voltage = Utils.convertToInt(connector.voltage);
+          connector.amperage = Utils.convertToInt(connector.amperage);
+          connector.activeTransactionID = Utils.convertToInt(connector.activeTransactionID);
+          connector.activeTransactionDate = Utils.convertToDate(connector.activeTransactionDate);
+        }
+      }
+    }
     // Properties to save
     const chargingStationMDB = {
       _id: chargingStationToSave.id,
@@ -469,6 +482,18 @@ export default class ChargingStationStorage {
   public static async saveChargingStationConnector(tenantID: string, chargingStation: ChargingStation, connector: Connector): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'saveChargingStationConnector');
+    // Ensure good typing
+    if (connector) {
+      connector.connectorId = Utils.convertToInt(connector.connectorId);
+      connector.currentConsumption = Utils.convertToFloat(connector.currentConsumption);
+      connector.totalInactivitySecs = Utils.convertToInt(connector.totalInactivitySecs);
+      connector.totalConsumption = Utils.convertToFloat(connector.totalConsumption);
+      connector.power = Utils.convertToInt(connector.power);
+      connector.voltage = Utils.convertToInt(connector.voltage);
+      connector.amperage = Utils.convertToInt(connector.amperage);
+      connector.activeTransactionID = Utils.convertToInt(connector.activeTransactionID);
+      connector.activeTransactionDate = Utils.convertToDate(connector.activeTransactionDate);
+    }
     // Check Tenant
     await Utils.checkTenant(tenantID);
     const updatedFields: any = {};

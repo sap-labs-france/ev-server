@@ -36,9 +36,7 @@ export default class MongoDBStorage {
 
     // Check Logs
     const tenantCollectionName = DatabaseUtils.getCollectionName(tenantID, name);
-    const foundCollection = allCollections.find((collection) => {
-      return collection.name === tenantCollectionName;
-    });
+    const foundCollection = allCollections.find((collection) => collection.name === tenantCollectionName);
     // Check if it exists
     if (!foundCollection) {
       // Create
@@ -52,9 +50,7 @@ export default class MongoDBStorage {
       for (const index of indexes) {
         // Create
         // Check if it exists
-        const foundIndex = databaseIndexes.find((existingIndex) => {
-          return (JSON.stringify(existingIndex.key) === JSON.stringify(index.fields));
-        });
+        const foundIndex = databaseIndexes.find((existingIndex) => (JSON.stringify(existingIndex.key) === JSON.stringify(index.fields)));
         // Found?
         if (!foundIndex) {
           // Index creation RunLock
@@ -76,9 +72,7 @@ export default class MongoDBStorage {
           continue;
         }
         // Exists?
-        const foundIndex = indexes.find((index) => {
-          return (JSON.stringify(index.fields) === JSON.stringify(databaseIndex.key));
-        });
+        const foundIndex = indexes.find((index) => (JSON.stringify(index.fields) === JSON.stringify(databaseIndex.key)));
         // Found?
         if (!foundIndex) {
           // Index drop RunLock
@@ -249,9 +243,7 @@ export default class MongoDBStorage {
     const tenantsMDB = await this.db.collection(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, 'tenants'))
       .find({})
       .toArray();
-    const tenantIds = tenantsMDB.map((t): string => {
-      return t._id.toString();
-    });
+    const tenantIds = tenantsMDB.map((t): string => t._id.toString());
     for (const tenantId of tenantIds) {
       await this.checkAndCreateTenantDatabase(tenantId);
     }
@@ -290,7 +282,8 @@ export default class MongoDBStorage {
         loggerLevel: (this.dbConfig.debug ? 'debug' : null),
         reconnectTries: Number.MAX_VALUE,
         reconnectInterval: 1000,
-        autoReconnect: true
+        autoReconnect: true,
+        useUnifiedTopology: true
       }
     );
     // Get the EVSE DB

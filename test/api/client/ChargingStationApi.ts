@@ -57,7 +57,7 @@ export default class ChargingStationApi extends CrudApi {
       'Action': action,
       'Arg1': chargingStationId,
       'Arg2': transactionId
-    }
+    };
     return await super.read(params, '/client/api/IsAuthorized');
   }
 

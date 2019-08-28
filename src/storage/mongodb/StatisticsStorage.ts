@@ -44,7 +44,7 @@ export default class StatisticsStorage {
     // Filter on Charge Box?
     if (filter.chargeBoxIDs && Array.isArray(filter.chargeBoxIDs) && filter.chargeBoxIDs.length > 0) {
       match.chargeBoxID = {
-        $in: filter.chargeBoxIDs.map((chargeBoxID) => { return chargeBoxID; })
+        $in: filter.chargeBoxIDs.map((chargeBoxID) => chargeBoxID)
       };
     }
     // Filter on User?
@@ -165,7 +165,7 @@ export default class StatisticsStorage {
     // Filter on Charge Box?
     if (filter.chargeBoxIDs && Array.isArray(filter.chargeBoxIDs) && filter.chargeBoxIDs.length > 0) {
       match.chargeBoxID = {
-        $in: filter.chargeBoxIDs.map((chargeBoxID) => { return chargeBoxID; })
+        $in: filter.chargeBoxIDs.map((chargeBoxID) => chargeBoxID)
       };
     }
     // Filter on User?

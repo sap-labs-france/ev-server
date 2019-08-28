@@ -1,9 +1,9 @@
 import BackendError from '../../exception/BackendError';
+import ChargingStation from '../../types/ChargingStation';
 import Constants from '../../utils/Constants';
 import global from '../../types/GlobalType';
 import JsonRestChargingStationClient from './json/JsonRestChargingStationClient';
 import SoapChargingStationClient from './soap/SoapChargingStationClient';
-import ChargingStation from '../../types/ChargingStation';
 
 const buildChargingStationClient = async function(tenantID: string, chargingStation: ChargingStation) {
   let chargingClient = null;

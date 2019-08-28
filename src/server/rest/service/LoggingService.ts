@@ -21,7 +21,7 @@ export default class LoggingService {
           req.user);
       }
       // Filter
-      const filteredRequest = LoggingSecurity.filterLoggingsRequest(req.query, req.user);
+      const filteredRequest = LoggingSecurity.filterLoggingsRequest(req.query);
       // Check if organization component is active
       if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
         // Optimization: Retrieve Charging Stations to get the logs only for the Site Admin user
@@ -39,9 +39,7 @@ export default class LoggingService {
           filteredRequest.Source = sources;
         } else {
           // Add all Site Admin Chargers in filter
-          filteredRequest.Source = chargingStations.result.map((chargingStation) => {
-            return chargingStation.id;
-          });
+          filteredRequest.Source = chargingStations.result.map((chargingStation) => chargingStation.id);
         }
       }
 
@@ -86,7 +84,7 @@ export default class LoggingService {
           req.user);
       }
       // Filter
-      const filteredRequest = LoggingSecurity.filterLoggingsRequest(req.query, req.user);
+      const filteredRequest = LoggingSecurity.filterLoggingsRequest(req.query);
       // Get logs
       const loggings = await Logging.getLogs(req.user.tenantID, {
         'search': filteredRequest.Search,
@@ -132,7 +130,7 @@ export default class LoggingService {
   static async handleGetLogging(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
-      const filteredRequest = LoggingSecurity.filterLoggingRequest(req.query, req.user);
+      const filteredRequest = LoggingSecurity.filterLoggingRequest(req.query);
       // Get logs
       const logging = await Logging.getLog(req.user.tenantID, filteredRequest.ID);
       // Check auth

@@ -1,9 +1,9 @@
 import faker from 'faker';
 import CentralServerService from '../client/CentralServerService';
-import CONTEXTS from '../contextProvider/ContextConstants';
-import TenantContext from './TenantContext';
 import ChargingStation from '../../types/ChargingStation';
+import CONTEXTS from '../contextProvider/ContextConstants';
 import OCPPService from '../ocpp/OCPPService';
+import TenantContext from './TenantContext';
 
 export default class ChargingStationContext {
 
@@ -365,7 +365,6 @@ export default class ChargingStationContext {
     const response = await this.ocppService.executeStatusNotification(this.chargingStation.id, connector);
     this.chargingStation.connectors[connector.connectorId - 1].status = connector.status;
     this.chargingStation.connectors[connector.connectorId - 1].errorCode = connector.errorCode;
-    this.chargingStation.connectors[connector.connectorId - 1].timestamp = connector.timestamp;
     return response;
   }
 

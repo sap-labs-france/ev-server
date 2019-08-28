@@ -8,10 +8,11 @@ import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import VehicleManufacturer from '../../types/VehicleManufacturer';
 import VehicleStorage from './VehicleStorage';
+import { DataResult, LogoResult } from '../../types/DataResult';
 
 export default class VehicleManufacturerStorage {
 
-  public static async getVehicleManufacturerLogo(tenantID: string, id: string): Promise<{id: string; logo: string}> {
+  public static async getVehicleManufacturerLogo(tenantID: string, id: string): Promise<LogoResult> {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturerLogo');
     // Check Tenant
@@ -21,7 +22,7 @@ export default class VehicleManufacturerStorage {
       .find({ _id: Utils.convertToObjectID(id) })
       .limit(1)
       .toArray();
-    let vehicleManufacturerLogo = null;
+    let vehicleManufacturerLogo: LogoResult = null;
     // Set
     if (vehicleManufacturerLogosMDB && vehicleManufacturerLogosMDB.length > 0) {
       vehicleManufacturerLogo = {
@@ -34,38 +35,13 @@ export default class VehicleManufacturerStorage {
     return vehicleManufacturerLogo;
   }
 
-  public static async getVehicleManufacturerLogos(tenantID: string, IDs?: string[]): Promise<{id: string; logo: string}[]> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturerLogos');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Read DB
-    const vehicleManufacturerLogosMDB = await global.database.getCollection<any>(tenantID, 'vehiclemanufacturerlogos')
-      .find()
-      .toArray();
-    const vehicleManufacturerLogos = [];
-    // Check
-    if (vehicleManufacturerLogosMDB && vehicleManufacturerLogosMDB.length > 0) {
-      // Add
-      for (const vehicleManufacturerLogoMDB of vehicleManufacturerLogosMDB) {
-        vehicleManufacturerLogos.push({
-          id: vehicleManufacturerLogoMDB._id.toHexString(),
-          logo: vehicleManufacturerLogoMDB.logo
-        });
-      }
-    }
-    // Debug
-    Logging.traceEnd('VehicleManufacturerStorage', 'getVehicleManufacturerLogos', uniqueTimerID);
-    return vehicleManufacturerLogos;
-  }
-
-  public static async saveVehicleManufacturerLogo(tenantID: string, vehicleManufacturerLogoToSave: {id: string; logo: string}) {
+  public static async saveVehicleManufacturerLogo(tenantID: string, vehicleManufacturerID: string, vehicleManufacturerLogoToSave: string) {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'saveVehicleManufacturerLogo');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check if ID/Name is provided
-    if (!vehicleManufacturerLogoToSave.id) {
+    if (!vehicleManufacturerID) {
       throw new BackendError(
         Constants.CENTRAL_SERVER,
         'Vehicle Manufacturer Logo has no ID',
@@ -73,19 +49,19 @@ export default class VehicleManufacturerStorage {
     }
     // Modify
     await global.database.getCollection<any>(tenantID, 'vehiclemanufacturerlogos').findOneAndUpdate(
-      { '_id': Utils.convertToObjectID(vehicleManufacturerLogoToSave.id) },
-      { $set: { logo: vehicleManufacturerLogoToSave.logo } },
+      { '_id': Utils.convertToObjectID(vehicleManufacturerID) },
+      { $set: { logo: vehicleManufacturerLogoToSave } },
       { upsert: true, returnOriginal: false });
     // Debug
     Logging.traceEnd('VehicleManufacturerStorage', 'saveVehicleManufacturerLogo', uniqueTimerID);
   }
 
-  public static async getVehicleManufacturer(tenantID: string, id: string) {
+  public static async getVehicleManufacturer(tenantID: string, id: string): Promise<VehicleManufacturer> {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturer');
     // Get
     const result = await VehicleManufacturerStorage.getVehicleManufacturers(
-      tenantID, { manufacturerIDs: [id], withVehicles: true }, Constants.DB_PARAMS_SINGLE_RECORD);
+      tenantID, { vehicleManufacturerID: id, withVehicles: true }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('VehicleManufacturerStorage', 'getVehicleManufacturer', uniqueTimerID, { id });
     return result.count > 0 ? result.result[0] : null;
@@ -111,9 +87,11 @@ export default class VehicleManufacturerStorage {
       vehicleManufacturerFilter._id = new ObjectID();
     }
     // Build
-    const vehicleManufacturerMDB = { ...vehicleManufacturerToSave };
-    delete vehicleManufacturerMDB.vehicles;
-    delete vehicleManufacturerMDB.logo;
+    const vehicleManufacturerMDB = {
+      _id: vehicleManufacturerFilter._id,
+      name: vehicleManufacturerToSave.name
+    };
+
     // Check Created/Last Changed By
     DatabaseUtils.addLastChangedCreatedProps(vehicleManufacturerMDB, vehicleManufacturerToSave);
     // Modify
@@ -129,8 +107,8 @@ export default class VehicleManufacturerStorage {
 
   // Delegate
   public static async getVehicleManufacturers(tenantID: string,
-    params: {search?: string; withVehicles?: boolean; vehicleType?: string; manufacturerIDs?: string[]},
-    dbParams: DbParams, projectFields?: string[]) {
+    params: {search?: string; withVehicles?: boolean; vehicleType?: string; vehicleManufacturerID?: string},
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<VehicleManufacturer>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleManufacturerStorage', 'getVehicleManufacturers');
     // Check Tenant
@@ -142,6 +120,17 @@ export default class VehicleManufacturerStorage {
     // Set the filters
     const filters: any = {};
     // Source?
+    if (params.vehicleManufacturerID) {
+      filters._id = Utils.convertToObjectID(params.vehicleManufacturerID);
+    } else if (params.search) {
+      if (ObjectID.isValid(params.search)) {
+        filters._id = Utils.convertToObjectID(params.search);
+      } else {
+        filters.$or = [
+          { 'name': { $regex: params.search, $options: 'i' } }
+        ];
+      }
+    }
     if (params.search) {
       // Build filter
       filters.$or = [
@@ -154,15 +143,6 @@ export default class VehicleManufacturerStorage {
     if (filters) {
       aggregation.push({
         $match: filters
-      });
-    }
-    if (params.manufacturerIDs) {
-      aggregation.push({
-        $match: {
-          _id: { $in: params.manufacturerIDs.map((id) => {
-            return Utils.convertToObjectID(id);
-          }) }
-        }
       });
     }
     // With Vehicles

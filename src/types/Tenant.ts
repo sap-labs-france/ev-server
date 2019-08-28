@@ -1,4 +1,4 @@
-import CreatedUpdatedProps from "./CreatedUpdatedProps";
+import CreatedUpdatedProps from './CreatedUpdatedProps';
 
 export default interface Tenant extends CreatedUpdatedProps {
   id: string;
@@ -7,27 +7,27 @@ export default interface Tenant extends CreatedUpdatedProps {
   subdomain: string;
   components: {
     ocpi?: {
-      active: boolean,
-      type: string
-    },
+      active: boolean;
+      type: string;
+    };
     organization?: {
-      active: boolean
-    },
+      active: boolean;
+    };
     pricing?: {
-      active: boolean,
-      type: string
-    },
+      active: boolean;
+      type: string;
+    };
     refund?: {
-      active: boolean,
-      type: string
-    },
+      active: boolean;
+      type: string;
+    };
     statistics?: {
-      active: boolean,
-      type: string
-    }
+      active: boolean;
+      type: string;
+    };
     analytics?: {
-      active: boolean,
-      type: string
-    }
+      active: boolean;
+      type: string;
+    };
   };
 }

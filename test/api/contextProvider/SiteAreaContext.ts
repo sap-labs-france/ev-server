@@ -39,16 +39,12 @@ export default class SiteAreaContext {
 
   getChargingStation(chargingStationID) {
     // Search in context list
-    return this.chargingStations.find((chargingStationContext) => {
-      return chargingStationContext.getChargingStation().id === chargingStationID;
-    });
+    return this.chargingStations.find((chargingStationContext) => chargingStationContext.getChargingStation().id === chargingStationID);
   }
 
   getChargingStationContext(chargingStationContext) {
     // Search in context list
-    return this.chargingStations.find((chargingStation) => {
-      return chargingStation.getChargingStation().id.startsWith(chargingStationContext);
-    });
+    return this.chargingStations.find((chargingStation) => chargingStation.getChargingStation().id.startsWith(chargingStationContext));
   }
 
   async addChargingStation(chargingStation) {

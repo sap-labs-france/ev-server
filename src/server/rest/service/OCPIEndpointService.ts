@@ -13,7 +13,7 @@ export default class OCPIEndpointService {
   static async handleDeleteOcpiEndpoint(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
-      const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointDeleteRequest(req.query, req.user);
+      const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointDeleteRequest(req.query);
       // Check Mandatory fields
       if (!filteredRequest.ID) {
         // Not Found!
@@ -62,7 +62,7 @@ export default class OCPIEndpointService {
   static async handleGetOcpiEndpoint(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
-      const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointRequest(req.query, req.user);
+      const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointRequest(req.query);
       // ID is mandatory
       if (!filteredRequest.ID) {
         // Not Found!
@@ -105,7 +105,7 @@ export default class OCPIEndpointService {
           req.user);
       }
       // Filter
-      const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointsRequest(req.query, req.user);
+      const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointsRequest(req.query);
       // Get all ocpiendpoints
       const ocpiendpoints = await OCPIEndpoint.getOcpiEndpoints(req.user.tenantID,
         {
@@ -113,9 +113,7 @@ export default class OCPIEndpointService {
         },
         filteredRequest.Limit, filteredRequest.Skip, filteredRequest.Sort);
       // Set
-      ocpiendpoints.result = ocpiendpoints.result.map((ocpiendpoint) => {
-        return ocpiendpoint.getModel();
-      });
+      ocpiendpoints.result = ocpiendpoints.result.map((ocpiendpoint) => ocpiendpoint.getModel());
       // Filter
       ocpiendpoints.result = OCPIEndpointSecurity.filterOcpiEndpointsResponse(
         ocpiendpoints.result, req.user);
@@ -141,7 +139,7 @@ export default class OCPIEndpointService {
           req.user);
       }
       // Filter
-      const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointCreateRequest(req.body, req.user);
+      const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointCreateRequest(req.body);
       // Check Mandatory fields
       OCPIEndpoint.checkIfOcpiEndpointValid(filteredRequest, req);
 
@@ -173,7 +171,7 @@ export default class OCPIEndpointService {
   static async handleUpdateOcpiEndpoint(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
-      const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointUpdateRequest(req.body, req.user);
+      const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointUpdateRequest(req.body);
       // Get OcpiEndpoint
       const ocpiendpoint = await OCPIEndpoint.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
       if (!ocpiendpoint) {
@@ -230,7 +228,7 @@ export default class OCPIEndpointService {
           req.user);
       }
       // Filter
-      const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointPingRequest(req.body, req.user);
+      const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointPingRequest(req.body);
       // Check Mandatory fields
       OCPIEndpoint.checkIfOcpiEndpointValid(filteredRequest, req);
       // Create temporary ocpiendpoint
@@ -279,7 +277,7 @@ export default class OCPIEndpointService {
           req.user);
       }
       // Filter
-      const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointSendEVSEStatusesRequest(req.body, req.user);
+      const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointSendEVSEStatusesRequest(req.body);
       // Check Mandatory fields
       OCPIEndpoint.checkIfOcpiEndpointValid(filteredRequest, req);
       // Get ocpiendpoint
@@ -301,7 +299,7 @@ export default class OCPIEndpointService {
   static async handleRegisterOcpiEndpoint(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       // Filter
-      const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointRegisterRequest(req.body, req.user);
+      const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointRegisterRequest(req.body);
       // Get OcpiEndpoint
       const ocpiendpoint = await OCPIEndpoint.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
       if (!ocpiendpoint) {
@@ -367,7 +365,7 @@ export default class OCPIEndpointService {
           req.user);
       }
       // Filter
-      const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointGenerateLocalTokenRequest(req.body, req.user);
+      const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointGenerateLocalTokenRequest(req.body);
       // Check Mandatory fields
       OCPIEndpoint.checkIfOcpiEndpointValid(filteredRequest, req);
       // Create ocpiendpoint

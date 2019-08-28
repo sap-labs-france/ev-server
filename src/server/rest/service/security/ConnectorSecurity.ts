@@ -4,7 +4,7 @@ import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 
 export default class ConnectorSecurity {
-  static filterConnectionDeleteRequest(request, loggedUser: UserToken) {
+  static filterConnectionDeleteRequest(request) {
     const filteredRequest: any = {};
     // Set
     filteredRequest.userId = sanitize(request.userId);
@@ -12,13 +12,13 @@ export default class ConnectorSecurity {
     return filteredRequest;
   }
 
-  static filterConnectionRequest(request, loggedUser: UserToken) {
+  static filterConnectionRequest(request) {
     const filteredRequest: any = {};
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
   }
 
-  static filterConnectionsRequest(request, loggedUser: UserToken) {
+  static filterConnectionsRequest(request) {
     const filteredRequest: any = {};
     filteredRequest.userId = sanitize(request.userId);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
@@ -26,17 +26,17 @@ export default class ConnectorSecurity {
     return filteredRequest;
   }
 
-  static filterConnectionUpdateRequest(request, loggedUser: UserToken) {
-    const filteredRequest = ConnectorSecurity._filterConnectionRequest(request, loggedUser);
+  static filterConnectionUpdateRequest(request) {
+    const filteredRequest = ConnectorSecurity._filterConnectionRequest(request);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  static filterConnectionCreateRequest(request, loggedUser: UserToken) {
-    return ConnectorSecurity._filterConnectionRequest(request, loggedUser);
+  static filterConnectionCreateRequest(request) {
+    return ConnectorSecurity._filterConnectionRequest(request);
   }
 
-  static _filterConnectionRequest(request, loggedUser: UserToken) {
+  static _filterConnectionRequest(request) {
     const filteredRequest: any = {};
     filteredRequest.connectorId = sanitize(request.connectorId);
     filteredRequest.settingId = sanitize(request.settingId);

@@ -1,10 +1,10 @@
 import uuid from 'uuid/v4';
+import ChargingStation from '../../../types/ChargingStation';
 import ChargingStationClient from '../ChargingStationClient';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import WSClient from '../../WSClient';
-import ChargingStation from '../../../types/ChargingStation';
 
 const MODULE_NAME = 'JsonRestChargingStationClient';
 export default class JsonRestChargingStationClient extends ChargingStationClient {
@@ -107,7 +107,7 @@ export default class JsonRestChargingStationClient extends ChargingStationClient
       message: `Try to connect to '${this.serverURL}', CF Instance '${this.chargingStation.cfApplicationIDAndInstanceIndex}'`
     });
     // Create Promise
-    // eslint-disable-next-line no-undef
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return await new Promise((resolve, reject) => {
       // Create WS
       let WSOptions = {};

@@ -66,9 +66,7 @@ export default class NotificationHandler {
     // Found
     if (adminUsers.count > 0) {
       // Check if notification is active
-      adminUsers.result = adminUsers.result.filter((adminUser) => {
-        return adminUser.notificationsActive;
-      });
+      adminUsers.result = adminUsers.result.filter((adminUser) => adminUser.notificationsActive);
       return adminUsers.result;
     }
   }

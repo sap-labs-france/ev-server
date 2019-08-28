@@ -67,7 +67,7 @@ export default class CompanyService {
     }
     // Get it
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.ID);
-    UtilsService.assertObjectExists(company, `The Company with ID '${filteredRequest.ID}' does not exist`, 'CompanyService', 'handleGetCompany', req.user);
+    UtilsService.assertObjectExists(company, `Company with ID '${filteredRequest.ID}' does not exist`, 'CompanyService', 'handleGetCompany', req.user);
     // Return
     res.json(
       // Filter
@@ -96,7 +96,7 @@ export default class CompanyService {
     // Get it
     const companyLogo = await CompanyStorage.getCompanyLogo(req.user.tenantID, companyID);
     // Check
-    UtilsService.assertObjectExists(companyLogo, `The Company with ID '${companyID}' does not exist`, 'CompanyService', 'handleGetCompanyLogo', req.user);
+    UtilsService.assertObjectExists(companyLogo, `Company with ID '${companyID}' does not exist`, 'CompanyService', 'handleGetCompanyLogo', req.user);
     // Return
     res.json({ id: companyLogo.id, logo: companyLogo.logo });
     next();
@@ -193,7 +193,7 @@ export default class CompanyService {
     // Check email
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.id);
     // Check
-    UtilsService.assertObjectExists(company, `The Site Area with ID '${filteredRequest.id}' does not exist`, 'CompanyService', 'handleUpdateCompany', req.user);
+    UtilsService.assertObjectExists(company, `Site Area with ID '${filteredRequest.id}' does not exist`, 'CompanyService', 'handleUpdateCompany', req.user);
     // Check Mandatory fields
     Utils.checkIfCompanyValid(filteredRequest, req);
     // Update

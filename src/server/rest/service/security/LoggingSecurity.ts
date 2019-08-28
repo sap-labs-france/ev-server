@@ -6,7 +6,7 @@ import UtilsSecurity from './UtilsSecurity';
 
 export default class LoggingSecurity {
   // eslint-disable-next-line no-unused-vars
-  static filterLoggingsRequest(request, loggedUser: UserToken) {
+  static filterLoggingsRequest(request: any) {
     const filteredRequest: any = {};
     // Get logs
     filteredRequest.DateFrom = sanitize(request.DateFrom);
@@ -26,7 +26,7 @@ export default class LoggingSecurity {
   }
 
   // eslint-disable-next-line no-unused-vars
-  static filterLoggingRequest(request, loggedUser: UserToken) {
+  static filterLoggingRequest(request: any) {
     const filteredRequest: any = {};
     // Get logs
     filteredRequest.ID = sanitize(request.ID);

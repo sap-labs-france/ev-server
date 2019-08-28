@@ -1,31 +1,33 @@
 import axios from 'axios';
 import bcrypt from 'bcrypt';
 import ClientOAuth2 from 'client-oauth2';
-import Cypher from './Cypher';
 import { Request } from 'express';
 import fs from 'fs';
 import _ from 'lodash';
 import { ObjectID } from 'mongodb';
 import passwordGenerator = require('password-generator');
 import path from 'path';
+import tzlookup from 'tz-lookup';
 import url from 'url';
 import uuidV4 from 'uuid/v4';
 import AppError from '../exception/AppError';
 import Authorizations from '../authorization/Authorizations';
 import BackendError from '../exception/BackendError';
+import ChargingStation from '../types/ChargingStation';
 import Configuration from './Configuration';
+import ConnectorStats from '../types/ConnectorStats';
 import Constants from './Constants';
+import Cypher from './Cypher';
 import { HttpUserRequest } from '../types/requests/HttpUserRequest';
 import Logging from './Logging';
+import { SettingContent } from '../types/Setting';
 import Tenant from '../types/Tenant';
 import TenantStorage from '../storage/mongodb/TenantStorage';
+import Transaction from '../types/Transaction';
 import User from '../types/User';
-import UserToken from '../types/UserToken';
-import ChargingStation from '../types/ChargingStation';
-import ConnectorStats from '../types/ConnectorStats';
-import tzlookup from 'tz-lookup';
 import UserStorage from '../storage/mongodb/UserStorage';
-import { SettingContent } from '../types/Setting';
+import UserToken from '../types/UserToken';
+
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
 
@@ -75,7 +77,7 @@ export default class Utils {
     return inactive;
   }
 
-  public static getConnectorStatusesFromChargingStations(chargingStations: ChargingStation[]) : ConnectorStats {
+  public static getConnectorStatusesFromChargingStations(chargingStations: ChargingStation[]): ConnectorStats {
     const connectorStats: ConnectorStats = {
       totalChargers: 0,
       availableChargers: 0,
@@ -149,7 +151,7 @@ export default class Utils {
   }
 
   // Temporary method for Revenue Cloud concept
-  static async pushTransactionToRevenueCloud(action, transaction, user: User, actionOnUser: User) {
+  static async pushTransactionToRevenueCloud(tenantID: string, action: string, transaction: Transaction, user: User, actionOnUser: User) {
     // Refund Transaction
     const cloudRevenueAuth = new ClientOAuth2({
       clientId: 'sb-revenue-cloud!b1122|revenue-cloud!b1532',
@@ -163,10 +165,10 @@ export default class Utils {
       'https://eu10.revenue.cloud.sap/api/usage-record/v1/usage-records',
       {
         'metricId': 'ChargeCurrent_Trial',
-        'quantity': transaction.getStopTotalConsumption() / 1000,
-        'startedAt': transaction.getstartedAt(),
-        'endedAt': transaction.getendedAt(),
-        'userTechnicalId': transaction.getTagID()
+        'quantity': transaction.stop.totalConsumption / 1000,
+        'startedAt': transaction.timestamp,
+        'endedAt': transaction.stop.timestamp,
+        'userTechnicalId': transaction.tagID
       },
       {
         'headers': {
@@ -178,10 +180,10 @@ export default class Utils {
     // Log
     Logging.logSecurityInfo({
       user, actionOnUser, action,
-      tenantID: transaction.getTenantID(),
-      source: transaction.getChargeBoxID(),
+      tenantID: tenantID,
+      source: transaction.chargeBoxID,
       module: 'Utils', method: 'pushTransactionToRevenueCloud',
-      message: `Transaction ID '${transaction.getID()}' has been refunded successfully`,
+      message: `Transaction ID '${transaction.id}' has been refunded successfully`,
       detailedMessages: result.data
     });
   }
@@ -216,7 +218,7 @@ export default class Utils {
       throw new BackendError(null, 'The Tenant ID is mandatory');
     }
     // Check in cache
-    if (_tenants.indexOf(tenantID) >= 0) {
+    if (_tenants.includes(tenantID)) {
       return;
     }
     if (tenantID !== Constants.DEFAULT_TENANT) {
@@ -859,36 +861,6 @@ export default class Utils {
     }
   }
 
-  private static _isPasswordValid(password: string): boolean {
-    // eslint-disable-next-line no-useless-escape
-    return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
-  }
-
-  private static _isUserEmailValid(email: string) {
-    return /^(([^<>()\[\]\\.,;:\s@']+(\.[^<>()\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email);
-  }
-
-  private static _areTagIDsValid(tagIDs: string[]|string) {
-    if (typeof tagIDs === 'string') {
-      return /^[A-Za-z0-9,]*$/.test(tagIDs);
-    }
-    return tagIDs.filter((tagID) => {
-      return /^[A-Za-z0-9,]*$/.test(tagID);
-    }).length === tagIDs.length;
-  }
-
-  private static _isPhoneValid(phone: string): boolean {
-    return /^\+?([0-9] ?){9,14}[0-9]$/.test(phone);
-  }
-
-  private static _isINumberValid(iNumber) {
-    return /^[A-Z]{1}[0-9]{6}$/.test(iNumber);
-  }
-
-  private static _isPlateIDValid(plateID) {
-    return /^[A-Z0-9-]*$/.test(plateID);
-  }
-
   public static getTimezone(lat: number, lon: number) {
     if (lat && lon) {
       return tzlookup(lat, lon);
@@ -897,24 +869,25 @@ export default class Utils {
   }
 
   public static getTenantActiveComponents(tenant: Tenant): string[] {
-    let components: string[] = [];
-    for(let componentName in tenant.components) {
-      if (tenant.components[componentName].active)
+    const components: string[] = [];
+    for (const componentName in tenant.components) {
+      if (tenant.components[componentName].active) {
         components.push(componentName);
+      }
     }
     return components;
   }
 
   public static isTenantComponentActive(tenant: Tenant, component: string): boolean {
-    for(let componentName in tenant.components) {
-      if (componentName===component) {
+    for (const componentName in tenant.components) {
+      if (componentName === component) {
         return tenant.components[componentName].active;
       }
     }
     return false;
   }
 
-  public static createDefaultSettingContent(activeComponent, currentSettingContent) : SettingContent {
+  public static createDefaultSettingContent(activeComponent, currentSettingContent): SettingContent {
     switch (activeComponent.name) {
       // Pricing
       case Constants.COMPONENTS.PRICING:
@@ -969,5 +942,33 @@ export default class Utils {
         }
         break;
     }
+  }
+
+  private static _isPasswordValid(password: string): boolean {
+    // eslint-disable-next-line no-useless-escape
+    return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
+  }
+
+  private static _isUserEmailValid(email: string) {
+    return /^(([^<>()\[\]\\.,;:\s@']+(\.[^<>()\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email);
+  }
+
+  private static _areTagIDsValid(tagIDs: string[]|string) {
+    if (typeof tagIDs === 'string') {
+      return /^[A-Za-z0-9,]*$/.test(tagIDs);
+    }
+    return tagIDs.filter((tagID) => /^[A-Za-z0-9,]*$/.test(tagID)).length === tagIDs.length;
+  }
+
+  private static _isPhoneValid(phone: string): boolean {
+    return /^\+?([0-9] ?){9,14}[0-9]$/.test(phone);
+  }
+
+  private static _isINumberValid(iNumber) {
+    return /^[A-Z]{1}[0-9]{6}$/.test(iNumber);
+  }
+
+  private static _isPlateIDValid(plateID) {
+    return /^[A-Z0-9-]*$/.test(plateID);
   }
 }

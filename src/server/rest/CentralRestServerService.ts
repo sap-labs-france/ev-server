@@ -8,6 +8,7 @@ import LoggingService from './service/LoggingService';
 import NotificationService from './service/NotificationService';
 import OCPIEndpointService from './service/OCPIEndpointService';
 import PricingService from './service/PricingService';
+import RegistrationTokenService from './service/RegistrationTokenService';
 import SessionHashService from './service/SessionHashService';
 import SettingService from './service/SettingService';
 import SiteAreaService from './service/SiteAreaService';
@@ -19,7 +20,7 @@ import UserService from './service/UserService';
 import UtilsService from './service/UtilsService';
 import VehicleManufacturerService from './service/VehicleManufacturerService';
 import VehicleService from './service/VehicleService';
-import RegistrationTokenService from './service/RegistrationTokenService';
+
 class RequestMapper {
   private static instances = new Map<string, RequestMapper>();
 
@@ -122,11 +123,9 @@ class RequestMapper {
           Tenant: TenantService.handleGetTenant,
           Vehicles: VehicleService.handleGetVehicles,
           Vehicle: VehicleService.handleGetVehicle,
-          VehicleImages: VehicleService.handleGetVehicleImages,
           VehicleImage: VehicleService.handleGetVehicleImage,
           VehicleManufacturers: VehicleManufacturerService.handleGetVehicleManufacturers,
           VehicleManufacturer: VehicleManufacturerService.handleGetVehicleManufacturer,
-          VehicleManufacturerLogos: VehicleManufacturerService.handleGetVehicleManufacturerLogos,
           VehicleManufacturerLogo: VehicleManufacturerService.handleGetVehicleManufacturerLogo,
           SiteAreas: SiteAreaService.handleGetSiteAreas,
           SiteArea: SiteAreaService.handleGetSiteArea,
@@ -169,9 +168,7 @@ class RequestMapper {
           IntegrationConnections: ConnectorService.handleGetConnections,
           IntegrationConnection: ConnectorService.handleGetConnection,
           _default: UtilsService.handleUnknownAction,
-          Ping: (action: string, req: Request, res: Response, next: NextFunction) => {
-            return res.sendStatus(200);
-          }
+          Ping: (action: string, req: Request, res: Response, next: NextFunction) => res.sendStatus(200)
         });
         break;
 

@@ -1,4 +1,4 @@
-import CreatedUpdatedProps from "./CreatedUpdatedProps";
+import CreatedUpdatedProps from './CreatedUpdatedProps';
 
 export default interface Setting extends CreatedUpdatedProps {
   id?: string;
@@ -42,7 +42,7 @@ export interface OcpiSettings {
       type: string;
       width: string;
       height: string;
-    }
+    };
   };
 }
 

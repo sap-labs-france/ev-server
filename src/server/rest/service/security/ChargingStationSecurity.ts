@@ -1,26 +1,20 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
+import ChargingStation from '../../../../types/ChargingStation';
 import Constants from '../../../../utils/Constants';
+import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import { HttpAssignChargingStationToSiteAreaRequest, HttpChargingStationCommandRequest, HttpChargingStationRequest, HttpChargingStationSetMaxIntensitySocketRequest, HttpChargingStationsRequest, HttpIsAuthorizedRequest } from '../../../../types/requests/HttpChargingStationRequest';
+import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
-import {
-  HttpAssignChargingStationToSiteAreaRequest,
-  HttpChargingStationsRequest,
-  HttpChargingStationRequest,
-  HttpChargingStationSetMaxIntensitySocketRequest,
-  HttpChargingStationCommandRequest,
-  HttpIsAuthorizedRequest
-} from '../../../../types/requests/HttpChargingStationRequest';
-import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest';
-import ChargingStation from '../../../../types/ChargingStation';
+import { DataResult } from '../../../../types/DataResult';
 
 export default class ChargingStationSecurity {
 
-  public static filterAssignChargingStationsToSiteAreaRequest(request: Partial<HttpAssignChargingStationToSiteAreaRequest>): HttpAssignChargingStationToSiteAreaRequest {
+  public static filterAssignChargingStationsToSiteAreaRequest(request: any): HttpAssignChargingStationToSiteAreaRequest {
     return {
       siteAreaID: sanitize(request.siteAreaID),
-      chargingStationIDs: request.chargingStationIDs.map(id => sanitize(id))
+      chargingStationIDs: request.chargingStationIDs.map(sanitize)
     };
   }
 
@@ -90,7 +84,7 @@ export default class ChargingStationSecurity {
     return filteredChargingStation;
   }
 
-  public static filterChargingStationsResponse(chargingStations: {result: ChargingStation[]}, loggedUser: UserToken, organizationIsActive: boolean): void {
+  public static filterChargingStationsResponse(chargingStations: DataResult<ChargingStation>, loggedUser: UserToken, organizationIsActive: boolean) {
     const filteredChargingStations = [];
     // Check
     if (!chargingStations.result) {
@@ -125,19 +119,19 @@ export default class ChargingStationSecurity {
     return statusNotifications;
   }
 
-  public static filterChargingStationConfigurationRequest(request: HttpChargingStationRequest): HttpChargingStationRequest {
+  public static filterChargingStationConfigurationRequest(request: any): HttpChargingStationRequest {
     return { ChargeBoxID: sanitize(request.ChargeBoxID) };
   }
 
-  public static filterChargingStationRequest(request: HttpByIDRequest): HttpByIDRequest {
+  public static filterChargingStationRequest(request: any): HttpByIDRequest {
     return { ID: sanitize(request.ID) };
   }
 
-  public static filterChargingStationRequestByID(request: HttpByIDRequest): string {
+  public static filterChargingStationRequestByID(request: any): string {
     return sanitize(request.ID);
   }
 
-  public static filterChargingStationsRequest(request: HttpChargingStationsRequest): HttpChargingStationsRequest {
+  public static filterChargingStationsRequest(request: any): HttpChargingStationsRequest {
     const filteredRequest: HttpChargingStationsRequest = {} as HttpChargingStationsRequest;
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.WithNoSiteArea = UtilsSecurity.filterBoolean(request.WithNoSiteArea);
@@ -151,14 +145,14 @@ export default class ChargingStationSecurity {
     return filteredRequest;
   }
 
-  public static filterNotificationsRequest(request: HttpDatabaseRequest, loggedUser: UserToken): HttpDatabaseRequest {
-    let filteredRequest: HttpDatabaseRequest = {} as HttpDatabaseRequest;
+  public static filterNotificationsRequest(request: any): HttpDatabaseRequest {
+    const filteredRequest: HttpDatabaseRequest = {} as HttpDatabaseRequest;
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
   }
 
-  public static filterChargingStationParamsUpdateRequest(request: Partial<ChargingStation>, loggedUser: UserToken): Partial<ChargingStation> {
+  public static filterChargingStationParamsUpdateRequest(request: any): Partial<ChargingStation> {
     // Set
     const filteredRequest: any = {};
     filteredRequest.id = sanitize(request.id);
@@ -204,8 +198,8 @@ export default class ChargingStationSecurity {
     return filteredRequest;
   }
 
-  public static filterChargingStationActionRequest(request: HttpChargingStationCommandRequest, action: string, loggedUser: UserToken): HttpChargingStationCommandRequest {
-    const filteredRequest: any = {} as HttpChargingStationCommandRequest;
+  public static filterChargingStationActionRequest(request: any): HttpChargingStationCommandRequest {
+    const filteredRequest: HttpChargingStationCommandRequest = {} as HttpChargingStationCommandRequest;
     // Check
     filteredRequest.chargeBoxID = sanitize(request.chargeBoxID);
     // Do not check action?
@@ -213,14 +207,14 @@ export default class ChargingStationSecurity {
     return filteredRequest;
   }
 
-  public static filterChargingStationSetMaxIntensitySocketRequest(request: HttpChargingStationSetMaxIntensitySocketRequest): HttpChargingStationSetMaxIntensitySocketRequest {
+  public static filterChargingStationSetMaxIntensitySocketRequest(request: any): HttpChargingStationSetMaxIntensitySocketRequest {
     return {
       chargeBoxID: sanitize(request.chargeBoxID),
       maxIntensity: request.args ? sanitize(request.args.maxIntensity) : null
     };
   }
 
-  public static filterIsAuthorizedRequest(request: Partial<HttpIsAuthorizedRequest>): HttpIsAuthorizedRequest {
+  public static filterIsAuthorizedRequest(request: any): HttpIsAuthorizedRequest {
     const filteredRequest: HttpIsAuthorizedRequest = {
       Action: sanitize(request.Action),
       Arg1: sanitize(request.Arg1),

@@ -1,7 +1,7 @@
+import CentralRestServer from '../../server/rest/CentralRestServer';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import MongoDBStorage from './MongoDBStorage';
-import CentralRestServer from '../../server/rest/CentralRestServer';
 import StorageConfiguration from '../../types/configuration/StorageConfiguration';
 
 const _pipeline = [];

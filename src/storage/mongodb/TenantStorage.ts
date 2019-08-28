@@ -2,11 +2,12 @@ import { ObjectID } from 'mongodb';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
-import DbParams from '../../types/database/DbParams';
+import { DataResult } from '../../types/DataResult';
 
 export default class TenantStorage {
   public static async getTenant(id: string): Promise<Tenant> {
@@ -49,25 +50,20 @@ export default class TenantStorage {
       tenantFilter._id = new ObjectID();
     }
     // Properties to save
+    // eslint-disable-next-line prefer-const
     let tenantMDB = {
       _id: tenantFilter._id,
       name: tenantToSave.name,
       email: tenantToSave.email,
       subdomain: tenantToSave.subdomain,
       components: tenantToSave.components ? tenantToSave.components : {}
-    }
+    };
     DatabaseUtils.addLastChangedCreatedProps(tenantMDB, tenantToSave);
     // Modify
-    const result = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants').findOneAndUpdate(
+    await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenants').findOneAndUpdate(
       tenantFilter,
       { $set: tenantMDB },
       { upsert: true, returnOriginal: false });
-    if (!result.ok) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Couldn\'t update Tenant',
-        'TenantStorage', 'saveTenant');
-    }
     // Debug
     Logging.traceEnd('TenantStorage', 'saveTenant', uniqueTimerID, { tenantToSave });
     // Create
@@ -86,7 +82,7 @@ export default class TenantStorage {
   // Delegate
   public static async getTenants(
     params: { tenantID?: string; tenantName?: string; tenantSubdomain?: string; search?: string },
-    dbParams: DbParams, projectFields?: string[]) {
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tenant>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'getTenants');
     // Check Limit
@@ -171,7 +167,7 @@ export default class TenantStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'deleteTenant');
     // Delete
-    await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'tenants')
+    await global.database.getCollection<Tenant>(Constants.DEFAULT_TENANT, 'tenants')
       .findOneAndDelete({
         '_id': Utils.convertToObjectID(id)
       });

@@ -1,13 +1,13 @@
 import uuid from 'uuid/v4';
 import { OPEN } from 'ws';
 import BackendError from '../../../exception/BackendError';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import OCPPError from '../../../exception/OcppError';
-import Utils from '../../../utils/Utils';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'WSConnection';
 export default class WSConnection {
@@ -258,10 +258,7 @@ export default class WSConnection {
         resolve();
       } else {
         // Send timeout
-        setTimeout(() => {
-          return rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${TenantStorage.getTenant(this.tenantID).then(
-            (tenant) => tenant.name)})'`);
-        }, Constants.OCPP_SOCKET_TIMEOUT);
+        setTimeout(() => rejectCallback(`Timeout for Message ID '${messageId}' with content '${messageToSend} (${TenantStorage.getTenant(this.tenantID).then((tenant) => tenant.name)}`), Constants.OCPP_SOCKET_TIMEOUT);
       }
 
       // Function that will receive the request's response

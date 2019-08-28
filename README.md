@@ -21,12 +21,12 @@ The application:
 * Install MongoDB: https://www.mongodb.com/
 * Clone this GitHub project
 * Install required build tools:
-  * Under Windows as an administrator:  
+  * Under Windows as an administrator:
     ```
-    npm install --g --production windows-build-tools
+    npm install --global --production windows-build-tools
     ```
-  * Under Mac OS X, install Xcode from the Apple store  
-  * Under Debian based GNU/Linux distribution:  
+  * Under Mac OS X, install Xcode from the Apple store
+  * Under Debian based GNU/Linux distribution:
     ```
     sudo apt install build-essential
     ```
@@ -36,16 +36,16 @@ The application:
   npm install bcrypt
   ```
 
-**NOTE**: On Windows with **chocolatey** (https://chocolatey.org/),  
+**NOTE**: On Windows with **chocolatey** (https://chocolatey.org/),
 do as an administrator:
 ```
-choco install -y nodejs-lts python2 mongodb postman robot3t  
+choco install -y nodejs-lts python2 mongodb postman robot3t
 ```
-to install all needed dependencies  
+to install all needed dependencies
 You can also alternatively do:
 ```
 choco install -y microsoft-build-tools
-```  
+```
 to install the required build tools
 
 * Follow the rest of the setup below
@@ -66,12 +66,12 @@ mongod --port 27017 --dbpath "/var/lib/mongodb" --replSet "rs0"
 
 ##### As a Windows service
 
-Add to /path/to/mongod.cfg:  
+Add to /path/to/mongod.cfg:
 ```
 ...
 replication:
   replSetName: "rs0"
-...  
+...
 ```
 Restart the MongoDB service with Powershell as an administrator:
 
@@ -146,12 +146,12 @@ mongod --auth --port <port> --dbpath <path> --replSet <replcaSetName>
 
 ##### As a Windows service
 
-Add to /path/to/mongod.cfg:  
+Add to /path/to/mongod.cfg:
 ```
 ...
 security:
   authorization: enabled
-...  
+...
 ```
 
 Restart the MongoDB service with Powershell as an administrator:
@@ -160,7 +160,7 @@ Restart the MongoDB service with Powershell as an administrator:
 
 Now your database is ready to be used.
 
-**NOTE**: You can also use empty-db.zip or empty-db-service.zip on the share to do the initial setup of the databases required by simply deleting all files in the MongoDB databases path and then dropping its content inside instead.  
+**NOTE**: You can also use empty-db.zip or empty-db-service.zip on the share to do the initial setup of the databases required by simply deleting all files in the MongoDB databases path and then dropping its content inside instead.
 
 ## The Application Server
 
@@ -483,13 +483,13 @@ npm run start:dev:prof
 npm run start:(prod|dev):(doctorprof|flameprof|bubbleprof)
 ```
 
-**NOTE**: You can also use the files in the ev-config-scripts.zip on the share to have a correct initial setup of your development environment and some server startup helpers.  
+**NOTE**: You can also use the files in the ev-config-scripts.zip on the share to have a correct initial setup of your development environment and some server startup helpers.
 
 ### Tests
 **Prerequisite:** The database must contain an admin user.
 
 * Create a local configuration file located in './test/config/local.json' with the parameters to override like
-         
+
         {
           "admin": {
             "username": "YOUR_ADMIN_USERNAME",
@@ -514,7 +514,7 @@ You can
 Depending on the need it is possible to start different docker containers.
 
 Each following command has to be executed in folder [docker](./docker).
- 
+
 #### Minimal local environment
 It consist in starting a pre configured empty mongo database plus a mail service.
 To start it, execute command:
@@ -530,7 +530,7 @@ The mongo database folder will be kept along multiple restarts. To remove it, de
 Due to fixed replica set configuration, the database hostname has to be referenced in the host machine to be accessible.
 To enable it, as admin, add the entry `ev_mongo 127.0.0.1` in `/private/etc/hosts` for mac-os or in `c:\Windows\System32\Drivers\etc\hosts` for windows.
 
-The database is then accessible using the credential `evse-admin/evse-admin-pwd`. 
+The database is then accessible using the credential `evse-admin/evse-admin-pwd`.
 
 #### ev-server
 In case of UI development or test purpose, the server has been containerized.

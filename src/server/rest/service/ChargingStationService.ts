@@ -5,24 +5,24 @@ import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import ChargingStation from '../../../types/ChargingStation';
 import ChargingStationSecurity from './security/ChargingStationSecurity';
-import Constants from '../../../utils/Constants';
-import Logging from '../../../utils/Logging';
-import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
-import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
-import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import UtilsService from './UtilsService';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import OCPPUtils from '../../ocpp/utils/OCPPUtils';
+import Constants from '../../../utils/Constants';
 import {
   HttpChargingStationCommandRequest,
   HttpIsAuthorizedRequest
 } from '../../../types/requests/HttpChargingStationRequest';
+import Logging from '../../../utils/Logging';
+import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
+import OCPPUtils from '../../ocpp/utils/OCPPUtils';
+import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
+import SiteStorage from '../../../storage/mongodb/SiteStorage';
+import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
-import SiteStorage from '../../../storage/mongodb/SiteStorage';
-import Transaction from '../../../entity/Transaction';
+import UtilsService from './UtilsService';
+import { DataResult } from '../../../types/DataResult';
 
 export default class ChargingStationService {
 
@@ -94,7 +94,7 @@ export default class ChargingStationService {
 
   public static async handleUpdateChargingStationParams(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterChargingStationParamsUpdateRequest(req.body, req.user);
+    const filteredRequest = ChargingStationSecurity.filterChargingStationParamsUpdateRequest(req.body);
     // Check existence
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.id);
     // Check
@@ -288,7 +288,7 @@ export default class ChargingStationService {
     chargingStation.deleted = true;
     // Check if charging station has had transactions
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-      { chargeBoxID: chargingStation.id }, Constants.DB_PARAMS_COUNT_ONLY);
+      { chargeBoxIDs: [chargingStation.id] }, Constants.DB_PARAMS_COUNT_ONLY);
     if (transactions.count > 0) {
       // Delete logically
       await ChargingStationStorage.saveChargingStation(req.user.tenantID, chargingStation);
@@ -391,15 +391,15 @@ export default class ChargingStationService {
     let _errorType = [];
     if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
       // Get the Site Area
-      _errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : ['missingSettings','connectionBroken','connectorError','missingSiteArea']);
+      _errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : ['missingSettings', 'connectionBroken', 'connectorError', 'missingSiteArea']);
     } else {
-      _errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : ['missingSettings','connectionBroken','connectorError']);
+      _errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : ['missingSettings', 'connectionBroken', 'connectorError']);
     }
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStationsInError(req.user.tenantID,
       {
         search: filteredRequest.Search,
-        siteID: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : Authorizations.getAuthorizedSiteIDs(req.user)),
+        siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : Authorizations.getAuthorizedSiteIDs(req.user)),
         siteAreaID: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
         errorType: _errorType
       },
@@ -423,7 +423,7 @@ export default class ChargingStationService {
         req.user);
     }
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterNotificationsRequest(req.query, req.user);
+    const filteredRequest = ChargingStationSecurity.filterNotificationsRequest(req.query);
     // Get all Status Notifications
     const statusNotifications = await OCPPStorage.getStatusNotifications(req.user.tenantID, {},
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort });
@@ -445,7 +445,7 @@ export default class ChargingStationService {
         req.user);
     }
     // Filter
-    const filteredRequest = ChargingStationSecurity.filterNotificationsRequest(req.query, req.user);
+    const filteredRequest = ChargingStationSecurity.filterNotificationsRequest(req.query);
     // Get all Status Notifications
     const bootNotifications = await OCPPStorage.getBootNotifications(req.user.tenantID, {},
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort });
@@ -458,7 +458,7 @@ export default class ChargingStationService {
 
   public static async handleAction(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter - Type is hacked because code below is. Would need approval to change code structure.
-    const filteredRequest: HttpChargingStationCommandRequest & { loadAllConnectors?: boolean } = ChargingStationSecurity.filterChargingStationActionRequest(req.body, action, req.user);
+    const filteredRequest: HttpChargingStationCommandRequest & { loadAllConnectors?: boolean } = ChargingStationSecurity.filterChargingStationActionRequest(req.body);
     UtilsService.assertIdIsProvided(filteredRequest.chargeBoxID, 'ChargingSTationService', 'handleAction', req.user);
     // Get the Charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.chargeBoxID);
@@ -479,7 +479,7 @@ export default class ChargingStationService {
       UtilsService.assertObjectExists(transaction, `Transaction ID '${filteredRequest.args.transactionId}' does not exist`,
         'ChargingStationService', 'handleAction', req.user);
       // Add connector ID
-      filteredRequest.args.connectorId = transaction.getConnectorId();
+      filteredRequest.args.connectorId = transaction.connectorId;
       // Check Tag ID
       if (!req.user.tagIDs || req.user.tagIDs.length === 0) {
         throw new AppError(
@@ -491,12 +491,15 @@ export default class ChargingStationService {
       // Check if user is authorized
       await Authorizations.isAuthorizedToStopTransaction(req.user.tenantID, chargingStation, transaction, req.user.tagIDs[0]);
       // Set the tag ID to handle the Stop Transaction afterwards
-      transaction.setRemoteStopDate(new Date().toISOString());
-      transaction.setRemoteStopTagID(req.user.tagIDs[0]);
+      transaction.remotestop = {
+        timestamp: new Date(),
+        tagID: req.user.tagIDs[0],
+        userID: req.user.id
+      };
       // Save Transaction
-      await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
+      await TransactionStorage.saveTransaction(req.user.tenantID, transaction);
       // Ok: Execute it
-      result = await this._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
+      result = await ChargingStationService._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
       // Remote Start Transaction
     } else if (action === 'RemoteStartTransaction') {
       // Check Tag ID
@@ -510,7 +513,7 @@ export default class ChargingStationService {
       // Check if user is authorized
       await Authorizations.isAuthorizedToStartTransaction(req.user.tenantID, chargingStation, filteredRequest.args.tagID);
       // Ok: Execute it
-      result = await this._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
+      result = await ChargingStationService._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
     } else if (action === 'GetCompositeSchedule') {
       // Check auth
       if (!Authorizations.canPerformActionOnChargingStation(req.user, action, chargingStation)) {
@@ -526,14 +529,14 @@ export default class ChargingStationService {
       }
       if (filteredRequest.loadAllConnectors && filteredRequest.args.connectorId === 0) {
         // Call for connector 0
-        result = await this._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
+        result = await ChargingStationService._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
         if (result.status !== Constants.OCPP_RESPONSE_ACCEPTED) {
           result = [];
           // Call each connectors
           for (const connector of chargingStation.connectors) {
             filteredRequest.args.connectorId = connector.connectorId;
             // Execute request
-            const simpleResult = await this._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
+            const simpleResult = await ChargingStationService._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
             // Fix central reference date
             const centralTime = new Date();
             simpleResult.centralSystemTime = centralTime;
@@ -542,7 +545,7 @@ export default class ChargingStationService {
         }
       } else {
         // Execute it
-        result = await this._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
+        result = await ChargingStationService._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
         // Fix central reference date
         const centralTime = new Date();
         result.centralSystemTime = centralTime;
@@ -557,7 +560,7 @@ export default class ChargingStationService {
           req.user);
       }
       // Execute it
-      result = await this._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
+      result = await ChargingStationService._handleAction(req.user.tenantID, chargingStation, action, filteredRequest.args);
     }
     // Log
     Logging.logSecurityInfo({
@@ -672,9 +675,7 @@ export default class ChargingStationService {
           const results = [];
           // Check authorization for each connectors
           for (let index = 0; index < chargingStation.connectors.length; index++) {
-            const foundConnector = chargingStation.connectors.find((connector) => {
-              return connector.connectorId === index + 1;
-            });
+            const foundConnector = chargingStation.connectors.find((connector) => connector.connectorId === index + 1);
             const tempResult = { 'IsAuthorized': false };
             if (foundConnector && foundConnector.activeTransactionID) {
               tempResult.IsAuthorized = await ChargingStationService.isStopTransactionAuthorized(
@@ -686,7 +687,7 @@ export default class ChargingStationService {
           result = results;
         } else {
           result[0].IsAuthorized = await ChargingStationService.isStopTransactionAuthorized(
-            filteredRequest, chargingStation, filteredRequest.Arg2, req.user);
+            filteredRequest, chargingStation, parseInt(filteredRequest.Arg2), req.user);
         }
         break;
       // Action on connectors of a charger
@@ -769,7 +770,7 @@ export default class ChargingStationService {
       const foundConnector = chargingStation.connectors.find(
         (connector) => connector.connectorId === index + 1);
       if (foundConnector.activeTransactionID > 0) {
-        const transaction = await Transaction.getTransaction(user.tenantID, foundConnector.activeTransactionID);
+        const transaction = await TransactionStorage.getTransaction(user.tenantID, foundConnector.activeTransactionID);
         results.push({
           'isStartAuthorized': false,
           'isStopAuthorized': Authorizations.canStopTransaction(user, transaction),
@@ -796,16 +797,16 @@ export default class ChargingStationService {
         Constants.HTTP_AUTH_ERROR, 'AuthService', 'isStopTransactionAuthorized');
     }
     // Check Charging Station
-    if (transaction.getChargeBoxID() !== chargingStation.id) {
+    if (transaction.chargeBoxID !== chargingStation.id) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `Transaction ID '${filteredRequest.Arg2}' has a Charging Station '${transaction.getChargeBoxID()}' that differs from '${chargingStation.id}'`,
+        `Transaction ID '${filteredRequest.Arg2}' has a Charging Station '${transaction.chargeBoxID}' that differs from '${chargingStation.id}'`,
         565, 'AuthService', 'isStopTransactionAuthorized');
     }
     return Authorizations.canStopTransaction(user, transaction);
   }
 
-  private static async _getChargingStations(req: Request): Promise<{ count: number, result: ChargingStation[] }> {
+  private static async _getChargingStations(req: Request): Promise<DataResult<ChargingStation>> {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError(
@@ -817,12 +818,6 @@ export default class ChargingStationService {
     }
     // Filter
     const filteredRequest = ChargingStationSecurity.filterChargingStationsRequest(req.query);
-console.log(`>>> filters:${JSON.stringify(filteredRequest)}`);
-    // Check component
-    if (filteredRequest.SiteID || filteredRequest.WithSite || filteredRequest.SiteAreaID) {
-      UtilsService.assertComponentIsActiveFromToken(req.user,
-        Constants.COMPONENTS.ORGANIZATION, Constants.ACTION_READ, Constants.ENTITY_CHARGING_STATIONS, 'ChargingStationService', 'handleGetChargingStations');
-    }
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStations(req.user.tenantID,
       {

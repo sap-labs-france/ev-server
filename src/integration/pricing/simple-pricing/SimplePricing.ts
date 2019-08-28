@@ -1,5 +1,5 @@
 import Pricing, { PricedConsumption, PricingSettings } from '../Pricing';
-import Transaction from '../../../entity/Transaction';
+import Transaction from '../../../types/Transaction';
 
 export class SimplePricingSettings extends PricingSettings {
   constructor(readonly price: number, readonly currency: string) {

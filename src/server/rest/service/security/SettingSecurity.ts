@@ -1,19 +1,18 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import UtilsSecurity from './UtilsSecurity';
-import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
+import Constants from '../../../../utils/Constants';
 import { HttpSettingRequest, HttpSettingsRequest } from '../../../../types/requests/HttpSettingRequest';
 import Setting from '../../../../types/Setting';
 import UserToken from '../../../../types/UserToken';
-import Constants from '../../../../utils/Constants';
+import UtilsSecurity from './UtilsSecurity';
 
 export default class SettingSecurity {
 
-  public static filterSettingRequestByID(request: HttpByIDRequest): string {
+  public static filterSettingRequestByID(request: any): string {
     return sanitize(request.ID);
   }
 
-  public static filterSettingRequest(request: HttpSettingRequest): HttpSettingRequest {
+  public static filterSettingRequest(request: any): HttpSettingRequest {
     return {
       ID: sanitize(request.ID),
       ContentFilter: UtilsSecurity.filterBoolean(request.ContentFilter)
@@ -21,7 +20,7 @@ export default class SettingSecurity {
   }
 
 
-  public static filterSettingsRequest(request: HttpSettingsRequest): HttpSettingsRequest {
+  public static filterSettingsRequest(request: any): HttpSettingsRequest {
     const filteredRequest: HttpSettingsRequest = {} as HttpSettingsRequest;
     filteredRequest.Identifier = sanitize(request.Identifier);
     filteredRequest.ContentFilter = UtilsSecurity.filterBoolean(request.ContentFilter);
@@ -30,17 +29,17 @@ export default class SettingSecurity {
     return filteredRequest;
   }
 
-  public static filterSettingUpdateRequest(request: Partial<Setting>): Partial<Setting> {
+  public static filterSettingUpdateRequest(request: any): Partial<Setting> {
     const filteredRequest = SettingSecurity._filterSettingRequest(request);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  public static filterSettingCreateRequest(request: Partial<Setting>): Partial<Setting> {
+  public static filterSettingCreateRequest(request: any): Partial<Setting> {
     return SettingSecurity._filterSettingRequest(request);
   }
 
-  public static _filterSettingRequest(request: Partial<Setting>): Partial<Setting> {
+  public static _filterSettingRequest(request: any): Partial<Setting> {
     return {
       identifier: sanitize(request.identifier),
       content: sanitize(request.content),
@@ -96,13 +95,10 @@ export default class SettingSecurity {
       return setting.content;
     }
     if (setting.content.links && Array.isArray(setting.content.links)) {
-      const filteredLinks = setting.content.links.filter((link) => {
-        return !link.role || link.role === '' ||
-          (link.role && link.role.includes(loggedUser.role));
-      });
+      const filteredLinks = setting.content.links.filter((link) => !link.role || link.role === '' ||
+          (link.role && link.role.includes(loggedUser.role)));
       setting.content.links = filteredLinks;
     }
     return setting.content;
   }
-
 }

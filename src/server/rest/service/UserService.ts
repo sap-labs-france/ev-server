@@ -137,9 +137,7 @@ export default class UserService {
       // Delete from site
       const siteIDs: string[] = (await UserStorage.getSites(req.user.tenantID, { userID: id },
         Constants.DB_PARAMS_MAX_LIMIT)).result.map(
-        (siteUser) => {
-          return siteUser.site.id;
-        }
+        (siteUser) => siteUser.site.id
       );
       await UserStorage.removeSitesFromUser(req.user.tenantID, user.id, siteIDs);
     }
@@ -217,9 +215,7 @@ export default class UserService {
     let newTagIDs;
     if (filteredRequest.tagIDs) {
       newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? filteredRequest.tagIDs.split(',') : filteredRequest.tagIDs;
-      newTagIDs = newTagIDs.filter((newTagID) => {
-        return typeof newTagID === 'string';
-      });
+      newTagIDs = newTagIDs.filter((newTagID) => typeof newTagID === 'string');
     }
     // Check User validity
     Utils.checkIfUserValid(filteredRequest, user, req);
@@ -248,7 +244,7 @@ export default class UserService {
       }
       // Save Admin Data
       if (filteredRequest.plateID || filteredRequest.hasOwnProperty('notificationsActive')) {
-        const adminData: { plateID?: string; notificationsActive?: boolean; } = {};
+        const adminData: { plateID?: string; notificationsActive?: boolean } = {};
         if (filteredRequest.plateID) {
           adminData.plateID = filteredRequest.plateID;
         }
@@ -416,16 +412,15 @@ export default class UserService {
       ['site.id', 'site.name', 'site.address.city', 'site.address.country', 'userID']
     );
     // Filter
-    userSites.result = userSites.result.map((userSite) => {
-      return {
-        userID: userSite.userID,
-        siteAdmin: userSite.siteAdmin,
-        site: userSite.site
-      };
-    });
+    userSites.result = userSites.result.map((userSite) => ({
+      userID: userSite.userID,
+      siteAdmin: userSite.siteAdmin,
+      site: userSite.site
+    }));
     res.json(userSites);
     next();
   }
+
   public static async handleGetUsers(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListUsers(req.user)) {
@@ -490,7 +485,7 @@ export default class UserService {
       {
         search: filteredRequest.Search,
         roles: (filteredRequest.Role ? filteredRequest.Role.split('|') : null),
-        errorTypes: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : ['unactive_user','unassigned_user'])
+        errorTypes: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : ['unactive_user', 'unassigned_user'])
       },
       {
         limit: filteredRequest.Limit,
@@ -523,9 +518,7 @@ export default class UserService {
     let newTagIDs;
     if (filteredRequest.tagIDs) {
       newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? filteredRequest.tagIDs.split(',') : filteredRequest.tagIDs;
-      newTagIDs = newTagIDs.filter((newTagID) => {
-        return typeof newTagID === 'string';
-      });
+      newTagIDs = newTagIDs.filter((newTagID) => typeof newTagID === 'string');
     }
     // Check Mandatory fields
     Utils.checkIfUserValid(filteredRequest, null, req);
@@ -566,7 +559,7 @@ export default class UserService {
       }
       // Save Admin Data
       if (filteredRequest.plateID || filteredRequest.hasOwnProperty('notificationsActive')) {
-        const adminData: { plateID?: string; notificationsActive?: boolean; } = {};
+        const adminData: { plateID?: string; notificationsActive?: boolean } = {};
         if (filteredRequest.plateID) {
           adminData.plateID = filteredRequest.plateID;
         }
@@ -583,9 +576,7 @@ export default class UserService {
       Constants.DB_PARAMS_MAX_LIMIT
     );
     if (sites.count > 0) {
-      const siteIDs = sites.result.map((site) => {
-        return site.id;
-      });
+      const siteIDs = sites.result.map((site) => site.id);
       if (siteIDs && siteIDs.length > 0) {
         await UserStorage.addSitesToUser(req.user.tenantID, newUserID, siteIDs);
       }
@@ -639,7 +630,7 @@ export default class UserService {
     }
     // Get the settings
     const setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, Constants.COMPONENTS.PRICING);
-    let settingInner = setting.content.convergentCharging;
+    const settingInner = setting.content.convergentCharging;
     if (!setting) {
       Logging.logException({ 'message': 'Convergent Charging setting is missing' }, 'UserInvoice', Constants.CENTRAL_SERVER, 'UserService', 'handleGetUserInvoice', req.user.tenantID, req.user);
       throw new AppError(

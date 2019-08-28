@@ -10,6 +10,7 @@ import Constants from './utils/Constants';
 import LogsApi from './LogsApi';
 import MailApi from './MailApi';
 import OCPIEndpointApi from './OCPIEndpointApi';
+import RegistrationTokenApi from './RegistrationTokenApi';
 import SettingApi from './SettingApi';
 import SiteApi from './SiteApi';
 import SiteAreaApi from './SiteAreaApi';
@@ -18,7 +19,6 @@ import TenantApi from './TenantApi';
 import TransactionApi from './TransactionApi';
 import User from '../../../src/types/User';
 import UserApi from './UserApi';
-import RegistrationTokenApi from './RegistrationTokenApi';
 
 // Set
 chai.use(chaiSubset);
@@ -108,9 +108,7 @@ export default class CentralServerService {
   public async updatePriceSetting(priceKWH, priceUnit) {
     const settings = await this.settingApi.readAll({});
     let newSetting = false;
-    let setting = settings.data.result.find((s) => {
-      return s.identifier === 'pricing';
-    });
+    let setting = settings.data.result.find((s) => s.identifier === 'pricing');
     if (!setting) {
       setting = {};
       setting.identifier = 'pricing';

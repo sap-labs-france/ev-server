@@ -14,11 +14,11 @@ import { HttpLoginRequest, HttpResetPasswordRequest } from '../../../types/reque
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import UserToken from '../../../types/UserToken';
 import Utils from '../../../utils/Utils';
-import TenantStorage from '../../../storage/mongodb/TenantStorage';
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
@@ -33,10 +33,10 @@ if (_centralSystemRestConfig) {
     // audience: 'evse-dashboard'
   };
   // Use
-  passport.use(new Strategy(jwtOptions, (jwtPayload, done) => {
+  passport.use(new Strategy(jwtOptions, (jwtPayload, done) =>
     // Return the token decoded right away
-    return done(null, jwtPayload);
-  }));
+    done(null, jwtPayload)
+  ));
 }
 
 export default class AuthService {
@@ -227,7 +227,7 @@ export default class AuthService {
       { password: newPasswordHashed, passwordWrongNbrTrials: 0, passwordResetHash: null, passwordBlockedUntil: null });
     // Save User Account Verification
     await UserStorage.saveUserAccountVerification(tenantID, newUser.id, { verificationToken });
-      // Save User EULA
+    // Save User EULA
     await UserStorage.saveUserEULA(tenantID, newUser.id,
       { eulaAcceptedOn: new Date(), eulaAcceptedVersion: endUserLicenseAgreement.version, eulaAcceptedHash: endUserLicenseAgreement.hash });
     // Assign user to all sites with auto-assign flag set
@@ -236,9 +236,7 @@ export default class AuthService {
       Constants.DB_PARAMS_MAX_LIMIT
     );
     if (sites.count > 0) {
-      const siteIDs = sites.result.map((site) => {
-        return site.id;
-      });
+      const siteIDs = sites.result.map((site) => site.id);
       if (siteIDs && siteIDs.length > 0) {
         await UserStorage.addSitesToUser(tenantID, newUser.id, siteIDs);
       }

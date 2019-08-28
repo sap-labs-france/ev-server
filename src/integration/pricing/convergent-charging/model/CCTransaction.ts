@@ -19,9 +19,7 @@ export class CCTransaction {
       this[key] = model['$attributes'][key];
     }
     this.details = {};
-    model.detail.map((detail) => {
-      return detail['$attributes'];
-    }).forEach(
+    model.detail.map((detail) => detail['$attributes']).forEach(
       (detail) => {
         let value;
         switch (detail.type) {
@@ -39,9 +37,7 @@ export class CCTransaction {
       });
     if (model.notification) {
       if (Array.isArray(model.notification)) {
-        this.notifications = model.notification.map((n) => {
-          return new Notification(n);
-        });
+        this.notifications = model.notification.map((n) => new Notification(n));
       } else {
         this.notifications = [new Notification(model.notification)];
       }

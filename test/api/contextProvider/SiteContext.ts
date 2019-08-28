@@ -34,15 +34,11 @@ export default class SiteContext {
   }
 
   getSiteArea(siteAreaName) {
-    return this.siteAreas.find((siteArea) => {
-      return siteArea.getSiteArea().name === siteAreaName;
-    });
+    return this.siteAreas.find((siteArea) => siteArea.getSiteArea().name === siteAreaName);
   }
 
   getSiteAreaContext(siteAreaContext) {
-    return this.siteAreas.find((siteArea) => {
-      return siteArea.getSiteArea().name.endsWith(siteAreaContext);
-    });
+    return this.siteAreas.find((siteArea) => siteArea.getSiteArea().name.endsWith(siteAreaContext));
   }
 
   getSiteAreas() {

@@ -4,7 +4,7 @@ export default abstract class NotificationTask {
 
   // TODO: Since data param varies heavily by impl
   // I cannot create a robust class for it without knowing more about the code
-  // Therefore, type: any for now. Please change
+  // Therefore, type: any for now. Please change.
 
   abstract sendNewRegisteredUser(data: any, locale: string, tenantID: string): NotificationResult;
   abstract sendRequestPassword(data: any, locale: string, tenantID: string): NotificationResult;

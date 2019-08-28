@@ -5,20 +5,21 @@ import { HttpVehiclesRequest } from '../../../../types/requests/HttpVehicleReque
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import Vehicle from '../../../../types/Vehicle';
+import { DataResult } from '../../../../types/DataResult';
 
 export default class VehicleSecurity {
 
-  public static filterVehicleRequestByID(request: HttpByIDRequest): string {
+  public static filterVehicleRequestByID(request: any): string {
     return sanitize(request.ID);
   }
 
-  public static filterVehicleRequest(request: HttpByIDRequest): HttpByIDRequest {
+  public static filterVehicleRequest(request: any): HttpByIDRequest {
     return {
       ID: sanitize(request.ID)
     };
   }
 
-  public static filterVehiclesRequest(request: HttpVehiclesRequest): HttpVehiclesRequest {
+  public static filterVehiclesRequest(request: any): HttpVehiclesRequest {
     const filteredRequest: HttpVehiclesRequest = {} as HttpVehiclesRequest;
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.Type = sanitize(request.Type);
@@ -28,14 +29,14 @@ export default class VehicleSecurity {
     return filteredRequest;
   }
 
-  public static filterVehicleUpdateRequest(request: Partial<Vehicle>): Partial<Vehicle> {
+  public static filterVehicleUpdateRequest(request: any): Partial<Vehicle> {
     // Set
     const filteredRequest = VehicleSecurity._filterVehicleRequest(request);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  public static filterVehicleCreateRequest(request: Partial<Vehicle>): Partial<Vehicle> {
+  public static filterVehicleCreateRequest(request: any): Partial<Vehicle> {
     return VehicleSecurity._filterVehicleRequest(request);
   }
 
@@ -62,7 +63,7 @@ export default class VehicleSecurity {
     return filteredVehicle;
   }
 
-  public static filterVehiclesResponse(vehicles: {result: Vehicle[]}, loggedUser: UserToken) {
+  public static filterVehiclesResponse(vehicles: DataResult<Vehicle>, loggedUser: UserToken) {
     const filteredVehicles = [];
 
     if (!vehicles.result) {
@@ -81,7 +82,7 @@ export default class VehicleSecurity {
     return filteredVehicles;
   }
 
-  private static _filterVehicleRequest(request: Partial<Vehicle>): Partial<Vehicle> {
+  private static _filterVehicleRequest(request: any): Partial<Vehicle> {
     const filteredVehicle: Partial<Vehicle> = {};
     filteredVehicle.type = sanitize(request.type);
     filteredVehicle.model = sanitize(request.model);

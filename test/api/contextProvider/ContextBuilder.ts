@@ -1,3 +1,4 @@
+import { expect } from 'chai';
 import config from '../../config';
 import faker from 'faker';
 import moment from 'moment';
@@ -13,15 +14,13 @@ import SiteAreaStorage from '../../../src/storage/mongodb/SiteAreaStorage';
 import SiteContext from './SiteContext';
 import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
 import StatisticsContext from './StatisticsContext';
-import Tenant from '../../../src/types/Tenant';
 import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
+import TenantStorage from '../../../src/storage/mongodb/TenantStorage';
 import User from '../../../src/types/User';
 import UserFactory from '../../factories/UserFactory';
 import UserStorage from '../../../src/storage/mongodb/UserStorage';
 import Utils from '../../../src/utils/Utils';
-import { expect } from 'chai';
-import TenantStorage from '../../../src/storage/mongodb/TenantStorage';
 
 export default class ContextBuilder {
 
@@ -133,11 +132,13 @@ export default class ContextBuilder {
 
     const userId = await UserStorage.saveUser(buildTenant.id, {
       'id': CONTEXTS.TENANT_USER_LIST[0].id,
+      'name': 'Admin',
+      'firstName': 'User',
       'email': config.get('admin.username'),
       'locale': 'en-US',
-      'phone': faker.phone.phoneNumber(),
-      'mobile': faker.phone.phoneNumber(),
-      'plateID': faker.random.alphaNumeric(8),
+      'phone': '66666666666',
+      'mobile': '66666666666',
+      'plateID': '666-FB-69',
       'deleted': false
     });
     await UserStorage.saveUserStatus(buildTenant.id, userId, CONTEXTS.TENANT_USER_LIST[0].status);
@@ -159,9 +160,7 @@ export default class ContextBuilder {
       for (const setting in tenantContextDef.componentSettings) {
         let foundSetting: any = null;
         if (allSettings && allSettings.data && allSettings.data.result && allSettings.data.result.length > 0) {
-          foundSetting = allSettings.data.result.find((existingSetting) => {
-            return existingSetting.identifier === setting;
-          });
+          foundSetting = allSettings.data.result.find((existingSetting) => existingSetting.identifier === setting);
         }
         if (!foundSetting) {
           // Create new settings
@@ -212,7 +211,7 @@ export default class ContextBuilder {
         userListToAssign.push(userModel);
       }
       // Set back password to clear value for login/logout
-      (userModel as any).passwordClear = config.get('admin.password'); // TODO ?
+      (userModel as any).passwordClear = config.get('admin.password'); // TODO?
       userList.push(userModel);
     }
     // Persist tenant context
@@ -223,13 +222,12 @@ export default class ContextBuilder {
     if (buildTenant.components && buildTenant.components.hasOwnProperty(Constants.COMPONENTS.ORGANIZATION) &&
       buildTenant.components[Constants.COMPONENTS.ORGANIZATION].active) {
       // Create the company
-      let company = null;
       for (const companyDef of CONTEXTS.TENANT_COMPANY_LIST) {
         const dummyCompany: any = Factory.company.build();
         dummyCompany.id = companyDef.id;
         dummyCompany.createdBy = { id: adminUser.id };
         dummyCompany.createdOn = moment().toISOString();
-        company = await CompanyStorage.saveCompany(buildTenant.id, dummyCompany);
+        await CompanyStorage.saveCompany(buildTenant.id, dummyCompany);
         newTenantContext.getContext().companies.push(dummyCompany);
       }
       // Build sites/sitearea according to tenant definition
@@ -238,23 +236,17 @@ export default class ContextBuilder {
         // Create site
         const siteTemplate = Factory.site.build({
           companyID: siteContextDef.companyID,
-          userIDs: userListToAssign.map((user) => {
-            return user.id;
-          })
+          userIDs: userListToAssign.map((user) => user.id)
         });
         siteTemplate.name = siteContextDef.name;
         siteTemplate.autoUserSiteAssignment = siteContextDef.autoUserSiteAssignment;
         siteTemplate.id = siteContextDef.id;
         site = siteTemplate;
         site.id = await SiteStorage.saveSite(buildTenant.id, siteTemplate, true);
-        await SiteStorage.addUsersToSite(buildTenant.id, site.id, userListToAssign.map((user) => {
-          return user.id;
-        }));
+        await SiteStorage.addUsersToSite(buildTenant.id, site.id, userListToAssign.map((user) => user.id));
         const siteContext = new SiteContext(site, newTenantContext);
         // Create site areas of current site
-        for (const siteAreaDef of CONTEXTS.TENANT_SITEAREA_LIST.filter((siteArea) => {
-          return siteArea.siteName === site.name;
-        })) {
+        for (const siteAreaDef of CONTEXTS.TENANT_SITEAREA_LIST.filter((siteArea) => siteArea.siteName === site.name)) {
           const siteAreaTemplate = Factory.siteArea.build();
           siteAreaTemplate.id = siteAreaDef.id;
           siteAreaTemplate.name = siteAreaDef.name;
@@ -264,9 +256,7 @@ export default class ContextBuilder {
           const sireAreaID = await SiteAreaStorage.saveSiteArea(buildTenant.id, siteAreaTemplate);
           const siteAreaModel = await SiteAreaStorage.getSiteArea(buildTenant.id, sireAreaID);
           const siteAreaContext = siteContext.addSiteArea(siteAreaModel);
-          const relevantCS = CONTEXTS.TENANT_CHARGINGSTATION_LIST.filter((chargingStation) => {
-            return chargingStation.siteAreaNames && chargingStation.siteAreaNames.includes(siteAreaModel.name) === true;
-          });
+          const relevantCS = CONTEXTS.TENANT_CHARGINGSTATION_LIST.filter((chargingStation) => chargingStation.siteAreaNames && chargingStation.siteAreaNames.includes(siteAreaModel.name) === true);
           // Create Charging Station for site area
           for (const chargingStationDef of relevantCS) {
             const chargingStationTemplate = Factory.chargingStation.build();
@@ -280,9 +270,7 @@ export default class ContextBuilder {
       }
     }
     // Create unassigned Charging station
-    const relevantCS = CONTEXTS.TENANT_CHARGINGSTATION_LIST.filter((chargingStation) => {
-      return chargingStation.siteAreaNames === null;
-    });
+    const relevantCS = CONTEXTS.TENANT_CHARGINGSTATION_LIST.filter((chargingStation) => chargingStation.siteAreaNames === null);
     // Create Charging Station for site area
     const siteContext = new SiteContext({
       id: 1,

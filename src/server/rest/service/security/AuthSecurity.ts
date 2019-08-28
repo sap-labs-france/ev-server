@@ -6,7 +6,7 @@ import UtilsSecurity from './UtilsSecurity';
 
 export default class AuthSecurity {
 
-  public static filterResetPasswordRequest(request: Partial<HttpResetPasswordRequest>): Partial<HttpResetPasswordRequest> {
+  public static filterResetPasswordRequest(request: any): Partial<HttpResetPasswordRequest> {
     const filteredRequest: any = {};
     // Set
     filteredRequest.email = sanitize(request.email);
@@ -16,7 +16,7 @@ export default class AuthSecurity {
     return filteredRequest;
   }
 
-  public static filterRegisterUserRequest(request: Partial<HttpRegisterUserRequest>): Partial<HttpRegisterUserRequest> {
+  public static filterRegisterUserRequest(request: any): Partial<HttpRegisterUserRequest> {
     return {
       name: sanitize(request.name),
       acceptEula: sanitize(request.acceptEula),
@@ -29,7 +29,7 @@ export default class AuthSecurity {
     };
   }
 
-  public static filterLoginRequest(request: Partial<HttpLoginRequest>): Partial<HttpLoginRequest> {
+  public static filterLoginRequest(request: any): Partial<HttpLoginRequest> {
     return {
       email: sanitize(request.email),
       password: sanitize(request.password),
@@ -38,7 +38,7 @@ export default class AuthSecurity {
     };
   }
 
-  public static filterVerifyEmailRequest(request: Partial<HttpVerifyEmailRequest>): Partial<HttpVerifyEmailRequest> {
+  public static filterVerifyEmailRequest(request: any): Partial<HttpVerifyEmailRequest> {
     return {
       Email: sanitize(request.Email),
       tenant: sanitize(request.tenant),
@@ -46,7 +46,7 @@ export default class AuthSecurity {
     };
   }
 
-  public static filterResendVerificationEmail(request: Partial<HttpResendVerificationMailRequest>): Partial<HttpResendVerificationMailRequest> {
+  public static filterResendVerificationEmail(request: any): Partial<HttpResendVerificationMailRequest> {
     return {
       email: sanitize(request.email),
       tenant: sanitize(request.tenant),
@@ -77,4 +77,3 @@ export default class AuthSecurity {
     return filteredEndUserLicenseAgreement;
   }
 }
-

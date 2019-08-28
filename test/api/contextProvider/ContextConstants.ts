@@ -118,105 +118,111 @@ export default class CONTEXTS {
       }
     },
   },
-    {
-      // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
-      tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
-      id: 'aaaaaaaaaaaaaaaaaaaaaaa2',
-      subdomain: 'utnothing',
-    },
-    {
-      // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION,
-      tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION,
-      id: 'aaaaaaaaaaaaaaaaaaaaaaa3',
-      subdomain: 'utorg',
-      componentSettings: {
-        organization: {}
-      }
-    },
-    {
-      // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_SIMPLE_PRICING,
-      tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_SIMPLE_PRICING,
-      id: 'aaaaaaaaaaaaaaaaaaaaaaa4',
-      subdomain: 'utprice',
-      componentSettings: {
-        pricing: {
-          type: 'simple',
-          content: {
-            simple: {
-              price: 1,
-              currency: 'EUR'
-            }
-          }
-        }
-      },
-    },
-    {
-      // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
-      tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
-      id: 'aaaaaaaaaaaaaaaaaaaaaaa5',
-      subdomain: 'utconvcharg',
-      componentSettings: {
-        pricing: {
-          type: 'convergentCharging',
-          content: {
-            convergentCharging: {
-              url: '',
-              chargeableItemName: '',
-              user: '',
-              password: ''
-            }
-          }
-        }
-      },
-    },
-    {
-      // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_OCPI,
-      tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_OCPI,
-      id: 'aaaaaaaaaaaaaaaaaaaaaaa6',
-      subdomain: 'utocpi',
-      componentSettings: {
-        ocpi: {
-          type: 'gireve',
-          content: {
-            countryCode: 'FR',
-            partyId: 'UT',
-            businessDetails: {
-              name: 'Test OCPI',
-              website: 'http://www.uttest.net'
-            }
-          }
-        },
-      },
-    },
-    {
-      // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_FUNDING,
-      tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_FUNDING,
-      id: 'aaaaaaaaaaaaaaaaaaaaaaa7',
-      subdomain: 'utrefund',
-      componentSettings: {
-        refund: {
-          type: 'concur',
-          content: {
-            concur: {
-              authenticationUrl: '',
-              apiUrl: '',
-              clientId: '',
-              clientSecret: '',
-              paymentTypeId: '',
-              expenseTypeCode: '',
-              policyId: '',
-              reportName: ''
-            }
+  {
+    // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_WITH_NO_COMPONENTS,
+    id: 'aaaaaaaaaaaaaaaaaaaaaaa2',
+    subdomain: 'utnothing',
+  },
+  {
+    // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION,
+    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_ORGANIZATION,
+    id: 'aaaaaaaaaaaaaaaaaaaaaaa3',
+    subdomain: 'utorg',
+    componentSettings: {
+      organization: {}
+    }
+  },
+  {
+    // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_SIMPLE_PRICING,
+    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_SIMPLE_PRICING,
+    id: 'aaaaaaaaaaaaaaaaaaaaaaa4',
+    subdomain: 'utprice',
+    componentSettings: {
+      pricing: {
+        type: 'simple',
+        content: {
+          simple: {
+            price: 1,
+            currency: 'EUR'
           }
         }
       }
-    }];
+    },
+  },
+  {
+    // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
+    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_CONVERGENT_CHARGING,
+    id: 'aaaaaaaaaaaaaaaaaaaaaaa5',
+    subdomain: 'utconvcharg',
+    componentSettings: {
+      pricing: {
+        type: 'convergentCharging',
+        content: {
+          convergentCharging: {
+            url: '',
+            chargeableItemName: '',
+            user: '',
+            password: ''
+          }
+        }
+      }
+    },
+  },
+  {
+    // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_OCPI,
+    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_OCPI,
+    id: 'aaaaaaaaaaaaaaaaaaaaaaa6',
+    subdomain: 'utocpi',
+    componentSettings: {
+      ocpi: {
+        type: 'gireve',
+        content: {
+          countryCode: 'FR',
+          partyId: 'UT',
+          businessDetails: {
+            name: 'Test OCPI',
+            website: 'http://www.uttest.net'
+          }
+        }
+      },
+    },
+  },
+  {
+    // pragma contextName: CONTEXTS.TENANT_CONTEXTS.TENANT_FUNDING,
+    tenantName: CONTEXTS.TENANT_CONTEXTS.TENANT_FUNDING,
+    id: 'aaaaaaaaaaaaaaaaaaaaaaa7',
+    subdomain: 'utrefund',
+    componentSettings: {
+      refund: {
+        type: 'concur',
+        content: {
+          concur: {
+            authenticationUrl: '',
+            apiUrl: '',
+            clientId: '',
+            clientSecret: '',
+            paymentTypeId: '',
+            expenseTypeCode: '',
+            policyId: '',
+            reportName: ''
+          }
+        }
+      }
+    }
+  }];
 
   // List of users created in a tenant
   static readonly TENANT_USER_LIST: any = [
     // Email and password are taken from config file for all users
     { // Default Admin user.
       id: '5ce249a1a39ae1c056c389bd',
+      name: 'Admin',
+      firstName: 'User',
+      locale: 'en-US',
+      phone: '66666666666',
+      mobile: '66666666666',
+      plateID: '666-FB-69',
       role: CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN.role,
       status: CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN.status,
       assignedToSite: CONTEXTS.USER_CONTEXTS.DEFAULT_ADMIN.assignedToSite,
@@ -224,6 +230,12 @@ export default class CONTEXTS {
     },
     { // Admin not assigned
       id: '5ce249a1a39ae1c056c123ef',
+      name: 'Admin',
+      firstName: 'User',
+      locale: 'en-US',
+      phone: '66666666666',
+      mobile: '66666666666',
+      plateID: '666-FB-69',
       role: CONTEXTS.USER_CONTEXTS.ADMIN_UNASSIGNED.role,
       status: CONTEXTS.USER_CONTEXTS.ADMIN_UNASSIGNED.status,
       assignedToSite: CONTEXTS.USER_CONTEXTS.ADMIN_UNASSIGNED.assignedToSite,
@@ -232,6 +244,12 @@ export default class CONTEXTS {
     },
     { // Basic user
       id: '5ce249a1a39ae1c056c123ab',
+      name: 'Basic',
+      firstName: 'User',
+      locale: 'en-US',
+      phone: '66666666666',
+      mobile: '66666666666',
+      plateID: '666-FB-69',
       role: CONTEXTS.USER_CONTEXTS.BASIC_USER.role,
       status: CONTEXTS.USER_CONTEXTS.BASIC_USER.status,
       assignedToSite: CONTEXTS.USER_CONTEXTS.BASIC_USER.assignedToSite,
@@ -240,6 +258,12 @@ export default class CONTEXTS {
     },
     { // Demo user
       id: '5ce249a1a39ae1c056c123cd',
+      name: 'Demo',
+      firstName: 'User',
+      locale: 'en-US',
+      phone: '66666666666',
+      mobile: '66666666666',
+      plateID: '666-FB-69',
       role: CONTEXTS.USER_CONTEXTS.DEMO_USER.role,
       status: CONTEXTS.USER_CONTEXTS.DEMO_USER.status,
       assignedToSite: CONTEXTS.USER_CONTEXTS.DEMO_USER.assignedToSite,
@@ -248,6 +272,12 @@ export default class CONTEXTS {
     },
     { // Basic user unassigned
       id: '5ce249a1a39ae1c056c456ad',
+      name: 'Basic',
+      firstName: 'User',
+      locale: 'en-US',
+      phone: '66666666666',
+      mobile: '66666666666',
+      plateID: '666-FB-69',
       role: CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED.role,
       status: CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED.status,
       assignedToSite: CONTEXTS.USER_CONTEXTS.BASIC_USER_UNASSIGNED.assignedToSite,
@@ -256,6 +286,12 @@ export default class CONTEXTS {
     },
     { // Basic user pending
       id: '5ce249a1a39ae1c056c456ab',
+      name: 'Basic',
+      firstName: 'User',
+      locale: 'en-US',
+      phone: '66666666666',
+      mobile: '66666666666',
+      plateID: '666-FB-69',
       role: CONTEXTS.USER_CONTEXTS.BASIC_USER_PENDING.role,
       status: CONTEXTS.USER_CONTEXTS.BASIC_USER_PENDING.status,
       assignedToSite: CONTEXTS.USER_CONTEXTS.BASIC_USER_PENDING.assignedToSite,
@@ -264,6 +300,12 @@ export default class CONTEXTS {
     },
     { // Basic user Locked
       id: '5ce249a1a39ae1c056c789ef',
+      name: 'Basic',
+      firstName: 'User',
+      locale: 'en-US',
+      phone: '66666666666',
+      mobile: '66666666666',
+      plateID: '666-FB-69',
       role: CONTEXTS.USER_CONTEXTS.BASIC_USER_LOCKED.role,
       status: CONTEXTS.USER_CONTEXTS.BASIC_USER_LOCKED.status,
       assignedToSite: CONTEXTS.USER_CONTEXTS.BASIC_USER_LOCKED.assignedToSite,
@@ -272,6 +314,12 @@ export default class CONTEXTS {
     },
     { // Basic user No Tags
       id: '5ce249a1a39ae1c056c567ab',
+      name: 'Basic',
+      firstName: 'User',
+      locale: 'en-US',
+      phone: '66666666666',
+      mobile: '66666666666',
+      plateID: '666-FB-69',
       role: CONTEXTS.USER_CONTEXTS.BASIC_USER_NO_TAGS.role,
       status: CONTEXTS.USER_CONTEXTS.BASIC_USER_NO_TAGS.status,
       assignedToSite: CONTEXTS.USER_CONTEXTS.BASIC_USER_NO_TAGS.assignedToSite,
