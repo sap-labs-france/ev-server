@@ -185,19 +185,16 @@ export default class ChargingStationStorage {
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
     if (dbParams.sort) {
-      // Sort
       aggregation.push({
         $sort: dbParams.sort
       });
     } else {
-      // Default
       aggregation.push({
         $sort: {
           _id: 1
         }
       });
     }
-
     // Skip
     aggregation.push({
       $skip: dbParams.skip
