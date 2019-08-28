@@ -141,7 +141,7 @@ export default class TransactionStorage {
     },
     dbParams: DbParams, projectFields?: string[]):
     Promise<{count: number; stats: { totalConsumptionWattHours?: number; totalPriceRefund?: number; totalPricePending?: number;
-      countRefundTransactions?: number;countPendingTransactions?: number;countRefundedReports?: number; totalDurationSecs?: number;
+      countRefundTransactions?: number; countPendingTransactions?: number; countRefundedReports?: number; totalDurationSecs?: number;
       totalPrice?: number; currency?: string; totalInactivitySecs?: number; count: number; };
     result: Transaction[]; }> {
     // Debug

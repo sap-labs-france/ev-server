@@ -16,7 +16,7 @@ export default class UserSecurity {
   public static filterAssignSitesToUserRequest(request: Partial<HttpSitesAssignUserRequest>): HttpSitesAssignUserRequest {
     return {
       userID: sanitize(request.userID),
-      siteIDs: request.siteIDs ? request.siteIDs.map((sid) => sanitize(sid)) : []
+      siteIDs: request.siteIDs ? request.siteIDs.map(sanitize) : []
     };
   }
 
@@ -194,7 +194,7 @@ export default class UserSecurity {
     return filteredUser;
   }
 
-  static filterUsersResponse(users, loggedUser: UserToken): void {
+  static filterUsersResponse(users: {result: User[]; count: number}, loggedUser: UserToken): void {
     const filteredUsers = [];
     if (!users.result) {
       return null;
@@ -209,4 +209,3 @@ export default class UserSecurity {
     users.result = filteredUsers;
   }
 }
-

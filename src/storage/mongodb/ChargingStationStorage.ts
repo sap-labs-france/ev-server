@@ -185,16 +185,19 @@ export default class ChargingStationStorage {
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
     if (dbParams.sort) {
+      // Sort
       aggregation.push({
         $sort: dbParams.sort
       });
     } else {
+      // Default
       aggregation.push({
         $sort: {
           _id: 1
         }
       });
     }
+
     // Skip
     aggregation.push({
       $skip: dbParams.skip
@@ -209,7 +212,12 @@ export default class ChargingStationStorage {
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
     const chargingStationsFacetMDB = await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
+      .aggregate(aggregation, {
+        collation: {
+          locale: Constants.DEFAULT_LOCALE,
+          strength: 2
+        }
+      })
       .toArray();
     if (chargingStationsCountMDB.length > 0) {
       for (const chargingStation of chargingStationsFacetMDB) {
@@ -224,6 +232,7 @@ export default class ChargingStationStorage {
               cleanedConnectors.push(connector);
             }
           }
+          // TODO: Clean them a bit more?
           chargingStation.connectors = cleanedConnectors;
         }
         // Add Inactive flag
@@ -255,6 +264,12 @@ export default class ChargingStationStorage {
     const pipeline = [];
     // Set the filters
     const match: any = { '$and': [{ '$or': DatabaseUtils.getNotDeletedFilter() }] };
+    if (params.siteAreaID && Array.isArray(params.siteAreaID) && params.siteAreaID.length > 0) {
+      // Build filter
+      match.$and.push({
+        'siteAreaID': { $in: params.siteAreaID.map((id) => Utils.convertToObjectID(id)) }
+      });
+    }
     // Search filters
     if (params.search) {
       // Build filter
@@ -266,19 +281,13 @@ export default class ChargingStationStorage {
         ]
       });
     }
-    if (params.siteAreaID && Array.isArray(params.siteAreaID) && params.siteAreaID.length > 0) {
-      // Build filter
-      match.$and.push({
-        'siteAreaID': { $in: params.siteAreaID.map((id) => Utils.convertToObjectID(id)) }
-      });
-    }
     pipeline.push({ $match: match });
     // Build lookups to fetch sites from chargers
     pipeline.push({
       $lookup: {
         from: DatabaseUtils.getCollectionName(tenantID, 'siteareas'),
-        localField: '_id',
-        foreignField: 'siteAreaID',
+        localField: 'siteAreaID',
+        foreignField: '_id',
         as: 'sitearea'
       }
     });
@@ -311,7 +320,7 @@ export default class ChargingStationStorage {
       });
       pipeline.push(facets);
       // Manipulate the results to convert it to an array of document on root level
-      pipeline.push({ $project: { chargersInError:{ $setUnion:array } } });
+      pipeline.push({ $project: { chargersInError: { $setUnion: array } } });
       pipeline.push({ $unwind: '$chargersInError' });
       pipeline.push({ $replaceRoot: { newRoot: '$chargersInError' } });
       // Add a unique identifier as we may have the same charger several time
@@ -442,10 +451,16 @@ export default class ChargingStationStorage {
     // Add Created/LastChanged By
     DatabaseUtils.addLastChangedCreatedProps(chargingStationMDB, chargingStationToSave);
     // Modify and return the modified document
-    await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
+    const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
       chargingStationFilter,
       { $set: chargingStationMDB },
       { upsert: true });
+    if (!result.ok) {
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Couldn\'t update ChargingStation',
+        'ChargingStationStorage', 'saveChargingStation');
+    }
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'saveChargingStation', uniqueTimerID);
     return chargingStationMDB._id;
@@ -461,10 +476,16 @@ export default class ChargingStationStorage {
     // Update model
     chargingStation.connectors[connector.connectorId - 1] = connector;
     // Modify and return the modified document
-    await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
+    const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': chargingStation.id },
       { $set: updatedFields },
       { upsert: true });
+    if (!result.ok) {
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Couldn\'t update ChargingStation connector',
+        'ChargingStationStorage', 'saveChargingStationConnector');
+    }
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'saveChargingStationConnector', uniqueTimerID);
   }
@@ -479,10 +500,16 @@ export default class ChargingStationStorage {
     updatedFields['lastHeartBeat'] = Utils.convertToDate(chargingStation.lastHeartBeat);
     updatedFields['currentIPAddress'] = chargingStation.currentIPAddress;
     // Modify and return the modified document
-    await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
+    const result = await global.database.getCollection<any>(tenantID, 'chargingstations').findOneAndUpdate(
       { '_id': chargingStation.id },
       { $set: updatedFields },
       { upsert: true });
+    if (!result.ok) {
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Couldn\'t update ChargingStation heartbeat',
+        'ChargingStationStorage', 'saveChargingStationHeartBeat');
+    }
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'saveChargingStationHeartBeat', uniqueTimerID);
   }
