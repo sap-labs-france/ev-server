@@ -7,13 +7,15 @@ import ChargingStation from '../../../types/ChargingStation';
 import ChargingStationSecurity from './security/ChargingStationSecurity';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Constants from '../../../utils/Constants';
-import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
+import {
+  HttpChargingStationCommandRequest,
+  HttpIsAuthorizedRequest
+} from '../../../types/requests/HttpChargingStationRequest';
 import Logging from '../../../utils/Logging';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
-import Transaction from '../../../types/Transaction';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
@@ -95,7 +97,7 @@ export default class ChargingStationService {
     // Check existence
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.id);
     // Check
-    UtilsService.assertObjectExists(chargingStation, `ChargingStation '${filteredRequest.id}' doesn't exist`,
+    UtilsService.assertObjectExists(chargingStation, `ChargingStation '${filteredRequest.id}' doesn't exist.`,
       'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
 
     let siteID = null;
@@ -385,13 +387,20 @@ export default class ChargingStationService {
       UtilsService.assertComponentIsActiveFromToken(req.user,
         Constants.COMPONENTS.ORGANIZATION, Constants.ACTION_READ, Constants.ENTITY_CHARGING_STATIONS, 'ChargingStationService', 'handleGetChargingStations');
     }
+    let _errorType = [];
+    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+      // Get the Site Area
+      _errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : ['missingSettings', 'connectionBroken', 'connectorError', 'missingSiteArea']);
+    } else {
+      _errorType = (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : ['missingSettings', 'connectionBroken', 'connectorError']);
+    }
     // Get Charging Stations
     const chargingStations = await ChargingStationStorage.getChargingStationsInError(req.user.tenantID,
       {
         search: filteredRequest.Search,
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : Authorizations.getAuthorizedSiteIDs(req.user)),
         siteAreaID: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
-        errorType: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : ['missingSettings','connectionBroken','connectorError','missingSiteArea'])
+        errorType: _errorType
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
     );
@@ -402,11 +411,6 @@ export default class ChargingStationService {
     next();
   }
 
-  /*
-Public static async handleGetChargingStationsInError(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
-  return await ChargingStationService.handleGetChargingStations(action, req, res, next);
-}
-*/
   public static async handleGetStatusNotifications(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
@@ -659,6 +663,7 @@ Public static async handleGetChargingStationsInError(action: string, req: Reques
         chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.Arg1);
         // Found?
         if (!chargingStation) {
+          // Not Found!
           throw new AppError(
             Constants.CENTRAL_SERVER,
             `Charging Station with ID '${filteredRequest.Arg1}' does not exist`,
