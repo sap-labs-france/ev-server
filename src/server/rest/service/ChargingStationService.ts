@@ -403,7 +403,7 @@ export default class ChargingStationService {
   }
 
   /*
-  public static async handleGetChargingStationsInError(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  pragma public static async handleGetChargingStationsInError(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     return await ChargingStationService.handleGetChargingStations(action, req, res, next);
   }
   */

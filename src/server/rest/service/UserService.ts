@@ -412,16 +412,15 @@ export default class UserService {
       ['site.id', 'site.name', 'site.address.city', 'site.address.country', 'userID']
     );
     // Filter
-    userSites.result = userSites.result.map((userSite) => {
-      return {
-        userID: userSite.userID,
-        siteAdmin: userSite.siteAdmin,
-        site: userSite.site
-      };
-    });
+    userSites.result = userSites.result.map((userSite) => ({
+      userID: userSite.userID,
+      siteAdmin: userSite.siteAdmin,
+      site: userSite.site
+    }));
     res.json(userSites);
     next();
   }
+
   public static async handleGetUsers(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListUsers(req.user)) {
