@@ -36,7 +36,7 @@ export default class TransactionStorage {
     }
     // Transfer
     const transactionMDB: any = {
-      _id: transactionToSave.id,
+      _id: Utils.convertToInt(transactionToSave.id),
       siteID: transactionToSave.siteID,
       siteAreaID: transactionToSave.siteAreaID,
       connectorId: transactionToSave.connectorId,
@@ -44,7 +44,7 @@ export default class TransactionStorage {
       userID: Utils.convertToObjectID(transactionToSave.userID),
       chargeBoxID: transactionToSave.chargeBoxID,
       meterStart: transactionToSave.meterStart,
-      timestamp: transactionToSave.timestamp,
+      timestamp: Utils.convertToDate(transactionToSave.timestamp),
       price: transactionToSave.price,
       roundedPrice: transactionToSave.roundedPrice,
       priceUnit: transactionToSave.priceUnit,
@@ -64,7 +64,7 @@ export default class TransactionStorage {
     if (transactionToSave.stop) {
       transactionMDB.stop = {
         userID: Utils.convertToObjectID(transactionToSave.stop.userID),
-        timestamp: transactionToSave.stop.timestamp,
+        timestamp: Utils.convertToDate(transactionToSave.stop.timestamp),
         tagID: transactionToSave.stop.tagID,
         meterStop: transactionToSave.stop.meterStop,
         transactionData: transactionToSave.stop.transactionData,
@@ -82,7 +82,7 @@ export default class TransactionStorage {
     }
     if (transactionToSave.remotestop) {
       transactionMDB.remotestop = {
-        timestamp: transactionToSave.remotestop.timestamp,
+        timestamp: Utils.convertToDate(transactionToSave.remotestop.timestamp),
         tagID: transactionToSave.remotestop.tagID,
         userID: Utils.convertToObjectID(transactionToSave.remotestop.userID)
       };
@@ -90,7 +90,7 @@ export default class TransactionStorage {
     if (transactionToSave.refundData) {
       transactionMDB.refundData = {
         refundId: transactionToSave.refundData.refundId,
-        refundedAt: transactionToSave.refundData.refundedAt,
+        refundedAt: Utils.convertToDate(transactionToSave.refundData.refundedAt),
         status: transactionToSave.refundData.status,
         type: transactionToSave.refundData.type,
         reportId: transactionToSave.refundData.reportId
