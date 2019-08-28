@@ -383,7 +383,7 @@ export default class ChargingStationStorage {
               cleanedConnectors.push(connector);
             }
           }
-          // TODO Clean them a bit more?
+          // TODO: Clean them a bit more?
           chargingStation.connectors = cleanedConnectors;
         }
         // Add Inactive flag
