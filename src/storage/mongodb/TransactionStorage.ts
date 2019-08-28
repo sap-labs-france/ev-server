@@ -134,16 +134,16 @@ export default class TransactionStorage {
   }
 
   public static async getTransactions(tenantID: string,
-      params: { transactionId?: number; search?: string; userIDs?: string[]; siteAdminIDs?: string[]; chargeBoxIDs?:
-        string[]; siteAreaIDs?: string[]; siteID?: string; connectorId?: number; startDateTime?: Date;
-        endDateTime?: Date; stop?: any; refundType?: 'refunded' | 'notRefunded'; minimalPrice?: boolean; withChargeBoxes?: boolean;
-        statistics?: 'refund' | 'history'; refundStatus?: string;
-      },
-      dbParams: DbParams, projectFields?: string[]):
-      Promise<{count: number; stats: { totalConsumptionWattHours?: number; totalPriceRefund?: number; totalPricePending?: number;
-        countRefundTransactions?: number;countPendingTransactions?: number;countRefundedReports?: number; totalDurationSecs?: number;
-        totalPrice?: number; currency?: string; totalInactivitySecs?: number; count: number; };
-        result: Transaction[]; }> {
+    params: { transactionId?: number; search?: string; userIDs?: string[]; siteAdminIDs?: string[]; chargeBoxIDs?:
+    string[]; siteAreaIDs?: string[]; siteID?: string; connectorId?: number; startDateTime?: Date;
+    endDateTime?: Date; stop?: any; refundType?: 'refunded' | 'notRefunded'; minimalPrice?: boolean; withChargeBoxes?: boolean;
+    statistics?: 'refund' | 'history'; refundStatus?: string;
+    },
+    dbParams: DbParams, projectFields?: string[]):
+    Promise<{count: number; stats: { totalConsumptionWattHours?: number; totalPriceRefund?: number; totalPricePending?: number;
+      countRefundTransactions?: number;countPendingTransactions?: number;countRefundedReports?: number; totalDurationSecs?: number;
+      totalPrice?: number; currency?: string; totalInactivitySecs?: number; count: number; };
+    result: Transaction[]; }> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactions');
     // Check
@@ -425,11 +425,11 @@ export default class TransactionStorage {
   }
 
   static async getTransactionsInError(tenantID,
-      params: { search?: string; userIDs?: string[]; siteAdminIDs?: string[]; chargeBoxIDs?:
-        string[]; siteAreaIDs?: string[]; siteID?: string; startDateTime?: Date; endDateTime?: Date; withChargeBoxes?: boolean;
-        errorType?: ('negative_inactivity' | 'average_consumption_greater_than_connector_capacity' | 'no_consumption')[];
-      },
-      dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: Transaction[]; }> {
+    params: { search?: string; userIDs?: string[]; siteAdminIDs?: string[]; chargeBoxIDs?:
+    string[]; siteAreaIDs?: string[]; siteID?: string; startDateTime?: Date; endDateTime?: Date; withChargeBoxes?: boolean;
+    errorType?: ('negative_inactivity' | 'average_consumption_greater_than_connector_capacity' | 'no_consumption')[];
+    },
+    dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: Transaction[] }> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactionsInError');
     // Check
@@ -483,9 +483,7 @@ export default class TransactionStorage {
     // Site Areas
     if (params.siteAreaIDs) {
       filterMatch.siteAreaID = {
-        $in: params.siteAreaIDs.map((area) => {
-          return Utils.convertToObjectID(area);
-        })
+        $in: params.siteAreaIDs.map((area) => Utils.convertToObjectID(area))
       };
     }
     // Sites

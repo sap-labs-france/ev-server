@@ -137,10 +137,6 @@ describe('Transaction tests', function() {
 
       describe('Using function "readAllCompleted"', () => {
 
-        after(async () => {
-          await testData.chargingStationContext.cleanUpCreatedData();
-        });
-
         afterEach(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
@@ -165,10 +161,6 @@ describe('Transaction tests', function() {
 
       describe('Using function "readAllInError"', () => {
 
-        after(async () => {
-          await testData.chargingStationContext.cleanUpCreatedData();
-        });
-
         afterEach(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
@@ -184,10 +176,6 @@ describe('Transaction tests', function() {
       });
 
       describe('Using function "readAllConsumption"', () => {
-
-        after(async () => {
-          await testData.chargingStationContext.cleanUpCreatedData();
-        });
 
         afterEach(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();

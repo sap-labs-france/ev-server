@@ -307,7 +307,7 @@ export default class TransactionService {
       'handleGetChargingStationTransactions', req.user);
     // Query
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID, {
-        chargeBoxIDs: [chargingStation.id], connectorId: filteredRequest.ConnectorId,
+      chargeBoxIDs: [chargingStation.id], connectorId: filteredRequest.ConnectorId,
       startDateTime: filteredRequest.StartDateTime, endDateTime: filteredRequest.EndDateTime,
       withChargeBoxes: true
     }, { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });

@@ -241,7 +241,7 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingStationsInError(tenantID: string,
-    params: { search?: string; siteID?: string[]; siteAreaID: string[]; errorType?: string[]; },
+    params: { search?: string; siteIDs?: string[]; siteAreaID: string[]; errorType?: string[] },
     dbParams: DbParams): Promise<{count: number; result: ChargingStation[]}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
@@ -254,13 +254,7 @@ export default class ChargingStationStorage {
     // Create Aggregation
     const pipeline = [];
     // Set the filters
-    const match: any = { '$and': [{ '$or': DatabaseUtils.getNotDeletedFilter() }]};
-    if (params.siteAreaID && Array.isArray(params.siteAreaID) && params.siteAreaID.length > 0) {
-      // Build filter
-      match.$and.push({
-        'siteAreaID': { $in: params.siteAreaID.map((id) => Utils.convertToObjectID(id)) }
-      });
-    }
+    const match: any = { '$and': [{ '$or': DatabaseUtils.getNotDeletedFilter() }] };
     // Search filters
     if (params.search) {
       // Build filter
@@ -272,14 +266,20 @@ export default class ChargingStationStorage {
         ]
       });
     }
+    if (params.siteAreaID && Array.isArray(params.siteAreaID) && params.siteAreaID.length > 0) {
+      // Build filter
+      match.$and.push({
+        'siteAreaID': { $in: params.siteAreaID.map((id) => Utils.convertToObjectID(id)) }
+      });
+    }
     pipeline.push({ $match: match });
     // Build lookups to fetch sites from chargers
     pipeline.push({
       $lookup: {
         from: DatabaseUtils.getCollectionName(tenantID, 'siteareas'),
-        localField: "siteAreaID",
-        foreignField: "_id",
-        as: "sitearea"
+        localField: '_id',
+        foreignField: 'siteAreaID',
+        as: 'sitearea'
       }
     });
     // Single Record
@@ -287,13 +287,13 @@ export default class ChargingStationStorage {
       $unwind: { 'path': '$sitearea', 'preserveNullAndEmptyArrays': true }
     });
     // Check Site ID
-    if (params.siteID && Array.isArray(params.siteID) && params.siteID.length > 0) {
+    if (params.siteIDs && Array.isArray(params.siteIDs) && params.siteIDs.length > 0) {
       pipeline.push({ $match: {
         'sitearea.siteID': {
           // Still ObjectId because we need it for the site inclusion
-          $in: params.siteID.map((id) => Utils.convertToObjectID(id))
+          $in: params.siteIDs.map((id) => Utils.convertToObjectID(id))
         }
-      }});
+      } });
     }
     // Build facets for each type of error if any
     const facets: any = { $facet: {} };
@@ -311,9 +311,9 @@ export default class ChargingStationStorage {
       });
       pipeline.push(facets);
       // Manipulate the results to convert it to an array of document on root level
-      pipeline.push({$project: {chargersInError:{$setUnion:array}}});
-      pipeline.push({$unwind: '$chargersInError'});
-      pipeline.push({$replaceRoot: { newRoot: "$chargersInError" }});
+      pipeline.push({ $project: { chargersInError:{ $setUnion:array } } });
+      pipeline.push({ $unwind: '$chargersInError' });
+      pipeline.push({ $replaceRoot: { newRoot: '$chargersInError' } });
       // Add a unique identifier as we may have the same charger several time
       pipeline.push({ $addFields: { 'uniqueId': { $concat: ['$_id', '#', '$errorCode'] } } });
     }
