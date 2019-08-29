@@ -7,6 +7,7 @@ import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
+import { DataResult } from '../../types/DataResult';
 
 export default class TenantStorage {
   public static async getTenant(id: string): Promise<Tenant> {
@@ -81,7 +82,7 @@ export default class TenantStorage {
   // Delegate
   public static async getTenants(
     params: { tenantID?: string; tenantName?: string; tenantSubdomain?: string; search?: string },
-    dbParams: DbParams, projectFields?: string[]) {
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Tenant>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'getTenants');
     // Check Limit

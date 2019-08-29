@@ -5,6 +5,7 @@ import { HttpCompaniesRequest, HttpCompanyRequest } from '../../../../types/requ
 import SiteSecurity from './SiteSecurity';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
+import { DataResult } from '../../../../types/DataResult';
 
 export default class CompanySecurity {
 
@@ -79,7 +80,7 @@ export default class CompanySecurity {
     return filteredCompany;
   }
 
-  public static filterCompaniesResponse(companies: {result: Company[]; count: number}, loggedUser) {
+  public static filterCompaniesResponse(companies: DataResult<Company>, loggedUser) {
     const filteredCompanies = [];
 
     if (!companies.result) {

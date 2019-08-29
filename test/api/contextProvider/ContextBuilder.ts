@@ -132,11 +132,13 @@ export default class ContextBuilder {
 
     const userId = await UserStorage.saveUser(buildTenant.id, {
       'id': CONTEXTS.TENANT_USER_LIST[0].id,
+      'name': 'Admin',
+      'firstName': 'User',
       'email': config.get('admin.username'),
       'locale': 'en-US',
-      'phone': faker.phone.phoneNumber(),
-      'mobile': faker.phone.phoneNumber(),
-      'plateID': faker.random.alphaNumeric(8),
+      'phone': '66666666666',
+      'mobile': '66666666666',
+      'plateID': '666-FB-69',
       'deleted': false
     });
     await UserStorage.saveUserStatus(buildTenant.id, userId, CONTEXTS.TENANT_USER_LIST[0].status);

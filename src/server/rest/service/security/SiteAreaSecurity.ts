@@ -6,6 +6,7 @@ import SiteArea from '../../../../types/SiteArea';
 import SiteSecurity from './SiteSecurity';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
+import { DataResult } from '../../../../types/DataResult';
 
 export default class SiteAreaSecurity {
 
@@ -107,7 +108,7 @@ export default class SiteAreaSecurity {
     return filteredSiteArea;
   }
 
-  static filterSiteAreasResponse(siteAreas: {result: SiteArea[]; count: number}, loggedUser) {
+  static filterSiteAreasResponse(siteAreas: DataResult<SiteArea>, loggedUser) {
     const filteredSiteAreas = [];
     if (!siteAreas.result) {
       return null;

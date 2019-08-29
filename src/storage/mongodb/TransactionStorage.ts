@@ -5,6 +5,7 @@ import global from './../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Transaction from '../../types/Transaction';
 import Utils from '../../utils/Utils';
+import { DataResult } from '../../types/DataResult';
 
 export default class TransactionStorage {
   public static async deleteTransaction(tenantID: string, transaction: Transaction): Promise<void> {
@@ -36,53 +37,53 @@ export default class TransactionStorage {
     }
     // Transfer
     const transactionMDB: any = {
-      _id: transactionToSave.id,
-      siteID: transactionToSave.siteID,
-      siteAreaID: transactionToSave.siteAreaID,
-      connectorId: transactionToSave.connectorId,
+      _id: Utils.convertToInt(transactionToSave.id),
+      siteID: Utils.convertToObjectID(transactionToSave.siteID),
+      siteAreaID: Utils.convertToObjectID(transactionToSave.siteAreaID),
+      connectorId: Utils.convertToInt(transactionToSave.connectorId),
       tagID: transactionToSave.tagID,
       userID: Utils.convertToObjectID(transactionToSave.userID),
       chargeBoxID: transactionToSave.chargeBoxID,
-      meterStart: transactionToSave.meterStart,
-      timestamp: transactionToSave.timestamp,
-      price: transactionToSave.price,
-      roundedPrice: transactionToSave.roundedPrice,
+      meterStart: Utils.convertToInt(transactionToSave.meterStart),
+      timestamp: Utils.convertToDate(transactionToSave.timestamp),
+      price: Utils.convertToFloat(transactionToSave.price),
+      roundedPrice: Utils.convertToFloat(transactionToSave.roundedPrice),
       priceUnit: transactionToSave.priceUnit,
       pricingSource: transactionToSave.pricingSource,
       stateOfCharge: transactionToSave.stateOfCharge,
       timezone: transactionToSave.timezone,
       signedData: transactionToSave.signedData,
-      numberOfMeterValues: transactionToSave.numberOfMeterValues,
-      currentStateOfCharge: transactionToSave.currentStateOfCharge,
+      numberOfMeterValues: Utils.convertToInt(transactionToSave.numberOfMeterValues),
+      currentStateOfCharge: Utils.convertToInt(transactionToSave.currentStateOfCharge),
       currentSignedData: transactionToSave.currentSignedData,
       lastMeterValue: transactionToSave.lastMeterValue,
-      currentTotalInactivitySecs: transactionToSave.currentTotalInactivitySecs,
-      currentCumulatedPrice: transactionToSave.currentCumulatedPrice,
-      currentConsumption: transactionToSave.currentConsumption,
-      currentTotalConsumption: transactionToSave.currentTotalConsumption,
+      currentTotalInactivitySecs: Utils.convertToInt(transactionToSave.currentTotalInactivitySecs),
+      currentCumulatedPrice: Utils.convertToFloat(transactionToSave.currentCumulatedPrice),
+      currentConsumption: Utils.convertToFloat(transactionToSave.currentConsumption),
+      currentTotalConsumption: Utils.convertToFloat(transactionToSave.currentTotalConsumption),
     };
     if (transactionToSave.stop) {
       transactionMDB.stop = {
         userID: Utils.convertToObjectID(transactionToSave.stop.userID),
-        timestamp: transactionToSave.stop.timestamp,
+        timestamp: Utils.convertToDate(transactionToSave.stop.timestamp),
         tagID: transactionToSave.stop.tagID,
         meterStop: transactionToSave.stop.meterStop,
         transactionData: transactionToSave.stop.transactionData,
-        stateOfCharge: transactionToSave.stop.stateOfCharge,
+        stateOfCharge: Utils.convertToInt(transactionToSave.stop.stateOfCharge),
         signedData: transactionToSave.stop.signedData,
-        totalConsumption: transactionToSave.stop.totalConsumption,
-        totalInactivitySecs: transactionToSave.stop.totalInactivitySecs,
-        extraInactivitySecs: transactionToSave.stop.extraInactivitySecs,
-        totalDurationSecs: transactionToSave.stop.totalDurationSecs,
-        price: transactionToSave.stop.price,
-        roundedPrice: transactionToSave.stop.roundedPrice,
+        totalConsumption: Utils.convertToFloat(transactionToSave.stop.totalConsumption),
+        totalInactivitySecs: Utils.convertToInt(transactionToSave.stop.totalInactivitySecs),
+        extraInactivitySecs: Utils.convertToInt(transactionToSave.stop.extraInactivitySecs),
+        totalDurationSecs: Utils.convertToInt(transactionToSave.stop.totalDurationSecs),
+        price: Utils.convertToFloat(transactionToSave.stop.price),
+        roundedPrice: Utils.convertToFloat(transactionToSave.stop.roundedPrice),
         priceUnit: transactionToSave.priceUnit,
         pricingSource: transactionToSave.stop.pricingSource
       };
     }
     if (transactionToSave.remotestop) {
       transactionMDB.remotestop = {
-        timestamp: transactionToSave.remotestop.timestamp,
+        timestamp: Utils.convertToDate(transactionToSave.remotestop.timestamp),
         tagID: transactionToSave.remotestop.tagID,
         userID: Utils.convertToObjectID(transactionToSave.remotestop.userID)
       };
@@ -90,7 +91,7 @@ export default class TransactionStorage {
     if (transactionToSave.refundData) {
       transactionMDB.refundData = {
         refundId: transactionToSave.refundData.refundId,
-        refundedAt: transactionToSave.refundData.refundedAt,
+        refundedAt: Utils.convertToDate(transactionToSave.refundData.refundedAt),
         status: transactionToSave.refundData.status,
         type: transactionToSave.refundData.type,
         reportId: transactionToSave.refundData.reportId
@@ -140,10 +141,9 @@ export default class TransactionStorage {
     statistics?: 'refund' | 'history'; refundStatus?: string;
     },
     dbParams: DbParams, projectFields?: string[]):
-    Promise<{count: number; stats: { totalConsumptionWattHours?: number; totalPriceRefund?: number; totalPricePending?: number;
+    Promise<{count: number; result: Transaction[]; stats: { totalConsumptionWattHours?: number; totalPriceRefund?: number; totalPricePending?: number;
       countRefundTransactions?: number; countPendingTransactions?: number; countRefundedReports?: number; totalDurationSecs?: number;
-      totalPrice?: number; currency?: string; totalInactivitySecs?: number; count: number; };
-    result: Transaction[]; }> {
+      totalPrice?: number; currency?: string; totalInactivitySecs?: number; count: number; };}> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactions');
     // Check
@@ -402,19 +402,7 @@ export default class TransactionStorage {
       })
       .toArray();
     // Convert Object IDs to String
-    for (const transactionMDB of transactionsMDB) {
-      // Check Stop created by the join
-      if (transactionMDB.stop && Utils.isEmptyJSon(transactionMDB.stop)) {
-        delete transactionMDB.stop;
-      }
-      // Check convertion of MongoDB IDs in sub-document
-      if (transactionMDB.stop && transactionMDB.stop.userID) {
-        transactionMDB.stop.userID = transactionMDB.stop.userID.toString();
-      }
-      if (transactionMDB.remotestop && transactionMDB.remotestop.userID) {
-        transactionMDB.remotestop.userID = transactionMDB.remotestop.userID.toString();
-      }
-    }
+    this._convertTransactionIDs(transactionsMDB);
     // Debug
     Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, { params, dbParams });
     return {
@@ -429,7 +417,7 @@ export default class TransactionStorage {
     string[]; siteAreaIDs?: string[]; siteID?: string; startDateTime?: Date; endDateTime?: Date; withChargeBoxes?: boolean;
     errorType?: ('negative_inactivity' | 'average_consumption_greater_than_connector_capacity' | 'no_consumption')[];
     },
-    dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: Transaction[] }> {
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Transaction>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactionsInError');
     // Check
@@ -560,7 +548,13 @@ export default class TransactionStorage {
     aggregation.pop();
     // Rename ID
     DatabaseUtils.renameField(aggregation, '_id', 'id');
-    // Sort
+    // Sort    // Convert Object ID to string
+    DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
+    DatabaseUtils.convertObjectIDToString(aggregation, 'siteAreaID');
+    // Not yet possible to remove the fields if stop/remoteStop does not exist (MongoDB 4.2)
+    // DatabaseUtils.convertObjectIDToString(aggregation, 'stop.userID');
+    // DatabaseUtils.convertObjectIDToString(aggregation, 'remotestop.userID');
     if (dbParams.sort) {
       if (!dbParams.sort.timestamp) {
         aggregation.push({
@@ -593,8 +587,8 @@ export default class TransactionStorage {
         allowDiskUse: true
       })
       .toArray();
-    // Set
-    const transactions = [];
+    // Convert Object IDs to String
+    this._convertTransactionIDs(transactionsMDB);
     // Debug
     Logging.traceEnd('TransactionStorage', 'getTransactionsInError', uniqueTimerID, { params, dbParams });
     return {
@@ -669,7 +663,7 @@ export default class TransactionStorage {
     });
     aggregation.push({ $sort: { timestamp: -1 } });
     // The last one
-    aggregation.push({ $limit: 1 }); // TODO: Use getTransactions()
+    aggregation.push({ $limit: 1 });
     // Read DB
     const transactionsMDB = await global.database.getCollection<Transaction>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
@@ -788,5 +782,21 @@ export default class TransactionStorage {
       }
     }
     return filteredFacets;
+  }
+
+  private static _convertTransactionIDs(transactionsMDB: Transaction[]) {
+    for (const transactionMDB of transactionsMDB) {
+      // Check Stop created by the join
+      if (transactionMDB.stop && Utils.isEmptyJSon(transactionMDB.stop)) {
+        delete transactionMDB.stop;
+      }
+      // Check convertion of MongoDB IDs in sub-document
+      if (transactionMDB.stop && transactionMDB.stop.userID) {
+        transactionMDB.stop.userID = transactionMDB.stop.userID.toString();
+      }
+      if (transactionMDB.remotestop && transactionMDB.remotestop.userID) {
+        transactionMDB.remotestop.userID = transactionMDB.remotestop.userID.toString();
+      }
+    }
   }
 }

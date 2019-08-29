@@ -4,6 +4,7 @@ import { HttpRegistrationTokenRequest, HttpRegistrationTokensRequest, HttpRegist
 import RegistrationToken from '../../../../types/RegistrationToken';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
+import { DataResult } from '../../../../types/DataResult';
 
 export default class RegistrationTokenSecurity {
   static filterRegistrationTokenCreateRequest(request: any): HttpRegistrationTokenRequest {
@@ -28,7 +29,7 @@ export default class RegistrationTokenSecurity {
     return filteredRequest as HttpRegistrationTokensRequest;
   }
 
-  static filterRegistrationTokensResponse(registrationTokens: HttpRegistrationTokensResponse, loggedUser: UserToken): HttpRegistrationTokensResponse {
+  static filterRegistrationTokensResponse(registrationTokens: DataResult<RegistrationToken>, loggedUser: UserToken) {
     const filteredTokens = [];
     if (!registrationTokens.result) {
       return null;
@@ -41,7 +42,6 @@ export default class RegistrationTokenSecurity {
       }
     }
     registrationTokens.result = filteredTokens;
-    return registrationTokens;
   }
 
   static filterRegistrationTokenResponse(registrationToken: RegistrationToken, loggedUser: UserToken): RegistrationToken {

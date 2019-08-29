@@ -6,10 +6,11 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
-import Site from '../../types/Site';
+import Site, { SiteUser } from '../../types/Site';
 import SiteAreaStorage from './SiteAreaStorage';
 import User, { UserSite } from '../../types/User';
 import Utils from '../../utils/Utils';
+import { DataResult, ImageResult } from '../../types/DataResult';
 
 export default class SiteStorage {
   public static async getSite(tenantID: string, id: string): Promise<Site> {
@@ -25,7 +26,7 @@ export default class SiteStorage {
     return sitesMDB.count > 0 ? sitesMDB.result[0] : null;
   }
 
-  public static async getSiteImage(tenantID: string, id: string): Promise<{id: string; image: string}> {
+  public static async getSiteImage(tenantID: string, id: string): Promise<ImageResult> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getSiteImage');
     // Check Tenant
@@ -35,7 +36,7 @@ export default class SiteStorage {
       .find({ _id: id })
       .limit(1)
       .toArray();
-    let siteImage: {id: string; image: string} = null;
+    let siteImage: ImageResult = null;
     // Set
     if (siteImagesMDB && siteImagesMDB.length > 0) {
       siteImage = {
@@ -98,7 +99,7 @@ export default class SiteStorage {
 
   public static async getUsers(tenantID: string,
     params: { search?: string; siteID: string},
-    dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: UserSite[]}> {
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<UserSite>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getUsers');
     // Check Tenant
@@ -146,7 +147,7 @@ export default class SiteStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const usersCountMDB = await global.database.getCollection<{count: number}>(tenantID, 'siteusers')
+    const usersCountMDB = await global.database.getCollection<DataResult<SiteUser>>(tenantID, 'siteusers')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
@@ -270,7 +271,7 @@ export default class SiteStorage {
       search?: string; companyIDs?: string[]; withAutoUserAssignment?: boolean; siteIDs?: string[];
       userID?: string; excludeSitesOfUserID?: boolean; siteID?: string;
       withAvailableChargers?: boolean; withCompany?: boolean; } = {},
-    dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: Site[]}> {
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Site>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getSites');
     // Check Tenant

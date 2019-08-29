@@ -7,48 +7,31 @@ import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
 import Vehicle from '../../types/Vehicle';
+import { DataResult, ImageResult } from '../../types/DataResult';
 
 export default class VehicleStorage {
 
-  public static async getVehicleImage(tenantID: string, id: string): Promise<{id: string; images: string[]}> {
+  public static async getVehicleImage(tenantID: string, id: string): Promise<ImageResult> {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleStorage', 'getVehicleImage');
-    // Get
-    const result = await VehicleStorage.getVehicleImages(tenantID, { IDs: [id] }, Constants.DB_PARAMS_SINGLE_RECORD);
-    // Debug
-    Logging.traceEnd('VehicleStorage', 'getVehicleImage', uniqueTimerID, { id });
-    return result[0];
-  }
-
-  public static async getVehicleImages(tenantID: string, params: {IDs?: string[]}, dbParams: DbParams): Promise<{id: string; images: string[]}[]> {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('VehicleStorage', 'getVehicleImages');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Build aggregation
-    const aggregation = [];
-    if (params.IDs) {
-      aggregation.push({
-        $match: {
-          _id: { $in: params.IDs.map((ID) => Utils.convertToObjectID(ID)) }
-        }
-      });
-    }
-    DatabaseUtils.renameDatabaseID(aggregation);
-    // DbParams
-    if (dbParams.limit) {
-      aggregation.push({ $limit: dbParams.limit });
-    }
-    if (dbParams.skip) {
-      aggregation.push({ $skip: dbParams.skip });
-    }
     // Read DB
-    const vehicleImagesMDB = await global.database.getCollection<{id: string; images: string[]}>(tenantID, 'vehicleimages')
-      .aggregate(aggregation)
+    const vehicleImagesMDB = await global.database.getCollection<any>(tenantID, 'vehicleimages')
+      .find({ _id: Utils.convertToObjectID(id) })
+      .limit(1)
       .toArray();
+    let vehicleImage: ImageResult = null;
+    // Set
+    if (vehicleImagesMDB && vehicleImagesMDB.length > 0) {
+      vehicleImage = {
+        id: vehicleImagesMDB[0]._id.toHexString(),
+        image: vehicleImagesMDB[0].image
+      };
+    }
     // Debug
-    Logging.traceEnd('VehicleStorage', 'getVehicleImages', uniqueTimerID);
-    return vehicleImagesMDB;
+    Logging.traceEnd('VehicleStorage', 'getVehicleImage', uniqueTimerID, { id });
+    return vehicleImage;
   }
 
   public static async getVehicle(tenantID: string, id: string): Promise<Vehicle> {
@@ -82,9 +65,23 @@ export default class VehicleStorage {
       vehicleFilter._id = new ObjectID();
     }
     // Copy
-    const vehicleMDB = { ...vehicleToSave };
-    delete vehicleMDB.images;
-    delete vehicleMDB.logo;
+    const vehicleMDB = {
+      _id: vehicleFilter._id,
+      vehicleManufacturerID: Utils.convertToObjectID(vehicleToSave.vehicleManufacturerID),
+      type: vehicleToSave.type,
+      model: vehicleToSave.model,
+      batteryKW: Utils.convertToInt(vehicleToSave.batteryKW),
+      autonomyKmWLTP: Utils.convertToInt(vehicleToSave.autonomyKmWLTP),
+      autonomyKmReal: Utils.convertToInt(vehicleToSave.autonomyKmReal),
+      horsePower: Utils.convertToInt(vehicleToSave.horsePower),
+      torqueNm: Utils.convertToInt(vehicleToSave.torqueNm),
+      performance0To100kmh: Utils.convertToInt(vehicleToSave.performance0To100kmh),
+      weightKg: Utils.convertToInt(vehicleToSave.weightKg),
+      lengthMeter: Utils.convertToInt(vehicleToSave.lengthMeter),
+      widthMeter: Utils.convertToInt(vehicleToSave.widthMeter),
+      heightMeter: Utils.convertToInt(vehicleToSave.heightMeter),
+      releasedOn: Utils.convertToDate(vehicleToSave.releasedOn)
+    };
     // Set Created By
     DatabaseUtils.addLastChangedCreatedProps(vehicleMDB, vehicleToSave);
     // Modify
@@ -98,13 +95,13 @@ export default class VehicleStorage {
     return vehicleFilter._id.toHexString();
   }
 
-  public static async saveVehicleImages(tenantID: string, vehicleImagesToSave: {id: string; images: string[]}) {
+  public static async saveVehicleImages(tenantID: string, vehicleID: string, vehicleImagesToSave: string[]) {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleStorage', 'saveVehicleImages');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check if ID is provided
-    if (!vehicleImagesToSave.id) {
+    if (!vehicleID) {
       // ID must be provided!
       throw new BackendError(
         Constants.CENTRAL_SERVER,
@@ -113,8 +110,8 @@ export default class VehicleStorage {
     }
     // Modify
     await global.database.getCollection<any>(tenantID, 'vehicleimages').findOneAndUpdate(
-      { '_id': Utils.convertToObjectID(vehicleImagesToSave.id) },
-      { $set: { images: vehicleImagesToSave.images } },
+      { '_id': Utils.convertToObjectID(vehicleID) },
+      { $set: { images: vehicleImagesToSave } },
       { upsert: true, returnOriginal: false });
     // Debug
     Logging.traceEnd('VehicleStorage', 'saveVehicleImages', uniqueTimerID);
@@ -123,7 +120,7 @@ export default class VehicleStorage {
   // Delegate
   public static async getVehicles(tenantID: string,
     params: {search?: string; vehicleManufacturerID?: string; vehicleType?: string; vehicleIDs?: string[]},
-    dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: Vehicle[]}> {
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Vehicle>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('VehicleStorage', 'getVehicles');
     // Check Tenant

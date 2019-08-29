@@ -7,6 +7,7 @@ import Transaction from '../../../../types/Transaction';
 import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
+import { DataResult } from '../../../../types/DataResult';
 
 export default class TransactionSecurity {
   public static filterTransactionsRefund(request: any): HttpTransactionsRefundRequest {
@@ -102,7 +103,7 @@ export default class TransactionSecurity {
       filteredTransaction.meterStart = transaction.meterStart;
       filteredTransaction.timestamp = transaction.timestamp;
       filteredTransaction.timezone = transaction.timezone;
-      if (transaction.price) {
+      if (transaction.hasOwnProperty('price')) {
         filteredTransaction.price = transaction.price;
         filteredTransaction.roundedPrice = transaction.roundedPrice;
         filteredTransaction.priceUnit = transaction.priceUnit;
@@ -169,14 +170,13 @@ export default class TransactionSecurity {
     return filteredTransaction;
   }
 
-  static filterTransactionsResponse(transactions: {result: Transaction[]; count: number}, loggedUser: UserToken) {
+  static filterTransactionsResponse(transactions: DataResult<Transaction>, loggedUser: UserToken) {
     const filteredTransactions = [];
     if (!transactions.result) {
       return null;
     }
     // Filter result
     for (const transaction of transactions.result) {
-      // Filter
       const filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser);
       if (filteredTransaction) {
         filteredTransactions.push(filteredTransaction);

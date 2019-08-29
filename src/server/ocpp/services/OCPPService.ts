@@ -600,7 +600,6 @@ export default class OCPPService {
             transaction.roundedPrice = pricedConsumption.roundedAmount;
             transaction.priceUnit = pricedConsumption.currencyCode;
             transaction.pricingSource = pricedConsumption.pricingSource;
-            // Init the cumulated price
             transaction.currentCumulatedPrice = pricedConsumption.amount;
           }
         } else {
@@ -609,6 +608,7 @@ export default class OCPPService {
           transaction.roundedPrice = 0;
           transaction.priceUnit = '';
           transaction.pricingSource = '';
+          transaction.currentCumulatedPrice = 0;
         }
         break;
       // Meter Values
@@ -1026,8 +1026,8 @@ export default class OCPPService {
       startTransaction.tagID = startTransaction.idTag;
       startTransaction.timezone = Utils.getTimezone(chargingStation.latitude, chargingStation.longitude);
       // Check Authorization with Tag ID
-      const user = await Authorizations.isAuthorizedToStartTransaction(headers.tenantID,
-        chargingStation, startTransaction.tagID);
+      const user = await Authorizations.isAuthorizedToStartTransaction(
+        headers.tenantID, chargingStation, startTransaction.tagID);
       if (user) {
         startTransaction.userID = user.id;
       }
@@ -1369,7 +1369,7 @@ export default class OCPPService {
     transaction.stop.userID = (alternateUser ? alternateUser.id : (user ? user.id : null));
     transaction.stop.tagID = tagId;
     transaction.stop.stateOfCharge = transaction.currentStateOfCharge;
-    transaction.stop.signedData = transaction.signedData;
+    transaction.stop.signedData = transaction.currentSignedData ? transaction.currentSignedData : "";
     // Keep the last Meter Value
     const lastMeterValue = transaction.lastMeterValue;
     // Compute duration

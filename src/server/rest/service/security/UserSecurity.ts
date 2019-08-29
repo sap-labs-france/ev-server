@@ -10,6 +10,7 @@ import {
 import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
+import { DataResult } from '../../../../types/DataResult';
 
 export default class UserSecurity {
 
@@ -194,7 +195,7 @@ export default class UserSecurity {
     return filteredUser;
   }
 
-  static filterUsersResponse(users: {result: User[]; count: number}, loggedUser: UserToken): void {
+  static filterUsersResponse(users: DataResult<User>, loggedUser: UserToken): void {
     const filteredUsers = [];
     if (!users.result) {
       return null;

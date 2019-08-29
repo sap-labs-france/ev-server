@@ -143,7 +143,7 @@ export default class VehicleManufacturerService {
     // Save
     if (vehicleManufacturer.logo) {
       await VehicleManufacturerStorage.saveVehicleManufacturerLogo(req.user.tenantID,
-        { id: vehicleManufacturer.id, logo: vehicleManufacturer.logo });
+        vehicleManufacturer.id, vehicleManufacturer.logo);
     }
     // Log
     Logging.logSecurityInfo({
@@ -189,7 +189,7 @@ export default class VehicleManufacturerService {
     // Update VehicleManufacturer's Logo
     if (vehicleManufacturer.logo) {
       await VehicleManufacturerStorage.saveVehicleManufacturerLogo(req.user.tenantID,
-        { id: vehicleManufacturer.id, logo: vehicleManufacturer.logo });
+        vehicleManufacturer.id, vehicleManufacturer.logo);
     }
     // Log
     Logging.logSecurityInfo({
@@ -234,24 +234,6 @@ export default class VehicleManufacturerService {
     const vehicleManufacturerLogo = await VehicleManufacturerStorage.getVehicleManufacturerLogo(req.user.tenantID, vehicleManufacturerID);
     // Return
     res.json(vehicleManufacturerLogo);
-    next();
-  }
-
-  public static async handleGetVehicleManufacturerLogos(action: string, req: Request, res: Response, next: NextFunction) {
-    // Check auth
-    if (!Authorizations.canListCompanies(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_LIST,
-        Constants.ENTITY_COMPANIES,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        'VehicleManufacturerService', 'handleGetVehicleManufacturerLogos',
-        req.user);
-    }
-    // Get the vehicle manufacturer logo
-    const vehicleManufacturerLogos = await VehicleManufacturerStorage.getVehicleManufacturerLogos(req.user.tenantID);
-    // Return
-    res.json(vehicleManufacturerLogos);
     next();
   }
 }

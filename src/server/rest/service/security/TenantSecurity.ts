@@ -4,6 +4,7 @@ import { HttpTenantDeleteRequest, HttpTenantVerifyRequest, HttpTenantsRequest } 
 import Tenant from '../../../../types/Tenant';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
+import { DataResult } from '../../../../types/DataResult';
 
 export default class TenantSecurity {
   public static filterTenantDeleteRequest(request: any): HttpTenantDeleteRequest {
@@ -63,7 +64,7 @@ export default class TenantSecurity {
     return filteredTenant;
   }
 
-  static filterTenantsResponse(tenants: {result: Tenant[]; count: number}, loggedUser: UserToken) {
+  static filterTenantsResponse(tenants: DataResult<Tenant>, loggedUser: UserToken) {
     const filteredTenants = [];
     if (!tenants.result) {
       return null;

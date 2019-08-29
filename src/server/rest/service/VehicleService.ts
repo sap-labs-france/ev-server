@@ -148,25 +148,6 @@ export default class VehicleService {
     next();
   }
 
-  public static async handleGetVehicleImages(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Check auth
-    if (!Authorizations.canListVehicles(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_LIST,
-        Constants.ENTITY_VEHICLES,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        'VehicleService', 'handleGetVehicleImages',
-        req.user);
-    }
-    // Get the vehicle image
-    const vehicleImages = await VehicleStorage.getVehicleImages(req.user.tenantID, {},
-      Constants.DB_PARAMS_MAX_LIMIT);
-    // Return
-    res.json(vehicleImages);
-    next();
-  }
-
   public static async handleCreateVehicle(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canCreateVehicle(req.user)) {
@@ -196,7 +177,7 @@ export default class VehicleService {
     vehicle.id = await VehicleStorage.saveVehicle(req.user.tenantID, vehicle);
     // Save
     if (vehicle.images) {
-      await VehicleStorage.saveVehicleImages(req.user.tenantID, { id: vehicle.id, images: vehicle.images });
+      await VehicleStorage.saveVehicleImages(req.user.tenantID, vehicle.id, vehicle.images);
     }
     // Log
     Logging.logSecurityInfo({
@@ -241,7 +222,7 @@ export default class VehicleService {
     await VehicleStorage.saveVehicle(req.user.tenantID, vehicle);
     // Update Vehicle's Image
     if (vehicle.images) {
-      await VehicleStorage.saveVehicleImages(req.user.tenantID, { id: vehicle.id, images: vehicle.images });
+      await VehicleStorage.saveVehicleImages(req.user.tenantID, vehicle.id, vehicle.images);
     }
     // Log
     Logging.logSecurityInfo({

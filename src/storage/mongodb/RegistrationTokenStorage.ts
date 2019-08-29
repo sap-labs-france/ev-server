@@ -7,6 +7,7 @@ import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import RegistrationToken from '../../types/RegistrationToken';
 import Utils from '../../utils/Utils';
+import { DataResult } from '../../types/DataResult';
 
 export default class RegistrationTokenStorage {
   static async saveRegistrationToken(tenantID: string, registrationToken: RegistrationToken): Promise<string> {
@@ -35,7 +36,9 @@ export default class RegistrationTokenStorage {
     return registrationTokenMDB._id.toHexString();
   }
 
-  static async getRegistrationTokens(tenantID: string, params: { id?: string; siteIDs?: string; siteAreaID?: string } = {}, dbParams: DbParams): Promise<{ count: number; result: RegistrationToken[] }> {
+  static async getRegistrationTokens(tenantID: string,
+      params: { id?: string; siteIDs?: string; siteAreaID?: string } = {}, dbParams: DbParams):
+      Promise<DataResult<RegistrationToken>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('RegistrationTokenStorage', 'getRegistrationTokens');
     // Check Tenant
@@ -89,7 +92,7 @@ export default class RegistrationTokenStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const registrationTokensCountMDB = await global.database.getCollection<{ count: number }>(tenantID, 'registrationtokens')
+    const registrationTokensCountMDB = await global.database.getCollection<DataResult<RegistrationToken>>(tenantID, 'registrationtokens')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
