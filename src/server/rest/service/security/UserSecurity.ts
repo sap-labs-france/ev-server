@@ -210,4 +210,3 @@ export default class UserSecurity {
     users.result = filteredUsers;
   }
 }
-

@@ -16,8 +16,8 @@ import Logging from '../utils/Logging';
 
 bodyParserXml(bodyParser);
 
-export default {
-  init: function(bodyLimit = '1mb'): express.Application {
+export default class ExpressTools {
+  public static init(bodyLimit = '1mb'): express.Application {
     const app = express();
     // Secure the application
     app.use(helmet());
@@ -43,9 +43,9 @@ export default {
       app.use(CFLog.logNetwork);
     }
     return app;
-  },
+  }
 
-  createHttpServer: function(serverConfig: any, expressApp: express.Application): http.Server {
+  public static createHttpServer(serverConfig: any, expressApp: express.Application): http.Server {
     let server: http.Server;
     // Create the HTTP server
     if (serverConfig.protocol === 'https') {
@@ -76,9 +76,9 @@ export default {
     }
 
     return server;
-  },
+  }
 
-  startServer: function(serverConfig: any, httpServer: any, serverName: string, serverModuleName: any, listenCb: Function = null, listen = true): void {
+  public static startServer(serverConfig: any, httpServer: any, serverName: string, serverModuleName: any, listenCb: Function = null, listen = true): void {
     // Default listen callback
     function defaultListenCb(): void {
       // Log
@@ -113,4 +113,4 @@ export default {
       console.log(`Fail to start ${serverName} Server listening ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}, missing required port configuration`);
     }
   }
-};
+}
