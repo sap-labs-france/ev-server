@@ -475,7 +475,6 @@ export default class TransactionStorage {
       };
     }
     // Sites
-    console.log(`>>> params:${JSON.stringify(params)}`);
     if (params.siteID) {
       filterMatch.siteID = {
         $in: params.siteID.map((site) => Utils.convertToObjectID(site))
