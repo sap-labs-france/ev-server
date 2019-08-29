@@ -259,7 +259,7 @@ export default class ChargingStationStorage {
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
-    const pipeline = [];
+    const aggregation = [];
     // Set the filters
     const match: any = { '$and': [{ '$or': DatabaseUtils.getNotDeletedFilter() }] };
     if (params.siteAreaID && Array.isArray(params.siteAreaID) && params.siteAreaID.length > 0) {
@@ -279,9 +279,9 @@ export default class ChargingStationStorage {
         ]
       });
     }
-    pipeline.push({ $match: match });
+    aggregation.push({ $match: match });
     // Build lookups to fetch sites from chargers
-    pipeline.push({
+    aggregation.push({
       $lookup: {
         from: DatabaseUtils.getCollectionName(tenantID, 'siteareas'),
         localField: 'siteAreaID',
@@ -290,12 +290,12 @@ export default class ChargingStationStorage {
       }
     });
     // Single Record
-    pipeline.push({
+    aggregation.push({
       $unwind: { 'path': '$sitearea', 'preserveNullAndEmptyArrays': true }
     });
     // Check Site ID
     if (params.siteIDs && Array.isArray(params.siteIDs) && params.siteIDs.length > 0) {
-      pipeline.push({ $match: {
+      aggregation.push({ $match: {
         'sitearea.siteID': {
           // Still ObjectId because we need it for the site inclusion
           $in: params.siteIDs.map((id) => Utils.convertToObjectID(id))
@@ -316,17 +316,17 @@ export default class ChargingStationStorage {
         array.push(`$${type}`);
         facets.$facet[type] = ChargingStationStorage._buildChargerInErrorFacet(type);
       });
-      pipeline.push(facets);
+      aggregation.push(facets);
       // Manipulate the results to convert it to an array of document on root level
-      pipeline.push({ $project: { chargersInError: { $setUnion: array } } });
-      pipeline.push({ $unwind: '$chargersInError' });
-      pipeline.push({ $replaceRoot: { newRoot: '$chargersInError' } });
+      aggregation.push({ $project: { chargersInError: { $setUnion: array } } });
+      aggregation.push({ $unwind: '$chargersInError' });
+      aggregation.push({ $replaceRoot: { newRoot: '$chargersInError' } });
       // Add a unique identifier as we may have the same charger several time
-      pipeline.push({ $addFields: { 'uniqueId': { $concat: ['$_id', '#', '$errorCode'] } } });
+      aggregation.push({ $addFields: { 'uniqueId': { $concat: ['$_id', '#', '$errorCode'] } } });
     }
     // Count Records
     const chargingStationsCountMDB = await global.database.getCollection<any>(tenantID, 'chargingstations')
-      .aggregate([...pipeline, { $count: 'count' }])
+      .aggregate([...aggregation, { $count: 'count' }])
       .toArray();
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
@@ -337,34 +337,34 @@ export default class ChargingStationStorage {
       };
     }
     // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, pipeline);
+    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
     if (dbParams.sort) {
       // Sort
-      pipeline.push({
+      aggregation.push({
         $sort: dbParams.sort
       });
     } else {
       // Default
-      pipeline.push({
+      aggregation.push({
         $sort: {
           _id: 1
         }
       });
     }
     // Skip
-    pipeline.push({
+    aggregation.push({
       $skip: dbParams.skip
     });
     // Limit
-    pipeline.push({
+    aggregation.push({
       $limit: dbParams.limit
     });
     // Change ID
-    DatabaseUtils.renameDatabaseID(pipeline);
+    DatabaseUtils.renameDatabaseID(aggregation);
     // Read DB
     const chargingStationsFacetMDB = await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
-      .aggregate(pipeline, {
+      .aggregate(aggregation, {
         collation: {
           locale: Constants.DEFAULT_LOCALE,
           strength: 2
