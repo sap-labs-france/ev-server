@@ -404,7 +404,7 @@ export default class CONTEXTS {
   // List of Charging Station created in a tenant
   // siteAreaNames must refer the site Areas where teh charging station will be created
   // if siteAreaNames is null then the CS will not be assigned or created in tenant with no porganization, so the baseName MUST be unique
-  static readonly TENANT_CHARGINGSTATION_LIST: any = [
+  static readonly TENANT_CHARGING_STATION_LIST: any = [
     {
       baseName: CONTEXTS.CHARGING_STATION_CONTEXTS.ASSIGNED_OCPP16, // Concatenated with siteAreaName
       ocppVersion: '1.6',

@@ -826,8 +826,7 @@ export default class ChargingStationService {
         withSite: filteredRequest.WithSite,
         siteIDs: (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : Authorizations.getAuthorizedSiteIDs(req.user)),
         siteAreaID: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
-        includeDeleted: filteredRequest.IncludeDeleted,
-        errorType: (filteredRequest.ErrorType ? filteredRequest.ErrorType.split('|') : ['all'])
+        includeDeleted: filteredRequest.IncludeDeleted
       },
       {
         limit: filteredRequest.Limit,

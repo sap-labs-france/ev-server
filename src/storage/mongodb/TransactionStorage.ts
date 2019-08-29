@@ -680,7 +680,7 @@ export default class TransactionStorage {
     return null;
   }
 
-  public static async _findAvailableID(tenantID: string): Promise<number> { // TODO: Why not just increment it??
+  public static async _findAvailableID(tenantID: string): Promise<number> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', '_findAvailableID');
     // Check

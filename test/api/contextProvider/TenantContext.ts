@@ -260,8 +260,8 @@ export default class TenantContext {
     for (const connector of createdChargingStation.connectors) {
       const responseNotif = await ocppService.executeStatusNotification(createdChargingStation.id, connector);
     }
+    // Assign to Site Area
     if (siteArea) {
-      // Assign to Site Area
       createdChargingStation.siteArea = siteArea;
       await this.getAdminCentralServerService().updateEntity(
         this.getAdminCentralServerService().chargingStationApi, createdChargingStation);
