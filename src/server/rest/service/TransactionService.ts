@@ -551,7 +551,7 @@ export default class TransactionService {
     }
     // Site Area
     const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
-      { ...filter, search: filteredRequest.Search, siteID: filteredRequest.SiteID },
+      { ...filter, search: filteredRequest.Search },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
     // Filter
     TransactionSecurity.filterTransactionsResponse(transactions, req.user);

@@ -136,7 +136,7 @@ export default class TransactionStorage {
 
   public static async getTransactions(tenantID: string,
     params: { transactionId?: number; search?: string; userIDs?: string[]; siteAdminIDs?: string[]; chargeBoxIDs?:
-    string[]; siteAreaIDs?: string[]; siteID?: string; connectorId?: number; startDateTime?: Date;
+    string[]; siteAreaIDs?: string[]; siteID?: string[]; connectorId?: number; startDateTime?: Date;
     endDateTime?: Date; stop?: any; refundType?: 'refunded' | 'notRefunded'; minimalPrice?: boolean; withChargeBoxes?: boolean;
     statistics?: 'refund' | 'history'; refundStatus?: string;
     },
@@ -212,7 +212,7 @@ export default class TransactionStorage {
     }
     if (params.siteID) {
       filterMatch.siteID = {
-        $in: Utils.convertToObjectID(params.siteID)
+        $in: params.siteID.map((site) => Utils.convertToObjectID(site))
       };
     }
     if (params.refundType && Array.isArray(params.refundType) && params.refundType.length === 1) {
@@ -414,7 +414,7 @@ export default class TransactionStorage {
 
   static async getTransactionsInError(tenantID,
     params: { search?: string; userIDs?: string[]; siteAdminIDs?: string[]; chargeBoxIDs?:
-    string[]; siteAreaIDs?: string[]; siteID?: string; startDateTime?: Date; endDateTime?: Date; withChargeBoxes?: boolean;
+    string[]; siteAreaIDs?: string[]; siteID?: string[]; startDateTime?: Date; endDateTime?: Date; withChargeBoxes?: boolean;
     errorType?: ('negative_inactivity' | 'average_consumption_greater_than_connector_capacity' | 'no_consumption')[];
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Transaction>> {
@@ -477,7 +477,7 @@ export default class TransactionStorage {
     // Sites
     if (params.siteID) {
       filterMatch.siteID = {
-        $in: Utils.convertToObjectID(params.siteID)
+        $in: params.siteID.map((site) => Utils.convertToObjectID(site))
       };
     }
     // Create Aggregation
@@ -680,7 +680,7 @@ export default class TransactionStorage {
     return null;
   }
 
-  public static async _findAvailableID(tenantID: string): Promise<number> { // TODO: Why not just increment it??
+  public static async _findAvailableID(tenantID: string): Promise<number> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', '_findAvailableID');
     // Check

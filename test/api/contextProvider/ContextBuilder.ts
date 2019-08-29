@@ -256,7 +256,8 @@ export default class ContextBuilder {
           const sireAreaID = await SiteAreaStorage.saveSiteArea(buildTenant.id, siteAreaTemplate);
           const siteAreaModel = await SiteAreaStorage.getSiteArea(buildTenant.id, sireAreaID);
           const siteAreaContext = siteContext.addSiteArea(siteAreaModel);
-          const relevantCS = CONTEXTS.TENANT_CHARGINGSTATION_LIST.filter((chargingStation) => chargingStation.siteAreaNames && chargingStation.siteAreaNames.includes(siteAreaModel.name) === true);
+          const relevantCS = CONTEXTS.TENANT_CHARGING_STATION_LIST.filter(
+            (chargingStation) => chargingStation.siteAreaNames && chargingStation.siteAreaNames.includes(siteAreaModel.name) === true);
           // Create Charging Station for site area
           for (const chargingStationDef of relevantCS) {
             const chargingStationTemplate = Factory.chargingStation.build();
@@ -270,7 +271,7 @@ export default class ContextBuilder {
       }
     }
     // Create unassigned Charging station
-    const relevantCS = CONTEXTS.TENANT_CHARGINGSTATION_LIST.filter((chargingStation) => chargingStation.siteAreaNames === null);
+    const relevantCS = CONTEXTS.TENANT_CHARGING_STATION_LIST.filter((chargingStation) => chargingStation.siteAreaNames === null);
     // Create Charging Station for site area
     const siteContext = new SiteContext({
       id: 1,

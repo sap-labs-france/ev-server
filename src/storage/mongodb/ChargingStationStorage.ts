@@ -17,18 +17,16 @@ export default class ChargingStationStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStation');
     // Query single Charging Station
-    const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID, {
-      chargingStationID: id,
-      withSite: true
-    }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const chargingStationsMDB = await ChargingStationStorage.getChargingStations(tenantID,
+      { chargingStationID: id, withSite: true }, Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'getChargingStation', uniqueTimerID, { id });
     return chargingStationsMDB.result[0];
   }
 
   public static async getChargingStations(tenantID: string,
-    params: { search?: string; chargingStationID?: string; siteAreaID?: string[]; withNoSiteArea?: boolean; siteIDs?: string[]; withSite?: boolean;
-      errorType?: string[]; includeDeleted?: boolean; },
+    params: { search?: string; chargingStationID?: string; siteAreaID?: string[]; withNoSiteArea?: boolean;
+      siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
@@ -39,28 +37,20 @@ export default class ChargingStationStorage {
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
     // Create Aggregation
-    let aggregation = [];
-    const siteAreaJoin = [];
-    const siteJoin = [];
+    const aggregation = [];
     // Set the filters
     const filters: any = {
       $and: [{
         $or: DatabaseUtils.getNotDeletedFilter()
       }]
     };
-    // Include deleted charging stations if requested
-    if (params.includeDeleted) {
-      filters.$and[0].$or.push({
-        'deleted': true
-      });
-    }
+    // Filter
     if (params.chargingStationID) {
       filters.$and.push({
         _id: params.chargingStationID
       });
     // Search filters
     } else if (params.search) {
-      // Build filter
       filters.$and.push({
         '$or': [
           { '_id': { $regex: params.search, $options: 'i' } },
@@ -69,23 +59,31 @@ export default class ChargingStationStorage {
         ]
       });
     }
+    // Add in aggregation
+    aggregation.push({
+      $match: filters
+    });
+    // Include deleted charging stations if requested
+    if (params.includeDeleted) {
+      filters.$and[0].$or.push({
+        'deleted': true
+      });
+    }
     // With no Site Area
     if (params.withNoSiteArea) {
-      // Build filter
       filters.$and.push({
         'siteAreaID': null
       });
     } else {
       // Query by siteAreaID
       if (params.siteAreaID && Array.isArray(params.siteAreaID) && params.siteAreaID.length > 0) {
-        // Build filter
         filters.$and.push({
           'siteAreaID': { $in: params.siteAreaID.map((id) => Utils.convertToObjectID(id)) }
         });
       }
       // Site Area
       DatabaseUtils.pushSiteAreaLookupInAggregation(
-        { tenantID, aggregation: siteAreaJoin, localField: 'siteAreaID', foreignField: '_id',
+        { tenantID, aggregation: aggregation, localField: 'siteAreaID', foreignField: '_id',
           asField: 'siteArea', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy'] });
     }
     // Check Site ID
@@ -95,74 +93,20 @@ export default class ChargingStationStorage {
         return { count: 0, result: [] };
       }
       // Build filter
-      siteAreaJoin.push({ $match: {
+      aggregation.push({ $match: {
         'siteArea.siteID': {
-          // Still ObjectId because we need it for the site inclusion
           $in: params.siteIDs.map((id) => Utils.convertToObjectID(id))
         }
       } });
     }
+    // Site
     if (params.withSite && !params.withNoSiteArea) {
-      // Site
       DatabaseUtils.pushSiteLookupInAggregation(
-        { tenantID, aggregation: siteJoin, localField: 'siteArea.siteID', foreignField: '_id',
+        { tenantID, aggregation: aggregation, localField: 'siteArea.siteID', foreignField: '_id',
           asField: 'siteArea.site', oneToOneCardinality: true });
     }
     // Convert siteID back to string after having queried the site
-    DatabaseUtils.convertObjectIDToString(siteJoin, 'siteArea.siteID');
-    // Build facets meaning each different error scenario
-    let facets: any = { $facet: {} };
-    if (params.errorType && !params.errorType.includes('all')) {
-      // Check allowed
-      if (!Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), Constants.COMPONENTS.ORGANIZATION) && params.errorType.includes('missingSiteArea')) {
-        throw new BackendError(null, 'Organization is not active whereas filter is on missing site.',
-          'ChargingStationStorage', 'getChargingStationsInError');
-      }
-      // Build facet only for one error type
-      facets.$facet = {};
-      params.errorType.forEach((type) => {
-        facets.$facet[type] = ChargingStationStorage._buildChargerInErrorFacet(type);
-      });
-    } else if (params.errorType && params.errorType.includes('all')) {
-      facets = {
-        '$facet':
-        {
-          'missingSettings': ChargingStationStorage._buildChargerInErrorFacet('missingSettings'),
-          'connectionBroken': ChargingStationStorage._buildChargerInErrorFacet('connectionBroken'),
-          'connectorError': ChargingStationStorage._buildChargerInErrorFacet('connectorError'),
-        }
-      };
-      if (Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), Constants.COMPONENTS.ORGANIZATION)) {
-        // Add facet for missing Site Area ID
-        facets.$facet.missingSiteArea = ChargingStationStorage._buildChargerInErrorFacet('missingSiteArea');
-      }
-    }
-    // Merge in each facet the join for sitearea and siteareaid
-    const project = [];
-    for (const facet in facets.$facet) {
-      if (siteAreaJoin.length > 0) {
-        facets.$facet[facet] = [...facets.$facet[facet], ...siteAreaJoin];
-      }
-      if (siteJoin.length > 0) {
-        facets.$facet[facet] = [...facets.$facet[facet], ...siteJoin];
-        // Filters
-        facets.$facet[facet].push({
-          $match: filters
-        });
-      }
-      project.push(`$${facet}`);
-    }
-    if (params.errorType) {
-      aggregation.push(facets);
-      // Manipulate the results to convert it to an array of document on root level
-      aggregation.push({ $project: { 'allItems': { $concatArrays: project } } });
-      aggregation.push({ $unwind: { 'path': '$allItems' } });
-      aggregation.push({ $replaceRoot: { newRoot: '$allItems' } });
-      // Add a unique identifier as we may have the same charger several time
-      aggregation.push({ $addFields: { 'uniqueId': { $concat: ['$_id', '#', '$errorCode'] } } });
-    } else {
-      aggregation = aggregation.concat([{ $match: filters }]).concat(siteAreaJoin).concat(siteJoin);
-    }
+    DatabaseUtils.convertObjectIDToString(aggregation, 'siteArea.siteID');
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -209,41 +153,18 @@ export default class ChargingStationStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const chargingStationsFacetMDB = await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
-      .aggregate(aggregation, {
-        collation: {
-          locale: Constants.DEFAULT_LOCALE,
-          strength: 2
-        }
-      })
+    const chargingStationsMDB = await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
-    if (chargingStationsCountMDB.length > 0) {
-      for (const chargingStation of chargingStationsFacetMDB) {
-        // Add clean connectors in case of corrupted DB
-        if (!chargingStation.connectors) {
-          chargingStation.connectors = [];
-        // Clean broken connectors
-        } else {
-          const cleanedConnectors = [];
-          for (const connector of chargingStation.connectors) {
-            if (connector) {
-              cleanedConnectors.push(connector);
-            }
-          }
-          // TODO: Clean them a bit more?
-          chargingStation.connectors = cleanedConnectors;
-        }
-        // Add Inactive flag
-        chargingStation.inactive = Utils.getIfChargingStationIsInactive(chargingStation);
-      }
-    }
+    // Add clean connectors in case of corrupted DB
+    this._cleanConnectors(chargingStationsMDB);
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'getChargingStations', uniqueTimerID);
     // Ok
     return {
       count: (chargingStationsCountMDB.length > 0 ?
         (chargingStationsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : chargingStationsCountMDB[0].count) : 0),
-      result: chargingStationsFacetMDB
+      result: chargingStationsMDB
     };
   }
 
@@ -263,14 +184,12 @@ export default class ChargingStationStorage {
     // Set the filters
     const match: any = { '$and': [{ '$or': DatabaseUtils.getNotDeletedFilter() }] };
     if (params.siteAreaID && Array.isArray(params.siteAreaID) && params.siteAreaID.length > 0) {
-      // Build filter
       match.$and.push({
         'siteAreaID': { $in: params.siteAreaID.map((id) => Utils.convertToObjectID(id)) }
       });
     }
     // Search filters
     if (params.search) {
-      // Build filter
       match.$and.push({
         '$or': [
           { '_id': { $regex: params.search, $options: 'i' } },
@@ -297,7 +216,6 @@ export default class ChargingStationStorage {
     if (params.siteIDs && Array.isArray(params.siteIDs) && params.siteIDs.length > 0) {
       aggregation.push({ $match: {
         'sitearea.siteID': {
-          // Still ObjectId because we need it for the site inclusion
           $in: params.siteIDs.map((id) => Utils.convertToObjectID(id))
         }
       } });
@@ -340,12 +258,10 @@ export default class ChargingStationStorage {
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
     // Sort
     if (dbParams.sort) {
-      // Sort
       aggregation.push({
         $sort: dbParams.sort
       });
     } else {
-      // Default
       aggregation.push({
         $sort: {
           _id: 1
@@ -364,32 +280,10 @@ export default class ChargingStationStorage {
     DatabaseUtils.renameDatabaseID(aggregation);
     // Read DB
     const chargingStationsFacetMDB = await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
-      .aggregate(aggregation, {
-        collation: {
-          locale: Constants.DEFAULT_LOCALE,
-          strength: 2
-        }
-      })
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
-    if (chargingStationsCountMDB.length > 0) {
-      for (const chargingStation of chargingStationsFacetMDB) {
-        // Add clean connectors in case of corrupted DB
-        if (!chargingStation.connectors) {
-          chargingStation.connectors = [];
-        // Clean broken connectors
-        } else {
-          const cleanedConnectors = [];
-          for (const connector of chargingStation.connectors) {
-            if (connector) {
-              cleanedConnectors.push(connector);
-            }
-          }
-          chargingStation.connectors = cleanedConnectors;
-        }
-        // Add Inactive flag
-        chargingStation.inactive = Utils.getIfChargingStationIsInactive(chargingStation);
-      }
-    }
+    // Add clean connectors in case of corrupted DB
+    this._cleanConnectors(chargingStationsFacetMDB);
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'getChargingStations', uniqueTimerID);
     // Ok
@@ -701,6 +595,27 @@ export default class ChargingStationStorage {
         ];
       default:
         return [];
+    }
+  }
+
+  private static _cleanConnectors(chargingStationsMDB: ChargingStation[]) {
+    if (chargingStationsMDB.length > 0) {
+      for (const chargingStationMDB of chargingStationsMDB) {
+        if (!chargingStationMDB.connectors) {
+          chargingStationMDB.connectors = [];
+        // Clean broken connectors
+        } else {
+          const cleanedConnectors = [];
+          for (const connector of chargingStationMDB.connectors) {
+            if (connector) {
+              cleanedConnectors.push(connector);
+            }
+          }
+          chargingStationMDB.connectors = cleanedConnectors;
+        }
+        // Add Inactive flag
+        chargingStationMDB.inactive = Utils.getIfChargingStationIsInactive(chargingStationMDB);
+      }
     }
   }
 }
