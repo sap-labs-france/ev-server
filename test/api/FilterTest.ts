@@ -14,7 +14,7 @@ chai.use(responseHelper);
 const testData: TestData = new TestData();
 
 describe('Filters with multiple values tests', function() {
-  this.timeout(30000);
+  this.timeout(100000);
 
   before(async function() {
     // Init values
@@ -88,12 +88,12 @@ describe('Filters with multiple values tests', function() {
     });
 
     it('Sessions history : Check that multi-filtering based on sites works', async () => {
-      const read = await testData.centralService.transactionApi.readAllCompleted({ 'SiteID' : '5abeba9e4bae1457eb565e66|5abeba8d4bae1457eb565e5b' }, { limit: 10, skip: 0 });
+      const read = await testData.centralService.transactionApi.readAllCompleted({ 'SiteID' : '5abeba9e4bae1457eb565e66' }, { limit: 10, skip: 0 });
       expect(read.status).to.equal(200);
     });
 
     it('Sessions in error : Check that multi-filtering based on sites works', async () => {
-      const read = await testData.centralService.transactionApi.readAllInError({ 'SiteID' : '5abeba9e4bae1457eb565e66|5abeba8d4bae1457eb565e5b' }, { limit: 10, skip: 0 });
+      const read = await testData.centralService.transactionApi.readAllInError({ 'SiteID' : '5abeba9e4bae1457eb565e66' }, { limit: 10, skip: 0 });
       expect(read.status).to.equal(200);
     });
 
