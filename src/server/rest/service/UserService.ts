@@ -409,7 +409,7 @@ export default class UserService {
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      ['site.id', 'site.name', 'site.address.city', 'site.address.country', 'userID']
+      ['site.id', 'site.name', 'site.address.city', 'site.address.country', 'siteAdmin', 'userID']
     );
     // Filter
     userSites.result = userSites.result.map((userSite) => ({
