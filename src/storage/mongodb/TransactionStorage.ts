@@ -137,8 +137,8 @@ export default class TransactionStorage {
   public static async getTransactions(tenantID: string,
     params: { transactionId?: number; search?: string; userIDs?: string[]; siteAdminIDs?: string[]; chargeBoxIDs?:
     string[]; siteAreaIDs?: string[]; siteID?: string[]; connectorId?: number; startDateTime?: Date;
-    endDateTime?: Date; stop?: any; refundType?: 'refunded' | 'notRefunded'; minimalPrice?: boolean; withChargeBoxes?: boolean;
-    statistics?: 'refund' | 'history'; refundStatus?: string;
+    endDateTime?: Date; stop?: any; minimalPrice?: boolean; withChargeBoxes?: boolean;
+    statistics?: 'refund' | 'history'; refundStatus?: string[];
     },
     dbParams: DbParams, projectFields?: string[]):
     Promise<{count: number; result: Transaction[]; stats: { totalConsumptionWattHours?: number; totalPriceRefund?: number; totalPricePending?: number;
@@ -215,18 +215,12 @@ export default class TransactionStorage {
         $in: params.siteID.map((site) => Utils.convertToObjectID(site))
       };
     }
-    if (params.refundType && Array.isArray(params.refundType) && params.refundType.length === 1) {
-      switch (params.refundType[0]) {
-        case Constants.REFUND_TYPE_REFUNDED:
-          filterMatch.refundData = { $exists: true };
-          if (params.refundStatus) {
-            filterMatch['refundData.status'] = params.refundStatus;
-          }
-          break;
-        case Constants.REFUND_TYPE_NOT_REFUNDED:
-          filterMatch.refundData = { $exists: false };
-          break;
-      }
+
+    if (params.refundStatus && params.refundStatus.length > 0) {
+      const statuses = params.refundStatus.map((status) => status === Constants.REFUND_STATUS_NOT_SUBMITTED ? null : status);
+      filterMatch['refundData.status'] = {
+        $in: statuses
+      };
     }
     if (params.minimalPrice) {
       filterMatch['stop.price'] = { $gt: 0 };

@@ -415,8 +415,8 @@ export default class TransactionService {
     if (filteredRequest.EndDateTime) {
       filter.endTime = filteredRequest.EndDateTime;
     }
-    if (filteredRequest.Type) {
-      filter.type = filteredRequest.Type;
+    if (filteredRequest.RefundStatus) {
+      filter.refundStatus = filteredRequest.RefundStatus.split('|');
     }
     if (filteredRequest.MinimalPrice) {
       filter.minimalPrice = filteredRequest.MinimalPrice;
@@ -475,8 +475,8 @@ export default class TransactionService {
     if (filteredRequest.EndDateTime) {
       filter.endTime = filteredRequest.EndDateTime;
     }
-    if (filteredRequest.Type) {
-      filter.type = filteredRequest.Type;
+    if (filteredRequest.RefundStatus) {
+      filter.refundStatus = filteredRequest.RefundStatus.split('|');
     }
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
       { ...filter, search: filteredRequest.Search, siteID: filteredRequest.SiteID },

@@ -213,6 +213,7 @@ export default class Constants {
   public static readonly OCPP_VERSION_20 = '2.0';
 
   public static readonly REFUND_STATUS_SUBMITTED = 'submitted';
+  public static readonly REFUND_STATUS_NOT_SUBMITTED = 'notSubmitted';
   public static readonly REFUND_STATUS_CANCELLED = 'cancelled';
   public static readonly REFUND_STATUS_APPROVED = 'approved';
 
