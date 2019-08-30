@@ -186,8 +186,6 @@ export default abstract class AbstractOCPIService {
           MODULE_NAME, 'processEndpointAction');
       }
 
-      // TODO: Temporary properties in config: add eMI3 country_id/party_id
-      // TODO: to be moved to database
       if (this.ocpiRestConfig.eMI3id &&
         this.ocpiRestConfig.eMI3id[tenantSubdomain] &&
         this.ocpiRestConfig.eMI3id[tenantSubdomain].country_id &&
@@ -209,7 +207,7 @@ export default abstract class AbstractOCPIService {
       } else {
         // pragma res.sendStatus(501);
         throw new OCPIServerError(
-          'Process Endpoint',
+          'OcpiEndpoint',
           `Endpoint ${action} not implemented`,
           Constants.HTTP_NOT_IMPLEMENTED_ERROR,
           MODULE_NAME, 'processEndpointAction');
