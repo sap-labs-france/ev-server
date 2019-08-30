@@ -247,18 +247,6 @@ export default class TransactionStorage {
         $match: filterMatch
       });
     }
-    // Charger?
-    if (params.withChargeBoxes) {
-      // Add Charge Box
-      DatabaseUtils.pushChargingStationLookupInAggregation(
-        { tenantID, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
-          asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false });
-    }
-    // Add respective users
-    DatabaseUtils.pushUserLookupInAggregation({ tenantID, aggregation: aggregation, asField: 'user',
-      localField: 'userID', foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false });
-    DatabaseUtils.pushUserLookupInAggregation({ tenantID, aggregation: aggregation, asField: 'stop.user',
-      localField: 'stop.userID', foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false });
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -359,12 +347,7 @@ export default class TransactionStorage {
     }
     // Remove the limit
     aggregation.pop();
-    // Rename ID
-    DatabaseUtils.renameField(aggregation, '_id', 'id');
-    // Convert Object ID to string
-    DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
-    DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
-    DatabaseUtils.convertObjectIDToString(aggregation, 'siteAreaID');
+
     // Not yet possible to remove the fields if stop/remoteStop does not exist (MongoDB 4.2)
     // DatabaseUtils.convertObjectIDToString(aggregation, 'stop.userID');
     // DatabaseUtils.convertObjectIDToString(aggregation, 'remotestop.userID');
@@ -392,6 +375,27 @@ export default class TransactionStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
+
+    // Charger?
+    if (params.withChargeBoxes) {
+      // Add Charge Box
+      DatabaseUtils.pushChargingStationLookupInAggregation(
+        { tenantID, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
+          asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false });
+    }
+    // Add respective users
+    DatabaseUtils.pushUserLookupInAggregation({ tenantID, aggregation: aggregation, asField: 'user',
+      localField: 'userID', foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false });
+    DatabaseUtils.pushUserLookupInAggregation({ tenantID, aggregation: aggregation, asField: 'stop.user',
+      localField: 'stop.userID', foreignField: '_id', oneToOneCardinality: true, oneToOneCardinalityNotNull: false });
+
+    // Rename ID
+    DatabaseUtils.renameField(aggregation, '_id', 'id');
+    // Convert Object ID to string
+    DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
+    DatabaseUtils.convertObjectIDToString(aggregation, 'siteAreaID');
+
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
