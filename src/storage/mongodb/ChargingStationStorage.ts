@@ -87,7 +87,7 @@ export default class ChargingStationStorage {
           asField: 'siteArea', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy'] });
     }
     // Check Site ID
-    if (params.siteIDs && Array.isArray(params.siteIDs) && params.siteIDs.length > 0) {
+    if (params.siteIDs && Array.isArray(params.siteIDs)) {
       // If sites but no site area, no results can be found - return early.
       if (params.withNoSiteArea) {
         return { count: 0, result: [] };

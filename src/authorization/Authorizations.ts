@@ -71,8 +71,15 @@ export default class Authorizations {
     return loggedUser.companies;
   }
 
-  public static getAuthorizedSiteIDs(loggedUser: UserToken): string[] {
-    return loggedUser.sites;
+  public static getAuthorizedSiteIDs(loggedUser: UserToken, requestedSites: string[]): string[] {
+    if (!Utils.isComponentActiveFromToken(loggedUser, Constants.COMPONENTS.ORGANIZATION) || this.isAdmin(loggedUser.role)) {
+      return null;
+    }
+    if (!requestedSites || requestedSites.length === 0) {
+      return loggedUser.sites;
+    }
+
+    return requestedSites.filter((site) => loggedUser.sites.includes(site));
   }
 
   public static getAuthorizedSiteAdminIDs(loggedUser: UserToken): string[] {
