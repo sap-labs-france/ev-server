@@ -43,7 +43,7 @@ export default class OCPIEndpointSecurity {
   }
 
   static filterOcpiEndpointSendEVSEStatusesRequest(request: any) {
-    // Set ocpiendpoint
+    // Set OcpiEndpoint
     const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
