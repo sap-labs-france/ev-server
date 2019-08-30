@@ -95,7 +95,7 @@ const MODULE_NAME = 'CredentialsEndpoint';
     // Log body
     Logging.logDebug({
       tenantID: tenant.id,
-      action: 'POST credentials',
+      action: 'OcpiPostCredentials',
       message: 'Received credential object',
       source: 'OCPI Server',
       module: MODULE_NAME,
@@ -106,7 +106,7 @@ const MODULE_NAME = 'CredentialsEndpoint';
     // Check if valid
     if (!OCPIMapping.isValidOCPICredential(credential)) {
       throw new OCPIClientError(
-        'POST credentials',
+        'OcpiPostCredentials',
         'Invalid Credential Object', Constants.HTTP_GENERAL_ERROR,
         EP_IDENTIFIER, 'postCredentials');
     }
@@ -120,7 +120,7 @@ const MODULE_NAME = 'CredentialsEndpoint';
     // Log body
     Logging.logDebug({
       tenantID: tenant.id,
-      action: 'POST credentials',
+      action: 'OcpiPostCredentials',
       message: 'Received token',
       source: 'OCPI Server',
       module: MODULE_NAME,
@@ -134,7 +134,7 @@ const MODULE_NAME = 'CredentialsEndpoint';
     // Check if ocpiEndpoint available
     if (!ocpiEndpoint) {
       throw new OCPIServerError(
-        'POST credentials',
+        'OcpiPostCredentials',
         'OCPI Endpoint not available or wrong token', Constants.HTTP_GENERAL_ERROR,
         EP_IDENTIFIER, 'postCredentials');
     }
@@ -149,7 +149,7 @@ const MODULE_NAME = 'CredentialsEndpoint';
     // Log updated ocpi endpoint
     Logging.logDebug({
       tenantID: tenant.id,
-      action: 'POST credentials',
+      action: 'OcpiPostCredentials',
       message: 'OCPI Server found and updated with credential object',
       source: 'OCPI Server',
       module: MODULE_NAME,
@@ -172,7 +172,7 @@ const MODULE_NAME = 'CredentialsEndpoint';
       // Log available OCPI Versions
       Logging.logDebug({
         tenantID: tenant.id,
-        action: 'POST credentials',
+        action: 'OcpiPostCredentials',
         message: 'Available OCPI Versions',
         source: 'OCPI Server',
         module: MODULE_NAME,
@@ -196,7 +196,7 @@ const MODULE_NAME = 'CredentialsEndpoint';
           // Log correct OCPI service found
           Logging.logDebug({
             tenantID: tenant.id,
-            action: 'POST credentials',
+            action: 'OcpiPostCredentials',
             message: 'Correct OCPI version found',
             source: 'OCPI Server',
             module: MODULE_NAME,
@@ -223,7 +223,7 @@ const MODULE_NAME = 'CredentialsEndpoint';
       // Log available OCPI services
       Logging.logDebug({
         tenantID: tenant.id,
-        action: 'POST credentials',
+        action: 'OcpiPostCredentials',
         message: 'Available OCPI services',
         source: 'OCPI Server',
         module: MODULE_NAME,
@@ -239,7 +239,7 @@ const MODULE_NAME = 'CredentialsEndpoint';
       ocpiEndpoint.setAvailableEndpoints(OCPIMapping.convertEndpoints(endpoints.data.data));
     } catch (error) {
       throw new OCPIServerError(
-        'POST credentials',
+        'OcpiPostCredentials',
         `Unable to use client API: ${error.message}`, Constants.HTTP_GENERAL_ERROR,
         EP_IDENTIFIER, 'postCredentials', Constants.OCPI_STATUS_CODE.CODE_3001_UNABLE_TO_USE_CLIENT_API_ERROR,
         error.stack);
@@ -261,7 +261,7 @@ const MODULE_NAME = 'CredentialsEndpoint';
     // Log available OCPI Versions
     Logging.logDebug({
       tenantID: tenant.id,
-      action: 'POST credentials',
+      action: 'OcpiPostCredentials',
       message: 'Response with credential object',
       source: 'OCPI Server',
       module: MODULE_NAME,

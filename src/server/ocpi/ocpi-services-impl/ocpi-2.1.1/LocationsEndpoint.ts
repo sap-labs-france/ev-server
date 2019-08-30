@@ -62,7 +62,7 @@ const RECORDS_LIMIT = 20;
       // Check if at least of site found
       if (!payload) {
         throw new OCPIServerError(
-          'GET locations',
+          'OcpiGetLocations',
           `Connector id '${connectorId}' not found on EVSE uid '${evseUid}' and location id '${locationId}'`, Constants.HTTP_GENERAL_ERROR,
           EP_IDENTIFIER, 'getLocationRequest');
       }
@@ -73,7 +73,7 @@ const RECORDS_LIMIT = 20;
       // Check if at least of site found
       if (!payload) {
         throw new OCPIServerError(
-          'GET locations',
+          'OcpiGetLocations',
           `EVSE uid not found '${evseUid}' on location id '${locationId}'`, Constants.HTTP_GENERAL_ERROR,
           EP_IDENTIFIER, 'getLocationRequest');
       }
@@ -84,7 +84,7 @@ const RECORDS_LIMIT = 20;
       // Check if at least of site found
       if (!payload) {
         throw new OCPIServerError(
-          'GET locations',
+          'OcpiGetLocations',
           `Site id '${locationId}' not found`, Constants.HTTP_GENERAL_ERROR,
           EP_IDENTIFIER, 'getLocationRequest');
       }

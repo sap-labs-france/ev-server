@@ -7,15 +7,15 @@
         <td>
           <table width="768" border="0" cellspacing="0" cellpadding="0">
             <tr height="90">
-              <td width="180" align="center">
+              <td width="180" style="padding: 10px;" align="center">
                 <img height="<%- body.header.image.left.height %>"
                   alt="Logo"
                   src="<%- body.header.image.left.url %>">
               </td>
-              <td align="center" style="border-color:white;border-width: 2px;border-left-style: solid;border-right-style: solid;">
+              <td align="center" style="padding: 10px;border-color:white;border-width: 2px;border-left-style: solid;border-right-style: solid;">
                 <font size="5" color="white" face="sans-serif"><b><%- body.header.title %></b></font>
               </td>
-              <td width="180" align="center">
+              <td width="180" style="padding: 10px;" align="center">
                 <img height="<%- body.header.image.right.height %>"
                   alt="Image"
                   src="<%- body.header.image.right.url %>">
@@ -31,7 +31,7 @@
       <tr><td colspan="3" style="padding: 10px 0;">&nbsp;</td></tr>
       <% for (var i = 0; i < body.beforeActionLines.length; i++) { %>
         <tr>
-          <td colspan="3" style="padding: 5px 0 0 20px;">
+          <td colspan="3" style="padding: 10px 5px 5px 20px;">
             <font size="4" face="sans-serif">
               <%- body.beforeActionLines[i] %>&nbsp;
             </font>
@@ -43,11 +43,11 @@
         <% for (var i = 0; i < body.stats.length; i++) { %>
           <tr><td colspan="3" style="padding: 15px 0 0 0;">&nbsp;</td></tr>
           <tr>
-            <td align="center" colspan="3" style="background-color: #1976d2;border-radius: 10px;">
+            <td align="center" colspan="3">
               <table width="100%" bgcolor="white" border="0" cellspacing="0" cellpadding="0">
                 <tr>
                   <td style="width: 30%;"></td>
-                  <td align="center" height="80" style="line-height:1.3;background-color: #1976d2;border-radius: 10px;">
+                  <td align="center" height="80" style="padding: 10px;line-height:1.3;background-color: #1976d2;border-radius: 10px;">
                     <font size="4" color="white" face="sans-serif">
                       <%- body.stats[i].label %><br/>
                     </font>
