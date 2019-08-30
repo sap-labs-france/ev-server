@@ -1,5 +1,4 @@
 import { ObjectID } from 'mongodb';
-import BackendError from '../../exception/BackendError';
 import Company from '../../types/Company';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
