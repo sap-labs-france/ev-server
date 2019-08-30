@@ -337,13 +337,13 @@ export default class SiteService {
     // Get the sites
     const sites = await SiteStorage.getSites(req.user.tenantID,
       {
-        'search': filteredRequest.Search,
-        'userID': filteredRequest.UserID,
-        'companyIDs': (filteredRequest.CompanyID ? filteredRequest.CompanyID.split('|') : null),
-        'siteIDs': (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : Authorizations.getAuthorizedSiteIDs(req.user)),
-        'withCompany': filteredRequest.WithCompany,
-        'excludeSitesOfUserID': filteredRequest.ExcludeSitesOfUserID,
-        'withAvailableChargers': filteredRequest.WithAvailableChargers
+        search: filteredRequest.Search,
+        userID: filteredRequest.UserID,
+        companyIDs: (filteredRequest.CompanyID ? filteredRequest.CompanyID.split('|') : null),
+        siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : []),
+        withCompany: filteredRequest.WithCompany,
+        excludeSitesOfUserID: filteredRequest.ExcludeSitesOfUserID,
+        withAvailableChargers: filteredRequest.WithAvailableChargers
       },
       {
         limit: filteredRequest.Limit,
