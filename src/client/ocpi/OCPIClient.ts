@@ -126,7 +126,7 @@ export default class OCPIClient {
     // Log
     Logging.logInfo({
       tenantID: this.ocpiEndpoint.getTenantID(),
-      action: 'OCPIGetVersions',
+      action: 'OcpiGetVersions',
       message: `Get OCPI versions at ${this.ocpiEndpoint.getVersionUrl()}`,
       source: 'OCPI Client',
       module: 'OCPIClient',
@@ -167,7 +167,7 @@ export default class OCPIClient {
     // Log
     Logging.logInfo({
       tenantID: tenant.id,
-      action: 'OCPIPostCredentials',
+      action: 'OcpiPostCredentials',
       message: `Post credentials at ${credentialsUrl}`,
       source: 'OCPI Client',
       module: 'OCPIClient',
@@ -234,7 +234,7 @@ export default class OCPIClient {
     // Log
     Logging.logDebug({
       tenantID: this.ocpiEndpoint.getTenantID(),
-      action: 'OCPIPatchLocations',
+      action: 'OcpiPatchLocations',
       message: `Patch location at ${fullUrl}`,
       source: 'OCPI Client',
       module: 'OCPIClient',
@@ -288,7 +288,7 @@ export default class OCPIClient {
       // Log error if failure
       Logging.logError({
         tenantID: tenant.id,
-        action: 'OCPISendEVSEStatuses',
+        action: 'OcpiEndpointSendEVSEStatuses',
         message: 'OCPI Configuration not active',
         source: 'OCPI Client',
         module: 'OCPIClient',
@@ -360,7 +360,7 @@ export default class OCPIClient {
       // Log error if failure
       Logging.logError({
         tenantID: tenant.id,
-        action: 'OCPISendEVSEStatuses',
+        action: 'OcpiEndpointSendEVSEStatuses',
         message: `Patching of ${sendResult.logs.length} EVSE statuses has been done with errors (see details)`,
         detailedMessages: sendResult.logs,
         source: 'OCPI Client',
@@ -371,7 +371,7 @@ export default class OCPIClient {
       // Log info
       Logging.logInfo({
         tenantID: tenant.id,
-        action: 'OCPISendEVSEStatuses',
+        action: 'OcpiEndpointSendEVSEStatuses',
         message: `Patching of ${sendResult.logs.length} EVSE statuses has been done successfully (see details)`,
         detailedMessages: sendResult.logs,
         source: 'OCPI Client',
