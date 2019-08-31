@@ -26,12 +26,22 @@ export default class SimplePricing extends Pricing<SimplePricingSettings> {
   }
 
   async computePrice(consumptionData: {consumption: any}): Promise<PricedConsumption> {
-    return {
+    let amount: number;
+    let roundedAmount: number;
+    if (consumptionData.consumption && typeof consumptionData.consumption === 'number') {
+      amount = parseFloat((this.settings.price * (consumptionData.consumption / 1000)).toFixed(6));
+      roundedAmount = parseFloat((this.settings.price * (consumptionData.consumption / 1000)).toFixed(2));
+    } else {
+      amount = 0;
+      roundedAmount = 0;
+    }
+    const pricedConsumption: PricedConsumption = {
       pricingSource: 'simple',
-      amount: parseFloat((this.settings.price * (consumptionData.consumption / 1000)).toFixed(6)),
-      roundedAmount: parseFloat((this.settings.price * (consumptionData.consumption / 1000)).toFixed(2)),
+      amount: amount,
+      roundedAmount: roundedAmount,
       currencyCode: this.settings.currency,
-      cumulatedAmount: 0 // TODO: handle this using NULLs instead?
+      cumulatedAmount: 0
     };
+    return pricedConsumption;
   }
 }
