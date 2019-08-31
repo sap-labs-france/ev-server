@@ -13,19 +13,19 @@ export default class SimplePricing extends Pricing<SimplePricingSettings> {
     super(tenantId, settings, transaction);
   }
 
-  async startSession(consumptionData: {consumption: any}): Promise<PricedConsumption> {
+  async startSession(consumptionData: {consumption: number}): Promise<PricedConsumption> {
     return this.computePrice(consumptionData);
   }
 
-  async updateSession(consumptionData: {consumption: any}): Promise<PricedConsumption> {
+  async updateSession(consumptionData: {consumption: number}): Promise<PricedConsumption> {
     return this.computePrice(consumptionData);
   }
 
-  async stopSession(consumptionData: {consumption: any}): Promise<PricedConsumption> {
+  async stopSession(consumptionData: {consumption: number}): Promise<PricedConsumption> {
     return this.computePrice(consumptionData);
   }
 
-  async computePrice(consumptionData: {consumption: any}): Promise<PricedConsumption> {
+  async computePrice(consumptionData: {consumption: number}): Promise<PricedConsumption> {
     let amount: number;
     let roundedAmount: number;
     if (consumptionData.consumption && typeof consumptionData.consumption === 'number') {
