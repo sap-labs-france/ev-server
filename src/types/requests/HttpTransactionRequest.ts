@@ -5,6 +5,14 @@ export interface HttpTransactionsRefundRequest {
   transactionIds: number[];
 }
 
+export interface HttpAssignTransactionsToUserRequest {
+  UserID?: string;
+}
+
+export interface HttpAssignTransactionsToUserRequest {
+  UserID?: string;
+}
+
 export interface HttpTransactionRequest {
   ID: number;
 }
