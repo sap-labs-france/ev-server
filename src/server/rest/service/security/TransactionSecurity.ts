@@ -2,7 +2,13 @@ import moment = require('moment');
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
-import { HttpConsumptionFromTransactionRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
+import {
+  HttpAssignTransactionsToUserRequest,
+  HttpConsumptionFromTransactionRequest,
+  HttpTransactionRequest,
+  HttpTransactionsRefundRequest,
+  HttpTransactionsRequest
+} from '../../../../types/requests/HttpTransactionRequest';
 import Transaction from '../../../../types/Transaction';
 import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
@@ -15,6 +21,14 @@ export default class TransactionSecurity {
       return { transactionIds: [] };
     }
     return { transactionIds: request.transactionIds.map(sanitize) };
+  }
+
+  public static filterAssignTransactionsToUser(request: HttpAssignTransactionsToUserRequest): HttpAssignTransactionsToUserRequest {
+    return { UserID: request.UserID ? sanitize(request.UserID) : null };
+  }
+
+  static filterUnassignedTransactionsCountRequest(request: any) {
+    return { tagIDs: request.tagIDs ? sanitize(request.tagIDs) : null };
   }
 
   public static filterTransactionRequestByID(request: any): number {
