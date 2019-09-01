@@ -32,15 +32,15 @@ export default class SiteStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const siteImagesMDB = await global.database.getCollection<{_id: string; image: string}>(tenantID, 'siteimages')
-      .find({ _id: id })
+    const siteImagesMDB = await global.database.getCollection<{_id: ObjectID; image: string}>(tenantID, 'siteimages')
+      .find({ _id: Utils.convertToObjectID(id) })
       .limit(1)
       .toArray();
     let siteImage: ImageResult = null;
     // Set
     if (siteImagesMDB && siteImagesMDB.length > 0) {
       siteImage = {
-        id: siteImagesMDB[0]._id,
+        id: siteImagesMDB[0]._id.toHexString(),
         image: siteImagesMDB[0].image
       };
     }
