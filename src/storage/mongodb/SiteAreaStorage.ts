@@ -1,5 +1,4 @@
 import { ObjectID } from 'mongodb';
-import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
@@ -16,15 +15,15 @@ export default class SiteAreaStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const siteAreaImagesMDB = await global.database.getCollection<{_id: string; image: string}>(tenantID, 'siteareaimages')
-      .find({ _id: id })
+    const siteAreaImagesMDB = await global.database.getCollection<{_id: ObjectID; image: string}>(tenantID, 'siteareaimages')
+      .find({ _id: Utils.convertToObjectID(id) })
       .limit(1)
       .toArray();
     let siteAreaImage: ImageResult = null;
     // Set
     if (siteAreaImagesMDB && siteAreaImagesMDB.length > 0) {
       siteAreaImage = {
-        id: siteAreaImagesMDB[0]._id,
+        id: siteAreaImagesMDB[0]._id.toHexString(),
         image: siteAreaImagesMDB[0].image
       };
     }
