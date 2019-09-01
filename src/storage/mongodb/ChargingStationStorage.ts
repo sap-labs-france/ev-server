@@ -87,7 +87,7 @@ export default class ChargingStationStorage {
           asField: 'siteArea', oneToOneCardinality: true, objectIDFields: ['createdBy', 'lastChangedBy'] });
     }
     // Check Site ID
-    if (params.siteIDs && Array.isArray(params.siteIDs)) {
+    if (params.siteIDs && Array.isArray(params.siteIDs) && params.siteIDs.length > 0) {
       // If sites but no site area, no results can be found - return early.
       if (params.withNoSiteArea) {
         return { count: 0, result: [] };
@@ -128,6 +128,8 @@ export default class ChargingStationStorage {
     aggregation.pop();
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
+    // Convert Object ID to string
+    DatabaseUtils.convertObjectIDToString(aggregation, 'siteAreaID');
     // Sort
     if (dbParams.sort) {
       aggregation.push({
