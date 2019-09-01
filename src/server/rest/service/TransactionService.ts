@@ -14,7 +14,8 @@ import Logging from '../../../utils/Logging';
 import OCPPService from '../../../server/ocpp/services/OCPPService';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
-import SynchronizeRefundTransactionsTask from '../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
+import SynchronizeRefundTransactionsTask
+  from '../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Transaction from '../../../types/Transaction';
 import TransactionSecurity from './security/TransactionSecurity';
@@ -119,6 +120,61 @@ export default class TransactionService {
       response.inError = notRefundedTransactions;
     }
     res.json(response);
+    next();
+  }
+
+
+  public static async handleGetUnassignedTransactionsCount(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    if (!Authorizations.canUpdateTransaction(req.user)) {
+      throw new AppAuthError(
+        Constants.ACTION_UPDATE,
+        Constants.ENTITY_TRANSACTION,
+        null,
+        Constants.HTTP_AUTH_ERROR, 'TransactionService', 'handleGetUnassignedTransactionsCount',
+        req.user);
+    }
+    // Filter
+    const filteredRequest = TransactionSecurity.filterUnassignedTransactionsCountRequest(req.query);
+    const tagIDs = (typeof filteredRequest.tagIDs === 'string') ? filteredRequest.tagIDs.split(',') : filteredRequest.tagIDs;
+    if (!tagIDs) {
+      // Not Found!
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'TagIDs must be provided', Constants.HTTP_GENERAL_ERROR,
+        'TransactionService', 'handleGetUnassignedTransactionsCount', req.user);
+    }
+
+    const count = await TransactionStorage.getUnassignedTransactionsCount(req.user.tenantID, tagIDs);
+
+    res.json(count);
+    next();
+  }
+
+  public static async handleAssignTransactionsToUser(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    if (!Authorizations.canUpdateTransaction(req.user)) {
+      throw new AppAuthError(
+        Constants.ACTION_UPDATE,
+        Constants.ENTITY_TRANSACTION,
+        null,
+        Constants.HTTP_AUTH_ERROR, 'TransactionService', 'handleAssignTransactionsToUser',
+        req.user);
+    }
+    // Filter
+    const filteredRequest = TransactionSecurity.filterAssignTransactionsToUser(req.query);
+    if (!filteredRequest.UserID) {
+      // Not Found!
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'User ID must be provided', Constants.HTTP_GENERAL_ERROR,
+        'TransactionService', 'handleAssignTransactionsToUser', req.user);
+    }
+
+    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
+    UtilsService.assertObjectExists(user, `User with ID '${filteredRequest.UserID}' does not exist`, 'TransactionService', 'handleAssignTransactionsToUser', req.user);
+
+    await TransactionStorage.assignTransactionsToUser(req.user.tenantID, user);
+
+    res.json(null);
     next();
   }
 
@@ -310,7 +366,12 @@ export default class TransactionService {
       chargeBoxIDs: [chargingStation.id], connectorId: filteredRequest.ConnectorId,
       startDateTime: filteredRequest.StartDateTime, endDateTime: filteredRequest.EndDateTime,
       withChargeBoxes: true
-    }, { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
+    }, {
+      limit: filteredRequest.Limit,
+      skip: filteredRequest.Skip,
+      sort: filteredRequest.Sort,
+      onlyRecordCount: filteredRequest.OnlyRecordCount
+    });
     // Filter
     TransactionSecurity.filterTransactionsResponse(transactions, req.user);
     // Return
@@ -369,7 +430,12 @@ export default class TransactionService {
     filter.withChargeBoxes = true;
     // Get Transactions
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID, filter,
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
+      {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.Sort,
+        onlyRecordCount: filteredRequest.OnlyRecordCount
+      });
     // Filter
     TransactionSecurity.filterTransactionsResponse(transactions, req.user);
     // Return
@@ -428,7 +494,12 @@ export default class TransactionService {
       filter.search = filteredRequest.Search;
     }
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID, filter,
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
+      {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.Sort,
+        onlyRecordCount: filteredRequest.OnlyRecordCount
+      });
     // Filter
     TransactionSecurity.filterTransactionsResponse(transactions, req.user);
     // Return
@@ -480,7 +551,12 @@ export default class TransactionService {
     }
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
       { ...filter, search: filteredRequest.Search, siteID: filteredRequest.SiteID },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
+      {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.Sort,
+        onlyRecordCount: filteredRequest.OnlyRecordCount
+      });
     // Filter
     TransactionSecurity.filterTransactionsResponse(transactions, req.user);
     // Hash userId and tagId for confidentiality purposes
@@ -552,7 +628,12 @@ export default class TransactionService {
     // Site Area
     const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
       { ...filter, search: filteredRequest.Search },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount });
+      {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.Sort,
+        onlyRecordCount: filteredRequest.OnlyRecordCount
+      });
     // Filter
     TransactionSecurity.filterTransactionsResponse(transactions, req.user);
     // Return
