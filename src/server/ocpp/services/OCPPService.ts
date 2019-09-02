@@ -760,7 +760,7 @@ export default class OCPPService {
     // Transaction in progress?
     if (transaction && !transaction.stop) {
       // Has consumption?
-      if (transaction.numberOfMeterValues > 1) {
+      if (transaction.numberOfMeterValues > 1 && transaction.currentTotalConsumption > 0) {
         // End of charge?
         if (_configChargingStation.notifEndOfChargeEnabled &&
           (transaction.currentTotalInactivitySecs > 60 || transaction.currentStateOfCharge === 100)) {
