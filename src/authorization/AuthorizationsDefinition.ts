@@ -116,37 +116,17 @@ const GRANTS = {
         action: 'RemoteStopTransaction',
         attributes: ['*'],
         condition: {
-          Fn: 'AND',
+          Fn: 'OR',
           args: [
             {
-              Fn: 'OR',
-              args: [
-                {
-                  Fn: 'EQUALS',
-                  args: { 'user': '$.owner' }
-                },
-                {
-                  Fn: 'LIST_CONTAINS',
-                  args: {
-                    'tagIDs': '$.tagID'
-                  }
-                }
-              ]
+              Fn: 'EQUALS',
+              args: { 'user': '$.owner' }
             },
             {
-              Fn: 'OR',
-              args: [
-                {
-                  Fn: 'EQUALS',
-                  args: { 'site': null }
-                },
-                {
-                  Fn: 'LIST_CONTAINS',
-                  args: {
-                    'sites': '$.site'
-                  }
-                }
-              ]
+              Fn: 'LIST_CONTAINS',
+              args: {
+                'tagIDs': '$.tagID'
+              }
             }
           ]
         }
@@ -155,37 +135,17 @@ const GRANTS = {
       {
         resource: 'Transaction', action: ['Read', 'RefundTransaction'], attributes: ['*'],
         condition: {
-          Fn: 'AND',
+          Fn: 'OR',
           args: [
             {
-              Fn: 'OR',
-              args: [
-                {
-                  Fn: 'EQUALS',
-                  args: { 'user': '$.owner' }
-                },
-                {
-                  Fn: 'LIST_CONTAINS',
-                  args: {
-                    'tagIDs': '$.tagID'
-                  }
-                }
-              ]
+              Fn: 'EQUALS',
+              args: { 'user': '$.owner' }
             },
             {
-              Fn: 'OR',
-              args: [
-                {
-                  Fn: 'EQUALS',
-                  args: { 'site': null }
-                },
-                {
-                  Fn: 'LIST_CONTAINS',
-                  args: {
-                    'sites': '$.site'
-                  }
-                }
-              ]
+              Fn: 'LIST_CONTAINS',
+              args: {
+                'tagIDs': '$.tagID'
+              }
             }
           ]
         }
@@ -255,11 +215,11 @@ const GRANTS = {
         resource: 'ChargingStation', action: ['Update', 'Delete',
           'Reset', 'ClearCache', 'GetConfiguration', 'ChangeConfiguration',
           'SetChargingProfile', 'GetCompositeSchedule', 'ClearChargingProfile',
-          'GetDiagnostics', 'UpdateFirmware'], attributes: ['*'],
+          'GetDiagnostics', 'UpdateFirmware','RemoteStopTransaction'], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } }
       },
       {
-        resource: 'Transaction', action: 'Read', attributes: ['*'],
+        resource: 'Transaction', action: ['Read', 'RefundTransaction'], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } }
       },
       { resource: 'Loggings', action: 'List', attributes: ['*'] },

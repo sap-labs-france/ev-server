@@ -72,11 +72,8 @@ export default class Authorizations {
   }
 
   public static getAuthorizedSiteIDs(loggedUser: UserToken, requestedSites: string[]): string[] {
-    if (!Utils.isComponentActiveFromToken(loggedUser, Constants.COMPONENTS.ORGANIZATION)) {
+    if (!Utils.isComponentActiveFromToken(loggedUser, Constants.COMPONENTS.ORGANIZATION) || this.isAdmin(loggedUser.role)) {
       return null;
-    }
-    if (this.isAdmin(loggedUser.role)) {
-      return requestedSites;
     }
     if (!requestedSites || requestedSites.length === 0) {
       return loggedUser.sites;
