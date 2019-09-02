@@ -174,13 +174,13 @@ export default class TransactionStorage {
   }
 
   public static async getTransactions(tenantID: string,
-                                      params: {
-                                        transactionId?: number; search?: string; userIDs?: string[]; siteAdminIDs?: string[]; chargeBoxIDs?:
-                                          string[]; siteAreaIDs?: string[]; siteID?: string[]; connectorId?: number; startDateTime?: Date;
-                                        endDateTime?: Date; stop?: any; minimalPrice?: boolean; withChargeBoxes?: boolean;
-                                        statistics?: 'refund' | 'history'; refundStatus?: string[];
-                                      },
-                                      dbParams: DbParams, projectFields?: string[]):
+    params: {
+      transactionId?: number; search?: string; userIDs?: string[]; siteAdminIDs?: string[]; chargeBoxIDs?:
+        string[]; siteAreaIDs?: string[]; siteID?: string[]; connectorId?: number; startDateTime?: Date;
+      endDateTime?: Date; stop?: any; minimalPrice?: boolean; withChargeBoxes?: boolean;
+      statistics?: 'refund' | 'history'; refundStatus?: string[];
+    },
+    dbParams: DbParams, projectFields?: string[]):
     Promise<{
       count: number; result: Transaction[]; stats: {
         totalConsumptionWattHours?: number; totalPriceRefund?: number; totalPricePending?: number;
