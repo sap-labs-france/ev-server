@@ -340,7 +340,7 @@ export default class SiteService {
         search: filteredRequest.Search,
         userID: filteredRequest.UserID,
         companyIDs: (filteredRequest.CompanyID ? filteredRequest.CompanyID.split('|') : null),
-        siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : []),
+        siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
         withCompany: filteredRequest.WithCompany,
         excludeSitesOfUserID: filteredRequest.ExcludeSitesOfUserID,
         withAvailableChargers: filteredRequest.WithAvailableChargers
