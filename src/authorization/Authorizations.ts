@@ -72,13 +72,15 @@ export default class Authorizations {
   }
 
   public static getAuthorizedSiteIDs(loggedUser: UserToken, requestedSites: string[]): string[] {
-    if (!Utils.isComponentActiveFromToken(loggedUser, Constants.COMPONENTS.ORGANIZATION) || this.isAdmin(loggedUser.role)) {
+    if (!Utils.isComponentActiveFromToken(loggedUser, Constants.COMPONENTS.ORGANIZATION)) {
       return null;
+    }
+    if (this.isAdmin(loggedUser.role)) {
+      return requestedSites;
     }
     if (!requestedSites || requestedSites.length === 0) {
       return loggedUser.sites;
     }
-
     return requestedSites.filter((site) => loggedUser.sites.includes(site));
   }
 
