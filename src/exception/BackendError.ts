@@ -9,7 +9,8 @@ export default class BackendError extends Error {
     readonly method: string = 'N/A',
     readonly action: string = 'N/A',
     readonly user?: User,
-    readonly actionOnUser?: User) {
+    readonly actionOnUser?: User,
+    readonly detailedMessages?: any) {
     super(message);
   }
 }

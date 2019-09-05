@@ -472,8 +472,7 @@ export default class Authorizations {
   }
 
   public static canCreateConnection(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CONNECTION, Constants.ACTION_CREATE,
-      { 'owner': loggedUser.id });
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CONNECTION, Constants.ACTION_CREATE);
   }
 
   public static canDeleteConnection(loggedUser: UserToken, userId: string): boolean {

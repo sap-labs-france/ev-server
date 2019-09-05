@@ -7,7 +7,6 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import Setting, { SettingContent } from '../../../types/Setting';
-import SettingService from './SettingService';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import Tenant from '../../../types/Tenant';
 import TenantSecurity from './security/TenantSecurity';
@@ -184,7 +183,7 @@ export default class TenantService {
       tenantUser.email;
     // Send Register User (Async)
     NotificationHandler.sendNewRegisteredUser(
-      filteredRequest.id,
+      Constants.DEFAULT_TENANT,
       Utils.generateGUID(),
       tenantUser,
       {
@@ -196,7 +195,7 @@ export default class TenantService {
     );
     // Send password (Async)
     NotificationHandler.sendNewPassword(
-      filteredRequest.id,
+      Constants.DEFAULT_TENANT,
       Utils.generateGUID(),
       tenantUser,
       {

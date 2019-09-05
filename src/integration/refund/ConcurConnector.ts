@@ -10,12 +10,12 @@ import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage
 import ConnectionStorage from '../../storage/mongodb/ConnectionStorage';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
-import InternalError from '../../exception/InternalError';
 import Logging from '../../utils/Logging';
 import Site from '../../types/Site';
 import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import Transaction from '../../types/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
+import BackendError from '../../exception/BackendError';
 
 const MODULE_NAME = 'ConcurConnector';
 const CONNECTOR_ID = 'concur';
@@ -36,18 +36,31 @@ export default class ConcurConnector extends AbstractConnector {
         retries: 3,
         retryCondition: (error) => error.response.status === Constants.HTTP_GENERAL_ERROR,
         retryDelay: (retryCount, error) => {
-          if (error.config.method === 'post') {
-            if (error.config.url.endsWith('/token')) {
-              Logging.logException(new InternalError(`Unable to request token, response status ${error.response.status}, attempt ${retryCount}`, error.response.data), 'Refund', MODULE_NAME, MODULE_NAME, 'AxiosRetry', tenantID);
+          try {
+            if (error.config.method === 'post') {
+              if (error.config.url.endsWith('/token')) {
+                throw new BackendError(
+                  Constants.CENTRAL_SERVER,
+                  `Unable to request token, response status ${error.response.status}, attempt ${retryCount}`,
+                  MODULE_NAME, 'anonymous', 'Refund', null, null, error.response);
+              } else {
+                const payload = {
+                  error: error.response.data,
+                  payload: JSON.parse(error.config.data)
+                };
+                throw new BackendError(
+                  Constants.CENTRAL_SERVER,
+                  `Unable to post data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`,
+                  MODULE_NAME, 'anonymous', 'Refund', null, null, payload);
+              }
             } else {
-              const payload = {
-                error: error.response.data,
-                payload: JSON.parse(error.config.data)
-              };
-              Logging.logException(new InternalError(`Unable to post data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`, payload), 'Refund', MODULE_NAME, MODULE_NAME, 'AxiosRetry', tenantID);
+              throw new BackendError(
+                Constants.CENTRAL_SERVER,
+                `Unable to ${error.config.url} data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`,
+                MODULE_NAME, 'anonymous', 'Refund', null, null, error.response.data);
             }
-          } else {
-            Logging.logException(new InternalError(`Unable to ${error.config.url} data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`, error.response.data), 'Refund', MODULE_NAME, MODULE_NAME, 'AxiosRetry', tenantID);
+          } catch (err) {
+            Logging.logException(err, 'Refund', Constants.CENTRAL_SERVER, MODULE_NAME, 'anonymous', tenantID, null);
           }
           return retryCount * 200;
         },
@@ -138,18 +151,10 @@ export default class ConcurConnector extends AbstractConnector {
         validUntil: ConcurConnector.computeValidUntilAt(result)
       });
     } catch (e) {
-      Logging.logError({
-        tenantID: this.getTenantID(),
-        module: MODULE_NAME,
-        method: 'createConnection',
-        action: 'Refund',
-        message: `Concur access token not granted for ${userId} ${JSON.stringify(e.response.data)}`,
-        error: e
-      });
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Concur access token not granted for ${userId}`, Constants.HTTP_GENERAL_ERROR,
-        MODULE_NAME, 'GetAccessToken', userId);
+        MODULE_NAME, 'GetAccessToken', userId, null, 'Refund', e);
     }
   }
 
@@ -259,12 +264,11 @@ export default class ConcurConnector extends AbstractConnector {
     if (response.data && response.data.Items && response.data.Items.length > 0) {
       return response.data.Items[0];
     }
-
     throw new AppError(
       MODULE_NAME,
       `The city '${site.address.city}' of the station is unknown to Concur`,
       Constants.HTTP_CONCUR_CITY_UNKNOWN_ERROR,
-      MODULE_NAME, 'getLocation');
+      MODULE_NAME, 'getLocation', null, null, 'Refund');
   }
 
   async createQuickExpense(connection, transaction: Transaction, location, userId: string) {
@@ -297,12 +301,12 @@ export default class ConcurConnector extends AbstractConnector {
         message: `Transaction ${transaction.id} has been successfully transferred in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
       });
       return response.data.quickExpenseIdUri;
-    } catch (e) {
-      if (e.response) {
-        throw new InternalError(`Unable to create quickExpense, response status ${e.response.status}`, e.response.data);
-      } else {
-        throw new InternalError('Unable to create expense report', e);
-      }
+    } catch (error) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Unable to create Quick Expense',
+        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'createQuickExpense',
+        userId, null, 'Refund', error);
     }
   }
 
@@ -340,12 +344,12 @@ export default class ConcurConnector extends AbstractConnector {
         message: `Transaction ${transaction.id} has been successfully transferred in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
       });
       return response.data.ID;
-    } catch (e) {
-      if (e.response) {
-        throw new InternalError(`Unable to create expense entry, response status ${e.response.status}`, e.response.data);
-      } else {
-        throw new InternalError('Unable to create expense entry', e);
-      }
+    } catch (error) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Unable to create an Expense Report entry',
+        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'createExpenseReportEntry',
+        userId, null, 'Refund', error);
     }
   }
 
@@ -369,12 +373,12 @@ export default class ConcurConnector extends AbstractConnector {
         message: `Report has been successfully created in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
       });
       return response.data.ID;
-    } catch (e) {
-      if (e.response) {
-        throw new InternalError(`Unable to create expense report, response status ${e.response.status}`, e.response.data);
-      } else {
-        throw new InternalError('Unable to create expense report', e);
-      }
+    } catch (error) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Unable to create an Expense Report',
+        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'createExpenseReport',
+        userId, null, 'Refund', error);
     }
   }
 
@@ -398,8 +402,11 @@ export default class ConcurConnector extends AbstractConnector {
       if (error.response.status === 404) {
         return null;
       }
-      throw new InternalError(`Unable to get report details, response status
-        ${error.response.status}`, error.response.data);
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `Unable to get Report details with ID '${reportId}'`,
+        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'getExpenseReport',
+        null, null, 'Refund', error);
     }
   }
 
@@ -412,8 +419,12 @@ export default class ConcurConnector extends AbstractConnector {
         }
       });
       return response.data.Items;
-    } catch (e) {
-      throw new InternalError(`Unable to get expense reports, response status ${e.response.status}`, e.response.data);
+    } catch (error) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Unable to get expense Reports',
+        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'getExpenseReports',
+        null, null, 'Refund', error);
     }
   }
 

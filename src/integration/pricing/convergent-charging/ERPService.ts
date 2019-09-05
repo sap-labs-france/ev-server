@@ -2,8 +2,9 @@ import { soap } from 'strong-soap';
 import AbstractSoapClient from './AbstractSoapClient';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 import global from '../../../types/GlobalType';
-import InternalError from '../../../exception/InternalError';
 import User from '../../../types/User';
+import Constants from '../../../utils/Constants';
+import BackendError from '../../../exception/BackendError';
 
 export default class ERPService extends AbstractSoapClient {
   public execute: any;
@@ -33,20 +34,35 @@ export default class ERPService extends AbstractSoapClient {
   async createInvoice(tenantId, user: User) {
     const connection = await ConnectionStorage.getConnectionByUserId(tenantId, 'convergent-invoicing', user.id);
     if (!connection) {
-      throw new InternalError(`Convergent Invoicing connection is missing for user ${user.id}`);
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Convergent Invoicing connection is missing',
+        'ERPService', 'createInvoice', 'Billing', user);
     }
     const invoiceCreateRequest = new InvoiceCreateRequest(connection.getData().gpart, connection.getData().vkont, 1, 'SDBC', 'YN');
     const result = await this.execute(invoiceCreateRequest);
     if (!result.data.InvoiceDocumentNumber) {
       if (result.data.status === 'error') {
-        throw new InternalError(result.data.message, result.data);
+        throw new BackendError(
+          Constants.CENTRAL_SERVER,
+          result.data.message,
+          'ERPService', 'createInvoice', 'Billing',
+          user, null, result.data);
       } else if (result.data.ReturnedMessage) {
         if (result.data.ReturnedMessage.detail && result.data.ReturnedMessage.detail[2].$attributes.value === '115') {
           return null;
         }
-        throw new InternalError('Unable to create invoice', result.data.ReturnedMessage);
+        throw new BackendError(
+          Constants.CENTRAL_SERVER,
+          'Unable to create invoice',
+          'ERPService', 'createInvoice', 'Billing',
+          user, null, result.data);
       }
-      throw new InternalError('Unable to create invoice', result.data);
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Unable to create invoice',
+        'ERPService', 'createInvoice', 'Billing',
+        user, null, result.data);
     }
     return result.data.InvoiceDocumentNumber;
   }

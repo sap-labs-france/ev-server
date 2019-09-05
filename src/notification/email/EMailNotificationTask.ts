@@ -7,7 +7,6 @@ import Constants from '../../utils/Constants';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import NotificationTask from '../NotificationTask';
-import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
 
@@ -109,8 +108,7 @@ export default class EMailNotificationTask extends NotificationTask {
 
   async _prepareAndSendEmail(templateName, data, locale, tenantID) {
     // Check locale
-    if (!locale) {
-      // Default
+    if (!locale || !Constants.SUPPORTED_LOCALES.includes(locale)) {
       locale = Constants.DEFAULT_LOCALE;
     }
     // Check users
