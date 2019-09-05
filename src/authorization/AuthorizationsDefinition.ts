@@ -42,8 +42,26 @@ const GRANTS = {
       { resource: 'Transactions', action: 'List', attributes: ['*'] },
       {
         resource: 'Transaction',
-        action: ['Read', 'Update', 'Delete', 'RefundTransaction'],
+        action: ['Read', 'Update', 'Delete'],
         attributes: ['*']
+      },
+      {
+        resource: 'Transaction', action: ['RefundTransaction'], attributes: ['*'],
+        condition: {
+          Fn: 'OR',
+          args: [
+            {
+              Fn: 'EQUALS',
+              args: { 'user': '$.owner' }
+            },
+            {
+              Fn: 'LIST_CONTAINS',
+              args: {
+                'tagIDs': '$.tagID'
+              }
+            }
+          ]
+        }
       },
       { resource: 'Loggings', action: 'List', attributes: ['*'] },
       { resource: 'Logging', action: 'Read', attributes: ['*'] },
@@ -78,9 +96,7 @@ const GRANTS = {
         resource: 'Site', action: 'Read', attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
       },
-      {
-        resource: 'SiteAreas', action: 'List', attributes: ['*']
-      },
+      { resource: 'SiteAreas', action: 'List', attributes: ['*'] },
       {
         resource: 'SiteArea', action: 'Read', attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }

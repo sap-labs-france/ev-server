@@ -456,7 +456,7 @@ export default class TransactionService {
     }
     const filter: any = { stop: { $exists: true } };
     // Filter
-    const filteredRequest = TransactionSecurity.filterTransactionsCompletedRequest(req.query);
+    const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
     if (filteredRequest.ChargeBoxID) {
       filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
     }
@@ -507,6 +507,70 @@ export default class TransactionService {
     next();
   }
 
+  public static async handleGetTransactionsToRefund(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check auth
+    if (!Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError(
+        Constants.ACTION_LIST,
+        Constants.ENTITY_TRANSACTION,
+        null,
+        Constants.HTTP_AUTH_ERROR,
+        'TransactionService', 'handleGetTransactionsToRefund',
+        req.user);
+    }
+    const filter: any = { stop: { $exists: true } };
+    // Filter
+    const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
+    if (filteredRequest.ChargeBoxID) {
+      filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
+    }
+    if (filteredRequest.SiteAreaID) {
+      filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
+    }
+    if (filteredRequest.SiteID) {
+      filter.siteID = filteredRequest.SiteID.split('|');
+    }
+    if (filteredRequest.UserID) {
+      filter.userIDs = filteredRequest.UserID.split('|');
+    }
+    if (Authorizations.isBasic(req.user.role) || Authorizations.isAdmin(req.user.role)) {
+      filter.userIDs = [req.user.id];
+    }
+    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
+      filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
+    }
+    if (filteredRequest.StartDateTime) {
+      filter.startTime = filteredRequest.StartDateTime;
+    }
+    if (filteredRequest.EndDateTime) {
+      filter.endTime = filteredRequest.EndDateTime;
+    }
+    if (filteredRequest.RefundStatus) {
+      filter.refundStatus = filteredRequest.RefundStatus.split('|');
+    }
+    if (filteredRequest.MinimalPrice) {
+      filter.minimalPrice = filteredRequest.MinimalPrice;
+    }
+    if (filteredRequest.Statistics) {
+      filter.statistics = filteredRequest.Statistics;
+    }
+    if (filteredRequest.Search) {
+      filter.search = filteredRequest.Search;
+    }
+    const transactions = await TransactionStorage.getTransactions(req.user.tenantID, filter,
+      {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.Sort,
+        onlyRecordCount: filteredRequest.OnlyRecordCount
+      });
+    // Filter
+    TransactionSecurity.filterTransactionsResponse(transactions, req.user, true);
+    // Return
+    res.json(transactions);
+    next();
+  }
+
   public static async handleGetTransactionsExport(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
@@ -520,7 +584,7 @@ export default class TransactionService {
     }
     const filter: any = { stop: { $exists: true } };
     // Filter
-    const filteredRequest = TransactionSecurity.filterTransactionsCompletedRequest(req.query);
+    const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
     if (filteredRequest.ChargeBoxID) {
       filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
     }
