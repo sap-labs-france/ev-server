@@ -108,7 +108,7 @@ export default class TransactionService {
     }
     // Refund the Transaction
     const setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, 'refund');
-    const connector = new ConcurConnector(req.user.tenantID, setting);
+    const connector = new ConcurConnector(req.user.tenantID, setting.content[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]);
     const refundedTransactions = await connector.refund(req.user.tenantID, user.id, transactionsToRefund);
     const response: any = {
       ...Constants.REST_RESPONSE_SUCCESS,

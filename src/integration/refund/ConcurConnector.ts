@@ -138,18 +138,10 @@ export default class ConcurConnector extends AbstractConnector {
         validUntil: ConcurConnector.computeValidUntilAt(result)
       });
     } catch (e) {
-      Logging.logError({
-        tenantID: this.getTenantID(),
-        module: MODULE_NAME,
-        method: 'createConnection',
-        action: 'Refund',
-        message: `Concur access token not granted for ${userId} ${JSON.stringify(e.response.data)}`,
-        error: e
-      });
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Concur access token not granted for ${userId}`, Constants.HTTP_GENERAL_ERROR,
-        MODULE_NAME, 'GetAccessToken', userId);
+        MODULE_NAME, 'GetAccessToken', userId, null, 'Refund', e);
     }
   }
 
@@ -259,12 +251,11 @@ export default class ConcurConnector extends AbstractConnector {
     if (response.data && response.data.Items && response.data.Items.length > 0) {
       return response.data.Items[0];
     }
-
     throw new AppError(
       MODULE_NAME,
       `The city '${site.address.city}' of the station is unknown to Concur`,
       Constants.HTTP_CONCUR_CITY_UNKNOWN_ERROR,
-      MODULE_NAME, 'getLocation');
+      MODULE_NAME, 'getLocation', null, null, 'Refund');
   }
 
   async createQuickExpense(connection, transaction: Transaction, location, userId: string) {
@@ -297,12 +288,12 @@ export default class ConcurConnector extends AbstractConnector {
         message: `Transaction ${transaction.id} has been successfully transferred in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
       });
       return response.data.quickExpenseIdUri;
-    } catch (e) {
-      if (e.response) {
-        throw new InternalError(`Unable to create quickExpense, response status ${e.response.status}`, e.response.data);
-      } else {
-        throw new InternalError('Unable to create expense report', e);
-      }
+    } catch (error) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Unable to create Quick Expense',
+        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'createQuickExpense',
+        userId, null, 'Refund', error);
     }
   }
 
@@ -340,12 +331,12 @@ export default class ConcurConnector extends AbstractConnector {
         message: `Transaction ${transaction.id} has been successfully transferred in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
       });
       return response.data.ID;
-    } catch (e) {
-      if (e.response) {
-        throw new InternalError(`Unable to create expense entry, response status ${e.response.status}`, e.response.data);
-      } else {
-        throw new InternalError('Unable to create expense entry', e);
-      }
+    } catch (error) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Unable to create an Expense Report entry',
+        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'createExpenseReportEntry',
+        userId, null, 'Refund', error);
     }
   }
 
@@ -369,12 +360,12 @@ export default class ConcurConnector extends AbstractConnector {
         message: `Report has been successfully created in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
       });
       return response.data.ID;
-    } catch (e) {
-      if (e.response) {
-        throw new InternalError(`Unable to create expense report, response status ${e.response.status}`, e.response.data);
-      } else {
-        throw new InternalError('Unable to create expense report', e);
-      }
+    } catch (error) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Unable to create an Expense Report',
+        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'createExpenseReport',
+        userId, null, 'Refund', error);
     }
   }
 
@@ -395,11 +386,11 @@ export default class ConcurConnector extends AbstractConnector {
       });
       return response.data;
     } catch (error) {
-      if (error.response.status === 404) {
-        return null;
-      }
-      throw new InternalError(`Unable to get report details, response status
-        ${error.response.status}`, error.response.data);
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `Unable to get Report details with ID ${reportId}`,
+        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'getExpenseReport',
+        null, null, 'Refund', error);
     }
   }
 
@@ -412,8 +403,12 @@ export default class ConcurConnector extends AbstractConnector {
         }
       });
       return response.data.Items;
-    } catch (e) {
-      throw new InternalError(`Unable to get expense reports, response status ${e.response.status}`, e.response.data);
+    } catch (error) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Unable to get expense Reports',
+        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'getExpenseReports',
+        null, null, 'Refund', error);
     }
   }
 

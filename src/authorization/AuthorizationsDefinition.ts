@@ -153,8 +153,9 @@ const GRANTS = {
       { resource: 'Settings', action: 'List', attributes: ['*'] },
       { resource: 'Setting', action: 'Read', attributes: ['*'] },
       { resource: 'Connections', action: 'List', attributes: ['*'] },
+      { resource: 'Connection', action: ['Create'], attributes: ['*'] },
       {
-        resource: 'Connection', action: ['Create', 'Read', 'Delete'], attributes: ['*'],
+        resource: 'Connection', action: ['Read', 'Delete'], attributes: ['*'],
         condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
       },
     ]
