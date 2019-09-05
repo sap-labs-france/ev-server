@@ -19,13 +19,13 @@ export default class WSServer extends WebSocket.Server {
   /**
    * Create a new `WSServer`.
    *
-   * @param {Object} httpServer
+   * @param {http.Server} httpServer
    * @param {String} serverName
    * @param {Object} serverConfig
    * @param {Function} verifyClientCb
    * @param {Function} handleProtocolsCb
    */
-  public constructor(httpServer, serverName, serverConfig, verifyClientCb: WebSocket.VerifyClientCallbackAsync | WebSocket.VerifyClientCallbackSync = (): void => { }, handleProtocolsCb: Function = (): void => { }) {
+  public constructor(httpServer, serverName: string, serverConfig, verifyClientCb: WebSocket.VerifyClientCallbackAsync | WebSocket.VerifyClientCallbackSync = (): void => { }, handleProtocolsCb: Function = (): void => { }) {
     // Create the Web Socket Server
     super({
       server: httpServer,

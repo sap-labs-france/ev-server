@@ -37,8 +37,8 @@ export default class RegistrationTokenStorage {
   }
 
   static async getRegistrationTokens(tenantID: string,
-      params: { id?: string; siteIDs?: string; siteAreaID?: string } = {}, dbParams: DbParams):
-      Promise<DataResult<RegistrationToken>> {
+    params: { id?: string; siteIDs?: string; siteAreaID?: string } = {}, dbParams: DbParams):
+    Promise<DataResult<RegistrationToken>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('RegistrationTokenStorage', 'getRegistrationTokens');
     // Check Tenant

@@ -1369,7 +1369,7 @@ export default class OCPPService {
     transaction.stop.userID = (alternateUser ? alternateUser.id : (user ? user.id : null));
     transaction.stop.tagID = tagId;
     transaction.stop.stateOfCharge = transaction.currentStateOfCharge;
-    transaction.stop.signedData = transaction.currentSignedData ? transaction.currentSignedData : "";
+    transaction.stop.signedData = transaction.currentSignedData ? transaction.currentSignedData : '';
     // Keep the last Meter Value
     const lastMeterValue = transaction.lastMeterValue;
     // Compute duration

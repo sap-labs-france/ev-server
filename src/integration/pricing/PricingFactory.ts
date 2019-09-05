@@ -17,7 +17,7 @@ export default class PricingFactory {
       const setting = await SettingStorage.getSettingByIdentifier(tenantID, Constants.COMPONENTS.PRICING);
       // Check
       if (setting) {
-        // SAP Convergeant Charging
+        // SAP Convergent Charging
         if (setting.content[Constants.SETTING_PRICING_CONTENT_TYPE_CONVERGENT_CHARGING]) {
           // Return the CC implementation
           return new ConvergentChargingPricing(tenantID,
