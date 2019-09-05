@@ -844,7 +844,7 @@ export default class UserStorage {
       address: null,
       createdBy: null,
       createdOn: new Date(),
-      locale: 'en',
+      locale: Constants.DEFAULT_LOCALE,
       notificationsActive: true,
       role: Constants.ROLE_BASIC,
       status: Constants.USER_STATUS_PENDING,
