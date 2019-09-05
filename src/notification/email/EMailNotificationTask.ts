@@ -108,7 +108,7 @@ export default class EMailNotificationTask extends NotificationTask {
 
   async _prepareAndSendEmail(templateName, data, locale, tenantID) {
     // Check locale
-    if (!locale) {
+    if (!locale || !Constants.SUPPORTED_LOCALES.includes(locale)) {
       locale = Constants.DEFAULT_LOCALE;
     }
     // Check users
