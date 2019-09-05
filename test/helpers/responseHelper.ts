@@ -73,4 +73,4 @@ export default function(chai, utils) {
       new Assertion(this._obj.content.type).to.equal(type);
     }
   });
-};
+}

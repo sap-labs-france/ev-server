@@ -10,7 +10,6 @@ import StatisticSecurity from './security/StatisticSecurity';
 import User from '../../../types/User';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
-import { SSL_OP_SSLEAY_080_CLIENT_DH_BUG } from 'constants';
 
 export default class StatisticService {
   static async handleGetChargingStationConsumptionStatistics(action: string, req: Request, res: Response, next: NextFunction) {
@@ -29,7 +28,7 @@ export default class StatisticService {
           req.user);
       }
       // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
@@ -62,7 +61,7 @@ export default class StatisticService {
           req.user);
       }
       // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
@@ -95,7 +94,7 @@ export default class StatisticService {
           req.user);
       }
       // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
@@ -128,7 +127,7 @@ export default class StatisticService {
           req.user);
       }
       // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
@@ -161,7 +160,7 @@ export default class StatisticService {
           req.user);
       }
       // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
@@ -194,7 +193,7 @@ export default class StatisticService {
           req.user);
       }
       // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
@@ -227,7 +226,7 @@ export default class StatisticService {
           req.user);
       }
       // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
@@ -260,7 +259,7 @@ export default class StatisticService {
           req.user);
       }
       // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
@@ -293,7 +292,7 @@ export default class StatisticService {
           req.user);
       }
       // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
@@ -326,7 +325,7 @@ export default class StatisticService {
           req.user);
       }
       // Filter
-      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query, req.user);
+      const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Get Stats
@@ -355,7 +354,7 @@ export default class StatisticService {
           req.user);
       }
       // Filter
-      const filteredRequest = StatisticSecurity.filterMetricsStatisticsRequest(req.query, req.user);
+      const filteredRequest = StatisticSecurity.filterMetricsStatisticsRequest(req.query);
       // Get Data
       const metrics = await StatisticsStorage.getCurrentMetrics(req.user.tenantID, filteredRequest);
       // Return
@@ -383,7 +382,7 @@ export default class StatisticService {
           req.user);
       }
       // Filter
-      const filteredRequest = StatisticSecurity.filterExportStatisticsRequest(req.query, req.user);
+      const filteredRequest = StatisticSecurity.filterExportStatisticsRequest(req.query);
       // Build filter
       const filter = StatisticService.buildFilter(filteredRequest, req.user);
       // Decisions
@@ -421,20 +420,20 @@ export default class StatisticService {
       const filename = 'export' + filteredRequest.DataType + 'Statistics.csv';
       fs.writeFile(filename, StatisticService.convertToCSV(transactionStatsMDB, filteredRequest.DataCategory,
         filteredRequest.DataType, filteredRequest.Year, filteredRequest.DataScope), (createError) => {
-          if (createError) {
-            throw createError;
+        if (createError) {
+          throw createError;
+        }
+        res.download(filename, (downloadError) => {
+          if (downloadError) {
+            throw downloadError;
           }
-          res.download(filename, (downloadError) => {
-            if (downloadError) {
-              throw downloadError;
+          fs.unlink(filename, (unlinkError) => {
+            if (unlinkError) {
+              throw unlinkError;
             }
-            fs.unlink(filename, (unlinkError) => {
-              if (unlinkError) {
-                throw unlinkError;
-              }
-            });
           });
         });
+      });
     } catch (error) {
       // Log
       Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
@@ -442,7 +441,7 @@ export default class StatisticService {
   }
 
   // Only completed transactions
-    static buildFilter(filteredRequest, loggedUser) {
+  static buildFilter(filteredRequest, loggedUser) {
     const filter: any = { stop: { $exists: true } };
     // Date
     if ('Year' in filteredRequest) {

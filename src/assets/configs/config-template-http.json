@@ -1,178 +1,178 @@
 {
-	"Crypto": {
-		"key": "",
-		"algorithm": "aes-256-ctr"
-	},
-	"Cluster": {
-		"enabled": false,
-		"numWorkers": 2
-	},
-	"CentralSystems": [
-		{
-			"type": "ocpp",
-			"implementation": "soap",
-			"protocol": "http",
-			"host": "localhost",
-			"port": 8000,
-			"debug": false
-		},
-		{
-			"type": "ocpp",
-			"implementation": "json",
-			"protocol": "ws",
-			"host": "localhost",
-			"port": 8010,
-			"keepaliveinterval": 30,
-			"debug": false
-		}
-	],
-	"CentralSystemRestService": {
-		"protocol": "http",
-		"host": "localhost",
-		"port": 80,
-		"userTokenKey": "YourSecretKey",
-		"userTokenLifetimeHours": 12,
-		"userDemoTokenLifetimeDays": 365,
-		"webSocketNotificationIntervalSecs": 2,
-		"passwordWrongNumberOfTrial": 3,
-		"passwordBlockedWaitTimeMin": 5,
-		"captchaSecretKey": "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe",
-		"socketIO": false,
-		"debug": false
-	},
-	"CentralSystemFrontEnd": {
-		"protocol": "http",
-		"host": "localhost",
-		"port": 80
-	},
-	"OCPIService": {
-		"protocol": "http",
-		"host": "localhost",
-		"port": 9090,
-		"debug": false,
-		"externalProtocol": "http",
-		"tenantEnabled": [
-			"slf"
-		],
-		"eMI3id": {
-			"slf": {
-				"country_id": "FR",
-				"party_id": "SLF"
-			}
-		}
-	},
-	"CentralSystemServer": {
-		"protocol": "http",
-		"host": "localhost",
-		"port": 80
-	},
-	"ODataService": {
-		"protocol": "http",
-		"host": "localhost",
-		"port": 9292,
-		"debug": false,
-		"externalProtocol": "http"
-	},
-	"WSDLEndpoint": {
-		"baseUrl": ""
-	},
-	"JsonEndpoint": {
-		"baseUrl": ""
-	},
-	"WSClient": {
-		"autoReconnectMaxRetries": 10,
-		"autoReconnectTimeout": 60
-	},
-	"Storage": {
-		"implementation": "mongodb",
-		"uri": null,
-		"host": "localhost",
-		"port": 27017,
-		"user": "evse-user",
-		"password": "",
-		"database": "evse",
-		"poolSize": 20,
-		"replicaSet": "rs0",
-		"monitorDBChange": true,
-		"debug": false
-	},
-	"Email": {
-		"from": "admin.noreply@evse.com",
-		"admins": [],
-		"bcc": "",
-		"smtp": {
-			"host": "smtp.gmail.com",
-			"port": 465,
-			"secure": true,
-			"requireTLS": false,
-			"user": "",
-			"password": ""
-		}
-	},
-	"Notification": {
-		"Email": {
-			"enabled": true
-		}
-	},
-	"Authorization": {
-		"debug": false
-	},
-	"ChargingStation": {
-		"heartbeatIntervalSecs": 60,
-		"notifBeforeEndOfChargeEnabled": true,
-		"notifBeforeEndOfChargePercent": 85,
-		"notifEndOfChargeEnabled": true,
-		"notifStopTransactionAndUnlockConnector": false
-	},
-	"Locales": {
-		"default": "en_US",
-		"supported": [
-			"en_US",
-			"fr_FR"
-		]
-	},
-	"Advanced": {
-		"chargeCurveTimeFrameSecsPoint": 60
-	},
-	"Scheduler": {
-		"active": true,
-		"tasks": [
-			{
-				"name": "loggingDatabaseTableCleanup",
-				"active": true,
-				"periodicity": "0 0 * * 1",
-				"config": {
-					"retentionPeriodWeeks": 4,
-					"securityRetentionPeriodWeeks": 12
-				}
-			},
-			{
-				"name": "OCPIPatchLocationsTask",
-				"active": true,
-				"periodicity": "0-59/5 * * * *",
-				"config": {}
-			},
+  "Crypto": {
+    "key": "",
+    "algorithm": "aes-256-ctr"
+  },
+  "Cluster": {
+    "enabled": false,
+    "numWorkers": 2
+  },
+  "CentralSystems": [
+    {
+      "type": "ocpp",
+      "implementation": "soap",
+      "protocol": "http",
+      "host": "localhost",
+      "port": 8000,
+      "debug": false
+    },
+    {
+      "type": "ocpp",
+      "implementation": "json",
+      "protocol": "ws",
+      "host": "localhost",
+      "port": 8010,
+      "keepaliveinterval": 30,
+      "debug": false
+    }
+  ],
+  "CentralSystemRestService": {
+    "protocol": "http",
+    "host": "localhost",
+    "port": 80,
+    "userTokenKey": "YourSecretKey",
+    "userTokenLifetimeHours": 12,
+    "userDemoTokenLifetimeDays": 365,
+    "webSocketNotificationIntervalSecs": 2,
+    "passwordWrongNumberOfTrial": 3,
+    "passwordBlockedWaitTimeMin": 5,
+    "captchaSecretKey": "6LeIxAcTAAAAAGG-vFI1TnRWxMZNFuojJ4WifJWe",
+    "socketIO": false,
+    "debug": false
+  },
+  "CentralSystemFrontEnd": {
+    "protocol": "http",
+    "host": "localhost",
+    "port": 80
+  },
+  "OCPIService": {
+    "protocol": "http",
+    "host": "localhost",
+    "port": 9090,
+    "debug": false,
+    "externalProtocol": "http",
+    "tenantEnabled": [
+      "slf"
+    ],
+    "eMI3id": {
+      "slf": {
+        "country_id": "FR",
+        "party_id": "SLF"
+      }
+    }
+  },
+  "CentralSystemServer": {
+    "protocol": "http",
+    "host": "localhost",
+    "port": 80
+  },
+  "ODataService": {
+    "protocol": "http",
+    "host": "localhost",
+    "port": 9292,
+    "debug": false,
+    "externalProtocol": "http"
+  },
+  "WSDLEndpoint": {
+    "baseUrl": ""
+  },
+  "JsonEndpoint": {
+    "baseUrl": ""
+  },
+  "WSClient": {
+    "autoReconnectMaxRetries": 10,
+    "autoReconnectTimeout": 60
+  },
+  "Storage": {
+    "implementation": "mongodb",
+    "uri": null,
+    "host": "localhost",
+    "port": 27017,
+    "user": "evse-user",
+    "password": "",
+    "database": "evse",
+    "poolSize": 20,
+    "replicaSet": "rs0",
+    "monitorDBChange": true,
+    "debug": false
+  },
+  "Email": {
+    "from": "admin.noreply@evse.com",
+    "admins": [],
+    "bcc": "",
+    "smtp": {
+      "host": "smtp.gmail.com",
+      "port": 465,
+      "secure": true,
+      "requireTLS": false,
+      "user": "",
+      "password": ""
+    }
+  },
+  "Notification": {
+    "Email": {
+      "enabled": true
+    }
+  },
+  "Authorization": {
+    "debug": false
+  },
+  "ChargingStation": {
+    "heartbeatIntervalSecs": 60,
+    "notifBeforeEndOfChargeEnabled": true,
+    "notifBeforeEndOfChargePercent": 85,
+    "notifEndOfChargeEnabled": true,
+    "notifStopTransactionAndUnlockConnector": false
+  },
+  "Locales": {
+    "default": "en_US",
+    "supported": [
+      "en_US",
+      "fr_FR"
+    ]
+  },
+  "Advanced": {
+    "chargeCurveTimeFrameSecsPoint": 60
+  },
+  "Scheduler": {
+    "active": true,
+    "tasks": [
+      {
+        "name": "LoggingDatabaseTableCleanupTask",
+        "active": true,
+        "periodicity": "0 0 * * 1",
+        "config": {
+          "retentionPeriodWeeks": 4,
+          "securityRetentionPeriodWeeks": 12
+        }
+      },
+      {
+        "name": "OCPIPatchLocationsTask",
+        "active": true,
+        "periodicity": "0-59/5 * * * *",
+        "config": {}
+      },
       {
         "name": "SynchronizeRefundTransactionsTask",
         "active": true,
         "periodicity": "0 * * * *",
         "config": {}
       }
-		]
-	},
-	"Logging": {
-		"logLevel": "D",
-		"consoleLogLevel": "NONE",
-		"trace": false,
-		"moduleDetails": {
-			"ChargingStation": {
-				"logLevel": "DEFAULT",
-				"consoleLogLevel": "DEFAULT"
-			},
-			"Authorizations": {
-				"logLevel": "DEFAULT",
-				"consoleLogLevel": "DEFAULT"
-			}
-		}
-	}
+    ]
+  },
+  "Logging": {
+    "logLevel": "D",
+    "consoleLogLevel": "NONE",
+    "trace": false,
+    "moduleDetails": {
+      "ChargingStation": {
+        "logLevel": "DEFAULT",
+        "consoleLogLevel": "DEFAULT"
+      },
+      "Authorizations": {
+        "logLevel": "DEFAULT",
+        "consoleLogLevel": "DEFAULT"
+      }
+    }
+  }
 }

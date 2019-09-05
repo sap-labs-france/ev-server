@@ -2,11 +2,11 @@ import axios from 'axios';
 import _ from 'lodash';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
+import OCPIEndpoint from '../../entity/OCPIEndpoint';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
-import OCPIEndpoint from '../../entity/OCPIEndpoint';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Setting from '../../types/Setting';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
 
 export default class OCPIClient {
   private ocpiEndpoint: OCPIEndpoint;
@@ -71,7 +71,7 @@ export default class OCPIClient {
       // Set available endpoints
       this.ocpiEndpoint.setAvailableEndpoints(OCPIMapping.convertEndpoints(services.data.data));
 
-      // Post credentials and recieve response
+      // Post credentials and receive response
       const respPostCredentials = await this.postCredentials();
       const credential = respPostCredentials.data.data;
 
@@ -126,7 +126,7 @@ export default class OCPIClient {
     // Log
     Logging.logInfo({
       tenantID: this.ocpiEndpoint.getTenantID(),
-      action: 'OCPIGetVersions',
+      action: 'OcpiGetVersions',
       message: `Get OCPI versions at ${this.ocpiEndpoint.getVersionUrl()}`,
       source: 'OCPI Client',
       module: 'OCPIClient',
@@ -167,7 +167,7 @@ export default class OCPIClient {
     // Log
     Logging.logInfo({
       tenantID: tenant.id,
-      action: 'OCPIPostCredentials',
+      action: 'OcpiPostCredentials',
       message: `Post credentials at ${credentialsUrl}`,
       source: 'OCPI Client',
       module: 'OCPIClient',
@@ -234,7 +234,7 @@ export default class OCPIClient {
     // Log
     Logging.logDebug({
       tenantID: this.ocpiEndpoint.getTenantID(),
-      action: 'OCPIPatchLocations',
+      action: 'OcpiPatchLocations',
       message: `Patch location at ${fullUrl}`,
       source: 'OCPI Client',
       module: 'OCPIClient',
@@ -288,7 +288,7 @@ export default class OCPIClient {
       // Log error if failure
       Logging.logError({
         tenantID: tenant.id,
-        action: 'OCPISendEVSEStatuses',
+        action: 'OcpiEndpointSendEVSEStatuses',
         message: 'OCPI Configuration not active',
         source: 'OCPI Client',
         module: 'OCPIClient',
@@ -360,7 +360,7 @@ export default class OCPIClient {
       // Log error if failure
       Logging.logError({
         tenantID: tenant.id,
-        action: 'OCPISendEVSEStatuses',
+        action: 'OcpiEndpointSendEVSEStatuses',
         message: `Patching of ${sendResult.logs.length} EVSE statuses has been done with errors (see details)`,
         detailedMessages: sendResult.logs,
         source: 'OCPI Client',
@@ -371,7 +371,7 @@ export default class OCPIClient {
       // Log info
       Logging.logInfo({
         tenantID: tenant.id,
-        action: 'OCPISendEVSEStatuses',
+        action: 'OcpiEndpointSendEVSEStatuses',
         message: `Patching of ${sendResult.logs.length} EVSE statuses has been done successfully (see details)`,
         detailedMessages: sendResult.logs,
         source: 'OCPI Client',
@@ -419,9 +419,7 @@ export default class OCPIClient {
 
     // Loop through notifications
     if (statusNotificationsResult.count > 0) {
-      return statusNotificationsResult.result.map((statusNotification) => {
-        return statusNotification.chargeBoxID;
-      });
+      return statusNotificationsResult.result.map((statusNotification) => statusNotification.chargeBoxID);
     }
     return [];
   }

@@ -2,10 +2,10 @@ import chai, { expect } from 'chai';
 import chaiSubset from 'chai-subset';
 import moment from 'moment';
 import responseHelper from '../../helpers/responseHelper';
+import CentralServerService from '../client/CentralServerService';
 import CONTEXTS from '../contextProvider/ContextConstants';
 import TenantContext from './TenantContext';
 import User from '../../types/User';
-import CentralServerService from '../client/CentralServerService';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -40,9 +40,7 @@ export default class StatisticsContext {
     const siteContext = this.tenantContext.getSiteContext(siteName);
     const siteAreaContext = siteContext.getSiteAreaContext(siteAreaName);
     this.chargingStations = siteAreaContext.getChargingStations();
-    const users = Array.from(StatisticsContext.USERS, (user) => {
-      return this.tenantContext.getUserContext(user);
-    });
+    const users = Array.from(StatisticsContext.USERS, (user) => this.tenantContext.getUserContext(user));
 
     const startYear = new Date().getFullYear();
     for (let yr = 0; yr < StatisticsContext.CONSTANTS.TRANSACTION_YEARS; yr++) {

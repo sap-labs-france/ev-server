@@ -1,28 +1,28 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import UtilsSecurity from './UtilsSecurity';
 import { HttpTenantDeleteRequest, HttpTenantVerifyRequest, HttpTenantsRequest } from '../../../../types/requests/HttpTenantRequest';
-import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import Tenant from '../../../../types/Tenant';
 import UserToken from '../../../../types/UserToken';
+import UtilsSecurity from './UtilsSecurity';
+import { DataResult } from '../../../../types/DataResult';
 
 export default class TenantSecurity {
-  public static filterTenantDeleteRequest(request: HttpTenantDeleteRequest): HttpTenantDeleteRequest {
+  public static filterTenantDeleteRequest(request: any): HttpTenantDeleteRequest {
     return {
       ID: sanitize(request.ID),
       forced: sanitize(request.forced)
     };
   }
 
-  public static filterTenantRequestByID(request: HttpByIDRequest): string {
+  public static filterTenantRequestByID(request: any): string {
     return sanitize(request.ID);
   }
 
-  public static filterVerifyTenantRequest(request: HttpTenantVerifyRequest): HttpTenantVerifyRequest {
+  public static filterVerifyTenantRequest(request: any): HttpTenantVerifyRequest {
     return { tenant: sanitize(request.tenant) };
   }
 
-  public static filterTenantsRequest(request: HttpTenantsRequest): HttpTenantsRequest {
+  public static filterTenantsRequest(request: any): HttpTenantsRequest {
     const filteredRequest: HttpTenantsRequest = {} as HttpTenantsRequest;
     filteredRequest.Search = sanitize(request.Search);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
@@ -30,7 +30,7 @@ export default class TenantSecurity {
     return filteredRequest;
   }
 
-  public static filterTenantRequest(request: Partial<Tenant>): Partial<Tenant> {
+  public static filterTenantRequest(request: any): Partial<Tenant> {
     const filteredRequest: Partial<Tenant> = {};
     if ('id' in request) {
       filteredRequest.id = sanitize(request.id);
@@ -64,7 +64,7 @@ export default class TenantSecurity {
     return filteredTenant;
   }
 
-  static filterTenantsResponse(tenants, loggedUser: UserToken): Tenant[] {
+  static filterTenantsResponse(tenants: DataResult<Tenant>, loggedUser: UserToken) {
     const filteredTenants = [];
     if (!tenants.result) {
       return null;
@@ -75,9 +75,8 @@ export default class TenantSecurity {
     for (const tenant of tenants.result) {
       // Filter
       const filteredTenant = TenantSecurity.filterTenantResponse(tenant, loggedUser);
-      // Ok?
+      // Add
       if (filteredTenant) {
-        // Add
         filteredTenants.push(filteredTenant);
       }
     }

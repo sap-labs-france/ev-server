@@ -15,7 +15,7 @@ const MODULE_NAME = 'ConnectorService';
 export default class ConnectorService {
   public static async handleGetConnection(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
-    const filteredRequest = ConnectorSecurity.filterConnectionRequest(req.query, req.user);
+    const filteredRequest = ConnectorSecurity.filterConnectionRequest(req.query);
     // Charge Box is mandatory
     if (!filteredRequest.ID) {
       // Not Found!
@@ -64,12 +64,10 @@ export default class ConnectorService {
         req.user);
     }
     // Filter
-    const filteredRequest = ConnectorSecurity.filterConnectionsRequest(req.query, req.user);
+    const filteredRequest = ConnectorSecurity.filterConnectionsRequest(req.query);
     const connections = await AbstractConnector.getConnectionsByUserId(req.user.tenantID, filteredRequest.userId);
     // Set
-    connections.result = connections.result.map((connection) => {
-      return connection.getModel();
-    });
+    connections.result = connections.result.map((connection) => connection.getModel());
     // Filter
     ConnectorSecurity.filterConnectionsResponse(connections, req.user);
     // Return
@@ -90,7 +88,7 @@ export default class ConnectorService {
     }
 
     // Filter
-    const filteredRequest = ConnectorSecurity.filterConnectionCreateRequest(req.body, req.user);
+    const filteredRequest = ConnectorSecurity.filterConnectionCreateRequest(req.body);
     const setting = await AbstractConnector.getConnectorSetting(req.user.tenantID, filteredRequest.settingId);
     const connector = ConnectorService.instantiateConnector(req.user.tenantID, filteredRequest.connectorId, setting.content[filteredRequest.connectorId]);
     const connection = await connector.createConnection(filteredRequest.userId, filteredRequest.data);
@@ -111,7 +109,7 @@ export default class ConnectorService {
 
   public static async handleDeleteConnection(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
-    const filteredRequest = ConnectorSecurity.filterConnectionDeleteRequest(req.query, req.user);
+    const filteredRequest = ConnectorSecurity.filterConnectionDeleteRequest(req.query);
     // Check auth
     if (!Authorizations.canDeleteConnection(req.user, filteredRequest.userId)) {
       throw new AppAuthError(

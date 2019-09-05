@@ -36,7 +36,7 @@ export default class Constants {
 
   public static readonly DB_PARAMS_MAX_LIMIT = { limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0 };
   public static readonly DB_PARAMS_SINGLE_RECORD = { limit: 1, skip: 0 };
-  public static readonly DB_PARAMS_COUNT_ONLY = {limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0, onlyRecordCount: true };
+  public static readonly DB_PARAMS_COUNT_ONLY = { limit: Constants.DB_RECORD_COUNT_NO_LIMIT, skip: 0, onlyRecordCount: true };
   public static readonly DEFAULT_TENANT = 'default';
 
   public static readonly REST_RESPONSE_SUCCESS = { status: 'Success' };
@@ -150,6 +150,7 @@ export default class Constants {
   public static readonly PWD_NUMBER_RE = /([\d])/g;
   public static readonly PWD_SPECIAL_CHAR_RE = /([!#$%^&*.?-])/g;
 
+  public static readonly SUPPORTED_LOCALES = ['en_US', 'fr_FR'];
   public static readonly DEFAULT_LOCALE = 'en_US';
 
   public static readonly ANONYMIZED_VALUE = '####';
@@ -213,6 +214,7 @@ export default class Constants {
   public static readonly OCPP_VERSION_20 = '2.0';
 
   public static readonly REFUND_STATUS_SUBMITTED = 'submitted';
+  public static readonly REFUND_STATUS_NOT_SUBMITTED = 'notSubmitted';
   public static readonly REFUND_STATUS_CANCELLED = 'cancelled';
   public static readonly REFUND_STATUS_APPROVED = 'approved';
 

@@ -4,10 +4,10 @@ import faker from 'faker';
 import moment from 'moment';
 import responseHelper from '../helpers/responseHelper';
 import CentralServerService from './client/CentralServerService';
-import TenantContext from './contextProvider/TenantContext';
 import ChargingStationContext from './contextProvider/ChargingStationContext';
-import Utils from './Utils';
+import TenantContext from './contextProvider/TenantContext';
 import User from '../../src/types/User';
+import Utils from './Utils';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -55,9 +55,7 @@ export default class TransactionCommonTests {
 
   public async before() {
     const allSettings = await this.centralUserService.settingApi.readAll({});
-    this.currentPricingSetting = allSettings.data.result.find((s) => {
-      return s.identifier === 'pricing';
-    });
+    this.currentPricingSetting = allSettings.data.result.find((s) => s.identifier === 'pricing');
     if (this.currentPricingSetting) {
       await this.centralUserService.updatePriceSetting(this.priceKWH, 'EUR');
     }
@@ -76,7 +74,7 @@ export default class TransactionCommonTests {
 
   public async testReadTransactionWithInvalidId() {
     const response = await this.transactionUserService.transactionApi.readById('&é"\'(§è!çà)');
-    expect(response.status).to.equal(550);
+    expect(response.status).to.equal(500);
   }
 
   public async testReadTransactionWithoutId() {
@@ -84,7 +82,7 @@ export default class TransactionCommonTests {
     expect(response.status).to.equal(500);
   }
 
-  public async testReadTransactionOfUser(allowed: boolean = true, transactionTag: string) {
+  public async testReadTransactionOfUser(allowed = true, transactionTag: string) {
     const connectorId = 1;
     const tagId = transactionTag ? transactionTag : this.transactionUser.tagIDs[0];
     const meterStart = 180;
@@ -269,8 +267,8 @@ export default class TransactionCommonTests {
     const tagId = this.transactionUser.tagIDs[0];
     const meterStart = 0;
     const meterStop = 1000;
-    const startDate = moment();
-    const stopDate = startDate.clone().add(1, 'hour');
+    const startDate = moment().toDate();
+    const stopDate = moment(startDate).add(1, 'hour');
     let response = await this.chargingStationContext.startTransaction(connectorId, tagId, meterStart, startDate);
     expect(response).to.be.transactionValid;
     const transactionId1 = response.data.transactionId;
@@ -332,12 +330,12 @@ export default class TransactionCommonTests {
     expect(response.status).to.equal(200);
     expect(response.data.count).to.equal(2);
     expect(response.data.stats).to.containSubset({
-        totalConsumptionWattHours: 2000,
-        totalDurationSecs: 7200,
-        totalPrice: 4,
-        totalInactivitySecs: 0,
-        count: 2
-      }
+      totalConsumptionWattHours: 2000,
+      totalDurationSecs: 7200,
+      totalPrice: 4,
+      totalInactivitySecs: 0,
+      count: 2
+    }
     );
     expect(response.data.result).to.containSubset([{
       id: transactionId1,
@@ -387,15 +385,15 @@ export default class TransactionCommonTests {
     expect(response.status).to.equal(200);
     expect(response.data.count).to.equal(2);
     expect(response.data.stats).to.containSubset({
-        totalConsumptionWattHours: 2000,
-        totalPriceRefund: 0,
-        totalPricePending: 4,
-        currency: 'EUR',
-        countRefundTransactions: 0,
-        countPendingTransactions: 2,
-        countRefundedReports: 0,
-        count: 2
-      }
+      totalConsumptionWattHours: 2000,
+      totalPriceRefund: 0,
+      totalPricePending: 4,
+      currency: 'EUR',
+      countRefundTransactions: 0,
+      countPendingTransactions: 2,
+      countRefundedReports: 0,
+      count: 2
+    }
     );
     expect(response.data.result).to.containSubset([{
       id: transactionId1,
@@ -846,17 +844,17 @@ export default class TransactionCommonTests {
 
   public async testDeleteNotExistingTransaction() {
     const response = await this.transactionUserService.transactionApi.delete(faker.random.number(100000));
-    expect(response.status).to.equal(550);
+    expect(response.status).to.equal(560);
   }
 
   public async testDeleteTransactionWithInvalidId() {
     const response = await this.transactionUserService.transactionApi.delete('&é"\'(§è!çà)');
-    expect(response.status).to.equal(550);
+    expect(response.status).to.equal(560);
   }
 
   public async testDeleteTransactionWithoutId() {
     const response = await this.transactionUserService.transactionApi.delete(null);
-    expect(response.status).to.equal(500);
+    expect(response.status).to.equal(560);
   }
 
   public async testDeleteStartedTransaction(allowed = true) {

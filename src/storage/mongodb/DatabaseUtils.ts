@@ -1,7 +1,6 @@
 import { ObjectID } from 'mongodb';
-import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
-import DbLookup from '../../types/database/DBLookup';
+import DbLookup from '../../types/database/DbLookup';
 import Utils from '../../utils/Utils';
 
 const FIXED_COLLECTIONS: string[] = ['tenants', 'migrations'];
@@ -154,6 +153,13 @@ export default class DatabaseUtils {
         }
       }
     }`));
+    // Remove if null
+    // Available only in MongoDB 4.2 :-(
+    // aggregation.push(JSON.parse(`{
+    //   "$unset": {
+    //     "${renamedFieldName}": ${null}
+    //   }
+    // }`));
   }
 
   public static renameField(aggregation: any[], fieldName: string, renamedFieldName: string) {

@@ -11,10 +11,10 @@ import ODataSiteAreas from './odata-entities/ODataSiteAreas';
 import ODataStatusNotifications from './odata-entities/ODataStatusNotifications';
 import ODataTransactions from './odata-entities/ODataTransactions';
 import ODataUsers from './odata-entities/ODataUsers';
+import SettingStorage from '../../storage/mongodb/SettingStorage';
 import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
 
 const MODULE_NAME = 'ODataServer';
 export default class ODataRestAdapter {

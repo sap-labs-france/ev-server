@@ -1,11 +1,11 @@
-import Cypher from '../../utils/Cypher';
 import Constants from '../../utils/Constants';
+import Cypher from '../../utils/Cypher';
 import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
+import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import DbParams from '../../types/database/DbParams';
 
 export default class OCPPStorage {
   static async saveAuthorize(tenantID, authorize) {
@@ -34,7 +34,7 @@ export default class OCPPStorage {
     Logging.traceEnd('OCPPStorage', 'saveAuthorize', uniqueTimerID);
   }
 
-  static async getStatusNotifications(tenantID: string, params: {dateFrom?:Date,chargeBoxID?:string,connectorId?:number,status?:string}, dbParams: DbParams) {
+  static async getStatusNotifications(tenantID: string, params: {dateFrom?: Date; chargeBoxID?: string; connectorId?: number; status?: string}, dbParams: DbParams) {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getStatusNotifications');
     // Check Tenant
@@ -117,7 +117,7 @@ export default class OCPPStorage {
     };
   }
 
-  static async saveStatusNotification(tenantID, statusNotificationToSave) {
+  static async saveStatusNotification(tenantID: string, statusNotificationToSave) {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveStatusNotification');
     // Check Tenant
@@ -135,7 +135,7 @@ export default class OCPPStorage {
     Logging.traceEnd('OCPPStorage', 'saveStatusNotification', uniqueTimerID);
   }
 
-  static async saveConfiguration(tenantID, configuration) {
+  static async saveConfiguration(tenantID: string, configuration) {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveConfiguration');
     // Check Tenant
@@ -156,7 +156,7 @@ export default class OCPPStorage {
     Logging.traceEnd('OCPPStorage', 'saveConfiguration', uniqueTimerID);
   }
 
-  static async saveDataTransfer(tenantID, dataTransfer) {
+  static async saveDataTransfer(tenantID: string, dataTransfer) {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveDataTransfer');
     // Check Tenant
@@ -179,7 +179,7 @@ export default class OCPPStorage {
     Logging.traceEnd('OCPPStorage', 'saveDataTransfer', uniqueTimerID);
   }
 
-  static async saveBootNotification(tenantID, bootNotification) {
+  static async saveBootNotification(tenantID: string, bootNotification) {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveBootNotification');
     // Check Tenant
@@ -299,7 +299,7 @@ export default class OCPPStorage {
     Logging.traceEnd('OCPPStorage', 'saveDiagnosticsStatusNotification', uniqueTimerID);
   }
 
-  static async saveFirmwareStatusNotification(tenantID, firmwareStatusNotification) {
+  static async saveFirmwareStatusNotification(tenantID: string, firmwareStatusNotification) {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPPStorage', 'saveFirmwareStatusNotification');
     // Check Tenant
@@ -320,7 +320,7 @@ export default class OCPPStorage {
     Logging.traceEnd('OCPPStorage', 'saveFirmwareStatusNotification', uniqueTimerID);
   }
 
-  static async saveMeterValues(tenantID, meterValuesToSave) {
+  static async saveMeterValues(tenantID: string, meterValuesToSave) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'saveMeterValues');
     // Check
@@ -343,7 +343,7 @@ export default class OCPPStorage {
     Logging.traceEnd('TransactionStorage', 'saveMeterValues', uniqueTimerID, { meterValuesToSave });
   }
 
-  static async getMeterValues(tenantID, transactionID) {
+  static async getMeterValues(tenantID: string, transactionID) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getMeterValues');
     // Check
@@ -363,9 +363,7 @@ export default class OCPPStorage {
       meterValueMDB.timestamp = new Date(meterValueMDB.timestamp);
     }
     // Sort
-    meterValuesMDB.sort((meterValue1, meterValue2) => {
-      return meterValue1.timestamp.getTime() - meterValue2.timestamp.getTime();
-    });
+    meterValuesMDB.sort((meterValue1, meterValue2) => meterValue1.timestamp.getTime() - meterValue2.timestamp.getTime());
     // Create
     const meterValues = [];
     for (const meterValueMDB of meterValuesMDB) {

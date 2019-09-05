@@ -1,63 +1,63 @@
+import moment = require('moment');
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
+import {
+  HttpAssignTransactionsToUserRequest,
+  HttpConsumptionFromTransactionRequest,
+  HttpTransactionRequest,
+  HttpTransactionsRefundRequest,
+  HttpTransactionsRequest
+} from '../../../../types/requests/HttpTransactionRequest';
+import Transaction from '../../../../types/Transaction';
 import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
+import { DataResult } from '../../../../types/DataResult';
 
 export default class TransactionSecurity {
-  // eslint-disable-next-line no-unused-vars
-  static filterTransactionsRefund(request, loggedUser: UserToken) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.transactionIds = request.transactionIds.map((id) => {
-      return sanitize(id);
-    });
-    return filteredRequest;
-  }
-
-  // eslint-disable-next-line no-unused-vars
-  static filterTransactionDelete(request, loggedUser: UserToken) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.ID = sanitize(request.ID);
-    return filteredRequest;
-  }
-
-  // eslint-disable-next-line no-unused-vars
-  static filterTransactionSoftStop(request, loggedUser: UserToken) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.transactionId = sanitize(request.transactionId);
-    return filteredRequest;
-  }
-
-  // eslint-disable-next-line no-unused-vars
-  static filterTransactionRequest(request, loggedUser: UserToken) {
-    const filteredRequest: any = {};
-    // Set
-    filteredRequest.ID = sanitize(request.ID);
-    return filteredRequest;
-  }
-
-  // eslint-disable-next-line no-unused-vars
-  static filterTransactionsActiveRequest(request, loggedUser: UserToken) {
-    const filteredRequest: any = {};
-    filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
-    filteredRequest.ConnectorId = sanitize(request.ConnectorId);
-    filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
-    filteredRequest.SiteID = sanitize(request.SiteID);
-    if (request.UserID) {
-      filteredRequest.UserID = sanitize(request.UserID);
+  public static filterTransactionsRefund(request: any): HttpTransactionsRefundRequest {
+    if (!request.transactionIds) {
+      return { transactionIds: [] };
     }
-    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
-    UtilsSecurity.filterSort(request, filteredRequest);
-    return filteredRequest;
+    return { transactionIds: request.transactionIds.map(sanitize) };
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterTransactionsCompletedRequest(request, loggedUser: UserToken) {
-    const filteredRequest: any = {};
+  public static filterAssignTransactionsToUser(request: HttpAssignTransactionsToUserRequest): HttpAssignTransactionsToUserRequest {
+    return { UserID: request.UserID ? sanitize(request.UserID) : null };
+  }
+
+  static filterUnassignedTransactionsCountRequest(request: any) {
+    return { tagIDs: request.tagIDs ? sanitize(request.tagIDs) : null };
+  }
+
+  public static filterTransactionRequestByID(request: any): number {
+    return parseInt(sanitize(request.ID));
+  }
+
+  public static filterTransactionSoftStop(request: any): number {
+    return parseInt(sanitize(request.ID));
+  }
+
+  public static filterTransactionRequest(request: any): HttpTransactionRequest {
+    return {
+      ID: parseInt(sanitize(request.ID))
+    };
+  }
+
+  public static filterTransactionsActiveRequest(request: any): HttpTransactionsRequest {
+    const filtered: HttpTransactionsRequest = {} as HttpTransactionsRequest;
+    filtered.ChargeBoxID = sanitize(request.ChargeBoxID);
+    filtered.ConnectorId = sanitize(request.ConnectorId);
+    filtered.SiteAreaID = sanitize(request.SiteAreaID);
+    filtered.UserID = request.UserID ? sanitize(request.UserID) : null;
+    UtilsSecurity.filterSkipAndLimit(request, filtered);
+    UtilsSecurity.filterSort(request, filtered);
+    return filtered;
+  }
+
+  public static filterTransactionsCompletedRequest(request: any): HttpTransactionsRequest {
+    const filteredRequest: HttpTransactionsRequest = {} as HttpTransactionsRequest;
     // Handle picture
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
     filteredRequest.StartDateTime = sanitize(request.StartDateTime);
@@ -65,7 +65,7 @@ export default class TransactionSecurity {
     filteredRequest.SiteID = sanitize(request.SiteID);
     filteredRequest.SiteAreaID = sanitize(request.SiteAreaID);
     filteredRequest.Search = sanitize(request.Search);
-    filteredRequest.Type = sanitize(request.Type);
+    filteredRequest.RefundStatus = sanitize(request.RefundStatus);
     filteredRequest.MinimalPrice = sanitize(request.MinimalPrice);
     if (request.Statistics) {
       filteredRequest.Statistics = sanitize(request.Statistics);
@@ -78,8 +78,8 @@ export default class TransactionSecurity {
     return filteredRequest;
   }
 
-  static filterTransactionsInErrorRequest(request) {
-    const filteredRequest: any = {};
+  public static filterTransactionsInErrorRequest(request: any): HttpTransactionsRequest {
+    const filteredRequest: HttpTransactionsRequest = {} as HttpTransactionsRequest;
     // Handle picture
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
     filteredRequest.StartDateTime = sanitize(request.StartDateTime);
@@ -96,101 +96,102 @@ export default class TransactionSecurity {
     return filteredRequest;
   }
 
-  static filterTransactionResponse(transaction, loggedUser: UserToken) {
+  static filterTransactionResponse(transaction: Transaction, loggedUser: UserToken) {
     let filteredTransaction;
-
     if (!transaction) {
       return null;
     }
     // Check auth
     if (Authorizations.canReadTransaction(loggedUser, transaction)) {
       // Set only necessary info
-      filteredTransaction = {};
-      filteredTransaction.id = transaction.getID();
-      if (transaction.getModel().errorCode) {
-        filteredTransaction.uniqueId = transaction.getModel().uniqueId;
-        filteredTransaction.errorCode = transaction.getModel().errorCode;
+      filteredTransaction = {} as Transaction;
+      filteredTransaction.id = transaction.id;
+      if (transaction.errorCode) {
+        filteredTransaction.uniqueId = transaction.uniqueId;
+        filteredTransaction.errorCode = transaction.errorCode;
       }
-      filteredTransaction.chargeBoxID = transaction.getChargeBoxID();
-      filteredTransaction.siteID = transaction.getSiteID();
-      filteredTransaction.siteAreaID = transaction.getSiteAreaID();
-      filteredTransaction.connectorId = transaction.getConnectorId();
-      filteredTransaction.meterStart = transaction.getMeterStart();
-      filteredTransaction.timestamp = transaction.getStartDate();
-      filteredTransaction.timezone = transaction.getTimezone();
-      if (transaction.hasStartPrice()) {
-        filteredTransaction.price = transaction.getStartPrice();
-        filteredTransaction.roundedPrice = transaction.getStartRoundedPrice();
-        filteredTransaction.priceUnit = transaction.getStartPriceUnit();
-        filteredTransaction.pricingSource = transaction.getStartPricingSource();
+      filteredTransaction.chargeBoxID = transaction.chargeBoxID;
+      filteredTransaction.siteID = transaction.siteID;
+      filteredTransaction.siteAreaID = transaction.siteAreaID;
+      filteredTransaction.connectorId = transaction.connectorId;
+      filteredTransaction.meterStart = transaction.meterStart;
+      filteredTransaction.timestamp = transaction.timestamp;
+      filteredTransaction.timezone = transaction.timezone;
+      if (transaction.hasOwnProperty('price')) {
+        filteredTransaction.price = transaction.price;
+        filteredTransaction.roundedPrice = transaction.roundedPrice;
+        filteredTransaction.priceUnit = transaction.priceUnit;
+        filteredTransaction.pricingSource = transaction.pricingSource;
       }
-      if (transaction.isActive()) {
-        filteredTransaction.currentConsumption = transaction.getCurrentConsumption();
-        filteredTransaction.currentTotalConsumption = transaction.getCurrentTotalConsumption();
-        filteredTransaction.currentTotalInactivitySecs = transaction.getCurrentTotalInactivitySecs();
-        filteredTransaction.currentTotalDurationSecs = transaction.getCurrentTotalDurationSecs();
-        filteredTransaction.currentCumulatedPrice = transaction.getCurrentCumulatedPrice();
-        filteredTransaction.currentStateOfCharge = transaction.getCurrentStateOfCharge();
-        filteredTransaction.currentSignedData = transaction.getCurrentSignedData();
+      if (!transaction.stop) {
+        filteredTransaction.currentConsumption = transaction.currentConsumption;
+        filteredTransaction.currentTotalConsumption = transaction.currentTotalConsumption;
+        filteredTransaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs;
+        filteredTransaction.currentTotalDurationSecs =
+          moment.duration(moment(!transaction.stop ? transaction.lastMeterValue.timestamp : transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
+        filteredTransaction.currentCumulatedPrice = transaction.currentCumulatedPrice;
+        filteredTransaction.currentStateOfCharge = transaction.currentStateOfCharge;
+        filteredTransaction.currentStateOfCharge = transaction.currentStateOfCharge;
+        filteredTransaction.currentSignedData = transaction.currentSignedData;
       }
-      filteredTransaction.status = transaction.getChargerStatus();
-      filteredTransaction.isLoading = transaction.isLoading();
-      filteredTransaction.stateOfCharge = transaction.getStateOfCharge();
-      filteredTransaction.signedData = transaction.getSignedData();
-      filteredTransaction.refundData = transaction.getRefundData();
+      if (!transaction.stop && transaction.chargeBox && transaction.chargeBox.connectors) {
+        const foundConnector = transaction.chargeBox.connectors.find((connector) => connector.connectorId === transaction.connectorId);
+        filteredTransaction.status = foundConnector ? foundConnector.status : null;
+      }
+      filteredTransaction.isLoading = !transaction.stop && transaction.currentTotalInactivitySecs > 60;
+      filteredTransaction.stateOfCharge = transaction.stateOfCharge;
+      filteredTransaction.signedData = transaction.signedData;
+      filteredTransaction.refundData = transaction.refundData;
       // Demo user?
       if (Authorizations.isDemo(loggedUser.role)) {
         filteredTransaction.tagID = Constants.ANONYMIZED_VALUE;
       } else {
-        filteredTransaction.tagID = transaction.getTagID();
+        filteredTransaction.tagID = transaction.tagID;
       }
       // Filter user
       filteredTransaction.user = TransactionSecurity._filterUserInTransactionResponse(
-        transaction.getUserJson(), loggedUser);
+        transaction.user, loggedUser);
       // Transaction Stop
-      if (transaction.isFinished()) {
+      if (transaction.stop) {
         filteredTransaction.stop = {};
-        filteredTransaction.stop.meterStop = transaction.getStopMeter();
-        filteredTransaction.stop.timestamp = transaction.getStopDate();
-        filteredTransaction.stop.totalConsumption = transaction.getStopTotalConsumption();
-        filteredTransaction.stop.totalInactivitySecs = transaction.getStopTotalInactivitySecs() + transaction.getStopExtraInactivitySecs();
-        filteredTransaction.stop.totalDurationSecs = transaction.getStopTotalDurationSecs();
-        filteredTransaction.stop.stateOfCharge = transaction.getStopStateOfCharge();
-        filteredTransaction.stop.signedData = transaction.getEndSignedData();
-        // pragma if (Authorizations.isAdmin(loggedUser) && transaction.hasStopPrice()) {
-        if (transaction.hasStopPrice()) {
-          filteredTransaction.stop.price = transaction.getStopPrice();
-          filteredTransaction.stop.roundedPrice = transaction.getStopRoundedPrice();
-          filteredTransaction.stop.priceUnit = transaction.getStopPriceUnit();
-          filteredTransaction.stop.pricingSource = transaction.getStopPricingSource();
+        filteredTransaction.stop.meterStop = transaction.stop.meterStop;
+        filteredTransaction.stop.timestamp = transaction.stop.timestamp;
+        filteredTransaction.stop.totalConsumption = transaction.stop.totalConsumption;
+        filteredTransaction.stop.totalInactivitySecs = transaction.stop.totalInactivitySecs + transaction.stop.extraInactivitySecs;
+        filteredTransaction.stop.totalDurationSecs = transaction.stop.totalDurationSecs;
+        filteredTransaction.stop.stateOfCharge = transaction.stop.stateOfCharge;
+        filteredTransaction.stop.signedData = transaction.stop.signedData;
+        if (transaction.stop.price) {
+          filteredTransaction.stop.price = transaction.stop.price;
+          filteredTransaction.stop.roundedPrice = transaction.stop.roundedPrice;
+          filteredTransaction.stop.priceUnit = transaction.stop.priceUnit;
+          filteredTransaction.stop.pricingSource = transaction.stop.pricingSource;
         }
         // Demo user?
         if (Authorizations.isDemo(loggedUser.role)) {
           filteredTransaction.stop.tagID = Constants.ANONYMIZED_VALUE;
         } else {
-          filteredTransaction.stop.tagID = transaction.getStopTagID();
+          filteredTransaction.stop.tagID = transaction.stop.tagID;
         }
         // Stop User
-        if (transaction.getStopUserJson()) {
+        if (transaction.stop.user) {
           // Filter user
           filteredTransaction.stop.user = TransactionSecurity._filterUserInTransactionResponse(
-            transaction.getStopUserJson(), loggedUser);
+            transaction.stop.user, loggedUser);
         }
       }
     }
     return filteredTransaction;
   }
 
-  static filterTransactionsResponse(transactions, loggedUser: UserToken) {
+  static filterTransactionsResponse(transactions: DataResult<Transaction>, loggedUser: UserToken) {
     const filteredTransactions = [];
     if (!transactions.result) {
       return null;
     }
     // Filter result
     for (const transaction of transactions.result) {
-      // Filter
       const filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser);
-      // Ok?
       if (filteredTransaction) {
         filteredTransactions.push(filteredTransaction);
       }
@@ -200,7 +201,6 @@ export default class TransactionSecurity {
 
   static _filterUserInTransactionResponse(user: User, loggedUser: UserToken) {
     const filteredUser: any = {};
-
     if (!user) {
       return null;
     }
@@ -220,19 +220,19 @@ export default class TransactionSecurity {
     return filteredUser;
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterChargingStationConsumptionFromTransactionRequest(request, loggedUser: UserToken) {
-    const filteredRequest: any = {};
+  public static filterChargingStationConsumptionFromTransactionRequest(request: any): HttpConsumptionFromTransactionRequest {
+    const filteredRequest: HttpConsumptionFromTransactionRequest = {} as HttpConsumptionFromTransactionRequest;
     // Set
-    filteredRequest.TransactionId = sanitize(request.TransactionId);
+    if (request.hasOwnProperty('TransactionId')) {
+      filteredRequest.TransactionId = parseInt(sanitize(request.TransactionId));
+    }
     filteredRequest.StartDateTime = sanitize(request.StartDateTime);
     filteredRequest.EndDateTime = sanitize(request.EndDateTime);
     return filteredRequest;
   }
 
-  // eslint-disable-next-line no-unused-vars
-  static filterChargingStationTransactionsRequest(request, loggedUser: UserToken) {
-    const filteredRequest: any = {};
+  public static filterChargingStationTransactionsRequest(request: any): HttpTransactionsRequest {
+    const filteredRequest: HttpTransactionsRequest = {} as HttpTransactionsRequest;
     // Set
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
     filteredRequest.ConnectorId = sanitize(request.ConnectorId);
@@ -243,59 +243,43 @@ export default class TransactionSecurity {
     return filteredRequest;
   }
 
-  /**
-   *
-   * @param transaction {Transaction}
-   * @param consumptions {Consumption[]}
-   * @param loggedUser
-   * @returns {*}
-   */
-  static filterConsumptionsFromTransactionResponse(transaction, consumptions, loggedUser: UserToken) {
+  static filterConsumptionsFromTransactionResponse(transaction: Transaction, consumptions, loggedUser: UserToken) {
     if (!consumptions) {
       consumptions = [];
     }
-    // Check Authorisation
-    if (transaction.getUserJson()) {
-      if (!Authorizations.canReadUser(loggedUser, transaction.getUserJson().id)) {
-        return null;
+    // Check Authorization
+    if (transaction.user) {
+      if (!Authorizations.canReadUser(loggedUser, transaction.userID)) {
+        return consumptions;
       }
-    } else if (!transaction.getUserJson() && !Authorizations.isAdmin(loggedUser.role)) {
-      return null;
+    } else if (!transaction.user && !Authorizations.isAdmin(loggedUser.role)) {
+      return consumptions;
     }
     const filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser);
     if (consumptions.length === 0) {
       filteredTransaction.values = [];
       return filteredTransaction;
     }
-
     // Admin?
     if (Authorizations.isAdmin(loggedUser.role)) {
       // Set them all
-      filteredTransaction.values = consumptions.map((consumption) => {
-        return consumption.getModel();
-      }).map((consumption) => {
-        return {
-          ...consumption,
-          date: consumption.endedAt,
-          value: consumption.instantPower,
-          cumulated: consumption.cumulatedConsumption
-        };
-      });
+      filteredTransaction.values = consumptions.map((consumption) => consumption.getModel()).map((consumption) => ({
+        ...consumption,
+        date: consumption.endedAt,
+        value: consumption.instantPower,
+        cumulated: consumption.cumulatedConsumption
+      }));
     } else {
       // Clean
-      filteredTransaction.values = consumptions.map((consumption) => {
-        return consumption.getModel();
-      }).map((consumption) => {
-        return {
-          endedAt: consumption.endedAt,
-          instantPower: consumption.instantPower,
-          cumulatedConsumption: consumption.cumulatedConsumption,
-          stateOfCharge: consumption.stateOfCharge,
-          date: consumption.endedAt,
-          value: consumption.instantPower,
-          cumulated: consumption.cumulatedConsumption
-        };
-      });
+      filteredTransaction.values = consumptions.map((consumption) => consumption.getModel()).map((consumption) => ({
+        endedAt: consumption.endedAt,
+        instantPower: consumption.instantPower,
+        cumulatedConsumption: consumption.cumulatedConsumption,
+        stateOfCharge: consumption.stateOfCharge,
+        date: consumption.endedAt,
+        value: consumption.instantPower,
+        cumulated: consumption.cumulatedConsumption
+      }));
     }
     for (let i = 1; i < filteredTransaction.values.length; i++) {
       if (filteredTransaction.values[i].instantPower === 0 && filteredTransaction.values[i - 1] !== 0) {
@@ -326,4 +310,3 @@ export default class TransactionSecurity {
     return filteredTransaction;
   }
 }
-

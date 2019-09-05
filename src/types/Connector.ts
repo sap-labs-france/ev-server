@@ -15,5 +15,4 @@ export default interface Connector {
   activeTransactionID: number;
   activeTransactionDate: Date;
   activeTagID: string;
-  timestamp?: number;
 }

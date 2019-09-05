@@ -14,7 +14,7 @@ chai.use(responseHelper);
 const testData: TestData = new TestData();
 
 describe('Filters with multiple values tests', function() {
-  this.timeout(30000);
+  this.timeout(100000);
 
   before(async function() {
     // Init values
@@ -52,6 +52,11 @@ describe('Filters with multiple values tests', function() {
       expect(read.status).to.equal(200);
     });
 
+    it('Charging stations in Error: Check that multi-filtering based on error types works', async () => {
+      const read = await testData.centralService.chargingStationApi.readAllInError({ 'ErrorType' : 'missingSettings|connectionBroken|connectorError|missingSiteArea' }, { limit: 10, skip: 0 });
+      expect(read.status).to.equal(200);
+    });
+
     it('Organization-Sites : Check that multi-filtering based on companies works', async () => {
       const read = await testData.centralService.siteApi.readAll({ 'CompanyID' : '5abeba344bae1457eb565e27|5b3f5587000337ca85cee337' }, { limit: 10, skip: 0 });
       expect(read.status).to.equal(200);
@@ -83,12 +88,12 @@ describe('Filters with multiple values tests', function() {
     });
 
     it('Sessions history : Check that multi-filtering based on sites works', async () => {
-      const read = await testData.centralService.transactionApi.readAllCompleted({ 'SiteID' : '5abeba9e4bae1457eb565e66|5abeba8d4bae1457eb565e5b' }, { limit: 10, skip: 0 });
+      const read = await testData.centralService.transactionApi.readAllCompleted({ 'SiteID' : '5abeba9e4bae1457eb565e66' }, { limit: 10, skip: 0 });
       expect(read.status).to.equal(200);
     });
 
     it('Sessions in error : Check that multi-filtering based on sites works', async () => {
-      const read = await testData.centralService.transactionApi.readAllInError({ 'SiteID' : '5abeba9e4bae1457eb565e66|5abeba8d4bae1457eb565e5b' }, { limit: 10, skip: 0 });
+      const read = await testData.centralService.transactionApi.readAllInError({ 'SiteID' : '5abeba9e4bae1457eb565e66' }, { limit: 10, skip: 0 });
       expect(read.status).to.equal(200);
     });
 

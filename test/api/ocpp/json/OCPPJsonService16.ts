@@ -79,9 +79,7 @@ export default class OCPPJsonService16 extends OCPPService {
   public closeConnection() {
     // Close
     if (this._wsSessions) {
-      this._wsSessions.forEach((session) => {
-        return session.connection.close();
-      });
+      this._wsSessions.forEach((session) => session.connection.close());
       this._wsSessions = null;
     }
   }

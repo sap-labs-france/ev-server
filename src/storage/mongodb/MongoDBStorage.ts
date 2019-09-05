@@ -4,9 +4,9 @@ import { ChangeStream, Collection, Db, MongoClient } from 'mongodb';
 import urlencode from 'urlencode';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
-import InternalError from '../../exception/InternalError';
 import RunLock from './../../utils/Locking';
 import StorageCfg from '../../types/configuration/StorageConfiguration';
+import BackendError from '../../exception/BackendError';
 
 export default class MongoDBStorage {
   private db: Db;
@@ -19,7 +19,10 @@ export default class MongoDBStorage {
 
   public getCollection<type>(tenantID: string, collectionName: string): Collection<type> {
     if (!this.db) {
-      throw new InternalError('Not supposed to call getCollection before start', []);
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Not supposed to call getCollection before start',
+        'MongoDBStorage', 'getCollection', 'MongoDB');
     }
     return this.db.collection<type>(DatabaseUtils.getCollectionName(tenantID, collectionName));
   }
@@ -31,14 +34,15 @@ export default class MongoDBStorage {
   public async handleIndexesInCollection(allCollections: { name: string }[], tenantID: string, name: string, indexes?: { fields: any; options?: any }[]): Promise<boolean> {
     // Safety check
     if (!this.db) {
-      throw new InternalError('Not supposed to call handleIndexesInCollection before start', []);
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Not supposed to call handleIndexesInCollection before start',
+        'MongoDBStorage', 'handleIndexesInCollection', 'MongoDB');
     }
 
     // Check Logs
     const tenantCollectionName = DatabaseUtils.getCollectionName(tenantID, name);
-    const foundCollection = allCollections.find((collection) => {
-      return collection.name === tenantCollectionName;
-    });
+    const foundCollection = allCollections.find((collection) => collection.name === tenantCollectionName);
     // Check if it exists
     if (!foundCollection) {
       // Create
@@ -52,9 +56,7 @@ export default class MongoDBStorage {
       for (const index of indexes) {
         // Create
         // Check if it exists
-        const foundIndex = databaseIndexes.find((existingIndex) => {
-          return (JSON.stringify(existingIndex.key) === JSON.stringify(index.fields));
-        });
+        const foundIndex = databaseIndexes.find((existingIndex) => (JSON.stringify(existingIndex.key) === JSON.stringify(index.fields)));
         // Found?
         if (!foundIndex) {
           // Index creation RunLock
@@ -76,9 +78,7 @@ export default class MongoDBStorage {
           continue;
         }
         // Exists?
-        const foundIndex = indexes.find((index) => {
-          return (JSON.stringify(index.fields) === JSON.stringify(databaseIndex.key));
-        });
+        const foundIndex = indexes.find((index) => (JSON.stringify(index.fields) === JSON.stringify(databaseIndex.key)));
         // Found?
         if (!foundIndex) {
           // Index drop RunLock
@@ -100,7 +100,10 @@ export default class MongoDBStorage {
   public async checkAndCreateTenantDatabase(tenantID: string): Promise<void> {
     // Safety check
     if (!this.db) {
-      throw new InternalError('Not supposed to call checkAndCreateTenantDatabase before start', []);
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Not supposed to call checkAndCreateTenantDatabase before start',
+        'MongoDBStorage', 'checkAndCreateTenantDatabase', 'MongoDB');
     }
 
     const name = new RegExp(`^${tenantID}.`);
@@ -168,7 +171,10 @@ export default class MongoDBStorage {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Safety check
       if (!this.db) {
-        throw new InternalError('Not supposed to call deleteTenantDatabase before start', []);
+        throw new BackendError(
+          Constants.CENTRAL_SERVER,
+          'Not supposed to call deleteTenantDatabase before start',
+          'MongoDBStorage', 'deleteTenantDatabase', 'MongoDB');
       }
 
       // Get all the collections
@@ -187,7 +193,10 @@ export default class MongoDBStorage {
   public async migrateTenantDatabase(tenantID: string): Promise<void> {
     // Safety check
     if (!this.db) {
-      throw new InternalError('Not supposed to call migrateTenantDatabase before start', []);
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Not supposed to call migrateTenantDatabase before start',
+        'MongoDBStorage', 'migrateTenantDatabase', 'MongoDB');
     }
     // Migrate not prefixed collections
     const collections = await this.db.listCollections().toArray();
@@ -202,7 +211,10 @@ export default class MongoDBStorage {
   public async checkDatabase(): Promise<void> {
     // Safety check
     if (!this.db) {
-      throw new InternalError('Not supposed to call checkDatabase before start', []);
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Not supposed to call checkDatabase before start',
+        'MongoDBStorage', 'checkDatabase', 'MongoDB');
     }
     // Get all the collections
     const collections = await this.db.listCollections().toArray();
@@ -249,9 +261,7 @@ export default class MongoDBStorage {
     const tenantsMDB = await this.db.collection(DatabaseUtils.getCollectionName(Constants.DEFAULT_TENANT, 'tenants'))
       .find({})
       .toArray();
-    const tenantIds = tenantsMDB.map((t): string => {
-      return t._id.toString();
-    });
+    const tenantIds = tenantsMDB.map((t): string => t._id.toString());
     for (const tenantId of tenantIds) {
       await this.checkAndCreateTenantDatabase(tenantId);
     }
@@ -290,7 +300,8 @@ export default class MongoDBStorage {
         loggerLevel: (this.dbConfig.debug ? 'debug' : null),
         reconnectTries: Number.MAX_VALUE,
         reconnectInterval: 1000,
-        autoReconnect: true
+        autoReconnect: true,
+        useUnifiedTopology: true
       }
     );
     // Get the EVSE DB

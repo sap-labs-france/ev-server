@@ -1,19 +1,23 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
-import { HttpSitesAssignUserRequest, HttpUserRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
+import {
+  HttpSitesAssignUserRequest,
+  HttpUserRequest,
+  HttpUserSitesRequest,
+  HttpUsersRequest
+} from '../../../../types/requests/HttpUserRequest';
 import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
+import { DataResult } from '../../../../types/DataResult';
 
 export default class UserSecurity {
 
   public static filterAssignSitesToUserRequest(request: Partial<HttpSitesAssignUserRequest>): HttpSitesAssignUserRequest {
     return {
       userID: sanitize(request.userID),
-      siteIDs: request.siteIDs ? request.siteIDs.map((sid) => {
-        return sanitize(sid);
-      }) : []
+      siteIDs: request.siteIDs ? request.siteIDs.map(sanitize) : []
     };
   }
 
@@ -34,12 +38,24 @@ export default class UserSecurity {
     if (request.Status) {
       request.Status = sanitize(request.Status);
     }
+    if (request.ErrorType) {
+      request.ErrorType = sanitize(request.ErrorType);
+    }
     if (request.ExcludeSiteID) {
       request.ExcludeSiteID = sanitize(request.ExcludeSiteID);
     }
     UtilsSecurity.filterSkipAndLimit(request, request);
     UtilsSecurity.filterSort(request, request);
     return request as HttpUsersRequest;
+  }
+
+  public static filterUserSitesRequest(request: Partial<HttpUserSitesRequest>): HttpUserSitesRequest {
+    const filteredRequest: HttpUserSitesRequest = {} as HttpUserSitesRequest;
+    filteredRequest.UserID = sanitize(request.UserID);
+    filteredRequest.Search = sanitize(request.Search);
+    UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
+    UtilsSecurity.filterSort(request, filteredRequest);
+    return filteredRequest;
   }
 
   public static filterUserUpdateRequest(request: Partial<HttpUserRequest>, loggedUser: UserToken): Partial<HttpUserRequest> {
@@ -179,7 +195,7 @@ export default class UserSecurity {
     return filteredUser;
   }
 
-  static filterUsersResponse(users, loggedUser: UserToken): void {
+  static filterUsersResponse(users: DataResult<User>, loggedUser: UserToken): void {
     const filteredUsers = [];
     if (!users.result) {
       return null;
@@ -194,4 +210,3 @@ export default class UserSecurity {
     users.result = filteredUsers;
   }
 }
-

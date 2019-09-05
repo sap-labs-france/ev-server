@@ -1,11 +1,11 @@
 import fs from 'fs';
 import BackendError from '../../../exception/BackendError';
+import ChargingStation from '../../../types/ChargingStation';
 import Constants from '../../../utils/Constants';
 import global from '../../../types/GlobalType';
 import Logging from '../../../utils/Logging';
 import SchemaValidator from '../../rest/validation/SchemaValidator';
 import Utils from '../../../utils/Utils';
-import ChargingStation from '../../../types/ChargingStation';
 
 export default class OCPPValidation extends SchemaValidator {
   private static instance: OCPPValidation|null = null;

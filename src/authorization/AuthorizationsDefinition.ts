@@ -1,6 +1,6 @@
 import AccessControl from 'role-acl';
-import InternalError from '../exception/InternalError';
 import Constants from '../utils/Constants';
+import BackendError from '../exception/BackendError';
 
 const GRANTS = {
   superAdmin: {
@@ -116,37 +116,17 @@ const GRANTS = {
         action: 'RemoteStopTransaction',
         attributes: ['*'],
         condition: {
-          Fn: 'AND',
+          Fn: 'OR',
           args: [
             {
-              Fn: 'OR',
-              args: [
-                {
-                  Fn: 'EQUALS',
-                  args: { 'user': '$.owner' }
-                },
-                {
-                  Fn: 'LIST_CONTAINS',
-                  args: {
-                    'tagIDs': '$.tagID'
-                  }
-                }
-              ]
+              Fn: 'EQUALS',
+              args: { 'user': '$.owner' }
             },
             {
-              Fn: 'OR',
-              args: [
-                {
-                  Fn: 'EQUALS',
-                  args: { 'site': null }
-                },
-                {
-                  Fn: 'LIST_CONTAINS',
-                  args: {
-                    'sites': '$.site'
-                  }
-                }
-              ]
+              Fn: 'LIST_CONTAINS',
+              args: {
+                'tagIDs': '$.tagID'
+              }
             }
           ]
         }
@@ -155,37 +135,17 @@ const GRANTS = {
       {
         resource: 'Transaction', action: ['Read', 'RefundTransaction'], attributes: ['*'],
         condition: {
-          Fn: 'AND',
+          Fn: 'OR',
           args: [
             {
-              Fn: 'OR',
-              args: [
-                {
-                  Fn: 'EQUALS',
-                  args: { 'user': '$.owner' }
-                },
-                {
-                  Fn: 'LIST_CONTAINS',
-                  args: {
-                    'tagIDs': '$.tagID'
-                  }
-                }
-              ]
+              Fn: 'EQUALS',
+              args: { 'user': '$.owner' }
             },
             {
-              Fn: 'OR',
-              args: [
-                {
-                  Fn: 'EQUALS',
-                  args: { 'site': null }
-                },
-                {
-                  Fn: 'LIST_CONTAINS',
-                  args: {
-                    'sites': '$.site'
-                  }
-                }
-              ]
+              Fn: 'LIST_CONTAINS',
+              args: {
+                'tagIDs': '$.tagID'
+              }
             }
           ]
         }
@@ -193,8 +153,9 @@ const GRANTS = {
       { resource: 'Settings', action: 'List', attributes: ['*'] },
       { resource: 'Setting', action: 'Read', attributes: ['*'] },
       { resource: 'Connections', action: 'List', attributes: ['*'] },
+      { resource: 'Connection', action: ['Create'], attributes: ['*'] },
       {
-        resource: 'Connection', action: ['Create', 'Read', 'Delete'], attributes: ['*'],
+        resource: 'Connection', action: ['Read', 'Delete'], attributes: ['*'],
         condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
       },
     ]
@@ -242,7 +203,7 @@ const GRANTS = {
     },
     grants: [
       { resource: 'Users', action: 'List', attributes: ['*'] },
-      { resource: 'User', action: ['Read', 'Update'], attributes: ['*'] },
+      { resource: 'User', action: ['Read'], attributes: ['*'] },
       {
         resource: 'Site', action: ['Update'], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
@@ -255,11 +216,11 @@ const GRANTS = {
         resource: 'ChargingStation', action: ['Update', 'Delete',
           'Reset', 'ClearCache', 'GetConfiguration', 'ChangeConfiguration',
           'SetChargingProfile', 'GetCompositeSchedule', 'ClearChargingProfile',
-          'GetDiagnostics', 'UpdateFirmware'], attributes: ['*'],
-        condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
+          'GetDiagnostics', 'UpdateFirmware','RemoteStopTransaction'], attributes: ['*'],
+        condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } }
       },
       {
-        resource: 'Transaction', action: 'Read', attributes: ['*'],
+        resource: 'Transaction', action: ['Read', 'RefundTransaction'], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } }
       },
       { resource: 'Loggings', action: 'List', attributes: ['*'] },
@@ -279,7 +240,11 @@ export default class AuthorizationsDefinition {
     try {
       this.accessControl = new AccessControl(GRANTS);
     } catch (error) {
-      throw new InternalError('Unable to load authorization grants', error);
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Unable to load authorization grants',
+        'AuthorizationsDefinition', 'constructor', 'Authorization',
+        null, null, error);
     }
   }
 
@@ -301,7 +266,11 @@ export default class AuthorizationsDefinition {
         }
       );
     } catch (error) {
-      throw new InternalError('Unable to load available scopes', error);
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Unable to load available scopes',
+        'AuthorizationsDefinition', 'getScopes', 'Authorization',
+        null, null, error);
     }
     return scopes;
   }
@@ -311,7 +280,11 @@ export default class AuthorizationsDefinition {
       const permission = this.accessControl.can(role).execute(action).with(context).on(resource);
       return permission.granted;
     } catch (error) {
-      throw new InternalError('Unable to check authorization', error);
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Unable to check authorization',
+        'AuthorizationsDefinition', 'can', 'Authorization',
+        null, null, error);
     }
   }
 }

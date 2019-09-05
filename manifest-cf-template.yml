@@ -4,8 +4,10 @@ applications:
   disk_quota: 1024M
   instances: 1
   buildpacks:
-    - https://github.com/cloudfoundry/nodejs-buildpack
+  - https://github.com/cloudfoundry/nodejs-buildpack
   random-route: true
+  routes:
+  - route: e-mobility-server.cfapps.eu10.hana.ondemand.com
   command: node -r source-map-support/register dist/start.js
   env:
     OPTIMIZE_MEMORY: true

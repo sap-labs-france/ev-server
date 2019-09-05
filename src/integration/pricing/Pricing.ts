@@ -1,4 +1,4 @@
-import Transaction from '../../entity/Transaction';
+import Transaction from '../../types/Transaction';
 import User from '../../types/User';
 
 export abstract class PricingSettings {}
@@ -32,13 +32,13 @@ export default abstract class Pricing<T extends PricingSettings> {
   }
 
   // eslint-disable-next-line no-unused-vars
-  async abstract startSession(consumptionData: {consumption: any}): Promise<PricedConsumption>;
+  async abstract startSession(consumptionData: {consumption: number}): Promise<PricedConsumption>;
 
   // eslint-disable-next-line no-unused-vars
-  async abstract updateSession(consumptionData: {consumption: any}): Promise<PricedConsumption>;
+  async abstract updateSession(consumptionData: {consumption: number}): Promise<PricedConsumption>;
 
   // eslint-disable-next-line no-unused-vars
-  async abstract stopSession(consumptionData: {consumption: any}): Promise<PricedConsumption>;
+  async abstract stopSession(consumptionData: {consumption: number}): Promise<PricedConsumption>;
 
   protected getSettings(): T {
     return this.setting;

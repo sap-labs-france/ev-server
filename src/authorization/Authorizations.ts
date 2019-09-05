@@ -7,24 +7,21 @@ import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import NotificationHandler from '../notification/NotificationHandler';
 import SessionHashService from '../server/rest/service/SessionHashService';
+import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../storage/mongodb/SiteStorage';
 import TenantStorage from '../storage/mongodb/TenantStorage';
-import Transaction from '../entity/Transaction';
+import Transaction from '../types/Transaction';
 import User from '../types/User';
 import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
 import Utils from '../utils/Utils';
-import SiteAreaStorage from '../storage/mongodb/SiteAreaStorage';
 
 export default class Authorizations {
 
   private static configuration: any;
 
-  public static canRefundTransaction(loggedUser: UserToken, transaction: any) {
-    let userId;
-    if (transaction.getUserJson()) {
-      userId = transaction.getUserJson().id;
-    }
+  public static canRefundTransaction(loggedUser: UserToken, transaction: Transaction) {
+    const userId = transaction.userID;
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION,
       Constants.ACTION_REFUND_TRANSACTION, { 'UserID': userId });
   }
@@ -56,11 +53,11 @@ export default class Authorizations {
       return false;
     }
     const context = {
-      user: transaction.getUserJson() ? transaction.getUserJson().id : null,
+      user: transaction.userID,
       owner: loggedUser.id,
       tagIDs: loggedUser.tagIDs,
-      tagID: transaction.getTagID(),
-      site: transaction.getSiteID(),
+      tagID: transaction.tagID,
+      site: transaction.siteID,
       sites: loggedUser.sites,
       sitesAdmin: loggedUser.sitesAdmin
     };
@@ -74,8 +71,17 @@ export default class Authorizations {
     return loggedUser.companies;
   }
 
-  public static getAuthorizedSiteIDs(loggedUser: UserToken): string[] {
-    return loggedUser.sites;
+  public static getAuthorizedSiteIDs(loggedUser: UserToken, requestedSites: string[]): string[] {
+    if (!Utils.isComponentActiveFromToken(loggedUser, Constants.COMPONENTS.ORGANIZATION)) {
+      return null;
+    }
+    if (this.isAdmin(loggedUser.role)) {
+      return requestedSites;
+    }
+    if (!requestedSites || requestedSites.length === 0) {
+      return loggedUser.sites;
+    }
+    return requestedSites.filter((site) => loggedUser.sites.includes(site));
   }
 
   public static getAuthorizedSiteAdminIDs(loggedUser: UserToken): string[] {
@@ -90,9 +96,7 @@ export default class Authorizations {
       // Get User's site
       const sites = (await UserStorage.getSites(tenantID, { userID: user.id },
         Constants.DB_PARAMS_MAX_LIMIT))
-        .result.map((siteUser) => {
-          return siteUser.site;
-        });
+        .result.map((siteUser) => siteUser.site);
       // Get User's Site Admin
       const sitesAdmin = await UserStorage.getSites(
         tenantID, { userID: user.id, siteAdmin: true },
@@ -100,15 +104,9 @@ export default class Authorizations {
         ['site.id']
       );
       // Assign
-      siteIDs = sites.map((site) => {
-        return site.id;
-      });
-      companyIDs = [...new Set(sites.map((site) => {
-        return site.companyID;
-      }))];
-      siteAdminIDs = sitesAdmin.result.map((siteUser) => {
-        return siteUser.site.id;
-      });
+      siteIDs = sites.map((site) => site.id);
+      companyIDs = [...new Set(sites.map((site) => site.companyID))];
+      siteAdminIDs = sitesAdmin.result.map((siteUser) => siteUser.site.id);
     }
 
     let tenantHashID = Constants.DEFAULT_TENANT;
@@ -142,22 +140,22 @@ export default class Authorizations {
   }
 
   public static async isAuthorizedOnChargingStation(tenantID: string, chargingStation: ChargingStation, tagID: string): Promise<User> {
-    return await this.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, null, tagID, Constants.ACTION_AUTHORIZE);
+    return await Authorizations.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, null, tagID, Constants.ACTION_AUTHORIZE);
   }
 
   public static async isAuthorizedToStartTransaction(tenantID: string, chargingStation: ChargingStation, tagID: string): Promise<User> {
-    return await this.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, null, tagID, Constants.ACTION_REMOTE_START_TRANSACTION);
+    return await Authorizations.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, null, tagID, Constants.ACTION_REMOTE_START_TRANSACTION);
   }
 
   public static async isAuthorizedToStopTransaction(tenantID: string, chargingStation: ChargingStation, transaction: Transaction, tagId: string) {
     let user: User, alternateUser: User;
     // Check if same user
-    if (tagId !== transaction.getTagID()) {
+    if (tagId !== transaction.tagID) {
       alternateUser = await Authorizations.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, transaction, tagId, Constants.ACTION_REMOTE_STOP_TRANSACTION);
-      user = await UserStorage.getUserByTagId(tenantID, transaction.getTagID());
+      user = await UserStorage.getUserByTagId(tenantID, transaction.tagID);
     } else {
       // Check user
-      user = await Authorizations.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, transaction, transaction.getTagID(), Constants.ACTION_REMOTE_STOP_TRANSACTION);
+      user = await Authorizations.isTagIDAuthorizedOnChargingStation(tenantID, chargingStation, transaction, transaction.tagID, Constants.ACTION_REMOTE_STOP_TRANSACTION);
     }
     return { user, alternateUser };
   }
@@ -183,11 +181,11 @@ export default class Authorizations {
       return false;
     }
     const context = {
-      user: transaction.getUserJson() ? transaction.getUserJson().id : null,
+      user: transaction.userID,
       owner: loggedUser.id,
       tagIDs: loggedUser.tagIDs,
-      tagID: transaction.getTagID(),
-      site: transaction.getSiteID(),
+      tagID: transaction.tagID,
+      site: transaction.siteID,
       sites: loggedUser.sites,
       sitesAdmin: loggedUser.sitesAdmin
     };
@@ -206,7 +204,17 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATIONS, Constants.ACTION_LIST);
   }
 
-  public static canPerformActionOnChargingStation(loggedUser: UserToken, action: string, context?: any): boolean {
+  public static canPerformActionOnChargingStation(loggedUser: UserToken, action: string, chargingStation: ChargingStation, context?: any): boolean {
+    if (!context) {
+      const isOrgCompActive = Utils.isComponentActiveFromToken(loggedUser, Constants.COMPONENTS.ORGANIZATION);
+      context = {
+        tagIDs: loggedUser.tagIDs,
+        owner: loggedUser.id,
+        site: isOrgCompActive ? chargingStation.siteArea.site.id : null,
+        sites: loggedUser.sites,
+        sitesAdmin: loggedUser.sitesAdmin
+      };
+    }
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION, action, context);
   }
 
@@ -217,14 +225,14 @@ export default class Authorizations {
   public static canUpdateChargingStation(loggedUser: UserToken, siteID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION, Constants.ACTION_UPDATE, {
       'site': siteID,
-      'sites': loggedUser.sitesAdmin
+      'sitesAdmin': loggedUser.sitesAdmin
     });
   }
 
   public static canDeleteChargingStation(loggedUser: UserToken, siteID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CHARGING_STATION, Constants.ACTION_DELETE, {
       'site': siteID,
-      'sites': loggedUser.sitesAdmin
+      'sitesAdmin': loggedUser.sitesAdmin
     });
   }
 
@@ -464,8 +472,7 @@ export default class Authorizations {
   }
 
   public static canCreateConnection(loggedUser: UserToken): boolean {
-    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CONNECTION, Constants.ACTION_CREATE,
-      { 'owner': loggedUser.id });
+    return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_CONNECTION, Constants.ACTION_CREATE);
   }
 
   public static canDeleteConnection(loggedUser: UserToken, userId: string): boolean {
@@ -579,15 +586,15 @@ export default class Authorizations {
 
       // Authorized?
       const context = {
-        user: transaction && transaction.getUserJson() ? transaction.getUserJson().id : null,
+        user: transaction ? transaction.userID : null,
         tagIDs: userToken.tagIDs,
-        tagID: transaction && transaction.getTagID() ? transaction.getTagID() : null,
+        tagID: transaction ? transaction.tagID : null,
         owner: userToken.id,
         site: isOrgCompActive ? chargingStation.siteArea.site.id : null,
         sites: userToken.sites,
         sitesAdmin: userToken.sitesAdmin
       };
-      if (!Authorizations.canPerformActionOnChargingStation(userToken, action, context)) {
+      if (!Authorizations.canPerformActionOnChargingStation(userToken, action, chargingStation, context)) {
         throw new AppAuthError(
           action,
           Constants.ENTITY_CHARGING_STATION,

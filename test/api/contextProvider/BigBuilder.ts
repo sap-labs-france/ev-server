@@ -16,10 +16,10 @@ import SiteContext from './SiteContext';
 import SiteStorage from '../../../src/storage/mongodb/SiteStorage';
 import TenantContext from './TenantContext';
 import TenantFactory from '../../factories/TenantFactory';
+import TenantStorage from '../../../src/storage/mongodb/TenantStorage';
 import User from '../../../src/types/User';
 import UserFactory from '../../factories/UserFactory';
 import UserStorage from '../../../src/storage/mongodb/UserStorage';
-import TenantStorage from '../../../src/storage/mongodb/TenantStorage';
 import Utils from '../../../src/utils/Utils';
 
 const NBR_USERS = 10; // Number of total users : they are all connected to the sites
@@ -169,10 +169,8 @@ export default class ContextBuilder {
     let defaultAdminUser: User = null;
     // Search existing admin
     if (existingUserList && Array.isArray(existingUserList)) {
-      defaultAdminUser = existingUserList.find((user) => {
-        return user.id === CONTEXTS.TENANT_USER_LIST[0].id || user.email === config.get('admin.username') ||
-          user.role === 'A';
-      });
+      defaultAdminUser = existingUserList.find((user) => user.id === CONTEXTS.TENANT_USER_LIST[0].id || user.email === config.get('admin.username') ||
+          user.role === 'A');
     }
     if ((defaultAdminUser.id !== CONTEXTS.TENANT_USER_LIST[0].id) || (defaultAdminUser.status !== 'A')) {
       // It is a different default user so first delete it
@@ -201,9 +199,7 @@ export default class ContextBuilder {
       for (const setting in tenantContextDef.componentSettings) {
         let foundSetting: any = null;
         if (allSettings && allSettings.data && allSettings.data.result && allSettings.data.result.length > 0) {
-          foundSetting = allSettings.data.result.find((existingSetting) => {
-            return existingSetting.identifier === setting;
-          });
+          foundSetting = allSettings.data.result.find((existingSetting) => existingSetting.identifier === setting);
         }
         if (!foundSetting) {
           // Create new settings
@@ -272,7 +268,6 @@ export default class ContextBuilder {
       buildTenant.components[Constants.COMPONENTS.ORGANIZATION].active) {
       // Create the company
       for (let counterComp = 1; counterComp <= NBR_COMPANIES; counterComp++) {
-        let company = null;
         const companyDef = {
           id: new ObjectID().toHexString()
         };
@@ -280,7 +275,7 @@ export default class ContextBuilder {
         dummyCompany.id = companyDef.id;
         dummyCompany.createdBy = { id: adminUser.id };
         dummyCompany.createdOn = moment().toISOString();
-        company = await CompanyStorage.saveCompany(buildTenant.id, dummyCompany);
+        await CompanyStorage.saveCompany(buildTenant.id, dummyCompany);
         newTenantContext.getContext().companies.push(dummyCompany);
         console.log(`Create company : ${dummyCompany.id}`);
         // Build sites/sitearea according to tenant definition
@@ -295,9 +290,7 @@ export default class ContextBuilder {
           // Create site
           const siteTemplate = Factory.site.build({
             companyID: siteContextDef.companyID,
-            userIDs: userListToAssign.map((user) => {
-              return user.id;
-            })
+            userIDs: userListToAssign.map((user) => user.id)
           });
           siteTemplate.name = siteContextDef.name;
           siteTemplate.autoUserSiteAssignment = siteContextDef.autoUserSiteAssignment;
@@ -305,9 +298,7 @@ export default class ContextBuilder {
           site = siteTemplate;
           site.id = await SiteStorage.saveSite(buildTenant.id, siteTemplate, true);
           console.log(`* Create site : ${siteTemplate.id}`);
-          await SiteStorage.addUsersToSite(buildTenant.id, site.id, userListToAssign.map((user) => {
-            return user.id;
-          }));
+          await SiteStorage.addUsersToSite(buildTenant.id, site.id, userListToAssign.map((user) => user.id));
           const siteContext = new SiteContext(site, newTenantContext);
           newTenantContext.addSiteContext(siteContext);
           // Create site areas of current site

@@ -121,9 +121,7 @@ export default class OCPPSoapService15 extends OCPPService {
   }
 
   private _getRequestNameFromAction(actionName) {
-    return actionName.replace(/^\w/, (c) => {
-      return c.toLowerCase();
-    }).concat('Request');
+    return actionName.replace(/^\w/, (c) => c.toLowerCase()).concat('Request');
   }
 
   private async _initSOAPClient() {

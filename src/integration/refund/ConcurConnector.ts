@@ -1,20 +1,21 @@
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
+import * as Bluebird from 'bluebird';
 import jwt from 'jsonwebtoken';
 import moment from 'moment-timezone';
 import querystring from 'querystring';
 import AbstractConnector from '../AbstractConnector';
 import AppError from '../../exception/AppError';
+import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import ConnectionStorage from '../../storage/mongodb/ConnectionStorage';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
-import InternalError from '../../exception/InternalError';
 import Logging from '../../utils/Logging';
 import Site from '../../types/Site';
-import Transaction from '../../entity/Transaction';
-import TransactionStorage from '../../storage/mongodb/TransactionStorage';
-import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
+import Transaction from '../../types/Transaction';
+import TransactionStorage from '../../storage/mongodb/TransactionStorage';
+import BackendError from '../../exception/BackendError';
 
 const MODULE_NAME = 'ConcurConnector';
 const CONNECTOR_ID = 'concur';
@@ -33,22 +34,33 @@ export default class ConcurConnector extends AbstractConnector {
     axiosRetry(axios,
       {
         retries: 3,
-        retryCondition: (error) => {
-          return error.response.status === Constants.HTTP_GENERAL_ERROR;
-        },
+        retryCondition: (error) => error.response.status === Constants.HTTP_GENERAL_ERROR,
         retryDelay: (retryCount, error) => {
-          if (error.config.method === 'post') {
-            if (error.config.url.endsWith('/token')) {
-              Logging.logException(new InternalError(`Unable to request token, response status ${error.response.status}, attempt ${retryCount}`, error.response.data), 'Refund', MODULE_NAME, MODULE_NAME, 'AxiosRetry', tenantID);
+          try {
+            if (error.config.method === 'post') {
+              if (error.config.url.endsWith('/token')) {
+                throw new BackendError(
+                  Constants.CENTRAL_SERVER,
+                  `Unable to request token, response status ${error.response.status}, attempt ${retryCount}`,
+                  MODULE_NAME, 'anonymous', 'Refund', null, null, error.response);
+              } else {
+                const payload = {
+                  error: error.response.data,
+                  payload: JSON.parse(error.config.data)
+                };
+                throw new BackendError(
+                  Constants.CENTRAL_SERVER,
+                  `Unable to post data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`,
+                  MODULE_NAME, 'anonymous', 'Refund', null, null, payload);
+              }
             } else {
-              const payload = {
-                error: error.response.data,
-                payload: JSON.parse(error.config.data)
-              };
-              Logging.logException(new InternalError(`Unable to post data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`, payload), 'Refund', MODULE_NAME, MODULE_NAME, 'AxiosRetry', tenantID);
+              throw new BackendError(
+                Constants.CENTRAL_SERVER,
+                `Unable to ${error.config.url} data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`,
+                MODULE_NAME, 'anonymous', 'Refund', null, null, error.response.data);
             }
-          } else {
-            Logging.logException(new InternalError(`Unable to ${error.config.url} data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`, error.response.data), 'Refund', MODULE_NAME, MODULE_NAME, 'AxiosRetry', tenantID);
+          } catch (err) {
+            Logging.logException(err, 'Refund', Constants.CENTRAL_SERVER, MODULE_NAME, 'anonymous', tenantID, null);
           }
           return retryCount * 200;
         },
@@ -139,51 +151,43 @@ export default class ConcurConnector extends AbstractConnector {
         validUntil: ConcurConnector.computeValidUntilAt(result)
       });
     } catch (e) {
-      Logging.logError({
-        tenantID: this.getTenantID(),
-        module: MODULE_NAME,
-        method: 'createConnection',
-        action: 'Refund',
-        message: `Concur access token not granted for ${userId} ${JSON.stringify(e.response.data)}`,
-        error: e
-      });
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Concur access token not granted for ${userId}`, Constants.HTTP_GENERAL_ERROR,
-        MODULE_NAME, 'GetAccessToken', userId);
+        MODULE_NAME, 'GetAccessToken', userId, null, 'Refund', e);
     }
   }
 
-  async refund(userId: string, transactions, quickRefund = false): Promise<any> {
+  async refund(tenantID: string, userId: string, transactions: Transaction[], quickRefund = false): Promise<any> {
     const startDate = moment();
     const refundedTransactions = [];
     const connection = await this.getRefreshedConnection(userId);
     let expenseReportId;
 
     if (!quickRefund) {
-      expenseReportId = await this.createExpenseReport(connection, transactions[0].getTimezone(), userId);
+      expenseReportId = await this.createExpenseReport(connection, transactions[0].timezone, userId);
     }
 
-    await Promise.map(transactions,
+    await Bluebird.Promise.map(transactions,
       async (transaction: Transaction) => {
         try {
-          const chargingStation = await ChargingStationStorage.getChargingStation(transaction.getTenantID(), transaction.getChargeBoxID());
+          const chargingStation = await ChargingStationStorage.getChargingStation(tenantID, transaction.chargeBoxID);
           const locationId = await this.getLocation(connection, (chargingStation.siteArea && chargingStation.siteArea.site) ? chargingStation.siteArea.site :
-            (await SiteAreaStorage.getSiteArea(transaction.getTenantID(), chargingStation.siteAreaID, {withSite: true})).site);
+            (await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID, { withSite: true })).site);
           if (quickRefund) {
             const entryId = await this.createQuickExpense(connection, transaction, locationId, userId);
-            transaction.setRefundData({ refundId: entryId, type: 'quick', refundedAt: new Date() });
+            transaction.refundData = { refundId: entryId, type: 'quick', refundedAt: new Date() };
           } else {
             const entryId = await this.createExpenseReportEntry(connection, expenseReportId, transaction, locationId, userId);
-            transaction.setRefundData({
+            transaction.refundData = {
               refundId: entryId,
               type: 'report',
               status: Constants.REFUND_STATUS_SUBMITTED,
               reportId: expenseReportId,
               refundedAt: new Date()
-            });
+            };
           }
-          await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
+          await TransactionStorage.saveTransaction(tenantID, transaction);
           refundedTransactions.push(transaction);
         } catch (exception) {
           Logging.logException(exception, 'Refund', MODULE_NAME, MODULE_NAME, 'refund', this.getTenantID(), userId);
@@ -202,38 +206,38 @@ export default class ConcurConnector extends AbstractConnector {
     return refundedTransactions;
   }
 
-  async updateRefundStatus(transaction: Transaction): Promise<string> {
-    const connection = await this.getRefreshedConnection(transaction.getUserID());
-    if (transaction.getRefundData()) {
-      const report = await this.getExpenseReport(connection, transaction.getRefundData().reportId);
+  async updateRefundStatus(tenantID: string, transaction: Transaction): Promise<string> {
+    const connection = await this.getRefreshedConnection(transaction.userID);
+    if (transaction.refundData) {
+      const report = await this.getExpenseReport(connection, transaction.refundData.reportId);
       if (report) {
         // Approved
         if (report.ApprovalStatusCode === 'A_APPR') {
-          transaction.getRefundData().status = Constants.REFUND_STATUS_APPROVED;
-          await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
+          transaction.refundData.status = Constants.REFUND_STATUS_APPROVED;
+          await TransactionStorage.saveTransaction(tenantID, transaction);
           Logging.logDebug({
-            tenantID: transaction.getTenantID(),
+            tenantID: tenantID,
             module: 'ConcurConnector', method: 'updateRefundStatus', action: 'RefundSynchronize',
-            message: `The Transaction ID '${transaction.getID()}' has been marked 'Approved'`,
-            user: transaction.getUserID()
+            message: `The Transaction ID '${transaction.id}' has been marked 'Approved'`,
+            user: transaction.userID
           });
           return Constants.REFUND_STATUS_APPROVED;
         }
         Logging.logDebug({
-          tenantID: transaction.getTenantID(),
+          tenantID: tenantID,
           module: 'ConcurConnector', method: 'updateRefundStatus', action: 'RefundSynchronize',
-          message: `The Transaction ID '${transaction.getID()}' has not been updated`,
-          user: transaction.getUserID()
+          message: `The Transaction ID '${transaction.id}' has not been updated`,
+          user: transaction.userID
         });
       } else {
         // Cancelled
-        transaction.getRefundData().status = Constants.REFUND_STATUS_CANCELLED;
-        await TransactionStorage.saveTransaction(transaction.getTenantID(), transaction.getModel());
+        transaction.refundData.status = Constants.REFUND_STATUS_CANCELLED;
+        await TransactionStorage.saveTransaction(tenantID, transaction);
         Logging.logDebug({
-          tenantID: transaction.getTenantID(),
+          tenantID: tenantID,
           module: 'ConcurConnector', method: 'updateRefundStatus', action: 'RefundSynchronize',
-          message: `The Transaction ID '${transaction.getID()}' has been marked 'Cancelled'`,
-          user: transaction.getUserID()
+          message: `The Transaction ID '${transaction.id}' has been marked 'Cancelled'`,
+          user: transaction.userID
         });
         return Constants.REFUND_STATUS_CANCELLED;
       }
@@ -260,30 +264,29 @@ export default class ConcurConnector extends AbstractConnector {
     if (response.data && response.data.Items && response.data.Items.length > 0) {
       return response.data.Items[0];
     }
-
     throw new AppError(
       MODULE_NAME,
       `The city '${site.address.city}' of the station is unknown to Concur`,
       Constants.HTTP_CONCUR_CITY_UNKNOWN_ERROR,
-      MODULE_NAME, 'getLocation');
+      MODULE_NAME, 'getLocation', null, null, 'Refund');
   }
 
-  async createQuickExpense(connection, transaction, location, userId: string) {
+  async createQuickExpense(connection, transaction: Transaction, location, userId: string) {
     try {
       const startDate = moment();
       const response = await axios.post(`${this.getAuthenticationUrl()}/quickexpense/v4/users/${jwt.decode(connection.getData().access_token).sub}/context/TRAVELER/quickexpenses`, {
-        'comment': `Session started the ${moment.tz(transaction.getStartDate(), transaction.getTimezone()).format('YYYY-MM-DD HH:mm:ss')} during ${moment.duration(transaction.getStopTotalDurationSecs(), 'seconds').format('h[h]mm', { trim: false })}`,
+        'comment': `Session started the ${moment.tz(transaction.timestamp, transaction.timezone).format('YYYY-MM-DD HH:mm:ss')} during ${moment.duration(transaction.stop.totalDurationSecs, 'seconds').format('h[h]mm', { trim: false })}`,
         'vendor': this.getReportName(),
-        'entryDetails': `Refund of transaction ${transaction.getID}`,
+        'entryDetails': `Refund of transaction ${transaction.id}`,
         'expenseTypeID': this.getExpenseTypeCode(),
         'location': {
           'name': location.Name
         },
         'transactionAmount': {
-          'currencyCode': transaction.getStopPriceUnit(),
-          'value': transaction.getStopPrice()
+          'currencyCode': transaction.stop.priceUnit,
+          'value': transaction.stop.price
         },
-        'transactionDate': moment.tz(transaction.getStartDate(), transaction.getTimezone()).format('YYYY-MM-DD')
+        'transactionDate': moment.tz(transaction.timestamp, transaction.timezone).format('YYYY-MM-DD')
       }, {
         headers: {
           Accept: 'application/json',
@@ -295,35 +298,35 @@ export default class ConcurConnector extends AbstractConnector {
         user: userId,
         source: MODULE_NAME, action: 'Refund',
         module: MODULE_NAME, method: 'createQuickExpense',
-        message: `Transaction ${transaction.getID()} has been successfully transferred in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
+        message: `Transaction ${transaction.id} has been successfully transferred in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
       });
       return response.data.quickExpenseIdUri;
-    } catch (e) {
-      if (e.response) {
-        throw new InternalError(`Unable to create quickExpense, response status ${e.response.status}`, e.response.data);
-      } else {
-        throw new InternalError('Unable to create expense report', e);
-      }
+    } catch (error) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Unable to create Quick Expense',
+        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'createQuickExpense',
+        userId, null, 'Refund', error);
     }
   }
 
-  async createExpenseReportEntry(connection, expenseReportId, transaction, location, userId: string) {
+  async createExpenseReportEntry(connection, expenseReportId, transaction: Transaction, location, userId: string) {
     try {
       const startDate = moment();
       const response = await axios.post(`${this.getApiUrl()}/api/v3.0/expense/entries`, {
-        'Description': `E-Mobility reimbursement ${moment.tz(transaction.getStartDate(), transaction.getTimezone()).format('YYYY-MM-DD')}`,
-        'Comment': `Session started the ${moment.tz(transaction.getStartDate(), transaction.getTimezone()).format('YYYY-MM-DD HH:mm:ss')} during ${moment.duration(transaction.getStopTotalDurationSecs(), 'seconds').format('h[h]mm', { trim: false })}`,
+        'Description': `E-Mobility reimbursement ${moment.tz(transaction.timestamp, transaction.timezone).format('YYYY-MM-DD')}`,
+        'Comment': `Session started the ${moment.tz(transaction.timestamp, transaction.timezone).format('YYYY-MM-DD HH:mm:ss')} during ${moment.duration(transaction.stop.totalDurationSecs, 'seconds').format('h[h]mm', { trim: false })}`,
         'VendorDescription': 'E-Mobility',
-        'Custom1': transaction.getID(),
+        'Custom1': transaction.id,
         'ExpenseTypeCode': this.getExpenseTypeCode(),
         'IsBillable': true,
         'IsPersonal': false,
         'PaymentTypeID': this.getPaymentTypeID(),
         'ReportID': expenseReportId,
         'TaxReceiptType': 'N',
-        'TransactionAmount': transaction.getStopPrice(),
-        'TransactionCurrencyCode': transaction.getStopPriceUnit(),
-        'TransactionDate': moment.tz(transaction.getStartDate(), transaction.getTimezone()).format('YYYY-MM-DD'),
+        'TransactionAmount': transaction.stop.price,
+        'TransactionCurrencyCode': transaction.stop.priceUnit,
+        'TransactionDate': moment.tz(transaction.timestamp, transaction.timezone).format('YYYY-MM-DD'),
         'SpendCategoryCode': 'COCAR',
         'LocationID': location.ID
 
@@ -338,15 +341,15 @@ export default class ConcurConnector extends AbstractConnector {
         user: userId,
         source: MODULE_NAME, action: 'Refund',
         module: MODULE_NAME, method: 'createExpenseReportEntry',
-        message: `Transaction ${transaction.getID()} has been successfully transferred in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
+        message: `Transaction ${transaction.id} has been successfully transferred in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
       });
       return response.data.ID;
-    } catch (e) {
-      if (e.response) {
-        throw new InternalError(`Unable to create expense entry, response status ${e.response.status}`, e.response.data);
-      } else {
-        throw new InternalError('Unable to create expense entry', e);
-      }
+    } catch (error) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Unable to create an Expense Report entry',
+        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'createExpenseReportEntry',
+        userId, null, 'Refund', error);
     }
   }
 
@@ -370,12 +373,12 @@ export default class ConcurConnector extends AbstractConnector {
         message: `Report has been successfully created in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
       });
       return response.data.ID;
-    } catch (e) {
-      if (e.response) {
-        throw new InternalError(`Unable to create expense report, response status ${e.response.status}`, e.response.data);
-      } else {
-        throw new InternalError('Unable to create expense report', e);
-      }
+    } catch (error) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Unable to create an Expense Report',
+        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'createExpenseReport',
+        userId, null, 'Refund', error);
     }
   }
 
@@ -399,8 +402,11 @@ export default class ConcurConnector extends AbstractConnector {
       if (error.response.status === 404) {
         return null;
       }
-      throw new InternalError(`Unable to get report details, response status
-        ${error.response.status}`, error.response.data);
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `Unable to get Report details with ID '${reportId}'`,
+        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'getExpenseReport',
+        null, null, 'Refund', error);
     }
   }
 
@@ -413,8 +419,12 @@ export default class ConcurConnector extends AbstractConnector {
         }
       });
       return response.data.Items;
-    } catch (e) {
-      throw new InternalError(`Unable to get expense reports, response status ${e.response.status}`, e.response.data);
+    } catch (error) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'Unable to get expense Reports',
+        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'getExpenseReports',
+        null, null, 'Refund', error);
     }
   }
 

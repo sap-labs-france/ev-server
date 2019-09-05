@@ -7,6 +7,7 @@ import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import Setting, { SettingContent } from '../../../types/Setting';
+import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import Tenant from '../../../types/Tenant';
 import TenantSecurity from './security/TenantSecurity';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
@@ -15,7 +16,6 @@ import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
-import SettingStorage from '../../../storage/mongodb/SettingStorage';
 
 const MODULE_NAME = 'TenantService';
 
@@ -37,7 +37,7 @@ export default class TenantService {
     }
     // Get
     const tenant = await TenantStorage.getTenant(filteredRequest.ID);
-    UtilsService.assertObjectExists(tenant, `Tenant '${filteredRequest.ID}' does not exist`,
+    UtilsService.assertObjectExists(tenant, `Tenant with ID '${filteredRequest.ID}' does not exist`,
       MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check if current tenant
     if (tenant.id === req.user.tenantID) {
@@ -85,7 +85,7 @@ export default class TenantService {
     }
     // Get it
     const tenant = await TenantStorage.getTenant(tenantID);
-    UtilsService.assertObjectExists(tenant, `Tenant with ID '${tenantID}' doesn't exist.`, MODULE_NAME, 'handleGetTenant', req.user);
+    UtilsService.assertObjectExists(tenant, `Tenant with ID '${tenantID}' does not exist`, MODULE_NAME, 'handleGetTenant', req.user);
     // Return
     res.json(
       // Filter
@@ -183,7 +183,7 @@ export default class TenantService {
       tenantUser.email;
     // Send Register User (Async)
     NotificationHandler.sendNewRegisteredUser(
-      filteredRequest.id,
+      Constants.DEFAULT_TENANT,
       Utils.generateGUID(),
       tenantUser,
       {
@@ -195,7 +195,7 @@ export default class TenantService {
     );
     // Send password (Async)
     NotificationHandler.sendNewPassword(
-      filteredRequest.id,
+      Constants.DEFAULT_TENANT,
       Utils.generateGUID(),
       tenantUser,
       {
@@ -236,7 +236,7 @@ export default class TenantService {
     }
     // Get
     const tenant = await TenantStorage.getTenant(tenantUpdate.id);
-    UtilsService.assertObjectExists(tenant, `Tenant '${tenantUpdate.id}' doesn't exist.`, MODULE_NAME, 'handleUpdateTenant', req.user);
+    UtilsService.assertObjectExists(tenant, `Tenant with ID '${tenantUpdate.id}' does not exist`, MODULE_NAME, 'handleUpdateTenant', req.user);
     // Update timestamp
     tenantUpdate.lastChangedBy = { 'id': req.user.id };
     tenantUpdate.lastChangedOn = new Date();
@@ -257,7 +257,7 @@ export default class TenantService {
     next();
   }
 
-  private static async _updateSettingsWithComponents(tenant: Partial<Tenant>, req: Request) : Promise<void> {
+  private static async _updateSettingsWithComponents(tenant: Partial<Tenant>, req: Request): Promise<void> {
     // Create settings
     for (const componentName in tenant.components) {
       // Get the settings
@@ -271,8 +271,8 @@ export default class TenantService {
         continue;
       }
       // Create
-      const newSettingContent : SettingContent = Utils.createDefaultSettingContent(
-        {...tenant.components[componentName], name: componentName}, (currentSetting ? currentSetting.content : null));
+      const newSettingContent: SettingContent = Utils.createDefaultSettingContent(
+        { ...tenant.components[componentName], name: componentName }, (currentSetting ? currentSetting.content : null));
       if (newSettingContent) {
         // Create & Save
         if (!currentSetting) {

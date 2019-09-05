@@ -1,5 +1,4 @@
 import { ObjectID } from 'mongodb';
-import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
@@ -7,23 +6,24 @@ import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import SiteArea from '../../types/SiteArea';
 import Utils from '../../utils/Utils';
+import { DataResult, ImageResult } from '../../types/DataResult';
 
 export default class SiteAreaStorage {
-  public static async getSiteAreaImage(tenantID: string, id: string): Promise<{id: string; image: string}> {
+  public static async getSiteAreaImage(tenantID: string, id: string): Promise<ImageResult> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'getSiteAreaImage');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const siteAreaImagesMDB = await global.database.getCollection<{_id: string; image: string}>(tenantID, 'siteareaimages')
+    const siteAreaImagesMDB = await global.database.getCollection<{_id: ObjectID; image: string}>(tenantID, 'siteareaimages')
       .find({ _id: Utils.convertToObjectID(id) })
       .limit(1)
       .toArray();
-    let siteAreaImage: {id: string; image: string} = null;
+    let siteAreaImage: ImageResult = null;
     // Set
     if (siteAreaImagesMDB && siteAreaImagesMDB.length > 0) {
       siteAreaImage = {
-        id: siteAreaImagesMDB[0]._id,
+        id: siteAreaImagesMDB[0]._id.toHexString(),
         image: siteAreaImagesMDB[0].image
       };
     }
@@ -70,17 +70,11 @@ export default class SiteAreaStorage {
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(siteAreaMDB, siteAreaToSave);
     // Modify
-    const result = await global.database.getCollection<SiteArea>(tenantID, 'siteareas').findOneAndUpdate(
+    await global.database.getCollection<SiteArea>(tenantID, 'siteareas').findOneAndUpdate(
       { _id: siteAreaMDB._id },
       { $set: siteAreaMDB },
       { upsert: true, returnOriginal: false }
     );
-    if (!result.ok) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Couldn\'t update SiteArea',
-        'SiteAreaStorage', 'saveSiteArea');
-    }
     if (saveImage) {
       await SiteAreaStorage._saveSiteAreaImage(tenantID, siteAreaMDB._id.toHexString(), siteAreaToSave.image);
     }
@@ -92,7 +86,7 @@ export default class SiteAreaStorage {
   public static async getSiteAreas(tenantID: string,
     params: {siteAreaID?: string; search?: string; siteIDs?: string[]; withSite?: boolean;
       withChargeBoxes?: boolean; withAvailableChargers?: boolean; } = {},
-    dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: SiteArea[]}> {
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteArea>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteAreaStorage', 'getSiteAreas');
     // Check Tenant
@@ -117,7 +111,7 @@ export default class SiteAreaStorage {
       }
     }
     // Set Site thru a filter in the dashboard
-    if (params.siteIDs && Array.isArray(params.siteIDs) && params.siteIDs.length > 0) {
+    if (params.siteIDs && Array.isArray(params.siteIDs)) {
       filters.siteID = {
         $in: params.siteIDs.map((site) => Utils.convertToObjectID(site))
       };
@@ -128,14 +122,6 @@ export default class SiteAreaStorage {
     if (filters) {
       aggregation.push({
         $match: filters
-      });
-    }
-    // Limit on Site Area for Basic Users
-    if (params.siteIDs && params.siteIDs.length > 0) {
-      aggregation.push({
-        $match: {
-          siteID: { $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID)) }
-        }
       });
     }
     // Sites
@@ -150,7 +136,7 @@ export default class SiteAreaStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const siteAreasCountMDB = await global.database.getCollection<{count: number}>(tenantID, 'siteareas')
+    const siteAreasCountMDB = await global.database.getCollection<DataResult<SiteArea>>(tenantID, 'siteareas')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested

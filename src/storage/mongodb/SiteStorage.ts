@@ -1,16 +1,16 @@
-import Cypher from '../../utils/Cypher';
 import { ObjectID } from 'mongodb';
-import BackendError from '../../exception/BackendError';
 import ChargingStationStorage from './ChargingStationStorage';
 import Constants from '../../utils/Constants';
+import Cypher from '../../utils/Cypher';
 import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
-import Site from '../../types/Site';
+import Site, { SiteUser } from '../../types/Site';
 import SiteAreaStorage from './SiteAreaStorage';
 import User, { UserSite } from '../../types/User';
 import Utils from '../../utils/Utils';
+import { DataResult, ImageResult } from '../../types/DataResult';
 
 export default class SiteStorage {
   public static async getSite(tenantID: string, id: string): Promise<Site> {
@@ -26,21 +26,21 @@ export default class SiteStorage {
     return sitesMDB.count > 0 ? sitesMDB.result[0] : null;
   }
 
-  public static async getSiteImage(tenantID: string, id: string): Promise<{id: string; image: string}> {
+  public static async getSiteImage(tenantID: string, id: string): Promise<ImageResult> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getSiteImage');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const siteImagesMDB = await global.database.getCollection<{_id: string; image: string}>(tenantID, 'siteimages')
+    const siteImagesMDB = await global.database.getCollection<{_id: ObjectID; image: string}>(tenantID, 'siteimages')
       .find({ _id: Utils.convertToObjectID(id) })
       .limit(1)
       .toArray();
-    let siteImage: {id: string; image: string} = null;
+    let siteImage: ImageResult = null;
     // Set
     if (siteImagesMDB && siteImagesMDB.length > 0) {
       siteImage = {
-        id: siteImagesMDB[0]._id,
+        id: siteImagesMDB[0]._id.toHexString(),
         image: siteImagesMDB[0].image
       };
     }
@@ -99,7 +99,7 @@ export default class SiteStorage {
 
   public static async getUsers(tenantID: string,
     params: { search?: string; siteID: string},
-    dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: UserSite[]}> {
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<UserSite>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getUsers');
     // Check Tenant
@@ -147,7 +147,7 @@ export default class SiteStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const usersCountMDB = await global.database.getCollection<{count: number}>(tenantID, 'siteusers')
+    const usersCountMDB = await global.database.getCollection<DataResult<SiteUser>>(tenantID, 'siteusers')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested
@@ -238,17 +238,11 @@ export default class SiteStorage {
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(siteMDB, siteToSave);
     // Modify and return the modified document
-    const result = await global.database.getCollection<any>(tenantID, 'sites').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'sites').findOneAndUpdate(
       siteFilter,
       { $set: siteMDB },
       { upsert: true }
     );
-    if (!result.ok) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Couldn\'t update Site',
-        'SiteStorage', 'saveSite');
-    }
     if (saveImage) {
       await SiteStorage.saveSiteImage(tenantID, siteFilter._id.toHexString(), siteToSave.image);
     }
@@ -264,7 +258,7 @@ export default class SiteStorage {
     await Utils.checkTenant(tenantID);
     // Modify
     await global.database.getCollection<{_id: string; image: string}>(tenantID, 'siteimages').findOneAndUpdate(
-      { '_id': Utils.convertToObjectID(siteID) },
+      { _id: siteID },
       { $set: { image: siteImageToSave } },
       { upsert: true, returnOriginal: false }
     );
@@ -277,7 +271,7 @@ export default class SiteStorage {
       search?: string; companyIDs?: string[]; withAutoUserAssignment?: boolean; siteIDs?: string[];
       userID?: string; excludeSitesOfUserID?: boolean; siteID?: string;
       withAvailableChargers?: boolean; withCompany?: boolean; } = {},
-    dbParams: DbParams, projectFields?: string[]): Promise<{count: number; result: Site[]}> {
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Site>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getSites');
     // Check Tenant
@@ -399,7 +393,7 @@ export default class SiteStorage {
           const chargingStations = await ChargingStationStorage.getChargingStations(tenantID,
             { siteIDs: [siteMDB.id], includeDeleted: false }, Constants.DB_PARAMS_MAX_LIMIT);
           // Set the Charging Stations' Connector statuses
-          siteMDB.connectorStats = Utils.getConnectorStatusesFromChargingStations(chargingStations.result);;
+          siteMDB.connectorStats = Utils.getConnectorStatusesFromChargingStations(chargingStations.result);
         }
         if (!siteMDB.autoUserSiteAssignment) {
           siteMDB.autoUserSiteAssignment = false;
@@ -410,7 +404,6 @@ export default class SiteStorage {
     }
     // Debug
     Logging.traceEnd('SiteStorage', 'getSites', uniqueTimerID, { params, limit, skip, sort: dbParams.sort });
-    // Ok
     return {
       count: (sitesCountMDB.length > 0 ?
         (sitesCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : sitesCountMDB[0].count) : 0),

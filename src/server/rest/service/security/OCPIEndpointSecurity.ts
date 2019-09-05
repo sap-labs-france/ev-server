@@ -4,7 +4,7 @@ import UtilsSecurity from './UtilsSecurity';
 
 export default class OCPIEndpointSecurity {
   // eslint-disable-next-line no-unused-vars
-  static filterOcpiEndpointDeleteRequest(request, loggedUser) {
+  static filterOcpiEndpointDeleteRequest(request: any) {
     const filteredRequest: any = {};
     // Set
     filteredRequest.ID = sanitize(request.ID);
@@ -12,14 +12,14 @@ export default class OCPIEndpointSecurity {
   }
 
   // eslint-disable-next-line no-unused-vars
-  static filterOcpiEndpointRequest(request, loggedUser) {
+  static filterOcpiEndpointRequest(request: any) {
     const filteredRequest: any = {};
     filteredRequest.ID = sanitize(request.ID);
     return filteredRequest;
   }
 
   // eslint-disable-next-line no-unused-vars
-  public static filterOcpiEndpointsRequest(request, loggedUser) {
+  public static filterOcpiEndpointsRequest(request: any) {
     const filteredRequest: any = {};
     filteredRequest.Search = sanitize(request.Search);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
@@ -27,41 +27,41 @@ export default class OCPIEndpointSecurity {
     return filteredRequest;
   }
 
-  static filterOcpiEndpointUpdateRequest(request, loggedUser) {
+  static filterOcpiEndpointUpdateRequest(request: any) {
     // Set OcpiEndpoint
-    const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request, loggedUser);
+    const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  static filterOcpiEndpointCreateRequest(request, loggedUser) {
-    return OCPIEndpointSecurity._filterOcpiEndpointRequest(request, loggedUser);
+  static filterOcpiEndpointCreateRequest(request: any) {
+    return OCPIEndpointSecurity._filterOcpiEndpointRequest(request);
   }
 
-  static filterOcpiEndpointPingRequest(request, loggedUser) {
-    return OCPIEndpointSecurity._filterOcpiEndpointRequest(request, loggedUser);
+  static filterOcpiEndpointPingRequest(request: any) {
+    return OCPIEndpointSecurity._filterOcpiEndpointRequest(request);
   }
 
-  static filterOcpiEndpointSendEVSEStatusesRequest(request, loggedUser) {
-    // Set ocpiendpoint
-    const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request, loggedUser);
-    filteredRequest.id = sanitize(request.id);
-    return filteredRequest;
-  }
-
-  static filterOcpiEndpointRegisterRequest(request, loggedUser) {
+  static filterOcpiEndpointSendEVSEStatusesRequest(request: any) {
     // Set OcpiEndpoint
-    const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request, loggedUser);
+    const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  static filterOcpiEndpointGenerateLocalTokenRequest(request, loggedUser) {
-    return OCPIEndpointSecurity._filterOcpiEndpointRequest(request, loggedUser);
+  static filterOcpiEndpointRegisterRequest(request: any) {
+    // Set OcpiEndpoint
+    const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request);
+    filteredRequest.id = sanitize(request.id);
+    return filteredRequest;
+  }
+
+  static filterOcpiEndpointGenerateLocalTokenRequest(request: any) {
+    return OCPIEndpointSecurity._filterOcpiEndpointRequest(request);
   }
 
   // eslint-disable-next-line no-unused-vars
-  static _filterOcpiEndpointRequest(request, loggedUser) {
+  static _filterOcpiEndpointRequest(request: any) {
     const filteredRequest: any = {};
     filteredRequest.name = sanitize(request.name);
     filteredRequest.baseUrl = sanitize(request.baseUrl);
@@ -73,10 +73,10 @@ export default class OCPIEndpointSecurity {
     return filteredRequest;
   }
 
-  static filterOcpiEndpointResponse(ocpiendpoint, loggedUser) {
+  static filterOcpiEndpointResponse(ocpiEndpoint, loggedUser) {
     let filteredOcpiEndpoint;
 
-    if (!ocpiendpoint) {
+    if (!ocpiEndpoint) {
       return null;
     }
     // Check auth
@@ -84,31 +84,30 @@ export default class OCPIEndpointSecurity {
       // Admin?
       if (Authorizations.isAdmin(loggedUser.role)) {
         // Yes: set all params
-        filteredOcpiEndpoint = ocpiendpoint;
+        filteredOcpiEndpoint = ocpiEndpoint;
       } else {
         // Set only necessary info
         return null;
       }
-
       // Created By / Last Changed By
       UtilsSecurity.filterCreatedAndLastChanged(
-        filteredOcpiEndpoint, ocpiendpoint, loggedUser);
+        filteredOcpiEndpoint, ocpiEndpoint, loggedUser);
     }
     return filteredOcpiEndpoint;
   }
 
-  static filterOcpiEndpointsResponse(ocpiendpoints, loggedUser) {
+  static filterOcpiEndpointsResponse(ocpiEndpoints, loggedUser) {
     const filteredOcpiEndpoints = [];
 
-    if (!ocpiendpoints) {
+    if (!ocpiEndpoints) {
       return null;
     }
     if (!Authorizations.canListOcpiEndpoints(loggedUser)) {
       return null;
     }
-    for (const ocpiendpoint of ocpiendpoints) {
+    for (const ocpiEndPoint of ocpiEndpoints) {
       // Filter
-      const filteredOcpiEndpoint = OCPIEndpointSecurity.filterOcpiEndpointResponse(ocpiendpoint, loggedUser);
+      const filteredOcpiEndpoint = OCPIEndpointSecurity.filterOcpiEndpointResponse(ocpiEndPoint, loggedUser);
       // Ok?
       if (filteredOcpiEndpoint) {
         // Add

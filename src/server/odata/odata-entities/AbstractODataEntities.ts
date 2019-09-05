@@ -61,18 +61,14 @@ export default class AbstractODataEntities {
       result = response.data.result;
       if (fields.length !== 0) {
         if (Array.isArray(result)) {
-          result = result.map((object) => {
-            return _.pick(this.convert(object, req), fields);
-          });
+          result = result.map((object) => _.pick(this.convert(object, req), fields));
         } else {
           result = [_.pick(this.convert(result, req), fields)];
         }
       } else {
         // eslint-disable-next-line no-lonely-if
         if (Array.isArray(result)) {
-          result = result.map((object) => {
-            return this.convert(object, req);
-          });
+          result = result.map((object) => this.convert(object, req));
         } else {
           result = this.convert(result, req);
         }

@@ -1,12 +1,12 @@
 import chai from 'chai';
 import chaiDatetime from 'chai-datetime';
 import chaiSubset from 'chai-subset';
+import faker from 'faker';
 import responseHelper from '../helpers/responseHelper';
+import chargingStationContext from './contextProvider/ChargingStationContext';
 import CONTEXTS from './contextProvider/ContextConstants';
 import ContextProvider from './contextProvider/ContextProvider';
-import chargingStationContext from './contextProvider/ChargingStationContext';
 import TransactionCommonTests from './TransactionCommonTests';
-import faker from 'faker';
 
 chai.use(chaiDatetime);
 chai.use(chaiSubset);
@@ -23,7 +23,7 @@ class TestData {
 
 const testData: TestData = new TestData();
 
-describe('Transaction tests', function () {
+describe('Transaction tests', function() {
   this.timeout(1000000); // Will automatically stop the unit test after that period of time
 
   before(async () => {
@@ -137,10 +137,6 @@ describe('Transaction tests', function () {
 
       describe('Using function "readAllCompleted"', () => {
 
-        after(async () => {
-          await testData.chargingStationContext.cleanUpCreatedData();
-        });
-
         afterEach(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
@@ -165,10 +161,6 @@ describe('Transaction tests', function () {
 
       describe('Using function "readAllInError"', () => {
 
-        after(async () => {
-          await testData.chargingStationContext.cleanUpCreatedData();
-        });
-
         afterEach(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();
         });
@@ -184,10 +176,6 @@ describe('Transaction tests', function () {
       });
 
       describe('Using function "readAllConsumption"', () => {
-
-        after(async () => {
-          await testData.chargingStationContext.cleanUpCreatedData();
-        });
 
         afterEach(async () => {
           await testData.chargingStationContext.cleanUpCreatedData();

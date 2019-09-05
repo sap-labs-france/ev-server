@@ -12,12 +12,8 @@ export class TransactionSet {
   }
 
   getTotalUnroundedAmount(): number {
-    return this.ccTransactions.map((t) => {
-      return parseFloat(t.details['default.unrounded_amount']);
-    })
-      .reduce((previousValue, currentValue) => {
-        return previousValue + currentValue;
-      }, 0);
+    return this.ccTransactions.map((t) => parseFloat(t.details['default.unrounded_amount']))
+      .reduce((previousValue, currentValue) => previousValue + currentValue, 0);
   }
 
   getCurrencyCode(): string {

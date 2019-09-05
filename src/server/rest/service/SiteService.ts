@@ -57,16 +57,6 @@ export default class SiteService {
           `The User with ID '${userID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'SiteService', 'handleAddUsersToSite', req.user);
       }
-      // Check auth
-      if (!Authorizations.canUpdateUser(req.user, userID)) {
-        throw new AppAuthError(
-          Constants.ACTION_UPDATE,
-          Constants.ENTITY_USER,
-          userID,
-          Constants.HTTP_AUTH_ERROR,
-          'SiteService', 'handleAddUsersToSite',
-          req.user, user);
-      }
     }
     // Save
     await SiteStorage.addUsersToSite(req.user.tenantID, filteredRequest.siteID, filteredRequest.userIDs);
@@ -118,15 +108,6 @@ export default class SiteService {
         Constants.ACTION_UPDATE,
         Constants.ENTITY_SITE,
         filteredRequest.siteID,
-        Constants.HTTP_AUTH_ERROR,
-        'SiteService', 'handleUpdateSiteUserAdmin',
-        req.user, filteredRequest.userID);
-    }
-    if (!Authorizations.canUpdateUser(req.user, filteredRequest.userID)) {
-      throw new AppAuthError(
-        Constants.ACTION_UPDATE,
-        Constants.ENTITY_USER,
-        filteredRequest.userID,
         Constants.HTTP_AUTH_ERROR,
         'SiteService', 'handleUpdateSiteUserAdmin',
         req.user, filteredRequest.userID);
@@ -202,16 +183,6 @@ export default class SiteService {
           `The User with ID '${userID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
           'SiteService', 'handleRemoveUsersFromSite', req.user);
       }
-      // Check auth
-      if (!Authorizations.canUpdateUser(req.user, userID)) {
-        throw new AppAuthError(
-          Constants.ACTION_UPDATE,
-          Constants.ENTITY_USER,
-          userID,
-          Constants.HTTP_AUTH_ERROR,
-          'SiteService', 'handleRemoveUsersFromSite',
-          req.user, user);
-      }
     }
     // Save
     await SiteStorage.removeUsersFromSite(req.user.tenantID, filteredRequest.siteID, filteredRequest.userIDs);
@@ -274,13 +245,11 @@ export default class SiteService {
       ['user.id', 'user.name', 'user.firstName', 'user.email', 'user.role', 'siteAdmin', 'siteID']
     );
     // Filter
-    users.result = users.result.map((siteuser) => {
-      return {
-        siteID: siteuser.siteID,
-        siteAdmin: siteuser.siteAdmin,
-        user: UserSecurity.filterUserResponse(siteuser.user, req.user)
-      };
-    });
+    users.result = users.result.map((siteuser) => ({
+      siteID: siteuser.siteID,
+      siteAdmin: siteuser.siteAdmin,
+      user: UserSecurity.filterUserResponse(siteuser.user, req.user)
+    }));
     res.json(users);
     next();
   }
@@ -339,7 +308,7 @@ export default class SiteService {
     }
     // Get it
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.ID);
-    UtilsService.assertObjectExists(site, `The Site with ID '${filteredRequest.ID}' does not exist`, 'SiteService', 'handleGetSite', req.user);
+    UtilsService.assertObjectExists(site, `Site with ID '${filteredRequest.ID}' does not exist`, 'SiteService', 'handleGetSite', req.user);
     // Return
     res.json(
       // Filter
@@ -364,17 +333,17 @@ export default class SiteService {
         req.user);
     }
     // Filter
-    const filteredRequest = SiteSecurity.filterSitesRequest(req.query, req.user);
+    const filteredRequest = SiteSecurity.filterSitesRequest(req.query);
     // Get the sites
     const sites = await SiteStorage.getSites(req.user.tenantID,
       {
-        'search': filteredRequest.Search,
-        'userID': filteredRequest.UserID,
-        'companyIDs': (filteredRequest.CompanyID ? filteredRequest.CompanyID.split('|') : null),
-        'siteIDs': (filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : Authorizations.getAuthorizedSiteIDs(req.user)),
-        'withCompany': filteredRequest.WithCompany,
-        'excludeSitesOfUserID': filteredRequest.ExcludeSitesOfUserID,
-        'withAvailableChargers': filteredRequest.WithAvailableChargers
+        search: filteredRequest.Search,
+        userID: filteredRequest.UserID,
+        companyIDs: (filteredRequest.CompanyID ? filteredRequest.CompanyID.split('|') : null),
+        siteIDs: Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null),
+        withCompany: filteredRequest.WithCompany,
+        excludeSitesOfUserID: filteredRequest.ExcludeSitesOfUserID,
+        withAvailableChargers: filteredRequest.WithAvailableChargers
       },
       {
         limit: filteredRequest.Limit,
@@ -444,7 +413,7 @@ export default class SiteService {
     Utils.checkIfSiteValid(filteredRequest, req);
     // Check Company
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.companyID);
-    UtilsService.assertObjectExists(company, `The Company ID '${filteredRequest.companyID}' does not exist`, 'SiteService', 'handleCreateSite', req.user);
+    UtilsService.assertObjectExists(company, `Company ID '${filteredRequest.companyID}' does not exist`, 'SiteService', 'handleCreateSite', req.user);
     // Create site
     const site: Site = {
       ...filteredRequest,

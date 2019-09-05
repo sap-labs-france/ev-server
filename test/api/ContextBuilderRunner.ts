@@ -1,5 +1,5 @@
 import chai, { expect } from 'chai';
-import ContextBuilder from './ContextProvider/ContextBuilder';
+import ContextBuilder from './contextProvider/ContextBuilder';
 
 // For Visual Studio it is recommended to install Mocha sidebar and Chai snippets
 // Mocha is the test framework and chai provides functions to check expectations
@@ -48,7 +48,5 @@ describe('Unit test Context Builder', function() {
 });
 
 async function timeout(ms) {
-  return await new Promise((resolve) => {
-    return setTimeout(resolve, ms);
-  });
+  return await new Promise((resolve) => setTimeout(resolve, ms));
 }

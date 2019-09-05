@@ -12,7 +12,7 @@ export default class Notification extends TenantHolder {
     Database.updateNotification(notification, this._model);
   }
 
-  static getNotifications(tenantID, params, limit, skip, sort) {
+  static async getNotifications(tenantID, params, limit, skip, sort) {
     return NotificationStorage.getNotifications(tenantID, params, limit, skip, sort);
   }
 
@@ -97,7 +97,7 @@ export default class Notification extends TenantHolder {
     this._model.chargingStation = chargingStation;
   }
 
-  save() {
+  async save() {
     return NotificationStorage.saveNotification(this.getTenantID(), this.getModel());
   }
 }

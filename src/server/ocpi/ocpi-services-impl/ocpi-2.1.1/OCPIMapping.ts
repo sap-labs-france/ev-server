@@ -1,11 +1,11 @@
+import ChargingStation from '../../../../types/ChargingStation';
 import Constants from '../../../../utils/Constants';
+import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 import Site from '../../../../types/Site';
 import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
-import ChargingStation from '../../../../types/ChargingStation';
 import Tenant from '../../../../types/Tenant';
-import SettingStorage from '../../../../storage/mongodb/SettingStorage';
 
 /**
  * OCPI Mapping 2.1.1 - Mapping class

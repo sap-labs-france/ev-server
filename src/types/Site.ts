@@ -1,8 +1,8 @@
 import Address from './Address';
 import Company from './Company';
+import ConnectorStats from './ConnectorStats';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import SiteArea from './SiteArea';
-import ConnectorStats from './ConnectorStats';
 
 export default interface Site extends CreatedUpdatedProps {
   id: string;

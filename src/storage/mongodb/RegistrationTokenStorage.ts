@@ -1,12 +1,13 @@
-import Logging from '../../utils/Logging';
-import Utils from '../../utils/Utils';
-import { ObjectID } from 'bson';
-import DatabaseUtils from './DatabaseUtils';
-import global from '../../types/GlobalType';
+import { ObjectID } from 'mongodb';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
+import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
+import global from '../../types/GlobalType';
+import Logging from '../../utils/Logging';
 import RegistrationToken from '../../types/RegistrationToken';
+import Utils from '../../utils/Utils';
+import { DataResult } from '../../types/DataResult';
 
 export default class RegistrationTokenStorage {
   static async saveRegistrationToken(tenantID: string, registrationToken: RegistrationToken): Promise<string> {
@@ -25,23 +26,19 @@ export default class RegistrationTokenStorage {
     // Add Last Changed/Created props
     DatabaseUtils.addLastChangedCreatedProps(registrationTokenMDB, registrationToken);
     // Modify
-    const result = await global.database.getCollection<RegistrationTokenStorage>(tenantID, 'registrationtokens').findOneAndUpdate(
+    await global.database.getCollection<RegistrationTokenStorage>(tenantID, 'registrationtokens').findOneAndUpdate(
       { _id: registrationTokenMDB._id },
       { $set: registrationTokenMDB },
       { upsert: true, returnOriginal: false }
     );
-    if (!result.ok) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Couldn\'t update RegistrationTokenStorage',
-        'RegistrationTokenStorage', 'saveRegistrationToken');
-    }
     // Debug
     Logging.traceEnd('RegistrationTokenStorage', 'saveRegistrationToken', uniqueTimerID, { registrationToken });
     return registrationTokenMDB._id.toHexString();
   }
 
-  static async getRegistrationTokens(tenantID: string, params: { id?: string; siteIDs?: string; siteAreaID?: string } = {}, dbParams: DbParams): Promise<{ count: number; result: RegistrationToken[] }> {
+  static async getRegistrationTokens(tenantID: string,
+    params: { id?: string; siteIDs?: string; siteAreaID?: string } = {}, dbParams: DbParams):
+    Promise<DataResult<RegistrationToken>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('RegistrationTokenStorage', 'getRegistrationTokens');
     // Check Tenant
@@ -95,7 +92,7 @@ export default class RegistrationTokenStorage {
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
     }
     // Count Records
-    const registrationTokensCountMDB = await global.database.getCollection<{ count: number }>(tenantID, 'registrationtokens')
+    const registrationTokensCountMDB = await global.database.getCollection<DataResult<RegistrationToken>>(tenantID, 'registrationtokens')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
     // Check if only the total count is requested

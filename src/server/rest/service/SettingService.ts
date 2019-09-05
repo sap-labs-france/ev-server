@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import HttpStatusCodes from 'http-status-codes';
 import _ from 'lodash';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
@@ -7,9 +8,8 @@ import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import SettingSecurity from './security/SettingSecurity';
-import UtilsService from './UtilsService';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
-import HttpStatusCodes from 'http-status-codes';
+import UtilsService from './UtilsService';
 
 export default class SettingService {
   public static async handleDeleteSetting(action: string, req: Request, res: Response, next: NextFunction) {
@@ -28,7 +28,7 @@ export default class SettingService {
     }
     // Get
     const setting = await SettingStorage.getSetting(req.user.tenantID, settingID);
-    UtilsService.assertObjectExists(setting, `Tenant '${settingID}' does not exist`, 'SettingService', 'handleDeleteSetting', req.user);
+    UtilsService.assertObjectExists(setting, `Tenant with ID '${settingID}' does not exist`, 'SettingService', 'handleDeleteSetting', req.user);
     // Delete
     await SettingStorage.deleteSetting(req.user.tenantID, settingID);
     // Log
@@ -59,7 +59,7 @@ export default class SettingService {
     }
     // Get it
     const setting = await SettingStorage.getSetting(req.user.tenantID, settingID);
-    UtilsService.assertObjectExists(setting, `Setting '${settingID}' doesn't exist.`, 'SettingService', 'handleGetSetting', req.user);
+    UtilsService.assertObjectExists(setting, `Setting with ID '${settingID}' does not exist`, 'SettingService', 'handleGetSetting', req.user);
     // Process the sensitive data if any
     // Hash sensitive data before being sent to the front end
     Cypher.hashSensitiveDataInJSON(setting);
@@ -88,6 +88,7 @@ export default class SettingService {
     const settings = await SettingStorage.getSettings(req.user.tenantID,
       { identifier: filteredRequest.Identifier },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort });
+    settings.result = settings.result.map((setting) => setting);
     // Filter
     settings.result = SettingSecurity.filterSettingsResponse(settings.result, req.user);
     // Process the sensitive data if any
@@ -148,7 +149,7 @@ export default class SettingService {
     }
     // Get Setting
     const setting = await SettingStorage.getSetting(req.user.tenantID, settingUpdate.id);
-    UtilsService.assertObjectExists(setting, `Setting '${settingUpdate.id}' doesn't exist anymore`,
+    UtilsService.assertObjectExists(setting, `Setting with ID '${settingUpdate.id}' does not exist anymore`,
       'SettingService', 'handleUpdateSetting', req.user);
     // Process the sensitive data if any
     // Preprocess the data to take care of updated values

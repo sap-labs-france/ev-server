@@ -1,15 +1,15 @@
-import Cypher from '../../../utils/Cypher';
 import { NextFunction, Request, Response } from 'express';
 import HttpStatus from 'http-status-codes';
-import Tenant from '../../../types/Tenant';
 import AppError from '../../../exception/AppError';
-import UserStorage from '../../../storage/mongodb/UserStorage';
-import global from '../../../types/GlobalType';
-import User from '../../../types/User';
 import Constants from '../../../utils/Constants';
+import Cypher from '../../../utils/Cypher';
+import global from '../../../types/GlobalType';
 import Logging from '../../../utils/Logging';
-import Utils from '../../../utils/Utils';
+import Tenant from '../../../types/Tenant';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import User from '../../../types/User';
+import UserStorage from '../../../storage/mongodb/UserStorage';
+import Utils from '../../../utils/Utils';
 
 export default class SessionHashService {
   // Check if Session has been updated and require new login

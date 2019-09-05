@@ -7,9 +7,8 @@ import Constants from '../../utils/Constants';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import NotificationTask from '../NotificationTask';
-import Tenant from '../../types/Tenant';
-import Utils from '../../utils/Utils';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
+import Utils from '../../utils/Utils';
 
 
 // Email
@@ -109,8 +108,7 @@ export default class EMailNotificationTask extends NotificationTask {
 
   async _prepareAndSendEmail(templateName, data, locale, tenantID) {
     // Check locale
-    if (!locale) {
-      // Default
+    if (!locale || !Constants.SUPPORTED_LOCALES.includes(locale)) {
       locale = Constants.DEFAULT_LOCALE;
     }
     // Check users
@@ -152,9 +150,7 @@ export default class EMailNotificationTask extends NotificationTask {
     if (emailTemplate.body.beforeActionLines) {
       // Render Lines Before Action
       emailTemplate.body.beforeActionLines =
-        emailTemplate.body.beforeActionLines.map((beforeActionLine) => {
-          return ejs.render(beforeActionLine, data);
-        });
+        emailTemplate.body.beforeActionLines.map((beforeActionLine) => ejs.render(beforeActionLine, data));
       // Remove extra empty lines
       Utils.removeExtraEmptyLines(emailTemplate.body.beforeActionLines);
     }
@@ -177,9 +173,7 @@ export default class EMailNotificationTask extends NotificationTask {
     if (emailTemplate.body.afterActionLines) {
       // Render Lines After Action
       emailTemplate.body.afterActionLines =
-        emailTemplate.body.afterActionLines.map((afterActionLine) => {
-          return ejs.render(afterActionLine, data);
-        });
+        emailTemplate.body.afterActionLines.map((afterActionLine) => ejs.render(afterActionLine, data));
       // Remove extra empty lines
       Utils.removeExtraEmptyLines(emailTemplate.body.afterActionLines);
     }
@@ -213,9 +207,7 @@ export default class EMailNotificationTask extends NotificationTask {
     let adminEmails = null;
     if (data.adminUsers && data.adminUsers.length > 0) {
       // Add Admins
-      adminEmails = data.adminUsers.map((adminUser) => {
-        return adminUser.email;
-      }).join(';');
+      adminEmails = data.adminUsers.map((adminUser) => adminUser.email).join(';');
     }
     // Send the email
     const message = await this.sendEmail({
@@ -236,13 +228,11 @@ export default class EMailNotificationTask extends NotificationTask {
       return (data.user ? data.user.email : null);
     } else if (data.users) {
       // Return a list of emails
-      return data.users.map((user) => {
-        return user.email;
-      }).join(',');
+      return data.users.map((user) => user.email).join(',');
     }
   }
 
-  async sendEmail(email, data, tenantID, retry: boolean = false) {
+  async sendEmail(email, data, tenantID, retry = false) {
     // Create the message
     const messageToSend = {
       from: (!retry ? _emailConfig.smtp.from : _emailConfig.smtpBackup.from),

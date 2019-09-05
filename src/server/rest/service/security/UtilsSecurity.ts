@@ -1,4 +1,5 @@
 import sanitize from 'mongo-sanitize';
+import Address from '../../../../types/Address';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import UserToken from '../../../../types/UserToken';
@@ -103,7 +104,7 @@ export default class UtilsSecurity {
     }
   }
 
-  static filterAddressRequest(address) {
+  static filterAddressRequest(address): Address {
     const filteredAddress: any = {};
     if (address) {
       filteredAddress.address1 = sanitize(address.address1);

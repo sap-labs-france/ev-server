@@ -16,7 +16,13 @@ export interface HttpUsersRequest extends HttpDatabaseRequest {
   SiteID: string;
   Role: string;
   Status: string;
+  ErrorType?: string;
   ExcludeSiteID: string;
+}
+
+export interface HttpUserSitesRequest extends HttpDatabaseRequest {
+  Search: string;
+  UserID: string;
 }
 
 export interface HttpLoginRequest {

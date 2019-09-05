@@ -1,20 +1,20 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import ChargingStationSecurity from './ChargingStationSecurity';
-import HttpByIDRequest from '../../../../types/requests/HttpByIDRequest';
 import { HttpSiteAreaRequest, HttpSiteAreasRequest } from '../../../../types/requests/HttpSiteAreaRequest';
 import SiteArea from '../../../../types/SiteArea';
 import SiteSecurity from './SiteSecurity';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
+import { DataResult } from '../../../../types/DataResult';
 
 export default class SiteAreaSecurity {
 
-  public static filterSiteAreaRequestByID(request: HttpByIDRequest): string {
+  public static filterSiteAreaRequestByID(request: any): string {
     return sanitize(request.ID);
   }
 
-  public static filterSiteAreaRequest(request: Partial<HttpSiteAreaRequest>): HttpSiteAreaRequest {
+  public static filterSiteAreaRequest(request: any): HttpSiteAreaRequest {
     // Filter request
     return {
       ID: sanitize(request.ID),
@@ -23,7 +23,7 @@ export default class SiteAreaSecurity {
     } as HttpSiteAreaRequest;
   }
 
-  public static filterSiteAreasRequest(request: Partial<HttpSiteAreasRequest>): HttpSiteAreasRequest {
+  public static filterSiteAreasRequest(request: any): HttpSiteAreasRequest {
     const filteredRequest: HttpSiteAreasRequest = {
       Search: sanitize(request.Search),
       WithSite: !request.WithSite ? false : UtilsSecurity.filterBoolean(request.WithSite),
@@ -36,18 +36,18 @@ export default class SiteAreaSecurity {
     return filteredRequest;
   }
 
-  public static filterSiteAreaUpdateRequest(request: Partial<SiteArea>): Partial<SiteArea> {
+  public static filterSiteAreaUpdateRequest(request: any): Partial<SiteArea> {
     return {
       id: sanitize(request.id),
       ...SiteAreaSecurity._filterSiteAreaRequest(request)
     };
   }
 
-  public static filterSiteAreaCreateRequest(request: Partial<SiteArea>): Partial<SiteArea> {
+  public static filterSiteAreaCreateRequest(request: any): Partial<SiteArea> {
     return SiteAreaSecurity._filterSiteAreaRequest(request);
   }
 
-  public static _filterSiteAreaRequest(request: Partial<SiteArea>): Partial<SiteArea> {
+  public static _filterSiteAreaRequest(request: any): Partial<SiteArea> {
     return {
       name: sanitize(request.name),
       address: UtilsSecurity.filterAddressRequest(request.address),
@@ -108,7 +108,7 @@ export default class SiteAreaSecurity {
     return filteredSiteArea;
   }
 
-  static filterSiteAreasResponse(siteAreas, loggedUser): SiteArea[] {
+  static filterSiteAreasResponse(siteAreas: DataResult<SiteArea>, loggedUser) {
     const filteredSiteAreas = [];
     if (!siteAreas.result) {
       return null;
@@ -119,7 +119,7 @@ export default class SiteAreaSecurity {
     for (const siteArea of siteAreas.result) {
       // Filter
       const filteredSiteArea = SiteAreaSecurity.filterSiteAreaResponse(siteArea, loggedUser);
-      // Ok?
+      // Add
       if (filteredSiteArea) {
         filteredSiteAreas.push(filteredSiteArea);
       }
@@ -127,4 +127,3 @@ export default class SiteAreaSecurity {
     siteAreas.result = filteredSiteAreas;
   }
 }
-

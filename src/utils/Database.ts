@@ -643,9 +643,11 @@ export default class Database {
       }
     }
     if (!Utils.isEmptyJSon(src.remotestop)) {
-      dest.remotestop = {};
-      dest.remotestop.timestamp = src.remotestop.timestamp;
-      dest.remotestop.tagID = src.remotestop.tagID;
+      dest.remotestop = {
+        timestamp: src.remotestop.timestamp,
+        tagID: src.remotestop.tagID,
+        userID: src.remotestop.userID
+      };
     }
     if (forFrontEnd) {
       if (!Utils.isEmptyJSon(src.chargeBox)) {

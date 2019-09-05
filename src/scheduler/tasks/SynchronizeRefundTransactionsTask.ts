@@ -35,8 +35,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
       tenant.id, setting.content[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]);
     // Get the 'Submitted' transactions
     const transactions = await TransactionStorage.getTransactions(tenant.id, {
-      'refundType': Constants.REFUND_TYPE_REFUNDED,
-      'refundStatus': Constants.REFUND_STATUS_SUBMITTED
+      'refundStatus': [Constants.REFUND_STATUS_SUBMITTED]
     }, { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { 'userID' : 1, 'refundData.reportId' : 1 } });
     // Check
     if (transactions.count > 0) {
@@ -56,7 +55,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
       for (const transaction of transactions.result) {
         try {
           // Update Transaction
-          const updatedAction = await connector.updateRefundStatus(transaction);
+          const updatedAction = await connector.updateRefundStatus(tenant.id, transaction);
           switch (updatedAction) {
             case Constants.REFUND_STATUS_CANCELLED:
               actionsDone.cancelled++;
