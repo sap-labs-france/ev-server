@@ -61,7 +61,8 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
 
   computeSessionId(consumptionData) {
 
-    const dataId = consumptionData.userID + consumptionData.chargeBoxID + consumptionData.connectorId + this.transaction.timestamp;
+    const timestamp = this.transaction.timestamp instanceof Date ? this.transaction.timestamp : new Date(this.transaction.timestamp);
+    const dataId = consumptionData.userID + consumptionData.chargeBoxID + consumptionData.connectorId + timestamp.toISOString();
 
     let hash = 0, i, chr;
     if (dataId.length === 0) {
