@@ -16,6 +16,8 @@ import SiteAreaStorage from '../../storage/mongodb/SiteAreaStorage';
 import Transaction from '../../types/Transaction';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import BackendError from '../../exception/BackendError';
+import Company from '../../types/Company';
+import CompanyStorage from '../../storage/mongodb/CompanyStorage';
 
 const MODULE_NAME = 'ConcurConnector';
 const CONNECTOR_ID = 'concur';
@@ -172,8 +174,13 @@ export default class ConcurConnector extends AbstractConnector {
       async (transaction: Transaction) => {
         try {
           const chargingStation = await ChargingStationStorage.getChargingStation(tenantID, transaction.chargeBoxID);
-          const locationId = await this.getLocation(connection, (chargingStation.siteArea && chargingStation.siteArea.site) ? chargingStation.siteArea.site :
-            (await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID, { withSite: true })).site);
+          let site;
+          if (chargingStation.siteArea && chargingStation.siteArea.site) {
+            site = chargingStation.siteArea.site;
+          } else {
+            site = (await SiteAreaStorage.getSiteArea(tenantID, chargingStation.siteAreaID, { withSite: true })).site;
+          }
+          const locationId = await this.getLocation(tenantID, connection, site);
           if (quickRefund) {
             const entryId = await this.createQuickExpense(connection, transaction, locationId, userId);
             transaction.refundData = { refundId: entryId, type: 'quick', refundedAt: new Date() };
@@ -244,7 +251,7 @@ export default class ConcurConnector extends AbstractConnector {
     }
   }
 
-  async getLocation(connection, site: Site) {
+  async getLocation(tenantID: string, connection, site: Site) {
     let response = await axios.get(`${this.getApiUrl()}/api/v3.0/common/locations?city=${site.address.city}`, {
       headers: {
         Accept: 'application/json',
@@ -254,7 +261,8 @@ export default class ConcurConnector extends AbstractConnector {
     if (response.data && response.data.Items && response.data.Items.length > 0) {
       return response.data.Items[0];
     }
-    const company = site.company;
+    // Get the company
+    const company: Company = await CompanyStorage.getCompany(tenantID, site.companyID);
     response = await axios.get(`${this.getApiUrl()}/api/v3.0/common/locations?city=${company.address.city}`, {
       headers: {
         Accept: 'application/json',

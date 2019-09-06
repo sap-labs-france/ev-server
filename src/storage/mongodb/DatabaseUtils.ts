@@ -43,7 +43,7 @@ export default class DatabaseUtils {
 
   public static pushSiteLookupInAggregation(lookupParams: DbLookup) {
     DatabaseUtils.pushCollectionLookupInAggregation('sites', {
-      objectIDFields: ['createdBy', 'lastChangedBy'],
+      objectIDFields: ['companyID', 'createdBy', 'lastChangedBy'],
       ...lookupParams
     });
   }
