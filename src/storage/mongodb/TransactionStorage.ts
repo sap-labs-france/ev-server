@@ -460,7 +460,7 @@ export default class TransactionStorage {
       })
       .toArray();
     // Convert Object IDs to String
-    this._convertTransactionIDs(transactionsMDB);
+    this._convertRemainingTransactionObjectIDs(transactionsMDB);
     // Debug
     Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, { params, dbParams });
     return {
@@ -623,13 +623,14 @@ export default class TransactionStorage {
     aggregation.pop();
     // Rename ID
     DatabaseUtils.renameField(aggregation, '_id', 'id');
-    // Sort    // Convert Object ID to string
+    // Convert Object ID to string
     DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
     DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
     DatabaseUtils.convertObjectIDToString(aggregation, 'siteAreaID');
     // Not yet possible to remove the fields if stop/remoteStop does not exist (MongoDB 4.2)
     // DatabaseUtils.convertObjectIDToString(aggregation, 'stop.userID');
     // DatabaseUtils.convertObjectIDToString(aggregation, 'remotestop.userID');
+    // Sort
     if (dbParams.sort) {
       if (!dbParams.sort.timestamp) {
         aggregation.push({
@@ -662,8 +663,8 @@ export default class TransactionStorage {
         allowDiskUse: true
       })
       .toArray();
-    // Convert Object IDs to String
-    this._convertTransactionIDs(transactionsMDB);
+    // Convert remaining Object IDs to String
+    this._convertRemainingTransactionObjectIDs(transactionsMDB);
     // Debug
     Logging.traceEnd('TransactionStorage', 'getTransactionsInError', uniqueTimerID, {
       params,
@@ -712,6 +713,10 @@ export default class TransactionStorage {
     });
     // Rename ID
     DatabaseUtils.renameField(aggregation, '_id', 'id');
+    // Convert Object ID to string
+    DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
+    DatabaseUtils.convertObjectIDToString(aggregation, 'siteAreaID');
     // Read DB
     const transactionsMDB = await global.database.getCollection<Transaction>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
@@ -723,6 +728,8 @@ export default class TransactionStorage {
     });
     // Found?
     if (transactionsMDB && transactionsMDB.length > 0) {
+      // Convert remaining Object IDs to String
+      this._convertRemainingTransactionObjectIDs(transactionsMDB);
       return transactionsMDB[0];
     }
     return null;
@@ -741,6 +748,13 @@ export default class TransactionStorage {
         'connectorId': Utils.convertToInt(connectorId)
       }
     });
+    // Rename ID
+    DatabaseUtils.renameField(aggregation, '_id', 'id');
+    // Convert Object ID to string
+    DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
+    DatabaseUtils.convertObjectIDToString(aggregation, 'siteAreaID');
+    // Sort
     aggregation.push({ $sort: { timestamp: -1 } });
     // The last one
     aggregation.push({ $limit: 1 });
@@ -755,6 +769,8 @@ export default class TransactionStorage {
     });
     // Found?
     if (transactionsMDB && transactionsMDB.length > 0) {
+      // Convert remaining Object IDs to String
+      this._convertRemainingTransactionObjectIDs(transactionsMDB);
       return transactionsMDB[0];
     }
     return null;
@@ -871,7 +887,7 @@ export default class TransactionStorage {
     return filteredFacets;
   }
 
-  private static _convertTransactionIDs(transactionsMDB: Transaction[]) {
+  private static _convertRemainingTransactionObjectIDs(transactionsMDB: Transaction[]) {
     for (const transactionMDB of transactionsMDB) {
       // Check Stop created by the join
       if (transactionMDB.stop && Utils.isEmptyJSon(transactionMDB.stop)) {
