@@ -679,15 +679,15 @@ export default class TransactionService {
     }
     // Date
     if (filteredRequest.StartDateTime) {
-      filter.startTime = filteredRequest.StartDateTime;
+      filter.startDateTime = filteredRequest.StartDateTime;
     }
     if (filteredRequest.EndDateTime) {
-      filter.endTime = filteredRequest.EndDateTime;
+      filter.endDateTime = filteredRequest.EndDateTime;
     }
     if (filteredRequest.ErrorType) {
       filter.errorType = filteredRequest.ErrorType.split('|');
     } else {
-      filter.errorType = ['negative_inactivity', 'average_consumption_greater_than_connector_capacity', 'no_consumption'];
+      filter.errorType = ['negative_inactivity','negative_duration','average_consumption_greater_than_connector_capacity','incorrect_starting_date','no_consumption'];
     }
     // Site Area
     const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
