@@ -266,7 +266,7 @@ export default class TransactionService {
       tenantID: req.user.tenantID, source: chargingStation.id,
       user: req.user, actionOnUser: user,
       module: 'TransactionService', method: 'handleTransactionSoftStop',
-      message: `Transaction ID '${transactionId}' on '${transaction.chargeBoxID}'-'${transaction.connectorId}' has been stopped successfully`,
+      message: `Connector '${transaction.connectorId}' > Transaction ID '${transactionId}' has been stopped successfully`,
       action: action, detailedMessages: result
     });
     // Ok

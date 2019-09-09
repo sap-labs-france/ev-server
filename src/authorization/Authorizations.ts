@@ -566,8 +566,8 @@ export default class Authorizations {
     let user: User = null;
     // Get the user
     if (tagID) {
-      user = await Authorizations.checkAndGetUserTagIDOnChargingStation(tenantID,
-        chargingStation, tagID, action);
+      user = await Authorizations.checkAndGetUserTagIDOnChargingStation(
+        tenantID, chargingStation, tagID, action);
     }
     // Found?
     if (user) {
@@ -577,13 +577,11 @@ export default class Authorizations {
         // Reject but save ok
         throw new AppError(
           chargingStation.id,
-          `${Utils.buildUserFullName(user)} is '${Utils.getStatusDescription(user.status)}'`, Constants.HTTP_GENERAL_ERROR,
-          'Authorizations', 'isTagIDAuthorizedOnChargingStation',
-          user);
+          `User with Tag ID '${tagID}' has the status '${Utils.getStatusDescription(user.status)}'`,
+          Constants.HTTP_GENERAL_ERROR, 'Authorizations', 'isTagIDAuthorizedOnChargingStation', user);
       }
-
+      // Build the JWT Token
       const userToken = await Authorizations.buildUserToken(tenantID, user);
-
       // Authorized?
       const context = {
         user: transaction ? transaction.userID : null,
@@ -651,7 +649,7 @@ export default class Authorizations {
       throw new AppError(
         chargingStation.id,
         `User with Tag ID '${tagID}' not found but saved as inactive user`, Constants.HTTP_GENERAL_ERROR,
-        'Authorizations', '_checkAndGetUserTagIDOnChargingStation', user
+        'Authorizations', 'checkAndGetUserTagIDOnChargingStation', user
       );
     } else if (user.status === Constants.USER_STATUS_DELETED) {
       // Set default user's value
@@ -667,8 +665,8 @@ export default class Authorizations {
       // Log
       Logging.logSecurityInfo({
         tenantID: tenantID, user: user,
-        module: 'Authorizations', method: '_checkAndGetUserTagIDOnChargingStation',
-        message: `User with ID '${user.id}' has been restored`,
+        module: 'Authorizations', method: 'checkAndGetUserTagIDOnChargingStation',
+        message: `User with ID '${user.id}' with Tag ID '${tagID}' has been restored`,
         action: action
       });
       // Save

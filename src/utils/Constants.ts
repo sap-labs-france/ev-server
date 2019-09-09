@@ -127,7 +127,9 @@ export default class Constants {
   public static readonly ACTION_AUTHORIZE = 'Authorize';
   public static readonly ACTION_CLEAR_CACHE = 'ClearCache';
   public static readonly ACTION_DATA_TRANSFER = 'DataTransfer';
+  public static readonly ACTION_STOP_TRANSACTION = 'StopTransaction';
   public static readonly ACTION_REMOTE_STOP_TRANSACTION = 'RemoteStopTransaction';
+  public static readonly ACTION_START_TRANSACTION = 'StartTransaction';
   public static readonly ACTION_REMOTE_START_TRANSACTION = 'RemoteStartTransaction';
   public static readonly ACTION_REFUND_TRANSACTION = 'RefundTransaction';
   public static readonly ACTION_UNLOCK_CONNECTOR = 'UnlockConnector';
