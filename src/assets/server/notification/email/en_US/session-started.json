@@ -1,10 +1,10 @@
 {
-  "subject": "Successfully connected",
+  "subject": "Session started",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Successfully Connected",
+      "title": "Session Started",
       "image": {
         "left": {
           "height": 60,
@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Hi <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Your electric vehicle is successfully connected to <b><%- chargeBoxID %></b>."
+      "Your electric vehicle is successfully connected to the charging station <b><%- chargeBoxID %>, connector <%- connectorId %></b>."
     ],
     "action": {
       "title": "View Session",
