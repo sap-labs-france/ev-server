@@ -14,8 +14,7 @@ import Logging from '../../../utils/Logging';
 import OCPPService from '../../../server/ocpp/services/OCPPService';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
-import SynchronizeRefundTransactionsTask
-  from '../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
+import SynchronizeRefundTransactionsTask from '../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Transaction from '../../../types/Transaction';
 import TransactionSecurity from './security/TransactionSecurity';
@@ -231,10 +230,9 @@ export default class TransactionService {
     // Check auth
     if (!Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError(
-        Constants.ACTION_UPDATE,
-        Constants.ENTITY_TRANSACTION,
-        transactionId,
-        Constants.HTTP_AUTH_ERROR, 'TransactionService', 'handleTransactionSoftStop',
+        Constants.ACTION_UPDATE, Constants.ENTITY_TRANSACTION, transactionId,
+        Constants.HTTP_AUTH_ERROR,
+        'TransactionService', 'handleTransactionSoftStop',
         req.user);
     }
     // Get Transaction
