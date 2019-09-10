@@ -125,6 +125,7 @@ export default class TransactionService {
 
 
   public static async handleGetUnassignedTransactionsCount(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check Auth
     if (!Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError(
         Constants.ACTION_UPDATE,
@@ -135,22 +136,24 @@ export default class TransactionService {
     }
     // Filter
     const filteredRequest = TransactionSecurity.filterUnassignedTransactionsCountRequest(req.query);
-    const tagIDs = (typeof filteredRequest.tagIDs === 'string') ? filteredRequest.tagIDs.split(',') : filteredRequest.tagIDs;
-    if (!tagIDs) {
-      // Not Found!
+    if (!filteredRequest.UserID) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         'TagIDs must be provided', Constants.HTTP_GENERAL_ERROR,
         'TransactionService', 'handleGetUnassignedTransactionsCount', req.user);
     }
-
-    const count = await TransactionStorage.getUnassignedTransactionsCount(req.user.tenantID, tagIDs);
-
+    // Get the user
+    const user: User = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
+    UtilsService.assertObjectExists(user, `User with ID '${filteredRequest.UserID}' does not exist`, 'TransactionService', 'handleAssignTransactionsToUser', req.user);
+    // Get unassigned transactions
+    const count = await TransactionStorage.getUnassignedTransactionsCount(req.user.tenantID, user);
+    // Return
     res.json(count);
     next();
   }
 
   public static async handleAssignTransactionsToUser(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check auths
     if (!Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError(
         Constants.ACTION_UPDATE,
@@ -161,20 +164,19 @@ export default class TransactionService {
     }
     // Filter
     const filteredRequest = TransactionSecurity.filterAssignTransactionsToUser(req.query);
+    // Check
     if (!filteredRequest.UserID) {
-      // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
         'User ID must be provided', Constants.HTTP_GENERAL_ERROR,
         'TransactionService', 'handleAssignTransactionsToUser', req.user);
     }
-
+    // Get the user
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
     UtilsService.assertObjectExists(user, `User with ID '${filteredRequest.UserID}' does not exist`, 'TransactionService', 'handleAssignTransactionsToUser', req.user);
-
+    // Assign
     await TransactionStorage.assignTransactionsToUser(req.user.tenantID, user);
-
-    res.json(null);
+    res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
@@ -266,7 +268,7 @@ export default class TransactionService {
       tenantID: req.user.tenantID, source: chargingStation.id,
       user: req.user, actionOnUser: user,
       module: 'TransactionService', method: 'handleTransactionSoftStop',
-      message: `Transaction ID '${transactionId}' on '${transaction.chargeBoxID}'-'${transaction.connectorId}' has been stopped successfully`,
+      message: `Connector '${transaction.connectorId}' > Transaction ID '${transactionId}' has been stopped successfully`,
       action: action, detailedMessages: result
     });
     // Ok
@@ -679,15 +681,15 @@ export default class TransactionService {
     }
     // Date
     if (filteredRequest.StartDateTime) {
-      filter.startTime = filteredRequest.StartDateTime;
+      filter.startDateTime = filteredRequest.StartDateTime;
     }
     if (filteredRequest.EndDateTime) {
-      filter.endTime = filteredRequest.EndDateTime;
+      filter.endDateTime = filteredRequest.EndDateTime;
     }
     if (filteredRequest.ErrorType) {
       filter.errorType = filteredRequest.ErrorType.split('|');
     } else {
-      filter.errorType = ['negative_inactivity', 'average_consumption_greater_than_connector_capacity', 'no_consumption'];
+      filter.errorType = ['negative_inactivity','negative_duration','average_consumption_greater_than_connector_capacity','incorrect_starting_date','no_consumption'];
     }
     // Site Area
     const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
