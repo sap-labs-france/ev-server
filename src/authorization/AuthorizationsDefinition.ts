@@ -45,24 +45,6 @@ const GRANTS = {
         action: ['Read', 'Update', 'Delete'],
         attributes: ['*']
       },
-      {
-        resource: 'Transaction', action: ['RefundTransaction'], attributes: ['*'],
-        condition: {
-          Fn: 'OR',
-          args: [
-            {
-              Fn: 'EQUALS',
-              args: { 'user': '$.owner' }
-            },
-            {
-              Fn: 'LIST_CONTAINS',
-              args: {
-                'tagIDs': '$.tagID'
-              }
-            }
-          ]
-        }
-      },
       { resource: 'Loggings', action: 'List', attributes: ['*'] },
       { resource: 'Logging', action: 'Read', attributes: ['*'] },
       { resource: 'Pricing', action: ['Read', 'Update'], attributes: ['*'] },
@@ -148,24 +130,6 @@ const GRANTS = {
         }
       },
       { resource: 'Transactions', action: 'List', attributes: ['*'] },
-      {
-        resource: 'Transaction', action: ['Read', 'RefundTransaction'], attributes: ['*'],
-        condition: {
-          Fn: 'OR',
-          args: [
-            {
-              Fn: 'EQUALS',
-              args: { 'user': '$.owner' }
-            },
-            {
-              Fn: 'LIST_CONTAINS',
-              args: {
-                'tagIDs': '$.tagID'
-              }
-            }
-          ]
-        }
-      },
       { resource: 'Settings', action: 'List', attributes: ['*'] },
       { resource: 'Setting', action: 'Read', attributes: ['*'] },
       { resource: 'Connections', action: 'List', attributes: ['*'] },
