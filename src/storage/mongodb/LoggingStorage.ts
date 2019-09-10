@@ -131,7 +131,7 @@ export default class LoggingStorage {
       filters.$or = [
         { userID: { $in: params.userIDs.map((user) => Utils.convertToObjectID(user)) } },
         { actionOnUserID: { $in: params.userIDs.map((user) => Utils.convertToObjectID(user)) } }
-      ]
+      ];
     }
     // Search
     if (params.search) {
