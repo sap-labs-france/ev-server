@@ -98,7 +98,7 @@ export default class EMailNotificationTask extends NotificationTask {
 
   sendTransactionStarted(data, locale, tenantID) {
     // Send it
-    return this._prepareAndSendEmail('transaction-started', data, locale, tenantID);
+    return this._prepareAndSendEmail('session-started', data, locale, tenantID);
   }
 
   sendVerificationEmail(data, locale, tenantID) {
@@ -253,7 +253,9 @@ export default class EMailNotificationTask extends NotificationTask {
           Logging.logError({
             tenantID: tenantID, source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
             module: 'EMailNotificationTask', method: 'sendEmail',
-            action: (!retry ? 'SendEmail' : 'SendEmailBackup'), message: err.toString(),
+            action: (!retry ? 'SendEmail' : 'SendEmailBackup'),
+            message: `Error in sending Email: '${messageToSend.subject}'`,
+            actionOnUser: data.user,
             detailedMessages: {
               email: {
                 from: messageToSend.from,
@@ -277,8 +279,9 @@ export default class EMailNotificationTask extends NotificationTask {
           tenantID: tenantID,
           source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
           module: 'EMailNotificationTask', method: '_prepareAndSendEmail',
-          action: (!retry ? 'SendEmail' : 'SendEmailBackup'), actionOnUser: data.user,
-          message: 'Email has been sent successfully',
+          action: (!retry ? 'SendEmail' : 'SendEmailBackup'),
+          actionOnUser: data.user,
+          message: `Email has been sent successfully: '${messageToSend.subject}'`,
           detailedMessages: {
             email: {
               from: messageToSend.from,
