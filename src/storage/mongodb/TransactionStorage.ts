@@ -114,7 +114,7 @@ export default class TransactionStorage {
   public static async assignTransactionsToUser(tenantID: string, user: User) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'assignTransactionsToUser');
-
+    // Assign transactions
     await global.database.getCollection<Transaction>(tenantID, 'transactions').updateMany({
       $and: [
         { 'userID': null },
@@ -127,25 +127,22 @@ export default class TransactionStorage {
     }, {
       upsert: false
     });
-
     // Debug
     Logging.traceEnd('TransactionStorage', 'assignTransactionsToUser', uniqueTimerID);
   }
 
-  public static async getUnassignedTransactionsCount(tenantID: string, tagIDs: string[]): Promise<number> {
+  public static async getUnassignedTransactionsCount(tenantID: string, user: User): Promise<number> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'assignTransactionsToUser');
-
+    // Get the number of unassigned transactions
     const unassignedCount = await global.database.getCollection<Transaction>(tenantID, 'transactions').find({
       $and: [
         { 'userID': null },
-        { 'tagID': { $in: tagIDs } }
+        { 'tagID': { $in: user.tagIDs } }
       ]
     }).count();
-
     // Debug
     Logging.traceEnd('TransactionStorage', 'assignTransactionsToUser', uniqueTimerID);
-
     return unassignedCount;
   }
 

@@ -28,7 +28,7 @@ export default class TransactionSecurity {
   }
 
   static filterUnassignedTransactionsCountRequest(request: any) {
-    return { tagIDs: request.tagIDs ? sanitize(request.tagIDs) : null };
+    return { UserID: request.UserID ? sanitize(request.UserID) : null };
   }
 
   public static filterTransactionRequestByID(request: any): number {
