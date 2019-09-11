@@ -7,6 +7,7 @@ import Transaction from '../../types/Transaction';
 import Utils from '../../utils/Utils';
 import { DataResult } from '../../types/DataResult';
 import User from '../../types/User';
+import ConsumptionStorage from './ConsumptionStorage';
 
 export default class TransactionStorage {
   public static async deleteTransaction(tenantID: string, transaction: Transaction): Promise<void> {
@@ -21,8 +22,7 @@ export default class TransactionStorage {
     await global.database.getCollection<any>(tenantID, 'metervalues')
       .deleteMany({ 'transactionId': transaction.id });
     // Delete Consumptions
-    await global.database.getCollection<any>(tenantID, 'consumptions')
-      .deleteMany({ 'transactionId': transaction.id });
+    ConsumptionStorage.deleteConsumptions(tenantID, transaction.id);
     // Debug
     Logging.traceEnd('TransactionStorage', 'deleteTransaction', uniqueTimerID, { transaction });
   }

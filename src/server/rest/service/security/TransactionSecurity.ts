@@ -8,6 +8,7 @@ import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import { DataResult } from '../../../../types/DataResult';
+import Consumption from '../../../../types/Consumption';
 
 export default class TransactionSecurity {
   public static filterTransactionsRefund(request: any): HttpTransactionsRefundRequest {
@@ -238,7 +239,7 @@ export default class TransactionSecurity {
     return filteredRequest;
   }
 
-  static filterConsumptionsFromTransactionResponse(transaction: Transaction, consumptions, loggedUser: UserToken) {
+  static filterConsumptionsFromTransactionResponse(transaction: Transaction, consumptions: Consumption[], loggedUser: UserToken) {
     if (!consumptions) {
       consumptions = [];
     }
@@ -258,7 +259,7 @@ export default class TransactionSecurity {
     // Admin?
     if (Authorizations.isAdmin(loggedUser.role)) {
       // Set them all
-      filteredTransaction.values = consumptions.map((consumption) => consumption.getModel()).map((consumption) => ({
+      filteredTransaction.values = consumptions.map((consumption) => consumption).map((consumption) => ({
         ...consumption,
         date: consumption.endedAt,
         value: consumption.instantPower,
@@ -266,7 +267,7 @@ export default class TransactionSecurity {
       }));
     } else {
       // Clean
-      filteredTransaction.values = consumptions.map((consumption) => consumption.getModel()).map((consumption) => ({
+      filteredTransaction.values = consumptions.map((consumption) => consumption).map((consumption) => ({
         endedAt: consumption.endedAt,
         instantPower: consumption.instantPower,
         cumulatedConsumption: consumption.cumulatedConsumption,

@@ -1,12 +1,12 @@
-import Consumption from '../../entity/Consumption';
 import Cypher from '../../utils/Cypher';
-import Database from '../../utils/Database';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
+import Consumption from '../../types/Consumption';
+import DatabaseUtils from './DatabaseUtils';
 
 export default class ConsumptionStorage {
-  static async saveConsumption(tenantID, consumptionToSave) {
+  static async saveConsumption(tenantID: string, consumptionToSave: Consumption): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ConsumptionStorage', 'saveConsumption');
     // Check
@@ -18,22 +18,40 @@ export default class ConsumptionStorage {
       consumptionToSave.id = Cypher.hash(`${consumptionToSave.transactionId}~${timestamp.toISOString()}`);
     }
     // Transfer
-    const consumption: any = {};
-    Database.updateConsumption(consumptionToSave, consumption, false);
+    const consumptionMDB: any = {
+      _id: consumptionToSave.id,
+      startedAt: Utils.convertToDate(consumptionToSave.startedAt),
+      endedAt: Utils.convertToDate(consumptionToSave.endedAt),
+      transactionId: Utils.convertToInt(consumptionToSave.transactionId),
+      chargeBoxID: consumptionToSave.chargeBoxID,
+      connectorId: Utils.convertToInt(consumptionToSave.connectorId),
+      siteAreaID: consumptionToSave.siteAreaID,
+      siteID: consumptionToSave.siteID,
+      consumption: Utils.convertToFloat(consumptionToSave.consumption),
+      cumulatedAmount: Utils.convertToFloat(consumptionToSave.cumulatedAmount),
+      cumulatedConsumption: Utils.convertToFloat(consumptionToSave.cumulatedConsumption),
+      pricingSource: consumptionToSave.pricingSource,
+      amount: Utils.convertToFloat(consumptionToSave.amount),
+      roundedAmount: Utils.convertToFloat(consumptionToSave.roundedAmount),
+      currencyCode: consumptionToSave.currencyCode,
+      instantPower: Utils.convertToFloat(consumptionToSave.instantPower),
+      totalInactivitySecs: Utils.convertToInt(consumptionToSave.totalInactivitySecs),
+      totalDurationSecs: Utils.convertToInt(consumptionToSave.totalDurationSecs),
+      stateOfCharge: Utils.convertToInt(consumptionToSave.stateOfCharge),
+      userID: consumptionToSave.userID
+    };
     // Modify
     const result = await global.database.getCollection<any>(tenantID, 'consumptions').findOneAndUpdate(
-      { '_id': consumptionToSave.id },
-      {
-        $set: consumption
-      },
-      { upsert: true, returnOriginal: false });
+      { '_id': consumptionMDB._id },
+      { $set: consumptionMDB },
+      { upsert: true });
     // Debug
     Logging.traceEnd('ConsumptionStorage', 'saveConsumption', uniqueTimerID, { consumptionToSave: consumptionToSave });
     // Return
-    return new Consumption(tenantID, result.value);
+    return consumptionMDB._id;
   }
 
-  static async deleteConsumptions(tenantID, transactionId) {
+  static async deleteConsumptions(tenantID: string, transactionId: number): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ConsumptionStorage', 'deleteConsumptions');
     // Check
@@ -45,7 +63,7 @@ export default class ConsumptionStorage {
     Logging.traceEnd('ConsumptionStorage', 'deleteConsumptions', uniqueTimerID, { transactionId });
   }
 
-  static async getConsumption(tenantID, transactionId, endedAt) {
+  static async getConsumptions(tenantID: string, params: { transactionId: number; }): Promise<Consumption[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ConsumptionStorage', 'getConsumption');
     // Check
@@ -55,34 +73,7 @@ export default class ConsumptionStorage {
     // Filters
     aggregation.push({
       $match: {
-        transactionId: Utils.convertToInt(transactionId),
-        endedAt: new Date(endedAt)
-      }
-    });
-    // Read DB
-    const consumptionsMDB = await global.database.getCollection<any>(tenantID, 'consumptions')
-      .aggregate(aggregation, { allowDiskUse: true })
-      .toArray();
-    // Debug
-    Logging.traceEnd('ConsumptionStorage', 'getConsumption', uniqueTimerID, { transactionId, endedAt });
-    // Found?
-    if (consumptionsMDB && consumptionsMDB.length > 0) {
-      return new Consumption(tenantID, consumptionsMDB[0]);
-    }
-    return null;
-  }
-
-  static async getConsumptions(tenantID, transactionId) {
-    // Debug
-    const uniqueTimerID = Logging.traceStart('ConsumptionStorage', 'getConsumption');
-    // Check
-    await Utils.checkTenant(tenantID);
-    // Create Aggregation
-    const aggregation = [];
-    // Filters
-    aggregation.push({
-      $match: {
-        transactionId: Utils.convertToInt(transactionId)
+        transactionId: Utils.convertToInt(params.transactionId)
       }
     });
     // Triming excess values
@@ -113,18 +104,18 @@ export default class ConsumptionStorage {
         currencyCode: { $last: '$currencyCode' }
       }
     });
-    // Sort values
+    // Convert Object ID to string
+    DatabaseUtils.convertObjectIDToString(aggregation, 'siteAreaID');
+    DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
+    DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
+    // Sort
     aggregation.push({ $sort: { endedAt: 1 } });
     // Read DB
     const consumptionsMDB = await global.database.getCollection<any>(tenantID, 'consumptions')
       .aggregate(aggregation, { allowDiskUse: true })
       .toArray();
     // Debug
-    Logging.traceEnd('ConsumptionStorage', 'getConsumption', uniqueTimerID, { transactionId });
-    // Found?
-    if (consumptionsMDB && consumptionsMDB.length > 0) {
-      return consumptionsMDB.map((c) => new Consumption(tenantID, c));
-    }
-    return null;
+    Logging.traceEnd('ConsumptionStorage', 'getConsumption', uniqueTimerID, { transactionId: params.transactionId });
+    return consumptionsMDB;
   }
 }

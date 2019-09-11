@@ -1,31 +1,27 @@
-import Pricing, { PricedConsumption, PricingSettings } from '../Pricing';
+import Pricing from '../Pricing';
 import Transaction from '../../../types/Transaction';
-
-export class SimplePricingSettings extends PricingSettings {
-  constructor(readonly price: number, readonly currency: string) {
-    super();
-  }
-}
+import Consumption from '../../../types/Consumption';
+import { SimplePricingSettings } from '../../../types/Setting';
+import { PricedConsumption } from '../../../types/Pricing';
 
 export default class SimplePricing extends Pricing<SimplePricingSettings> {
-
   constructor(tenantId: string, readonly settings: SimplePricingSettings, transaction: Transaction) {
     super(tenantId, settings, transaction);
   }
 
-  async startSession(consumptionData: {consumption: number}): Promise<PricedConsumption> {
+  async startSession(consumptionData: Consumption): Promise<PricedConsumption> {
     return this.computePrice(consumptionData);
   }
 
-  async updateSession(consumptionData: {consumption: number}): Promise<PricedConsumption> {
+  async updateSession(consumptionData: Consumption): Promise<PricedConsumption> {
     return this.computePrice(consumptionData);
   }
 
-  async stopSession(consumptionData: {consumption: number}): Promise<PricedConsumption> {
+  async stopSession(consumptionData: Consumption): Promise<PricedConsumption> {
     return this.computePrice(consumptionData);
   }
 
-  async computePrice(consumptionData: {consumption: number}): Promise<PricedConsumption> {
+  async computePrice(consumptionData: Consumption): Promise<PricedConsumption> {
     let amount: number;
     let roundedAmount: number;
     if (consumptionData.consumption && typeof consumptionData.consumption === 'number') {

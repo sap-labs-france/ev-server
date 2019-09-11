@@ -437,11 +437,6 @@ export default class OCPPCommonTests {
   public async testTransactionMetrics(withSoC = false, withSignedData = false) {
     // Check on Transaction
     expect(this.newTransaction).to.not.be.null;
-
-    // Get the Consumption
-    if (!this.newTransaction.id) {
-      console.log(this.newTransaction);
-    }
     const response = await this.centralUserService.transactionApi.readAllConsumption({ TransactionId: this.newTransaction.id });
     expect(response.status).to.equal(200);
     // Check Headers

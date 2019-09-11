@@ -1,37 +1,19 @@
 import moment from 'moment-timezone';
-import {
-  ChargeableItemProperty,
-  ConfirmationItem,
-  ReservationItem,
-  Type
-} from './model/ChargeableItem';
+import { ChargeableItemProperty, ConfirmationItem, ReservationItem, Type } from './model/ChargeableItem';
 import ChargingStation from '../../../types/ChargingStation';
-import ChargingStationService from '../../../server/rest/service/ChargingStationService';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import OCPPUtils from '../../../server/ocpp/utils/OCPPUtils';
-import Pricing, { PricedConsumption, PricingSettings } from '../Pricing';
+import Pricing from '../Pricing';
 import { StartRateRequest, StopRateRequest, UpdateRateRequest } from './model/RateRequest';
 import { RateResult } from './model/RateResult';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import StatefulChargingService from './StatefulChargingService';
 import Transaction from '../../../types/Transaction';
-
-export class ConvergentChargingPricingSettings extends PricingSettings {
-  readonly url: string;
-  readonly user: string;
-  readonly password: string;
-  readonly chargeableItemName: string;
-
-  constructor(url: string, user: string, password: string, chargeableItemName: string) {
-    super();
-    this.chargeableItemName = chargeableItemName;
-    this.password = password;
-    this.user = user;
-    this.url = url;
-  }
-}
+import Consumption from '../../../types/Consumption';
+import { ConvergentChargingPricingSettings } from '../../../types/Setting';
+import { PricedConsumption } from '../../../types/Pricing';
 
 export default class ConvergentChargingPricing extends Pricing<ConvergentChargingPricingSettings> {
   public statefulChargingService: StatefulChargingService;
@@ -41,7 +23,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
     this.statefulChargingService = new StatefulChargingService(this.setting.url, this.setting.user, Cypher.decrypt(this.setting.password));
   }
 
-  consumptionToChargeableItemProperties(consumptionData) {
+  consumptionToChargeableItemProperties(consumptionData: Consumption) {
     const timezone = this.transaction.timezone;
     const startedAt = timezone ? moment.tz(consumptionData.startedAt, timezone) : moment.utc(consumptionData.startedAt).local();
     const endedAt = timezone ? moment.tz(consumptionData.endedAt, timezone) : moment.utc(consumptionData.endedAt).local();
@@ -59,7 +41,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
     ];
   }
 
-  computeSessionId(consumptionData) {
+  computeSessionId(consumptionData: Consumption) {
 
     const timestamp = this.transaction.timestamp instanceof Date ? this.transaction.timestamp : new Date(this.transaction.timestamp);
     const dataId = consumptionData.userID + consumptionData.chargeBoxID + consumptionData.connectorId + timestamp.toISOString();
@@ -76,7 +58,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
     return hash;
   }
 
-  async startSession(consumptionData): Promise<PricedConsumption | null> {
+  async startSession(consumptionData: Consumption): Promise<PricedConsumption | null> {
     const siteArea = await SiteAreaStorage.getSiteArea(this.tenantId, this.transaction.siteAreaID);
     const sessionId = this.computeSessionId(consumptionData);
     const chargeableItemProperties = this.consumptionToChargeableItemProperties(consumptionData);
@@ -102,7 +84,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
 
   }
 
-  async updateSession(consumptionData): Promise<PricedConsumption | null> {
+  async updateSession(consumptionData: Consumption): Promise<PricedConsumption | null> {
     const siteArea = await SiteAreaStorage.getSiteArea(this.tenantId, this.transaction.siteAreaID);
     const sessionId = this.computeSessionId(consumptionData);
 
@@ -132,7 +114,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
 
   }
 
-  async stopSession(consumptionData): Promise<PricedConsumption | null> {
+  async stopSession(consumptionData: Consumption): Promise<PricedConsumption | null> {
     const siteArea = await SiteAreaStorage.getSiteArea(this.tenantId, this.transaction.siteAreaID);
     const sessionId = this.computeSessionId(consumptionData);
     const chargeableItemProperties = this.consumptionToChargeableItemProperties(consumptionData);
@@ -159,7 +141,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
 
   }
 
-  async handleError(action: string, consumptionData, result) {
+  async handleError(action: string, consumptionData: Consumption, result) {
     const chargingResult = result.data.chargingResult;
     const chargingStation: ChargingStation = await this.transaction.chargeBox;
     Logging.logError({
@@ -175,19 +157,14 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
     if (chargingResult.status === 'error') {
       if (chargingStation) {
         await OCPPUtils.requestExecuteChargingStationCommand(this.tenantId, chargingStation, 'remoteStopTransaction', {
-          tagID: consumptionData.tagID,
+          tagID: this.transaction.tagID,
           connectorID: consumptionData.connectorId
         });
       }
     }
   }
 
-  /**
-   *
-   * @param consumptionData
-   * @param notification {RateResult}
-   */
-  async handleAlertNotification(consumptionData, rateResult) {
+  async handleAlertNotification(consumptionData: Consumption, rateResult) {
     let chargingStation: ChargingStation = null;
     if (rateResult.transactionsToConfirm) {
       for (const ccTransaction of rateResult.transactionsToConfirm.ccTransactions) {
