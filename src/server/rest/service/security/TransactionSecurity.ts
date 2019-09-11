@@ -259,23 +259,35 @@ export default class TransactionSecurity {
     // Admin?
     if (Authorizations.isAdmin(loggedUser.role)) {
       // Set them all
-      filteredTransaction.values = consumptions.map((consumption) => consumption).map((consumption) => ({
-        ...consumption,
-        date: consumption.endedAt,
-        value: consumption.instantPower,
-        cumulated: consumption.cumulatedConsumption
-      }));
+      filteredTransaction.values = consumptions.map((consumption) => consumption).map((consumption) => {
+        const newConsumption = {
+          ...consumption,
+          date: consumption.endedAt,
+          value: consumption.instantPower,
+          cumulated: consumption.cumulatedConsumption
+        };
+        if (!consumption.stateOfCharge) {
+          delete newConsumption.stateOfCharge;
+        }
+        return newConsumption;
+      });
     } else {
       // Clean
-      filteredTransaction.values = consumptions.map((consumption) => consumption).map((consumption) => ({
-        endedAt: consumption.endedAt,
-        instantPower: consumption.instantPower,
-        cumulatedConsumption: consumption.cumulatedConsumption,
-        stateOfCharge: consumption.stateOfCharge,
-        date: consumption.endedAt,
-        value: consumption.instantPower,
-        cumulated: consumption.cumulatedConsumption
-      }));
+      filteredTransaction.values = consumptions.map((consumption) => consumption).map((consumption) => {
+        const newConsumption = {
+          endedAt: consumption.endedAt,
+          instantPower: consumption.instantPower,
+          cumulatedConsumption: consumption.cumulatedConsumption,
+          stateOfCharge: consumption.stateOfCharge,
+          date: consumption.endedAt,
+          value: consumption.instantPower,
+          cumulated: consumption.cumulatedConsumption
+        };
+        if (consumption.stateOfCharge) {
+          newConsumption.stateOfCharge = consumption.stateOfCharge;
+        }
+        return newConsumption;
+      });
     }
     for (let i = 1; i < filteredTransaction.values.length; i++) {
       if (filteredTransaction.values[i].instantPower === 0 && filteredTransaction.values[i - 1] !== 0) {
