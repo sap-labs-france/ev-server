@@ -71,7 +71,7 @@ export default class OCPIClient {
       // Set available endpoints
       this.ocpiEndpoint.setAvailableEndpoints(OCPIMapping.convertEndpoints(services.data.data));
 
-      // Post credentials and recieve response
+      // Post credentials and receive response
       const respPostCredentials = await this.postCredentials();
       const credential = respPostCredentials.data.data;
 

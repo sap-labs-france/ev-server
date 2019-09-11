@@ -14,8 +14,7 @@ import Logging from '../../../utils/Logging';
 import OCPPService from '../../../server/ocpp/services/OCPPService';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
-import SynchronizeRefundTransactionsTask
-  from '../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
+import SynchronizeRefundTransactionsTask from '../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Transaction from '../../../types/Transaction';
 import TransactionSecurity from './security/TransactionSecurity';
@@ -108,7 +107,7 @@ export default class TransactionService {
     }
     // Refund the Transaction
     const setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, 'refund');
-    const connector = new ConcurConnector(req.user.tenantID, setting);
+    const connector = new ConcurConnector(req.user.tenantID, setting.content[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]);
     const refundedTransactions = await connector.refund(req.user.tenantID, user.id, transactionsToRefund);
     const response: any = {
       ...Constants.REST_RESPONSE_SUCCESS,
@@ -125,6 +124,7 @@ export default class TransactionService {
 
 
   public static async handleGetUnassignedTransactionsCount(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check Auth
     if (!Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError(
         Constants.ACTION_UPDATE,
@@ -135,22 +135,24 @@ export default class TransactionService {
     }
     // Filter
     const filteredRequest = TransactionSecurity.filterUnassignedTransactionsCountRequest(req.query);
-    const tagIDs = (typeof filteredRequest.tagIDs === 'string') ? filteredRequest.tagIDs.split(',') : filteredRequest.tagIDs;
-    if (!tagIDs) {
-      // Not Found!
+    if (!filteredRequest.UserID) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         'TagIDs must be provided', Constants.HTTP_GENERAL_ERROR,
         'TransactionService', 'handleGetUnassignedTransactionsCount', req.user);
     }
-
-    const count = await TransactionStorage.getUnassignedTransactionsCount(req.user.tenantID, tagIDs);
-
+    // Get the user
+    const user: User = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
+    UtilsService.assertObjectExists(user, `User with ID '${filteredRequest.UserID}' does not exist`, 'TransactionService', 'handleAssignTransactionsToUser', req.user);
+    // Get unassigned transactions
+    const count = await TransactionStorage.getUnassignedTransactionsCount(req.user.tenantID, user);
+    // Return
     res.json(count);
     next();
   }
 
   public static async handleAssignTransactionsToUser(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check auths
     if (!Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError(
         Constants.ACTION_UPDATE,
@@ -161,20 +163,19 @@ export default class TransactionService {
     }
     // Filter
     const filteredRequest = TransactionSecurity.filterAssignTransactionsToUser(req.query);
+    // Check
     if (!filteredRequest.UserID) {
-      // Not Found!
       throw new AppError(
         Constants.CENTRAL_SERVER,
         'User ID must be provided', Constants.HTTP_GENERAL_ERROR,
         'TransactionService', 'handleAssignTransactionsToUser', req.user);
     }
-
+    // Get the user
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
     UtilsService.assertObjectExists(user, `User with ID '${filteredRequest.UserID}' does not exist`, 'TransactionService', 'handleAssignTransactionsToUser', req.user);
-
+    // Assign
     await TransactionStorage.assignTransactionsToUser(req.user.tenantID, user);
-
-    res.json(null);
+    res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
   }
 
@@ -229,10 +230,9 @@ export default class TransactionService {
     // Check auth
     if (!Authorizations.canUpdateTransaction(req.user)) {
       throw new AppAuthError(
-        Constants.ACTION_UPDATE,
-        Constants.ENTITY_TRANSACTION,
-        transactionId,
-        Constants.HTTP_AUTH_ERROR, 'TransactionService', 'handleTransactionSoftStop',
+        Constants.ACTION_UPDATE, Constants.ENTITY_TRANSACTION, transactionId,
+        Constants.HTTP_AUTH_ERROR,
+        'TransactionService', 'handleTransactionSoftStop',
         req.user);
     }
     // Get Transaction
@@ -266,7 +266,7 @@ export default class TransactionService {
       tenantID: req.user.tenantID, source: chargingStation.id,
       user: req.user, actionOnUser: user,
       module: 'TransactionService', method: 'handleTransactionSoftStop',
-      message: `Transaction ID '${transactionId}' on '${transaction.chargeBoxID}'-'${transaction.connectorId}' has been stopped successfully`,
+      message: `Connector '${transaction.connectorId}' > Transaction ID '${transactionId}' has been stopped successfully`,
       action: action, detailedMessages: result
     });
     // Ok
@@ -456,7 +456,7 @@ export default class TransactionService {
     }
     const filter: any = { stop: { $exists: true } };
     // Filter
-    const filteredRequest = TransactionSecurity.filterTransactionsCompletedRequest(req.query);
+    const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
     if (filteredRequest.ChargeBoxID) {
       filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
     }
@@ -507,6 +507,70 @@ export default class TransactionService {
     next();
   }
 
+  public static async handleGetTransactionsToRefund(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check auth
+    if (!Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError(
+        Constants.ACTION_LIST,
+        Constants.ENTITY_TRANSACTION,
+        null,
+        Constants.HTTP_AUTH_ERROR,
+        'TransactionService', 'handleGetTransactionsToRefund',
+        req.user);
+    }
+    const filter: any = { stop: { $exists: true } };
+    // Filter
+    const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
+    if (filteredRequest.ChargeBoxID) {
+      filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
+    }
+    if (filteredRequest.SiteAreaID) {
+      filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
+    }
+    if (filteredRequest.SiteID) {
+      filter.siteID = filteredRequest.SiteID.split('|');
+    }
+    if (filteredRequest.UserID) {
+      filter.userIDs = filteredRequest.UserID.split('|');
+    }
+    if (Authorizations.isBasic(req.user.role) || Authorizations.isAdmin(req.user.role)) {
+      filter.userIDs = [req.user.id];
+    }
+    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
+      filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
+    }
+    if (filteredRequest.StartDateTime) {
+      filter.startTime = filteredRequest.StartDateTime;
+    }
+    if (filteredRequest.EndDateTime) {
+      filter.endTime = filteredRequest.EndDateTime;
+    }
+    if (filteredRequest.RefundStatus) {
+      filter.refundStatus = filteredRequest.RefundStatus.split('|');
+    }
+    if (filteredRequest.MinimalPrice) {
+      filter.minimalPrice = filteredRequest.MinimalPrice;
+    }
+    if (filteredRequest.Statistics) {
+      filter.statistics = filteredRequest.Statistics;
+    }
+    if (filteredRequest.Search) {
+      filter.search = filteredRequest.Search;
+    }
+    const transactions = await TransactionStorage.getTransactions(req.user.tenantID, filter,
+      {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.Sort,
+        onlyRecordCount: filteredRequest.OnlyRecordCount
+      });
+    // Filter
+    TransactionSecurity.filterTransactionsResponse(transactions, req.user, true);
+    // Return
+    res.json(transactions);
+    next();
+  }
+
   public static async handleGetTransactionsExport(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
@@ -520,7 +584,7 @@ export default class TransactionService {
     }
     const filter: any = { stop: { $exists: true } };
     // Filter
-    const filteredRequest = TransactionSecurity.filterTransactionsCompletedRequest(req.query);
+    const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
     if (filteredRequest.ChargeBoxID) {
       filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
     }
@@ -615,15 +679,15 @@ export default class TransactionService {
     }
     // Date
     if (filteredRequest.StartDateTime) {
-      filter.startTime = filteredRequest.StartDateTime;
+      filter.startDateTime = filteredRequest.StartDateTime;
     }
     if (filteredRequest.EndDateTime) {
-      filter.endTime = filteredRequest.EndDateTime;
+      filter.endDateTime = filteredRequest.EndDateTime;
     }
     if (filteredRequest.ErrorType) {
       filter.errorType = filteredRequest.ErrorType.split('|');
     } else {
-      filter.errorType = ['negative_inactivity', 'average_consumption_greater_than_connector_capacity', 'no_consumption'];
+      filter.errorType = ['negative_inactivity','negative_duration','average_consumption_greater_than_connector_capacity','incorrect_starting_date','no_consumption'];
     }
     // Site Area
     const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,

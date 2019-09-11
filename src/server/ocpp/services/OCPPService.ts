@@ -142,8 +142,7 @@ export default class OCPPService {
       );
       // Log
       Logging.logInfo({
-        tenantID: headers.tenantID,
-        source: chargingStation.id,
+        tenantID: headers.tenantID, source: chargingStation.id,
         module: 'OCPPService', method: 'handleBootNotification',
         action: 'BootNotification', message: 'Boot notification saved'
       });
@@ -185,10 +184,9 @@ export default class OCPPService {
       await ChargingStationStorage.saveChargingStationHeartBeat(headers.tenantID, chargingStation);
       // Log
       Logging.logInfo({
-        tenantID: headers.tenantID,
-        source: chargingStation.id,
+        tenantID: headers.tenantID, source: chargingStation.id,
         module: 'OCPPService', method: 'handleHeartbeat',
-        action: 'Heartbeat', message: `Heartbeat saved with IP ${chargingStation.currentIPAddress}`
+        action: 'Heartbeat', message: `Heartbeat saved with IP '${chargingStation.currentIPAddress}'`
       });
       // Return
       return {
@@ -224,7 +222,7 @@ export default class OCPPService {
             tenantID: headers.tenantID,
             source: chargingStation.id, module: 'OCPPService',
             method: 'handleStatusNotification', action: 'StatusNotification',
-            message: `Connector ID '0' received with status '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
+            message: `Connector '0' > received with Status: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
           });
           // Get the connectors
           const connectors = chargingStation.connectors;
@@ -241,7 +239,7 @@ export default class OCPPService {
             tenantID: headers.tenantID,
             source: chargingStation.id, module: 'OCPPService',
             method: 'handleStatusNotification', action: 'StatusNotification',
-            message: `Ignored EBEE with Connector ID '0' with status '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
+            message: `Connector '0' > Ignored EBEE with with Status: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
           });
         }
       } else {
@@ -285,7 +283,7 @@ export default class OCPPService {
       Logging.logWarning({
         tenantID: tenantID, source: chargingStation.id,
         module: 'OCPPService', method: 'handleStatusNotification', action: 'StatusNotification',
-        message: `Status on Connector '${statusNotification.connectorId}' has not changed then not saved: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}''`
+        message: `Connector '${statusNotification.connectorId}' > Status has not changed then not saved: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}''`
       });
       return;
     }
@@ -303,7 +301,7 @@ export default class OCPPService {
     Logging.logInfo({
       tenantID: tenantID, source: chargingStation.id,
       module: 'OCPPService', method: 'handleStatusNotification', action: 'StatusNotification',
-      message: `Connector '${statusNotification.connectorId}' status '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}' has been saved`
+      message: `Connector '${statusNotification.connectorId}' > Status: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}' has been saved`
     });
     // Check if transaction is ongoing (ABB bug)!!!
     await this._checkStatusNotificationOngoingTransaction(tenantID, chargingStation, statusNotification, foundConnector, bothConnectorsUpdated);
@@ -354,12 +352,10 @@ export default class OCPPService {
     if (statusNotification.status === Constants.CONN_STATUS_FAULTED) {
       // Log
       Logging.logError({
-        tenantID: tenantID,
-        source: chargingStation.id,
-        module: 'OCPPService',
-        method: '_notifyStatusNotification',
+        tenantID: tenantID, source: chargingStation.id,
+        module: 'OCPPService', method: '_notifyStatusNotification',
         action: 'StatusNotification',
-        message: `Error on Connector '${statusNotification.connectorId}': '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}'`
+        message: `Connector '${statusNotification.connectorId}' > Error occurred : '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}'`
       });
       // Send Notification (Async)
       NotificationHandler.sendChargingStationStatusError(
@@ -396,7 +392,7 @@ export default class OCPPService {
         Logging.logDebug({
           tenantID: headers.tenantID,
           source: chargingStation.id, module: 'OCPPService', method: 'handleMeterValues',
-          action: 'MeterValues', message: 'No relevant MeterValues to save',
+          action: 'MeterValues', message: 'No relevant Meter Values to save',
           detailedMessages: meterValues
         });
         // Process values
@@ -418,7 +414,7 @@ export default class OCPPService {
           Logging.logInfo({
             tenantID: headers.tenantID, source: chargingStation.id,
             module: 'OCPPService', method: 'handleMeterValues', action: 'MeterValues',
-            message: `MeterValue have been saved for Transaction ID '${meterValues.transactionId}'`,
+            message: `Connector '${meterValues.connectorId}' > Transaction ID '${meterValues.transactionId}' > MeterValue have been saved`,
             detailedMessages: meterValues
           });
         } else {
@@ -426,7 +422,7 @@ export default class OCPPService {
           Logging.logWarning({
             tenantID: headers.tenantID, source: chargingStation.id,
             module: 'OCPPService', method: 'handleMeterValues', action: 'MeterValues',
-            message: 'MeterValues is ignored as it is not linked to a transaction',
+            message: `Connector '${meterValues.connectorId}' > Meter Values are ignored as it is not linked to a transaction`,
             detailedMessages: meterValues
           });
         }
@@ -731,7 +727,14 @@ export default class OCPPService {
       chargingStation.lastHeartBeat = new Date();
       // Handle End Of charge
       await this._checkNotificationEndOfCharge(tenantID, chargingStation, transaction);
-      // Cleanup connector transaction data
+      // Log
+      Logging.logInfo({
+        tenantID: tenantID,
+        source: chargingStation.id, module: 'OCPPService',
+        method: '_updateChargingStationConsumption', action: 'ChargingStationConsumption',
+        message: `Connector '${foundConnector.connectorId}' > Transaction ID '${foundConnector.activeTransactionID}' > Instant: ${foundConnector.currentConsumption / 1000} kW.h, Total: ${foundConnector.totalConsumption / 1000} kW.h${foundConnector.currentStateOfCharge ? ', SoC: ' + foundConnector.currentStateOfCharge + ' %' : ''}`
+      });
+    // Cleanup connector transaction data
     } else if (foundConnector) {
       foundConnector.currentConsumption = 0;
       foundConnector.totalConsumption = 0;
@@ -741,13 +744,6 @@ export default class OCPPService {
       foundConnector.activeTransactionDate = null;
       foundConnector.activeTagID = null;
     }
-    // Log
-    Logging.logInfo({
-      tenantID: tenantID,
-      source: chargingStation.id, module: 'OCPPService',
-      method: 'updateChargingStationConsumption', action: 'ChargingStationConsumption',
-      message: `Connector '${foundConnector.connectorId}' - Consumption ${foundConnector.currentConsumption}, Total: ${foundConnector.totalConsumption}, SoC: ${foundConnector.currentStateOfCharge}`
-    });
   }
 
   async _notifyEndOfCharge(tenantID: string, chargingStation: ChargingStation, transaction: Transaction) {
@@ -869,11 +865,8 @@ export default class OCPPService {
         if (meterValue.attribute.context === 'Sample.Clock') {
           // Log
           Logging.logWarning({
-            tenantID: tenantID,
-            source: chargingStation.id,
-            module: 'OCPPService',
-            method: '_filterMeterValuesOnCharger',
-            action: 'MeterValues',
+            tenantID: tenantID, source: chargingStation.id,
+            module: 'OCPPService', method: '_filterMeterValuesOnCharger', action: 'MeterValues',
             message: 'Removed Meter Value with attribute context \'Sample.Clock\'',
             detailedMessages: meterValue
           });
@@ -1011,10 +1004,8 @@ export default class OCPPService {
       await OCPPStorage.saveDiagnosticsStatusNotification(headers.tenantID, diagnosticsStatusNotification);
       // Log
       Logging.logInfo({
-        tenantID: headers.tenantID,
-        source: chargingStation.id,
-        module: 'OCPPService',
-        method: 'handleDiagnosticsStatusNotification',
+        tenantID: headers.tenantID, source: chargingStation.id,
+        module: 'OCPPService', method: 'handleDiagnosticsStatusNotification',
         action: 'DiagnosticsStatusNotification',
         message: 'Diagnostics Status Notification has been saved'
       });
@@ -1043,10 +1034,8 @@ export default class OCPPService {
       await OCPPStorage.saveFirmwareStatusNotification(headers.tenantID, firmwareStatusNotification);
       // Log
       Logging.logInfo({
-        tenantID: headers.tenantID,
-        source: chargingStation.id,
-        module: 'OCPPService',
-        method: 'handleFirmwareStatusNotification',
+        tenantID: headers.tenantID, source: chargingStation.id,
+        module: 'OCPPService', method: 'handleFirmwareStatusNotification',
         action: 'FirmwareStatusNotification',
         message: 'Firmware Status Notification has been saved'
       });
@@ -1155,14 +1144,14 @@ export default class OCPPService {
           tenantID: headers.tenantID,
           source: chargingStation.id, module: 'OCPPService', method: 'handleStartTransaction',
           action: 'StartTransaction', user: user,
-          message: `Transaction ID '${transaction.id}' has been started on Connector '${transaction.connectorId}'`
+          message: `Connector '${transaction.connectorId}' > Transaction ID '${transaction.id}' has been started`
         });
       } else {
         // Log
         Logging.logInfo({
           tenantID: headers.tenantID, source: chargingStation.id,
           module: 'OCPPService', method: 'handleStartTransaction', action: 'StartTransaction',
-          message: `Transaction ID '${transaction.id}' has been started on Connector '${transaction.connectorId}'`
+          message: `Connector '${transaction.connectorId}' > Transaction ID '${transaction.id}' has been started`
         });
       }
       // Return
@@ -1174,7 +1163,7 @@ export default class OCPPService {
       // Set the source
       error.source = headers.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage(headers.tenantID, Constants.ACTION_REMOTE_START_TRANSACTION, error);
+      Logging.logActionExceptionMessage(headers.tenantID, Constants.ACTION_START_TRANSACTION, error);
       return {
         'transactionId': 0,
         'status': 'Invalid'
@@ -1198,13 +1187,10 @@ export default class OCPPService {
         if (activeTransaction.currentTotalConsumption <= 0) {
           // No consumption: delete
           Logging.logWarning({
-            tenantID: tenantID,
-            source: chargeBoxID,
-            module: 'OCPPService',
-            method: '_stopOrDeleteActiveTransactions',
-            action: 'CleanupTransaction',
-            actionOnUser: activeTransaction.user,
-            message: `Pending Transaction ID '${activeTransaction.id}' with no consumption has been deleted on Connector '${activeTransaction.connectorId}'`
+            tenantID: tenantID, source: chargeBoxID,
+            module: 'OCPPService', method: '_stopOrDeleteActiveTransactions',
+            action: 'CleanupTransaction', actionOnUser: activeTransaction.user,
+            message: `Connector '${activeTransaction.connectorId}' > Pending Transaction ID '${activeTransaction.id}' with no consumption has been deleted`
           });
           // Delete
           await TransactionStorage.deleteTransaction(tenantID, activeTransaction);
@@ -1222,24 +1208,18 @@ export default class OCPPService {
           if (result.status === 'Invalid') {
             // No consumption: delete
             Logging.logError({
-              tenantID: tenantID,
-              source: chargeBoxID,
-              module: 'OCPPService',
-              method: '_stopOrDeleteActiveTransactions',
-              action: 'CleanupTransaction',
-              actionOnUser: activeTransaction.userID,
-              message: `Cannot delete pending Transaction ID '${activeTransaction.id}' with no consumption on Connector '${activeTransaction.connectorId}'`
+              tenantID: tenantID, source: chargeBoxID,
+              module: 'OCPPService', method: '_stopOrDeleteActiveTransactions',
+              action: 'CleanupTransaction', actionOnUser: activeTransaction.userID,
+              message: `Connector '${activeTransaction.connectorId}' > Cannot delete pending Transaction ID '${activeTransaction.id}' with no consumption`
             });
           } else {
             // Has consumption: close it!
             Logging.logWarning({
-              tenantID: tenantID,
-              source: chargeBoxID,
-              module: 'OCPPService',
-              method: '_stopOrDeleteActiveTransactions',
-              action: 'CleanupTransaction',
-              actionOnUser: activeTransaction.userID,
-              message: `Pending Transaction ID '${activeTransaction.id}' has been stopped on Connector '${activeTransaction.connectorId}'`
+              tenantID: tenantID, source: chargeBoxID,
+              module: 'OCPPService', method: '_stopOrDeleteActiveTransactions',
+              action: 'CleanupTransaction', actionOnUser: activeTransaction.userID,
+              message: `Connector '${activeTransaction.connectorId}' > Pending Transaction ID '${activeTransaction.id}' has been stopped`
             });
           }
         }
@@ -1286,8 +1266,8 @@ export default class OCPPService {
       await OCPPStorage.saveDataTransfer(headers.tenantID, dataTransfer);
       // Log
       Logging.logInfo({
-        tenantID: headers.tenantID,
-        source: chargingStation.id, module: 'OCPPService', method: 'handleDataTransfer',
+        tenantID: headers.tenantID, source: chargingStation.id,
+        module: 'OCPPService', method: 'handleDataTransfer',
         action: Constants.ACTION_DATA_TRANSFER, message: 'Data Transfer has been saved'
       });
       // Return
@@ -1335,7 +1315,7 @@ export default class OCPPService {
       if (transaction.stop) {
         throw new BackendError(chargingStation.id,
           `Transaction ID '${stopTransaction.transactionId}' has already been stopped`,
-          'OCPPService', 'handleStopTransaction', Constants.ACTION_REMOTE_STOP_TRANSACTION,
+          'OCPPService', 'handleStopTransaction', Constants.ACTION_STOP_TRANSACTION,
           (alternateUser ? alternateUser : user),
           (alternateUser ? (user ? user : null) : null));
       }
@@ -1392,10 +1372,10 @@ export default class OCPPService {
       Logging.logInfo({
         tenantID: headers.tenantID,
         source: chargingStation.id, module: 'OCPPService', method: 'handleStopTransaction',
-        action: Constants.ACTION_REMOTE_STOP_TRANSACTION,
+        action: Constants.ACTION_STOP_TRANSACTION,
         user: (alternateUser ? alternateUser : (user ? user : null)),
         actionOnUser: (alternateUser ? (user ? user : null) : null),
-        message: `Transaction ID '${transaction.id}' has been stopped successfully`
+        message: `Connector '${transaction.connectorId}' > Transaction ID '${transaction.id}' has been stopped successfully`
       });
       // Success
       return {
@@ -1405,7 +1385,7 @@ export default class OCPPService {
       // Set the source
       error.source = headers.chargeBoxIdentity;
       // Log error
-      Logging.logActionExceptionMessage(headers.tenantID, Constants.ACTION_REMOTE_STOP_TRANSACTION, error);
+      Logging.logActionExceptionMessage(headers.tenantID, Constants.ACTION_STOP_TRANSACTION, error);
       // Error
       return { 'status': 'Invalid' };
     }
@@ -1420,7 +1400,7 @@ export default class OCPPService {
     transaction.stop.userID = (alternateUser ? alternateUser.id : (user ? user.id : null));
     transaction.stop.tagID = tagId;
     transaction.stop.stateOfCharge = transaction.currentStateOfCharge;
-    transaction.stop.signedData = transaction.currentSignedData ? transaction.currentSignedData : "";
+    transaction.stop.signedData = transaction.currentSignedData ? transaction.currentSignedData : '';
     // Keep the last Meter Value
     const lastMeterValue = transaction.lastMeterValue;
     // Compute duration

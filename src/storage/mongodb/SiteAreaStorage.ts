@@ -111,7 +111,7 @@ export default class SiteAreaStorage {
       }
     }
     // Set Site thru a filter in the dashboard
-    if (params.siteIDs && Array.isArray(params.siteIDs) && params.siteIDs.length > 0) {
+    if (params.siteIDs && Array.isArray(params.siteIDs)) {
       filters.siteID = {
         $in: params.siteIDs.map((site) => Utils.convertToObjectID(site))
       };
@@ -122,14 +122,6 @@ export default class SiteAreaStorage {
     if (filters) {
       aggregation.push({
         $match: filters
-      });
-    }
-    // Limit on Site Area for Basic Users
-    if (params.siteIDs && params.siteIDs.length > 0) {
-      aggregation.push({
-        $match: {
-          siteID: { $in: params.siteIDs.map((siteID) => Utils.convertToObjectID(siteID)) }
-        }
       });
     }
     // Sites

@@ -22,7 +22,7 @@
       "Your account has been <b><%- (user.status === 'A' ? 'activated' : 'suspended'); %></b> by an administrator."
     ],
     "action": {
-      "title": "Charge-Angels",
+      "title": "e-Mobility",
       "url": "<%- evseDashboardURL %>"
     },
     "afterActionLines": [

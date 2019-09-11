@@ -2,13 +2,7 @@ import moment = require('moment');
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
-import {
-  HttpAssignTransactionsToUserRequest,
-  HttpConsumptionFromTransactionRequest,
-  HttpTransactionRequest,
-  HttpTransactionsRefundRequest,
-  HttpTransactionsRequest
-} from '../../../../types/requests/HttpTransactionRequest';
+import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
 import Transaction from '../../../../types/Transaction';
 import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
@@ -28,7 +22,7 @@ export default class TransactionSecurity {
   }
 
   static filterUnassignedTransactionsCountRequest(request: any) {
-    return { tagIDs: request.tagIDs ? sanitize(request.tagIDs) : null };
+    return { UserID: request.UserID ? sanitize(request.UserID) : null };
   }
 
   public static filterTransactionRequestByID(request: any): number {
@@ -56,7 +50,7 @@ export default class TransactionSecurity {
     return filtered;
   }
 
-  public static filterTransactionsCompletedRequest(request: any): HttpTransactionsRequest {
+  public static filterTransactionsRequest(request: any): HttpTransactionsRequest {
     const filteredRequest: HttpTransactionsRequest = {} as HttpTransactionsRequest;
     // Handle picture
     filteredRequest.ChargeBoxID = sanitize(request.ChargeBoxID);
@@ -96,13 +90,14 @@ export default class TransactionSecurity {
     return filteredRequest;
   }
 
-  static filterTransactionResponse(transaction: Transaction, loggedUser: UserToken) {
+  static filterTransactionResponse(transaction: Transaction, loggedUser: UserToken, toRefund = false) {
     let filteredTransaction;
     if (!transaction) {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadTransaction(loggedUser, transaction)) {
+    if (Authorizations.canReadTransaction(loggedUser, transaction) &&
+        (!toRefund || Authorizations.canRefundTransaction(loggedUser, transaction))) {
       // Set only necessary info
       filteredTransaction = {} as Transaction;
       filteredTransaction.id = transaction.id;
@@ -184,14 +179,14 @@ export default class TransactionSecurity {
     return filteredTransaction;
   }
 
-  static filterTransactionsResponse(transactions: DataResult<Transaction>, loggedUser: UserToken) {
+  static filterTransactionsResponse(transactions: DataResult<Transaction>, loggedUser: UserToken, toRefund = false) {
     const filteredTransactions = [];
     if (!transactions.result) {
       return null;
     }
     // Filter result
     for (const transaction of transactions.result) {
-      const filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser);
+      const filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser, toRefund);
       if (filteredTransaction) {
         filteredTransactions.push(filteredTransaction);
       }

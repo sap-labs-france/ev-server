@@ -125,7 +125,7 @@ export default class TransactionStorage {
   public static async assignTransactionsToUser(tenantID: string, user: User) {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'assignTransactionsToUser');
-
+    // Assign transactions
     await global.database.getCollection<Transaction>(tenantID, 'transactions').updateMany({
       $and: [
         { 'userID': null },
@@ -138,25 +138,22 @@ export default class TransactionStorage {
     }, {
       upsert: false
     });
-
     // Debug
     Logging.traceEnd('TransactionStorage', 'assignTransactionsToUser', uniqueTimerID);
   }
 
-  public static async getUnassignedTransactionsCount(tenantID: string, tagIDs: string[]): Promise<number> {
+  public static async getUnassignedTransactionsCount(tenantID: string, user: User): Promise<number> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'assignTransactionsToUser');
-
+    // Get the number of unassigned transactions
     const unassignedCount = await global.database.getCollection<Transaction>(tenantID, 'transactions').find({
       $and: [
         { 'userID': null },
-        { 'tagID': { $in: tagIDs } }
+        { 'tagID': { $in: user.tagIDs } }
       ]
     }).count();
-
     // Debug
     Logging.traceEnd('TransactionStorage', 'assignTransactionsToUser', uniqueTimerID);
-
     return unassignedCount;
   }
 
@@ -187,7 +184,7 @@ export default class TransactionStorage {
   public static async getTransactions(tenantID: string,
     params: {
       transactionId?: number; search?: string; userIDs?: string[]; siteAdminIDs?: string[]; chargeBoxIDs?:
-        string[]; siteAreaIDs?: string[]; siteID?: string[]; connectorId?: number; startDateTime?: Date;
+      string[]; siteAreaIDs?: string[]; siteID?: string[]; connectorId?: number; startDateTime?: Date;
       endDateTime?: Date; stop?: any; minimalPrice?: boolean; withChargeBoxes?: boolean;
       statistics?: 'refund' | 'history'; refundStatus?: string[];
     },
@@ -471,7 +468,7 @@ export default class TransactionStorage {
       })
       .toArray();
     // Convert Object IDs to String
-    this._convertTransactionIDs(transactionsMDB);
+    this._convertRemainingTransactionObjectIDs(transactionsMDB);
     // Debug
     Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, { params, dbParams });
     return {
@@ -482,12 +479,12 @@ export default class TransactionStorage {
   }
 
   static async getTransactionsInError(tenantID,
-                                      params: {
-                                        search?: string; userIDs?: string[]; siteAdminIDs?: string[]; chargeBoxIDs?:
-                                          string[]; siteAreaIDs?: string[]; siteID?: string[]; startDateTime?: Date; endDateTime?: Date; withChargeBoxes?: boolean;
-                                        errorType?: ('negative_inactivity' | 'average_consumption_greater_than_connector_capacity' | 'no_consumption')[];
-                                      },
-                                      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Transaction>> {
+    params: {
+      search?: string; userIDs?: string[]; siteAdminIDs?: string[]; chargeBoxIDs?:
+      string[]; siteAreaIDs?: string[]; siteID?: string[]; startDateTime?: Date; endDateTime?: Date; withChargeBoxes?: boolean;
+      errorType?: ('negative_inactivity' | 'negative_duration' | 'average_consumption_greater_than_connector_capacity' | 'incorrect_starting_date' | 'no_consumption')[];
+    },
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Transaction>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactionsInError');
     // Check
@@ -634,13 +631,14 @@ export default class TransactionStorage {
     aggregation.pop();
     // Rename ID
     DatabaseUtils.renameField(aggregation, '_id', 'id');
-    // Sort    // Convert Object ID to string
+    // Convert Object ID to string
     DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
     DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
     DatabaseUtils.convertObjectIDToString(aggregation, 'siteAreaID');
     // Not yet possible to remove the fields if stop/remoteStop does not exist (MongoDB 4.2)
     // DatabaseUtils.convertObjectIDToString(aggregation, 'stop.userID');
     // DatabaseUtils.convertObjectIDToString(aggregation, 'remotestop.userID');
+    // Sort
     if (dbParams.sort) {
       if (!dbParams.sort.timestamp) {
         aggregation.push({
@@ -673,8 +671,8 @@ export default class TransactionStorage {
         allowDiskUse: true
       })
       .toArray();
-    // Convert Object IDs to String
-    this._convertTransactionIDs(transactionsMDB);
+    // Convert remaining Object IDs to String
+    this._convertRemainingTransactionObjectIDs(transactionsMDB);
     // Debug
     Logging.traceEnd('TransactionStorage', 'getTransactionsInError', uniqueTimerID, {
       params,
@@ -723,6 +721,10 @@ export default class TransactionStorage {
     });
     // Rename ID
     DatabaseUtils.renameField(aggregation, '_id', 'id');
+    // Convert Object ID to string
+    DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
+    DatabaseUtils.convertObjectIDToString(aggregation, 'siteAreaID');
     // Read DB
     const transactionsMDB = await global.database.getCollection<Transaction>(tenantID, 'transactions')
       .aggregate(aggregation, { allowDiskUse: true })
@@ -734,6 +736,8 @@ export default class TransactionStorage {
     });
     // Found?
     if (transactionsMDB && transactionsMDB.length > 0) {
+      // Convert remaining Object IDs to String
+      this._convertRemainingTransactionObjectIDs(transactionsMDB);
       return transactionsMDB[0];
     }
     return null;
@@ -752,6 +756,13 @@ export default class TransactionStorage {
         'connectorId': Utils.convertToInt(connectorId)
       }
     });
+    // Rename ID
+    DatabaseUtils.renameField(aggregation, '_id', 'id');
+    // Convert Object ID to string
+    DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
+    DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
+    DatabaseUtils.convertObjectIDToString(aggregation, 'siteAreaID');
+    // Sort
     aggregation.push({ $sort: { timestamp: -1 } });
     // The last one
     aggregation.push({ $limit: 1 });
@@ -766,6 +777,8 @@ export default class TransactionStorage {
     });
     // Found?
     if (transactionsMDB && transactionsMDB.length > 0) {
+      // Convert remaining Object IDs to String
+      this._convertRemainingTransactionObjectIDs(transactionsMDB);
       return transactionsMDB[0];
     }
     return null;
@@ -797,7 +810,7 @@ export default class TransactionStorage {
   }
 
   private static _filterTransactionsInErrorFacets(tenantID: string,
-                                                  errorType?: ('negative_inactivity' | 'negative_duration' | 'average_consumption_greater_than_connector_capacity' | 'incorrect_starting_date' | 'no_consumption')[]) {
+    errorType?: ('negative_inactivity' | 'negative_duration' | 'average_consumption_greater_than_connector_capacity' | 'incorrect_starting_date' | 'no_consumption')[]) {
     const facets = {
       '$facet':
         {
@@ -878,11 +891,17 @@ export default class TransactionStorage {
       if (errorType.includes('average_consumption_greater_than_connector_capacity')) {
         filteredFacets.$facet.average_consumption_greater_than_connector_capacity = facets.$facet.average_consumption_greater_than_connector_capacity;
       }
+      if (errorType.includes('negative_duration')) {
+        filteredFacets.$facet.negative_duration = facets.$facet.negative_duration;
+      }
+      if (errorType.includes('incorrect_starting_date')) {
+        filteredFacets.$facet.incorrect_starting_date = facets.$facet.incorrect_starting_date;
+      }
     }
     return filteredFacets;
   }
 
-  private static _convertTransactionIDs(transactionsMDB: Transaction[]) {
+  private static _convertRemainingTransactionObjectIDs(transactionsMDB: Transaction[]) {
     for (const transactionMDB of transactionsMDB) {
       // Check Stop created by the join
       if (transactionMDB.stop && Utils.isEmptyJSon(transactionMDB.stop)) {

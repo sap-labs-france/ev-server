@@ -43,7 +43,7 @@ export default class OCPIEndpointSecurity {
   }
 
   static filterOcpiEndpointSendEVSEStatusesRequest(request: any) {
-    // Set ocpiendpoint
+    // Set OcpiEndpoint
     const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
@@ -105,9 +105,9 @@ export default class OCPIEndpointSecurity {
     if (!Authorizations.canListOcpiEndpoints(loggedUser)) {
       return null;
     }
-    for (const ocpiendpoint of ocpiEndpoints) {
+    for (const ocpiEndPoint of ocpiEndpoints) {
       // Filter
-      const filteredOcpiEndpoint = OCPIEndpointSecurity.filterOcpiEndpointResponse(ocpiendpoint, loggedUser);
+      const filteredOcpiEndpoint = OCPIEndpointSecurity.filterOcpiEndpointResponse(ocpiEndPoint, loggedUser);
       // Ok?
       if (filteredOcpiEndpoint) {
         // Add

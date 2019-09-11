@@ -138,6 +138,7 @@ class RequestMapper {
           UserInvoice: UserService.handleGetUserInvoice,
           Notifications: NotificationService.handleGetNotifications,
           TransactionsCompleted: TransactionService.handleGetTransactionsCompleted,
+          TransactionsToRefund: TransactionService.handleGetTransactionsToRefund,
           TransactionsExport: TransactionService.handleGetTransactionsExport,
           TransactionsActive: TransactionService.handleGetTransactionsActive,
           TransactionsInError: TransactionService.handleGetTransactionsInError,

@@ -106,41 +106,32 @@ export default class LoggingStorage {
     if (params.dateUntil) {
       filters.timestamp.$lte = new Date(params.dateUntil);
     }
-
     // Filter on log levels
     if (params.level && Array.isArray(params.level)) {
-      // Yes, add in filter
       filters.level = { $in: params.level };
     }
     // Filter on charging Stations
     if (params.sources && Array.isArray(params.sources) && params.sources.length > 0) {
-      // Yes, add in filter
       filters.source = { $in: params.sources };
     }
     // Type
     if (params.type) {
-      // Yes, add in filter
       filters.type = params.type;
     }
     // Filter on actions
     if (params.actions && Array.isArray(params.actions) && params.actions.length > 0) {
-      // Yes, add in filter
       filters.action = { $in: params.actions };
     }
     // Filter on host
     if (params.host && Array.isArray(params.host) && params.host.length > 0) {
-      // Yes, add in filter
       filters.host = { $in: params.host };
     }
     // Filter on users
     if (params.userIDs && Array.isArray(params.userIDs) && params.userIDs.length > 0) {
-      // Yes, add in filter
-      filters.userID = {
-        $in: params.userIDs.map((user) => Utils.convertToObjectID(user))
-      };
-      filters.actionOnUserID = {
-        $in: params.userIDs.map((user) => Utils.convertToObjectID(user))
-      };
+      filters.$or = [
+        { userID: { $in: params.userIDs.map((user) => Utils.convertToObjectID(user)) } },
+        { actionOnUserID: { $in: params.userIDs.map((user) => Utils.convertToObjectID(user)) } }
+      ];
     }
     // Search
     if (params.search) {
@@ -172,9 +163,7 @@ export default class LoggingStorage {
         $match: filters
       });
     }
-
     // Count Records
-    // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
@@ -199,12 +188,10 @@ export default class LoggingStorage {
     aggregation.pop();
     // Sort
     if (dbParams.sort) {
-      // Sort
       aggregation.push({
         $sort: dbParams.sort
       });
     } else {
-      // Default
       aggregation.push({
         $sort: { timestamp: -1 }
       });
@@ -243,6 +230,22 @@ export default class LoggingStorage {
     aggregation.push({
       $unwind: { 'path': '$actionOnUser', 'preserveNullAndEmptyArrays': true }
     });
+    // Search
+    if (params.search) {
+      // Set User search
+      const searchUserArray = [
+        { 'user.name': { $regex: params.search, $options: 'i' } },
+        { 'user.firstName': { $regex: params.search, $options: 'i' } },
+        { 'user.email': { $regex: params.search, $options: 'i' } },
+        { 'actionOnUser.name': { $regex: params.search, $options: 'i' } },
+        { 'actionOnUser.firstName': { $regex: params.search, $options: 'i' } },
+        { 'actionOnUser.email': { $regex: params.search, $options: 'i' } }
+      ];
+      // Add user filter
+      aggregation.push({
+        $match: { '$or': searchUserArray }
+      });
+    }
     // Read DB
     const loggingsMDB = await global.database.getCollection<any>(tenantID, 'logs')
       .aggregate(aggregation, { allowDiskUse: true })

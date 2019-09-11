@@ -1,6 +1,6 @@
 import AccessControl from 'role-acl';
 import Constants from '../utils/Constants';
-import InternalError from '../exception/InternalError';
+import BackendError from '../exception/BackendError';
 
 const GRANTS = {
   superAdmin: {
@@ -42,7 +42,7 @@ const GRANTS = {
       { resource: 'Transactions', action: 'List', attributes: ['*'] },
       {
         resource: 'Transaction',
-        action: ['Read', 'Update', 'Delete', 'RefundTransaction'],
+        action: ['Read', 'Update', 'Delete'],
         attributes: ['*']
       },
       { resource: 'Loggings', action: 'List', attributes: ['*'] },
@@ -78,9 +78,7 @@ const GRANTS = {
         resource: 'Site', action: 'Read', attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
       },
-      {
-        resource: 'SiteAreas', action: 'List', attributes: ['*']
-      },
+      { resource: 'SiteAreas', action: 'List', attributes: ['*'] },
       {
         resource: 'SiteArea', action: 'Read', attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
@@ -132,29 +130,12 @@ const GRANTS = {
         }
       },
       { resource: 'Transactions', action: 'List', attributes: ['*'] },
-      {
-        resource: 'Transaction', action: ['Read', 'RefundTransaction'], attributes: ['*'],
-        condition: {
-          Fn: 'OR',
-          args: [
-            {
-              Fn: 'EQUALS',
-              args: { 'user': '$.owner' }
-            },
-            {
-              Fn: 'LIST_CONTAINS',
-              args: {
-                'tagIDs': '$.tagID'
-              }
-            }
-          ]
-        }
-      },
       { resource: 'Settings', action: 'List', attributes: ['*'] },
       { resource: 'Setting', action: 'Read', attributes: ['*'] },
       { resource: 'Connections', action: 'List', attributes: ['*'] },
+      { resource: 'Connection', action: ['Create'], attributes: ['*'] },
       {
-        resource: 'Connection', action: ['Create', 'Read', 'Delete'], attributes: ['*'],
+        resource: 'Connection', action: ['Read', 'Delete'], attributes: ['*'],
         condition: { Fn: 'EQUALS', args: { 'user': '$.owner' } }
       },
     ]
@@ -239,7 +220,11 @@ export default class AuthorizationsDefinition {
     try {
       this.accessControl = new AccessControl(GRANTS);
     } catch (error) {
-      throw new InternalError('Unable to load authorization grants', error);
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Unable to load authorization grants',
+        'AuthorizationsDefinition', 'constructor', 'Authorization',
+        null, null, error);
     }
   }
 
@@ -261,7 +246,11 @@ export default class AuthorizationsDefinition {
         }
       );
     } catch (error) {
-      throw new InternalError('Unable to load available scopes', error);
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Unable to load available scopes',
+        'AuthorizationsDefinition', 'getScopes', 'Authorization',
+        null, null, error);
     }
     return scopes;
   }
@@ -271,7 +260,11 @@ export default class AuthorizationsDefinition {
       const permission = this.accessControl.can(role).execute(action).with(context).on(resource);
       return permission.granted;
     } catch (error) {
-      throw new InternalError('Unable to check authorization', error);
+      throw new BackendError(
+        Constants.CENTRAL_SERVER,
+        'Unable to check authorization',
+        'AuthorizationsDefinition', 'can', 'Authorization',
+        null, null, error);
     }
   }
 }

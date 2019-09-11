@@ -7,7 +7,6 @@ import Constants from '../../utils/Constants';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import NotificationTask from '../NotificationTask';
-import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
 
@@ -99,7 +98,7 @@ export default class EMailNotificationTask extends NotificationTask {
 
   sendTransactionStarted(data, locale, tenantID) {
     // Send it
-    return this._prepareAndSendEmail('transaction-started', data, locale, tenantID);
+    return this._prepareAndSendEmail('session-started', data, locale, tenantID);
   }
 
   sendVerificationEmail(data, locale, tenantID) {
@@ -109,8 +108,7 @@ export default class EMailNotificationTask extends NotificationTask {
 
   async _prepareAndSendEmail(templateName, data, locale, tenantID) {
     // Check locale
-    if (!locale) {
-      // Default
+    if (!locale || !Constants.SUPPORTED_LOCALES.includes(locale)) {
       locale = Constants.DEFAULT_LOCALE;
     }
     // Check users
@@ -255,7 +253,9 @@ export default class EMailNotificationTask extends NotificationTask {
           Logging.logError({
             tenantID: tenantID, source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
             module: 'EMailNotificationTask', method: 'sendEmail',
-            action: (!retry ? 'SendEmail' : 'SendEmailBackup'), message: err.toString(),
+            action: (!retry ? 'SendEmail' : 'SendEmailBackup'),
+            message: `Error in sending Email: '${messageToSend.subject}'`,
+            actionOnUser: data.user,
             detailedMessages: {
               email: {
                 from: messageToSend.from,
@@ -279,8 +279,9 @@ export default class EMailNotificationTask extends NotificationTask {
           tenantID: tenantID,
           source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
           module: 'EMailNotificationTask', method: '_prepareAndSendEmail',
-          action: (!retry ? 'SendEmail' : 'SendEmailBackup'), actionOnUser: data.user,
-          message: 'Email has been sent successfully',
+          action: (!retry ? 'SendEmail' : 'SendEmailBackup'),
+          actionOnUser: data.user,
+          message: `Email has been sent successfully: '${messageToSend.subject}'`,
           detailedMessages: {
             email: {
               from: messageToSend.from,
