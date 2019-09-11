@@ -143,7 +143,7 @@ export default class ConvergentChargingPricing extends Pricing<ConvergentChargin
 
   async handleError(action: string, consumptionData: Consumption, result) {
     const chargingResult = result.data.chargingResult;
-    const chargingStation: ChargingStation = await this.transaction.chargeBox;
+    const chargingStation: ChargingStation = await ChargingStationStorage.getChargingStation(this.tenantId,this.transaction.chargeBoxID);
     Logging.logError({
       tenantID: this.tenantId,
       source: chargingStation, module: 'ConvergentCharging',
