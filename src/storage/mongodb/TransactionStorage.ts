@@ -98,6 +98,17 @@ export default class TransactionStorage {
         reportId: transactionToSave.refundData.reportId
       };
     }
+    if (transactionToSave.billingData) {
+      transactionMDB.billingData = {
+        method: transactionToSave.billingData.method,
+        customerID: transactionToSave.billingData.customerID,
+        cardID: transactionToSave.billingData.cardID,
+        subscriptionID: transactionToSave.billingData.subscriptionID,
+        lastUpdate: Utils.convertToDate(transactionToSave.billingData.lastUpdate),
+        invoiceStatus: transactionToSave.billingData.invoiceStatus,
+        invoiceItemID: transactionToSave.billingData.invoiceItemID
+      };
+    }
     // Add Last Changed Created Props
     DatabaseUtils.addLastChangedCreatedProps(transactionMDB, transactionToSave);
     // Modify

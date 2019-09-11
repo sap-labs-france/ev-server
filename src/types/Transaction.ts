@@ -65,4 +65,13 @@ export default interface Transaction {
   currentSignedData?: number;
   uniqueId?: string;
   errorCode?: number;
+  billingData?: {
+    method: string;
+    customerID: string;
+    cardID: string;
+    subscriptionID: string;
+    lastUpdate: Date;
+    invoiceStatus: string;
+    invoiceItemID: string;
+  };
 }

@@ -1,6 +1,7 @@
 import momentDurationFormatSetup from 'moment-duration-format'; // TODO: what?
 import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
+import BillingFactory from '../../../integration/billing/BillingFactory';
 import ChargingStation from '../../../types/ChargingStation';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
@@ -576,6 +577,7 @@ export default class OCPPService {
       // Price
       if (consumption.toPrice) {
         await this._priceTransactionFromConsumption(tenantID, transaction, consumption, 'update');
+        await this._handleBillingForTransaction(tenantID, transaction, 'update');
       }
       // Save
       await ConsumptionStorage.saveConsumption(tenantID, consumption);
@@ -665,6 +667,51 @@ export default class OCPPService {
     }
   }
 
+  public async _handleBillingForTransaction(tenantID: string, transaction: Transaction, action: string, user?: User) {
+    const billingImpl = await BillingFactory.getBillingImpl(tenantID);
+
+    switch (action) {
+      // Start Transaction
+      case 'start':
+        // Active?
+        if (billingImpl) {
+          const billingDataStart = await billingImpl.startSession(user, transaction);
+          if (!transaction.billingData) {
+            (transaction as any).billingData = {};
+          }
+          transaction.billingData.method = billingDataStart.method;
+          transaction.billingData.customerID = billingDataStart.customerID;
+          transaction.billingData.cardID = billingDataStart.cardID;
+          transaction.billingData.subscriptionID = billingDataStart.subscriptionID;
+          transaction.billingData.lastUpdate = new Date();
+        }
+        break;
+      // Meter Values
+      case 'update':
+        // Active?
+        if (billingImpl) {
+          const billingDataUpdate = await billingImpl.updateSession(transaction);
+          if (billingDataUpdate.stopTransaction) {
+            // Unclear how to do this...
+
+            transaction.billingData.lastUpdate = new Date();
+          }
+        }
+        break;
+      // Stop Transaction
+      case 'stop':
+        // Active?
+        if (billingImpl) {
+          const billingDataStop = await billingImpl.stopSession(transaction);
+          transaction.billingData.invoiceStatus = billingDataStop.invoiceStatus;
+          transaction.billingData.invoiceItemID = billingDataStop.invoiceItemID;
+          transaction.billingData.lastUpdate = new Date();
+        }
+        break;
+    }
+  }
+
+  // Save Consumption
   async _updateChargingStationConsumption(tenantID: string, chargingStation: ChargingStation, transaction: Transaction) {
     // Get the connector
     const foundConnector = chargingStation.connectors.find(
@@ -684,7 +731,7 @@ export default class OCPPService {
       chargingStation.lastHeartBeat = new Date();
       // Handle End Of charge
       await this._checkNotificationEndOfCharge(tenantID, chargingStation, transaction);
-    // Cleanup connector transaction data
+      // Cleanup connector transaction data
     } else if (foundConnector) {
       foundConnector.currentConsumption = 0;
       foundConnector.totalConsumption = 0;
@@ -1065,16 +1112,18 @@ export default class OCPPService {
       // Build first Dummy consumption for pricing the Start Transaction
       const consumption = await this._buildConsumptionFromTransactionAndMeterValue(
         transaction, transaction.timestamp, transaction.timestamp, {
-          id: '666',
-          connectorId: transaction.connectorId,
-          transactionId: transaction.id,
-          timestamp: transaction.timestamp,
-          value: transaction.meterStart,
-          attribute: DEFAULT_CONSUMPTION_ATTRIBUTE
-        }
+        id: '666',
+        connectorId: transaction.connectorId,
+        transactionId: transaction.id,
+        timestamp: transaction.timestamp,
+        value: transaction.meterStart,
+        attribute: DEFAULT_CONSUMPTION_ATTRIBUTE
+      }
       );
       // Price it
       await this._priceTransactionFromConsumption(headers.tenantID, transaction, consumption, 'start');
+      // Billing
+      await this._handleBillingForTransaction(headers.tenantID, transaction, 'start', user);
       // Save it
       transaction.id = await TransactionStorage.saveTransaction(headers.tenantID, transaction);
       // Lock the other connectors?
@@ -1312,16 +1361,18 @@ export default class OCPPService {
       // Build final consumption
       const consumption = await this._buildConsumptionFromTransactionAndMeterValue(
         transaction, lastMeterValue.timestamp, transaction.stop.timestamp, {
-          id: '6969',
-          connectorId: transaction.connectorId,
-          transactionId: transaction.id,
-          timestamp: transaction.stop.timestamp,
-          value: transaction.stop.meterStop,
-          attribute: DEFAULT_CONSUMPTION_ATTRIBUTE
-        }
+        id: '6969',
+        connectorId: transaction.connectorId,
+        transactionId: transaction.id,
+        timestamp: transaction.stop.timestamp,
+        value: transaction.stop.meterStop,
+        attribute: DEFAULT_CONSUMPTION_ATTRIBUTE
+      }
       );
       // Update the price
       await this._priceTransactionFromConsumption(headers.tenantID, transaction, consumption, 'stop');
+      // Finalize billing
+      await this._handleBillingForTransaction(headers.tenantID, transaction, 'stop');
       // Save Consumption
       await ConsumptionStorage.saveConsumption(headers.tenantID, consumption);
       // Remove runtime data

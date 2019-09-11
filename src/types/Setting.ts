@@ -2,16 +2,17 @@ import CreatedUpdatedProps from './CreatedUpdatedProps';
 
 export default interface Setting extends CreatedUpdatedProps {
   id?: string;
-  identifier: 'pricing'|'analytics'|'refund'|'ocpi';
+  identifier: 'pricing'|'billing'|'analytics'|'refund'|'ocpi';
   sensitiveData: string[];
   content: SettingContent;
 }
 
 export interface SettingContent {
-  type: 'gireve'|'sac'|'concur'|'simple'|'convergentCharging';
+  type: 'gireve'|'sac'|'concur'|'simple'|'convergentCharging'|'stripe';
   ocpi?: OcpiSettings;
   simple?: SimplePricingSettings;
   convergentCharging?: ConvergentChargingPricingSettings;
+  stripe?: StripeBillingSettings;
   sac?: AnalyticsSettings;
   links?: AnalyticsLink[];
   concur?: ConcurRefundSettings;
@@ -27,6 +28,17 @@ export interface ConvergentChargingPricingSettings {
   chargeableItemName: string;
   user: string;
   password: string;
+}
+
+export interface StripeBillingSettings {
+  url: string;
+  secretKey: string;
+  publicKey: string;
+  noCardAllowed: boolean;
+  immediateBillingAllowed: boolean;
+  periodicBillingAllowed: boolean;
+  periodicBillingPlans: string | string[];
+  advanceBillingAllowed: boolean;
 }
 
 export interface OcpiSettings {

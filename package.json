@@ -13,6 +13,7 @@
   "homepage": "https://github.com/LucasBrazi06/ev-server",
   "main": "dist/start.js",
   "dependencies": {
+    "@types/stripe": "^6.31.23",
     "ajv": "^6.10.2",
     "axios": "^0.19.0",
     "axios-retry": "^3.1.2",
@@ -53,6 +54,7 @@
     "simple-odata-server": "^1.1.1",
     "socket.io": "^2.2.0",
     "source-map-support": "^0.5.13",
+    "stripe": "^7.8.0",
     "strong-soap": "^1.21.0",
     "typescript": "^3.5.3",
     "tz-lookup": "^6.1.23",

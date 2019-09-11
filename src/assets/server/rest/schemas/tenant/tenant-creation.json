@@ -50,6 +50,13 @@
                         "type": { "type": "string" }
                   }
               },
+              "billing": {
+                  "type": "object",
+                  "properties": {
+                      "active": { "type": "boolean" },
+                        "type": { "type": "string" }
+                    }
+              },
               "organization": {
                   "type": "object",
                   "properties": {

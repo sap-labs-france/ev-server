@@ -2,6 +2,7 @@ import fs from 'fs';
 import { ObjectID } from 'mongodb';
 import Mustache from 'mustache';
 import BackendError from '../../exception/BackendError';
+import { BillingData } from '../../integration/billing/Billing';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
@@ -121,11 +122,13 @@ export default class UserStorage {
     const tagsMDB = await global.database.getCollection<Tag>(tenantID, 'tags')
       .aggregate([
         { $match: { '_id': tagID } },
-        { $project: {
-          id: '$_id',
-          _id: 0,
-          userID: { $toString: '$userID' }
-        } }
+        {
+          $project: {
+            id: '$_id',
+            _id: 0,
+            userID: { $toString: '$userID' }
+          }
+        }
       ])
       .limit(1)
       .toArray();
@@ -164,7 +167,7 @@ export default class UserStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const userImageMDB = await global.database.getCollection<{_id: string; image: string}>(tenantID, 'userimages')
+    const userImageMDB = await global.database.getCollection<{ _id: string; image: string }>(tenantID, 'userimages')
       .findOne({ _id: id });
     // Debug
     Logging.traceEnd('UserStorage', 'getUserImage', uniqueTimerID, { id });
@@ -290,8 +293,10 @@ export default class UserStorage {
   }
 
   public static async saveUserPassword(tenantID: string, userID: string,
-    params: { password?: string; passwordResetHash?: string; passwordWrongNbrTrials?: number;
-      passwordBlockedUntil?: Date; }): Promise<void> {
+    params: {
+      password?: string; passwordResetHash?: string; passwordWrongNbrTrials?: number;
+      passwordBlockedUntil?: Date;
+    }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserPassword');
     // Check Tenant
@@ -381,6 +386,50 @@ export default class UserStorage {
     Logging.traceEnd('UserStorage', 'saveUserAdminData', uniqueTimerID);
   }
 
+  public static async saveUserBillingData(tenantID: string, userID: string,
+    billingData: BillingData): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserBillingData');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Set data
+    const updatedUserMDB: any = {};
+    let update = false;
+    // Set only provided values
+    if (billingData) {
+      updatedUserMDB.billingData = {};
+    }
+    if (billingData.method) {
+      updatedUserMDB.billingData.method = billingData.method;
+      update = true;
+    }
+    if (billingData.customerID) {
+      updatedUserMDB.billingData.customerID = billingData.customerID;
+      update = true;
+    }
+    if (billingData.cardID) {
+      updatedUserMDB.billingData.cardID = billingData.cardID;
+      update = true;
+    }
+    if (billingData.subscriptionID) {
+      updatedUserMDB.billingData.subscriptionID = billingData.subscriptionID;
+      update = true;
+    }
+    if (billingData.lastUpdate) {
+      updatedUserMDB.billingData.lastUpdate = Utils.convertToDate(billingData.lastUpdate);
+      update = true;
+    }
+    // Etc.
+    // Modify and return the modified document
+    if (update) {
+      await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
+        { '_id': Utils.convertToObjectID(userID) },
+        { $set: updatedUserMDB });
+      // Debug
+      Logging.traceEnd('UserStorage', 'saveUserBillingData', uniqueTimerID);
+    }
+  }
+
   public static async saveUserImage(tenantID: string, userID: string, userImageToSave: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserImage');
@@ -404,8 +453,10 @@ export default class UserStorage {
   }
 
   public static async getUsers(tenantID: string,
-    params: {notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string; userID?: string; email?: string;
-      roles?: string[]; statuses?: string[]; withImage?: boolean; },
+    params: {
+      notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string; userID?: string; email?: string;
+      roles?: string[]; statuses?: string[]; withImage?: boolean;
+    },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
@@ -423,7 +474,7 @@ export default class UserStorage {
     // Filter by ID
     if (params.userID) {
       filters.$and.push({ _id: Utils.convertToObjectID(params.userID) });
-    // Filter by other properties
+      // Filter by other properties
     } else if (params.search) {
       // Search is an ID?
       if (ObjectID.isValid(params.search)) {
@@ -646,7 +697,7 @@ export default class UserStorage {
         '$facet': {
           'unactive_user': [
             { $match: { status: { $in: [Constants.USER_STATUS_BLOCKED, Constants.USER_STATUS_INACTIVE, Constants.USER_STATUS_LOCKED, Constants.USER_STATUS_PENDING] } } },
-            { $addFields : { 'errorCode' : 'unactive_user' } },
+            { $addFields: { 'errorCode': 'unactive_user' } },
           ]
         }
       });
@@ -760,8 +811,10 @@ export default class UserStorage {
     });
     // Get Sites
     DatabaseUtils.pushSiteLookupInAggregation(
-      { tenantID, aggregation, localField: 'siteID', foreignField: '_id',
-        asField: 'site', oneToOneCardinality: true, oneToOneCardinalityNotNull: true });
+      {
+        tenantID, aggregation, localField: 'siteID', foreignField: '_id',
+        asField: 'site', oneToOneCardinality: true, oneToOneCardinalityNotNull: true
+      });
     // Another match for searching on Sites
     if (params.search) {
       aggregation.push({
@@ -814,7 +867,7 @@ export default class UserStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const siteUsersMDB = await global.database.getCollection<{userID: string; siteID: string; siteAdmin: boolean; site: Site}>(tenantID, 'siteusers')
+    const siteUsersMDB = await global.database.getCollection<{ userID: string; siteID: string; siteAdmin: boolean; site: Site }>(tenantID, 'siteusers')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Create
@@ -857,21 +910,21 @@ export default class UserStorage {
       case 'unactive_user':
         return [
           { $match: { status: { $in: [Constants.USER_STATUS_BLOCKED, Constants.USER_STATUS_INACTIVE, Constants.USER_STATUS_LOCKED, Constants.USER_STATUS_PENDING] } } },
-          { $addFields : { 'errorCode' : 'unactive_user' } }
+          { $addFields: { 'errorCode': 'unactive_user' } }
         ];
       case 'unassigned_user': {
         return [
-          { $match : { status: Constants.USER_STATUS_ACTIVE } },
+          { $match: { status: Constants.USER_STATUS_ACTIVE } },
           {
-            $lookup : {
-              from : DatabaseUtils.getCollectionName(tenantID, 'siteusers'),
-              localField : '_id',
-              foreignField : 'userID',
-              as : 'sites'
+            $lookup: {
+              from: DatabaseUtils.getCollectionName(tenantID, 'siteusers'),
+              localField: '_id',
+              foreignField: 'userID',
+              as: 'sites'
             }
           },
-          { $match : { sites: { $size: 0 } } },
-          { $addFields : { 'errorCode' : 'unassigned_user' } }
+          { $match: { sites: { $size: 0 } } },
+          { $addFields: { 'errorCode': 'unassigned_user' } }
         ];
       }
       default:

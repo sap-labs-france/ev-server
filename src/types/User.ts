@@ -34,6 +34,14 @@ export default interface User extends CreatedUpdatedProps {
   errorCode?: string;
 
   tagIDs?: string[];
+
+  billingData?: {
+    method?: string;
+    customerID?: string;
+    cardID?: string;
+    subscriptionID?: string;
+    lastUpdate?: Date;
+  };
 }
 
 export interface UserSite {
