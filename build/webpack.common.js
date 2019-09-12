@@ -22,11 +22,11 @@ const config = {
     path: commonPaths.outputPath
   },
   resolve: {
-    extensions: ['.ts', '.tsx', '.js', '.json']
+    extensions: ['.ts', '.tsx', '.json']
   },
   module: {
     rules: [
-      { test: /\.(t|j)sx?$/, use: 'ts-loader', exclude: /node_modules/ }
+      { test: /\.tsx?$/, use: 'ts-loader' }
     ]
   },
   plugins: [
@@ -40,6 +40,7 @@ const config = {
     ])
   ],
   optimization: {
+    minimize: true,
     minimizer: [
       new TerserPlugin({
         sourceMap: true,
