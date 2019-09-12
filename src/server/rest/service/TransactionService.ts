@@ -659,7 +659,7 @@ export default class TransactionService {
         'TransactionService', 'handleGetTransactionsInError',
         req.user);
     }
-    const filter: any = { stop: { $exists: true } };
+    const filter: any = {};
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsInErrorRequest(req.query);
     if (filteredRequest.ChargeBoxID) {

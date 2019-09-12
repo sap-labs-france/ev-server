@@ -482,9 +482,9 @@ export default class TransactionStorage {
     dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
     dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
-    // Build filter
+    // Build filters
     const ownerMatch = { $or: [] };
-    const filterMatch: any = {};
+    const match: any = { stop: { $exists: true } };
     // User / Site Admin
     if (params.userIDs) {
       ownerMatch.$or.push({
@@ -502,7 +502,7 @@ export default class TransactionStorage {
     }
     // Filter?
     if (params.search) {
-      filterMatch.$or = [
+      match.$or = [
         { '_id': parseInt(params.search) },
         { 'tagID': { $regex: params.search, $options: 'i' } },
         { 'chargeBoxID': { $regex: params.search, $options: 'i' } }
@@ -510,29 +510,29 @@ export default class TransactionStorage {
     }
     // Charge Box
     if (params.chargeBoxIDs) {
-      filterMatch.chargeBoxID = { $in: params.chargeBoxIDs };
+      match.chargeBoxID = { $in: params.chargeBoxIDs };
     }
     // Date provided?
     if (params.startDateTime || params.endDateTime) {
-      filterMatch.timestamp = {};
+      match.timestamp = {};
     }
     // Start date
     if (params.startDateTime) {
-      filterMatch.timestamp.$gte = Utils.convertToDate(params.startDateTime);
+      match.timestamp.$gte = Utils.convertToDate(params.startDateTime);
     }
     // End date
     if (params.endDateTime) {
-      filterMatch.timestamp.$lte = Utils.convertToDate(params.endDateTime);
+      match.timestamp.$lte = Utils.convertToDate(params.endDateTime);
     }
     // Site Areas
     if (params.siteAreaIDs) {
-      filterMatch.siteAreaID = {
+      match.siteAreaID = {
         $in: params.siteAreaIDs.map((area) => Utils.convertToObjectID(area))
       };
     }
     // Sites
     if (params.siteID) {
-      filterMatch.siteID = {
+      match.siteID = {
         $in: params.siteID.map((site) => Utils.convertToObjectID(site))
       };
     }
@@ -543,13 +543,13 @@ export default class TransactionStorage {
       aggregation.push({
         $match: {
           $and: [
-            ownerMatch, filterMatch
+            ownerMatch, match
           ]
         }
       });
     } else {
       aggregation.push({
-        $match: filterMatch
+        $match: match
       });
     }
     // Charger?
@@ -580,24 +580,35 @@ export default class TransactionStorage {
       oneToOneCardinality: true,
       oneToOneCardinalityNotNull: false
     });
-    // Add Session In Errors
-    const facets = TransactionStorage._filterTransactionsInErrorFacets(tenantID, params.errorType);
-    if (facets) {
-      const facetNames = [];
-      for (const facet in facets.$facet) {
-        facets.$facet[facet] = [...facets.$facet[facet], ...toSubRequests];
-        facetNames.push(`$${facet}`);
-      }
+    // Build lookups to fetch chargers from transactions 
+    // used only in the error type : average_consumption_greater_than_connector_capacity
+    if(params.errorType && params.errorType.includes('average_consumption_greater_than_connector_capacity')) {
+      aggregation.push({
+        $lookup: {
+          from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
+          localField: 'chargeBoxID',
+          foreignField: '_id',
+          as: 'chargeBox'
+        }
+      });
+    }
+    // Build facets for each type of error if any
+    if (params.errorType && Array.isArray(params.errorType) && params.errorType.length > 0) {
+      const facets: any = { $facet: {} };
+      const array = [];
+      params.errorType.forEach((type) => {
+        array.push(`$${type}`);
+        facets.$facet[type] = this._buildTransactionsInErrorFacet(type);
+      });
       aggregation.push(facets);
       // Manipulate the results to convert it to an array of document on root level
-      aggregation.push({ $project: { 'allItems': { $concatArrays: facetNames } } });
+      aggregation.push({ $project: { 'allItems': { $setUnion: array } } });
       aggregation.push({ $unwind: { 'path': '$allItems' } });
       aggregation.push({ $replaceRoot: { newRoot: '$allItems' } });
       // Add a unique identifier as we may have the same charger several time
       aggregation.push({ $addFields: { 'uniqueId': { $concat: [{ $substr: ['$_id', 0, -1] }, '#', '$errorCode'] } } });
-    } else {
-      aggregation = aggregation.concat(toSubRequests);
     }
+    aggregation = aggregation.concat(toSubRequests);
     // Limit records?
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
@@ -671,6 +682,44 @@ export default class TransactionStorage {
       count: transactionCountMDB ? (transactionCountMDB.count === Constants.DB_RECORD_COUNT_CEIL ? -1 : transactionCountMDB.count) : 0,
       result: transactionsMDB
     };
+  }
+
+  private static _buildTransactionsInErrorFacet(errorType: string) {
+    switch (errorType) {
+      case 'no_consumption':
+        return [
+          { $match: { 'stop.totalConsumption': { $lte: 0 } } },
+          { $addFields: { 'errorCode': 'no_consumption' } }
+        ];
+      case 'negative_inactivity':
+        return [
+          { $match: { 'stop.totalInactivitySecs': { $lt: 0 } } },
+          { $addFields: { 'errorCode': 'negative_inactivity' } }
+        ];
+      case 'negative_duration':
+        return [
+          { $match: { 'stop.totalDurationSecs': { $lt: 0 } } },
+          { $addFields: { 'errorCode': 'negative_duration' } }
+        ];
+      case 'incorrect_starting_date':
+        return [
+          { $match: { 'timestamp': { $lte: Utils.convertToDate('2017-01-01 00:00:00.000Z') } } },
+          { $addFields: { 'errorCode': 'incorrect_starting_date' } }
+        ];
+      case 'average_consumption_greater_than_connector_capacity':
+        return [
+          { $addFields: { activeDuration: { $subtract: ['$stop.totalDurationSecs', '$stop.totalInactivitySecs'] } } },
+          { $match: { 'activeDuration': { $gt: 0 } } },
+          { $addFields:{connectors:{$arrayElemAt:['$chargeBox.connectors',0]}}},
+          { $addFields:{connectorPower:{$arrayElemAt:['$connectors.power',{$subtract:['$connectorId',1]}]}}},
+          { $addFields:{averagePower:{$abs:{$multiply:[{$divide:['$stop.totalConsumption','$activeDuration']},3600]}}}},
+          { $addFields:{impossiblePower:{$lte:[{$subtract: ['$connectorPower','$averagePower']},0]}}},
+          { $match: { 'impossiblePower': { $eq: true } } },
+          { $addFields: { 'errorCode': 'average_consumption_greater_than_connector_capacity' } }
+        ];
+      default:
+        return [];
+    }
   }
 
   public static async getTransaction(tenantID: string, id: number): Promise<Transaction> {
@@ -796,98 +845,6 @@ export default class TransactionStorage {
     } while (existingTransaction);
     // Debug
     Logging.traceEnd('TransactionStorage', '_findAvailableID', uniqueTimerID);
-  }
-
-  private static _filterTransactionsInErrorFacets(tenantID: string,
-    errorType?: ('negative_inactivity' | 'negative_duration' | 'average_consumption_greater_than_connector_capacity' | 'incorrect_starting_date' | 'no_consumption')[]) {
-    const facets = {
-      '$facet':
-        {
-          'no_consumption':
-            [
-              {
-                $match: {
-                  $and: [
-                    { 'stop': { $exists: true } },
-                    { 'stop.totalConsumption': { $lte: 0 } }
-                  ]
-                }
-              },
-              { $addFields: { 'errorCode': 'no_consumption' } }
-            ],
-          'average_consumption_greater_than_connector_capacity': [],
-          'negative_inactivity':
-            [
-              {
-                $match: {
-                  $and: [
-                    { 'stop': { $exists: true } },
-                    { 'stop.totalInactivitySecs': { $lt: 0 } }
-                  ]
-                }
-              },
-              { $addFields: { 'errorCode': 'negative_inactivity' } }
-            ],
-          'negative_duration':
-            [
-              {
-                $match: {
-                  $and: [
-                    { 'stop': { $exists: true } },
-                    { 'stop.totalDurationSecs': { $lt: 0 } }
-                  ]
-                }
-              },
-              { $addFields: { 'errorCode': 'negative_duration' } }
-            ],
-          'incorrect_starting_date':
-            [
-              { $match: { 'timestamp': { $lte: Utils.convertToDate('2017-01-01 00:00:00.000Z') } } },
-              { $addFields: { 'errorCode': 'incorrect_starting_date' } }
-            ]
-        }
-    };
-    facets.$facet.average_consumption_greater_than_connector_capacity.push(
-      { $match: { 'stop': { $exists: true } } },
-      { $addFields: { activeDuration: { $subtract: ['$stop.totalDurationSecs', '$stop.totalInactivitySecs'] } } },
-      { $match: { 'activeDuration': { $gt: 0 } } }
-    );
-    DatabaseUtils.pushChargingStationLookupInAggregation({
-      tenantID,
-      aggregation: facets.$facet.average_consumption_greater_than_connector_capacity,
-      localField: 'chargeBoxID',
-      foreignField: '_id',
-      asField: 'chargeBox',
-      oneToOneCardinality: true,
-      oneToOneCardinalityNotNull: false
-    });
-    facets.$facet.average_consumption_greater_than_connector_capacity.push(
-      { $addFields: { connector: { $arrayElemAt: ['$chargeBox.connectors', { $subtract: ['$connectorId', 1] }] } } },
-      { $addFields: { averagePower: { $multiply: [{ $divide: ['$stop.totalConsumption', '$activeDuration'] }, 3600] } } },
-      { $addFields: { impossiblePower: { $lte: [{ $subtract: ['$connector.power', '$averagePower'] }, 0] } } },
-      { $match: { 'impossiblePower': { $eq: true } } },
-      { $addFields: { 'errorCode': 'average_consumption_greater_than_connector_capacity' } }
-    );
-    let filteredFacets: any = null;
-    if (errorType) {
-      filteredFacets = { $facet: {} };
-      if (errorType.includes('no_consumption')) {
-        filteredFacets.$facet.no_consumption = facets.$facet.no_consumption;
-      }
-      if (errorType.includes('negative_inactivity')) {
-        filteredFacets.$facet.negative_activity = facets.$facet.negative_inactivity;
-      }
-      if (errorType.includes('average_consumption_greater_than_connector_capacity')) {
-        filteredFacets.$facet.average_consumption_greater_than_connector_capacity = facets.$facet.average_consumption_greater_than_connector_capacity;
-      }
-      if (errorType.includes('negative_duration')) {
-        filteredFacets.$facet.negative_duration = facets.$facet.negative_duration;
-      }
-      if (errorType.includes('incorrect_starting_date')) {
-        filteredFacets.$facet.incorrect_starting_date = facets.$facet.incorrect_starting_date;
-      }
-    }
-    return filteredFacets;
   }
 
   private static _convertRemainingTransactionObjectIDs(transactionsMDB: Transaction[]) {
