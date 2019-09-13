@@ -476,10 +476,10 @@ export default class TransactionService {
       filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
     }
     if (filteredRequest.StartDateTime) {
-      filter.startTime = filteredRequest.StartDateTime;
+      filter.startDateTime = filteredRequest.StartDateTime;
     }
     if (filteredRequest.EndDateTime) {
-      filter.endTime = filteredRequest.EndDateTime;
+      filter.endDateTime = filteredRequest.EndDateTime;
     }
     if (filteredRequest.RefundStatus) {
       filter.refundStatus = filteredRequest.RefundStatus.split('|');
@@ -540,10 +540,10 @@ export default class TransactionService {
       filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
     }
     if (filteredRequest.StartDateTime) {
-      filter.startTime = filteredRequest.StartDateTime;
+      filter.startDateTime = filteredRequest.StartDateTime;
     }
     if (filteredRequest.EndDateTime) {
-      filter.endTime = filteredRequest.EndDateTime;
+      filter.endDateTime = filteredRequest.EndDateTime;
     }
     if (filteredRequest.RefundStatus) {
       filter.refundStatus = filteredRequest.RefundStatus.split('|');
@@ -605,10 +605,10 @@ export default class TransactionService {
     }
     // Date
     if (filteredRequest.StartDateTime) {
-      filter.startTime = filteredRequest.StartDateTime;
+      filter.startDateTime = filteredRequest.StartDateTime;
     }
     if (filteredRequest.EndDateTime) {
-      filter.endTime = filteredRequest.EndDateTime;
+      filter.endDateTime = filteredRequest.EndDateTime;
     }
     if (filteredRequest.RefundStatus) {
       filter.refundStatus = filteredRequest.RefundStatus.split('|');
