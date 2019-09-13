@@ -610,6 +610,7 @@ export default class TransactionStorage {
     }
     aggregation = aggregation.concat(toSubRequests);
     // Limit records?
+/* START : to improve performance the counting has been disabled temporarily    
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
@@ -629,6 +630,8 @@ export default class TransactionStorage {
     }
     // Remove the limit
     aggregation.pop();
+END : */
+    const transactionCountMDB = 0;    
     // Rename ID
     DatabaseUtils.renameField(aggregation, '_id', 'id');
     // Convert Object ID to string
@@ -659,9 +662,11 @@ export default class TransactionStorage {
       $skip: dbParams.skip
     });
     // Limit
+/* START : No limit    
     aggregation.push({
       $limit: dbParams.limit
     });
+END : */
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
@@ -679,7 +684,10 @@ export default class TransactionStorage {
       dbParams
     });
     return {
-      count: transactionCountMDB ? (transactionCountMDB.count === Constants.DB_RECORD_COUNT_CEIL ? -1 : transactionCountMDB.count) : 0,
+/* START :      
+//      count: transactionCountMDB ? (transactionCountMDB.count === Constants.DB_RECORD_COUNT_CEIL ? -1 : transactionCountMDB.count) : 0,      
+END : */
+      count: transactionCountMDB,
       result: transactionsMDB
     };
   }
