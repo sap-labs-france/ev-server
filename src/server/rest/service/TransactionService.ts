@@ -7,7 +7,6 @@ import Authorizations from '../../../authorization/Authorizations';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import ConcurConnector from '../../../integration/refund/ConcurConnector';
 import Constants from '../../../utils/Constants';
-import Consumption from '../../../entity/Consumption';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
@@ -23,6 +22,7 @@ import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
+import Consumption from '../../../types/Consumption';
 
 export default class TransactionService {
   static async handleSynchronizeRefundedTransactions(action: string, req: Request, res: Response, next: NextFunction) {
@@ -301,14 +301,14 @@ export default class TransactionService {
         'TransactionService', 'handleGetChargingStationConsumptionFromTransaction', req.user);
     }
     // Get the consumption
-    let consumptions: Consumption[] = await ConsumptionStorage.getConsumptions(req.user.tenantID, transaction.id);
+    let consumptions: Consumption[] = await ConsumptionStorage.getConsumptions(req.user.tenantID, { transactionId: transaction.id });
     // Dates provided?
     const startDateTime = filteredRequest.StartDateTime ? filteredRequest.StartDateTime : Constants.MIN_DATE;
     const endDateTime = filteredRequest.EndDateTime ? filteredRequest.EndDateTime : Constants.MAX_DATE;
     // Filter?
     if (consumptions && (filteredRequest.StartDateTime || filteredRequest.EndDateTime)) {
       consumptions = consumptions.filter((consumption) =>
-        moment(consumption.getEndedAt()).isBetween(startDateTime, endDateTime, null, '[]'));
+        moment(consumption.endedAt).isBetween(startDateTime, endDateTime, null, '[]'));
     }
     // Return the result
     res.json(TransactionSecurity.filterConsumptionsFromTransactionResponse(transaction, consumptions, req.user));
@@ -476,10 +476,10 @@ export default class TransactionService {
       filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
     }
     if (filteredRequest.StartDateTime) {
-      filter.startTime = filteredRequest.StartDateTime;
+      filter.startDateTime = filteredRequest.StartDateTime;
     }
     if (filteredRequest.EndDateTime) {
-      filter.endTime = filteredRequest.EndDateTime;
+      filter.endDateTime = filteredRequest.EndDateTime;
     }
     if (filteredRequest.RefundStatus) {
       filter.refundStatus = filteredRequest.RefundStatus.split('|');
@@ -540,10 +540,10 @@ export default class TransactionService {
       filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
     }
     if (filteredRequest.StartDateTime) {
-      filter.startTime = filteredRequest.StartDateTime;
+      filter.startDateTime = filteredRequest.StartDateTime;
     }
     if (filteredRequest.EndDateTime) {
-      filter.endTime = filteredRequest.EndDateTime;
+      filter.endDateTime = filteredRequest.EndDateTime;
     }
     if (filteredRequest.RefundStatus) {
       filter.refundStatus = filteredRequest.RefundStatus.split('|');
@@ -605,10 +605,10 @@ export default class TransactionService {
     }
     // Date
     if (filteredRequest.StartDateTime) {
-      filter.startTime = filteredRequest.StartDateTime;
+      filter.startDateTime = filteredRequest.StartDateTime;
     }
     if (filteredRequest.EndDateTime) {
-      filter.endTime = filteredRequest.EndDateTime;
+      filter.endDateTime = filteredRequest.EndDateTime;
     }
     if (filteredRequest.RefundStatus) {
       filter.refundStatus = filteredRequest.RefundStatus.split('|');
@@ -659,7 +659,7 @@ export default class TransactionService {
         'TransactionService', 'handleGetTransactionsInError',
         req.user);
     }
-    const filter: any = { stop: { $exists: true } };
+    const filter: any = {};
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsInErrorRequest(req.query);
     if (filteredRequest.ChargeBoxID) {

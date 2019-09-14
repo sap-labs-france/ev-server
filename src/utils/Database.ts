@@ -1,8 +1,6 @@
 import cfenv from 'cfenv';
 import cluster from 'cluster';
 import os from 'os';
-import Address from '../types/Address';
-import Company from '../types/Company';
 import Configuration from './Configuration';
 import Constants from './Constants';
 import Utils from './Utils';
@@ -124,17 +122,6 @@ export default class Database {
     }
   }
 
-  static updateEula(src, dest, forFrontEnd = true) {
-    if (forFrontEnd) {
-      Database.updateID(src, dest);
-    }
-    dest.timestamp = Utils.convertToDate(src.timestamp);
-    dest.version = src.version;
-    dest.language = src.language;
-    dest.text = src.text;
-    dest.hash = src.hash;
-  }
-
   static updatePricing(src, dest, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);
@@ -180,14 +167,6 @@ export default class Database {
     } else {
       dest.hostname = src.hostname;
     }
-  }
-
-  static updateConfiguration(src, dest, forFrontEnd = true) {
-    if (forFrontEnd) {
-      Database.updateID(src, dest);
-    }
-    dest.timestamp = Utils.convertToDate(src.timestamp);
-    dest.configuration = src.configuration;
   }
 
   static updateStatusNotification(src, dest, forFrontEnd = true) {
@@ -323,16 +302,6 @@ export default class Database {
     dest.verificationToken = src.verificationToken;
   }
 
-  static updateVehicleManufacturer(src, dest, forFrontEnd = true) {
-    if (forFrontEnd) {
-      Database.updateID(src, dest);
-      dest.logo = src.logo;
-      dest.numberOfVehicles = src.numberOfVehicles;
-    }
-    dest.name = src.name;
-    Database.updateCreatedAndLastChanged(src, dest);
-  }
-
   static updateCreatedAndLastChanged(src, dest) {
     // Check
     if (src.createdBy) {
@@ -380,31 +349,6 @@ export default class Database {
     }
   }
 
-  /**
-   * @deprecated
-   */
-  static updateCompany(src: Company, dest: Company, forFrontEnd = true) {
-    if (forFrontEnd) {
-      Database.updateID(src, dest);
-      dest.logo = src.logo;
-    }
-    dest.name = src.name;
-    dest.address = {} as Address;
-    Database.updateAddress(src.address, dest.address);
-    Database.updateCreatedAndLastChanged(src, dest);
-  }
-
-  static updateTenant(src, dest, forFrontEnd = true) {
-    if (forFrontEnd) {
-      Database.updateID(src, dest);
-    }
-    dest.name = src.name;
-    dest.subdomain = src.subdomain;
-    dest.email = src.email;
-    dest.components = (src.components ? src.components : {});
-    Database.updateCreatedAndLastChanged(src, dest);
-  }
-
   static updateConnection(src, dest, forFrontEnd = true) {
     dest.connectorId = src.connectorId;
     dest.createdAt = Utils.convertToDate(src.createdAt);
@@ -419,36 +363,10 @@ export default class Database {
     dest.data = src.data;
   }
 
-  static updateVehicle(src, dest, forFrontEnd = true) {
-    if (forFrontEnd) {
-      Database.updateID(src, dest);
-      dest.images = src.images;
-      dest.numberOfImages = src.numberOfImages;
-      dest.vehicleManufacturerID = Database.validateId(src.vehicleManufacturerID);
-    } else {
-      dest.vehicleManufacturerID = Utils.convertToObjectID(src.vehicleManufacturerID);
-    }
-    dest.type = src.type;
-    dest.model = src.model;
-    dest.batteryKW = Utils.convertToInt(src.batteryKW);
-    dest.autonomyKmWLTP = Utils.convertToInt(src.autonomyKmWLTP);
-    dest.autonomyKmReal = Utils.convertToInt(src.autonomyKmReal);
-    dest.horsePower = Utils.convertToInt(src.horsePower);
-    dest.torqueNm = Utils.convertToInt(src.torqueNm);
-    dest.performance0To100kmh = Utils.convertToFloat(src.performance0To100kmh);
-    dest.weightKg = Utils.convertToInt(src.weightKg);
-    dest.lengthMeter = Utils.convertToFloat(src.lengthMeter);
-    dest.widthMeter = Utils.convertToFloat(src.widthMeter);
-    dest.heightMeter = Utils.convertToFloat(src.heightMeter);
-    dest.releasedOn = Utils.convertToDate(src.releasedOn);
-    Database.updateCreatedAndLastChanged(src, dest);
-  }
-
   static updateOcpiEndpoint(src, dest, forFrontEnd = true) {
     if (forFrontEnd) {
       Database.updateID(src, dest);
     }
-
     dest.name = src.name;
     dest.baseUrl = src.baseUrl;
     dest.localToken = src.localToken;
@@ -456,7 +374,6 @@ export default class Database {
     dest.countryCode = src.countryCode;
     dest.partyId = src.partyId;
     dest.backgroundPatchJob = src.backgroundPatchJob;
-
     if (src.version) {
       dest.version = src.version;
     }
@@ -478,21 +395,6 @@ export default class Database {
     if (src.lastPatchJobOn) {
       dest.lastPatchJobResult = src.lastPatchJobResult;
     }
-
-    Database.updateCreatedAndLastChanged(src, dest);
-  }
-
-  static updateSetting(src, dest, forFrontEnd = true) {
-    if (forFrontEnd) {
-      Database.updateID(src, dest);
-    }
-
-    dest.identifier = src.identifier;
-    dest.sensitiveData = src.sensitiveData;
-    if (!dest.sensitiveData) {
-      dest.sensitiveData = [];
-    }
-    dest.content = src.content;
 
     Database.updateCreatedAndLastChanged(src, dest);
   }
@@ -546,147 +448,6 @@ export default class Database {
     if (forFrontEnd && !Utils.isEmptyJSon(src.actionOnUser)) {
       dest.actionOnUser = {};
       Database.updateUser(src.actionOnUser, dest.actionOnUser);
-    }
-  }
-
-  static updateTransaction(src, dest, forFrontEnd = true) {
-    if (forFrontEnd) {
-      Database.updateID(src, dest);
-      dest.siteID = Database.validateId(src.siteID);
-      dest.siteAreaID = Database.validateId(src.siteAreaID);
-      dest.userID = Database.validateId(src.userID);
-    } else {
-      dest.siteID = Utils.convertToObjectID(src.siteID);
-      dest.siteAreaID = Utils.convertToObjectID(src.siteAreaID);
-      dest.userID = Utils.convertToObjectID(src.userID);
-    }
-    // User
-    if (forFrontEnd && !Utils.isEmptyJSon(src.user)) {
-      dest.user = {};
-      Database.updateUser(src.user, dest.user, forFrontEnd);
-    }
-    if (src.hasOwnProperty('numberOfMeterValues')) {
-      dest.numberOfMeterValues = src.numberOfMeterValues;
-    }
-    if (src.hasOwnProperty('currentStateOfCharge')) {
-      dest.currentStateOfCharge = src.currentStateOfCharge;
-    }
-    if (src.hasOwnProperty('currentSignedData')) {
-      dest.currentSignedData = src.currentSignedData;
-    }
-    if (src.hasOwnProperty('lastMeterValue')) {
-      dest.lastMeterValue = src.lastMeterValue;
-    }
-    if (src.hasOwnProperty('currentTotalInactivitySecs')) {
-      dest.currentTotalInactivitySecs = src.currentTotalInactivitySecs;
-    }
-    if (src.hasOwnProperty('currentCumulatedPrice')) {
-      dest.currentCumulatedPrice = src.currentCumulatedPrice;
-    }
-    if (src.hasOwnProperty('currentConsumption')) {
-      dest.currentConsumption = src.currentConsumption;
-    }
-    if (src.hasOwnProperty('currentTotalConsumption')) {
-      dest.currentTotalConsumption = src.currentTotalConsumption;
-    }
-    if (src.hasOwnProperty('currentTotalInactivitySecs')) {
-      dest.currentTotalInactivitySecs = src.currentTotalInactivitySecs;
-    }
-    if (src.hasOwnProperty('timezone')) {
-      dest.timezone = src.timezone;
-    }
-    dest.chargeBoxID = src.chargeBoxID;
-    dest.connectorId = Utils.convertToInt(src.connectorId);
-    dest.meterStart = Utils.convertToInt(src.meterStart);
-    dest.tagID = src.tagID;
-    if (src.hasOwnProperty('price')) {
-      dest.price = Utils.convertToInt(src.price);
-      dest.priceUnit = src.priceUnit;
-      dest.roundedPrice = src.roundedPrice;
-      dest.pricingSource = src.pricingSource;
-    }
-    if (!Utils.isEmptyJSon(src.refundData)) {
-      dest.refundData = {};
-      dest.refundData.refundId = src.refundData.refundId;
-      dest.refundData.refundedAt = Utils.convertToDate(src.refundData.refundedAt);
-      dest.refundData.status = src.refundData.status;
-      dest.refundData.type = src.refundData.type;
-      dest.refundData.reportId = src.refundData.reportId;
-    }
-    dest.timestamp = Utils.convertToDate(src.timestamp);
-    dest.stateOfCharge = Utils.convertToInt(src.stateOfCharge);
-    dest.signedData = src.signedData;
-    if (!Utils.isEmptyJSon(src.stop)) {
-      dest.stop = {};
-      if (forFrontEnd && !Utils.isEmptyJSon(src.stop.user)) {
-        dest.stop.user = {};
-        Database.updateUser(src.stop.user, dest.stop.user, forFrontEnd);
-      }
-      forFrontEnd && src.stop.userID ? dest.stop.userID = Database.validateId(src.stop.userID) : dest.stop.userID = Utils.convertToObjectID(src.stop.userID);
-      dest.stop.timestamp = Utils.convertToDate(src.stop.timestamp);
-      dest.stop.tagID = src.stop.tagID;
-      dest.stop.meterStop = Utils.convertToInt(src.stop.meterStop);
-      if (src.stop.transactionData) {
-        dest.stop.transactionData = src.stop.transactionData;
-      }
-      dest.stop.stateOfCharge = Utils.convertToInt(src.stop.stateOfCharge);
-      dest.stop.signedData = src.stop.signedData;
-      dest.stop.totalConsumption = Utils.convertToInt(src.stop.totalConsumption);
-      dest.stop.totalInactivitySecs = Utils.convertToInt(src.stop.totalInactivitySecs);
-      dest.stop.extraInactivitySecs = Utils.convertToInt(src.stop.extraInactivitySecs);
-      dest.stop.totalDurationSecs = Utils.convertToInt(src.stop.totalDurationSecs);
-      if (src.stop.hasOwnProperty('price')) {
-        dest.stop.price = Utils.convertToInt(src.stop.price);
-        dest.stop.roundedPrice = src.stop.roundedPrice;
-        dest.stop.priceUnit = src.stop.priceUnit;
-        dest.stop.pricingSource = src.stop.pricingSource;
-      }
-    }
-    if (!Utils.isEmptyJSon(src.remotestop)) {
-      dest.remotestop = {
-        timestamp: src.remotestop.timestamp,
-        tagID: src.remotestop.tagID,
-        userID: src.remotestop.userID
-      };
-    }
-    if (forFrontEnd) {
-      if (!Utils.isEmptyJSon(src.chargeBox)) {
-        dest.chargeBox = {};
-        Database.updateChargingStation(src.chargeBox, dest.chargeBox);
-      }
-    }
-  }
-
-  static updateConsumption(src, dest, forFrontEnd = true) {
-    if (forFrontEnd) {
-      Database.updateID(src, dest);
-      dest.userID = Database.validateId(src.userID);
-      dest.chargeBoxID = Database.validateId(src.chargeBoxID);
-      dest.siteID = Database.validateId(src.siteID);
-      dest.siteAreaID = Database.validateId(src.siteAreaID);
-    } else {
-      dest.userID = Utils.convertToObjectID(src.userID);
-      dest.chargeBoxID = src.chargeBoxID;
-      dest.siteID = Utils.convertToObjectID(src.siteID);
-      dest.siteAreaID = Utils.convertToObjectID(src.siteAreaID);
-    }
-    dest.connectorId = Utils.convertToInt(src.connectorId);
-    dest.transactionId = Utils.convertToInt(src.transactionId);
-    dest.endedAt = Utils.convertToDate(src.endedAt);
-    if (src.stateOfCharge) {
-      dest.stateOfCharge = Utils.convertToInt(src.stateOfCharge);
-    }
-    dest.startedAt = Utils.convertToDate(src.startedAt);
-    dest.cumulatedConsumption = Utils.convertToInt(src.cumulatedConsumption);
-    dest.consumption = Utils.convertToInt(src.consumption);
-    dest.instantPower = Utils.convertToInt(src.instantPower);
-    dest.totalInactivitySecs = Utils.convertToInt(src.totalInactivitySecs);
-    if (src.pricingSource) {
-      dest.pricingSource = src.pricingSource;
-      dest.amount = Utils.convertToFloat(src.amount);
-      dest.cumulatedAmount = Utils.convertToFloat(src.cumulatedAmount);
-      dest.roundedAmount = Utils.convertToFloat(src.roundedAmount);
-      dest.currencyCode = src.currencyCode;
     }
   }
 }

@@ -8,6 +8,7 @@ import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import { DataResult } from '../../../../types/DataResult';
+import Consumption from '../../../../types/Consumption';
 
 export default class TransactionSecurity {
   public static filterTransactionsRefund(request: any): HttpTransactionsRefundRequest {
@@ -44,6 +45,7 @@ export default class TransactionSecurity {
     filtered.ChargeBoxID = sanitize(request.ChargeBoxID);
     filtered.ConnectorId = sanitize(request.ConnectorId);
     filtered.SiteAreaID = sanitize(request.SiteAreaID);
+    filtered.SiteID = sanitize(request.SiteID);
     filtered.UserID = request.UserID ? sanitize(request.UserID) : null;
     UtilsSecurity.filterSkipAndLimit(request, filtered);
     UtilsSecurity.filterSort(request, filtered);
@@ -238,7 +240,7 @@ export default class TransactionSecurity {
     return filteredRequest;
   }
 
-  static filterConsumptionsFromTransactionResponse(transaction: Transaction, consumptions, loggedUser: UserToken) {
+  static filterConsumptionsFromTransactionResponse(transaction: Transaction, consumptions: Consumption[], loggedUser: UserToken) {
     if (!consumptions) {
       consumptions = [];
     }
@@ -258,23 +260,35 @@ export default class TransactionSecurity {
     // Admin?
     if (Authorizations.isAdmin(loggedUser.role)) {
       // Set them all
-      filteredTransaction.values = consumptions.map((consumption) => consumption.getModel()).map((consumption) => ({
-        ...consumption,
-        date: consumption.endedAt,
-        value: consumption.instantPower,
-        cumulated: consumption.cumulatedConsumption
-      }));
+      filteredTransaction.values = consumptions.map((consumption) => consumption).map((consumption) => {
+        const newConsumption = {
+          ...consumption,
+          date: consumption.endedAt,
+          value: consumption.instantPower,
+          cumulated: consumption.cumulatedConsumption
+        };
+        if (!consumption.stateOfCharge) {
+          delete newConsumption.stateOfCharge;
+        }
+        return newConsumption;
+      });
     } else {
       // Clean
-      filteredTransaction.values = consumptions.map((consumption) => consumption.getModel()).map((consumption) => ({
-        endedAt: consumption.endedAt,
-        instantPower: consumption.instantPower,
-        cumulatedConsumption: consumption.cumulatedConsumption,
-        stateOfCharge: consumption.stateOfCharge,
-        date: consumption.endedAt,
-        value: consumption.instantPower,
-        cumulated: consumption.cumulatedConsumption
-      }));
+      filteredTransaction.values = consumptions.map((consumption) => consumption).map((consumption) => {
+        const newConsumption = {
+          endedAt: consumption.endedAt,
+          instantPower: consumption.instantPower,
+          cumulatedConsumption: consumption.cumulatedConsumption,
+          stateOfCharge: consumption.stateOfCharge,
+          date: consumption.endedAt,
+          value: consumption.instantPower,
+          cumulated: consumption.cumulatedConsumption
+        };
+        if (consumption.stateOfCharge) {
+          newConsumption.stateOfCharge = consumption.stateOfCharge;
+        }
+        return newConsumption;
+      });
     }
     for (let i = 1; i < filteredTransaction.values.length; i++) {
       if (filteredTransaction.values[i].instantPower === 0 && filteredTransaction.values[i - 1] !== 0) {

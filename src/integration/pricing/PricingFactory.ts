@@ -6,9 +6,11 @@ import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Transaction from '../../types/Transaction';
 import Utils from '../../utils/Utils';
+import Pricing from './Pricing';
+import { PricingSetting } from '../../types/Setting';
 
 export default class PricingFactory {
-  static async getPricingImpl(tenantID: string, transaction: Transaction) {
+  static async getPricingImpl(tenantID: string, transaction: Transaction): Promise<Pricing<PricingSetting>> {
     // Get the tenant
     const tenant: Tenant = await TenantStorage.getTenant(tenantID);
     // Check if the pricing is active
