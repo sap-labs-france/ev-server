@@ -178,7 +178,7 @@ export default class UserService {
         req.user);
     }
     // Get User
-    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.id);
+    let user = await UserStorage.getUser(req.user.tenantID, filteredRequest.id);
     if (!user) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
@@ -221,8 +221,10 @@ export default class UserService {
     Utils.checkIfUserValid(filteredRequest, user, req);
     // Check if Tag IDs are valid
     await Utils.checkIfUserTagIDsAreValid(user, newTagIDs, req);
+    // Update user
+    user = { ...user, ...filteredRequest, tagIDs: [] };
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
-    await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: [] }, true);
+    await UserStorage.saveUser(req.user.tenantID, user, true);
     // Save User password
     if (filteredRequest.password) {
       // Update the password

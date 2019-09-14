@@ -45,6 +45,7 @@ export default class TransactionSecurity {
     filtered.ChargeBoxID = sanitize(request.ChargeBoxID);
     filtered.ConnectorId = sanitize(request.ConnectorId);
     filtered.SiteAreaID = sanitize(request.SiteAreaID);
+    filtered.SiteID = sanitize(request.SiteID);
     filtered.UserID = request.UserID ? sanitize(request.UserID) : null;
     UtilsSecurity.filterSkipAndLimit(request, filtered);
     UtilsSecurity.filterSort(request, filtered);
