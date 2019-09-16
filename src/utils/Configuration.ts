@@ -210,7 +210,8 @@ export default class Configuration {
       // Provisioned with User Provided Service
       } else if (_appEnv.services["user-provided"]) {
         // Find the service
-        const mongoDBService = _appEnv.services["user-provided"].find((userProvidedService) => userProvidedService.name.includes("mongodb"))
+        const mongoDBService = _appEnv.services["user-provided"].find((userProvidedService) =>
+          userProvidedService.name && userProvidedService.name.includes("mongodb"))
         // Set MongoDB URI
         if (mongoDBService) {
           storage.uri = mongoDBService.credentials.uri;
