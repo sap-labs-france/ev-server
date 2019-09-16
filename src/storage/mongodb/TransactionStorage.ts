@@ -725,7 +725,13 @@ END : */
           { $match: { 'impossiblePower': { $eq: true } } },
           { $addFields: { 'errorCode': 'average_consumption_greater_than_connector_capacity' } }
         ];
-      default:
+        case 'missing_price':
+          return [
+            { $match: { 'stop.price': { $lte: 0 } } },
+            { $match: { 'stop.totalConsumption': { $gt: 0 } } },
+            { $addFields: { 'errorCode': 'missing_price' } }
+          ];
+        default:
         return [];
     }
   }

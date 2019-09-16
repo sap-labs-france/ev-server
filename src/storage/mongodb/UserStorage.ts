@@ -658,8 +658,6 @@ export default class UserStorage {
     aggregation.push({ $replaceRoot: { newRoot: '$usersInError' } });
     // Change ID
     DatabaseUtils.renameDatabaseID(aggregation);
-    console.log(`>>> params:${JSON.stringify(params)}`);
-    console.log(`>>> aggregation:${JSON.stringify(aggregation)}`);
     // Count Records
     const usersCountMDB = await global.database.getCollection<any>(tenantID, 'users')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
