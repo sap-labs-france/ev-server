@@ -91,7 +91,7 @@ export default class SettingSecurity {
     if (!setting.content) {
       return null;
     }
-    if (Authorizations.isSuperAdmin(loggedUser.role) || setting.identifier !== Constants.COMPONENTS.ANALYTICS) {
+    if (Authorizations.isSuperAdmin(loggedUser) || setting.identifier !== Constants.COMPONENTS.ANALYTICS) {
       return setting.content;
     }
     if (setting.content.links && Array.isArray(setting.content.links)) {
