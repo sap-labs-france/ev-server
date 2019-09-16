@@ -513,8 +513,8 @@ export default class Authorizations {
     return user.role === Constants.ROLE_BASIC && user.sitesAdmin && user.sitesAdmin.length > 0;
   }
 
-  public static isBasic(user: UserToken): boolean {
-    return user.role === Constants.ROLE_BASIC && (!user.sitesAdmin || user.sitesAdmin.length === 0);
+  public static isBasic(user: UserToken|User): boolean {
+    return user.role === Constants.ROLE_BASIC;
   }
 
   public static isDemo(user: UserToken|User): boolean {
