@@ -193,7 +193,7 @@ export default class Configuration {
   static getStorageConfig(): StorageConfiguration {
     const storage: StorageConfiguration = Configuration.getConfig().Storage;
     // Check Cloud Foundry
-    if (storage && Configuration.isCloudFoundry() && !storage.bypassCloudConfig) {
+    if (storage && Configuration.isCloudFoundry()) {
       // CF Environment: Override
       const mongoDBService = _appEnv.services.mongodb[0];
       // Set MongoDB URI
