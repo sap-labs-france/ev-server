@@ -418,7 +418,7 @@ export default class TransactionService {
     if (filteredRequest.UserID) {
       filter.userIDs = filteredRequest.UserID.split('|');
     }
-    if (Authorizations.isBasic(req.user.role)) {
+    if (Authorizations.isBasic(req.user)) {
       filter.userIDs = [req.user.id];
     }
     if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
@@ -469,7 +469,7 @@ export default class TransactionService {
     if (filteredRequest.UserID) {
       filter.userIDs = filteredRequest.UserID.split('|');
     }
-    if (Authorizations.isBasic(req.user.role)) {
+    if (Authorizations.isBasic(req.user)) {
       filter.userIDs = [req.user.id];
     }
     if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
@@ -533,7 +533,7 @@ export default class TransactionService {
     if (filteredRequest.UserID) {
       filter.userIDs = filteredRequest.UserID.split('|');
     }
-    if (Authorizations.isBasic(req.user.role) || Authorizations.isAdmin(req.user.role)) {
+    if (Authorizations.isBasic(req.user) || Authorizations.isAdmin(req.user.role)) {
       filter.userIDs = [req.user.id];
     }
     if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
@@ -597,7 +597,7 @@ export default class TransactionService {
     if (filteredRequest.UserID) {
       filter.userIDs = filteredRequest.UserID.split('|');
     }
-    if (Authorizations.isBasic(req.user.role)) {
+    if (Authorizations.isBasic(req.user)) {
       filter.userIDs = [req.user.id];
     }
     if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
