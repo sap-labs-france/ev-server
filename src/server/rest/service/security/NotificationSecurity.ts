@@ -2,6 +2,7 @@ import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import UserSecurity from './UserSecurity';
 import UtilsSecurity from './UtilsSecurity';
+import UserToken from '../../../../types/UserToken';
 
 export default class NotificationSecurity {
   // eslint-disable-next-line no-unused-vars
@@ -34,7 +35,7 @@ export default class NotificationSecurity {
   }
 
   // Notification
-  static filterNotificationResponse(notification, loggedUser) {
+  static filterNotificationResponse(notification, loggedUser: UserToken) {
     let filteredNotification = null;
 
     if (!notification) {
@@ -43,7 +44,7 @@ export default class NotificationSecurity {
     // Check auth
     if (!notification.userID || Authorizations.canReadUser(loggedUser, notification.userID)) {
       // No user provided and you are not admin?
-      if (!notification.userID && !Authorizations.isAdmin(loggedUser.role)) {
+      if (!notification.userID && !Authorizations.isAdmin(loggedUser)) {
         // Yes: do not send this notif
         return null;
       }

@@ -233,7 +233,7 @@ export default class UserService {
         { password: newPasswordHashed, passwordWrongNbrTrials: 0, passwordResetHash: null, passwordBlockedUntil: null });
     }
     // Save Admin info
-    if (Authorizations.isAdmin(req.user.role) || Authorizations.isSuperAdmin(req.user.role)) {
+    if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       // Save Tags
       await UserStorage.saveUserTags(req.user.tenantID, filteredRequest.id, newTagIDs);
       // Save User Status
@@ -548,7 +548,7 @@ export default class UserService {
         { password: newPasswordHashed, passwordWrongNbrTrials: 0, passwordResetHash: null, passwordBlockedUntil: null });
     }
     // Save Admin Data
-    if (Authorizations.isAdmin(req.user.role) || Authorizations.isSuperAdmin(req.user.role)) {
+    if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       // Save the Tag IDs
       await UserStorage.saveUserTags(req.user.tenantID, newUserID, newTagIDs);
       // Save User Status

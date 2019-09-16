@@ -21,9 +21,13 @@ export default class Authorizations {
   private static configuration: any;
 
   public static canRefundTransaction(loggedUser: UserToken, transaction: Transaction) {
-    const userId = transaction.userID;
+    const context = {
+      'UserID': transaction.userID,
+      'sitesAdmin': loggedUser.sitesAdmin,
+      'site': transaction.siteID
+    }
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION,
-      Constants.ACTION_REFUND_TRANSACTION, { 'UserID': userId });
+      Constants.ACTION_REFUND_TRANSACTION, context);
   }
 
   public static canStartTransaction(loggedUser: UserToken, chargingStation: ChargingStation) {
@@ -75,7 +79,7 @@ export default class Authorizations {
     if (!Utils.isComponentActiveFromToken(loggedUser, Constants.COMPONENTS.ORGANIZATION)) {
       return null;
     }
-    if (this.isAdmin(loggedUser.role)) {
+    if (this.isAdmin(loggedUser)) {
       return requestedSites;
     }
     if (!requestedSites || requestedSites.length === 0) {
@@ -92,7 +96,7 @@ export default class Authorizations {
     let companyIDs = [];
     let siteIDs = [];
     let siteAdminIDs = [];
-    if (!Authorizations.isAdmin(user.role)) {
+    if (!Authorizations.isAdmin(user)) {
       // Get User's site
       const sites = (await UserStorage.getSites(tenantID, { userID: user.id },
         Constants.DB_PARAMS_MAX_LIMIT))
@@ -497,24 +501,24 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_PRICING, Constants.ACTION_UPDATE);
   }
 
-  public static isSuperAdmin(userRole: string): boolean {
-    return userRole === Constants.ROLE_SUPER_ADMIN;
+  public static isSuperAdmin(user: UserToken|User): boolean {
+    return user.role === Constants.ROLE_SUPER_ADMIN;
   }
 
-  public static isAdmin(userRole: string): boolean {
-    return userRole === Constants.ROLE_ADMIN;
+  public static isAdmin(user: UserToken|User): boolean {
+    return user.role === Constants.ROLE_ADMIN;
   }
 
-  public static isSiteAdmin(loggedUser: UserToken): boolean {
-    return loggedUser.role === Constants.ROLE_BASIC && loggedUser.sitesAdmin && loggedUser.sitesAdmin.length > 0;
+  public static isSiteAdmin(user: UserToken): boolean {
+    return user.role === Constants.ROLE_BASIC && user.sitesAdmin && user.sitesAdmin.length > 0;
   }
 
-  public static isBasic(loggedUser: UserToken): boolean {
-    return loggedUser.role === Constants.ROLE_BASIC && (!loggedUser.sitesAdmin || loggedUser.sitesAdmin.length === 0);
+  public static isBasic(user: UserToken): boolean {
+    return user.role === Constants.ROLE_BASIC && (!user.sitesAdmin || user.sitesAdmin.length === 0);
   }
 
-  public static isDemo(userRole: string): boolean {
-    return userRole === Constants.ROLE_DEMO;
+  public static isDemo(user: UserToken|User): boolean {
+    return user.role === Constants.ROLE_DEMO;
   }
 
   private static async isTagIDAuthorizedOnChargingStation(tenantID: string, chargingStation: ChargingStation, transaction: Transaction, tagID: string, action: string): Promise<User> {
