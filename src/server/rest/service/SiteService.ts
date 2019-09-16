@@ -129,7 +129,7 @@ export default class SiteService {
         'SiteService', 'handleUpdateSiteUserAdmin', req.user, filteredRequest.userID);
     }
     // Check user
-    if (!Authorizations.isBasic(req.user)) {
+    if (!Authorizations.isBasic(user)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         'Only Users with Basic role can be Site Admin', Constants.HTTP_GENERAL_ERROR,

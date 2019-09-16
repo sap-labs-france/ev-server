@@ -97,14 +97,6 @@ export default class TransactionService {
     // Get Transaction User
     const user: User = await UserStorage.getUser(req.user.tenantID, req.user.id);
     UtilsService.assertObjectExists(user, `User with ID '${req.user.id}' does not exist`, 'TransactionService', 'handleRefundTransactions', req.user);
-    // Check Auth
-    if (!transactionsToRefund.every((transaction) => transaction.userID === req.user.id)) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The User with ID '${req.user.id}' cannot refund another User's transaction`,
-        Constants.HTTP_REFUND_SESSION_OTHER_USER_ERROR,
-        'TransactionService', 'handleRefundTransactions', req.user);
-    }
     // Refund the Transaction
     const setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, 'refund');
     const connector = new ConcurConnector(req.user.tenantID, setting.content[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]);
