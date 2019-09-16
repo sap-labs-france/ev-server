@@ -1,6 +1,7 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import UtilsSecurity from './UtilsSecurity';
+import UserToken from '../../../../types/UserToken';
 
 export default class OCPIEndpointSecurity {
   // eslint-disable-next-line no-unused-vars
@@ -73,7 +74,7 @@ export default class OCPIEndpointSecurity {
     return filteredRequest;
   }
 
-  static filterOcpiEndpointResponse(ocpiEndpoint, loggedUser) {
+  static filterOcpiEndpointResponse(ocpiEndpoint, loggedUser: UserToken) {
     let filteredOcpiEndpoint;
 
     if (!ocpiEndpoint) {
@@ -82,7 +83,7 @@ export default class OCPIEndpointSecurity {
     // Check auth
     if (Authorizations.canReadOcpiEndpoint(loggedUser)) {
       // Admin?
-      if (Authorizations.isAdmin(loggedUser.role)) {
+      if (Authorizations.isAdmin(loggedUser)) {
         // Yes: set all params
         filteredOcpiEndpoint = ocpiEndpoint;
       } else {

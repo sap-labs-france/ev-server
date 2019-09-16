@@ -59,7 +59,7 @@ export default class CompanySecurity {
     // Check auth
     if (Authorizations.canReadCompany(loggedUser, company.id)) {
       // Admin?
-      if (Authorizations.isAdmin(loggedUser.role)) {
+      if (Authorizations.isAdmin(loggedUser)) {
         // Yes: set all params
         filteredCompany = company;
       } else {

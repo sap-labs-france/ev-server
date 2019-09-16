@@ -728,7 +728,7 @@ export default class AuthService {
     // Build token
     let token;
     // Role Demo?
-    if (Authorizations.isDemo(user.role)) {
+    if (Authorizations.isDemo(user)) {
       token = jwt.sign(payload, jwtOptions.secretOrKey, {
         expiresIn: _centralSystemRestConfig.userDemoTokenLifetimeDays * 24 * 3600
       });

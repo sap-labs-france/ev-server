@@ -1,14 +1,15 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
+import UserToken from '../../../../types/UserToken';
 
 export default class PricingSecurity {
   // Pricing
-  static filterPricingResponse(pricing, loggedUser) {
+  static filterPricingResponse(pricing, loggedUser: UserToken) {
     const filteredPricing: any = {};
     if (!pricing) {
       return null;
     }
-    if (!Authorizations.isAdmin(loggedUser.role)) {
+    if (!Authorizations.isAdmin(loggedUser)) {
       return null;
     }
     // Set

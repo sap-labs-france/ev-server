@@ -183,23 +183,6 @@ export default class Configuration {
     return Configuration.getConfig().Advanced;
   }
 
-  static saveAdvancedConfig(advancedConfig) {
-    // Read conf
-    const conf = Configuration.getConfig();
-    // Set
-    conf.Advanced = advancedConfig;
-    // Save Config
-    Configuration.saveConfig(conf);
-  }
-
-  /**
-   * @todo
-   * @param conf
-   */
-  static saveConfig(conf: Config) {
-    //
-  }
-
   // Locale config
   static getLocalesConfig() {
     // Read conf
@@ -210,7 +193,7 @@ export default class Configuration {
   static getStorageConfig(): StorageConfiguration {
     const storage: StorageConfiguration = Configuration.getConfig().Storage;
     // Check Cloud Foundry
-    if (storage && Configuration.isCloudFoundry()) {
+    if (storage && Configuration.isCloudFoundry() && !storage.bypassCloudConfig) {
       // CF Environment: Override
       const mongoDBService = _appEnv.services.mongodb[0];
       // Set MongoDB URI

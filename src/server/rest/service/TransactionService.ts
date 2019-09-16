@@ -27,7 +27,7 @@ import Consumption from '../../../types/Consumption';
 export default class TransactionService {
   static async handleSynchronizeRefundedTransactions(action: string, req: Request, res: Response, next: NextFunction) {
     try {
-      if (!Authorizations.isAdmin(req.user.role)) {
+      if (!Authorizations.isAdmin(req.user)) {
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
           Constants.ENTITY_TRANSACTION,
@@ -418,7 +418,7 @@ export default class TransactionService {
     if (filteredRequest.UserID) {
       filter.userIDs = filteredRequest.UserID.split('|');
     }
-    if (Authorizations.isBasic(req.user.role)) {
+    if (Authorizations.isBasic(req.user)) {
       filter.userIDs = [req.user.id];
     }
     if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
@@ -469,7 +469,7 @@ export default class TransactionService {
     if (filteredRequest.UserID) {
       filter.userIDs = filteredRequest.UserID.split('|');
     }
-    if (Authorizations.isBasic(req.user.role)) {
+    if (Authorizations.isBasic(req.user)) {
       filter.userIDs = [req.user.id];
     }
     if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
@@ -533,9 +533,6 @@ export default class TransactionService {
     if (filteredRequest.UserID) {
       filter.userIDs = filteredRequest.UserID.split('|');
     }
-    if (Authorizations.isBasic(req.user.role) || Authorizations.isAdmin(req.user.role)) {
-      filter.userIDs = [req.user.id];
-    }
     if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
       filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
     }
@@ -597,7 +594,7 @@ export default class TransactionService {
     if (filteredRequest.UserID) {
       filter.userIDs = filteredRequest.UserID.split('|');
     }
-    if (Authorizations.isBasic(req.user.role)) {
+    if (Authorizations.isBasic(req.user)) {
       filter.userIDs = [req.user.id];
     }
     if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {

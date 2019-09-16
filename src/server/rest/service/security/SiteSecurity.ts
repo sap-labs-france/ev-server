@@ -91,7 +91,7 @@ export default class SiteSecurity {
     // Check auth
     if (Authorizations.canReadSite(loggedUser, site.id)) {
       // Admin?
-      if (Authorizations.isAdmin(loggedUser.role)) {
+      if (Authorizations.isAdmin(loggedUser)) {
         // Yes: set all params
         filteredSite = site;
         if (filteredSite.connectorStats) {
