@@ -195,13 +195,28 @@ export default class Configuration {
     // Check Cloud Foundry
     if (storage && Configuration.isCloudFoundry()) {
       // CF Environment: Override
-      const mongoDBService = _appEnv.services.mongodb[0];
-      // Set MongoDB URI
-      storage.uri = mongoDBService.credentials.uri;
-      storage.port = mongoDBService.credentials.port;
-      storage.user = mongoDBService.credentials.username;
-      storage.password = mongoDBService.credentials.password;
-      storage.replicaSet = mongoDBService.credentials.replicaset;
+      // Check if MongoDB is provisioned inside SCP
+      if (_appEnv.services.mongodb) {
+        // Only one DB
+        const mongoDBService = _appEnv.services.mongodb[0];
+        // Set MongoDB URI
+        if (mongoDBService) {
+          storage.uri = mongoDBService.credentials.uri;
+          storage.port = mongoDBService.credentials.port;
+          storage.user = mongoDBService.credentials.username;
+          storage.password = mongoDBService.credentials.password;
+          storage.replicaSet = mongoDBService.credentials.replicaset;
+        }
+      // Provisioned with User Provided Service
+      } else if (_appEnv.services["user-provided"]) {
+        // Find the service
+        const mongoDBService = _appEnv.services["user-provided"].find((userProvidedService) =>
+          userProvidedService.name && userProvidedService.name.includes("mongodb"))
+        // Set MongoDB URI
+        if (mongoDBService) {
+          storage.uri = mongoDBService.credentials.uri;
+        }
+      }
     }
     // Read conf
     return storage;
