@@ -533,7 +533,7 @@ export default class TransactionService {
     if (filteredRequest.UserID) {
       filter.userIDs = filteredRequest.UserID.split('|');
     }
-    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
+    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
       filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
     }
     if (filteredRequest.StartDateTime) {
