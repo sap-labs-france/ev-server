@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import AuthService from './service/AuthService';
+import BillingService from './service/BillingService';
 import ChargingStationService from './service/ChargingStationService';
 import CompanyService from './service/CompanyService';
 import ConnectorService from './service/ConnectorService';
@@ -165,6 +166,7 @@ class RequestMapper {
           IsAuthorized: ChargingStationService.handleIsAuthorized,
           Settings: SettingService.handleGetSettings,
           Setting: SettingService.handleGetSetting,
+          BillingConnection: BillingService.handleGetBillingConnection,
           OcpiEndpoints: OCPIEndpointService.handleGetOcpiEndpoints,
           OcpiEndpoint: OCPIEndpointService.handleGetOcpiEndpoint,
           IntegrationConnections: ConnectorService.handleGetConnections,

@@ -387,7 +387,7 @@ export default class UserStorage {
   }
 
   public static async saveUserBillingData(tenantID: string, userID: string,
-    billingData: BillingData): Promise<void> {
+    billingData?: BillingData): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserBillingData');
     // Check Tenant
@@ -398,26 +398,26 @@ export default class UserStorage {
     // Set only provided values
     if (billingData) {
       updatedUserMDB.billingData = {};
-    }
-    if (billingData.method) {
-      updatedUserMDB.billingData.method = billingData.method;
-      update = true;
-    }
-    if (billingData.customerID) {
-      updatedUserMDB.billingData.customerID = billingData.customerID;
-      update = true;
-    }
-    if (billingData.cardID) {
-      updatedUserMDB.billingData.cardID = billingData.cardID;
-      update = true;
-    }
-    if (billingData.subscriptionID) {
-      updatedUserMDB.billingData.subscriptionID = billingData.subscriptionID;
-      update = true;
-    }
-    if (billingData.lastUpdate) {
-      updatedUserMDB.billingData.lastUpdate = Utils.convertToDate(billingData.lastUpdate);
-      update = true;
+      if (billingData.method) {
+        updatedUserMDB.billingData.method = billingData.method;
+        update = true;
+      }
+      if (billingData.customerID) {
+        updatedUserMDB.billingData.customerID = billingData.customerID;
+        update = true;
+      }
+      if (billingData.cardID) {
+        updatedUserMDB.billingData.cardID = billingData.cardID;
+        update = true;
+      }
+      if (billingData.subscriptionID) {
+        updatedUserMDB.billingData.subscriptionID = billingData.subscriptionID;
+        update = true;
+      }
+      if (billingData.lastUpdate) {
+        updatedUserMDB.billingData.lastUpdate = Utils.convertToDate(billingData.lastUpdate);
+        update = true;
+      }
     }
     // Etc.
     // Modify and return the modified document

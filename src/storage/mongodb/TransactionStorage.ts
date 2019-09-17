@@ -100,14 +100,17 @@ export default class TransactionStorage {
     }
     if (transactionToSave.billingData) {
       transactionMDB.billingData = {
-        method: transactionToSave.billingData.method,
-        customerID: transactionToSave.billingData.customerID,
-        cardID: transactionToSave.billingData.cardID,
-        subscriptionID: transactionToSave.billingData.subscriptionID,
-        lastUpdate: Utils.convertToDate(transactionToSave.billingData.lastUpdate),
+        statusCode: transactionToSave.billingData.statusCode ? transactionToSave.billingData.statusCode : '0',
         invoiceStatus: transactionToSave.billingData.invoiceStatus,
-        invoiceItemID: transactionToSave.billingData.invoiceItemID
+        invoiceItem: transactionToSave.billingData.invoiceItem,
+        lastUpdate: Utils.convertToDate(transactionToSave.billingData.lastUpdate),
       };
+      if (!transactionMDB.billingData.invoiceStatus) {
+        delete transactionMDB.billingData.invoiceStatus;
+      }
+      if (!transactionMDB.billingData.invoiceItem) {
+        delete transactionMDB.billingData.invoiceItem;
+      }
     }
     // Add Last Changed Created Props
     DatabaseUtils.addLastChangedCreatedProps(transactionMDB, transactionToSave);
@@ -813,50 +816,50 @@ export default class TransactionStorage {
     errorType?: ('negative_inactivity' | 'negative_duration' | 'average_consumption_greater_than_connector_capacity' | 'incorrect_starting_date' | 'no_consumption')[]) {
     const facets = {
       '$facet':
-        {
-          'no_consumption':
-            [
-              {
-                $match: {
-                  $and: [
-                    { 'stop': { $exists: true } },
-                    { 'stop.totalConsumption': { $lte: 0 } }
-                  ]
-                }
-              },
-              { $addFields: { 'errorCode': 'no_consumption' } }
-            ],
-          'average_consumption_greater_than_connector_capacity': [],
-          'negative_inactivity':
-            [
-              {
-                $match: {
-                  $and: [
-                    { 'stop': { $exists: true } },
-                    { 'stop.totalInactivitySecs': { $lt: 0 } }
-                  ]
-                }
-              },
-              { $addFields: { 'errorCode': 'negative_inactivity' } }
-            ],
-          'negative_duration':
-            [
-              {
-                $match: {
-                  $and: [
-                    { 'stop': { $exists: true } },
-                    { 'stop.totalDurationSecs': { $lt: 0 } }
-                  ]
-                }
-              },
-              { $addFields: { 'errorCode': 'negative_duration' } }
-            ],
-          'incorrect_starting_date':
-            [
-              { $match: { 'timestamp': { $lte: Utils.convertToDate('2017-01-01 00:00:00.000Z') } } },
-              { $addFields: { 'errorCode': 'incorrect_starting_date' } }
-            ]
-        }
+      {
+        'no_consumption':
+          [
+            {
+              $match: {
+                $and: [
+                  { 'stop': { $exists: true } },
+                  { 'stop.totalConsumption': { $lte: 0 } }
+                ]
+              }
+            },
+            { $addFields: { 'errorCode': 'no_consumption' } }
+          ],
+        'average_consumption_greater_than_connector_capacity': [],
+        'negative_inactivity':
+          [
+            {
+              $match: {
+                $and: [
+                  { 'stop': { $exists: true } },
+                  { 'stop.totalInactivitySecs': { $lt: 0 } }
+                ]
+              }
+            },
+            { $addFields: { 'errorCode': 'negative_inactivity' } }
+          ],
+        'negative_duration':
+          [
+            {
+              $match: {
+                $and: [
+                  { 'stop': { $exists: true } },
+                  { 'stop.totalDurationSecs': { $lt: 0 } }
+                ]
+              }
+            },
+            { $addFields: { 'errorCode': 'negative_duration' } }
+          ],
+        'incorrect_starting_date':
+          [
+            { $match: { 'timestamp': { $lte: Utils.convertToDate('2017-01-01 00:00:00.000Z') } } },
+            { $addFields: { 'errorCode': 'incorrect_starting_date' } }
+          ]
+      }
     };
     facets.$facet.average_consumption_greater_than_connector_capacity.push(
       { $match: { 'stop': { $exists: true } } },

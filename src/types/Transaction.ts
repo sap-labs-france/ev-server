@@ -66,12 +66,9 @@ export default interface Transaction {
   uniqueId?: string;
   errorCode?: number;
   billingData?: {
-    method: string;
-    customerID: string;
-    cardID: string;
-    subscriptionID: string;
-    lastUpdate: Date;
-    invoiceStatus: string;
-    invoiceItemID: string;
+    statusCode?: string;
+    invoiceStatus?: string;
+    invoiceItem?: string;
+    lastUpdate?: Date;
   };
 }

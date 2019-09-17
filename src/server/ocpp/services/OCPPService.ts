@@ -675,10 +675,7 @@ export default class OCPPService {
           if (!transaction.billingData) {
             (transaction as any).billingData = {};
           }
-          transaction.billingData.method = billingDataStart.method;
-          transaction.billingData.customerID = billingDataStart.customerID;
-          transaction.billingData.cardID = billingDataStart.cardID;
-          transaction.billingData.subscriptionID = billingDataStart.subscriptionID;
+          transaction.billingData.statusCode = billingDataStart.statusCode;
           transaction.billingData.lastUpdate = new Date();
         }
         break;
@@ -687,10 +684,10 @@ export default class OCPPService {
         // Active?
         if (billingImpl) {
           const billingDataUpdate = await billingImpl.updateSession(transaction);
+          transaction.billingData.statusCode = billingDataUpdate.statusCode;
+          transaction.billingData.lastUpdate = new Date();
           if (billingDataUpdate.stopTransaction) {
             // Unclear how to do this...
-
-            transaction.billingData.lastUpdate = new Date();
           }
         }
         break;
@@ -699,8 +696,9 @@ export default class OCPPService {
         // Active?
         if (billingImpl) {
           const billingDataStop = await billingImpl.stopSession(transaction);
+          transaction.billingData.statusCode = billingDataStop.statusCode;
           transaction.billingData.invoiceStatus = billingDataStop.invoiceStatus;
-          transaction.billingData.invoiceItemID = billingDataStop.invoiceItemID;
+          transaction.billingData.invoiceItem = billingDataStop.invoiceItem;
           transaction.billingData.lastUpdate = new Date();
         }
         break;
@@ -734,7 +732,7 @@ export default class OCPPService {
         method: '_updateChargingStationConsumption', action: 'ChargingStationConsumption',
         message: `Connector '${foundConnector.connectorId}' > Transaction ID '${foundConnector.activeTransactionID}' > Instant: ${foundConnector.currentConsumption / 1000} kW.h, Total: ${foundConnector.totalConsumption / 1000} kW.h${foundConnector.currentStateOfCharge ? ', SoC: ' + foundConnector.currentStateOfCharge + ' %' : ''}`
       });
-    // Cleanup connector transaction data
+      // Cleanup connector transaction data
     } else if (foundConnector) {
       foundConnector.currentConsumption = 0;
       foundConnector.totalConsumption = 0;
