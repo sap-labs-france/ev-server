@@ -838,6 +838,7 @@ export default class OCPPService {
     // OCPP 1.6
     if (chargingStation.ocppVersion === Constants.OCPP_VERSION_16) {
       meterValues.values = meterValues.meterValue;
+      delete meterValues.meterValue;
     }
     // Only one value?
     if (!Array.isArray(meterValues.values)) {
