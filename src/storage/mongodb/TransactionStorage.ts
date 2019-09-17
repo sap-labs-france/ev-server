@@ -631,7 +631,6 @@ export default class TransactionStorage {
     // Remove the limit
     aggregation.pop();
 END : */
-    const transactionCountMDB = 0;    
     // Rename ID
     DatabaseUtils.renameField(aggregation, '_id', 'id');
     // Convert Object ID to string
@@ -676,6 +675,7 @@ END : */
         allowDiskUse: true
       })
       .toArray();
+    const transactionCountMDB = transactionsMDB.length;
     // Convert remaining Object IDs to String
     this._convertRemainingTransactionObjectIDs(transactionsMDB);
     // Debug
