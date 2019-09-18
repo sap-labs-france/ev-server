@@ -23,7 +23,6 @@ import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from '../../rest/service/UtilsService';
 import Consumption from '../../../types/Consumption';
-import Pricing from '../../../integration/pricing/Pricing';
 
 const moment = require('moment');
 momentDurationFormatSetup(moment);
@@ -227,7 +226,7 @@ export default class OCPPService {
             tenantID: headers.tenantID,
             source: chargingStation.id, module: 'OCPPService',
             method: 'handleStatusNotification', action: 'StatusNotification',
-            message: `Connector '0' > received with Status: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
+            message: `Connector '0' > Received Status: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${statusNotification.info}'`
           });
           // Get the connectors
           const connectors = chargingStation.connectors;
@@ -265,7 +264,7 @@ export default class OCPPService {
 
   async _updateConnectorStatus(tenantID: string, chargingStation: ChargingStation, statusNotification, bothConnectorsUpdated) {
     // Get it
-    let foundConnector = chargingStation.connectors.find(
+    let foundConnector: Connector = chargingStation.connectors.find(
       (connector) => connector.connectorId === statusNotification.connectorId);
     if (!foundConnector) {
       // Does not exist: Create
@@ -288,7 +287,8 @@ export default class OCPPService {
       Logging.logWarning({
         tenantID: tenantID, source: chargingStation.id,
         module: 'OCPPService', method: 'handleStatusNotification', action: 'StatusNotification',
-        message: `Connector '${statusNotification.connectorId}' > Status has not changed then not saved: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}''`
+        message: `Connector '${statusNotification.connectorId}' > Transaction ID '${foundConnector.activeTransactionID}' > Status has not changed then not saved: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}''`,
+        detailedMessages: foundConnector
       });
       return;
     }
@@ -306,7 +306,8 @@ export default class OCPPService {
     Logging.logInfo({
       tenantID: tenantID, source: chargingStation.id,
       module: 'OCPPService', method: 'handleStatusNotification', action: 'StatusNotification',
-      message: `Connector '${statusNotification.connectorId}' > Status: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}' has been saved`
+      message: `Connector '${statusNotification.connectorId}' > Transaction ID '${foundConnector.activeTransactionID}' > Status: '${statusNotification.status}' - '${statusNotification.errorCode}' - '${(statusNotification.info ? statusNotification.info : 'N/A')}' has been saved`,
+      detailedMessages: foundConnector
     });
     // Check if transaction is ongoing (ABB bug)!!!
     await this._checkStatusNotificationOngoingTransaction(tenantID, chargingStation, statusNotification, foundConnector, bothConnectorsUpdated);
@@ -838,6 +839,7 @@ export default class OCPPService {
     // OCPP 1.6
     if (chargingStation.ocppVersion === Constants.OCPP_VERSION_16) {
       meterValues.values = meterValues.meterValue;
+      delete meterValues.meterValue;
     }
     // Only one value?
     if (!Array.isArray(meterValues.values)) {
