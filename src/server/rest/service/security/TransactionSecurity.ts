@@ -8,6 +8,7 @@ import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import { DataResult } from '../../../../types/DataResult';
+import Consumption from '../../../../types/Consumption';
 
 export default class TransactionSecurity {
   public static filterTransactionsRefund(request: any): HttpTransactionsRefundRequest {
@@ -44,6 +45,7 @@ export default class TransactionSecurity {
     filtered.ChargeBoxID = sanitize(request.ChargeBoxID);
     filtered.ConnectorId = sanitize(request.ConnectorId);
     filtered.SiteAreaID = sanitize(request.SiteAreaID);
+    filtered.SiteID = sanitize(request.SiteID);
     filtered.UserID = request.UserID ? sanitize(request.UserID) : null;
     UtilsSecurity.filterSkipAndLimit(request, filtered);
     UtilsSecurity.filterSort(request, filtered);
@@ -138,7 +140,7 @@ export default class TransactionSecurity {
       filteredTransaction.signedData = transaction.signedData;
       filteredTransaction.refundData = transaction.refundData;
       // Demo user?
-      if (Authorizations.isDemo(loggedUser.role)) {
+      if (Authorizations.isDemo(loggedUser)) {
         filteredTransaction.tagID = Constants.ANONYMIZED_VALUE;
       } else {
         filteredTransaction.tagID = transaction.tagID;
@@ -163,7 +165,7 @@ export default class TransactionSecurity {
           filteredTransaction.stop.pricingSource = transaction.stop.pricingSource;
         }
         // Demo user?
-        if (Authorizations.isDemo(loggedUser.role)) {
+        if (Authorizations.isDemo(loggedUser)) {
           filteredTransaction.stop.tagID = Constants.ANONYMIZED_VALUE;
         } else {
           filteredTransaction.stop.tagID = transaction.stop.tagID;
@@ -202,7 +204,7 @@ export default class TransactionSecurity {
     // Check auth
     if (Authorizations.canReadUser(loggedUser, user.id)) {
       // Demo user?
-      if (Authorizations.isDemo(loggedUser.role)) {
+      if (Authorizations.isDemo(loggedUser)) {
         filteredUser.id = null;
         filteredUser.name = Constants.ANONYMIZED_VALUE;
         filteredUser.firstName = Constants.ANONYMIZED_VALUE;
@@ -238,7 +240,7 @@ export default class TransactionSecurity {
     return filteredRequest;
   }
 
-  static filterConsumptionsFromTransactionResponse(transaction: Transaction, consumptions, loggedUser: UserToken) {
+  static filterConsumptionsFromTransactionResponse(transaction: Transaction, consumptions: Consumption[], loggedUser: UserToken) {
     if (!consumptions) {
       consumptions = [];
     }
@@ -247,7 +249,7 @@ export default class TransactionSecurity {
       if (!Authorizations.canReadUser(loggedUser, transaction.userID)) {
         return consumptions;
       }
-    } else if (!transaction.user && !Authorizations.isAdmin(loggedUser.role)) {
+    } else if (!transaction.user && !Authorizations.isAdmin(loggedUser)) {
       return consumptions;
     }
     const filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser);
@@ -256,25 +258,37 @@ export default class TransactionSecurity {
       return filteredTransaction;
     }
     // Admin?
-    if (Authorizations.isAdmin(loggedUser.role)) {
+    if (Authorizations.isAdmin(loggedUser)) {
       // Set them all
-      filteredTransaction.values = consumptions.map((consumption) => consumption.getModel()).map((consumption) => ({
-        ...consumption,
-        date: consumption.endedAt,
-        value: consumption.instantPower,
-        cumulated: consumption.cumulatedConsumption
-      }));
+      filteredTransaction.values = consumptions.map((consumption) => consumption).map((consumption) => {
+        const newConsumption = {
+          ...consumption,
+          date: consumption.endedAt,
+          value: consumption.instantPower,
+          cumulated: consumption.cumulatedConsumption
+        };
+        if (!consumption.stateOfCharge) {
+          delete newConsumption.stateOfCharge;
+        }
+        return newConsumption;
+      });
     } else {
       // Clean
-      filteredTransaction.values = consumptions.map((consumption) => consumption.getModel()).map((consumption) => ({
-        endedAt: consumption.endedAt,
-        instantPower: consumption.instantPower,
-        cumulatedConsumption: consumption.cumulatedConsumption,
-        stateOfCharge: consumption.stateOfCharge,
-        date: consumption.endedAt,
-        value: consumption.instantPower,
-        cumulated: consumption.cumulatedConsumption
-      }));
+      filteredTransaction.values = consumptions.map((consumption) => consumption).map((consumption) => {
+        const newConsumption = {
+          endedAt: consumption.endedAt,
+          instantPower: consumption.instantPower,
+          cumulatedConsumption: consumption.cumulatedConsumption,
+          stateOfCharge: consumption.stateOfCharge,
+          date: consumption.endedAt,
+          value: consumption.instantPower,
+          cumulated: consumption.cumulatedConsumption
+        };
+        if (consumption.stateOfCharge) {
+          newConsumption.stateOfCharge = consumption.stateOfCharge;
+        }
+        return newConsumption;
+      });
     }
     for (let i = 1; i < filteredTransaction.values.length; i++) {
       if (filteredTransaction.values[i].instantPower === 0 && filteredTransaction.values[i - 1] !== 0) {
@@ -294,7 +308,7 @@ export default class TransactionSecurity {
     initialValue.cumulated = 0;
     initialValue.instantPower = 0;
     initialValue.cumulatedConsumption = 0;
-    if (Authorizations.isAdmin(loggedUser.role)) {
+    if (Authorizations.isAdmin(loggedUser)) {
       initialValue.startedAt = new Date(initialDate.getTime() - 60000);
       initialValue.consumption = 0;
       initialValue.amount = 0;

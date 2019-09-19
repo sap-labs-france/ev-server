@@ -17,10 +17,9 @@ export default class SiteStorage {
     // Debug
     const uniqueTimerID = Logging.traceStart('SiteStorage', 'getSite');
     // Query single Site
-    const sitesMDB = await SiteStorage.getSites(tenantID, {
-      siteID: id,
-      withCompany: true,
-    }, Constants.DB_PARAMS_SINGLE_RECORD);
+    const sitesMDB = await SiteStorage.getSites(tenantID,
+      { siteID: id, withCompany: true },
+      Constants.DB_PARAMS_SINGLE_RECORD);
     // Debug
     Logging.traceEnd('SiteStorage', 'getSite', uniqueTimerID, { id });
     return sitesMDB.count > 0 ? sitesMDB.result[0] : null;

@@ -725,7 +725,7 @@ export default class Utils {
 
   public static async checkIfUserTagIDsAreValid(user: User, tagIDs: string[], req: Request) {
     // Check that the Badge ID is not already used
-    if (Authorizations.isAdmin(req.user.role) || Authorizations.isSuperAdmin(req.user.role)) {
+    if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       for (const tagID of tagIDs) {
         const foundUser = await UserStorage.getUserByTagId(req.user.tenantID, tagID);
         if (foundUser && (!user || (foundUser.id !== user.id))) {
@@ -763,7 +763,7 @@ export default class Utils {
       }
     } else {
       // Do not allow to change if not Admin
-      if (!Authorizations.isAdmin(req.user.role)) {
+      if (!Authorizations.isAdmin(req.user)) {
         filteredRequest.role = user.role;
       }
     }
@@ -772,7 +772,7 @@ export default class Utils {
     }
     // Creation?
     if ((filteredRequest.role !== Constants.ROLE_BASIC) && (filteredRequest.role !== Constants.ROLE_DEMO) &&
-      !Authorizations.isAdmin(req.user.role) && !Authorizations.isSuperAdmin(req.user.role)) {
+        !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `Only Admins can assign the role '${Utils.getRoleNameFromRoleID(filteredRequest.role)}'`, Constants.HTTP_GENERAL_ERROR,
@@ -787,7 +787,7 @@ export default class Utils {
     }
     // Only Admin and Super Admin can use role different from Basic
     if ((filteredRequest.role === Constants.ROLE_ADMIN || filteredRequest.role === Constants.ROLE_SUPER_ADMIN) &&
-      !Authorizations.isAdmin(req.user.role) && !Authorizations.isSuperAdmin(req.user.role)) {
+        !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `User without role Admin or Super Admin tried to ${filteredRequest.id ? 'update' : 'create'} an User with the '${Utils.getRoleNameFromRoleID(filteredRequest.role)}' role`, Constants.HTTP_GENERAL_ERROR,

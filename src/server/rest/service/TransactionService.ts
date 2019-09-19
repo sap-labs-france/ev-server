@@ -7,7 +7,6 @@ import Authorizations from '../../../authorization/Authorizations';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import ConcurConnector from '../../../integration/refund/ConcurConnector';
 import Constants from '../../../utils/Constants';
-import Consumption from '../../../entity/Consumption';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
@@ -23,11 +22,12 @@ import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
+import Consumption from '../../../types/Consumption';
 
 export default class TransactionService {
   static async handleSynchronizeRefundedTransactions(action: string, req: Request, res: Response, next: NextFunction) {
     try {
-      if (!Authorizations.isAdmin(req.user.role)) {
+      if (!Authorizations.isAdmin(req.user)) {
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
           Constants.ENTITY_TRANSACTION,
@@ -97,14 +97,6 @@ export default class TransactionService {
     // Get Transaction User
     const user: User = await UserStorage.getUser(req.user.tenantID, req.user.id);
     UtilsService.assertObjectExists(user, `User with ID '${req.user.id}' does not exist`, 'TransactionService', 'handleRefundTransactions', req.user);
-    // Check Auth
-    if (!transactionsToRefund.every((transaction) => transaction.userID === req.user.id)) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The User with ID '${req.user.id}' cannot refund another User's transaction`,
-        Constants.HTTP_REFUND_SESSION_OTHER_USER_ERROR,
-        'TransactionService', 'handleRefundTransactions', req.user);
-    }
     // Refund the Transaction
     const setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, 'refund');
     const connector = new ConcurConnector(req.user.tenantID, setting.content[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]);
@@ -301,14 +293,14 @@ export default class TransactionService {
         'TransactionService', 'handleGetChargingStationConsumptionFromTransaction', req.user);
     }
     // Get the consumption
-    let consumptions: Consumption[] = await ConsumptionStorage.getConsumptions(req.user.tenantID, transaction.id);
+    let consumptions: Consumption[] = await ConsumptionStorage.getConsumptions(req.user.tenantID, { transactionId: transaction.id });
     // Dates provided?
     const startDateTime = filteredRequest.StartDateTime ? filteredRequest.StartDateTime : Constants.MIN_DATE;
     const endDateTime = filteredRequest.EndDateTime ? filteredRequest.EndDateTime : Constants.MAX_DATE;
     // Filter?
     if (consumptions && (filteredRequest.StartDateTime || filteredRequest.EndDateTime)) {
       consumptions = consumptions.filter((consumption) =>
-        moment(consumption.getEndedAt()).isBetween(startDateTime, endDateTime, null, '[]'));
+        moment(consumption.endedAt).isBetween(startDateTime, endDateTime, null, '[]'));
     }
     // Return the result
     res.json(TransactionSecurity.filterConsumptionsFromTransactionResponse(transaction, consumptions, req.user));
@@ -418,7 +410,7 @@ export default class TransactionService {
     if (filteredRequest.UserID) {
       filter.userIDs = filteredRequest.UserID.split('|');
     }
-    if (Authorizations.isBasic(req.user.role)) {
+    if (Authorizations.isBasic(req.user)) {
       filter.userIDs = [req.user.id];
     }
     if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
@@ -469,17 +461,17 @@ export default class TransactionService {
     if (filteredRequest.UserID) {
       filter.userIDs = filteredRequest.UserID.split('|');
     }
-    if (Authorizations.isBasic(req.user.role)) {
+    if (Authorizations.isBasic(req.user)) {
       filter.userIDs = [req.user.id];
     }
     if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
       filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
     }
     if (filteredRequest.StartDateTime) {
-      filter.startTime = filteredRequest.StartDateTime;
+      filter.startDateTime = filteredRequest.StartDateTime;
     }
     if (filteredRequest.EndDateTime) {
-      filter.endTime = filteredRequest.EndDateTime;
+      filter.endDateTime = filteredRequest.EndDateTime;
     }
     if (filteredRequest.RefundStatus) {
       filter.refundStatus = filteredRequest.RefundStatus.split('|');
@@ -533,17 +525,14 @@ export default class TransactionService {
     if (filteredRequest.UserID) {
       filter.userIDs = filteredRequest.UserID.split('|');
     }
-    if (Authorizations.isBasic(req.user.role) || Authorizations.isAdmin(req.user.role)) {
-      filter.userIDs = [req.user.id];
-    }
-    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
+    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
       filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
     }
     if (filteredRequest.StartDateTime) {
-      filter.startTime = filteredRequest.StartDateTime;
+      filter.startDateTime = filteredRequest.StartDateTime;
     }
     if (filteredRequest.EndDateTime) {
-      filter.endTime = filteredRequest.EndDateTime;
+      filter.endDateTime = filteredRequest.EndDateTime;
     }
     if (filteredRequest.RefundStatus) {
       filter.refundStatus = filteredRequest.RefundStatus.split('|');
@@ -597,7 +586,7 @@ export default class TransactionService {
     if (filteredRequest.UserID) {
       filter.userIDs = filteredRequest.UserID.split('|');
     }
-    if (Authorizations.isBasic(req.user.role)) {
+    if (Authorizations.isBasic(req.user)) {
       filter.userIDs = [req.user.id];
     }
     if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
@@ -605,10 +594,10 @@ export default class TransactionService {
     }
     // Date
     if (filteredRequest.StartDateTime) {
-      filter.startTime = filteredRequest.StartDateTime;
+      filter.startDateTime = filteredRequest.StartDateTime;
     }
     if (filteredRequest.EndDateTime) {
-      filter.endTime = filteredRequest.EndDateTime;
+      filter.endDateTime = filteredRequest.EndDateTime;
     }
     if (filteredRequest.RefundStatus) {
       filter.refundStatus = filteredRequest.RefundStatus.split('|');
@@ -659,7 +648,7 @@ export default class TransactionService {
         'TransactionService', 'handleGetTransactionsInError',
         req.user);
     }
-    const filter: any = { stop: { $exists: true } };
+    const filter: any = {};
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsInErrorRequest(req.query);
     if (filteredRequest.ChargeBoxID) {
@@ -687,7 +676,11 @@ export default class TransactionService {
     if (filteredRequest.ErrorType) {
       filter.errorType = filteredRequest.ErrorType.split('|');
     } else {
-      filter.errorType = ['negative_inactivity','negative_duration','average_consumption_greater_than_connector_capacity','incorrect_starting_date','no_consumption'];
+      if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.PRICING)) {
+        filter.errorType = ['negative_inactivity','negative_duration','average_consumption_greater_than_connector_capacity','incorrect_starting_date','no_consumption','missing_price'];
+      } else {
+        filter.errorType = ['negative_inactivity','negative_duration','average_consumption_greater_than_connector_capacity','incorrect_starting_date','no_consumption'];
+      }
     }
     // Site Area
     const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,

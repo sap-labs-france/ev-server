@@ -187,7 +187,7 @@ export default class UserService {
         req.user);
     }
     // Get User
-    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.id);
+    let user = await UserStorage.getUser(req.user.tenantID, filteredRequest.id);
     if (!user) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
@@ -230,16 +230,18 @@ export default class UserService {
     Utils.checkIfUserValid(filteredRequest, user, req);
     // Check if Tag IDs are valid
     await Utils.checkIfUserTagIDsAreValid(user, newTagIDs, req);
-    // For integration with billing
+    // For integration with Billing
     const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (billingImpl) {
-      //  await billingImpl.checkIfUserCanBeUpdated(user, req);
+    // DO NOT BLOCK UPDATE await billingImpl.checkIfUserCanBeUpdated(user, req);
     }
+    // Update user
+    user = { ...user, ...filteredRequest, tagIDs: [] };
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
-    await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: [] }, true);
+    await UserStorage.saveUser(req.user.tenantID, user, true);
     if (billingImpl) {
-      //  const billingData = await billingImpl.updateUser(user, req);
-      //  await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingData);
+    // TEMP DISABLED const billingData = await billingImpl.updateUser(user, req);
+    // TEMP DISABLED await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingData);
     }
     // Save User password
     if (filteredRequest.password) {
@@ -249,7 +251,7 @@ export default class UserService {
         { password: newPasswordHashed, passwordWrongNbrTrials: 0, passwordResetHash: null, passwordBlockedUntil: null });
     }
     // Save Admin info
-    if (Authorizations.isAdmin(req.user.role) || Authorizations.isSuperAdmin(req.user.role)) {
+    if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       // Save Tags
       await UserStorage.saveUserTags(req.user.tenantID, filteredRequest.id, newTagIDs);
       // Save User Status
@@ -573,7 +575,7 @@ export default class UserService {
         { password: newPasswordHashed, passwordWrongNbrTrials: 0, passwordResetHash: null, passwordBlockedUntil: null });
     }
     // Save Admin Data
-    if (Authorizations.isAdmin(req.user.role) || Authorizations.isSuperAdmin(req.user.role)) {
+    if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       // Save the Tag IDs
       await UserStorage.saveUserTags(req.user.tenantID, newUserID, newTagIDs);
       // Save User Status

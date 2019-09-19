@@ -8,12 +8,6 @@ export enum Type {
 export class ChargeableItemProperty {
   public name: string;
 
-  /**
-   *
-   * @param name
-   * @param type {Type}
-   * @param value
-   */
   constructor(name: string, type: Type, value) {
     this.name = name;
     this[type + 'Value'] = value;
@@ -27,14 +21,6 @@ export class ChargeableItem {
   public consumptionDate: Date;
   public property: ChargeableItemProperty[];
 
-  /**
-   *
-   * @param name
-   * @param userTechnicalId
-   * @param serviceId
-   * @param consumptionDate
-   * @param properties {ChargeableItem[]}
-   */
   constructor(name: string, userTechnicalId: string, serviceId: string, consumptionDate: Date, properties: ChargeableItemProperty[] = []) {
     this.name = name;
     this.userTechnicalId = userTechnicalId;
@@ -48,11 +34,6 @@ export class ConfirmationItem {
   public name: string;
   public property: ChargeableItemProperty[];
 
-  /**
-   *
-   * @param name
-   * @param properties {ChargeableItemProperty[]}
-   */
   constructor(name: string, properties: ChargeableItemProperty[] = []) {
     this.name = name;
     this.property = properties;
@@ -63,11 +44,6 @@ export class ReservationItem {
   public name: string;
   public property: ChargeableItemProperty[];
 
-  /**
-   *
-   * @param name
-   * @param properties {ChargeableItemProperty[]}
-   */
   constructor(name: string, properties: ChargeableItemProperty[] = []) {
     this.name = name;
     this.property = properties;

@@ -198,7 +198,6 @@ export default class OCPPStorage {
         ocppVersion: bootNotification.ocppVersion,
         ocppProtocol: bootNotification.ocppProtocol,
         endpoint: bootNotification.endpoint,
-        chargeBoxIdentity: bootNotification.chargeBoxIdentity,
         timestamp: timestamp
       });
     // Debug

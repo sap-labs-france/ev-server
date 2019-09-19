@@ -1,27 +1,10 @@
 import Transaction from '../../types/Transaction';
-import User from '../../types/User';
+import Consumption from '../../types/Consumption';
+import { PricedConsumption } from '../../types/Pricing';
+import { PricingSetting } from '../../types/Setting';
 
-export abstract class PricingSettings {}
-
-export class ConvergentChargingPricingSettings {
-  constructor(readonly url: string, readonly chargeableItemName: string, readonly user: User, readonly password: string) {
-  }
-}
-
-export class PricedConsumption {
-  constructor(
-    readonly amount: number,
-    readonly cumulatedAmount: number,
-    readonly roundedAmount: number,
-    readonly currencyCode: string,
-    readonly pricingSource: string) {}
-
-}
-
-export default abstract class Pricing<T extends PricingSettings> {
-
-  // Protected because only used in subclasses at the moment
-  protected readonly tenantId: string; // Assuming GUID or other string format ID
+export default abstract class Pricing<T extends PricingSetting> {
+  protected readonly tenantId: string;
   protected readonly setting: T;
   protected readonly transaction: Transaction;
 
@@ -32,13 +15,13 @@ export default abstract class Pricing<T extends PricingSettings> {
   }
 
   // eslint-disable-next-line no-unused-vars
-  async abstract startSession(consumptionData: {consumption: number}): Promise<PricedConsumption>;
+  async abstract startSession(consumptionData: Consumption): Promise<PricedConsumption>;
 
   // eslint-disable-next-line no-unused-vars
-  async abstract updateSession(consumptionData: {consumption: number}): Promise<PricedConsumption>;
+  async abstract updateSession(consumptionData: Consumption): Promise<PricedConsumption>;
 
   // eslint-disable-next-line no-unused-vars
-  async abstract stopSession(consumptionData: {consumption: number}): Promise<PricedConsumption>;
+  async abstract stopSession(consumptionData: Consumption): Promise<PricedConsumption>;
 
   protected getSettings(): T {
     return this.setting;

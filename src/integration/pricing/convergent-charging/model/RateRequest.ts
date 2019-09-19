@@ -11,20 +11,6 @@ export class StartRateRequest {
   public cleanupResultType: any;
   public propertyToInverse: any;
 
-  /**
-   *
-   * @param reservationItem {ReservationItem}
-   * @param sessionID
-   * @param consumptionDate
-   * @param serviceId
-   * @param userTechnicalId
-   * @param defaultResolution
-   * @param timeToLive
-   * @param resultType
-   * @param filterTransaction
-   * @param cleanupResultType
-   * @param propertyToInverse
-   */
   constructor(reservationItem, sessionID, consumptionDate, serviceId, userTechnicalId, defaultResolution, timeToLive, resultType, filterTransaction, cleanupResultType, propertyToInverse) {
     this.reservationItem = reservationItem;
     this.sessionID = sessionID;
@@ -55,18 +41,6 @@ export class UpdateRateRequest {
   public filterTransaction: any;
   public cleanupResultType: any;
 
-  /**
-   *
-   * @param confirmationItem {ConfirmationItem}
-   * @param reservationItem
-   * @param sessionID
-   * @param consumptionDate
-   * @param serviceId
-   * @param userTechnicalId
-   * @param resultType
-   * @param filterTransaction
-   * @param cleanupResultType
-   */
   constructor(confirmationItem, reservationItem, sessionID, consumptionDate, serviceId, userTechnicalId, resultType, filterTransaction, cleanupResultType) {
     this.confirmationItem = confirmationItem;
     this.reservationItem = reservationItem;
