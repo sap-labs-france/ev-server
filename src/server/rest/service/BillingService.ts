@@ -97,6 +97,7 @@ export default class BillingService {
       const actionsDone = {
         created: 0,
         updated: 0,
+        unchanged: 0,
         error: 0
       };
       if (users.count > 0) {
@@ -117,6 +118,9 @@ export default class BillingService {
                 break;
               case 'updated':
                 actionsDone.updated++;
+                break;
+              case 'unchanged':
+                actionsDone.unchanged++;
                 break;
               default:
                 actionsDone.error++;

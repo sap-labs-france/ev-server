@@ -124,13 +124,20 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
       user.billingData = {} as BillingUserData;
     }
     const oldCustomerID = user.billingData.customerID;
+    const oldLastUpdate = user.billingData.lastUpdate;
     const response = await this.updateUser(user, fullReq);
     if (response.customerID) {
       await UserStorage.saveUserBillingData(this.tenantId, user.id, response);
       if (oldCustomerID) {
+        if (oldLastUpdate !== response.lastUpdate) {
+          return {
+            success: true,
+            message: 'updated'
+          };
+        }
         return {
           success: true,
-          message: 'updated'
+          message: 'unchanged'
         };
       }
       return {
@@ -550,7 +557,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
     }
     if (user.billingData && user.billingData.customerID) {
       const customer = await this._getCustomer(user, req);
-      if (customer && customer['id'] && this.stripe) {
+      if (customer && customer['id']) {
         try {
           await this.stripe.customers.del(
             customer['id']
@@ -570,38 +577,33 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
   }
 
   private async _getCustomer(user: User, req?: Request): Promise<object> {
-    if (this.stripe) {
-      try {
-        if (user.billingData && user.billingData.customerID) {
-          return await this.stripe.customers.retrieve(
-            user.billingData.customerID
-          );
-        }
-        const email = req.body.email ? sanitize(req.body.email) : user.email;
-        if (email) {
-          const list = await this.stripe.customers.list(
-            { email: email, limit: 1 }
-          );
-          if (list && list['data'] && list['data'].length > 0) {
-            return list['data'][0];
-          }
-        }
-      } catch (error) {
-        return {};
+    try {
+      if (user.billingData && user.billingData.customerID) {
+        return await this.stripe.customers.retrieve(
+          user.billingData.customerID
+        );
       }
+      const email = req.body.email ? sanitize(req.body.email) : user.email;
+      if (email) {
+        const list = await this.stripe.customers.list(
+          { email: email, limit: 1 }
+        );
+        if (list && list['data'] && list['data'].length > 0) {
+          return list['data'][0];
+        }
+      }
+    } catch (error) {
+      return {};
     }
     return {};
   }
 
   private async _getSubscription(subscriptionID: string): Promise<object> {
-    if (this.stripe) {
-      try {
-        return await this.stripe.subscriptions.retrieve(subscriptionID);
-      } catch (error) {
-        return {};
-      }
+    try {
+      return await this.stripe.subscriptions.retrieve(subscriptionID);
+    } catch (error) {
+      return {};
     }
-    return {};
   }
 
   private async _possibleToModifyUser(user: User, req: Request, createUser = false): Promise<BillingResponse> {
@@ -756,14 +758,11 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
   }
 
   private async _getBillingPlan(billingPlanID: string): Promise<object> {
-    if (this.stripe) {
-      try {
-        return await this.stripe.plans.retrieve(billingPlanID);
-      } catch (error) {
-        return {};
-      }
+    try {
+      return await this.stripe.plans.retrieve(billingPlanID);
+    } catch (error) {
+      return {};
     }
-    return {};
   }
 
   private async _retrieveBillingPlan(): Promise<string> {
@@ -857,6 +856,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
   private async _modifyUser(user: User, req: Request): Promise<BillingUserData> {
     const email = req.body.email ? sanitize(req.body.email) : user.email;
     const fullName = Utils.buildUserFullName(user, false);
+    let update = false;
 
     let locale = req.body.locale ? sanitize(req.body.locale) : user.locale;
     locale = locale.substr(0, 2).toLocaleLowerCase();
@@ -880,6 +880,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
           name: fullName,
           preferred_locales: [locale]
         });
+        update = true;
       } catch (error) {
         Logging.logError({
           tenantID: this.tenantId,
@@ -899,6 +900,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
           customer['id'],
           { email: email }
         );
+        update = true;
       } catch (error) {
         Logging.logError({
           tenantID: this.tenantId,
@@ -918,6 +920,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
           customer['id'],
           { description: description }
         );
+        update = true;
       } catch (error) {
         Logging.logError({
           tenantID: this.tenantId,
@@ -937,6 +940,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
           customer['id'],
           { name: fullName }
         );
+        update = true;
       } catch (error) {
         Logging.logError({
           tenantID: this.tenantId,
@@ -963,6 +967,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
             customer['id'],
             { preferred_locales: [locale] }
           );
+          update = true;
         } catch (error) {
           Logging.logError({
             tenantID: this.tenantId,
@@ -984,6 +989,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
           customer['id'],
           { source: newSource }
         );
+        update = true;
       } catch (error) {
         Logging.logError({
           tenantID: this.tenantId,
@@ -1016,11 +1022,24 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
       // Check whether existing subscription needs to be updated
       const oldSubscription = await this._getSubscription(user.billingData.subscriptionID);
       if (collectionMethod === 'charge_automatically' && oldSubscription['billing'] === 'send_invoice') {
-        await this.stripe.subscriptions.update(
-          user.billingData.subscriptionID,
-          {
-            billing: collectionMethod,
+        try {
+          await this.stripe.subscriptions.update(
+            user.billingData.subscriptionID,
+            {
+              billing: collectionMethod,
+            });
+          update = true;
+        } catch (error) {
+          Logging.logError({
+            tenantID: this.tenantId,
+            source: user.email,
+            action: Constants.ACTION_UPDATE,
+            module: 'StripeBilling', method: '_modifyUser',
+            message: `Impossible to update Stripe subscription for user '${user.email}'`,
+            detailedMessages: error
           });
+          return {} as BillingUserData;
+        }
       }
       if (billingPlan && billingPlan !== oldSubscription['plan']) {
         try {
@@ -1029,6 +1048,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
             {
               plan: billingPlan,
             });
+          update = true;
         } catch (error) {
           Logging.logError({
             tenantID: this.tenantId,
@@ -1077,6 +1097,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
             billing: 'charge_automatically',
           });
         }
+        update = true;
       } catch (error) {
         Logging.logError({
           tenantID: this.tenantId,
@@ -1091,12 +1112,16 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
       newSubscription = subscription['id'];
     }
 
+    let lastUpdate = (user.billingData && user.billingData.lastUpdate) ? user.billingData.lastUpdate : null;
+    if (update || !lastUpdate) {
+      lastUpdate = new Date();
+    }
     return {
       method: billingMethod,
       customerID: customer['id'],
       cardID: customer['default_source'] ? customer['default_source'] : null,
       subscriptionID: newSubscription ? newSubscription : null,
-      lastUpdate: new Date()
+      lastUpdate: lastUpdate
     };
   }
 
