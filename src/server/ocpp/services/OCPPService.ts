@@ -23,6 +23,7 @@ import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from '../../rest/service/UtilsService';
+import { BillingTransactionData } from '../../../integration/billing/Billing';
 const moment = require('moment');
 momentDurationFormatSetup(moment);
 const _configChargingStation = Configuration.getChargingStationConfig();
@@ -671,11 +672,12 @@ export default class OCPPService {
       case 'start':
         // Active?
         if (billingImpl) {
-          const billingDataStart = await billingImpl.startSession(user, transaction);
+          const billingDataStart = await billingImpl.startTransaction(user, transaction);
           if (!transaction.billingData) {
-            (transaction as any).billingData = {};
+            transaction.billingData = {} as BillingTransactionData;
           }
-          transaction.billingData.statusCode = billingDataStart.statusCode;
+          transaction.billingData.errorCode = billingDataStart.errorCode;
+          transaction.billingData.errorCodeDesc = billingDataStart.errorCodeDesc;
           transaction.billingData.lastUpdate = new Date();
         }
         break;
@@ -683,8 +685,9 @@ export default class OCPPService {
       case 'update':
         // Active?
         if (billingImpl) {
-          const billingDataUpdate = await billingImpl.updateSession(transaction);
-          transaction.billingData.statusCode = billingDataUpdate.statusCode;
+          const billingDataUpdate = await billingImpl.updateTransaction(transaction);
+          transaction.billingData.errorCode = billingDataUpdate.errorCode;
+          transaction.billingData.errorCodeDesc = billingDataUpdate.errorCodeDesc;
           transaction.billingData.lastUpdate = new Date();
           if (billingDataUpdate.stopTransaction) {
             // Unclear how to do this...
@@ -695,8 +698,10 @@ export default class OCPPService {
       case 'stop':
         // Active?
         if (billingImpl) {
-          const billingDataStop = await billingImpl.stopSession(transaction);
-          transaction.billingData.statusCode = billingDataStop.statusCode;
+          const billingDataStop = await billingImpl.stopTransaction(transaction);
+          transaction.billingData.status = billingDataStop.status;
+          transaction.billingData.errorCode = billingDataStop.errorCode;
+          transaction.billingData.errorCodeDesc = billingDataStop.errorCodeDesc;
           transaction.billingData.invoiceStatus = billingDataStop.invoiceStatus;
           transaction.billingData.invoiceItem = billingDataStop.invoiceItem;
           transaction.billingData.lastUpdate = new Date();

@@ -2,7 +2,7 @@ import fs from 'fs';
 import { ObjectID } from 'mongodb';
 import Mustache from 'mustache';
 import BackendError from '../../exception/BackendError';
-import { BillingData } from '../../integration/billing/Billing';
+import { BillingUserData } from '../../integration/billing/Billing';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
@@ -387,7 +387,7 @@ export default class UserStorage {
   }
 
   public static async saveUserBillingData(tenantID: string, userID: string,
-    billingData?: BillingData): Promise<void> {
+    billingData: BillingUserData): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserBillingData');
     // Check Tenant
@@ -397,7 +397,7 @@ export default class UserStorage {
     let update = false;
     // Set only provided values
     if (billingData) {
-      updatedUserMDB.billingData = {};
+      updatedUserMDB.billingData = {} as BillingUserData;
       if (billingData.method) {
         updatedUserMDB.billingData.method = billingData.method;
         update = true;

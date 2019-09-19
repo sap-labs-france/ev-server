@@ -1,4 +1,5 @@
 import Address from './Address';
+import { BillingUserData } from '../integration/billing/Billing';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 
 export default interface User extends CreatedUpdatedProps {
@@ -35,13 +36,7 @@ export default interface User extends CreatedUpdatedProps {
 
   tagIDs?: string[];
 
-  billingData?: {
-    method?: string;
-    customerID?: string;
-    cardID?: string;
-    subscriptionID?: string;
-    lastUpdate?: Date;
-  };
+  billingData?: BillingUserData;
 }
 
 export interface UserSite {

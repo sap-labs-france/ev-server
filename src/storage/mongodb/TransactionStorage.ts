@@ -100,11 +100,22 @@ export default class TransactionStorage {
     }
     if (transactionToSave.billingData) {
       transactionMDB.billingData = {
-        statusCode: transactionToSave.billingData.statusCode ? transactionToSave.billingData.statusCode : '0',
+        status: transactionToSave.billingData.status,
+        errorCode: transactionToSave.billingData.errorCode,
+        errorCodeDesc: transactionToSave.billingData.errorCodeDesc,
         invoiceStatus: transactionToSave.billingData.invoiceStatus,
         invoiceItem: transactionToSave.billingData.invoiceItem,
         lastUpdate: Utils.convertToDate(transactionToSave.billingData.lastUpdate),
       };
+      if (!transactionMDB.billingData.status) {
+        delete transactionMDB.billingData.status;
+      }
+      if (!transactionMDB.billingData.errorCode) {
+        delete transactionMDB.billingData.errorCode;
+      }
+      if (!transactionMDB.billingData.errorCodeDesc) {
+        delete transactionMDB.billingData.errorCodeDesc;
+      }
       if (!transactionMDB.billingData.invoiceStatus) {
         delete transactionMDB.billingData.invoiceStatus;
       }

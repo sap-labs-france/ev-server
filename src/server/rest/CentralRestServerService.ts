@@ -90,6 +90,7 @@ class RequestMapper {
           TransactionsRefund: TransactionService.handleRefundTransactions,
           SynchronizeRefundedTransactions: TransactionService.handleSynchronizeRefundedTransactions,
           SettingCreate: SettingService.handleCreateSetting,
+          SynchronizeUsersForBilling: BillingService.handleSynchronizeUsers,
           OcpiEndpointCreate: OCPIEndpointService.handleCreateOcpiEndpoint,
           OcpiEndpointPing: OCPIEndpointService.handlePingOcpiEndpoint,
           OcpiEndpointSendEVSEStatuses: OCPIEndpointService.handleSendEVSEStatusesOcpiEndpoint,

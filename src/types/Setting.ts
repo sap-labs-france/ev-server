@@ -2,13 +2,13 @@ import CreatedUpdatedProps from './CreatedUpdatedProps';
 
 export default interface Setting extends CreatedUpdatedProps {
   id?: string;
-  identifier: 'pricing'|'billing'|'analytics'|'refund'|'ocpi';
+  identifier: 'pricing' | 'billing' | 'analytics' | 'refund' | 'ocpi';
   sensitiveData: string[];
   content: SettingContent;
 }
 
 export interface SettingContent {
-  type: 'gireve'|'sac'|'concur'|'simple'|'convergentCharging'|'stripe';
+  type: 'gireve' | 'sac' | 'concur' | 'simple' | 'convergentCharging' | 'stripe';
   ocpi?: OcpiSettings;
   simple?: SimplePricingSettings;
   convergentCharging?: ConvergentChargingPricingSettings;
@@ -37,7 +37,7 @@ export interface StripeBillingSettings {
   noCardAllowed: boolean;
   immediateBillingAllowed: boolean;
   periodicBillingAllowed: boolean;
-  periodicBillingPlans: string | string[];
+  // Default billing plan(s)?
   advanceBillingAllowed: boolean;
 }
 

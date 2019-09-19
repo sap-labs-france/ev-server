@@ -6,33 +6,46 @@ export interface BillingSettings {
   currency: string; // Must come from 'pricing' settings!
 }
 
-export interface BillingConnection {
-  connectionIsValid: boolean;
+export interface BillingResponse {
+  success: boolean;
   message: string;
 }
 
-export interface BillingData {
+export interface BillingTransactionData {
+  status?: string;
+  errorCode?: string;
+  errorCodeDesc?: string;
+  invoiceStatus?: string;
+  invoiceItem?: string;
+  lastUpdate?: Date;
+}
+
+export interface BillingDataStart {
+  errorCode: string;
+  errorCodeDesc: string;
+}
+
+export interface BillingDataUpdate {
+  errorCode: string;
+  errorCodeDesc: string;
+  stopTransaction: boolean;
+}
+
+export interface BillingDataStop {
+  status: string;
+  errorCode: string;
+  errorCodeDesc: string;
+  invoiceStatus: string;
+  invoiceItem: string;
+}
+
+export interface BillingUserData {
   method: string;
   customerID: string;
   cardID: string;
   subscriptionID: string;
   lastUpdate: Date;
   // Etc., also in User and Transaction interfaces
-}
-
-export interface BillingDataStart {
-  statusCode: string;
-}
-
-export interface BillingDataUpdate {
-  statusCode: string;
-  stopTransaction: boolean;
-}
-
-export interface BillingDataStop {
-  statusCode: string;
-  invoiceStatus: string;
-  invoiceItem: string;
 }
 
 export default abstract class Billing<T extends BillingSettings> {
@@ -51,30 +64,33 @@ export default abstract class Billing<T extends BillingSettings> {
   }
 
   // eslint-disable-next-line no-unused-vars
-  async abstract checkConnection(key?: string): Promise<BillingConnection>;
+  async abstract checkConnection(key?: string): Promise<BillingResponse>;
 
   // eslint-disable-next-line no-unused-vars
-  async abstract startSession(user: User, transaction: Transaction): Promise<BillingDataStart>;
+  async abstract synchronizeUser(user: User): Promise<BillingResponse>;
 
   // eslint-disable-next-line no-unused-vars
-  async abstract updateSession(transaction: Transaction): Promise<BillingDataUpdate>;
+  async abstract startTransaction(user: User, transaction: Transaction): Promise<BillingDataStart>;
 
   // eslint-disable-next-line no-unused-vars
-  async abstract stopSession(transaction: Transaction): Promise<BillingDataStop>;
+  async abstract updateTransaction(transaction: Transaction): Promise<BillingDataUpdate>;
+
+  // eslint-disable-next-line no-unused-vars
+  async abstract stopTransaction(transaction: Transaction): Promise<BillingDataStop>;
 
   // eslint-disable-next-line no-unused-vars
   async abstract checkIfUserCanBeCreated(req: Request): Promise<void>;
 
   // eslint-disable-next-line no-unused-vars
-  async abstract createUser(req: Request): Promise<BillingData>;
-
-  async abstract checkIfUserCanBeUpdated(user: User, req: Request, createUser?: boolean): Promise<void>;
-
-  // eslint-disable-next-line no-unused-vars
-  async abstract updateUser(user: User, req: Request): Promise<BillingData>;
+  async abstract checkIfUserCanBeUpdated(user: User, req: Request): Promise<void>;
 
   // eslint-disable-next-line no-unused-vars
   async abstract checkIfUserCanBeDeleted(user: User, req: Request): Promise<void>;
+
+  async abstract createUser(req: Request): Promise<BillingUserData>;
+
+  // eslint-disable-next-line no-unused-vars
+  async abstract updateUser(user: User, req: Request): Promise<BillingUserData>;
 
   // eslint-disable-next-line no-unused-vars
   async abstract deleteUser(user: User, req: Request): Promise<void>;

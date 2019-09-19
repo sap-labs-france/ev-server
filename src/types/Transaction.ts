@@ -1,3 +1,4 @@
+import { BillingTransactionData } from '../integration/billing/Billing';
 import ChargingStation from '../types/ChargingStation';
 import User from './User';
 
@@ -65,10 +66,5 @@ export default interface Transaction {
   currentSignedData?: number;
   uniqueId?: string;
   errorCode?: number;
-  billingData?: {
-    statusCode?: string;
-    invoiceStatus?: string;
-    invoiceItem?: string;
-    lastUpdate?: Date;
-  };
+  billingData?: BillingTransactionData;
 }

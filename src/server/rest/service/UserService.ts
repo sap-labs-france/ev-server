@@ -143,8 +143,8 @@ export default class UserService {
       // Delete from site
       const siteIDs: string[] = (await UserStorage.getSites(req.user.tenantID, { userID: id },
         Constants.DB_PARAMS_MAX_LIMIT)).result.map(
-        (siteUser) => siteUser.site.id
-      );
+          (siteUser) => siteUser.site.id
+        );
       await UserStorage.removeSitesFromUser(req.user.tenantID, user.id, siteIDs);
     }
     // Delete User
@@ -233,13 +233,13 @@ export default class UserService {
     // For integration with billing
     const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (billingImpl) {
-      await billingImpl.checkIfUserCanBeUpdated(user, req);
+      //  await billingImpl.checkIfUserCanBeUpdated(user, req);
     }
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
     await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: [] }, true);
     if (billingImpl) {
-      const billingData = await billingImpl.updateUser(user, req);
-      await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingData);
+      //  const billingData = await billingImpl.updateUser(user, req);
+      //  await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingData);
     }
     // Save User password
     if (filteredRequest.password) {
@@ -558,13 +558,13 @@ export default class UserService {
     // For integration with billing
     const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     if (billingImpl) {
-      await billingImpl.checkIfUserCanBeCreated(req);
+      //  await billingImpl.checkIfUserCanBeCreated(req);
     }
     // Create the User
     const newUserID = await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: [] }, true);
     if (billingImpl) {
-      const billingData = await billingImpl.createUser(req);
-      await UserStorage.saveUserBillingData(req.user.tenantID, newUserID, billingData);
+      //  const billingData = await billingImpl.createUser(req);
+      //  await UserStorage.saveUserBillingData(req.user.tenantID, newUserID, billingData);
     }
     // Save password
     if (filteredRequest.password) {

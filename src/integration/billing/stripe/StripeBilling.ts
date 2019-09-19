@@ -1,30 +1,26 @@
-import Billing, { BillingConnection, BillingData, BillingDataStart, BillingDataUpdate, BillingDataStop, BillingSettings } from '../Billing';
+import Billing, { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingResponse, BillingSettings, BillingUserData } from '../Billing';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import { Request } from 'express';
+import { StripeBillingSettings } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
 import User from '../../../types/User';
+import UserStorage from '../../../storage/mongodb/UserStorage';
+
 import AppError from '../../../exception/AppError';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
-import sanitize from 'mongo-sanitize';
-import { StripeBillingSettings } from '../../../types/Setting';
 import Utils from '../../../utils/Utils';
+
+import moment from 'moment';
+import sanitize from 'mongo-sanitize';
 
 // Recommended import:
 // import * as Stripe from 'stripe';
 import Stripe from 'stripe';
-import moment from 'moment';
-import UserStorage from '../../../storage/mongodb/UserStorage';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 
 export interface StripeBillingSettingsContent extends BillingSettings, StripeBillingSettings {
-  advanceBillingPlans: string | string[];
 }
-
-// New fields for HTTP requests from users:
-// paymentToken (if payment with card is mandatory)
-// billingMethod (if not defaulted from settings)
-// billingPlan (if not defaulted from settings)
 
 export interface TransactionIdemPotencyKey {
   transactionID: number;
@@ -60,10 +56,10 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
     }
   }
 
-  public async checkConnection(key?: string): Promise<BillingConnection> {
+  public async checkConnection(key?: string): Promise<BillingResponse> {
     if (!key && !this.settings.secretKey) {
       return {
-        connectionIsValid: false,
+        success: false,
         message: 'No secret key provided for connection to Stripe'
       };
     }
@@ -75,10 +71,17 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
 
     // Validate the connection
     let isKeyValid = false;
+    let stripeRef: Stripe;
     try {
-      const stripe = new Stripe(keyForCheck);
-
-      const list = await stripe.customers.list(
+      if (keyForCheck === this.settings.secretKey) {
+        if (!this.stripe) {
+          this.stripe = new Stripe(this.settings.secretKey);
+        }
+        stripeRef = this.stripe;
+      } else {
+        stripeRef = new Stripe(keyForCheck);
+      }
+      const list = await stripeRef.customers.list(
         { limit: 1 }
       );
       if (('object' in list) &&
@@ -91,43 +94,84 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
 
     if (isKeyValid) {
       return {
-        connectionIsValid: true,
+        success: true,
         message: 'Valid secret key was provided to successfully connect to Stripe.'
       };
     }
     return {
-      connectionIsValid: false,
+      success: false,
       message: 'Provided secret key for Stripe is not valid.'
     };
   }
 
+  public async synchronizeUser(user: User): Promise<BillingResponse> {
+    const buildReq: Partial<Request> = {};
+    buildReq.body = {};
+    if (user.email) {
+      buildReq.body.email = user.email;
+    }
+    if (user.name) {
+      buildReq.body.name = user.name;
+    }
+    if (user.firstName) {
+      buildReq.body.firstName = user.firstName;
+    }
+    if (user.locale) {
+      buildReq.body.locale = user.locale;
+    }
+    const fullReq = buildReq as Request;
+    if (!user.billingData) {
+      user.billingData = {} as BillingUserData;
+    }
+    const oldCustomerID = user.billingData.customerID;
+    const response = await this.updateUser(user, fullReq);
+    if (response.customerID) {
+      await UserStorage.saveUserBillingData(this.tenantId, user.id, response);
+      if (oldCustomerID) {
+        return {
+          success: true,
+          message: 'updated'
+        };
+      }
+      return {
+        success: true,
+        message: 'created'
+      };
+    }
+    return {
+      success: false,
+      message: 'error'
+    };
+  }
 
-  public async startSession(user: User, transaction: Transaction): Promise<BillingDataStart> {
+  public async startTransaction(user: User, transaction: Transaction): Promise<BillingDataStart> {
     // Check configuration and user definition - it something is missing/invalid, set a status code, but
     // DO NOT STOP THE TRANSACTION
 
-    // Status Codes:
-    // blank or '00': OK, billing document can be created or was created
-    // '01': no connection to Stripe (wrong secret key?)
-    // '02': missing transaction user
-    // '03': missing minimum configuration for user (billing method or Stripe customer missing)
-    // '04': invalid billing method
-    // '05': billing method currently not supported
-    // '06': billing method needs subscription to billing plan, which is missing
-    // '07': user's subscription is invalid
-    // '08': user's customer (in Stripe) is invalid
-    // '50': invoice could not be created in Stripe
+    // Error Codes:
+    // blank or '00': OK
+    // '01': No connection to Stripe or wrong secret key
+    // '02': Transaction has no user ID
+    // '03': User has no billing method or no customer in Stripe
+    // '04': User is assigned to unknown billing method
+    // '05': Selected billing method currently not supported
+    // '06': User is not subscribed to Stripe billing plan
+    // '07': Stripe subscription ID of the user is invalid
+    // '08': Stripe customer ID of the user is invalid
+    // '50': Invoice item could not be created (Stripe error)
 
     const connection = await this.checkConnection();
-    if (!connection.connectionIsValid) {
+    if (!connection.success || !this.stripe) {
       return {
-        statusCode: '01'
+        errorCode: '01',
+        errorCodeDesc: 'No connection to Stripe or wrong secret key'
       };
     }
 
     if (!transaction.userID) {
       return {
-        statusCode: '02'
+        errorCode: '02',
+        errorCodeDesc: 'Transaction has no user ID'
       };
     }
 
@@ -140,7 +184,8 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
 
     if (!billingUser.billingData || !billingUser.billingData.customerID || !billingUser.billingData.method) {
       return {
-        statusCode: '03'
+        errorCode: '03',
+        errorCodeDesc: 'User has no billing method or no customer in Stripe'
       };
     }
 
@@ -148,21 +193,23 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
       billingUser.billingData.method !== Constants.BILLING_METHOD_PERIODIC &&
       billingUser.billingData.method !== Constants.BILLING_METHOD_ADVANCE) {
       return {
-        statusCode: '04'
+        errorCode: '04',
+        errorCodeDesc: 'User is assigned to unknown billing method'
       };
     }
 
-    if (billingUser.billingData.method === Constants.BILLING_METHOD_PERIODIC ||
-      billingUser.billingData.method === Constants.BILLING_METHOD_ADVANCE) {
+    if (billingUser.billingData.method === Constants.BILLING_METHOD_ADVANCE) {
       return {
-        statusCode: '05'
+        errorCode: '05',
+        errorCodeDesc: 'Selected billing method currently not supported'
       };
     }
 
     if (!billingUser.billingData.subscriptionID &&
       billingUser.billingData.method !== Constants.BILLING_METHOD_IMMEDIATE) {
       return {
-        statusCode: '06'
+        errorCode: '06',
+        errorCodeDesc: 'User is not subscribed to Stripe billing plan'
       };
     }
 
@@ -171,7 +218,8 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
       const subscription = await this._getSubscription(billingUser.billingData.subscriptionID);
       if (!subscription || subscription['id'] !== billingUser.billingData.subscriptionID) {
         return {
-          statusCode: '07'
+          errorCode: '07',
+          errorCodeDesc: 'Stripe subscription ID of the user is invalid'
         };
       }
     }
@@ -179,39 +227,46 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
     const customer = await this._getCustomer(billingUser);
     if (!customer || customer['id'] !== billingUser.billingData.customerID) {
       return {
-        statusCode: '08'
+        errorCode: '08',
+        errorCodeDesc: 'Stripe customer ID of the user is invalid'
       };
     }
 
     return {
-      statusCode: '00'
+      errorCode: '00',
+      errorCodeDesc: 'OK'
     };
   }
 
-  public async updateSession(transaction: Transaction): Promise<BillingDataUpdate> {
+  public async updateTransaction(transaction: Transaction): Promise<BillingDataUpdate> {
     // Only relevant for Advance Billing to stop the running transaction, if the credit amount is no more sufficient
     // TODO
 
     return {
-      statusCode: transaction.billingData.statusCode ? transaction.billingData.statusCode : '',
+      errorCode: transaction.billingData.errorCode ? transaction.billingData.errorCode : null,
+      errorCodeDesc: transaction.billingData.errorCodeDesc ? transaction.billingData.errorCodeDesc : null,
       stopTransaction: false,
     };
   }
 
-  public async stopSession(transaction: Transaction): Promise<BillingDataStop> {
+  public async stopTransaction(transaction: Transaction): Promise<BillingDataStop> {
 
-    if (transaction.billingData.statusCode && transaction.billingData.statusCode !== '0'
-      && transaction.billingData.statusCode !== '00') {
+    if (transaction.billingData.errorCode && transaction.billingData.errorCode !== '0'
+      && transaction.billingData.errorCode !== '00') {
       Logging.logError({
         tenantID: this.tenantId,
+        source: transaction.chargeBoxID,
+        action: Constants.ACTION_STOP_TRANSACTION,
         user: transaction.userID,
-        module: 'StripeBilling', method: 'stopSession',
+        module: 'StripeBilling', method: 'stopTransaction',
         message: `Billing not possible for transaction '${transaction.id}'`,
         detailedMessages: `Impossible to create new invoice item in Stripe Billing for transaction '${transaction.id}' ` +
-          `(error code: '${transaction.billingData.statusCode}')`
+          `(error code: '${transaction.billingData.errorCode}')`
       });
       return {
-        statusCode: transaction.billingData.statusCode,
+        status: Constants.BILLING_STATUS_UNBILLED,
+        errorCode: transaction.billingData.errorCode,
+        errorCodeDesc: transaction.billingData.errorCodeDesc,
         invoiceStatus: null,
         invoiceItem: null
       };
@@ -351,14 +406,18 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
     } catch (error) {
       Logging.logError({
         tenantID: this.tenantId,
+        source: transaction.chargeBoxID,
+        action: Constants.ACTION_STOP_TRANSACTION,
         user: transaction.userID,
-        module: 'StripeBilling', method: 'stopSession',
+        module: 'StripeBilling', method: 'stopTransaction',
         message: `Billing not possible for transaction '${transaction.id}'`,
         detailedMessages: `Impossible to create new invoice item in Stripe Billing for transaction '${transaction.id}' ` +
-          `(error code: '50')`
+          '(error code: "50")'
       });
       return {
-        statusCode: '50',
+        status: Constants.BILLING_STATUS_UNBILLED,
+        errorCode: '50',
+        errorCodeDesc: 'Invoice item could not be created (Stripe error)',
         invoiceStatus: null,
         invoiceItem: null
       };
@@ -366,434 +425,148 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
 
     StripeBilling.transactionIdemPotencyKeys = StripeBilling.transactionIdemPotencyKeys.filter((record) => record.transactionID !== transaction.id);
 
+    // TODO: log info message?
+
     return {
-      statusCode: '00',
+      status: Constants.BILLING_STATUS_BILLED,
+      errorCode: '',
+      errorCodeDesc: '',
       invoiceStatus: invoiceStatus,
       invoiceItem: invoiceItem,
     };
   }
 
-
-
   public async checkIfUserCanBeCreated(req: Request): Promise<void> {
-    const userBuilder: Partial<User> = {};
-
+    // Preliminary check to block creating a new user (optional - currently not used)
+    const buildUser: Partial<User> = {};
     if (req.body.email) {
-      userBuilder.email = sanitize(req.body.email);
-    }
-    if (req.body.locale) {
-      userBuilder.locale = sanitize(req.body.locale);
+      buildUser.email = req.body.email;
     }
     if (req.body.name) {
-      userBuilder.name = sanitize(req.body.name);
+      buildUser.name = req.body.name;
     }
     if (req.body.firstName) {
-      userBuilder.firstName = sanitize(req.body.firstName);
-    }
-
-    const user: User = userBuilder as User;
-
-    return await this.checkIfUserCanBeUpdated(user, req, true);
-  }
-
-  public async createUser(req: Request): Promise<BillingData> {
-    const userBuilder: Partial<User> = {};
-
-    if (req.body.email) {
-      userBuilder.email = sanitize(req.body.email);
+      buildUser.firstName = req.body.firstName;
     }
     if (req.body.locale) {
-      userBuilder.locale = sanitize(req.body.locale);
+      buildUser.locale = req.body.locale;
     }
-    if (req.body.name) {
-      userBuilder.name = sanitize(req.body.name);
-    }
-    if (req.body.firstName) {
-      userBuilder.firstName = sanitize(req.body.firstName);
-    }
-
-    const user: User = userBuilder as User;
-
-    return await this.updateUser(user, req);
-  }
-
-  public async checkIfUserCanBeUpdated(user: User, req: Request, createUser = false): Promise<void> {
-    return;
-
-
-    let methodName;
-    if (createUser) {
-      methodName = 'handleCreateUser';
-    } else {
-      methodName = 'handleUpdateUser';
-    }
-
-    try {
-      const response = await this._checkConnectionToBillingDB();
-      if (response === 'error') {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          'Error during connection to billing database (Stripe)', Constants.HTTP_GENERAL_ERROR,
-          'UserService', methodName, req.user);
-      }
-
-      if (createUser) {
-        const existingCustomer = await this._getCustomer(user, req);
-        if (existingCustomer && existingCustomer['email']) {
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            `Billing customer with email ${existingCustomer['email']} already exists in billing database (Stripe)` +
-            `delete this customer or assign another email (conflict with user ${user.firstName} ${user.name})`, Constants.HTTP_GENERAL_ERROR,
-            'UserService', methodName, req.user);
-        }
-      }
-
-      const newPaymentMethod = req.body.paymentToken ? sanitize(req.body.paymentToken) : null;
-      if (!newPaymentMethod && (!user.billingData || !user.billingData.cardID) && !this.settings.noCardAllowed) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `Payment method (card) is mandatory for user ${user.firstName} ${user.name}`, Constants.HTTP_GENERAL_ERROR,
-          'UserService', methodName, req.user);
-      }
-
-      const newBillingMethod = this._getBillingMethod(user, req);
-      if ((newBillingMethod === Constants.BILLING_METHOD_IMMEDIATE && !this.settings.immediateBillingAllowed) ||
-        (newBillingMethod === Constants.BILLING_METHOD_PERIODIC && !this.settings.periodicBillingAllowed) ||
-        (newBillingMethod === Constants.BILLING_METHOD_ADVANCE && !this.settings.advanceBillingAllowed)) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `Billing method ${newBillingMethod} is not allowed by configuration (user ${user.firstName} ${user.name})`, Constants.HTTP_GENERAL_ERROR,
-          'UserService', methodName, req.user);
-      }
-
-      if ((!user.billingData || !user.billingData.method) && !newBillingMethod) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `A billing method must be specified for user ${user.firstName} ${user.name}`, Constants.HTTP_GENERAL_ERROR,
-          'UserService', methodName, req.user);
-      }
-
-      const billingMethod = newBillingMethod ? newBillingMethod : user.billingData ? user.billingData.method : null;
-
-      let billingPlan = req.body.billingPlan ? sanitize(req.body.billingPlan) : null;
-      if (!billingPlan && (!user.billingData || !user.billingData.subscriptionID) && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
-        billingPlan = this._retrieveFirstBillingPlanFromSettings(billingMethod);
-        if (!billingPlan) {
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            `A billing plan is needed for subscribing user ${user.firstName} ${user.name}`, Constants.HTTP_GENERAL_ERROR,
-            'UserService', methodName, req.user);
-        }
-      }
-
-      if (billingPlan && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
-        const plan = await this.stripe.plans.retrieve(billingPlan);
-        if (!plan || !plan.id || plan.id !== billingPlan) {
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            `Billing plan ${billingPlan} does not exist`, Constants.HTTP_GENERAL_ERROR,
-            'UserService', methodName, req.user);
-        } else if (plan.currency.toLocaleLowerCase() !== this.settings.currency.toLocaleLowerCase()) {
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            `Billing plan ${billingPlan} uses the wrong currency ${plan.currency} `, Constants.HTTP_GENERAL_ERROR,
-            'UserService', methodName, req.user);
-        }
-      }
-
-    } catch (error) {
+    const fullUser = buildUser as User;
+    const response = await this._possibleToModifyUser(fullUser, req, true);
+    // Throw an error
+    if (!response.success) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        'Fatal error when trying to access billing database (Stripe)', Constants.HTTP_GENERAL_ERROR,
-        'UserService', methodName, req.user);
+        response.message,
+        Constants.HTTP_GENERAL_ERROR, // TODO: use a new constant
+        'UserService', 'handleCreateUser', req.user);
     }
   }
 
-  public async updateUser(user: User, req: Request): Promise<BillingData> {
-    return {} as BillingData;
-
-    const email = req.body.email ? sanitize(req.body.email) : user.email;
-    const fullName = Utils.buildUserFullName(user, false);
-
-    let locale = req.body.locale ? sanitize(req.body.locale) : user.locale;
-    locale = locale.substr(0, 2).toLocaleLowerCase();
-
-    let description: string;
-    // LOCALE_SUPPORT_NEEDED #BEGIN
-    if (locale === 'fr') {
-      description = 'Client généré pour {{email}}';
-    } else {
-      description = 'Generated customer for {{email}}';
+  public async checkIfUserCanBeUpdated(user: User, req: Request): Promise<void> {
+    // Preliminary check to block changing a user (optional - currently not used)
+    const response = await this._possibleToModifyUser(user, req);
+    // Throw an error
+    if (!response.success) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        response.message,
+        Constants.HTTP_GENERAL_ERROR, // TODO: use a new constant
+        'UserService', 'handleUpdateUser', req.user);
     }
-    description = description.replace('{{email}}', email);
-    // LOCALE_SUPPORT_NEEDED #END
-
-    let customer = await this._getCustomer(user, req);
-    if (!customer['id']) {
-      customer = await this.stripe.customers.create({
-        email: email,
-        description: description,
-        name: fullName,
-        preferred_locales: [locale]
-      });
-    }
-
-    if (customer['email'] !== email) {
-      // Should not happen
-      customer = await this.stripe.customers.update(
-        customer['id'],
-        { email: email }
-      );
-    }
-
-    if (customer['description'] !== description) {
-      customer = await this.stripe.customers.update(
-        customer['id'],
-        { description: description }
-      );
-    }
-
-    if (customer['name'] !== fullName) {
-      customer = await this.stripe.customers.update(
-        customer['id'],
-        { name: fullName }
-      );
-    }
-
-    if (locale) {
-      if (!customer['preferred_locales'] ||
-        customer['preferred_locales'].length === 0 ||
-        customer['preferred_locales'][0] !== locale) {
-        customer = await this.stripe.customers.update(
-          customer['id'],
-          { preferred_locales: null }
-        );
-        customer = await this.stripe.customers.update(
-          customer['id'],
-          { preferred_locales: [locale] }
-        );
-      }
-    }
-
-    const newSource = req.body.paymentToken ? sanitize(req.body.paymentToken) : null;
-    if (newSource) {
-      customer = await this.stripe.customers.update(
-        customer['id'],
-        { source: newSource }
-      );
-    }
-
-    const billingMethod = this._getBillingMethod(user, req, true);
-
-    let collectionMethod;
-    let daysUntilDue = 0;
-    if (!customer['default_source'] && (!user.billingData || !user.billingData.cardID)) {
-      collectionMethod = 'send_invoice';
-      daysUntilDue = 30;
-    } else {
-      collectionMethod = 'charge_automatically';
-    }
-
-    let billingPlan = req.body.billingPlan ? sanitize(req.body.billingPlan) : null;
-    if (!billingPlan) {
-      billingPlan = this._retrieveFirstBillingPlanFromSettings(billingMethod);
-    }
-
-    if (user.billingData && user.billingData.subscriptionID && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
-      // Check whether existing subscription needs to be updated
-      const oldSubscription = await this.stripe.subscriptions.retrieve(user.billingData.subscriptionID);
-      if (collectionMethod === 'charge_automatically' && oldSubscription.billing === 'send_invoice') {
-        await this.stripe.subscriptions.update(
-          user.billingData.subscriptionID,
-          {
-            billing: collectionMethod,
-          });
-      }
-      if (billingPlan !== oldSubscription.plan) {
-        await this.stripe.subscriptions.update(
-          user.billingData.subscriptionID,
-          {
-            plan: billingPlan,
-          });
-      }
-    }
-
-    let newSubscription = user.billingData ? user.billingData.subscriptionID : null;
-    if ((!user.billingData || !user.billingData.subscriptionID) && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
-      // Create subscription
-      let billingCycleAnchor = moment().unix(); // Now
-      const plan = await this.stripe.plans.retrieve(billingPlan);
-      if (plan.interval === 'year' || plan.interval === 'month') {
-        billingCycleAnchor = moment().endOf('month').add(1, 'day').unix(); // Begin of next month
-      }
-      let subscription: Stripe.subscriptions.ISubscription;
-      if (collectionMethod === 'send_invoice') {
-        subscription = await this.stripe.subscriptions.create({
-          customer: customer['id'],
-          items: [
-            {
-              plan: billingPlan,
-            }
-          ],
-          billing_cycle_anchor: billingCycleAnchor,
-          billing: 'send_invoice',
-          days_until_due: daysUntilDue,
-        });
-      } else {
-        subscription = await this.stripe.subscriptions.create({
-          customer: customer['id'],
-          items: [
-            {
-              plan: billingPlan,
-            }
-          ],
-          billing_cycle_anchor: billingCycleAnchor,
-          billing: 'charge_automatically',
-        });
-      }
-      newSubscription = subscription['id'];
-    }
-
-    return {
-      method: billingMethod,
-      customerID: customer['id'],
-      cardID: customer['default_source'],
-      subscriptionID: newSubscription,
-      lastUpdate: new Date(),
-    };
   }
 
   public async checkIfUserCanBeDeleted(user: User, req: Request): Promise<void> {
-    try {
-      if (user.billingData && user.billingData.customerID) {
-        const testMode = this._checkIfTestMode();
-        if (testMode) {
-          const customer = await this._getCustomer(user, req);
-          if (customer) {
-            if (!customer['livemode']) {
-              return; // In test mode the customer may be deleted
-            }
-          }
-        }
-
-        let list = await this.stripe.invoices.list(
-          {
-            customer: user.billingData.customerID,
-            status: 'open',
-          }
-        );
-        if (list && list.data && list.data.length > 0) {
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            `Still open invoices exist for user ${user.firstName} ${user.name} in Stripe (${user.billingData.customerID})`, Constants.HTTP_GENERAL_ERROR,
-            'UserService', 'handleDeleteUser', req.user);
-        }
-        list = await this.stripe.invoices.list(
-          {
-            customer: user.billingData.customerID,
-            status: 'draft',
-          }
-        );
-        if (list && list.data && list.data.length > 0) {
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            `Still draft invoices exist for user ${user.firstName} ${user.name} in Stripe (${user.billingData.customerID})`, Constants.HTTP_GENERAL_ERROR,
-            'UserService', 'handleDeleteUser', req.user);
-        }
-        const itemsList = await this.stripe.invoiceItems.list(
-          {
-            customer: user.billingData.customerID,
-            pending: true,
-          }
-        );
-        if (itemsList && itemsList.data && itemsList.data.length > 0) {
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            `Still pending invoice items exist for user ${user.firstName} ${user.name} in Stripe (${user.billingData.customerID})`, Constants.HTTP_GENERAL_ERROR,
-            'UserService', 'handleDeleteUser', req.user);
-        }
-      }
-    } catch (error) {
+    // Preliminary check to block deleting a user with open Billing data
+    const response = await this._possibleToDeleteUser(user, req);
+    // Throw an error
+    if (!response.success) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        'Fatal error when trying to access billing database (Stripe)', Constants.HTTP_GENERAL_ERROR,
+        response.message,
+        Constants.HTTP_GENERAL_ERROR, // TODO: use a new constant
         'UserService', 'handleDeleteUser', req.user);
     }
   }
 
+  public async createUser(req: Request): Promise<BillingUserData> {
+    const buildUser: Partial<User> = {};
+    if (req.body.email) {
+      buildUser.email = req.body.email;
+    }
+    if (req.body.name) {
+      buildUser.name = req.body.name;
+    }
+    if (req.body.firstName) {
+      buildUser.firstName = req.body.firstName;
+    }
+    if (req.body.locale) {
+      buildUser.locale = req.body.locale;
+    }
+    const fullUser = buildUser as User;
+    const response = await this._possibleToModifyUser(fullUser, req, true);
+    if (!response.success) {
+      Logging.logError({
+        tenantID: this.tenantId,
+        source: req.body.email,
+        action: Constants.ACTION_CREATE,
+        module: 'StripeBilling', method: 'createUser',
+        message: `Impossible to create Stripe customer for user '${req.body.email}'`,
+        detailedMessages: response.message
+      });
+      return {} as BillingUserData;
+    }
+    return await this._modifyUser(fullUser, req);
+  }
+
+  public async updateUser(user: User, req: Request): Promise<BillingUserData> {
+    const response = await this._possibleToModifyUser(user, req);
+    if (!response.success) {
+      Logging.logError({
+        tenantID: this.tenantId,
+        source: user.email,
+        action: Constants.ACTION_UPDATE,
+        module: 'StripeBilling', method: 'updateUser',
+        message: `Impossible to update Stripe customer for user '${user.email}'`,
+        detailedMessages: response.message
+      });
+      return {} as BillingUserData;
+    }
+    return await this._modifyUser(user, req);
+  }
+
   public async deleteUser(user: User, req: Request): Promise<void> {
+    const response = await this._possibleToDeleteUser(user, req);
+    if (!response.success) {
+      Logging.logError({
+        tenantID: this.tenantId,
+        source: user.email,
+        action: Constants.ACTION_DELETE,
+        module: 'StripeBilling', method: 'deleteUser',
+        message: `Impossible to delete Stripe customer for user '${user.email}'`,
+        detailedMessages: response.message
+      });
+      return;
+    }
     if (user.billingData && user.billingData.customerID) {
       const customer = await this._getCustomer(user, req);
-      if (customer && customer['id']) {
-        await this.stripe.customers.del(
-          customer['id']
-        );
-      }
-    }
-  }
-
-  private async _checkConnectionToBillingDB(): Promise<string> {
-    // Try to access customer list in stripe
-    const list = await this.stripe.customers.list(
-      { limit: 1 }
-    );
-
-    if (!('object' in list) ||
-      (list['object'] !== 'list')) {
-      return 'error';
-    }
-  }
-
-  private _getBillingMethod(user: User, req: Request, useUserData?: boolean): string {
-    if (useUserData && user.billingData && user.billingData.method) {
-      return user.billingData.method;
-    }
-    let billingMethod = req.body.billingMethod ? sanitize(req.body.billingMethod) : null;
-    if (!billingMethod ||
-      (billingMethod !== Constants.BILLING_METHOD_IMMEDIATE
-        && billingMethod !== Constants.BILLING_METHOD_PERIODIC
-        && billingMethod !== Constants.BILLING_METHOD_ADVANCE)) {
-      if (this.settings.immediateBillingAllowed) {
-        billingMethod = Constants.BILLING_METHOD_IMMEDIATE;
-      } else if (this.settings.periodicBillingAllowed) {
-        billingMethod = Constants.BILLING_METHOD_PERIODIC;
-      } else if (this.settings.advanceBillingAllowed) {
-        billingMethod = Constants.BILLING_METHOD_ADVANCE;
-      }
-    }
-    return billingMethod;
-  }
-
-  private _retrieveFirstBillingPlanFromSettings(billingMethod: string): string {
-    if (billingMethod === Constants.BILLING_METHOD_PERIODIC) {
-      if (this.settings.periodicBillingAllowed && this.settings.periodicBillingPlans) {
-        if (Array.isArray(this.settings.periodicBillingPlans)) {
-          if (this.settings.periodicBillingPlans.length > 0) {
-            return this.settings.periodicBillingPlans[0];
-          }
-        } else {
-          return this.settings.periodicBillingPlans;
-        }
-      }
-    } else if (billingMethod === Constants.BILLING_METHOD_ADVANCE) {
-      if (this.settings.advanceBillingAllowed && this.settings.advanceBillingPlans) {
-        if (Array.isArray(this.settings.advanceBillingPlans)) {
-          if (this.settings.advanceBillingPlans.length > 0) {
-            return this.settings.advanceBillingPlans[0];
-          }
-        } else {
-          return this.settings.advanceBillingPlans;
+      if (customer && customer['id'] && this.stripe) {
+        try {
+          await this.stripe.customers.del(
+            customer['id']
+          );
+        } catch (error) {
+          Logging.logError({
+            tenantID: this.tenantId,
+            source: user.email,
+            action: Constants.ACTION_DELETE,
+            module: 'StripeBilling', method: 'deleteUser',
+            message: `Impossible to delete Stripe customer for user '${user.email}'`,
+            detailedMessages: error
+          });
         }
       }
     }
-    return '';
-  }
-
-  private _checkIfTestMode(): boolean {
-    if (this.settings.secretKey.substr(0, 7) === 'sk_test') {
-      return true;
-    }
-    return false;
   }
 
   private async _getCustomer(user: User, req?: Request): Promise<object> {
@@ -829,6 +602,502 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
       }
     }
     return {};
+  }
+
+  private async _possibleToModifyUser(user: User, req: Request, createUser = false): Promise<BillingResponse> {
+    const response = await this.checkConnection();
+    if (!response.success) {
+      if (createUser) {
+        return {
+          success: false,
+          message: `Customer cannot be created in Stripe for user ${user.firstName} ${user.name}. Reason: ${response.message}`
+        };
+      }
+      return {
+        success: false,
+        message: `Customer cannot be changed in Stripe for user ${user.firstName} ${user.name}. Reason: ${response.message}`
+      };
+    }
+
+    if (createUser) {
+      const existingCustomer = await this._getCustomer(user, req);
+      if (existingCustomer && existingCustomer['email']) {
+        return {
+          success: false,
+          message: `Customer cannot be created in Stripe for user ${user.firstName} ${user.name}. ` +
+            `Reason: a customer with email ${existingCustomer['email']} already exists in Stripe`
+        };
+      }
+    }
+
+    const newPaymentMethod = req.body.paymentToken ? sanitize(req.body.paymentToken) : null;
+    if (!newPaymentMethod && (!user.billingData || !user.billingData.cardID) && !this.settings.noCardAllowed) {
+      if (createUser) {
+        return {
+          success: false,
+          message: `Customer cannot be created in Stripe for user ${user.firstName} ${user.name}. ` +
+            'Reason: Tenant settings require the selection of a payment method (card)'
+        };
+      }
+      return {
+        success: false,
+        message: `Customer cannot be changed in Stripe for user ${user.firstName} ${user.name}. ` +
+          'Reason: Tenant settings require the selection of a payment method (card)'
+      };
+    }
+
+    const billingMethod = this._retrieveBillingMethod(user, req);
+    if (!billingMethod) {
+      if (createUser) {
+        return {
+          success: false,
+          message: `Customer cannot be created in Stripe for user ${user.firstName} ${user.name}. ` +
+            'Reason: No billing method was selected'
+        };
+      }
+      return {
+        success: false,
+        message: `Customer cannot be changed in Stripe for user ${user.firstName} ${user.name}. ` +
+          'Reason: No billing method was selected'
+      };
+    }
+
+    if ((billingMethod === Constants.BILLING_METHOD_IMMEDIATE && !this.settings.immediateBillingAllowed) ||
+      (billingMethod === Constants.BILLING_METHOD_PERIODIC && !this.settings.periodicBillingAllowed) ||
+      (billingMethod === Constants.BILLING_METHOD_ADVANCE && !this.settings.advanceBillingAllowed)) {
+      if (createUser) {
+        return {
+          success: false,
+          message: `Customer cannot be created in Stripe for user ${user.firstName} ${user.name}. ` +
+            `Reason: Billing method '${billingMethod}' not allowed by tenant settings`
+        };
+      }
+      return {
+        success: false,
+        message: `Customer cannot be changed in Stripe for user ${user.firstName} ${user.name}. ` +
+          `Reason: Billing method '${billingMethod}' not allowed by tenant settings`
+      };
+    }
+
+    let billingPlan = req.body.billingPlan ? sanitize(req.body.billingPlan) : null;
+    if (!billingPlan && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
+      billingPlan = await this._retrieveBillingPlan();
+    }
+
+    if (!billingPlan && (!user.billingData || !user.billingData.subscriptionID) && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
+      if (createUser) {
+        return {
+          success: false,
+          message: `Customer cannot be created in Stripe for user ${user.firstName} ${user.name}. ` +
+            'Reason: No billing plan provided to create a subscription'
+        };
+      }
+      return {
+        success: false,
+        message: `Customer cannot be changed in Stripe for user ${user.firstName} ${user.name}. ` +
+          'Reason: No billing plan provided to create a subscription'
+      };
+    }
+
+    if (billingPlan && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
+      const plan = await this._getBillingPlan(billingPlan);
+      if (!plan || !plan['id'] || plan['id'] !== billingPlan) {
+        if (createUser) {
+          return {
+            success: false,
+            message: `Customer cannot be created in Stripe for user ${user.firstName} ${user.name}. ` +
+              `Reason: Billing plan '${billingPlan}' does not exist`
+          };
+        }
+        return {
+          success: false,
+          message: `Customer cannot be changed in Stripe for user ${user.firstName} ${user.name}. ` +
+            `Reason: Billing plan '${billingPlan}' does not exist`
+        };
+      } else if (plan['currency'].toLocaleLowerCase() !== this.settings.currency.toLocaleLowerCase()) {
+        if (createUser) {
+          return {
+            success: false,
+            message: `Customer cannot be created in Stripe for user ${user.firstName} ${user.name}. ` +
+              `Reason: Billing plan '${billingPlan}' uses wrong currency ${plan['currency']}`
+          };
+        }
+        return {
+          success: false,
+          message: `Customer cannot be changed in Stripe for user ${user.firstName} ${user.name}. ` +
+            `Reason: Billing plan '${billingPlan}' uses wrong currency ${plan['currency']}`
+        };
+      }
+    }
+
+    return {
+      success: true,
+      message: 'Everything is OK'
+    };
+  }
+
+  private _retrieveBillingMethod(user: User, req: Request): string {
+    if (req.body.billingMethod) {
+      return sanitize(req.body.billingMethod);
+    }
+    if (user.billingData && user.billingData.method) {
+      return user.billingData.method;
+    }
+    // Take the first allowed method from the settings
+    if (this.settings.immediateBillingAllowed) {
+      return Constants.BILLING_METHOD_IMMEDIATE;
+    }
+    if (this.settings.periodicBillingAllowed) {
+      return Constants.BILLING_METHOD_PERIODIC;
+    }
+    if (this.settings.advanceBillingAllowed) {
+      return Constants.BILLING_METHOD_ADVANCE;
+    }
+  }
+
+  private async _getBillingPlan(billingPlanID: string): Promise<object> {
+    if (this.stripe) {
+      try {
+        return await this.stripe.plans.retrieve(billingPlanID);
+      } catch (error) {
+        return {};
+      }
+    }
+    return {};
+  }
+
+  private async _retrieveBillingPlan(): Promise<string> {
+    // If not provided from the HTTP request (e.g. req.body.billingPlan), try to assign a billing plan from
+    // somewhere else, for example a default plan from this.settings... TODO !!!
+    return '';
+  }
+
+  private async _possibleToDeleteUser(user: User, req: Request): Promise<BillingResponse> {
+    if (!user.billingData || !user.billingData.customerID) {
+      return {
+        success: true,
+        message: `No Stripe customer assigned to user ${user.firstName} ${user.name}`
+      };
+    }
+
+    const response = await this.checkConnection();
+    if (!response.success) {
+      return {
+        success: false,
+        message: `Customer cannot be deleted in Stripe for user ${user.firstName} ${user.name}. Reason: ${response.message}`
+      };
+    }
+
+    const testMode = this._checkIfTestMode();
+    if (testMode) {
+      const customer = await this._getCustomer(user, req);
+      if (customer && !customer['livemode']) {
+        return {
+          success: true,
+          message: `Customer ID '${user.billingData.customerID}' can be deleted in Stripe (test mode)`
+        };
+      }
+    }
+
+    let list = await this.stripe.invoices.list(
+      {
+        customer: user.billingData.customerID,
+        status: 'open',
+      }
+    );
+    if (list && list.data && list.data.length > 0) {
+      return {
+        success: false,
+        message: `Customer cannot be deleted in Stripe for user ${user.firstName} ${user.name}. ` +
+          'Reason: Open invoices still exist in Stripe'
+      };
+    }
+
+    list = await this.stripe.invoices.list(
+      {
+        customer: user.billingData.customerID,
+        status: 'draft',
+      }
+    );
+    if (list && list.data && list.data.length > 0) {
+      return {
+        success: false,
+        message: `Customer cannot be deleted in Stripe for user ${user.firstName} ${user.name}. ` +
+          'Reason: Draft invoices still exist in Stripe'
+      };
+    }
+
+    const itemsList = await this.stripe.invoiceItems.list(
+      {
+        customer: user.billingData.customerID,
+        pending: true,
+      }
+    );
+    if (itemsList && itemsList.data && itemsList.data.length > 0) {
+      return {
+        success: false,
+        message: `Customer cannot be deleted in Stripe for user ${user.firstName} ${user.name}. ` +
+          'Reason: Pending invoice items still exist in Stripe'
+      };
+    }
+
+    return {
+      success: true,
+      message: `Customer ID '${user.billingData.customerID}' can be deleted in Stripe`
+    };
+  }
+
+  private _checkIfTestMode(): boolean {
+    if (this.settings.secretKey.substr(0, 7) === 'sk_test') {
+      return true;
+    }
+    return false;
+  }
+
+  private async _modifyUser(user: User, req: Request): Promise<BillingUserData> {
+    const email = req.body.email ? sanitize(req.body.email) : user.email;
+    const fullName = Utils.buildUserFullName(user, false);
+
+    let locale = req.body.locale ? sanitize(req.body.locale) : user.locale;
+    locale = locale.substr(0, 2).toLocaleLowerCase();
+
+    let description: string;
+    // LOCALE_SUPPORT_NEEDED #BEGIN
+    if (locale === 'fr') {
+      description = 'Client généré pour {{email}}';
+    } else {
+      description = 'Generated customer for {{email}}';
+    }
+    description = description.replace('{{email}}', email);
+    // LOCALE_SUPPORT_NEEDED #END
+
+    let customer = await this._getCustomer(user, req);
+    if (!customer['id']) {
+      try {
+        customer = await this.stripe.customers.create({
+          email: email,
+          description: description,
+          name: fullName,
+          preferred_locales: [locale]
+        });
+      } catch (error) {
+        Logging.logError({
+          tenantID: this.tenantId,
+          source: user.email,
+          action: Constants.ACTION_CREATE,
+          module: 'StripeBilling', method: '_modifyUser',
+          message: `Impossible to create Stripe customer for user '${user.email}'`,
+          detailedMessages: error
+        });
+        return {} as BillingUserData;
+      }
+    }
+
+    if (customer['email'] !== email) {
+      try {
+        customer = await this.stripe.customers.update(
+          customer['id'],
+          { email: email }
+        );
+      } catch (error) {
+        Logging.logError({
+          tenantID: this.tenantId,
+          source: user.email,
+          action: Constants.ACTION_UPDATE,
+          module: 'StripeBilling', method: '_modifyUser',
+          message: `Impossible to update Stripe customer for user '${user.email}'`,
+          detailedMessages: error
+        });
+        return {} as BillingUserData;
+      }
+    }
+
+    if (customer['description'] !== description) {
+      try {
+        customer = await this.stripe.customers.update(
+          customer['id'],
+          { description: description }
+        );
+      } catch (error) {
+        Logging.logError({
+          tenantID: this.tenantId,
+          source: user.email,
+          action: Constants.ACTION_UPDATE,
+          module: 'StripeBilling', method: '_modifyUser',
+          message: `Impossible to update Stripe customer for user '${user.email}'`,
+          detailedMessages: error
+        });
+        return {} as BillingUserData;
+      }
+    }
+
+    if (customer['name'] !== fullName) {
+      try {
+        customer = await this.stripe.customers.update(
+          customer['id'],
+          { name: fullName }
+        );
+      } catch (error) {
+        Logging.logError({
+          tenantID: this.tenantId,
+          source: user.email,
+          action: Constants.ACTION_UPDATE,
+          module: 'StripeBilling', method: '_modifyUser',
+          message: `Impossible to update Stripe customer for user '${user.email}'`,
+          detailedMessages: error
+        });
+        return {} as BillingUserData;
+      }
+    }
+
+    if (locale) {
+      if (!customer['preferred_locales'] ||
+        customer['preferred_locales'].length === 0 ||
+        customer['preferred_locales'][0] !== locale) {
+        try {
+          customer = await this.stripe.customers.update(
+            customer['id'],
+            { preferred_locales: null }
+          );
+          customer = await this.stripe.customers.update(
+            customer['id'],
+            { preferred_locales: [locale] }
+          );
+        } catch (error) {
+          Logging.logError({
+            tenantID: this.tenantId,
+            source: user.email,
+            action: Constants.ACTION_UPDATE,
+            module: 'StripeBilling', method: '_modifyUser',
+            message: `Impossible to update Stripe customer for user '${user.email}'`,
+            detailedMessages: error
+          });
+          return {} as BillingUserData;
+        }
+      }
+    }
+
+    const newSource = req.body.paymentToken ? sanitize(req.body.paymentToken) : null;
+    if (newSource) {
+      try {
+        customer = await this.stripe.customers.update(
+          customer['id'],
+          { source: newSource }
+        );
+      } catch (error) {
+        Logging.logError({
+          tenantID: this.tenantId,
+          source: user.email,
+          action: Constants.ACTION_UPDATE,
+          module: 'StripeBilling', method: '_modifyUser',
+          message: `Impossible to update Stripe customer for user '${user.email}'`,
+          detailedMessages: error
+        });
+        return {} as BillingUserData;
+      }
+    }
+
+    const billingMethod = this._retrieveBillingMethod(user, req);
+    let collectionMethod;
+    let daysUntilDue = 0;
+    if (!customer['default_source'] && (!user.billingData || !user.billingData.cardID)) {
+      collectionMethod = 'send_invoice';
+      daysUntilDue = 30;
+    } else {
+      collectionMethod = 'charge_automatically';
+    }
+
+    let billingPlan = req.body.billingPlan ? sanitize(req.body.billingPlan) : null;
+    if (!billingPlan && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
+      billingPlan = await this._retrieveBillingPlan();
+    }
+
+    if (user.billingData && user.billingData.subscriptionID && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
+      // Check whether existing subscription needs to be updated
+      const oldSubscription = await this._getSubscription(user.billingData.subscriptionID);
+      if (collectionMethod === 'charge_automatically' && oldSubscription['billing'] === 'send_invoice') {
+        await this.stripe.subscriptions.update(
+          user.billingData.subscriptionID,
+          {
+            billing: collectionMethod,
+          });
+      }
+      if (billingPlan && billingPlan !== oldSubscription['plan']) {
+        try {
+          await this.stripe.subscriptions.update(
+            user.billingData.subscriptionID,
+            {
+              plan: billingPlan,
+            });
+        } catch (error) {
+          Logging.logError({
+            tenantID: this.tenantId,
+            source: user.email,
+            action: Constants.ACTION_UPDATE,
+            module: 'StripeBilling', method: '_modifyUser',
+            message: `Impossible to update Stripe subscription for user '${user.email}'`,
+            detailedMessages: error
+          });
+          return {} as BillingUserData;
+        }
+      }
+    }
+
+    let newSubscription = user.billingData ? user.billingData.subscriptionID : null;
+    if (!newSubscription && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
+      // Create subscription
+      let billingCycleAnchor = moment().unix(); // Now
+      const plan = await this._getBillingPlan(billingPlan);
+      if (plan['interval'] === 'year' || plan['interval'] === 'month') {
+        billingCycleAnchor = moment().endOf('month').add(1, 'day').unix(); // Begin of next month
+      }
+      let subscription: Stripe.subscriptions.ISubscription;
+      try {
+        if (collectionMethod === 'send_invoice') {
+          subscription = await this.stripe.subscriptions.create({
+            customer: customer['id'],
+            items: [
+              {
+                plan: billingPlan,
+              }
+            ],
+            billing_cycle_anchor: billingCycleAnchor,
+            billing: 'send_invoice',
+            days_until_due: daysUntilDue,
+          });
+        } else {
+          subscription = await this.stripe.subscriptions.create({
+            customer: customer['id'],
+            items: [
+              {
+                plan: billingPlan,
+              }
+            ],
+            billing_cycle_anchor: billingCycleAnchor,
+            billing: 'charge_automatically',
+          });
+        }
+      } catch (error) {
+        Logging.logError({
+          tenantID: this.tenantId,
+          source: user.email,
+          action: Constants.ACTION_CREATE,
+          module: 'StripeBilling', method: '_modifyUser',
+          message: `Impossible to create Stripe subscription for user '${user.email}'`,
+          detailedMessages: error
+        });
+        return {} as BillingUserData;
+      }
+      newSubscription = subscription['id'];
+    }
+
+    return {
+      method: billingMethod,
+      customerID: customer['id'],
+      cardID: customer['default_source'] ? customer['default_source'] : null,
+      subscriptionID: newSubscription ? newSubscription : null,
+      lastUpdate: new Date()
+    };
   }
 
 }

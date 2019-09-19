@@ -1,19 +1,15 @@
 import sanitize from 'mongo-sanitize';
 import { NextFunction, Request, Response } from 'express';
 import HttpStatusCodes from 'http-status-codes';
-import _ from 'lodash';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
-// import { BillingConnection } from '../../../integration/billing/Billing';
 import BillingFactory from '../../../integration/billing/BillingFactory';
 import Constants from '../../../utils/Constants';
-import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
-import SettingSecurity from './security/SettingSecurity';
-import SettingStorage from '../../../storage/mongodb/SettingStorage';
-import Stripe from 'stripe';
-import UtilsService from './UtilsService';
+import TenantStorage from '../../../storage/mongodb/TenantStorage';
+import UserStorage from '../../../storage/mongodb/UserStorage';
+import Utils from '../../../utils/Utils';
 
 export default class BillingService {
 
@@ -34,7 +30,7 @@ export default class BillingService {
 
       const checkResult = await billingImpl.checkConnection();
 
-      if (checkResult.connectionIsValid) {
+      if (checkResult.success) {
         Logging.logSecurityInfo({
           tenantID: tenantID,
           user: req.user, module: 'BillingService', method: 'handleGetBillingConnection',
@@ -49,7 +45,7 @@ export default class BillingService {
           action: action, detailedMessages: 'Checking connection to Billing application'
         });
       }
-      res.status(HttpStatusCodes.OK).json(Object.assign({ connectionIsValid: checkResult.connectionIsValid }, Constants.REST_RESPONSE_SUCCESS));
+      res.status(HttpStatusCodes.OK).json(Object.assign({ connectionIsValid: checkResult.success }, Constants.REST_RESPONSE_SUCCESS));
     } else {
       Logging.logSecurityWarning({
         tenantID: tenantID,
@@ -62,163 +58,80 @@ export default class BillingService {
     next();
   }
 
-  public static async handleGetSetting(action: string, req: Request, res: Response, next: NextFunction) {
-    // Filter
-    const settingID = SettingSecurity.filterSettingRequestByID(req.query);
-    UtilsService.assertIdIsProvided(settingID, 'SettingService', 'handleGetSetting', req.user);
-    // Check auth
-    if (!Authorizations.canReadSetting(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_READ,
-        Constants.ENTITY_SETTING,
-        settingID,
-        Constants.HTTP_AUTH_ERROR,
-        'SettingService', 'handleGetSetting',
-        req.user);
-    }
-    // Get it
-    const setting = await SettingStorage.getSetting(req.user.tenantID, settingID);
-    UtilsService.assertObjectExists(setting, `Setting with ID '${settingID}' does not exist`, 'SettingService', 'handleGetSetting', req.user);
-    // Process the sensitive data if any
-    // Hash sensitive data before being sent to the front end
-    Cypher.hashSensitiveDataInJSON(setting);
-    // Return
-    res.json(
-      // Filter
-      SettingSecurity.filterSettingResponse(setting, req.user)
-    );
-    next();
-  }
+  public static async handleSynchronizeUsers(action: string, req: Request, res: Response, next: NextFunction) {
+    try {
+      if (!Authorizations.isAdmin(req.user.role)) {
+        throw new AppAuthError(
+          Constants.ACTION_UPDATE,
+          Constants.ENTITY_USER,
+          null,
+          Constants.HTTP_AUTH_ERROR, 'BillingService', 'handleSynchronizeUsers',
+          req.user);
+      }
 
-  public static async handleGetSettings(action: string, req: Request, res: Response, next: NextFunction) {
-    // Check auth
-    if (!Authorizations.canListSettings(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_LIST,
-        Constants.ENTITY_SETTINGS,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        'SettingService', 'handleGetSettings',
-        req.user);
-    }
-    // Filter
-    const filteredRequest = SettingSecurity.filterSettingsRequest(req.query);
-    // Get the all settings identifier
-    const settings = await SettingStorage.getSettings(req.user.tenantID,
-      { identifier: filteredRequest.Identifier },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort });
-    settings.result = settings.result.map((setting) => setting);
-    // Filter
-    settings.result = SettingSecurity.filterSettingsResponse(settings.result, req.user);
-    // Process the sensitive data if any
-    settings.result.forEach((setting) => {
-      // Hash sensitive data before being sent to the front end
-      Cypher.hashSensitiveDataInJSON(setting);
-    });
-    // Return
-    res.json(settings);
-    next();
-  }
-
-  public static async handleCreateSetting(action: string, req: Request, res: Response, next: NextFunction) {
-    // Check auth
-    if (!Authorizations.canCreateSetting(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_CREATE,
-        Constants.ENTITY_SETTING,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        'SettingService', 'handleCreateSetting',
-        req.user);
-    }
-    // Filter
-    const filteredRequest = SettingSecurity.filterSettingCreateRequest(req.body);
-    // Process the sensitive data if any
-    Cypher.encryptSensitiveDataInJSON(filteredRequest);
-    // Update timestamp
-    filteredRequest.createdBy = { 'id': req.user.id };
-    filteredRequest.createdOn = new Date();
-    // Save Setting
-    filteredRequest.id = await SettingStorage.saveSetting(req.user.tenantID, filteredRequest);
-    // Log
-    Logging.logSecurityInfo({
-      tenantID: req.user.tenantID,
-      user: req.user, module: 'SettingService', method: 'handleCreateSetting',
-      message: `Setting '${filteredRequest.identifier}' has been created successfully`,
-      action: action, detailedMessages: filteredRequest
-    });
-    // Ok
-    res.status(HttpStatusCodes.OK).json(Object.assign({ id: filteredRequest.id }, Constants.REST_RESPONSE_SUCCESS));
-    next();
-  }
-
-  public static async handleUpdateSetting(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Filter
-    const settingUpdate = SettingSecurity.filterSettingUpdateRequest(req.body);
-    UtilsService.assertIdIsProvided(settingUpdate.id, 'SettingService', 'handleUpdateSetting', req.user);
-    // Check auth
-    if (!Authorizations.canUpdateSetting(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_UPDATE,
-        Constants.ENTITY_SETTING,
-        settingUpdate.id,
-        Constants.HTTP_AUTH_ERROR,
-        'SettingService', 'handleUpdateSetting',
-        req.user);
-    }
-    // Get Setting
-    const setting = await SettingStorage.getSetting(req.user.tenantID, settingUpdate.id);
-    UtilsService.assertObjectExists(setting, `Setting with ID '${settingUpdate.id}' does not exist anymore`,
-      'SettingService', 'handleUpdateSetting', req.user);
-    // Process the sensitive data if any
-    // Preprocess the data to take care of updated values
-    if (settingUpdate.sensitiveData) {
-      if (!Array.isArray(settingUpdate.sensitiveData)) {
+      const tenant = await TenantStorage.getTenant(req.user.tenantID);
+      if (!Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.BILLING) ||
+        !Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.PRICING)) {
         throw new AppError(
           Constants.CENTRAL_SERVER,
-          `The property 'sensitiveData' for Setting with ID '${settingUpdate.id}' is not an array`,
-          Constants.HTTP_CYPHER_INVALID_SENSITIVE_DATA_ERROR,
-          'SettingService', 'handleUpdateSetting', req.user);
+          'Billing or Pricing not active in this Tenant',
+          Constants.HTTP_GENERAL_ERROR, // TODO: use a new constant
+          'BillingService', 'handleSynchronizeUsers', req.user);
       }
-      // Process sensitive properties
-      for (const property of settingUpdate.sensitiveData) {
-        // Get the sensitive property from the request
-        const valueInRequest = _.get(settingUpdate, property);
-        if (valueInRequest && valueInRequest.length > 0) {
-          // Get the sensitive property from the DB
-          const valueInDb = _.get(setting, property);
-          if (valueInDb && valueInDb.length > 0) {
-            const hashedValueInDB = Cypher.hash(valueInDb);
-            if (valueInRequest !== hashedValueInDB) {
-              // Yes: Encrypt
-              _.set(settingUpdate, property, Cypher.encrypt(valueInRequest));
-            } else {
-              // No: Put back the encrypted value
-              _.set(settingUpdate, property, valueInDb);
+
+      // Get Billing implementation from factory
+      const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
+      if (!billingImpl) {
+        throw new AppError(
+          Constants.CENTRAL_SERVER,
+          'Billing settings are not configured',
+          Constants.HTTP_GENERAL_ERROR, // TODO: use a new constant
+          'BillingService', 'handleSynchronizeUsers', req.user);
+      }
+
+      // Get active users (potentially only those without Stripe customer iD?)
+      const users = await UserStorage.getUsers(tenant.id, {
+        'statuses': [Constants.USER_STATUS_ACTIVE]
+      }, { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { 'userID': 1 } });
+      // Check
+      const actionsDone = {
+        created: 0,
+        updated: 0,
+        error: 0
+      };
+      if (users.count > 0) {
+        // Process them
+        Logging.logInfo({
+          tenantID: tenant.id,
+          module: 'BillingService',
+          method: 'handleSynchronizeUsers', action: 'SynchronizeUsersForBilling',
+          message: `${users.count} active user(s) are going to be synchronized for billing`
+        });
+        for (const user of users.result) {
+          try {
+            // Update billing data for user
+            const syncAction = await billingImpl.synchronizeUser(user);
+            switch (syncAction.message) {
+              case 'created':
+                actionsDone.created++;
+                break;
+              case 'updated':
+                actionsDone.updated++;
+                break;
+              default:
+                actionsDone.error++;
             }
-          } else {
-            // Value in db is empty then encrypt
-            _.set(settingUpdate, property, Cypher.encrypt(valueInRequest));
+          } catch (error) {
+            actionsDone.error++;
+            Logging.logActionExceptionMessage(tenant.id, 'SynchronizeUsersForBilling', error);
           }
         }
       }
-    } else {
-      settingUpdate.sensitiveData = [];
+      res.status(HttpStatusCodes.OK).json(Object.assign(actionsDone, Constants.REST_RESPONSE_SUCCESS));
+      next();
+    } catch (error) {
+      Logging.logActionExceptionMessageAndSendResponse(action, error, req, res, next);
     }
-    // Update timestamp
-    setting.lastChangedBy = { 'id': req.user.id };
-    setting.lastChangedOn = new Date();
-    // Update Setting
-    settingUpdate.id = await SettingStorage.saveSetting(req.user.tenantID, settingUpdate);
-    // Log
-    Logging.logSecurityInfo({
-      tenantID: req.user.tenantID,
-      user: req.user, module: 'SettingService', method: 'handleUpdateSetting',
-      message: `Setting '${settingUpdate.id}' has been updated successfully`,
-      action: action, detailedMessages: settingUpdate
-    });
-    // Ok
-    res.json(Constants.REST_RESPONSE_SUCCESS);
-    next();
   }
+
 }

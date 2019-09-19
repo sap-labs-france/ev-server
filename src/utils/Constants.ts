@@ -224,6 +224,9 @@ export default class Constants {
   public static readonly REFUND_TYPE_REFUNDED = 'refunded';
   public static readonly REFUND_TYPE_NOT_REFUNDED = 'notRefunded';
 
+  public static readonly BILLING_STATUS_UNBILLED = 'unbilled';
+  public static readonly BILLING_STATUS_BILLED = 'billed';
+
   public static readonly BILLING_METHOD_IMMEDIATE = 'immediate';
   public static readonly BILLING_METHOD_PERIODIC = 'periodic';
   public static readonly BILLING_METHOD_ADVANCE = 'advance';
