@@ -60,7 +60,7 @@ export default class BillingService {
 
   public static async handleSynchronizeUsers(action: string, req: Request, res: Response, next: NextFunction) {
     try {
-      if (!Authorizations.isAdmin(req.user.role)) {
+      if (!Authorizations.isAdmin(req.user)) {
         throw new AppAuthError(
           Constants.ACTION_UPDATE,
           Constants.ENTITY_USER,

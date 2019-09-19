@@ -45,7 +45,6 @@ export interface BillingUserData {
   cardID: string;
   subscriptionID: string;
   lastUpdate: Date;
-  // Etc., also in User and Transaction interfaces
 }
 
 export default abstract class Billing<T extends BillingSettings> {
