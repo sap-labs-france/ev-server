@@ -25,6 +25,7 @@ export default interface Transaction {
     extraInactivitySecs: number;
     totalConsumption: number;
     totalDurationSecs: number;
+    currentTotalDurationSecs: number;
     timestamp: Date;
     transactionData?: any;
     signedData?: any;
