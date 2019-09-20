@@ -659,7 +659,7 @@ export default class Authorizations {
       // Set default user's value
       user.name = 'Unknown';
       user.firstName = 'User';
-      user.email = tagID + '@chargeangels.fr';
+      user.email = tagID + '@e-mobility.fr';
       user.phone = '';
       user.mobile = '';
       user.notificationsActive = true;

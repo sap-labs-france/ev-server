@@ -158,7 +158,7 @@ class RequestMapper {
           UserPricingStatistics: StatisticService.handleGetUserPricingStatistics,
           ChargingStationTransactions: TransactionService.handleGetChargingStationTransactions,
           Transaction: TransactionService.handleGetTransaction,
-          ChargingStationConsumptionFromTransaction: TransactionService.handleGetChargingStationConsumptionFromTransaction,
+          ConsumptionFromTransaction: TransactionService.handleGetConsumptionFromTransaction,
           ChargingStationConfiguration: ChargingStationService.handleGetChargingStationConfiguration,
           ChargingStationRequestConfiguration: ChargingStationService.handleRequestChargingStationConfiguration,
           ChargingStationsInError: ChargingStationService.handleGetChargingStationsInError,
