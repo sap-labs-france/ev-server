@@ -192,7 +192,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
     if (!billingUser.billingData || !billingUser.billingData.customerID || !billingUser.billingData.method) {
       return {
         errorCode: '03',
-        errorCodeDesc: 'User has no billing method or no customer in Stripe'
+        errorCodeDesc: 'Transaction user has no billing method or no customer in Stripe'
       };
     }
 
@@ -201,14 +201,14 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
       billingUser.billingData.method !== Constants.BILLING_METHOD_ADVANCE) {
       return {
         errorCode: '04',
-        errorCodeDesc: 'User is assigned to unknown billing method'
+        errorCodeDesc: 'Transaction user is assigned to unknown billing method'
       };
     }
 
     if (billingUser.billingData.method === Constants.BILLING_METHOD_ADVANCE) {
       return {
         errorCode: '05',
-        errorCodeDesc: 'Selected billing method currently not supported'
+        errorCodeDesc: `Selected billing method '${billingUser.billingData.method}' currently not supported`
       };
     }
 
@@ -216,7 +216,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
       billingUser.billingData.method !== Constants.BILLING_METHOD_IMMEDIATE) {
       return {
         errorCode: '06',
-        errorCodeDesc: 'User is not subscribed to Stripe billing plan'
+        errorCodeDesc: 'Transaction user is not subscribed to Stripe billing plan'
       };
     }
 
@@ -226,7 +226,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
       if (!subscription || subscription['id'] !== billingUser.billingData.subscriptionID) {
         return {
           errorCode: '07',
-          errorCodeDesc: 'Stripe subscription ID of the user is invalid'
+          errorCodeDesc: 'Stripe subscription ID of the transaction user is invalid'
         };
       }
     }
@@ -235,7 +235,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
     if (!customer || customer['id'] !== billingUser.billingData.customerID) {
       return {
         errorCode: '08',
-        errorCodeDesc: 'Stripe customer ID of the user is invalid'
+        errorCodeDesc: 'Stripe customer ID of the transaction user is invalid'
       };
     }
 
@@ -617,17 +617,29 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
       }
       return {
         success: false,
-        message: `Customer cannot be changed in Stripe for user ${user.firstName} ${user.name}. Reason: ${response.message}`
+        message: `Customer cannot be updated in Stripe for user ${user.firstName} ${user.name}. Reason: ${response.message}`
       };
     }
 
-    if (createUser) {
+    if (!user.billingData || !user.billingData.customerID) {
       const existingCustomer = await this._getCustomer(user, req);
       if (existingCustomer && existingCustomer['email']) {
         return {
           success: false,
           message: `Customer cannot be created in Stripe for user ${user.firstName} ${user.name}. ` +
             `Reason: a customer with email ${existingCustomer['email']} already exists in Stripe`
+        };
+      }
+    } else {
+      try {
+        await this.stripe.customers.retrieve(
+          user.billingData.customerID
+        );
+      } catch (error) {
+        return {
+          success: false,
+          message: `Customer cannot be updated in Stripe for user ${user.firstName} ${user.name}. ` +
+            `Reason: the customer ID '${user.billingData.customerID}' does not exist in Stripe`
         };
       }
     }
@@ -643,7 +655,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
       }
       return {
         success: false,
-        message: `Customer cannot be changed in Stripe for user ${user.firstName} ${user.name}. ` +
+        message: `Customer cannot be updated in Stripe for user ${user.firstName} ${user.name}. ` +
           'Reason: Tenant settings require the selection of a payment method (card)'
       };
     }
@@ -659,7 +671,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
       }
       return {
         success: false,
-        message: `Customer cannot be changed in Stripe for user ${user.firstName} ${user.name}. ` +
+        message: `Customer cannot be updated in Stripe for user ${user.firstName} ${user.name}. ` +
           'Reason: No billing method was selected'
       };
     }
@@ -676,7 +688,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
       }
       return {
         success: false,
-        message: `Customer cannot be changed in Stripe for user ${user.firstName} ${user.name}. ` +
+        message: `Customer cannot be updated in Stripe for user ${user.firstName} ${user.name}. ` +
           `Reason: Billing method '${billingMethod}' not allowed by tenant settings`
       };
     }
@@ -696,9 +708,20 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
       }
       return {
         success: false,
-        message: `Customer cannot be changed in Stripe for user ${user.firstName} ${user.name}. ` +
+        message: `Customer cannot be updated in Stripe for user ${user.firstName} ${user.name}. ` +
           'Reason: No billing plan provided to create a subscription'
       };
+    }
+
+    if (user.billingData && user.billingData.subscriptionID && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
+      const subscription = await this._getSubscription(user.billingData.subscriptionID);
+      if (!subscription || subscription['id'] !== user.billingData.subscriptionID) {
+        return {
+          success: false,
+          message: `Customer cannot be updated in Stripe for user ${user.firstName} ${user.name}. ` +
+            `Reason: Subscription with ID '${user.billingData.subscriptionID}' does not exist in Stripe`
+        };
+      }
     }
 
     if (billingPlan && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
@@ -713,7 +736,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
         }
         return {
           success: false,
-          message: `Customer cannot be changed in Stripe for user ${user.firstName} ${user.name}. ` +
+          message: `Customer cannot be updated in Stripe for user ${user.firstName} ${user.name}. ` +
             `Reason: Billing plan '${billingPlan}' does not exist`
         };
       } else if (plan['currency'].toLocaleLowerCase() !== this.settings.currency.toLocaleLowerCase()) {
@@ -726,7 +749,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
         }
         return {
           success: false,
-          message: `Customer cannot be changed in Stripe for user ${user.firstName} ${user.name}. ` +
+          message: `Customer cannot be updated in Stripe for user ${user.firstName} ${user.name}. ` +
             `Reason: Billing plan '${billingPlan}' uses wrong currency ${plan['currency']}`
         };
       }
@@ -734,7 +757,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
 
     return {
       success: true,
-      message: 'Everything is OK'
+      message: 'OK'
     };
   }
 

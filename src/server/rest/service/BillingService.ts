@@ -110,20 +110,22 @@ export default class BillingService {
         });
         for (const user of users.result) {
           try {
-            // Update billing data for user
-            const syncAction = await billingImpl.synchronizeUser(user);
-            switch (syncAction.message) {
-              case 'created':
-                actionsDone.created++;
-                break;
-              case 'updated':
-                actionsDone.updated++;
-                break;
-              case 'unchanged':
-                actionsDone.unchanged++;
-                break;
-              default:
-                actionsDone.error++;
+            // Update billing data for user (exclude Demo users at the moment...)
+            if (user.role !== 'D') {
+              const syncAction = await billingImpl.synchronizeUser(user);
+              switch (syncAction.message) {
+                case 'created':
+                  actionsDone.created++;
+                  break;
+                case 'updated':
+                  actionsDone.updated++;
+                  break;
+                case 'unchanged':
+                  actionsDone.unchanged++;
+                  break;
+                default:
+                  actionsDone.error++;
+              }
             }
           } catch (error) {
             actionsDone.error++;
