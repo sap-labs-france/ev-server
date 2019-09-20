@@ -25,7 +25,7 @@ export default class TransactionApi extends CrudApi {
   }
 
   public readAllConsumption(params) {
-    return super.read(params, '/client/api/ChargingStationConsumptionFromTransaction');
+    return super.read(params, '/client/api/ConsumptionFromTransaction');
   }
 
   public readAllYears(params) {

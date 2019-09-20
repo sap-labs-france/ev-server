@@ -266,23 +266,23 @@ export default class TransactionService {
     next();
   }
 
-  public static async handleGetChargingStationConsumptionFromTransaction(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+  public static async handleGetConsumptionFromTransaction(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Filter
-    const filteredRequest = TransactionSecurity.filterChargingStationConsumptionFromTransactionRequest(req.query);
+    const filteredRequest = TransactionSecurity.filterConsumptionFromTransactionRequest(req.query);
     // Transaction Id is mandatory
     UtilsService.assertIdIsProvided(filteredRequest.TransactionId, 'TransactionService',
-      'handleGetChargingStationConsumptionFromTransaction', req.user);
+      'handleGetConsumptionFromTransaction', req.user);
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.TransactionId);
     UtilsService.assertObjectExists(transaction, `Transaction with ID '${filteredRequest.TransactionId}' does not exist`,
-      'TransactionService', 'handleGetChargingStationConsumptionFromTransaction', req.user);
+      'TransactionService', 'handleGetConsumptionFromTransaction', req.user);
     // Check auth
     if (!Authorizations.canReadTransaction(req.user, transaction)) {
       throw new AppAuthError(
         Constants.ACTION_READ,
         Constants.ENTITY_TRANSACTION,
         transaction.id,
-        Constants.HTTP_AUTH_ERROR, 'TransactionService', 'handleGetChargingStationConsumptionFromTransaction',
+        Constants.HTTP_AUTH_ERROR, 'TransactionService', 'handleGetConsumptionFromTransaction',
         req.user);
     }
     // Check dates
@@ -290,7 +290,7 @@ export default class TransactionService {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `The requested start date '${new Date(filteredRequest.StartDateTime).toISOString()}' is after the requested end date '${new Date(filteredRequest.StartDateTime).toISOString()}' `, Constants.HTTP_GENERAL_ERROR,
-        'TransactionService', 'handleGetChargingStationConsumptionFromTransaction', req.user);
+        'TransactionService', 'handleGetConsumptionFromTransaction', req.user);
     }
     // Get the consumption
     let consumptions: Consumption[] = await ConsumptionStorage.getConsumptions(req.user.tenantID, { transactionId: transaction.id });
