@@ -1,4 +1,5 @@
 import ChargingStation from '../types/ChargingStation';
+import Consumption from './Consumption';
 import User from './User';
 
 export default interface Transaction {
@@ -66,4 +67,5 @@ export default interface Transaction {
   currentSignedData?: number;
   uniqueId?: string;
   errorCode?: number;
+  values?: Consumption[];
 }
