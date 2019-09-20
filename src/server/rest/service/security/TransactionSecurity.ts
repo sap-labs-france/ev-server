@@ -217,7 +217,7 @@ export default class TransactionSecurity {
     return filteredUser;
   }
 
-  public static filterChargingStationConsumptionFromTransactionRequest(request: any): HttpConsumptionFromTransactionRequest {
+  public static filterConsumptionFromTransactionRequest(request: any): HttpConsumptionFromTransactionRequest {
     const filteredRequest: HttpConsumptionFromTransactionRequest = {} as HttpConsumptionFromTransactionRequest;
     // Set
     if (request.hasOwnProperty('TransactionId')) {
@@ -240,17 +240,18 @@ export default class TransactionSecurity {
     return filteredRequest;
   }
 
-  static filterConsumptionsFromTransactionResponse(transaction: Transaction, consumptions: Consumption[], loggedUser: UserToken) {
+  static filterConsumptionsFromTransactionResponse(transaction: Transaction, consumptions: Consumption[], loggedUser: UserToken): Transaction {
+    transaction.values = [];
     if (!consumptions) {
       consumptions = [];
     }
     // Check Authorization
     if (transaction.user) {
       if (!Authorizations.canReadUser(loggedUser, transaction.userID)) {
-        return consumptions;
+        return transaction;
       }
     } else if (!transaction.user && !Authorizations.isAdmin(loggedUser)) {
-      return consumptions;
+      return transaction;
     }
     const filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser);
     if (consumptions.length === 0) {
