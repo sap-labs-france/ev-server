@@ -2,6 +2,7 @@ import Address from './Address';
 import ChargingStation from '../types/ChargingStation';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import Site from '../types/Site';
+import ConnectorStats from './ConnectorStats';
 
 export default interface SiteArea extends CreatedUpdatedProps {
   id: string;
@@ -17,4 +18,5 @@ export default interface SiteArea extends CreatedUpdatedProps {
   totalChargers?: number;
   availableConnectors?: number;
   totalConnectors?: number;
+  connectorStats: ConnectorStats;
 }
