@@ -1,28 +1,28 @@
 import momentDurationFormatSetup from 'moment-duration-format';
 import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
-import ChargingStation from '../../../types/ChargingStation';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import Configuration from '../../../utils/Configuration';
-import Connector from '../../../types/Connector';
-import Constants from '../../../utils/Constants';
-import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
-import Logging from '../../../utils/Logging';
-import NotificationHandler from '../../../notification/NotificationHandler';
-import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
-import OCPPUtils from '../utils/OCPPUtils';
-import OCPPValidation from '../validation/OCPPValidation';
 import PricingFactory from '../../../integration/pricing/PricingFactory';
-import RegistrationToken from '../../../types/RegistrationToken';
+import NotificationHandler from '../../../notification/NotificationHandler';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
+import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
+import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import RegistrationTokenStorage from '../../../storage/mongodb/RegistrationTokenStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import Transaction from '../../../types/Transaction';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
+import ChargingStation from '../../../types/ChargingStation';
+import Connector from '../../../types/Connector';
+import Consumption from '../../../types/Consumption';
+import RegistrationToken from '../../../types/RegistrationToken';
+import Transaction from '../../../types/Transaction';
+import User from '../../../types/User';
+import Configuration from '../../../utils/Configuration';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import UtilsService from '../../rest/service/UtilsService';
-import Consumption from '../../../types/Consumption';
+import OCPPUtils from '../utils/OCPPUtils';
+import OCPPValidation from '../validation/OCPPValidation';
 
 const moment = require('moment');
 momentDurationFormatSetup(moment);
@@ -1292,7 +1292,7 @@ export default class OCPPService {
       const lastMeterValue = this._updateTransactionWithStopTransaction(
         transaction, stopTransaction, user, alternateUser, tagId);
       // Build final consumption
-      const consumption: Consumption = await this._buildConsumptionFromTransactionAndMeterValue(
+      const consumption: Consumption = this._buildConsumptionFromTransactionAndMeterValue(
         transaction, lastMeterValue.timestamp, transaction.stop.timestamp, {
           id: '6969',
           connectorId: transaction.connectorId,

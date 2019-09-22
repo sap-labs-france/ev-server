@@ -19,7 +19,7 @@
             "description": "string defining the status notification timestamp"
         },
         "meterStart": {
-            "type": "integer",
+            "type": "number",
             "description": "number defining the meter start of the transaction"
         },
         "reservationId": {

@@ -249,7 +249,7 @@ export default class TransactionService {
       {
         transactionId: transactionId,
         idTag: req.user.tagIDs[0],
-        timestamp: transaction.lastMeterValue ? transaction.lastMeterValue.timestamp : transaction.timestamp,
+        timestamp: Utils.convertToDate(transaction.lastMeterValue ? transaction.lastMeterValue.timestamp : transaction.timestamp).toISOString(),
         meterStop: transaction.lastMeterValue.value ? transaction.lastMeterValue.value : transaction.meterStart
       },
       true);
@@ -262,7 +262,7 @@ export default class TransactionService {
       action: action, detailedMessages: result
     });
     // Ok
-    res.json(Constants.REST_RESPONSE_SUCCESS);
+    res.json(result);
     next();
   }
 
