@@ -91,13 +91,11 @@ export default class BillingService {
 
       // Get active users (potentially only those without Stripe customer iD?)
       const users = await UserStorage.getUsers(tenant.id, {
-        'statuses': [Constants.USER_STATUS_ACTIVE]
+        'statuses': [Constants.USER_STATUS_ACTIVE], 'nonSynchronizedBillingData': true
       }, { ...Constants.DB_PARAMS_MAX_LIMIT, sort: { 'userID': 1 } });
       // Check
       const actionsDone = {
-        created: 0,
-        updated: 0,
-        unchanged: 0,
+        synchronized: 0,
         error: 0
       };
       if (users.count > 0) {
@@ -110,22 +108,13 @@ export default class BillingService {
         });
         for (const user of users.result) {
           try {
-            // Update billing data for user (exclude Demo users at the moment...)
-            if (user.role !== 'D') {
-              const syncAction = await billingImpl.synchronizeUser(user);
-              switch (syncAction.message) {
-                case 'created':
-                  actionsDone.created++;
-                  break;
-                case 'updated':
-                  actionsDone.updated++;
-                  break;
-                case 'unchanged':
-                  actionsDone.unchanged++;
-                  break;
-                default:
-                  actionsDone.error++;
-              }
+            // Update billing data for user
+            const newBillingUserData = await billingImpl.synchronizeUser(user);
+            if (newBillingUserData.customerID) {
+              await UserStorage.saveUserBillingData(tenant.id, user.id, newBillingUserData);
+              actionsDone.synchronized++;
+            } else {
+              actionsDone.error++;
             }
           } catch (error) {
             actionsDone.error++;

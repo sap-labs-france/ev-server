@@ -232,14 +232,13 @@ export default class UserService {
     await Utils.checkIfUserTagIDsAreValid(user, newTagIDs, req);
     // For integration with Billing
     const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
-    // Do not block user update in case of Billing issues
     // Update user
     user = { ...user, ...filteredRequest, tagIDs: [] };
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
     await UserStorage.saveUser(req.user.tenantID, user, true);
     if (billingImpl) {
-      // TEMP DISABLED const billingData = await billingImpl.updateUser(user, req);
-      // TEMP DISABLED await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingData);
+      const billingData = await billingImpl.updateUser(user, req);
+      await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingData);
     }
     // Save User password
     if (filteredRequest.password) {
@@ -557,12 +556,11 @@ export default class UserService {
     filteredRequest.createdOn = new Date();
     // For integration with billing
     const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
-    // Do not block user creation in case of Billing issues
     // Create the User
     const newUserID = await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: [] }, true);
     if (billingImpl) {
-      // TEMP DISABLED const billingData = await billingImpl.createUser(req);
-      // TEMP DISABLED await UserStorage.saveUserBillingData(req.user.tenantID, newUserID, billingData);
+      const billingData = await billingImpl.createUser(req);
+      await UserStorage.saveUserBillingData(req.user.tenantID, newUserID, billingData);
     }
     // Save password
     if (filteredRequest.password) {

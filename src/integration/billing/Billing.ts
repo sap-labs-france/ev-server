@@ -8,7 +8,7 @@ export interface BillingSettings {
 
 export interface BillingResponse {
   success: boolean;
-  message: string;
+  message?: string;
 }
 
 export interface BillingTransactionData {
@@ -21,30 +21,30 @@ export interface BillingTransactionData {
 }
 
 export interface BillingDataStart {
-  errorCode: string;
-  errorCodeDesc: string;
+  errorCode?: string;
+  errorCodeDesc?: string;
 }
 
 export interface BillingDataUpdate {
-  errorCode: string;
-  errorCodeDesc: string;
-  stopTransaction: boolean;
+  errorCode?: string;
+  errorCodeDesc?: string;
+  stopTransaction?: boolean;
 }
 
 export interface BillingDataStop {
-  status: string;
-  errorCode: string;
-  errorCodeDesc: string;
-  invoiceStatus: string;
-  invoiceItem: string;
+  status?: string;
+  errorCode?: string;
+  errorCodeDesc?: string;
+  invoiceStatus?: string;
+  invoiceItem?: string;
 }
 
 export interface BillingUserData {
-  method: string;
-  customerID: string;
-  cardID: string;
-  subscriptionID: string;
-  lastUpdate: Date;
+  customerID?: string;
+  method?: string;
+  cardID?: string;
+  subscriptionID?: string;
+  lastChangedOn?: Date;
 }
 
 export default abstract class Billing<T extends BillingSettings> {
@@ -66,7 +66,7 @@ export default abstract class Billing<T extends BillingSettings> {
   async abstract checkConnection(key?: string): Promise<BillingResponse>;
 
   // eslint-disable-next-line no-unused-vars
-  async abstract synchronizeUser(user: User): Promise<BillingResponse>;
+  async abstract synchronizeUser(user: User): Promise<BillingUserData>;
 
   // eslint-disable-next-line no-unused-vars
   async abstract startTransaction(user: User, transaction: Transaction): Promise<BillingDataStart>;

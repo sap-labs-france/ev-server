@@ -104,7 +104,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
     };
   }
 
-  public async synchronizeUser(user: User): Promise<BillingResponse> {
+  public async synchronizeUser(user: User): Promise<BillingUserData> {
     const buildReq: Partial<Request> = {};
     buildReq.body = {};
     if (user.email) {
@@ -120,35 +120,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
       buildReq.body.locale = user.locale;
     }
     const fullReq = buildReq as Request;
-    if (!user.billingData) {
-      user.billingData = {} as BillingUserData;
-    }
-    const oldCustomerID = user.billingData.customerID;
-    const oldLastUpdate = user.billingData.lastUpdate;
-    const response = await this.updateUser(user, fullReq);
-    if (response.customerID) {
-      await UserStorage.saveUserBillingData(this.tenantId, user.id, response);
-      if (oldCustomerID) {
-        if (oldLastUpdate !== response.lastUpdate) {
-          return {
-            success: true,
-            message: 'updated'
-          };
-        }
-        return {
-          success: true,
-          message: 'unchanged'
-        };
-      }
-      return {
-        success: true,
-        message: 'created'
-      };
-    }
-    return {
-      success: false,
-      message: 'error'
-    };
+    return await this.updateUser(user, fullReq);
   }
 
   public async startTransaction(user: User, transaction: Transaction): Promise<BillingDataStart> {
@@ -624,11 +596,12 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
     if (!user.billingData || !user.billingData.customerID) {
       const existingCustomer = await this._getCustomer(user, req);
       if (existingCustomer && existingCustomer['email']) {
-        return {
-          success: false,
-          message: `Customer cannot be created in Stripe for user ${user.firstName} ${user.name}. ` +
-            `Reason: a customer with email ${existingCustomer['email']} already exists in Stripe`
-        };
+        // Currently it is allowed to re-use an existing customer in Stripe, if the email address is matching!
+        // return {
+        //          success: false,
+        //          message: `Customer cannot be created in Stripe for user ${user.firstName} ${user.name}. ` +
+        //            `Reason: a customer with email ${existingCustomer['email']} already exists in Stripe`
+        //        };
       }
     } else {
       try {
@@ -879,7 +852,6 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
   private async _modifyUser(user: User, req: Request): Promise<BillingUserData> {
     const email = req.body.email ? sanitize(req.body.email) : user.email;
     const fullName = Utils.buildUserFullName(user, false);
-    let update = false;
 
     let locale = req.body.locale ? sanitize(req.body.locale) : user.locale;
     locale = locale.substr(0, 2).toLocaleLowerCase();
@@ -903,7 +875,6 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
           name: fullName,
           preferred_locales: [locale]
         });
-        update = true;
       } catch (error) {
         Logging.logError({
           tenantID: this.tenantId,
@@ -923,7 +894,6 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
           customer['id'],
           { email: email }
         );
-        update = true;
       } catch (error) {
         Logging.logError({
           tenantID: this.tenantId,
@@ -943,7 +913,6 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
           customer['id'],
           { description: description }
         );
-        update = true;
       } catch (error) {
         Logging.logError({
           tenantID: this.tenantId,
@@ -963,7 +932,6 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
           customer['id'],
           { name: fullName }
         );
-        update = true;
       } catch (error) {
         Logging.logError({
           tenantID: this.tenantId,
@@ -990,7 +958,6 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
             customer['id'],
             { preferred_locales: [locale] }
           );
-          update = true;
         } catch (error) {
           Logging.logError({
             tenantID: this.tenantId,
@@ -1012,7 +979,6 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
           customer['id'],
           { source: newSource }
         );
-        update = true;
       } catch (error) {
         Logging.logError({
           tenantID: this.tenantId,
@@ -1051,7 +1017,6 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
             {
               billing: collectionMethod,
             });
-          update = true;
         } catch (error) {
           Logging.logError({
             tenantID: this.tenantId,
@@ -1071,7 +1036,6 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
             {
               plan: billingPlan,
             });
-          update = true;
         } catch (error) {
           Logging.logError({
             tenantID: this.tenantId,
@@ -1086,18 +1050,18 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
       }
     }
 
-    let newSubscription = user.billingData ? user.billingData.subscriptionID : null;
-    if (!newSubscription && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
+    let subscriptionID = user.billingData ? user.billingData.subscriptionID : null;
+    if (!subscriptionID && billingMethod !== Constants.BILLING_METHOD_IMMEDIATE) {
       // Create subscription
       let billingCycleAnchor = moment().unix(); // Now
       const plan = await this._getBillingPlan(billingPlan);
       if (plan['interval'] === 'year' || plan['interval'] === 'month') {
         billingCycleAnchor = moment().endOf('month').add(1, 'day').unix(); // Begin of next month
       }
-      let subscription: Stripe.subscriptions.ISubscription;
+      let newSubscription: Stripe.subscriptions.ISubscription;
       try {
         if (collectionMethod === 'send_invoice') {
-          subscription = await this.stripe.subscriptions.create({
+          newSubscription = await this.stripe.subscriptions.create({
             customer: customer['id'],
             items: [
               {
@@ -1109,7 +1073,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
             days_until_due: daysUntilDue,
           });
         } else {
-          subscription = await this.stripe.subscriptions.create({
+          newSubscription = await this.stripe.subscriptions.create({
             customer: customer['id'],
             items: [
               {
@@ -1120,7 +1084,6 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
             billing: 'charge_automatically',
           });
         }
-        update = true;
       } catch (error) {
         Logging.logError({
           tenantID: this.tenantId,
@@ -1132,19 +1095,15 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
         });
         return {} as BillingUserData;
       }
-      newSubscription = subscription['id'];
+      subscriptionID = newSubscription['id'];
     }
 
-    let lastUpdate = (user.billingData && user.billingData.lastUpdate) ? user.billingData.lastUpdate : null;
-    if (update || !lastUpdate) {
-      lastUpdate = new Date();
-    }
     return {
       method: billingMethod,
       customerID: customer['id'],
       cardID: customer['default_source'] ? customer['default_source'] : null,
-      subscriptionID: newSubscription ? newSubscription : null,
-      lastUpdate: lastUpdate
+      subscriptionID: subscriptionID ? subscriptionID : null,
+      lastChangedOn: new Date()
     };
   }
 

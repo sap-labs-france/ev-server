@@ -398,12 +398,12 @@ export default class UserStorage {
     // Set only provided values
     if (billingData) {
       updatedUserMDB.billingData = {} as BillingUserData;
-      if (billingData.method) {
-        updatedUserMDB.billingData.method = billingData.method;
-        update = true;
-      }
       if (billingData.customerID) {
         updatedUserMDB.billingData.customerID = billingData.customerID;
+        update = true;
+      }
+      if (billingData.method) {
+        updatedUserMDB.billingData.method = billingData.method;
         update = true;
       }
       if (billingData.cardID) {
@@ -414,12 +414,15 @@ export default class UserStorage {
         updatedUserMDB.billingData.subscriptionID = billingData.subscriptionID;
         update = true;
       }
-      if (billingData.lastUpdate) {
-        updatedUserMDB.billingData.lastUpdate = Utils.convertToDate(billingData.lastUpdate);
+      if (billingData.lastChangedOn) {
+        const lastChangedOn = Utils.convertToDate(billingData.lastChangedOn);
+        await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
+          { '_id': Utils.convertToObjectID(userID) },
+          { $set: { lastChangedOn } });
+        updatedUserMDB.billingData.lastChangedOn = lastChangedOn;
         update = true;
       }
     }
-    // Etc.
     // Modify and return the modified document
     if (update) {
       await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
@@ -455,7 +458,7 @@ export default class UserStorage {
   public static async getUsers(tenantID: string,
     params: {
       notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string; userID?: string; email?: string;
-      roles?: string[]; statuses?: string[]; withImage?: boolean;
+      roles?: string[]; statuses?: string[]; withImage?: boolean; nonSynchronizedBillingData?: boolean
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
@@ -534,6 +537,19 @@ export default class UserStorage {
         }
       }
     });
+    // Select non-synchronized billing data
+    if (params.nonSynchronizedBillingData) {
+      filters.$and.push({
+        '$or': [
+          { "billingData": { "$exists": false } },
+          { "billingData.lastChangedOn": { "$exists": false } },
+          { "billingData.lastChangedOn": null },
+          { "lastChangedOn": { "$exists": false } },
+          { "lastChangedOn": null },
+          { $expr: { $gt: ["$lastChangedOn", "$billingData.lastChangedOn"] } }
+        ]
+      });
+    }
     // Filters
     if (filters) {
       aggregation.push({
@@ -914,7 +930,7 @@ export default class UserStorage {
         ];
       case 'unassigned_user': {
         return [
-//          { $match : { status: Constants.USER_STATUS_ACTIVE } },
+          //          { $match : { status: Constants.USER_STATUS_ACTIVE } },
           {
             $lookup: {
               from: DatabaseUtils.getCollectionName(tenantID, 'siteusers'),
