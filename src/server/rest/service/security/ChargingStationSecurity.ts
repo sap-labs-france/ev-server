@@ -20,15 +20,16 @@ export default class ChargingStationSecurity {
 
   public static filterChargingStationResponse(chargingStation: ChargingStation, loggedUser: UserToken, organizationIsActive: boolean): Partial<ChargingStation> {
     let filteredChargingStation;
-
     if (!chargingStation || !Authorizations.canReadChargingStation(loggedUser)) {
       return null;
     }
-
     const siteID = chargingStation.siteArea ? chargingStation.siteArea.siteID : null;
     if (organizationIsActive && !Authorizations.canReadSiteArea(loggedUser, siteID)) {
       return null;
     }
+    // Check connectors
+    ChargingStationSecurity.checkConnectors(chargingStation);
+    // Check Auth
     if (Authorizations.canUpdateChargingStation(loggedUser, siteID)) {
       // Yes: set all params
       filteredChargingStation = chargingStation;
@@ -82,6 +83,23 @@ export default class ChargingStationSecurity {
     UtilsSecurity.filterCreatedAndLastChanged(
       filteredChargingStation, chargingStation, loggedUser);
     return filteredChargingStation;
+  }
+
+  static checkConnectors(chargingStation: ChargingStation) {
+    if (chargingStation.cannotChargeInParallel) {
+      chargingStation.connectors.forEach((connector) => {
+        if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
+          // Check OCPP Version
+          if (chargingStation.ocppVersion === Constants.OCPP_VERSION_15) {
+            // Set OCPP 1.5 Occupied
+            connector.status = Constants.CONN_STATUS_OCCUPIED;
+          } else {
+            // Set OCPP 1.6 Unavailable
+            connector.status = Constants.CONN_STATUS_UNAVAILABLE;
+          }
+        }
+      });
+    }
   }
 
   public static filterChargingStationsResponse(chargingStations: DataResult<ChargingStation>, loggedUser: UserToken, organizationIsActive: boolean) {

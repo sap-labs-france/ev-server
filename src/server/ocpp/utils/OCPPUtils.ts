@@ -1,7 +1,6 @@
 import BackendError from '../../../exception/BackendError';
 import ChargingStation from '../../../types/ChargingStation';
 import ChargingStationClient from '../../../client/ocpp/ChargingStationClient';
-import buildChargingStationClient from '../../../client/ocpp/ChargingStationClientFactory';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
@@ -9,24 +8,9 @@ import Logging from '../../../utils/Logging';
 import OCPPConstants from './OCPPConstants';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
 import Utils from '../../../utils/Utils';
+import buildChargingStationClient from '../../../client/ocpp/ChargingStationClientFactory';
 
 export default class OCPPUtils {
-
-  static lockAllConnectors(chargingStation: ChargingStation) {
-    chargingStation.connectors.forEach((connector) => {
-      if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
-        // Check OCPP Version
-        if (chargingStation.ocppVersion === Constants.OCPP_VERSION_15) {
-          // Set OCPP 1.5 Occupied
-          connector.status = Constants.CONN_STATUS_OCCUPIED;
-        } else {
-          // Set OCPP 1.6 Unavailable
-          connector.status = Constants.CONN_STATUS_UNAVAILABLE;
-        }
-      }
-    });
-  }
-
   public static getIfChargingStationIsInactive(chargingStation: ChargingStation): boolean {
     let inactive = false;
     // Get Heartbeat Interval from conf
@@ -243,23 +227,6 @@ export default class OCPPUtils {
       foundConnector.activeTransactionID = 0;
       foundConnector.activeTransactionDate = null;
       foundConnector.activeTagID = null;
-    }
-    // Check if Charger can charge in //
-    if (chargingStation.cannotChargeInParallel) {
-      // Set all the other connectors to Available
-      chargingStation.connectors.forEach(async (connector) => {
-        // Only other Occupied connectors
-        if ((connector.status === Constants.CONN_STATUS_OCCUPIED ||
-          connector.status === Constants.CONN_STATUS_UNAVAILABLE) &&
-          connector.connectorId !== connectorId) {
-          // Set connector Available again
-          connector.status = Constants.CONN_STATUS_AVAILABLE;
-          // Save other updated connectors?
-          if (saveOtherConnectors) {
-            await ChargingStationStorage.saveChargingStationConnector(tenantID, chargingStation, connector);
-          }
-        }
-      });
     }
   }
 }
