@@ -8,6 +8,7 @@ import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest'
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import { DataResult } from '../../../../types/DataResult';
+import Utils from '../../../../utils/Utils';
 
 export default class ChargingStationSecurity {
 
@@ -28,7 +29,7 @@ export default class ChargingStationSecurity {
       return null;
     }
     // Check connectors
-    ChargingStationSecurity.checkConnectors(chargingStation);
+    Utils.checkConnectors(chargingStation);
     // Check Auth
     if (Authorizations.canUpdateChargingStation(loggedUser, siteID)) {
       // Yes: set all params
@@ -83,23 +84,6 @@ export default class ChargingStationSecurity {
     UtilsSecurity.filterCreatedAndLastChanged(
       filteredChargingStation, chargingStation, loggedUser);
     return filteredChargingStation;
-  }
-
-  static checkConnectors(chargingStation: ChargingStation) {
-    if (chargingStation.cannotChargeInParallel) {
-      chargingStation.connectors.forEach((connector) => {
-        if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
-          // Check OCPP Version
-          if (chargingStation.ocppVersion === Constants.OCPP_VERSION_15) {
-            // Set OCPP 1.5 Occupied
-            connector.status = Constants.CONN_STATUS_OCCUPIED;
-          } else {
-            // Set OCPP 1.6 Unavailable
-            connector.status = Constants.CONN_STATUS_UNAVAILABLE;
-          }
-        }
-      });
-    }
   }
 
   public static filterChargingStationsResponse(chargingStations: DataResult<ChargingStation>, loggedUser: UserToken, organizationIsActive: boolean) {
