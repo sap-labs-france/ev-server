@@ -35,14 +35,14 @@ export default class BillingService {
           tenantID: tenantID,
           user: req.user, module: 'BillingService', method: 'handleGetBillingConnection',
           message: checkResult.message,
-          action: action, detailedMessages: 'Checking connection to Billing application'
+          action: action, detailedMessages: 'Successfully checking connection to Billing application'
         });
       } else {
         Logging.logSecurityWarning({
           tenantID: tenantID,
           user: req.user, module: 'BillingService', method: 'handleGetBillingConnection',
           message: checkResult.message,
-          action: action, detailedMessages: 'Checking connection to Billing application'
+          action: action, detailedMessages: 'Error when checking connection to Billing application'
         });
       }
       res.status(HttpStatusCodes.OK).json(Object.assign({ connectionIsValid: checkResult.success }, Constants.REST_RESPONSE_SUCCESS));
@@ -50,8 +50,8 @@ export default class BillingService {
       Logging.logSecurityWarning({
         tenantID: tenantID,
         user: req.user, module: 'BillingService', method: 'handleGetBillingConnection',
-        message: 'Billing not active or not fully implemented',
-        action: action, detailedMessages: 'Checking connection to Billing application'
+        message: 'Billing (or Pricing) not active or Billing not fully implemented',
+        action: action, detailedMessages: 'Error when checking connection to Billing application'
       });
       res.status(HttpStatusCodes.OK).json(Object.assign({ connectionIsValid: false }, Constants.REST_RESPONSE_SUCCESS));
     }
