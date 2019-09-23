@@ -19,7 +19,7 @@
             "description": "string defining the status notification timestamp"
         },
         "meterStop": {
-            "type": "integer",
+            "type": "number",
             "description": "number defining the meter stop of the transaction"
         },
         "transactionData": {
