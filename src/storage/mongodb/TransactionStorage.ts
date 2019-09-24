@@ -673,50 +673,6 @@ export default class TransactionStorage {
     };
   }
 
-  private static _buildTransactionsInErrorFacet(errorType: string) {
-    switch (errorType) {
-      case 'no_consumption':
-        return [
-          { $match: { 'stop.totalConsumption': { $lte: 0 } } },
-          { $addFields: { 'errorCode': 'no_consumption' } }
-        ];
-      case 'negative_inactivity':
-        return [
-          { $match: { 'stop.totalInactivitySecs': { $lt: 0 } } },
-          { $addFields: { 'errorCode': 'negative_inactivity' } }
-        ];
-      case 'negative_duration':
-        return [
-          { $match: { 'stop.totalDurationSecs': { $lt: 0 } } },
-          { $addFields: { 'errorCode': 'negative_duration' } }
-        ];
-      case 'incorrect_starting_date':
-        return [
-          { $match: { 'timestamp': { $lte: Utils.convertToDate('2017-01-01 00:00:00.000Z') } } },
-          { $addFields: { 'errorCode': 'incorrect_starting_date' } }
-        ];
-      case 'average_consumption_greater_than_connector_capacity':
-        return [
-          { $addFields: { activeDuration: { $subtract: ['$stop.totalDurationSecs', '$stop.totalInactivitySecs'] } } },
-          { $match: { 'activeDuration': { $gt: 0 } } },
-          { $addFields:{ connectors:{ $arrayElemAt:['$chargeBox.connectors',0] } } },
-          { $addFields:{ connectorPower:{ $arrayElemAt:['$connectors.power',{ $subtract:['$connectorId',1] }] } } },
-          { $addFields:{ averagePower:{ $abs:{ $multiply:[{ $divide:['$stop.totalConsumption','$activeDuration'] },3600] } } } },
-          { $addFields:{ impossiblePower:{ $lte:[{ $subtract: ['$connectorPower','$averagePower'] },0] } } },
-          { $match: { 'impossiblePower': { $eq: true } } },
-          { $addFields: { 'errorCode': 'average_consumption_greater_than_connector_capacity' } }
-        ];
-      case 'missing_price':
-        return [
-          { $match: { 'stop.price': { $lte: 0 } } },
-          { $match: { 'stop.totalConsumption': { $gt: 0 } } },
-          { $addFields: { 'errorCode': 'missing_price' } }
-        ];
-      default:
-        return [];
-    }
-  }
-
   public static async getTransaction(tenantID: string, id: number): Promise<Transaction> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransaction');
