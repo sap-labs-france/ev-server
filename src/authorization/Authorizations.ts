@@ -25,7 +25,7 @@ export default class Authorizations {
       'UserID': transaction.userID,
       'sitesAdmin': loggedUser.sitesAdmin,
       'site': transaction.siteID
-    }
+    };
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_TRANSACTION,
       Constants.ACTION_REFUND_TRANSACTION, context);
   }

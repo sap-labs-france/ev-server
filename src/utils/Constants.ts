@@ -1,4 +1,3 @@
-
 export default class Constants {
   public static readonly HTTP_GENERAL_ERROR = 500;
   public static readonly HTTP_NOT_IMPLEMENTED_ERROR = 501;

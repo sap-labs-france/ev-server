@@ -1,5 +1,5 @@
 import axios from 'axios';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import ClientOAuth2 from 'client-oauth2';
 import { Request } from 'express';
 import fs from 'fs';

@@ -1,8 +1,8 @@
 const nodeExternals = require('webpack-node-externals');
 const commonPaths = require('./webpack.common.paths');
 const webpack = require('webpack');
-const TerserPlugin = require('terser-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 
 const config = {
   entry: commonPaths.srcPath + '/start.ts',
@@ -22,11 +22,11 @@ const config = {
     path: commonPaths.outputPath
   },
   resolve: {
-    extensions: ['.ts', '.tsx', '.js', '.json']
+    extensions: ['.ts', '.tsx', '.json']
   },
   module: {
     rules: [
-      { test: /\.(t|j)sx?$/, use: 'ts-loader', exclude: /node_modules/ }
+      { test: /\.tsx?$/, use: 'ts-loader' }
     ]
   },
   plugins: [
@@ -40,13 +40,8 @@ const config = {
     ])
   ],
   optimization: {
-    minimizer: [
-      new TerserPlugin({
-        sourceMap: true,
-        parallel: true,
-        cache: true,
-      }),
-    ],
+    minimize: false,
+    minimizer: [new TerserPlugin()]
   }
 };
 

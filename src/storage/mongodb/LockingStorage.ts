@@ -8,18 +8,18 @@ import Lock from '../../types/Lock';
 import Logging from '../../utils/Logging';
 
 export default class LockingStorage {
-  public static async getLocks(): Promise<any[]> {
+  public static async getLocks(): Promise<Lock[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart('LockingStorage', 'getLocks');
     // Read DB
-    const locksMDB = await global.database.getCollection<any>(Constants.DEFAULT_TENANT, 'locks')
+    const locksMDB: Lock[] = await global.database.getCollection<Lock>(Constants.DEFAULT_TENANT, 'locks')
       .find({})
       .toArray();
-    const locks = [];
+    const locks: Lock[] = [];
     // Check
     if (locksMDB && locksMDB.length > 0) {
       for (const lockMDB of locksMDB) {
-        const lock = {};
+        const lock = {} as Lock;
         // Set values
         Database.updateLock(lockMDB, lock, false);
         // Add
@@ -32,10 +32,10 @@ export default class LockingStorage {
     return locks;
   }
 
-  public static async getLockStatus(lockToTest, lockOnMultipleHosts = true): Promise<boolean> {
+  public static async getLockStatus(lockToTest: Lock, lockOnMultipleHosts = true): Promise<boolean> {
     //  Check
     const locks = await LockingStorage.getLocks();
-    const lockStatus = locks.find((lock): boolean => {
+    const lockFound: Lock = locks.find((lock: Lock): boolean => {
       if (lockOnMultipleHosts) {
         // Same name and type
         return ((lockToTest.name === lock.name) &&
@@ -47,7 +47,10 @@ export default class LockingStorage {
           (lockToTest.hostname === lock.hostname);
 
     });
-    return lockStatus;
+    if (lockFound) {
+      return true;
+    }
+    return false;
   }
 
   public static async cleanLocks(hostname = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname()): Promise<void> {
