@@ -930,7 +930,6 @@ export default class UserStorage {
         ];
       case 'unassigned_user': {
         return [
-          //          { $match : { status: Constants.USER_STATUS_ACTIVE } },
           {
             $lookup: {
               from: DatabaseUtils.getCollectionName(tenantID, 'siteusers'),

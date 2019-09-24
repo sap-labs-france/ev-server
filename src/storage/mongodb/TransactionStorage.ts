@@ -332,10 +332,10 @@ export default class TransactionStorage {
           $group: {
             _id: null,
             totalConsumptionWattHours: { $sum: '$stop.totalConsumption' },
-            totalPriceRefund: { $sum: { $cond: [{ '$eq': [{ $type: '$refundData' }, 'missing'] }, 0, '$stop.price'] } },
-            totalPricePending: { $sum: { $cond: [{ '$eq': [{ $type: '$refundData' }, 'missing'] }, '$stop.price', 0] } },
-            countRefundTransactions: { $sum: { $cond: [{ '$eq': [{ $type: '$refundData' }, 'missing'] }, 0, 1] } },
-            countPendingTransactions: { $sum: { $cond: [{ '$eq': [{ $type: '$refundData' }, 'missing'] }, 1, 0] } },
+            totalPriceRefund: { $sum: { $cond: [{ '$in': ['$refundData.status', [Constants.REFUND_STATUS_SUBMITTED, Constants.REFUND_STATUS_APPROVED]] }, '$stop.price', 0] } },
+            totalPricePending: { $sum: { $cond: [{ '$in': ['$refundData.status', [Constants.REFUND_STATUS_SUBMITTED, Constants.REFUND_STATUS_APPROVED]] }, 0, '$stop.price'] } },
+            countRefundTransactions: { $sum: { $cond: [{ '$in': ['$refundData.status', [Constants.REFUND_STATUS_SUBMITTED, Constants.REFUND_STATUS_APPROVED]] }, 1, 0] } },
+            countPendingTransactions: { $sum: { $cond: [{ '$in': ['$refundData.status', [Constants.REFUND_STATUS_SUBMITTED, Constants.REFUND_STATUS_APPROVED]] }, 0, 1] } },
             currency: { $addToSet: '$stop.priceUnit' },
             countRefundedReports: { $addToSet: '$refundData.reportId' },
             count: { $sum: 1 }
@@ -607,7 +607,7 @@ export default class TransactionStorage {
     });
     // Build lookups to fetch chargers from transactions
     // used only in the error type : average_consumption_greater_than_connector_capacity
-    if(params.errorType && params.errorType.includes('average_consumption_greater_than_connector_capacity')) {
+    if (params.errorType && params.errorType.includes('average_consumption_greater_than_connector_capacity')) {
       aggregation.push({
         $lookup: {
           from: DatabaseUtils.getCollectionName(tenantID, 'chargingstations'),
@@ -635,7 +635,7 @@ export default class TransactionStorage {
     }
     aggregation = aggregation.concat(toSubRequests);
     // Limit records?
-/* START : to improve performance the counting has been disabled temporarily
+    /* START : to improve performance the counting has been disabled temporarily
     if (!dbParams.onlyRecordCount) {
       // Always limit the nbr of record to avoid perfs issues
       aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
@@ -655,7 +655,7 @@ export default class TransactionStorage {
     }
     // Remove the limit
     aggregation.pop();
-END : */
+    END : */
     // Rename ID
     DatabaseUtils.renameField(aggregation, '_id', 'id');
     // Convert Object ID to string
@@ -686,11 +686,11 @@ END : */
       $skip: dbParams.skip
     });
     // Limit
-/* START : No limit
+    /* START : No limit
     aggregation.push({
       $limit: dbParams.limit
     });
-END : */
+    END : */
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
@@ -709,9 +709,7 @@ END : */
       dbParams
     });
     return {
-/* START :
-//      count: transactionCountMDB ? (transactionCountMDB.count === Constants.DB_RECORD_COUNT_CEIL ? -1 : transactionCountMDB.count) : 0,
-END : */
+      count: transactionCountMDB ? (transactionCountMDB.count === Constants.DB_RECORD_COUNT_CEIL ? -1 : transactionCountMDB.count) : 0,
       count: transactionCountMDB,
       result: transactionsMDB
     };
@@ -743,20 +741,20 @@ END : */
         return [
           { $addFields: { activeDuration: { $subtract: ['$stop.totalDurationSecs', '$stop.totalInactivitySecs'] } } },
           { $match: { 'activeDuration': { $gt: 0 } } },
-          { $addFields:{connectors:{$arrayElemAt:['$chargeBox.connectors',0]}}},
-          { $addFields:{connectorPower:{$arrayElemAt:['$connectors.power',{$subtract:['$connectorId',1]}]}}},
-          { $addFields:{averagePower:{$abs:{$multiply:[{$divide:['$stop.totalConsumption','$activeDuration']},3600]}}}},
-          { $addFields:{impossiblePower:{$lte:[{$subtract: ['$connectorPower','$averagePower']},0]}}},
+          { $addFields:{ connectors:{ $arrayElemAt:['$chargeBox.connectors',0] } } },
+          { $addFields:{ connectorPower:{ $arrayElemAt:['$connectors.power',{ $subtract:['$connectorId',1] }] } } },
+          { $addFields:{ averagePower:{ $abs:{ $multiply:[{ $divide:['$stop.totalConsumption','$activeDuration'] },3600] } } } },
+          { $addFields:{ impossiblePower:{ $lte:[{ $subtract: ['$connectorPower','$averagePower'] },0] } } },
           { $match: { 'impossiblePower': { $eq: true } } },
           { $addFields: { 'errorCode': 'average_consumption_greater_than_connector_capacity' } }
         ];
-        case 'missing_price':
-          return [
-            { $match: { 'stop.price': { $lte: 0 } } },
-            { $match: { 'stop.totalConsumption': { $gt: 0 } } },
-            { $addFields: { 'errorCode': 'missing_price' } }
-          ];
-        default:
+      case 'missing_price':
+        return [
+          { $match: { 'stop.price': { $lte: 0 } } },
+          { $match: { 'stop.totalConsumption': { $gt: 0 } } },
+          { $addFields: { 'errorCode': 'missing_price' } }
+        ];
+      default:
         return [];
     }
   }
@@ -892,7 +890,7 @@ END : */
       if (transactionMDB.stop && Utils.isEmptyJSon(transactionMDB.stop)) {
         delete transactionMDB.stop;
       }
-      // Check convertion of MongoDB IDs in sub-document
+      // Check conversion of MongoDB IDs in sub-document
       if (transactionMDB.stop && transactionMDB.stop.userID) {
         transactionMDB.stop.userID = transactionMDB.stop.userID.toString();
       }
