@@ -51,7 +51,6 @@ export default class LockingStorage {
       return true;
     }
     return false;
-
   }
 
   public static async cleanLocks(hostname = Configuration.isCloudFoundry() ? cfenv.getAppEnv().name : os.hostname()): Promise<void> {
