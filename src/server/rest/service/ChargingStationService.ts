@@ -802,6 +802,7 @@ export default class ChargingStationService {
   }
 
   private static async _getChargingStations(req: Request): Promise<DataResult<ChargingStation>> {
+    throw new Error('Test exception');
     // Check auth
     if (!Authorizations.canListChargingStations(req.user)) {
       throw new AppAuthError(
