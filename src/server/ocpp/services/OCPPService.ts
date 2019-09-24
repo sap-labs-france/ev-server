@@ -1,6 +1,8 @@
 import momentDurationFormatSetup from 'moment-duration-format';
 import Authorizations from '../../../authorization/Authorizations';
 import BackendError from '../../../exception/BackendError';
+import BillingFactory from '../../../integration/billing/BillingFactory';
+import { BillingTransactionData } from '../../../integration/billing/Billing';
 import PricingFactory from '../../../integration/pricing/PricingFactory';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
@@ -576,6 +578,7 @@ export default class OCPPService {
     for (const consumption of consumptions) {
       if (consumption.toPrice) {
         await this._priceTransactionFromConsumption(tenantID, transaction, consumption, 'update');
+        await this._handleBillingForTransaction(tenantID, transaction, 'update');
       }
       await ConsumptionStorage.saveConsumption(tenantID, consumption);
     }
@@ -662,6 +665,53 @@ export default class OCPPService {
     }
   }
 
+  public async _handleBillingForTransaction(tenantID: string, transaction: Transaction, action: string, user?: User) {
+    const billingImpl = await BillingFactory.getBillingImpl(tenantID);
+
+    switch (action) {
+      // Start Transaction
+      case 'start':
+        // Active?
+        if (billingImpl) {
+          const billingDataStart = await billingImpl.startTransaction(user, transaction);
+          if (!transaction.billingData) {
+            transaction.billingData = {} as BillingTransactionData;
+          }
+          transaction.billingData.errorCode = billingDataStart.errorCode;
+          transaction.billingData.errorCodeDesc = billingDataStart.errorCodeDesc;
+          transaction.billingData.lastUpdate = new Date();
+        }
+        break;
+      // Meter Values
+      case 'update':
+        // Active?
+        if (billingImpl) {
+          const billingDataUpdate = await billingImpl.updateTransaction(transaction);
+          transaction.billingData.errorCode = billingDataUpdate.errorCode;
+          transaction.billingData.errorCodeDesc = billingDataUpdate.errorCodeDesc;
+          transaction.billingData.lastUpdate = new Date();
+          if (billingDataUpdate.stopTransaction) {
+            // Unclear how to do this...
+          }
+        }
+        break;
+      // Stop Transaction
+      case 'stop':
+        // Active?
+        if (billingImpl) {
+          const billingDataStop = await billingImpl.stopTransaction(transaction);
+          transaction.billingData.status = billingDataStop.status;
+          transaction.billingData.errorCode = billingDataStop.errorCode;
+          transaction.billingData.errorCodeDesc = billingDataStop.errorCodeDesc;
+          transaction.billingData.invoiceStatus = billingDataStop.invoiceStatus;
+          transaction.billingData.invoiceItem = billingDataStop.invoiceItem;
+          transaction.billingData.lastUpdate = new Date();
+        }
+        break;
+    }
+  }
+
+  // Save Consumption
   async _updateChargingStationConsumption(tenantID: string, chargingStation: ChargingStation, transaction: Transaction) {
     // Get the connector
     const foundConnector: Connector = chargingStation.connectors.find(
@@ -688,7 +738,7 @@ export default class OCPPService {
         method: '_updateChargingStationConsumption', action: 'ChargingStationConsumption',
         message: `Connector '${foundConnector.connectorId}' > Transaction ID '${foundConnector.activeTransactionID}' > Instant: ${foundConnector.currentConsumption / 1000} kW.h, Total: ${foundConnector.totalConsumption / 1000} kW.h${foundConnector.currentStateOfCharge ? ', SoC: ' + foundConnector.currentStateOfCharge + ' %' : ''}`
       });
-    // Cleanup connector transaction data
+      // Cleanup connector transaction data
     } else if (foundConnector) {
       foundConnector.currentConsumption = 0;
       foundConnector.totalConsumption = 0;
@@ -1066,6 +1116,8 @@ export default class OCPPService {
       );
       // Price it
       await this._priceTransactionFromConsumption(headers.tenantID, transaction, consumption, 'start');
+      // Billing
+      await this._handleBillingForTransaction(headers.tenantID, transaction, 'start', user);
       // Save it
       transaction.id = await TransactionStorage.saveTransaction(headers.tenantID, transaction);
       // Clean up Charger's connector transaction info
@@ -1300,6 +1352,8 @@ export default class OCPPService {
       );
       // Update the price
       await this._priceTransactionFromConsumption(headers.tenantID, transaction, consumption, 'stop');
+      // Finalize billing
+      await this._handleBillingForTransaction(headers.tenantID, transaction, 'stop');
       // Save Consumption
       await ConsumptionStorage.saveConsumption(headers.tenantID, consumption);
       // Remove runtime data

@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import AuthService from './service/AuthService';
+import BillingService from './service/BillingService';
 import ChargingStationService from './service/ChargingStationService';
 import CompanyService from './service/CompanyService';
 import ConnectorService from './service/ConnectorService';
@@ -89,6 +90,7 @@ class RequestMapper {
           TransactionsRefund: TransactionService.handleRefundTransactions.bind(this),
           SynchronizeRefundedTransactions: TransactionService.handleSynchronizeRefundedTransactions.bind(this),
           SettingCreate: SettingService.handleCreateSetting.bind(this),
+          SynchronizeUsersForBilling: BillingService.handleSynchronizeUsers.bind(this),
           OcpiEndpointCreate: OCPIEndpointService.handleCreateOcpiEndpoint.bind(this),
           OcpiEndpointPing: OCPIEndpointService.handlePingOcpiEndpoint.bind(this),
           OcpiEndpointSendEVSEStatuses: OCPIEndpointService.handleSendEVSEStatusesOcpiEndpoint.bind(this),
@@ -166,6 +168,7 @@ class RequestMapper {
           IsAuthorized: ChargingStationService.handleIsAuthorized.bind(this),
           Settings: SettingService.handleGetSettings.bind(this),
           Setting: SettingService.handleGetSetting.bind(this),
+          BillingConnection: BillingService.handleGetBillingConnection.bind(this),
           OcpiEndpoints: OCPIEndpointService.handleGetOcpiEndpoints.bind(this),
           OcpiEndpoint: OCPIEndpointService.handleGetOcpiEndpoint.bind(this),
           IntegrationConnections: ConnectorService.handleGetConnections.bind(this),

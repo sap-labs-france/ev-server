@@ -98,6 +98,31 @@ export default class TransactionStorage {
         reportId: transactionToSave.refundData.reportId
       };
     }
+    if (transactionToSave.billingData) {
+      transactionMDB.billingData = {
+        status: transactionToSave.billingData.status,
+        errorCode: transactionToSave.billingData.errorCode,
+        errorCodeDesc: transactionToSave.billingData.errorCodeDesc,
+        invoiceStatus: transactionToSave.billingData.invoiceStatus,
+        invoiceItem: transactionToSave.billingData.invoiceItem,
+        lastUpdate: Utils.convertToDate(transactionToSave.billingData.lastUpdate),
+      };
+      if (!transactionMDB.billingData.status) {
+        delete transactionMDB.billingData.status;
+      }
+      if (!transactionMDB.billingData.errorCode) {
+        delete transactionMDB.billingData.errorCode;
+      }
+      if (!transactionMDB.billingData.errorCodeDesc) {
+        delete transactionMDB.billingData.errorCodeDesc;
+      }
+      if (!transactionMDB.billingData.invoiceStatus) {
+        delete transactionMDB.billingData.invoiceStatus;
+      }
+      if (!transactionMDB.billingData.invoiceItem) {
+        delete transactionMDB.billingData.invoiceItem;
+      }
+    }
     // Add Last Changed Created Props
     DatabaseUtils.addLastChangedCreatedProps(transactionMDB, transactionToSave);
     // Modify
@@ -684,9 +709,7 @@ export default class TransactionStorage {
       dbParams
     });
     return {
-      /* START :
       count: transactionCountMDB ? (transactionCountMDB.count === Constants.DB_RECORD_COUNT_CEIL ? -1 : transactionCountMDB.count) : 0,
-      END : */
       count: transactionCountMDB,
       result: transactionsMDB
     };
