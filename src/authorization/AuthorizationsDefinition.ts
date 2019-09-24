@@ -42,7 +42,7 @@ const GRANTS = {
       { resource: 'Transactions', action: 'List', attributes: ['*'] },
       {
         resource: 'Transaction',
-        action: ['Read', 'Update', 'Delete'],
+        action: ['Read', 'Update', 'Delete', 'RefundTransaction'],
         attributes: ['*']
       },
       { resource: 'Loggings', action: 'List', attributes: ['*'] },

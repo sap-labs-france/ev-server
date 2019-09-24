@@ -401,20 +401,22 @@ export default class TransactionService {
     if (filteredRequest.ChargeBoxID) {
       filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
     }
-    if (filteredRequest.SiteAreaID) {
-      filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
-    }
-    if (filteredRequest.SiteID) {
-      filter.siteID = filteredRequest.SiteID.split('|');
-    }
     if (filteredRequest.UserID) {
       filter.userIDs = filteredRequest.UserID.split('|');
     }
     if (Authorizations.isBasic(req.user)) {
-      filter.userIDs = [req.user.id];
+      filter.ownerID = req.user.id;
     }
-    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
-      filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
+    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+      if (filteredRequest.SiteAreaID) {
+        filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
+      }
+      if (filteredRequest.SiteID) {
+        filter.siteID = Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID.split('|'));
+      }
+      if (Authorizations.isSiteAdmin(req.user)) {
+        filter.siteAdminIDs = req.user.sitesAdmin;
+      }
     }
     if (filteredRequest.ConnectorId) {
       filter.connectorId = filteredRequest.ConnectorId;
@@ -452,21 +454,25 @@ export default class TransactionService {
     if (filteredRequest.ChargeBoxID) {
       filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
     }
-    if (filteredRequest.SiteAreaID) {
-      filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
-    }
-    if (filteredRequest.SiteID) {
-      filter.siteID = filteredRequest.SiteID.split('|');
-    }
     if (filteredRequest.UserID) {
       filter.userIDs = filteredRequest.UserID.split('|');
     }
     if (Authorizations.isBasic(req.user)) {
-      filter.userIDs = [req.user.id];
+      filter.ownerID = req.user.id;
     }
-    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
-      filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
+
+    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+      if (filteredRequest.SiteAreaID) {
+        filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
+      }
+      if (filteredRequest.SiteID) {
+        filter.siteID = Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID.split('|'));
+      }
+      if (Authorizations.isSiteAdmin(req.user)) {
+        filter.siteAdminIDs = req.user.sitesAdmin;
+      }
     }
+
     if (filteredRequest.StartDateTime) {
       filter.startDateTime = filteredRequest.StartDateTime;
     }
@@ -516,17 +522,22 @@ export default class TransactionService {
     if (filteredRequest.ChargeBoxID) {
       filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
     }
-    if (filteredRequest.SiteAreaID) {
-      filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
-    }
-    if (filteredRequest.SiteID) {
-      filter.siteID = filteredRequest.SiteID.split('|');
-    }
     if (filteredRequest.UserID) {
       filter.userIDs = filteredRequest.UserID.split('|');
     }
+    if (Authorizations.isBasic(req.user)) {
+      filter.ownerID = req.user.id;
+    }
     if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
-      filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
+      if (filteredRequest.SiteAreaID) {
+        filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
+      }
+      if (filteredRequest.SiteID) {
+        filter.siteID = Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID.split('|'));
+      }
+      if (Authorizations.isSiteAdmin(req.user)) {
+        filter.siteAdminIDs = req.user.sitesAdmin;
+      }
     }
     if (filteredRequest.StartDateTime) {
       filter.startDateTime = filteredRequest.StartDateTime;
@@ -577,21 +588,25 @@ export default class TransactionService {
     if (filteredRequest.ChargeBoxID) {
       filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
     }
-    if (filteredRequest.SiteAreaID) {
-      filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
-    }
-    if (filteredRequest.SiteID) {
-      filter.siteID = filteredRequest.SiteID.split('|');
-    }
     if (filteredRequest.UserID) {
       filter.userIDs = filteredRequest.UserID.split('|');
     }
+
     if (Authorizations.isBasic(req.user)) {
-      filter.userIDs = [req.user.id];
+      filter.ownerID = req.user.id;
     }
-    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
-      filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
+    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+      if (filteredRequest.SiteAreaID) {
+        filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
+      }
+      if (filteredRequest.SiteID) {
+        filter.siteID = Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID.split('|'));
+      }
+      if (Authorizations.isSiteAdmin(req.user)) {
+        filter.siteAdminIDs = req.user.sitesAdmin;
+      }
     }
+
     // Date
     if (filteredRequest.StartDateTime) {
       filter.startDateTime = filteredRequest.StartDateTime;
@@ -654,18 +669,16 @@ export default class TransactionService {
     if (filteredRequest.ChargeBoxID) {
       filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
     }
-    if (filteredRequest.SiteAreaID) {
-      filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
-    }
-    if (filteredRequest.SiteID) {
-      filter.siteID = filteredRequest.SiteID.split('|');
-    }
     if (filteredRequest.UserID) {
       filter.userIDs = filteredRequest.UserID.split('|');
     }
-    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION) && Authorizations.isSiteAdmin(req.user)) {
-      filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
+    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+      if (filteredRequest.SiteAreaID) {
+        filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
+      }
+      filter.siteID = Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID ? filteredRequest.SiteID.split('|') : null);
     }
+
     // Date
     if (filteredRequest.StartDateTime) {
       filter.startDateTime = filteredRequest.StartDateTime;
