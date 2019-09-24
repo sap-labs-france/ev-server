@@ -1054,7 +1054,7 @@ export default class OCPPService {
       transaction.currentTotalConsumption = 0;
       transaction.currentConsumptionWh = 0;
       // Build first Dummy consumption for pricing the Start Transaction
-      const consumption = await this._buildConsumptionFromTransactionAndMeterValue(
+      const consumption = this._buildConsumptionFromTransactionAndMeterValue(
         transaction, transaction.timestamp, transaction.timestamp, {
           id: '666',
           connectorId: transaction.connectorId,
@@ -1068,10 +1068,6 @@ export default class OCPPService {
       await this._priceTransactionFromConsumption(headers.tenantID, transaction, consumption, 'start');
       // Save it
       transaction.id = await TransactionStorage.saveTransaction(headers.tenantID, transaction);
-      // Lock the other connectors?
-      if (chargingStation.cannotChargeInParallel) {
-        OCPPUtils.lockAllConnectors(chargingStation);
-      }
       // Clean up Charger's connector transaction info
       const foundConnector = chargingStation.connectors.find(
         (connector) => connector.connectorId === transaction.connectorId);

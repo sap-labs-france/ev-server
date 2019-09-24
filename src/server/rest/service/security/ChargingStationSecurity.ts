@@ -8,6 +8,7 @@ import HttpDatabaseRequest from '../../../../types/requests/HttpDatabaseRequest'
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import { DataResult } from '../../../../types/DataResult';
+import Utils from '../../../../utils/Utils';
 
 export default class ChargingStationSecurity {
 
@@ -20,15 +21,16 @@ export default class ChargingStationSecurity {
 
   public static filterChargingStationResponse(chargingStation: ChargingStation, loggedUser: UserToken, organizationIsActive: boolean): Partial<ChargingStation> {
     let filteredChargingStation;
-
     if (!chargingStation || !Authorizations.canReadChargingStation(loggedUser)) {
       return null;
     }
-
     const siteID = chargingStation.siteArea ? chargingStation.siteArea.siteID : null;
     if (organizationIsActive && !Authorizations.canReadSiteArea(loggedUser, siteID)) {
       return null;
     }
+    // Check connectors
+    Utils.checkConnectors(chargingStation);
+    // Check Auth
     if (Authorizations.canUpdateChargingStation(loggedUser, siteID)) {
       // Yes: set all params
       filteredChargingStation = chargingStation;
