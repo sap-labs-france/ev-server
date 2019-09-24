@@ -1,8 +1,8 @@
 const nodeExternals = require('webpack-node-externals');
 const commonPaths = require('./webpack.common.paths');
 const webpack = require('webpack');
-const TerserPlugin = require('terser-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 
 const config = {
   entry: commonPaths.srcPath + '/start.ts',
@@ -40,14 +40,8 @@ const config = {
     ])
   ],
   optimization: {
-    minimize: true,
-    minimizer: [
-      new TerserPlugin({
-        sourceMap: true,
-        parallel: true,
-        cache: true,
-      }),
-    ],
+    minimize: false,
+    minimizer: [new TerserPlugin()]
   }
 };
 

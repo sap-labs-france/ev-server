@@ -1,6 +1,5 @@
 import axios from 'axios';
 import axiosRetry from 'axios-retry';
-import * as Bluebird from 'bluebird';
 import jwt from 'jsonwebtoken';
 import moment from 'moment-timezone';
 import querystring from 'querystring';
@@ -170,7 +169,7 @@ export default class ConcurConnector extends AbstractConnector {
       expenseReportId = await this.createExpenseReport(connection, transactions[0].timezone, userId);
     }
 
-    await Bluebird.Promise.map(transactions,
+    await Promise.map(transactions,
       async (transaction: Transaction) => {
         try {
           const chargingStation = await ChargingStationStorage.getChargingStation(tenantID, transaction.chargeBoxID);
