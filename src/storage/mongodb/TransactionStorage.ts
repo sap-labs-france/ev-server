@@ -709,7 +709,6 @@ export default class TransactionStorage {
       dbParams
     });
     return {
-      count: transactionCountMDB ? (transactionCountMDB.count === Constants.DB_RECORD_COUNT_CEIL ? -1 : transactionCountMDB.count) : 0,
       count: transactionCountMDB,
       result: transactionsMDB
     };
