@@ -441,6 +441,55 @@ export default class AuthService {
     }
   }
 
+  public static async handleCheckEndUserLicenseAgreement(action: string, req: Request, res: Response, next: NextFunction) {
+    // Filter
+    const filteredRequest = AuthSecurity.filterCheckEulaRequest(req.query);
+    // Check
+    if (!filteredRequest.Tenant) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'The Tenant is mandatory',
+        Constants.HTTP_GENERAL_ERROR,
+        'AuthService', 'handleCheckEndUserLicenseAgreement');
+    }
+    // Get Tenant
+    const tenantID = await AuthService.getTenantID(filteredRequest.Tenant);
+    if (!tenantID) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'The Tenant is mandatory',
+        Constants.HTTP_GENERAL_ERROR,
+        'AuthService', 'handleCheckEndUserLicenseAgreement');
+    }
+    // Check hash
+    if (!filteredRequest.Email) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'The Email is mandatory',
+        Constants.HTTP_GENERAL_ERROR,
+        'AuthService', 'handleCheckEndUserLicenseAgreement');
+    }
+    // Get User
+    const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.Email);
+    if (!user) {
+      // Do not return error, only reject it
+      res.json({ eulaAccepted: false });
+      next();
+      return
+    }
+    // Get last Eula version
+    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, user.locale.substring(0, 2));
+    if (user.eulaAcceptedHash === endUserLicenseAgreement.hash) {
+      // Check if version matches
+      res.json({ eulaAccepted: true });
+      next();
+      return;
+    }
+    // Check if version matches
+    res.json({ eulaAccepted: false });
+    next();
+}
+
   public static async handleGetEndUserLicenseAgreement(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterEndUserLicenseAgreementRequest(req);
