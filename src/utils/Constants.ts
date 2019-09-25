@@ -161,6 +161,7 @@ export default class Constants {
   public static readonly SETTING_REFUND_CONTENT_TYPE_CONCUR = 'concur';
   public static readonly SETTING_REFUND_CONTENT_TYPE_GIREVE = 'gireve';
   public static readonly SETTING_REFUND_CONTENT_TYPE_SAC = 'sac';
+  public static readonly SETTING_BILLING_CONTENT_TYPE_STRIPE = 'stripe';
 
   public static readonly METER_VALUE_CTX_SAMPLE_PERIODIC = 'Sample.Periodic';
   public static readonly METER_VALUE_CTX_SAMPLE_CLOCK = 'Sample.Clock';
@@ -221,6 +222,13 @@ export default class Constants {
 
   public static readonly REFUND_TYPE_REFUNDED = 'refunded';
   public static readonly REFUND_TYPE_NOT_REFUNDED = 'notRefunded';
+
+  public static readonly BILLING_STATUS_UNBILLED = 'unbilled';
+  public static readonly BILLING_STATUS_BILLED = 'billed';
+
+  public static readonly BILLING_METHOD_IMMEDIATE = 'immediate';
+  public static readonly BILLING_METHOD_PERIODIC = 'periodic';
+  public static readonly BILLING_METHOD_ADVANCE = 'advance';
 
   public static readonly MAX_DATE = new Date('9999-12-31Z23:59:59:999');
   public static readonly MIN_DATE = new Date('1970-01-01Z00:00:00:000');
@@ -291,6 +299,7 @@ export default class Constants {
     OCPI: 'ocpi',
     REFUND: 'refund',
     PRICING: 'pricing',
+    BILLING: 'billing',
     ORGANIZATION: 'organization',
     STATISTICS: 'statistics',
     ANALYTICS: 'analytics'

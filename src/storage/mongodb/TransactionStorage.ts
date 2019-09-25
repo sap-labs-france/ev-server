@@ -98,6 +98,31 @@ export default class TransactionStorage {
         reportId: transactionToSave.refundData.reportId
       };
     }
+    if (transactionToSave.billingData) {
+      transactionMDB.billingData = {
+        status: transactionToSave.billingData.status,
+        errorCode: transactionToSave.billingData.errorCode,
+        errorCodeDesc: transactionToSave.billingData.errorCodeDesc,
+        invoiceStatus: transactionToSave.billingData.invoiceStatus,
+        invoiceItem: transactionToSave.billingData.invoiceItem,
+        lastUpdate: Utils.convertToDate(transactionToSave.billingData.lastUpdate),
+      };
+      if (!transactionMDB.billingData.status) {
+        delete transactionMDB.billingData.status;
+      }
+      if (!transactionMDB.billingData.errorCode) {
+        delete transactionMDB.billingData.errorCode;
+      }
+      if (!transactionMDB.billingData.errorCodeDesc) {
+        delete transactionMDB.billingData.errorCodeDesc;
+      }
+      if (!transactionMDB.billingData.invoiceStatus) {
+        delete transactionMDB.billingData.invoiceStatus;
+      }
+      if (!transactionMDB.billingData.invoiceItem) {
+        delete transactionMDB.billingData.invoiceItem;
+      }
+    }
     // Add Last Changed Created Props
     DatabaseUtils.addLastChangedCreatedProps(transactionMDB, transactionToSave);
     // Modify
@@ -307,10 +332,10 @@ export default class TransactionStorage {
           $group: {
             _id: null,
             totalConsumptionWattHours: { $sum: '$stop.totalConsumption' },
-            totalPriceRefund: { $sum: { $cond: [{ '$eq': [{ $type: '$refundData' }, 'missing'] }, 0, '$stop.price'] } },
-            totalPricePending: { $sum: { $cond: [{ '$eq': [{ $type: '$refundData' }, 'missing'] }, '$stop.price', 0] } },
-            countRefundTransactions: { $sum: { $cond: [{ '$eq': [{ $type: '$refundData' }, 'missing'] }, 0, 1] } },
-            countPendingTransactions: { $sum: { $cond: [{ '$eq': [{ $type: '$refundData' }, 'missing'] }, 1, 0] } },
+            totalPriceRefund: { $sum: { $cond: [{ '$in': ['$refundData.status', [Constants.REFUND_STATUS_SUBMITTED, Constants.REFUND_STATUS_APPROVED]] }, '$stop.price', 0] } },
+            totalPricePending: { $sum: { $cond: [{ '$in': ['$refundData.status', [Constants.REFUND_STATUS_SUBMITTED, Constants.REFUND_STATUS_APPROVED]] }, 0, '$stop.price'] } },
+            countRefundTransactions: { $sum: { $cond: [{ '$in': ['$refundData.status', [Constants.REFUND_STATUS_SUBMITTED, Constants.REFUND_STATUS_APPROVED]] }, 1, 0] } },
+            countPendingTransactions: { $sum: { $cond: [{ '$in': ['$refundData.status', [Constants.REFUND_STATUS_SUBMITTED, Constants.REFUND_STATUS_APPROVED]] }, 0, 1] } },
             currency: { $addToSet: '$stop.priceUnit' },
             countRefundedReports: { $addToSet: '$refundData.reportId' },
             count: { $sum: 1 }
@@ -684,9 +709,6 @@ export default class TransactionStorage {
       dbParams
     });
     return {
-      /* START :
-      count: transactionCountMDB ? (transactionCountMDB.count === Constants.DB_RECORD_COUNT_CEIL ? -1 : transactionCountMDB.count) : 0,
-      END : */
       count: transactionCountMDB,
       result: transactionsMDB
     };
