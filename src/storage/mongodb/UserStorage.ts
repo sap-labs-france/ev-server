@@ -458,7 +458,7 @@ export default class UserStorage {
   public static async getUsers(tenantID: string,
     params: {
       notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string; userID?: string; email?: string;
-      roles?: string[]; statuses?: string[]; withImage?: boolean; nonSynchronizedBillingData?: boolean
+      roles?: string[]; statuses?: string[]; withImage?: boolean; nonSynchronizedBillingData?: boolean;
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
@@ -541,12 +541,12 @@ export default class UserStorage {
     if (params.nonSynchronizedBillingData) {
       filters.$and.push({
         '$or': [
-          { "billingData": { "$exists": false } },
-          { "billingData.lastChangedOn": { "$exists": false } },
-          { "billingData.lastChangedOn": null },
-          { "lastChangedOn": { "$exists": false } },
-          { "lastChangedOn": null },
-          { $expr: { $gt: ["$lastChangedOn", "$billingData.lastChangedOn"] } }
+          { 'billingData': { '$exists': false } },
+          { 'billingData.lastChangedOn': { '$exists': false } },
+          { 'billingData.lastChangedOn': null },
+          { 'lastChangedOn': { '$exists': false } },
+          { 'lastChangedOn': null },
+          { $expr: { $gt: ['$lastChangedOn', '$billingData.lastChangedOn'] } }
         ]
       });
     }
