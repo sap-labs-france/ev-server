@@ -8,6 +8,7 @@ import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import AuthSecurity from './security/AuthSecurity';
 import BadRequestError from '../../../exception/BadRequestError';
+import BillingFactory from '../../../integration/billing/BillingFactory';
 import Configuration from '../../../utils/Configuration';
 import Constants from '../../../utils/Constants';
 import { HttpLoginRequest, HttpResetPasswordRequest } from '../../../types/requests/HttpUserRequest';
@@ -531,8 +532,14 @@ export default class AuthService {
         'Wrong Verification Token', Constants.HTTP_AUTH_INVALID_TOKEN_ERROR,
         'AuthService', 'handleVerifyEmail', user);
     }
+    // For integration with billing
+    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     // Save User Status
     await UserStorage.saveUserStatus(tenantID, user.id, Constants.USER_STATUS_ACTIVE);
+    if (billingImpl) {
+      const billingData = await billingImpl.updateUser(user, req);
+      await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingData);
+    }
     // Save User Verification Account
     await UserStorage.saveUserAccountVerification(tenantID, user.id,
       { verificationToken: null, verifiedAt: new Date() });
