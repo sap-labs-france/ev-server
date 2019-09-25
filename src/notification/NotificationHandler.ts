@@ -61,12 +61,12 @@ export default class NotificationHandler {
 
   static async getAdminUsers(tenantID: string): Promise<User[]> {
     // Get admin users
-    const adminUsers = await UserStorage.getUsers(tenantID, { roles: [Constants.ROLE_ADMIN] },
+    const adminUsers = await UserStorage.getUsers(tenantID, { roles: [Constants.ROLE_ADMIN], notificationsActive: true },
       Constants.DB_PARAMS_MAX_LIMIT);
     // Found
     if (adminUsers.count > 0) {
       // Check if notification is active
-      adminUsers.result = adminUsers.result.filter((adminUser) => adminUser.notificationsActive);
+//      adminUsers.result = adminUsers.result.filter((adminUser) => adminUser.notificationsActive);
       return adminUsers.result;
     }
   }
@@ -85,6 +85,8 @@ export default class NotificationHandler {
 
   static async sendEndOfCharge(tenantID, sourceId, user: User, chargingStation, sourceData, locale, data) {
     try {
+      // Enrich with admins
+      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       // Check notification
       const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
       // Notified?
@@ -108,6 +110,8 @@ export default class NotificationHandler {
 
   static async sendOptimalChargeReached(tenantID, sourceId, user: User, chargingStation, sourceData, locale, data) {
     try {
+      // Enrich with admins
+      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       // Check notification
       const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
       // Notified?
@@ -131,6 +135,8 @@ export default class NotificationHandler {
 
   static async sendEndOfSession(tenantID, sourceId, user: User, chargingStation, sourceData, locale, data) {
     try {
+      // Enrich with admins
+      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       // Check notification
       const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
       // Notified?
@@ -154,6 +160,8 @@ export default class NotificationHandler {
 
   static async sendEndOfSignedSession(tenantID, sourceId, user: User, chargingStation, sourceData, locale, data) {
     try {
+      // Enrich with admins
+      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       // Check notification
       const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
       // Notified?
@@ -177,6 +185,8 @@ export default class NotificationHandler {
 
   static async sendRequestPassword(tenantID, sourceId, user: User, sourceData, locale) {
     try {
+      // Enrich with admins
+      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
         // Save notif
@@ -195,6 +205,8 @@ export default class NotificationHandler {
 
   static async sendNewPassword(tenantID, sourceId, user: User, sourceData, locale) {
     try {
+      // Enrich with admins
+      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
         // Save notif
@@ -212,6 +224,8 @@ export default class NotificationHandler {
 
   static async sendUserAccountStatusChanged(tenantID, sourceId, user: User, sourceData, locale) {
     try {
+      // Enrich with admins
+      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
         // Save notif
@@ -230,6 +244,8 @@ export default class NotificationHandler {
 
   static async sendNewRegisteredUser(tenantID, sourceId, user: User, sourceData, locale) {
     try {
+      // Enrich with admins
+      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
         // Save notif
@@ -248,6 +264,8 @@ export default class NotificationHandler {
 
   static async sendVerificationEmail(tenantID, sourceId, user: User, sourceData, locale) {
     try {
+      // Enrich with admins
+      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
         // Save notif
@@ -326,6 +344,8 @@ export default class NotificationHandler {
 
   static async sendTransactionStarted(tenantID, sourceId, user: User, chargingStation, sourceData, locale, data) {
     try {
+      // Enrich with admins
+      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       // Check notification
       const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
       // Notified?
