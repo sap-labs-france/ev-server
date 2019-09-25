@@ -143,8 +143,8 @@ export default class UserService {
       // Delete from site
       const siteIDs: string[] = (await UserStorage.getSites(req.user.tenantID, { userID: id },
         Constants.DB_PARAMS_MAX_LIMIT)).result.map(
-          (siteUser) => siteUser.site.id
-        );
+        (siteUser) => siteUser.site.id
+      );
       await UserStorage.removeSitesFromUser(req.user.tenantID, user.id, siteIDs);
     }
     // Delete User
