@@ -6,5 +6,4 @@ export class PricedConsumption {
     readonly roundedAmount: number,
     readonly currencyCode: string,
     readonly pricingSource: string) {}
-
 }
