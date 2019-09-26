@@ -394,37 +394,27 @@ export default class UserStorage {
     await Utils.checkTenant(tenantID);
     // Set data
     const updatedUserMDB: any = {};
-    let update = false;
     // Set only provided values
-    if (billingData) {
+    if (billingData && billingData.customerID) {
       updatedUserMDB.billingData = {} as BillingUserData;
-      if (billingData.customerID) {
-        updatedUserMDB.billingData.customerID = billingData.customerID;
-        update = true;
+      updatedUserMDB.billingData.customerID = billingData.customerID;
+      updatedUserMDB.billingData.method = billingData.method;
+      updatedUserMDB.billingData.cardID = billingData.cardID;
+      if (!updatedUserMDB.billingData.cardID) {
+        delete updatedUserMDB.billingData.cardID;
       }
-      if (billingData.method) {
-        updatedUserMDB.billingData.method = billingData.method;
-        update = true;
+      updatedUserMDB.billingData.subscriptionID = billingData.subscriptionID;
+      if (!updatedUserMDB.billingData.subscriptionID) {
+        delete updatedUserMDB.billingData.subscriptionID;
       }
-      if (billingData.cardID) {
-        updatedUserMDB.billingData.cardID = billingData.cardID;
-        update = true;
-      }
-      if (billingData.subscriptionID) {
-        updatedUserMDB.billingData.subscriptionID = billingData.subscriptionID;
-        update = true;
-      }
-      if (billingData.lastChangedOn) {
-        const lastChangedOn = Utils.convertToDate(billingData.lastChangedOn);
+      const lastChangedOn = Utils.convertToDate(billingData.lastChangedOn);
+      if (lastChangedOn) {
         await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
           { '_id': Utils.convertToObjectID(userID) },
           { $set: { lastChangedOn } });
-        updatedUserMDB.billingData.lastChangedOn = lastChangedOn;
-        update = true;
       }
-    }
-    // Modify and return the modified document
-    if (update) {
+      updatedUserMDB.billingData.lastChangedOn = lastChangedOn;
+      // Modify and return the modified document
       await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
         { '_id': Utils.convertToObjectID(userID) },
         { $set: updatedUserMDB });
@@ -458,7 +448,7 @@ export default class UserStorage {
   public static async getUsers(tenantID: string,
     params: {
       notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string; userID?: string; email?: string;
-      roles?: string[]; statuses?: string[]; withImage?: boolean; nonSynchronizedBillingData?: boolean
+      roles?: string[]; statuses?: string[]; withImage?: boolean; billingCustomer?: string; notSynchronizedBillingData?: boolean
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
@@ -504,6 +494,14 @@ export default class UserStorage {
     if (params.roles && Array.isArray(params.roles) && params.roles.length > 0) {
       filters.role = { $in: params.roles };
     }
+    // Billing Customer
+    if (params.billingCustomer) {
+      filters.$and.push(
+        { 'billingData': { '$exists': true } },
+        { 'billingData.customerID': { '$exists': true } },
+        { 'billingData.customerID': params.billingCustomer }
+      );
+    }
     // Status (Previously getUsersInError)
     if (params.statuses && Array.isArray(params.statuses) && params.statuses.length > 0) {
       filters.status = { $in: params.statuses };
@@ -538,15 +536,15 @@ export default class UserStorage {
       }
     });
     // Select non-synchronized billing data
-    if (params.nonSynchronizedBillingData) {
+    if (params.notSynchronizedBillingData) {
       filters.$and.push({
         '$or': [
-          { "billingData": { "$exists": false } },
-          { "billingData.lastChangedOn": { "$exists": false } },
-          { "billingData.lastChangedOn": null },
-          { "lastChangedOn": { "$exists": false } },
-          { "lastChangedOn": null },
-          { $expr: { $gt: ["$lastChangedOn", "$billingData.lastChangedOn"] } }
+          { 'billingData': { '$exists': false } },
+          { 'billingData.lastChangedOn': { '$exists': false } },
+          { 'billingData.lastChangedOn': null },
+          { 'lastChangedOn': { '$exists': false } },
+          { 'lastChangedOn': null },
+          { $expr: { $gt: ['$lastChangedOn', '$billingData.lastChangedOn'] } }
         ]
       });
     }
