@@ -847,7 +847,7 @@ export default class Utils {
         `User Email ${filteredRequest.email} is not valid`, Constants.HTTP_GENERAL_ERROR,
         'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
     }
-    if (filteredRequest.password && !Utils._isPasswordValid(filteredRequest.password)) {
+    if (filteredRequest.password && !Utils.isPasswordValid(filteredRequest.password)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         'User Password is not valid', Constants.HTTP_GENERAL_ERROR,
@@ -991,7 +991,7 @@ export default class Utils {
     }
   }
 
-  private static _isPasswordValid(password: string): boolean {
+  public static isPasswordValid(password: string): boolean {
     // eslint-disable-next-line no-useless-escape
     return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
   }

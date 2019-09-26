@@ -17,6 +17,10 @@ export default class AuthSecurity {
     const filteredRequest: any = {};
     // Set
     filteredRequest.email = sanitize(request.email);
+    if (request.passwords) {
+      filteredRequest.password = sanitize(request.passwords.password);
+      filteredRequest.repeatPassword = sanitize(request.passwords.repeatPassword);
+    }
     filteredRequest.tenant = sanitize(request.tenant);
     filteredRequest.captcha = sanitize(request.captcha);
     filteredRequest.hash = sanitize(request.hash);
