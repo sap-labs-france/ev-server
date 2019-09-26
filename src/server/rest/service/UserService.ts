@@ -16,6 +16,7 @@ import UserSecurity from './security/UserSecurity';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
+import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 
 export default class UserService {
 
@@ -152,6 +153,9 @@ export default class UserService {
     if (billingImpl) {
       await billingImpl.deleteUser(user, req);
     }
+
+    await ConnectionStorage.deleteConnectionByUserId(req.user.tenantID, user.id);
+
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
