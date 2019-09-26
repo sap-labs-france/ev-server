@@ -153,9 +153,8 @@ export default class UserService {
     if (billingImpl) {
       await billingImpl.deleteUser(user, req);
     }
-
+    // Delete Connections
     await ConnectionStorage.deleteConnectionByUserId(req.user.tenantID, user.id);
-
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
