@@ -254,17 +254,22 @@ export default class EMailNotificationTask extends NotificationTask {
             tenantID: tenantID, source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
             module: 'EMailNotificationTask', method: 'sendEmail',
             action: (!retry ? 'SendEmail' : 'SendEmailBackup'),
-            message: `Error in sending Email: '${messageToSend.subject}'`,
+            message: `Error in sending Email (${messageToSend.from}): '${messageToSend.subject}'`,
             actionOnUser: data.user,
-            detailedMessages: {
-              email: {
-                from: messageToSend.from,
-                to: messageToSend.to,
-                cc: messageToSend.cc,
-                subject: messageToSend.subject
-              },
-              error: err.stack
-            }
+            detailedMessages: [
+              {
+                email: {
+                  from: messageToSend.from,
+                  to: messageToSend.to,
+                  cc: messageToSend.cc,
+                  subject: messageToSend.subject
+                },
+              }, {
+                error: err.stack
+              }, {
+                content: email.html
+              }
+            ]
           });
         // For Unit Tests only: Tenant is deleted and email is not known thus this Logging statement is always failing with an invalid Tenant
         } catch (error) {
@@ -282,14 +287,18 @@ export default class EMailNotificationTask extends NotificationTask {
           action: (!retry ? 'SendEmail' : 'SendEmailBackup'),
           actionOnUser: data.user,
           message: `Email has been sent successfully: '${messageToSend.subject}'`,
-          detailedMessages: {
-            email: {
-              from: messageToSend.from,
-              to: messageToSend.to,
-              cc: messageToSend.cc,
-              subject: messageToSend.subject
+          detailedMessages: [
+            {
+              email: {
+                from: messageToSend.from,
+                to: messageToSend.to,
+                cc: messageToSend.cc,
+                subject: messageToSend.subject
+              },
+            }, {
+              content: email.html
             }
-          }
+          ]
         });
         // Return
         return messageSent;
