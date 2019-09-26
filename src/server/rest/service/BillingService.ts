@@ -126,33 +126,33 @@ export default class BillingService {
       }
       // Second step: Get updated users/customers from Billing
       try {
-        const updatedCustomers = await billingImpl.getUpdatedCustomers(doneCustomers);
-        if (updatedCustomers && updatedCustomers.length > 0) {
+        const changedCustomers = await billingImpl.getUpdatedCustomers(doneCustomers);
+        if (changedCustomers && changedCustomers.length > 0) {
           Logging.logInfo({
             tenantID: tenant.id,
             module: 'BillingService',
             method: 'handleSynchronizeUsers', action: 'SynchronizeUsersForBilling',
-            message: `Users are going to be synchronized for ${updatedCustomers.length} changed Billing customers`
+            message: `Users are going to be synchronized for ${changedCustomers.length} changed Billing customers`
           });
-          for (const updatedCustomer of updatedCustomers) {
+          for (const changedCustomer of changedCustomers) {
             const billingUsers = await UserStorage.getUsers(tenant.id,
-              { billingCustomer: updatedCustomer.customerID },
+              { billingCustomer: changedCustomer.customerID },
               Constants.DB_PARAMS_SINGLE_RECORD);
             if (billingUsers.count > 0) {
               const updatedBillingData = billingUsers.result[0].billingData;
-              updatedBillingData.cardID = updatedCustomer.cardID;
-              updatedBillingData.subscriptionID = updatedCustomer.subscriptionID;
+              updatedBillingData.cardID = changedCustomer.cardID;
+              updatedBillingData.subscriptionID = changedCustomer.subscriptionID;
               updatedBillingData.lastChangedOn = new Date();
               await UserStorage.saveUserBillingData(tenant.id, billingUsers.result[0].id, updatedBillingData);
               actionsDone.synchronized++;
             } else {
               Logging.logError({
                 tenantID: tenant.id,
-                source: updatedCustomer.customerID,
+                source: changedCustomer.customerID,
                 action: Constants.ACTION_UPDATE,
                 module: 'BillingService', method: 'handleSynchronizeUsers',
                 message: 'Synchronization failed for changed customer in Billing application',
-                detailedMessages: `No user exists for billing customer '${updatedCustomer.customerID}'`
+                detailedMessages: `No user exists for billing customer '${changedCustomer.customerID}'`
               });
               actionsDone.error++;
             }

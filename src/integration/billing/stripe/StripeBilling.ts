@@ -126,8 +126,9 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
 
   public async getUpdatedCustomers(exclCustomers?: string[]): Promise<BillingUpdatedCustomer[]> {
     const newSyncDate = new Date();
-    const createdSince = this.settings.lastSynchronizedOn ? JSON.stringify(moment(this.settings.lastSynchronizedOn).unix()) : '0';
+    const createdSince = this.settings.lastSynchronizedOn ? `${moment(this.settings.lastSynchronizedOn).unix()}` : '0';
 
+    let stillData = true;
     let lastEventID: string;
     let events: Stripe.IList<Stripe.events.IEvent>;
     let skipCustomer: boolean;
@@ -137,8 +138,8 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
     let updatedCustomer: BillingUpdatedCustomer;
     let updatedCustomers: BillingUpdatedCustomer[] = [];
 
-    try {
-      do {
+    while (stillData) {
+      try {
         if (lastEventID) {
           events = await this.stripe.events.list(
             {
@@ -157,59 +158,65 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
             }
           );
         }
-        if (events.data.length > 0) {
-          events.data.forEach((evt) => {
-            skipCustomer = false;
-            lastEventID = evt.id;
-            lastCustomerID = evt.data.object['customer'] ? evt.data.object['customer'] :
-              ((evt.data.object['object'] === 'customer') ? evt.data.object['id'] : null);
-            if (!lastCustomerID) {
-              skipCustomer = true;
-            }
-            if (!skipCustomer && exclCustomers &&
-              (exclCustomers.length > 0) &&
-              (exclCustomers.findIndex((id) => id === lastCustomerID) > -1)) {
-              skipCustomer = true;
-            }
-            if (!skipCustomer && (collectedCustomerIDs.length > 0) &&
-              (collectedCustomerIDs.findIndex((id) => id === lastCustomerID) > -1)) {
-              skipCustomer = true;
-            }
-            if (!skipCustomer) {
-              collectedCustomerIDs.push(lastCustomerID);
-            }
-          });
-        }
-      } while (events.data.length > 0);
-      if (collectedCustomerIDs && collectedCustomerIDs.length > 0) {
-        for (lastCustomerID of collectedCustomerIDs) {
-          try {
-            const stripeCustomer = await this.stripe.customers.retrieve(lastCustomerID);
-            updatedCustomer = {} as BillingUpdatedCustomer;
-            if (stripeCustomer.id === lastCustomerID) {
-              updatedCustomer.customerID = lastCustomerID;
-              updatedCustomer.cardID = JSON.stringify(stripeCustomer.default_source);
-              if (stripeCustomer.subscriptions && stripeCustomer.subscriptions.data &&
-                stripeCustomer.subscriptions.data.length > 0) {
-                updatedCustomer.subscriptionID = stripeCustomer.subscriptions.data[0].id;
-              }
-              updatedCustomers.push(updatedCustomer);
-            }
-          } catch (error) {
-            // Ignore it; perhaps a deleted customer in Stripe
-          }
-        };
+      } catch (error) {
+        Logging.logError({
+          tenantID: this.tenantId,
+          source: 'stripe.events.list',
+          action: Constants.ACTION_UPDATE,
+          module: 'StripeBilling', method: 'getUpdatedCustomers',
+          message: 'Impossible to retrieve updated customers from Stripe Billing',
+          detailedMessages: error
+        });
+        return;
       }
-    } catch (error) {
-      Logging.logError({
-        tenantID: this.tenantId,
-        source: 'stripe.events.list',
-        action: Constants.ACTION_UPDATE,
-        module: 'StripeBilling', method: 'getUpdatedCustomers',
-        message: 'Impossible to retrieve updated customers from Stripe Billing',
-        detailedMessages: error
-      });
-      return;
+
+      if (events.data.length > 0) {
+        events.data.forEach((evt) => {
+          skipCustomer = false;
+          lastEventID = evt.id;
+          lastCustomerID = evt.data.object['customer'] ? evt.data.object['customer'] :
+            ((evt.data.object['object'] === 'customer') ? evt.data.object['id'] : null);
+          if (!lastCustomerID) {
+            skipCustomer = true;
+          }
+          if (!skipCustomer && exclCustomers &&
+            (exclCustomers.length > 0) &&
+            (exclCustomers.findIndex((id) => id === lastCustomerID) > -1)) {
+            skipCustomer = true;
+          }
+          if (!skipCustomer && (collectedCustomerIDs.length > 0) &&
+            (collectedCustomerIDs.findIndex((id) => id === lastCustomerID) > -1)) {
+            skipCustomer = true;
+          }
+          if (!skipCustomer) {
+            collectedCustomerIDs.push(lastCustomerID);
+          }
+        });
+      } else {
+        stillData = false;
+      }
+    }
+
+    if (collectedCustomerIDs && collectedCustomerIDs.length > 0) {
+      for (lastCustomerID of collectedCustomerIDs) {
+        try {
+          const stripeCustomer = await this.stripe.customers.retrieve(lastCustomerID);
+          updatedCustomer = {} as BillingUpdatedCustomer;
+          if (stripeCustomer.id === lastCustomerID) {
+            updatedCustomer.customerID = lastCustomerID;
+            if (stripeCustomer.default_source && typeof (stripeCustomer.default_source) === 'string') {
+              updatedCustomer.cardID = stripeCustomer.default_source;
+            }
+            if (stripeCustomer.subscriptions && stripeCustomer.subscriptions.data &&
+              stripeCustomer.subscriptions.data.length > 0) {
+              updatedCustomer.subscriptionID = stripeCustomer.subscriptions.data[0].id;
+            }
+            updatedCustomers.push(updatedCustomer);
+          }
+        } catch (error) {
+          // Ignore it; perhaps a deleted customer in Stripe
+        }
+      };
     }
 
     // Update 'lastSynchronizedOn'
@@ -1094,7 +1101,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
     const billingMethod = this._retrieveBillingMethod(user, req);
     let collectionMethod;
     let daysUntilDue = 0;
-    if (!customer['default_source']) {
+    if (!customer['default_source'] || typeof (customer['default_source']) !== 'string') {
       collectionMethod = 'send_invoice';
       daysUntilDue = 30;
     } else {
@@ -1200,8 +1207,8 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
     return {
       method: billingMethod,
       customerID: customer['id'],
-      cardID: customer['default_source'] ? customer['default_source'] : null,
-      subscriptionID: subscription['id'] ? subscription['id'] : null,
+      cardID: customer['default_source'] && typeof (customer['default_source']) === 'string' ? customer['default_source'] : '',
+      subscriptionID: subscription['id'] ? subscription['id'] : '',
       lastChangedOn: new Date()
     };
   }
