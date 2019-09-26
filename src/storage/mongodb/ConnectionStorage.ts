@@ -7,7 +7,7 @@ import Utils from '../../utils/Utils';
 
 export default class ConnectionStorage {
 
-  static async saveConnection(tenantID, connectionToSave) {
+  static async saveConnection(tenantID: string, connectionToSave) {
     const uniqueTimerID = Logging.traceStart('ConnectionStorage', 'saveConnection');
     await Utils.checkTenant(tenantID);
     const connection: any = {};
@@ -24,7 +24,7 @@ export default class ConnectionStorage {
     return new Connection(tenantID, result.value);
   }
 
-  static async getConnectionByUserId(tenantID, connectorId, userId) {
+  static async getConnectionByUserId(tenantID: string, connectorId: string, userId: string) {
     const uniqueTimerID = Logging.traceStart('ConnectionStorage', 'getConnectionByUserId');
     await Utils.checkTenant(tenantID);
     const aggregation = [];
@@ -44,7 +44,7 @@ export default class ConnectionStorage {
     return connection;
   }
 
-  static async getConnectionsByUserId(tenantID, userId) {
+  static async getConnectionsByUserId(tenantID: string, userId: string) {
     const uniqueTimerID = Logging.traceStart('ConnectionStorage', 'getConnectionsByUserId');
     await Utils.checkTenant(tenantID);
     const aggregation = [];
@@ -70,8 +70,7 @@ export default class ConnectionStorage {
     };
   }
 
-
-  static async getConnection(tenantID, id) {
+  static async getConnection(tenantID: string, id: string) {
     const uniqueTimerID = Logging.traceStart('ConnectionStorage', 'getConnection');
     await Utils.checkTenant(tenantID);
     const aggregation = [];
@@ -92,7 +91,7 @@ export default class ConnectionStorage {
     return connection;
   }
 
-  static async deleteConnectionById(tenantID, id) {
+  static async deleteConnectionById(tenantID: string, id: string) {
     // Debug
     const uniqueTimerID = Logging.traceStart('ConnectionStorage', 'deleteConnection');
     // Check
@@ -102,6 +101,18 @@ export default class ConnectionStorage {
       .findOneAndDelete({ '_id': Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd('ConnectionStorage', 'deleteConnection', uniqueTimerID, { id });
+  }
+
+  static async deleteConnectionByUserId(tenantID: string, userId: string) {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ConnectionStorage', 'deleteConnectionByUser');
+    // Check
+    await Utils.checkTenant(tenantID);
+    // Delete
+    await global.database.getCollection<any>(tenantID, 'connections')
+      .deleteMany({ 'userId': Utils.convertToObjectID(userId) });
+    // Debug
+    Logging.traceEnd('ConnectionStorage', 'deleteConnectionByUser', uniqueTimerID, { userId });
   }
 
 }
