@@ -375,7 +375,6 @@ export default class NotificationHandler {
       data.users = await NotificationHandler.getAdminUsers(tenantID);
       // Compute the id as day and hour so that just one of this email is sent per hour
       const sourceId = Math.floor(Date.now()/3600000);
-      console.log(`*** sourceId:${JSON.stringify(sourceId)}`);
       // Check notification
       const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_SMTP_AUTH, sourceId);
       // Notified?
