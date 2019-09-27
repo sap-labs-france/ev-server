@@ -78,6 +78,12 @@ export default {
               await AuthService.handleGetEndUserLicenseAgreement(action, req, res, next);
               break;
 
+            // Check Eula
+            case 'CheckEndUserLicenseAgreement':
+              // Delegate
+              await AuthService.handleCheckEndUserLicenseAgreement(action, req, res, next);
+              break;
+
             // Verify Email
             case 'VerifyEmail':
               // Delegate

@@ -4,22 +4,22 @@ import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import passport from 'passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
-import AuthSecurity from './security/AuthSecurity';
+import AppError from '../../../exception/AppError';
 import BadRequestError from '../../../exception/BadRequestError';
 import BillingFactory from '../../../integration/billing/BillingFactory';
-import Configuration from '../../../utils/Configuration';
-import Constants from '../../../utils/Constants';
-import { HttpLoginRequest, HttpResetPasswordRequest } from '../../../types/requests/HttpUserRequest';
-import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
+import { HttpLoginRequest, HttpResetPasswordRequest } from '../../../types/requests/HttpUserRequest';
+import User from '../../../types/User';
 import UserToken from '../../../types/UserToken';
+import Configuration from '../../../utils/Configuration';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
+import AuthSecurity from './security/AuthSecurity';
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
@@ -225,12 +225,21 @@ export default class AuthService {
     await UserStorage.saveUserTags(tenantID, newUser.id, tagIDs);
     // Save User password
     await UserStorage.saveUserPassword(tenantID, newUser.id,
-      { password: newPasswordHashed, passwordWrongNbrTrials: 0, passwordResetHash: null, passwordBlockedUntil: null });
+      {
+        password: newPasswordHashed,
+        passwordWrongNbrTrials: 0,
+        passwordResetHash: null,
+        passwordBlockedUntil: null
+      });
     // Save User Account Verification
     await UserStorage.saveUserAccountVerification(tenantID, newUser.id, { verificationToken });
     // Save User EULA
     await UserStorage.saveUserEULA(tenantID, newUser.id,
-      { eulaAcceptedOn: new Date(), eulaAcceptedVersion: endUserLicenseAgreement.version, eulaAcceptedHash: endUserLicenseAgreement.hash });
+      {
+        eulaAcceptedOn: new Date(),
+        eulaAcceptedVersion: endUserLicenseAgreement.version,
+        eulaAcceptedHash: endUserLicenseAgreement.hash
+      });
     // Assign user to all sites with auto-assign flag set
     const sites = await SiteStorage.getSites(tenantID,
       { withAutoUserAssignment: true },
@@ -331,8 +340,7 @@ export default class AuthService {
     });
     // Send notification
     const evseDashboardResetPassURL = Utils.buildEvseURL(filteredRequest.tenant) +
-      '/#/reset-password?hash=' + resetHash + '&email=' +
-      user.email;
+      '/#/reset-password?hash=' + resetHash;
     // Send Request Password (Async)
     NotificationHandler.sendRequestPassword(
       tenantID,
@@ -350,46 +358,46 @@ export default class AuthService {
     next();
   }
 
-  public static async generateNewPasswordAndSendEmail(tenantID: string, filteredRequest, action: string, req: Request, res: Response, next: NextFunction) {
+  public static async resetUserPassword(tenantID: string, filteredRequest, action: string, req: Request, res: Response, next: NextFunction) {
     // Get the user
-    const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
+    const user = await UserStorage.getUserByPasswordResetHash(tenantID, filteredRequest.hash);
     // Found?
     if (!user) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `User with email '${filteredRequest.email}' does not exist`,
+        `User with password reset hash '${filteredRequest.hash}' does not exist`,
         Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleUserPasswordReset');
     }
     // Deleted
     if (user.deleted) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `User with email '${filteredRequest.email}' is logically deleted`,
+        `User with password reset hash '${filteredRequest.hash}' is logically deleted`,
         Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleUserPasswordReset');
     }
-    // Check the hash from the db
-    if (!user.passwordResetHash) {
+
+    if (!filteredRequest.password || !Utils.isPasswordValid(filteredRequest.password)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        'The user has already reset his password',
-        540, 'AuthService', 'handleUserPasswordReset',
-        user);
+        'The user password is not valid', Constants.HTTP_GENERAL_ERROR,
+        'AuthService', 'handleUserPasswordReset', req.user.id, filteredRequest.id);
     }
-    // Check the hash from the db
-    if (filteredRequest.hash !== user.passwordResetHash) {
+    if (!filteredRequest.repeatPassword || filteredRequest.password !== filteredRequest.repeatPassword) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
-        `The user's hash '${user.passwordResetHash}' do not match the requested one '${filteredRequest.hash}'`,
-        540, 'AuthService', 'handleUserPasswordReset',
-        user);
+        'Password and repeatPassword do not match', Constants.HTTP_GENERAL_ERROR,
+        'AuthService', 'handleUserPasswordReset', req.user.id, filteredRequest.id);
     }
-    // Create the password
-    const newPassword = Utils.generatePassword();
     // Hash it
-    const newHashedPassword = await Utils.hashPasswordBcrypt(newPassword);
+    const newHashedPassword = await Utils.hashPasswordBcrypt(filteredRequest.password);
     // Save new password
     await UserStorage.saveUserPassword(tenantID, user.id,
-      { password: newHashedPassword, passwordWrongNbrTrials: 0, passwordResetHash: null, passwordBlockedUntil: null });
+      {
+        password: newHashedPassword,
+        passwordWrongNbrTrials: 0,
+        passwordResetHash: null,
+        passwordBlockedUntil: null
+      });
     // Log
     Logging.logSecurityInfo({
       tenantID: tenantID,
@@ -399,19 +407,7 @@ export default class AuthService {
       message: 'User\'s password has been reset successfully',
       detailedMessages: req.body
     });
-    // Send Password (Async)
-    NotificationHandler.sendNewPassword(
-      tenantID,
-      Utils.generateGUID(),
-      user,
-      {
-        'user': user,
-        'hash': null,
-        'newPassword': newPassword,
-        'evseDashboardURL': Utils.buildEvseURL(filteredRequest.tenant)
-      },
-      user.locale
-    );
+
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
     next();
@@ -437,9 +433,58 @@ export default class AuthService {
       await AuthService.checkAndSendResetPasswordConfirmationEmail(tenantID, filteredRequest, action, req, res, next);
     } else {
       // Send the new password
-      await AuthService.generateNewPasswordAndSendEmail(tenantID, filteredRequest, action, req, res, next);
+      await AuthService.resetUserPassword(tenantID, filteredRequest, action, req, res, next);
     }
   }
+
+  public static async handleCheckEndUserLicenseAgreement(action: string, req: Request, res: Response, next: NextFunction) {
+    // Filter
+    const filteredRequest = AuthSecurity.filterCheckEulaRequest(req.query);
+    // Check
+    if (!filteredRequest.Tenant) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'The Tenant is mandatory',
+        Constants.HTTP_GENERAL_ERROR,
+        'AuthService', 'handleCheckEndUserLicenseAgreement');
+    }
+    // Get Tenant
+    const tenantID = await AuthService.getTenantID(filteredRequest.Tenant);
+    if (!tenantID) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'The Tenant is mandatory',
+        Constants.HTTP_GENERAL_ERROR,
+        'AuthService', 'handleCheckEndUserLicenseAgreement');
+    }
+    // Check hash
+    if (!filteredRequest.Email) {
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        'The Email is mandatory',
+        Constants.HTTP_GENERAL_ERROR,
+        'AuthService', 'handleCheckEndUserLicenseAgreement');
+    }
+    // Get User
+    const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.Email);
+    if (!user) {
+      // Do not return error, only reject it
+      res.json({ eulaAccepted: false });
+      next();
+      return
+    }
+    // Get last Eula version
+    const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, user.locale.substring(0, 2));
+    if (user.eulaAcceptedHash === endUserLicenseAgreement.hash) {
+      // Check if version matches
+      res.json({ eulaAccepted: true });
+      next();
+      return;
+    }
+    // Check if version matches
+    res.json({ eulaAccepted: false });
+    next();
+}
 
   public static async handleGetEndUserLicenseAgreement(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
@@ -690,7 +735,10 @@ export default class AuthService {
       await UserStorage.saveUserStatus(tenantID, user.id, Constants.USER_STATUS_LOCKED);
       // Save User Blocked Date
       await UserStorage.saveUserPassword(tenantID, user.id,
-        { passwordWrongNbrTrials, passwordBlockedUntil: moment().add(_centralSystemRestConfig.passwordBlockedWaitTimeMin, 'm').toDate() });
+        {
+          passwordWrongNbrTrials,
+          passwordBlockedUntil: moment().add(_centralSystemRestConfig.passwordBlockedWaitTimeMin, 'm').toDate()
+        });
       // Log
       throw new AppError(
         Constants.CENTRAL_SERVER,
@@ -725,7 +773,11 @@ export default class AuthService {
       // Save EULA
       const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, user.locale.substring(0, 2));
       await UserStorage.saveUserEULA(tenantID, user.id,
-        { eulaAcceptedOn: new Date(), eulaAcceptedVersion: endUserLicenseAgreement.version, eulaAcceptedHash: endUserLicenseAgreement.hash });
+        {
+          eulaAcceptedOn: new Date(),
+          eulaAcceptedVersion: endUserLicenseAgreement.version,
+          eulaAcceptedHash: endUserLicenseAgreement.hash
+        });
     }
     // Reset wrong number of trial
     await UserStorage.saveUserPassword(tenantID, user.id,

@@ -38,7 +38,10 @@ export interface HttpResetPasswordRequest {
   captcha: string;
   hash: string;
 }
-
+export interface HttpCheckEulaRequest {
+  Email: string;
+  Tenant: string;
+}
 export interface HttpRegisterUserRequest extends HttpLoginRequest {
   name: string;
   firstName: string;
