@@ -11,6 +11,7 @@ const _notificationConfig = Configuration.getNotificationConfig();
 const _email = new EMailNotificationTask();
 
 const CHANNEL_EMAIL = 'email';
+const CHANNEL_SMTP_AUTH = 'smtpauth';
 const SOURCE_CHARGING_STATION_STATUS_ERROR = 'NotifyChargingStationStatusError';
 const SOURCE_CHARGING_STATION_REGISTERED = 'NotifyChargingStationRegistered';
 const SOURCE_END_OF_CHARGE = 'NotifyEndOfCharge';
@@ -62,24 +63,20 @@ export default class NotificationHandler {
 
   static async getAdminUsers(tenantID: string): Promise<User[]> {
     // Get admin users
-    const adminUsers = await UserStorage.getUsers(tenantID, { roles: [Constants.ROLE_ADMIN], notificationsActive: true },
+    const adminUsers = await UserStorage.getUsers(tenantID, { email: 'jean.pierre.demessant@sap.com', roles: [Constants.ROLE_ADMIN], notificationsActive: true },
       Constants.DB_PARAMS_MAX_LIMIT);
     // Found
     if (adminUsers.count > 0) {
       // Check if notification is active
-<<<<<<< Updated upstream
-//      adminUsers.result = adminUsers.result.filter((adminUser) => adminUser.notificationsActive);
-=======
       // adminUsers.result = adminUsers.result.filter((adminUser) => adminUser.notificationsActive);
->>>>>>> Stashed changes
       return adminUsers.result;
     }
   }
 
-  static async hasNotifiedSource(tenantID, sourceId) {
+  static async hasNotifiedSource(tenantID, channel, sourceId) {
     try {
       // Save it
-      const notifications = await NotificationStorage.getNotifications(tenantID, { sourceId });
+      const notifications = await NotificationStorage.getNotifications(tenantID, { channel: channel, sourceId: sourceId });
       // Return
       return notifications.count > 0;
     } catch (error) {
@@ -93,7 +90,7 @@ export default class NotificationHandler {
       // Enrich with admins
       sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       // Check notification
-      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
+      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_EMAIL, sourceId);
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
@@ -118,7 +115,7 @@ export default class NotificationHandler {
       // Enrich with admins
       sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       // Check notification
-      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
+      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_EMAIL, sourceId);
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
@@ -143,7 +140,7 @@ export default class NotificationHandler {
       // Enrich with admins
       sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       // Check notification
-      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
+      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_EMAIL, sourceId);
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
@@ -168,7 +165,7 @@ export default class NotificationHandler {
       // Enrich with admins
       sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       // Check notification
-      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
+      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_EMAIL, sourceId);
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
@@ -352,7 +349,7 @@ export default class NotificationHandler {
       // Enrich with admins
       sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       // Check notification
-      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, sourceId);
+      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_EMAIL, sourceId);
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
@@ -376,18 +373,26 @@ export default class NotificationHandler {
     try {
       // Enrich with admins
       data.users = await NotificationHandler.getAdminUsers(tenantID);
-      // Email enabled?
-      if (_notificationConfig.Email.enabled) {
-        // Save notif
-        // await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, null, SOURCE_AUTH_EMAIL_ERROR, null, null, data);
-        // Send email
-        const result = await _email.sendAuthErrorEmailServer(data, locale, tenantID);
-        // Return
-        return result;
+      // Compute the id as day and hour so that just one of this email is sent per hour
+      const sourceId = Math.floor(Date.now()/3600000);
+      console.log(`*** sourceId:${JSON.stringify(sourceId)}`);
+      // Check notification
+      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_SMTP_AUTH, sourceId);
+      // Notified?
+      if (!hasBeenNotified) {
+        // Email enabled?
+        if (_notificationConfig.Email.enabled) {
+          // Save notif
+          await NotificationHandler.saveNotification(tenantID, CHANNEL_SMTP_AUTH, sourceId, SOURCE_AUTH_EMAIL_ERROR, null, null, data);
+          // Send email
+          const result = await _email.sendAuthErrorEmailServer(data, locale, tenantID);
+          // Return
+          return result;
+        }
       }
     } catch (error) {
-      // Log error
-      Logging.logActionExceptionMessage(tenantID, SOURCE_AUTH_EMAIL_ERROR, error);
+        // Log error
+        Logging.logActionExceptionMessage(tenantID, SOURCE_AUTH_EMAIL_ERROR, error);
     }
   }
 }

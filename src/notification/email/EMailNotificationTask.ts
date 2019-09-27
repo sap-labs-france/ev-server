@@ -223,14 +223,8 @@ export default class EMailNotificationTask extends NotificationTask {
       bcc: adminEmails,
       subject: subject,
       text: html,
-<<<<<<< Updated upstream
-      html: html,
-      bccNeeded: bccNeeded
-    }, data, tenantID);
-=======
       html: html
     }, data, tenantID, locale, retry);
->>>>>>> Stashed changes
     // Ok
     return message;
   }
@@ -262,41 +256,6 @@ export default class EMailNotificationTask extends NotificationTask {
     // Send the message and get a callback with an error or details of the message that was sent
     return this[!retry ? 'server' : 'serverBackup'].send(messageToSend, (err, messageSent) => {
       if (err) {
-<<<<<<< Updated upstream
-        // If auth error with the primary email server then inform admins
-        if(!retry && err.code === 3 && err.previous.code === 2) {
-          const msg = {
-            from: _emailConfig.smtpBackup.from,
-//            to: email.bcc,
-            to: 'serge.fabiano@sap.com',
-            subject: `e-Mobility - Authentication error on primary email server`,
-            text: `Dear Administrator, the authorization on the email primary server has failed with error code : ${err.previous.smtp}. Please check the configuration. Best regards.`.replace(/(\r\n|\n|\r)/gm,"")
-          };
-          this.serverBackup.send(msg, (err, messageSent) => {
-            if(err) {
-              try {
-                Logging.logError({
-                  tenantID: tenantID, source: '',
-                  module: 'EMailNotificationTask', method: 'sendEmail',
-                  action: 'SendEmailBackup',
-                  message: `Error in sending Email: '${messageSent.subject}'`,
-                  actionOnUser: '',
-                  detailedMessages: {
-                    email: {
-                      from: messageSent.from,
-                      to: messageSent.to,
-                      subject: messageSent.subject
-                    },
-                    error: err.stack
-                  }
-                });
-              // For Unit Tests only: Tenant is deleted and email is not known thus this Logging statement is always failing with an invalid Tenant
-              } catch (error) {
-              }
-            }
-          });
-        }
-=======
         // If authentifcation error in the primary email server then notify admins using the backup server
         if(!retry && this.serverBackup && err.code === 3 && err.previous.code === 2){
           NotificationHandler.sendAuthErrorEmailServer(
@@ -306,7 +265,6 @@ export default class EMailNotificationTask extends NotificationTask {
             }
           );
         } 
->>>>>>> Stashed changes
         // Log
         try {
           Logging.logError({
