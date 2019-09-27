@@ -17,19 +17,27 @@ export default class OCPIEndpointService {
       // Check Mandatory fields
       if (!filteredRequest.ID) {
         // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          'The Ocpi Endpoint\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
-          'OCPIEndpointService', 'handleDeleteOcpiEndpoint', req.user);
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: Constants.HTTP_GENERAL_ERROR,
+          message: 'The Ocpi Endpoint\'s ID must be provided',
+          module: 'OCPIEndpointService',
+          method: 'handleDeleteOcpiEndpoint',
+          user: req.user
+        });
       }
       // Get
       const ocpiendpoint = await OCPIEndpoint.getOcpiEndpoint(req.user.tenantID, filteredRequest.ID);
       if (!ocpiendpoint) {
         // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `Ocpi Endpoint with ID '${filteredRequest.ID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-          'OCPIEndpointService', 'handleDeleteOcpiEndpoint', req.user);
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+          message: `Ocpi Endpoint with ID '${filteredRequest.ID}' does not exist`,
+          module: 'OCPIEndpointService',
+          method: 'handleDeleteOcpiEndpoint',
+          user: req.user
+        });
       }
       // Check auth
       if (!Authorizations.canDeleteOcpiEndpoint(req.user)) {
@@ -66,18 +74,26 @@ export default class OCPIEndpointService {
       // ID is mandatory
       if (!filteredRequest.ID) {
         // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          'The Ocpi Endpoint\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
-          'OCPIEndpointService', 'handleGetOcpiEndpoint', req.user);
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: Constants.HTTP_GENERAL_ERROR,
+          message: 'The Ocpi Endpoint\'s ID must be provided',
+          module: 'OCPIEndpointService',
+          method: 'handleGetOcpiEndpoint',
+          user: req.user
+        });
       }
       // Get it
       const ocpiendpoint = await OCPIEndpoint.getOcpiEndpoint(req.user.tenantID, filteredRequest.ID);
       if (!ocpiendpoint) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Ocpi Endpoint with ID '${filteredRequest.ID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-          'OCPIEndpointService', 'handleGetOcpiEndpoint', req.user);
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+          message: `The Ocpi Endpoint with ID '${filteredRequest.ID}' does not exist anymore`,
+          module: 'OCPIEndpointService',
+          method: 'handleGetOcpiEndpoint',
+          user: req.user
+        });
       }
       // Return
       res.json(
@@ -175,10 +191,14 @@ export default class OCPIEndpointService {
       // Get OcpiEndpoint
       const ocpiendpoint = await OCPIEndpoint.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
       if (!ocpiendpoint) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Ocpi Endpoint with ID '${filteredRequest.id}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-          'OCPIEndpointService', 'handleUpdateOcpiEndpoint', req.user);
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+          message: `The Ocpi Endpoint with ID '${filteredRequest.id}' does not exist anymore`,
+          module: 'OCPIEndpointService',
+          method: 'handleUpdateOcpiEndpoint',
+          user: req.user
+        });
       }
       // Check Mandatory fields
       OCPIEndpoint.checkIfOcpiEndpointValid(filteredRequest, req);
@@ -303,10 +323,14 @@ export default class OCPIEndpointService {
       // Get OcpiEndpoint
       const ocpiendpoint = await OCPIEndpoint.getOcpiEndpoint(req.user.tenantID, filteredRequest.id);
       if (!ocpiendpoint) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The Ocpi Endpoint with ID '${filteredRequest.id}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-          'OCPIEndpointService', 'handleRegisterOcpiEndpoint', req.user);
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+          message: `The Ocpi Endpoint with ID '${filteredRequest.id}' does not exist anymore`,
+          module: 'OCPIEndpointService',
+          method: 'handleRegisterOcpiEndpoint',
+          user: req.user
+        });
       }
       // Check Mandatory fields
       OCPIEndpoint.checkIfOcpiEndpointValid(filteredRequest, req);

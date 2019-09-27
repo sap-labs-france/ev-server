@@ -501,11 +501,11 @@ export default class Authorizations {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_PRICING, Constants.ACTION_UPDATE);
   }
 
-  public static isSuperAdmin(user: UserToken|User): boolean {
+  public static isSuperAdmin(user: UserToken | User): boolean {
     return user.role === Constants.ROLE_SUPER_ADMIN;
   }
 
-  public static isAdmin(user: UserToken|User): boolean {
+  public static isAdmin(user: UserToken | User): boolean {
     return user.role === Constants.ROLE_ADMIN;
   }
 
@@ -513,11 +513,11 @@ export default class Authorizations {
     return user.role === Constants.ROLE_BASIC && user.sitesAdmin && user.sitesAdmin.length > 0;
   }
 
-  public static isBasic(user: UserToken|User): boolean {
+  public static isBasic(user: UserToken | User): boolean {
     return user.role === Constants.ROLE_BASIC;
   }
 
-  public static isDemo(user: UserToken|User): boolean {
+  public static isDemo(user: UserToken | User): boolean {
     return user.role === Constants.ROLE_DEMO;
   }
 
@@ -541,11 +541,13 @@ export default class Authorizations {
       // Site is mandatory
       if (!foundSiteArea) {
         // Reject Site Not Found
-        throw new AppError(
-          chargingStation.id,
-          `Charging Station '${chargingStation.id}' is not assigned to a Site Area!`,
-          Constants.HTTP_AUTH_CHARGER_WITH_NO_SITE_AREA_ERROR,
-          'Authorizations', 'isTagIDAuthorizedOnChargingStation');
+        throw new AppError({
+          source: chargingStation.id,
+          errorCode: Constants.HTTP_AUTH_CHARGER_WITH_NO_SITE_AREA_ERROR,
+          message: `Charging Station '${chargingStation.id}' is not assigned to a Site Area!`,
+          module: 'Authorizations',
+          method: 'isTagIDAuthorizedOnChargingStation'
+        });
       }
 
       // Access Control Enabled?
@@ -559,11 +561,13 @@ export default class Authorizations {
           await SiteStorage.getSite(tenantID, chargingStation.siteArea.siteID) : null);
       if (!chargingStation.siteArea.site) {
         // Reject Site Not Found
-        throw new AppError(
-          chargingStation.id,
-          `Site Area '${chargingStation.siteArea.name}' is not assigned to a Site!`,
-          Constants.HTTP_AUTH_SITE_AREA_WITH_NO_SITE_ERROR,
-          'Authorizations', 'checkAndGetUserOnChargingStation');
+        throw new AppError({
+          source: chargingStation.id,
+          errorCode: Constants.HTTP_AUTH_SITE_AREA_WITH_NO_SITE_ERROR,
+          message: `Site Area '${chargingStation.siteArea.name}' is not assigned to a Site!`,
+          module: 'Authorizations',
+          method: 'checkAndGetUserOnChargingStation'
+        });
       }
     }
     // Get user
@@ -579,10 +583,14 @@ export default class Authorizations {
       // Check User status
       if (user.status !== Constants.USER_STATUS_ACTIVE) {
         // Reject but save ok
-        throw new AppError(
-          chargingStation.id,
-          `User with Tag ID '${tagID}' has the status '${Utils.getStatusDescription(user.status)}'`,
-          Constants.HTTP_GENERAL_ERROR, 'Authorizations', 'isTagIDAuthorizedOnChargingStation', user);
+        throw new AppError({
+          source: chargingStation.id,
+          errorCode: Constants.HTTP_GENERAL_ERROR,
+          message: `User with Tag ID '${tagID}' has the status '${Utils.getStatusDescription(user.status)}'`,
+          module: 'Authorizations',
+          method: 'isTagIDAuthorizedOnChargingStation',
+          user: user
+        });
       }
       // Build the JWT Token
       const userToken = await Authorizations.buildUserToken(tenantID, user);
@@ -650,11 +658,14 @@ export default class Authorizations {
         }
       );
       // Not authorized
-      throw new AppError(
-        chargingStation.id,
-        `User with Tag ID '${tagID}' not found but saved as inactive user`, Constants.HTTP_GENERAL_ERROR,
-        'Authorizations', 'checkAndGetUserTagIDOnChargingStation', user
-      );
+      throw new AppError({
+        source: chargingStation.id,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: `User with Tag ID '${tagID}' not found but saved as inactive user`,
+        module: 'Authorizations',
+        method: 'checkAndGetUserTagIDOnChargingStation',
+        user: user
+      });
     } else if (user.status === Constants.USER_STATUS_DELETED) {
       // Set default user's value
       user.name = 'Unknown';

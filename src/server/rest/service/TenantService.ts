@@ -41,10 +41,15 @@ export default class TenantService {
       MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check if current tenant
     if (tenant.id === req.user.tenantID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Your own tenant with id '${tenant.id}' cannot be deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        MODULE_NAME, 'handleDeleteTenant', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `Your own tenant with id '${tenant.id}' cannot be deleted`,
+        module: MODULE_NAME,
+        method: 'handleDeleteTenant',
+        user: req.user,
+        action: action
+      });
     }
     // Delete
     await TenantStorage.deleteTenant(tenant.id);
@@ -137,20 +142,28 @@ export default class TenantService {
     // Check the Tenant's name
     let foundTenant = await TenantStorage.getTenantByName(filteredRequest.name);
     if (foundTenant) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The tenant with name '${filteredRequest.name}' already exists`,
-        Constants.HTTP_USER_EMAIL_ALREADY_EXIST_ERROR,
-        MODULE_NAME, 'handleCreateTenant', req.user, null, action);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_USER_EMAIL_ALREADY_EXIST_ERROR,
+        message: `The tenant with name '${filteredRequest.name}' already exists`,
+        module: MODULE_NAME,
+        method: 'handleCreateTenant',
+        user: req.user,
+        action: action
+      });
     }
     // Get the Tenant with ID (subdomain)
     foundTenant = await TenantStorage.getTenantBySubdomain(filteredRequest.subdomain);
     if (foundTenant) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The tenant with subdomain '${filteredRequest.subdomain}' already exists`,
-        Constants.HTTP_USER_EMAIL_ALREADY_EXIST_ERROR,
-        MODULE_NAME, 'handleCreateTenant', req.user, null, action);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_USER_EMAIL_ALREADY_EXIST_ERROR,
+        message: `The tenant with subdomain '${filteredRequest.subdomain}' already exists`,
+        module: MODULE_NAME,
+        method: 'handleCreateTenant',
+        user: req.user,
+        action: action
+      });
     }
     // Update timestamp
     filteredRequest.createdBy = { 'id': req.user.id };

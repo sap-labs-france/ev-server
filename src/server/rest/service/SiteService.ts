@@ -34,28 +34,39 @@ export default class SiteService {
     }
     UtilsService.assertIdIsProvided(filteredRequest.siteID, 'SiteSecurity', 'filterAssignSiteUsers', req.user);
     if (!filteredRequest.userIDs || (filteredRequest.userIDs && filteredRequest.userIDs.length <= 0)) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The User\'s IDs must be provided', 500,
-        'SiteScurity', 'filterAssignSiteUsers', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The User\'s IDs must be provided',
+        module: 'SiteService',
+        method: 'filterAssignSiteUsers',
+        user: req.user
+      });
     }
     // Get the Site
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
     if (!site) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Site with ID '${filteredRequest.siteID}' does not exist`,
-        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        'SiteService', 'handleAddUsersToSite', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `The Site with ID '${filteredRequest.siteID}' does not exist`,
+        module: 'SiteService',
+        method: 'handleAddUsersToSite',
+        user: req.user
+      });
     }
     for (const userID of filteredRequest.userIDs) {
       // Check the user
       const user = await UserStorage.getUser(req.user.tenantID, userID);
       if (!user) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The User with ID '${userID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-          'SiteService', 'handleAddUsersToSite', req.user);
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+          message: `The User with ID '${userID}' does not exist`,
+          module: 'SiteService',
+          method: 'handleAddUsersToSite',
+          user: req.user
+        });
       }
     }
     // Save
@@ -80,28 +91,45 @@ export default class SiteService {
     const filteredRequest = SiteSecurity.filterUpdateSiteUserAdminRequest(req.body);
     // Check
     if (!filteredRequest.userID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The User ID must be provided', Constants.HTTP_GENERAL_ERROR,
-        'SiteService', 'handleUpdateSiteUserAdmin', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The User ID must be provided',
+        module: 'SiteService',
+        method: 'handleUpdateSiteUserAdmin',
+        user: req.user
+      });
     }
     if (!filteredRequest.siteID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The Site ID must be provided', Constants.HTTP_GENERAL_ERROR,
-        'SiteService', 'handleUpdateSiteUserAdmin', req.user, filteredRequest.userID);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The Site ID must be provided',
+        module: 'SiteService',
+        method: 'handleUpdateSiteUserAdmin',
+        user: req.user
+      });
     }
     if (!filteredRequest.hasOwnProperty('siteAdmin')) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The Site Admin value must be provided', Constants.HTTP_GENERAL_ERROR,
-        'SiteService', 'handleUpdateSiteUserAdmin', req.user, filteredRequest.userID);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The Site Admin value must be provided',
+        module: 'SiteService',
+        method: 'handleUpdateSiteUserAdmin',
+        user: req.user
+      });
     }
     if (req.user.id === filteredRequest.userID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Cannot change the site Admin on the logged user', Constants.HTTP_GENERAL_ERROR,
-        'SiteService', 'handleUpdateSiteUserAdmin', req.user, filteredRequest.userID);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Cannot change the site Admin on the logged user',
+        module: 'SiteService',
+        method: 'handleUpdateSiteUserAdmin',
+        user: req.user,
+        actionOnUser: filteredRequest.userID
+      });
     }
     if (!Authorizations.canUpdateSite(req.user, filteredRequest.siteID)) {
       throw new AppAuthError(
@@ -115,25 +143,40 @@ export default class SiteService {
     // Get the Site
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
     if (!site) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Site with ID '${filteredRequest.siteID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        'SiteService', 'handleUpdateSiteUserAdmin', req.user, filteredRequest.userID);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `The Site with ID '${filteredRequest.siteID}' does not exist`,
+        module: 'SiteService',
+        method: 'handleUpdateSiteUserAdmin',
+        user: req.user,
+        actionOnUser: filteredRequest.userID
+      });
     }
     // Get the User
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
     if (!user) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The User with ID '${filteredRequest.userID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        'SiteService', 'handleUpdateSiteUserAdmin', req.user, filteredRequest.userID);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `The User with ID '${filteredRequest.userID}' does not exist`,
+        module: 'SiteService',
+        method: 'handleUpdateSiteUserAdmin',
+        user: req.user,
+        actionOnUser: filteredRequest.userID
+      });
     }
     // Check user
     if (!Authorizations.isBasic(user)) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Only Users with Basic role can be Site Admin', Constants.HTTP_GENERAL_ERROR,
-        'SiteService', 'handleUpdateSiteUserAdmin', req.user, filteredRequest.userID);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Only Users with Basic role can be Site Admin',
+        module: 'SiteService',
+        method: 'handleUpdateSiteUserAdmin',
+        user: req.user,
+        actionOnUser: filteredRequest.userID
+      });
     }
     // Update
     await SiteStorage.updateSiteUserAdmin(req.user.tenantID, filteredRequest.siteID, filteredRequest.userID, filteredRequest.siteAdmin);
@@ -168,20 +211,28 @@ export default class SiteService {
     // Get the Site
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
     if (!site) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Site with ID '${filteredRequest.siteID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        'SiteService', 'handleRemoveUsersFromSite', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `The Site with ID '${filteredRequest.siteID}' does not exist`,
+        module: 'SiteService',
+        method: 'handleRemoveUsersFromSite',
+        user: req.user
+      });
     }
     // Get Users
     for (const userID of filteredRequest.userIDs) {
       // Check the user
       const user = await UserStorage.getUser(req.user.tenantID, userID);
       if (!user) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The User with ID '${userID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-          'SiteService', 'handleRemoveUsersFromSite', req.user);
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+          message: `The User with ID '${userID}' does not exist`,
+          module: 'SiteService',
+          method: 'handleRemoveUsersFromSite',
+          user: req.user
+        });
       }
     }
     // Save
@@ -207,18 +258,26 @@ export default class SiteService {
     // Check Mandatory fields
     if (!filteredRequest.SiteID) {
       // Not Found!
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The Site\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
-        'SiteService', 'handleGetUsersFromSite', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The Site\'s ID must be provided',
+        module: 'SiteService',
+        method: 'handleGetUsersFromSite',
+        user: req.user
+      });
     }
     // Get the Site
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.SiteID);
     if (!site) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Site with ID '${filteredRequest.SiteID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        'SiteService', 'handleGetUsersFromSite', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `The Site with ID '${filteredRequest.SiteID}' does not exist`,
+        module: 'SiteService',
+        method: 'handleGetUsersFromSite',
+        user: req.user
+      });
     }
     // Check auth
     if (!Authorizations.canUpdateSite(req.user, filteredRequest.SiteID)) {

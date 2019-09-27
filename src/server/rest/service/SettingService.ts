@@ -155,11 +155,14 @@ export default class SettingService {
     // Preprocess the data to take care of updated values
     if (settingUpdate.sensitiveData) {
       if (!Array.isArray(settingUpdate.sensitiveData)) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The property 'sensitiveData' for Setting with ID '${settingUpdate.id}' is not an array`,
-          Constants.HTTP_CYPHER_INVALID_SENSITIVE_DATA_ERROR,
-          'SettingService', 'handleUpdateSetting', req.user);
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: Constants.HTTP_CYPHER_INVALID_SENSITIVE_DATA_ERROR,
+          message: `The property 'sensitiveData' for Setting with ID '${settingUpdate.id}' is not an array`,
+          module: 'SettingService',
+          method: 'handleUpdateSetting',
+          user: req.user
+        });
       }
       // Process sensitive properties
       for (const property of settingUpdate.sensitiveData) {

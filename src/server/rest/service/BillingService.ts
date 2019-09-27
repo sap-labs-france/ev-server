@@ -72,21 +72,29 @@ export default class BillingService {
       const tenant = await TenantStorage.getTenant(req.user.tenantID);
       if (!Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.BILLING) ||
         !Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.PRICING)) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          'Billing or Pricing not active in this Tenant',
-          Constants.HTTP_GENERAL_ERROR, // TODO: use a new constant
-          'BillingService', 'handleSynchronizeUsers', req.user);
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: Constants.HTTP_GENERAL_ERROR,
+          message: 'Billing or Pricing not active in this Tenant',
+          module: 'BillingService',
+          method: 'handleSynchronizeUsers',
+          action: action,
+          user: req.user
+        });
       }
 
       // Get Billing implementation from factory
       const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
       if (!billingImpl) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          'Billing settings are not configured',
-          Constants.HTTP_GENERAL_ERROR, // TODO: use a new constant
-          'BillingService', 'handleSynchronizeUsers', req.user);
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: Constants.HTTP_GENERAL_ERROR,
+          message: 'Billing settings are not configured',
+          module: 'BillingService',
+          method: 'handleSynchronizeUsers',
+          action: action,
+          user: req.user
+        });
       }
 
       // Get active users (potentially only those without Stripe customer iD?)

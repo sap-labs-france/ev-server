@@ -55,10 +55,15 @@ export default class TransactionService {
     const filteredRequest = TransactionSecurity.filterTransactionsRefund(req.body);
     if (!filteredRequest.transactionIds) {
       // Not Found!
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Transaction IDs must be provided', Constants.HTTP_GENERAL_ERROR,
-        'TransactionService', 'handleRefundTransactions', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Transaction IDs must be provided',
+        module: 'TransactionService',
+        method: 'handleRefundTransactions',
+        user: req.user,
+        action: action
+      });
     }
     const transactionsToRefund: Transaction[] = [];
     for (const transactionId of filteredRequest.transactionIds) {
@@ -128,10 +133,15 @@ export default class TransactionService {
     // Filter
     const filteredRequest = TransactionSecurity.filterUnassignedTransactionsCountRequest(req.query);
     if (!filteredRequest.UserID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'TagIDs must be provided', Constants.HTTP_GENERAL_ERROR,
-        'TransactionService', 'handleGetUnassignedTransactionsCount', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'TagIDs must be provided',
+        module: 'TransactionService',
+        method: 'handleGetUnassignedTransactionsCount',
+        user: req.user,
+        action: action
+      });
     }
     // Get the user
     const user: User = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
@@ -157,10 +167,15 @@ export default class TransactionService {
     const filteredRequest = TransactionSecurity.filterAssignTransactionsToUser(req.query);
     // Check
     if (!filteredRequest.UserID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'User ID must be provided', Constants.HTTP_GENERAL_ERROR,
-        'TransactionService', 'handleAssignTransactionsToUser', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'User ID must be provided',
+        module: 'TransactionService',
+        method: 'handleAssignTransactionsToUser',
+        user: req.user,
+        action: action
+      });
     }
     // Get the user
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.UserID);
@@ -288,10 +303,15 @@ export default class TransactionService {
     }
     // Check dates
     if (filteredRequest.StartDateTime && filteredRequest.EndDateTime && moment(filteredRequest.StartDateTime).isAfter(moment(filteredRequest.EndDateTime))) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The requested start date '${new Date(filteredRequest.StartDateTime).toISOString()}' is after the requested end date '${new Date(filteredRequest.StartDateTime).toISOString()}' `, Constants.HTTP_GENERAL_ERROR,
-        'TransactionService', 'handleGetConsumptionFromTransaction', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: `The requested start date '${new Date(filteredRequest.StartDateTime).toISOString()}' is after the requested end date '${new Date(filteredRequest.StartDateTime).toISOString()}' `,
+        module: 'TransactionService',
+        method: 'handleGetConsumptionFromTransaction',
+        user: req.user,
+        action: action
+      });
     }
     // Get the consumption
     let consumptions: Consumption[] = await ConsumptionStorage.getConsumptions(req.user.tenantID, { transactionId: transaction.id });

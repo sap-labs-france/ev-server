@@ -152,10 +152,16 @@ export default class ConcurConnector extends AbstractConnector {
         validUntil: ConcurConnector.computeValidUntilAt(result)
       });
     } catch (e) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Concur access token not granted for ${userId}`, Constants.HTTP_GENERAL_ERROR,
-        MODULE_NAME, 'GetAccessToken', userId, null, 'Refund', e);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: `Concur access token not granted for ${userId}`,
+        module: MODULE_NAME,
+        method: 'GetAccessToken',
+        user: userId,
+        action: 'Refund',
+        detailedMessages: e
+      });
     }
   }
 
@@ -271,11 +277,14 @@ export default class ConcurConnector extends AbstractConnector {
     if (response.data && response.data.Items && response.data.Items.length > 0) {
       return response.data.Items[0];
     }
-    throw new AppError(
-      MODULE_NAME,
-      `The city '${site.address.city}' of the station is unknown to Concur`,
-      Constants.HTTP_CONCUR_CITY_UNKNOWN_ERROR,
-      MODULE_NAME, 'getLocation', null, null, 'Refund');
+    throw new AppError({
+      source: Constants.CENTRAL_SERVER,
+      errorCode: Constants.HTTP_CONCUR_CITY_UNKNOWN_ERROR,
+      message: `The city '${site.address.city}' of the station is unknown to Concur`,
+      module: MODULE_NAME,
+      method: 'getLocation',
+      action: 'Refund'
+    });
   }
 
   async createQuickExpense(connection, transaction: Transaction, location, userId: string) {
@@ -309,11 +318,16 @@ export default class ConcurConnector extends AbstractConnector {
       });
       return response.data.quickExpenseIdUri;
     } catch (error) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Unable to create Quick Expense',
-        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'createQuickExpense',
-        userId, null, 'Refund', error);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Unable to create Quick Expense',
+        module: MODULE_NAME,
+        method: 'createQuickExpense',
+        user: userId,
+        action: 'Refund',
+        detailedMessages: error
+      });
     }
   }
 
@@ -352,11 +366,16 @@ export default class ConcurConnector extends AbstractConnector {
       });
       return response.data.ID;
     } catch (error) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Unable to create an Expense Report entry',
-        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'createExpenseReportEntry',
-        userId, null, 'Refund', error);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Unable to create an Expense Report',
+        module: MODULE_NAME,
+        method: 'createExpenseReport',
+        user: userId,
+        action: 'Refund',
+        detailedMessages: error
+      });
     }
   }
 
@@ -381,11 +400,16 @@ export default class ConcurConnector extends AbstractConnector {
       });
       return response.data.ID;
     } catch (error) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Unable to create an Expense Report',
-        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'createExpenseReport',
-        userId, null, 'Refund', error);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Unable to create an Expense Report',
+        module: MODULE_NAME,
+        method: 'createExpenseReport',
+        user: userId,
+        action: 'Refund',
+        detailedMessages: error
+      });
     }
   }
 
@@ -409,11 +433,15 @@ export default class ConcurConnector extends AbstractConnector {
       if (error.response.status === 404) {
         return null;
       }
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Unable to get Report details with ID '${reportId}'`,
-        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'getExpenseReport',
-        null, null, 'Refund', error);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: `Unable to get Report details with ID '${reportId}'`,
+        module: MODULE_NAME,
+        method: 'getExpenseReport',
+        action: 'Refund',
+        detailedMessages: error
+      });
     }
   }
 
@@ -427,11 +455,15 @@ export default class ConcurConnector extends AbstractConnector {
       });
       return response.data.Items;
     } catch (error) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Unable to get expense Reports',
-        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'getExpenseReports',
-        null, null, 'Refund', error);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Unable to get expense Reports',
+        module: MODULE_NAME,
+        method: 'getExpenseReports',
+        action: 'Refund',
+        detailedMessages: error
+      });
     }
   }
 
@@ -462,22 +494,31 @@ export default class ConcurConnector extends AbstractConnector {
       connection.updateData(response.data, new Date(), ConcurConnector.computeValidUntilAt(response));
       return ConnectionStorage.saveConnection(this.getTenantID(), connection.getModel());
     } catch (error) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Concur access token not refreshed (ID: '${userId}')`,
-        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'refreshToken',
-        userId, null, 'Refund', error);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: `Concur access token not refreshed (ID: '${userId}')`,
+        module: MODULE_NAME,
+        method: 'refreshToken',
+        action: 'Refund',
+        user: userId,
+        detailedMessages: error
+      });
     }
   }
 
   private async getRefreshedConnection(userId: string) {
     let connection = await this.getConnectionByUserId(userId);
     if (!connection) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The user with ID '${userId}' does not have a connection to connector '${CONNECTOR_ID}'`,
-        Constants.HTTP_CONCUR_NO_CONNECTOR_CONNECTION_ERROR,
-        'TransactionService', 'getRefreshedConnection', userId);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_CONCUR_NO_CONNECTOR_CONNECTION_ERROR,
+        message: `The user with ID '${userId}' does not have a connection to connector '${CONNECTOR_ID}'`,
+        module: MODULE_NAME,
+        method: 'getRefreshedConnection',
+        action: 'Refund',
+        user: userId
+      });
     }
 
     if (ConcurConnector.isTokenExpired(connection)) {

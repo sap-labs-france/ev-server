@@ -53,10 +53,14 @@ export default class PricingService {
       // Check
       if (!filteredRequest.priceKWH || isNaN(filteredRequest.priceKWH)) {
         // Not Found!
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `The price ${filteredRequest.priceKWH} has not a correct format`, Constants.HTTP_GENERAL_ERROR,
-          'PricingService', 'handleUpdatePricing', req.user);
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: Constants.HTTP_GENERAL_ERROR,
+          message: `The price ${filteredRequest.priceKWH} has not a correct format`,
+          module: 'PricingService',
+          method: 'handleUpdatePricing',
+          user: req.user
+        });
       }
       // Update
       const pricing: any = {};

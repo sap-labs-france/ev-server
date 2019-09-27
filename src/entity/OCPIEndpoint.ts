@@ -5,6 +5,7 @@ import OCPIEndpointStorage from '../storage/mongodb/OCPIEndpointStorage';
 import OCPIUtils from '../server/ocpi/OCPIUtils';
 import TenantHolder from './TenantHolder';
 import User from '../types/User';
+import Utils from '../utils/Utils';
 
 export default class OCPIEndpoint extends TenantHolder {
   private _model: any = {};
@@ -17,11 +18,13 @@ export default class OCPIEndpoint extends TenantHolder {
   static checkIfOcpiEndpointValid(filteredRequest, req) {
     // Update model?
     if (req.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The OCPI Endpoint ID is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'OCPIEndpoint', 'checkIfOcpiEndpointValid',
-        req.user.id);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The OCPI Endpoint ID is mandatory',
+        module: 'OCPIEndpoint',
+        method: 'checkIfOcpiEndpointValid'
+      });
     }
   }
 

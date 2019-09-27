@@ -15,10 +15,14 @@ export default class VehicleService {
     const vehicleID = VehicleSecurity.filterVehicleRequestByID(req.query);
     // Check Mandatory fields
     if (!vehicleID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The Vehicle\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
-        'VehicleService', 'handleDeleteVehicle', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The Vehicle\'s ID must be provided',
+        module: 'VehicleService',
+        method: 'handleDeleteVehicle',
+        user: req.user
+      });
     }
     // Check auth
     if (!Authorizations.canDeleteVehicle(req.user)) {
@@ -33,10 +37,14 @@ export default class VehicleService {
     // Get
     const vehicle = await VehicleStorage.getVehicle(req.user.tenantID, vehicleID);
     if (!vehicle) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Vehicle with ID '${vehicleID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        'VehicleService', 'handleDeleteVehicle', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `Vehicle with ID '${vehicleID}' does not exist`,
+        module: 'VehicleService',
+        method: 'handleDeleteVehicle',
+        user: req.user
+      });
     }
     // Delete
     await VehicleStorage.deleteVehicle(req.user.tenantID, vehicleID);
@@ -56,10 +64,14 @@ export default class VehicleService {
     const filteredRequest = VehicleSecurity.filterVehicleRequest(req.query);
     // Charge Box is mandatory
     if (!filteredRequest.ID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The Vehicle\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
-        'VehicleService', 'handleGetVehicle', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The Vehicle\'s ID must be provided',
+        module: 'VehicleService',
+        method: 'handleGetVehicle',
+        user: req.user
+      });
     }
     // Check auth
     if (!Authorizations.canReadVehicle(req.user)) {
@@ -74,10 +86,14 @@ export default class VehicleService {
     // Get it
     const vehicle = await VehicleStorage.getVehicle(req.user.tenantID, filteredRequest.ID);
     if (!vehicle) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Vehicle with ID '${filteredRequest.ID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        'VehicleService', 'handleGetVehicle', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `The Vehicle with ID '${filteredRequest.ID}' does not exist anymore`,
+        module: 'VehicleService',
+        method: 'handleGetVehicle',
+        user: req.user
+      });
     }
     // Return
     res.json(
@@ -118,10 +134,14 @@ export default class VehicleService {
     const vehicleID = VehicleSecurity.filterVehicleRequestByID(req.query);
     // Charge Box is mandatory
     if (!vehicleID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The Vehicle\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
-        'VehicleService', 'handleGetVehicleImage', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The Vehicle\'s ID must be provided',
+        module: 'VehicleService',
+        method: 'handleGetVehicleImage',
+        user: req.user
+      });
     }
     // Check auth
     if (!Authorizations.canReadVehicle(req.user)) {
@@ -136,10 +156,14 @@ export default class VehicleService {
     // Get it
     const vehicle = await VehicleStorage.getVehicle(req.user.tenantID, vehicleID);
     if (!vehicle) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Vehicle with ID '${vehicleID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        'VehicleService', 'handleGetVehicleImage', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `The Vehicle with ID '${vehicleID}' does not exist anymore`,
+        module: 'VehicleService',
+        method: 'handleGetVehicleImage',
+        user: req.user
+      });
     }
     // Get the image
     const vehicleImage = await VehicleStorage.getVehicleImage(req.user.tenantID, vehicleID);
@@ -208,10 +232,14 @@ export default class VehicleService {
     // Get
     let vehicle = await VehicleStorage.getVehicle(req.user.tenantID, filteredRequest.id);
     if (!vehicle) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Vehicle with ID '${filteredRequest.id}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        'VehicleService', 'handleUpdateVehicle', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `The Vehicle with ID '${filteredRequest.id}' does not exist anymore`,
+        module: 'VehicleService',
+        method: 'handleUpdateVehicle',
+        user: req.user
+      });
     }
     // Update
     vehicle = { ...vehicle, ...filteredRequest };

@@ -33,10 +33,14 @@ export default class ChargingStationService {
     // Check mandatory fields
     UtilsService.assertIdIsProvided(filteredRequest.siteAreaID, 'ChargingStationService', 'handleAssignChargingSTationsToSiteArea', req.user);
     if (!filteredRequest.chargingStationIDs || (filteredRequest.chargingStationIDs && filteredRequest.chargingStationIDs.length <= 0)) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The Charging Station\'s IDs must be provided', Constants.HTTP_GENERAL_ERROR,
-        'ChargingStationService', 'handleAssignChargingStationsToSiteArea', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The Charging Station\'s IDs must be provided',
+        module: 'ChargingStationService',
+        method: 'handleAssignChargingStationsToSiteArea',
+        user: req.user
+      });
     }
     // Get the Site Area (before auth to get siteID)
     const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
@@ -262,21 +266,28 @@ export default class ChargingStationService {
 
     // Deleted
     if (chargingStation.deleted) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `ChargingStation with ID '${chargingStationID}' is already deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        'ChargingStationService', 'handleDeleteChargingStation', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `ChargingStation with ID '${chargingStationID}' is already deleted`,
+        module: 'ChargingStationService',
+        method: 'handleDeleteChargingStation',
+        user: req.user
+      });
     }
     // Check no active transaction
     const foundIndex = chargingStation.connectors.findIndex(
       (connector) => connector ? connector.activeTransactionID > 0 : false);
     if (foundIndex >= 0) {
       // Can' t be deleted
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Charging station '${chargingStation.id}' can't be deleted due to existing active transactions`,
-        Constants.HTTP_EXISTING_TRANSACTION_ERROR,
-        'ChargingStationService', 'handleDeleteChargingStation', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_EXISTING_TRANSACTION_ERROR,
+        message: `Charging station '${chargingStation.id}' can't be deleted due to existing active transactions`,
+        module: 'ChargingStationService',
+        method: 'handleDeleteChargingStation',
+        user: req.user
+      });
     }
     // Remove Site Area
     chargingStation.siteArea = null;
@@ -325,11 +336,14 @@ export default class ChargingStationService {
       'ChargingStationService', 'handleGetChargingStation', req.user);
     // Deleted?
     if (chargingStation.deleted) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `ChargingStation with ID '${filteredRequest.ID}' is logically deleted`,
-        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        'ChargingStationService', 'handleGetChargingStation', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `ChargingStation with ID '${filteredRequest.ID}' is logically deleted`,
+        module: 'ChargingStationService',
+        method: 'handleGetChargingStation',
+        user: req.user
+      });
     }
     res.json(
       // Filter
@@ -464,10 +478,15 @@ export default class ChargingStationService {
     if (action === 'RemoteStopTransaction' || action === 'UnlockConnector') {
       // Check Transaction ID
       if (!filteredRequest.args || !filteredRequest.args.transactionId) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          'Transaction ID is mandatory', Constants.HTTP_AUTH_ERROR,
-          'ChargingStationService', 'handleAction', req.user, null, action);
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          message: 'Transaction ID is mandatory',
+          module: 'ChargingStationService',
+          method: 'handleAction',
+          user: req.user,
+          action: action
+        });
       }
       // Get Transaction
       const transaction = await TransactionStorage.getTransaction(req.user.tenantID, filteredRequest.args.transactionId);
@@ -477,11 +496,15 @@ export default class ChargingStationService {
       filteredRequest.args.connectorId = transaction.connectorId;
       // Check Tag ID
       if (!req.user.tagIDs || req.user.tagIDs.length === 0) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          'The user does not have any badge',
-          Constants.HTTP_USER_NO_BADGE_ERROR,
-          'ChargingStationService', 'handleAction', req.user, null, action);
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: Constants.HTTP_USER_NO_BADGE_ERROR,
+          message: 'The user does not have any badge',
+          module: 'ChargingStationService',
+          method: 'handleAction',
+          user: req.user,
+          action: action
+        });
       }
       // Check if user is authorized
       await Authorizations.isAuthorizedToStopTransaction(req.user.tenantID, chargingStation, transaction, req.user.tagIDs[0]);
@@ -499,11 +522,15 @@ export default class ChargingStationService {
     } else if (action === 'RemoteStartTransaction') {
       // Check Tag ID
       if (!filteredRequest.args || !filteredRequest.args.tagID) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          'The user does not have any badge',
-          Constants.HTTP_USER_NO_BADGE_ERROR,
-          'ChargingStationService', 'handleAction', req.user, null, action);
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: Constants.HTTP_USER_NO_BADGE_ERROR,
+          message: 'The user does not have any badge',
+          module: 'ChargingStationService',
+          method: 'handleAction',
+          user: req.user,
+          action: action
+        });
       }
       // Check if user is authorized
       await Authorizations.isAuthorizedToStartTransaction(req.user.tenantID, chargingStation, filteredRequest.args.tagID);
@@ -619,10 +646,15 @@ export default class ChargingStationService {
         { key: 'maxintensitysocket', value: filteredRequest.maxIntensity });
     } else {
       // Invalid value
-      throw new AppError(
-        chargingStation.id,
-        `Invalid value for Max Intensity Socket: '${filteredRequest.maxIntensity}'`, Constants.HTTP_GENERAL_ERROR,
-        'ChargingStationService', 'handleActionSetMaxIntensitySocket', req.user);
+      throw new AppError({
+        source: chargingStation.id,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: `Invalid value for Max Intensity Socket: '${filteredRequest.maxIntensity}'`,
+        module: 'ChargingStationService',
+        method: 'handleActionSetMaxIntensitySocket',
+        user: req.user,
+        action: action
+      });
     }
     // Return the result
     res.json(result);
@@ -637,10 +669,15 @@ export default class ChargingStationService {
     const filteredRequest = ChargingStationSecurity.filterIsAuthorizedRequest(req.query);
     // Check
     if (!filteredRequest.Action) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The Action is mandatory',
-        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'ChargingStationService', 'handleIsAuthorized');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: 'The Action is mandatory',
+        module: 'ChargingStationService',
+        method: 'handleIsAuthorized',
+        user: req.user,
+        action: action
+      });
     }
     let chargingStation: ChargingStation = null;
     // Action
@@ -650,20 +687,30 @@ export default class ChargingStationService {
       case 'RemoteStopTransaction':
         // Check
         if (!filteredRequest.Arg1) {
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            'The Charging Station ID is mandatory',
-            Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'ChargingStationService', 'handleIsAuthorized');
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+            message: 'The Charging Station ID is mandatory',
+            module: 'ChargingStationService',
+            method: 'handleIsAuthorized',
+            user: req.user,
+            action: action
+          });
         }
         // Get the Charging station
         chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.Arg1);
         // Found?
         if (!chargingStation) {
           // Not Found!
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            `Charging Station with ID '${filteredRequest.Arg1}' does not exist`,
-            Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'ChargingStationService', 'handleIsAuthorized');
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+            message: `Charging Station with ID '${filteredRequest.Arg1}' does not exist`,
+            module: 'ChargingStationService',
+            method: 'handleIsAuthorized',
+            user: req.user,
+            action: action
+          });
         }
         // Check
         if (!filteredRequest.Arg2) {
@@ -690,30 +737,45 @@ export default class ChargingStationService {
         // Arg1 contains the charger ID
         // Check
         if (!filteredRequest.Arg1) {
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            'The Charging Station ID is mandatory',
-            Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'ChargingStationService', 'handleIsAuthorized');
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+            message: 'The Charging Station ID is mandatory',
+            module: 'ChargingStationService',
+            method: 'handleIsAuthorized',
+            user: req.user,
+            action: action
+          });
         }
         // Get the Charging station
         chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, filteredRequest.Arg1);
         // Found?
         if (!chargingStation) {
           // Not Found!
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            `Charging Station with ID '${filteredRequest.Arg1}' does not exist`,
-            Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'ChargingStationService', 'handleIsAuthorized');
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+            message: `Charging Station with ID '${filteredRequest.Arg1}' does not exist`,
+            module: 'ChargingStationService',
+            method: 'handleIsAuthorized',
+            user: req.user,
+            action: action
+          });
         }
 
         user = await UserStorage.getUser(req.user.tenantID, req.user.id);
         // Found?
         if (!user) {
           // Not Found!
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            `User with ID '${filteredRequest.Arg1}' does not exist`,
-            Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'ChargingStationService', 'handleIsAuthorized');
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+            message: `User with ID '${filteredRequest.Arg1}' does not exist`,
+            module: 'ChargingStationService',
+            method: 'handleIsAuthorized',
+            user: req.user,
+            action: action
+          });
         }
         result = await ChargingStationService.checkConnectorsActionAuthorizations(req.user.tenantID, req.user, chargingStation);
         break;
@@ -729,22 +791,27 @@ export default class ChargingStationService {
       try {
         // Site is mandatory
         if (!chargingStation.siteArea) {
-          throw new AppError(
-            chargingStation.id,
-            `Charging Station '${chargingStation.id}' is not assigned to a Site Area!`,
-            Constants.HTTP_AUTH_CHARGER_WITH_NO_SITE_AREA_ERROR,
-            'AuthService', 'checkConnectorsActionAuthorizations');
+          throw new AppError({
+            source: chargingStation.id,
+            errorCode: Constants.HTTP_AUTH_CHARGER_WITH_NO_SITE_AREA_ERROR,
+            message: `Charging Station '${chargingStation.id}' is not assigned to a Site Area!`,
+            module: 'ChargingStationService',
+            method: 'checkConnectorsActionAuthorizations',
+            user: user
+          });
         }
 
         // Site -----------------------------------------------------
         chargingStation.siteArea.site = await SiteStorage.getSite(tenantID, chargingStation.siteArea.siteID);
         if (!chargingStation.siteArea.site) {
-          throw new AppError(
-            chargingStation.id,
-            `Site Area '${chargingStation.siteArea.name}' is not assigned to a Site!`,
-            Constants.HTTP_AUTH_SITE_AREA_WITH_NO_SITE_ERROR,
-            'AuthService', 'checkConnectorsActionAuthorizations',
-            user);
+          throw new AppError({
+            source: chargingStation.id,
+            errorCode: Constants.HTTP_AUTH_SITE_AREA_WITH_NO_SITE_ERROR,
+            message: `Site Area '${chargingStation.siteArea.name}' is not assigned to a Site!`,
+            module: 'ChargingStationService',
+            method: 'checkConnectorsActionAuthorizations',
+            user: user
+          });
         }
       } catch (error) {
         // Problem with site assignment so do not allow any action
@@ -786,17 +853,25 @@ export default class ChargingStationService {
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(user.tenantID, transactionId);
     if (!transaction) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Transaction ID '${filteredRequest.Arg2}' does not exist`,
-        Constants.HTTP_AUTH_ERROR, 'AuthService', 'isStopTransactionAuthorized');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        message: `Transaction ID '${filteredRequest.Arg2}' does not exist`,
+        module: 'ChargingStationService',
+        method: 'isStopTransactionAuthorized',
+        user: user
+      });
     }
     // Check Charging Station
     if (transaction.chargeBoxID !== chargingStation.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Transaction ID '${filteredRequest.Arg2}' has a Charging Station '${transaction.chargeBoxID}' that differs from '${chargingStation.id}'`,
-        565, 'AuthService', 'isStopTransactionAuthorized');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: 565,
+        message: `Transaction ID '${filteredRequest.Arg2}' has a Charging Station '${transaction.chargeBoxID}' that differs from '${chargingStation.id}'`,
+        module: 'ChargingStationService',
+        method: 'isStopTransactionAuthorized',
+        user: user
+      });
     }
     return Authorizations.canStopTransaction(user, transaction);
   }
