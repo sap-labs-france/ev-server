@@ -63,7 +63,7 @@ export default class NotificationHandler {
 
   static async getAdminUsers(tenantID: string): Promise<User[]> {
     // Get admin users
-    const adminUsers = await UserStorage.getUsers(tenantID, { email: 'jean.pierre.demessant@sap.com', roles: [Constants.ROLE_ADMIN], notificationsActive: true },
+    const adminUsers = await UserStorage.getUsers(tenantID, { roles: [Constants.ROLE_ADMIN], notificationsActive: true },
       Constants.DB_PARAMS_MAX_LIMIT);
     // Found
     if (adminUsers.count > 0) {
