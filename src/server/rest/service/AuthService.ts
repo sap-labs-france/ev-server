@@ -471,7 +471,7 @@ export default class AuthService {
       // Do not return error, only reject it
       res.json({ eulaAccepted: false });
       next();
-      return
+      return;
     }
     // Get last Eula version
     const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, user.locale.substring(0, 2));
@@ -484,7 +484,7 @@ export default class AuthService {
     // Check if version matches
     res.json({ eulaAccepted: false });
     next();
-}
+  }
 
   public static async handleGetEndUserLicenseAgreement(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter

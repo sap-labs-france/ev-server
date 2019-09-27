@@ -1,7 +1,7 @@
 import { Request } from 'express';
 import sanitize from 'mongo-sanitize';
 import Constants from '../../../../utils/Constants';
-import { HttpLoginRequest, HttpRegisterUserRequest, HttpResendVerificationMailRequest, HttpResetPasswordRequest, HttpVerifyEmailRequest, HttpCheckEulaRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpCheckEulaRequest, HttpLoginRequest, HttpRegisterUserRequest, HttpResendVerificationMailRequest, HttpResetPasswordRequest, HttpVerifyEmailRequest } from '../../../../types/requests/HttpUserRequest';
 import UtilsSecurity from './UtilsSecurity';
 
 export default class AuthSecurity {
