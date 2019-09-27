@@ -5,7 +5,6 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import OCPIServerError from '../../exception/OCPIServerError';
 import OCPIUtils from './OCPIUtils';
-import Tenant from '../../types/Tenant';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 
 const MODULE_NAME = 'AbstractOCPIService';
