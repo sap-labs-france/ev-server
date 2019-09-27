@@ -188,6 +188,7 @@ export default class TransactionService {
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
     UtilsService.assertObjectExists(transaction, `Transaction with ID '${transactionId}' does not exist`, 'TransactionService', 'handleDeleteTransaction', req.user);
+
     // Handle active transactions
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, transaction.chargeBoxID);
     if (!transaction.stop) {
@@ -675,12 +676,10 @@ export default class TransactionService {
     }
     if (filteredRequest.ErrorType) {
       filter.errorType = filteredRequest.ErrorType.split('|');
+    } else if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.PRICING)) {
+      filter.errorType = ['negative_inactivity','negative_duration','average_consumption_greater_than_connector_capacity','incorrect_starting_date','no_consumption','missing_price'];
     } else {
-      if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.PRICING)) {
-        filter.errorType = ['negative_inactivity','negative_duration','average_consumption_greater_than_connector_capacity','incorrect_starting_date','no_consumption','missing_price'];
-      } else {
-        filter.errorType = ['negative_inactivity','negative_duration','average_consumption_greater_than_connector_capacity','incorrect_starting_date','no_consumption'];
-      }
+      filter.errorType = ['negative_inactivity','negative_duration','average_consumption_greater_than_connector_capacity','incorrect_starting_date','no_consumption'];
     }
     // Site Area
     const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,

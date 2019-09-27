@@ -63,7 +63,7 @@ export default class ConsumptionStorage {
     Logging.traceEnd('ConsumptionStorage', 'deleteConsumptions', uniqueTimerID, { transactionId });
   }
 
-  static async getConsumptions(tenantID: string, params: { transactionId: number; }): Promise<Consumption[]> {
+  static async getConsumptions(tenantID: string, params: { transactionId: number }): Promise<Consumption[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ConsumptionStorage', 'getConsumption');
     // Check

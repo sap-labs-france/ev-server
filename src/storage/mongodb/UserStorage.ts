@@ -151,6 +151,16 @@ export default class UserStorage {
     return user.count > 0 ? user.result[0] : null;
   }
 
+  public static async getUserByPasswordResetHash(tenantID: string, passwordResetHash: string): Promise<User> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'getUserByPasswordResetHash');
+    // Get user
+    const user = await UserStorage.getUsers(tenantID, { passwordResetHash: passwordResetHash }, Constants.DB_PARAMS_SINGLE_RECORD);
+    // Debug
+    Logging.traceEnd('UserStorage', 'getUserByPasswordResetHash', uniqueTimerID, { passwordResetHash });
+    return user.count > 0 ? user.result[0] : null;
+  }
+
   public static async getUser(tenantID: string, id: string): Promise<User> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUser');
@@ -447,8 +457,9 @@ export default class UserStorage {
 
   public static async getUsers(tenantID: string,
     params: {
-      notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string; userID?: string; email?: string;
-      roles?: string[]; statuses?: string[]; withImage?: boolean; billingCustomer?: string; notSynchronizedBillingData?: boolean
+      notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
+      userID?: string; email?: string; passwordResetHash?: string; roles?: string[];
+      statuses?: string[]; withImage?: boolean; billingCustomer?: string; notSynchronizedBillingData?: boolean;
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
@@ -488,6 +499,12 @@ export default class UserStorage {
     if (params.email) {
       filters.$and.push({
         'email': params.email
+      });
+    }
+    // Password Reset Hash
+    if (params.passwordResetHash) {
+      filters.$and.push({
+        'passwordResetHash': params.passwordResetHash
       });
     }
     // Role
@@ -928,7 +945,6 @@ export default class UserStorage {
         ];
       case 'unassigned_user': {
         return [
-          //          { $match : { status: Constants.USER_STATUS_ACTIVE } },
           {
             $lookup: {
               from: DatabaseUtils.getCollectionName(tenantID, 'siteusers'),

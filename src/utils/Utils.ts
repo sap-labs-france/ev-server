@@ -1,5 +1,5 @@
 import axios from 'axios';
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import ClientOAuth2 from 'client-oauth2';
 import { Request } from 'express';
 import fs from 'fs';
@@ -96,6 +96,8 @@ export default class Utils {
       if (chargingStation.deleted) {
         continue;
       }
+      // Check connectors
+      Utils.checkConnectors(chargingStation);
       // Set Inactive flag
       chargingStation.inactive = Utils.getIfChargingStationIsInactive(chargingStation);
       connectorStats.totalChargers++;
@@ -148,6 +150,40 @@ export default class Utils {
       }
     }
     return connectorStats;
+  }
+
+  static checkConnectors(chargingStation: ChargingStation) {
+    if (chargingStation.cannotChargeInParallel) {
+      let lockAllConnectors = false;
+      // Check
+      for (const connector of chargingStation.connectors) {
+        if (!connector) {
+          continue;
+        }
+        if (connector.status !== Constants.CONN_STATUS_AVAILABLE) {
+          lockAllConnectors = true;
+          break;
+        }
+      }
+      // Lock?
+      if (lockAllConnectors) {
+        for (const connector of chargingStation.connectors) {
+          if (!connector) {
+            continue;
+          }
+          if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
+            // Check OCPP Version
+            if (chargingStation.ocppVersion === Constants.OCPP_VERSION_15) {
+              // Set OCPP 1.5 Occupied
+              connector.status = Constants.CONN_STATUS_OCCUPIED;
+            } else {
+              // Set OCPP 1.6 Unavailable
+              connector.status = Constants.CONN_STATUS_UNAVAILABLE;
+            }
+          }
+        }
+      }
+    }
   }
 
   // Temporary method for Revenue Cloud concept
@@ -811,7 +847,7 @@ export default class Utils {
         `User Email ${filteredRequest.email} is not valid`, Constants.HTTP_GENERAL_ERROR,
         'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
     }
-    if (filteredRequest.password && !Utils._isPasswordValid(filteredRequest.password)) {
+    if (filteredRequest.password && !Utils.isPasswordValid(filteredRequest.password)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         'User Password is not valid', Constants.HTTP_GENERAL_ERROR,
@@ -955,7 +991,7 @@ export default class Utils {
     }
   }
 
-  private static _isPasswordValid(password: string): boolean {
+  public static isPasswordValid(password: string): boolean {
     // eslint-disable-next-line no-useless-escape
     return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
   }

@@ -1,28 +1,25 @@
 import { NextFunction, Request, Response } from 'express';
 import fs from 'fs';
+import Authorizations from '../../../authorization/Authorizations';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
-import Authorizations from '../../../authorization/Authorizations';
-import ChargingStation from '../../../types/ChargingStation';
-import ChargingStationSecurity from './security/ChargingStationSecurity';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import Constants from '../../../utils/Constants';
-import {
-  HttpChargingStationCommandRequest,
-  HttpIsAuthorizedRequest
-} from '../../../types/requests/HttpChargingStationRequest';
-import Logging from '../../../utils/Logging';
 import OCPPStorage from '../../../storage/mongodb/OCPPStorage';
-import OCPPUtils from '../../ocpp/utils/OCPPUtils';
 import SiteAreaStorage from '../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
-import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
-import UserToken from '../../../types/UserToken';
-import Utils from '../../../utils/Utils';
-import UtilsService from './UtilsService';
+import ChargingStation from '../../../types/ChargingStation';
 import { DataResult } from '../../../types/DataResult';
+import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
+import User from '../../../types/User';
+import UserToken from '../../../types/UserToken';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
+import Utils from '../../../utils/Utils';
+import OCPPUtils from '../../ocpp/utils/OCPPUtils';
+import ChargingStationSecurity from './security/ChargingStationSecurity';
+import UtilsService from './UtilsService';
 
 export default class ChargingStationService {
 
@@ -334,7 +331,6 @@ export default class ChargingStationService {
         Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'ChargingStationService', 'handleGetChargingStation', req.user);
     }
-    // Ok
     res.json(
       // Filter
       ChargingStationSecurity.filterChargingStationResponse(
@@ -344,7 +340,6 @@ export default class ChargingStationService {
   }
 
   public static async handleGetChargingStations(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
-    // Return
     res.json(await ChargingStationService._getChargingStations(req));
     next();
   }

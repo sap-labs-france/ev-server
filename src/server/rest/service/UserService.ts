@@ -16,6 +16,7 @@ import UserSecurity from './security/UserSecurity';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
+import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 
 export default class UserService {
 
@@ -143,8 +144,8 @@ export default class UserService {
       // Delete from site
       const siteIDs: string[] = (await UserStorage.getSites(req.user.tenantID, { userID: id },
         Constants.DB_PARAMS_MAX_LIMIT)).result.map(
-          (siteUser) => siteUser.site.id
-        );
+        (siteUser) => siteUser.site.id
+      );
       await UserStorage.removeSitesFromUser(req.user.tenantID, user.id, siteIDs);
     }
     // Delete User
@@ -152,6 +153,8 @@ export default class UserService {
     if (billingImpl) {
       await billingImpl.deleteUser(user, req);
     }
+    // Delete Connections
+    await ConnectionStorage.deleteConnectionByUserId(req.user.tenantID, user.id);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
