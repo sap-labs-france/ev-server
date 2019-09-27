@@ -7,12 +7,9 @@ import uuid from 'uuid/v4';
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
-import BadRequestError from '../exception/BadRequestError';
 import Configuration from '../utils/Configuration';
-import ConflictError from '../exception/ConflictError';
 import Constants from './Constants';
 import LoggingStorage from '../storage/mongodb/LoggingStorage';
-import NotFoundError from '../exception/NotFoundError';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
 import Utils from './Utils';
@@ -198,12 +195,6 @@ export default class Logging {
     const log = Logging._buildLog(error, action, source, module, method, tenantID, user);
     if (error instanceof AppAuthError) {
       Logging.logSecurityError(log);
-    } else if (error instanceof BadRequestError) {
-      Logging.logDebug(log);
-    } else if (error instanceof ConflictError) {
-      Logging.logWarning(log);
-    } else if (error instanceof NotFoundError) {
-      Logging.logWarning(log);
     } else if (error instanceof AppError) {
       Logging.logError(log);
     } else if (error instanceof BackendError) {
@@ -224,9 +215,6 @@ export default class Logging {
     // Log Auth Error
     } else if (exception instanceof AppAuthError) {
       Logging._logActionAppAuthExceptionMessage(tenantID, action, exception);
-    } else if (exception instanceof BadRequestError) {
-      Logging._logActionBadRequestExceptionMessage(tenantID, action, exception);
-    // Log Unexpected
     } else {
       Logging._logActionExceptionMessage(tenantID, action, exception);
     }
@@ -250,9 +238,6 @@ export default class Logging {
     // Log Auth Error
     } else if (exception instanceof AppAuthError) {
       Logging._logActionAppAuthExceptionMessage(tenantID, action, exception);
-    } else if (exception instanceof BadRequestError) {
-      Logging._logActionBadRequestExceptionMessage(tenantID, action, exception);
-    // Log Generic Error
     } else {
       Logging._logActionExceptionMessage(tenantID, action, exception);
     }
