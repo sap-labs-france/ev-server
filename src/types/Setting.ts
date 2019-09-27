@@ -42,6 +42,7 @@ export interface StripeBillingSettings {
   periodicBillingAllowed: boolean;
   // Default billing plan(s)?
   advanceBillingAllowed: boolean;
+  lastSynchronizedOn?: Date;
 }
 
 export interface OcpiSettings {
