@@ -23,6 +23,7 @@ const SOURCE_NEW_REGISTERED_USER = 'NotifyNewRegisteredUser';
 const SOURCE_UNKNOWN_USER_BADGED = 'NotifyUnknownUserBadged';
 const SOURCE_TRANSACTION_STARTED = 'NotifyTransactionStarted';
 const SOURCE_VERIFICATION_EMAIL = 'NotifyVerificationEmail';
+const SOURCE_AUTH_EMAIL_ERROR = 'NotifyAuthentificationErrorEmailServer';
 export default class NotificationHandler {
 
   static async saveNotification(tenantID, channel, sourceId, sourceDescr, user: User, chargingStation, data = {}) {
@@ -66,7 +67,11 @@ export default class NotificationHandler {
     // Found
     if (adminUsers.count > 0) {
       // Check if notification is active
+<<<<<<< Updated upstream
 //      adminUsers.result = adminUsers.result.filter((adminUser) => adminUser.notificationsActive);
+=======
+      // adminUsers.result = adminUsers.result.filter((adminUser) => adminUser.notificationsActive);
+>>>>>>> Stashed changes
       return adminUsers.result;
     }
   }
@@ -364,6 +369,25 @@ export default class NotificationHandler {
     } catch (error) {
       // Log error
       Logging.logActionExceptionMessage(tenantID, SOURCE_TRANSACTION_STARTED, error);
+    }
+  }
+
+  static async sendAuthErrorEmailServer(tenantID, locale, data) {
+    try {
+      // Enrich with admins
+      data.users = await NotificationHandler.getAdminUsers(tenantID);
+      // Email enabled?
+      if (_notificationConfig.Email.enabled) {
+        // Save notif
+        // await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, null, SOURCE_AUTH_EMAIL_ERROR, null, null, data);
+        // Send email
+        const result = await _email.sendAuthErrorEmailServer(data, locale, tenantID);
+        // Return
+        return result;
+      }
+    } catch (error) {
+      // Log error
+      Logging.logActionExceptionMessage(tenantID, SOURCE_AUTH_EMAIL_ERROR, error);
     }
   }
 }

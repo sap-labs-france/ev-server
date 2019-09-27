@@ -9,6 +9,7 @@ import Logging from '../../utils/Logging';
 import NotificationTask from '../NotificationTask';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
+import NotificationHandler from '../NotificationHandler';
 
 
 // Email
@@ -106,7 +107,12 @@ export default class EMailNotificationTask extends NotificationTask {
     return this._prepareAndSendEmail('verification-email', data, locale, tenantID);
   }
 
-  async _prepareAndSendEmail(templateName, data, locale, tenantID) {
+  sendAuthErrorEmailServer(data, locale, tenantID) {
+    // Send it
+    return this._prepareAndSendEmail('auth-error-email-server', data, locale, tenantID, true);
+  }
+
+  async _prepareAndSendEmail(templateName, data, locale, tenantID, retry = false) {
     // Check locale
     if (!locale || !Constants.SUPPORTED_LOCALES.includes(locale)) {
       locale = Constants.DEFAULT_LOCALE;
@@ -217,9 +223,14 @@ export default class EMailNotificationTask extends NotificationTask {
       bcc: adminEmails,
       subject: subject,
       text: html,
+<<<<<<< Updated upstream
       html: html,
       bccNeeded: bccNeeded
     }, data, tenantID);
+=======
+      html: html
+    }, data, tenantID, locale, retry);
+>>>>>>> Stashed changes
     // Ok
     return message;
   }
@@ -235,7 +246,7 @@ export default class EMailNotificationTask extends NotificationTask {
     }
   }
 
-  async sendEmail(email, data, tenantID, retry = false) {
+  async sendEmail(email, data, tenantID, locale, retry = false) {
     // Create the message
     const messageToSend = {
       from: (!retry ? _emailConfig.smtp.from : _emailConfig.smtpBackup.from),
@@ -251,6 +262,7 @@ export default class EMailNotificationTask extends NotificationTask {
     // Send the message and get a callback with an error or details of the message that was sent
     return this[!retry ? 'server' : 'serverBackup'].send(messageToSend, (err, messageSent) => {
       if (err) {
+<<<<<<< Updated upstream
         // If auth error with the primary email server then inform admins
         if(!retry && err.code === 3 && err.previous.code === 2) {
           const msg = {
@@ -284,6 +296,17 @@ export default class EMailNotificationTask extends NotificationTask {
             }
           });
         }
+=======
+        // If authentifcation error in the primary email server then notify admins using the backup server
+        if(!retry && this.serverBackup && err.code === 3 && err.previous.code === 2){
+          NotificationHandler.sendAuthErrorEmailServer(
+            tenantID, locale,
+            {
+              'evseDashboardURL': data.evseDashboardURL
+            }
+          );
+        } 
+>>>>>>> Stashed changes
         // Log
         try {
           Logging.logError({
@@ -307,7 +330,7 @@ export default class EMailNotificationTask extends NotificationTask {
         }
         // Retry?
         if (!retry && this.serverBackup) {
-          return this.sendEmail(email, data, tenantID, true);
+          return this.sendEmail(email, data, tenantID, locale, true);
         }
       } else {
         // Email sent successfully
