@@ -8,7 +8,6 @@ import CentralRestServerAuthentication from './CentralRestServerAuthentication';
 import CentralRestServerService from './CentralRestServerService';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
-import ErrorHandler from './ErrorHandler';
 import expressTools from '../ExpressTools';
 import Logging from '../../utils/Logging';
 import SessionHashService from '../rest/service/SessionHashService';
@@ -67,9 +66,6 @@ export default class CentralRestServer {
 
     // Util API
     this.express.use('/client/util', CentralRestServerService.restServiceUtil);
-
-    // Register error handler
-    this.express.use(ErrorHandler.errorHandler);
 
     // Create HTTP server to serve the express app
     CentralRestServer.restHttpServer = expressTools.createHttpServer(CentralRestServer.centralSystemRestConfig, this.express);

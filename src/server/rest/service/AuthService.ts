@@ -6,7 +6,6 @@ import passport from 'passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import Authorizations from '../../../authorization/Authorizations';
 import AppError from '../../../exception/AppError';
-import BadRequestError from '../../../exception/BadRequestError';
 import BillingFactory from '../../../integration/billing/BillingFactory';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
@@ -51,20 +50,18 @@ export default class AuthService {
   }
 
   public static async handleLogIn(action: string, req: Request, res: Response, next: NextFunction) {
-    let tenantID: string;
     // Filter
     const filteredRequest = AuthSecurity.filterLoginRequest(req.body);
     // Get Tenant
-    tenantID = await AuthService.getTenantID(filteredRequest.tenant);
-    req.user = { tenantID };
+    const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
-      tenantID = Constants.DEFAULT_TENANT;
       throw new AppError(
         Constants.CENTRAL_SERVER,
         `User with email '${filteredRequest.email}' tried to log in with an unknown tenant '${filteredRequest.tenant}'!`,
         Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'AuthService', 'handleLogIn', null, null, action);
     }
+    req.user = { tenantID };
     // Check
     if (!filteredRequest.email) {
       throw new AppError(
@@ -149,15 +146,13 @@ export default class AuthService {
     const filteredRequest = AuthSecurity.filterRegisterUserRequest(req.body);
     // Get the Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
+
     if (!tenantID) {
-      const error = new BadRequestError({
-        path: 'tenant',
-        message: 'The Tenant cannot be found'
-      });
-      // Log Error
-      Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleRegisterUser', Constants.DEFAULT_TENANT);
-      next(error);
-      return;
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `User is trying to register with an unknown tenant '${filteredRequest.tenant}'!`,
+        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        'AuthService', 'handleGetEndUserLicenseAgreement', null, null, action);
     }
     req.user = { tenantID };
     // Check EULA
@@ -375,19 +370,6 @@ export default class AuthService {
         `User with password reset hash '${filteredRequest.hash}' is logically deleted`,
         Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleUserPasswordReset');
     }
-
-    if (!filteredRequest.password || !Utils.isPasswordValid(filteredRequest.password)) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The user password is not valid', Constants.HTTP_GENERAL_ERROR,
-        'AuthService', 'handleUserPasswordReset', req.user.id, filteredRequest.id);
-    }
-    if (!filteredRequest.repeatPassword || filteredRequest.password !== filteredRequest.repeatPassword) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Password and repeatPassword do not match', Constants.HTTP_GENERAL_ERROR,
-        'AuthService', 'handleUserPasswordReset', req.user.id, filteredRequest.id);
-    }
     // Hash it
     const newHashedPassword = await Utils.hashPasswordBcrypt(filteredRequest.password);
     // Save new password
@@ -417,15 +399,13 @@ export default class AuthService {
     const filteredRequest = AuthSecurity.filterResetPasswordRequest(req.body);
     // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
+
     if (!tenantID) {
-      const error = new BadRequestError({
-        path: 'tenant',
-        message: 'The Tenant is mandatory'
-      });
-      // Log Error
-      Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleUserPasswordReset', Constants.DEFAULT_TENANT);
-      next(error);
-      return;
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `User is trying to access resource with an unknown tenant '${filteredRequest.tenant}'!`,
+        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        'AuthService', 'handleUserPasswordReset', null, null, action);
     }
     // Check hash
     if (!filteredRequest.hash) {
@@ -491,15 +471,13 @@ export default class AuthService {
     const filteredRequest = AuthSecurity.filterEndUserLicenseAgreementRequest(req);
     // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
+
     if (!tenantID) {
-      const error = new BadRequestError({
-        path: 'tenant',
-        message: 'The Tenant is mandatory'
-      });
-      // Log Error
-      Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleGetEndUserLicenseAgreement', Constants.DEFAULT_TENANT);
-      next(error);
-      return;
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `User is trying to access resource with an unknown tenant '${filteredRequest.tenant}'!`,
+        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        'AuthService', 'handleGetEndUserLicenseAgreement', null, null, action);
     }
     // Get it
     const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, filteredRequest.Language);
@@ -516,15 +494,13 @@ export default class AuthService {
     const filteredRequest = AuthSecurity.filterVerifyEmailRequest(req.query);
     // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
+
     if (!tenantID) {
-      const error = new BadRequestError({
-        path: 'tenant',
-        message: 'The Tenant is mandatory'
-      });
-      // Log Error
-      Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleVerifyEmail', Constants.DEFAULT_TENANT);
-      next(error);
-      return;
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `User is trying to access resource with an unknown tenant '${filteredRequest.tenant}'!`,
+        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        'AuthService', 'handleVerifyEmail', null, null, action);
     }
     // Check that this is not the super tenant
     if (tenantID === Constants.DEFAULT_TENANT) {
@@ -606,15 +582,13 @@ export default class AuthService {
     const filteredRequest = AuthSecurity.filterResendVerificationEmail(req.body);
     // Get the tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
+
     if (!tenantID) {
-      const error = new BadRequestError({
-        path: 'tenant',
-        message: 'The Tenant is mandatory'
-      });
-      // Log Error
-      Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleResendVerificationEmail', Constants.DEFAULT_TENANT);
-      next(error);
-      return;
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        `User is trying to access resource with an unknown tenant '${filteredRequest.tenant}'!`,
+        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        'AuthService', 'handleResendVerificationEmail', null, null, action);
     }
     // Check that this is not the super tenant
     if (tenantID === Constants.DEFAULT_TENANT) {
