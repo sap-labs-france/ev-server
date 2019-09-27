@@ -47,12 +47,6 @@ export interface BillingUserData {
   lastChangedOn?: Date;
 }
 
-export interface BillingUpdatedCustomer {
-  customerID?: string;
-  cardID?: string;
-  subscriptionID?: string;
-}
-
 export default abstract class Billing<T extends BillingSettings> {
 
   // Protected because only used in subclasses at the moment
@@ -72,10 +66,13 @@ export default abstract class Billing<T extends BillingSettings> {
   async abstract checkConnection(key?: string): Promise<BillingResponse>;
 
   // eslint-disable-next-line no-unused-vars
+  async abstract getUpdatedCustomersForSynchronization(): Promise<string[]>;
+
+  // eslint-disable-next-line no-unused-vars
   async abstract synchronizeUser(user: User): Promise<BillingUserData>;
 
   // eslint-disable-next-line no-unused-vars
-  async abstract getUpdatedCustomers(exclCustomers?: string[]): Promise<BillingUpdatedCustomer[]>;
+  async abstract finalizeSynchronization(): Promise<void>;
 
   // eslint-disable-next-line no-unused-vars
   async abstract startTransaction(user: User, transaction: Transaction): Promise<BillingDataStart>;

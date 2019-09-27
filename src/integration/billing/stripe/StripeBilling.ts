@@ -1,4 +1,4 @@
-import Billing, { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingResponse, BillingSettings, BillingUpdatedCustomer, BillingUserData } from '../Billing';
+import Billing, { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingResponse, BillingSettings, BillingUserData } from '../Billing';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import { Request } from 'express';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
@@ -124,19 +124,14 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
     return await this.updateUser(user, fullReq);
   }
 
-  public async getUpdatedCustomers(exclCustomers?: string[]): Promise<BillingUpdatedCustomer[]> {
-    const newSyncDate = new Date();
+  public async getUpdatedCustomersForSynchronization(): Promise<string[]> {
     const createdSince = this.settings.lastSynchronizedOn ? `${moment(this.settings.lastSynchronizedOn).unix()}` : '0';
-
     let stillData = true;
     let lastEventID: string;
     let events: Stripe.IList<Stripe.events.IEvent>;
     let skipCustomer: boolean;
     let lastCustomerID: string;
-    let collectedCustomerIDs: string[] = [];
-
-    let updatedCustomer: BillingUpdatedCustomer;
-    let updatedCustomers: BillingUpdatedCustomer[] = [];
+    const collectedCustomerIDs: string[] = [];
 
     while (stillData) {
       try {
@@ -179,11 +174,6 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
           if (!lastCustomerID) {
             skipCustomer = true;
           }
-          if (!skipCustomer && exclCustomers &&
-            (exclCustomers.length > 0) &&
-            (exclCustomers.findIndex((id) => id === lastCustomerID) > -1)) {
-            skipCustomer = true;
-          }
           if (!skipCustomer && (collectedCustomerIDs.length > 0) &&
             (collectedCustomerIDs.findIndex((id) => id === lastCustomerID) > -1)) {
             skipCustomer = true;
@@ -198,38 +188,16 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
     }
 
     if (collectedCustomerIDs && collectedCustomerIDs.length > 0) {
-      for (lastCustomerID of collectedCustomerIDs) {
-        try {
-          const stripeCustomer = await this.stripe.customers.retrieve(lastCustomerID);
-          updatedCustomer = {} as BillingUpdatedCustomer;
-          if (stripeCustomer.id === lastCustomerID) {
-            updatedCustomer.customerID = lastCustomerID;
-            if (stripeCustomer.default_source && typeof (stripeCustomer.default_source) === 'string') {
-              updatedCustomer.cardID = stripeCustomer.default_source;
-            }
-            if (stripeCustomer.subscriptions && stripeCustomer.subscriptions.data &&
-              stripeCustomer.subscriptions.data.length > 0) {
-              updatedCustomer.subscriptionID = stripeCustomer.subscriptions.data[0].id;
-            }
-            updatedCustomers.push(updatedCustomer);
-          }
-        } catch (error) {
-          // Ignore it; perhaps a deleted customer in Stripe
-        }
-      };
+      return collectedCustomerIDs;
     }
+  }
 
-    // Update 'lastSynchronizedOn'
+  public async finalizeSynchronization(): Promise<void> {
+    const newSyncDate = new Date();
     const billingSettings = await SettingStorage.getSettingByIdentifier(this.tenantId, Constants.COMPONENTS.BILLING);
     if (billingSettings.content.stripe) {
       billingSettings.content.stripe.lastSynchronizedOn = Utils.convertToDate(newSyncDate);
       await SettingStorage.saveSetting(this.tenantId, billingSettings);
-    }
-
-    if (updatedCustomers.length > 0) {
-      return updatedCustomers;
-    } else {
-      return;
     }
   }
 
@@ -1101,7 +1069,8 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
     const billingMethod = this._retrieveBillingMethod(user, req);
     let collectionMethod;
     let daysUntilDue = 0;
-    if (!customer['default_source'] || typeof (customer['default_source']) !== 'string') {
+    if (!customer['default_source'] || typeof (customer['default_source']) !== 'string' ||
+      (typeof (customer['default_source']) === 'string' && customer['default_source'].substr(0, 4) !== 'card')) {
       collectionMethod = 'send_invoice';
       daysUntilDue = 30;
     } else {
@@ -1121,11 +1090,20 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
       // Check whether existing subscription needs to be updated
       if (collectionMethod !== subscription['billing']) {
         try {
-          await this.stripe.subscriptions.update(
-            subscription['id'],
-            {
-              billing: collectionMethod,
-            });
+          if (collectionMethod === 'send_invoice') {
+            await this.stripe.subscriptions.update(
+              subscription['id'],
+              {
+                billing: 'send_invoice',
+                days_until_due: daysUntilDue,
+              });
+          } else {
+            await this.stripe.subscriptions.update(
+              subscription['id'],
+              {
+                billing: 'charge_automatically',
+              });
+          }
         } catch (error) {
           Logging.logError({
             tenantID: this.tenantId,
@@ -1207,8 +1185,8 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
     return {
       method: billingMethod,
       customerID: customer['id'],
-      cardID: customer['default_source'] && typeof (customer['default_source']) === 'string' ? customer['default_source'] : '',
-      subscriptionID: subscription['id'] ? subscription['id'] : '',
+      cardID: (customer['default_source'] && typeof (customer['default_source']) === 'string' && customer['default_source'].substr(0, 4) === 'card') ? customer['default_source'] : '',
+      subscriptionID: subscription && subscription['id'] ? subscription['id'] : '',
       lastChangedOn: new Date()
     };
   }
