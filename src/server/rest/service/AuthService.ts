@@ -4,25 +4,22 @@ import jwt from 'jsonwebtoken';
 import moment from 'moment';
 import passport from 'passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
-import AuthSecurity from './security/AuthSecurity';
+import AppError from '../../../exception/AppError';
 import BadRequestError from '../../../exception/BadRequestError';
 import BillingFactory from '../../../integration/billing/BillingFactory';
-import Configuration from '../../../utils/Configuration';
-import Constants from '../../../utils/Constants';
-import {
-  HttpLoginRequest,
-  HttpResetPasswordRequest
-} from '../../../types/requests/HttpUserRequest';
-import Logging from '../../../utils/Logging';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
-import User from '../../../types/User';
 import UserStorage from '../../../storage/mongodb/UserStorage';
+import { HttpLoginRequest, HttpResetPasswordRequest } from '../../../types/requests/HttpUserRequest';
+import User from '../../../types/User';
 import UserToken from '../../../types/UserToken';
+import Configuration from '../../../utils/Configuration';
+import Constants from '../../../utils/Constants';
+import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
+import AuthSecurity from './security/AuthSecurity';
 
 const _centralSystemRestConfig = Configuration.getCentralSystemRestServiceConfig();
 let jwtOptions;
