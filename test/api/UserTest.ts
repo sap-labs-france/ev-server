@@ -80,6 +80,21 @@ describe('User tests', function() {
 
       describe('Using various basic APIs', () => {
 
+        it('Should have accepted the Eula', async () => {
+          // Send
+          const response = await testData.userService._baseApi.send({
+            method: 'GET',
+            url: `/client/auth/CheckEndUserLicenseAgreement?Email=${testData.userContext.email}&Tenant=${testData.tenantContext.getTenant().subdomain}`,
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          expect(response.status).to.equal(200);
+          expect(response.data).not.null;
+          expect(response.data).to.have.property('eulaAccepted');
+          expect(response.data.eulaAccepted).to.eql(true);
+        });
+
         it('Should be able to create a new user', async () => {
           // Create
           testData.newUser = await testData.userService.createEntity(

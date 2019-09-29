@@ -112,27 +112,27 @@ export default class Utils {
         connectorStats.totalConnectors++;
         // Not Available?
         if (chargingStation.inactive ||
-            connector.status === Constants.CONN_STATUS_UNAVAILABLE) {
+          connector.status === Constants.CONN_STATUS_UNAVAILABLE) {
           connectorStats.unavailableConnectors++;
-        // Available?
+          // Available?
         } else if (connector.status === Constants.CONN_STATUS_AVAILABLE) {
           connectorStats.availableConnectors++;
-        // Suspended?
+          // Suspended?
         } else if (connector.status === Constants.CONN_STATUS_SUSPENDED_EV ||
-            connector.status === Constants.CONN_STATUS_SUSPENDED_EVSE) {
+          connector.status === Constants.CONN_STATUS_SUSPENDED_EVSE) {
           connectorStats.suspendedConnectors++;
-        // Charging?
+          // Charging?
         } else if (connector.status === Constants.CONN_STATUS_CHARGING ||
-            connector.status === Constants.CONN_STATUS_OCCUPIED) {
+          connector.status === Constants.CONN_STATUS_OCCUPIED) {
           connectorStats.chargingConnectors++;
-        // Faulted?
+          // Faulted?
         } else if (connector.status === Constants.CONN_STATUS_FAULTED ||
-            connector.status === Constants.CONN_STATUS_OCCUPIED) {
+          connector.status === Constants.CONN_STATUS_OCCUPIED) {
           connectorStats.faultedConnectors++;
-        // Preparing?
+          // Preparing?
         } else if (connector.status === Constants.CONN_STATUS_PREPARING) {
           connectorStats.preparingConnectors++;
-        // Finishing?
+          // Finishing?
         } else if (connector.status === Constants.CONN_STATUS_FINISHING) {
           connectorStats.finishingConnectors++;
         }
@@ -847,7 +847,7 @@ export default class Utils {
         `User Email ${filteredRequest.email} is not valid`, Constants.HTTP_GENERAL_ERROR,
         'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
     }
-    if (filteredRequest.password && !Utils._isPasswordValid(filteredRequest.password)) {
+    if (filteredRequest.password && !Utils.isPasswordValid(filteredRequest.password)) {
       throw new AppError(
         Constants.CENTRAL_SERVER,
         'User Password is not valid', Constants.HTTP_GENERAL_ERROR,
@@ -945,6 +945,17 @@ export default class Utils {
         }
         break;
 
+      // Billing
+      case Constants.COMPONENTS.BILLING:
+        if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
+          // Only Stripe
+          return {
+            'type': Constants.SETTING_BILLING_CONTENT_TYPE_STRIPE,
+            'stripe': {}
+          } as SettingContent;
+        }
+        break;
+
       // Refund
       case Constants.COMPONENTS.REFUND:
         if (!currentSettingContent || currentSettingContent.type !== activeComponent.type) {
@@ -980,7 +991,7 @@ export default class Utils {
     }
   }
 
-  private static _isPasswordValid(password: string): boolean {
+  public static isPasswordValid(password: string): boolean {
     // eslint-disable-next-line no-useless-escape
     return /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!#@:;,<>\/''\$%\^&\*\.\?\-_\+\=\(\)])(?=.{8,})/.test(password);
   }
@@ -989,7 +1000,7 @@ export default class Utils {
     return /^(([^<>()\[\]\\.,;:\s@']+(\.[^<>()\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email);
   }
 
-  private static _areTagIDsValid(tagIDs: string[]|string) {
+  private static _areTagIDsValid(tagIDs: string[] | string) {
     if (typeof tagIDs === 'string') {
       return /^[A-Za-z0-9,]*$/.test(tagIDs);
     }

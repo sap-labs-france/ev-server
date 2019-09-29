@@ -1,5 +1,7 @@
 import Ajv from 'ajv';
-import BadRequestError from '../../../exception/BadRequestError';
+import AppError from '../../../exception/AppError';
+import Constants from '../../../utils/Constants';
+import HttpStatus from 'http-status-codes';
 
 export default class SchemaValidator {
   private readonly ajv: Ajv.Ajv;
@@ -15,7 +17,7 @@ export default class SchemaValidator {
     this.ajv = new Ajv(config);
   }
 
-  public validate(schema: object, content: any): void { // TODO: Why return void & throw error if we can return bool and let error be handled
+  public validate(schema: object, content: any): void {
     const fnValidate = this.ajv.compile(schema);
     if (!fnValidate(content)) {
       if (!fnValidate.errors) {
@@ -26,7 +28,10 @@ export default class SchemaValidator {
         message: error.message ? error.message : ''
       }));
       const concatenatedError = { path: errors.map((e) => e.path).join(','), message: errors.map((e) => e.message).join(',') };
-      throw new BadRequestError(concatenatedError);
-    } // TODO: check the error handling here, there's some kind of mistake.
+      throw new AppError(
+        Constants.CENTRAL_SERVER,
+        concatenatedError.message, Constants.HTTP_GENERAL_ERROR,
+        this.moduleName, 'validate', null, null, 'validate', concatenatedError);
+    }
   }
 }

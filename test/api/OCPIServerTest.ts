@@ -393,37 +393,37 @@ describe('OCPI Service Tests', function() {
           CentralServerService.DefaultInstance.ocpiEndpointApi, testData.newOcpiEndpoint);
       });
 
-      // Check access for each evse
-      it('should be able to self-register', async () => {
-        // Define credential object
-        const credential = {
-          'url': 'http://localhost:9090/ocpi/cpo/versions',
-          'token': '12345',
-          'party_id': 'SLF',
-          'country_code': 'FR',
-          'business_details': {
-            'name': 'SAP Labs France',
-            'logo': {
-              'url': 'https://example.sap.com/img/logo.jpg',
-              'thumbnail': 'https://example.sap.com/img/logo_thumb.jpg',
-              'category': 'CPO',
-              'type': 'jpeg',
-              'width': 512,
-              'height': 512
-            },
-            'website': 'http://sap.com'
-          }
-        };
+      // // Check access for each evse
+      // it('should be able to self-register', async () => {
+      //   // Define credential object
+      //   const credential = {
+      //     'url': 'http://localhost:9090/ocpi/cpo/versions',
+      //     'token': '12345',
+      //     'party_id': 'SLF',
+      //     'country_code': 'FR',
+      //     'business_details': {
+      //       'name': 'SAP Labs France',
+      //       'logo': {
+      //         'url': 'https://example.sap.com/img/logo.jpg',
+      //         'thumbnail': 'https://example.sap.com/img/logo_thumb.jpg',
+      //         'category': 'CPO',
+      //         'type': 'jpeg',
+      //         'width': 512,
+      //         'height': 512
+      //       },
+      //       'website': 'http://sap.com'
+      //     }
+      //   };
 
-        // Create
-        response = await testData.ocpiService.postCredentials2_1_1(credential);
+      //   // Create
+      //   response = await testData.ocpiService.postCredentials2_1_1(credential);
 
-        // Check status
-        expect(response.status).to.be.eql(200);
-        testData.ocpiService.checkOCPIResponseStructure(response.data);
-        expect(response.data.status_code).to.be.eql(1000);
-        testData.ocpiService.validateCredentialEntity(response.data.data);
-      });
+      //   // Check status
+      //   expect(response.status).to.be.eql(200);
+      //   testData.ocpiService.checkOCPIResponseStructure(response.data);
+      //   expect(response.data.status_code).to.be.eql(1000);
+      //   testData.ocpiService.validateCredentialEntity(response.data.data);
+      // });
 
       it('Should delete the created ocpiEndpoint', async () => {
         // Delete the created entity

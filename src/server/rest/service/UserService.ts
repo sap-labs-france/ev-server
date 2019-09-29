@@ -3,6 +3,7 @@ import fs from 'fs';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
+import BillingFactory from '../../../integration/billing/BillingFactory';
 import Constants from '../../../utils/Constants';
 import ERPService from '../../../integration/pricing/convergent-charging/ERPService';
 import Logging from '../../../utils/Logging';
@@ -15,6 +16,7 @@ import UserSecurity from './security/UserSecurity';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
+import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
 
 export default class UserService {
 
@@ -133,6 +135,11 @@ export default class UserService {
         `User with ID '${id}' is already deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
         'UserService', 'handleDeleteUser', req.user);
     }
+    // For integration with billing
+    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    if (billingImpl) {
+      await billingImpl.checkIfUserCanBeDeleted(user, req);
+    }
     if (req.user.activeComponents.includes(Constants.COMPONENTS.ORGANIZATION)) {
       // Delete from site
       const siteIDs: string[] = (await UserStorage.getSites(req.user.tenantID, { userID: id },
@@ -143,6 +150,11 @@ export default class UserService {
     }
     // Delete User
     await UserStorage.deleteUser(req.user.tenantID, user.id);
+    if (billingImpl) {
+      await billingImpl.deleteUser(user, req);
+    }
+    // Delete Connections
+    await ConnectionStorage.deleteConnectionByUserId(req.user.tenantID, user.id);
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
@@ -221,10 +233,16 @@ export default class UserService {
     Utils.checkIfUserValid(filteredRequest, user, req);
     // Check if Tag IDs are valid
     await Utils.checkIfUserTagIDsAreValid(user, newTagIDs, req);
+    // For integration with Billing
+    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     // Update user
     user = { ...user, ...filteredRequest, tagIDs: [] };
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
     await UserStorage.saveUser(req.user.tenantID, user, true);
+    if (billingImpl) {
+      const billingData = await billingImpl.updateUser(user, req);
+      await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingData);
+    }
     // Save User password
     if (filteredRequest.password) {
       // Update the password
@@ -539,8 +557,14 @@ export default class UserService {
     // Set timestamp
     filteredRequest.createdBy = { id: req.user.id };
     filteredRequest.createdOn = new Date();
+    // For integration with billing
+    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     // Create the User
     const newUserID = await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: [] }, true);
+    if (billingImpl) {
+      const billingData = await billingImpl.createUser(req);
+      await UserStorage.saveUserBillingData(req.user.tenantID, newUserID, billingData);
+    }
     // Save password
     if (filteredRequest.password) {
       const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);

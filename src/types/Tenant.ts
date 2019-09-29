@@ -17,6 +17,10 @@ export default interface Tenant extends CreatedUpdatedProps {
       active: boolean;
       type: string;
     };
+    billing?: {
+      active: boolean;
+      type: string;
+    };
     refund?: {
       active: boolean;
       type: string;
