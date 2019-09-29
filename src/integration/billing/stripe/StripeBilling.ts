@@ -1,24 +1,19 @@
-import Billing, { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingResponse, BillingSettings, BillingUserData } from '../Billing';
-import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import { Request } from 'express';
+import moment from 'moment';
+import sanitize from 'mongo-sanitize';
+import Stripe from 'stripe';
+import AppError from '../../../exception/AppError';
+import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
 import SettingStorage from '../../../storage/mongodb/SettingStorage';
+import UserStorage from '../../../storage/mongodb/UserStorage';
 import { StripeBillingSettings } from '../../../types/Setting';
 import Transaction from '../../../types/Transaction';
 import User from '../../../types/User';
-import UserStorage from '../../../storage/mongodb/UserStorage';
-
-import AppError from '../../../exception/AppError';
 import Constants from '../../../utils/Constants';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
-
-import moment from 'moment';
-import sanitize from 'mongo-sanitize';
-
-// Recommended import:
-// import * as Stripe from 'stripe';
-import Stripe from 'stripe';
+import Billing, { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingResponse, BillingSettings, BillingUserData } from '../Billing';
 
 export interface StripeBillingSettingsContent extends BillingSettings, StripeBillingSettings {
 }
