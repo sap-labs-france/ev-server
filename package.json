@@ -63,6 +63,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.5.5",
+    "@types/axios": "^0.14.0",
     "@types/bcrypt": "^3.0.0",
     "@types/bluebird": "^3.5.27",
     "@types/bluebird-global": "^3.5.12",
