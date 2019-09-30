@@ -2,7 +2,7 @@ import User from '../types/User';
 import UserToken from '../types/UserToken';
 
 export default class AppError extends Error {
-  constructor(params: {
+  constructor(readonly params: {
     source: string; message: string; errorCode: number; module: string;
     method: string; user?: User | string | UserToken; actionOnUser?: User | string | UserToken;
     action?: any; detailedMessages?: any;
