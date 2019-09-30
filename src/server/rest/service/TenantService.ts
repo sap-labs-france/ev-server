@@ -27,13 +27,15 @@ export default class TenantService {
     UtilsService.assertIdIsProvided(filteredRequest.ID, MODULE_NAME, 'handleDeleteTenant', req.user);
     // Check auth
     if (!Authorizations.canDeleteTenant(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_DELETE,
-        Constants.ENTITY_TENANT,
-        filteredRequest.ID,
-        Constants.HTTP_AUTH_ERROR,
-        'TenantService', 'handleDeleteTenant',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_DELETE,
+        entity: Constants.ENTITY_TENANT,
+        module: 'TenantService',
+        method: 'handleDeleteTenant',
+        value: filteredRequest.ID
+      });
     }
     // Get
     const tenant = await TenantStorage.getTenant(filteredRequest.ID);
@@ -80,13 +82,15 @@ export default class TenantService {
     UtilsService.assertIdIsProvided(tenantID, MODULE_NAME, 'handleGetTenant', req.user);
     // Check auth
     if (!Authorizations.canReadTenant(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_READ,
-        Constants.ENTITY_TENANT,
-        tenantID,
-        Constants.HTTP_AUTH_ERROR,
-        'TenantService', 'handleGetTenant',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_READ,
+        entity: Constants.ENTITY_TENANT,
+        module: 'TenantService',
+        method: 'handleGetTenant',
+        value: tenantID
+      });
     }
     // Get it
     const tenant = await TenantStorage.getTenant(tenantID);
@@ -103,13 +107,14 @@ export default class TenantService {
   public static async handleGetTenants(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTenants(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_LIST,
-        Constants.ENTITY_TENANTS,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        'TenantService', 'handleGetTenants',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_LIST,
+        entity: Constants.ENTITY_TENANTS,
+        module: 'TenantService',
+        method: 'handleGetTenants'
+      });
     }
     // Filter
     const filteredRequest = TenantSecurity.filterTenantsRequest(req.query);
@@ -127,14 +132,14 @@ export default class TenantService {
   public static async handleCreateTenant(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canCreateTenant(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_CREATE,
-        Constants.ENTITY_TENANT,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        'TenantService',
-        'handleCreateTenant',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_CREATE,
+        entity: Constants.ENTITY_TENANT,
+        module: 'TenantService',
+        method: 'handleCreateTenant'
+      });
     }
     TenantValidator.getInstance().validateTenantCreation(req.body);
     // Filter
@@ -239,13 +244,15 @@ export default class TenantService {
     const tenantUpdate = TenantSecurity.filterTenantRequest(req.body);
     // Check auth
     if (!Authorizations.canUpdateTenant(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_UPDATE,
-        Constants.ENTITY_TENANT,
-        tenantUpdate.id,
-        Constants.HTTP_AUTH_ERROR,
-        'TenantService', 'handleUpdateTenant',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_UPDATE,
+        entity: Constants.ENTITY_TENANT,
+        module: 'TenantService',
+        method: 'handleUpdateTenant',
+        value: tenantUpdate.id
+      });
     }
     // Get
     const tenant = await TenantStorage.getTenant(tenantUpdate.id);

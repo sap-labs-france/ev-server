@@ -26,13 +26,15 @@ export default class VehicleService {
     }
     // Check auth
     if (!Authorizations.canDeleteVehicle(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_DELETE,
-        Constants.ENTITY_VEHICLE,
-        vehicleID,
-        Constants.HTTP_AUTH_ERROR,
-        'VehicleService', 'handleDeleteVehicle',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_DELETE,
+        entity: Constants.ENTITY_VEHICLE,
+        module: 'VehicleService',
+        method: 'handleDeleteVehicle',
+        value: vehicleID
+      });
     }
     // Get
     const vehicle = await VehicleStorage.getVehicle(req.user.tenantID, vehicleID);
@@ -75,13 +77,15 @@ export default class VehicleService {
     }
     // Check auth
     if (!Authorizations.canReadVehicle(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_READ,
-        Constants.ENTITY_VEHICLE,
-        filteredRequest.ID,
-        Constants.HTTP_AUTH_ERROR,
-        'VehicleService', 'handleGetVehicle',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_READ,
+        entity: Constants.ENTITY_VEHICLE,
+        module: 'VehicleService',
+        method: 'handleGetVehicle',
+        value: filteredRequest.ID
+      });
     }
     // Get it
     const vehicle = await VehicleStorage.getVehicle(req.user.tenantID, filteredRequest.ID);
@@ -107,13 +111,14 @@ export default class VehicleService {
   public static async handleGetVehicles(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListVehicles(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_LIST,
-        Constants.ENTITY_VEHICLES,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        'VehicleService', 'handleGetVehicles',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_LIST,
+        entity: Constants.ENTITY_VEHICLES,
+        module: 'VehicleService',
+        method: 'handleGetVehicles'
+      });
     }
     // Filter
     const filteredRequest = VehicleSecurity.filterVehiclesRequest(req.query);
@@ -145,13 +150,15 @@ export default class VehicleService {
     }
     // Check auth
     if (!Authorizations.canReadVehicle(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_READ,
-        Constants.ENTITY_VEHICLE,
-        vehicleID,
-        Constants.HTTP_AUTH_ERROR,
-        'VehicleService', 'handleGetVehicleImage',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_READ,
+        entity: Constants.ENTITY_VEHICLE,
+        module: 'VehicleService',
+        method: 'handleGetVehicleImage',
+        value: vehicleID
+      });
     }
     // Get it
     const vehicle = await VehicleStorage.getVehicle(req.user.tenantID, vehicleID);
@@ -175,13 +182,14 @@ export default class VehicleService {
   public static async handleCreateVehicle(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canCreateVehicle(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_CREATE,
-        Constants.ENTITY_VEHICLE,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        'VehicleService', 'handleCreateVehicle',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_READ,
+        entity: Constants.ENTITY_VEHICLE,
+        module: 'VehicleService',
+        method: 'handleCreateVehicle'
+      });
     }
     // Filter
     const filteredRequest = VehicleSecurity.filterVehicleCreateRequest(req.body);
@@ -221,13 +229,15 @@ export default class VehicleService {
     Utils.checkIfVehicleValid(filteredRequest, req);
     // Check auth
     if (!Authorizations.canUpdateVehicle(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_UPDATE,
-        Constants.ENTITY_VEHICLE,
-        filteredRequest.id,
-        Constants.HTTP_AUTH_ERROR,
-        'VehicleService', 'handleUpdateVehicle',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_UPDATE,
+        entity: Constants.ENTITY_VEHICLE,
+        module: 'VehicleService',
+        method: 'handleUpdateVehicle',
+        value: filteredRequest.id
+      });
     }
     // Get
     let vehicle = await VehicleStorage.getVehicle(req.user.tenantID, filteredRequest.id);

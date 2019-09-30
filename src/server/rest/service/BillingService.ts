@@ -19,13 +19,14 @@ export default class BillingService {
     if (billingImpl) {
       // Check auth TODO: use another check
       if (!Authorizations.canUpdateSetting(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_UPDATE,
-          Constants.ENTITY_SETTING,
-          null,
-          Constants.HTTP_AUTH_ERROR,
-          'BillingService', 'handleGetBillingConnection',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_UPDATE,
+          entity: Constants.ENTITY_SETTING,
+          module: 'BillingService',
+          method: 'handleGetBillingConnection',
+        });
       }
 
       const checkResult = await billingImpl.checkConnection();
@@ -61,12 +62,14 @@ export default class BillingService {
   public static async handleSynchronizeUsers(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       if (!Authorizations.isAdmin(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_UPDATE,
-          Constants.ENTITY_USER,
-          null,
-          Constants.HTTP_AUTH_ERROR, 'BillingService', 'handleSynchronizeUsers',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_UPDATE,
+          entity: Constants.ENTITY_USER,
+          module: 'BillingService',
+          method: 'handleSynchronizeUsers',
+        });
       }
 
       const tenant = await TenantStorage.getTenant(req.user.tenantID);

@@ -32,23 +32,25 @@ export default class RegistrationTokenService {
         }
         if (!Authorizations.canCreateRegistrationToken(req.user, siteArea.siteID)) {
           // Not Authorized!
-          throw new AppAuthError(
-            Constants.ACTION_CREATE,
-            Constants.ENTITY_TOKEN,
-            null,
-            Constants.HTTP_AUTH_ERROR,
-            'RegistrationTokenService', 'handleCreateRegistrationToken',
-            req.user);
+          throw new AppAuthError({
+            errorCode: Constants.HTTP_AUTH_ERROR,
+            user: req.user,
+            action: Constants.ACTION_CREATE,
+            entity: Constants.ENTITY_TOKEN,
+            module: 'RegistrationTokenService',
+            method: 'handleCreateRegistrationToken'
+          });
         }
       } else if (!Authorizations.canCreateRegistrationToken(req.user, null)) {
         // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_CREATE,
-          Constants.ENTITY_TOKEN,
-          null,
-          Constants.HTTP_AUTH_ERROR,
-          'RegistrationTokenService', 'handleCreateRegistrationToken',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_CREATE,
+          entity: Constants.ENTITY_TOKEN,
+          module: 'RegistrationTokenService',
+          method: 'handleCreateRegistrationToken'
+        });
       }
 
       if (!filteredRequest.description) {
@@ -98,13 +100,15 @@ export default class RegistrationTokenService {
       }
       // Check auth
       if (!Authorizations.canDeleteRegistrationToken(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_DELETE,
-          Constants.ENTITY_TOKEN,
-          tokenID,
-          Constants.HTTP_AUTH_ERROR,
-          'RegistrationTokenService', 'handleDeleteRegistrationToken',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_DELETE,
+          entity: Constants.ENTITY_TOKEN,
+          module: 'RegistrationTokenService',
+          method: 'handleDeleteRegistrationToken',
+          value: tokenID
+        });
       }
       // Check user
       const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.user.tenantID, tokenID);
@@ -153,13 +157,15 @@ export default class RegistrationTokenService {
       }
       // Check auth
       if (!Authorizations.canUpdateRegistrationToken(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_DELETE,
-          Constants.ENTITY_TOKEN,
-          tokenID,
-          Constants.HTTP_AUTH_ERROR,
-          'RegistrationTokenService', 'handleRevokeRegistrationToken',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_UPDATE,
+          entity: Constants.ENTITY_TOKEN,
+          module: 'RegistrationTokenService',
+          method: 'handleRevokeRegistrationToken',
+          value: tokenID
+        });
       }
       // Check user
       const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.user.tenantID, tokenID);
@@ -200,13 +206,14 @@ export default class RegistrationTokenService {
       // Check auth
       if (!Authorizations.canListRegistrationTokens(req.user)) {
         // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_LIST,
-          Constants.ENTITY_TOKENS,
-          null,
-          Constants.HTTP_AUTH_ERROR,
-          'RegistrationTokenService', 'handleGetRegistrationTokens',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_LIST,
+          entity: Constants.ENTITY_TOKENS,
+          module: 'RegistrationTokenService',
+          method: 'handleGetRegistrationTokens'
+        });
       }
       const filteredRequest = RegistrationTokenSecurity.filterRegistrationTokensRequest(req.query);
 

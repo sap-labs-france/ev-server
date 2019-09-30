@@ -28,12 +28,14 @@ export default class TransactionService {
   static async handleSynchronizeRefundedTransactions(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       if (!Authorizations.isAdmin(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_UPDATE,
-          Constants.ENTITY_TRANSACTION,
-          null,
-          Constants.HTTP_AUTH_ERROR, 'TransactionService', 'handleSynchronizeRefundedTransactions',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_UPDATE,
+          entity: Constants.ENTITY_TRANSACTION,
+          module: 'TransactionService',
+          method: 'handleSynchronizeRefundedTransactions'
+        });
       }
 
       const tenant = await TenantStorage.getTenant(req.user.tenantID);
@@ -90,12 +92,15 @@ export default class TransactionService {
       }
       // Check auth
       if (!Authorizations.canRefundTransaction(req.user, transaction)) {
-        throw new AppAuthError(
-          Constants.ACTION_REFUND_TRANSACTION,
-          Constants.ENTITY_TRANSACTION,
-          transaction.id,
-          Constants.HTTP_AUTH_ERROR, 'TransactionService', 'handleRefundTransactions',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_REFUND_TRANSACTION,
+          entity: Constants.ENTITY_TRANSACTION,
+          module: 'TransactionService',
+          method: 'handleRefundTransactions',
+          value: transaction.id.toString()
+        });
       }
       transactionsToRefund.push(transaction);
     }
@@ -123,12 +128,14 @@ export default class TransactionService {
   public static async handleGetUnassignedTransactionsCount(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check Auth
     if (!Authorizations.canUpdateTransaction(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_UPDATE,
-        Constants.ENTITY_TRANSACTION,
-        null,
-        Constants.HTTP_AUTH_ERROR, 'TransactionService', 'handleGetUnassignedTransactionsCount',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_UPDATE,
+        entity: Constants.ENTITY_TRANSACTION,
+        module: 'TransactionService',
+        method: 'handleGetUnassignedTransactionsCount'
+      });
     }
     // Filter
     const filteredRequest = TransactionSecurity.filterUnassignedTransactionsCountRequest(req.query);
@@ -156,12 +163,14 @@ export default class TransactionService {
   public static async handleAssignTransactionsToUser(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auths
     if (!Authorizations.canUpdateTransaction(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_UPDATE,
-        Constants.ENTITY_TRANSACTION,
-        null,
-        Constants.HTTP_AUTH_ERROR, 'TransactionService', 'handleAssignTransactionsToUser',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_UPDATE,
+        entity: Constants.ENTITY_TRANSACTION,
+        module: 'TransactionService',
+        method: 'handleAssignTransactionsToUser'
+      });
     }
     // Filter
     const filteredRequest = TransactionSecurity.filterAssignTransactionsToUser(req.query);
@@ -191,12 +200,15 @@ export default class TransactionService {
     const transactionId = TransactionSecurity.filterTransactionRequestByID(req.query);
     // Check auth
     if (!Authorizations.canDeleteTransaction(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_DELETE,
-        Constants.ENTITY_TRANSACTION,
-        transactionId,
-        Constants.HTTP_AUTH_ERROR, 'TransactionService', 'handleDeleteTransaction',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_DELETE,
+        entity: Constants.ENTITY_TRANSACTION,
+        module: 'TransactionService',
+        method: 'handleDeleteTransaction',
+        value: transactionId.toString()
+      });
     }
     // Transaction Id is mandatory
     UtilsService.assertIdIsProvided(transactionId, 'TransactionsService', 'handleDeleteTransaction', req.user);
@@ -237,11 +249,15 @@ export default class TransactionService {
     UtilsService.assertIdIsProvided(transactionId, 'TransactionService', 'handleTransactionSoftStop', req.user);
     // Check auth
     if (!Authorizations.canUpdateTransaction(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_UPDATE, Constants.ENTITY_TRANSACTION, transactionId,
-        Constants.HTTP_AUTH_ERROR,
-        'TransactionService', 'handleTransactionSoftStop',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_UPDATE,
+        entity: Constants.ENTITY_TRANSACTION,
+        module: 'TransactionService',
+        method: 'handleTransactionSoftStop',
+        value: transactionId.toString()
+      });
     }
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
@@ -294,12 +310,15 @@ export default class TransactionService {
       'TransactionService', 'handleGetConsumptionFromTransaction', req.user);
     // Check auth
     if (!Authorizations.canReadTransaction(req.user, transaction)) {
-      throw new AppAuthError(
-        Constants.ACTION_READ,
-        Constants.ENTITY_TRANSACTION,
-        transaction.id,
-        Constants.HTTP_AUTH_ERROR, 'TransactionService', 'handleGetConsumptionFromTransaction',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_READ,
+        entity: Constants.ENTITY_TRANSACTION,
+        module: 'TransactionService',
+        method: 'handleGetConsumptionFromTransaction',
+        value: transaction.id.toString()
+      });
     }
     // Check dates
     if (filteredRequest.StartDateTime && filteredRequest.EndDateTime && moment(filteredRequest.StartDateTime).isAfter(moment(filteredRequest.EndDateTime))) {
@@ -338,13 +357,15 @@ export default class TransactionService {
       'handleGetTransaction', req.user);
     // Check auth
     if (!Authorizations.canReadTransaction(req.user, transaction)) {
-      throw new AppAuthError(
-        Constants.ACTION_READ,
-        Constants.ENTITY_TRANSACTION,
-        filteredRequest.ID,
-        Constants.HTTP_AUTH_ERROR,
-        'TransactionService', 'handleGetTransaction',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_READ,
+        entity: Constants.ENTITY_TRANSACTION,
+        module: 'TransactionService',
+        method: 'handleGetTransaction',
+        value: filteredRequest.ID.toString()
+      });
     }
     // Return
     res.json(
@@ -358,13 +379,14 @@ export default class TransactionService {
   public static async handleGetChargingStationTransactions(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_LIST,
-        Constants.ENTITY_TRANSACTION,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        'TransactionService', 'handleGetChargingStationTransactions',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_LIST,
+        entity: Constants.ENTITY_TRANSACTIONS,
+        module: 'TransactionService',
+        method: 'handleGetChargingStationTransactions'
+      });
     }
     // Filter
     const filteredRequest = TransactionSecurity.filterChargingStationTransactionsRequest(req.query);
@@ -408,13 +430,14 @@ export default class TransactionService {
   public static async handleGetTransactionsActive(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_LIST,
-        Constants.ENTITY_TRANSACTION,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        'TransactionService', 'handleGetTransactionsActive',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_LIST,
+        entity: Constants.ENTITY_TRANSACTIONS,
+        module: 'TransactionService',
+        method: 'handleGetTransactionsActive'
+      });
     }
     const filter: any = { stop: { $exists: false } };
     // Filter
@@ -459,13 +482,14 @@ export default class TransactionService {
   public static async handleGetTransactionsCompleted(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_LIST,
-        Constants.ENTITY_TRANSACTION,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        'TransactionService', 'handleGetTransactionsCompleted',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_LIST,
+        entity: Constants.ENTITY_TRANSACTIONS,
+        module: 'TransactionService',
+        method: 'handleGetTransactionsCompleted'
+      });
     }
     const filter: any = { stop: { $exists: true } };
     // Filter
@@ -523,13 +547,14 @@ export default class TransactionService {
   public static async handleGetTransactionsToRefund(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_LIST,
-        Constants.ENTITY_TRANSACTION,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        'TransactionService', 'handleGetTransactionsToRefund',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_LIST,
+        entity: Constants.ENTITY_TRANSACTIONS,
+        module: 'TransactionService',
+        method: 'handleGetTransactionsToRefund'
+      });
     }
     const filter: any = { stop: { $exists: true } };
     // Filter
@@ -584,13 +609,14 @@ export default class TransactionService {
   public static async handleGetTransactionsExport(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_LIST,
-        Constants.ENTITY_TRANSACTIONS,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        'TransactionService', 'handleGetTransactionsExport',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_LIST,
+        entity: Constants.ENTITY_TRANSACTIONS,
+        module: 'TransactionService',
+        method: 'handleGetTransactionsExport'
+      });
     }
     const filter: any = { stop: { $exists: true } };
     // Filter
@@ -661,13 +687,14 @@ export default class TransactionService {
   public static async handleGetTransactionsInError(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactionsInError(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_LIST,
-        Constants.ENTITY_TRANSACTION,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        'TransactionService', 'handleGetTransactionsInError',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_LIST,
+        entity: Constants.ENTITY_TRANSACTIONS,
+        module: 'TransactionService',
+        method: 'handleGetTransactionsInError'
+      });
     }
     const filter: any = {};
     // Filter

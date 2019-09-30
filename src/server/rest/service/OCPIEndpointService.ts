@@ -41,13 +41,15 @@ export default class OCPIEndpointService {
       }
       // Check auth
       if (!Authorizations.canDeleteOcpiEndpoint(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_DELETE,
-          Constants.ENTITY_OCPI_ENDPOINT,
-          ocpiendpoint.getID(),
-          Constants.HTTP_AUTH_ERROR,
-          'OCPIEndpointService', 'handleDeleteOcpiEndpoint',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_DELETE,
+          entity: Constants.ENTITY_OCPI_ENDPOINT,
+          module: 'OCPIEndpointService',
+          method: 'handleDeleteOcpiEndpoint',
+          value: ocpiendpoint.getID()
+        });
       }
       // Delete
       await ocpiendpoint.delete();
@@ -112,13 +114,14 @@ export default class OCPIEndpointService {
     try {
       // Check auth
       if (!Authorizations.canListOcpiEndpoints(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_LIST,
-          Constants.ENTITY_OCPI_ENDPOINTS,
-          null,
-          Constants.HTTP_AUTH_ERROR,
-          'OCPIEndpointService', 'handleGetOcpiEndpoints',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_LIST,
+          entity: Constants.ENTITY_OCPI_ENDPOINTS,
+          module: 'OCPIEndpointService',
+          method: 'handleGetOcpiEndpoints'
+        });
       }
       // Filter
       const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointsRequest(req.query);
@@ -146,13 +149,14 @@ export default class OCPIEndpointService {
     try {
       // Check auth
       if (!Authorizations.canCreateOcpiEndpoint(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_CREATE,
-          Constants.ENTITY_OCPI_ENDPOINT,
-          null,
-          Constants.HTTP_AUTH_ERROR,
-          'OCPIEndpointService', 'handleCreateOcpiEndpoint',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_CREATE,
+          entity: Constants.ENTITY_OCPI_ENDPOINT,
+          module: 'OCPIEndpointService',
+          method: 'handleCreateOcpiEndpoint'
+        });
       }
       // Filter
       const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointCreateRequest(req.body);
@@ -204,13 +208,15 @@ export default class OCPIEndpointService {
       OCPIEndpoint.checkIfOcpiEndpointValid(filteredRequest, req);
       // Check auth
       if (!Authorizations.canUpdateOcpiEndpoint(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_UPDATE,
-          Constants.ENTITY_OCPI_ENDPOINT,
-          ocpiendpoint.getID(),
-          Constants.HTTP_AUTH_ERROR,
-          'OCPIEndpointService', 'handleUpdateOcpiEndpoint',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_UPDATE,
+          entity: Constants.ENTITY_OCPI_ENDPOINT,
+          module: 'OCPIEndpointService',
+          method: 'handleUpdateOcpiEndpoint',
+          value: ocpiendpoint.getID()
+        });
       }
       // Update
       Database.updateOcpiEndpoint(filteredRequest, ocpiendpoint.getModel());
@@ -239,13 +245,14 @@ export default class OCPIEndpointService {
     try {
       // Check auth
       if (!Authorizations.canPingOcpiEndpoint(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_PING,
-          Constants.ENTITY_OCPI_ENDPOINT,
-          null,
-          Constants.HTTP_AUTH_ERROR,
-          'OCPIEndpointService', 'handlePingOcpiEndpoint',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_PING,
+          entity: Constants.ENTITY_OCPI_ENDPOINT,
+          module: 'OCPIEndpointService',
+          method: 'handlePingOcpiEndpoint'
+        });
       }
       // Filter
       const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointPingRequest(req.body);
@@ -288,13 +295,14 @@ export default class OCPIEndpointService {
     try {
       // Check auth
       if (!Authorizations.canSendEVSEStatusesOcpiEndpoint(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_SEND_EVSE_STATUSES,
-          Constants.ENTITY_OCPI_ENDPOINT,
-          null,
-          Constants.HTTP_AUTH_ERROR,
-          'OCPIEndpointService', 'handleSendEVSEStatusesOcpiEndpoint',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_SEND_EVSE_STATUSES,
+          entity: Constants.ENTITY_OCPI_ENDPOINT,
+          module: 'OCPIEndpointService',
+          method: 'handleSendEVSEStatusesOcpiEndpoint'
+        });
       }
       // Filter
       const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointSendEVSEStatusesRequest(req.body);
@@ -336,13 +344,14 @@ export default class OCPIEndpointService {
       OCPIEndpoint.checkIfOcpiEndpointValid(filteredRequest, req);
       // Check auth
       if (!Authorizations.canRegisterOcpiEndpoint(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_REGISTER,
-          Constants.ENTITY_OCPI_ENDPOINT,
-          null,
-          Constants.HTTP_AUTH_ERROR,
-          'OCPIEndpointService', 'handleRegisterOcpiEndpoint',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_REGISTER,
+          entity: Constants.ENTITY_OCPI_ENDPOINT,
+          module: 'OCPIEndpointService',
+          method: 'handleRegisterOcpiEndpoint'
+        });
       }
       // Build OCPI Client
       const ocpiClient = new OCPIClient(ocpiendpoint);
@@ -380,13 +389,14 @@ export default class OCPIEndpointService {
     try {
       // Check auth
       if (!Authorizations.canGenerateLocalTokenOcpiEndpoint(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_GENERATE_LOCAL_TOKEN,
-          Constants.ENTITY_OCPI_ENDPOINT,
-          null,
-          Constants.HTTP_AUTH_ERROR,
-          'OCPIEndpointService', 'handleGenerateLocalTokenOcpiEndpoint',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_GENERATE_LOCAL_TOKEN,
+          entity: Constants.ENTITY_OCPI_ENDPOINT,
+          module: 'OCPIEndpointService',
+          method: 'handleGenerateLocalTokenOcpiEndpoint'
+        });
       }
       // Filter
       const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointGenerateLocalTokenRequest(req.body);

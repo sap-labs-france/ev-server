@@ -51,13 +51,15 @@ export default class UserService {
     }
     // Check auth
     if (!Authorizations.canUpdateUser(req.user, filteredRequest.userID)) {
-      throw new AppAuthError(
-        Constants.ACTION_UPDATE,
-        Constants.ENTITY_USER,
-        filteredRequest.userID,
-        Constants.HTTP_AUTH_ERROR,
-        'UserService', 'handleAssignSitesToUser',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_UPDATE,
+        entity: Constants.ENTITY_USER,
+        module: 'UserService',
+        method: 'handleAssignSitesToUser',
+        value: filteredRequest.userID
+      });
     }
     // Get the User
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.userID);
@@ -87,13 +89,15 @@ export default class UserService {
       }
       // Check auth
       if (!Authorizations.canUpdateSite(req.user, siteID)) {
-        throw new AppAuthError(
-          Constants.ACTION_UPDATE,
-          Constants.ENTITY_SITE,
-          siteID,
-          Constants.HTTP_AUTH_ERROR,
-          'UserService', 'handleAssignSitesToUser',
-          req.user, user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_UPDATE,
+          entity: Constants.ENTITY_SITE,
+          module: 'UserService',
+          method: 'handleAssignSitesToUser',
+          value: siteID
+        });
       }
     }
     // Save
@@ -130,13 +134,15 @@ export default class UserService {
     }
     // Check auth
     if (!Authorizations.canDeleteUser(req.user, id)) {
-      throw new AppAuthError(
-        Constants.ACTION_DELETE,
-        Constants.ENTITY_USER,
-        id,
-        Constants.HTTP_AUTH_ERROR,
-        'UserService', 'handleDeleteUser',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_DELETE,
+        entity: Constants.ENTITY_USER,
+        module: 'UserService',
+        method: 'handleDeleteUser',
+        value: id
+      });
     }
     // Check Mandatory fields
     if (id === req.user.id) {
@@ -226,13 +232,15 @@ export default class UserService {
     }
     // Check auth
     if (!Authorizations.canUpdateUser(req.user, filteredRequest.id)) {
-      throw new AppAuthError(
-        Constants.ACTION_UPDATE,
-        Constants.ENTITY_USER,
-        filteredRequest.id,
-        Constants.HTTP_AUTH_ERROR,
-        'UserService', 'handleUpdateUser',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_UPDATE,
+        entity: Constants.ENTITY_USER,
+        module: 'UserService',
+        method: 'handleUpdateUser',
+        value: filteredRequest.id
+      });
     }
     // Get User
     let user = await UserStorage.getUser(req.user.tenantID, filteredRequest.id);
@@ -379,12 +387,15 @@ export default class UserService {
     }
     // Check auth
     if (!Authorizations.canReadUser(req.user, id)) {
-      throw new AppAuthError(
-        Constants.ACTION_READ,
-        Constants.ENTITY_USER,
-        id,
-        Constants.HTTP_AUTH_ERROR, 'UserService', 'handleGetUser',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_READ,
+        entity: Constants.ENTITY_USER,
+        module: 'UserService',
+        method: 'handleGetUser',
+        value: id
+      });
     }
     // Get the user
     const user = await UserStorage.getUser(req.user.tenantID, id);
@@ -437,12 +448,15 @@ export default class UserService {
     }
     // Check auth
     if (!Authorizations.canReadUser(req.user, filteredRequest.ID)) {
-      throw new AppAuthError(
-        Constants.ACTION_READ,
-        Constants.ENTITY_USER,
-        filteredRequest.ID,
-        Constants.HTTP_AUTH_ERROR, 'UserService', 'handleGetUserImage',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_READ,
+        entity: Constants.ENTITY_USER,
+        module: 'UserService',
+        method: 'handleGetUserImage',
+        value: filteredRequest.ID
+      });
     }
     // Get the logged user
     const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.ID);
@@ -509,13 +523,15 @@ export default class UserService {
     }
     // Check auth
     if (!Authorizations.canUpdateUser(req.user, filteredRequest.UserID)) {
-      throw new AppAuthError(
-        Constants.ACTION_UPDATE,
-        Constants.ENTITY_SITE,
-        user.id,
-        Constants.HTTP_AUTH_ERROR,
-        'UserService', 'handleGetSites',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_UPDATE,
+        entity: Constants.ENTITY_USER,
+        module: 'UserService',
+        method: 'handleGetSites',
+        value: user.id
+      });
     }
     // Get users
     const userSites = await UserStorage.getSites(req.user.tenantID,
@@ -544,13 +560,14 @@ export default class UserService {
   public static async handleGetUsers(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListUsers(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_LIST,
-        Constants.ENTITY_USERS,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        'UserService', 'handleGetUsers',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_LIST,
+        entity: Constants.ENTITY_USERS,
+        module: 'UserService',
+        method: 'handleGetUsers'
+      });
     }
     // Filter
     const filteredRequest = UserSecurity.filterUsersRequest(req.query);
@@ -585,13 +602,14 @@ export default class UserService {
   public static async handleGetUsersInError(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListUsers(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_LIST,
-        Constants.ENTITY_USERS,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        'UserService', 'handleGetUsersInError',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_LIST,
+        entity: Constants.ENTITY_USERS,
+        module: 'UserService',
+        method: 'handleGetUsersInError'
+      });
     }
     // Filter
     const filteredRequest = UserSecurity.filterUsersRequest(req.query);
@@ -624,13 +642,14 @@ export default class UserService {
   public static async handleCreateUser(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canCreateUser(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_CREATE,
-        Constants.ENTITY_USER,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        'UserService', 'handleCreateUser',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_CREATE,
+        entity: Constants.ENTITY_USER,
+        module: 'UserService',
+        method: 'handleCreateUser'
+      });
     }
     // Filter
     const filteredRequest = UserSecurity.filterUserCreateRequest(req.body, req.user);
@@ -742,12 +761,15 @@ export default class UserService {
     }
     // Check auth
     if (!Authorizations.canReadUser(req.user, id)) {
-      throw new AppAuthError(
-        Constants.ACTION_READ,
-        Constants.ENTITY_USER,
-        id,
-        Constants.HTTP_AUTH_ERROR, 'UserService', 'handleGetUserInvoice',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_READ,
+        entity: Constants.ENTITY_USER,
+        module: 'UserService',
+        method: 'handleGetUserInvoice',
+        value: id
+      });
     }
     // Get the user
     const user = await UserStorage.getUser(req.user.tenantID, id);

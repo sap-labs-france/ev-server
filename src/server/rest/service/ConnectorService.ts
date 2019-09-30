@@ -31,13 +31,15 @@ export default class ConnectorService {
 
     // Check auth
     if (!Authorizations.canReadConnection(req.user, filteredRequest.ID)) {
-      throw new AppAuthError(
-        Constants.ACTION_READ,
-        Constants.ENTITY_CONNECTION,
-        filteredRequest.ID,
-        Constants.HTTP_AUTH_ERROR,
-        MODULE_NAME, 'handleGetConnection',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_READ,
+        entity: Constants.ENTITY_CONNECTION,
+        module: MODULE_NAME,
+        method: 'handleGetConnection',
+        value: filteredRequest.ID
+      });
     }
     // Get it
     const connection = await AbstractConnector.getConnection(req.user.tenantID, filteredRequest.ID);
@@ -63,13 +65,14 @@ export default class ConnectorService {
   public static async handleGetConnections(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListConnections(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_LIST,
-        Constants.ENTITY_CONNECTIONS,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        MODULE_NAME, 'handleGetConnections',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_LIST,
+        entity: Constants.ENTITY_CONNECTIONS,
+        module: MODULE_NAME,
+        method: 'handleGetConnections'
+      });
     }
     // Filter
     const filteredRequest = ConnectorSecurity.filterConnectionsRequest(req.query);
@@ -86,13 +89,14 @@ export default class ConnectorService {
   public static async handleCreateConnection(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canCreateConnection(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_CREATE,
-        Constants.ENTITY_CONNECTION,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        MODULE_NAME, 'handleCreateConnection',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_CREATE,
+        entity: Constants.ENTITY_CONNECTION,
+        module: MODULE_NAME,
+        method: 'handleCreateConnection'
+      });
     }
 
     // Filter
@@ -120,13 +124,15 @@ export default class ConnectorService {
     const filteredRequest = ConnectorSecurity.filterConnectionDeleteRequest(req.query);
     // Check auth
     if (!Authorizations.canDeleteConnection(req.user, filteredRequest.userId)) {
-      throw new AppAuthError(
-        Constants.ACTION_DELETE,
-        Constants.ENTITY_CONNECTION,
-        filteredRequest.connectorId,
-        Constants.HTTP_AUTH_ERROR,
-        MODULE_NAME, 'handleDeleteConnection',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_DELETE,
+        entity: Constants.ENTITY_CONNECTION,
+        module: MODULE_NAME,
+        method: 'handleDeleteConnection',
+        value: filteredRequest.connectorId
+      });
     }
 
     if (!filteredRequest.userId) {

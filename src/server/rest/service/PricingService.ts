@@ -13,11 +13,14 @@ export default class PricingService {
     try {
       // Check auth
       if (!Authorizations.canReadPricing(req.user)) {
-        throw new AppAuthError(
-          action, Constants.ENTITY_PRICING,
-          null,
-          Constants.HTTP_AUTH_ERROR, 'PricingService', 'handleGetPricing',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: action,
+          entity: Constants.ENTITY_PRICING,
+          module: 'PricingService',
+          method: 'handleGetPricing'
+        });
       }
       // Get the Pricing
       const pricing = await PricingStorage.getPricing(req.user.tenantID);
@@ -42,11 +45,14 @@ export default class PricingService {
     try {
       // Check auth
       if (!Authorizations.canUpdatePricing(req.user)) {
-        throw new AppAuthError(
-          action, Constants.ENTITY_PRICING,
-          null,
-          Constants.HTTP_AUTH_ERROR, 'PricingService', 'handleUpdatePricing',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: action,
+          entity: Constants.ENTITY_PRICING,
+          module: 'PricingService',
+          method: 'handleUpdatePricing'
+        });
       }
       // Filter
       const filteredRequest = PricingSecurity.filterPricingUpdateRequest(req.body);

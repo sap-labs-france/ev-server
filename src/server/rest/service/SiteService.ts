@@ -24,13 +24,15 @@ export default class SiteService {
     const filteredRequest = SiteSecurity.filterAssignSiteUsers(req.body);
     // Check auth
     if (!Authorizations.canUpdateSite(req.user, filteredRequest.siteID)) {
-      throw new AppAuthError(
-        Constants.ACTION_UPDATE,
-        Constants.ENTITY_SITE,
-        filteredRequest.siteID,
-        Constants.HTTP_AUTH_ERROR,
-        'SiteService', 'handleAddUsersToSite',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_UPDATE,
+        entity: Constants.ENTITY_SITE,
+        module: 'SiteService',
+        method: 'handleAddUsersToSite',
+        value: filteredRequest.siteID
+      });
     }
     UtilsService.assertIdIsProvided(filteredRequest.siteID, 'SiteSecurity', 'filterAssignSiteUsers', req.user);
     if (!filteredRequest.userIDs || (filteredRequest.userIDs && filteredRequest.userIDs.length <= 0)) {
@@ -132,13 +134,15 @@ export default class SiteService {
       });
     }
     if (!Authorizations.canUpdateSite(req.user, filteredRequest.siteID)) {
-      throw new AppAuthError(
-        Constants.ACTION_UPDATE,
-        Constants.ENTITY_SITE,
-        filteredRequest.siteID,
-        Constants.HTTP_AUTH_ERROR,
-        'SiteService', 'handleUpdateSiteUserAdmin',
-        req.user, filteredRequest.userID);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_UPDATE,
+        entity: Constants.ENTITY_SITE,
+        module: 'SiteService',
+        method: 'handleUpdateSiteUserAdmin',
+        value: filteredRequest.siteID
+      });
     }
     // Get the Site
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
@@ -200,13 +204,15 @@ export default class SiteService {
     // Filter
     const filteredRequest = SiteSecurity.filterAssignSiteUsers(req.body);
     if (!Authorizations.canUpdateSite(req.user, filteredRequest.siteID)) {
-      throw new AppAuthError(
-        Constants.ACTION_UPDATE,
-        Constants.ENTITY_SITE,
-        filteredRequest.siteID,
-        Constants.HTTP_AUTH_ERROR,
-        'SiteService', 'handleRemoveUsersFromSite',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_UPDATE,
+        entity: Constants.ENTITY_SITE,
+        module: 'SiteService',
+        method: 'handleRemoveUsersFromSite',
+        value: filteredRequest.siteID
+      });
     }
     // Get the Site
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.siteID);
@@ -281,13 +287,15 @@ export default class SiteService {
     }
     // Check auth
     if (!Authorizations.canUpdateSite(req.user, filteredRequest.SiteID)) {
-      throw new AppAuthError(
-        Constants.ACTION_UPDATE,
-        Constants.ENTITY_SITE,
-        site.id,
-        Constants.HTTP_AUTH_ERROR,
-        'SiteService', 'handleGetUsersFromSite',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_UPDATE,
+        entity: Constants.ENTITY_SITE,
+        module: 'SiteService',
+        method: 'handleGetUsersFromSite',
+        value: site.id
+      });
     }
     // Get users
     const users = await SiteStorage.getUsers(req.user.tenantID,
@@ -324,13 +332,15 @@ export default class SiteService {
     UtilsService.assertIdIsProvided(siteID, 'SiteService', 'handleDeleteSite', req.user);
     // Check
     if (!Authorizations.canDeleteSite(req.user, siteID)) {
-      throw new AppAuthError(
-        Constants.ACTION_DELETE,
-        Constants.ENTITY_SITE,
-        siteID,
-        Constants.HTTP_AUTH_ERROR,
-        'SiteService', 'handleDeleteSite',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_DELETE,
+        entity: Constants.ENTITY_SITE,
+        module: 'SiteService',
+        method: 'handleDeleteSite',
+        value: siteID
+      });
     }
     // Get
     const site = await SiteStorage.getSite(req.user.tenantID, siteID);
@@ -359,11 +369,15 @@ export default class SiteService {
     UtilsService.assertIdIsProvided(filteredRequest.ID, 'SiteService', 'handleGetSite', req.user);
     // Check auth
     if (!Authorizations.canReadSite(req.user, filteredRequest.ID)) {
-      throw new AppAuthError(
-        Constants.ACTION_READ,
-        Constants.ENTITY_SITE,
-        filteredRequest.ID, Constants.HTTP_AUTH_ERROR, 'SiteService',
-        'handleGetSite', req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_READ,
+        entity: Constants.ENTITY_SITE,
+        module: 'SiteService',
+        method: 'handleGetSite',
+        value: filteredRequest.ID
+      });
     }
     // Get it
     const site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.ID);
@@ -383,13 +397,14 @@ export default class SiteService {
       Constants.ACTION_LIST, Constants.ENTITY_SITES, 'SiteService', 'handleGetSites');
     // Check auth
     if (!Authorizations.canListSites(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_LIST,
-        Constants.ENTITY_SITES,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        'SiteService', 'handleGetSites',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_LIST,
+        entity: Constants.ENTITY_SITES,
+        module: 'SiteService',
+        method: 'handleGetSites'
+      });
     }
     // Filter
     const filteredRequest = SiteSecurity.filterSitesRequest(req.query);
@@ -433,13 +448,15 @@ export default class SiteService {
     UtilsService.assertIdIsProvided(siteID, 'SiteService', 'handleGetSiteImage', req.user);
     // Check auth
     if (!Authorizations.canReadSite(req.user, siteID)) {
-      throw new AppAuthError(
-        Constants.ACTION_READ,
-        Constants.ENTITY_SITE,
-        siteID,
-        Constants.HTTP_AUTH_ERROR,
-        'SiteService', 'handleGetSiteImage',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_READ,
+        entity: Constants.ENTITY_SITE,
+        module: 'SiteService',
+        method: 'handleGetSiteImage',
+        value: siteID
+      });
     }
     // Get it
     const site = await SiteStorage.getSite(req.user.tenantID, siteID);
@@ -458,13 +475,14 @@ export default class SiteService {
       Constants.ACTION_CREATE, Constants.ENTITY_SITE, 'SiteService', 'handleCreateSite');
     // Check auth
     if (!Authorizations.canCreateSite(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_CREATE,
-        Constants.ENTITY_SITE,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        'SiteService', 'handleCreateSite',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_CREATE,
+        entity: Constants.ENTITY_SITE,
+        module: 'SiteService',
+        method: 'handleCreateSite'
+      });
     }
     // Filter
     const filteredRequest = SiteSecurity.filterSiteCreateRequest(req.body);
@@ -504,13 +522,15 @@ export default class SiteService {
     Utils.checkIfSiteValid(filteredRequest, req);
     // Check auth
     if (!Authorizations.canUpdateSite(req.user, filteredRequest.id)) {
-      throw new AppAuthError(
-        Constants.ACTION_UPDATE,
-        Constants.ENTITY_SITE,
-        filteredRequest.id,
-        Constants.HTTP_AUTH_ERROR,
-        'SiteService', 'handleUpdateSite',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_UPDATE,
+        entity: Constants.ENTITY_SITE,
+        module: 'SiteService',
+        method: 'handleUpdateSite',
+        value: filteredRequest.id
+      });
     }
     // Get Site
     const site: Site = await SiteStorage.getSite(req.user.tenantID, filteredRequest.id);

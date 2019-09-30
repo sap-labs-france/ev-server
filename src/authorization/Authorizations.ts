@@ -605,12 +605,15 @@ export default class Authorizations {
         sitesAdmin: userToken.sitesAdmin
       };
       if (!Authorizations.canPerformActionOnChargingStation(userToken, action, chargingStation, context)) {
-        throw new AppAuthError(
-          action,
-          Constants.ENTITY_CHARGING_STATION,
-          chargingStation.id,
-          Constants.HTTP_GENERAL_ERROR, 'Authorizations', '_checkAndGetUserOnChargingStation',
-          userToken);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_GENERAL_ERROR,
+          user: userToken,
+          action: action,
+          entity: Constants.ENTITY_CHARGING_STATION,
+          value: chargingStation.id,
+          module: 'Authorizations',
+          method: '_checkAndGetUserOnChargingStation',
+        });
       }
     }
     return user;

@@ -291,7 +291,7 @@ export default class Logging {
       module: exception.params.module,
       method: exception.params.method,
       action: action,
-      message: exception.params.message,
+      message: exception.message,
       detailedMessages
     });
   }
@@ -330,13 +330,13 @@ export default class Logging {
   }
 
   // Used to check URL params (not in catch)
-  private static _logActionAppAuthExceptionMessage(tenantID, action, exception): void {
+  private static _logActionAppAuthExceptionMessage(tenantID: string, action: string, exception: AppAuthError): void {
     Logging.logSecurityError({
       tenantID: tenantID,
-      user: exception.user,
-      actionOnUser: exception.actionOnUser,
-      module: exception.module,
-      method: exception.method,
+      user: exception.params.user,
+      actionOnUser: exception.params.actionOnUser,
+      module: exception.params.module,
+      method: exception.params.method,
       action: action,
       message: exception.message,
       detailedMessages: [{
@@ -356,7 +356,7 @@ export default class Logging {
         module: module,
         method: method,
         action: action,
-        message: error.params.message,
+        message: error.message,
         detailedMessages: [{
           'details': error.params.detailedMessages,
           'stack': error.stack

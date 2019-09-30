@@ -26,13 +26,15 @@ export default class VehicleManufacturerService {
     }
     // Check auth
     if (!Authorizations.canDeleteVehicleManufacturer(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_DELETE,
-        Constants.ENTITY_VEHICLE_MANUFACTURERS,
-        vehicleManufacturerID,
-        Constants.HTTP_AUTH_ERROR,
-        'VehicleManufacturerService', 'handleDeleteVehicleManufacturer',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_DELETE,
+        entity: Constants.ENTITY_VEHICLE_MANUFACTURER,
+        module: 'VehicleManufacturerService',
+        method: 'handleDeleteVehicleManufacturer',
+        value: vehicleManufacturerID
+      });
     }
     // Get
     const vehicleManufacturer = await VehicleManufacturerStorage.getVehicleManufacturer(req.user.tenantID, vehicleManufacturerID);
@@ -75,13 +77,15 @@ export default class VehicleManufacturerService {
     }
     // Check auth
     if (!Authorizations.canReadVehicle(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_READ,
-        Constants.ENTITY_VEHICLE_MANUFACTURER,
-        filteredRequest.ID,
-        Constants.HTTP_AUTH_ERROR,
-        'VehicleManufacturerService', 'handleGetVehicleManufacturer',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_READ,
+        entity: Constants.ENTITY_VEHICLE_MANUFACTURER,
+        module: 'VehicleManufacturerService',
+        method: 'handleGetVehicleManufacturer',
+        value: filteredRequest.ID
+      });
     }
     // Get it
     const vehicleManufacturer = await VehicleManufacturerStorage.getVehicleManufacturer(req.user.tenantID, filteredRequest.ID);
@@ -107,13 +111,14 @@ export default class VehicleManufacturerService {
   public static async handleGetVehicleManufacturers(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListVehicleManufacturers(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_LIST,
-        Constants.ENTITY_VEHICLE_MANUFACTURERS,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        'VehicleManufacturerService', 'handleGetVehicleManufacturers',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_LIST,
+        entity: Constants.ENTITY_VEHICLE_MANUFACTURERS,
+        module: 'VehicleManufacturerService',
+        method: 'handleGetVehicleManufacturer'
+      });
     }
     // Filter
     const filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturersRequest(req.query);
@@ -132,13 +137,14 @@ export default class VehicleManufacturerService {
   public static async handleCreateVehicleManufacturer(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canCreateVehicleManufacturer(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_CREATE,
-        Constants.ENTITY_VEHICLE_MANUFACTURERS,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        'VehicleManufacturerService', 'handleCreateVehicleManufacturer',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_CREATE,
+        entity: Constants.ENTITY_VEHICLE_MANUFACTURER,
+        module: 'VehicleManufacturerService',
+        method: 'handleCreateVehicleManufacturer'
+      });
     }
     // Filter
     const filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerCreateRequest(req.body);
@@ -177,13 +183,15 @@ export default class VehicleManufacturerService {
     const filteredRequest = VehicleManufacturerSecurity.filterVehicleManufacturerUpdateRequest(req.body);
     // Check auth
     if (!Authorizations.canUpdateVehicleManufacturer(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_UPDATE,
-        Constants.ENTITY_VEHICLE_MANUFACTURERS,
-        filteredRequest.id,
-        Constants.HTTP_AUTH_ERROR,
-        'VehicleManufacturerService', 'handleUpdateVehicleManufacturer',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_UPDATE,
+        entity: Constants.ENTITY_VEHICLE_MANUFACTURER,
+        module: 'VehicleManufacturerService',
+        method: 'handleUpdateVehicleManufacturer',
+        value: filteredRequest.id
+      });
     }
     // Get
     let vehicleManufacturer = await	VehicleManufacturerStorage.getVehicleManufacturer(req.user.tenantID, filteredRequest.id);
@@ -238,13 +246,15 @@ export default class VehicleManufacturerService {
     }
     // Check auth
     if (!Authorizations.canReadVehicleManufacturer(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_READ,
-        Constants.ENTITY_COMPANY,
-        vehicleManufacturerID,
-        Constants.HTTP_AUTH_ERROR,
-        'VehicleManufacturerService', 'handleGetVehicleManufacturerLogo',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_READ,
+        entity: Constants.ENTITY_VEHICLE_MANUFACTURER,
+        module: 'VehicleManufacturerService',
+        method: 'handleGetVehicleManufacturerLogo',
+        value: vehicleManufacturerID
+      });
     }
     // Get it
     const vehicleManufacturer = await VehicleManufacturerStorage.getVehicleManufacturer(req.user.tenantID, vehicleManufacturerID);

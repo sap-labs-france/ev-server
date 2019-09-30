@@ -18,13 +18,15 @@ export default class SettingService {
     UtilsService.assertIdIsProvided(settingID, 'SettingService', 'handleDeleteSetting', req.user);
     // Check auth
     if (!Authorizations.canDeleteSetting(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_DELETE,
-        Constants.ENTITY_SETTING,
-        settingID,
-        Constants.HTTP_AUTH_ERROR,
-        'SettingService', 'handleDeleteSetting',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_DELETE,
+        entity: Constants.ENTITY_SETTING,
+        module: 'SettingService',
+        method: 'handleDeleteSetting',
+        value: settingID
+      });
     }
     // Get
     const setting = await SettingStorage.getSetting(req.user.tenantID, settingID);
@@ -49,13 +51,15 @@ export default class SettingService {
     UtilsService.assertIdIsProvided(settingID, 'SettingService', 'handleGetSetting', req.user);
     // Check auth
     if (!Authorizations.canReadSetting(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_READ,
-        Constants.ENTITY_SETTING,
-        settingID,
-        Constants.HTTP_AUTH_ERROR,
-        'SettingService', 'handleGetSetting',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_READ,
+        entity: Constants.ENTITY_SETTING,
+        module: 'SettingService',
+        method: 'handleGetSetting',
+        value: settingID
+      });
     }
     // Get it
     const setting = await SettingStorage.getSetting(req.user.tenantID, settingID);
@@ -74,13 +78,14 @@ export default class SettingService {
   public static async handleGetSettings(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canListSettings(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_LIST,
-        Constants.ENTITY_SETTINGS,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        'SettingService', 'handleGetSettings',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_LIST,
+        entity: Constants.ENTITY_SETTINGS,
+        module: 'SettingService',
+        method: 'handleGetSettings'
+      });
     }
     // Filter
     const filteredRequest = SettingSecurity.filterSettingsRequest(req.query);
@@ -104,13 +109,14 @@ export default class SettingService {
   public static async handleCreateSetting(action: string, req: Request, res: Response, next: NextFunction) {
     // Check auth
     if (!Authorizations.canCreateSetting(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_CREATE,
-        Constants.ENTITY_SETTING,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        'SettingService', 'handleCreateSetting',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_CREATE,
+        entity: Constants.ENTITY_SETTING,
+        module: 'SettingService',
+        method: 'handleCreateSetting'
+      });
     }
     // Filter
     const filteredRequest = SettingSecurity.filterSettingCreateRequest(req.body);
@@ -139,13 +145,15 @@ export default class SettingService {
     UtilsService.assertIdIsProvided(settingUpdate.id, 'SettingService', 'handleUpdateSetting', req.user);
     // Check auth
     if (!Authorizations.canUpdateSetting(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_UPDATE,
-        Constants.ENTITY_SETTING,
-        settingUpdate.id,
-        Constants.HTTP_AUTH_ERROR,
-        'SettingService', 'handleUpdateSetting',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_UPDATE,
+        entity: Constants.ENTITY_SETTING,
+        module: 'SettingService',
+        method: 'handleUpdateSetting',
+        value: settingUpdate.id
+      });
     }
     // Get Setting
     const setting = await SettingStorage.getSetting(req.user.tenantID, settingUpdate.id);

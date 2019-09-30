@@ -20,12 +20,14 @@ export default class StatisticService {
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationConsumptionStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_LIST,
-          Constants.ENTITY_TRANSACTIONS,
-          null, 560,
-          'StatisticService', 'handleGetChargingStationConsumptionStatistics',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_LIST,
+          entity: Constants.ENTITY_TRANSACTIONS,
+          module: 'StatisticService',
+          method: 'handleGetChargingStationConsumptionStatistics'
+        });
       }
       // Filter
       const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
@@ -53,12 +55,14 @@ export default class StatisticService {
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationUsageStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_LIST,
-          Constants.ENTITY_TRANSACTIONS,
-          null, 560,
-          'StatisticService', 'handleGetChargingStationUsageStatistics',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_LIST,
+          entity: Constants.ENTITY_TRANSACTIONS,
+          module: 'StatisticService',
+          method: 'handleGetChargingStationUsageStatistics'
+        });
       }
       // Filter
       const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
@@ -86,12 +90,14 @@ export default class StatisticService {
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationInactivityStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_LIST,
-          Constants.ENTITY_TRANSACTIONS,
-          null, 560,
-          'StatisticService', 'handleGetChargingStationInactivityStatistics',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_LIST,
+          entity: Constants.ENTITY_TRANSACTIONS,
+          module: 'StatisticService',
+          method: 'handleGetChargingStationInactivityStatistics'
+        });
       }
       // Filter
       const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
@@ -119,12 +125,14 @@ export default class StatisticService {
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationTransactionsStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_LIST,
-          Constants.ENTITY_TRANSACTIONS,
-          null, 560,
-          'StatisticService', 'handleGetChargingStationTransactionsStatistics',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_LIST,
+          entity: Constants.ENTITY_TRANSACTIONS,
+          module: 'StatisticService',
+          method: 'handleGetChargingStationTransactionsStatistics'
+        });
       }
       // Filter
       const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
@@ -152,12 +160,14 @@ export default class StatisticService {
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetChargingStationPricingStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_LIST,
-          Constants.ENTITY_TRANSACTIONS,
-          null, 560,
-          'StatisticService', 'handleGetChargingStationPricingStatistics',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_LIST,
+          entity: Constants.ENTITY_TRANSACTIONS,
+          module: 'StatisticService',
+          method: 'handleGetChargingStationPricingStatistics'
+        });
       }
       // Filter
       const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
@@ -185,12 +195,14 @@ export default class StatisticService {
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserConsumptionStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_LIST,
-          Constants.ENTITY_TRANSACTIONS,
-          null, 560,
-          'StatisticService', 'handleGetUserConsumptionStatistics',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_LIST,
+          entity: Constants.ENTITY_TRANSACTIONS,
+          module: 'StatisticService',
+          method: 'handleGetUserConsumptionStatistics'
+        });
       }
       // Filter
       const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
@@ -218,12 +230,14 @@ export default class StatisticService {
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserUsageStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_LIST,
-          Constants.ENTITY_TRANSACTIONS,
-          null, 560,
-          'StatisticService', 'handleGetUserUsageStatistics',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_LIST,
+          entity: Constants.ENTITY_TRANSACTIONS,
+          module: 'StatisticService',
+          method: 'handleGetUserUsageStatistics'
+        });
       }
       // Filter
       const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
@@ -251,12 +265,14 @@ export default class StatisticService {
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserInactivityStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_LIST,
-          Constants.ENTITY_TRANSACTIONS,
-          null, 560,
-          'StatisticService', 'handleGetUserInactivityStatistics',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_LIST,
+          entity: Constants.ENTITY_TRANSACTIONS,
+          module: 'StatisticService',
+          method: 'handleGetUserInactivityStatistics'
+        });
       }
       // Filter
       const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
@@ -284,12 +300,14 @@ export default class StatisticService {
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserTransactionsStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_LIST,
-          Constants.ENTITY_TRANSACTIONS,
-          null, 560,
-          'StatisticService', 'handleGetUserTransactionsStatistics',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_LIST,
+          entity: Constants.ENTITY_TRANSACTIONS,
+          module: 'StatisticService',
+          method: 'handleGetUserTransactionsStatistics'
+        });
       }
       // Filter
       const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
@@ -317,12 +335,14 @@ export default class StatisticService {
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetUserPricingStatistics');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_LIST,
-          Constants.ENTITY_TRANSACTIONS,
-          null, 560,
-          'StatisticService', 'handleGetUserPricingStatistics',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_LIST,
+          entity: Constants.ENTITY_TRANSACTIONS,
+          module: 'StatisticService',
+          method: 'handleGetUserPricingStatistics'
+        });
       }
       // Filter
       const filteredRequest = StatisticSecurity.filterStatisticsRequest(req.query);
@@ -346,12 +366,14 @@ export default class StatisticService {
     try {
       // Check auth
       if (!Authorizations.canListChargingStations(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_LIST,
-          Constants.ENTITY_CHARGING_STATIONS,
-          null, 560,
-          'StatisticService', 'handleGetCurrentMetrics',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_LIST,
+          entity: Constants.ENTITY_TRANSACTIONS,
+          module: 'StatisticService',
+          method: 'handleGetCurrentMetrics'
+        });
       }
       // Filter
       const filteredRequest = StatisticSecurity.filterMetricsStatisticsRequest(req.query);
@@ -374,12 +396,14 @@ export default class StatisticService {
         Constants.ACTION_LIST, Constants.ENTITY_TRANSACTIONS, 'StatisticService', 'handleGetStatisticsExport');
       // Check auth
       if (!Authorizations.canListTransactions(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_LIST,
-          Constants.ENTITY_TRANSACTIONS,
-          null, 560,
-          'StatisticService', 'handleGetStatisticsExport',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_LIST,
+          entity: Constants.ENTITY_TRANSACTIONS,
+          module: 'StatisticService',
+          method: 'handleGetStatisticsExport'
+        });
       }
       // Filter
       const filteredRequest = StatisticSecurity.filterExportStatisticsRequest(req.query);
