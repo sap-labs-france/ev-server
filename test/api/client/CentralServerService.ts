@@ -42,14 +42,12 @@ export default class CentralServerService {
   public mailApi: MailApi;
   public logsApi: LogsApi;
   public statisticsApi: StatisticsApi;
-  private _tenantSubdomain: string;
+  public _baseApi: BaseApi;
   private _baseURL: string;
-  private _baseApi: BaseApi;
   private _authenticatedUser: any;
   private _authenticatedSuperAdmin: any;
 
   public constructor(tenantSubdomain = null, user: Partial<User> = null, superAdminUser: Partial<User> = null) {
-    this._tenantSubdomain = tenantSubdomain;
     this._baseURL = `${config.get('server.scheme')}://${config.get('server.host')}:${config.get('server.port')}`;
     // Create the Base API
     this._baseApi = new BaseApi(this._baseURL);
