@@ -53,10 +53,14 @@ export default class UtilsService {
     const active = Utils.isComponentActiveFromToken(userToken, component);
     // Throw
     if (!active) {
-      throw new ComponentInactiveError(
-        component, action, entity,
-        Constants.HTTP_AUTH_ERROR,
-        module, method);
+      throw new ComponentInactiveError({
+        component: component,
+        action: action,
+        entity: entity,
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        module: module,
+        method: method
+      });
     }
   }
 }

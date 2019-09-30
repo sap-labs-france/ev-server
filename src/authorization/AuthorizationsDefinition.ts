@@ -214,7 +214,7 @@ const GRANTS = {
         resource: 'ChargingStation', action: ['Update', 'Delete',
           'Reset', 'ClearCache', 'GetConfiguration', 'ChangeConfiguration',
           'SetChargingProfile', 'GetCompositeSchedule', 'ClearChargingProfile',
-          'GetDiagnostics', 'UpdateFirmware','RemoteStopTransaction'], attributes: ['*'],
+          'GetDiagnostics', 'UpdateFirmware', 'RemoteStopTransaction'], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } }
       },
       {
@@ -224,7 +224,12 @@ const GRANTS = {
       { resource: 'Loggings', action: 'List', attributes: ['*'] },
       { resource: 'Logging', action: 'Read', attributes: ['*'], args: { 'sites': '$.site' } },
       { resource: 'Tokens', action: 'List', attributes: ['*'] },
-      { resource: 'Token', action: ['Create', 'Read'], attributes: ['*'], args: { 'sites': '$.site' } },
+      {
+        resource: 'Token',
+        action: ['Create', 'Read'],
+        attributes: ['*'],
+        args: { 'sites': '$.site' }
+      },
     ]
   }
 };
@@ -238,11 +243,13 @@ export default class AuthorizationsDefinition {
     try {
       this.accessControl = new AccessControl(GRANTS);
     } catch (error) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Unable to load authorization grants',
-        'AuthorizationsDefinition', 'constructor', 'Authorization',
-        null, null, error);
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'AuthorizationsDefinition',
+        method: 'getScopes',
+        message: 'Unable to load authorization grants',
+        detailedMessages: error
+      });
     }
   }
 
@@ -264,11 +271,13 @@ export default class AuthorizationsDefinition {
         }
       );
     } catch (error) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Unable to load available scopes',
-        'AuthorizationsDefinition', 'getScopes', 'Authorization',
-        null, null, error);
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'AuthorizationsDefinition',
+        method: 'getScopes',
+        message: 'Unable to load available scopes',
+        detailedMessages: error
+      });
     }
     return scopes;
   }
@@ -278,11 +287,13 @@ export default class AuthorizationsDefinition {
       const permission = this.accessControl.can(role).execute(action).with(context).on(resource);
       return permission.granted;
     } catch (error) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Unable to check authorization',
-        'AuthorizationsDefinition', 'can', 'Authorization',
-        null, null, error);
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'AuthorizationsDefinition',
+        method: 'can',
+        message: 'Unable to check authorization',
+        detailedMessages: error
+      });
     }
   }
 }

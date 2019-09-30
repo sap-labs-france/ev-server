@@ -73,7 +73,12 @@ export default abstract class AbstractOCPIService {
     // Parse the action
     const regexResult = /^\/\w*/g.exec(req.url);
     if (!regexResult) {
-      throw new BackendError('AbstractOCPIService.ts#restService', 'Regex did not match.');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'AbstractOCPIService',
+        method: 'restService',
+        message: 'Regex did not match.'
+      });
     }
     const action = regexResult[0].substring(1);
 

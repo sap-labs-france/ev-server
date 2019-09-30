@@ -65,15 +65,25 @@ export default class JsonRestWSConnection extends WSConnection {
     // Found?
     if (!chargingStation) {
       // Error
-      throw new BackendError(this.getChargingStationID(), `'${commandName}' not found`,
-        'JsonRestWSConnection', 'handleRequest', commandName);
+      throw new BackendError({
+        source: this.getChargingStationID(),
+        module: 'JsonRestWSConnection',
+        method: 'handleRequest',
+        message: `'${commandName}' not found`,
+        action: commandName
+      });
     }
     // Get the client from JSON Server
     const chargingStationClient = global.centralSystemJson.getChargingStationClient(this.getTenantID(), chargingStation.id);
     if (!chargingStationClient) {
       // Error
-      throw new BackendError(this.getChargingStationID(), 'Charger is not connected to the backend',
-        'JsonRestWSConnection', 'handleRequest', commandName);
+      throw new BackendError({
+        source: this.getChargingStationID(),
+        module: 'JsonRestWSConnection',
+        method: 'handleRequest',
+        message: 'Charger is not connected to the backend',
+        action: commandName
+      });
     }
     // Call the client
     let result;
@@ -89,8 +99,13 @@ export default class JsonRestWSConnection extends WSConnection {
       await this.sendMessage(messageId, result, Constants.OCPP_JSON_CALL_RESULT_MESSAGE);
     } else {
       // Error
-      throw new BackendError(this.getChargingStationID(), `'${actionMethod}' is not implemented`,
-        'JsonRestWSConnection', 'handleRequest', commandName);
+      throw new BackendError({
+        source: this.getChargingStationID(),
+        module: 'JsonRestWSConnection',
+        method: 'handleRequest',
+        message: `'${actionMethod}' is not implemented`,
+        action: commandName
+      });
     }
   }
 }

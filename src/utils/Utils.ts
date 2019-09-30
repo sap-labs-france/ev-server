@@ -251,7 +251,12 @@ export default class Utils {
 
   public static async checkTenant(tenantID: string) {
     if (!tenantID) {
-      throw new BackendError(null, 'The Tenant ID is mandatory');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'Utils',
+        method: 'checkTenant',
+        message: 'The Tenant ID is mandatory'
+      });
     }
     // Check in cache
     if (_tenants.includes(tenantID)) {
@@ -260,12 +265,22 @@ export default class Utils {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Valid Object ID?
       if (!ObjectID.isValid(tenantID)) {
-        throw new BackendError(null, `Invalid Tenant ID '${tenantID}'`);
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: 'Utils',
+          method: 'checkTenant',
+          message: `Invalid Tenant ID '${tenantID}'`
+        });
       }
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
       if (!tenant) {
-        throw new BackendError(null, `Invalid Tenant ID '${tenantID}'`);
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: 'Utils',
+          method: 'checkTenant',
+          message: `Invalid Tenant ID '${tenantID}'`
+        });
       }
     }
     _tenants.push(tenantID);

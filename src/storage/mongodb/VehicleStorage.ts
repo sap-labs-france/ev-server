@@ -52,10 +52,12 @@ export default class VehicleStorage {
     // Check if ID/Model is provided
     if (!vehicleToSave.id && !vehicleToSave.model) {
       // ID must be provided!
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Vehicle has no ID and no Model',
-        'VehicleStorage', 'saveVehicle');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'VehicleStorage',
+        method: 'saveVehicle',
+        message: 'Vehicle has no ID and no Model'
+      });
     }
     const vehicleFilter: any = {};
     // Build Request
@@ -103,10 +105,12 @@ export default class VehicleStorage {
     // Check if ID is provided
     if (!vehicleID) {
       // ID must be provided!
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Vehicle Images has no ID',
-        'VehicleStorage', 'saveVehicleImages');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'VehicleStorage',
+        method: 'saveVehicleImages',
+        message: 'Vehicle Images has no ID'
+      });
     }
     // Modify
     await global.database.getCollection<any>(tenantID, 'vehicleimages').findOneAndUpdate(

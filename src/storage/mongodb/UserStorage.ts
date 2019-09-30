@@ -239,10 +239,12 @@ export default class UserStorage {
     await Utils.checkTenant(tenantID);
     // Check if ID or email is provided
     if (!userToSave.id && !userToSave.email) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'User has no ID and no Email',
-        'UserStorage', 'saveUser');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'UserStorage',
+        method: 'saveUser',
+        message: 'User has no ID and no Email'
+      });
     }
     // Build Request
     const userFilter: any = {};
@@ -451,10 +453,12 @@ export default class UserStorage {
     // Check if ID is provided
     if (!userID) {
       // ID must be provided!
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'User Image has no ID',
-        'UserStorage', 'saveUserImage');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'UserStorage',
+        method: 'saveUserImage',
+        message: 'User Image has no ID'
+      });
     }
     // Modify and return the modified document
     await global.database.getCollection<any>(tenantID, 'userimages').findOneAndUpdate(

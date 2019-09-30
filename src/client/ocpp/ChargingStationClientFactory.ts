@@ -30,8 +30,12 @@ const buildChargingStationClient = async function(tenantID: string, chargingStat
   }
   // Check
   if (!chargingClient) {
-    throw new BackendError(chargingStation.id, 'Client has not been found',
-      'ChargingStationClient', 'getChargingStationClient');
+    throw new BackendError({
+      source: chargingStation.id,
+      module: 'ChargingStationClientFactory',
+      method: 'getChargingStationClient',
+      message: 'Client has not been found'
+    });
   }
   return chargingClient;
 };

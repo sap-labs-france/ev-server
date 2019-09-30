@@ -296,16 +296,16 @@ export default class Logging {
     });
   }
 
-  private static _logActionBackendExceptionMessage(tenantID, action, exception): void {
+  private static _logActionBackendExceptionMessage(tenantID: string, action: string, exception: BackendError): void {
     Logging.logError({
       tenantID: tenantID,
-      source: exception.source,
-      module: exception.module,
-      method: exception.method,
+      source: exception.params.source,
+      module: exception.params.module,
+      method: exception.params.method,
       action: action,
       message: exception.message,
-      user: exception.user,
-      actionOnUser: exception.actionOnUser,
+      user: exception.params.user,
+      actionOnUser: exception.params.actionOnUser,
       detailedMessages: [{
         'stack': exception.stack
       }]

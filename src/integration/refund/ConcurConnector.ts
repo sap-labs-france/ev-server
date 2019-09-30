@@ -40,25 +40,37 @@ export default class ConcurConnector extends AbstractConnector {
           try {
             if (error.config.method === 'post') {
               if (error.config.url.endsWith('/token')) {
-                throw new BackendError(
-                  Constants.CENTRAL_SERVER,
-                  `Unable to request token, response status ${error.response.status}, attempt ${retryCount}`,
-                  MODULE_NAME, 'anonymous', 'Refund', null, null, error.response);
+                throw new BackendError({
+                  source: Constants.CENTRAL_SERVER,
+                  module: MODULE_NAME,
+                  method: 'retryDelay',
+                  message: `Unable to request token, response status ${error.response.status}, attempt ${retryCount}`,
+                  action: 'Refund',
+                  detailedMessages: error.response
+                });
               } else {
                 const payload = {
                   error: error.response.data,
                   payload: JSON.parse(error.config.data)
                 };
-                throw new BackendError(
-                  Constants.CENTRAL_SERVER,
-                  `Unable to post data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`,
-                  MODULE_NAME, 'anonymous', 'Refund', null, null, payload);
+                throw new BackendError({
+                  source: Constants.CENTRAL_SERVER,
+                  module: MODULE_NAME,
+                  method: 'retryDelay',
+                  message: `Unable to post data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`,
+                  action: 'Refund',
+                  detailedMessages: payload
+                });
               }
             } else {
-              throw new BackendError(
-                Constants.CENTRAL_SERVER,
-                `Unable to ${error.config.url} data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`,
-                MODULE_NAME, 'anonymous', 'Refund', null, null, error.response.data);
+              throw new BackendError({
+                source: Constants.CENTRAL_SERVER,
+                module: MODULE_NAME,
+                method: 'retryDelay',
+                message: `Unable to ${error.config.url} data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`,
+                action: 'Refund',
+                detailedMessages: error.response.data
+              });
             }
           } catch (err) {
             Logging.logException(err, 'Refund', Constants.CENTRAL_SERVER, MODULE_NAME, 'anonymous', tenantID, null);

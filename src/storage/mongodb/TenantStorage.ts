@@ -37,10 +37,12 @@ export default class TenantStorage {
     const uniqueTimerID = Logging.traceStart('TenantStorage', 'saveTenant');
     // Check
     if (!tenantToSave.id && !tenantToSave.name) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Tenant has no ID and no Name',
-        'TenantStorage', 'saveTenant');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'TenantStorage',
+        method: 'saveTenant',
+        message: 'Tenant has no ID and no Name'
+      });
     }
     const tenantFilter: any = {};
     // Build Request

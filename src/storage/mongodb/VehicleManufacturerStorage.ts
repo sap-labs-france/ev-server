@@ -42,10 +42,12 @@ export default class VehicleManufacturerStorage {
     await Utils.checkTenant(tenantID);
     // Check if ID/Name is provided
     if (!vehicleManufacturerID) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Vehicle Manufacturer Logo has no ID',
-        'VehicleManufacturerStorage', 'saveVehicleManufacturerLogo');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'VehicleManufacturerStorage',
+        method: 'saveVehicleManufacturerLogo',
+        message: 'Vehicle Manufacturer Logo has no ID'
+      });
     }
     // Modify
     await global.database.getCollection<any>(tenantID, 'vehiclemanufacturerlogos').findOneAndUpdate(
@@ -74,10 +76,12 @@ export default class VehicleManufacturerStorage {
     await Utils.checkTenant(tenantID);
     // Check if ID/Model is provided
     if (!vehicleManufacturerToSave.id && !vehicleManufacturerToSave.name) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Vehicle Manufacturer has no ID and no Name',
-        'VehicleManufacturerStorage', 'saveVehicleManufacturer');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'VehicleManufacturerStorage',
+        method: 'saveVehicleManufacturer',
+        message: 'Vehicle Manufacturer has no ID and no Name'
+      });
     }
     const vehicleManufacturerFilter: any = {};
     // Build Request
