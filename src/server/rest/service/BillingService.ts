@@ -62,7 +62,7 @@ export default class BillingService {
     try {
       if (!Authorizations.isAdmin(req.user)) {
         throw new AppAuthError(
-          Constants.ACTION_UPDATE,
+          Constants.ACTION_SYNCHRONIZE_BILLING,
           Constants.ENTITY_USER,
           null,
           Constants.HTTP_AUTH_ERROR, 'BillingService', 'handleSynchronizeUsers',
@@ -106,9 +106,10 @@ export default class BillingService {
         // Process them
         Logging.logInfo({
           tenantID: tenant.id,
-          module: 'BillingService',
-          method: 'handleSynchronizeUsers', action: 'SynchronizeUsersForBilling',
-          message: `${users.count} changed active user(s) are going to be synchronized with Billing`
+          source: Constants.CENTRAL_SERVER,
+          action: Constants.ACTION_SYNCHRONIZE_BILLING,
+          module: 'BillingService', method: 'handleSynchronizeUsers',
+          message: `${users.count} changed active users are going to be synchronized with Billing application`
         });
         for (const user of users.result) {
           try {
@@ -125,7 +126,7 @@ export default class BillingService {
             }
           } catch (error) {
             actionsDone.error++;
-            Logging.logActionExceptionMessage(tenant.id, 'SynchronizeUsersForBilling', error);
+            Logging.logActionExceptionMessage(tenant.id, Constants.ACTION_SYNCHRONIZE_BILLING, error);
           }
         }
       }
@@ -134,8 +135,9 @@ export default class BillingService {
       if (changedBillingCustomers && changedBillingCustomers.length > 0) {
         Logging.logInfo({
           tenantID: tenant.id,
-          module: 'BillingService',
-          method: 'handleSynchronizeUsers', action: 'SynchronizeUsersForBilling',
+          source: Constants.CENTRAL_SERVER,
+          action: Constants.ACTION_SYNCHRONIZE_BILLING,
+          module: 'BillingService', method: 'handleSynchronizeUsers',
           message: `Users are going to be synchronized for ${changedBillingCustomers.length} changed Billing customers`
         });
         for (const changedBillingCustomer of changedBillingCustomers) {
@@ -153,16 +155,16 @@ export default class BillingService {
               }
             } catch (error) {
               actionsDone.error++;
-              Logging.logActionExceptionMessage(tenant.id, 'SynchronizeUsersForBilling', error);
+              Logging.logActionExceptionMessage(tenant.id, Constants.ACTION_SYNCHRONIZE_BILLING, error);
             }
           } else {
             Logging.logError({
               tenantID: tenant.id,
-              source: changedBillingCustomer,
-              action: Constants.ACTION_UPDATE,
+              source: Constants.CENTRAL_SERVER,
+              action: Constants.ACTION_SYNCHRONIZE_BILLING,
               module: 'BillingService', method: 'handleSynchronizeUsers',
-              message: 'Synchronization failed for changed customer in Billing application',
-              detailedMessages: `No user exists for billing customer '${changedBillingCustomer}'`
+              message: `No user exists for billing customer ID '${changedBillingCustomer}`,
+              detailedMessages: `Synchronization failed for customer ID '${changedBillingCustomer}' from the Billing application. No user exists for this customer ID`
             });
             actionsDone.error++;
           }
