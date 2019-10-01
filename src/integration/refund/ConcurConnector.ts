@@ -231,8 +231,8 @@ export default class ConcurConnector extends AbstractConnector {
   }
 
   async updateRefundStatus(tenantID: string, transaction: Transaction): Promise<string> {
-    const connection = await this.getRefreshedConnection(transaction.userID);
     if (transaction.refundData) {
+      const connection = await this.getRefreshedConnection(transaction.userID);
       const report = await this.getExpenseReport(connection, transaction.refundData.reportId);
       if (report) {
         // Approved
@@ -266,6 +266,19 @@ export default class ConcurConnector extends AbstractConnector {
         return Constants.REFUND_STATUS_CANCELLED;
       }
     }
+  }
+
+  canBeDeleted(transaction: Transaction): boolean {
+    if (transaction.refundData && transaction.refundData.status) {
+      switch (transaction.refundData.status) {
+        case Constants.REFUND_STATUS_CANCELLED:
+        case Constants.REFUND_STATUS_NOT_SUBMITTED:
+          return true;
+        default:
+          return false;
+      }
+    }
+    return true;
   }
 
   async getLocation(tenantID: string, connection, site: Site) {
