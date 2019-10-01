@@ -138,7 +138,9 @@ export default class EMailNotificationTask extends NotificationTask {
     // Render the subject
     emailTemplate.subject = ejs.render(emailTemplate.subject, data);
     // Render the tenant name
-    if (tenantID !== Constants.DEFAULT_TENANT) {
+    if (data.tenant) {
+      emailTemplate.tenant = data.tenant;
+    } else if (tenantID !== Constants.DEFAULT_TENANT) {
       const tenant = await TenantStorage.getTenant(tenantID);
       emailTemplate.tenant = tenant.name;
     } else {

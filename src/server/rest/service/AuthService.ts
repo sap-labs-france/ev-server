@@ -646,12 +646,12 @@ export default class AuthService {
       });
     }
     // For integration with billing
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(tenantID);
     // Save User Status
     await UserStorage.saveUserStatus(tenantID, user.id, Constants.USER_STATUS_ACTIVE);
     if (billingImpl) {
       const billingData = await billingImpl.updateUser(user, req);
-      await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingData);
+      await UserStorage.saveUserBillingData(tenantID, user.id, billingData);
     }
     // Save User Verification Account
     await UserStorage.saveUserAccountVerification(tenantID, user.id,
