@@ -137,6 +137,7 @@ export default class Constants {
   public static readonly ACTION_SEND_EVSE_STATUSES = 'SendEVSEStatuses';
   public static readonly ACTION_REGISTER = 'Register';
   public static readonly ACTION_GENERATE_LOCAL_TOKEN = 'GenerateLocalToken';
+  public static readonly ACTION_SYNCHRONIZE_BILLING = 'SynchronizeBilling';
 
   // Password constants
   public static readonly PWD_MIN_LENGTH = 15;

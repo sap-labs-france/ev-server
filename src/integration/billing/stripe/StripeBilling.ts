@@ -15,6 +15,15 @@ import Logging from '../../../utils/Logging';
 import Utils from '../../../utils/Utils';
 import Billing, { BillingDataStart, BillingDataStop, BillingDataUpdate, BillingResponse, BillingSettings, BillingUserData } from '../Billing';
 
+// Parameter tax_rates is currently not available in @types/stripe
+// declare module 'stripe' {
+//  namespace invoiceItems {
+//    interface InvoiceItemCreationOptions {
+//      tax_rates?: string[];
+//    }
+//  }
+// }
+
 export interface StripeBillingSettingsContent extends BillingSettings, StripeBillingSettings {
 }
 
@@ -151,10 +160,10 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
       } catch (error) {
         Logging.logError({
           tenantID: this.tenantId,
-          source: 'stripe.events.list',
-          action: Constants.ACTION_UPDATE,
-          module: 'StripeBilling', method: 'getUpdatedCustomers',
-          message: 'Impossible to retrieve updated customers from Stripe Billing',
+          source: Constants.CENTRAL_SERVER,
+          action: Constants.ACTION_SYNCHRONIZE_BILLING,
+          module: 'StripeBilling', method: 'getUpdatedCustomersForSynchronization',
+          message: 'Impossible to retrieve changed customers from Stripe Billing',
           detailedMessages: error
         });
         return;
@@ -390,7 +399,8 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
             customer: user.billingData.customerID,
             currency: this.settings.currency.toLocaleLowerCase(),
             amount: Math.round(transaction.stop.roundedPrice * 100),
-            description: description
+            description: description,
+            // tax_rates: ['txr_1FOLcGBqHnn8lLLlcCNRYYi3'],
           }, {
             idempotency_key: idemPotencyKey.keyNewInvoiceItem
           });
@@ -569,10 +579,10 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
     if (!response.success) {
       Logging.logError({
         tenantID: this.tenantId,
-        source: req.body.email,
+        source: Constants.CENTRAL_SERVER,
         action: Constants.ACTION_CREATE,
         module: 'StripeBilling', method: 'createUser',
-        message: `Impossible to create Stripe customer for user '${req.body.email}'`,
+        message: `Impossible to create Stripe customer for user with email '${req.body.email}'`,
         detailedMessages: response.message
       });
       return {} as BillingUserData;
@@ -585,10 +595,10 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
     if (!response.success) {
       Logging.logError({
         tenantID: this.tenantId,
-        source: user.email,
+        source: Constants.CENTRAL_SERVER,
         action: Constants.ACTION_UPDATE,
         module: 'StripeBilling', method: 'updateUser',
-        message: `Impossible to update Stripe customer for user '${user.email}'`,
+        message: `Impossible to update Stripe customer for user with email '${user.email}'`,
         detailedMessages: response.message
       });
       return {} as BillingUserData;
@@ -601,10 +611,10 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
     if (!response.success) {
       Logging.logError({
         tenantID: this.tenantId,
-        source: user.email,
+        source: Constants.CENTRAL_SERVER,
         action: Constants.ACTION_DELETE,
         module: 'StripeBilling', method: 'deleteUser',
-        message: `Impossible to delete Stripe customer for user '${user.email}'`,
+        message: `Impossible to delete Stripe customer for user with email '${user.email}'`,
         detailedMessages: response.message
       });
       return;
@@ -619,10 +629,10 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
         } catch (error) {
           Logging.logError({
             tenantID: this.tenantId,
-            source: user.email,
+            source: Constants.CENTRAL_SERVER,
             action: Constants.ACTION_DELETE,
             module: 'StripeBilling', method: 'deleteUser',
-            message: `Impossible to delete Stripe customer for user '${user.email}'`,
+            message: `Impossible to delete Stripe customer for user with email '${user.email}'`,
             detailedMessages: error
           });
         }
@@ -956,10 +966,10 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
       } catch (error) {
         Logging.logError({
           tenantID: this.tenantId,
-          source: user.email,
+          source: Constants.CENTRAL_SERVER,
           action: Constants.ACTION_CREATE,
           module: 'StripeBilling', method: '_modifyUser',
-          message: `Impossible to create Stripe customer for user '${user.email}'`,
+          message: `Impossible to create Stripe customer for user with email '${user.email}'`,
           detailedMessages: error
         });
         return {} as BillingUserData;
@@ -975,10 +985,10 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
       } catch (error) {
         Logging.logError({
           tenantID: this.tenantId,
-          source: user.email,
+          source: Constants.CENTRAL_SERVER,
           action: Constants.ACTION_UPDATE,
           module: 'StripeBilling', method: '_modifyUser',
-          message: `Impossible to update Stripe customer '${customer['id']}' for user '${user.email}'`,
+          message: `Impossible to update Stripe customer '${customer['id']}' for user with email '${user.email}'`,
           detailedMessages: error
         });
         return {} as BillingUserData;
@@ -994,10 +1004,10 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
       } catch (error) {
         Logging.logError({
           tenantID: this.tenantId,
-          source: user.email,
+          source: Constants.CENTRAL_SERVER,
           action: Constants.ACTION_UPDATE,
           module: 'StripeBilling', method: '_modifyUser',
-          message: `Impossible to update Stripe customer '${customer['id']}' for user '${user.email}'`,
+          message: `Impossible to update Stripe customer '${customer['id']}' for user with email '${user.email}'`,
           detailedMessages: error
         });
         return {} as BillingUserData;
@@ -1013,10 +1023,10 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
       } catch (error) {
         Logging.logError({
           tenantID: this.tenantId,
-          source: user.email,
+          source: Constants.CENTRAL_SERVER,
           action: Constants.ACTION_UPDATE,
           module: 'StripeBilling', method: '_modifyUser',
-          message: `Impossible to update Stripe customer '${customer['id']}' for user '${user.email}'`,
+          message: `Impossible to update Stripe customer '${customer['id']}' for user with email '${user.email}'`,
           detailedMessages: error
         });
         return {} as BillingUserData;
@@ -1039,10 +1049,10 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
         } catch (error) {
           Logging.logError({
             tenantID: this.tenantId,
-            source: user.email,
+            source: Constants.CENTRAL_SERVER,
             action: Constants.ACTION_UPDATE,
             module: 'StripeBilling', method: '_modifyUser',
-            message: `Impossible to update Stripe customer '${customer['id']}' for user '${user.email}'`,
+            message: `Impossible to update Stripe customer '${customer['id']}' for user with email '${user.email}'`,
             detailedMessages: error
           });
           return {} as BillingUserData;
@@ -1060,10 +1070,10 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
       } catch (error) {
         Logging.logError({
           tenantID: this.tenantId,
-          source: user.email,
+          source: Constants.CENTRAL_SERVER,
           action: Constants.ACTION_UPDATE,
           module: 'StripeBilling', method: '_modifyUser',
-          message: `Impossible to update Stripe customer '${customer['id']}' for user '${user.email}'`,
+          message: `Impossible to update Stripe customer '${customer['id']}' for user with email '${user.email}'`,
           detailedMessages: error
         });
         return {} as BillingUserData;
@@ -1111,10 +1121,10 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
         } catch (error) {
           Logging.logError({
             tenantID: this.tenantId,
-            source: user.email,
+            source: Constants.CENTRAL_SERVER,
             action: Constants.ACTION_UPDATE,
             module: 'StripeBilling', method: '_modifyUser',
-            message: `Impossible to update Stripe subscription '${subscription['id']}' for user '${user.email}'`,
+            message: `Impossible to update Stripe subscription '${subscription['id']}' for user with email '${user.email}'`,
             detailedMessages: error
           });
           return {} as BillingUserData;
@@ -1130,10 +1140,10 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
         } catch (error) {
           Logging.logError({
             tenantID: this.tenantId,
-            source: user.email,
+            source: Constants.CENTRAL_SERVER,
             action: Constants.ACTION_UPDATE,
             module: 'StripeBilling', method: '_modifyUser',
-            message: `Impossible to update Stripe subscription '${subscription['id']}' for user '${user.email}'`,
+            message: `Impossible to update Stripe subscription '${subscription['id']}' for user with email '${user.email}'`,
             detailedMessages: error
           });
           return {} as BillingUserData;
@@ -1176,10 +1186,10 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
       } catch (error) {
         Logging.logError({
           tenantID: this.tenantId,
-          source: user.email,
+          source: Constants.CENTRAL_SERVER,
           action: Constants.ACTION_CREATE,
           module: 'StripeBilling', method: '_modifyUser',
-          message: `Impossible to create new Stripe subscription for user '${user.email}'`,
+          message: `Impossible to create new Stripe subscription for user with email '${user.email}'`,
           detailedMessages: error
         });
         return {} as BillingUserData;
