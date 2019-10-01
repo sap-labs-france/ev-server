@@ -1,19 +1,13 @@
-import Constants from '../utils/Constants';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
 
 export default class AppError extends Error {
-  constructor(
-    readonly source: string,
-    readonly message: string,
-    readonly errorCode: number = Constants.HTTP_GENERAL_ERROR,
-    readonly module: string = 'N/A',
-    readonly method: string = 'N/A',
-    readonly user?: User|string|UserToken, // TODO: Convert
-    readonly actionOnUser?: User|string|UserToken,
-    readonly action?: any,
-    readonly detailedMessages?: any) {
-    super(message);
+  constructor(readonly params: {
+    source: string; message: string; errorCode: number; module: string;
+    method: string; user?: User | string | UserToken; actionOnUser?: User | string | UserToken;
+    action?: any; detailedMessages?: any;
+  }) {
+    super(params.message);
   }
 }
 // TODO: As user, actionOnUser and action are not used in any instantiation of

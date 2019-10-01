@@ -22,12 +22,15 @@ export default class CompanyService {
     UtilsService.assertIdIsProvided(companyID, 'CompanyService', 'handleDeleteCompany', req.user);
     // Check auth
     if (!Authorizations.canDeleteCompany(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_DELETE,
-        Constants.ENTITY_COMPANY,
-        companyID,
-        Constants.HTTP_AUTH_ERROR, 'CompanyService', 'handleDeleteCompany',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_DELETE,
+        entity: Constants.ENTITY_COMPANY,
+        module: 'CompanyService',
+        method: 'handleDeleteCompany',
+        value: companyID
+      });
     }
     // Get
     const company = await CompanyStorage.getCompany(req.user.tenantID, companyID);
@@ -58,12 +61,15 @@ export default class CompanyService {
     UtilsService.assertIdIsProvided(filteredRequest.ID, 'CompanyService', 'handleGetCompany', req.user);
     // Check auth
     if (!Authorizations.canReadCompany(req.user, filteredRequest.ID)) {
-      throw new AppAuthError(
-        Constants.ACTION_READ,
-        Constants.ENTITY_COMPANY,
-        filteredRequest.ID,
-        Constants.HTTP_AUTH_ERROR, 'CompanyService', 'handleGetCompany',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_READ,
+        entity: Constants.ENTITY_COMPANY,
+        module: 'CompanyService',
+        method: 'handleGetCompany',
+        value: filteredRequest.ID
+      });
     }
     // Get it
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.ID);
@@ -87,11 +93,15 @@ export default class CompanyService {
     UtilsService.assertIdIsProvided(companyID, 'CompanyService', 'handleGetCompanyLogo', req.user);
     // Check auth
     if (!Authorizations.canReadCompany(req.user, companyID)) {
-      throw new AppAuthError(
-        Constants.ACTION_READ, Constants.ENTITY_COMPANY,
-        companyID,
-        Constants.HTTP_AUTH_ERROR, 'CompanyService', 'handleGetCompanyLogo',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_READ,
+        entity: Constants.ENTITY_COMPANY,
+        module: 'CompanyService',
+        method: 'handleGetCompanyLogo',
+        value: companyID
+      });
     }
     // Get it
     const companyLogo = await CompanyStorage.getCompanyLogo(req.user.tenantID, companyID);
@@ -109,12 +119,14 @@ export default class CompanyService {
       Constants.ACTION_LIST, Constants.ENTITY_COMPANIES, 'CompanyService', 'handleGetCompanies');
     // Check auth
     if (!Authorizations.canListCompanies(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_LIST,
-        Constants.ENTITY_COMPANIES,
-        null,
-        Constants.HTTP_AUTH_ERROR, 'CompanyService', 'handleGetCompanies',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_LIST,
+        entity: Constants.ENTITY_COMPANIES,
+        module: 'CompanyService',
+        method: 'handleGetCompanies'
+      });
     }
     // Filter
     const filteredRequest = CompanySecurity.filterCompaniesRequest(req.query);
@@ -143,12 +155,14 @@ export default class CompanyService {
       Constants.ACTION_CREATE, Constants.ENTITY_COMPANY, 'CompanyService', 'handleCreateCompany');
     // Check auth
     if (!Authorizations.canCreateCompany(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_CREATE,
-        Constants.ENTITY_COMPANY,
-        null,
-        Constants.HTTP_AUTH_ERROR, 'CompanyService', 'handleCreateCompany',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_CREATE,
+        entity: Constants.ENTITY_COMPANY,
+        module: 'CompanyService',
+        method: 'handleCreateCompany'
+      });
     }
     // Filter
     const filteredRequest = CompanySecurity.filterCompanyCreateRequest(req.body);
@@ -183,12 +197,15 @@ export default class CompanyService {
     const filteredRequest = CompanySecurity.filterCompanyUpdateRequest(req.body);
     // Check auth
     if (!Authorizations.canUpdateCompany(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_UPDATE,
-        Constants.ENTITY_COMPANY,
-        filteredRequest.id,
-        Constants.HTTP_AUTH_ERROR, 'CompanyService', 'handleUpdateCompany',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_UPDATE,
+        entity: Constants.ENTITY_COMPANY,
+        module: 'CompanyService',
+        method: 'handleUpdateCompany',
+        value: filteredRequest.id
+      });
     }
     // Check email
     const company = await CompanyStorage.getCompany(req.user.tenantID, filteredRequest.id);

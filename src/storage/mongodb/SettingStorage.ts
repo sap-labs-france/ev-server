@@ -33,10 +33,12 @@ export default class SettingStorage {
     // Check if ID is provided
     if (!settingToSave.id && !settingToSave.identifier) {
       // ID must be provided!
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Setting has no ID and no Identifier',
-        'SettingStorage', 'saveSetting');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'SettingStorage',
+        method: 'saveSetting',
+        message: 'Setting has no ID and no Identifier'
+      });
     }
     const settingFilter: any = {};
     // Build Request

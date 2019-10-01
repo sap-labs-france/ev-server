@@ -29,8 +29,12 @@ export default class JsonWSConnection extends WSConnection {
       // Not Found
       default:
         // Error
-        throw new BackendError(null, `Protocol ${wsConnection.protocol} not supported`,
-          'JsonWSConnection', 'constructor');
+        throw new BackendError({
+          source: this.getChargingStationID(),
+          module: 'JsonWSConnection',
+          method: 'constructor',
+          message: `Protocol ${wsConnection.protocol} not supported`
+        });
     }
   }
 

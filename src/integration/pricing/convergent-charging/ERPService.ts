@@ -34,35 +34,51 @@ export default class ERPService extends AbstractSoapClient {
   async createInvoice(tenantId, user: User) {
     const connection = await ConnectionStorage.getConnectionByUserId(tenantId, 'convergent-invoicing', user.id);
     if (!connection) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Convergent Invoicing connection is missing',
-        'ERPService', 'createInvoice', 'Billing', user);
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'ERPService',
+        method: 'createInvoice',
+        message: 'Convergent Invoicing connection is missing',
+        action: 'Billing',
+        user: user
+      });
     }
     const invoiceCreateRequest = new InvoiceCreateRequest(connection.getData().gpart, connection.getData().vkont, 1, 'SDBC', 'YN');
     const result = await this.execute(invoiceCreateRequest);
     if (!result.data.InvoiceDocumentNumber) {
       if (result.data.status === 'error') {
-        throw new BackendError(
-          Constants.CENTRAL_SERVER,
-          result.data.message,
-          'ERPService', 'createInvoice', 'Billing',
-          user, null, result.data);
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: 'ERPService',
+          method: 'createInvoice',
+          message: result.data.message,
+          action: 'Billing',
+          user: user,
+          detailedMessages: result.data
+        });
       } else if (result.data.ReturnedMessage) {
         if (result.data.ReturnedMessage.detail && result.data.ReturnedMessage.detail[2].$attributes.value === '115') {
           return null;
         }
-        throw new BackendError(
-          Constants.CENTRAL_SERVER,
-          'Unable to create invoice',
-          'ERPService', 'createInvoice', 'Billing',
-          user, null, result.data);
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: 'ERPService',
+          method: 'createInvoice',
+          message: 'Unable to create invoice',
+          action: 'Billing',
+          user: user,
+          detailedMessages: result.data
+        });
       }
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Unable to create invoice',
-        'ERPService', 'createInvoice', 'Billing',
-        user, null, result.data);
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'ERPService',
+        method: 'createInvoice',
+        message: 'Unable to create invoice',
+        action: 'Billing',
+        user: user,
+        detailedMessages: result.data
+      });
     }
     return result.data.InvoiceDocumentNumber;
   }

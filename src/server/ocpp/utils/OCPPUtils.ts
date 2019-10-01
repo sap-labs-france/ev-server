@@ -44,21 +44,32 @@ export default class OCPPUtils {
   static async checkAndGetChargingStation(chargeBoxIdentity: string, tenantID: string): Promise<ChargingStation> {
     // Check
     if (!chargeBoxIdentity) {
-      throw new BackendError(Constants.CENTRAL_SERVER,
-        'Should have the required property \'chargeBoxIdentity\'!',
-        'OCPPUtils', '_checkAndGetChargingStation');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'OCPPUtils',
+        method: '_checkAndGetChargingStation',
+        message: 'Should have the required property \'chargeBoxIdentity\'!'
+      });
     }
     // Get the charging station
     const chargingStation = await ChargingStationStorage.getChargingStation(tenantID, chargeBoxIdentity);
     // Found?
     if (!chargingStation) {
-      throw new BackendError(chargeBoxIdentity, 'Charging Station does not exist',
-        'OCPPUtils', '_checkAndGetChargingStation');
+      throw new BackendError({
+        source: chargeBoxIdentity,
+        module: 'OCPPUtils',
+        method: '_checkAndGetChargingStation',
+        message: 'Charging Station does not exist'
+      });
     }
     // Deleted?
     if (chargingStation.deleted) {
-      throw new BackendError(chargeBoxIdentity, 'Charging Station is deleted',
-        'OCPPUtils', '_checkAndGetChargingStation');
+      throw new BackendError({
+        source: chargeBoxIdentity,
+        module: 'OCPPUtils',
+        method: '_checkAndGetChargingStation',
+        message: 'Charging Station is deleted'
+      });
     }
     return chargingStation;
   }
@@ -149,8 +160,13 @@ export default class OCPPUtils {
       // OCPP 1.6?
       if (Array.isArray(error.error)) {
         const response = error.error;
-        throw new BackendError(chargingStation.id, response[3], 'ChargingStationService',
-          'requestExecuteCommand', Utils.firstLetterInUpperCase(method));
+        throw new BackendError({
+          source: chargingStation.id,
+          module: 'OCPPUtils',
+          method: 'requestExecuteChargingStationCommand',
+          message: response[3],
+          action: Utils.firstLetterInUpperCase(method)
+        });
       } else {
         throw error;
       }

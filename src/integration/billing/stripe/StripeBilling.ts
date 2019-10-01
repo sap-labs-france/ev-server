@@ -507,11 +507,14 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
     const response = await this._possibleToModifyUser(fullUser, req, true);
     // Throw an error
     if (!response.success) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        response.message,
-        Constants.HTTP_GENERAL_ERROR, // TODO: use a new constant
-        'UserService', 'handleCreateUser', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: response.message,
+        module: 'UserService',
+        method: 'handleCreateUser',
+        user: req.user
+      });
     }
   }
 
@@ -520,11 +523,14 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
     const response = await this._possibleToModifyUser(user, req);
     // Throw an error
     if (!response.success) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        response.message,
-        Constants.HTTP_GENERAL_ERROR, // TODO: use a new constant
-        'UserService', 'handleUpdateUser', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: response.message,
+        module: 'UserService',
+        method: 'handleUpdateUser',
+        user: req.user
+      });
     }
   }
 
@@ -533,11 +539,14 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
     const response = await this._possibleToDeleteUser(user, req);
     // Throw an error
     if (!response.success) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        response.message,
-        Constants.HTTP_GENERAL_ERROR, // TODO: use a new constant
-        'UserService', 'handleDeleteUser', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: response.message,
+        module: 'UserService',
+        method: 'handleDeleteUser',
+        user: req.user
+      });
     }
   }
 
