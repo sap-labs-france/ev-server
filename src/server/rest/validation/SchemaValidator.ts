@@ -28,10 +28,15 @@ export default class SchemaValidator {
         message: error.message ? error.message : ''
       }));
       const concatenatedError = { path: errors.map((e) => e.path).join(','), message: errors.map((e) => e.message).join(',') };
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        concatenatedError.message, Constants.HTTP_GENERAL_ERROR,
-        this.moduleName, 'validate', null, null, 'validate', concatenatedError);
+
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: concatenatedError.message,
+        module: this.moduleName,
+        method: 'validate',
+        detailedMessages: concatenatedError
+      });
     }
   }
 }

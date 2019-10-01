@@ -23,22 +23,28 @@ export default class UtilsService {
   public static assertIdIsProvided(id: string|number, module: string, method: string, userToken) {
     if (!id) {
       // Object does not exist
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The ID must be provided',
-        Constants.HTTP_GENERAL_ERROR,
-        module, method, userToken);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The ID must be provided',
+        module: module,
+        method: method,
+        user: userToken
+      });
     }
   }
 
   public static assertObjectExists(object: any, errorMsg, module: string, method: string, userToken: UserToken) {
     if (!object) {
       // Object does not exist
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        errorMsg,
-        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        module, method, userToken);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: errorMsg,
+        module: module,
+        method: method,
+        user: userToken
+      });
     }
   }
 
@@ -47,10 +53,14 @@ export default class UtilsService {
     const active = Utils.isComponentActiveFromToken(userToken, component);
     // Throw
     if (!active) {
-      throw new ComponentInactiveError(
-        component, action, entity,
-        Constants.HTTP_AUTH_ERROR,
-        module, method);
+      throw new ComponentInactiveError({
+        component: component,
+        action: action,
+        entity: entity,
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        module: module,
+        method: method
+      });
     }
   }
 }

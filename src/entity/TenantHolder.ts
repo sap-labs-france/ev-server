@@ -1,6 +1,7 @@
 import BackendError from '../exception/BackendError';
 import Tenant from '../types/Tenant';
 import TenantStorage from '../storage/mongodb/TenantStorage';
+import Constants from '../utils/Constants';
 
 export default abstract class TenantHolder {
   private tenant: Tenant;
@@ -21,7 +22,12 @@ export default abstract class TenantHolder {
     if (!this.tenant) {
       this.tenant = await TenantStorage.getTenant(this.tenantID);
       if (!this.tenant) {
-        throw new BackendError('TenantHolder#getTenant', 'TenantStorage.getTenant did not return Tenant');
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: 'TenantHolder',
+          method: 'getTenant',
+          message: 'TenantStorage.getTenant did not return Tenant'
+        });
       }
     }
     return this.tenant;

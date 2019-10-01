@@ -13,12 +13,14 @@ export default class LoggingService {
     try {
       // Check auth
       if (!Authorizations.canListLogging(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_LIST,
-          Constants.ENTITY_LOGGINGS,
-          null,
-          Constants.HTTP_AUTH_ERROR, 'LoggingService', 'handleGetLoggings',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_LIST,
+          entity: Constants.ENTITY_LOGGINGS,
+          module: 'LoggingService',
+          method: 'handleGetLoggings'
+        });
       }
       // Filter
       const filteredRequest = LoggingSecurity.filterLoggingsRequest(req.query);
@@ -76,12 +78,14 @@ export default class LoggingService {
     try {
       // Check auth
       if (!Authorizations.canListLogging(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_LIST,
-          Constants.ENTITY_LOGGINGS,
-          null,
-          Constants.HTTP_AUTH_ERROR, 'LoggingService', 'handleGetLoggingsExport',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_LIST,
+          entity: Constants.ENTITY_LOGGINGS,
+          module: 'LoggingService',
+          method: 'handleGetLoggingsExport'
+        });
       }
       // Filter
       const filteredRequest = LoggingSecurity.filterLoggingsRequest(req.query);
@@ -135,12 +139,14 @@ export default class LoggingService {
       const logging = await Logging.getLog(req.user.tenantID, filteredRequest.ID);
       // Check auth
       if (!Authorizations.canReadLogging(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_READ,
-          Constants.ENTITY_LOGGING,
-          null,
-          Constants.HTTP_AUTH_ERROR, 'LoggingService', 'handleGetLogging',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_READ,
+          entity: Constants.ENTITY_LOGGING,
+          module: 'LoggingService',
+          method: 'handleGetLogging'
+        });
       }
       // Return
       res.json(

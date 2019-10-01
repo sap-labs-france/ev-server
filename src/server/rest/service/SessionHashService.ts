@@ -24,23 +24,25 @@ export default class SessionHashService {
       // Check User's Hash
       if (global.userHashMapIDs.has(`${tenantID}#${userID}`) &&
         global.userHashMapIDs.get(`${tenantID}#${userID}`) !== userHashID) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          'User has been updated and will be logged off',
-          HttpStatus.FORBIDDEN,
-          'SessionHashService', 'isSessionHashUpdated',
-          req.user
-        );
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HttpStatus.FORBIDDEN,
+          message: 'User has been updated and will be logged off',
+          module: 'SessionHashService',
+          method: 'isSessionHashUpdated',
+          user: req.user
+        });
       }
       if (global.tenantHashMapIDs.has(`${tenantID}`) &&
         global.tenantHashMapIDs.get(`${tenantID}`) !== tenantHashID) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          'Tenant has been updated and all users will be logged off',
-          HttpStatus.FORBIDDEN,
-          'SessionHashService', 'isSessionHashUpdated',
-          req.user
-        );
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: HttpStatus.FORBIDDEN,
+          message: 'Tenant has been updated and all users will be logged off',
+          module: 'SessionHashService',
+          method: 'isSessionHashUpdated',
+          user: req.user
+        });
       }
     } catch (err) {
       // Log

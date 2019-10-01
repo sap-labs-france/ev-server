@@ -60,8 +60,12 @@ export default class WSConnection {
       this.chargingStationID = splittedURL[2];
     } else {
       // Error
-      throw new BackendError(null, `The URL '${req.url}' is invalid (/OCPPxx/TENANT_ID/CHARGEBOX_ID)`,
-        'WSConnection', 'constructor');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'WSConnection',
+        method: 'constructor',
+        message: `The URL '${req.url}' is invalid (/OCPPxx/TENANT_ID/CHARGEBOX_ID)`
+      });
     }
     // Handle incoming messages
     this.wsConnection.on('message', this.onMessage.bind(this));
@@ -92,8 +96,13 @@ export default class WSConnection {
     } catch (error) {
       // Custom Error
       Logging.logException(error, 'WSConnection', this.getChargingStationID(), 'WSConnection', 'initialize', this.tenantID);
-      throw new BackendError(this.getChargingStationID(), `Invalid Tenant '${this.tenantID}' in URL '${this.getURL()}'`,
-        'WSConnection', 'initialize');
+
+      throw new BackendError({
+        source: this.getChargingStationID(),
+        module: 'WSConnection',
+        method: 'initialize',
+        message: `Invalid Tenant '${this.tenantID}' in URL '${this.getURL()}'`
+      });
     }
   }
 
@@ -126,13 +135,23 @@ export default class WSConnection {
           if (Utils.isIterable(this._requests[messageId])) {
             [responseCallback] = this._requests[messageId];
           } else {
-            throw new BackendError(this.getChargingStationID(), `Response request for unknown message id ${messageId} is not iterable`,
-              'WSConnection', 'onMessage', commandName);
+            throw new BackendError({
+              source: this.getChargingStationID(),
+              module: 'WSConnection',
+              method: 'onMessage',
+              message: `Response request for unknown message id ${messageId} is not iterable`,
+              action: commandName
+            });
           }
           if (!responseCallback) {
             // Error
-            throw new BackendError(this.getChargingStationID(), `Response for unknown message id ${messageId}`,
-              'WSConnection', 'onMessage', commandName);
+            throw new BackendError({
+              source: this.getChargingStationID(),
+              module: 'WSConnection',
+              method: 'onMessage',
+              message: `Response for unknown message id ${messageId}`,
+              action: commandName
+            });
           }
           delete this._requests[messageId];
           responseCallback(commandName);
@@ -152,16 +171,26 @@ export default class WSConnection {
           });
           if (!this._requests[messageId]) {
             // Error
-            throw new BackendError(this.getChargingStationID(), `Error for unknown message id ${messageId}`,
-              'WSConnection', 'onMessage', commandName);
+            throw new BackendError({
+              source: this.getChargingStationID(),
+              module: 'WSConnection',
+              method: 'onMessage',
+              message: `Error for unknown message id ${messageId}`,
+              action: commandName
+            });
           }
           // eslint-disable-next-line no-case-declarations
           let rejectCallback: Function;
           if (Utils.isIterable(this._requests[messageId])) {
             [, rejectCallback] = this._requests[messageId];
           } else {
-            throw new BackendError(this.getChargingStationID(), `Error request for unknown message id ${messageId} is not iterable`,
-              'WSConnection', 'onMessage', commandName);
+            throw new BackendError({
+              source: this.getChargingStationID(),
+              module: 'WSConnection',
+              method: 'onMessage',
+              message: `Error request for unknown message id ${messageId} is not iterable`,
+              action: commandName
+            });
           }
           delete this._requests[messageId];
           rejectCallback(new OCPPError(commandName, commandPayload, errorDetails));
@@ -169,8 +198,13 @@ export default class WSConnection {
         // Error
         default:
           // Error
-          throw new BackendError(this.getChargingStationID(), `Wrong message type ${messageType}`,
-            'WSConnection', 'onMessage', commandName);
+          throw new BackendError({
+            source: this.getChargingStationID(),
+            module: 'WSConnection',
+            method: 'onMessage',
+            message: `Wrong message type ${messageType}`,
+            action: commandName
+          });
       }
     } catch (error) {
       // Log
