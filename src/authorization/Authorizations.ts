@@ -88,8 +88,17 @@ export default class Authorizations {
     return requestedSites.filter((site) => loggedUser.sites.includes(site));
   }
 
-  public static getAuthorizedSiteAdminIDs(loggedUser: UserToken): string[] {
-    return loggedUser.sitesAdmin;
+  public static getAuthorizedSiteAdminIDs(loggedUser: UserToken, requestedSites: string[]): string[] {
+    if (!Utils.isComponentActiveFromToken(loggedUser, Constants.COMPONENTS.ORGANIZATION)) {
+      return null;
+    }
+    if (this.isAdmin(loggedUser)) {
+      return requestedSites;
+    }
+    if (!requestedSites || requestedSites.length === 0) {
+      return loggedUser.sitesAdmin;
+    }
+    return requestedSites.filter((site) => loggedUser.sitesAdmin.includes(site));
   }
 
   public static async buildUserToken(tenantID: string, user: User): Promise<UserToken> {

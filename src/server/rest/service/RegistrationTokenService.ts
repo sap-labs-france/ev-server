@@ -222,7 +222,7 @@ export default class RegistrationTokenService {
       };
 
       if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
-        params['siteIDs'] = Authorizations.getAuthorizedSiteAdminIDs(req.user);
+        params['siteIDs'] = Authorizations.getAuthorizedSiteAdminIDs(req.user, null);
       }
 
       const dbParams: DbParams = {
