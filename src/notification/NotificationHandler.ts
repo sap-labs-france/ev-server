@@ -87,8 +87,6 @@ export default class NotificationHandler {
 
   static async sendEndOfCharge(tenantID, sourceId, user: User, chargingStation, sourceData, locale, data) {
     try {
-      // Enrich with admins
-      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       // Check notification
       const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_EMAIL, sourceId);
       // Notified?
@@ -112,8 +110,6 @@ export default class NotificationHandler {
 
   static async sendOptimalChargeReached(tenantID, sourceId, user: User, chargingStation, sourceData, locale, data) {
     try {
-      // Enrich with admins
-      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       // Check notification
       const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_EMAIL, sourceId);
       // Notified?
@@ -137,8 +133,6 @@ export default class NotificationHandler {
 
   static async sendEndOfSession(tenantID, sourceId, user: User, chargingStation, sourceData, locale, data) {
     try {
-      // Enrich with admins
-      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       // Check notification
       const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_EMAIL, sourceId);
       // Notified?
@@ -162,8 +156,6 @@ export default class NotificationHandler {
 
   static async sendEndOfSignedSession(tenantID, sourceId, user: User, chargingStation, sourceData, locale, data) {
     try {
-      // Enrich with admins
-      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       // Check notification
       const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_EMAIL, sourceId);
       // Notified?
@@ -187,8 +179,6 @@ export default class NotificationHandler {
 
   static async sendRequestPassword(tenantID, sourceId, user: User, sourceData, locale) {
     try {
-      // Enrich with admins
-      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
         // Save notif
@@ -207,8 +197,6 @@ export default class NotificationHandler {
 
   static async sendNewPassword(tenantID, sourceId, user: User, sourceData, locale) {
     try {
-      // Enrich with admins
-      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
         // Save notif
@@ -226,8 +214,6 @@ export default class NotificationHandler {
 
   static async sendUserAccountStatusChanged(tenantID, sourceId, user: User, sourceData, locale) {
     try {
-      // Enrich with admins
-      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
         // Save notif
@@ -246,8 +232,6 @@ export default class NotificationHandler {
 
   static async sendNewRegisteredUser(tenantID, sourceId, user: User, sourceData, locale) {
     try {
-      // Enrich with admins
-      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
         // Save notif
@@ -266,8 +250,6 @@ export default class NotificationHandler {
 
   static async sendVerificationEmail(tenantID, sourceId, user: User, sourceData, locale) {
     try {
-      // Enrich with admins
-      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
         // Save notif
@@ -346,8 +328,6 @@ export default class NotificationHandler {
 
   static async sendTransactionStarted(tenantID, sourceId, user: User, chargingStation, sourceData, locale, data) {
     try {
-      // Enrich with admins
-      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
       // Check notification
       const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_EMAIL, sourceId);
       // Notified?
