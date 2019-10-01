@@ -15,21 +15,13 @@ export default class SiteAreaStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const siteAreaImagesMDB = await global.database.getCollection<{_id: ObjectID; image: string}>(tenantID, 'siteareaimages')
-      .find({ _id: Utils.convertToObjectID(id) })
-      .limit(1)
-      .toArray();
-    let siteAreaImage: ImageResult = null;
-    // Set
-    if (siteAreaImagesMDB && siteAreaImagesMDB.length > 0) {
-      siteAreaImage = {
-        id: siteAreaImagesMDB[0]._id.toHexString(),
-        image: siteAreaImagesMDB[0].image
-      };
-    }
+    const siteAreaImageMDB = await global.database.getCollection<{_id: ObjectID; image: string}>(tenantID, 'siteareaimages')
+      .findOne({ _id: Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd('SiteAreaStorage', 'getSiteAreaImage', uniqueTimerID, { id });
-    return siteAreaImage;
+    return {
+      id: id, image: siteAreaImageMDB ? siteAreaImageMDB.image : null
+    };;
   }
 
   public static async getSiteArea(tenantID: string, id: string,

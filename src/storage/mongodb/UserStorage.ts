@@ -177,11 +177,13 @@ export default class UserStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const userImageMDB = await global.database.getCollection<{ _id: string; image: string }>(tenantID, 'userimages')
-      .findOne({ _id: id });
+    const userImageMDB: { _id: string; image: string } = await global.database.getCollection(tenantID, 'userimages')
+      .findOne({ _id: Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd('UserStorage', 'getUserImage', uniqueTimerID, { id });
-    return { id: id, image: (userImageMDB ? userImageMDB.image : null) };
+    return {
+      id: id, image: (userImageMDB ? userImageMDB.image : null)
+    };
   }
 
   public static async removeSitesFromUser(tenantID: string, userID: string, siteIDs: string[]): Promise<void> {

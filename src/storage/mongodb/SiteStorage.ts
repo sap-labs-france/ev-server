@@ -31,21 +31,14 @@ export default class SiteStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const siteImagesMDB = await global.database.getCollection<{_id: ObjectID; image: string}>(tenantID, 'siteimages')
-      .find({ _id: Utils.convertToObjectID(id) })
-      .limit(1)
-      .toArray();
-    let siteImage: ImageResult = null;
-    // Set
-    if (siteImagesMDB && siteImagesMDB.length > 0) {
-      siteImage = {
-        id: siteImagesMDB[0]._id.toHexString(),
-        image: siteImagesMDB[0].image
-      };
-    }
+    const siteImageMDB = await global.database.getCollection<{_id: ObjectID; image: string}>(tenantID, 'siteimages')
+      .findOne({ _id: Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd('SiteStorage', 'getSiteImage', uniqueTimerID, { id });
-    return siteImage;
+    return {
+      id: id,
+      image: siteImageMDB ? siteImageMDB.image : null
+    };
   }
 
   public static async removeUsersFromSite(tenantID: string, siteID: string, userIDs: string[]): Promise<void> {
@@ -256,8 +249,8 @@ export default class SiteStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Modify
-    await global.database.getCollection<{_id: string; image: string}>(tenantID, 'siteimages').findOneAndUpdate(
-      { _id: siteID },
+    await global.database.getCollection(tenantID, 'siteimages').findOneAndUpdate(
+      { _id: Utils.convertToObjectID(siteID) },
       { $set: { image: siteImageToSave } },
       { upsert: true, returnOriginal: false }
     );
