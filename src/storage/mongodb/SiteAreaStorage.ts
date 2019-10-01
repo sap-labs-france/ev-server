@@ -21,7 +21,7 @@ export default class SiteAreaStorage {
     Logging.traceEnd('SiteAreaStorage', 'getSiteAreaImage', uniqueTimerID, { id });
     return {
       id: id, image: siteAreaImageMDB ? siteAreaImageMDB.image : null
-    };;
+    };
   }
 
   public static async getSiteArea(tenantID: string, id: string,

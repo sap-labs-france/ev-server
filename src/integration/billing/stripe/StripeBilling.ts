@@ -400,7 +400,7 @@ export default class StripeBilling extends Billing<StripeBillingSettingsContent>
             currency: this.settings.currency.toLocaleLowerCase(),
             amount: Math.round(transaction.stop.roundedPrice * 100),
             description: description,
-            // tax_rates: ['txr_1FOLcGBqHnn8lLLlcCNRYYi3'],
+            // pragma tax_rates: ['txr_1FOLcGBqHnn8lLLlcCNRYYi3'],
           }, {
             idempotency_key: idemPotencyKey.keyNewInvoiceItem
           });

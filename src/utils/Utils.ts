@@ -786,7 +786,7 @@ export default class Utils {
         module: 'VehicleService',
         method: 'checkIfVehicleValid',
         user: req.user.id
-      })
+      });
     }
   }
 
