@@ -187,9 +187,10 @@ export default class TenantService {
     // Save User
     tenantUser.id = await UserStorage.saveUser(filteredRequest.id, tenantUser);
     // Save User Password
-    const password = await Utils.hashPasswordBcrypt(Utils.generatePassword());
+    const password = Utils.generatePassword();
+    const encryptedPassword = await Utils.hashPasswordBcrypt(password);
     await UserStorage.saveUserPassword(filteredRequest.id, tenantUser.id,
-      { password: password, passwordWrongNbrTrials: 0, passwordResetHash: null, passwordBlockedUntil: null });
+      { password: encryptedPassword, passwordWrongNbrTrials: 0, passwordResetHash: null, passwordBlockedUntil: null });
     // Save User Role
     await UserStorage.saveUserRole(filteredRequest.id, tenantUser.id, Constants.ROLE_ADMIN);
     // Save User Account Verification
@@ -205,6 +206,7 @@ export default class TenantService {
       Utils.generateGUID(),
       tenantUser,
       {
+        'tenant': filteredRequest.name,
         'user': tenantUser,
         'evseDashboardURL': Utils.buildEvseURL(filteredRequest.subdomain),
         'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
@@ -217,6 +219,7 @@ export default class TenantService {
       Utils.generateGUID(),
       tenantUser,
       {
+        'tenant': filteredRequest.name,
         'user': tenantUser,
         'hash': null,
         'newPassword': password,
