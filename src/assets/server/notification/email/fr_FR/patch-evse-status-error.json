@@ -1,0 +1,33 @@
+{
+  "subject": "Patch EVSE status error",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Patch EVSE status error",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Dear Admin,",
+      "",
+      "The transfer of EVSE status of charging station <b><%- chargeBoxID %></b>to the location <%- locationID %> has failed. Please check the issue.",
+      ""
+    ],
+    "afterActionLines": [
+      "Best Regards,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
+

@@ -112,6 +112,11 @@ export default class EMailNotificationTask extends NotificationTask {
     return this._prepareAndSendEmail('auth-error-email-server', data, locale, tenantID, true);
   }
 
+  sendPatchEVSEStatusError(data, tenantID) {
+    // Send it
+    return this._prepareAndSendEmail('patch-evse-status-error', data, null, tenantID, true);
+  }
+
   async _prepareAndSendEmail(templateName, data, locale, tenantID, retry = false) {
     // Check locale
     if (!locale || !Constants.SUPPORTED_LOCALES.includes(locale)) {
@@ -216,7 +221,6 @@ export default class EMailNotificationTask extends NotificationTask {
       adminEmails = data.adminUsers.map((adminUser) => adminUser.email).join(';');
     }
     // Filter out the notifications that don't need bcc to admins
-    const bccNeeded = (['charging-station-status-error','charging-station-registered','unknown-user-badged'].includes(templateName)) ? true: false;
     // Send the email
     const message = await this.sendEmail({
       to: this.getUserEmailsFromData(data),
