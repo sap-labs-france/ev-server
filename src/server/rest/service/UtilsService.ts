@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
 import AppError from '../../../exception/AppError';
-import ComponentInactiveError from '../../../exception/ComponentInactiveError';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import UserToken from '../../../types/UserToken';
