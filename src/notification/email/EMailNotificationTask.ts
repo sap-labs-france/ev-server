@@ -107,7 +107,7 @@ export default class EMailNotificationTask extends NotificationTask {
     return this._prepareAndSendEmail('verification-email', data, locale, tenantID);
   }
 
-  sendAuthErrorEmailServer(data, locale, tenantID) {
+  sendSmtpAuthError(data, locale, tenantID) {
     // Send it
     return this._prepareAndSendEmail('smtp-auth-error', data, locale, tenantID, true);
   }
@@ -272,7 +272,7 @@ export default class EMailNotificationTask extends NotificationTask {
       if (err) {
         // If authentifcation error in the primary email server then notify admins using the backup server
         if(!retry && this.serverBackup && err.code === 3 && err.previous.code === 2){
-          NotificationHandler.sendAuthErrorEmailServer(
+          NotificationHandler.sendSmtpAuthError(
             tenantID, locale,
             {
               'evseDashboardURL': data.evseDashboardURL

@@ -15,6 +15,7 @@ export default abstract class NotificationTask {
   abstract sendUnknownUserBadged(data: any, locale: string, tenantID: string): NotificationResult;
   abstract sendTransactionStarted(data: any, locale: string, tenantID: string): NotificationResult;
   abstract sendChargingStationRegistered(data: any, locale: string, tenantID: string): NotificationResult;
-  abstract sendAuthErrorEmailServer(data: any, locale: string, tenantID: string): NotificationResult;
+  abstract sendSmtpAuthError(data: any, locale: string, tenantID: string): NotificationResult;
+  abstract sendOCPIPatchChargingStationsStatusesError(data: any, tenantID: string): NotificationResult;
 
 }

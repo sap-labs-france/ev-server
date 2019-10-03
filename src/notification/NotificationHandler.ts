@@ -351,7 +351,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendAuthErrorEmailServer(tenantID, locale, data) {
+  static async sendSmtpAuthError(tenantID, locale, data) {
     try {
       // Enrich with admins
       data.users = await NotificationHandler.getAdminUsers(tenantID);
@@ -366,7 +366,7 @@ export default class NotificationHandler {
           // Save notif
           await NotificationHandler.saveNotification(tenantID, CHANNEL_SMTP_AUTH, sourceId, SOURCE_AUTH_EMAIL_ERROR, null, null, data);
           // Send email
-          const result = await _email.sendAuthErrorEmailServer(data, locale, tenantID);
+          const result = await _email.sendSmtpAuthError(data, locale, tenantID);
           // Return
           return result;
         }
