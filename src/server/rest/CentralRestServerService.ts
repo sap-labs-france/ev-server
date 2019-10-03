@@ -184,6 +184,7 @@ class RequestMapper {
         this.registerJsonActionsPaths({
           PricingUpdate: PricingService.handleUpdatePricing.bind(this),
           UserUpdate: UserService.handleUpdateUser.bind(this),
+          UpdateUserMobileToken: UserService.handleUpdateUserMobileToken.bind(this),
           ChargingStationUpdateParams: ChargingStationService.handleUpdateChargingStationParams.bind(this),
           TenantUpdate: TenantService.handleUpdateTenant.bind(this),
           SiteUpdate: SiteService.handleUpdateSite.bind(this),

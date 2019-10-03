@@ -336,6 +336,19 @@ export default class UserStorage {
     Logging.traceEnd('UserStorage', 'saveUserStatus', uniqueTimerID);
   }
 
+  public static async saveUserMobileToken(tenantID: string, userID: string, mobileToken: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserMobileToken');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Modify and return the modified document
+    await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
+      { '_id': Utils.convertToObjectID(userID) },
+      { $set: { mobileToken } });
+    // Debug
+    Logging.traceEnd('UserStorage', 'saveUserMobileToken', uniqueTimerID);
+  }
+
   public static async saveUserRole(tenantID: string, userID: string, role: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserRole');

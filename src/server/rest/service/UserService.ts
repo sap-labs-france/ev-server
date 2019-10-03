@@ -370,6 +370,73 @@ export default class UserService {
     next();
   }
 
+  public static async handleUpdateUserMobileToken(action: string, req: Request, res: Response, next: NextFunction) {
+    // Filter
+    const filteredRequest = UserSecurity.filterUserUpdateMobileTokenRequest(req.body);
+    // Check Mandatory fields
+    if (!filteredRequest.mobileToken) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'User\'s mobile token ID must be provided',
+        module: 'UserService',
+        method: 'handleUpdateUserMobileToken',
+        user: req.user,
+        action: action
+      });
+    }
+    // Check auth
+    if (!Authorizations.canUpdateUser(req.user, filteredRequest.id)) {
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_UPDATE,
+        entity: Constants.ENTITY_USER,
+        module: 'UserService',
+        method: 'handleUpdateUserMobileToken',
+        value: filteredRequest.id
+      });
+    }
+    // Get User
+    let user = await UserStorage.getUser(req.user.tenantID, filteredRequest.id);
+    if (!user) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `User with ID '${filteredRequest.id}' does not exist anymore`,
+        module: 'UserService',
+        method: 'handleUpdateUserMobileToken',
+        user: req.user,
+        action: action
+      });
+    }
+    // Deleted?
+    if (user.deleted) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `User with ID '${filteredRequest.id}' is logically deleted`,
+        module: 'UserService',
+        method: 'handleUpdateUserMobileToken',
+        user: req.user,
+        action: action
+      });
+    }
+    // Update User (override TagIDs because it's not of the same type as in filteredRequest)
+    await UserStorage.saveUserMobileToken(req.user.tenantID, user.id, filteredRequest.mobileToken);
+    // Log
+    Logging.logSecurityInfo({
+      tenantID: req.user.tenantID,
+      user: req.user, actionOnUser: user,
+      module: 'UserService', method: 'handleUpdateUserMobileToken',
+      message: `User's mobile token has been updated successfully`,
+      action: action
+    });
+    // Ok
+    res.json(Constants.REST_RESPONSE_SUCCESS);
+    next();
+  }
+
   public static async handleGetUser(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const id = UserSecurity.filterUserByIDRequest(req.query);
