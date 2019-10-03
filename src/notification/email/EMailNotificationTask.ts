@@ -109,12 +109,12 @@ export default class EMailNotificationTask extends NotificationTask {
 
   sendAuthErrorEmailServer(data, locale, tenantID) {
     // Send it
-    return this._prepareAndSendEmail('auth-error-email-server', data, locale, tenantID, true);
+    return this._prepareAndSendEmail('smtp-auth-error', data, locale, tenantID, true);
   }
 
   sendOCPIPatchChargingStationsStatusesError(data, tenantID) {
     // Send it
-    return this._prepareAndSendEmail('patch-evse-status-error', data, null, tenantID, true);
+    return this._prepareAndSendEmail('ocpi-patch-status-error', data, null, tenantID, true);
   }
 
   async _prepareAndSendEmail(templateName, data, locale, tenantID, retry = false) {
