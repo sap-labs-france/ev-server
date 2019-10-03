@@ -112,7 +112,7 @@ export default class EMailNotificationTask extends NotificationTask {
     return this._prepareAndSendEmail('auth-error-email-server', data, locale, tenantID, true);
   }
 
-  sendPatchEVSEStatusError(data, tenantID) {
+  sendOCPIPatchChargingStationsStatusesError(data, tenantID) {
     // Send it
     return this._prepareAndSendEmail('patch-evse-status-error', data, null, tenantID, true);
   }

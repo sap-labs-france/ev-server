@@ -377,12 +377,12 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendPatchEVSEStatusError(tenantID, data) {
+  static async sendOCPIPatchChargingStationsStatusesError(tenantID, data) {
     try {
       // Enrich with admins
       data.users = await NotificationHandler.getAdminUsers(tenantID);
-      // Compute the id as day and hour so that just one of this email is sent per hour per location
-      const sourceId = data.chargeBoxID + '-' + (Math.floor(Date.now()/3600000)).toString();
+      // Compute the id as day and hour so that just one of this email is sent per hour
+      const sourceId = Math.floor(Date.now()/3600000);
       // Check notification
       const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_PATCH_EVSE_STATUS, sourceId);
       // Notified?
@@ -392,7 +392,7 @@ export default class NotificationHandler {
           // Save notif
           await NotificationHandler.saveNotification(tenantID, CHANNEL_PATCH_EVSE_STATUS, sourceId, SOURCE_PATCH_EVSE_STATUS_ERROR, null, null, data);
           // Send email
-          const result = await _email.sendPatchEVSEStatusError(data, tenantID);
+          const result = await _email.sendOCPIPatchChargingStationsStatusesError(data, tenantID);
           // Return
           return result;
         }

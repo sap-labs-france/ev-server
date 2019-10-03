@@ -1,10 +1,10 @@
 {
-  "subject": "Patch EVSE status error",
+  "subject": "OCPI - Erreur lors de la mise à jour de chargeurs.",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Patch EVSE status error",
+      "title": "OCPI - Erreur lors de la mise à jour de chargeurs",
       "image": {
         "left": {
           "height": 60,
@@ -17,13 +17,13 @@
       }
     },
     "beforeActionLines": [
-      "Dear Admin,",
+      "Cher Administrateur,",
       "",
-      "The transfer of EVSE status of charging station <b><%- chargeBoxID %></b>to the location <%- locationID %> has failed. Please check the issue.",
+      "La mise à jour du status de chargeurs a échoué. Veuiilez contrôler les logs de l'application.",
       ""
     ],
     "afterActionLines": [
-      "Best Regards,",
+      "Cordialement,",
       "EV Admins."
     ],
     "footer": {

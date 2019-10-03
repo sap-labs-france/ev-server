@@ -348,7 +348,7 @@ export default class OCPIClient {
               );
             } catch (error) {
               // Send notification to admins
-              NotificationHandler.sendPatchEVSEStatusError(
+              NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
                 tenant.id, 
                 {
                   'locationID': location.id,
