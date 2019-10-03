@@ -107,9 +107,9 @@ export default class TransactionService {
     const user: User = await UserStorage.getUser(req.user.tenantID, req.user.id);
     UtilsService.assertObjectExists(user, `User with ID '${req.user.id}' does not exist`, 'TransactionService', 'handleRefundTransactions', req.user);
 
-    const refundImpl = await RefundFactory.getRefundImpl(req.user.tenantID);
+    const refundConnector = await RefundFactory.getRefundConnector(req.user.tenantID);
 
-    if (!refundImpl) {
+    if (!refundConnector) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: Constants.HTTP_GENERAL_ERROR,
@@ -121,7 +121,7 @@ export default class TransactionService {
       });
     }
 
-    const refundedTransactions = await refundImpl.refund(req.user.tenantID, user.id, transactionsToRefund);
+    const refundedTransactions = await refundConnector.refund(req.user.tenantID, user.id, transactionsToRefund);
     const response: any = {
       ...Constants.REST_RESPONSE_SUCCESS,
       inSuccess: refundedTransactions.length
@@ -227,8 +227,8 @@ export default class TransactionService {
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
     UtilsService.assertObjectExists(transaction, `Transaction with ID '${transactionId}' does not exist`, 'TransactionService', 'handleDeleteTransaction', req.user);
 
-    const refundImpl = await RefundFactory.getRefundImpl(req.user.tenantID);
-    if (refundImpl && !refundImpl.canBeDeleted(transaction)) {
+    const refundConnector = await RefundFactory.getRefundConnector(req.user.tenantID);
+    if (refundConnector && !refundConnector.canBeDeleted(transaction)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: Constants.HTTP_GENERAL_ERROR,

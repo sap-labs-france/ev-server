@@ -17,8 +17,9 @@ import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import BackendError from '../../exception/BackendError';
 import Company from '../../types/Company';
 import CompanyStorage from '../../storage/mongodb/CompanyStorage';
+import RefundConnector from './RefundConnector';
 
-const MODULE_NAME = 'ConcurConnector';
+const MODULE_NAME = 'ConcurRefundConnector';
 const CONNECTOR_ID = 'concur';
 
 /**
@@ -28,7 +29,7 @@ const CONNECTOR_ID = 'concur';
  * Expiration_Date  string  -  The Universal Coordinated Time (UTC) date and time when the access token expires.
  * Refresh_Token  string  -  Token with a new expiration date of a year from the refresh date. You should securely store the refresh token for a user and use it for all subsequent API requests.
  */
-export default class ConcurConnector extends AbstractConnector {
+export default class ConcurRefundConnector extends AbstractConnector implements RefundConnector {
 
   constructor(tenantID, setting) {
     super(tenantID, 'concur', setting);
@@ -161,7 +162,7 @@ export default class ConcurConnector extends AbstractConnector {
         connectorId: CONNECTOR_ID,
         createdAt: now,
         updatedAt: now,
-        validUntil: ConcurConnector.computeValidUntilAt(result)
+        validUntil: ConcurRefundConnector.computeValidUntilAt(result)
       });
     } catch (e) {
       throw new AppError({
@@ -241,7 +242,7 @@ export default class ConcurConnector extends AbstractConnector {
           await TransactionStorage.saveTransaction(tenantID, transaction);
           Logging.logDebug({
             tenantID: tenantID,
-            module: 'ConcurConnector', method: 'updateRefundStatus', action: 'RefundSynchronize',
+            module: 'ConcurRefundConnector', method: 'updateRefundStatus', action: 'RefundSynchronize',
             message: `The Transaction ID '${transaction.id}' has been marked 'Approved'`,
             user: transaction.userID
           });
@@ -249,7 +250,7 @@ export default class ConcurConnector extends AbstractConnector {
         }
         Logging.logDebug({
           tenantID: tenantID,
-          module: 'ConcurConnector', method: 'updateRefundStatus', action: 'RefundSynchronize',
+          module: 'ConcurRefundConnector', method: 'updateRefundStatus', action: 'RefundSynchronize',
           message: `The Transaction ID '${transaction.id}' has not been updated`,
           user: transaction.userID
         });
@@ -259,7 +260,7 @@ export default class ConcurConnector extends AbstractConnector {
         await TransactionStorage.saveTransaction(tenantID, transaction);
         Logging.logDebug({
           tenantID: tenantID,
-          module: 'ConcurConnector', method: 'updateRefundStatus', action: 'RefundSynchronize',
+          module: 'ConcurRefundConnector', method: 'updateRefundStatus', action: 'RefundSynchronize',
           message: `The Transaction ID '${transaction.id}' has been marked 'Cancelled'`,
           user: transaction.userID
         });
@@ -516,7 +517,7 @@ export default class ConcurConnector extends AbstractConnector {
         module: MODULE_NAME, method: 'refreshToken',
         message: `Concur access token has been successfully generated in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
       });
-      connection.updateData(response.data, new Date(), ConcurConnector.computeValidUntilAt(response));
+      connection.updateData(response.data, new Date(), ConcurRefundConnector.computeValidUntilAt(response));
       return ConnectionStorage.saveConnection(this.getTenantID(), connection.getModel());
     } catch (error) {
       throw new AppError({
@@ -546,7 +547,7 @@ export default class ConcurConnector extends AbstractConnector {
       });
     }
 
-    if (ConcurConnector.isTokenExpired(connection)) {
+    if (ConcurRefundConnector.isTokenExpired(connection)) {
       connection = await this.refreshToken(userId, connection);
     }
     return connection;

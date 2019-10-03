@@ -19,8 +19,8 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
       return;
     }
     // Get Concur Settings
-    const refundImpl = await RefundFactory.getRefundImpl(tenant.id);
-    if (!refundImpl) {
+    const refundConnector = await RefundFactory.getRefundConnector(tenant.id);
+    if (!refundConnector) {
       Logging.logDebug({
         tenantID: tenant.id,
         module: 'SynchronizeRefundTransactionsTask',
@@ -52,7 +52,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
       for (const transaction of transactions.result) {
         try {
           // Update Transaction
-          const updatedAction = await refundImpl.updateRefundStatus(tenant.id, transaction);
+          const updatedAction = await refundConnector.updateRefundStatus(tenant.id, transaction);
           switch (updatedAction) {
             case Constants.REFUND_STATUS_CANCELLED:
               actionsDone.cancelled++;
