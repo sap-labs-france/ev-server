@@ -1,12 +1,16 @@
 import AbstractEndpoint from '../AbstractEndpoint';
 import Constants from '../../../../utils/Constants';
 import OCPIMapping from './OCPIMapping';
-import OCPIServerError from '../../../../exception/OCPIServerError';
 import OCPIUtils from '../../OCPIUtils';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
+import { NextFunction, Request, Response } from 'express';
+import Tenant from '../../../../types/Tenant';
+import AppError from '../../../../exception/AppError';
+import AbstractOCPIService from '../../AbstractOCPIService';
 
 const EP_IDENTIFIER = 'locations';
 const EP_VERSION = '2.1.1';
+const MODULE_NAME = 'LocationsEndpoint';
 
 const RECORDS_LIMIT = 20;
 
@@ -14,33 +18,29 @@ const RECORDS_LIMIT = 20;
  * Locations Endpoint
  */export default class LocationsEndpoint extends AbstractEndpoint {
   // Create OCPI Service
-  constructor(ocpiService) {
+  constructor(ocpiService: AbstractOCPIService) {
     super(ocpiService, EP_IDENTIFIER, EP_VERSION);
   }
 
   /**
    * Main Process Method for the endpoint
    */
-  async process(req, res, next, tenant) {
-    try {
-      switch (req.method) {
-        case 'GET':
-          // Call method
-          await this.getLocationRequest(req, res, next, tenant);
-          break;
-        default:
-          res.sendStatus(501);
-          break;
-      }
-    } catch (error) {
-      next(error);
+  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant) {
+    switch (req.method) {
+      case 'GET':
+        // Call method
+        await this.getLocationRequest(req, res, next, tenant);
+        break;
+      default:
+        res.sendStatus(501);
+        break;
     }
   }
 
   /**
    * Get Locations according to the requested url Segment
    */
-  async getLocationRequest(req, res, next, tenant) {
+  async getLocationRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant) {
     // Split URL Segments
     //    /ocpi/cpo/2.0/locations/{location_id}
     //    /ocpi/cpo/2.0/locations/{location_id}/{evse_uid}
@@ -61,10 +61,15 @@ const RECORDS_LIMIT = 20;
 
       // Check if at least of site found
       if (!payload) {
-        throw new OCPIServerError(
-          'OcpiGetLocations',
-          `Connector id '${connectorId}' not found on EVSE uid '${evseUid}' and location id '${locationId}'`, Constants.HTTP_GENERAL_ERROR,
-          EP_IDENTIFIER, 'getLocationRequest');
+        throw new AppError({
+          source: Constants.OCPI_SERVER,
+          module: MODULE_NAME,
+          method: 'getLocationRequest',
+          action: 'OcpiGetLocations',
+          errorCode: Constants.HTTP_GENERAL_ERROR,
+          message: `Connector id '${connectorId}' not found on EVSE uid '${evseUid}' and location id '${locationId}'`,
+          ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
+        });
       }
 
     } else if (locationId && evseUid) {
@@ -72,10 +77,15 @@ const RECORDS_LIMIT = 20;
 
       // Check if at least of site found
       if (!payload) {
-        throw new OCPIServerError(
-          'OcpiGetLocations',
-          `EVSE uid not found '${evseUid}' on location id '${locationId}'`, Constants.HTTP_GENERAL_ERROR,
-          EP_IDENTIFIER, 'getLocationRequest');
+        throw new AppError({
+          source: Constants.OCPI_SERVER,
+          module: MODULE_NAME,
+          method: 'getLocationRequest',
+          action: 'OcpiGetLocations',
+          errorCode: Constants.HTTP_GENERAL_ERROR,
+          message: `EVSE uid not found '${evseUid}' on location id '${locationId}'`,
+          ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
+        });
       }
     } else if (locationId) {
       // Get single location
@@ -83,10 +93,15 @@ const RECORDS_LIMIT = 20;
 
       // Check if at least of site found
       if (!payload) {
-        throw new OCPIServerError(
-          'OcpiGetLocations',
-          `Site id '${locationId}' not found`, Constants.HTTP_GENERAL_ERROR,
-          EP_IDENTIFIER, 'getLocationRequest');
+        throw new AppError({
+          source: Constants.OCPI_SERVER,
+          module: MODULE_NAME,
+          method: 'getLocationRequest',
+          action: 'OcpiGetLocations',
+          errorCode: Constants.HTTP_GENERAL_ERROR,
+          message: `Site id '${locationId}' not found`,
+          ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
+        });
       }
     } else {
       // Get query parameters
@@ -120,7 +135,7 @@ const RECORDS_LIMIT = 20;
    * Get All OCPI Locations from given tenant TODO: move to OCPIMapping
    * @param {Tenant} tenant
    */
-  async getAllLocations(tenant, limit, skip) {
+  async getAllLocations(tenant: Tenant, limit: number, skip: number) {
     // Result
     const result = { count: 0, locations: [] };
 
@@ -144,7 +159,7 @@ const RECORDS_LIMIT = 20;
    * @param {*} tenant
    * @param {*} locationId
    */
-  async getLocation(tenant, locationId) {
+  async getLocation(tenant: Tenant, locationId: string) {
     // Get site
     const site = await SiteStorage.getSite(tenant.id, locationId);
     if (!site) {
@@ -161,7 +176,7 @@ const RECORDS_LIMIT = 20;
    * @param {*} locationId
    * @param {*} evseId
    */
-  async getEvse(tenant, locationId, evseUid) {
+  async getEvse(tenant: Tenant, locationId: string, evseUid: string) {
     // Get site
     const site = await SiteStorage.getSite(tenant.id, locationId);
 
@@ -185,7 +200,7 @@ const RECORDS_LIMIT = 20;
    * @param {*} evseUid
    * @param {*} connectorId
    */
-  async getConnector(tenant, locationId, evseUid, connectorId) {
+  async getConnector(tenant: Tenant, locationId: string, evseUid: string, connectorId: string) {
     // Get site
     const evse = await this.getEvse(tenant, locationId, evseUid);
 
