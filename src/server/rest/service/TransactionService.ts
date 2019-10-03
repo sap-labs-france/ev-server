@@ -5,14 +5,12 @@ import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
 import ChargingStationStorage from '../../../storage/mongodb/ChargingStationStorage';
-import ConcurConnector from '../../../integration/refund/ConcurConnector';
 import Constants from '../../../utils/Constants';
 import ConsumptionStorage from '../../../storage/mongodb/ConsumptionStorage';
 import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import OCPPService from '../../../server/ocpp/services/OCPPService';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
-import SettingStorage from '../../../storage/mongodb/SettingStorage';
 import SynchronizeRefundTransactionsTask from '../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Transaction from '../../../types/Transaction';
@@ -23,6 +21,7 @@ import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 import Consumption from '../../../types/Consumption';
+import RefundFactory from '../../../integration/refund/RefundFactory';
 
 export default class TransactionService {
   static async handleSynchronizeRefundedTransactions(action: string, req: Request, res: Response, next: NextFunction) {
@@ -107,10 +106,22 @@ export default class TransactionService {
     // Get Transaction User
     const user: User = await UserStorage.getUser(req.user.tenantID, req.user.id);
     UtilsService.assertObjectExists(user, `User with ID '${req.user.id}' does not exist`, 'TransactionService', 'handleRefundTransactions', req.user);
-    // Refund the Transaction
-    const setting = await SettingStorage.getSettingByIdentifier(req.user.tenantID, 'refund');
-    const connector = new ConcurConnector(req.user.tenantID, setting.content[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]);
-    const refundedTransactions = await connector.refund(req.user.tenantID, user.id, transactionsToRefund);
+
+    const refundConnector = await RefundFactory.getRefundConnector(req.user.tenantID);
+
+    if (!refundConnector) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'No Refund Implementation Found',
+        module: 'TransactionService',
+        method: 'handleRefundTransactions',
+        user: req.user,
+        action: action
+      });
+    }
+
+    const refundedTransactions = await refundConnector.refund(req.user.tenantID, user.id, transactionsToRefund);
     const response: any = {
       ...Constants.REST_RESPONSE_SUCCESS,
       inSuccess: refundedTransactions.length
@@ -215,6 +226,18 @@ export default class TransactionService {
     // Get Transaction
     const transaction = await TransactionStorage.getTransaction(req.user.tenantID, transactionId);
     UtilsService.assertObjectExists(transaction, `Transaction with ID '${transactionId}' does not exist`, 'TransactionService', 'handleDeleteTransaction', req.user);
+
+    const refundConnector = await RefundFactory.getRefundConnector(req.user.tenantID);
+    if (refundConnector && !refundConnector.canBeDeleted(transaction)) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'A refunded transaction cannot be deleted',
+        module: 'TransactionService',
+        method: 'handleDeleteTransaction',
+        user: req.user
+      });
+    }
 
     // Handle active transactions
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, transaction.chargeBoxID);

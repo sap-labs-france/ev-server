@@ -4,7 +4,7 @@ import AbstractConnector from '../../../integration/AbstractConnector';
 import AppAuthError from '../../../exception/AppAuthError';
 import AppError from '../../../exception/AppError';
 import Authorizations from '../../../authorization/Authorizations';
-import ConcurConnector from '../../../integration/refund/ConcurConnector';
+import ConcurRefundConnector from '../../../integration/refund/ConcurRefundConnector';
 import ConnectionValidator from '../validation/ConnectionValidator';
 import ConnectorSecurity from './security/ConnectorSecurity';
 import Constants from '../../../utils/Constants';
@@ -190,7 +190,7 @@ export default class ConnectorService {
   private static instantiateConnector(tenantId, connectorId, setting) {
     switch (connectorId) {
       case 'concur':
-        return new ConcurConnector(tenantId, setting);
+        return new ConcurRefundConnector(tenantId, setting);
     }
   }
 }
