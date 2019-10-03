@@ -74,10 +74,12 @@ export default class OCPIEndpointStorage {
     // Check if ID is provided
     if (!ocpiEndpointToSave.id && !ocpiEndpointToSave.name) {
       // ID must be provided!
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'OCPIEndpoint has no ID and no Name',
-        'OCPIEndpointStorage', 'saveOcpiEndpoint');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'OCPIEndpointStorage',
+        method: 'saveOcpiEndpoint',
+        message: 'OCPIEndpoint has no ID and no Name'
+      });
     }
     const ocpiEndpointFilter: any = {};
     // Build Request

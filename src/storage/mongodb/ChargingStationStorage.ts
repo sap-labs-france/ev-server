@@ -227,8 +227,12 @@ export default class ChargingStationStorage {
     if (params.errorType && Array.isArray(params.errorType) && params.errorType.length > 0) {
       // Check allowed
       if (!Utils.isTenantComponentActive(await TenantStorage.getTenant(tenantID), Constants.COMPONENTS.ORGANIZATION) && params.errorType.includes('missingSiteArea')) {
-        throw new BackendError(null, 'Organization is not active whereas filter is on missing site.',
-          'ChargingStationStorage', 'getChargingStationsInError');
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: 'ChargingStationStorage',
+          method: 'getChargingStationsInError',
+          message: 'Organization is not active whereas filter is on missing site.'
+        });
       }
       // Build facet only for one error type
       const array = [];
@@ -365,10 +369,12 @@ export default class ChargingStationStorage {
       { $set: chargingStationMDB },
       { upsert: true });
     if (!result.ok) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Couldn\'t update ChargingStation',
-        'ChargingStationStorage', 'saveChargingStation');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'ChargingStationStorage',
+        method: 'saveChargingStation',
+        message: 'Could not update ChargingStation'
+      });
     }
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'saveChargingStation', uniqueTimerID);
@@ -402,10 +408,12 @@ export default class ChargingStationStorage {
       { $set: updatedFields },
       { upsert: true });
     if (!result.ok) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Couldn\'t update ChargingStation connector',
-        'ChargingStationStorage', 'saveChargingStationConnector');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'ChargingStationStorage',
+        method: 'saveChargingStationConnector',
+        message: 'Could not update ChargingStation connector'
+      });
     }
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'saveChargingStationConnector', uniqueTimerID);
@@ -426,10 +434,12 @@ export default class ChargingStationStorage {
       { $set: updatedFields },
       { upsert: true });
     if (!result.ok) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Couldn\'t update ChargingStation heartbeat',
-        'ChargingStationStorage', 'saveChargingStationHeartBeat');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'ChargingStationStorage',
+        method: 'saveChargingStationHeartBeat',
+        message: 'Could not update ChargingStation heartbeat'
+      });
     }
     // Debug
     Logging.traceEnd('ChargingStationStorage', 'saveChargingStationHeartBeat', uniqueTimerID);

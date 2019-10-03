@@ -125,23 +125,33 @@ export default class EMailNotificationTask extends NotificationTask {
     // Check users
     if (!data.user && !data.users && !data.adminUsers) {
       // Error
-      throw new BackendError(null, `No User is provided for '${templateName}'`,
-        'EMailNotificationTask', '_prepareAndSendEmail');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'EMailNotificationTask',
+        method: '_prepareAndSendEmail',
+        message: `No User is provided for '${templateName}'`
+      });
     }
     // Create email
     const emailTemplate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/${locale}/${templateName}.json`, 'utf8'));
     // Template found?
     if (!emailTemplate) {
       // Error
-      throw new BackendError(null, `No Email template found for '${templateName}'`,
-        'EMailNotificationTask', '_prepareAndSendEmail');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'EMailNotificationTask',
+        method: '_prepareAndSendEmail',
+        message: `No Email template found for '${templateName}'`
+      });
     }
 
     // Render the localized template ---------------------------------------
     // Render the subject
     emailTemplate.subject = ejs.render(emailTemplate.subject, data);
     // Render the tenant name
-    if (tenantID !== Constants.DEFAULT_TENANT) {
+    if (data.tenant) {
+      emailTemplate.tenant = data.tenant;
+    } else if (tenantID !== Constants.DEFAULT_TENANT) {
       const tenant = await TenantStorage.getTenant(tenantID);
       emailTemplate.tenant = tenant.name;
     } else {

@@ -6,7 +6,6 @@ import passport from 'passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import Authorizations from '../../../authorization/Authorizations';
 import AppError from '../../../exception/AppError';
-import BadRequestError from '../../../exception/BadRequestError';
 import BillingFactory from '../../../integration/billing/BillingFactory';
 import NotificationHandler from '../../../notification/NotificationHandler';
 import SiteStorage from '../../../storage/mongodb/SiteStorage';
@@ -51,54 +50,67 @@ export default class AuthService {
   }
 
   public static async handleLogIn(action: string, req: Request, res: Response, next: NextFunction) {
-    let tenantID: string;
     // Filter
     const filteredRequest = AuthSecurity.filterLoginRequest(req.body);
     // Get Tenant
-    tenantID = await AuthService.getTenantID(filteredRequest.tenant);
-    req.user = { tenantID };
+    const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
     if (!tenantID) {
-      tenantID = Constants.DEFAULT_TENANT;
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `User with email '${filteredRequest.email}' tried to log in with an unknown tenant '${filteredRequest.tenant}'!`,
-        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        'AuthService', 'handleLogIn', null, null, action);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `User with email '${filteredRequest.email}' tried to log in with an unknown tenant '${filteredRequest.tenant}'!`,
+        module: 'AuthService',
+        method: 'handleLogIn',
+        action: action
+      });
     }
+    req.user = { tenantID };
     // Check
     if (!filteredRequest.email) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The Email is mandatory',
-        Constants.HTTP_GENERAL_ERROR,
-        'AuthService', 'handleLogIn');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The Email is mandatory',
+        module: 'AuthService',
+        method: 'handleLogIn'
+      });
     }
     if (!filteredRequest.password) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The Password is mandatory',
-        Constants.HTTP_GENERAL_ERROR,
-        'AuthService', 'handleLogIn');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The Password is mandatory',
+        module: 'AuthService',
+        method: 'handleLogIn'
+      });
     }
     if (!filteredRequest.acceptEula) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The End-user License Agreement is mandatory',
-        Constants.HTTP_USER_EULA_ERROR,
-        'AuthService', 'handleLogIn');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_USER_EULA_ERROR,
+        message: 'The End-user License Agreement is mandatory',
+        module: 'AuthService',
+        method: 'handleLogIn'
+      });
     }
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
     if (!user) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The user with email '${filteredRequest.email}' does not exist for tenant '${(filteredRequest.tenant ? filteredRequest.tenant : tenantID)}'`,
-        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleLogIn');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `The user with email '${filteredRequest.email}' does not exist for tenant '${(filteredRequest.tenant ? filteredRequest.tenant : tenantID)}'`,
+        module: 'AuthService',
+        method: 'handleLogIn'
+      });
     }
     if (user.deleted) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The user with email '${filteredRequest.email}' is logically deleted`,
-        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleLogIn');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `The user with email '${filteredRequest.email}' is logically deleted`,
+        module: 'AuthService',
+        method: 'handleLogIn'
+      });
     }
     // Check if the number of trials is reached
     if (user.passwordWrongNbrTrials >= _centralSystemRestConfig.passwordWrongNumberOfTrial) {
@@ -124,12 +136,13 @@ export default class AuthService {
           await AuthService.checkUserLogin(action, tenantID, updatedUser, filteredRequest, req, res, next);
         } else {
           // Return data
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            'User is locked',
-            Constants.HTTP_USER_LOCKED_ERROR,
-            'AuthService', 'handleLogIn',
-            user);
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            errorCode: Constants.HTTP_USER_LOCKED_ERROR,
+            message: 'User is locked',
+            module: 'AuthService',
+            method: 'handleLogIn'
+          });
         }
       } else {
         // An admin has reactivated the account
@@ -149,55 +162,69 @@ export default class AuthService {
     const filteredRequest = AuthSecurity.filterRegisterUserRequest(req.body);
     // Get the Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
+
     if (!tenantID) {
-      const error = new BadRequestError({
-        path: 'tenant',
-        message: 'The Tenant cannot be found'
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `User is trying to register with an unknown tenant '${filteredRequest.tenant}'!`,
+        module: 'AuthService',
+        method: 'handleGetEndUserLicenseAgreement'
       });
-      // Log Error
-      Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleRegisterUser', Constants.DEFAULT_TENANT);
-      next(error);
-      return;
     }
     req.user = { tenantID };
     // Check EULA
     if (!filteredRequest.acceptEula) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The End-user License Agreement is mandatory',
-        520, 'AuthService', 'handleLogIn');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_USER_EULA_ERROR,
+        message: 'The End-user License Agreement is mandatory',
+        module: 'AuthService',
+        method: 'handleLogIn'
+      });
     }
     // Check
     if (!filteredRequest.captcha) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The captcha is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'AuthService', 'handleRegisterUser');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The captcha is mandatory',
+        module: 'AuthService',
+        method: 'handleRegisterUser'
+      });
     }
     // Check Captcha
     const response = await axios.get(
       `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`);
     if (!response.data.success) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The captcha is invalid', Constants.HTTP_GENERAL_ERROR,
-        'AuthService', 'handleRegisterUser');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The captcha is invalid',
+        module: 'AuthService',
+        method: 'handleRegisterUser'
+      });
     } else if (response.data.score < 0.5) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The captcha score is too low', Constants.HTTP_GENERAL_ERROR,
-        'AuthService', 'handleRegisterUser');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The captcha score is too low',
+        module: 'AuthService',
+        method: 'handleRegisterUser'
+      });
     }
     // Check Mandatory fields
     Utils.checkIfUserValid(filteredRequest, null, req);
     // Check email
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
     if (user) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Email already exists', Constants.HTTP_USER_EMAIL_ALREADY_EXIST_ERROR,
-        'AuthService', 'handleRegisterUser',
-        null, user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_USER_EMAIL_ALREADY_EXIST_ERROR,
+        message: 'Email already exists',
+        module: 'AuthService',
+        method: 'handleRegisterUser'
+      });
     }
     // Generate a password
     const newPasswordHashed = await Utils.hashPasswordBcrypt(filteredRequest.password);
@@ -286,27 +313,34 @@ export default class AuthService {
   public static async checkAndSendResetPasswordConfirmationEmail(tenantID: string, filteredRequest: Partial<HttpResetPasswordRequest>, action: string, req: Request, res: Response, next: NextFunction) {
     // No hash: Send email with init pass hash link
     if (!filteredRequest.captcha) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The captcha is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'AuthService', 'handleUserPasswordReset');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The captcha is mandatory',
+        module: 'AuthService',
+        method: 'handleUserPasswordReset'
+      });
     }
     // Check captcha
     const response = await axios.get(
       `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`);
     // Check
     if (!response.data.success) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The reCaptcha is invalid',
-        Constants.HTTP_AUTH_INVALID_CAPTCHA,
-        'AuthService', 'handleRegisterUser');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The reCaptcha is invalid',
+        module: 'AuthService',
+        method: 'handleRegisterUser'
+      });
     } else if (response.data.score < 0.5) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The reCaptcha score is too low, got ${response.data.score} and expected to be >= 0.5`,
-        Constants.HTTP_AUTH_INVALID_CAPTCHA,
-        'AuthService', 'handleRegisterUser');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: `The reCaptcha score is too low, got ${response.data.score} and expected to be >= 0.5`,
+        module: 'AuthService',
+        method: 'handleRegisterUser'
+      });
     }
     // Yes: Generate new password
     const resetHash = Utils.generateGUID();
@@ -314,19 +348,23 @@ export default class AuthService {
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
     // Found?
     if (!user) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `User with email '${filteredRequest.email}' does not exist`,
-        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        'AuthService', 'handleUserPasswordReset');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `User with email '${filteredRequest.email}' does not exist`,
+        module: 'AuthService',
+        method: 'handleUserPasswordReset'
+      });
     }
     // Deleted
     if (user.deleted) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `User with email '${filteredRequest.email}' is logically deleted`,
-        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        'AuthService', 'handleUserPasswordReset');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `User with email '${filteredRequest.email}' is logically deleted`,
+        module: 'AuthService',
+        method: 'handleUserPasswordReset'
+      });
     }
     // Init Password info
     await UserStorage.saveUserPassword(tenantID, user.id, { passwordResetHash: resetHash });
@@ -363,30 +401,23 @@ export default class AuthService {
     const user = await UserStorage.getUserByPasswordResetHash(tenantID, filteredRequest.hash);
     // Found?
     if (!user) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `User with password reset hash '${filteredRequest.hash}' does not exist`,
-        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleUserPasswordReset');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `User with password reset hash '${filteredRequest.hash}' does not exist`,
+        module: 'AuthService',
+        method: 'handleUserPasswordReset'
+      });
     }
     // Deleted
     if (user.deleted) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `User with password reset hash '${filteredRequest.hash}' is logically deleted`,
-        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'handleUserPasswordReset');
-    }
-
-    if (!filteredRequest.password || !Utils.isPasswordValid(filteredRequest.password)) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The user password is not valid', Constants.HTTP_GENERAL_ERROR,
-        'AuthService', 'handleUserPasswordReset', req.user.id, filteredRequest.id);
-    }
-    if (!filteredRequest.repeatPassword || filteredRequest.password !== filteredRequest.repeatPassword) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Password and repeatPassword do not match', Constants.HTTP_GENERAL_ERROR,
-        'AuthService', 'handleUserPasswordReset', req.user.id, filteredRequest.id);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `User with password reset hash '${filteredRequest.hash}' is logically deleted`,
+        module: 'AuthService',
+        method: 'handleUserPasswordReset'
+      });
     }
     // Hash it
     const newHashedPassword = await Utils.hashPasswordBcrypt(filteredRequest.password);
@@ -417,15 +448,16 @@ export default class AuthService {
     const filteredRequest = AuthSecurity.filterResetPasswordRequest(req.body);
     // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
+
     if (!tenantID) {
-      const error = new BadRequestError({
-        path: 'tenant',
-        message: 'The Tenant is mandatory'
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `User is trying to access resource with an unknown tenant '${filteredRequest.tenant}'!`,
+        module: 'AuthService',
+        method: 'handleUserPasswordReset',
+        action: action
       });
-      // Log Error
-      Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleUserPasswordReset', Constants.DEFAULT_TENANT);
-      next(error);
-      return;
     }
     // Check hash
     if (!filteredRequest.hash) {
@@ -442,28 +474,34 @@ export default class AuthService {
     const filteredRequest = AuthSecurity.filterCheckEulaRequest(req.query);
     // Check
     if (!filteredRequest.Tenant) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The Tenant is mandatory',
-        Constants.HTTP_GENERAL_ERROR,
-        'AuthService', 'handleCheckEndUserLicenseAgreement');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The Tenant is mandatory',
+        module: 'AuthService',
+        method: 'handleCheckEndUserLicenseAgreement'
+      });
     }
     // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.Tenant);
     if (!tenantID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The Tenant is mandatory',
-        Constants.HTTP_GENERAL_ERROR,
-        'AuthService', 'handleCheckEndUserLicenseAgreement');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The Tenant is mandatory',
+        module: 'AuthService',
+        method: 'handleCheckEndUserLicenseAgreement'
+      });
     }
     // Check hash
     if (!filteredRequest.Email) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The Email is mandatory',
-        Constants.HTTP_GENERAL_ERROR,
-        'AuthService', 'handleCheckEndUserLicenseAgreement');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The Email is mandatory',
+        module: 'AuthService',
+        method: 'handleCheckEndUserLicenseAgreement'
+      });
     }
     // Get User
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.Email);
@@ -471,7 +509,7 @@ export default class AuthService {
       // Do not return error, only reject it
       res.json({ eulaAccepted: false });
       next();
-      return
+      return;
     }
     // Get last Eula version
     const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, user.locale.substring(0, 2));
@@ -484,22 +522,23 @@ export default class AuthService {
     // Check if version matches
     res.json({ eulaAccepted: false });
     next();
-}
+  }
 
   public static async handleGetEndUserLicenseAgreement(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = AuthSecurity.filterEndUserLicenseAgreementRequest(req);
     // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
+
     if (!tenantID) {
-      const error = new BadRequestError({
-        path: 'tenant',
-        message: 'The Tenant is mandatory'
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `User is trying to access resource with an unknown tenant '${filteredRequest.tenant}'!`,
+        module: 'AuthService',
+        method: 'handleGetEndUserLicenseAgreement',
+        action: action
       });
-      // Log Error
-      Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleGetEndUserLicenseAgreement', Constants.DEFAULT_TENANT);
-      next(error);
-      return;
     }
     // Get it
     const endUserLicenseAgreement = await UserStorage.getEndUserLicenseAgreement(tenantID, filteredRequest.Language);
@@ -516,74 +555,103 @@ export default class AuthService {
     const filteredRequest = AuthSecurity.filterVerifyEmailRequest(req.query);
     // Get Tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
+
     if (!tenantID) {
-      const error = new BadRequestError({
-        path: 'tenant',
-        message: 'The Tenant is mandatory'
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `User is trying to access resource with an unknown tenant '${filteredRequest.tenant}'!`,
+        module: 'AuthService',
+        method: 'handleVerifyEmail',
+        action: action
       });
-      // Log Error
-      Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleVerifyEmail', Constants.DEFAULT_TENANT);
-      next(error);
-      return;
     }
     // Check that this is not the super tenant
     if (tenantID === Constants.DEFAULT_TENANT) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Cannot verify email in the Super Tenant', Constants.HTTP_GENERAL_ERROR,
-        'AuthService', 'handleVerifyEmail');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Cannot verify email in the Super Tenant',
+        module: 'AuthService',
+        method: 'handleVerifyEmail',
+        action: action
+      });
     }
     // Check email
     if (!filteredRequest.Email) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The Email is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'AuthService', 'handleVerifyEmail');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The Email is mandatory',
+        module: 'AuthService',
+        method: 'handleVerifyEmail',
+        action: action
+      });
     }
     // Check verificationToken
     if (!filteredRequest.VerificationToken) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Verification Token is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'AuthService', 'handleVerifyEmail');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Verification Token is mandatory',
+        module: 'AuthService',
+        method: 'handleVerifyEmail',
+        action: action
+      });
     }
     // Check email
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.Email);
     // User exists?
     if (!user) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The user with email '${filteredRequest.Email}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        'AuthService', 'handleVerifyEmail');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `The user with email '${filteredRequest.Email}' does not exist`,
+        module: 'AuthService',
+        method: 'handleVerifyEmail',
+        action: action
+      });
     }
     // User deleted?
     if (user.deleted) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The user with email '${filteredRequest.Email}' is logically deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        'AuthService', 'handleVerifyEmail', user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `The user with email '${filteredRequest.Email}' is logically deleted`,
+        module: 'AuthService',
+        method: 'handleVerifyEmail',
+        user: user
+      });
     }
     // Check if account is already active
     if (user.status === Constants.USER_STATUS_ACTIVE) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Account is already active', Constants.HTTP_USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
-        'AuthService', 'handleVerifyEmail', user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
+        message: 'Account is already active',
+        module: 'AuthService',
+        method: 'handleVerifyEmail',
+        user: user
+      });
     }
     // Check verificationToken
     if (user.verificationToken !== filteredRequest.VerificationToken) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Wrong Verification Token', Constants.HTTP_AUTH_INVALID_TOKEN_ERROR,
-        'AuthService', 'handleVerifyEmail', user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_AUTH_INVALID_TOKEN_ERROR,
+        message: 'Wrong Verification Token',
+        module: 'AuthService',
+        method: 'handleVerifyEmail',
+        user: user
+      });
     }
     // For integration with billing
-    const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
+    const billingImpl = await BillingFactory.getBillingImpl(tenantID);
     // Save User Status
     await UserStorage.saveUserStatus(tenantID, user.id, Constants.USER_STATUS_ACTIVE);
     if (billingImpl) {
       const billingData = await billingImpl.updateUser(user, req);
-      await UserStorage.saveUserBillingData(req.user.tenantID, user.id, billingData);
+      await UserStorage.saveUserBillingData(tenantID, user.id, billingData);
     }
     // Save User Verification Account
     await UserStorage.saveUserAccountVerification(tenantID, user.id,
@@ -606,74 +674,108 @@ export default class AuthService {
     const filteredRequest = AuthSecurity.filterResendVerificationEmail(req.body);
     // Get the tenant
     const tenantID = await AuthService.getTenantID(filteredRequest.tenant);
+
     if (!tenantID) {
-      const error = new BadRequestError({
-        path: 'tenant',
-        message: 'The Tenant is mandatory'
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `User is trying to access resource with an unknown tenant '${filteredRequest.tenant}'!`,
+        module: 'AuthService',
+        method: 'handleResendVerificationEmail',
+        action: action
       });
-      // Log Error
-      Logging.logException(error, action, Constants.CENTRAL_SERVER, 'AuthService', 'handleResendVerificationEmail', Constants.DEFAULT_TENANT);
-      next(error);
-      return;
     }
     // Check that this is not the super tenant
     if (tenantID === Constants.DEFAULT_TENANT) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Cannot request a verification Email in the Super Tenant', Constants.HTTP_GENERAL_ERROR,
-        'AuthService', 'handleResendVerificationEmail');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Cannot request a verification Email in the Super Tenant',
+        module: 'AuthService',
+        method: 'handleResendVerificationEmail',
+        action: action
+      });
     }
     // Check email
     if (!filteredRequest.email) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The Email is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'AuthService', 'handleResendVerificationEmail');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The Email is mandatory',
+        module: 'AuthService',
+        method: 'handleResendVerificationEmail',
+        action: action
+      });
     }
     // Check captcha
     if (!filteredRequest.captcha) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The captcha is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'AuthService', 'handleResendVerificationEmail');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The captcha is mandatory',
+        module: 'AuthService',
+        method: 'handleResendVerificationEmail',
+        action: action
+      });
     }
 
     // Is valid captcha?
     const response = await axios.get(
       `https://www.google.com/recaptcha/api/siteverify?secret=${_centralSystemRestConfig.captchaSecretKey}&response=${filteredRequest.captcha}&remoteip=${req.connection.remoteAddress}`);
     if (!response.data.success) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The captcha is invalid', Constants.HTTP_GENERAL_ERROR,
-        'AuthService', 'handleResendVerificationEmail');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The captcha is invalid',
+        module: 'AuthService',
+        method: 'handleResendVerificationEmail',
+        action: action
+      });
     } else if (response.data.score < 0.5) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The captcha score is too low', Constants.HTTP_GENERAL_ERROR,
-        'AuthService', 'handleResendVerificationEmail');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The captcha is too low',
+        module: 'AuthService',
+        method: 'handleResendVerificationEmail',
+        action: action
+      });
     }
     // Is valid email?
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
     // User exists?
     if (!user) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The user with email '${filteredRequest.email}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        'AuthService', 'handleResendVerificationEmail');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `The user with email '${filteredRequest.email}' does not exist`,
+        module: 'AuthService',
+        method: 'handleResendVerificationEmail',
+        action: action
+      });
     }
     // User deleted?
     if (user.deleted) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The user with email '${filteredRequest.email}' is logically deleted`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        'AuthService', 'handleResendVerificationEmail', user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `The user with email '${filteredRequest.email}' is logically deleted`,
+        module: 'AuthService',
+        method: 'handleResendVerificationEmail',
+        action: action
+      });
     }
     // Check if account is already active
     if (user.status === Constants.USER_STATUS_ACTIVE) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Account is already active', Constants.HTTP_USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
-        'AuthService', 'handleResendVerificationEmail', user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_USER_ACCOUNT_ALREADY_ACTIVE_ERROR,
+        message: 'Account is already active',
+        module: 'AuthService',
+        method: 'handleResendVerificationEmail',
+        action: action,
+        user: user
+      });
     }
     let verificationToken;
     // Check verificationToken
@@ -740,23 +842,28 @@ export default class AuthService {
           passwordBlockedUntil: moment().add(_centralSystemRestConfig.passwordBlockedWaitTimeMin, 'm').toDate()
         });
       // Log
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'User is locked',
-        Constants.HTTP_USER_LOCKED_ERROR,
-        'AuthService', 'checkUserLogin',
-        user
-      );
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_USER_LOCKED_ERROR,
+        message: 'User is locked',
+        module: 'AuthService',
+        method: 'checkUserLogin',
+        action: action,
+        user: user
+      });
     } else {
       // Save User Nbr Password Trials
       await UserStorage.saveUserPassword(tenantID, user.id, { passwordWrongNbrTrials });
       // Log
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `User failed to log in, ${_centralSystemRestConfig.passwordWrongNumberOfTrial - user.passwordWrongNbrTrials} trial(s) remaining`,
-        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'checkUserLogin',
-        user
-      );
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `User failed to log in, ${_centralSystemRestConfig.passwordWrongNumberOfTrial - user.passwordWrongNbrTrials} trial(s) remaining`,
+        module: 'AuthService',
+        method: 'checkUserLogin',
+        action: action,
+        user: user
+      });
     }
   }
 
@@ -814,11 +921,14 @@ export default class AuthService {
   public static async checkUserLogin(action: string, tenantID: string, user: User, filteredRequest: Partial<HttpLoginRequest>, req: Request, res: Response, next: NextFunction) {
     // User Found?
     if (!user) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Unknown user tried to log in with email '${filteredRequest.email}'`,
-        Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR, 'AuthService', 'checkUserLogin',
-        user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `Unknown user tried to log in with email '${filteredRequest.email}'`,
+        module: 'AuthService',
+        method: 'checkUserLogin',
+        user: user
+      });
     }
 
     // Check password
@@ -827,21 +937,25 @@ export default class AuthService {
     if (match || (user.password === Utils.hashPassword(filteredRequest.password))) {
       // Check if the account is pending
       if (user.status === Constants.USER_STATUS_PENDING) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          'Account is pending! User must activate his account in his email',
-          Constants.HTTP_USER_ACCOUNT_PENDING_ERROR,
-          'AuthService', 'checkUserLogin',
-          user);
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: Constants.HTTP_USER_ACCOUNT_PENDING_ERROR,
+          message: 'Account is pending! User must activate his account in his email',
+          module: 'AuthService',
+          method: 'checkUserLogin',
+          user: user
+        });
       }
       // Check if the account is active
       if (user.status !== Constants.USER_STATUS_ACTIVE) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `Account is not active ('${user.status}')`,
-          Constants.HTTP_USER_ACCOUNT_INACTIVE_ERROR,
-          'AuthService', 'checkUserLogin',
-          user);
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: Constants.HTTP_USER_ACCOUNT_INACTIVE_ERROR,
+          message: `Account is not active ('${user.status}')`,
+          module: 'AuthService',
+          method: 'checkUserLogin',
+          user: user
+        });
       }
       // Login OK
       await AuthService.userLoginSucceeded(action, tenantID, user, req, res, next);

@@ -54,9 +54,12 @@ export default class OCPPService {
       }
       // Set the ChargeBox ID
       if (!headers.chargeBoxIdentity) {
-        throw new BackendError(Constants.CENTRAL_SERVER,
-          'Should have the required property \'chargeBoxIdentity\'!',
-          'OCPPUtils', '_checkAndGetChargingStation');
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: 'OCPPService',
+          method: '_checkAndGetChargingStation',
+          message: 'Should have the required property \'chargeBoxIdentity\'!'
+        });
       }
       bootNotification.id = headers.chargeBoxIdentity;
       bootNotification.chargeBoxID = headers.chargeBoxIdentity;
@@ -71,23 +74,32 @@ export default class OCPPService {
       let chargingStation = await ChargingStationStorage.getChargingStation(headers.tenantID, headers.chargeBoxIdentity);
       if (!chargingStation) {
         if (!headers.token) {
-          throw new BackendError(
-            headers.chargeBoxIdentity,
-            `Registration rejected: Token is required for: '${headers.chargeBoxIdentity}' on ip '${headers.currentIPAddress}'`,
-            'OCPPService', 'handleBootNotification', 'BootNotification');
+          throw new BackendError({
+            source: headers.chargeBoxIdentity,
+            module: 'OCPPService',
+            method: 'handleBootNotification',
+            message: `Registration rejected: Token is required for: '${headers.chargeBoxIdentity}' on ip '${headers.currentIPAddress}'`,
+            action: 'BootNotification'
+          });
         }
         const token: RegistrationToken = await RegistrationTokenStorage.getRegistrationToken(headers.tenantID, headers.token);
         if (!token || !token.expirationDate || moment().isAfter(token.expirationDate)) {
-          throw new BackendError(
-            headers.chargeBoxIdentity,
-            `Registration rejected: Token '${headers.token}' is invalid or expired for: '${headers.chargeBoxIdentity}' on ip '${headers.currentIPAddress}'`,
-            'OCPPService', 'handleBootNotification', 'BootNotification');
+          throw new BackendError({
+            source: headers.chargeBoxIdentity,
+            module: 'OCPPService',
+            method: 'handleBootNotification',
+            message: `Registration rejected: Token '${headers.token}' is invalid or expired for: '${headers.chargeBoxIdentity}' on ip '${headers.currentIPAddress}'`,
+            action: 'BootNotification'
+          });
         }
         if (token.revocationDate || moment().isAfter(token.revocationDate)) {
-          throw new BackendError(
-            headers.chargeBoxIdentity,
-            `Registration rejected: Token '${headers.token}' is revoked for: '${headers.chargeBoxIdentity}' on ip '${headers.currentIPAddress}'`,
-            'OCPPService', 'handleBootNotification', 'BootNotification');
+          throw new BackendError({
+            source: headers.chargeBoxIdentity,
+            module: 'OCPPService',
+            method: 'handleBootNotification',
+            message: `Registration rejected: Token '${headers.token}' is revoked for: '${headers.chargeBoxIdentity}' on ip '${headers.currentIPAddress}'`,
+            action: 'BootNotification'
+          });
         }
         // New Charging Station: Create
         chargingStation = bootNotification;
@@ -106,10 +118,13 @@ export default class OCPPService {
           if (!chargingStation.chargePointSerialNumber || !bootNotification.chargePointSerialNumber ||
             chargingStation.chargePointSerialNumber !== bootNotification.chargePointSerialNumber) {
             // Not the same charger!
-            throw new BackendError(
-              chargingStation.id,
-              `Registration rejected: Vendor, Model or Serial Number attribute is different: '${bootNotification.chargePointVendor}' / '${bootNotification.chargePointModel} / ${bootNotification.chargePointSerialNumber}'! Expected '${chargingStation.chargePointVendor}' / '${chargingStation.chargePointModel}' / '${chargingStation.chargePointSerialNumber}'`,
-              'OCPPService', 'handleBootNotification', 'BootNotification');
+            throw new BackendError({
+              source: chargingStation.id,
+              module: 'OCPPService',
+              method: 'handleBootNotification',
+              message: `Registration rejected: Vendor, Model or Serial Number attribute is different: '${bootNotification.chargePointVendor}' / '${bootNotification.chargePointModel} / ${bootNotification.chargePointSerialNumber}'! Expected '${chargingStation.chargePointVendor}' / '${chargingStation.chargePointModel}' / '${chargingStation.chargePointSerialNumber}'`,
+              action: 'BootNotification'
+            });
           }
         }
         chargingStation.chargePointSerialNumber = bootNotification.chargePointSerialNumber;
@@ -1314,11 +1329,15 @@ export default class OCPPService {
       }
       // Check if the transaction has already been stopped
       if (transaction.stop) {
-        throw new BackendError(chargingStation.id,
-          `Transaction ID '${stopTransaction.transactionId}' has already been stopped`,
-          'OCPPService', 'handleStopTransaction', Constants.ACTION_STOP_TRANSACTION,
-          (alternateUser ? alternateUser : user),
-          (alternateUser ? (user ? user : null) : null));
+        throw new BackendError({
+          source: chargingStation.id,
+          module: 'OCPPService',
+          method: 'handleStopTransaction',
+          message: `Transaction ID '${stopTransaction.transactionId}' has already been stopped`,
+          action: Constants.ACTION_STOP_TRANSACTION,
+          user: (alternateUser ? alternateUser : user),
+          actionOnUser: (alternateUser ? (user ? user : null) : null)
+        });
       }
       // Check and free the connector
       OCPPUtils.checkAndFreeChargingStationConnector(

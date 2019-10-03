@@ -7,12 +7,9 @@ import uuid from 'uuid/v4';
 import AppAuthError from '../exception/AppAuthError';
 import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
-import BadRequestError from '../exception/BadRequestError';
 import Configuration from '../utils/Configuration';
-import ConflictError from '../exception/ConflictError';
 import Constants from './Constants';
 import LoggingStorage from '../storage/mongodb/LoggingStorage';
-import NotFoundError from '../exception/NotFoundError';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
 import Utils from './Utils';
@@ -198,12 +195,6 @@ export default class Logging {
     const log = Logging._buildLog(error, action, source, module, method, tenantID, user);
     if (error instanceof AppAuthError) {
       Logging.logSecurityError(log);
-    } else if (error instanceof BadRequestError) {
-      Logging.logDebug(log);
-    } else if (error instanceof ConflictError) {
-      Logging.logWarning(log);
-    } else if (error instanceof NotFoundError) {
-      Logging.logWarning(log);
     } else if (error instanceof AppError) {
       Logging.logError(log);
     } else if (error instanceof BackendError) {
@@ -214,7 +205,7 @@ export default class Logging {
   }
 
   // Used to log exception in catch(...) only
-  public static logActionExceptionMessage(tenantID, action, exception): void {
+  public static logActionExceptionMessage(tenantID: string, action: string, exception: Error): void {
     // Log App Error
     if (exception instanceof AppError) {
       Logging._logActionAppExceptionMessage(tenantID, action, exception);
@@ -224,9 +215,6 @@ export default class Logging {
     // Log Auth Error
     } else if (exception instanceof AppAuthError) {
       Logging._logActionAppAuthExceptionMessage(tenantID, action, exception);
-    } else if (exception instanceof BadRequestError) {
-      Logging._logActionBadRequestExceptionMessage(tenantID, action, exception);
-    // Log Unexpected
     } else {
       Logging._logActionExceptionMessage(tenantID, action, exception);
     }
@@ -250,14 +238,12 @@ export default class Logging {
     // Log Auth Error
     } else if (exception instanceof AppAuthError) {
       Logging._logActionAppAuthExceptionMessage(tenantID, action, exception);
-    } else if (exception instanceof BadRequestError) {
-      Logging._logActionBadRequestExceptionMessage(tenantID, action, exception);
-    // Log Generic Error
     } else {
       Logging._logActionExceptionMessage(tenantID, action, exception);
     }
+    const errorCode = exception.params ? exception.params.errorCode : exception.errorCode ? exception.errorCode : Constants.HTTP_GENERAL_ERROR;
     // Send error
-    res.status((exception.errorCode ? exception.errorCode : Constants.HTTP_GENERAL_ERROR)).send({
+    res.status(errorCode).send({
       'message': Utils.hideShowMessage(exception.message)
     });
     next();
@@ -287,39 +273,39 @@ export default class Logging {
     });
   }
 
-  private static _logActionAppExceptionMessage(tenantID, action, exception): void {
+  private static _logActionAppExceptionMessage(tenantID: string, action: string, exception: AppError): void {
     const detailedMessages = [];
     detailedMessages.push({
       'stack': exception.stack
     });
-    if (exception.detailedMessages) {
+    if (exception.params.detailedMessages) {
       detailedMessages.push({
-        'details': (exception.detailedMessages instanceof Error ? exception.detailedMessages.stack : exception.detailedMessages)
+        'details': (exception.params.detailedMessages instanceof Error ? exception.params.detailedMessages.stack : exception.params.detailedMessages)
       });
     }
     Logging.logError({
       tenantID: tenantID,
-      source: exception.source,
-      user: exception.user,
-      actionOnUser: exception.actionOnUser,
-      module: exception.module,
-      method: exception.method,
+      source: exception.params.source,
+      user: exception.params.user,
+      actionOnUser: exception.params.actionOnUser,
+      module: exception.params.module,
+      method: exception.params.method,
       action: action,
       message: exception.message,
       detailedMessages
     });
   }
 
-  private static _logActionBackendExceptionMessage(tenantID, action, exception): void {
+  private static _logActionBackendExceptionMessage(tenantID: string, action: string, exception: BackendError): void {
     Logging.logError({
       tenantID: tenantID,
-      source: exception.source,
-      module: exception.module,
-      method: exception.method,
+      source: exception.params.source,
+      module: exception.params.module,
+      method: exception.params.method,
       action: action,
       message: exception.message,
-      user: exception.user,
-      actionOnUser: exception.actionOnUser,
+      user: exception.params.user,
+      actionOnUser: exception.params.actionOnUser,
       detailedMessages: [{
         'stack': exception.stack
       }]
@@ -344,13 +330,13 @@ export default class Logging {
   }
 
   // Used to check URL params (not in catch)
-  private static _logActionAppAuthExceptionMessage(tenantID, action, exception): void {
+  private static _logActionAppAuthExceptionMessage(tenantID: string, action: string, exception: AppAuthError): void {
     Logging.logSecurityError({
       tenantID: tenantID,
-      user: exception.user,
-      actionOnUser: exception.actionOnUser,
-      module: exception.module,
-      method: exception.method,
+      user: exception.params.user,
+      actionOnUser: exception.params.actionOnUser,
+      module: exception.params.module,
+      method: exception.params.method,
       action: action,
       message: exception.message,
       detailedMessages: [{
@@ -359,8 +345,24 @@ export default class Logging {
     });
   }
 
-  private static _buildLog(error, action, source, module, method, tenantID, user: UserToken|User|string): object {
+  private static _buildLog(error, action: string, source: string, module: string, method: string, tenantID: string, user: UserToken|User|string): object {
     const tenant = tenantID ? tenantID : Constants.DEFAULT_TENANT;
+    if (error.params) {
+      return {
+        source: source,
+        user: user,
+        tenantID: tenant,
+        actionOnUser: error.params.actionOnUser,
+        module: module,
+        method: method,
+        action: action,
+        message: error.message,
+        detailedMessages: [{
+          'details': error.params.detailedMessages,
+          'stack': error.stack
+        }]
+      };
+    }
     return {
       source: source,
       user: user,

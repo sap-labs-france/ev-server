@@ -40,7 +40,6 @@ export default class CrudApi {
    * @memberof CrudApi
    */
   public async readById(id, path) {
-    // Execute
     return await this.read({ ID: id }, path);
   }
 
