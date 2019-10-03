@@ -1,6 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
 import AppError from '../../../exception/AppError';
-import ComponentInactiveError from '../../../exception/ComponentInactiveError';
 import Constants from '../../../utils/Constants';
 import Logging from '../../../utils/Logging';
 import UserToken from '../../../types/UserToken';
@@ -53,13 +52,13 @@ export default class UtilsService {
     const active = Utils.isComponentActiveFromToken(userToken, component);
     // Throw
     if (!active) {
-      throw new ComponentInactiveError({
-        component: component,
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        message: `Component ${component} is inactive - Not allowed to perform '${action}' on '${entity}'`,
         action: action,
-        entity: entity,
-        errorCode: Constants.HTTP_AUTH_ERROR,
         module: module,
-        method: method
+        method: method,
+        errorCode: Constants.HTTP_AUTH_ERROR
       });
     }
   }

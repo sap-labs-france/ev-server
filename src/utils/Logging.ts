@@ -13,6 +13,7 @@ import LoggingStorage from '../storage/mongodb/LoggingStorage';
 import User from '../types/User';
 import UserToken from '../types/UserToken';
 import Utils from './Utils';
+import { NextFunction, Request, Response } from 'express';
 
 const _loggingConfig = Configuration.getLoggingConfig();
 let _traceStatistics = null;
@@ -221,7 +222,7 @@ export default class Logging {
   }
 
   // Used to log exception in catch(...) only
-  public static logActionExceptionMessageAndSendResponse(action, exception, req, res, next, tenantID = Constants.DEFAULT_TENANT): void {
+  public static logActionExceptionMessageAndSendResponse(action: string, exception: Error, req: Request, res: Response, next: NextFunction, tenantID = Constants.DEFAULT_TENANT): void {
     // Clear password
     if (action === 'login' && req.body.password) {
       req.body.password = '####';
@@ -229,21 +230,24 @@ export default class Logging {
     if (req.user && req.user.tenantID) {
       tenantID = req.user.tenantID;
     }
+    let statusCode;
     // Log App Error
     if (exception instanceof AppError) {
       Logging._logActionAppExceptionMessage(tenantID, action, exception);
+      statusCode = exception.params.errorCode;
     // Log Backend Error
     } else if (exception instanceof BackendError) {
       Logging._logActionBackendExceptionMessage(tenantID, action, exception);
+      statusCode = Constants.HTTP_GENERAL_ERROR;
     // Log Auth Error
     } else if (exception instanceof AppAuthError) {
       Logging._logActionAppAuthExceptionMessage(tenantID, action, exception);
+      statusCode = exception.params.errorCode;
     } else {
       Logging._logActionExceptionMessage(tenantID, action, exception);
     }
-    const errorCode = exception.params ? exception.params.errorCode : exception.errorCode ? exception.errorCode : Constants.HTTP_GENERAL_ERROR;
     // Send error
-    res.status(errorCode).send({
+    res.status(statusCode ? statusCode : Constants.HTTP_GENERAL_ERROR).send({
       'message': Utils.hideShowMessage(exception.message)
     });
     next();

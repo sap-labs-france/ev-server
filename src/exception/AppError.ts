@@ -5,7 +5,7 @@ export default class AppError extends Error {
   constructor(readonly params: {
     source: string; message: string; errorCode: number; module: string;
     method: string; user?: User | string | UserToken; actionOnUser?: User | string | UserToken;
-    action?: any; detailedMessages?: any;
+    action?: any; detailedMessages?: any; ocpiError?: {status_code: number; status_message: string};
   }) {
     super(params.message);
   }

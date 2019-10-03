@@ -84,7 +84,7 @@ export default class OCPIMapping {
    * Get All OCPI Locations from given tenant
    * @param {Tenant} tenant
    */
-  static async getAllLocations(tenant: Tenant, limit: any, skip: any, options: any) {
+  static async getAllLocations(tenant: Tenant, limit: number, skip: number, options: any) {
     // Result
     const result: any = { count: 0, locations: [] };
 
@@ -225,7 +225,7 @@ export default class OCPIMapping {
   /**
    * Convert ID to evse ID compliant to eMI3 by replacing all non alphanumeric characters tby '*'
    */
-  static convert2evseid(id: any): string {
+  static convert2evseid(id: string): string {
     if (id) {
       return id.replace(/[\W_]+/g, '*').toUpperCase();
     }
@@ -235,7 +235,7 @@ export default class OCPIMapping {
    * Convert internal status to OCPI Status
    * @param {*} status
    */
-  static convertStatus2OCPIStatus(status) {
+  static convertStatus2OCPIStatus(status: string) {
     switch (status) {
       case Constants.CONN_STATUS_AVAILABLE:
         return Constants.EVSE_STATUS.AVAILABLE;

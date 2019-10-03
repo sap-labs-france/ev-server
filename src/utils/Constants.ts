@@ -94,6 +94,7 @@ export default class Constants {
   public static readonly NOTIF_TYPE_CHARGING_STATION_CONFIGURATION = 'Configuration';
 
   public static readonly CENTRAL_SERVER = 'Central Server';
+  public static readonly OCPI_SERVER = 'OCPI Server';
 
   public static readonly WITH_CHARGING_STATIONS = true;
   public static readonly WITHOUT_CHARGING_STATIONS = false;
