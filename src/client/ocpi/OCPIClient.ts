@@ -349,7 +349,7 @@ export default class OCPIClient {
             } catch (error) {
               // Send notification to admins
               NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
-                tenant.id, 
+                tenant.id,
                 {
                   'locationID': location.id,
                   'chargeBoxID': evse.chargeBoxId,
