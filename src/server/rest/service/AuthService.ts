@@ -342,8 +342,6 @@ export default class AuthService {
         method: 'handleRegisterUser'
       });
     }
-    // Yes: Generate new password
-    const resetHash = Utils.generateGUID();
     // Generate a new password
     const user = await UserStorage.getUserByEmail(tenantID, filteredRequest.email);
     // Found?
@@ -366,6 +364,7 @@ export default class AuthService {
         method: 'handleUserPasswordReset'
       });
     }
+    const resetHash = Utils.generateGUID();
     // Init Password info
     await UserStorage.saveUserPassword(tenantID, user.id, { passwordResetHash: resetHash });
     // Log
