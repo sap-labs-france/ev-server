@@ -61,7 +61,8 @@ export default class UserSecurity {
   public static filterUserUpdateMobileTokenRequest(request: any): Partial<HttpUserMobileTokenRequest> {
     return {
       id: sanitize(request.id),
-      mobileToken: sanitize(request.mobileToken)
+      mobileToken: sanitize(request.mobileToken),
+      mobileOS: sanitize(request.mobileOS)
     };
   }
 
