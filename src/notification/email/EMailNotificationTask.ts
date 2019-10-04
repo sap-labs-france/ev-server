@@ -231,10 +231,11 @@ export default class EMailNotificationTask extends NotificationTask {
       adminEmails = data.adminUsers.map((adminUser) => adminUser.email).join(';');
     }
     // Filter out the notifications that don't need bcc to admins
+    const emailTo = this.getUserEmailsFromData(data);
     // Send the email
     const message = await this.sendEmail({
-      to: this.getUserEmailsFromData(data),
-      bcc: adminEmails,
+      to: emailTo ? emailTo : adminEmails,
+      bcc: emailTo ? adminEmails : null,
       subject: subject,
       text: html,
       html: html
