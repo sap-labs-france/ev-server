@@ -1,0 +1,33 @@
+{
+  "subject": "Authentification en erreur sur le serveur d'email principal",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Email authentification error",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Cher Adminsitrateur,",
+      "",
+      "L'authentification sur le serveur d'email principal est en erreur. Merci de contrôler la configuration correspondante.",
+      ""
+    ],
+    "afterActionLines": [
+      "Cordialement,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
+

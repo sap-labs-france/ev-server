@@ -1,0 +1,33 @@
+{
+  "subject": "OCPI - Erreur lors de la mise à jour de chargeurs.",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "OCPI - Erreur lors de la mise à jour de chargeurs",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Cher Administrateur,",
+      "",
+      "La mise à jour du status de chargeurs a échoué. Veuiilez contrôler les logs de l'application.",
+      ""
+    ],
+    "afterActionLines": [
+      "Cordialement,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
+

@@ -9,6 +9,7 @@ import Logging from '../../utils/Logging';
 import NotificationTask from '../NotificationTask';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
+import NotificationHandler from '../NotificationHandler';
 
 
 // Email
@@ -106,7 +107,17 @@ export default class EMailNotificationTask extends NotificationTask {
     return this._prepareAndSendEmail('verification-email', data, locale, tenantID);
   }
 
-  async _prepareAndSendEmail(templateName, data, locale, tenantID) {
+  sendSmtpAuthError(data, locale, tenantID) {
+    // Send it
+    return this._prepareAndSendEmail('smtp-auth-error', data, locale, tenantID, true);
+  }
+
+  sendOCPIPatchChargingStationsStatusesError(data, tenantID) {
+    // Send it
+    return this._prepareAndSendEmail('ocpi-patch-status-error', data, null, tenantID, true);
+  }
+
+  async _prepareAndSendEmail(templateName, data, locale, tenantID, retry = false) {
     // Check locale
     if (!locale || !Constants.SUPPORTED_LOCALES.includes(locale)) {
       locale = Constants.DEFAULT_LOCALE;
@@ -219,6 +230,7 @@ export default class EMailNotificationTask extends NotificationTask {
       // Add Admins
       adminEmails = data.adminUsers.map((adminUser) => adminUser.email).join(';');
     }
+    // Filter out the notifications that don't need bcc to admins
     // Send the email
     const message = await this.sendEmail({
       to: this.getUserEmailsFromData(data),
@@ -226,7 +238,7 @@ export default class EMailNotificationTask extends NotificationTask {
       subject: subject,
       text: html,
       html: html
-    }, data, tenantID);
+    }, data, tenantID, locale, retry);
     // Ok
     return message;
   }
@@ -242,15 +254,15 @@ export default class EMailNotificationTask extends NotificationTask {
     }
   }
 
-  async sendEmail(email, data, tenantID, retry = false) {
+  async sendEmail(email, data, tenantID, locale, retry = false) {
     // Create the message
     const messageToSend = {
       from: (!retry ? _emailConfig.smtp.from : _emailConfig.smtpBackup.from),
       to: email.to,
       cc: email.cc,
-      bcc: email.bcc,
+      bcc: (email.bccNeeded ? email.bcc: null),
       subject: email.subject,
-      // pragma text: email.text,
+      // pragma text: email.text
       attachment: [
         { data: email.html, alternative: true }
       ]
@@ -258,6 +270,15 @@ export default class EMailNotificationTask extends NotificationTask {
     // Send the message and get a callback with an error or details of the message that was sent
     return this[!retry ? 'server' : 'serverBackup'].send(messageToSend, (err, messageSent) => {
       if (err) {
+        // If authentifcation error in the primary email server then notify admins using the backup server
+        if(!retry && this.serverBackup && err.code === 3 && err.previous.code === 2){
+          NotificationHandler.sendSmtpAuthError(
+            tenantID, locale,
+            {
+              'evseDashboardURL': data.evseDashboardURL
+            }
+          );
+        } 
         // Log
         try {
           Logging.logError({
@@ -286,7 +307,7 @@ export default class EMailNotificationTask extends NotificationTask {
         }
         // Retry?
         if (!retry && this.serverBackup) {
-          return this.sendEmail(email, data, tenantID, true);
+          return this.sendEmail(email, data, tenantID, locale, true);
         }
       } else {
         // Email sent successfully
