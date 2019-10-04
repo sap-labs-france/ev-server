@@ -1,6 +1,6 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import { HttpSitesAssignUserRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest, HttpUserMobileTokenRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpSitesAssignUserRequest, HttpUserMobileTokenRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';

@@ -18,7 +18,7 @@ const MODULE_NAME = 'CredentialsEndpoint';
  * Credentials Endpoint
  */
 export default class CredentialsEndpoint extends AbstractEndpoint {
-  
+
   constructor(ocpiService: AbstractOCPIService) {
     super(ocpiService, EP_IDENTIFIER, EP_VERSION);
   }
