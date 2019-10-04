@@ -1,10 +1,10 @@
 {
-  "subject": "Authentification en erreur sur le serveur d'email principal",
+  "subject": "Erreur d'authentification sur le serveur d'email principal",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Email authentification error",
+      "title": "Erreur Authentification Email",
       "image": {
         "left": {
           "height": 60,
@@ -17,9 +17,11 @@
       }
     },
     "beforeActionLines": [
-      "Cher Adminsitrateur,",
+      "Cher Administrateur,",
       "",
-      "L'authentification sur le serveur d'email principal est en erreur. Merci de contrôler la configuration correspondante.",
+      "L'authentification sur le serveur d'email principal a échoué.",
+      "",
+      "Merci de vérifier votre configuration.",
       ""
     ],
     "afterActionLines": [

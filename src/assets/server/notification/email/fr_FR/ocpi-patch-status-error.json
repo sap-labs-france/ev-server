@@ -1,10 +1,10 @@
 {
-  "subject": "OCPI - Erreur lors de la mise à jour de chargeurs.",
+  "subject": "OCPI - Erreur mise à jour des statuts des bornes",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "OCPI - Erreur lors de la mise à jour de chargeurs",
+      "title": "Erreur Mise à jour des Statuts des Bornes",
       "image": {
         "left": {
           "height": 60,
@@ -19,7 +19,9 @@
     "beforeActionLines": [
       "Cher Administrateur,",
       "",
-      "La mise à jour du status de chargeurs a échoué. Veuiilez contrôler les logs de l'application.",
+      "La mise à jour du status des chargeurs a échoué.",
+      "",
+      "Veuiilez contrôler le journal des logs.",
       ""
     ],
     "afterActionLines": [

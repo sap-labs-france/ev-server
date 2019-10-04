@@ -17,7 +17,7 @@
       }
     },
     "beforeActionLines": [
-      "Bonjour Admin,",
+      "Cher Administrateur,",
       "",
       "Une erreur est survenue sur <b><%- chargeBoxID %></b> - <b>Connector <%- connectorId %></b>: <b><%- error %></b>."
     ],
