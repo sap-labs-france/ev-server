@@ -398,7 +398,7 @@ export default class UserService {
       });
     }
     // Get User
-    let user = await UserStorage.getUser(req.user.tenantID, filteredRequest.id);
+    const user = await UserStorage.getUser(req.user.tenantID, filteredRequest.id);
     if (!user) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
@@ -429,7 +429,7 @@ export default class UserService {
       tenantID: req.user.tenantID,
       user: req.user, actionOnUser: user,
       module: 'UserService', method: 'handleUpdateUserMobileToken',
-      message: `User's mobile token has been updated successfully`,
+      message: 'User\'s mobile token has been updated successfully',
       action: action
     });
     // Ok

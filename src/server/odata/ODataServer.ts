@@ -1,5 +1,6 @@
 import morgan from 'morgan';
 import Configuration from '../../utils/Configuration';
+import express from 'express';
 import expressTools from '../ExpressTools';
 import Logging from '../../utils/Logging';
 import ODataRestAdapter from './ODataRestAdapter';
@@ -9,7 +10,7 @@ import ODataServerFactory from '../odata/ODataServerFactory';
 const MODULE_NAME = 'ODataServer';
 export default class ODataServer {
   private oDataServerConfig: any;
-  private express: any;
+  private express: express.Application;
 
   // Create the rest server
   constructor(oDataServerConfig) {
