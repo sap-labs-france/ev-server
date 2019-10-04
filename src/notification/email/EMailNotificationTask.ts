@@ -52,11 +52,6 @@ export default class EMailNotificationTask extends NotificationTask {
     return this._prepareAndSendEmail('request-password', data, locale, tenantID);
   }
 
-  sendNewPassword(data, locale, tenantID) {
-    // Send it
-    return this._prepareAndSendEmail('new-password', data, locale, tenantID);
-  }
-
   sendOptimalChargeReached(data, locale, tenantID) {
     // Send it
     return this._prepareAndSendEmail('optimal-charge-reached', data, locale, tenantID);
