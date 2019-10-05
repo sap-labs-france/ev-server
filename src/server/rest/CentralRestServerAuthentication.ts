@@ -2,6 +2,7 @@ import AuthService from './service/AuthService';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import UtilsService from './service/UtilsService';
+import { NextFunction, Request, Response } from 'express';
 
 export default {
   // Init Passport
@@ -13,7 +14,7 @@ export default {
     return AuthService.authenticate();
   },
 
-  async authService(req, res, next) {
+  async authService(req: Request, res: Response, next: NextFunction) {
     // Parse the action
     const action = /^\/\w*/g.exec(req.url)[0].substring(1);
     // Get the tenant

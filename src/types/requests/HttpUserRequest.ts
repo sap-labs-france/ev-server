@@ -6,6 +6,12 @@ export interface HttpUserRequest extends Partial<Omit<User, 'tagIDs'>> {
   tagIDs: string|string[];
 }
 
+export interface HttpUserMobileTokenRequest {
+  id: string;
+  mobileToken: string;
+  mobileOS: string;
+}
+
 export interface HttpSitesAssignUserRequest {
   userID: string;
   siteIDs: string[];

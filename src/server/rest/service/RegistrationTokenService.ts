@@ -21,37 +21,47 @@ export default class RegistrationTokenService {
         // Get the Site Area
         const siteArea = await SiteAreaStorage.getSiteArea(req.user.tenantID, filteredRequest.siteAreaID);
         if (!siteArea) {
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            `The Site Area with ID '${filteredRequest.siteAreaID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-            'RegistrationTokenService', 'handleCreateRegistrationToken', req.user);
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+            message: `The Site Area with ID '${filteredRequest.siteAreaID}' does not exist anymore`,
+            module: 'RegistrationTokenService',
+            method: 'handleCreateRegistrationToken',
+            user: req.user
+          });
         }
         if (!Authorizations.canCreateRegistrationToken(req.user, siteArea.siteID)) {
           // Not Authorized!
-          throw new AppAuthError(
-            Constants.ACTION_CREATE,
-            Constants.ENTITY_TOKEN,
-            null,
-            Constants.HTTP_AUTH_ERROR,
-            'RegistrationTokenService', 'handleCreateRegistrationToken',
-            req.user);
+          throw new AppAuthError({
+            errorCode: Constants.HTTP_AUTH_ERROR,
+            user: req.user,
+            action: Constants.ACTION_CREATE,
+            entity: Constants.ENTITY_TOKEN,
+            module: 'RegistrationTokenService',
+            method: 'handleCreateRegistrationToken'
+          });
         }
       } else if (!Authorizations.canCreateRegistrationToken(req.user, null)) {
         // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_CREATE,
-          Constants.ENTITY_TOKEN,
-          null,
-          Constants.HTTP_AUTH_ERROR,
-          'RegistrationTokenService', 'handleCreateRegistrationToken',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_CREATE,
+          entity: Constants.ENTITY_TOKEN,
+          module: 'RegistrationTokenService',
+          method: 'handleCreateRegistrationToken'
+        });
       }
 
       if (!filteredRequest.description) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          'The description must be provided', Constants.HTTP_GENERAL_ERROR,
-          'RegistrationTokenService', 'handleCreateRegistrationToken', req.user);
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: Constants.HTTP_GENERAL_ERROR,
+          message: 'The description must be provided',
+          module: 'RegistrationTokenService',
+          method: 'handleCreateRegistrationToken',
+          user: req.user
+        });
       }
 
       const registrationToken: RegistrationToken = {
@@ -79,28 +89,38 @@ export default class RegistrationTokenService {
       const tokenID = RegistrationTokenSecurity.filterRegistrationTokenByIDRequest(req.query);
       // Check Mandatory fields
       if (!tokenID) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          'Registration Token\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
-          'RegistrationTokenService', 'handleDeleteRegistrationToken', req.user);
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: Constants.HTTP_GENERAL_ERROR,
+          message: 'Registration Token\'s ID must be provided',
+          module: 'RegistrationTokenService',
+          method: 'handleDeleteRegistrationToken',
+          user: req.user
+        });
       }
       // Check auth
       if (!Authorizations.canDeleteRegistrationToken(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_DELETE,
-          Constants.ENTITY_TOKEN,
-          tokenID,
-          Constants.HTTP_AUTH_ERROR,
-          'RegistrationTokenService', 'handleDeleteRegistrationToken',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_DELETE,
+          entity: Constants.ENTITY_TOKEN,
+          module: 'RegistrationTokenService',
+          method: 'handleDeleteRegistrationToken',
+          value: tokenID
+        });
       }
       // Check user
       const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.user.tenantID, tokenID);
       if (!registrationToken) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `Token with ID '${tokenID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-          'RegistrationTokenService', 'handleDeleteRegistrationToken', req.user);
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+          message: `Token with ID '${tokenID}' does not exist anymore`,
+          module: 'RegistrationTokenService',
+          method: 'handleDeleteRegistrationToken',
+          user: req.user
+        });
       }
 
       await RegistrationTokenStorage.deleteRegistrationToken(req.user.tenantID, tokenID);
@@ -126,28 +146,38 @@ export default class RegistrationTokenService {
       const tokenID = RegistrationTokenSecurity.filterRegistrationTokenByIDRequest(req.query);
       // Check Mandatory fields
       if (!tokenID) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          'Registration Token\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
-          'RegistrationTokenService', 'handleRevokeRegistrationToken', req.user);
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: Constants.HTTP_GENERAL_ERROR,
+          message: 'Registration Token\'s ID must be provided',
+          module: 'RegistrationTokenService',
+          method: 'handleRevokeRegistrationToken',
+          user: req.user
+        });
       }
       // Check auth
       if (!Authorizations.canUpdateRegistrationToken(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_DELETE,
-          Constants.ENTITY_TOKEN,
-          tokenID,
-          Constants.HTTP_AUTH_ERROR,
-          'RegistrationTokenService', 'handleRevokeRegistrationToken',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_UPDATE,
+          entity: Constants.ENTITY_TOKEN,
+          module: 'RegistrationTokenService',
+          method: 'handleRevokeRegistrationToken',
+          value: tokenID
+        });
       }
       // Check user
       const registrationToken = await RegistrationTokenStorage.getRegistrationToken(req.user.tenantID, tokenID);
       if (!registrationToken) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `Token with ID '${tokenID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-          'RegistrationTokenService', 'handleRevokeRegistrationToken', req.user);
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+          message: `Token with ID '${tokenID}' does not exist anymore`,
+          module: 'RegistrationTokenService',
+          method: 'handleRevokeRegistrationToken',
+          user: req.user
+        });
       }
 
       registrationToken.revocationDate = new Date();
@@ -176,13 +206,14 @@ export default class RegistrationTokenService {
       // Check auth
       if (!Authorizations.canListRegistrationTokens(req.user)) {
         // Not Authorized!
-        throw new AppAuthError(
-          Constants.ACTION_LIST,
-          Constants.ENTITY_TOKENS,
-          null,
-          Constants.HTTP_AUTH_ERROR,
-          'RegistrationTokenService', 'handleGetRegistrationTokens',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_LIST,
+          entity: Constants.ENTITY_TOKENS,
+          module: 'RegistrationTokenService',
+          method: 'handleGetRegistrationTokens'
+        });
       }
       const filteredRequest = RegistrationTokenSecurity.filterRegistrationTokensRequest(req.query);
 
@@ -191,7 +222,7 @@ export default class RegistrationTokenService {
       };
 
       if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
-        params['siteIDs'] = Authorizations.getAuthorizedSiteAdminIDs(req.user);
+        params['siteIDs'] = Authorizations.getAuthorizedSiteAdminIDs(req.user, null);
       }
 
       const dbParams: DbParams = {

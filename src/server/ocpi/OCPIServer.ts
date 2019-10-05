@@ -2,16 +2,17 @@ import morgan from 'morgan';
 import Constants from '../../utils/Constants';
 import expressTools from '../ExpressTools';
 import Logging from '../../utils/Logging';
-import OCPIErrorHandler from './OCPIErrorHandler';
 import OCPIServices from './OCPIServices';
+import { Application } from 'express';
+import Config from '../../types/configuration/Config';
 
 const MODULE_NAME = 'OCPIServer';
 export default class OCPIServer {
-  private ocpiRestConfig: any;
-  private express: any;
+  private ocpiRestConfig: Config['OCPIService'];
+  private express: Application;
 
   // Create the rest server
-  constructor(ocpiRestConfig) {
+  constructor(ocpiRestConfig: Config['OCPIService']) {
     // Keep params
     this.ocpiRestConfig = ocpiRestConfig;
     // Initialize express app
@@ -43,8 +44,6 @@ export default class OCPIServer {
     ocpiServices.getOCPIServiceImplementations().forEach((ocpiService) => {
       this.express.use(ocpiService.getPath(), ocpiService.restService.bind(ocpiService));
     });
-    // Register Error Handler
-    this.express.use(OCPIErrorHandler.errorHandler);
   }
 
   // Start the server

@@ -1,10 +1,10 @@
 {
-  "subject": "Nouveau mot de passe",
+  "subject": "Erreur d'authentification sur le serveur d'email principal",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Nouveau Mot De Passe",
+      "title": "Erreur Authentification Email",
       "image": {
         "left": {
           "height": 60,
@@ -17,16 +17,13 @@
       }
     },
     "beforeActionLines": [
-      "Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
+      "Cher Administrateur,",
       "",
-      "Votre mot de passe a été réinitialisé avec succès.",
+      "L'authentification sur le serveur d'email principal a échoué.",
       "",
-      "Votre nouveau mot de passe est : <b><%- newPassword %></b>"
+      "Merci de vérifier votre configuration.",
+      ""
     ],
-    "action": {
-      "title": "Sign in to e-Mobility",
-      "url": "<%- evseDashboardURL %>"
-    },
     "afterActionLines": [
       "Cordialement,",
       "EV Admins."
@@ -35,3 +32,4 @@
     }
   }
 }
+

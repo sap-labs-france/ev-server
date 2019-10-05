@@ -32,21 +32,14 @@ export default class CompanyStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const companyLogosMDB = await global.database.getCollection<{_id: ObjectID; logo: string}>(tenantID, 'companylogos')
-      .find({ _id: Utils.convertToObjectID(id) })
-      .limit(1)
-      .toArray();
-    let companyLogo: {id: string; logo: string} = null;
-    // Set
-    if (companyLogosMDB && companyLogosMDB.length > 0) {
-      companyLogo = {
-        id: companyLogosMDB[0]._id.toHexString(),
-        logo: companyLogosMDB[0].logo
-      };
-    }
+    const companyLogoMDB = await global.database.getCollection<{_id: ObjectID; logo: string}>(tenantID, 'companylogos')
+      .findOne({ _id: Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd('CompanyStorage', 'getCompanyLogo', uniqueTimerID, { id });
-    return companyLogo;
+    return {
+      id: id,
+      logo: companyLogoMDB ? companyLogoMDB.logo : null
+    };
   }
 
   public static async saveCompany(tenantID: string, companyToSave: Company, saveLogo = true): Promise<string> {

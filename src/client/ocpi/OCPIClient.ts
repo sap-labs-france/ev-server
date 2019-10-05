@@ -7,6 +7,9 @@ import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMap
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
 import Setting from '../../types/Setting';
 import SettingStorage from '../../storage/mongodb/SettingStorage';
+import NotificationHandler from '../../notification/NotificationHandler';
+import Utils from '../../utils/Utils';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
 
 export default class OCPIClient {
   private ocpiEndpoint: OCPIEndpoint;
@@ -344,6 +347,15 @@ export default class OCPIClient {
                 `Updated successfully status for locationID:${location.id} - evseID:${evse.id}`
               );
             } catch (error) {
+              // Send notification to admins
+              NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
+                tenant.id, 
+                {
+                  'locationID': location.id,
+                  'chargeBoxID': evse.chargeBoxId,
+                  'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenant.id)).subdomain),
+                }
+              );
               sendResult.failure++;
               sendResult.chargeBoxIDsInFailure.push(evse.chargeBoxId);
               sendResult.logs.push(

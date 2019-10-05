@@ -1,10 +1,10 @@
 {
-  "subject": "New password",
+  "subject": "OCPI - Erreur mise à jour des statuts des bornes",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "New Password",
+      "title": "Erreur Mise à jour des Statuts des Bornes",
       "image": {
         "left": {
           "height": 60,
@@ -17,18 +17,15 @@
       }
     },
     "beforeActionLines": [
-      "Hi <%- (user.firstName?user.firstName:user.name) %>,",
+      "Cher Administrateur,",
       "",
-      "Your password has been reset successfully.",
+      "La mise à jour du status des chargeurs a échoué.",
       "",
-      "Your new password is: <b><%- newPassword %></b>"
+      "Veuiilez contrôler le journal des logs.",
+      ""
     ],
-    "action": {
-      "title": "Sign in to e-Mobility",
-      "url": "<%- evseDashboardURL %>"
-    },
     "afterActionLines": [
-      "Best Regards,",
+      "Cordialement,",
       "EV Admins."
     ],
     "footer": {

@@ -251,7 +251,12 @@ export default class Utils {
 
   public static async checkTenant(tenantID: string) {
     if (!tenantID) {
-      throw new BackendError(null, 'The Tenant ID is mandatory');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'Utils',
+        method: 'checkTenant',
+        message: 'The Tenant ID is mandatory'
+      });
     }
     // Check in cache
     if (_tenants.includes(tenantID)) {
@@ -260,12 +265,22 @@ export default class Utils {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Valid Object ID?
       if (!ObjectID.isValid(tenantID)) {
-        throw new BackendError(null, `Invalid Tenant ID '${tenantID}'`);
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: 'Utils',
+          method: 'checkTenant',
+          message: `Invalid Tenant ID '${tenantID}'`
+        });
       }
       // Get the Tenant
       const tenant = await TenantStorage.getTenant(tenantID);
       if (!tenant) {
-        throw new BackendError(null, `Invalid Tenant ID '${tenantID}'`);
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: 'Utils',
+          method: 'checkTenant',
+          message: `Invalid Tenant ID '${tenantID}'`
+        });
       }
     }
     _tenants.push(tenantID);
@@ -644,118 +659,158 @@ export default class Utils {
 
   public static checkIfSiteValid(filteredRequest: any, req: Request): void {
     if (req.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Site ID is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'SiteService', '_checkIfSiteValid',
-        req.user.id);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Site ID is mandatory',
+        module: 'SiteService',
+        method: '_checkIfSiteValid',
+        user: req.user.id
+      });
     }
     if (!filteredRequest.name) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Site Name is mandatory',
-        Constants.HTTP_GENERAL_ERROR,
-        'SiteService', '_checkIfSiteValid',
-        req.user.id, filteredRequest.id);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Site Name is mandatory',
+        module: 'SiteService',
+        method: '_checkIfSiteValid',
+        user: req.user.id
+      });
     }
     if (!filteredRequest.companyID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Company ID is mandatory for the Site',
-        Constants.HTTP_GENERAL_ERROR,
-        'SiteService', '_checkIfSiteValid',
-        req.user.id, filteredRequest.id);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Company ID is mandatory for the Site',
+        module: 'SiteService',
+        method: '_checkIfSiteValid',
+        user: req.user.id
+      });
     }
   }
 
   public static checkIfSiteAreaValid(filteredRequest: any, req: Request): void {
     if (req.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Site Area ID is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'SiteAreaService', '_checkIfSiteAreaValid',
-        req.user.id);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Site Area ID is mandatory',
+        module: 'SiteAreaService',
+        method: '_checkIfSiteAreaValid',
+        user: req.user.id
+      });
     }
     if (!filteredRequest.name) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Site Area is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'SiteAreaService', '_checkIfSiteAreaValid',
-        req.user.id, filteredRequest.id);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Site Area name is mandatory',
+        module: 'SiteAreaService',
+        method: '_checkIfSiteAreaValid',
+        user: req.user.id
+      });
     }
     if (!filteredRequest.siteID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Site ID is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'SiteAreaService', '_checkIfSiteAreaValid',
-        req.user.id, filteredRequest.id);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Site ID is mandatory',
+        module: 'SiteAreaService',
+        method: '_checkIfSiteAreaValid',
+        user: req.user.id
+      });
     }
   }
 
   public static checkIfCompanyValid(filteredRequest: any, req: Request): void {
     if (req.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Company ID is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'CompanyService', 'checkIfCompanyValid',
-        req.user.id);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Company ID is mandatory',
+        module: 'CompanyService',
+        method: 'checkIfCompanyValid',
+        user: req.user.id
+      });
     }
     if (!filteredRequest.name) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Company Name is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'CompanyService', 'checkIfCompanyValid',
-        req.user.id, filteredRequest.id);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Company Name is mandatory',
+        module: 'CompanyService',
+        method: 'checkIfCompanyValid',
+        user: req.user.id
+      });
     }
   }
 
   public static checkIfVehicleValid(filteredRequest, req: Request) {
     // Update model?
     if (req.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Vehicle ID is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'Vehicle', 'checkIfVehicleValid',
-        req.user.id);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Vehicle ID is mandatory',
+        module: 'VehicleService',
+        method: 'checkIfVehicleValid',
+        user: req.user.id
+      });
     }
     if (!filteredRequest.type) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Vehicle Type is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'Vehicle', 'checkIfVehicleValid',
-        req.user.id, filteredRequest.id);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Vehicle Type is mandatory',
+        module: 'VehicleService',
+        method: 'checkIfVehicleValid',
+        user: req.user.id
+      });
     }
     if (!filteredRequest.model) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Vehicle Model is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'Vehicle', 'checkIfVehicleValid',
-        req.user.id, filteredRequest.id);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Vehicle Model is mandatory',
+        module: 'VehicleService',
+        method: 'checkIfVehicleValid',
+        user: req.user.id
+      });
     }
     if (!filteredRequest.vehicleManufacturerID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Vehicle Manufacturer is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'Vehicle', 'checkIfVehicleValid',
-        req.user.id, filteredRequest.id);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Vehicle Manufacturer is mandatory',
+        module: 'VehicleService',
+        method: 'checkIfVehicleValid',
+        user: req.user.id
+      });
     }
   }
 
   public static checkIfVehicleManufacturerValid(filteredRequest, req) {
     // Update model?
     if (req.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Vehicle Manufacturer ID is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'VehicleManufacturer', 'checkIfVehicleManufacturerValid',
-        req.user.id);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Vehicle Manufacturer ID is mandatory',
+        module: 'VehicleManufacturer',
+        method: 'checkIfVehicleManufacturerValid',
+        user: req.user.id
+      });
     }
     if (!filteredRequest.name) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Vehicle Manufacturer Name is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'VehicleManufacturer', 'checkIfVehicleManufacturerValid',
-        req.user.id, filteredRequest.id);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Vehicle Manufacturer Name is mandatory',
+        module: 'VehicleManufacturer',
+        method: 'checkIfVehicleManufacturerValid',
+        user: req.user.id
+      });
     }
   }
 
@@ -766,11 +821,14 @@ export default class Utils {
         const foundUser = await UserStorage.getUserByTagId(req.user.tenantID, tagID);
         if (foundUser && (!user || (foundUser.id !== user.id))) {
           // Tag already used!
-          throw new AppError(
-            Constants.CENTRAL_SERVER,
-            `The Tag ID '${tagID}' is already used by User '${Utils.buildUserFullName(foundUser)}'`,
-            Constants.HTTP_USER_TAG_ID_ALREADY_USED_ERROR,
-            'Utils', 'checkIfUserTagsAreValid', req.user);
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            errorCode: Constants.HTTP_USER_TAG_ID_ALREADY_USED_ERROR,
+            message: `The Tag ID '${tagID}' is already used by User '${Utils.buildUserFullName(foundUser)}'`,
+            module: 'Utils',
+            method: 'checkIfUserTagsAreValid',
+            user: req.user.id
+          });
         }
       }
     }
@@ -779,18 +837,25 @@ export default class Utils {
   public static checkIfUserValid(filteredRequest: Partial<HttpUserRequest>, user: User, req: Request) {
     const tenantID = req.user.tenantID;
     if (!tenantID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Tenant is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid');
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Tenant is mandatory',
+        module: 'UserService',
+        method: 'checkIfUserValid',
+        user: req.user.id
+      });
     }
     // Update model?
     if (req.method !== 'POST' && !filteredRequest.id) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'User ID is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid',
-        req.user.id);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'User ID is mandatory',
+        module: 'UserService',
+        method: 'checkIfUserValid',
+        user: req.user.id
+      });
     }
     // Creation?
     if (req.method === 'POST') {
@@ -809,67 +874,117 @@ export default class Utils {
     // Creation?
     if ((filteredRequest.role !== Constants.ROLE_BASIC) && (filteredRequest.role !== Constants.ROLE_DEMO) &&
         !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Only Admins can assign the role '${Utils.getRoleNameFromRoleID(filteredRequest.role)}'`, Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: `Only Admins can assign the role '${Utils.getRoleNameFromRoleID(filteredRequest.role)}'`,
+        module: 'UserService',
+        method: 'checkIfUserValid',
+        user: req.user.id,
+        actionOnUser: filteredRequest.id
+      });
     }
     // Only Basic, Demo, Admin user other Tenants (!== default)
     if (tenantID !== 'default' && filteredRequest.role && filteredRequest.role === Constants.ROLE_SUPER_ADMIN) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'User cannot have the Super Admin role in this Tenant', Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'User cannot have the Super Admin role in this Tenant',
+        module: 'UserService',
+        method: 'checkIfUserValid',
+        user: req.user.id,
+        actionOnUser: filteredRequest.id
+      });
     }
     // Only Admin and Super Admin can use role different from Basic
     if ((filteredRequest.role === Constants.ROLE_ADMIN || filteredRequest.role === Constants.ROLE_SUPER_ADMIN) &&
         !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `User without role Admin or Super Admin tried to ${filteredRequest.id ? 'update' : 'create'} an User with the '${Utils.getRoleNameFromRoleID(filteredRequest.role)}' role`, Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: `User without role Admin or Super Admin tried to ${filteredRequest.id ? 'update' : 'create'} an User with the '${Utils.getRoleNameFromRoleID(filteredRequest.role)}' role`,
+        module: 'UserService',
+        method: 'checkIfUserValid',
+        user: req.user.id,
+        actionOnUser: filteredRequest.id
+      });
     }
     if (!filteredRequest.name) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'User Last Name is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'User Last Name is mandatory',
+        module: 'UserService',
+        method: 'checkIfUserValid',
+        user: req.user.id,
+        actionOnUser: filteredRequest.id
+      });
     }
     if (req.method === 'POST' && !filteredRequest.email) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'User Email is mandatory', Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'User Email is mandatory',
+        module: 'UserService',
+        method: 'checkIfUserValid',
+        user: req.user.id,
+        actionOnUser: filteredRequest.id
+      });
     }
     if (req.method === 'POST' && !Utils._isUserEmailValid(filteredRequest.email)) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `User Email ${filteredRequest.email} is not valid`, Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: `User Email ${filteredRequest.email} is not valid`,
+        module: 'UserService',
+        method: 'checkIfUserValid',
+        user: req.user.id,
+        actionOnUser: filteredRequest.id
+      });
     }
     if (filteredRequest.password && !Utils.isPasswordValid(filteredRequest.password)) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'User Password is not valid', Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'User Password is not valid',
+        module: 'UserService',
+        method: 'checkIfUserValid',
+        user: req.user.id,
+        actionOnUser: filteredRequest.id
+      });
     }
     if (filteredRequest.phone && !Utils._isPhoneValid(filteredRequest.phone)) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `User Phone ${filteredRequest.phone} is not valid`, Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: `User Phone ${filteredRequest.phone} is not valid`,
+        module: 'UserService',
+        method: 'checkIfUserValid',
+        user: req.user.id,
+        actionOnUser: filteredRequest.id
+      });
     }
     if (filteredRequest.mobile && !Utils._isPhoneValid(filteredRequest.mobile)) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `User Mobile ${filteredRequest.mobile} is not valid`, Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: `User Mobile ${filteredRequest.mobile} is not valid`,
+        module: 'UserService',
+        method: 'checkIfUserValid',
+        user: req.user.id,
+        actionOnUser: filteredRequest.id
+      });
     }
     if (filteredRequest.iNumber && !Utils._isINumberValid(filteredRequest.iNumber)) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `User I-Number ${filteredRequest.iNumber} is not valid`, Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: `User I-Number ${filteredRequest.iNumber} is not valid`,
+        module: 'UserService',
+        method: 'checkIfUserValid',
+        user: req.user.id,
+        actionOnUser: filteredRequest.id
+      });
     }
     if (filteredRequest.tagIDs) {
       // Check
@@ -879,10 +994,15 @@ export default class Utils {
         }
       }
       if (!Utils._areTagIDsValid(filteredRequest.tagIDs)) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          `User Tags ${filteredRequest.tagIDs} is/are not valid`, Constants.HTTP_GENERAL_ERROR,
-          'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: Constants.HTTP_GENERAL_ERROR,
+          message: `User Tags ${filteredRequest.tagIDs} is/are not valid`,
+          module: 'UserService',
+          method: 'checkIfUserValid',
+          user: req.user.id,
+          actionOnUser: filteredRequest.id
+        });
       }
     }
     // At least one tag ID
@@ -890,10 +1010,15 @@ export default class Utils {
       filteredRequest.tagIDs = [Utils.generateTagID(filteredRequest.name, filteredRequest.firstName)];
     }
     if (filteredRequest.plateID && !Utils._isPlateIDValid(filteredRequest.plateID)) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `User Plate ID ${filteredRequest.plateID} is not valid`, Constants.HTTP_GENERAL_ERROR,
-        'Users', 'checkIfUserValid', req.user.id, filteredRequest.id);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: `User Plate ID ${filteredRequest.plateID} is not valid`,
+        module: 'UserService',
+        method: 'checkIfUserValid',
+        user: req.user.id,
+        actionOnUser: filteredRequest.id
+      });
     }
   }
 

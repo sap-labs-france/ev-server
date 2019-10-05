@@ -4,6 +4,8 @@ import CreatedUpdatedProps from './CreatedUpdatedProps';
 
 export default interface User extends CreatedUpdatedProps {
   id: string;
+  name: string;
+  firstName: string;
   email: string;
   phone?: string;
   mobile: string;
@@ -16,16 +18,10 @@ export default interface User extends CreatedUpdatedProps {
   notificationsActive?: boolean;
   iNumber?: string;
   costCenter?: string;
-
   deleted: boolean;
-
   eulaAcceptedHash: string;
   eulaAcceptedVersion: number;
   eulaAcceptedOn: Date;
-
-  name: string;
-  firstName: string;
-
   password: string;
   passwordResetHash: string;
   passwordWrongNbrTrials: number;
@@ -33,10 +29,9 @@ export default interface User extends CreatedUpdatedProps {
   verificationToken?: string;
   verifiedAt?: Date;
   errorCode?: string;
-
   tagIDs?: string[];
-
   billingData?: BillingUserData;
+  mobileToken: string;
 }
 
 export interface UserSite {

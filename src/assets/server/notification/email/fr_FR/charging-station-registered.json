@@ -17,7 +17,7 @@
       }
     },
     "beforeActionLines": [
-      "Bonjour Admin,",
+      "Cher Administrateur,",
       "",
       "<b><%- chargeBoxID %></b> vient de s'enregistrer sur le serveur central."
     ],

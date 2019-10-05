@@ -17,7 +17,7 @@
       }
     },
     "beforeActionLines": [
-      "Hi Admin,",
+      "Dear Administrator,",
       "",
       "An unknown user has just badged on <b><%- chargeBoxID %></b> with the badge ID <b><%- badgeId %></b>."
     ],

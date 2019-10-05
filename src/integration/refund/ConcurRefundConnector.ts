@@ -17,8 +17,9 @@ import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import BackendError from '../../exception/BackendError';
 import Company from '../../types/Company';
 import CompanyStorage from '../../storage/mongodb/CompanyStorage';
+import RefundConnector from './RefundConnector';
 
-const MODULE_NAME = 'ConcurConnector';
+const MODULE_NAME = 'ConcurRefundConnector';
 const CONNECTOR_ID = 'concur';
 
 /**
@@ -28,7 +29,7 @@ const CONNECTOR_ID = 'concur';
  * Expiration_Date  string  -  The Universal Coordinated Time (UTC) date and time when the access token expires.
  * Refresh_Token  string  -  Token with a new expiration date of a year from the refresh date. You should securely store the refresh token for a user and use it for all subsequent API requests.
  */
-export default class ConcurConnector extends AbstractConnector {
+export default class ConcurRefundConnector extends AbstractConnector implements RefundConnector {
 
   constructor(tenantID, setting) {
     super(tenantID, 'concur', setting);
@@ -40,25 +41,37 @@ export default class ConcurConnector extends AbstractConnector {
           try {
             if (error.config.method === 'post') {
               if (error.config.url.endsWith('/token')) {
-                throw new BackendError(
-                  Constants.CENTRAL_SERVER,
-                  `Unable to request token, response status ${error.response.status}, attempt ${retryCount}`,
-                  MODULE_NAME, 'anonymous', 'Refund', null, null, error.response);
+                throw new BackendError({
+                  source: Constants.CENTRAL_SERVER,
+                  module: MODULE_NAME,
+                  method: 'retryDelay',
+                  message: `Unable to request token, response status ${error.response.status}, attempt ${retryCount}`,
+                  action: 'Refund',
+                  detailedMessages: error.response
+                });
               } else {
                 const payload = {
                   error: error.response.data,
                   payload: JSON.parse(error.config.data)
                 };
-                throw new BackendError(
-                  Constants.CENTRAL_SERVER,
-                  `Unable to post data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`,
-                  MODULE_NAME, 'anonymous', 'Refund', null, null, payload);
+                throw new BackendError({
+                  source: Constants.CENTRAL_SERVER,
+                  module: MODULE_NAME,
+                  method: 'retryDelay',
+                  message: `Unable to post data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`,
+                  action: 'Refund',
+                  detailedMessages: payload
+                });
               }
             } else {
-              throw new BackendError(
-                Constants.CENTRAL_SERVER,
-                `Unable to ${error.config.url} data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`,
-                MODULE_NAME, 'anonymous', 'Refund', null, null, error.response.data);
+              throw new BackendError({
+                source: Constants.CENTRAL_SERVER,
+                module: MODULE_NAME,
+                method: 'retryDelay',
+                message: `Unable to ${error.config.url} data on ${error.config.url}, response status ${error.response.status}, attempt ${retryCount}`,
+                action: 'Refund',
+                detailedMessages: error.response.data
+              });
             }
           } catch (err) {
             Logging.logException(err, 'Refund', Constants.CENTRAL_SERVER, MODULE_NAME, 'anonymous', tenantID, null);
@@ -149,13 +162,19 @@ export default class ConcurConnector extends AbstractConnector {
         connectorId: CONNECTOR_ID,
         createdAt: now,
         updatedAt: now,
-        validUntil: ConcurConnector.computeValidUntilAt(result)
+        validUntil: ConcurRefundConnector.computeValidUntilAt(result)
       });
     } catch (e) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Concur access token not granted for ${userId}`, Constants.HTTP_GENERAL_ERROR,
-        MODULE_NAME, 'GetAccessToken', userId, null, 'Refund', e);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: `Concur access token not granted for ${userId}`,
+        module: MODULE_NAME,
+        method: 'GetAccessToken',
+        user: userId,
+        action: 'Refund',
+        detailedMessages: e
+      });
     }
   }
 
@@ -213,8 +232,8 @@ export default class ConcurConnector extends AbstractConnector {
   }
 
   async updateRefundStatus(tenantID: string, transaction: Transaction): Promise<string> {
-    const connection = await this.getRefreshedConnection(transaction.userID);
     if (transaction.refundData) {
+      const connection = await this.getRefreshedConnection(transaction.userID);
       const report = await this.getExpenseReport(connection, transaction.refundData.reportId);
       if (report) {
         // Approved
@@ -223,7 +242,7 @@ export default class ConcurConnector extends AbstractConnector {
           await TransactionStorage.saveTransaction(tenantID, transaction);
           Logging.logDebug({
             tenantID: tenantID,
-            module: 'ConcurConnector', method: 'updateRefundStatus', action: 'RefundSynchronize',
+            module: 'ConcurRefundConnector', method: 'updateRefundStatus', action: 'RefundSynchronize',
             message: `The Transaction ID '${transaction.id}' has been marked 'Approved'`,
             user: transaction.userID
           });
@@ -231,7 +250,7 @@ export default class ConcurConnector extends AbstractConnector {
         }
         Logging.logDebug({
           tenantID: tenantID,
-          module: 'ConcurConnector', method: 'updateRefundStatus', action: 'RefundSynchronize',
+          module: 'ConcurRefundConnector', method: 'updateRefundStatus', action: 'RefundSynchronize',
           message: `The Transaction ID '${transaction.id}' has not been updated`,
           user: transaction.userID
         });
@@ -241,13 +260,26 @@ export default class ConcurConnector extends AbstractConnector {
         await TransactionStorage.saveTransaction(tenantID, transaction);
         Logging.logDebug({
           tenantID: tenantID,
-          module: 'ConcurConnector', method: 'updateRefundStatus', action: 'RefundSynchronize',
+          module: 'ConcurRefundConnector', method: 'updateRefundStatus', action: 'RefundSynchronize',
           message: `The Transaction ID '${transaction.id}' has been marked 'Cancelled'`,
           user: transaction.userID
         });
         return Constants.REFUND_STATUS_CANCELLED;
       }
     }
+  }
+
+  canBeDeleted(transaction: Transaction): boolean {
+    if (transaction.refundData && transaction.refundData.status) {
+      switch (transaction.refundData.status) {
+        case Constants.REFUND_STATUS_CANCELLED:
+        case Constants.REFUND_STATUS_NOT_SUBMITTED:
+          return true;
+        default:
+          return false;
+      }
+    }
+    return true;
   }
 
   async getLocation(tenantID: string, connection, site: Site) {
@@ -271,11 +303,14 @@ export default class ConcurConnector extends AbstractConnector {
     if (response.data && response.data.Items && response.data.Items.length > 0) {
       return response.data.Items[0];
     }
-    throw new AppError(
-      MODULE_NAME,
-      `The city '${site.address.city}' of the station is unknown to Concur`,
-      Constants.HTTP_CONCUR_CITY_UNKNOWN_ERROR,
-      MODULE_NAME, 'getLocation', null, null, 'Refund');
+    throw new AppError({
+      source: Constants.CENTRAL_SERVER,
+      errorCode: Constants.HTTP_CONCUR_CITY_UNKNOWN_ERROR,
+      message: `The city '${site.address.city}' of the station is unknown to Concur`,
+      module: MODULE_NAME,
+      method: 'getLocation',
+      action: 'Refund'
+    });
   }
 
   async createQuickExpense(connection, transaction: Transaction, location, userId: string) {
@@ -309,11 +344,16 @@ export default class ConcurConnector extends AbstractConnector {
       });
       return response.data.quickExpenseIdUri;
     } catch (error) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Unable to create Quick Expense',
-        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'createQuickExpense',
-        userId, null, 'Refund', error);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Unable to create Quick Expense',
+        module: MODULE_NAME,
+        method: 'createQuickExpense',
+        user: userId,
+        action: 'Refund',
+        detailedMessages: error
+      });
     }
   }
 
@@ -352,11 +392,16 @@ export default class ConcurConnector extends AbstractConnector {
       });
       return response.data.ID;
     } catch (error) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Unable to create an Expense Report entry',
-        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'createExpenseReportEntry',
-        userId, null, 'Refund', error);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Unable to create an Expense Report',
+        module: MODULE_NAME,
+        method: 'createExpenseReport',
+        user: userId,
+        action: 'Refund',
+        detailedMessages: error
+      });
     }
   }
 
@@ -381,11 +426,16 @@ export default class ConcurConnector extends AbstractConnector {
       });
       return response.data.ID;
     } catch (error) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Unable to create an Expense Report',
-        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'createExpenseReport',
-        userId, null, 'Refund', error);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Unable to create an Expense Report',
+        module: MODULE_NAME,
+        method: 'createExpenseReport',
+        user: userId,
+        action: 'Refund',
+        detailedMessages: error
+      });
     }
   }
 
@@ -409,11 +459,15 @@ export default class ConcurConnector extends AbstractConnector {
       if (error.response.status === 404) {
         return null;
       }
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Unable to get Report details with ID '${reportId}'`,
-        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'getExpenseReport',
-        null, null, 'Refund', error);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: `Unable to get Report details with ID '${reportId}'`,
+        module: MODULE_NAME,
+        method: 'getExpenseReport',
+        action: 'Refund',
+        detailedMessages: error
+      });
     }
   }
 
@@ -427,11 +481,15 @@ export default class ConcurConnector extends AbstractConnector {
       });
       return response.data.Items;
     } catch (error) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'Unable to get expense Reports',
-        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'getExpenseReports',
-        null, null, 'Refund', error);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Unable to get expense Reports',
+        module: MODULE_NAME,
+        method: 'getExpenseReports',
+        action: 'Refund',
+        detailedMessages: error
+      });
     }
   }
 
@@ -459,28 +517,37 @@ export default class ConcurConnector extends AbstractConnector {
         module: MODULE_NAME, method: 'refreshToken',
         message: `Concur access token has been successfully generated in ${moment().diff(startDate, 'milliseconds')} ms with ${this.getRetryCount(response)} retries`
       });
-      connection.updateData(response.data, new Date(), ConcurConnector.computeValidUntilAt(response));
+      connection.updateData(response.data, new Date(), ConcurRefundConnector.computeValidUntilAt(response));
       return ConnectionStorage.saveConnection(this.getTenantID(), connection.getModel());
     } catch (error) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Concur access token not refreshed (ID: '${userId}')`,
-        Constants.HTTP_GENERAL_ERROR, MODULE_NAME, 'refreshToken',
-        userId, null, 'Refund', error);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: `Concur access token not refreshed (ID: '${userId}')`,
+        module: MODULE_NAME,
+        method: 'refreshToken',
+        action: 'Refund',
+        user: userId,
+        detailedMessages: error
+      });
     }
   }
 
   private async getRefreshedConnection(userId: string) {
     let connection = await this.getConnectionByUserId(userId);
     if (!connection) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The user with ID '${userId}' does not have a connection to connector '${CONNECTOR_ID}'`,
-        Constants.HTTP_CONCUR_NO_CONNECTOR_CONNECTION_ERROR,
-        'TransactionService', 'getRefreshedConnection', userId);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_CONCUR_NO_CONNECTOR_CONNECTION_ERROR,
+        message: `The user with ID '${userId}' does not have a connection to connector '${CONNECTOR_ID}'`,
+        module: MODULE_NAME,
+        method: 'getRefreshedConnection',
+        action: 'Refund',
+        user: userId
+      });
     }
 
-    if (ConcurConnector.isTokenExpired(connection)) {
+    if (ConcurRefundConnector.isTokenExpired(connection)) {
       connection = await this.refreshToken(userId, connection);
     }
     return connection;

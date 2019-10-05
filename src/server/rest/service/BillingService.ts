@@ -19,13 +19,14 @@ export default class BillingService {
     if (billingImpl) {
       // Check auth TODO: use another check
       if (!Authorizations.canUpdateSetting(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_UPDATE,
-          Constants.ENTITY_SETTING,
-          null,
-          Constants.HTTP_AUTH_ERROR,
-          'BillingService', 'handleGetBillingConnection',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_UPDATE,
+          entity: Constants.ENTITY_SETTING,
+          module: 'BillingService',
+          method: 'handleGetBillingConnection',
+        });
       }
 
       const checkResult = await billingImpl.checkConnection();
@@ -61,32 +62,42 @@ export default class BillingService {
   public static async handleSynchronizeUsers(action: string, req: Request, res: Response, next: NextFunction) {
     try {
       if (!Authorizations.isAdmin(req.user)) {
-        throw new AppAuthError(
-          Constants.ACTION_UPDATE,
-          Constants.ENTITY_USER,
-          null,
-          Constants.HTTP_AUTH_ERROR, 'BillingService', 'handleSynchronizeUsers',
-          req.user);
+        throw new AppAuthError({
+          errorCode: Constants.HTTP_AUTH_ERROR,
+          user: req.user,
+          action: Constants.ACTION_UPDATE,
+          entity: Constants.ENTITY_USER,
+          module: 'BillingService',
+          method: 'handleSynchronizeUsers',
+        });
       }
 
       const tenant = await TenantStorage.getTenant(req.user.tenantID);
       if (!Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.BILLING) ||
         !Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.PRICING)) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          'Billing or Pricing not active in this Tenant',
-          Constants.HTTP_GENERAL_ERROR, // TODO: use a new constant
-          'BillingService', 'handleSynchronizeUsers', req.user);
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: Constants.HTTP_GENERAL_ERROR,
+          message: 'Billing or Pricing not active in this Tenant',
+          module: 'BillingService',
+          method: 'handleSynchronizeUsers',
+          action: action,
+          user: req.user
+        });
       }
 
       // Get Billing implementation from factory
       const billingImpl = await BillingFactory.getBillingImpl(tenant.id);
       if (!billingImpl) {
-        throw new AppError(
-          Constants.CENTRAL_SERVER,
-          'Billing settings are not configured',
-          Constants.HTTP_GENERAL_ERROR, // TODO: use a new constant
-          'BillingService', 'handleSynchronizeUsers', req.user);
+        throw new AppError({
+          source: Constants.CENTRAL_SERVER,
+          errorCode: Constants.HTTP_GENERAL_ERROR,
+          message: 'Billing settings are not configured',
+          module: 'BillingService',
+          method: 'handleSynchronizeUsers',
+          action: action,
+          user: req.user
+        });
       }
 
       // Check
@@ -106,9 +117,10 @@ export default class BillingService {
         // Process them
         Logging.logInfo({
           tenantID: tenant.id,
-          module: 'BillingService',
-          method: 'handleSynchronizeUsers', action: 'SynchronizeUsersForBilling',
-          message: `${users.count} changed active user(s) are going to be synchronized with Billing`
+          source: Constants.CENTRAL_SERVER,
+          action: Constants.ACTION_SYNCHRONIZE_BILLING,
+          module: 'BillingService', method: 'handleSynchronizeUsers',
+          message: `${users.count} changed active users are going to be synchronized with Billing application`
         });
         for (const user of users.result) {
           try {
@@ -125,7 +137,7 @@ export default class BillingService {
             }
           } catch (error) {
             actionsDone.error++;
-            Logging.logActionExceptionMessage(tenant.id, 'SynchronizeUsersForBilling', error);
+            Logging.logActionExceptionMessage(tenant.id, Constants.ACTION_SYNCHRONIZE_BILLING, error);
           }
         }
       }
@@ -134,8 +146,9 @@ export default class BillingService {
       if (changedBillingCustomers && changedBillingCustomers.length > 0) {
         Logging.logInfo({
           tenantID: tenant.id,
-          module: 'BillingService',
-          method: 'handleSynchronizeUsers', action: 'SynchronizeUsersForBilling',
+          source: Constants.CENTRAL_SERVER,
+          action: Constants.ACTION_SYNCHRONIZE_BILLING,
+          module: 'BillingService', method: 'handleSynchronizeUsers',
           message: `Users are going to be synchronized for ${changedBillingCustomers.length} changed Billing customers`
         });
         for (const changedBillingCustomer of changedBillingCustomers) {
@@ -153,16 +166,16 @@ export default class BillingService {
               }
             } catch (error) {
               actionsDone.error++;
-              Logging.logActionExceptionMessage(tenant.id, 'SynchronizeUsersForBilling', error);
+              Logging.logActionExceptionMessage(tenant.id, Constants.ACTION_SYNCHRONIZE_BILLING, error);
             }
           } else {
             Logging.logError({
               tenantID: tenant.id,
-              source: changedBillingCustomer,
-              action: Constants.ACTION_UPDATE,
+              source: Constants.CENTRAL_SERVER,
+              action: Constants.ACTION_SYNCHRONIZE_BILLING,
               module: 'BillingService', method: 'handleSynchronizeUsers',
-              message: 'Synchronization failed for changed customer in Billing application',
-              detailedMessages: `No user exists for billing customer '${changedBillingCustomer}'`
+              message: `No user exists for billing customer ID '${changedBillingCustomer}`,
+              detailedMessages: `Synchronization failed for customer ID '${changedBillingCustomer}' from the Billing application. No user exists for this customer ID`
             });
             actionsDone.error++;
           }

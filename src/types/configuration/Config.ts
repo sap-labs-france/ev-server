@@ -52,6 +52,7 @@ export default interface Config {
   WSClient: WSClientConfiguration;
   OCPIService: {
     protocol: string;
+    externalProtocol: string;
     host: string;
     port: number;
     debug: boolean;

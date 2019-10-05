@@ -1,12 +1,11 @@
-import ConcurConnector from '../../integration/refund/ConcurConnector';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import SchedulerTask from '../SchedulerTask';
-import SettingStorage from '../../storage/mongodb/SettingStorage';
 import { TaskConfig } from '../TaskConfig';
 import Tenant from '../../types/Tenant';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import Utils from '../../utils/Utils';
+import RefundFactory from '../../integration/refund/RefundFactory';
 
 export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
@@ -20,8 +19,8 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
       return;
     }
     // Get Concur Settings
-    const setting = await SettingStorage.getSettingByIdentifier(tenant.id, Constants.COMPONENTS.REFUND);
-    if (!setting || !setting.content[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]) {
+    const refundConnector = await RefundFactory.getRefundConnector(tenant.id);
+    if (!refundConnector) {
       Logging.logDebug({
         tenantID: tenant.id,
         module: 'SynchronizeRefundTransactionsTask',
@@ -30,9 +29,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
       });
       return;
     }
-    // Create the Concur Connector
-    const connector = new ConcurConnector(
-      tenant.id, setting.content[Constants.SETTING_REFUND_CONTENT_TYPE_CONCUR]);
+
     // Get the 'Submitted' transactions
     const transactions = await TransactionStorage.getTransactions(tenant.id, {
       'refundStatus': [Constants.REFUND_STATUS_SUBMITTED]
@@ -55,7 +52,7 @@ export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
       for (const transaction of transactions.result) {
         try {
           // Update Transaction
-          const updatedAction = await connector.updateRefundStatus(tenant.id, transaction);
+          const updatedAction = await refundConnector.updateRefundStatus(tenant.id, transaction);
           switch (updatedAction) {
             case Constants.REFUND_STATUS_CANCELLED:
               actionsDone.cancelled++;

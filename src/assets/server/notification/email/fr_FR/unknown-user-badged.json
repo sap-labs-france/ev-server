@@ -17,7 +17,7 @@
       }
     },
     "beforeActionLines": [
-      "Bonjour Admin,",
+      "Cher Administrateur,",
       "",
       "Un utilisateur inconnu vient juste de badger sur <b><%- chargeBoxID %></b> avec le badge ID <b><%- badgeId %></b>."
     ],

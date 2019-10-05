@@ -65,9 +65,13 @@ export default class OCPPValidation extends SchemaValidator {
     // Check Connector ID
     if (!chargingStation.connectors.find(
       (connector) => connector.connectorId === startTransaction.connectorId)) {
-      throw new BackendError(chargingStation.id,
-        `The Connector ID '${startTransaction.connectorId}' is invalid`,
-        'OCPPService', 'handleStartTransaction', Constants.ACTION_START_TRANSACTION);
+      throw new BackendError({
+        source: chargingStation.id,
+        module: 'OCPPValidation',
+        method: 'validateStartTransaction',
+        message: `The Connector ID '${startTransaction.connectorId}' is invalid`,
+        action: Constants.ACTION_START_TRANSACTION
+      });
     }
   }
 

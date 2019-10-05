@@ -2,11 +2,13 @@ import axios from 'axios';
 import AbstractEndpoint from '../AbstractEndpoint';
 import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
-import OCPIClientError from '../../../../exception/OCPIClientError';
 import OCPIEndpoint from '../../../../entity/OCPIEndpoint';
 import OCPIMapping from './OCPIMapping';
-import OCPIServerError from '../../../../exception/OCPIServerError';
 import OCPIUtils from '../../OCPIUtils';
+import { NextFunction, Request, Response } from 'express';
+import Tenant from '../../../../types/Tenant';
+import AppError from '../../../../exception/AppError';
+import AbstractOCPIService from '../../AbstractOCPIService';
 
 const EP_IDENTIFIER = 'credentials';
 const EP_VERSION = '2.1.1';
@@ -14,32 +16,27 @@ const MODULE_NAME = 'CredentialsEndpoint';
 
 /**
  * Credentials Endpoint
- */export default class CredentialsEndpoint extends AbstractEndpoint {
-  public getVersion: any;
-  public getBaseUrl: any;
+ */
+export default class CredentialsEndpoint extends AbstractEndpoint {
 
-  constructor(ocpiService) {
+  constructor(ocpiService: AbstractOCPIService) {
     super(ocpiService, EP_IDENTIFIER, EP_VERSION);
   }
 
   /**
    * Main Process Method for the endpoint
    */
-  async process(req, res, next, tenant) {
-    try {
-      switch (req.method) {
-        case 'POST':
-          await this.postCredentials(req, res, next, tenant);
-          break;
-        case 'DELETE':
-          await this.deleteCredentials(req, res, next, tenant);
-          break;
-        default:
-          res.sendStatus(501);
-          break;
-      }
-    } catch (error) {
-      next(error);
+  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant) {
+    switch (req.method) {
+      case 'POST':
+        await this.postCredentials(req, res, next, tenant);
+        break;
+      case 'DELETE':
+        await this.deleteCredentials(req, res, next, tenant);
+        break;
+      default:
+        res.sendStatus(501);
+        break;
     }
   }
 
@@ -47,7 +44,7 @@ const MODULE_NAME = 'CredentialsEndpoint';
    * Registration process initiated by IOP
    */
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  async deleteCredentials(req, res, next, tenant) {
+  async deleteCredentials(req: Request, res: Response, next: NextFunction, tenant: Tenant) {
     // Get token from header
     let token;
     if (req.headers && req.headers.authorization) {
@@ -70,10 +67,15 @@ const MODULE_NAME = 'CredentialsEndpoint';
 
     // Check if ocpiEndpoint available
     if (!ocpiEndpoint || ocpiEndpoint.getStatus() === Constants.OCPI_REGISTERING_STATUS.OCPI_UNREGISTERED) {
-      throw new OCPIServerError(
-        'DELETE credentials',
-        'method not allowed if the client was not registered', 405,
-        EP_IDENTIFIER, 'deleteCredentials', null);
+      throw new AppError({
+        source: Constants.OCPI_SERVER,
+        module: MODULE_NAME,
+        method: 'deleteCredentials',
+        action: 'DELETE credentials',
+        errorCode: 405,
+        message: 'method not allowed if the client was not registered',
+        ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
+      });
     }
 
     // Save ocpi endpoint
@@ -88,7 +90,7 @@ const MODULE_NAME = 'CredentialsEndpoint';
   /**
    * Registration process initiated by IOP
    */
-  async postCredentials(req, res, next, tenant) {
+  async postCredentials(req: Request, res: Response, next: NextFunction, tenant: Tenant) {
     // Get payload
     const credential = req.body;
 
@@ -105,10 +107,15 @@ const MODULE_NAME = 'CredentialsEndpoint';
 
     // Check if valid
     if (!OCPIMapping.isValidOCPICredential(credential)) {
-      throw new OCPIClientError(
-        'OcpiPostCredentials',
-        'Invalid Credential Object', Constants.HTTP_GENERAL_ERROR,
-        EP_IDENTIFIER, 'postCredentials');
+      throw new AppError({
+        source: Constants.OCPI_SERVER,
+        module: MODULE_NAME,
+        method: 'postCredentials',
+        action: 'OcpiPostCredentials',
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'Invalid Credential Object',
+        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2000_GENERIC_CLIENT_ERROR
+      });
     }
 
     // Get token from header
@@ -133,10 +140,15 @@ const MODULE_NAME = 'CredentialsEndpoint';
 
     // Check if ocpiEndpoint available
     if (!ocpiEndpoint) {
-      throw new OCPIServerError(
-        'OcpiPostCredentials',
-        'OCPI Endpoint not available or wrong token', Constants.HTTP_GENERAL_ERROR,
-        EP_IDENTIFIER, 'postCredentials');
+      throw new AppError({
+        source: Constants.OCPI_SERVER,
+        module: MODULE_NAME,
+        method: 'postCredentials',
+        action: 'OcpiPostCredentials',
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'OCPI Endpoint not available or wrong token',
+        ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
+      });
     }
 
     // Save information
@@ -238,11 +250,16 @@ const MODULE_NAME = 'CredentialsEndpoint';
       // Set available endpoints
       ocpiEndpoint.setAvailableEndpoints(OCPIMapping.convertEndpoints(endpoints.data.data));
     } catch (error) {
-      throw new OCPIServerError(
-        'OcpiPostCredentials',
-        `Unable to use client API: ${error.message}`, Constants.HTTP_GENERAL_ERROR,
-        EP_IDENTIFIER, 'postCredentials', Constants.OCPI_STATUS_CODE.CODE_3001_UNABLE_TO_USE_CLIENT_API_ERROR,
-        error.stack);
+      throw new AppError({
+        source: Constants.OCPI_SERVER,
+        module: MODULE_NAME,
+        method: 'postCredentials',
+        action: 'OcpiPostCredentials',
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: `Unable to use client API: ${error.message}`,
+        ocpiError: Constants.OCPI_STATUS_CODE.CODE_3001_UNABLE_TO_USE_CLIENT_API_ERROR,
+        detailedMessages: error.stack
+      });
     }
 
     // Generate new token

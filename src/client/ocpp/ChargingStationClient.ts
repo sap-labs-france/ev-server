@@ -1,4 +1,5 @@
 import BackendError from '../../exception/BackendError';
+import Constants from '../../utils/Constants';
 
 export default abstract class ChargingStationClient {
 
@@ -87,12 +88,21 @@ export default abstract class ChargingStationClient {
           return this.updateFirmware(params);
         default:
           // Throw error
-          throw new BackendError('', `OCPP Command ${commandName} not supported in backend`,
-            'ChargingStationClient', 'sendCommand');
+          throw new BackendError({
+            source: Constants.CENTRAL_SERVER,
+            module: 'ChargingStationClient',
+            method: 'sendCommand',
+            message: `OCPP Command ${commandName} not supported in backend`
+          });
       }
     } catch (error) {
-      throw new BackendError('', `OCPP Command ${commandName} error ${JSON.stringify(error, null, ' ')}`,
-        'ChargingStationClient', 'sendCommand');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'ChargingStationClient',
+        method: 'sendCommand',
+        message: `OCPP Command ${commandName} error ${JSON.stringify(error, null, ' ')}`,
+        detailedMessages: error
+      });
     }
   }
 }

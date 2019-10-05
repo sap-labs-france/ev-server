@@ -1,10 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
-import AuthService from './service/AuthService';
+import Logging from '../../utils/Logging';
 import BillingService from './service/BillingService';
 import ChargingStationService from './service/ChargingStationService';
 import CompanyService from './service/CompanyService';
 import ConnectorService from './service/ConnectorService';
-import Logging from '../../utils/Logging';
 import LoggingService from './service/LoggingService';
 import NotificationService from './service/NotificationService';
 import OCPIEndpointService from './service/OCPIEndpointService';
@@ -184,6 +183,7 @@ class RequestMapper {
         this.registerJsonActionsPaths({
           PricingUpdate: PricingService.handleUpdatePricing.bind(this),
           UserUpdate: UserService.handleUpdateUser.bind(this),
+          UpdateUserMobileToken: UserService.handleUpdateUserMobileToken.bind(this),
           ChargingStationUpdateParams: ChargingStationService.handleUpdateChargingStationParams.bind(this),
           TenantUpdate: TenantService.handleUpdateTenant.bind(this),
           SiteUpdate: SiteService.handleUpdateSite.bind(this),

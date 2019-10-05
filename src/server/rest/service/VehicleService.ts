@@ -15,28 +15,38 @@ export default class VehicleService {
     const vehicleID = VehicleSecurity.filterVehicleRequestByID(req.query);
     // Check Mandatory fields
     if (!vehicleID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The Vehicle\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
-        'VehicleService', 'handleDeleteVehicle', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The Vehicle\'s ID must be provided',
+        module: 'VehicleService',
+        method: 'handleDeleteVehicle',
+        user: req.user
+      });
     }
     // Check auth
     if (!Authorizations.canDeleteVehicle(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_DELETE,
-        Constants.ENTITY_VEHICLE,
-        vehicleID,
-        Constants.HTTP_AUTH_ERROR,
-        'VehicleService', 'handleDeleteVehicle',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_DELETE,
+        entity: Constants.ENTITY_VEHICLE,
+        module: 'VehicleService',
+        method: 'handleDeleteVehicle',
+        value: vehicleID
+      });
     }
     // Get
     const vehicle = await VehicleStorage.getVehicle(req.user.tenantID, vehicleID);
     if (!vehicle) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `Vehicle with ID '${vehicleID}' does not exist`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        'VehicleService', 'handleDeleteVehicle', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `Vehicle with ID '${vehicleID}' does not exist`,
+        module: 'VehicleService',
+        method: 'handleDeleteVehicle',
+        user: req.user
+      });
     }
     // Delete
     await VehicleStorage.deleteVehicle(req.user.tenantID, vehicleID);
@@ -56,28 +66,38 @@ export default class VehicleService {
     const filteredRequest = VehicleSecurity.filterVehicleRequest(req.query);
     // Charge Box is mandatory
     if (!filteredRequest.ID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The Vehicle\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
-        'VehicleService', 'handleGetVehicle', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The Vehicle\'s ID must be provided',
+        module: 'VehicleService',
+        method: 'handleGetVehicle',
+        user: req.user
+      });
     }
     // Check auth
     if (!Authorizations.canReadVehicle(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_READ,
-        Constants.ENTITY_VEHICLE,
-        filteredRequest.ID,
-        Constants.HTTP_AUTH_ERROR,
-        'VehicleService', 'handleGetVehicle',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_READ,
+        entity: Constants.ENTITY_VEHICLE,
+        module: 'VehicleService',
+        method: 'handleGetVehicle',
+        value: filteredRequest.ID
+      });
     }
     // Get it
     const vehicle = await VehicleStorage.getVehicle(req.user.tenantID, filteredRequest.ID);
     if (!vehicle) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Vehicle with ID '${filteredRequest.ID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        'VehicleService', 'handleGetVehicle', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `The Vehicle with ID '${filteredRequest.ID}' does not exist anymore`,
+        module: 'VehicleService',
+        method: 'handleGetVehicle',
+        user: req.user
+      });
     }
     // Return
     res.json(
@@ -91,13 +111,14 @@ export default class VehicleService {
   public static async handleGetVehicles(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListVehicles(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_LIST,
-        Constants.ENTITY_VEHICLES,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        'VehicleService', 'handleGetVehicles',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_LIST,
+        entity: Constants.ENTITY_VEHICLES,
+        module: 'VehicleService',
+        method: 'handleGetVehicles'
+      });
     }
     // Filter
     const filteredRequest = VehicleSecurity.filterVehiclesRequest(req.query);
@@ -118,28 +139,38 @@ export default class VehicleService {
     const vehicleID = VehicleSecurity.filterVehicleRequestByID(req.query);
     // Charge Box is mandatory
     if (!vehicleID) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        'The Vehicle\'s ID must be provided', Constants.HTTP_GENERAL_ERROR,
-        'VehicleService', 'handleGetVehicleImage', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The Vehicle\'s ID must be provided',
+        module: 'VehicleService',
+        method: 'handleGetVehicleImage',
+        user: req.user
+      });
     }
     // Check auth
     if (!Authorizations.canReadVehicle(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_READ,
-        Constants.ENTITY_VEHICLE,
-        vehicleID,
-        Constants.HTTP_AUTH_ERROR,
-        'VehicleService', 'handleGetVehicleImage',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_READ,
+        entity: Constants.ENTITY_VEHICLE,
+        module: 'VehicleService',
+        method: 'handleGetVehicleImage',
+        value: vehicleID
+      });
     }
     // Get it
     const vehicle = await VehicleStorage.getVehicle(req.user.tenantID, vehicleID);
     if (!vehicle) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Vehicle with ID '${vehicleID}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        'VehicleService', 'handleGetVehicleImage', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `The Vehicle with ID '${vehicleID}' does not exist anymore`,
+        module: 'VehicleService',
+        method: 'handleGetVehicleImage',
+        user: req.user
+      });
     }
     // Get the image
     const vehicleImage = await VehicleStorage.getVehicleImage(req.user.tenantID, vehicleID);
@@ -151,13 +182,14 @@ export default class VehicleService {
   public static async handleCreateVehicle(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canCreateVehicle(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_CREATE,
-        Constants.ENTITY_VEHICLE,
-        null,
-        Constants.HTTP_AUTH_ERROR,
-        'VehicleService', 'handleCreateVehicle',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_READ,
+        entity: Constants.ENTITY_VEHICLE,
+        module: 'VehicleService',
+        method: 'handleCreateVehicle'
+      });
     }
     // Filter
     const filteredRequest = VehicleSecurity.filterVehicleCreateRequest(req.body);
@@ -197,21 +229,27 @@ export default class VehicleService {
     Utils.checkIfVehicleValid(filteredRequest, req);
     // Check auth
     if (!Authorizations.canUpdateVehicle(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_UPDATE,
-        Constants.ENTITY_VEHICLE,
-        filteredRequest.id,
-        Constants.HTTP_AUTH_ERROR,
-        'VehicleService', 'handleUpdateVehicle',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_UPDATE,
+        entity: Constants.ENTITY_VEHICLE,
+        module: 'VehicleService',
+        method: 'handleUpdateVehicle',
+        value: filteredRequest.id
+      });
     }
     // Get
     let vehicle = await VehicleStorage.getVehicle(req.user.tenantID, filteredRequest.id);
     if (!vehicle) {
-      throw new AppError(
-        Constants.CENTRAL_SERVER,
-        `The Vehicle with ID '${filteredRequest.id}' does not exist anymore`, Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        'VehicleService', 'handleUpdateVehicle', req.user);
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
+        message: `The Vehicle with ID '${filteredRequest.id}' does not exist anymore`,
+        module: 'VehicleService',
+        method: 'handleUpdateVehicle',
+        user: req.user
+      });
     }
     // Update
     vehicle = { ...vehicle, ...filteredRequest };

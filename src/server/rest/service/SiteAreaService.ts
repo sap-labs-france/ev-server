@@ -25,13 +25,15 @@ export default class SiteAreaService {
     UtilsService.assertObjectExists(siteArea, `Site Area with ID '${siteAreaID}' does not exist`, 'SiteAreaService', 'handleDeleteSiteArea', req.user);
     // Check auth
     if (!Authorizations.canDeleteSiteArea(req.user, siteArea.siteID)) {
-      throw new AppAuthError(
-        Constants.ACTION_DELETE,
-        Constants.ENTITY_SITE_AREA,
-        siteAreaID,
-        Constants.HTTP_AUTH_ERROR,
-        'SiteAreaService', 'handleDeleteSiteArea',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_DELETE,
+        entity: Constants.ENTITY_SITE_AREA,
+        module: 'SiteAreaService',
+        method: 'handleDeleteSiteArea',
+        value: siteAreaID
+      });
     }
     // Delete
     await SiteAreaStorage.deleteSiteArea(req.user.tenantID, siteArea.id);
@@ -64,13 +66,15 @@ export default class SiteAreaService {
     UtilsService.assertObjectExists(siteArea, `Site Area with ID '${filteredRequest.ID}' does not exist`, 'SiteAreaService', 'handleGetSiteArea', req.user);
     // Check auth
     if (!Authorizations.canReadSiteArea(req.user, siteArea.siteID)) {
-      throw new AppAuthError(
-        Constants.ACTION_READ,
-        Constants.ENTITY_SITE_AREA,
-        filteredRequest.ID,
-        Constants.HTTP_AUTH_ERROR,
-        'SiteAreaService', 'handleGetSiteAreaImage',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_READ,
+        entity: Constants.ENTITY_SITE_AREA,
+        module: 'SiteAreaService',
+        method: 'handleGetSiteArea',
+        value: filteredRequest.ID
+      });
     }
     // Return
     res.json(
@@ -94,12 +98,15 @@ export default class SiteAreaService {
     UtilsService.assertObjectExists(siteArea, `Site Area with ID '${siteAreaID}' does not exist`, 'SiteAreaService', 'handleGetSiteAreaImage', req.user);
     // Check auth
     if (!Authorizations.canReadSiteArea(req.user, siteArea.siteID)) {
-      throw new AppAuthError(
-        Constants.ACTION_READ,
-        Constants.ENTITY_SITE_AREA,
-        siteAreaID,
-        Constants.HTTP_AUTH_ERROR, 'SiteAreaService', 'handleGetSiteAreaImage',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_READ,
+        entity: Constants.ENTITY_SITE_AREA,
+        module: 'SiteAreaService',
+        method: 'handleGetSiteAreaImage',
+        value: siteAreaID
+      });
     }
     // Get it
     const siteAreaImage = await SiteAreaStorage.getSiteAreaImage(req.user.tenantID, siteAreaID);
@@ -116,12 +123,14 @@ export default class SiteAreaService {
       Constants.ACTION_LIST, Constants.ENTITY_SITE_AREAS, 'SiteAreaService', 'handleGetSiteAreas');
     // Check auth
     if (!Authorizations.canListSiteAreas(req.user)) {
-      throw new AppAuthError(
-        Constants.ACTION_LIST,
-        Constants.ENTITY_SITE_AREAS,
-        null,
-        Constants.HTTP_AUTH_ERROR, 'SiteAreaService', 'handleGetSiteAreas',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_LIST,
+        entity: Constants.ENTITY_SITE_AREAS,
+        module: 'SiteAreaService',
+        method: 'handleGetSiteAreas'
+      });
     }
     // Filter
     const filteredRequest = SiteAreaSecurity.filterSiteAreasRequest(req.query);
@@ -155,12 +164,14 @@ export default class SiteAreaService {
     Utils.checkIfSiteAreaValid(filteredRequest, req);
     // Check auth
     if (!Authorizations.canCreateSiteArea(req.user, filteredRequest.siteID)) {
-      throw new AppAuthError(
-        Constants.ACTION_CREATE,
-        Constants.ENTITY_SITE_AREA,
-        null,
-        Constants.HTTP_AUTH_ERROR, 'SiteAreaService', 'handleCreateSiteArea',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_CREATE,
+        entity: Constants.ENTITY_SITE_AREA,
+        module: 'SiteAreaService',
+        method: 'handleCreateSiteArea'
+      });
     }
     // Create site
     const newSiteArea: SiteArea = {
@@ -195,13 +206,15 @@ export default class SiteAreaService {
     UtilsService.assertObjectExists(siteArea, `Site Area with ID '${filteredRequest.id}' does not exist`, 'SiteAreaService', 'handleUpdateSiteArea', req.user);
     // Check auth
     if (!Authorizations.canUpdateSiteArea(req.user, siteArea.siteID)) {
-      throw new AppAuthError(
-        Constants.ACTION_UPDATE,
-        Constants.ENTITY_SITE_AREA,
-        filteredRequest.id,
-        Constants.HTTP_AUTH_ERROR,
-        'SiteAreaService', 'handleUpdateSiteArea',
-        req.user);
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_UPDATE,
+        entity: Constants.ENTITY_SITE_AREA,
+        module: 'SiteAreaService',
+        method: 'handleUpdateSiteArea',
+        value: filteredRequest.id
+      });
     }
     // Check Mandatory fields
     Utils.checkIfSiteAreaValid(filteredRequest, req);

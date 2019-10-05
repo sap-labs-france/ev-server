@@ -10,9 +10,12 @@ const IV_LENGTH = 16;
 export default class Cypher {
   public static getConfiguration() {
     if (!_configuration) {
-      throw new BackendError(Constants.CENTRAL_SERVER,
-        'Crypto configuration is missing',
-        'Cypher', 'getConfiguration');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'Cypher',
+        method: 'getConfiguration',
+        message: 'Crypto configuration is missing'
+      });
     }
     return _configuration;
   }
@@ -41,16 +44,22 @@ export default class Cypher {
 
   public static encryptSensitiveDataInJSON(obj: any) {
     if (typeof obj !== 'object') {
-      throw new BackendError(Constants.CENTRAL_SERVER,
-        `The parameter ${obj} is not an object`,
-        'Cypher', 'encryptSensitiveDataInJSON');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'Cypher',
+        method: 'encryptSensitiveDataInJSON',
+        message: `The parameter ${obj} is not an object`
+      });
     }
     if ('sensitiveData' in obj) {
       // Check that sensitive data is an array
       if (!Array.isArray(obj.sensitiveData)) {
-        throw new BackendError(Constants.CENTRAL_SERVER,
-          'The property \'sensitiveData\' is not an array',
-          'Cypher', 'encryptSensitiveDataInJSON');
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: 'Cypher',
+          method: 'encryptSensitiveDataInJSON',
+          message: 'The property \'sensitiveData\' is not an array'
+        });
       }
       obj.sensitiveData.forEach((property: string) => {
         // Check that the property does exist otherwise skip to the next property
@@ -69,16 +78,22 @@ export default class Cypher {
 
   public static decryptSensitiveDataInJSON(obj: any) {
     if (typeof obj !== 'object') {
-      throw new BackendError(Constants.CENTRAL_SERVER,
-        `The parameter ${obj} is not an object`,
-        'Cypher', 'decryptSensitiveDataInJSON');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'Cypher',
+        method: 'decryptSensitiveDataInJSON',
+        message: `The parameter ${obj} is not an object`
+      });
     }
     if ('sensitiveData' in obj) {
       // Check that sensitive data is an array
       if (!Array.isArray(obj.sensitiveData)) {
-        throw new BackendError(Constants.CENTRAL_SERVER,
-          'The property \'sensitiveData\' is not an array',
-          'Cypher', 'decryptSensitiveDataInJSON');
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: 'Cypher',
+          method: 'decryptSensitiveDataInJSON',
+          message: 'The property \'sensitiveData\' is not an array'
+        });
       }
       obj.sensitiveData.forEach((property: string) => {
         // Check that the property does exist otherwise skip to the next property
@@ -95,16 +110,22 @@ export default class Cypher {
 
   public static hashSensitiveDataInJSON(obj: any) {
     if (typeof obj !== 'object') {
-      throw new BackendError(Constants.CENTRAL_SERVER,
-        `The parameter ${obj} is not an object`,
-        'Cypher', 'hashSensitiveDataInJSON');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'Cypher',
+        method: 'hashSensitiveDataInJSON',
+        message: `The parameter ${obj} is not an object`
+      });
     }
     if (obj.sensitiveData) {
       // Check that sensitive data is an array
       if (!Array.isArray(obj.sensitiveData)) {
-        throw new BackendError(Constants.CENTRAL_SERVER,
-          'The property \'sensitiveData\' is not an array',
-          'Cypher', 'hashSensitiveDataInJSON');
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: 'Cypher',
+          method: 'hashSensitiveDataInJSON',
+          message: 'The property \'sensitiveData\' is not an array'
+        });
       }
       obj.sensitiveData.forEach((property: string) => {
         // Check that the property does exist otherwise skip to the next property

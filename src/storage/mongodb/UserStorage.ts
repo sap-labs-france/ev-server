@@ -177,11 +177,13 @@ export default class UserStorage {
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Read DB
-    const userImageMDB = await global.database.getCollection<{ _id: string; image: string }>(tenantID, 'userimages')
-      .findOne({ _id: id });
+    const userImageMDB: { _id: string; image: string } = await global.database.getCollection(tenantID, 'userimages')
+      .findOne({ _id: Utils.convertToObjectID(id) });
     // Debug
     Logging.traceEnd('UserStorage', 'getUserImage', uniqueTimerID, { id });
-    return { id: id, image: (userImageMDB ? userImageMDB.image : null) };
+    return {
+      id: id, image: (userImageMDB ? userImageMDB.image : null)
+    };
   }
 
   public static async removeSitesFromUser(tenantID: string, userID: string, siteIDs: string[]): Promise<void> {
@@ -239,10 +241,12 @@ export default class UserStorage {
     await Utils.checkTenant(tenantID);
     // Check if ID or email is provided
     if (!userToSave.id && !userToSave.email) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'User has no ID and no Email',
-        'UserStorage', 'saveUser');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'UserStorage',
+        method: 'saveUser',
+        message: 'User has no ID and no Email'
+      });
     }
     // Build Request
     const userFilter: any = {};
@@ -330,6 +334,19 @@ export default class UserStorage {
       { $set: { status } });
     // Debug
     Logging.traceEnd('UserStorage', 'saveUserStatus', uniqueTimerID);
+  }
+
+  public static async saveUserMobileToken(tenantID: string, userID: string, mobileToken: string, mobileOs: string): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserMobileToken');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Modify and return the modified document
+    await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
+      { '_id': Utils.convertToObjectID(userID) },
+      { $set: { mobileToken, mobileOs } });
+    // Debug
+    Logging.traceEnd('UserStorage', 'saveUserMobileToken', uniqueTimerID);
   }
 
   public static async saveUserRole(tenantID: string, userID: string, role: string): Promise<void> {
@@ -441,10 +458,12 @@ export default class UserStorage {
     // Check if ID is provided
     if (!userID) {
       // ID must be provided!
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'User Image has no ID',
-        'UserStorage', 'saveUserImage');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'UserStorage',
+        method: 'saveUserImage',
+        message: 'User Image has no ID'
+      });
     }
     // Modify and return the modified document
     await global.database.getCollection<any>(tenantID, 'userimages').findOneAndUpdate(

@@ -19,10 +19,13 @@ export default class MongoDBStorage {
 
   public getCollection<type>(tenantID: string, collectionName: string): Collection<type> {
     if (!this.db) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Not supposed to call getCollection before start',
-        'MongoDBStorage', 'getCollection', 'MongoDB');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'MongoDBStorage',
+        method: 'getCollection',
+        message: 'Not supposed to call getCollection before database start',
+        action: 'MongoDB'
+      });
     }
     return this.db.collection<type>(DatabaseUtils.getCollectionName(tenantID, collectionName));
   }
@@ -34,10 +37,13 @@ export default class MongoDBStorage {
   public async handleIndexesInCollection(allCollections: { name: string }[], tenantID: string, name: string, indexes?: { fields: any; options?: any }[]): Promise<boolean> {
     // Safety check
     if (!this.db) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Not supposed to call handleIndexesInCollection before start',
-        'MongoDBStorage', 'handleIndexesInCollection', 'MongoDB');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'MongoDBStorage',
+        method: 'handleIndexesInCollection',
+        message: 'Not supposed to call handleIndexesInCollection before database start',
+        action: 'MongoDB'
+      });
     }
 
     // Check Logs
@@ -100,10 +106,13 @@ export default class MongoDBStorage {
   public async checkAndCreateTenantDatabase(tenantID: string): Promise<void> {
     // Safety check
     if (!this.db) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Not supposed to call checkAndCreateTenantDatabase before start',
-        'MongoDBStorage', 'checkAndCreateTenantDatabase', 'MongoDB');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'MongoDBStorage',
+        method: 'checkAndCreateTenantDatabase',
+        message: 'Not supposed to call checkAndCreateTenantDatabase before database start',
+        action: 'MongoDB'
+      });
     }
 
     const name = new RegExp(`^${tenantID}.`);
@@ -171,10 +180,13 @@ export default class MongoDBStorage {
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Safety check
       if (!this.db) {
-        throw new BackendError(
-          Constants.CENTRAL_SERVER,
-          'Not supposed to call deleteTenantDatabase before start',
-          'MongoDBStorage', 'deleteTenantDatabase', 'MongoDB');
+        throw new BackendError({
+          source: Constants.CENTRAL_SERVER,
+          module: 'MongoDBStorage',
+          method: 'deleteTenantDatabase',
+          message: 'Not supposed to call deleteTenantDatabase before database start',
+          action: 'MongoDB'
+        });
       }
 
       // Get all the collections
@@ -193,10 +205,13 @@ export default class MongoDBStorage {
   public async migrateTenantDatabase(tenantID: string): Promise<void> {
     // Safety check
     if (!this.db) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Not supposed to call migrateTenantDatabase before start',
-        'MongoDBStorage', 'migrateTenantDatabase', 'MongoDB');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'MongoDBStorage',
+        method: 'migrateTenantDatabase',
+        message: 'Not supposed to call migrateTenantDatabase before database start',
+        action: 'MongoDB'
+      });
     }
     // Migrate not prefixed collections
     const collections = await this.db.listCollections().toArray();
@@ -211,10 +226,13 @@ export default class MongoDBStorage {
   public async checkDatabase(): Promise<void> {
     // Safety check
     if (!this.db) {
-      throw new BackendError(
-        Constants.CENTRAL_SERVER,
-        'Not supposed to call checkDatabase before start',
-        'MongoDBStorage', 'checkDatabase', 'MongoDB');
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'MongoDBStorage',
+        method: 'checkDatabase',
+        message: 'Not supposed to call checkDatabase before database start',
+        action: 'MongoDB'
+      });
     }
     // Get all the collections
     const collections = await this.db.listCollections().toArray();

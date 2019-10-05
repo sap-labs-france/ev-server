@@ -4,12 +4,13 @@ import CentralServiceApi from '../client/CentralServiceApi';
 import Constants from '../../../utils/Constants';
 import global from '../../../types/GlobalType';
 import Logging from '../../../utils/Logging';
+import { NextFunction, Request, Response } from 'express';
 
 export default class ODataSchema {
 
   public static restServerUrl = '';
 
-  static async getSchema(req, res, next) {
+  static async getSchema(req: Request, res: Response, next: NextFunction) {
     // Read XML schema
     const oDataSchema = fs.readFileSync(`${global.appRoot}/assets/server/odata/ODataSchema.xml`, 'utf8');
     // Set default header

@@ -1,6 +1,6 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
-import { HttpSitesAssignUserRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
+import { HttpSitesAssignUserRequest, HttpUserMobileTokenRequest, HttpUserRequest, HttpUserSitesRequest, HttpUsersRequest } from '../../../../types/requests/HttpUserRequest';
 import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
@@ -56,6 +56,14 @@ export default class UserSecurity {
     const filteredRequest = UserSecurity._filterUserRequest(request, loggedUser);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
+  }
+
+  public static filterUserUpdateMobileTokenRequest(request: any): Partial<HttpUserMobileTokenRequest> {
+    return {
+      id: sanitize(request.id),
+      mobileToken: sanitize(request.mobileToken),
+      mobileOS: sanitize(request.mobileOS)
+    };
   }
 
   public static filterUserCreateRequest(request: any, loggedUser: UserToken): Partial<HttpUserRequest> {

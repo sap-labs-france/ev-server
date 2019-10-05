@@ -1,8 +1,8 @@
 import { Request, Response } from 'express';
 import AbstractOCPIService from './AbstractOCPIService';
 import Config from '../../types/configuration/Config';
-import OCPIService2_0 from './ocpi-services-impl/ocpi-2.0/OCPIService';
-import OCPIService2_1_1 from './ocpi-services-impl/ocpi-2.1.1/OCPIService';
+import OCPIService20 from './ocpi-services-impl/ocpi-2.0/OCPIService';
+import OCPIService211 from './ocpi-services-impl/ocpi-2.1.1/OCPIService';
 import OCPIUtils from '../ocpi/OCPIUtils';
 
 export default class OCPIServices {
@@ -13,9 +13,9 @@ export default class OCPIServices {
   constructor(ocpiRestConfig: Config['OCPIService']) {
     // Add available OCPI services
     // version 2.1.1
-    this.ocpiServices.push(new OCPIService2_1_1(ocpiRestConfig));
+    this.ocpiServices.push(new OCPIService211(ocpiRestConfig));
     // pragma version 2.0
-    this.ocpiServices.push(new OCPIService2_0(ocpiRestConfig));
+    this.ocpiServices.push(new OCPIService20(ocpiRestConfig));
   }
 
   /**

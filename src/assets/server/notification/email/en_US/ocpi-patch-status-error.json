@@ -1,10 +1,10 @@
 {
-  "subject": "<%- chargeBoxID %> just registered",
+  "subject": "OCPI - Patch of charging station statuses failed",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Charger Registered",
+      "title": "Patch of Charging Station Statuses Failed",
       "image": {
         "left": {
           "height": 60,
@@ -19,12 +19,11 @@
     "beforeActionLines": [
       "Dear Administrator,",
       "",
-      "<b><%- chargeBoxID %></b> just registered to the central server."
+      "The transfer of the Charging Station's statuses has failed.",
+      "",
+      "Check the logs.",
+      ""
     ],
-    "action": {
-      "title": "View <%- chargeBoxID %>",
-      "url": "<%- evseDashboardChargingStationURL %>"
-    },
     "afterActionLines": [
       "Best Regards,",
       "EV Admins."
@@ -33,3 +32,4 @@
     }
   }
 }
+
