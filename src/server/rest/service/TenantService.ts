@@ -186,20 +186,20 @@ export default class TenantService {
     tenantUser.email = filteredRequest.email;
     // Save User
     tenantUser.id = await UserStorage.saveUser(filteredRequest.id, tenantUser);
-    // Save User Password
-    const password = Utils.generatePassword();
-    const encryptedPassword = await Utils.hashPasswordBcrypt(password);
-    await UserStorage.saveUserPassword(filteredRequest.id, tenantUser.id,
-      { password: encryptedPassword, passwordWrongNbrTrials: 0, passwordResetHash: null, passwordBlockedUntil: null });
     // Save User Role
     await UserStorage.saveUserRole(filteredRequest.id, tenantUser.id, Constants.ROLE_ADMIN);
     // Save User Account Verification
     const verificationToken = Utils.generateToken(filteredRequest.email);
     await UserStorage.saveUserAccountVerification(filteredRequest.id, tenantUser.id, { verificationToken });
+
+    const resetHash = Utils.generateGUID();
+    // Init Password info
+    await UserStorage.saveUserPassword(filteredRequest.id, tenantUser.id, { passwordResetHash: resetHash });
+
     // Send activation link
     const evseDashboardVerifyEmailURL = Utils.buildEvseURL(filteredRequest.subdomain) +
       '/#/verify-email?VerificationToken=' + verificationToken + '&Email=' +
-      tenantUser.email;
+      tenantUser.email + '&ResetToken=' + resetHash;
     // Send Register User (Async)
     NotificationHandler.sendNewRegisteredUser(
       Constants.DEFAULT_TENANT,
@@ -210,20 +210,6 @@ export default class TenantService {
         'user': tenantUser,
         'evseDashboardURL': Utils.buildEvseURL(filteredRequest.subdomain),
         'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
-      },
-      tenantUser.locale
-    );
-    // Send password (Async)
-    NotificationHandler.sendNewPassword(
-      Constants.DEFAULT_TENANT,
-      Utils.generateGUID(),
-      tenantUser,
-      {
-        'tenant': filteredRequest.name,
-        'user': tenantUser,
-        'hash': null,
-        'newPassword': password,
-        'evseDashboardURL': Utils.buildEvseURL(filteredRequest.subdomain)
       },
       tenantUser.locale
     );
@@ -295,7 +281,10 @@ export default class TenantService {
       }
       // Create
       const newSettingContent: SettingContent = Utils.createDefaultSettingContent(
-        { ...tenant.components[componentName], name: componentName }, (currentSetting ? currentSetting.content : null));
+        {
+          ...tenant.components[componentName],
+          name: componentName
+        }, (currentSetting ? currentSetting.content : null));
       if (newSettingContent) {
         // Create & Save
         if (!currentSetting) {

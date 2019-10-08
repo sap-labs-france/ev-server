@@ -17,7 +17,7 @@
       }
     },
     "beforeActionLines": [
-      "Hi Admin,",
+      "Dear Administrator,",
       "",
       "<b><%- chargeBoxID %></b> just registered to the central server."
     ],

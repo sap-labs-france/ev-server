@@ -18,7 +18,6 @@ const SOURCE_CHARGING_STATION_REGISTERED = 'NotifyChargingStationRegistered';
 const SOURCE_END_OF_CHARGE = 'NotifyEndOfCharge';
 const SOURCE_OPTIMAL_CHARGE_REACHED = 'NotifyOptimalChargeReached';
 const SOURCE_END_OF_SESSION = 'NotifyEndOfSession';
-const SOURCE_NEW_PASSWORD = 'NotifyNewPassword';
 const SOURCE_REQUEST_PASSWORD = 'NotifyRequestPassword';
 const SOURCE_USER_ACCOUNT_STATUS_CHANGED = 'NotifyUserAccountStatusChanged';
 const SOURCE_NEW_REGISTERED_USER = 'NotifyNewRegisteredUser';
@@ -194,23 +193,6 @@ export default class NotificationHandler {
     } catch (error) {
       // Log error
       Logging.logActionExceptionMessage(tenantID, SOURCE_REQUEST_PASSWORD, error);
-    }
-  }
-
-  static async sendNewPassword(tenantID, sourceId, user: User, sourceData, locale) {
-    try {
-      // Email enabled?
-      if (_notificationConfig.Email.enabled) {
-        // Save notif
-        await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId, SOURCE_NEW_PASSWORD, user, null);
-        // Send email
-        const result = await _email.sendNewPassword(sourceData, locale, tenantID);
-        // Return
-        return result;
-      }
-    } catch (error) {
-      // Log error
-      Logging.logActionExceptionMessage(tenantID, SOURCE_NEW_PASSWORD, error);
     }
   }
 

@@ -1,10 +1,10 @@
 {
-  "subject": "Authentification error in primary email server",
+  "subject": "Primary email server authentification failed",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Email authentification error",
+      "title": "Email Server Authentification Failed",
       "image": {
         "left": {
           "height": 60,
@@ -17,9 +17,11 @@
       }
     },
     "beforeActionLines": [
-      "Dear Admin,",
+      "Dear Administrator,",
       "",
-      "The authentification to the master email server has failed. Please check the configuration.",
+      "The authentication to the primary email server has failed.",
+      "",
+      "Please check your configuration.",
       ""
     ],
     "afterActionLines": [

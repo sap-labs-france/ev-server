@@ -53,11 +53,6 @@ export default class EMailNotificationTask extends NotificationTask {
     return this._prepareAndSendEmail('request-password', data, locale, tenantID);
   }
 
-  sendNewPassword(data, locale, tenantID) {
-    // Send it
-    return this._prepareAndSendEmail('new-password', data, locale, tenantID);
-  }
-
   sendOptimalChargeReached(data, locale, tenantID) {
     // Send it
     return this._prepareAndSendEmail('optimal-charge-reached', data, locale, tenantID);
@@ -231,10 +226,11 @@ export default class EMailNotificationTask extends NotificationTask {
       adminEmails = data.adminUsers.map((adminUser) => adminUser.email).join(';');
     }
     // Filter out the notifications that don't need bcc to admins
+    const emailTo = this.getUserEmailsFromData(data);
     // Send the email
     const message = await this.sendEmail({
-      to: this.getUserEmailsFromData(data),
-      bcc: adminEmails,
+      to: emailTo ? emailTo : adminEmails,
+      bcc: emailTo ? adminEmails : null,
       subject: subject,
       text: html,
       html: html
