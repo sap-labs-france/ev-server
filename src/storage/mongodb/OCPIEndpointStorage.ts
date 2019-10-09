@@ -1,44 +1,27 @@
 import { ObjectID } from 'mongodb';
 import BackendError from '../../exception/BackendError';
 import Constants from '../../utils/Constants';
-import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
-import OCPIEndpoint from '../../entity/OCPIEndpoint';
 import Utils from '../../utils/Utils';
+import OCPIEndpoint from '../../types/OCPIEndpoint';
+import { DataResult } from '../../types/DataResult';
+import DbParams from '../../types/database/DbParams';
 
 export default class OCPIEndpointStorage {
 
-  static async getOcpiEndpoint(tenantID, id) {
+  static async getOcpiEndpoint(tenantID: string, id: string): Promise<OCPIEndpoint> {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPIEndpointStorage', 'getOcpiEndpoint');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Create Aggregation
-    const aggregation = [];
-    // Filters
-    aggregation.push({
-      $match: { _id: Utils.convertToObjectID(id) }
-    });
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
-    // Read DB
-    const ocpiEndpointsMDB = await global.database.getCollection<any>(tenantID, 'ocpiendpoints')
-      .aggregate(aggregation)
-      .toArray();
-    // Set
-    let ocpiEndpoint = null;
-    if (ocpiEndpointsMDB && ocpiEndpointsMDB.length > 0) {
-      // Create
-      ocpiEndpoint = new OCPIEndpoint(tenantID, ocpiEndpointsMDB[0]);
-    }
+    const endpointsMDB = await OCPIEndpointStorage.getOcpiEndpoints(tenantID, { id: id }, Constants.DB_PARAMS_SINGLE_RECORD);
+
     // Debug
     Logging.traceEnd('OCPIEndpointStorage', 'getOcpiEndpoint', uniqueTimerID, { id });
-    return ocpiEndpoint;
+    return endpointsMDB.count > 0 ? endpointsMDB.result[0] : null;
   }
 
-  static async getOcpiEndpointWithToken(tenantID, token) {
+  static async getOcpiEndpointWithToken(tenantID: string, token: string): Promise<OCPIEndpoint> {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPIEndpointStorage', 'getOcpiEndpointWithToken');
     // Check Tenant
@@ -59,98 +42,123 @@ export default class OCPIEndpointStorage {
     let ocpiEndpoint = null;
     if (ocpiEndpointsMDB && ocpiEndpointsMDB.length > 0) {
       // Create
-      ocpiEndpoint = new OCPIEndpoint(tenantID, ocpiEndpointsMDB[0]);
+      ocpiEndpoint = ocpiEndpointsMDB[0];
     }
     // Debug
     Logging.traceEnd('OCPIEndpointStorage', 'getOcpiEndpointWithToken', uniqueTimerID, { token });
     return ocpiEndpoint;
   }
 
-  static async saveOcpiEndpoint(tenantID, ocpiEndpointToSave) {
+  static async saveOcpiEndpoint(tenantID: string, ocpiEndpointToSave: OCPIEndpoint): Promise<string> {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPIEndpointStorage', 'saveOcpiEndpoint');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Check if ID is provided
-    if (!ocpiEndpointToSave.id && !ocpiEndpointToSave.name) {
-      // ID must be provided!
+    // Check if name is provided
+    if (!ocpiEndpointToSave.name) {
+      // Name must be provided!
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
         module: 'OCPIEndpointStorage',
         method: 'saveOcpiEndpoint',
-        message: 'OCPIEndpoint has no ID and no Name'
+        message: 'OCPIEndpoint has no Name'
       });
     }
     const ocpiEndpointFilter: any = {};
     // Build Request
     if (ocpiEndpointToSave.id) {
-      ocpiEndpointFilter._id = Utils.convertUserToObjectID(ocpiEndpointToSave.id);
+      ocpiEndpointFilter._id = Utils.convertToObjectID(ocpiEndpointToSave.id);
     } else {
       ocpiEndpointFilter._id = new ObjectID();
     }
-    // Set Created By
-    ocpiEndpointToSave.createdBy = Utils.convertUserToObjectID(ocpiEndpointToSave.createdBy);
-    ocpiEndpointToSave.lastChangedBy = Utils.convertUserToObjectID(ocpiEndpointToSave.lastChangedBy);
-    // Transfer
-    const ocpiEndpoint: any = {};
-    Database.updateOcpiEndpoint(ocpiEndpointToSave, ocpiEndpoint, false);
+
+    const ocpiEndpointMDB: any = {
+      _id: ocpiEndpointFilter._id,
+      name: ocpiEndpointToSave.name,
+      baseUrl: ocpiEndpointToSave.baseUrl,
+      localToken: ocpiEndpointToSave.localToken,
+      token: ocpiEndpointToSave.token,
+      countryCode: ocpiEndpointToSave.countryCode,
+      partyId: ocpiEndpointToSave.partyId,
+      backgroundPatchJob: ocpiEndpointToSave.backgroundPatchJob,
+      status: ocpiEndpointToSave.status,
+      version: ocpiEndpointToSave.version,
+      businessDetails: ocpiEndpointToSave.businessDetails,
+      availableEndpoints: ocpiEndpointToSave.availableEndpoints,
+      versionUrl: ocpiEndpointToSave.versionUrl,
+      lastPatchJobOn: ocpiEndpointToSave.lastPatchJobOn,
+      lastPatchJobResult: ocpiEndpointToSave.lastPatchJobResult
+    };
+    // Add Last Changed/Created props
+    DatabaseUtils.addLastChangedCreatedProps(ocpiEndpointMDB, ocpiEndpointToSave);
     // Modify
-    const result = await global.database.getCollection<any>(tenantID, 'ocpiendpoints').findOneAndUpdate(
+    await global.database.getCollection<any>(tenantID, 'ocpiendpoints').findOneAndUpdate(
       ocpiEndpointFilter,
-      { $set: ocpiEndpoint },
+      { $set: ocpiEndpointMDB },
       { upsert: true, returnOriginal: false });
     // Debug
     Logging.traceEnd('OCPIEndpointStorage', 'saveOcpiEndpoint', uniqueTimerID, { ocpiEndpointToSave });
     // Create
-    return new OCPIEndpoint(tenantID, result.value);
-  }
-
-  // Get default ocpiEndpoint -
-  // Not quite sure how multiple OcpiEndpoint will be handled in future - for now keep use the first available
-  static async getDefaultOcpiEndpoint(tenantID) {
-    const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenantID);
-    return (ocpiEndpoints.result && ocpiEndpoints.result.length > 0) ? ocpiEndpoints.result[0] : null;
+    return ocpiEndpointFilter._id.toHexString();
   }
 
   // Delegate
-  static async getOcpiEndpoints(tenantID, params: any = {}, limit?, skip?, sort?) {
+  static async getOcpiEndpoints(tenantID: string, params: { search?: string; id?: string }, dbParams: DbParams): Promise<DataResult<OCPIEndpoint>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPIEndpointStorage', 'getOcpiEndpoints');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
-    limit = Utils.checkRecordLimit(limit);
+    const limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    skip = Utils.checkRecordSkip(skip);
+    const skip = Utils.checkRecordSkip(dbParams.skip);
+    // Create Aggregation
+    const aggregation: any[] = [];
     // Set the filters
     const filters: any = {};
     // Source?
-    if (params.search) {
+    if (params.id) {
+      filters._id = Utils.convertToObjectID(params.id);
+    } else if (params.search) {
       // Build filter
       filters.$or = [
         { 'name': { $regex: params.search, $options: 'i' } }
       ];
     }
 
-    // Create Aggregation
-    const aggregation = [];
     // Filters
     if (filters) {
       aggregation.push({
         $match: filters
       });
     }
+    // Limit records?
+    if (!dbParams.onlyRecordCount) {
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
+    }
     // Count Records
     const ocpiEndpointsCountMDB = await global.database.getCollection<any>(tenantID, 'ocpiendpoints')
       .aggregate([...aggregation, { $count: 'count' }])
       .toArray();
+    // Check if only the total count is requested
+    if (dbParams.onlyRecordCount) {
+      return {
+        count: (ocpiEndpointsCountMDB.length > 0 ? ocpiEndpointsCountMDB[0].count : 0),
+        result: []
+      };
+    }
+    // Remove the limit
+    aggregation.pop();
+
     // Add Created By / Last Changed By
     DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
+    // Handle the ID
+    DatabaseUtils.renameDatabaseID(aggregation);
     // Sort
-    if (sort) {
+    if (dbParams.sort) {
       // Sort
       aggregation.push({
-        $sort: sort
+        $sort: dbParams.sort
       });
     } else {
       // Default
@@ -172,25 +180,22 @@ export default class OCPIEndpointStorage {
     const ocpiEndpointsMDB = await global.database.getCollection<any>(tenantID, 'ocpiendpoints')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
       .toArray();
-    const ocpiEndpoints = [];
-    // Check
-    if (ocpiEndpointsMDB && ocpiEndpointsMDB.length > 0) {
-      // Create
-      for (const ocpiEndpointMDB of ocpiEndpointsMDB) {
-        // Add
-        ocpiEndpoints.push(new OCPIEndpoint(tenantID, ocpiEndpointMDB));
-      }
-    }
+
     // Debug
-    Logging.traceEnd('OCPIEndpointStorage', 'getOcpiEndpoints', uniqueTimerID, { params, limit, skip, sort });
+    Logging.traceEnd('OCPIEndpointStorage', 'getOcpiEndpoints', uniqueTimerID, {
+      params,
+      limit,
+      skip,
+      sort: dbParams.sort
+    });
     // Ok
     return {
       count: (ocpiEndpointsCountMDB.length > 0 ? ocpiEndpointsCountMDB[0].count : 0),
-      result: ocpiEndpoints
+      result: ocpiEndpointsMDB
     };
   }
 
-  static async deleteOcpiEndpoint(tenantID, id) {
+  static async deleteOcpiEndpoint(tenantID: string, id: string) {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPIEndpointStorage', 'deleteOcpiEndpoint');
     // Check Tenant
@@ -202,7 +207,7 @@ export default class OCPIEndpointStorage {
     Logging.traceEnd('OCPIEndpointStorage', 'deleteOcpiEndpoint', uniqueTimerID, { id });
   }
 
-  static async deleteOcpiEndpoints(tenantID) {
+  static async deleteOcpiEndpoints(tenantID: string) {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPIEndpointStorage', 'deleteOcpiEndpoints');
     // Check Tenant

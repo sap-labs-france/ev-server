@@ -32,7 +32,7 @@ export default class TenantService {
         user: req.user,
         action: Constants.ACTION_DELETE,
         entity: Constants.ENTITY_TENANT,
-        module: 'TenantService',
+        module: MODULE_NAME,
         method: 'handleDeleteTenant',
         value: filteredRequest.ID
       });
@@ -58,7 +58,7 @@ export default class TenantService {
     if (filteredRequest.forced && !Utils.isServerInProductionMode()) {
       Logging.logWarning({
         tenantID: req.user.tenantID,
-        module: 'MongoDBStorage', method: 'deleteTenantDatabase',
+        module: MODULE_NAME, method: 'deleteTenantDatabase',
         message: `Deleting collections for tenant ${tenant.id}`
       });
       await TenantStorage.deleteTenantDB(tenant.id);
@@ -87,7 +87,7 @@ export default class TenantService {
         user: req.user,
         action: Constants.ACTION_READ,
         entity: Constants.ENTITY_TENANT,
-        module: 'TenantService',
+        module: MODULE_NAME,
         method: 'handleGetTenant',
         value: tenantID
       });
@@ -112,7 +112,7 @@ export default class TenantService {
         user: req.user,
         action: Constants.ACTION_LIST,
         entity: Constants.ENTITY_TENANTS,
-        module: 'TenantService',
+        module: MODULE_NAME,
         method: 'handleGetTenants'
       });
     }
@@ -137,7 +137,7 @@ export default class TenantService {
         user: req.user,
         action: Constants.ACTION_CREATE,
         entity: Constants.ENTITY_TENANT,
-        module: 'TenantService',
+        module: MODULE_NAME,
         method: 'handleCreateTenant'
       });
     }
@@ -238,7 +238,7 @@ export default class TenantService {
         user: req.user,
         action: Constants.ACTION_UPDATE,
         entity: Constants.ENTITY_TENANT,
-        module: 'TenantService',
+        module: MODULE_NAME,
         method: 'handleUpdateTenant',
         value: tenantUpdate.id
       });

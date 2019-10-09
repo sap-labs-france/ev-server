@@ -64,4 +64,20 @@ export default class OCPIUtils {
     return Buffer.from(string).toString('base64');
   }
 
+  /**
+   * Generate a local token for a tenant subdomain
+   * @param tenantSubdomain
+   */
+  public static generateLocalToken(tenantSubdomain: string) {
+    const newToken: any = {};
+    // Generate random
+    newToken.ak = Math.floor(Math.random() * 100);
+    // Fill new Token with tenant subdmain
+    newToken.tid = tenantSubdomain;
+    // Generate random
+    newToken.zk = Math.floor(Math.random() * 100);
+    // Return in Base64
+    return OCPIUtils.btoa(JSON.stringify(newToken));
+  }
+
 }
