@@ -21,32 +21,14 @@ export default class OCPIEndpointStorage {
     return endpointsMDB.count > 0 ? endpointsMDB.result[0] : null;
   }
 
-  static async getOcpiEndpointWithToken(tenantID: string, token: string): Promise<OCPIEndpoint> {
+  static async getOcpiEndpoinByLocalToken(tenantID: string, token: string): Promise<OCPIEndpoint> {
     // Debug
-    const uniqueTimerID = Logging.traceStart('OCPIEndpointStorage', 'getOcpiEndpointWithToken');
-    // Check Tenant
-    await Utils.checkTenant(tenantID);
-    // Create Aggregation
-    const aggregation = [];
-    // Filters
-    aggregation.push({
-      $match: { localToken: token }
-    });
-    // Add Created By / Last Changed By
-    DatabaseUtils.pushCreatedLastChangedInAggregation(tenantID, aggregation);
-    // Read DB
-    const ocpiEndpointsMDB = await global.database.getCollection<any>(tenantID, 'ocpiendpoints')
-      .aggregate(aggregation)
-      .toArray();
-    // Set
-    let ocpiEndpoint = null;
-    if (ocpiEndpointsMDB && ocpiEndpointsMDB.length > 0) {
-      // Create
-      ocpiEndpoint = ocpiEndpointsMDB[0];
-    }
+    const uniqueTimerID = Logging.traceStart('OCPIEndpointStorage', 'getOcpiEndpoinByLocalToken');
+    const endpointsMDB = await OCPIEndpointStorage.getOcpiEndpoints(tenantID, { localToken: token }, Constants.DB_PARAMS_SINGLE_RECORD);
+
     // Debug
-    Logging.traceEnd('OCPIEndpointStorage', 'getOcpiEndpointWithToken', uniqueTimerID, { token });
-    return ocpiEndpoint;
+    Logging.traceEnd('OCPIEndpointStorage', 'getOcpiEndpoinByLocalToken', uniqueTimerID, { token });
+    return endpointsMDB.count > 0 ? endpointsMDB.result[0] : null;
   }
 
   static async saveOcpiEndpoint(tenantID: string, ocpiEndpointToSave: OCPIEndpoint): Promise<string> {
@@ -103,7 +85,7 @@ export default class OCPIEndpointStorage {
   }
 
   // Delegate
-  static async getOcpiEndpoints(tenantID: string, params: { search?: string; id?: string }, dbParams: DbParams): Promise<DataResult<OCPIEndpoint>> {
+  static async getOcpiEndpoints(tenantID: string, params: { search?: string; id?: string; localToken?: string }, dbParams: DbParams): Promise<DataResult<OCPIEndpoint>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPIEndpointStorage', 'getOcpiEndpoints');
     // Check Tenant
@@ -119,6 +101,8 @@ export default class OCPIEndpointStorage {
     // Source?
     if (params.id) {
       filters._id = Utils.convertToObjectID(params.id);
+    } else if (params.localToken) {
+      filters.localToken = params.localToken;
     } else if (params.search) {
       // Build filter
       filters.$or = [
