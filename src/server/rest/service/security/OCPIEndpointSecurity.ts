@@ -2,6 +2,9 @@ import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import UtilsSecurity from './UtilsSecurity';
 import UserToken from '../../../../types/UserToken';
+import OCPIEndpoint from '../../../../types/OCPIEndpoint';
+import { HttpOCPIEndpointsRequest } from '../../../../types/requests/HttpOCPIEndpointRequest';
+import { DataResult } from '../../../../types/DataResult';
 
 export default class OCPIEndpointSecurity {
   // eslint-disable-next-line no-unused-vars
@@ -13,57 +16,54 @@ export default class OCPIEndpointSecurity {
   }
 
   // eslint-disable-next-line no-unused-vars
-  static filterOcpiEndpointRequest(request: any) {
-    const filteredRequest: any = {};
-    filteredRequest.ID = sanitize(request.ID);
-    return filteredRequest;
+  static filterOcpiEndpointRequestByID(request: any): string {
+    return sanitize(request.ID);
   }
 
   // eslint-disable-next-line no-unused-vars
-  public static filterOcpiEndpointsRequest(request: any) {
-    const filteredRequest: any = {};
+  public static filterOcpiEndpointsRequest(request: any): HttpOCPIEndpointsRequest {
+    const filteredRequest: HttpOCPIEndpointsRequest = {} as HttpOCPIEndpointsRequest;
     filteredRequest.Search = sanitize(request.Search);
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
   }
 
-  static filterOcpiEndpointUpdateRequest(request: any) {
-    // Set OcpiEndpoint
+  static filterOcpiEndpointUpdateRequest(request: any): Partial<OCPIEndpoint> {
     const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  static filterOcpiEndpointCreateRequest(request: any) {
+  static filterOcpiEndpointCreateRequest(request: any): Partial<OCPIEndpoint> {
     return OCPIEndpointSecurity._filterOcpiEndpointRequest(request);
   }
 
-  static filterOcpiEndpointPingRequest(request: any) {
-    return OCPIEndpointSecurity._filterOcpiEndpointRequest(request);
+  static filterOcpiEndpointPingRequest(request: any): OCPIEndpoint {
+    return OCPIEndpointSecurity._filterOcpiEndpointRequest(request) as OCPIEndpoint;
   }
 
-  static filterOcpiEndpointSendEVSEStatusesRequest(request: any) {
-    // Set OcpiEndpoint
+  static filterOcpiEndpointSendEVSEStatusesRequest(request: any): Partial<OCPIEndpoint> {
     const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  static filterOcpiEndpointRegisterRequest(request: any) {
-    // Set OcpiEndpoint
+  static filterOcpiEndpointRegisterRequest(request: any): Partial<OCPIEndpoint> {
     const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request);
     filteredRequest.id = sanitize(request.id);
     return filteredRequest;
   }
 
-  static filterOcpiEndpointGenerateLocalTokenRequest(request: any) {
-    return OCPIEndpointSecurity._filterOcpiEndpointRequest(request);
+  static filterOcpiEndpointGenerateLocalTokenRequest(request: any): Partial<OCPIEndpoint> {
+    const filteredRequest = OCPIEndpointSecurity._filterOcpiEndpointRequest(request);
+    filteredRequest.id = sanitize(request.id);
+    return filteredRequest;
   }
 
   // eslint-disable-next-line no-unused-vars
-  static _filterOcpiEndpointRequest(request: any) {
-    const filteredRequest: any = {};
+  static _filterOcpiEndpointRequest(request: any): Partial<OCPIEndpoint> {
+    const filteredRequest: Partial<OCPIEndpoint> = {};
     filteredRequest.name = sanitize(request.name);
     filteredRequest.baseUrl = sanitize(request.baseUrl);
     filteredRequest.countryCode = sanitize(request.countryCode);
@@ -74,7 +74,7 @@ export default class OCPIEndpointSecurity {
     return filteredRequest;
   }
 
-  static filterOcpiEndpointResponse(ocpiEndpoint, loggedUser: UserToken) {
+  static filterOcpiEndpointResponse(ocpiEndpoint: OCPIEndpoint, loggedUser: UserToken): Partial<OCPIEndpoint> {
     let filteredOcpiEndpoint;
 
     if (!ocpiEndpoint) {
@@ -97,16 +97,16 @@ export default class OCPIEndpointSecurity {
     return filteredOcpiEndpoint;
   }
 
-  static filterOcpiEndpointsResponse(ocpiEndpoints, loggedUser) {
+  static filterOcpiEndpointsResponse(ocpiEndpoints: DataResult<OCPIEndpoint>, loggedUser): void {
     const filteredOcpiEndpoints = [];
 
-    if (!ocpiEndpoints) {
-      return null;
+    if (!ocpiEndpoints || !ocpiEndpoints.result) {
+      return;
     }
     if (!Authorizations.canListOcpiEndpoints(loggedUser)) {
-      return null;
+      return;
     }
-    for (const ocpiEndPoint of ocpiEndpoints) {
+    for (const ocpiEndPoint of ocpiEndpoints.result) {
       // Filter
       const filteredOcpiEndpoint = OCPIEndpointSecurity.filterOcpiEndpointResponse(ocpiEndPoint, loggedUser);
       // Ok?
@@ -115,7 +115,7 @@ export default class OCPIEndpointSecurity {
         filteredOcpiEndpoints.push(filteredOcpiEndpoint);
       }
     }
-    return filteredOcpiEndpoints;
+    ocpiEndpoints.result = filteredOcpiEndpoints;
   }
 }
 

@@ -7,6 +7,7 @@ import { NextFunction, Request, Response } from 'express';
 import Tenant from '../../../../types/Tenant';
 import AppError from '../../../../exception/AppError';
 import AbstractOCPIService from '../../AbstractOCPIService';
+import Site from '../../../../types/Site';
 
 const EP_IDENTIFIER = 'locations';
 const EP_VERSION = '2.1.1';
@@ -25,11 +26,11 @@ const RECORDS_LIMIT = 20;
   /**
    * Main Process Method for the endpoint
    */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant) {
+  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
     switch (req.method) {
       case 'GET':
         // Call method
-        await this.getLocationRequest(req, res, next, tenant);
+        await this.getLocationRequest(req, res, next, tenant, options);
         break;
       default:
         res.sendStatus(501);
@@ -40,7 +41,7 @@ const RECORDS_LIMIT = 20;
   /**
    * Get Locations according to the requested url Segment
    */
-  async getLocationRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant) {
+  async getLocationRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
     // Split URL Segments
     //    /ocpi/cpo/2.0/locations/{location_id}
     //    /ocpi/cpo/2.0/locations/{location_id}/{evse_uid}
@@ -57,7 +58,7 @@ const RECORDS_LIMIT = 20;
 
     // Process request
     if (locationId && evseUid && connectorId) {
-      payload = await this.getConnector(tenant, locationId, evseUid, connectorId);
+      payload = await this.getConnector(tenant, locationId, evseUid, connectorId, options);
 
       // Check if at least of site found
       if (!payload) {
@@ -73,7 +74,7 @@ const RECORDS_LIMIT = 20;
       }
 
     } else if (locationId && evseUid) {
-      payload = await this.getEvse(tenant, locationId, evseUid);
+      payload = await this.getEvse(tenant, locationId, evseUid, options);
 
       // Check if at least of site found
       if (!payload) {
@@ -89,7 +90,7 @@ const RECORDS_LIMIT = 20;
       }
     } else if (locationId) {
       // Get single location
-      payload = await this.getLocation(tenant, locationId);
+      payload = await this.getLocation(tenant, locationId, options);
 
       // Check if at least of site found
       if (!payload) {
@@ -109,7 +110,7 @@ const RECORDS_LIMIT = 20;
       const limit = (req.query.limit && req.query.limit < RECORDS_LIMIT) ? parseInt(req.query.limit) : RECORDS_LIMIT;
 
       // Get all locations
-      const result = await this.getAllLocations(tenant, limit, offset);
+      const result = await this.getAllLocations(tenant, limit, offset, options);
       payload = result.locations;
 
       // Set header
@@ -135,7 +136,7 @@ const RECORDS_LIMIT = 20;
    * Get All OCPI Locations from given tenant TODO: move to OCPIMapping
    * @param {Tenant} tenant
    */
-  async getAllLocations(tenant: Tenant, limit: number, skip: number) {
+  async getAllLocations(tenant: Tenant, limit: number, skip: number, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
     // Result
     const result = { count: 0, locations: [] };
 
@@ -144,7 +145,7 @@ const RECORDS_LIMIT = 20;
 
     // Convert Sites to Locations
     for (const site of sites.result) {
-      result.locations.push(await OCPIMapping.convertSite2Location(tenant, site));
+      result.locations.push(await OCPIMapping.convertSite2Location(tenant, site, options));
     }
 
     // Set count
@@ -159,7 +160,7 @@ const RECORDS_LIMIT = 20;
    * @param {*} tenant
    * @param {*} locationId
    */
-  async getLocation(tenant: Tenant, locationId: string) {
+  async getLocation(tenant: Tenant, locationId: string, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
     // Get site
     const site = await SiteStorage.getSite(tenant.id, locationId);
     if (!site) {
@@ -167,7 +168,7 @@ const RECORDS_LIMIT = 20;
     }
 
     // Convert
-    return await OCPIMapping.convertSite2Location(tenant, site);
+    return await OCPIMapping.convertSite2Location(tenant, site, options);
   }
 
   /**
@@ -176,12 +177,12 @@ const RECORDS_LIMIT = 20;
    * @param {*} locationId
    * @param {*} evseId
    */
-  async getEvse(tenant: Tenant, locationId: string, evseUid: string) {
+  async getEvse(tenant: Tenant, locationId: string, evseUid: string, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
     // Get site
     const site = await SiteStorage.getSite(tenant.id, locationId);
 
     // Convert to location
-    const location = await OCPIMapping.convertSite2Location(tenant, site);
+    const location = await OCPIMapping.convertSite2Location(tenant, site, options);
 
     // Loop through EVSE
     if (location) {
@@ -200,9 +201,9 @@ const RECORDS_LIMIT = 20;
    * @param {*} evseUid
    * @param {*} connectorId
    */
-  async getConnector(tenant: Tenant, locationId: string, evseUid: string, connectorId: string) {
+  async getConnector(tenant: Tenant, locationId: string, evseUid: string, connectorId: string, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
     // Get site
-    const evse = await this.getEvse(tenant, locationId, evseUid);
+    const evse = await this.getEvse(tenant, locationId, evseUid, options);
 
     // Loop through Connector
     if (evse) {
