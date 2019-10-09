@@ -26,7 +26,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
   /**
    * Main Process Method for the endpoint
    */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: {countryID: string; partyID: string; addChargeBoxID?: boolean}) {
+  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
     switch (req.method) {
       case 'POST':
         await this.postCredentials(req, res, next, tenant);
@@ -63,7 +63,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     });
 
     // Get ocpiEndpoints based on the given token
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpointWithToken(tenant.id, token);
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoinByLocalToken(tenant.id, token);
 
     // Check if ocpiEndpoint available
     if (!ocpiEndpoint || ocpiEndpoint.status === Constants.OCPI_REGISTERING_STATUS.OCPI_UNREGISTERED) {
@@ -136,7 +136,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     });
 
     // Get ocpiEndpoints based on the given token
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpointWithToken(tenant.id, token);
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoinByLocalToken(tenant.id, token);
 
     // Check if ocpiEndpoint available
     if (!ocpiEndpoint) {
