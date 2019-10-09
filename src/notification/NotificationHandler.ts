@@ -338,7 +338,7 @@ export default class NotificationHandler {
       // Enrich with admins
       data.users = await NotificationHandler.getAdminUsers(tenantID);
       // Compute the id as day and hour so that just one of this email is sent per hour
-      const sourceId = Math.floor(Date.now()/3600000);
+      const sourceId = Math.floor(Date.now() / 3600000);
       // Check notification
       const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_SMTP_AUTH, sourceId);
       // Notified?
@@ -354,8 +354,8 @@ export default class NotificationHandler {
         }
       }
     } catch (error) {
-        // Log error
-        Logging.logActionExceptionMessage(tenantID, SOURCE_AUTH_EMAIL_ERROR, error);
+      // Log error
+      Logging.logActionExceptionMessage(tenantID, SOURCE_AUTH_EMAIL_ERROR, error);
     }
   }
 
@@ -364,7 +364,7 @@ export default class NotificationHandler {
       // Enrich with admins
       data.users = await NotificationHandler.getAdminUsers(tenantID);
       // Compute the id as day and hour so that just one of this email is sent per hour
-      const sourceId = Math.floor(Date.now()/3600000);
+      const sourceId = Math.floor(Date.now() / 3600000);
       // Check notification
       const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_PATCH_EVSE_STATUS, sourceId);
       // Notified?
@@ -380,8 +380,8 @@ export default class NotificationHandler {
         }
       }
     } catch (error) {
-        // Log error
-        Logging.logActionExceptionMessage(tenantID, SOURCE_PATCH_EVSE_STATUS_ERROR, error);
+      // Log error
+      Logging.logActionExceptionMessage(tenantID, SOURCE_PATCH_EVSE_STATUS_ERROR, error);
     }
   }
 }
