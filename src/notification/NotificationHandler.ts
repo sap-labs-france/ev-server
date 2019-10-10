@@ -26,6 +26,7 @@ const SOURCE_TRANSACTION_STARTED = 'NotifyTransactionStarted';
 const SOURCE_VERIFICATION_EMAIL = 'NotifyVerificationEmail';
 const SOURCE_AUTH_EMAIL_ERROR = 'NotifyAuthentificationErrorEmailServer';
 const SOURCE_PATCH_EVSE_STATUS_ERROR = 'NotifyPatchEVSEStatusError';
+
 export default class NotificationHandler {
 
   static async saveNotification(tenantID, channel, sourceId, sourceDescr, user: User, chargingStation, data = {}) {
