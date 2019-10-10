@@ -1,23 +1,28 @@
 import Constants from '../../utils/Constants';
 import Cypher from '../../utils/Cypher';
-import Database from '../../utils/Database';
 import DatabaseUtils from './DatabaseUtils';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
-import Notification from '../../entity/Notification';
 import Utils from '../../utils/Utils';
+import Notification from '../../types/Notification';
+import { DataResult } from '../../types/DataResult';
+import DbParams from '../../types/database/DbParams';
 
 export default class NotificationStorage {
 
-  static async getNotifications(tenantID, params: any = {}, limit?, skip?, sort?) {
+  static async getNotifications(tenantID: string,
+                                params: { userID?: string; dateFrom?: Date; channel?: string; sourceId?: string },
+                                dbParams: DbParams): Promise<DataResult<Notification>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('NotificationStorage', 'getNotifications');
     // Check Tenant
     await Utils.checkTenant(tenantID);
     // Check Limit
-    limit = Utils.checkRecordLimit(limit);
+    const limit = Utils.checkRecordLimit(dbParams.limit);
     // Check Skip
-    skip = Utils.checkRecordSkip(skip);
+    const skip = Utils.checkRecordSkip(dbParams.skip);
+    // Create Aggregation
+    const aggregation: any[] = [];
     // Set the filters
     const filters: any = {};
     // Set Site?
@@ -41,16 +46,27 @@ export default class NotificationStorage {
     if (params.sourceId) {
       filters.sourceId = params.sourceId;
     }
-    // Create Aggregation
-    const aggregation = [];
     // Filters
     aggregation.push({
       $match: filters
     });
+    // Limit records?
+    if (!dbParams.onlyRecordCount) {
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
+    }
     // Count Records
     const notificationsCountMDB = await global.database.getCollection<any>(tenantID, 'notifications')
       .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
       .toArray();
+    // Check if only the total count is requested
+    if (dbParams.onlyRecordCount) {
+      return {
+        count: (notificationsCountMDB.length > 0 ? notificationsCountMDB[0].count : 0),
+        result: []
+      };
+    }
+    // Remove the limit
+    aggregation.pop();
     // Add Charge Box
     aggregation.push({
       $lookup: {
@@ -78,10 +94,10 @@ export default class NotificationStorage {
       $unwind: { 'path': '$user', 'preserveNullAndEmptyArrays': true }
     });
     // Sort
-    if (sort) {
+    if (dbParams.sort) {
       // Sort
       aggregation.push({
-        $sort: sort
+        $sort: dbParams.sort
       });
     } else {
       // Default
@@ -99,42 +115,41 @@ export default class NotificationStorage {
     });
     // Read DB
     const notificationsMDB = await global.database.getCollection<any>(tenantID, 'notifications')
-      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .aggregate(aggregation, {
+        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
+        allowDiskUse: true
+      })
       .toArray();
-    const notifications = [];
-    // Check
-    if (notificationsMDB && notificationsMDB.length > 0) {
-      // Create
-      for (const notificationMDB of notificationsMDB) {
-        // Create
-        const notification = new Notification(tenantID, notificationMDB);
-        // Add
-        notifications.push(notification);
-      }
-    }
     // Debug
     Logging.traceEnd('NotificationStorage', 'getNotifications', uniqueTimerID, params);
     // Ok
     return {
       count: (notificationsCountMDB.length > 0 ? notificationsCountMDB[0].count : 0),
-      result: notifications
+      result: notificationsMDB
     };
   }
 
-  static async saveNotification(tenantID, notificationToSave) {
+  static async saveNotification(tenantID: string, notificationToSave: Notification): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('NotificationStorage', 'saveNotification');
     // Check Tenant
     await Utils.checkTenant(tenantID);
-    // Transfer
-    const notification: any = {};
-    Database.updateNotification(notificationToSave, notification, false);
-    // Set the ID
-    notification._id = Cypher.hash(`${notificationToSave.sourceId}~${notificationToSave.channel}`);
+
+    const ocpiEndpointMDB: any = {
+      _id: Cypher.hash(`${notificationToSave.sourceId}~${notificationToSave.channel}`),
+      userID: notificationToSave.userID,
+      timestamp: notificationToSave.timestamp,
+      channel: notificationToSave.channel,
+      sourceId: notificationToSave.sourceId,
+      sourceDescr: notificationToSave.sourceDescr,
+      data: notificationToSave.data,
+      chargeBoxID: notificationToSave.chargeBoxID
+    };
+
     // Create
     await global.database.getCollection<any>(tenantID, 'notifications')
-      .insertOne(notification);
+      .insertOne(ocpiEndpointMDB);
     // Debug
-    Logging.traceEnd('NotificationStorage', 'saveNotification', uniqueTimerID, { notification });
+    Logging.traceEnd('NotificationStorage', 'saveNotification', uniqueTimerID, { notificationToSave });
   }
 }
