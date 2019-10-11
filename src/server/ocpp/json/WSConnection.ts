@@ -193,7 +193,15 @@ export default class WSConnection {
             });
           }
           delete this._requests[messageId];
-          rejectCallback(new OCPPError(commandName, commandPayload, errorDetails));
+
+          rejectCallback(new OCPPError({
+            source: this.getChargingStationID(),
+            module: MODULE_NAME,
+            method: 'onMessage',
+            code: commandName,
+            message: commandPayload,
+            detailedMessages: errorDetails
+          }));
           break;
         // Error
         default:
@@ -241,7 +249,13 @@ export default class WSConnection {
 
   sendError(messageId, err) {
     // Check exception: only OCPP error are accepted
-    const error = (err instanceof OCPPError ? err : new OCPPError(Constants.OCPP_ERROR_INTERNAL_ERROR, err.message));
+    const error = (err instanceof OCPPError ? err : new OCPPError({
+      source: this.getChargingStationID(),
+      module: MODULE_NAME,
+      method: 'sendError',
+      code: Constants.OCPP_ERROR_INTERNAL_ERROR,
+      message: err.message
+    }));
     // Send error
     return this.sendMessage(messageId, error, Constants.OCPP_JSON_CALL_ERROR_MESSAGE);
   }
