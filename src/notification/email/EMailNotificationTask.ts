@@ -49,7 +49,13 @@ export default class EMailNotificationTask extends NotificationTask {
   }
 
   sendRequestPassword(data, locale, tenantID) {
-    // Send it
+    NotificationHandler.sendSmtpAuthError(
+      tenantID, locale,
+      {
+        'evseDashboardURL': data.evseDashboardURL
+      }
+    );
+// Send it
     return this._prepareAndSendEmail('request-password', data, locale, tenantID);
   }
 

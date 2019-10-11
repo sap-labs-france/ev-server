@@ -76,6 +76,7 @@ export default {
       'phone' : { 'type': 'Edm.String' },
       'mobile' : { 'type': 'Edm.String' },
       'notificationsActive' : { 'type': 'Edm.Boolean' },
+      'notifications' : { 'type': 'eMobility.Notifications' },
       'iNumber' : { 'type': 'Edm.String' },
       'costCenter' : { 'type': 'Edm.String' },
       'status' : { 'type': 'Edm.String' },
@@ -160,6 +161,19 @@ export default {
       'dayOfTheWeek' : { 'type': 'Edm.Int32' },
       'hourOfTheDay' : { 'type': 'Edm.Int32' },
       'weekOfTheYear' : { 'type': 'Edm.Int32' }
+    },
+    'Notifications': {
+      'sendSessionStarted' : { 'type':'Edm.Boolean'},
+      'sendOptimalChargeReached' : { 'type':'Edm.Boolean'},
+      'sendEndOfCharge' : { 'type':'Edm.Boolean'},
+      'sendEndOfSession' : { 'type':'Edm.Boolean'},
+      'sendUserAccountStatusChanged' : { 'type':'Edm.Boolean'},
+      'sendNewRegisteredUser' : { 'type':'Edm.Boolean'},
+      'sendUnknownUserBadged' : { 'type':'Edm.Boolean'},
+      'sendChargingStationStatusError' : { 'type':'Edm.Boolean'},
+      'sendChargingStationRegistered' : { 'type':'Edm.Boolean'},
+      'sendOcpiPatchStatusError' : { 'type':'Edm.Boolean'},
+      'sendSmtpAuthError' : { 'type':'Edm.Boolean'}
     }
   },
   entitySets: {

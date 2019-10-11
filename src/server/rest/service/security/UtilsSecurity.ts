@@ -4,6 +4,7 @@ import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
 import UserToken from '../../../../types/UserToken';
 import Utils from '../../../../utils/Utils';
+import UserNotifications from '../../../../types/UserNotifications';
 
 export default class UtilsSecurity {
   static filterBoolean(value) {
@@ -118,6 +119,24 @@ export default class UtilsSecurity {
       filteredAddress.longitude = sanitize(address.longitude);
     }
     return filteredAddress;
+  }
+
+  static filterNotificationsRequest(notifications): UserNotifications {
+    const filtered: any = {};
+    if (notifications) {
+      filtered.sendSessionStarted = sanitize(notifications.sendSessionStarted);
+      filtered.sendOptimalChargeReached = sanitize(notifications.sendOptimalChargeReached);
+      filtered.sendEndOfCharge = sanitize(notifications.sendEndOfCharge);
+      filtered.sendEndOfSession = sanitize(notifications.sendEndOfSession);
+      filtered.sendUserAccountStatusChanged = sanitize(notifications.sendUserAccountStatusChanged);
+      filtered.sendNewRegisteredUser = sanitize(notifications.sendNewRegisteredUser);
+      filtered.sendUnknownUserBadged = sanitize(notifications.sendUnknownUserBadged);
+      filtered.sendChargingStationStatusError = sanitize(notifications.sendChargingStationStatusError);
+      filtered.sendChargingStationRegistered = sanitize(notifications.sendChargingStationRegistered);
+      filtered.sendOcpiPatchStatusError = sanitize(notifications.sendOcpiPatchStatusError);
+      filtered.sendSmtpAuthError = sanitize(notifications.sendSmtpAuthError);
+    }
+    return filtered;
   }
 
   static filterCreatedAndLastChanged(filteredEntity, entity, loggedUser: UserToken) {

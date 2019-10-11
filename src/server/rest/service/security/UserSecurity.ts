@@ -105,12 +105,15 @@ export default class UserSecurity {
     if (request.email) {
       filteredRequest.email = sanitize(request.email);
     }
-    // Admin?
+    if (request.hasOwnProperty('notificationsActive')) {
+      filteredRequest.notificationsActive = sanitize(request.notificationsActive);
+    }
+    if (request.notifications) {
+      filteredRequest.notifications = UtilsSecurity.filterNotificationsRequest(request.notifications);
+    }
+// Admin?
     if (Authorizations.isAdmin(loggedUser) || Authorizations.isSuperAdmin(loggedUser)) {
       // Ok to set the sensitive data
-      if (request.hasOwnProperty('notificationsActive')) {
-        filteredRequest.notificationsActive = sanitize(request.notificationsActive);
-      }
       if (request.status) {
         filteredRequest.status = sanitize(request.status);
       }
@@ -145,6 +148,9 @@ export default class UserSecurity {
         filteredUser.phone = user.phone;
         filteredUser.mobile = user.mobile;
         filteredUser.notificationsActive = user.notificationsActive;
+        if(user.notifications) {
+          filteredUser.notifications = UtilsSecurity.filterNotificationsRequest(user.notifications);
+        };
         filteredUser.iNumber = user.iNumber;
         filteredUser.costCenter = user.costCenter;
         filteredUser.status = user.status;
@@ -167,6 +173,9 @@ export default class UserSecurity {
         filteredUser.phone = user.phone;
         filteredUser.mobile = user.mobile;
         filteredUser.notificationsActive = user.notificationsActive;
+        if(user.notifications) {
+          filteredUser.notifications = UtilsSecurity.filterNotificationsRequest(user.notifications);
+        };
         filteredUser.iNumber = user.iNumber;
         filteredUser.costCenter = user.costCenter;
         filteredUser.tagIDs = user.tagIDs;
