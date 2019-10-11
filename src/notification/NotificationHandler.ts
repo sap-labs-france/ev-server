@@ -2,7 +2,6 @@ import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import EMailNotificationTask from './email/EMailNotificationTask';
 import Logging from '../utils/Logging';
-import Notification from '../entity/Notification';
 import NotificationStorage from '../storage/mongodb/NotificationStorage';
 import User from '../types/User';
 import UserStorage from '../storage/mongodb/UserStorage';
@@ -30,8 +29,8 @@ const SOURCE_PATCH_EVSE_STATUS_ERROR = 'NotifyPatchEVSEStatusError';
 export default class NotificationHandler {
 
   static async saveNotification(tenantID, channel, sourceId, sourceDescr, user: User, chargingStation, data = {}) {
-    // Create the object
-    const notification = new Notification(tenantID, {
+    // Save it
+    await NotificationStorage.saveNotification(tenantID, {
       timestamp: new Date(),
       channel: channel,
       sourceId: sourceId,
@@ -40,15 +39,13 @@ export default class NotificationHandler {
       chargeBoxID: (chargingStation ? chargingStation.id : null),
       data
     });
-    // Save it
-    await notification.save();
     // Success
     if (user) {
       // User
       Logging.logInfo({
         tenantID: tenantID,
         source: (chargingStation ? chargingStation.id : null),
-        module: 'Notification', method: 'saveNotification',
+        module: 'NotificationHandler', method: 'saveNotification',
         action: sourceDescr, actionOnUser: user,
         message: 'User is being notified'
       });
@@ -57,7 +54,7 @@ export default class NotificationHandler {
       Logging.logInfo({
         tenantID: tenantID,
         source: (chargingStation ? chargingStation.id : null),
-        module: 'Notification', method: 'saveNotification',
+        module: 'NotificationHandler', method: 'saveNotification',
         action: sourceDescr, message: 'Admin users are being notified'
       });
     }
@@ -65,7 +62,11 @@ export default class NotificationHandler {
 
   static async getAdminUsers(tenantID: string): Promise<User[]> {
     // Get admin users
-    const adminUsers = await UserStorage.getUsers(tenantID, { roles: [Constants.ROLE_ADMIN], notificationsActive: true },
+    const adminUsers = await UserStorage.getUsers(tenantID,
+      {
+        roles: [Constants.ROLE_ADMIN],
+        notificationsActive: true
+      },
       Constants.DB_PARAMS_MAX_LIMIT);
     // Found
     if (adminUsers.count > 0) {
@@ -78,7 +79,12 @@ export default class NotificationHandler {
   static async hasNotifiedSource(tenantID, channel, sourceId) {
     try {
       // Save it
-      const notifications = await NotificationStorage.getNotifications(tenantID, { channel: channel, sourceId: sourceId });
+      const notifications = await NotificationStorage.getNotifications(tenantID,
+        {
+          channel: channel,
+          sourceId: sourceId
+        },
+        Constants.DB_PARAMS_COUNT_ONLY);
       // Return
       return notifications.count > 0;
     } catch (error) {

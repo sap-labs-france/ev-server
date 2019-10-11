@@ -30,7 +30,9 @@ export default class LoggingService {
         const chargingStations = await ChargingStationStorage.getChargingStations(req.user.tenantID,
           { siteIDs: req.user.sitesAdmin }, Constants.DB_PARAMS_MAX_LIMIT);
         // Check if Charging Station is already filtered
-        if (filteredRequest.Source && filteredRequest.Source.length > 0) {
+        if (chargingStations.count === 0) {
+          filteredRequest.Source = [''];
+        } else if (filteredRequest.Source && filteredRequest.Source.length > 0) {
           // Filter only Site Admin Chargers
           const sources = [];
           for (const chargingStation of chargingStations.result) {
