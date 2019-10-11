@@ -223,7 +223,7 @@ export default class Authorizations {
       context = {
         tagIDs: loggedUser.tagIDs,
         owner: loggedUser.id,
-        site: isOrgCompActive ? chargingStation.siteArea.site.id : null,
+        site: isOrgCompActive && chargingStation.siteArea ? chargingStation.siteArea.site.id : null,
         sites: loggedUser.sites,
         sitesAdmin: loggedUser.sitesAdmin
       };
@@ -609,7 +609,7 @@ export default class Authorizations {
         tagIDs: userToken.tagIDs,
         tagID: transaction ? transaction.tagID : null,
         owner: userToken.id,
-        site: isOrgCompActive ? chargingStation.siteArea.site.id : null,
+        site: isOrgCompActive && chargingStation.siteArea ? chargingStation.siteArea.site.id : null,
         sites: userToken.sites,
         sitesAdmin: userToken.sitesAdmin
       };

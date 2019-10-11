@@ -262,7 +262,7 @@ export default class EMailNotificationTask extends NotificationTask {
       from: (!retry ? _emailConfig.smtp.from : _emailConfig.smtpBackup.from),
       to: email.to,
       cc: email.cc,
-      bcc: (email.bccNeeded ? email.bcc: null),
+      bcc: (email.bccNeeded ? email.bcc : null),
       subject: email.subject,
       // pragma text: email.text
       attachment: [
@@ -273,14 +273,14 @@ export default class EMailNotificationTask extends NotificationTask {
     return this[!retry ? 'server' : 'serverBackup'].send(messageToSend, (err, messageSent) => {
       if (err) {
         // If authentifcation error in the primary email server then notify admins using the backup server
-        if(!retry && this.serverBackup && err.code === 3 && err.previous.code === 2){
+        if (!retry && this.serverBackup && err.code === 3 && err.previous.code === 2) {
           NotificationHandler.sendSmtpAuthError(
             tenantID, locale,
             {
               'evseDashboardURL': data.evseDashboardURL
             }
           );
-        } 
+        }
         // Log
         try {
           Logging.logError({

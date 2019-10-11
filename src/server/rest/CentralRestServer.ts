@@ -11,6 +11,7 @@ import Constants from '../../utils/Constants';
 import expressTools from '../ExpressTools';
 import Logging from '../../utils/Logging';
 import SessionHashService from '../rest/service/SessionHashService';
+import ChangeNotification from '../../types/ChangeNotification';
 
 const MODULE_NAME = 'CentralRestServer';
 export default class CentralRestServer {
@@ -18,7 +19,7 @@ export default class CentralRestServer {
   private static centralSystemRestConfig;
   private static restHttpServer;
   private static socketIO;
-  private static currentNotifications = [];
+  private static currentNotifications: ChangeNotification[] = [];
   private chargingStationConfig: any;
   private express: Application;
 
@@ -144,6 +145,7 @@ export default class CentralRestServer {
   notifyUser(tenantID: string, action: string, data) {
     // On User change rebuild userHashID
     if (data && data.id) {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       SessionHashService.rebuildUserHashID(tenantID, data.id);
     }
     // Add in buffer
@@ -193,6 +195,7 @@ export default class CentralRestServer {
   notifyTenant(tenantID: string, action: string, data) {
     // On Tenant change rebuild tenantHashID
     if (data && data.id) {
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
       SessionHashService.rebuildTenantHashID(data.id);
     }
     // Add in buffer
@@ -293,20 +296,20 @@ export default class CentralRestServer {
     });
   }
 
-  private addNotificationInBuffer(notification) {
+  private addNotificationInBuffer(notification: ChangeNotification) {
     let dups = false;
     // Add in buffer
-    for (let i = 0; i < CentralRestServer.currentNotifications.length; i++) {
+    for (const currentNotification of CentralRestServer.currentNotifications) {
       // Same Entity and Action?
-      if (CentralRestServer.currentNotifications[i].tenantID === notification.tenantID &&
-        CentralRestServer.currentNotifications[i].entity === notification.entity &&
-        CentralRestServer.currentNotifications[i].action === notification.action) {
+      if (currentNotification.tenantID === notification.tenantID &&
+        currentNotification.entity === notification.entity &&
+        currentNotification.action === notification.action) {
         // Yes
         dups = true;
         // Data provided: Check Id and Type
-        if (CentralRestServer.currentNotifications[i].data &&
-          (CentralRestServer.currentNotifications[i].data.id !== notification.data.id ||
-            CentralRestServer.currentNotifications[i].data.type !== notification.data.type)) {
+        if (currentNotification.data && notification.data &&
+          (currentNotification.data.id !== notification.data.id ||
+            currentNotification.data.type !== notification.data.type)) {
           dups = false;
         } else {
           break;

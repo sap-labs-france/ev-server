@@ -19,7 +19,7 @@ export default class MongoDBStorageNotification {
     this.centralRestServer = centralRestServer;
   }
 
-  static getActionFromOperation(operation: string) {
+  static getActionFromOperation(operation: string): string {
     if (operation) {
       switch (operation) {
         case 'insert':
@@ -45,7 +45,7 @@ export default class MongoDBStorageNotification {
     });
   }
 
-  static handleError(error) { // Log
+  static handleError(error: Error) { // Log
     Logging.logError({
       tenantID: Constants.DEFAULT_TENANT,
       module: 'MongoDBStorageNotification',
@@ -82,7 +82,7 @@ export default class MongoDBStorageNotification {
         this.handleCollectionChange(tenantID, collection, documentID, action, change);
       });
 
-      dbChangeStream.on('error', (error) => {
+      dbChangeStream.on('error', (error: Error) => {
         MongoDBStorageNotification.handleError(error);
       });
 

@@ -1094,7 +1094,7 @@ export default class OCPPService {
         // Set the Site Area ID
         startTransaction.siteAreaID = chargingStation.siteAreaID;
         // Set the Site ID. ChargingStation$siteArea$site checked by TagIDAuthorized.
-        const site = chargingStation.siteArea.site;
+        const site = chargingStation.siteArea ? chargingStation.siteArea.site : null;
         if (site) {
           startTransaction.siteID = site.id;
         }

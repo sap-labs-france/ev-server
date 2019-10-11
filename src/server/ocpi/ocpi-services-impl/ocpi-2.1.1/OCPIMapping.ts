@@ -19,7 +19,7 @@ export default class OCPIMapping {
    * @param options
    * @return OCPI Location
    */
-  static async convertSite2Location(tenant: Tenant, site: Site, options: any = {}) {
+  static async convertSite2Location(tenant: Tenant, site: Site, options: {countryID: string; partyID: string; addChargeBoxID?: boolean}) {
     // Build object
     return {
       'id': site.id,
@@ -43,7 +43,7 @@ export default class OCPIMapping {
    * @param {SiteArea} siteArea
    * @return Array of OCPI EVSES
    */
-  static getEvsesFromSiteaArea(tenant: Tenant, siteArea: SiteArea, options: any) {
+  static getEvsesFromSiteaArea(tenant: Tenant, siteArea: SiteArea, options: {countryID: string; partyID: string; addChargeBoxID?: boolean}) {
     // Build evses array
     const evses: any = [];
     // Convert charging stations to evse(s)
@@ -66,7 +66,7 @@ export default class OCPIMapping {
  * @param options
  * @return Array of OCPI EVSES
  */
-  static async getEvsesFromSite(tenant: Tenant, site: Site, options: any) {
+  static async getEvsesFromSite(tenant: Tenant, site: Site, options: {countryID: string; partyID: string; addChargeBoxID?: boolean}) {
     // Build evses array
     const evses = [];
     const siteAreas = await SiteAreaStorage.getSiteAreas(tenant.id, { withChargeBoxes: true, siteIDs: [site.id] },
@@ -84,7 +84,7 @@ export default class OCPIMapping {
    * Get All OCPI Locations from given tenant
    * @param {Tenant} tenant
    */
-  static async getAllLocations(tenant: Tenant, limit: number, skip: number, options: any) {
+  static async getAllLocations(tenant: Tenant, limit: number, skip: number, options: {countryID: string; partyID: string; addChargeBoxID?: boolean}) {
     // Result
     const result: any = { count: 0, locations: [] };
 
@@ -110,9 +110,9 @@ export default class OCPIMapping {
    * @param {*} chargingStation
    * @return Array of OCPI EVSES
    */
-  static convertCharginStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation, options: any) {
+  static convertCharginStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation, options: {countryID: string; partyID: string; addChargeBoxID?: boolean}) {
     // Build evse ID
-    const evseID = OCPIMapping.convert2evseid(`${tenant['_eMI3']['country_id']}*${tenant['_eMI3']['party_id']}*E${chargingStation.id}`);
+    const evseID = OCPIMapping.convert2evseid(`${options.countryID}*${options.partyID}*E${chargingStation.id}`);
 
     // Loop through connectors and send one evse per connector
     const connectors = chargingStation.connectors.filter((connector) => connector !== null);
@@ -141,9 +141,9 @@ export default class OCPIMapping {
    * @param options
    * @return OCPI EVSE
    */
-  static convertChargingStation2UniqueEvse(tenant: Tenant, chargingStation: ChargingStation, options: any) {
+  static convertChargingStation2UniqueEvse(tenant: Tenant, chargingStation: ChargingStation, options: {countryID: string; partyID: string; addChargeBoxID?: boolean}) {
     // Build evse id
-    const evseID = OCPIMapping.convert2evseid(`${tenant['_eMI3']['country_id']}*${tenant['_eMI3']['party_id']}*E${chargingStation.id}`);
+    const evseID = OCPIMapping.convert2evseid(`${options.countryID}*${options.partyID}*E${chargingStation.id}`);
 
     // Get all connectors
     const connectors = chargingStation.connectors.map(
@@ -152,7 +152,6 @@ export default class OCPIMapping {
     // Build evse
     const evse: any = {
       'uid': `${chargingStation.id}`,
-      // "id": this.convert2evseid(`${tenant._eMI3.country_id}*${tenant._eMI3.party_id}*E${chargingStation.id}`),
       'id': evseID,
       'status': OCPIMapping.convertStatus2OCPIStatus(OCPIMapping.aggregateConnectorsStatus(connectors)),
       'connectors': connectors
@@ -273,12 +272,12 @@ export default class OCPIMapping {
    * @param {*} tenant
    * @param {*} token
    */
-  static async buildOCPICredentialObject(tenant: Tenant, token, versionUrl?) {
+  static async buildOCPICredentialObject(tenantID: string, token: string, versionUrl?: string) {
     // Credential
     const credential: any = {};
 
     // Get ocpi service configuration
-    const ocpiSetting = await SettingStorage.getSettingByIdentifier(tenant.id, Constants.COMPONENTS.OCPI);
+    const ocpiSetting = await SettingStorage.getSettingByIdentifier(tenantID, Constants.COMPONENTS.OCPI);
 
     // Define version url
     credential.url = (versionUrl ? versionUrl : 'https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/cpo/versions');

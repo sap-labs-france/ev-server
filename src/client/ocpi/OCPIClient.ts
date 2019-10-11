@@ -2,7 +2,6 @@ import axios from 'axios';
 import _ from 'lodash';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
-import OCPIEndpoint from '../../entity/OCPIEndpoint';
 import OCPIMapping from '../../server/ocpi/ocpi-services-impl/ocpi-2.1.1/OCPIMapping';
 import OCPPStorage from '../../storage/mongodb/OCPPStorage';
 import Setting from '../../types/Setting';
@@ -10,11 +9,17 @@ import SettingStorage from '../../storage/mongodb/SettingStorage';
 import NotificationHandler from '../../notification/NotificationHandler';
 import Utils from '../../utils/Utils';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
+import OCPIEndpoint from '../../types/OCPIEndpoint';
+import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
+import Tenant from '../../types/Tenant';
+import OCPIUtils from '../../server/ocpi/OCPIUtils';
 
 export default class OCPIClient {
   private ocpiEndpoint: OCPIEndpoint;
+  private tenant: Tenant;
 
-  constructor(ocpiEndpoint: any) {
+  constructor(tenant: Tenant, ocpiEndpoint: OCPIEndpoint) {
+    this.tenant = tenant;
     this.ocpiEndpoint = ocpiEndpoint;
   }
 
@@ -30,7 +35,7 @@ export default class OCPIClient {
       // Check response
       if (!endpoints.data || !(endpoints.data.status_code === 1000) || !endpoints.data.data) {
         pingResult.statusCode = 412;
-        pingResult.statusText = `Invalid response from GET ${this.ocpiEndpoint.getBaseUrl()}`;
+        pingResult.statusText = `Invalid response from GET ${this.ocpiEndpoint.baseUrl}`;
       } else {
         pingResult.statusCode = endpoints.status;
         pingResult.statusText = endpoints.statusText;
@@ -57,8 +62,8 @@ export default class OCPIClient {
       for (const ocpiVersion of ocpiVersions.data.data) {
         if (ocpiVersion.version === '2.1.1') {
           versionFound = true;
-          this.ocpiEndpoint.setVersion(ocpiVersion.version);
-          this.ocpiEndpoint.setVersionUrl(ocpiVersion.url);
+          this.ocpiEndpoint.version = ocpiVersion.version;
+          this.ocpiEndpoint.versionUrl = ocpiVersion.url;
           break;
         }
       }
@@ -72,7 +77,7 @@ export default class OCPIClient {
       const services = await this.getServices();
 
       // Set available endpoints
-      this.ocpiEndpoint.setAvailableEndpoints(OCPIMapping.convertEndpoints(services.data.data));
+      this.ocpiEndpoint.availableEndpoints = OCPIMapping.convertEndpoints(services.data.data);
 
       // Post credentials and receive response
       const respPostCredentials = await this.postCredentials();
@@ -80,14 +85,14 @@ export default class OCPIClient {
 
       // Store information
       // pragma this.ocpiEndpoint.setBaseUrl(credential.url);
-      this.ocpiEndpoint.setToken(credential.token);
-      this.ocpiEndpoint.setCountryCode(credential.country_code);
-      this.ocpiEndpoint.setPartyId(credential.party_id);
-      this.ocpiEndpoint.setBusinessDetails(credential.business_details);
+      this.ocpiEndpoint.token = credential.token;
+      this.ocpiEndpoint.countryCode = credential.country_code;
+      this.ocpiEndpoint.partyId = credential.party_id;
+      this.ocpiEndpoint.businessDetails = credential.business_details;
 
       // Save endpoint
-      this.ocpiEndpoint.setStatus(Constants.OCPI_REGISTERING_STATUS.OCPI_REGISTERED);
-      await this.ocpiEndpoint.save();
+      this.ocpiEndpoint.status = Constants.OCPI_REGISTERING_STATUS.OCPI_REGISTERED;
+      await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant.id, this.ocpiEndpoint);
 
       // Send success
       registerResult.statusCode = 200;
@@ -106,9 +111,9 @@ export default class OCPIClient {
    */
   async getVersions() {
 
-    const respOcpiVersions = await axios.get(this.ocpiEndpoint.getBaseUrl(), {
+    const respOcpiVersions = await axios.get(this.ocpiEndpoint.baseUrl, {
       headers: {
-        'Authorization': `Token ${this.ocpiEndpoint.getToken()}`,
+        'Authorization': `Token ${this.ocpiEndpoint.token}`,
         'Content-Type': 'application/json'
       },
       timeout: 10000
@@ -116,7 +121,7 @@ export default class OCPIClient {
 
     // Check response
     if (!respOcpiVersions.data || !respOcpiVersions.data.data) {
-      throw new Error(`Invalid response from GET ${this.ocpiEndpoint.getBaseUrl()}`);
+      throw new Error(`Invalid response from GET ${this.ocpiEndpoint.baseUrl}`);
     }
 
     return respOcpiVersions;
@@ -128,17 +133,17 @@ export default class OCPIClient {
   async getServices() {
     // Log
     Logging.logInfo({
-      tenantID: this.ocpiEndpoint.getTenantID(),
+      tenantID: this.tenant.id,
       action: 'OcpiGetVersions',
-      message: `Get OCPI versions at ${this.ocpiEndpoint.getVersionUrl()}`,
+      message: `Get OCPI versions at ${this.ocpiEndpoint.versionUrl}`,
       source: 'OCPI Client',
       module: 'OCPIClient',
       method: 'getServices'
     });
 
-    const respOcpiServices = await axios.get(this.ocpiEndpoint.getVersionUrl(), {
+    const respOcpiServices = await axios.get(this.ocpiEndpoint.versionUrl, {
       headers: {
-        'Authorization': `Token ${this.ocpiEndpoint.getToken()}`,
+        'Authorization': `Token ${this.ocpiEndpoint.token}`,
         'Content-Type': 'application/json'
       },
       timeout: 10000
@@ -146,7 +151,7 @@ export default class OCPIClient {
 
     // Check response
     if (!respOcpiServices.data || !respOcpiServices.data.data) {
-      throw new Error(`Invalid response from GET ${this.ocpiEndpoint.getVersionUrl()}`);
+      throw new Error(`Invalid response from GET ${this.ocpiEndpoint.versionUrl}`);
     }
 
     return respOcpiServices;
@@ -157,19 +162,17 @@ export default class OCPIClient {
    */
   async postCredentials() {
     // Get credentials url
-    const credentialsUrl = this.ocpiEndpoint.getEndpointUrl('credentials');
+    const credentialsUrl = this.getEndpointUrl('credentials');
 
     if (!credentialsUrl) {
       throw new Error('Credentials url not available');
     }
 
-    // Build CPO credential object
-    const tenant = await this.ocpiEndpoint.getTenant();
-    const cpoCredentials = await OCPIMapping.buildOCPICredentialObject(tenant, await this.ocpiEndpoint.generateLocalToken());
+    const cpoCredentials = await OCPIMapping.buildOCPICredentialObject(this.tenant.id, OCPIUtils.generateLocalToken(this.tenant.subdomain));
 
     // Log
     Logging.logInfo({
-      tenantID: tenant.id,
+      tenantID: this.tenant.id,
       action: 'OcpiPostCredentials',
       message: `Post credentials at ${credentialsUrl}`,
       source: 'OCPI Client',
@@ -182,7 +185,7 @@ export default class OCPIClient {
     const respOcpiCredentials = await axios.post(credentialsUrl, cpoCredentials,
       {
         headers: {
-          Authorization: `Token ${this.ocpiEndpoint.getToken()}`,
+          Authorization: `Token ${this.ocpiEndpoint.token}`,
           'Content-Type': 'application/json'
         },
         timeout: 10000
@@ -206,7 +209,7 @@ export default class OCPIClient {
     }
 
     // Get locations endpoint url
-    const locationsUrl = this.ocpiEndpoint.getEndpointUrl('locations');
+    const locationsUrl = this.getEndpointUrl('locations');
 
     if (!locationsUrl) {
       throw new Error('Locations endpoint URL undefined');
@@ -214,7 +217,7 @@ export default class OCPIClient {
 
     // Read configuration to retrieve
     const ocpiSetting: Setting = await SettingStorage.getSettingByIdentifier(
-      this.ocpiEndpoint.getTenantID(), Constants.COMPONENTS.OCPI);
+      this.tenant.id, Constants.COMPONENTS.OCPI);
 
     if (!ocpiSetting || !ocpiSetting.content) {
       throw new Error('OCPI Settings not found');
@@ -236,7 +239,7 @@ export default class OCPIClient {
 
     // Log
     Logging.logDebug({
-      tenantID: this.ocpiEndpoint.getTenantID(),
+      tenantID: this.tenant.id,
       action: 'OcpiPatchLocations',
       message: `Patch location at ${fullUrl}`,
       source: 'OCPI Client',
@@ -249,7 +252,7 @@ export default class OCPIClient {
     const response = await axios.patch(fullUrl, payload,
       {
         headers: {
-          Authorization: `Token ${this.ocpiEndpoint.getToken()}`,
+          Authorization: `Token ${this.ocpiEndpoint.token}`,
           'Content-Type': 'application/json'
         },
         timeout: 10000
@@ -276,21 +279,24 @@ export default class OCPIClient {
       chargeBoxIDsInSuccess: []
     };
 
-    // Read configuration to retrieve
-    const tenant = await this.ocpiEndpoint.getTenant();
     // Get ocpi service configuration
-    const ocpiSetting = await SettingStorage.getSettingByIdentifier(this.ocpiEndpoint.getTenantID(), Constants.COMPONENTS.OCPI);
-    // Define eMI3
-    tenant['_eMI3'] = {};
+    const ocpiSetting = await SettingStorage.getSettingByIdentifier(this.tenant.id, Constants.COMPONENTS.OCPI);
+
+    // Define get option
+    const options = {
+      'addChargeBoxID': true,
+      countryID: '',
+      partyID: ''
+    };
 
     if (ocpiSetting && ocpiSetting.content) {
       const configuration = ocpiSetting.content.ocpi;
-      tenant['_eMI3'].country_id = configuration.countryCode;
-      tenant['_eMI3'].party_id = configuration.partyID;
+      options.countryID = configuration.countryCode;
+      options.partyID = configuration.partyID;
     } else {
       // Log error if failure
       Logging.logError({
-        tenantID: tenant.id,
+        tenantID: this.tenant.id,
         action: 'OcpiEndpointSendEVSEStatuses',
         message: 'OCPI Configuration not active',
         source: 'OCPI Client',
@@ -299,9 +305,6 @@ export default class OCPIClient {
       });
       return;
     }
-
-    // Define get option
-    const options = { 'addChargeBoxID': true };
 
     // Get timestamp before starting process - to be saved in DB at the end of the process
     const startDate = new Date();
@@ -316,14 +319,14 @@ export default class OCPIClient {
       chargeBoxIDsToProcess.push(...this.getChargeBoxIDsInFailure());
 
       // Get ChargingStation with new status notification
-      chargeBoxIDsToProcess.push(...await this.getChargeBoxIDsWithNewStatusNotifications(tenant));
+      chargeBoxIDsToProcess.push(...await this.getChargeBoxIDsWithNewStatusNotifications());
 
       // Remove duplicates
       chargeBoxIDsToProcess = _.uniq(chargeBoxIDsToProcess);
     }
 
     // Get all EVSES from all locations
-    const locationsResult = await OCPIMapping.getAllLocations(tenant, 0, 0, options);
+    const locationsResult = await OCPIMapping.getAllLocations(this.tenant, 0, 0, options);
 
     // Loop through locations
     for (const location of locationsResult.locations) {
@@ -348,12 +351,13 @@ export default class OCPIClient {
               );
             } catch (error) {
               // Send notification to admins
+              // eslint-disable-next-line @typescript-eslint/no-floating-promises
               NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
-                tenant.id, 
+                this.tenant.id,
                 {
                   'locationID': location.id,
                   'chargeBoxID': evse.chargeBoxId,
-                  'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenant.id)).subdomain),
+                  'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(this.tenant.id)).subdomain),
                 }
               );
               sendResult.failure++;
@@ -371,7 +375,7 @@ export default class OCPIClient {
     if (sendResult.failure > 0) {
       // Log error if failure
       Logging.logError({
-        tenantID: tenant.id,
+        tenantID: this.tenant.id,
         action: 'OcpiEndpointSendEVSEStatuses',
         message: `Patching of ${sendResult.logs.length} EVSE statuses has been done with errors (see details)`,
         detailedMessages: sendResult.logs,
@@ -382,7 +386,7 @@ export default class OCPIClient {
     } else if (sendResult.success > 0) {
       // Log info
       Logging.logInfo({
-        tenantID: tenant.id,
+        tenantID: this.tenant.id,
         action: 'OcpiEndpointSendEVSEStatuses',
         message: `Patching of ${sendResult.logs.length} EVSE statuses has been done successfully (see details)`,
         detailedMessages: sendResult.logs,
@@ -393,18 +397,29 @@ export default class OCPIClient {
     }
 
     // Save result in ocpi endpoint
-    this.ocpiEndpoint.setLastPatchJobOn(startDate);
+    this.ocpiEndpoint.lastPatchJobOn = startDate;
 
     // Set result
     if (sendResult) {
-      this.ocpiEndpoint.setLastPatchJobResult(sendResult.success, sendResult.failure, sendResult.total,
-        _.uniq(sendResult.chargeBoxIDsInFailure), _.uniq(sendResult.chargeBoxIDsInSuccess));
+      this.ocpiEndpoint.lastPatchJobResult = {
+        'successNbr': sendResult.success,
+        'failureNbr': sendResult.failure,
+        'totalNbr': sendResult.total,
+        'chargeBoxIDsInFailure': _.uniq(sendResult.chargeBoxIDsInFailure),
+        'chargeBoxIDsInSuccess': _.uniq(sendResult.chargeBoxIDsInSuccess)
+      };
     } else {
-      this.ocpiEndpoint.setLastPatchJobResult(0, 0, 0);
+      this.ocpiEndpoint.lastPatchJobResult = {
+        'successNbr': 0,
+        'failureNbr': 0,
+        'totalNbr': 0,
+        'chargeBoxIDsInFailure': [],
+        'chargeBoxIDsInSuccess': []
+      };
     }
 
     // Save
-    await this.ocpiEndpoint.save();
+    await OCPIEndpointStorage.saveOcpiEndpoint(this.tenant.id, this.ocpiEndpoint);
 
     // Return result
     return sendResult;
@@ -412,28 +427,35 @@ export default class OCPIClient {
 
   // Get ChargeBoxIDs in failure from previous job
   getChargeBoxIDsInFailure() {
-    if (this.ocpiEndpoint.getLastPatchJobResult() && this.ocpiEndpoint.getLastPatchJobResult().chargeBoxIDsInFailure) {
-      return this.ocpiEndpoint.getLastPatchJobResult().chargeBoxIDsInFailure;
+    if (this.ocpiEndpoint.lastPatchJobResult && this.ocpiEndpoint.lastPatchJobResult.chargeBoxIDsInFailure) {
+      return this.ocpiEndpoint.lastPatchJobResult.chargeBoxIDsInFailure;
     }
     return [];
   }
 
   // Get ChargeBoxIds with new status notifications
-  async getChargeBoxIDsWithNewStatusNotifications(tenant) {
+  async getChargeBoxIDsWithNewStatusNotifications() {
     // Get last job
-    const lastPatchJobOn = this.ocpiEndpoint.getLastPatchJobOn() ? this.ocpiEndpoint.getLastPatchJobOn() : new Date();
+    const lastPatchJobOn = this.ocpiEndpoint.lastPatchJobOn ? this.ocpiEndpoint.lastPatchJobOn : new Date();
 
     // Build params
     const params = { 'dateFrom': lastPatchJobOn };
 
     // Get last status notifications
-    const statusNotificationsResult = await OCPPStorage.getStatusNotifications(tenant.id, params, Constants.DB_PARAMS_MAX_LIMIT);
+    const statusNotificationsResult = await OCPPStorage.getStatusNotifications(this.tenant.id, params, Constants.DB_PARAMS_MAX_LIMIT);
 
     // Loop through notifications
     if (statusNotificationsResult.count > 0) {
       return statusNotificationsResult.result.map((statusNotification) => statusNotification.chargeBoxID);
     }
     return [];
+  }
+
+  private getEndpointUrl(service) {
+    if (this.ocpiEndpoint.availableEndpoints) {
+      return this.ocpiEndpoint.availableEndpoints[service];
+    }
+    return null;
   }
 
 }

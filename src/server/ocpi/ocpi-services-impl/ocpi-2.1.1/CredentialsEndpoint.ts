@@ -2,13 +2,13 @@ import axios from 'axios';
 import AbstractEndpoint from '../AbstractEndpoint';
 import Constants from '../../../../utils/Constants';
 import Logging from '../../../../utils/Logging';
-import OCPIEndpoint from '../../../../entity/OCPIEndpoint';
 import OCPIMapping from './OCPIMapping';
 import OCPIUtils from '../../OCPIUtils';
 import { NextFunction, Request, Response } from 'express';
 import Tenant from '../../../../types/Tenant';
 import AppError from '../../../../exception/AppError';
 import AbstractOCPIService from '../../AbstractOCPIService';
+import OCPIEndpointStorage from '../../../../storage/mongodb/OCPIEndpointStorage';
 
 const EP_IDENTIFIER = 'credentials';
 const EP_VERSION = '2.1.1';
@@ -26,7 +26,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
   /**
    * Main Process Method for the endpoint
    */
-  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant) {
+  async process(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
     switch (req.method) {
       case 'POST':
         await this.postCredentials(req, res, next, tenant);
@@ -63,10 +63,10 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     });
 
     // Get ocpiEndpoints based on the given token
-    const ocpiEndpoint = await OCPIEndpoint.getOcpiEndpointWithToken(tenant.id, token);
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoinByLocalToken(tenant.id, token);
 
     // Check if ocpiEndpoint available
-    if (!ocpiEndpoint || ocpiEndpoint.getStatus() === Constants.OCPI_REGISTERING_STATUS.OCPI_UNREGISTERED) {
+    if (!ocpiEndpoint || ocpiEndpoint.status === Constants.OCPI_REGISTERING_STATUS.OCPI_UNREGISTERED) {
       throw new AppError({
         source: Constants.OCPI_SERVER,
         module: MODULE_NAME,
@@ -79,9 +79,9 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     }
 
     // Save ocpi endpoint
-    ocpiEndpoint.setStatus(Constants.OCPI_REGISTERING_STATUS.OCPI_UNREGISTERED);
-    ocpiEndpoint.setBackgroundPatchJobFlag(false);
-    await ocpiEndpoint.save();
+    ocpiEndpoint.status = Constants.OCPI_REGISTERING_STATUS.OCPI_UNREGISTERED;
+    ocpiEndpoint.backgroundPatchJob = false;
+    await OCPIEndpointStorage.saveOcpiEndpoint(tenant.id, ocpiEndpoint);
 
     // Respond with credentials
     res.json(OCPIUtils.success());
@@ -136,7 +136,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     });
 
     // Get ocpiEndpoints based on the given token
-    const ocpiEndpoint = await OCPIEndpoint.getOcpiEndpointWithToken(tenant.id, token);
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoinByLocalToken(tenant.id, token);
 
     // Check if ocpiEndpoint available
     if (!ocpiEndpoint) {
@@ -152,11 +152,11 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     }
 
     // Save information
-    ocpiEndpoint.setBaseUrl(credential.url);
-    ocpiEndpoint.setToken(credential.token);
-    ocpiEndpoint.setCountryCode(credential.country_code);
-    ocpiEndpoint.setPartyId(credential.party_id);
-    ocpiEndpoint.setBusinessDetails(credential.business_details);
+    ocpiEndpoint.baseUrl = credential.url;
+    ocpiEndpoint.token = credential.token;
+    ocpiEndpoint.countryCode = credential.country_code;
+    ocpiEndpoint.partyId = credential.party_id;
+    ocpiEndpoint.businessDetails = credential.business_details;
 
     // Log updated ocpi endpoint
     Logging.logDebug({
@@ -166,16 +166,16 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       source: 'OCPI Server',
       module: MODULE_NAME,
       method: 'postCredentials',
-      detailedMessages: ocpiEndpoint.getModel()
+      detailedMessages: ocpiEndpoint
     });
 
     // Try to access remote ocpi service versions
     // Any error here should result in a 3001 Ocpi result exception based on the specification
     try {
       // Access versions API
-      const ocpiVersions = await axios.get(ocpiEndpoint.getBaseUrl(), {
+      const ocpiVersions = await axios.get(ocpiEndpoint.baseUrl, {
         headers: {
-          'Authorization': `Token ${ocpiEndpoint.getToken()}`,
+          'Authorization': `Token ${ocpiEndpoint.token}`,
           'Content-Type': 'application/json'
         },
         timeout: 10000
@@ -194,7 +194,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
 
       // Check response
       if (!ocpiVersions.data || !ocpiVersions.data.data) {
-        throw new Error(`Invalid response from GET ${ocpiEndpoint.getBaseUrl()}`);
+        throw new Error(`Invalid response from GET ${ocpiEndpoint.baseUrl}`);
       }
 
       // Loop through versions and pick the same one
@@ -202,8 +202,8 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       for (const version of ocpiVersions.data.data) {
         if (version.version === this.getVersion()) {
           versionFound = true;
-          ocpiEndpoint.setVersion(version.version);
-          ocpiEndpoint.setVersionUrl(version.url);
+          ocpiEndpoint.version = version.version;
+          ocpiEndpoint.versionUrl = version.url;
 
           // Log correct OCPI service found
           Logging.logDebug({
@@ -213,7 +213,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
             source: 'OCPI Server',
             module: MODULE_NAME,
             method: 'postCredentials',
-            detailedMessages: `[${ocpiEndpoint.getVersion()}]:${ocpiEndpoint.getVersionUrl()}`
+            detailedMessages: `[${ocpiEndpoint.version}]:${ocpiEndpoint.versionUrl}`
           });
         }
       }
@@ -225,9 +225,9 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
 
       // Try to read endpoints
       // Access versions API
-      const endpoints = await axios.get(ocpiEndpoint.getVersionUrl(), {
+      const endpoints = await axios.get(ocpiEndpoint.versionUrl, {
         headers: {
-          'Authorization': `Token ${ocpiEndpoint.getToken()}`,
+          'Authorization': `Token ${ocpiEndpoint.token}`,
           'Content-Type': 'application/json'
         }
       });
@@ -244,11 +244,11 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
       });
       // Check response
       if (!endpoints.data || !endpoints.data.data) {
-        throw new Error(`Invalid response from GET ${ocpiEndpoint.getVersionUrl()}`);
+        throw new Error(`Invalid response from GET ${ocpiEndpoint.versionUrl}`);
       }
 
       // Set available endpoints
-      ocpiEndpoint.setAvailableEndpoints(OCPIMapping.convertEndpoints(endpoints.data.data));
+      ocpiEndpoint.availableEndpoints = OCPIMapping.convertEndpoints(endpoints.data.data);
     } catch (error) {
       throw new AppError({
         source: Constants.OCPI_SERVER,
@@ -263,17 +263,17 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     }
 
     // Generate new token
-    await ocpiEndpoint.generateLocalToken(tenant);
-    ocpiEndpoint.setStatus(Constants.OCPI_REGISTERING_STATUS.OCPI_REGISTERED);
+    ocpiEndpoint.localToken = OCPIUtils.generateLocalToken(tenant.subdomain);
+    ocpiEndpoint.status = Constants.OCPI_REGISTERING_STATUS.OCPI_REGISTERED;
 
     // Save ocpi endpoint
-    await ocpiEndpoint.save();
+    await OCPIEndpointStorage.saveOcpiEndpoint(tenant.id, ocpiEndpoint);
 
     // Get base url
     const versionUrl = this.getBaseUrl(req) + Constants.OCPI_SERVER_BASE_PATH;
 
     // Build credential object
-    const respCredential = await OCPIMapping.buildOCPICredentialObject(tenant, ocpiEndpoint.getLocalToken(), versionUrl);
+    const respCredential = await OCPIMapping.buildOCPICredentialObject(tenant.id, ocpiEndpoint.localToken, versionUrl);
 
     // Log available OCPI Versions
     Logging.logDebug({

@@ -2,7 +2,6 @@ import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import EMailNotificationTask from './email/EMailNotificationTask';
 import Logging from '../utils/Logging';
-import Notification from '../entity/Notification';
 import NotificationStorage from '../storage/mongodb/NotificationStorage';
 import User from '../types/User';
 import UserStorage from '../storage/mongodb/UserStorage';
@@ -29,8 +28,8 @@ const SOURCE_PATCH_EVSE_STATUS_ERROR = 'NotifyPatchEVSEStatusError';
 export default class NotificationHandler {
 
   static async saveNotification(tenantID, channel, sourceId, sourceDescr, user: User, chargingStation, data = {}) {
-    // Create the object
-    const notification = new Notification(tenantID, {
+    // Save it
+    await NotificationStorage.saveNotification(tenantID, {
       timestamp: new Date(),
       channel: channel,
       sourceId: sourceId,
@@ -39,15 +38,13 @@ export default class NotificationHandler {
       chargeBoxID: (chargingStation ? chargingStation.id : null),
       data
     });
-    // Save it
-    await notification.save();
     // Success
     if (user) {
       // User
       Logging.logInfo({
         tenantID: tenantID,
         source: (chargingStation ? chargingStation.id : null),
-        module: 'Notification', method: 'saveNotification',
+        module: 'NotificationHandler', method: 'saveNotification',
         action: sourceDescr, actionOnUser: user,
         message: 'User is being notified'
       });
@@ -56,7 +53,7 @@ export default class NotificationHandler {
       Logging.logInfo({
         tenantID: tenantID,
         source: (chargingStation ? chargingStation.id : null),
-        module: 'Notification', method: 'saveNotification',
+        module: 'NotificationHandler', method: 'saveNotification',
         action: sourceDescr, message: 'Admin users are being notified'
       });
     }
@@ -64,7 +61,7 @@ export default class NotificationHandler {
 
   static async getAdminUsers(tenantID: string, notification?: string): Promise<User[]> {
     // Get admin users
-    const params= { email: 'jean.pierre.demessant@sap.com', roles: [Constants.ROLE_ADMIN], notificationsActive: true, notification: {}};
+    const params= { roles: [Constants.ROLE_ADMIN], notificationsActive: true, notification: {}};
     if(notification){
       params.notification['notifications.' + notification] = true;
     }
@@ -78,7 +75,12 @@ export default class NotificationHandler {
   static async hasNotifiedSource(tenantID, channel, sourceId) {
     try {
       // Save it
-      const notifications = await NotificationStorage.getNotifications(tenantID, { channel: channel, sourceId: sourceId });
+      const notifications = await NotificationStorage.getNotifications(tenantID,
+        {
+          channel: channel,
+          sourceId: sourceId
+        },
+        Constants.DB_PARAMS_COUNT_ONLY);
       // Return
       return notifications.count > 0;
     } catch (error) {
@@ -339,7 +341,7 @@ export default class NotificationHandler {
       // Enrich with admins
       data.users = await NotificationHandler.getAdminUsers(tenantID, 'sendSmtpAuthError');
       // Compute the id as day and hour so that just one of this email is sent per hour
-      const sourceId = Math.floor(Date.now());
+      const sourceId = Math.floor(Date.now() / 3600000);
       // Check notification
       const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_SMTP_AUTH, sourceId);
       // Notified?
@@ -355,8 +357,8 @@ export default class NotificationHandler {
         }
       }
     } catch (error) {
-        // Log error
-        Logging.logActionExceptionMessage(tenantID, SOURCE_AUTH_EMAIL_ERROR, error);
+      // Log error
+      Logging.logActionExceptionMessage(tenantID, SOURCE_AUTH_EMAIL_ERROR, error);
     }
   }
 
@@ -365,7 +367,7 @@ export default class NotificationHandler {
       // Enrich with admins
       data.users = await NotificationHandler.getAdminUsers(tenantID, 'sendOcpiPatchStatusError');
       // Compute the id as day and hour so that just one of this email is sent per hour
-      const sourceId = Math.floor(Date.now()/3600000);
+      const sourceId = Math.floor(Date.now() / 3600000);
       // Check notification
       const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_PATCH_EVSE_STATUS, sourceId);
       // Notified?
@@ -381,8 +383,8 @@ export default class NotificationHandler {
         }
       }
     } catch (error) {
-        // Log error
-        Logging.logActionExceptionMessage(tenantID, SOURCE_PATCH_EVSE_STATUS_ERROR, error);
+      // Log error
+      Logging.logActionExceptionMessage(tenantID, SOURCE_PATCH_EVSE_STATUS_ERROR, error);
     }
   }
 }
