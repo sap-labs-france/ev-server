@@ -484,7 +484,7 @@ export default class UserStorage {
       notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
       userID?: string; email?: string; passwordResetHash?: string; roles?: string[];
       statuses?: string[]; withImage?: boolean; billingCustomer?: string; notSynchronizedBillingData?: boolean;
-      notification?: any;
+      notifications?: UserNotifications;
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
       // Debug
@@ -554,8 +554,12 @@ export default class UserStorage {
         'notificationsActive': params.notificationsActive
       });
     }
-    if(params.notification && typeof(params.notification) === 'object' && !_.isEmpty(params.notification)) {
-      filters.$and.push(params.notification);
+    if (params.notifications) {
+      for (const key in params.notifications) {
+        const notificationFilter = {};
+        notificationFilter[`notifications.${key}`] = params.notifications[key];
+        filters.$and.push(notificationFilter);
+      }
     }
     // Create Aggregation
     const aggregation = [];

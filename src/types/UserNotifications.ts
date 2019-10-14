@@ -11,3 +11,17 @@ export default interface UserNotifications {
   sendOcpiPatchStatusError?: boolean;
   sendSmtpAuthError?: boolean;
 }
+
+export type UserNotificationKeys =
+  "sendSessionStarted" |
+  "sendOptimalChargeReached" |
+  "sendEndOfCharge" |
+  "sendEndOfSession" |
+  "sendUserAccountStatusChanged" |
+  "sendNewRegisteredUser" |
+  "sendUnknownUserBadged" |
+  "sendChargingStationStatusError" |
+  "sendChargingStationRegistered" |
+  "sendOcpiPatchStatusError" |
+  "sendSmtpAuthError"
+;
