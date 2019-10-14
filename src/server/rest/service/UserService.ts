@@ -332,16 +332,16 @@ export default class UserService {
         await UserStorage.saveUserRole(req.user.tenantID, user.id, filteredRequest.role);
       }
       // Save Admin Data
-      if (filteredRequest.plateID || filteredRequest.hasOwnProperty('notificationsActive') || filteredRequest.notifications) {
+      if (filteredRequest.plateID || filteredRequest.hasOwnProperty('notificationsActive')) {
         const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications } = {};
         if (filteredRequest.plateID) {
           adminData.plateID = filteredRequest.plateID;
         }
         if (filteredRequest.hasOwnProperty('notificationsActive')) {
           adminData.notificationsActive = filteredRequest.notificationsActive;
-        }
-        if (filteredRequest.notifications) {
-          adminData.notifications = filteredRequest.notifications;
+          if (filteredRequest.notifications) {
+            adminData.notifications = filteredRequest.notifications;
+          }
         }
         // Save User Admin data
         await UserStorage.saveUserAdminData(req.user.tenantID, user.id, adminData);
@@ -779,16 +779,16 @@ export default class UserService {
         await UserStorage.saveUserRole(req.user.tenantID, newUserID, filteredRequest.role);
       }
       // Save Admin Data
-      if (filteredRequest.plateID || filteredRequest.hasOwnProperty('notificationsActive') || filteredRequest.notifications) {
+      if (filteredRequest.plateID || filteredRequest.hasOwnProperty('notificationsActive')) {
         const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications } = {};
         if (filteredRequest.plateID) {
           adminData.plateID = filteredRequest.plateID;
         }
         if (filteredRequest.hasOwnProperty('notificationsActive')) {
           adminData.notificationsActive = filteredRequest.notificationsActive;
-        }
-        if (filteredRequest.notifications) {
-          adminData.notifications = filteredRequest.notifications;
+          if (filteredRequest.notifications) {
+            adminData.notifications = filteredRequest.notifications;
+          }
         }
         // Save User Admin data
         await UserStorage.saveUserAdminData(req.user.tenantID, newUserID, adminData);
