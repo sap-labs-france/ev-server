@@ -60,18 +60,15 @@ export default class NotificationHandler {
     }
   }
 
-  static async getAdminUsers(tenantID: string): Promise<User[]> {
+  static async getAdminUsers(tenantID: string, notification?: string): Promise<User[]> {
     // Get admin users
-    const adminUsers = await UserStorage.getUsers(tenantID,
-      {
-        roles: [Constants.ROLE_ADMIN],
-        notificationsActive: true
-      },
-      Constants.DB_PARAMS_MAX_LIMIT);
+    const params= { roles: [Constants.ROLE_ADMIN], notificationsActive: true, notification: {}};
+    if(notification){
+      params.notification['notifications.' + notification] = true;
+    }
+    const adminUsers = await UserStorage.getUsers(tenantID, params, Constants.DB_PARAMS_MAX_LIMIT);
     // Found
     if (adminUsers.count > 0) {
-      // Check if notification is active
-      // adminUsers.result = adminUsers.result.filter((adminUser) => adminUser.notificationsActive);
       return adminUsers.result;
     }
   }
@@ -100,7 +97,7 @@ export default class NotificationHandler {
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
-        if (_notificationConfig.Email.enabled && user.notificationsActive) {
+        if (_notificationConfig.Email.enabled && user.notificationsActive && user.notifications['sendEndOfCharge']) {
           // Save notif
           await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
             SOURCE_END_OF_CHARGE, user, chargingStation, data);
@@ -123,7 +120,7 @@ export default class NotificationHandler {
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
-        if (_notificationConfig.Email.enabled && user.notificationsActive) {
+        if (_notificationConfig.Email.enabled && user.notificationsActive && user.notifications['sendOptimalChargeReached']) {
           // Save notif
           await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
             SOURCE_OPTIMAL_CHARGE_REACHED, user, chargingStation, data);
@@ -146,7 +143,7 @@ export default class NotificationHandler {
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
-        if (_notificationConfig.Email.enabled && user.notificationsActive) {
+        if (_notificationConfig.Email.enabled && user.notificationsActive && user.notifications['sendEndOfSession']) {
           // Save notif
           await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
             SOURCE_END_OF_SESSION, user, chargingStation, data);
@@ -206,7 +203,7 @@ export default class NotificationHandler {
   static async sendUserAccountStatusChanged(tenantID, sourceId, user: User, sourceData, locale) {
     try {
       // Email enabled?
-      if (_notificationConfig.Email.enabled) {
+      if (_notificationConfig.Email.enabled && user.notificationsActive && user.notifications['sendUserAccountStatusChanged']) {
         // Save notif
         await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
           SOURCE_USER_ACCOUNT_STATUS_CHANGED, user, null);
@@ -224,7 +221,7 @@ export default class NotificationHandler {
   static async sendNewRegisteredUser(tenantID, sourceId, user: User, sourceData, locale) {
     try {
       // Email enabled?
-      if (_notificationConfig.Email.enabled) {
+      if (_notificationConfig.Email.enabled && user.notificationsActive && user.notifications['sendNewRegisteredUser']) {
         // Save notif
         await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
           SOURCE_NEW_REGISTERED_USER, user, null);
@@ -260,7 +257,7 @@ export default class NotificationHandler {
   static async sendChargingStationStatusError(tenantID, sourceId, chargingStation, sourceData, data) {
     try {
       // Enrich with admins
-      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
+      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendChargingStationStatusError');
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
         // Save notif
@@ -280,7 +277,7 @@ export default class NotificationHandler {
   static async sendChargingStationRegistered(tenantID, sourceId, chargingStation, sourceData) {
     try {
       // Enrich with admins
-      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
+      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendChargingStationRegistered');
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
         // Save notif
@@ -300,7 +297,7 @@ export default class NotificationHandler {
   static async sendUnknownUserBadged(tenantID, sourceId, chargingStation, sourceData) {
     try {
       // Enrich with admins
-      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID);
+      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendUnknownUserBadged');
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
         // Save notif
@@ -324,7 +321,7 @@ export default class NotificationHandler {
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
-        if (_notificationConfig.Email.enabled && user.notificationsActive) {
+        if (_notificationConfig.Email.enabled && user.notificationsActive && user.notifications['sendSessionStarted']) {
           // Save notif
           await NotificationHandler.saveNotification(tenantID,
             CHANNEL_EMAIL, sourceId, SOURCE_TRANSACTION_STARTED, user, chargingStation, data);
@@ -343,7 +340,7 @@ export default class NotificationHandler {
   static async sendSmtpAuthError(tenantID, locale, data) {
     try {
       // Enrich with admins
-      data.users = await NotificationHandler.getAdminUsers(tenantID);
+      data.users = await NotificationHandler.getAdminUsers(tenantID, 'sendSmtpAuthError');
       // Compute the id as day and hour so that just one of this email is sent per hour
       const sourceId = Math.floor(Date.now() / 3600000);
       // Check notification
@@ -369,7 +366,7 @@ export default class NotificationHandler {
   static async sendOCPIPatchChargingStationsStatusesError(tenantID, data) {
     try {
       // Enrich with admins
-      data.users = await NotificationHandler.getAdminUsers(tenantID);
+      data.users = await NotificationHandler.getAdminUsers(tenantID, 'sendOcpiPatchStatusError');
       // Compute the id as day and hour so that just one of this email is sent per hour
       const sourceId = Math.floor(Date.now() / 3600000);
       // Check notification
