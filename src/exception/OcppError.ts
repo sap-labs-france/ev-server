@@ -1,15 +1,13 @@
 export default class OCPPError extends Error {
-  public stack: any;
-  public readonly code: string;
-  public readonly message: string;
-  public readonly details: string;
-
-  constructor(code: string, message: string, details?: string) {
-    super(message);
-
-    this.code = code;
-    this.message = message;
-    this.details = details;
+  public constructor(readonly params: {
+    source: string;
+    module: string;
+    method: string;
+    code: string;
+    message: string;
+    detailedMessages?: any;
+  }) {
+    super(params.message);
 
     Object.setPrototypeOf(this, OCPPError.prototype); // For instanceof
 

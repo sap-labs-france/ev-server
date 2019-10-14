@@ -6,6 +6,7 @@ import JsonChargingStationService from './services/JsonChargingStationService';
 import Logging from '../../../utils/Logging';
 import OCPPError from '../../../exception/OcppError';
 import WSConnection from './WSConnection';
+import AppError from '../../../exception/AppError';
 
 const MODULE_NAME = 'JsonWSConnection';
 export default class JsonWSConnection extends WSConnection {
@@ -107,7 +108,13 @@ export default class JsonWSConnection extends WSConnection {
       await this.sendMessage(messageId, result, Constants.OCPP_JSON_CALL_RESULT_MESSAGE);
     } else {
       // Throw Exception
-      throw new OCPPError(Constants.OCPP_ERROR_NOT_IMPLEMENTED, `The OCPP method 'handle${commandName}' has not been implemented`);
+      throw new OCPPError({
+        source: this.getChargingStationID(),
+        module: MODULE_NAME,
+        method: 'handleRequest',
+        code: Constants.OCPP_ERROR_NOT_IMPLEMENTED,
+        message: `The OCPP method 'handle${commandName}' has not been implemented`
+      });
     }
   }
 
