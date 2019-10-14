@@ -258,7 +258,7 @@ export default class NotificationHandler {
   static async sendChargingStationStatusError(tenantID, sourceId, chargingStation, sourceData, data) {
     try {
       // Enrich with admins
-      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID, "sendChargingStationStatusError");
+      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendChargingStationStatusError');
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
         // Save notif
@@ -278,7 +278,7 @@ export default class NotificationHandler {
   static async sendChargingStationRegistered(tenantID, sourceId, chargingStation, sourceData) {
     try {
       // Enrich with admins
-      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID, "sendChargingStationRegistered");
+      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendChargingStationRegistered');
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
         // Save notif
@@ -298,7 +298,7 @@ export default class NotificationHandler {
   static async sendUnknownUserBadged(tenantID, sourceId, chargingStation, sourceData) {
     try {
       // Enrich with admins
-      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID, "sendUnknownUserBadged");
+      sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendUnknownUserBadged');
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
         // Save notif
@@ -341,7 +341,7 @@ export default class NotificationHandler {
   static async sendSmtpAuthError(tenantID, locale, data) {
     try {
       // Enrich with admins
-      data.users = await NotificationHandler.getAdminUsers(tenantID, "sendSmtpAuthError");
+      data.users = await NotificationHandler.getAdminUsers(tenantID, 'sendSmtpAuthError');
       // Compute the id as day and hour so that just one of this email is sent per hour
       const sourceId = Math.floor(Date.now() / 3600000);
       // Check notification
@@ -367,7 +367,7 @@ export default class NotificationHandler {
   static async sendOCPIPatchChargingStationsStatusesError(tenantID, data) {
     try {
       // Enrich with admins
-      data.users = await NotificationHandler.getAdminUsers(tenantID, "sendOcpiPatchStatusError");
+      data.users = await NotificationHandler.getAdminUsers(tenantID, 'sendOcpiPatchStatusError');
       // Compute the id as day and hour so that just one of this email is sent per hour
       const sourceId = Math.floor(Date.now() / 3600000);
       // Check notification

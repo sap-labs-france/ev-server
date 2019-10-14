@@ -18,7 +18,7 @@ export default class AddNotificationsFlagsToUsersTask extends MigrationTask {
     // Process each user
     for (const user of users) {
       if (user.notificationsActive) {
-        if(user.role === 'A') {
+        if (user.role === 'A') {
           user.notifications = {
             sendSessionStarted: true,
             sendOptimalChargeReached: true,

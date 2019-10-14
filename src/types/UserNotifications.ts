@@ -13,15 +13,15 @@ export default interface UserNotifications {
 }
 
 export type UserNotificationKeys =
-  "sendSessionStarted" |
-  "sendOptimalChargeReached" |
-  "sendEndOfCharge" |
-  "sendEndOfSession" |
-  "sendUserAccountStatusChanged" |
-  "sendNewRegisteredUser" |
-  "sendUnknownUserBadged" |
-  "sendChargingStationStatusError" |
-  "sendChargingStationRegistered" |
-  "sendOcpiPatchStatusError" |
-  "sendSmtpAuthError"
+  'sendSessionStarted' |
+  'sendOptimalChargeReached' |
+  'sendEndOfCharge' |
+  'sendEndOfSession' |
+  'sendUserAccountStatusChanged' |
+  'sendNewRegisteredUser' |
+  'sendUnknownUserBadged' |
+  'sendChargingStationStatusError' |
+  'sendChargingStationRegistered' |
+  'sendOcpiPatchStatusError' |
+  'sendSmtpAuthError'
 ;

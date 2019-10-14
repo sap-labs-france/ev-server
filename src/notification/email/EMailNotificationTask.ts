@@ -55,7 +55,7 @@ export default class EMailNotificationTask extends NotificationTask {
         'evseDashboardURL': data.evseDashboardURL
       }
     );
-// Send it
+    // Send it
     return this._prepareAndSendEmail('request-password', data, locale, tenantID);
   }
 
