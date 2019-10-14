@@ -17,6 +17,7 @@ import UserStorage from '../../../storage/mongodb/UserStorage';
 import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 import ConnectionStorage from '../../../storage/mongodb/ConnectionStorage';
+import UserNotifications from '../../../types/UserNotifications';
 
 export default class UserService {
 
@@ -332,12 +333,15 @@ export default class UserService {
       }
       // Save Admin Data
       if (filteredRequest.plateID || filteredRequest.hasOwnProperty('notificationsActive')) {
-        const adminData: { plateID?: string; notificationsActive?: boolean } = {};
+        const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications } = {};
         if (filteredRequest.plateID) {
           adminData.plateID = filteredRequest.plateID;
         }
         if (filteredRequest.hasOwnProperty('notificationsActive')) {
           adminData.notificationsActive = filteredRequest.notificationsActive;
+          if (filteredRequest.notifications) {
+            adminData.notifications = filteredRequest.notifications;
+          }
         }
         // Save User Admin data
         await UserStorage.saveUserAdminData(req.user.tenantID, user.id, adminData);
@@ -776,12 +780,15 @@ export default class UserService {
       }
       // Save Admin Data
       if (filteredRequest.plateID || filteredRequest.hasOwnProperty('notificationsActive')) {
-        const adminData: { plateID?: string; notificationsActive?: boolean } = {};
+        const adminData: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications } = {};
         if (filteredRequest.plateID) {
           adminData.plateID = filteredRequest.plateID;
         }
         if (filteredRequest.hasOwnProperty('notificationsActive')) {
           adminData.notificationsActive = filteredRequest.notificationsActive;
+          if (filteredRequest.notifications) {
+            adminData.notifications = filteredRequest.notifications;
+          }
         }
         // Save User Admin data
         await UserStorage.saveUserAdminData(req.user.tenantID, newUserID, adminData);

@@ -1,11 +1,12 @@
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import OCPIClient from '../../client/ocpi/OCPIClient';
-import OCPIEndpoint from '../../entity/OCPIEndpoint';
 import SchedulerTask from '../SchedulerTask';
 import { TaskConfig } from '../TaskConfig';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
+import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
+import OCPIEndpoint from '../../types/OCPIEndpoint';
 
 export default class OCPIPatchLocationsTask extends SchedulerTask {
 
@@ -31,10 +32,10 @@ export default class OCPIPatchLocationsTask extends SchedulerTask {
       });
 
       // Get all available endpoints
-      const ocpiEndpoints = await OCPIEndpoint.getOcpiEndpoints(tenant.id);
+      const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant.id, {}, Constants.DB_PARAMS_MAX_LIMIT);
 
       for (const ocpiEndpoint of ocpiEndpoints.result) {
-        await this.processOCPIEndpoint(ocpiEndpoint);
+        await this.processOCPIEndpoint(tenant, ocpiEndpoint);
       }
     } catch (error) {
       // Log error
@@ -43,46 +44,46 @@ export default class OCPIPatchLocationsTask extends SchedulerTask {
   }
 
   // eslint-disable-next-line no-unused-vars
-  async processOCPIEndpoint(ocpiEndpoint) {
+  async processOCPIEndpoint(tenant: Tenant, ocpiEndpoint: OCPIEndpoint) {
     // Check if OCPI endpoint is registered
-    if (ocpiEndpoint.getStatus() !== Constants.OCPI_REGISTERING_STATUS.OCPI_REGISTERED) {
+    if (ocpiEndpoint.status !== Constants.OCPI_REGISTERING_STATUS.OCPI_REGISTERED) {
       Logging.logDebug({
-        tenantID: ocpiEndpoint.getTenantID(),
+        tenantID: tenant.id,
         module: 'OCPIPatchLocationsTask',
         method: 'run', action: 'OcpiPatchLocations',
-        message: `The OCPI Endpoint ${ocpiEndpoint.getName()} is not registered. Skipping the ocpiendpoint.`
+        message: `The OCPI Endpoint ${ocpiEndpoint.name} is not registered. Skipping the ocpiendpoint.`
       });
 
       return;
-    } else if (!ocpiEndpoint.isBackgroundPatchJobActive()) {
+    } else if (!ocpiEndpoint.backgroundPatchJob) {
       Logging.logDebug({
-        tenantID: ocpiEndpoint.getTenantID(),
+        tenantID: tenant.id,
         module: 'OCPIPatchLocationsTask',
         method: 'run', action: 'OcpiPatchLocations',
-        message: `The OCPI Endpoint ${ocpiEndpoint.getName()} is inactive.`
+        message: `The OCPI Endpoint ${ocpiEndpoint.name} is inactive.`
       });
 
       return;
     }
 
     Logging.logInfo({
-      tenantID: ocpiEndpoint.getTenantID(),
+      tenantID: tenant.id,
       module: 'OCPIPatchLocationsTask',
       method: 'patch', action: 'OcpiPatchLocations',
-      message: `The patching Locations process for endpoint ${ocpiEndpoint.getName()} is being processed`
+      message: `The patching Locations process for endpoint ${ocpiEndpoint.name} is being processed`
     });
 
     // Build OCPI Client
-    const ocpiClient = new OCPIClient(ocpiEndpoint);
+    const ocpiClient = new OCPIClient(tenant, ocpiEndpoint);
 
     // Send EVSE statuses
     const sendResult = await ocpiClient.sendEVSEStatuses(false);
 
     Logging.logInfo({
-      tenantID: ocpiEndpoint.getTenantID(),
+      tenantID: tenant.id,
       module: 'OCPIPatchLocationsTask',
       method: 'patch', action: 'OcpiPatchLocations',
-      message: `The patching Locations process for endpoint ${ocpiEndpoint.getName()} is completed (Success: ${sendResult.success}/Failure: ${sendResult.failure})`
+      message: `The patching Locations process for endpoint ${ocpiEndpoint.name} is completed (Success: ${sendResult.success}/Failure: ${sendResult.failure})`
     });
   }
 }

@@ -223,7 +223,7 @@ export default class Authorizations {
       context = {
         tagIDs: loggedUser.tagIDs,
         owner: loggedUser.id,
-        site: isOrgCompActive ? chargingStation.siteArea.site.id : null,
+        site: isOrgCompActive && chargingStation.siteArea ? chargingStation.siteArea.site.id : null,
         sites: loggedUser.sites,
         sitesAdmin: loggedUser.sitesAdmin
       };
@@ -609,7 +609,7 @@ export default class Authorizations {
         tagIDs: userToken.tagIDs,
         tagID: transaction ? transaction.tagID : null,
         owner: userToken.id,
-        site: isOrgCompActive ? chargingStation.siteArea.site.id : null,
+        site: isOrgCompActive && chargingStation.siteArea ? chargingStation.siteArea.site.id : null,
         sites: userToken.sites,
         sitesAdmin: userToken.sitesAdmin
       };
@@ -655,7 +655,7 @@ export default class Authorizations {
       // Save User Role
       await UserStorage.saveUserRole(tenantID, user.id, user.role);
       // Save User Admin data
-      await UserStorage.saveUserAdminData(tenantID, user.id, { notificationsActive: user.notificationsActive });
+      await UserStorage.saveUserAdminData(tenantID, user.id, { notificationsActive: user.notificationsActive, notifications: user.notifications });
       // No need to save the password as it is empty anyway
       // Notify (Async)
       NotificationHandler.sendUnknownUserBadged(
@@ -686,6 +686,19 @@ export default class Authorizations {
       user.phone = '';
       user.mobile = '';
       user.notificationsActive = true;
+      user.notifications = {
+        sendSessionStarted: true,
+        sendOptimalChargeReached: true,
+        sendEndOfCharge: true,
+        sendEndOfSession: true,
+        sendUserAccountStatusChanged: true,
+        sendNewRegisteredUser: false,
+        sendUnknownUserBadged: false,
+        sendChargingStationStatusError: false,
+        sendChargingStationRegistered: false,
+        sendOcpiPatchStatusError: false,
+        sendSmtpAuthError: false
+      };
       user.image = '';
       user.iNumber = '';
       user.costCenter = '';
@@ -703,7 +716,7 @@ export default class Authorizations {
       // Save User Role
       await UserStorage.saveUserRole(tenantID, user.id, Constants.ROLE_BASIC);
       // Save User Admin data
-      await UserStorage.saveUserAdminData(tenantID, user.id, { notificationsActive: user.notificationsActive });
+      await UserStorage.saveUserAdminData(tenantID, user.id, { notificationsActive: user.notificationsActive, notifications: user.notifications });
     }
     return user;
   }

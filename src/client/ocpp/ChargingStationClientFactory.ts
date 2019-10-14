@@ -11,7 +11,7 @@ const buildChargingStationClient = async function(tenantID: string, chargingStat
   switch (chargingStation.ocppProtocol) {
     // JSON
     case Constants.OCPP_PROTOCOL_JSON:
-      // Get the client from JSon Server
+      // Get the client from Json Server
       if (global.centralSystemJson) {
         chargingClient = global.centralSystemJson.getChargingStationClient(tenantID, chargingStation.id);
       }

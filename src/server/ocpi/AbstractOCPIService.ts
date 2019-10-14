@@ -8,8 +8,10 @@ import TenantStorage from '../../storage/mongodb/TenantStorage';
 import AppError from '../../exception/AppError';
 import AppAuthError from '../../exception/AppAuthError';
 import Config from '../../types/configuration/Config';
+import Tenant from '../../types/Tenant';
 
 const MODULE_NAME = 'AbstractOCPIService';
+
 export interface TenantIdHoldingRequest extends Request {
   tenantID: string;
 }
@@ -138,7 +140,7 @@ export default abstract class AbstractOCPIService {
       }
 
       // Get token
-      let decodedToken: {tenant: string; tid: string};
+      let decodedToken: { tenant: string; tid: string };
       try {
         const token = req.headers.authorization.split(' ')[1];
         decodedToken = JSON.parse(OCPIUtils.atob(token));
@@ -158,7 +160,7 @@ export default abstract class AbstractOCPIService {
       const tenantSubdomain = (decodedToken.tenant ? decodedToken.tenant : decodedToken.tid);
 
       // Get tenant from database
-      const tenant: any = await TenantStorage.getTenantBySubdomain(tenantSubdomain);
+      const tenant: Tenant = await TenantStorage.getTenantBySubdomain(tenantSubdomain);
 
       // Check if tenant is found
       if (!tenant) {
@@ -188,14 +190,18 @@ export default abstract class AbstractOCPIService {
           ocpiError: Constants.OCPI_STATUS_CODE.CODE_3000_GENERIC_SERVER_ERROR
         });
       }
-
+      // Define get option
+      const options = {
+        'addChargeBoxID': true,
+        countryID: '',
+        partyID: ''
+      };
       if (this.ocpiRestConfig.eMI3id &&
         this.ocpiRestConfig.eMI3id[tenantSubdomain] &&
         this.ocpiRestConfig.eMI3id[tenantSubdomain].country_id &&
         this.ocpiRestConfig.eMI3id[tenantSubdomain].party_id) {
-        tenant._eMI3 = {};
-        tenant._eMI3.country_id = this.ocpiRestConfig.eMI3id[tenantSubdomain].country_id;
-        tenant._eMI3.party_id = this.ocpiRestConfig.eMI3id[tenantSubdomain].party_id;
+        options.countryID = this.ocpiRestConfig.eMI3id[tenantSubdomain].country_id;
+        options.partyID = this.ocpiRestConfig.eMI3id[tenantSubdomain].party_id;
       } else {
         throw new AppError({
           source: Constants.OCPI_SERVER,
@@ -211,7 +217,7 @@ export default abstract class AbstractOCPIService {
       // Handle request action (endpoint)
       const endpoint = registeredEndpoints.get(action);
       if (endpoint) {
-        await endpoint.process(req, res, next, tenant);
+        await endpoint.process(req, res, next, tenant, options);
       } else {
         // pragma res.sendStatus(501);
         throw new AppError({

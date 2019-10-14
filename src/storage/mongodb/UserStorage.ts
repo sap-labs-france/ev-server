@@ -17,6 +17,8 @@ import TenantStorage from './TenantStorage';
 import User from '../../types/User';
 import Utils from '../../utils/Utils';
 import { DataResult, ImageResult } from '../../types/DataResult';
+import _ from 'lodash';
+import UserNotifications from '../../types/UserNotifications';
 
 export default class UserStorage {
 
@@ -391,7 +393,7 @@ export default class UserStorage {
   }
 
   public static async saveUserAdminData(tenantID: string, userID: string,
-    params: { plateID?: string; notificationsActive?: boolean }): Promise<void> {
+    params: { plateID?: string; notificationsActive?: boolean, notifications?: UserNotifications }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserAdminData');
     // Check Tenant
@@ -404,6 +406,9 @@ export default class UserStorage {
     }
     if (params.hasOwnProperty('notificationsActive')) {
       updatedUserMDB.notificationsActive = params.notificationsActive;
+    }
+    if (params.notifications) {
+      updatedUserMDB.notifications = params.notifications;
     }
     // Modify and return the modified document
     await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
@@ -479,9 +484,10 @@ export default class UserStorage {
       notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
       userID?: string; email?: string; passwordResetHash?: string; roles?: string[];
       statuses?: string[]; withImage?: boolean; billingCustomer?: string; notSynchronizedBillingData?: boolean;
+      notifications?: UserNotifications;
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
-    // Debug
+      // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
     // Check Tenant
     await Utils.checkTenant(tenantID);
@@ -542,11 +548,18 @@ export default class UserStorage {
     if (params.statuses && Array.isArray(params.statuses) && params.statuses.length > 0) {
       filters.status = { $in: params.statuses };
     }
-    // Notification
+    // Notifications
     if (params.notificationsActive) {
       filters.$and.push({
         'notificationsActive': params.notificationsActive
       });
+    }
+    if (params.notifications) {
+      for (const key in params.notifications) {
+        const notificationFilter = {};
+        notificationFilter[`notifications.${key}`] = params.notifications[key];
+        filters.$and.push(notificationFilter);
+      }
     }
     // Create Aggregation
     const aggregation = [];
@@ -949,6 +962,19 @@ export default class UserStorage {
       createdOn: new Date(),
       locale: Constants.DEFAULT_LOCALE,
       notificationsActive: true,
+      notifications: {
+        sendSessionStarted: true,
+        sendOptimalChargeReached: true,
+        sendEndOfCharge: true,
+        sendEndOfSession: true,
+        sendUserAccountStatusChanged: true,
+        sendNewRegisteredUser: false,
+        sendUnknownUserBadged: false,
+        sendChargingStationStatusError: false,
+        sendChargingStationRegistered: false,
+        sendOcpiPatchStatusError: false,
+        sendSmtpAuthError: false
+      },
       role: Constants.ROLE_BASIC,
       status: Constants.USER_STATUS_PENDING,
       tagIDs: []

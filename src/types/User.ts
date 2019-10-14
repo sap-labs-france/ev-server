@@ -1,6 +1,7 @@
 import Address from './Address';
 import { BillingUserData } from '../integration/billing/Billing';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
+import UserNotifications from './UserNotifications';
 
 export default interface User extends CreatedUpdatedProps {
   id: string;
@@ -16,6 +17,7 @@ export default interface User extends CreatedUpdatedProps {
   address?: Address;
   image?: string;
   notificationsActive?: boolean;
+  notifications?: UserNotifications;
   iNumber?: string;
   costCenter?: string;
   deleted: boolean;

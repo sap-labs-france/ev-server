@@ -1,8 +1,8 @@
 import sanitize from 'mongo-sanitize';
-import Address from '../../../../types/Address';
 import Authorizations from '../../../../authorization/Authorizations';
-import Constants from '../../../../utils/Constants';
+import Address from '../../../../types/Address';
 import UserToken from '../../../../types/UserToken';
+import Constants from '../../../../utils/Constants';
 import Utils from '../../../../utils/Utils';
 
 export default class UtilsSecurity {

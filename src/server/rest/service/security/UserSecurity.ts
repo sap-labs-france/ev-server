@@ -5,6 +5,7 @@ import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import { DataResult } from '../../../../types/DataResult';
+import UserNotifications from '../../../../types/UserNotifications';
 
 export default class UserSecurity {
 
@@ -105,12 +106,15 @@ export default class UserSecurity {
     if (request.email) {
       filteredRequest.email = sanitize(request.email);
     }
+    if (request.hasOwnProperty('notificationsActive')) {
+      filteredRequest.notificationsActive = sanitize(request.notificationsActive);
+    }
+    if (request.notifications) {
+      filteredRequest.notifications = UserSecurity.filterNotificationsRequest(request.notifications);
+    }
     // Admin?
     if (Authorizations.isAdmin(loggedUser) || Authorizations.isSuperAdmin(loggedUser)) {
       // Ok to set the sensitive data
-      if (request.hasOwnProperty('notificationsActive')) {
-        filteredRequest.notificationsActive = sanitize(request.notificationsActive);
-      }
       if (request.status) {
         filteredRequest.status = sanitize(request.status);
       }
@@ -145,6 +149,9 @@ export default class UserSecurity {
         filteredUser.phone = user.phone;
         filteredUser.mobile = user.mobile;
         filteredUser.notificationsActive = user.notificationsActive;
+        if(user.notifications) {
+          filteredUser.notifications = UserSecurity.filterNotificationsRequest(user.notifications);
+        };
         filteredUser.iNumber = user.iNumber;
         filteredUser.costCenter = user.costCenter;
         filteredUser.status = user.status;
@@ -167,6 +174,9 @@ export default class UserSecurity {
         filteredUser.phone = user.phone;
         filteredUser.mobile = user.mobile;
         filteredUser.notificationsActive = user.notificationsActive;
+        if(user.notifications) {
+          filteredUser.notifications = UserSecurity.filterNotificationsRequest(user.notifications);
+        };
         filteredUser.iNumber = user.iNumber;
         filteredUser.costCenter = user.costCenter;
         filteredUser.tagIDs = user.tagIDs;
@@ -210,5 +220,23 @@ export default class UserSecurity {
       }
     }
     users.result = filteredUsers;
+  }
+  
+  static filterNotificationsRequest(notifications): UserNotifications {
+    const filtered: any = {};
+    if (notifications) {
+      filtered.sendSessionStarted = UtilsSecurity.filterBoolean(notifications.sendSessionStarted);
+      filtered.sendOptimalChargeReached = UtilsSecurity.filterBoolean(notifications.sendOptimalChargeReached);
+      filtered.sendEndOfCharge = UtilsSecurity.filterBoolean(notifications.sendEndOfCharge);
+      filtered.sendEndOfSession = UtilsSecurity.filterBoolean(notifications.sendEndOfSession);
+      filtered.sendUserAccountStatusChanged = UtilsSecurity.filterBoolean(notifications.sendUserAccountStatusChanged);
+      filtered.sendNewRegisteredUser = UtilsSecurity.filterBoolean(notifications.sendNewRegisteredUser);
+      filtered.sendUnknownUserBadged = UtilsSecurity.filterBoolean(notifications.sendUnknownUserBadged);
+      filtered.sendChargingStationStatusError = UtilsSecurity.filterBoolean(notifications.sendChargingStationStatusError);
+      filtered.sendChargingStationRegistered = UtilsSecurity.filterBoolean(notifications.sendChargingStationRegistered);
+      filtered.sendOcpiPatchStatusError = UtilsSecurity.filterBoolean(notifications.sendOcpiPatchStatusError);
+      filtered.sendSmtpAuthError = UtilsSecurity.filterBoolean(notifications.sendSmtpAuthError);
+    }
+    return filtered;
   }
 }
