@@ -1,5 +1,5 @@
 {
-  "subject": "Charge terminée",
+  "subject": "Charge Terminée",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Votre véhicule électrique, qui est connecté sur la borne <b><%- chargeBoxID %>, connecteur <%- connectorId %></b>, a terminé sa charge."
+      "Votre véhicule électrique, qui est connecté sur la borne <b><%- chargeBoxID %></b> - <b>Connector <%- connectorId %></b>, a terminé sa charge."
     ],
     "stats": [
       { "label": "Consommation", "value": "<%- totalConsumption %> kW.h" },

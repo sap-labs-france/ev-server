@@ -1,5 +1,5 @@
 {
-  "subject": "Erreur d'authentification sur le serveur d'email principal",
+  "subject": "Erreur d'Authentification sur le Serveur d'Email Principal",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {

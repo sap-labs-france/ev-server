@@ -1,20 +1,19 @@
+import { EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, OptimalChargeReachedNotification, RequestPasswordNotification, UserAccountStatusChangedNotification, NewRegisteredUserNotification, VerificationEmailNotification, ChargingStationStatusErrorNotification, ChargingStationRegisteredNotification, UnknownUserBadgedNotification, TransactionStartedNotification, SmtpAuthErrorNotification, OCPIPatchChargingStationsStatusesErrorNotification } from '../types/UserNotifications';
 import NotificationResult from './NotificationResult';
 
-export default abstract class NotificationTask {
-
-  // TODO: Since data param varies heavily by impl
-  // I cannot create a robust class for it without knowing more about the code
-  // Therefore, type: any for now. Please change.
-
-  abstract sendNewRegisteredUser(data: any, locale: string, tenantID: string): NotificationResult;
-  abstract sendRequestPassword(data: any, locale: string, tenantID: string): NotificationResult;
-  abstract sendEndOfCharge(data: any, locale: string, tenantID: string): NotificationResult;
-  abstract sendEndOfSession(data: any, locale: string, tenantID: string): NotificationResult;
-  abstract sendChargingStationStatusError(data: any, locale: string, tenantID: string): NotificationResult;
-  abstract sendUnknownUserBadged(data: any, locale: string, tenantID: string): NotificationResult;
-  abstract sendTransactionStarted(data: any, locale: string, tenantID: string): NotificationResult;
-  abstract sendChargingStationRegistered(data: any, locale: string, tenantID: string): NotificationResult;
-  abstract sendSmtpAuthError(data: any, locale: string, tenantID: string): NotificationResult;
-  abstract sendOCPIPatchChargingStationsStatusesError(data: any, tenantID: string): NotificationResult;
-
+export default interface NotificationTask {
+  sendEndOfCharge(data: EndOfChargeNotification, locale: string, tenantID: string): Promise<void>;
+  sendOptimalChargeReached(data: OptimalChargeReachedNotification, locale: string, tenantID: string): Promise<void>;
+  sendEndOfSession(data: EndOfSessionNotification, locale: string, tenantID: string): Promise<void>;
+  sendEndOfSignedSession(data: EndOfSignedSessionNotification, locale: string, tenantID: string): Promise<void>;
+  sendRequestPassword(data: RequestPasswordNotification, locale: string, tenantID: string): Promise<void>;
+  sendUserAccountStatusChanged(data: UserAccountStatusChangedNotification, locale: string, tenantID: string): Promise<void>;
+  sendNewRegisteredUser(data: NewRegisteredUserNotification, locale: string, tenantID: string): Promise<void>;
+  sendVerificationEmail(data: VerificationEmailNotification, locale: string, tenantID: string): Promise<void>;
+  sendChargingStationStatusError(data: ChargingStationStatusErrorNotification, locale: string, tenantID: string): Promise<void>;
+  sendChargingStationRegistered(data: ChargingStationRegisteredNotification, locale: string, tenantID: string): Promise<void>;
+  sendUnknownUserBadged(data: UnknownUserBadgedNotification, locale: string, tenantID: string): Promise<void>;
+  sendSessionStarted(data: TransactionStartedNotification, locale: string, tenantID: string): Promise<void>;
+  sendSmtpAuthError(data: SmtpAuthErrorNotification, locale: string, tenantID: string): Promise<void>;
+  sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification, tenantID: string): Promise<void>;
 }

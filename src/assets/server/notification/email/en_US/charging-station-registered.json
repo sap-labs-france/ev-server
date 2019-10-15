@@ -1,10 +1,10 @@
 {
-  "subject": "<%- chargeBoxID %> just registered",
+  "subject": "<%- chargeBoxID %> just Connected",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Charger Registered",
+      "title": "Charger Connected",
       "image": {
         "left": {
           "height": 60,
@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Dear Administrator,",
       "",
-      "<b><%- chargeBoxID %></b> just registered to the central server."
+      "The charging station <b><%- chargeBoxID %></b> just got connected to the central server."
     ],
     "action": {
       "title": "View <%- chargeBoxID %>",

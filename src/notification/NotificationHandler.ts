@@ -1,11 +1,12 @@
+import NotificationStorage from '../storage/mongodb/NotificationStorage';
+import UserStorage from '../storage/mongodb/UserStorage';
+import ChargingStation from '../types/ChargingStation';
+import User from '../types/User';
+import { EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, OptimalChargeReachedNotification, RequestPasswordNotification, UserAccountStatusChangedNotification, UserNotificationKeys, NewRegisteredUserNotification, VerificationEmailNotification, ChargingStationStatusErrorNotification, ChargingStationRegisteredNotification, UnknownUserBadgedNotification, TransactionStartedNotification, SmtpAuthErrorNotification, OCPIPatchChargingStationsStatusesErrorNotification } from '../types/UserNotifications';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
-import EMailNotificationTask from './email/EMailNotificationTask';
 import Logging from '../utils/Logging';
-import NotificationStorage from '../storage/mongodb/NotificationStorage';
-import User from '../types/User';
-import UserStorage from '../storage/mongodb/UserStorage';
-import { UserNotificationKeys } from '../types/UserNotifications';
+import EMailNotificationTask from './email/EMailNotificationTask';
 
 const _notificationConfig = Configuration.getNotificationConfig();
 const _email = new EMailNotificationTask();
@@ -29,16 +30,17 @@ const SOURCE_PATCH_EVSE_STATUS_ERROR = 'NotifyPatchEVSEStatusError';
 
 export default class NotificationHandler {
 
-  static async saveNotification(tenantID, channel, sourceId, sourceDescr, user: User, chargingStation, data = {}) {
+  static async saveNotification(tenantID: string, channel: string, notificationID: string,
+      sourceDescr: string, user?: User, chargingStation?: ChargingStation, notificationData?: object): Promise<void> {
     // Save it
     await NotificationStorage.saveNotification(tenantID, {
       timestamp: new Date(),
       channel: channel,
-      sourceId: sourceId,
+      sourceId: notificationID,
       sourceDescr: sourceDescr,
       userID: (user ? user.id : null),
       chargeBoxID: (chargingStation ? chargingStation.id : null),
-      data
+      data: notificationData
     });
     // Success
     if (user) {
@@ -56,7 +58,8 @@ export default class NotificationHandler {
         tenantID: tenantID,
         source: (chargingStation ? chargingStation.id : null),
         module: 'NotificationHandler', method: 'saveNotification',
-        action: sourceDescr, message: 'Admin users are being notified'
+        action: sourceDescr,
+        message: 'Admin users are being notified'
       });
     }
   }
@@ -74,13 +77,13 @@ export default class NotificationHandler {
     }
   }
 
-  static async hasNotifiedSource(tenantID, channel, sourceId) {
+  static async hasNotifiedSource(tenantID: string, channel: string, notificationID: string): Promise<boolean> {
     try {
       // Save it
       const notifications = await NotificationStorage.getNotifications(tenantID,
         {
           channel: channel,
-          sourceId: sourceId
+          sourceId: notificationID
         },
         Constants.DB_PARAMS_COUNT_ONLY);
       // Return
@@ -91,21 +94,24 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendEndOfCharge(tenantID, sourceId, user: User, chargingStation, sourceData, locale, data) {
+  static async sendEndOfCharge(tenantID: string, notificationID: string, user: User, chargingStation: ChargingStation,
+      sourceData: EndOfChargeNotification, locale: string): Promise<void> {
     try {
       // Check notification
-      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_EMAIL, sourceId);
+      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_EMAIL, notificationID);
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
         if (_notificationConfig.Email.enabled && user.notificationsActive && user.notifications.sendEndOfCharge) {
           // Save notif
-          await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
-            SOURCE_END_OF_CHARGE, user, chargingStation, data);
+          await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, notificationID,
+            SOURCE_END_OF_CHARGE, user, chargingStation, {
+              'transactionId': sourceData.transactionId,
+              'connectorId': sourceData.connectorId
+            }
+          );
           // Send email
-          const result = await _email.sendEndOfCharge(sourceData, locale, tenantID);
-          // Return
-          return result;
+          await _email.sendEndOfCharge(sourceData, locale, tenantID);
         }
       }
     } catch (error) {
@@ -114,21 +120,23 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendOptimalChargeReached(tenantID, sourceId, user: User, chargingStation, sourceData, locale, data) {
+  static async sendOptimalChargeReached(tenantID: string, notificationID: string, user: User, chargingStation: ChargingStation,
+      sourceData: OptimalChargeReachedNotification, locale: string): Promise<void> {
     try {
       // Check notification
-      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_EMAIL, sourceId);
+      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_EMAIL, notificationID);
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
         if (_notificationConfig.Email.enabled && user.notificationsActive && user.notifications.sendOptimalChargeReached) {
           // Save notif
-          await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
-            SOURCE_OPTIMAL_CHARGE_REACHED, user, chargingStation, data);
+          await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, notificationID,
+            SOURCE_OPTIMAL_CHARGE_REACHED, user, chargingStation, {
+              'transactionId': sourceData.transactionId,
+              'connectorId': sourceData.connectorId
+            });
           // Send email
-          const result = await _email.sendOptimalChargeReached(sourceData, locale, tenantID);
-          // Return
-          return result;
+          await _email.sendOptimalChargeReached(sourceData, locale, tenantID);
         }
       }
     } catch (error) {
@@ -137,21 +145,23 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendEndOfSession(tenantID, sourceId, user: User, chargingStation, sourceData, locale, data) {
+  static async sendEndOfSession(tenantID: string, notificationID: string, user: User, chargingStation: ChargingStation,
+      sourceData: EndOfSessionNotification, locale: string): Promise<void> {
     try {
       // Check notification
-      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_EMAIL, sourceId);
+      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_EMAIL, notificationID);
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
         if (_notificationConfig.Email.enabled && user.notificationsActive && user.notifications.sendEndOfSession) {
           // Save notif
-          await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
-            SOURCE_END_OF_SESSION, user, chargingStation, data);
+          await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, notificationID,
+            SOURCE_END_OF_SESSION, user, chargingStation, {
+              'transactionId': sourceData.transactionId,
+              'connectorId': sourceData.connectorId
+            });
           // Send email
-          const result = await _email.sendEndOfSession(sourceData, locale, tenantID);
-          // Return
-          return result;
+          await _email.sendEndOfSession(sourceData, locale, tenantID);
         }
       }
     } catch (error) {
@@ -160,21 +170,23 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendEndOfSignedSession(tenantID, sourceId, user: User, chargingStation, sourceData, locale, data) {
+  static async sendEndOfSignedSession(tenantID: string, notificationID: string, user: User, chargingStation: ChargingStation,
+      sourceData: EndOfSignedSessionNotification, locale: string): Promise<void> {
     try {
       // Check notification
-      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_EMAIL, sourceId);
+      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_EMAIL, notificationID);
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
-        if (_notificationConfig.Email.enabled) {
+        if (_notificationConfig.Email.enabled && user.notificationsActive && user.notifications.sendEndOfSession) {
           // Save notif
-          await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
-            SOURCE_END_OF_SESSION, user, chargingStation, data);
+          await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, notificationID,
+            SOURCE_END_OF_SESSION, user, chargingStation, {
+              'transactionId': sourceData.transactionId,
+              'connectorId': sourceData.connectorId
+            });
           // Send email
-          const result = await _email.sendEndOfSignedSession(sourceData, locale, tenantID);
-          // Return
-          return result;
+          await _email.sendEndOfSignedSession(sourceData, locale, tenantID);
         }
       }
     } catch (error) {
@@ -183,17 +195,16 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendRequestPassword(tenantID, sourceId, user: User, sourceData, locale) {
+  static async sendRequestPassword(tenantID: string, notificationID: string, user: User,
+      sourceData: RequestPasswordNotification, locale: string): Promise<void> {
     try {
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
         // Save notif
         await NotificationHandler.saveNotification(tenantID,
-          CHANNEL_EMAIL, sourceId, SOURCE_REQUEST_PASSWORD, user, null);
+          CHANNEL_EMAIL, notificationID, SOURCE_REQUEST_PASSWORD, user);
         // Send email
-        const result = await _email.sendRequestPassword(sourceData, locale, tenantID);
-        // Return
-        return result;
+        await _email.sendRequestPassword(sourceData, locale, tenantID);
       }
     } catch (error) {
       // Log error
@@ -201,17 +212,16 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendUserAccountStatusChanged(tenantID, sourceId, user: User, sourceData, locale) {
+  static async sendUserAccountStatusChanged(tenantID: string, notificationID: string, user: User,
+      sourceData: UserAccountStatusChangedNotification, locale: string): Promise<void> {
     try {
       // Email enabled?
       if (_notificationConfig.Email.enabled && user.notificationsActive && user.notifications.sendUserAccountStatusChanged) {
         // Save notif
-        await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
-          SOURCE_USER_ACCOUNT_STATUS_CHANGED, user, null);
+        await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, notificationID,
+          SOURCE_USER_ACCOUNT_STATUS_CHANGED, user);
         // Send email
-        const result = await _email.sendUserAccountStatusChanged(sourceData, locale, tenantID);
-        // Return
-        return result;
+        await _email.sendUserAccountStatusChanged(sourceData, locale, tenantID);
       }
     } catch (error) {
       // Log error
@@ -219,17 +229,16 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendNewRegisteredUser(tenantID, sourceId, user: User, sourceData, locale) {
+  static async sendNewRegisteredUser(tenantID: string, notificationID: string, user: User,
+      sourceData: NewRegisteredUserNotification, locale: string): Promise<void> {
     try {
       // Email enabled?
-      if (_notificationConfig.Email.enabled && user.notificationsActive && user.notifications.sendNewRegisteredUser) {
+      if (_notificationConfig.Email.enabled) {
         // Save notif
-        await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
-          SOURCE_NEW_REGISTERED_USER, user, null);
+        await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, notificationID,
+          SOURCE_NEW_REGISTERED_USER, user);
         // Send email
-        const result = await _email.sendNewRegisteredUser(sourceData, locale, tenantID);
-        // Return
-        return result;
+        await _email.sendNewRegisteredUser(sourceData, locale, tenantID);
       }
     } catch (error) {
       // Log error
@@ -237,17 +246,16 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendVerificationEmail(tenantID, sourceId, user: User, sourceData, locale) {
+  static async sendVerificationEmail(tenantID: string, notificationID: string, user: User,
+      sourceData: VerificationEmailNotification, locale: string): Promise<void> {
     try {
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
         // Save notif
-        await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
-          SOURCE_VERIFICATION_EMAIL, user, null);
+        await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, notificationID,
+          SOURCE_VERIFICATION_EMAIL, user);
         // Send email
-        const result = await _email.sendVerificationEmail(sourceData, locale, tenantID);
-        // Return
-        return result;
+        await _email.sendVerificationEmail(sourceData, locale, tenantID);
       }
     } catch (error) {
       // Log error
@@ -255,19 +263,18 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendChargingStationStatusError(tenantID, sourceId, chargingStation, sourceData, data) {
+  static async sendChargingStationStatusError(tenantID: string, notificationID: string, chargingStation: ChargingStation,
+      sourceData: ChargingStationStatusErrorNotification, data): Promise<void> {
     try {
       // Enrich with admins
       sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID, "sendChargingStationStatusError");
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
         // Save notif
-        await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
+        await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, notificationID,
           SOURCE_CHARGING_STATION_STATUS_ERROR, null, chargingStation, data);
         // Send email
-        const result = await _email.sendChargingStationStatusError(sourceData, Constants.DEFAULT_LOCALE, tenantID);
-        // Return
-        return result;
+        await _email.sendChargingStationStatusError(sourceData, Constants.DEFAULT_LOCALE, tenantID);
       }
     } catch (error) {
       // Log error
@@ -275,19 +282,18 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendChargingStationRegistered(tenantID, sourceId, chargingStation, sourceData) {
+  static async sendChargingStationRegistered(tenantID: string, notificationID: string, chargingStation: ChargingStation,
+      sourceData: ChargingStationRegisteredNotification): Promise<void> {
     try {
       // Enrich with admins
       sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID, "sendChargingStationRegistered");
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
         // Save notif
-        await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
+        await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, notificationID,
           SOURCE_CHARGING_STATION_REGISTERED, null, chargingStation);
         // Send email
-        const result = await _email.sendChargingStationRegistered(sourceData, Constants.DEFAULT_LOCALE, tenantID);
-        // Return
-        return result;
+        await _email.sendChargingStationRegistered(sourceData, Constants.DEFAULT_LOCALE, tenantID);
       }
     } catch (error) {
       // Log error
@@ -295,19 +301,18 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendUnknownUserBadged(tenantID, sourceId, chargingStation, sourceData) {
+  static async sendUnknownUserBadged(tenantID: string, notificationID: string, chargingStation: ChargingStation,
+      sourceData: UnknownUserBadgedNotification): Promise<void> {
     try {
       // Enrich with admins
       sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID, "sendUnknownUserBadged");
       // Email enabled?
       if (_notificationConfig.Email.enabled) {
         // Save notif
-        await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
+        await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, notificationID,
           SOURCE_UNKNOWN_USER_BADGED, null, chargingStation);
         // Send email
-        const result = await _email.sendUnknownUserBadged(sourceData, Constants.DEFAULT_LOCALE, tenantID);
-        // Return
-        return result;
+        await _email.sendUnknownUserBadged(sourceData, Constants.DEFAULT_LOCALE, tenantID);
       }
     } catch (error) {
       // Log error
@@ -315,21 +320,24 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendTransactionStarted(tenantID, sourceId, user: User, chargingStation, sourceData, locale, data) {
+  static async sendSessionStarted(tenantID: string, notificationID: string, user: User, chargingStation: ChargingStation,
+      sourceData: TransactionStartedNotification, locale: string): Promise<void> {
     try {
       // Check notification
-      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_EMAIL, sourceId);
+      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_EMAIL, notificationID);
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
         if (_notificationConfig.Email.enabled && user.notificationsActive && user.notifications.sendSessionStarted) {
           // Save notif
           await NotificationHandler.saveNotification(tenantID,
-            CHANNEL_EMAIL, sourceId, SOURCE_TRANSACTION_STARTED, user, chargingStation, data);
+            CHANNEL_EMAIL, notificationID, SOURCE_TRANSACTION_STARTED, user, chargingStation, {
+              'transactionId': sourceData.transactionId,
+              'connectorId': sourceData.connectorId
+            }
+          );
           // Send email
-          const result = await _email.sendTransactionStarted(sourceData, locale, tenantID);
-          // Return
-          return result;
+          await _email.sendSessionStarted(sourceData, locale, tenantID);
         }
       }
     } catch (error) {
@@ -338,24 +346,22 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendSmtpAuthError(tenantID, locale, data) {
+  static async sendSmtpAuthError(tenantID: string, locale: string, data: SmtpAuthErrorNotification): Promise<void> {
     try {
       // Enrich with admins
-      data.users = await NotificationHandler.getAdminUsers(tenantID, "sendSmtpAuthError");
+      data.adminUsers = await NotificationHandler.getAdminUsers(tenantID, "sendSmtpAuthError");
       // Compute the id as day and hour so that just one of this email is sent per hour
-      const sourceId = Math.floor(Date.now() / 3600000);
+      const notificationID: string = Math.floor(Date.now() / 3600000) + '';
       // Check notification
-      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_SMTP_AUTH, sourceId);
+      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_SMTP_AUTH, notificationID);
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
         if (_notificationConfig.Email.enabled) {
           // Save notif
-          await NotificationHandler.saveNotification(tenantID, CHANNEL_SMTP_AUTH, sourceId, SOURCE_AUTH_EMAIL_ERROR, null, null, data);
+          await NotificationHandler.saveNotification(tenantID, CHANNEL_SMTP_AUTH, notificationID, SOURCE_AUTH_EMAIL_ERROR);
           // Send email
-          const result = await _email.sendSmtpAuthError(data, locale, tenantID);
-          // Return
-          return result;
+          await _email.sendSmtpAuthError(data, locale, tenantID);
         }
       }
     } catch (error) {
@@ -364,24 +370,25 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendOCPIPatchChargingStationsStatusesError(tenantID, data) {
+  static async sendOCPIPatchChargingStationsStatusesError(tenantID: string, data: OCPIPatchChargingStationsStatusesErrorNotification): Promise<void> {
     try {
       // Enrich with admins
-      data.users = await NotificationHandler.getAdminUsers(tenantID, "sendOcpiPatchStatusError");
+      data.adminUsers = await NotificationHandler.getAdminUsers(tenantID, "sendOcpiPatchStatusError");
       // Compute the id as day and hour so that just one of this email is sent per hour
-      const sourceId = Math.floor(Date.now() / 3600000);
+      const notificationID: string = Math.floor(Date.now() / 3600000) + '';
       // Check notification
-      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_PATCH_EVSE_STATUS, sourceId);
+      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_PATCH_EVSE_STATUS, notificationID);
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
         if (_notificationConfig.Email.enabled) {
           // Save notif
-          await NotificationHandler.saveNotification(tenantID, CHANNEL_PATCH_EVSE_STATUS, sourceId, SOURCE_PATCH_EVSE_STATUS_ERROR, null, null, data);
+          await NotificationHandler.saveNotification(tenantID, CHANNEL_PATCH_EVSE_STATUS, notificationID, SOURCE_PATCH_EVSE_STATUS_ERROR, null, null, {
+            locationID: data.locationID,
+            chargeBoxID: data.chargeBoxID
+          });
           // Send email
-          const result = await _email.sendOCPIPatchChargingStationsStatusesError(data, tenantID);
-          // Return
-          return result;
+          await _email.sendOCPIPatchChargingStationsStatusesError(data, tenantID);
         }
       }
     } catch (error) {
