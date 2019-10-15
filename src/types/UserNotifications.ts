@@ -6,7 +6,6 @@ export default interface UserNotifications {
   sendEndOfCharge?: boolean;
   sendEndOfSession?: boolean;
   sendUserAccountStatusChanged?: boolean;
-  sendNewRegisteredUser?: boolean;
   sendUnknownUserBadged?: boolean;
   sendChargingStationStatusError?: boolean;
   sendChargingStationRegistered?: boolean;
@@ -15,17 +14,16 @@ export default interface UserNotifications {
 }
 
 export type UserNotificationKeys =
-  "sendSessionStarted" |
-  "sendOptimalChargeReached" |
-  "sendEndOfCharge" |
-  "sendEndOfSession" |
-  "sendUserAccountStatusChanged" |
-  "sendNewRegisteredUser" |
-  "sendUnknownUserBadged" |
-  "sendChargingStationStatusError" |
-  "sendChargingStationRegistered" |
+ "sendSessionStarted" |
+ "sendOptimalChargeReached" |
+ "sendEndOfCharge" |
+ "sendEndOfSession" |
+ "sendUserAccountStatusChanged" |
+ "sendUnknownUserBadged" |
+ "sendChargingStationStatusError" |
+ "sendChargingStationRegistered" |
   "sendOcpiPatchStatusError" |
-  "sendSmtpAuthError"
+ "sendSmtpAuthError"
 ;
 
 interface BaseNotification {

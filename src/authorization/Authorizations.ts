@@ -692,7 +692,6 @@ export default class Authorizations {
         sendEndOfCharge: true,
         sendEndOfSession: true,
         sendUserAccountStatusChanged: true,
-        sendNewRegisteredUser: false,
         sendUnknownUserBadged: false,
         sendChargingStationStatusError: false,
         sendChargingStationRegistered: false,

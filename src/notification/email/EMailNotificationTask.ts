@@ -89,7 +89,7 @@ export default class EMailNotificationTask implements NotificationTask {
     return this._prepareAndSendEmail('unknown-user-badged', data, locale, tenantID);
   }
 
-  sendTransactionStarted(data: TransactionStartedNotification, locale: string, tenantID: string): Promise<void> {
+  sendSessionStarted(data: TransactionStartedNotification, locale: string, tenantID: string): Promise<void> {
     return this._prepareAndSendEmail('session-started', data, locale, tenantID);
   }
 

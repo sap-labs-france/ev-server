@@ -13,7 +13,7 @@ export default interface NotificationTask {
   sendChargingStationStatusError(data: ChargingStationStatusErrorNotification, locale: string, tenantID: string): Promise<void>;
   sendChargingStationRegistered(data: ChargingStationRegisteredNotification, locale: string, tenantID: string): Promise<void>;
   sendUnknownUserBadged(data: UnknownUserBadgedNotification, locale: string, tenantID: string): Promise<void>;
-  sendTransactionStarted(data: TransactionStartedNotification, locale: string, tenantID: string): Promise<void>;
+  sendSessionStarted(data: TransactionStartedNotification, locale: string, tenantID: string): Promise<void>;
   sendSmtpAuthError(data: SmtpAuthErrorNotification, locale: string, tenantID: string): Promise<void>;
   sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification, tenantID: string): Promise<void>;
 }

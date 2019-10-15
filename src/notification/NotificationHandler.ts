@@ -178,7 +178,7 @@ export default class NotificationHandler {
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
-        if (_notificationConfig.Email.enabled) {
+        if (_notificationConfig.Email.enabled && user.notificationsActive && user.notifications.sendEndOfSession) {
           // Save notif
           await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, notificationID,
             SOURCE_END_OF_SESSION, user, chargingStation, {
@@ -233,7 +233,7 @@ export default class NotificationHandler {
       sourceData: NewRegisteredUserNotification, locale: string): Promise<void> {
     try {
       // Email enabled?
-      if (_notificationConfig.Email.enabled && user.notificationsActive && user.notifications.sendNewRegisteredUser) {
+      if (_notificationConfig.Email.enabled) {
         // Save notif
         await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, notificationID,
           SOURCE_NEW_REGISTERED_USER, user);
@@ -320,7 +320,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendTransactionStarted(tenantID: string, notificationID: string, user: User, chargingStation: ChargingStation,
+  static async sendSessionStarted(tenantID: string, notificationID: string, user: User, chargingStation: ChargingStation,
       sourceData: TransactionStartedNotification, locale: string): Promise<void> {
     try {
       // Check notification
@@ -337,7 +337,7 @@ export default class NotificationHandler {
             }
           );
           // Send email
-          await _email.sendTransactionStarted(sourceData, locale, tenantID);
+          await _email.sendSessionStarted(sourceData, locale, tenantID);
         }
       }
     } catch (error) {

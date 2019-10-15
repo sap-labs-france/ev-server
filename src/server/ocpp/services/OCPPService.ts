@@ -1241,7 +1241,7 @@ export default class OCPPService {
 
   async _notifyStartTransaction(tenantID: string, transaction: Transaction, chargingStation: ChargingStation, user: User) {
     // Notify (Async)
-    NotificationHandler.sendTransactionStarted(
+    NotificationHandler.sendSessionStarted(
       tenantID,
       transaction.id + '',
       user,
