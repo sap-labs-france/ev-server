@@ -1,5 +1,5 @@
 {
-  "subject": "Unknown user",
+  "subject": "Unknown User",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Dear Administrator,",
       "",
-      "An unknown user has just badged on <b><%- chargeBoxID %></b> with the badge ID <b><%- badgeId %></b>."
+      "An unknown user has just badged on <b><%- chargeBoxID %></b> with the badge ID <b>'<%- badgeId %>'</b>."
     ],
     "action": {
       "title": "Edit User",

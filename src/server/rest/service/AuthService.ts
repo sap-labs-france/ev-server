@@ -298,6 +298,7 @@ export default class AuthService {
         Utils.generateGUID(),
         newUser,
         {
+          'tenant': filteredRequest.name,
           'user': newUser,
           'evseDashboardURL': Utils.buildEvseURL(filteredRequest.tenant),
           'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL

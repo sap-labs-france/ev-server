@@ -1,10 +1,10 @@
 {
-  "subject": "<%- chargeBoxID %> s'est enregistrée",
+  "subject": "<%- chargeBoxID %> vient de se Connecter",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Borne Enregistrée",
+      "title": "Borne Connectée",
       "image": {
         "left": {
           "height": 60,

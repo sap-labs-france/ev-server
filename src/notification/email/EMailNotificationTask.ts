@@ -2,25 +2,25 @@ import ejs from 'ejs';
 import email from 'emailjs';
 import fs from 'fs';
 import BackendError from '../../exception/BackendError';
+import TenantStorage from '../../storage/mongodb/TenantStorage';
+import global from '../../types/GlobalType';
+import { ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
-import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
-import NotificationTask from '../NotificationTask';
-import TenantStorage from '../../storage/mongodb/TenantStorage';
 import Utils from '../../utils/Utils';
 import NotificationHandler from '../NotificationHandler';
+import NotificationTask from '../NotificationTask';
 
 
 // Email
 const _emailConfig = Configuration.getEmailConfig();
 
-export default class EMailNotificationTask extends NotificationTask {
+export default class EMailNotificationTask implements NotificationTask {
   public server: any;
   public serverBackup: any;
 
   constructor() {
-    super();
     // Connect the SMTP server
     this.server = email.server.connect({
       user: _emailConfig.smtp.user,
@@ -43,82 +43,69 @@ export default class EMailNotificationTask extends NotificationTask {
     }
   }
 
-  sendNewRegisteredUser(data, locale, tenantID) {
-    // Send it
+  sendNewRegisteredUser(data: NewRegisteredUserNotification, locale: string, tenantID: string): Promise<void> {
     return this._prepareAndSendEmail('new-registered-user', data, locale, tenantID);
   }
 
-  sendRequestPassword(data, locale, tenantID) {
+  sendRequestPassword(data: RequestPasswordNotification, locale: string, tenantID: string): Promise<void> {
     NotificationHandler.sendSmtpAuthError(
       tenantID, locale,
       {
         'evseDashboardURL': data.evseDashboardURL
       }
     );
-// Send it
     return this._prepareAndSendEmail('request-password', data, locale, tenantID);
   }
 
-  sendOptimalChargeReached(data, locale, tenantID) {
-    // Send it
+  sendOptimalChargeReached(data: OptimalChargeReachedNotification, locale: string, tenantID: string): Promise<void> {
     return this._prepareAndSendEmail('optimal-charge-reached', data, locale, tenantID);
   }
 
-  sendEndOfCharge(data, locale, tenantID) {
-    // Send it
+  sendEndOfCharge(data: EndOfChargeNotification, locale: string, tenantID: string): Promise<void> {
     return this._prepareAndSendEmail('end-of-charge', data, locale, tenantID);
   }
 
-  sendEndOfSession(data, locale, tenantID) {
-    // Send it
+  sendEndOfSession(data: EndOfSessionNotification, locale: string, tenantID: string): Promise<void> {
     return this._prepareAndSendEmail('end-of-session', data, locale, tenantID);
   }
 
-  sendEndOfSignedSession(data, locale, tenantID) {
+  sendEndOfSignedSession(data: EndOfSignedSessionNotification, locale: string, tenantID: string): Promise<void> {
     return this._prepareAndSendEmail('end-of-signed-session', data, locale, tenantID);
   }
 
-  sendChargingStationStatusError(data, locale, tenantID) {
-    // Send it
+  sendChargingStationStatusError(data: ChargingStationStatusErrorNotification, locale: string, tenantID: string): Promise<void> {
     return this._prepareAndSendEmail('charging-station-status-error', data, locale, tenantID);
   }
 
-  sendChargingStationRegistered(data, locale, tenantID) {
-    // Send it
+  sendChargingStationRegistered(data: ChargingStationRegisteredNotification, locale: string, tenantID: string): Promise<void> {
     return this._prepareAndSendEmail('charging-station-registered', data, locale, tenantID);
   }
 
-  sendUserAccountStatusChanged(data, locale, tenantID) {
-    // Send it
+  sendUserAccountStatusChanged(data: UserAccountStatusChangedNotification, locale: string, tenantID: string): Promise<void> {
     return this._prepareAndSendEmail('user-account-status-changed', data, locale, tenantID);
   }
 
-  sendUnknownUserBadged(data, locale, tenantID) {
-    // Send it
+  sendUnknownUserBadged(data: UnknownUserBadgedNotification, locale: string, tenantID: string): Promise<void> {
     return this._prepareAndSendEmail('unknown-user-badged', data, locale, tenantID);
   }
 
-  sendTransactionStarted(data, locale, tenantID) {
-    // Send it
+  sendTransactionStarted(data: TransactionStartedNotification, locale: string, tenantID: string): Promise<void> {
     return this._prepareAndSendEmail('session-started', data, locale, tenantID);
   }
 
-  sendVerificationEmail(data, locale, tenantID) {
-    // Send it
+  sendVerificationEmail(data: VerificationEmailNotification, locale: string, tenantID: string): Promise<void> {
     return this._prepareAndSendEmail('verification-email', data, locale, tenantID);
   }
 
-  sendSmtpAuthError(data, locale, tenantID) {
-    // Send it
+  sendSmtpAuthError(data: SmtpAuthErrorNotification, locale: string, tenantID: string): Promise<void> {
     return this._prepareAndSendEmail('smtp-auth-error', data, locale, tenantID, true);
   }
 
-  sendOCPIPatchChargingStationsStatusesError(data, tenantID) {
-    // Send it
+  sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification, tenantID: string): Promise<void> {
     return this._prepareAndSendEmail('ocpi-patch-status-error', data, null, tenantID, true);
   }
 
-  async _prepareAndSendEmail(templateName, data, locale, tenantID, retry = false) {
+  async _prepareAndSendEmail(templateName: string, data: any, locale: string, tenantID: string, retry: boolean = false): Promise<void> {
     // Check locale
     if (!locale || !Constants.SUPPORTED_LOCALES.includes(locale)) {
       locale = Constants.DEFAULT_LOCALE;
@@ -135,7 +122,6 @@ export default class EMailNotificationTask extends NotificationTask {
     }
     // Create email
     const emailTemplate = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/server/notification/email/${locale}/${templateName}.json`, 'utf8'));
-    // Template found?
     if (!emailTemplate) {
       // Error
       throw new BackendError({
@@ -234,18 +220,16 @@ export default class EMailNotificationTask extends NotificationTask {
     // Filter out the notifications that don't need bcc to admins
     const emailTo = this.getUserEmailsFromData(data);
     // Send the email
-    const message = await this.sendEmail({
+    await this.sendEmail({
       to: emailTo ? emailTo : adminEmails,
       bcc: emailTo ? adminEmails : null,
       subject: subject,
       text: html,
       html: html
     }, data, tenantID, locale, retry);
-    // Ok
-    return message;
   }
 
-  getUserEmailsFromData(data) {
+  getUserEmailsFromData(data): string {
     // Check if user is provided
     if (data.user) {
       // Return one email
@@ -254,9 +238,10 @@ export default class EMailNotificationTask extends NotificationTask {
       // Return a list of emails
       return data.users.map((user) => user.email).join(',');
     }
+    return null;
   }
 
-  async sendEmail(email, data, tenantID, locale, retry = false) {
+  async sendEmail(email, data, tenantID: string, locale: string, retry: boolean = false): Promise<void> {
     // Create the message
     const messageToSend = {
       from: (!retry ? _emailConfig.smtp.from : _emailConfig.smtpBackup.from),
@@ -333,8 +318,6 @@ export default class EMailNotificationTask extends NotificationTask {
             }
           ]
         });
-        // Return
-        return messageSent;
       }
     });
   }

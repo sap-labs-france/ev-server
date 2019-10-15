@@ -1,5 +1,5 @@
 {
-  "subject": "Optimal charge reached",
+  "subject": "Optimal Charge Reached",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Hi <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Your electric vehicle, which is connected to <b><%- chargeBoxID %> - <%- connectorId %></b>, reached its optimal charge."
+      "Your electric vehicle, which is connected to <b><%- chargeBoxID %></b> - <b>Connector <%- connectorId %></b>, reached its optimal charge."
     ],
     "stats": [
       { "label": "Battery Level", "value": "<%- stateOfCharge %> %" }
