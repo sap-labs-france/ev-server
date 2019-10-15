@@ -22,7 +22,7 @@ export type UserNotificationKeys =
  "sendUnknownUserBadged" |
  "sendChargingStationStatusError" |
  "sendChargingStationRegistered" |
-  "sendOcpiPatchStatusError" |
+ "sendOcpiPatchStatusError" |
  "sendSmtpAuthError"
 ;
 
