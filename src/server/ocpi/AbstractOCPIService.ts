@@ -7,7 +7,7 @@ import OCPIUtils from './OCPIUtils';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import AppError from '../../exception/AppError';
 import AppAuthError from '../../exception/AppAuthError';
-import Config from '../../types/configuration/Config';
+import { Configuration } from '../../types/configuration/Configuration';
 import Tenant from '../../types/Tenant';
 
 const MODULE_NAME = 'AbstractOCPIService';
@@ -22,7 +22,7 @@ export default abstract class AbstractOCPIService {
 
   // Create OCPI Service
   public constructor(
-    private readonly ocpiRestConfig: Config['OCPIService'],
+    private readonly ocpiRestConfig: Configuration['OCPIService'],
     private readonly version: string) {
   }
 

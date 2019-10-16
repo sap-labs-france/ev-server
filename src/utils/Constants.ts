@@ -359,4 +359,7 @@ export default class Constants {
     'tagIDs': 0,
     'verificationToken': 0
   };
+
+  public static readonly MOBILE_OS_ANDROID = 'android';
+  public static readonly MOBILE_OS_IOS = 'ios';
 }

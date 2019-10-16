@@ -155,5 +155,17 @@ export interface OCPIPatchChargingStationsStatusesErrorNotification extends Base
 export interface NotificationSource {
   channel: 'email'|'remote-push-notification';
   notificationTask: NotificationTask;
+  enabled: boolean;
 }
+
+export default interface Notification {
+  userID: string;
+  timestamp: Date;
+  channel: string;
+  sourceId: string;
+  sourceDescr: string;
+  data: any;
+  chargeBoxID: string;
+}
+
 

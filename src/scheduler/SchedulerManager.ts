@@ -7,12 +7,12 @@ import OCPIPatchLocationsTask from './tasks/OCPIPatchLocationsTask';
 import SchedulerTask from './SchedulerTask';
 import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
 
-const _schedulerConfig = Configuration.getSchedulerConfig();
-
 export default class SchedulerManager {
+  private static schedulerConfig = Configuration.getSchedulerConfig();
+
   static init() {
     // Active?
-    if (_schedulerConfig.active) {
+    if (SchedulerManager.schedulerConfig.active) {
       // Log
       Logging.logInfo({
         tenantID: Constants.DEFAULT_TENANT,
@@ -21,7 +21,7 @@ export default class SchedulerManager {
         message: 'The Scheduler is active'
       });
       // Yes: init
-      for (const task of _schedulerConfig.tasks) {
+      for (const task of SchedulerManager.schedulerConfig.tasks) {
         // Active?
         if (!task.active) {
           Logging.logError({
