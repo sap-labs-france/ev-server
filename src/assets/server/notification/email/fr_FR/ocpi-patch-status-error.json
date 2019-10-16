@@ -1,5 +1,5 @@
 {
-  "subject": "OCPI - Erreur mise à jour des statuts des bornes",
+  "subject": "OCPI - Erreur Mise à Jour des Statuts des Bornes",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {

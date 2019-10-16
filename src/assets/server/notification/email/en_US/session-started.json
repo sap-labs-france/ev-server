@@ -1,5 +1,5 @@
 {
-  "subject": "Session started",
+  "subject": "Session Started",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Hi <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Your electric vehicle is successfully connected to the charging station <b><%- chargeBoxID %>, connector <%- connectorId %></b>."
+      "Your electric vehicle is successfully connected to the charging station <b>'<%- chargeBoxID %>'</b>, connector <b>'<%- connectorId %>'</b>."
     ],
     "action": {
       "title": "View Session",

@@ -774,6 +774,7 @@ export default class OCPPService {
       chargingStation,
       {
         'user': transaction.user,
+        'transactionId': transaction.id,
         'chargeBoxID': chargingStation.id,
         'connectorId': transaction.connectorId,
         'totalConsumption': (transaction.currentTotalConsumption / 1000).toLocaleString(
@@ -784,11 +785,7 @@ export default class OCPPService {
         'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#inprogress'),
         'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
       },
-      transaction.user.locale,
-      {
-        'transactionId': transaction.id,
-        'connectorId': transaction.connectorId
-      }
+      transaction.user.locale
     );
   }
 
@@ -802,6 +799,7 @@ export default class OCPPService {
       {
         'user': transaction.user,
         'chargeBoxID': chargingStation.id,
+        'transactionId': transaction.id,
         'connectorId': transaction.connectorId,
         'totalConsumption': (transaction.currentTotalConsumption / 1000).toLocaleString(
           (transaction.user.locale ? transaction.user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
@@ -810,11 +808,7 @@ export default class OCPPService {
         'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#inprogress'),
         'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
       },
-      transaction.user.locale,
-      {
-        'transactionId': transaction.id,
-        'connectorId': transaction.connectorId
-      }
+      transaction.user.locale
     );
   }
 
@@ -825,7 +819,7 @@ export default class OCPPService {
       if (transaction.numberOfMeterValues > 1 && transaction.currentTotalConsumption > 0) {
         // End of charge?
         if (_configChargingStation.notifEndOfChargeEnabled &&
-          (transaction.currentTotalInactivitySecs > 60 || transaction.currentStateOfCharge === 100)) {
+          (transaction.currentTotalInactivitySecs > 120 || transaction.currentStateOfCharge === 100)) {
           // Notify User?
           if (transaction.user) {
             // Send Notification
@@ -1247,24 +1241,21 @@ export default class OCPPService {
 
   async _notifyStartTransaction(tenantID: string, transaction: Transaction, chargingStation: ChargingStation, user: User) {
     // Notify (Async)
-    NotificationHandler.sendTransactionStarted(
+    NotificationHandler.sendSessionStarted(
       tenantID,
-      transaction.id,
+      transaction.id + '',
       user,
       chargingStation,
       {
         'user': user,
+        'transactionId': transaction.id,
         'chargeBoxID': chargingStation.id,
         'connectorId': transaction.connectorId,
         'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain),
         'evseDashboardChargingStationURL':
           await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#inprogress')
       },
-      user.locale,
-      {
-        'transactionId': transaction.id,
-        'connectorId': transaction.connectorId
-      }
+      user.locale
     );
   }
 
@@ -1490,6 +1481,7 @@ export default class OCPPService {
         {
           'user': user,
           'alternateUser': (alternateUser ? alternateUser : null),
+          'transactionId': transaction.id,
           'chargeBoxID': chargingStation.id,
           'connectorId': transaction.connectorId,
           'totalConsumption': (transaction.stop.totalConsumption / 1000).toLocaleString(
@@ -1501,11 +1493,7 @@ export default class OCPPService {
           'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#history'),
           'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
         },
-        user.locale,
-        {
-          'transactionId': transaction.id,
-          'connectorId': transaction.connectorId
-        }
+        user.locale
       );
       if (transaction.stop.signedData !== '') {
         // Send Notification (Async)
@@ -1538,11 +1526,7 @@ export default class OCPPService {
             'endSignedData': transaction.stop.signedData,
             'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
           },
-          user.locale,
-          {
-            'transactionId': transaction.id,
-            'connectorId': transaction.connectorId
-          }
+          user.locale
         );
       }
     }

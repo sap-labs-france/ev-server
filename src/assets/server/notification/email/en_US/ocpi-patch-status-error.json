@@ -1,5 +1,5 @@
 {
-  "subject": "OCPI - Patch of charging station statuses failed",
+  "subject": "OCPI - Patch of Charging Station Statuses Failed",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {

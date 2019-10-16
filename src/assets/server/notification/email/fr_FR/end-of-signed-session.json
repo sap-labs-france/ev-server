@@ -1,5 +1,5 @@
 {
-  "subject": "Session terminée - Transaction signée",
+  "subject": "Session Terminée - Session Signée",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
