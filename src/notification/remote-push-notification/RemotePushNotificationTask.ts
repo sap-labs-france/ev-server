@@ -5,6 +5,8 @@ import * as admin from "firebase-admin";
 import User from '../../types/User';
 import Logging from '../../utils/Logging';
 import Constants from '../../utils/Constants';
+import i18n from "i18n";
+import Utils from '../../utils/Utils';
 
 export default class RemotePushNotificationTask implements NotificationTask {
   private firebaseConfig = Configuration.getFirebaseConfig();
@@ -101,8 +103,13 @@ export default class RemotePushNotificationTask implements NotificationTask {
   }
 
   sendSessionStarted(data: TransactionStartedNotification, locale: string, tenantID: string): Promise<void> {
-    // Send notification
-    return this.sendRemotePushNotificationToUsers('Test Title', 'Test Body', [data.user]);
+    // Set the locale
+    i18n.setLocale(Utils.getLocaleWith2Digits(locale));
+    // Get Message Text
+    const title = i18n.__('notifications.sendSessionStarted.title');
+    const body = i18n.__('notifications.sendSessionStarted.body', { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
+    // Send Notification
+    return this.sendRemotePushNotificationToUsers(tenantID, title, body, [data.user]);
   }
 
   sendVerificationEmail(data: VerificationEmailNotification, locale: string, tenantID: string): Promise<void> {
@@ -124,7 +131,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     return Promise.resolve();
   }
 
-  private sendRemotePushNotificationToUsers(title: string, body: string, users: User[], data?: object) {
+  private sendRemotePushNotificationToUsers(tenantID: string, title: string, body: string, users: User[], data?: object) {
     // Checks
     if (!this.initialized) {
       return Promise.resolve();
@@ -141,7 +148,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       admin.messaging().send(message).then((response) => {
         // Response is a message ID string.
         Logging.logInfo({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: tenantID,
           module: 'RemotePushNotificationTask', method: 'sendRemotePushNotificationToUsers',
           message: `Notification Sent: '${title}'`,
           user: userWithMobile.id,
@@ -150,7 +157,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
         });
       }).catch((error) => {
         Logging.logError({
-          tenantID: Constants.DEFAULT_TENANT,
+          tenantID: tenantID,
           module: 'RemotePushNotificationTask', method: 'sendRemotePushNotificationToUsers',
           message: `Error when sending Notification: '${error.message}'`,
           user: userWithMobile.id,

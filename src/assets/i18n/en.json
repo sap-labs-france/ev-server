@@ -1,0 +1,8 @@
+{
+	"notifications": {
+		"sendSessionStarted": {
+			"title": "Session Started",
+			"body": "You session on the charging station '{{chargeBoxID}}', connector '{{connectorId}}' has been started successfully"
+		}
+	}
+}

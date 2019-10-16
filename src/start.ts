@@ -14,6 +14,7 @@ import ODataServer from './server/odata/ODataServer';
 import SchedulerManager from './scheduler/SchedulerManager';
 import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer';
 import Utils from './utils/Utils';
+import i18n from "i18n";
 
 const MODULE_NAME = 'Bootstrap';
 export default class Bootstrap {
@@ -53,6 +54,13 @@ export default class Bootstrap {
       // Init global user and tenant IDs hashmap
       global.userHashMapIDs = new Map<string, string>();
       global.tenantHashMapIDs = new Map<string, string>();
+
+      // Init i18n
+      i18n.configure({
+        locales:['en', 'fr'],
+        directory: `${global.appRoot}/assets/i18n`,
+        objectNotation: true
+      });
 
       // Start the connection to the Database
       if (!Bootstrap.databaseDone) {

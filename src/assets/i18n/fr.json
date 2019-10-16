@@ -1,0 +1,8 @@
+{
+	"notifications": {
+		"sendSessionStarted": {
+			"title": "Session Démarrée",
+			"body": "Votre session sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}', a démarrée avec succès"
+		}
+	}
+}
