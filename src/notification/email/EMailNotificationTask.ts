@@ -272,7 +272,7 @@ export default class EMailNotificationTask implements NotificationTask {
             tenantID: tenantID, source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
             module: 'EMailNotificationTask', method: 'sendEmail',
             action: (!retry ? 'SendEmail' : 'SendEmailBackup'),
-            message: `Error in sending Email (${messageToSend.from}): '${messageToSend.subject}'`,
+            message: `Error Sending Email (${messageToSend.from}): '${messageToSend.subject}'`,
             actionOnUser: data.user,
             detailedMessages: [
               {
@@ -304,7 +304,7 @@ export default class EMailNotificationTask implements NotificationTask {
           module: 'EMailNotificationTask', method: '_prepareAndSendEmail',
           action: (!retry ? 'SendEmail' : 'SendEmailBackup'),
           actionOnUser: data.user,
-          message: `Email has been sent successfully: '${messageToSend.subject}'`,
+          message: `Email Sent: '${messageToSend.subject}'`,
           detailedMessages: [
             {
               email: {

@@ -1,4 +1,5 @@
 import User from "./User";
+import NotificationTask from "../notification/NotificationTask";
 
 export default interface UserNotifications {
   sendSessionStarted?: boolean;
@@ -151,5 +152,8 @@ export interface OCPIPatchChargingStationsStatusesErrorNotification extends Base
   'evseDashboardURL': string;
 }
 
-
+export interface NotificationSource {
+  channel: 'email'|'remote-push-notification';
+  notificationTask: NotificationTask;
+}
 

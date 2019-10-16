@@ -1,4 +1,18 @@
 export default class Constants {
+  public static readonly SOURCE_CHARGING_STATION_STATUS_ERROR = 'NotifyChargingStationStatusError';
+  public static readonly SOURCE_CHARGING_STATION_REGISTERED = 'NotifyChargingStationRegistered';
+  public static readonly SOURCE_END_OF_CHARGE = 'NotifyEndOfCharge';
+  public static readonly SOURCE_OPTIMAL_CHARGE_REACHED = 'NotifyOptimalChargeReached';
+  public static readonly SOURCE_END_OF_SESSION = 'NotifyEndOfSession';
+  public static readonly SOURCE_REQUEST_PASSWORD = 'NotifyRequestPassword';
+  public static readonly SOURCE_USER_ACCOUNT_STATUS_CHANGED = 'NotifyUserAccountStatusChanged';
+  public static readonly SOURCE_NEW_REGISTERED_USER = 'NotifyNewRegisteredUser';
+  public static readonly SOURCE_UNKNOWN_USER_BADGED = 'NotifyUnknownUserBadged';
+  public static readonly SOURCE_TRANSACTION_STARTED = 'NotifyTransactionStarted';
+  public static readonly SOURCE_VERIFICATION_EMAIL = 'NotifyVerificationEmail';
+  public static readonly SOURCE_AUTH_EMAIL_ERROR = 'NotifyAuthentificationErrorEmailServer';
+  public static readonly SOURCE_PATCH_EVSE_STATUS_ERROR = 'NotifyPatchEVSEStatusError';
+
   public static readonly HTTP_GENERAL_ERROR = 500;
   public static readonly HTTP_NOT_IMPLEMENTED_ERROR = 501;
   public static readonly HTTP_OBJECT_DOES_NOT_EXIST_ERROR = 550;

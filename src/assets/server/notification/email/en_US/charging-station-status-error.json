@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Dear Administrator,",
       "",
-      "Error occurred on <b><%- chargeBoxID %></b> - <b>Connector <%- connectorId %></b>: <b><%- error %></b>."
+      "Error occurred on <b>'<%- chargeBoxID %>'</b>, connector <b>'<%- connectorId %>'</b>: <b><%- error %></b>."
     ],
     "action": {
       "title": "View Error",
