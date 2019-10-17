@@ -2,7 +2,13 @@ import moment = require('moment');
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import Constants from '../../../../utils/Constants';
-import { HttpAssignTransactionsToUserRequest, HttpConsumptionFromTransactionRequest, HttpTransactionRequest, HttpTransactionsRefundRequest, HttpTransactionsRequest } from '../../../../types/requests/HttpTransactionRequest';
+import {
+  HttpAssignTransactionsToUserRequest,
+  HttpConsumptionFromTransactionRequest,
+  HttpTransactionRequest,
+  HttpTransactionsRefundRequest,
+  HttpTransactionsRequest
+} from '../../../../types/requests/HttpTransactionRequest';
 import Transaction from '../../../../types/Transaction';
 import User from '../../../../types/User';
 import UserToken from '../../../../types/UserToken';
@@ -99,7 +105,7 @@ export default class TransactionSecurity {
     }
     // Check auth
     if (Authorizations.canReadTransaction(loggedUser, transaction) &&
-        (!toRefund || Authorizations.canRefundTransaction(loggedUser, transaction))) {
+      (!toRefund || Authorizations.canRefundTransaction(loggedUser, transaction))) {
       // Set only necessary info
       filteredTransaction = {} as Transaction;
       filteredTransaction.id = transaction.id;
@@ -127,7 +133,6 @@ export default class TransactionSecurity {
         filteredTransaction.currentTotalDurationSecs =
           moment.duration(moment(!transaction.stop ? transaction.lastMeterValue.timestamp : transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
         filteredTransaction.currentCumulatedPrice = transaction.currentCumulatedPrice;
-        filteredTransaction.currentStateOfCharge = transaction.currentStateOfCharge;
         filteredTransaction.currentStateOfCharge = transaction.currentStateOfCharge;
         filteredTransaction.currentSignedData = transaction.currentSignedData;
       }
@@ -259,6 +264,7 @@ export default class TransactionSecurity {
       return filteredTransaction;
     }
     // Admin?
+    let initialSoC;
     if (Authorizations.isAdmin(loggedUser)) {
       // Set them all
       filteredTransaction.values = consumptions.map((consumption) => consumption).map((consumption) => {
@@ -268,8 +274,11 @@ export default class TransactionSecurity {
           value: consumption.instantPower,
           cumulated: consumption.cumulatedConsumption
         };
-        if (!consumption.stateOfCharge) {
+        if (consumption.stateOfCharge === null) {
           delete newConsumption.stateOfCharge;
+        }
+        if (!initialSoC && consumption.stateOfCharge) {
+          initialSoC = consumption.stateOfCharge;
         }
         return newConsumption;
       });
@@ -287,6 +296,9 @@ export default class TransactionSecurity {
         };
         if (consumption.stateOfCharge) {
           newConsumption.stateOfCharge = consumption.stateOfCharge;
+          if (!initialSoC) {
+            initialSoC = consumption.stateOfCharge;
+          }
         }
         return newConsumption;
       });
@@ -315,6 +327,10 @@ export default class TransactionSecurity {
       initialValue.amount = 0;
       initialValue.cumulatedAmount = 0;
       initialValue.roundedAmount = 0;
+    }
+    if (initialSoC) {
+      initialValue.stateOfCharge = initialSoC;
+      filteredTransaction.stateOfCharge = initialSoC;
     }
     filteredTransaction.values.splice(0, 0, initialValue);
     return filteredTransaction;
