@@ -151,6 +151,12 @@ export interface OCPIPatchChargingStationsStatusesErrorNotification extends Base
   'evseDashboardURL': string;
 }
 
+export interface UserInactivityLimitReachedNotification extends BaseNotification {
+  'user': User;
+  'lastLogin': string;
+  'evseDashboardURL': string;
+}
+
 export interface NotificationSource {
   channel: 'email'|'remote-push-notification';
   notificationTask: NotificationTask;

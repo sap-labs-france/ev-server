@@ -12,6 +12,7 @@ export default class Constants {
   public static readonly SOURCE_VERIFICATION_EMAIL = 'NotifyVerificationEmail';
   public static readonly SOURCE_AUTH_EMAIL_ERROR = 'NotifyAuthentificationErrorEmailServer';
   public static readonly SOURCE_PATCH_EVSE_STATUS_ERROR = 'NotifyPatchEVSEStatusError';
+  public static readonly SOURCE_USER_INACTIVITY_LIMIT = 'NotifyUserInactivityLimitReached';
 
   public static readonly HTTP_GENERAL_ERROR = 500;
   public static readonly HTTP_NOT_IMPLEMENTED_ERROR = 501;

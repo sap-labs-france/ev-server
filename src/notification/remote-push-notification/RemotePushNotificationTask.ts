@@ -1,4 +1,4 @@
-import { ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
+import { UserInactivityLimitReachedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
 import Configuration from '../../utils/Configuration';
 import NotificationTask from '../NotificationTask';
 import * as admin from "firebase-admin";
@@ -39,6 +39,11 @@ export default class RemotePushNotificationTask implements NotificationTask {
   }
 
   sendNewRegisteredUser(data: NewRegisteredUserNotification, locale: string, tenantID: string): Promise<void> {
+    // Nothing to send
+    return Promise.resolve();
+  }
+
+  sendUserInactivityLimitReached(data: UserInactivityLimitReachedNotification, locale: string, tenantID: string): Promise<void> {
     // Nothing to send
     return Promise.resolve();
   }

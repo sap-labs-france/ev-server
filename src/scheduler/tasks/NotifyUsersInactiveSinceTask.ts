@@ -25,8 +25,10 @@ export default class NotifyUsersInactiveSinceTask extends SchedulerTask {
       for(const user of users){
         // Notification 
         moment.locale(user.locale);
+        const notificationID = 'InactivityLimit' + user.name + new Date().getFullYear() + new Date().getMonth();
         NotificationHandler.sendUserInactivityLimitReached(
           tenant.id,
+          notificationID,
           user,
           {
             'user': user,

@@ -96,7 +96,7 @@ export default class EMailNotificationTask implements NotificationTask {
   return this._prepareAndSendEmail('ocpi-patch-status-error', data, locale, tenantID);
   }
 
-  sendUserInactivityLimitReached(data: UserInactivityLimitReachedNotification, locale: string, tenantID: string) {
+  sendUserInactivityLimitReached(data: UserInactivityLimitReachedNotification, locale: string, tenantID: string): Promise<void>  {
     // Send it
     return this._prepareAndSendEmail('inactive-user-email', data, locale, tenantID);
   }
