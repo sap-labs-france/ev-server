@@ -1,10 +1,10 @@
 {
-  "subject": "OCPI - Patch of Charging Station Statuses Failed",
+  "subject": "OCPI - Patching of Charging Station Statuses Failed",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Patch of Charging Station Statuses Failed",
+      "title": "Patching of Charging Station Statuses Failed",
       "image": {
         "left": {
           "height": 60,
@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Dear Administrator,",
       "",
-      "The transfer of the Charging Station's statuses has failed.",
+      "The transfer of the charging station's statuses has failed on location <b>'<%- location %>'</b>.",
       "",
       "Check the logs.",
       ""

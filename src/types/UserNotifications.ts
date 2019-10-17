@@ -1,4 +1,5 @@
 import User from "./User";
+import NotificationTask from "../notification/NotificationTask";
 
 export default interface UserNotifications {
   sendSessionStarted?: boolean;
@@ -146,10 +147,24 @@ export interface SmtpAuthErrorNotification extends BaseNotification {
 }
 
 export interface OCPIPatchChargingStationsStatusesErrorNotification extends BaseNotification {
-  'locationID': string;
-  'chargeBoxID': string;
+  'location': string;
   'evseDashboardURL': string;
 }
 
+export interface NotificationSource {
+  channel: 'email'|'remote-push-notification';
+  notificationTask: NotificationTask;
+  enabled: boolean;
+}
+
+export default interface Notification {
+  userID: string;
+  timestamp: Date;
+  channel: string;
+  sourceId: string;
+  sourceDescr: string;
+  data: any;
+  chargeBoxID: string;
+}
 
 

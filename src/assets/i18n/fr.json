@@ -1,0 +1,46 @@
+{
+	"notifications": {
+		"sessionStarted": {
+			"title": "Session Démarrée",
+			"body": "Votre session sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}', a démarrée avec succès"
+		},
+		"ocpiPatchChargingStationsStatusesError": {
+			"title": "OCPI - Erreur Mise à jour Statuts",
+			"body": "La mise à jour des statuts des bornes a échoué sur le site '{{location}}', vérifier les logs"
+		},
+		"smtpAuthError": {
+			"title": "Erreur Auth Serveur Email",
+			"body": "L'authentification sur le serveur d'email principal a échoué, vérifier la configuration"
+		},
+		"optimalChargeReached": {
+			"title": "Charge Optimale Atteinte",
+			"body": "Votre véhicule électrique, qui est connecté sur '{{chargeBoxID}}', connector '{{connectorId}}', a atteint sa charge optimale"
+		},
+		"endOfCharge": {
+			"title": "Charge Terminée",
+			"body": "Votre véhicule électrique, qui est connecté sur la borne '{{chargeBoxID}}', connector '{{connectorId}}', a terminé sa charge"
+		},
+		"endOfSession": {
+			"title": "Session Terminée",
+			"body": "Votre session sur la borne '{{chargeBoxID}}', connector '{{connectorId}}' est terminée"
+		},
+		"chargingStationStatusError": {
+			"title": "{{chargeBoxID}} - {{connectorId}} - {{error}}",
+			"body": "Une erreur est survenue sur '{{chargeBoxID}}', connector '{{connectorId}}': {{error}}"
+		},
+		"unknownUserBadged": {
+			"title": "Utilisateur Inconnu à Badgé",
+			"body": "Un utilisateur inconnu vient juste de badger sur '{{chargeBoxID}}' avec le badge ID '{{badgeId}}'"
+		},
+		"chargingStationRegistered": {
+			"title": "{{chargeBoxID}} vient de se Connecter",
+			"body": "La borne '{{chargeBoxID}}' vient de se connecter au le serveur central"
+		},
+		"userAccountStatusChanged": {
+			"title": "Compte {{status}}",
+			"activated": "activé",
+			"suspended": "suspendu",
+			"body": "Votre compte a été {{status}} par un administrateur"
+		}
+	}
+}

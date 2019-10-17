@@ -1,5 +1,4 @@
 <h3>Conditions G&eacute;n&eacute;rales d'Utilisation de l&rsquo;application e-Mobility</h3>
-
 <h4>Donn&eacute;es Personnelles</h4>
 <p>Seul les donn&eacute;es concernant l'utilisation des bornes de recharge pour chaque utilisateur seront enregistr&eacute;es:</p>
 <ul>
@@ -17,7 +16,6 @@
   <li>Num&eacute;ro d'identification professionnel</li>
   <li>Centre de co&ucirc;t professionnel</li>
 </ul>
-
 <h4>Donn&eacute;es Utilisateurs M&eacute;tiers</h4>
 <ul>
   <li>Consommation Instantan&eacute;e et Totale</li>
@@ -33,26 +31,26 @@
   <li>Voitures</li>
   <li>Journaux Syst&egrave;mes</li>
 </ul>
-
 <h4>Sc&eacute;narios</h4>
 <ul>
   <li>Statistiques (utilisation des bornes, consommation, co&ucirc;t, ...)</li>
   <li>Gestion des Sites</li>
   <li>Gestion des Autorisations</li>
   <li>Gestion des Tarifs</li>
+  <li>Gestion de la Facturation</li>
   <li>Charge Intelligente</li>
   <li>R&eacute;servation de Charge</li>
   <li>Pr&eacute;diction de Charge</li>
   <li>Notifications Utilisateurs et Adminitrateurs</li>
   <li>Recharge &agrave; la Maison</li>
   <li>Remboursement des Sessions</li>
+  <li>Information pour la Facturation</li>
   <li>Itin&eacute;rance</li>
 </ul>
-
 <h4>Finalit&eacute; du Traitement des Donn&eacute;es</h4>
 <ul>
   <li>Optimiser l'utilisation des bornes par les utilisateurs en gardant des co&ucirc;ts de fonctionnement bas.</li>
-  <li>Am&eacute;liorer la maintenance des bornes de recharge.</li>
+  <li>Am&eacute;liorer la maintenance et la rotation des v&eacute;hicules sur les bornes de recharge.</li>
   <li>D&eacute;velopper un algorithme d'optimisation afin de g&eacute;rer et de contr&ocirc;ler les charges
     concurrentes d&eacute;livr&eacute;es par les bornes en tenant compte des contraintes du site (puissance maximale du
     site...)
@@ -62,19 +60,25 @@
     professionnels
   </li>
 </ul>
-
-<h4>Protection des Donn&eacute;es d&egrave;s la Conception</h4>
+<h4>Protection des Donn&eacute;es Priv&eacute;s</h4>
 <ul>
     <li>Cette application a &eacute;t&eacute; con&ccedil;ue d&egrave;s le d&eacute;part en tenant compte des contraintes de
   la protection des donn&eacute;es personnelles.</li>
 </ul>
-
+<h4>Int&eacute;gration de Produits</h4>
+<ul>
+  <li><b>SAP Analytics</b>: utilis&eacute; pour r&eacute;aliser des statistiques complexes</li>
+  <li><b>SAP Concur</b>: utilis&eacute; pour rembourser l'&eacute;lectricit&eacute; consomm&eacute;e par les utilisateurs chez eux</li>
+  <li><b>SAP Convergent Charging/Invoicing</b>: utilis&eacute; pour calculer le prix d'une session</li>
+  <li><b>Stripe</b>: utilis&eacute; pour la facturation et le paiment des sessions</li>
+  <li><b>Gireve / Hubject</b>: utilis&eacute; pour publier les bornes sur des sites de roaming</li>
+  <li><b>Google Firebase</b>: utilis&eacute; pour envoyer des notifications sur les t&eacute;l&eacute;phones portable des utilisateurs</li>
+</ul>
 <h4>Utilisateurs Impliqu&eacute;s</h4>
 <ul>
     <li>Les utilisateurs faisant usage des bornes de recharge sur le site et ayant proc&eacute;d&eacute; a leur inscription dans l'application 
   <a href="{{chargeAngelsURL}}" target="_blank" rel="noopener">e-Mobility</a>.</li>
 </ul>
-
 <h4>Destinataires des Traitements des Donn&eacute;es</h4>
 <ul>
   <li>Le traitement des donn&eacute;es est &agrave; destination des managers de sites, des data scientists et des
@@ -95,36 +99,31 @@
     donn&eacute;
   </li>
 </ul>
-
 <h4>Localisation des Donn&eacute;es</h4>
 <ul>
-    <li>L'application sera d&eacute;ploy&eacute;e et les donn&eacute;es seront stock&eacute;es sur la plateforme cloud de SAP qui est h&eacute;berg&eacute;e en Allemagne.</li>
+    <li>L'application sera d&eacute;ploy&eacute;e et les donn&eacute;es seront stock&eacute;es sur une plateforme Cloud qui est h&eacute;berg&eacute;e en Europe.</li>
 </ul>
-
 <h4>Droit &agrave; l'Oubli</h4>
 <ul>
  <li>Vos donn&eacute;es personnelles seront conserv&eacute;es jusqu'&agrave; la fin de votre contrat de travail avec la soci&eacute;t&eacute;.</li>
  <li>Vos donn&eacute;es personnelles seront supprim&eacute;es manuellement apr&egrave;s une p&eacute;riode d'inactivit&eacute; de 6 mois (aucune session n'aura &eacute;t&eacute; r&eacute;alis&eacute;e pendant cette p&eacute;riode).</li>
  <li>Vos donn&eacute;es personnelles seront supprim&eacute;es sur votre demande (contacter le <a href="mailto:dpo@e-mobility-solution.com">Data Privacy Officer</a>)</li>
 </ul>
-
-<h4>S&eacute;curit&eacute; d&egrave;s la Conception</h4>
+<h4>S&eacute;curit&eacute;</h4>
 <ul>
   <li>Des identifiants sont requis pour acc&eacute;der &agrave; l'application pour tous les utilisateurs.</li>
-  <li>Les donn&eacute;es transitent de mani&egrave;re s&eacute;curis&eacute; sur le r&eacute;seau prot&eacute;g&eacute;es par un protocole s&eacute;curis&eacute; (HTTPs) assurant ainsi leur confidentialit&eacute;.</li>
-  <li>Seuls les administrateurs seront autoris&eacute;s &agrave; lire, &eacute;crire, &eacute;diter et effacer toutes les donn&eacute;es sur le serveur.</li>
+  <li>Les donn&eacute;es transitent de mani&egrave;re s&eacute;curis&eacute; sur le r&eacute;seau prot&eacute;g&eacute;es par un protocole s&eacute;curis&eacute; (HTTPs) assurant ainsi la confidentialit&eacute;.</li>
+  <li>Seuls les administrateurs seront autoris&eacute;s &agrave; lire, &eacute;crire, &eacute;diter et effacer toutes les donn&eacute;es sur la base de données.</li>
   <li>Les utilisateurs standards seront seulement autoris&eacute;s &agrave; lire et modifier leurs propres donn&eacute;es personnelles, voir la
   disponibilit&eacute; des bornes de recharge, la charge en cours, l'historique de leurs sessions et leurs statistiques.</li>
   <li>Vos donn&eacute;es peuvent &ecirc;tre communiqu&eacute;es &agrave; une tierce partie en cas de demande l&eacute;gale comme par exemple l'inspection du
   travail, les services fiscaux ou la police.</li>
 </ul>
-
 <h4>Consentement Utilisateur</h4>
 <ul>
   <li>Vous devez explicitement donner votre consentement pour nous autoriser &agrave; utiliser vos donn&eacute;es.</li>
   <li>Celui-ci est mat&eacute;rialis&eacute; par une case &agrave; cocher dans la page de connexion de l'application <a href="{{chargeAngelsURL}}" target="_blank">e-Mobility</a>.</li>
 </ul>
-
 <h4>Le droit d'Acc&egrave;s et de Correction</h4>
 <ul>
   <li>Vous pouvez, avec la preuve de votre identit&eacute;, requ&eacute;rir aupr&egrave;s du <a href="mailto:dpo@e-mobility-solution.com">Responsable
@@ -133,19 +132,16 @@
   &eacute;quivoques, invalides, ou que l'usage, la communication ou la conservation de ce qui est interdit, peuvent &ecirc;tre
   corrig&eacute;es, compl&eacute;t&eacute;es, clarifi&eacute;es, mises &agrave; jour ou effac&eacute;es.</li>
 </ul>
-
 <h4>Le droit d'Opposition</h4>
 <ul>
   <li>Vous avez le droit de vous opposer, en contactant le <a href="mailto:dpo@e-mobility-solution.com">Responsable des Donn&eacute;es
   Personnelles</a>, &agrave; l'utilisation de tout ou partie de vos donn&eacute;es.
   </li>
 </ul>
-
 <h4>Limiter le Traitement des Donn&eacute;es</h4>
 <ul>
   <li>Vous avez le droit aussi de limiter une partie de l'utilisation de vos donn&eacute;es.</li>
 </ul>
-
 <h4>Droit a la Portabilit&eacute; des Donn&eacute;es</h4>
 <ul>
   <li>Vous avez le droit de demander, au <a href="mailto:dpo@e-mobility-solution.com">Responsable des Donn&eacute;es Personnelles</a> ou &agrave;

@@ -12,33 +12,30 @@ import Utils from '../../utils/Utils';
 import NotificationHandler from '../NotificationHandler';
 import NotificationTask from '../NotificationTask';
 
-
-// Email
-const _emailConfig = Configuration.getEmailConfig();
-
 export default class EMailNotificationTask implements NotificationTask {
-  public server: any;
-  public serverBackup: any;
+  private server: any;
+  private serverBackup: any;
+  private emailConfig = Configuration.getEmailConfig();
 
   constructor() {
     // Connect the SMTP server
     this.server = email.server.connect({
-      user: _emailConfig.smtp.user,
-      password: _emailConfig.smtp.password,
-      host: _emailConfig.smtp.host,
-      port: _emailConfig.smtp.port,
-      tls: _emailConfig.smtp.requireTLS,
-      ssl: _emailConfig.smtp.secure
+      user: this.emailConfig.smtp.user,
+      password: this.emailConfig.smtp.password,
+      host: this.emailConfig.smtp.host,
+      port: this.emailConfig.smtp.port,
+      tls: this.emailConfig.smtp.requireTLS,
+      ssl: this.emailConfig.smtp.secure
     });
     // Connect the SMTP Backup server
-    if (_emailConfig.smtpBackup) {
+    if (this.emailConfig.smtpBackup) {
       this.serverBackup = email.server.connect({
-        user: _emailConfig.smtpBackup.user,
-        password: _emailConfig.smtpBackup.password,
-        host: _emailConfig.smtpBackup.host,
-        port: _emailConfig.smtpBackup.port,
-        tls: _emailConfig.smtpBackup.requireTLS,
-        ssl: _emailConfig.smtpBackup.secure
+        user: this.emailConfig.smtpBackup.user,
+        password: this.emailConfig.smtpBackup.password,
+        host: this.emailConfig.smtpBackup.host,
+        port: this.emailConfig.smtpBackup.port,
+        tls: this.emailConfig.smtpBackup.requireTLS,
+        ssl: this.emailConfig.smtpBackup.secure
       });
     }
   }
@@ -48,12 +45,6 @@ export default class EMailNotificationTask implements NotificationTask {
   }
 
   sendRequestPassword(data: RequestPasswordNotification, locale: string, tenantID: string): Promise<void> {
-    NotificationHandler.sendSmtpAuthError(
-      tenantID, locale,
-      {
-        'evseDashboardURL': data.evseDashboardURL
-      }
-    );
     return this._prepareAndSendEmail('request-password', data, locale, tenantID);
   }
 
@@ -101,8 +92,8 @@ export default class EMailNotificationTask implements NotificationTask {
     return this._prepareAndSendEmail('smtp-auth-error', data, locale, tenantID, true);
   }
 
-  sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification, tenantID: string): Promise<void> {
-    return this._prepareAndSendEmail('ocpi-patch-status-error', data, null, tenantID, true);
+  sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification, locale: string, tenantID: string): Promise<void> {
+    return this._prepareAndSendEmail('ocpi-patch-status-error', data, locale, tenantID, true);
   }
 
   async _prepareAndSendEmail(templateName: string, data: any, locale: string, tenantID: string, retry: boolean = false): Promise<void> {
@@ -244,7 +235,7 @@ export default class EMailNotificationTask implements NotificationTask {
   async sendEmail(email, data, tenantID: string, locale: string, retry: boolean = false): Promise<void> {
     // Create the message
     const messageToSend = {
-      from: (!retry ? _emailConfig.smtp.from : _emailConfig.smtpBackup.from),
+      from: (!retry ? this.emailConfig.smtp.from : this.emailConfig.smtpBackup.from),
       to: email.to,
       cc: email.cc,
       bcc: (email.bccNeeded ? email.bcc : null),
@@ -272,7 +263,7 @@ export default class EMailNotificationTask implements NotificationTask {
             tenantID: tenantID, source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
             module: 'EMailNotificationTask', method: 'sendEmail',
             action: (!retry ? 'SendEmail' : 'SendEmailBackup'),
-            message: `Error in sending Email (${messageToSend.from}): '${messageToSend.subject}'`,
+            message: `Error Sending Email (${messageToSend.from}): '${messageToSend.subject}'`,
             actionOnUser: data.user,
             detailedMessages: [
               {
@@ -304,7 +295,7 @@ export default class EMailNotificationTask implements NotificationTask {
           module: 'EMailNotificationTask', method: '_prepareAndSendEmail',
           action: (!retry ? 'SendEmail' : 'SendEmailBackup'),
           actionOnUser: data.user,
-          message: `Email has been sent successfully: '${messageToSend.subject}'`,
+          message: `Email Sent: '${messageToSend.subject}'`,
           detailedMessages: [
             {
               email: {
