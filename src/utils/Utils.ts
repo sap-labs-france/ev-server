@@ -1,32 +1,28 @@
-import axios from 'axios';
 import bcrypt from 'bcryptjs';
-import ClientOAuth2 from 'client-oauth2';
 import { Request } from 'express';
 import fs from 'fs';
 import _ from 'lodash';
 import { ObjectID } from 'mongodb';
-import passwordGenerator = require('password-generator');
 import path from 'path';
 import tzlookup from 'tz-lookup';
 import url from 'url';
 import uuidV4 from 'uuid/v4';
-import AppError from '../exception/AppError';
 import Authorizations from '../authorization/Authorizations';
+import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
+import TenantStorage from '../storage/mongodb/TenantStorage';
+import UserStorage from '../storage/mongodb/UserStorage';
 import ChargingStation from '../types/ChargingStation';
-import Configuration from './Configuration';
 import ConnectorStats from '../types/ConnectorStats';
-import Constants from './Constants';
-import Cypher from './Cypher';
 import { HttpUserRequest } from '../types/requests/HttpUserRequest';
-import Logging from './Logging';
 import { SettingContent } from '../types/Setting';
 import Tenant from '../types/Tenant';
-import TenantStorage from '../storage/mongodb/TenantStorage';
-import Transaction from '../types/Transaction';
 import User from '../types/User';
-import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
+import Configuration from './Configuration';
+import Constants from './Constants';
+import Cypher from './Cypher';
+import passwordGenerator = require('password-generator');
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
@@ -258,7 +254,7 @@ export default class Utils {
     }
   }
 
-  public static async checkTenant(tenantID: string) {
+  public static async checkTenant(tenantID: string): Promise<void> {
     if (!tenantID) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -269,7 +265,7 @@ export default class Utils {
     }
     // Check in cache
     if (_tenants.includes(tenantID)) {
-      return;
+      return Promise.resolve();
     }
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Valid Object ID?

@@ -147,7 +147,7 @@ export interface SmtpAuthErrorNotification extends BaseNotification {
 }
 
 export interface OCPIPatchChargingStationsStatusesErrorNotification extends BaseNotification {
-  'locationID': string;
+  'location': string;
   'evseDashboardURL': string;
 }
 

@@ -114,12 +114,12 @@ export default class RemotePushNotificationTask implements NotificationTask {
   sendUserAccountStatusChanged(data: UserAccountStatusChangedNotification, locale: string, tenantID: string): Promise<void> {
     // Set the locale
     i18n.setLocale(Utils.getLocaleWith2Digits(locale));
+    const status = data.user.status === Constants.USER_STATUS_ACTIVE ?
+      i18n.__('notifications.userAccountStatusChanged.activated') :
+      i18n.__('notifications.userAccountStatusChanged.suspended')
     // Get Message Text
-    const title = i18n.__('notifications.userAccountStatusChanged.title');
-    const body = i18n.__('notifications.userAccountStatusChanged.body', 
-      { status: (data.user.status === Constants.USER_STATUS_ACTIVE ?
-        i18n.__('notifications.userAccountStatusChanged.activated') :
-        i18n.__('notifications.userAccountStatusChanged.suspended')) });
+    const title = i18n.__('notifications.userAccountStatusChanged.title', { status: Utils.firstLetterInUpperCase(status) });
+    const body = i18n.__('notifications.userAccountStatusChanged.body', { status });
     // Send Notification
     return this.sendRemotePushNotificationToUsers(tenantID, title, body, [data.user]);
   }
@@ -129,7 +129,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     i18n.setLocale(Utils.getLocaleWith2Digits(locale));
     // Get Message Text
     const title = i18n.__('notifications.unknownUserBadged.title');
-    const body = i18n.__('notifications.unknownUserBadged.body', { chargeBoxID: data.chargeBoxID, connectorId: data.badgeId });
+    const body = i18n.__('notifications.unknownUserBadged.body', { chargeBoxID: data.chargeBoxID, badgeId: data.badgeId });
     // Send Notification
     return this.sendRemotePushNotificationToUsers(tenantID, title, body, data.adminUsers);
   }
@@ -164,7 +164,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     i18n.setLocale(Utils.getLocaleWith2Digits(locale));
     // Get Message Text
     const title = i18n.__('notifications.ocpiPatchChargingStationsStatusesError.title');
-    const body = i18n.__('notifications.ocpiPatchChargingStationsStatusesError.body', { locationID: data.locationID });
+    const body = i18n.__('notifications.ocpiPatchChargingStationsStatusesError.body', { location: data.location });
     // Send Notification
     return this.sendRemotePushNotificationToUsers(tenantID, title, body, data.adminUsers);
   }

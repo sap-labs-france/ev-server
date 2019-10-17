@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Cher Administrateur,",
       "",
-      "La mise à jour des statuts des bornes a échoué sur le site <b>'<%- locationId %>'</b>.",
+      "La mise à jour des statuts des bornes a échoué sur le site <b>'<%- location %>'</b>.",
       "",
       "Veuillez contrôler le journal des logs.",
       ""
