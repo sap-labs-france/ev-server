@@ -58,8 +58,10 @@ export default class Bootstrap {
       // Init i18n
       i18n.configure({
         locales:['en', 'fr'],
+        defaultLocale: 'en',
         directory: `${global.appRoot}/assets/i18n`,
-        objectNotation: true
+        objectNotation: true,
+        updateFiles: false,
       });
 
       // Start the connection to the Database
