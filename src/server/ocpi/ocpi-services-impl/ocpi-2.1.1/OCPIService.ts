@@ -1,7 +1,7 @@
 import AbstractOCPIService from '../../AbstractOCPIService';
 import CredentialsEndpoint from './CredentialsEndpoint';
 import LocationsEndpoint from './LocationsEndpoint';
-import Config from '../../../../types/configuration/Config';
+import { Configuration } from '../../../../types/configuration/Configuration';
 
 const VERSION = '2.1.1';
 
@@ -10,7 +10,7 @@ const VERSION = '2.1.1';
  */
 export default class OCPIService extends AbstractOCPIService {
   // Create OCPI Service
-  constructor(ocpiRestConfig: Config['OCPIService']) {
+  constructor(ocpiRestConfig: Configuration['OCPIService']) {
     super(ocpiRestConfig, VERSION);
 
     // Register Endpoints

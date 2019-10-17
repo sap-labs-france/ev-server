@@ -169,6 +169,7 @@ export default class Constants {
 
   public static readonly SUPPORTED_LOCALES = ['en_US', 'fr_FR'];
   public static readonly DEFAULT_LOCALE = 'en_US';
+  public static readonly DEFAULT_LANGUAGE = 'en';
 
   public static readonly ANONYMIZED_VALUE = '####';
 
@@ -359,4 +360,7 @@ export default class Constants {
     'tagIDs': 0,
     'verificationToken': 0
   };
+
+  public static readonly MOBILE_OS_ANDROID = 'android';
+  public static readonly MOBILE_OS_IOS = 'ios';
 }

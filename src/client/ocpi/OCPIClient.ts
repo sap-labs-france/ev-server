@@ -354,9 +354,9 @@ export default class OCPIClient {
               // eslint-disable-next-line @typescript-eslint/no-floating-promises
               NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
                 this.tenant.id,
+                Constants.DEFAULT_LOCALE,
                 {
                   'locationID': location.id,
-                  'chargeBoxID': evse.chargeBoxId,
                   'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(this.tenant.id)).subdomain),
                 }
               );

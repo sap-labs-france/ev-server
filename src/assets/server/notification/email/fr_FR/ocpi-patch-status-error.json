@@ -19,9 +19,9 @@
     "beforeActionLines": [
       "Cher Administrateur,",
       "",
-      "La mise à jour du status des chargeurs a échoué.",
+      "La mise à jour des statuts des bornes a échoué sur le site <b>'<%- locationId %>'</b>.",
       "",
-      "Veuiilez contrôler le journal des logs.",
+      "Veuillez contrôler le journal des logs.",
       ""
     ],
     "afterActionLines": [

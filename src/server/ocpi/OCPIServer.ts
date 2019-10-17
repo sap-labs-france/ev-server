@@ -4,15 +4,15 @@ import expressTools from '../ExpressTools';
 import Logging from '../../utils/Logging';
 import OCPIServices from './OCPIServices';
 import { Application } from 'express';
-import Config from '../../types/configuration/Config';
+import { Configuration } from '../../types/configuration/Configuration';
 
 const MODULE_NAME = 'OCPIServer';
 export default class OCPIServer {
-  private ocpiRestConfig: Config['OCPIService'];
+  private ocpiRestConfig: Configuration['OCPIService'];
   private express: Application;
 
   // Create the rest server
-  constructor(ocpiRestConfig: Config['OCPIService']) {
+  constructor(ocpiRestConfig: Configuration['OCPIService']) {
     // Keep params
     this.ocpiRestConfig = ocpiRestConfig;
     // Initialize express app

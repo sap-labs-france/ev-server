@@ -96,6 +96,27 @@
     "monitorDBChange": true,
     "debug": false
   },
+	"Notification": {
+    "Email": {
+      "enabled": true
+    },
+		"RemotePushNotification": {
+      "enabled": true
+		}
+	},
+  "Firebase": {
+    "type": "",
+    "projectID": "",
+    "privateKeyID": "",
+    "privateKey": "",
+    "clientEmail": "",
+    "clientID": "",
+    "authURI": "",
+    "tokenURI": "",
+    "authProviderX509CertURL": "",
+    "clientX509CertURL": "",
+    "databaseURL": ""
+  },
   "Email": {
     "from": "admin.noreply@evse.com",
     "admins": [],
@@ -107,11 +128,6 @@
       "requireTLS": false,
       "user": "",
       "password": ""
-    }
-  },
-  "Notification": {
-    "Email": {
-      "enabled": true
     }
   },
   "Authorization": {

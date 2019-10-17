@@ -427,7 +427,7 @@ export default class UserService {
       });
     }
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
-    await UserStorage.saveUserMobileToken(req.user.tenantID, user.id, filteredRequest.mobileToken, filteredRequest.mobileOS);
+    await UserStorage.saveUserMobileToken(req.user.tenantID, user.id, filteredRequest.mobileToken, filteredRequest.mobileOS, new Date());
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,

@@ -33,7 +33,9 @@ export default interface User extends CreatedUpdatedProps {
   errorCode?: string;
   tagIDs?: string[];
   billingData?: BillingUserData;
+  mobileOs: string;
   mobileToken: string;
+  mobileLastChanged: string;
 }
 
 export interface UserSite {

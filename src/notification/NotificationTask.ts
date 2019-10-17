@@ -15,5 +15,5 @@ export default interface NotificationTask {
   sendUnknownUserBadged(data: UnknownUserBadgedNotification, locale: string, tenantID: string): Promise<void>;
   sendSessionStarted(data: TransactionStartedNotification, locale: string, tenantID: string): Promise<void>;
   sendSmtpAuthError(data: SmtpAuthErrorNotification, locale: string, tenantID: string): Promise<void>;
-  sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification, tenantID: string): Promise<void>;
+  sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification, locale: string, tenantID: string): Promise<void>;
 }

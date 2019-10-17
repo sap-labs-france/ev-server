@@ -1,6 +1,6 @@
 import AbstractOCPIService from '../../AbstractOCPIService';
 import { NextFunction, Request, Response } from 'express';
-import Config from '../../../../types/configuration/Config';
+import { Configuration } from '../../../../types/configuration/Configuration';
 
 const VERSION = '2.0';
 
@@ -9,7 +9,7 @@ const VERSION = '2.0';
  */
 export default class OCPIService extends AbstractOCPIService {
   // Create OCPI Service
-  constructor(ocpiRestConfig: Config['OCPIService']) {
+  constructor(ocpiRestConfig: Configuration['OCPIService']) {
     super(ocpiRestConfig, VERSION);
   }
 

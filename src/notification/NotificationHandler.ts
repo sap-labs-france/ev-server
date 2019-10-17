@@ -2,16 +2,25 @@ import NotificationStorage from '../storage/mongodb/NotificationStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
 import ChargingStation from '../types/ChargingStation';
 import User from '../types/User';
-import { ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
+import UserNotifications, { ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import EMailNotificationTask from './email/EMailNotificationTask';
+import RemotePushNotificationTask from './remote-push-notification/RemotePushNotificationTask';
 
 export default class NotificationHandler {
   private static notificationConfig = Configuration.getNotificationConfig();
   private static notificationSources: NotificationSource[] = [
-    { channel: 'email', notificationTask: new EMailNotificationTask() }
+    {
+      channel: 'email',
+      notificationTask: new EMailNotificationTask(),
+      enabled: NotificationHandler.notificationConfig.Email.enabled },
+    {
+      channel: 'remote-push-notification',
+      notificationTask: new RemotePushNotificationTask(),
+      enabled: NotificationHandler.notificationConfig.RemotePushNotification.enabled
+    }
   ];
 
   static async saveNotification(tenantID: string, channel: string, notificationID: string,
@@ -50,7 +59,7 @@ export default class NotificationHandler {
 
   static async getAdminUsers(tenantID: string, notificationKey?: UserNotificationKeys): Promise<User[]> {
     // Get admin users
-    const params = { roles: [Constants.ROLE_ADMIN], notificationsActive: true, notifications: {} };
+    const params = { roles: [Constants.ROLE_ADMIN], notificationsActive: true, notifications: {} as UserNotifications };
     if (notificationKey) {
       params.notifications[notificationKey] = true;
     }
@@ -82,25 +91,28 @@ export default class NotificationHandler {
     sourceData: EndOfChargeNotification, locale: string): Promise<void> {
     // For each Sources
     for (const notificationSource of NotificationHandler.notificationSources) {
-      try {
-        // Check notification
-        const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, notificationSource.channel, notificationID);
-        if (!hasBeenNotified) {
-          // Enabled?
-          if (user.notificationsActive && user.notifications.sendEndOfCharge) {
-            // Save
-            await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID,
-              Constants.SOURCE_END_OF_CHARGE, user, chargingStation, {
-                'transactionId': sourceData.transactionId,
-                'connectorId': sourceData.connectorId
-              }
-            );
-            // Send
-            await notificationSource.notificationTask.sendEndOfCharge(sourceData, locale, tenantID);
+      // Active?
+      if (notificationSource.enabled) {
+        try {
+          // Check notification
+          const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, notificationSource.channel, notificationID);
+          if (!hasBeenNotified) {
+            // Enabled?
+            if (user.notificationsActive && user.notifications.sendEndOfCharge) {
+              // Save
+              await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID,
+                Constants.SOURCE_END_OF_CHARGE, user, chargingStation, {
+                  'transactionId': sourceData.transactionId,
+                  'connectorId': sourceData.connectorId
+                }
+              );
+              // Send
+              await notificationSource.notificationTask.sendEndOfCharge(sourceData, locale, tenantID);
+            }
           }
+        } catch (error) {
+          Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_END_OF_CHARGE, error);
         }
-      } catch (error) {
-        Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_END_OF_CHARGE, error);
       }
     }
   }
@@ -109,24 +121,27 @@ export default class NotificationHandler {
     sourceData: OptimalChargeReachedNotification, locale: string): Promise<void> {
     // For each Sources
     for (const notificationSource of NotificationHandler.notificationSources) {
-      try {
-        // Check notification
-        const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, notificationSource.channel, notificationID);
-        if (!hasBeenNotified) {
-          // Enabled?
-          if (user.notificationsActive && user.notifications.sendOptimalChargeReached) {
-            // Save
-            await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID,
-              Constants.SOURCE_OPTIMAL_CHARGE_REACHED, user, chargingStation, {
-                'transactionId': sourceData.transactionId,
-                'connectorId': sourceData.connectorId
-              });
-            // Send
-            await notificationSource.notificationTask.sendOptimalChargeReached(sourceData, locale, tenantID);
+      // Active?
+      if (notificationSource.enabled) {
+        try {
+          // Check notification
+          const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, notificationSource.channel, notificationID);
+          if (!hasBeenNotified) {
+            // Enabled?
+            if (user.notificationsActive && user.notifications.sendOptimalChargeReached) {
+              // Save
+              await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID,
+                Constants.SOURCE_OPTIMAL_CHARGE_REACHED, user, chargingStation, {
+                  'transactionId': sourceData.transactionId,
+                  'connectorId': sourceData.connectorId
+                });
+              // Send
+              await notificationSource.notificationTask.sendOptimalChargeReached(sourceData, locale, tenantID);
+            }
           }
+        } catch (error) {
+          Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_OPTIMAL_CHARGE_REACHED, error);
         }
-      } catch (error) {
-        Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_OPTIMAL_CHARGE_REACHED, error);
       }
     }
   }
@@ -135,24 +150,27 @@ export default class NotificationHandler {
     sourceData: EndOfSessionNotification, locale: string): Promise<void> {
     // For each Sources
     for (const notificationSource of NotificationHandler.notificationSources) {
-      try {
-        // Check notification
-        const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, notificationSource.channel, notificationID);
-        if (!hasBeenNotified) {
-          // Enabled?
-          if (user.notificationsActive && user.notifications.sendEndOfSession) {
-            // Save
-            await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID,
-              Constants.SOURCE_END_OF_SESSION, user, chargingStation, {
-                'transactionId': sourceData.transactionId,
-                'connectorId': sourceData.connectorId
-              });
-            // Send
-            await notificationSource.notificationTask.sendEndOfSession(sourceData, locale, tenantID);
+      // Active?
+      if (notificationSource.enabled) {
+        try {
+          // Check notification
+          const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, notificationSource.channel, notificationID);
+          if (!hasBeenNotified) {
+            // Enabled?
+            if (user.notificationsActive && user.notifications.sendEndOfSession) {
+              // Save
+              await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID,
+                Constants.SOURCE_END_OF_SESSION, user, chargingStation, {
+                  'transactionId': sourceData.transactionId,
+                  'connectorId': sourceData.connectorId
+                });
+              // Send
+              await notificationSource.notificationTask.sendEndOfSession(sourceData, locale, tenantID);
+            }
           }
+        } catch (error) {
+          Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_END_OF_SESSION, error);
         }
-      } catch (error) {
-        Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_END_OF_SESSION, error);
       }
     }
   }
@@ -161,24 +179,27 @@ export default class NotificationHandler {
     sourceData: EndOfSignedSessionNotification, locale: string): Promise<void> {
     // For each Sources
     for (const notificationSource of NotificationHandler.notificationSources) {
-      try {
-        // Check notification
-        const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, notificationSource.channel, notificationID);
-        if (!hasBeenNotified) {
-          // Enabled?
-          if (user.notificationsActive && user.notifications.sendEndOfSession) {
-            // Save notif
-            await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID,
-              Constants.SOURCE_END_OF_SESSION, user, chargingStation, {
-                'transactionId': sourceData.transactionId,
-                'connectorId': sourceData.connectorId
-              });
-            // Send
-            await notificationSource.notificationTask.sendEndOfSignedSession(sourceData, locale, tenantID);
+      // Active?
+      if (notificationSource.enabled) {
+        try {
+          // Check notification
+          const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, notificationSource.channel, notificationID);
+          if (!hasBeenNotified) {
+            // Enabled?
+            if (user.notificationsActive && user.notifications.sendEndOfSession) {
+              // Save notif
+              await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID,
+                Constants.SOURCE_END_OF_SESSION, user, chargingStation, {
+                  'transactionId': sourceData.transactionId,
+                  'connectorId': sourceData.connectorId
+                });
+              // Send
+              await notificationSource.notificationTask.sendEndOfSignedSession(sourceData, locale, tenantID);
+            }
           }
+        } catch (error) {
+          Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_END_OF_SESSION, error);
         }
-      } catch (error) {
-        Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_END_OF_SESSION, error);
       }
     }
   }
@@ -187,14 +208,17 @@ export default class NotificationHandler {
     sourceData: RequestPasswordNotification, locale: string): Promise<void> {
     // For each Sources
     for (const notificationSource of NotificationHandler.notificationSources) {
-      try {
-        // Save notif
-        await NotificationHandler.saveNotification(tenantID,
-          notificationSource.channel, notificationID, Constants.SOURCE_REQUEST_PASSWORD, user);
-        // Send
-        await notificationSource.notificationTask.sendRequestPassword(sourceData, locale, tenantID);
-      } catch (error) {
-        Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_REQUEST_PASSWORD, error);
+      // Active?
+      if (notificationSource.enabled) {
+        try {
+          // Save notif
+          await NotificationHandler.saveNotification(tenantID,
+            notificationSource.channel, notificationID, Constants.SOURCE_REQUEST_PASSWORD, user);
+          // Send
+          await notificationSource.notificationTask.sendRequestPassword(sourceData, locale, tenantID);
+        } catch (error) {
+          Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_REQUEST_PASSWORD, error);
+        }
       }
     }
   }
@@ -203,18 +227,21 @@ export default class NotificationHandler {
     sourceData: UserAccountStatusChangedNotification, locale: string): Promise<void> {
     // For each Sources
     for (const notificationSource of NotificationHandler.notificationSources) {
-      try {
-        // Enabled?
-        if (user.notificationsActive && user.notifications.sendUserAccountStatusChanged) {
-          // Save
-          await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID,
-            Constants.SOURCE_USER_ACCOUNT_STATUS_CHANGED, user);
-          // Send
-          await notificationSource.notificationTask.sendUserAccountStatusChanged(sourceData, locale, tenantID);
+      // Active?
+      if (notificationSource.enabled) {
+        try {
+          // Enabled?
+          if (user.notificationsActive && user.notifications.sendUserAccountStatusChanged) {
+            // Save
+            await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID,
+              Constants.SOURCE_USER_ACCOUNT_STATUS_CHANGED, user);
+            // Send
+            await notificationSource.notificationTask.sendUserAccountStatusChanged(sourceData, locale, tenantID);
+          }
+        } catch (error) {
+          // Log error
+          Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_USER_ACCOUNT_STATUS_CHANGED, error);
         }
-      } catch (error) {
-        // Log error
-        Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_USER_ACCOUNT_STATUS_CHANGED, error);
       }
     }
   }
@@ -223,14 +250,17 @@ export default class NotificationHandler {
     sourceData: NewRegisteredUserNotification, locale: string): Promise<void> {
     // For each Sources
     for (const notificationSource of NotificationHandler.notificationSources) {
-      try {
-        // Save
-        await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID,
-          Constants.SOURCE_NEW_REGISTERED_USER, user);
-        // Send
-        await notificationSource.notificationTask.sendNewRegisteredUser(sourceData, locale, tenantID);
-      } catch (error) {
-        Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_NEW_REGISTERED_USER, error);
+      // Active?
+      if (notificationSource.enabled) {
+        try {
+          // Save
+          await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID,
+            Constants.SOURCE_NEW_REGISTERED_USER, user);
+          // Send
+          await notificationSource.notificationTask.sendNewRegisteredUser(sourceData, locale, tenantID);
+        } catch (error) {
+          Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_NEW_REGISTERED_USER, error);
+        }
       }
     }
   }
@@ -239,14 +269,17 @@ export default class NotificationHandler {
     sourceData: VerificationEmailNotification, locale: string): Promise<void> {
     // For each Sources
     for (const notificationSource of NotificationHandler.notificationSources) {
-      try {
-        // Save
-        await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID,
-          Constants.SOURCE_VERIFICATION_EMAIL, user);
-        // Send
-        await notificationSource.notificationTask.sendVerificationEmail(sourceData, locale, tenantID);
-      } catch (error) {
-        Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_VERIFICATION_EMAIL, error);
+      // Active?
+      if (notificationSource.enabled) {
+        try {
+          // Save
+          await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID,
+            Constants.SOURCE_VERIFICATION_EMAIL, user);
+          // Send
+          await notificationSource.notificationTask.sendVerificationEmail(sourceData, locale, tenantID);
+        } catch (error) {
+          Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_VERIFICATION_EMAIL, error);
+        }
       }
     }
   }
@@ -258,14 +291,17 @@ export default class NotificationHandler {
     if (sourceData.adminUsers && sourceData.adminUsers.length > 0) {
       // For each Sources
       for (const notificationSource of NotificationHandler.notificationSources) {
-        try {
-          // Save
-          await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID,
-            Constants.SOURCE_CHARGING_STATION_STATUS_ERROR, null, chargingStation, data);
-          // Send
-          await notificationSource.notificationTask.sendChargingStationStatusError(sourceData, Constants.DEFAULT_LOCALE, tenantID);
-        } catch (error) {
-          Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_CHARGING_STATION_STATUS_ERROR, error);
+        // Active?
+        if (notificationSource.enabled) {
+          try {
+            // Save
+            await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID,
+              Constants.SOURCE_CHARGING_STATION_STATUS_ERROR, null, chargingStation, data);
+            // Send
+            await notificationSource.notificationTask.sendChargingStationStatusError(sourceData, Constants.DEFAULT_LOCALE, tenantID);
+          } catch (error) {
+            Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_CHARGING_STATION_STATUS_ERROR, error);
+          }
         }
       }
     }
@@ -278,14 +314,17 @@ export default class NotificationHandler {
     if (sourceData.adminUsers && sourceData.adminUsers.length > 0) {
       // For each Sources
       for (const notificationSource of NotificationHandler.notificationSources) {
-        try {
-          // Save
-          await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID,
-            Constants.SOURCE_CHARGING_STATION_REGISTERED, null, chargingStation);
-          // Send
-          await notificationSource.notificationTask.sendChargingStationRegistered(sourceData, Constants.DEFAULT_LOCALE, tenantID);
-        } catch (error) {
-          Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_CHARGING_STATION_REGISTERED, error);
+        // Active?
+        if (notificationSource.enabled) {
+          try {
+            // Save
+            await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID,
+              Constants.SOURCE_CHARGING_STATION_REGISTERED, null, chargingStation);
+            // Send
+            await notificationSource.notificationTask.sendChargingStationRegistered(sourceData, Constants.DEFAULT_LOCALE, tenantID);
+          } catch (error) {
+            Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_CHARGING_STATION_REGISTERED, error);
+          }
         }
       }
     }
@@ -298,15 +337,18 @@ export default class NotificationHandler {
     if (sourceData.adminUsers && sourceData.adminUsers.length > 0) {
       // For each Sources
       for (const notificationSource of NotificationHandler.notificationSources) {
-        try {
-          // Save
-          await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID,
-            Constants.SOURCE_UNKNOWN_USER_BADGED, null, chargingStation);
-          // Send
-          await notificationSource.notificationTask.sendUnknownUserBadged(sourceData, Constants.DEFAULT_LOCALE, tenantID);
-        } catch (error) {
-          // Log error
-          Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_UNKNOWN_USER_BADGED, error);
+        // Active?
+        if (notificationSource.enabled) {
+          try {
+            // Save
+            await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID,
+              Constants.SOURCE_UNKNOWN_USER_BADGED, null, chargingStation);
+            // Send
+            await notificationSource.notificationTask.sendUnknownUserBadged(sourceData, Constants.DEFAULT_LOCALE, tenantID);
+          } catch (error) {
+            // Log error
+            Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_UNKNOWN_USER_BADGED, error);
+          }
         }
       }
     }
@@ -316,25 +358,28 @@ export default class NotificationHandler {
     sourceData: TransactionStartedNotification, locale: string): Promise<void> {
     // For each Sources
     for (const notificationSource of NotificationHandler.notificationSources) {
-      try {
-        // Check notification
-        const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, notificationSource.channel, notificationID);
-        if (!hasBeenNotified) {
-          // Enabled?
-          if (user.notificationsActive && user.notifications.sendSessionStarted) {
-            // Save
-            await NotificationHandler.saveNotification(tenantID,
-              notificationSource.channel, notificationID, Constants.SOURCE_TRANSACTION_STARTED, user, chargingStation, {
-                'transactionId': sourceData.transactionId,
-                'connectorId': sourceData.connectorId
-              }
-            );
-            // Send
-            await notificationSource.notificationTask.sendSessionStarted(sourceData, locale, tenantID);
+      // Active?
+      if (notificationSource.enabled) {
+        try {
+          // Check notification
+          const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, notificationSource.channel, notificationID);
+          if (!hasBeenNotified) {
+            // Enabled?
+            if (user.notificationsActive && user.notifications.sendSessionStarted) {
+              // Save
+              await NotificationHandler.saveNotification(tenantID,
+                notificationSource.channel, notificationID, Constants.SOURCE_TRANSACTION_STARTED, user, chargingStation, {
+                  'transactionId': sourceData.transactionId,
+                  'connectorId': sourceData.connectorId
+                }
+              );
+              // Send
+              await notificationSource.notificationTask.sendSessionStarted(sourceData, locale, tenantID);
+            }
           }
+        } catch (error) {
+          Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_TRANSACTION_STARTED, error);
         }
-      } catch (error) {
-        Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_TRANSACTION_STARTED, error);
       }
     }
   }
@@ -345,53 +390,58 @@ export default class NotificationHandler {
     if (sourceData.adminUsers && sourceData.adminUsers.length > 0) {
       // For each Sources
       for (const notificationSource of NotificationHandler.notificationSources) {
-        try {
-          // Compute the id as day and hour so that just one of this email is sent per hour
-          const notificationID: string = Math.floor(Date.now() / 3600000) + '';
-          // Check notification
-          const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, notificationSource.channel, notificationID);
-          if (!hasBeenNotified) {
-            // Email enabled?
-            if (NotificationHandler.notificationConfig.Email.enabled) {
-              // Save
-              await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_AUTH_EMAIL_ERROR);
-              // Send
-              await notificationSource.notificationTask.sendSmtpAuthError(sourceData, locale, tenantID);
+        // Active?
+        if (notificationSource.enabled) {
+          try {
+            // Compute the id as day and hour so that just one of this email is sent per hour
+            const notificationID: string = Math.floor(Date.now() / 3600000) + '';
+            // Check notification
+            const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, notificationSource.channel, notificationID);
+            if (!hasBeenNotified) {
+              // Email enabled?
+              if (NotificationHandler.notificationConfig.Email.enabled) {
+                // Save
+                await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_AUTH_EMAIL_ERROR);
+                // Send
+                await notificationSource.notificationTask.sendSmtpAuthError(sourceData, locale, tenantID);
+              }
             }
+          } catch (error) {
+            Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_AUTH_EMAIL_ERROR, error);
           }
-        } catch (error) {
-          Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_AUTH_EMAIL_ERROR, error);
         }
       }
     }
   }
 
-  static async sendOCPIPatchChargingStationsStatusesError(tenantID: string, sourceData: OCPIPatchChargingStationsStatusesErrorNotification): Promise<void> {
+  static async sendOCPIPatchChargingStationsStatusesError(tenantID: string, locale: string, sourceData: OCPIPatchChargingStationsStatusesErrorNotification): Promise<void> {
     // Enrich with admins
     sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID, 'sendOcpiPatchStatusError');
     if (sourceData.adminUsers && sourceData.adminUsers.length > 0) {
       // For each Sources
       for (const notificationSource of NotificationHandler.notificationSources) {
-        try {
-          // Compute the id as day and hour so that just one of this email is sent per hour
-          const notificationID: string = Math.floor(Date.now() / 3600000) + '';
-          // Check notification
-          const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, notificationSource.channel, notificationID);
-          // Notified?
-          if (!hasBeenNotified) {
-            // Enabled?
-            if (NotificationHandler.notificationConfig.Email.enabled) {
-              // Save
-              await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_PATCH_EVSE_STATUS_ERROR, null, null, {
-                locationID: sourceData.locationID,
-                chargeBoxID: sourceData.chargeBoxID
-              });
-              // Send
-              await notificationSource.notificationTask.sendOCPIPatchChargingStationsStatusesError(sourceData, tenantID);
+        // Active?
+        if (notificationSource.enabled) {
+          try {
+            // Compute the id as day and hour so that just one of this email is sent per hour
+            const notificationID: string = Math.floor(Date.now() / 3600000) + '';
+            // Check notification
+            const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, notificationSource.channel, notificationID);
+            // Notified?
+            if (!hasBeenNotified) {
+              // Enabled?
+              if (NotificationHandler.notificationConfig.Email.enabled) {
+                // Save
+                await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_PATCH_EVSE_STATUS_ERROR, null, null, {
+                  locationID: sourceData.locationID
+                });
+                // Send
+                await notificationSource.notificationTask.sendOCPIPatchChargingStationsStatusesError(sourceData, locale, tenantID);
+              }
             }
+          } catch (error) {
+            Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_PATCH_EVSE_STATUS_ERROR, error);
           }
-        } catch (error) {
-          Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_PATCH_EVSE_STATUS_ERROR, error);
         }
       }
     }
