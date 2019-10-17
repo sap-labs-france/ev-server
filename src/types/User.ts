@@ -18,6 +18,7 @@ export default interface User extends CreatedUpdatedProps {
   image?: string;
   notificationsActive?: boolean;
   notifications?: UserNotifications;
+  lastLogin: Date;
   iNumber?: string;
   costCenter?: string;
   deleted: boolean;

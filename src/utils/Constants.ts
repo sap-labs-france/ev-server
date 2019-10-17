@@ -322,6 +322,7 @@ export default class Constants {
     'mobile': 0,
     'notificationsActive': 0,
     'notifications': 0,
+    'lastLogin': 0,
     'iNumber': 0,
     'costCenter': 0,
     'status': 0,

@@ -258,6 +258,9 @@ export default class Database {
     if (src.hasOwnProperty('notifications')) {
       dest.notifications = src.notifications;
     }
+    if (src.hasOwnProperty('lastLogin')) {
+      dest.lastLogin = src.lastLogin;
+    }
     if (src.hasOwnProperty('iNumber')) {
       dest.iNumber = src.iNumber;
     }

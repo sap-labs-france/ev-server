@@ -76,6 +76,8 @@ export default {
       'phone' : { 'type': 'Edm.String' },
       'mobile' : { 'type': 'Edm.String' },
       'notificationsActive' : { 'type': 'Edm.Boolean' },
+      'notifications' : { 'type': 'eMobility.Notifications' },
+      'lastLogin' : { 'type': 'Edm.Date' },
       'iNumber' : { 'type': 'Edm.String' },
       'costCenter' : { 'type': 'Edm.String' },
       'status' : { 'type': 'Edm.String' },

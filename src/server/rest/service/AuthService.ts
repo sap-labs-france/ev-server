@@ -888,7 +888,9 @@ export default class AuthService {
     // Reset wrong number of trial
     await UserStorage.saveUserPassword(tenantID, user.id,
       { passwordWrongNbrTrials: 0, passwordBlockedUntil: null, passwordResetHash: null });
-    // Yes: build payload
+    // Set the last login date as of today
+    await UserStorage.saveUserLastLogin(tenantID, user.id, { lastLogin: new Date() });  
+      // Yes: build payload
     const payload: UserToken = await Authorizations.buildUserToken(tenantID, user);
     // Build token
     let token;

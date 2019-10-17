@@ -11,8 +11,6 @@ const _notificationConfig = Configuration.getNotificationConfig();
 const _email = new EMailNotificationTask();
 
 const CHANNEL_EMAIL = 'email';
-const CHANNEL_SMTP_AUTH = 'smtpauth';
-const CHANNEL_PATCH_EVSE_STATUS = 'evsestatus';
 const SOURCE_CHARGING_STATION_STATUS_ERROR = 'NotifyChargingStationStatusError';
 const SOURCE_CHARGING_STATION_REGISTERED = 'NotifyChargingStationRegistered';
 const SOURCE_END_OF_CHARGE = 'NotifyEndOfCharge';
@@ -26,6 +24,7 @@ const SOURCE_TRANSACTION_STARTED = 'NotifyTransactionStarted';
 const SOURCE_VERIFICATION_EMAIL = 'NotifyVerificationEmail';
 const SOURCE_AUTH_EMAIL_ERROR = 'NotifyAuthentificationErrorEmailServer';
 const SOURCE_PATCH_EVSE_STATUS_ERROR = 'NotifyPatchEVSEStatusError';
+const SOURCE_USER_INACTIVITY_LIMIT = 'NotifyUserInactivityLimitReached';
 
 export default class NotificationHandler {
 
@@ -343,15 +342,15 @@ export default class NotificationHandler {
       // Enrich with admins
       data.users = await NotificationHandler.getAdminUsers(tenantID, "sendSmtpAuthError");
       // Compute the id as day and hour so that just one of this email is sent per hour
-      const sourceId = Math.floor(Date.now() / 3600000);
+      const sourceId = 'SmtpAuth' + Math.floor(Date.now() / 3600000).toString();
       // Check notification
-      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_SMTP_AUTH, sourceId);
+      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_EMAIL, sourceId);
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
         if (_notificationConfig.Email.enabled) {
           // Save notif
-          await NotificationHandler.saveNotification(tenantID, CHANNEL_SMTP_AUTH, sourceId, SOURCE_AUTH_EMAIL_ERROR, null, null, data);
+          await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId, SOURCE_AUTH_EMAIL_ERROR, null, null, data);
           // Send email
           const result = await _email.sendSmtpAuthError(data, locale, tenantID);
           // Return
@@ -369,15 +368,15 @@ export default class NotificationHandler {
       // Enrich with admins
       data.users = await NotificationHandler.getAdminUsers(tenantID, "sendOcpiPatchStatusError");
       // Compute the id as day and hour so that just one of this email is sent per hour
-      const sourceId = Math.floor(Date.now() / 3600000);
+      const sourceId = 'OCPIPatch' + Math.floor(Date.now() / 3600000).toString();
       // Check notification
-      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_PATCH_EVSE_STATUS, sourceId);
+      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_EMAIL, sourceId);
       // Notified?
       if (!hasBeenNotified) {
         // Email enabled?
         if (_notificationConfig.Email.enabled) {
           // Save notif
-          await NotificationHandler.saveNotification(tenantID, CHANNEL_PATCH_EVSE_STATUS, sourceId, SOURCE_PATCH_EVSE_STATUS_ERROR, null, null, data);
+          await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId, SOURCE_PATCH_EVSE_STATUS_ERROR, null, null, data);
           // Send email
           const result = await _email.sendOCPIPatchChargingStationsStatusesError(data, tenantID);
           // Return
@@ -387,6 +386,31 @@ export default class NotificationHandler {
     } catch (error) {
       // Log error
       Logging.logActionExceptionMessage(tenantID, SOURCE_PATCH_EVSE_STATUS_ERROR, error);
+    }
+  }
+
+  static async sendUserInactivityLimitReached(tenantID, user: User, data, locale) {
+    try {
+      // Compute the id so that just one of this email is sent at most per month per user
+      const sourceId = 'InactivityLimit' + user.name + new Date().getFullYear() + new Date().getMonth();
+      // Check notification
+      const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, CHANNEL_EMAIL, sourceId);
+      // Notified?
+      if (!hasBeenNotified) {
+        // Email enabled?
+        if (_notificationConfig.Email.enabled) {
+          // Save notif
+          await NotificationHandler.saveNotification(tenantID, CHANNEL_EMAIL, sourceId,
+            SOURCE_USER_INACTIVITY_LIMIT, user, data);
+          // Send email
+          const result = await _email.sendUserInactivityLimitReached(data, locale, tenantID);
+          // Return
+          return result;
+          }
+      }
+    } catch (error) {
+      // Log error
+      Logging.logActionExceptionMessage(tenantID, SOURCE_USER_INACTIVITY_LIMIT, error);
     }
   }
 }

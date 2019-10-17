@@ -3,6 +3,7 @@ import moment from 'moment';
 import AddSensitiveDataInSettingsTask from './tasks/AddSensitiveDataInSettingsTask';
 import AddTransactionRefundStatusTask from './tasks/AddTransactionRefundStatusTask';
 import AddNotificationsFlagsToUsersTask from './tasks/AddNotificationsFlagsToUsersTask';
+import AddLastLoginDateToUsersTask from './tasks/AddLastLoginDateToUsersTask';
 import Constants from '../utils/Constants';
 import RunLock from '../utils/Locking';
 import Logging from '../utils/Logging';
@@ -31,6 +32,7 @@ export default class MigrationHandler {
       currentMigrationTasks.push(new AddTransactionRefundStatusTask());
       currentMigrationTasks.push(new AddSensitiveDataInSettingsTask());
       currentMigrationTasks.push(new AddNotificationsFlagsToUsersTask());
+      currentMigrationTasks.push(new AddLastLoginDateToUsersTask());
 
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();

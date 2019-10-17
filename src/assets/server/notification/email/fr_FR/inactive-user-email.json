@@ -1,0 +1,33 @@
+{
+  "subject": "Compte inutilisé sur une longue période",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Compte inactif",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Bonjour,",
+      "",
+      "Votre compte n'a pas été utilisé depuis le <%- lastLogin %>. Afin de respecter les régulations européennes sur la protection générale des données, les comptes inactifs depuis au moins 6 mois doivent être désactivés. Veuillez vous rapprocher rapidement de vos administrateurs si vous souhaitez conserver votre compte actif.",
+      ""
+    ],
+    "afterActionLines": [
+      "Cordialement,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
+

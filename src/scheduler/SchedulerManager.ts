@@ -3,6 +3,7 @@ import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import LoggingDatabaseTableCleanupTask from './tasks/LoggingDatabaseTableCleanupTask';
+import NotifyUsersInactiveSinceTask from './tasks/NotifyUsersInactiveSinceTask';
 import OCPIPatchLocationsTask from './tasks/OCPIPatchLocationsTask';
 import SchedulerTask from './SchedulerTask';
 import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
@@ -37,6 +38,10 @@ export default class SchedulerManager {
         switch (task.name) {
           case 'LoggingDatabaseTableCleanupTask':
             schedulerTask = new LoggingDatabaseTableCleanupTask();
+            break;
+          case 'NotifyUsersInactiveSinceTask':
+            // The task runs once a month
+            schedulerTask = new NotifyUsersInactiveSinceTask();
             break;
           case 'OCPIPatchLocationsTask':
             schedulerTask = new OCPIPatchLocationsTask();

@@ -19,6 +19,8 @@ import Utils from '../../utils/Utils';
 import { DataResult, ImageResult } from '../../types/DataResult';
 import _ from 'lodash';
 import UserNotifications from '../../types/UserNotifications';
+import moment from 'moment';
+
 
 export default class UserStorage {
 
@@ -338,6 +340,19 @@ export default class UserStorage {
     Logging.traceEnd('UserStorage', 'saveUserStatus', uniqueTimerID);
   }
 
+  public static async saveUserLastLogin(tenantID: string, userID: string, params: { lastLogin: Date }): Promise<void> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserLastLogin');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Modify and return the modified document
+    await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
+      { '_id': Utils.convertToObjectID(userID) },
+      { $set: params });
+    // Debug
+    Logging.traceEnd('UserStorage', 'saveUserLastLogin', uniqueTimerID);
+  }
+
   public static async saveUserMobileToken(tenantID: string, userID: string, mobileToken: string, mobileOs: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserMobileToken');
@@ -484,7 +499,7 @@ export default class UserStorage {
       notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
       userID?: string; email?: string; passwordResetHash?: string; roles?: string[];
       statuses?: string[]; withImage?: boolean; billingCustomer?: string; notSynchronizedBillingData?: boolean;
-      notifications?: UserNotifications;
+      notifications?: any;
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
       // Debug
@@ -825,6 +840,61 @@ export default class UserStorage {
     };
   }
 
+  public static async getUsersInactiveSince(tenantID: string,
+    params: { statuses?: string[], noLoginSince: string } ): Promise<User[]> {
+    // Return the users with no login since the data provided
+    // Debug
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsersInactiveSince');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Create filters
+    const filters: any = {
+      '$and': [{
+        '$or': DatabaseUtils.getNotDeletedFilter()
+      }]
+    };
+    // Status
+    if (params.statuses && Array.isArray(params.statuses) && params.statuses.length > 0) {
+      filters.$and.push({
+        'status': { $in: params.statuses }
+      });
+    } else {
+      // By default set to active users only
+      filters.$and.push({
+        'status': 'A'
+      });
+    }
+    // Filter on date
+    if(params.noLoginSince && moment(params.noLoginSince).isValid()) {
+      filters.$and.push({
+        'lastLogin':  { $lte : new Date(params.noLoginSince) }
+      });
+    } else {
+      // By default set to six months ago
+      const sixMonthsAgo = moment().subtract(6, 'months').toDate().toISOString();
+      filters.$and.push({
+        'lastLogin':  { $lte : new Date(sixMonthsAgo) }
+      });
+    }
+    // Create Aggregation
+    const aggregation = [];
+    if (filters) {
+      aggregation.push({
+        $match: filters
+      });
+    }
+    // Change ID
+    DatabaseUtils.renameDatabaseID(aggregation);
+    // Read DB
+    const usersMDB = await global.database.getCollection<User>(tenantID, 'users')
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .toArray();
+    // Debug
+    Logging.traceEnd('UserStorage', 'getUsersInactiveSince', uniqueTimerID, { params });
+    // Ok
+    return usersMDB;
+  }
+
   public static async deleteUser(tenantID: string, id: string): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'deleteUser');
@@ -975,6 +1045,7 @@ export default class UserStorage {
         sendOcpiPatchStatusError: false,
         sendSmtpAuthError: false
       },
+      lastLogin: new Date(0),
       role: Constants.ROLE_BASIC,
       status: Constants.USER_STATUS_PENDING,
       tagIDs: []

@@ -1,0 +1,33 @@
+{
+  "subject": "Account inactivity limit",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "User account inactivity limit",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Dear User,",
+      "",
+      "You haven't logged in the e-Mobility application since <%- lastLogin %>. Please be aware that in order to comply with the general data protection regulation, accounts that have not been used during the last six months need to be desactivated. Please contact your e-Mobility administrators shortly if you would like to maintain your account activated.",
+      ""
+    ],
+    "afterActionLines": [
+      "Best Regards,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
+
