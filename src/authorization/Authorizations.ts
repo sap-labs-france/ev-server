@@ -15,6 +15,7 @@ import User from '../types/User';
 import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
 import Utils from '../utils/Utils';
+import UserNotifications from '../types/UserNotifications';
 
 export default class Authorizations {
 
@@ -692,13 +693,12 @@ export default class Authorizations {
         sendEndOfCharge: true,
         sendEndOfSession: true,
         sendUserAccountStatusChanged: true,
-        sendNewRegisteredUser: false,
         sendUnknownUserBadged: false,
         sendChargingStationStatusError: false,
         sendChargingStationRegistered: false,
         sendOcpiPatchStatusError: false,
         sendSmtpAuthError: false
-      };
+      } as UserNotifications;
       user.image = '';
       user.iNumber = '';
       user.costCenter = '';

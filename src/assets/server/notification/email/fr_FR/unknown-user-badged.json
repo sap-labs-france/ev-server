@@ -1,10 +1,10 @@
 {
-  "subject": "Utilisateur inconnu",
+  "subject": "Utilisateur Inconnu à Badgé",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Utilisateur Inconnu",
+      "title": "Utilisateur Inconnu à Badgé",
       "image": {
         "left": {
           "height": 60,
@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Cher Administrateur,",
       "",
-      "Un utilisateur inconnu vient juste de badger sur <b><%- chargeBoxID %></b> avec le badge ID <b><%- badgeId %></b>."
+      "Un utilisateur inconnu vient juste de badger sur <b><%- chargeBoxID %></b> avec le badge ID <b>'<%- badgeId %>'</b>."
     ],
     "action": {
       "title": "Editer Utilisateur",

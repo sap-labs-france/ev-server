@@ -2,12 +2,29 @@ import cfenv from 'cfenv';
 import fs from 'fs';
 import os from 'os';
 import ClusterConfiguration from '../types/configuration/ClusterConfiguration';
-import Config from '../types/configuration/Config';
+import { Configuration as ConfigurationType } from '../types/configuration/Configuration';
 import Constants from './Constants';
 import global from './../types/GlobalType';
 import ODataServiceConfiguration from '../types/configuration/ODataServiceConfiguration';
 import StorageConfiguration from '../types/configuration/StorageConfiguration';
 import WSClientConfiguration from '../types/configuration/WSClientConfiguration';
+import CryptoConfiguration from '../types/configuration/CryptoConfiguration';
+import SchedulerConfiguration from '../types/configuration/SchedulerConfiguration';
+import CentralSystemServerConfiguration from '../types/configuration/CentralSystemServer';
+import CentralSystemConfiguration from '../types/configuration/CentralSystemConfiguration';
+import NotificationConfiguration from '../types/configuration/NotificationConfiguration';
+import AuthorizationConfiguration from '../types/configuration/AuthorizationConfiguration';
+import CentralSystemRestServiceConfiguration from '../types/configuration/CentralSystemRestServiceConfiguration';
+import OCPIServiceConfiguration from '../types/configuration/OCPIServiceConfiguration';
+import WSDLEndpointConfiguration from '../types/configuration/WSDLEndpointConfiguration';
+import JsonEndpointConfiguration from '../types/configuration/JsonEndpointConfiguration';
+import CentralSystemFrontEndConfiguration from '../types/configuration/CentralSystemFrontEndConfiguration';
+import EmailConfiguration from '../types/configuration/EmailConfiguration';
+import AdvancedConfiguration from '../types/configuration/AdvancedConfiguration';
+import LocalesConfiguration from '../types/configuration/LocalesConfiguration';
+import ChargingStationConfiguration from '../types/configuration/ChargingStationConfiguration';
+import LoggingConfiguration from '../types/configuration/LoggingConfiguration';
+import FirebaseConfiguration from '../types/configuration/FirebaseConfiguration';
 
 const {
   WS_DEFAULT_RECONNECT_MAX_RETRIES = Constants.WS_DEFAULT_RECONNECT_MAX_RETRIES,
@@ -18,7 +35,7 @@ let config = null;
 
 export default class Configuration {
   // Read the config file
-  static getConfig(): Config {
+  static getConfig(): ConfigurationType {
     if (!config) {
       config = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/config.json`, 'utf8'));
     }
@@ -26,15 +43,21 @@ export default class Configuration {
   }
 
   // Crypto config
-  public static getCryptoConfig() {
+  public static getCryptoConfig(): CryptoConfiguration {
     // Read conf
     return Configuration.getConfig().Crypto;
   }
 
   // Scheduler config
-  static getSchedulerConfig() {
+  static getSchedulerConfig(): SchedulerConfiguration {
     // Read conf
     return Configuration.getConfig().Scheduler;
+  }
+
+  // Firebase config
+  static getFirebaseConfig(): FirebaseConfiguration {
+    // Read conf
+    return Configuration.getConfig().Firebase;
   }
 
   // Cluster config
@@ -62,7 +85,7 @@ export default class Configuration {
   }
 
   // Central System config
-  static getCentralSystemsConfig() {
+  static getCentralSystemsConfig(): CentralSystemConfiguration[] {
     const centralSystems = Configuration.getConfig().CentralSystems;
     // Check Cloud Foundry
     if (centralSystems && Configuration.isCloudFoundry()) {
@@ -78,41 +101,41 @@ export default class Configuration {
   }
 
   // Notification config
-  static getNotificationConfig() {
+  static getNotificationConfig(): NotificationConfiguration {
     // Read conf
     return Configuration.getConfig().Notification;
   }
 
   // Authorization config
-  static getAuthorizationConfig() {
+  static getAuthorizationConfig(): AuthorizationConfiguration {
     // Read conf
     return Configuration.getConfig().Authorization;
   }
 
-  static isCloudFoundry() {
+  static isCloudFoundry(): boolean {
     return !_appEnv.isLocal;
   }
 
-  static getCFInstanceIndex() {
+  static getCFInstanceIndex(): string {
     if (Configuration.isCloudFoundry()) {
       return _appEnv.app.instance_index;
     }
   }
 
-  static getCFApplicationID() {
+  static getCFApplicationID(): string {
     if (Configuration.isCloudFoundry()) {
       return _appEnv.app.application_id;
     }
   }
 
-  static getCFApplicationIDAndInstanceIndex() {
+  static getCFApplicationIDAndInstanceIndex(): string {
     if (Configuration.isCloudFoundry()) {
       return Configuration.getCFApplicationID() + ':' + Configuration.getCFInstanceIndex();
     }
   }
 
   // Central System REST config
-  static getCentralSystemRestServiceConfig() {
+  static getCentralSystemRestServiceConfig(): CentralSystemRestServiceConfiguration {
     const centralSystemRestService = Configuration.getConfig().CentralSystemRestService;
     // Check Cloud Foundry
     if (centralSystemRestService && Configuration.isCloudFoundry()) {
@@ -125,7 +148,7 @@ export default class Configuration {
   }
 
   // OCPI Server Configuration
-  static getOCPIServiceConfig() {
+  static getOCPIServiceConfig(): OCPIServiceConfiguration {
     const ocpiService = Configuration.getConfig().OCPIService;
     // Check Cloud Foundry
     if (ocpiService && Configuration.isCloudFoundry()) {
@@ -151,40 +174,40 @@ export default class Configuration {
   }
 
   // RestService Configuration - internet view
-  static getCentralSystemRestServer() {
+  static getCentralSystemRestServer(): CentralSystemServerConfiguration {
     return Configuration.getConfig().CentralSystemServer;
   }
 
   // Central System REST config
-  static getWSDLEndpointConfig() {
+  static getWSDLEndpointConfig(): WSDLEndpointConfiguration {
     return Configuration.getConfig().WSDLEndpoint;
   }
 
   // Central System Json config
-  static getJsonEndpointConfig() {
+  static getJsonEndpointConfig(): JsonEndpointConfiguration {
     return Configuration.getConfig().JsonEndpoint;
   }
 
   // Central System Front-End config
-  static getCentralSystemFrontEndConfig() {
+  static getCentralSystemFrontEndConfig(): CentralSystemFrontEndConfiguration {
     // Read conf
     return Configuration.getConfig().CentralSystemFrontEnd;
   }
 
   // Email config
-  static getEmailConfig() {
+  static getEmailConfig(): EmailConfiguration {
     // Read conf
     return Configuration.getConfig().Email;
   }
 
   // Advanced config
-  static getAdvancedConfig() {
+  static getAdvancedConfig(): AdvancedConfiguration {
     // Read conf
     return Configuration.getConfig().Advanced;
   }
 
   // Locale config
-  static getLocalesConfig() {
+  static getLocalesConfig(): LocalesConfiguration {
     // Read conf
     return Configuration.getConfig().Locales;
   }
@@ -223,25 +246,19 @@ export default class Configuration {
   }
 
   // Central System config
-  static getChargingStationConfig() {
+  static getChargingStationConfig(): ChargingStationConfiguration {
     // Read conf
     return Configuration.getConfig().ChargingStation;
   }
 
   // Logging
-  static getLoggingConfig() {
+  static getLoggingConfig(): LoggingConfiguration {
     // Read conf
     return Configuration.getConfig().Logging;
   }
 
-  // Testing
-  static getTestConfig() {
-    // Read conf
-    return Configuration.getConfig().Test;
-  }
-
   // WSClient
-  static getWSClientConfig() {
+  static getWSClientConfig(): WSClientConfiguration {
     // Read conf and set defaults values
     if (!Configuration.getConfig().WSClient) {
       Configuration.getConfig().WSClient = {} as WSClientConfiguration;

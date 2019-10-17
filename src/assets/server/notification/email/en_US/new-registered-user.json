@@ -1,5 +1,5 @@
 {
-  "subject": "Account created",
+  "subject": "Account Created with Success",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {

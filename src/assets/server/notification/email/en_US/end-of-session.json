@@ -1,5 +1,5 @@
 {
-  "subject": "Session finished",
+  "subject": "Session Finished",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Hi <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Your session on the charging station <b><%- chargeBoxID %>, connector <%- connectorId %></b> has just finished."
+      "Your session on the charging station <b>'<%- chargeBoxID %>'</b>, connector <b>'<%- connectorId %>'</b> has just finished."
     ],
     "stats": [
       { "label": "Consumption", "value": "<%- totalConsumption %> kW.h" },

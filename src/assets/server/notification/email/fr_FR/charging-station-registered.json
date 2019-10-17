@@ -1,10 +1,10 @@
 {
-  "subject": "<%- chargeBoxID %> s'est enregistrée",
+  "subject": "<%- chargeBoxID %> vient de se Connecter",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Borne Enregistrée",
+      "title": "Borne Connectée",
       "image": {
         "left": {
           "height": 60,
@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Cher Administrateur,",
       "",
-      "<b><%- chargeBoxID %></b> vient de s'enregistrer sur le serveur central."
+      "La borne <b><%- chargeBoxID %></b> vient de se connecter au le serveur central."
     ],
     "action": {
       "title": "Voir <%- chargeBoxID %>",

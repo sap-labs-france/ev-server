@@ -1,5 +1,5 @@
 {
-  "subject": "Charge optimale atteinte",
+  "subject": "Charge Optimale Atteinte",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Votre véhicule électrique, qui est connecté sur <b><%- chargeBoxID %> - <%- connectorId %></b>, a atteint sa charge optimale."
+      "Votre véhicule électrique, qui est connecté sur <b>'<%- chargeBoxID %>'</b>, connector <b>'<%- connectorId %>'</b>, a atteint sa charge optimale."
     ],
     "stats": [
       { "label": "Niveau Batterie", "value": "<%- stateOfCharge %> %" }

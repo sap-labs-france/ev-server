@@ -224,6 +224,15 @@ export default class Utils {
   //   });
   // }
 
+  static getLocaleWith2Digits(localeWith4Digits: string) {
+    let locale = Constants.DEFAULT_LANGUAGE;
+    // Set the User's locale
+    if (localeWith4Digits && localeWith4Digits.length > 2) {
+      locale = localeWith4Digits.substring(0, 2);
+    }
+    return locale;
+  }
+
   static async normalizeAndCheckSOAPParams(headers, req) {
     // Normalize
     Utils._normalizeOneSOAPParam(headers, 'chargeBoxIdentity');

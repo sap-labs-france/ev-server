@@ -1,10 +1,10 @@
 {
-  "subject": "Primary email server authentification failed",
+  "subject": "Primary Email Server Authentification Failed",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Email Server Authentification Failed",
+      "title": "Email Server Authentification Error",
       "image": {
         "left": {
           "height": 60,

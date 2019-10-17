@@ -58,7 +58,7 @@ export default class AuthService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with email '${filteredRequest.email}' tried to log in with an unknown tenant '${filteredRequest.tenant}'!`,
+        message: `User with Email '${filteredRequest.email}' tried to log in with an unknown tenant '${filteredRequest.tenant}'!`,
         module: 'AuthService',
         method: 'handleLogIn',
         action: action
@@ -98,7 +98,7 @@ export default class AuthService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `The user with email '${filteredRequest.email}' does not exist for tenant '${(filteredRequest.tenant ? filteredRequest.tenant : tenantID)}'`,
+        message: `User with Email '${filteredRequest.email}' does not exist for tenant '${(filteredRequest.tenant ? filteredRequest.tenant : tenantID)}'`,
         module: 'AuthService',
         method: 'handleLogIn'
       });
@@ -107,7 +107,7 @@ export default class AuthService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `The user with email '${filteredRequest.email}' is logically deleted`,
+        message: `User with Email '${filteredRequest.email}' is logically deleted`,
         module: 'AuthService',
         method: 'handleLogIn'
       });
@@ -298,6 +298,7 @@ export default class AuthService {
         Utils.generateGUID(),
         newUser,
         {
+          'tenant': filteredRequest.name,
           'user': newUser,
           'evseDashboardURL': Utils.buildEvseURL(filteredRequest.tenant),
           'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
@@ -349,7 +350,7 @@ export default class AuthService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with email '${filteredRequest.email}' does not exist`,
+        message: `User with Email '${filteredRequest.email}' does not exist`,
         module: 'AuthService',
         method: 'handleUserPasswordReset'
       });
@@ -359,7 +360,7 @@ export default class AuthService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `User with email '${filteredRequest.email}' is logically deleted`,
+        message: `User with Email '${filteredRequest.email}' is logically deleted`,
         module: 'AuthService',
         method: 'handleUserPasswordReset'
       });
@@ -605,7 +606,7 @@ export default class AuthService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `The user with email '${filteredRequest.Email}' does not exist`,
+        message: `The user with Email '${filteredRequest.Email}' does not exist`,
         module: 'AuthService',
         method: 'handleVerifyEmail',
         action: action
@@ -616,7 +617,7 @@ export default class AuthService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `The user with email '${filteredRequest.Email}' is logically deleted`,
+        message: `The user with Email '${filteredRequest.Email}' is logically deleted`,
         module: 'AuthService',
         method: 'handleVerifyEmail',
         user: user
@@ -747,7 +748,7 @@ export default class AuthService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `The user with email '${filteredRequest.email}' does not exist`,
+        message: `The user with Email '${filteredRequest.email}' does not exist`,
         module: 'AuthService',
         method: 'handleResendVerificationEmail',
         action: action
@@ -758,7 +759,7 @@ export default class AuthService {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
-        message: `The user with email '${filteredRequest.email}' is logically deleted`,
+        message: `The user with Email '${filteredRequest.email}' is logically deleted`,
         module: 'AuthService',
         method: 'handleResendVerificationEmail',
         action: action

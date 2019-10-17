@@ -1,5 +1,5 @@
 {
-  "subject": "Account <%- (user.status === 'A' ? 'activated' : 'suspended'); %>",
+  "subject": "Account <%- (user.status === 'A' ? 'Activated' : 'Suspended'); %>",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {

@@ -1,0 +1,45 @@
+import ClusterConfiguration from './ClusterConfiguration';
+import ODataServiceConfiguration from './ODataServiceConfiguration';
+import StorageConfiguration from './StorageConfiguration';
+import WSClientConfiguration from './WSClientConfiguration';
+import NotificationConfiguration from './NotificationConfiguration';
+import ChargingStationConfiguration from './ChargingStationConfiguration';
+import LocalesConfiguration from './LocalesConfiguration';
+import EmailConfiguration from './EmailConfiguration';
+import CryptoConfiguration from './CryptoConfiguration';
+import CentralSystemServerConfiguration from './CentralSystemServer';
+import CentralSystemConfiguration from './CentralSystemConfiguration';
+import CentralSystemRestServiceConfiguration from './CentralSystemRestServiceConfiguration';
+import CentralSystemFrontEndConfiguration from './CentralSystemFrontEndConfiguration';
+import WSDLEndpointConfiguration from './WSDLEndpointConfiguration';
+import JsonEndpointConfiguration from './JsonEndpointConfiguration';
+import OCPIServiceConfiguration from './OCPIServiceConfiguration';
+import AuthorizationConfiguration from './AuthorizationConfiguration';
+import AdvancedConfiguration from './AdvancedConfiguration';
+import SchedulerConfiguration from './SchedulerConfiguration';
+import LoggingConfiguration from './LoggingConfiguration';
+import FirebaseConfiguration from './FirebaseConfiguration';
+
+export interface Configuration {
+  Crypto: CryptoConfiguration;
+  Cluster: ClusterConfiguration;
+  CentralSystemServer: CentralSystemServerConfiguration;
+  CentralSystems: CentralSystemConfiguration[];
+  CentralSystemRestService: CentralSystemRestServiceConfiguration;
+  CentralSystemFrontEnd: CentralSystemFrontEndConfiguration;
+  WSDLEndpoint: WSDLEndpointConfiguration;
+  JsonEndpoint: JsonEndpointConfiguration;
+  WSClient: WSClientConfiguration;
+  OCPIService: OCPIServiceConfiguration;
+  ODataService: ODataServiceConfiguration;
+  Firebase: FirebaseConfiguration;
+  Email: EmailConfiguration;
+  Storage: StorageConfiguration;
+  Notification: NotificationConfiguration;
+  Authorization: AuthorizationConfiguration;
+  ChargingStation: ChargingStationConfiguration;
+  Locales: LocalesConfiguration;
+  Advanced: AdvancedConfiguration;
+  Scheduler: SchedulerConfiguration;
+  Logging: LoggingConfiguration;
+}

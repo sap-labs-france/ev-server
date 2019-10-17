@@ -353,7 +353,8 @@ export default class UserStorage {
     Logging.traceEnd('UserStorage', 'saveUserLastLogin', uniqueTimerID);
   }
 
-  public static async saveUserMobileToken(tenantID: string, userID: string, mobileToken: string, mobileOs: string): Promise<void> {
+  public static async saveUserMobileToken(tenantID: string, userID: string,
+    mobileToken: string, mobileOs: string, mobileLastChanged: Date): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserMobileToken');
     // Check Tenant
@@ -361,7 +362,7 @@ export default class UserStorage {
     // Modify and return the modified document
     await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(userID) },
-      { $set: { mobileToken, mobileOs } });
+      { $set: { mobileToken, mobileOs, mobileLastChanged } });
     // Debug
     Logging.traceEnd('UserStorage', 'saveUserMobileToken', uniqueTimerID);
   }
@@ -1038,14 +1039,13 @@ export default class UserStorage {
         sendEndOfCharge: true,
         sendEndOfSession: true,
         sendUserAccountStatusChanged: true,
-        sendNewRegisteredUser: false,
         sendUnknownUserBadged: false,
         sendChargingStationStatusError: false,
         sendChargingStationRegistered: false,
         sendOcpiPatchStatusError: false,
         sendSmtpAuthError: false
-      },
-      lastLogin: new Date(0),
+      } as UserNotifications,
+      lastLogin: new Date(),
       role: Constants.ROLE_BASIC,
       status: Constants.USER_STATUS_PENDING,
       tagIDs: []
