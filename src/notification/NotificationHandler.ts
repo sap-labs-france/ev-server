@@ -414,7 +414,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendOCPIPatchChargingStationsStatusesError(tenantID: string, sourceData: OCPIPatchChargingStationsStatusesErrorNotification): Promise<void> {
+  static async sendOCPIPatchChargingStationsStatusesError(tenantID: string, locale: string, sourceData: OCPIPatchChargingStationsStatusesErrorNotification): Promise<void> {
     // Enrich with admins
     sourceData.adminUsers = await NotificationHandler.getAdminUsers(tenantID, "sendOcpiPatchStatusError");
     if (sourceData.adminUsers && sourceData.adminUsers.length > 0) {
@@ -433,11 +433,10 @@ export default class NotificationHandler {
               if (NotificationHandler.notificationConfig.Email.enabled) {
                 // Save
                 await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_PATCH_EVSE_STATUS_ERROR, null, null, {
-                  locationID: sourceData.locationID,
-                  chargeBoxID: sourceData.chargeBoxID
+                  locationID: sourceData.locationID
                 });
                 // Send
-                await notificationSource.notificationTask.sendOCPIPatchChargingStationsStatusesError(sourceData, tenantID);
+                await notificationSource.notificationTask.sendOCPIPatchChargingStationsStatusesError(sourceData, locale, tenantID);
               }
             }
           } catch (error) {

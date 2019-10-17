@@ -4,7 +4,7 @@
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Email Server Authentification Failed",
+      "title": "Email Server Authentification Error",
       "image": {
         "left": {
           "height": 60,

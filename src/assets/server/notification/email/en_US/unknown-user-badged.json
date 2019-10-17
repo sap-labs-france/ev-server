@@ -1,10 +1,10 @@
 {
-  "subject": "Unknown User",
+  "subject": "Unknown User Badged",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Unknown User",
+      "title": "Unknown User Badged",
       "image": {
         "left": {
           "height": 60,

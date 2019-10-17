@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Cher Administrateur,",
       "",
-      "La borne <b><%- chargeBoxID %></b> vient juste de se connecter sur le serveur central."
+      "La borne <b><%- chargeBoxID %></b> vient de se connecter au le serveur central."
     ],
     "action": {
       "title": "Voir <%- chargeBoxID %>",

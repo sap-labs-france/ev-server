@@ -1,8 +1,46 @@
 {
 	"notifications": {
-		"sendSessionStarted": {
+		"sessionStarted": {
 			"title": "Session Started",
 			"body": "You session on the charging station '{{chargeBoxID}}', connector '{{connectorId}}' has been started successfully"
-		}
+		},
+		"ocpiPatchChargingStationsStatusesError": {
+			"title": "Patch of Charging Station Statuses Failed",
+			"body": "The transfer of the Charging Station's statuses has failed on location {{locationID}}, check the logs"
+		},
+		"smtpAuthError": {
+			"title": "Email Server Authentification Error",
+			"body": "The authentication to the primary email server has failed, check the configuration"
+		},
+		"optimalChargeReached": {
+			"title": "Optimal Charge Reached",
+			"body": "Your electric vehicle, which is connected to '{{chargeBoxID}}', connector '{{connectorId}}', reached its optimal charge"
+		},
+		"endOfCharge": {
+			"title": "Charge Finished",
+			"body": "Your electric vehicle, which is connected to the charging station '{{chargeBoxID}}', connector '{{connectorId}}', has just finished charging"
+		},
+		"endOfSession": {
+			"title": "Session Finished",
+			"body": "Your session on the charging station '{{chargeBoxID}}', connector '{{connectorId}}' has just finished"
+		},
+		"chargingStationStatusError": {
+			"title": "{{chargeBoxID}} - Connector {{connectorId}} - {{error}}",
+			"body": "Error occurred on '{{chargeBoxID}}', connector '{{connectorId}}': {{error}}"
+		},
+		"unknownUserBadged": {
+			"title": "Unknown User Badged",
+			"body": "An unknown user has just badged on '{{chargeBoxID}}' with the badge ID '{{badgeId}}'"
+		},
+		"chargingStationRegistered": {
+			"title": "{{chargeBoxID}} just Connected",
+			"body": "The charging station {{chargeBoxID}} just got connected to the central server"
+		},
+		"userAccountStatusChanged": {
+			"title": "Compte {{status}}",
+			"activated": "Activated",
+			"suspended": "Suspended",
+			"body": "Votre compte a été {{status}} par un administrateur."
+		},
 	}
 }

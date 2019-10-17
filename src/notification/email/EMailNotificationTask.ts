@@ -92,8 +92,8 @@ export default class EMailNotificationTask implements NotificationTask {
     return this._prepareAndSendEmail('smtp-auth-error', data, locale, tenantID, true);
   }
 
-  sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification, tenantID: string): Promise<void> {
-    return this._prepareAndSendEmail('ocpi-patch-status-error', data, null, tenantID, true);
+  sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification, locale: string, tenantID: string): Promise<void> {
+    return this._prepareAndSendEmail('ocpi-patch-status-error', data, locale, tenantID, true);
   }
 
   async _prepareAndSendEmail(templateName: string, data: any, locale: string, tenantID: string, retry: boolean = false): Promise<void> {
