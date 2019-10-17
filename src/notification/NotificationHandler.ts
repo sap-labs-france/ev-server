@@ -15,11 +15,12 @@ export default class NotificationHandler {
     {
       channel: 'email',
       notificationTask: new EMailNotificationTask(),
-      enabled: NotificationHandler.notificationConfig.Email.enabled },
+      enabled: NotificationHandler.notificationConfig.Email ? NotificationHandler.notificationConfig.Email.enabled : false
+    },
     {
       channel: 'remote-push-notification',
       notificationTask: new RemotePushNotificationTask(),
-      enabled: NotificationHandler.notificationConfig.RemotePushNotification.enabled
+      enabled: NotificationHandler.notificationConfig.RemotePushNotification ? NotificationHandler.notificationConfig.RemotePushNotification.enabled : false
     }
   ]
 
