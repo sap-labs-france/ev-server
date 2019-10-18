@@ -30,7 +30,7 @@
 		},
 		"unknownUserBadged": {
 			"title": "Utilisateur Inconnu à Badgé",
-			"body": "Un utilisateur inconnu vient juste de badger sur '{{chargeBoxID}}' avec le badge ID '{{badgeId}}'"
+			"body": "Un utilisateur inconnu vient juste de badger sur '{{chargeBoxID}}' avec le badge ID '{{badgeID}}'"
 		},
 		"chargingStationRegistered": {
 			"title": "{{chargeBoxID}} vient de se Connecter",
