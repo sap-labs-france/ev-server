@@ -265,7 +265,7 @@ export default class Utils {
     }
     // Check in cache
     if (_tenants.includes(tenantID)) {
-      return Promise.resolve();
+      return Promise.resolve(null);
     }
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Valid Object ID?

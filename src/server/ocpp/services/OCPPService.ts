@@ -819,7 +819,7 @@ export default class OCPPService {
       if (transaction.numberOfMeterValues > 1 && transaction.currentTotalConsumption > 0) {
         // End of charge?
         if (_configChargingStation.notifEndOfChargeEnabled &&
-          (transaction.currentTotalInactivitySecs > 120 || transaction.currentStateOfCharge === 100)) {
+          (transaction.currentTotalInactivitySecs > 60 || transaction.currentStateOfCharge === 100)) {
           // Notify User?
           if (transaction.user) {
             // Send Notification

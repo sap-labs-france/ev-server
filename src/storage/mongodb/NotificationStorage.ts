@@ -4,15 +4,15 @@ import DatabaseUtils from './DatabaseUtils';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
 import Utils from '../../utils/Utils';
-import Notification from '../../types/UserNotifications';
+import { Notification } from '../../types/UserNotifications';
 import { DataResult } from '../../types/DataResult';
 import DbParams from '../../types/database/DbParams';
 
 export default class NotificationStorage {
 
   static async getNotifications(tenantID: string,
-                                params: { userID?: string; dateFrom?: Date; channel?: string; sourceId?: string },
-                                dbParams: DbParams): Promise<DataResult<Notification>> {
+      params: { userID?: string; dateFrom?: Date; channel?: string; sourceId?: string; sourceDescr?: string; data?: object },
+      dbParams: DbParams): Promise<DataResult<Notification>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('NotificationStorage', 'getNotifications');
     // Check Tenant
@@ -41,6 +41,16 @@ export default class NotificationStorage {
     // Set Channel?
     if (params.channel) {
       filters.channel = params.channel;
+    }
+    // Set Source?
+    if (params.sourceDescr) {
+      filters.sourceDescr = params.sourceDescr;
+    }
+    // Set Data
+    if (params.data) {
+      for (const key in params.data) {
+        filters[`data.${key}`] = params.data[key];
+      }
     }
     // Set SourceId?
     if (params.sourceId) {
@@ -95,12 +105,10 @@ export default class NotificationStorage {
     });
     // Sort
     if (dbParams.sort) {
-      // Sort
       aggregation.push({
         $sort: dbParams.sort
       });
     } else {
-      // Default
       aggregation.push({
         $sort: { timestamp: -1 }
       });

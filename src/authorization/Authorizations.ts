@@ -665,7 +665,7 @@ export default class Authorizations {
         chargingStation,
         {
           'chargeBoxID': chargingStation.id,
-          'badgeId': tagID,
+          'badgeID': tagID,
           'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain),
           'evseDashboardUserURL': await Utils.buildEvseUserURL(tenantID, user, '#inerror')
         }

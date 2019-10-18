@@ -6,7 +6,7 @@
     "stats": [
       { "label": "Ladepunkt", "value": "<%- chargeBoxID %>" },
       { "label": "Anschluss", "value": "<%- connectorId %>" },
-      { "label": "ID Tag", "value": "<%- badgeId %>" },
+      { "label": "ID Tag", "value": "<%- badgeID %>" },
       { "label": "Start-Zeit", "value": "<%- startDate %>" },
       { "label": "Ende-Zeit", "value": "<%- endDate %>" },
       { "label": "Start-Zählerstand", "value": "<%- meterStart %> kWh" },
