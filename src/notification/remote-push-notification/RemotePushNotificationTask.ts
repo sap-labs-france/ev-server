@@ -58,9 +58,9 @@ export default class RemotePushNotificationTask implements NotificationTask {
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });  
     // Send Notification
     return this.sendRemotePushNotificationToUsers(tenantID, title, body, [data.user], {
-      transactionId: data.transactionId,
+      transactionId: data.transactionId + '',
       chargeBoxID: data.chargeBoxID,
-      connectorId: data.connectorId
+      connectorId: data.connectorId + ''
     });
   }
 
@@ -74,9 +74,9 @@ export default class RemotePushNotificationTask implements NotificationTask {
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });  
     // Send Notification
     return this.sendRemotePushNotificationToUsers(tenantID, title, body, [data.user], {
-      transactionId: data.transactionId,
+      transactionId: data.transactionId + '',
       chargeBoxID: data.chargeBoxID,
-      connectorId: data.connectorId
+      connectorId: data.connectorId + ''
     });
   }
 
@@ -90,9 +90,9 @@ export default class RemotePushNotificationTask implements NotificationTask {
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });  
     // Send Notification
     return this.sendRemotePushNotificationToUsers(tenantID, title, body, [data.user], {
-      transactionId: data.transactionId,
+      transactionId: data.transactionId + '',
       chargeBoxID: data.chargeBoxID,
-      connectorId: data.connectorId
+      connectorId: data.connectorId + ''
     });
   }
 
@@ -112,7 +112,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Send Notification
     return this.sendRemotePushNotificationToUsers(tenantID, title, body, data.adminUsers, {
       chargeBoxID: data.chargeBoxID,
-      connectorId: data.connectorId
+      connectorId: data.connectorId + ''
     });
   }
 
@@ -164,9 +164,9 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const body = i18n.__('notifications.sessionStarted.body', { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
     // Send Notification
     return this.sendRemotePushNotificationToUsers(tenantID, title, body, [data.user], {
-        'transactionId': data.transactionId,
+        'transactionId': data.transactionId + '',
         'chargeBoxID': data.chargeBoxID,
-        'connectorId': data.connectorId
+        'connectorId': data.connectorId + ''
       }
     );
   }
