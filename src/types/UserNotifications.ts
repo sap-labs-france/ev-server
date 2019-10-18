@@ -157,7 +157,7 @@ export interface NotificationSource {
   enabled: boolean;
 }
 
-export default interface Notification {
+export interface Notification {
   userID: string;
   timestamp: Date;
   channel: string;

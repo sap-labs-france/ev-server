@@ -2,12 +2,14 @@ import NotificationStorage from '../storage/mongodb/NotificationStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
 import ChargingStation from '../types/ChargingStation';
 import User from '../types/User';
-import UserNotifications, { ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
+import UserNotifications, { Notification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import EMailNotificationTask from './email/EMailNotificationTask';
 import RemotePushNotificationTask from './remote-push-notification/RemotePushNotificationTask';
+import moment = require('moment');
+import { database } from 'firebase-admin';
 
 export default class NotificationHandler {
   private static notificationConfig = Configuration.getNotificationConfig();
@@ -71,17 +73,43 @@ export default class NotificationHandler {
     }
   }
 
-  static async hasNotifiedSource(tenantID: string, channel: string, notificationID: string): Promise<boolean> {
+  static async hasNotifiedSource(tenantID: string, channel: string, sourceDescr: string, notificationID: string, 
+    interval?: { intervalMins?: number, intervalKey?: object }): Promise<boolean> {
     try {
-      // Save it
-      const notifications = await NotificationStorage.getNotifications(tenantID,
-        {
-          channel: channel,
-          sourceId: notificationID
-        },
-        Constants.DB_PARAMS_COUNT_ONLY);
-      // Return
-      return notifications.count > 0;
+      // Check
+      if (interval && interval.intervalMins) {
+        // Save it
+        const notifications = await NotificationStorage.getNotifications(
+          tenantID,
+          {
+            channel,
+            sourceDescr,
+            data: interval.intervalKey
+          },
+          Constants.DB_PARAMS_MAX_LIMIT
+        );
+        // Check
+        if (notifications.count > 0) {
+          // Get the first one (ordered desc)
+          const notification: Notification = notifications.result[0];
+          const diffMinutes = moment.duration(moment().diff(moment(notification.timestamp))).asMinutes();
+          if (diffMinutes < interval.intervalMins) {
+            return true;
+          }
+        }
+        // Default
+        return false;
+      } else {
+        // Save it
+        const notifications = await NotificationStorage.getNotifications(tenantID,
+          {
+            channel: channel,
+            sourceId: notificationID
+          },
+          Constants.DB_PARAMS_COUNT_ONLY);
+        // Return
+        return notifications.count > 0;
+      }
     } catch (error) {
       // Log error
       Logging.logActionExceptionMessage(tenantID, 'HasNotification', error);
@@ -95,9 +123,25 @@ export default class NotificationHandler {
       // Active?
       if (notificationSource.enabled) {
         try {
+          // Override notification ID
+          const connector = chargingStation.connectors[sourceData.connectorId-1];
+          let intervalMins = 0;
+          if (connector.power <= 7360) {
+            // Notifify every 15 mins
+            intervalMins = 15;
+          } if (connector.power < 50000) {
+            // Notifify every 30 mins
+            intervalMins = 30;
+          } if (connector.power >= 50000) {
+            // Notifify every 60 mins
+            intervalMins = 60;
+          }
           // Check notification
-          const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, notificationSource.channel, notificationID);
+          const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, notificationSource.channel,
+            Constants.SOURCE_END_OF_CHARGE, notificationID, { intervalMins, intervalKey: { transactionId: sourceData.transactionId } });
           if (!hasBeenNotified) {
+            // Alter Notification ID
+            notificationID = `${notificationID}-${new Date().toISOString()}`;
             // Enabled?
             if (user.notificationsActive && user.notifications.sendEndOfCharge) {
               // Save
@@ -126,7 +170,8 @@ export default class NotificationHandler {
       if (notificationSource.enabled) {
         try {
           // Check notification
-          const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, notificationSource.channel, notificationID);
+          const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
+            tenantID, notificationSource.channel, Constants.SOURCE_OPTIMAL_CHARGE_REACHED, notificationID);
           if (!hasBeenNotified) {
             // Enabled?
             if (user.notificationsActive && user.notifications.sendOptimalChargeReached) {
@@ -155,7 +200,8 @@ export default class NotificationHandler {
       if (notificationSource.enabled) {
         try {
           // Check notification
-          const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, notificationSource.channel, notificationID);
+          const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
+            tenantID, notificationSource.channel, Constants.SOURCE_END_OF_SESSION, notificationID);
           if (!hasBeenNotified) {
             // Enabled?
             if (user.notificationsActive && user.notifications.sendEndOfSession) {
@@ -184,7 +230,8 @@ export default class NotificationHandler {
       if (notificationSource.enabled) {
         try {
           // Check notification
-          const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, notificationSource.channel, notificationID);
+          const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
+            tenantID, notificationSource.channel, Constants.SOURCE_END_OF_SESSION, notificationID);
           if (!hasBeenNotified) {
             // Enabled?
             if (user.notificationsActive && user.notifications.sendEndOfSession) {
@@ -363,7 +410,8 @@ export default class NotificationHandler {
       if (notificationSource.enabled) {
         try {
           // Check notification
-          const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, notificationSource.channel, notificationID);
+          const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
+            tenantID, notificationSource.channel, Constants.SOURCE_TRANSACTION_STARTED, notificationID);
           if (!hasBeenNotified) {
             // Enabled?
             if (user.notificationsActive && user.notifications.sendSessionStarted) {
@@ -395,9 +443,11 @@ export default class NotificationHandler {
         if (notificationSource.enabled) {
           try {
             // Compute the id as day and hour so that just one of this email is sent per hour
-            const notificationID: string = Math.floor(Date.now() / 3600000) + '';
+            const notificationID = new Date().toISOString();
             // Check notification
-            const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, notificationSource.channel, notificationID);
+            const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
+              tenantID, notificationSource.channel, Constants.SOURCE_AUTH_EMAIL_ERROR,
+              notificationID, { intervalMins: 60, intervalKey: null });
             if (!hasBeenNotified) {
               // Email enabled?
               if (NotificationHandler.notificationConfig.Email.enabled) {
@@ -425,9 +475,11 @@ export default class NotificationHandler {
         if (notificationSource.enabled) {
           try {
             // Compute the id as day and hour so that just one of this email is sent per hour
-            const notificationID: string = Math.floor(Date.now() / 3600000) + '';
+            const notificationID = new Date().toISOString();
             // Check notification
-            const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, notificationSource.channel, notificationID);
+            const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
+              tenantID, notificationSource.channel, Constants.SOURCE_PATCH_EVSE_STATUS_ERROR,
+              notificationID, { intervalMins: 60, intervalKey: null });
             // Notified?
             if (!hasBeenNotified) {
               // Enabled?
