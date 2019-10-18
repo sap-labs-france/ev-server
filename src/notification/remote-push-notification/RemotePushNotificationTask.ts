@@ -164,10 +164,10 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const body = i18n.__('notifications.sessionStarted.body', { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
     // Send Notification
     return this.sendRemotePushNotificationToUsers(tenantID, title, body, [data.user], {
-        'transactionId': data.transactionId + '',
-        'chargeBoxID': data.chargeBoxID,
-        'connectorId': data.connectorId + ''
-      }
+      'transactionId': data.transactionId + '',
+      'chargeBoxID': data.chargeBoxID,
+      'connectorId': data.connectorId + ''
+    }
     );
   }
 
