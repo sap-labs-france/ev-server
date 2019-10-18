@@ -128,7 +128,7 @@ export interface ChargingStationRegisteredNotification extends BaseNotification 
 
 export interface UnknownUserBadgedNotification extends BaseNotification {
   'chargeBoxID': string;
-  'badgeId': string;
+  'badgeID': string;
   'evseDashboardURL': string;
   'evseDashboardUserURL': string;
 }

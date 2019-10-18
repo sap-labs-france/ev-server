@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Dear Administrator,",
       "",
-      "An unknown user has just badged on <b><%- chargeBoxID %></b> with the badge ID <b>'<%- badgeId %>'</b>."
+      "An unknown user has just badged on <b><%- chargeBoxID %></b> with the badge ID <b>'<%- badgeID %>'</b>."
     ],
     "action": {
       "title": "Edit User",
