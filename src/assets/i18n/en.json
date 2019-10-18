@@ -5,11 +5,11 @@
 			"body": "You session on the charging station '{{chargeBoxID}}', connector '{{connectorId}}' has been started successfully"
 		},
 		"ocpiPatchChargingStationsStatusesError": {
-			"title": "Patch of Charging Station Statuses Failed",
-			"body": "The transfer of the Charging Station's statuses has failed on location {{locationID}}, check the logs"
+			"title": "OCPI - Patch Status Failed",
+			"body": "The transfer of the Charging Station's statuses has failed on location '{{location}}', check the logs"
 		},
 		"smtpAuthError": {
-			"title": "Email Server Authentification Error",
+			"title": "Email Server Auth Error",
 			"body": "The authentication to the primary email server has failed, check the configuration"
 		},
 		"optimalChargeReached": {
@@ -25,7 +25,7 @@
 			"body": "Your session on the charging station '{{chargeBoxID}}', connector '{{connectorId}}' has just finished"
 		},
 		"chargingStationStatusError": {
-			"title": "{{chargeBoxID}} - Connector {{connectorId}} - {{error}}",
+			"title": "{{chargeBoxID}} - {{connectorId}} - {{error}}",
 			"body": "Error occurred on '{{chargeBoxID}}', connector '{{connectorId}}': {{error}}"
 		},
 		"unknownUserBadged": {
@@ -34,13 +34,13 @@
 		},
 		"chargingStationRegistered": {
 			"title": "{{chargeBoxID}} just Connected",
-			"body": "The charging station {{chargeBoxID}} just got connected to the central server"
+			"body": "The charging station '{{chargeBoxID}}' just got connected to the central server"
 		},
 		"userAccountStatusChanged": {
-			"title": "Compte {{status}}",
-			"activated": "Activated",
-			"suspended": "Suspended",
-			"body": "Votre compte a été {{status}} par un administrateur."
-		},
+			"title": "Account {{status}}",
+			"activated": "activated",
+			"suspended": "suspended",
+			"body": "Your account has been {{status}} by an administrator"
+		}
 	}
 }

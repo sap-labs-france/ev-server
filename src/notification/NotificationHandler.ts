@@ -431,10 +431,10 @@ export default class NotificationHandler {
             // Notified?
             if (!hasBeenNotified) {
               // Enabled?
-              if (NotificationHandler.notificationConfig.Email.enabled) {
+              if (notificationSource.enabled) {
                 // Save
                 await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_PATCH_EVSE_STATUS_ERROR, null, null, {
-                  locationID: sourceData.locationID
+                  location: sourceData.location
                 });
                 // Send
                 await notificationSource.notificationTask.sendOCPIPatchChargingStationsStatusesError(sourceData, locale, tenantID);
