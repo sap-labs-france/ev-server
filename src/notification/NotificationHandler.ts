@@ -9,7 +9,6 @@ import Logging from '../utils/Logging';
 import EMailNotificationTask from './email/EMailNotificationTask';
 import RemotePushNotificationTask from './remote-push-notification/RemotePushNotificationTask';
 import moment = require('moment');
-import { database } from 'firebase-admin';
 
 export default class NotificationHandler {
   private static notificationConfig = Configuration.getNotificationConfig();
