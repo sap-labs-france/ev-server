@@ -38,17 +38,17 @@ export default class RemotePushNotificationTask implements NotificationTask {
     }
   }
 
-  sendNewRegisteredUser(data: NewRegisteredUserNotification, locale: string, tenantID: string): Promise<void> {
+  async sendNewRegisteredUser(data: NewRegisteredUserNotification, locale: string, tenantID: string): Promise<void> {
     // Nothing to send
-    return Promise.resolve();
+    return await Promise.resolve();
   }
 
-  sendRequestPassword(data: RequestPasswordNotification, locale: string, tenantID: string): Promise<void> {
+  async sendRequestPassword(data: RequestPasswordNotification, locale: string, tenantID: string): Promise<void> {
     // Nothing to send
-    return Promise.resolve();
+    return await Promise.resolve();
   }
 
-  sendOptimalChargeReached(data: OptimalChargeReachedNotification, locale: string, tenantID: string): Promise<void> {
+  async sendOptimalChargeReached(data: OptimalChargeReachedNotification, locale: string, tenantID: string): Promise<void> {
     // Set the locale
     i18n.setLocale(Utils.getLocaleWith2Digits(locale));
     // Get Message Text
@@ -57,14 +57,14 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const body = i18n.__('notifications.optimalChargeReached.body',
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
     // Send Notification
-    return this.sendRemotePushNotificationToUsers(tenantID, title, body, [data.user], {
+    return await this.sendRemotePushNotificationToUsers(tenantID, title, body, [data.user], {
       transactionId: data.transactionId + '',
       chargeBoxID: data.chargeBoxID,
       connectorId: data.connectorId + ''
     });
   }
 
-  sendEndOfCharge(data: EndOfChargeNotification, locale: string, tenantID: string): Promise<void> {
+  async sendEndOfCharge(data: EndOfChargeNotification, locale: string, tenantID: string): Promise<void> {
     // Set the locale
     i18n.setLocale(Utils.getLocaleWith2Digits(locale));
     // Get Message Text
@@ -73,14 +73,14 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const body = i18n.__('notifications.endOfCharge.body',
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
     // Send Notification
-    return this.sendRemotePushNotificationToUsers(tenantID, title, body, [data.user], {
+    return await this.sendRemotePushNotificationToUsers(tenantID, title, body, [data.user], {
       transactionId: data.transactionId + '',
       chargeBoxID: data.chargeBoxID,
       connectorId: data.connectorId + ''
     });
   }
 
-  sendEndOfSession(data: EndOfSessionNotification, locale: string, tenantID: string): Promise<void> {
+  async sendEndOfSession(data: EndOfSessionNotification, locale: string, tenantID: string): Promise<void> {
     // Set the locale
     i18n.setLocale(Utils.getLocaleWith2Digits(locale));
     // Get Message Text
@@ -89,19 +89,19 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const body = i18n.__('notifications.endOfSession.body',
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
     // Send Notification
-    return this.sendRemotePushNotificationToUsers(tenantID, title, body, [data.user], {
+    return await this.sendRemotePushNotificationToUsers(tenantID, title, body, [data.user], {
       transactionId: data.transactionId + '',
       chargeBoxID: data.chargeBoxID,
       connectorId: data.connectorId + ''
     });
   }
 
-  sendEndOfSignedSession(data: EndOfSignedSessionNotification, locale: string, tenantID: string): Promise<void> {
+  async sendEndOfSignedSession(data: EndOfSignedSessionNotification, locale: string, tenantID: string): Promise<void> {
     // Nothing to send
-    return Promise.resolve();
+    return await Promise.resolve();
   }
 
-  sendChargingStationStatusError(data: ChargingStationStatusErrorNotification, locale: string, tenantID: string): Promise<void> {
+  async sendChargingStationStatusError(data: ChargingStationStatusErrorNotification, locale: string, tenantID: string): Promise<void> {
     // Set the locale
     i18n.setLocale(Utils.getLocaleWith2Digits(locale));
     // Get Message Text
@@ -110,25 +110,25 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const body = i18n.__('notifications.chargingStationStatusError.body',
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId, error: data.error });
     // Send Notification
-    return this.sendRemotePushNotificationToUsers(tenantID, title, body, data.adminUsers, {
+    return await this.sendRemotePushNotificationToUsers(tenantID, title, body, data.adminUsers, {
       chargeBoxID: data.chargeBoxID,
       connectorId: data.connectorId + ''
     });
   }
 
-  sendChargingStationRegistered(data: ChargingStationRegisteredNotification, locale: string, tenantID: string): Promise<void> {
+  async sendChargingStationRegistered(data: ChargingStationRegisteredNotification, locale: string, tenantID: string): Promise<void> {
     // Set the locale
     i18n.setLocale(Utils.getLocaleWith2Digits(locale));
     // Get Message Text
     const title = i18n.__('notifications.chargingStationRegistered.title', { chargeBoxID: data.chargeBoxID });
     const body = i18n.__('notifications.chargingStationRegistered.body', { chargeBoxID: data.chargeBoxID });
     // Send Notification
-    return this.sendRemotePushNotificationToUsers(tenantID, title, body, data.adminUsers, {
+    return await this.sendRemotePushNotificationToUsers(tenantID, title, body, data.adminUsers, {
       chargeBoxID: data.chargeBoxID
     });
   }
 
-  sendUserAccountStatusChanged(data: UserAccountStatusChangedNotification, locale: string, tenantID: string): Promise<void> {
+  async sendUserAccountStatusChanged(data: UserAccountStatusChangedNotification, locale: string, tenantID: string): Promise<void> {
     // Set the locale
     i18n.setLocale(Utils.getLocaleWith2Digits(locale));
     const status = data.user.status === Constants.USER_STATUS_ACTIVE ?
@@ -138,32 +138,32 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const title = i18n.__('notifications.userAccountStatusChanged.title', { status: Utils.firstLetterInUpperCase(status) });
     const body = i18n.__('notifications.userAccountStatusChanged.body', { status });
     // Send Notification
-    return this.sendRemotePushNotificationToUsers(tenantID, title, body, [data.user], {
+    return await this.sendRemotePushNotificationToUsers(tenantID, title, body, [data.user], {
       userID: data.user.id
     });
   }
 
-  sendUnknownUserBadged(data: UnknownUserBadgedNotification, locale: string, tenantID: string): Promise<void> {
+  async sendUnknownUserBadged(data: UnknownUserBadgedNotification, locale: string, tenantID: string): Promise<void> {
     // Set the locale
     i18n.setLocale(Utils.getLocaleWith2Digits(locale));
     // Get Message Text
     const title = i18n.__('notifications.unknownUserBadged.title');
     const body = i18n.__('notifications.unknownUserBadged.body', { chargeBoxID: data.chargeBoxID, badgeID: data.badgeID });
     // Send Notification
-    return this.sendRemotePushNotificationToUsers(tenantID, title, body, data.adminUsers, {
+    return await this.sendRemotePushNotificationToUsers(tenantID, title, body, data.adminUsers, {
       chargeBoxID: data.chargeBoxID,
       badgeID: data.badgeID
     });
   }
 
-  sendSessionStarted(data: TransactionStartedNotification, locale: string, tenantID: string): Promise<void> {
+  async sendSessionStarted(data: TransactionStartedNotification, locale: string, tenantID: string): Promise<void> {
     // Set the locale
     i18n.setLocale(Utils.getLocaleWith2Digits(locale));
     // Get Message Text
     const title = i18n.__('notifications.sessionStarted.title');
     const body = i18n.__('notifications.sessionStarted.body', { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
     // Send Notification
-    return this.sendRemotePushNotificationToUsers(tenantID, title, body, [data.user], {
+    return await this.sendRemotePushNotificationToUsers(tenantID, title, body, [data.user], {
       'transactionId': data.transactionId + '',
       'chargeBoxID': data.chargeBoxID,
       'connectorId': data.connectorId + ''
@@ -171,38 +171,38 @@ export default class RemotePushNotificationTask implements NotificationTask {
     );
   }
 
-  sendVerificationEmail(data: VerificationEmailNotification, locale: string, tenantID: string): Promise<void> {
+  async sendVerificationEmail(data: VerificationEmailNotification, locale: string, tenantID: string): Promise<void> {
     // Nothing to send
-    return Promise.resolve();
+    return await Promise.resolve();
   }
 
-  sendSmtpAuthError(data: SmtpAuthErrorNotification, locale: string, tenantID: string): Promise<void> {
+  async sendSmtpAuthError(data: SmtpAuthErrorNotification, locale: string, tenantID: string): Promise<void> {
     // Set the locale
     i18n.setLocale(Utils.getLocaleWith2Digits(locale));
     // Get Message Text
     const title = i18n.__('notifications.smtpAuthError.title');
     const body = i18n.__('notifications.smtpAuthError.body');
     // Send Notification
-    return this.sendRemotePushNotificationToUsers(tenantID, title, body, data.adminUsers);
+    return await this.sendRemotePushNotificationToUsers(tenantID, title, body, data.adminUsers);
   }
 
-  sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification, locale: string, tenantID: string): Promise<void> {
+  async sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification, locale: string, tenantID: string): Promise<void> {
     // Set the locale
     i18n.setLocale(Utils.getLocaleWith2Digits(locale));
     // Get Message Text
     const title = i18n.__('notifications.ocpiPatchChargingStationsStatusesError.title');
     const body = i18n.__('notifications.ocpiPatchChargingStationsStatusesError.body', { location: data.location });
     // Send Notification
-    return this.sendRemotePushNotificationToUsers(tenantID, title, body, data.adminUsers);
+    return await this.sendRemotePushNotificationToUsers(tenantID, title, body, data.adminUsers);
   }
 
-  private sendRemotePushNotificationToUsers(tenantID: string, title: string, body: string, users: User[], data?: object) {
+  private async sendRemotePushNotificationToUsers(tenantID: string, title: string, body: string, users: User[], data?: object): Promise<void> {
     // Checks
     if (!this.initialized) {
-      return Promise.resolve();
+      return await Promise.resolve();
     }
     if (!users || users.length <= 0) {
-      return Promise.resolve();
+      return await Promise.resolve();
     }
     // Get users with mobile
     const usersWithMobile = this.filterUsersWithMobileToken(users);
