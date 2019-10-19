@@ -1,5 +1,5 @@
-import User from "./User";
-import NotificationTask from "../notification/NotificationTask";
+import User from './User';
+import NotificationTask from '../notification/NotificationTask';
 
 export default interface UserNotifications {
   sendSessionStarted?: boolean;
@@ -15,16 +15,16 @@ export default interface UserNotifications {
 }
 
 export type UserNotificationKeys =
- "sendSessionStarted" |
- "sendOptimalChargeReached" |
- "sendEndOfCharge" |
- "sendEndOfSession" |
- "sendUserAccountStatusChanged" |
- "sendUnknownUserBadged" |
- "sendChargingStationStatusError" |
- "sendChargingStationRegistered" |
- "sendOcpiPatchStatusError" |
- "sendSmtpAuthError"
+ 'sendSessionStarted' |
+ 'sendOptimalChargeReached' |
+ 'sendEndOfCharge' |
+ 'sendEndOfSession' |
+ 'sendUserAccountStatusChanged' |
+ 'sendUnknownUserBadged' |
+ 'sendChargingStationStatusError' |
+ 'sendChargingStationRegistered' |
+ 'sendOcpiPatchStatusError' |
+ 'sendSmtpAuthError'
 ;
 
 interface BaseNotification {
@@ -100,7 +100,7 @@ export interface UserAccountStatusChangedNotification extends BaseNotification {
 }
 
 export interface NewRegisteredUserNotification extends BaseNotification {
-  'tenant': string,
+  'tenant': string;
   'user': User;
   'evseDashboardURL': string;
   'evseDashboardVerifyEmailURL': string;
@@ -135,7 +135,7 @@ export interface UnknownUserBadgedNotification extends BaseNotification {
 
 export interface TransactionStartedNotification extends BaseNotification {
   'user': User;
-  'transactionId': number; 
+  'transactionId': number;
   'chargeBoxID': string;
   'connectorId': number;
   'evseDashboardURL': string;
@@ -166,5 +166,4 @@ export interface Notification {
   data: any;
   chargeBoxID: string;
 }
-
 

@@ -1,16 +1,16 @@
 import { ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
 import Configuration from '../../utils/Configuration';
 import NotificationTask from '../NotificationTask';
-import * as admin from "firebase-admin";
+import * as admin from 'firebase-admin';
 import User from '../../types/User';
 import Logging from '../../utils/Logging';
 import Constants from '../../utils/Constants';
-import i18n from "i18n";
+import i18n from 'i18n';
 import Utils from '../../utils/Utils';
 
 export default class RemotePushNotificationTask implements NotificationTask {
   private firebaseConfig = Configuration.getFirebaseConfig();
-  private initialized: boolean = false;
+  private initialized = false;
 
   constructor() {
     if (this.firebaseConfig) {
@@ -55,7 +55,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const title = i18n.__('notifications.optimalChargeReached.title',
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
     const body = i18n.__('notifications.optimalChargeReached.body',
-      { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });  
+      { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
     // Send Notification
     return this.sendRemotePushNotificationToUsers(tenantID, title, body, [data.user], {
       transactionId: data.transactionId + '',
@@ -71,7 +71,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const title = i18n.__('notifications.endOfCharge.title',
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
     const body = i18n.__('notifications.endOfCharge.body',
-      { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });  
+      { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
     // Send Notification
     return this.sendRemotePushNotificationToUsers(tenantID, title, body, [data.user], {
       transactionId: data.transactionId + '',
@@ -87,7 +87,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const title = i18n.__('notifications.endOfSession.title',
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
     const body = i18n.__('notifications.endOfSession.body',
-      { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });  
+      { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
     // Send Notification
     return this.sendRemotePushNotificationToUsers(tenantID, title, body, [data.user], {
       transactionId: data.transactionId + '',
@@ -133,7 +133,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     i18n.setLocale(Utils.getLocaleWith2Digits(locale));
     const status = data.user.status === Constants.USER_STATUS_ACTIVE ?
       i18n.__('notifications.userAccountStatusChanged.activated') :
-      i18n.__('notifications.userAccountStatusChanged.suspended')
+      i18n.__('notifications.userAccountStatusChanged.suspended');
     // Get Message Text
     const title = i18n.__('notifications.userAccountStatusChanged.title', { status: Utils.firstLetterInUpperCase(status) });
     const body = i18n.__('notifications.userAccountStatusChanged.body', { status });
@@ -164,10 +164,10 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const body = i18n.__('notifications.sessionStarted.body', { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
     // Send Notification
     return this.sendRemotePushNotificationToUsers(tenantID, title, body, [data.user], {
-        'transactionId': data.transactionId + '',
-        'chargeBoxID': data.chargeBoxID,
-        'connectorId': data.connectorId + ''
-      }
+      'transactionId': data.transactionId + '',
+      'chargeBoxID': data.chargeBoxID,
+      'connectorId': data.connectorId + ''
+    }
     );
   }
 
@@ -234,9 +234,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
   }
 
   private filterUsersWithMobileToken(users: User[]): User[] {
-    return users.filter((user) => {
-      return !!user.mobileToken && (user.mobileToken.length > 0);
-    });
+    return users.filter((user) => !!user.mobileToken && (user.mobileToken.length > 0));
   }
 
   private createMessage(title: string, body: string, user: User, data?: object): admin.messaging.Message {
@@ -244,7 +242,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       notification: {
         title,
         body
-      }, 
+      },
       token: user.mobileToken
     };
     // Android?
@@ -256,9 +254,9 @@ export default class RemotePushNotificationTask implements NotificationTask {
           color: '#00376C',
           sound: 'default',
           channelId: 'e-Mobility'
-        }, 
+        },
         priority: 'high'
-      }
+      };
     }
     // Extra data
     if (data) {
