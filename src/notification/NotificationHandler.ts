@@ -2,7 +2,7 @@ import NotificationStorage from '../storage/mongodb/NotificationStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
 import ChargingStation from '../types/ChargingStation';
 import User from '../types/User';
-import UserNotifications, { Notification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
+import UserNotifications, { ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
@@ -73,8 +73,8 @@ export default class NotificationHandler {
     }
   }
 
-  static async hasNotifiedSource(tenantID: string, channel: string, sourceDescr: string, notificationID: string, 
-    interval?: { intervalMins?: number, intervalKey?: object }): Promise<boolean> {
+  static async hasNotifiedSource(tenantID: string, channel: string, sourceDescr: string, notificationID: string,
+    interval?: { intervalMins?: number; intervalKey?: object }): Promise<boolean> {
     try {
       // Check
       if (interval && interval.intervalMins) {
@@ -99,17 +99,17 @@ export default class NotificationHandler {
         }
         // Default
         return false;
-      } else {
-        // Save it
-        const notifications = await NotificationStorage.getNotifications(tenantID,
-          {
-            channel: channel,
-            sourceId: notificationID
-          },
-          Constants.DB_PARAMS_COUNT_ONLY);
-        // Return
-        return notifications.count > 0;
       }
+      // Save it
+      const notifications = await NotificationStorage.getNotifications(tenantID,
+        {
+          channel: channel,
+          sourceId: notificationID
+        },
+        Constants.DB_PARAMS_COUNT_ONLY);
+        // Return
+      return notifications.count > 0;
+
     } catch (error) {
       // Log error
       Logging.logActionExceptionMessage(tenantID, 'HasNotification', error);
@@ -124,7 +124,7 @@ export default class NotificationHandler {
       if (notificationSource.enabled) {
         try {
           // Override notification ID
-          const connector = chargingStation.connectors[sourceData.connectorId-1];
+          const connector = chargingStation.connectors[sourceData.connectorId - 1];
           let intervalMins = 0;
           if (connector.power <= 7360) {
             // Notifify every 15 mins
