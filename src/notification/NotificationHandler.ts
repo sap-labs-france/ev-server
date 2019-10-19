@@ -93,7 +93,7 @@ export default class NotificationHandler {
           // Get the first one (ordered desc)
           const notification: Notification = notifications.result[0];
           const diffMinutes = moment.duration(moment().diff(moment(notification.timestamp))).asMinutes();
-          if (diffMinutes < interval.intervalMins) {
+          if (diffMinutes <= interval.intervalMins) {
             return true;
           }
         }
@@ -126,15 +126,18 @@ export default class NotificationHandler {
           // Override notification ID
           const connector = chargingStation.connectors[sourceData.connectorId-1];
           let intervalMins = 0;
-          if (connector.power <= 7360) {
-            // Notifify every 15 mins
-            intervalMins = 15;
-          } if (connector.power < 50000) {
-            // Notifify every 30 mins
-            intervalMins = 30;
-          } if (connector.power >= 50000) {
+          if (connector.power <= 3680) {
+            // Notifify every 120 mins
+            intervalMins = 120;
+          } else if (connector.power <= 7360) {
             // Notifify every 60 mins
             intervalMins = 60;
+          } else if (connector.power < 50000) {
+            // Notifify every 30 mins
+            intervalMins = 30;
+          } else if (connector.power >= 50000) {
+            // Notifify every 15 mins
+            intervalMins = 15;
           }
           // Check notification
           const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, notificationSource.channel,
