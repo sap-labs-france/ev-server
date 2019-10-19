@@ -147,6 +147,7 @@ export default class TransactionSecurity {
       // Filter user
       filteredTransaction.user = TransactionSecurity._filterUserInTransactionResponse(
         transaction.user, loggedUser);
+      filteredTransaction.userID = transaction.userID;
       // Transaction Stop
       if (transaction.stop) {
         filteredTransaction.stop = {};
@@ -157,6 +158,7 @@ export default class TransactionSecurity {
         filteredTransaction.stop.totalDurationSecs = transaction.stop.totalDurationSecs;
         filteredTransaction.stop.stateOfCharge = transaction.stop.stateOfCharge;
         filteredTransaction.stop.signedData = transaction.stop.signedData;
+        filteredTransaction.stop.userID = transaction.stop.userID;
         if (transaction.stop.price) {
           filteredTransaction.stop.price = transaction.stop.price;
           filteredTransaction.stop.roundedPrice = transaction.stop.roundedPrice;
