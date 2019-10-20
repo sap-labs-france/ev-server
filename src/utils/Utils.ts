@@ -31,6 +31,9 @@ const _tenants = [];
 export default class Utils {
   static getEndOfChargeNotificationIntervalMins(chargingStation: ChargingStation, connectorId: number) {
     let intervalMins = 0;
+    if (!chargingStation.connectors) {
+      return 0;
+    }
     const connector = chargingStation.connectors[connectorId - 1];
     if (connector.power <= 3680) {
       // Notifify every 120 mins
@@ -49,11 +52,11 @@ export default class Utils {
   }
 
   static getInactivityStatusLevel(chargingStation: ChargingStation, connectorId: number, inactivitySecs: number): InactivityStatusLevel {
-    // Get Notification Interval
-    let intervalMins = Utils.getEndOfChargeNotificationIntervalMins(chargingStation, connectorId);
     if (!inactivitySecs) {
       return 'info';
     }
+    // Get Notification Interval
+    let intervalMins = Utils.getEndOfChargeNotificationIntervalMins(chargingStation, connectorId);
     // Check
     if (inactivitySecs < (intervalMins * 60)) {
       return 'info';
