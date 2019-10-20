@@ -96,7 +96,7 @@ export default class EMailNotificationTask implements NotificationTask {
     return this._prepareAndSendEmail('ocpi-patch-status-error', data, locale, tenantID, true);
   }
 
-  async _prepareAndSendEmail(templateName: string, data: any, locale: string, tenantID: string, retry: boolean = false): Promise<void> {
+  async _prepareAndSendEmail(templateName: string, data: any, locale: string, tenantID: string, retry = false): Promise<void> {
     // Check locale
     if (!locale || !Constants.SUPPORTED_LOCALES.includes(locale)) {
       locale = Constants.DEFAULT_LOCALE;
@@ -232,7 +232,7 @@ export default class EMailNotificationTask implements NotificationTask {
     return null;
   }
 
-  async sendEmail(email, data, tenantID: string, locale: string, retry: boolean = false): Promise<void> {
+  async sendEmail(email, data, tenantID: string, locale: string, retry = false): Promise<void> {
     // Create the message
     const messageToSend = {
       from: (!retry ? this.emailConfig.smtp.from : this.emailConfig.smtpBackup.from),

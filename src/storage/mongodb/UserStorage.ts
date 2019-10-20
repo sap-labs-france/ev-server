@@ -339,7 +339,7 @@ export default class UserStorage {
   }
 
   public static async saveUserMobileToken(tenantID: string, userID: string,
-      mobileToken: string, mobileOs: string, mobileLastChanged: Date): Promise<void> {
+    mobileToken: string, mobileOs: string, mobileLastChanged: Date): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserMobileToken');
     // Check Tenant
@@ -394,7 +394,7 @@ export default class UserStorage {
   }
 
   public static async saveUserAdminData(tenantID: string, userID: string,
-    params: { plateID?: string; notificationsActive?: boolean, notifications?: UserNotifications }): Promise<void> {
+    params: { plateID?: string; notificationsActive?: boolean; notifications?: UserNotifications }): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserAdminData');
     // Check Tenant
@@ -488,7 +488,7 @@ export default class UserStorage {
       notifications?: UserNotifications;
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
-      // Debug
+    // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getUsers');
     // Check Tenant
     await Utils.checkTenant(tenantID);

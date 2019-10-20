@@ -1,4 +1,4 @@
-import { EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, OptimalChargeReachedNotification, RequestPasswordNotification, UserAccountStatusChangedNotification, NewRegisteredUserNotification, VerificationEmailNotification, ChargingStationStatusErrorNotification, ChargingStationRegisteredNotification, UnknownUserBadgedNotification, TransactionStartedNotification, SmtpAuthErrorNotification, OCPIPatchChargingStationsStatusesErrorNotification } from '../types/UserNotifications';
+import { ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../types/UserNotifications';
 import NotificationResult from './NotificationResult';
 
 export default interface NotificationTask {

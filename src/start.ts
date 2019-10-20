@@ -14,7 +14,7 @@ import ODataServer from './server/odata/ODataServer';
 import SchedulerManager from './scheduler/SchedulerManager';
 import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer';
 import Utils from './utils/Utils';
-import i18n from "i18n";
+import i18n from 'i18n';
 
 const MODULE_NAME = 'Bootstrap';
 export default class Bootstrap {

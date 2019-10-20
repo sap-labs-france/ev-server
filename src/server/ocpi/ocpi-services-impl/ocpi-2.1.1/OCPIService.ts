@@ -1,7 +1,7 @@
 import AbstractOCPIService from '../../AbstractOCPIService';
 import CredentialsEndpoint from './CredentialsEndpoint';
 import LocationsEndpoint from './LocationsEndpoint';
-import { Configuration }  from '../../../../types/configuration/Configuration';
+import { Configuration } from '../../../../types/configuration/Configuration';
 
 const VERSION = '2.1.1';
 
