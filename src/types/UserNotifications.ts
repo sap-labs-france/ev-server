@@ -27,6 +27,12 @@ export type UserNotificationKeys =
  'sendSmtpAuthError'
 ;
 
+export type InactivityStatusLevel =
+ 'info' |
+ 'warning' |
+ 'danger'
+;
+
 interface BaseNotification {
   adminUsers?: User[];
 }

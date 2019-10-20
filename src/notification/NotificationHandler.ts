@@ -10,6 +10,7 @@ import EMailNotificationTask from './email/EMailNotificationTask';
 import RemotePushNotificationTask from './remote-push-notification/RemotePushNotificationTask';
 import moment = require('moment');
 import { database } from 'firebase-admin';
+import Utils from '../utils/Utils';
 
 export default class NotificationHandler {
   private static notificationConfig = Configuration.getNotificationConfig();
@@ -123,22 +124,8 @@ export default class NotificationHandler {
       // Active?
       if (notificationSource.enabled) {
         try {
-          // Override notification ID
-          const connector = chargingStation.connectors[sourceData.connectorId - 1];
-          let intervalMins = 0;
-          if (connector.power <= 3680) {
-            // Notifify every 120 mins
-            intervalMins = 120;
-          } else if (connector.power <= 7360) {
-            // Notifify every 60 mins
-            intervalMins = 60;
-          } else if (connector.power < 50000) {
-            // Notifify every 30 mins
-            intervalMins = 30;
-          } else if (connector.power >= 50000) {
-            // Notifify every 15 mins
-            intervalMins = 15;
-          }
+          // Get interval
+          const intervalMins = Utils.getEndOfChargeNotificationIntervalMins(chargingStation, sourceData.connectorId);
           // Check notification
           const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, notificationSource.channel,
             Constants.SOURCE_END_OF_CHARGE, notificationID, { intervalMins, intervalKey: { transactionId: sourceData.transactionId } });

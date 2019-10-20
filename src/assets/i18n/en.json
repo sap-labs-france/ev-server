@@ -14,7 +14,7 @@
 		},
 		"optimalChargeReached": {
 			"title": "Optimal Charge Reached",
-			"body": "Your electric vehicle, which is connected to '{{chargeBoxID}}', connector '{{connectorId}}', reached its optimal charge"
+			"body": "Your electric vehicle, which is connected to '{{chargeBoxID}}', connector '{{connectorId}}', reached its optimal charge (85%)"
 		},
 		"endOfCharge": {
 			"title": "Charge Finished",
