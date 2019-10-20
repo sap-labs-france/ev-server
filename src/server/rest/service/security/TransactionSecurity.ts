@@ -9,6 +9,7 @@ import UserToken from '../../../../types/UserToken';
 import UtilsSecurity from './UtilsSecurity';
 import { DataResult } from '../../../../types/DataResult';
 import Consumption from '../../../../types/Consumption';
+import Utils from '../../../../utils/Utils';
 
 export default class TransactionSecurity {
   public static filterTransactionsRefund(request: any): HttpTransactionsRefundRequest {
@@ -124,6 +125,8 @@ export default class TransactionSecurity {
         filteredTransaction.currentConsumption = transaction.currentConsumption;
         filteredTransaction.currentTotalConsumption = transaction.currentTotalConsumption;
         filteredTransaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs;
+        filteredTransaction.currentInactivityStatusLevel =
+          Utils.getInactivityStatusLevel(transaction.chargeBox, transaction.connectorId, transaction.currentTotalInactivitySecs);
         filteredTransaction.currentTotalDurationSecs =
           moment.duration(moment(!transaction.stop ? transaction.lastMeterValue.timestamp : transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
         filteredTransaction.currentCumulatedPrice = transaction.currentCumulatedPrice;
@@ -155,6 +158,9 @@ export default class TransactionSecurity {
         filteredTransaction.stop.timestamp = transaction.stop.timestamp;
         filteredTransaction.stop.totalConsumption = transaction.stop.totalConsumption;
         filteredTransaction.stop.totalInactivitySecs = transaction.stop.totalInactivitySecs + transaction.stop.extraInactivitySecs;
+        filteredTransaction.stop.inactivityStatusLevel =
+          Utils.getInactivityStatusLevel(transaction.chargeBox, transaction.connectorId,
+            filteredTransaction.stop.totalInactivitySecs + (filteredTransaction.stop.extraInactivitySecs ? filteredTransaction.stop.extraInactivitySecs : 0));
         filteredTransaction.stop.totalDurationSecs = transaction.stop.totalDurationSecs;
         filteredTransaction.stop.stateOfCharge = transaction.stop.stateOfCharge;
         filteredTransaction.stop.signedData = transaction.stop.signedData;

@@ -196,13 +196,13 @@ export default class TransactionStorage {
   }
 
   public static async getTransactions(tenantID: string,
-                                      params: {
-                                        transactionId?: number; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[]; chargeBoxIDs?:
-                                          string[]; siteAreaIDs?: string[]; siteID?: string[]; connectorId?: number; startDateTime?: Date;
-                                        endDateTime?: Date; stop?: any; minimalPrice?: boolean; withChargeBoxes?: boolean;
-                                        statistics?: 'refund' | 'history'; refundStatus?: string[];
-                                      },
-                                      dbParams: DbParams, projectFields?: string[]):
+    params: {
+      transactionId?: number; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[]; chargeBoxIDs?:
+      string[]; siteAreaIDs?: string[]; siteID?: string[]; connectorId?: number; startDateTime?: Date;
+      endDateTime?: Date; stop?: any; minimalPrice?: boolean;
+      statistics?: 'refund' | 'history'; refundStatus?: string[];
+    },
+    dbParams: DbParams, projectFields?: string[]):
     Promise<{
       count: number; result: Transaction[]; stats: {
         totalConsumptionWattHours?: number; totalPriceRefund?: number; totalPricePending?: number;
@@ -437,16 +437,11 @@ export default class TransactionStorage {
     aggregation.push({
       $limit: dbParams.limit
     });
-
-    // Charger?
-    if (params.withChargeBoxes) {
-      // Add Charge Box
-      DatabaseUtils.pushChargingStationLookupInAggregation(
-        {
-          tenantID, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
-          asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
-        });
-    }
+    // Add Charge Box
+    DatabaseUtils.pushChargingStationLookupInAggregation({
+      tenantID, aggregation: aggregation, localField: 'chargeBoxID', foreignField: '_id',
+      asField: 'chargeBox', oneToOneCardinality: true, oneToOneCardinalityNotNull: false
+    });
     // Add respective users
     DatabaseUtils.pushUserLookupInAggregation({
       tenantID,
@@ -495,12 +490,12 @@ export default class TransactionStorage {
   }
 
   static async getTransactionsInError(tenantID,
-                                      params: {
-                                        search?: string; userIDs?: string[]; chargeBoxIDs?: string[];
-                                        siteAreaIDs?: string[]; siteID?: string[]; startDateTime?: Date; endDateTime?: Date; withChargeBoxes?: boolean;
-                                        errorType?: ('negative_inactivity' | 'negative_duration' | 'average_consumption_greater_than_connector_capacity' | 'incorrect_starting_date' | 'no_consumption')[];
-                                      },
-                                      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Transaction>> {
+    params: {
+      search?: string; userIDs?: string[]; chargeBoxIDs?: string[];
+      siteAreaIDs?: string[]; siteID?: string[]; startDateTime?: Date; endDateTime?: Date; withChargeBoxes?: boolean;
+      errorType?: ('negative_inactivity' | 'negative_duration' | 'average_consumption_greater_than_connector_capacity' | 'incorrect_starting_date' | 'no_consumption')[];
+    },
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Transaction>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactionsInError');
     // Check
