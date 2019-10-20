@@ -23,11 +23,47 @@ import Configuration from './Configuration';
 import Constants from './Constants';
 import Cypher from './Cypher';
 import passwordGenerator = require('password-generator');
+import { InactivityStatusLevel } from '../types/UserNotifications';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
 
 export default class Utils {
+  static getEndOfChargeNotificationIntervalMins(chargingStation: ChargingStation, connectorId: number) {
+    let intervalMins = 0;
+    const connector = chargingStation.connectors[connectorId - 1];
+    if (connector.power <= 3680) {
+      // Notifify every 120 mins
+      intervalMins = 120;
+    } else if (connector.power <= 7360) {
+      // Notifify every 60 mins
+      intervalMins = 60;
+    } else if (connector.power < 50000) {
+      // Notifify every 30 mins
+      intervalMins = 30;
+    } else if (connector.power >= 50000) {
+      // Notifify every 15 mins
+      intervalMins = 15;
+    }
+    return intervalMins;
+  }
+
+  static getInactivityStatusLevel(chargingStation: ChargingStation, connectorId: number, inactivitySecs: number): InactivityStatusLevel {
+    // Get Notification Interval
+    let intervalMins = Utils.getEndOfChargeNotificationIntervalMins(chargingStation, connectorId);
+    if (!inactivitySecs) {
+      return 'info';
+    }
+    // Check
+    if (inactivitySecs < (intervalMins * 60)) {
+      return 'info';
+    } else if (inactivitySecs < (intervalMins * 60 * 2)){
+      return 'warning';      
+    } else {
+      return 'danger';
+    }
+  }
+
   static generateGUID() {
     return uuidV4();
   }
