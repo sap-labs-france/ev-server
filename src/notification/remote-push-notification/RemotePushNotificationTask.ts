@@ -214,6 +214,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
         // Response is a message ID string.
         Logging.logInfo({
           tenantID: tenantID,
+          source: (data.hasOwnProperty('chargeBoxID') ? data['chargeBoxID'] : undefined),
           module: 'RemotePushNotificationTask', method: 'sendRemotePushNotificationToUsers',
           message: `Notification Sent: '${title}'`,
           user: userWithMobile.id,
@@ -223,6 +224,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       }).catch((error) => {
         Logging.logError({
           tenantID: tenantID,
+          source: (data.hasOwnProperty('chargeBoxID') ? data['chargeBoxID'] : undefined),
           module: 'RemotePushNotificationTask', method: 'sendRemotePushNotificationToUsers',
           message: `Error when sending Notification: '${error.message}'`,
           user: userWithMobile.id,
