@@ -66,7 +66,7 @@ export default class UtilsSecurity {
     UtilsSecurity.filterSkip(request, filteredRequest);
     // Count Only?
     if (request.hasOwnProperty('OnlyRecordCount')) {
-      filteredRequest.OnlyRecordCount = sanitize(request.OnlyRecordCount);
+      filteredRequest.OnlyRecordCount = UtilsSecurity.filterBoolean(request.OnlyRecordCount);
     }
   }
 
