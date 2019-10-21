@@ -11,10 +11,7 @@ import TransactionStorage from '../../../storage/mongodb/TransactionStorage';
 import UserStorage from '../../../storage/mongodb/UserStorage';
 import ChargingStation from '../../../types/ChargingStation';
 import { DataResult } from '../../../types/DataResult';
-import {
-  HttpChargingStationCommandRequest,
-  HttpIsAuthorizedRequest
-} from '../../../types/requests/HttpChargingStationRequest';
+import { HttpChargingStationCommandRequest, HttpIsAuthorizedRequest } from '../../../types/requests/HttpChargingStationRequest';
 import User from '../../../types/User';
 import UserToken from '../../../types/UserToken';
 import Constants from '../../../utils/Constants';
