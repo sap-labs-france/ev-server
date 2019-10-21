@@ -2,11 +2,11 @@ import AuthService from './service/AuthService';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import UtilsService from './service/UtilsService';
-import { NextFunction, Request, Response } from 'express';
+import { Handler, NextFunction, Request, Response } from 'express';
 
 export default {
   // Init Passport
-  initialize() {
+  initialize(): Handler {
     return AuthService.initialize();
   },
 

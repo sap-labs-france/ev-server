@@ -42,7 +42,7 @@ export default abstract class ChargingStationClient {
   updateFirmware(params) {
   }
 
-  sendCommand(commandName, params) {
+  sendCommand(commandName: string, params: any) {
     try {
       // Handle Requests
       switch (commandName) {

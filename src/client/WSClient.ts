@@ -29,7 +29,7 @@ export default class WSClient {
   public onmaximum: Function;
   public onreconnect: Function;
   public readyState: number;
-  private url: any;
+  private url: string;
   private options: any;
   private callbacks: any;
   private dbLogging: boolean;
@@ -39,7 +39,7 @@ export default class WSClient {
   private logTenantID: any;
   private ws: WebSocket;
 
-  public constructor(url, options, dbLogging = true) {
+  public constructor(url: string, options, dbLogging = true) {
     this.url = url;
     this.options = options || {};
     this.callbacks = {

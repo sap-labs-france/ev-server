@@ -1,7 +1,7 @@
 import cluster from 'cluster';
-import { Application, NextFunction, Request, Response } from 'express';
 import sanitize from 'express-sanitizer';
 import morgan from 'morgan';
+import express from 'express';
 import path from 'path';
 import socketio from 'socket.io';
 import CentralRestServerAuthentication from './CentralRestServerAuthentication';
@@ -21,7 +21,7 @@ export default class CentralRestServer {
   private static socketIO;
   private static currentNotifications: ChangeNotification[] = [];
   private chargingStationConfig: any;
-  private express: Application;
+  private express: express.Application;
 
   // Create the rest server
   constructor(centralSystemRestConfig, chargingStationConfig) {
