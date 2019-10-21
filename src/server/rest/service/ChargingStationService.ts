@@ -293,20 +293,25 @@ export default class ChargingStationService {
         user: req.user
       });
     }
-    // Check no active transaction
-    const foundIndex = chargingStation.connectors.findIndex(
-      (connector) => connector ? connector.activeTransactionID > 0 : false);
-    if (foundIndex >= 0) {
-      // Can' t be deleted
-      throw new AppError({
-        source: Constants.CENTRAL_SERVER,
-        errorCode: Constants.HTTP_EXISTING_TRANSACTION_ERROR,
-        message: `Charging station '${chargingStation.id}' can't be deleted due to existing active transactions`,
-        module: 'ChargingStationService',
-        method: 'handleDeleteChargingStation',
-        user: req.user
-      });
+
+    for (const connector of chargingStation.connectors) {
+      if (connector && connector.activeTransactionID) {
+        const transaction = await TransactionStorage.getTransaction(req.user.tenantID, connector.activeTransactionID);
+        if (transaction && !transaction.stop) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            errorCode: Constants.HTTP_EXISTING_TRANSACTION_ERROR,
+            message: `Charging station '${chargingStation.id}' can't be deleted due to existing active transactions`,
+            module: 'ChargingStationService',
+            method: 'handleDeleteChargingStation',
+            user: req.user
+          });
+        } else {
+          OCPPUtils.checkAndFreeChargingStationConnector(req.user.tenantID, chargingStation, connector.connectorId);
+        }
+      }
     }
+
     // Remove Site Area
     chargingStation.siteArea = null;
     chargingStation.siteAreaID = null;
@@ -436,7 +441,12 @@ export default class ChargingStationService {
         siteAreaID: (filteredRequest.SiteAreaID ? filteredRequest.SiteAreaID.split('|') : null),
         errorType: _errorType
       },
-      { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount }
+      {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.Sort,
+        onlyRecordCount: filteredRequest.OnlyRecordCount
+      }
     );
     // Build the result
     ChargingStationSecurity.filterChargingStationsResponse(chargingStations, req.user, req.user.activeComponents.includes(Constants.COMPONENTS.ORGANIZATION));

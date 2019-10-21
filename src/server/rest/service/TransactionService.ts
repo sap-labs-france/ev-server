@@ -295,6 +295,22 @@ export default class TransactionService {
       user = await UserStorage.getUser(req.user.tenantID, transaction.userID);
       UtilsService.assertObjectExists(user, `User with ID '${transaction.userID}' does not exist`, 'TransactionService', 'handleTransactionSoftStop', req.user);
     }
+
+    if (!chargingStation.inactive) {
+      for (const connector of chargingStation.connectors) {
+        if (connector && connector.activeTransactionID === transaction.id) {
+          throw new AppError({
+            source: Constants.CENTRAL_SERVER,
+            errorCode: Constants.HTTP_GENERAL_ERROR,
+            message: `The active transaction ${transaction.id} on the active charging station ${chargingStation.id} must be stopped remotely`,
+            module: 'TransactionService',
+            method: 'handleTransactionSoftStop',
+            user: req.user
+          });
+        }
+      }
+    }
+
     // Stop Transaction
     const result = await new OCPPService().handleStopTransaction(
       {
@@ -759,9 +775,9 @@ export default class TransactionService {
     if (filteredRequest.ErrorType) {
       filter.errorType = filteredRequest.ErrorType.split('|');
     } else if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.PRICING)) {
-      filter.errorType = ['negative_inactivity','negative_duration','average_consumption_greater_than_connector_capacity','incorrect_starting_date','no_consumption','missing_price'];
+      filter.errorType = ['negative_inactivity', 'negative_duration', 'average_consumption_greater_than_connector_capacity', 'incorrect_starting_date', 'no_consumption', 'missing_price'];
     } else {
-      filter.errorType = ['negative_inactivity','negative_duration','average_consumption_greater_than_connector_capacity','incorrect_starting_date','no_consumption'];
+      filter.errorType = ['negative_inactivity', 'negative_duration', 'average_consumption_greater_than_connector_capacity', 'incorrect_starting_date', 'no_consumption'];
     }
     // Site Area
     const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
