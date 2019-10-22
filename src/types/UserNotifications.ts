@@ -41,7 +41,7 @@ export interface EndOfChargeNotification extends BaseNotification {
   'user': User;
   'transactionId': number;
   'chargeBoxID': string;
-  'connectorId': number;
+  'connectorId': string;
   'totalConsumption': string;
   'stateOfCharge': number;
   'totalDuration': string;
@@ -53,7 +53,7 @@ export interface OptimalChargeReachedNotification extends BaseNotification {
   'user': User;
   'transactionId': number;
   'chargeBoxID': string;
-  'connectorId': number;
+  'connectorId': string;
   'totalConsumption': string;
   'stateOfCharge': number;
   'evseDashboardChargingStationURL': string;
@@ -66,7 +66,7 @@ export interface EndOfSessionNotification extends BaseNotification {
   'alternateUser': User;
   'transactionId': number;
   'chargeBoxID': string;
-  'connectorId': number;
+  'connectorId': string;
   'totalConsumption': string;
   'totalInactivity': string;
   'stateOfCharge': number;
@@ -80,7 +80,7 @@ export interface EndOfSignedSessionNotification extends BaseNotification {
   'alternateUser': User;
   'transactionId': number;
   'chargeBoxID': string;
-  'connectorId': number;
+  'connectorId': string;
   'tagId': string;
   'startDate': string;
   'endDate': string;
@@ -120,7 +120,7 @@ export interface VerificationEmailNotification extends BaseNotification {
 
 export interface ChargingStationStatusErrorNotification extends BaseNotification {
   'chargeBoxID': string;
-  'connectorId': number;
+  'connectorId': string;
   'error': string;
   'evseDashboardURL': string;
   'evseDashboardChargingStationURL': string;
@@ -143,7 +143,7 @@ export interface TransactionStartedNotification extends BaseNotification {
   'user': User;
   'transactionId': number;
   'chargeBoxID': string;
-  'connectorId': number;
+  'connectorId': string;
   'evseDashboardURL': string;
   'evseDashboardChargingStationURL': string;
 }

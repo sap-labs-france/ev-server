@@ -577,6 +577,14 @@ export default class Utils {
     return value[0].toUpperCase() + value.substring(1);
   }
 
+  static getConnectorLetterFromConnectorID(connectorID: number): string {
+    return String.fromCharCode(65 + connectorID - 1);
+  }
+
+  static getConnectorIDFromConnectorLetter(connectorLetter: string): number {
+    return connectorLetter.charCodeAt(0) - 64;
+  }
+
   public static checkRecordSkip(recordSkip: number | string): number {
     // String?
     if (typeof recordSkip === 'string') {
