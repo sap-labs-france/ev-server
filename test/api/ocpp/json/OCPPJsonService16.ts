@@ -21,10 +21,10 @@ export default class OCPPJsonService16 extends OCPPService {
     return '1.6';
   }
 
-  public async openConnection(chargeBoxIdentity) {
+  public async openConnection(chargeBoxIdentity){
     return await new Promise((resolve, reject) => {
       // Create WS
-      const sentRequests = [];
+      const sentRequests = {};
       const wsClientOptions = {
         protocols: 'ocpp1.6',
         autoReconnectTimeout: config.get('wsClient').autoReconnectTimeout,
@@ -39,6 +39,15 @@ export default class OCPPJsonService16 extends OCPPService {
       // Handle Error Message
       wsConnection.onerror = (error) => {
         // An error occurred when sending/receiving data
+        reject(error);
+      };
+      wsConnection.onclose = (error) => {
+        for (const property in sentRequests) {
+          sentRequests[property].reject(error);
+        }
+        reject(error);
+      };
+      wsConnection.onmaximum = (error) => {
         reject(error);
       };
       // Handle Server Message
@@ -153,7 +162,9 @@ export default class OCPPJsonService16 extends OCPPService {
     }
     // Send
     const t0 = performance.now();
-    await this._wsSessions.get(chargeBoxIdentity).connection.send(JSON.stringify(message));
+    this._wsSessions.get(chargeBoxIdentity).connection.send(JSON.stringify(message), {}, (error?: Error) => {
+      console.log('sending error: ' + JSON.stringify(error));
+    });
     if (message[0] === OCPP_JSON_CALL_MESSAGE) {
       // Return a promise
       return await new Promise((resolve, reject) => {

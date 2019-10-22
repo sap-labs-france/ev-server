@@ -9,24 +9,24 @@
 			"body": "La mise à jour des statuts des bornes a échoué sur le site '{{location}}', vérifier les logs"
 		},
 		"smtpAuthError": {
-			"title": "Erreur Auth Serveur Email",
+			"title": "Erreur Authentification Serveur Email",
 			"body": "L'authentification sur le serveur d'email principal a échoué, vérifier la configuration"
 		},
 		"optimalChargeReached": {
 			"title": "Charge Optimale Atteinte",
-			"body": "Votre véhicule électrique, qui est connecté sur '{{chargeBoxID}}', connector '{{connectorId}}', a atteint sa charge optimale (85%)"
+			"body": "Votre véhicule électrique, qui est connecté sur '{{chargeBoxID}}', connecteur '{{connectorId}}', a atteint sa charge optimale (85%)"
 		},
 		"endOfCharge": {
 			"title": "Charge Terminée",
-			"body": "Votre véhicule électrique, qui est connecté sur la borne '{{chargeBoxID}}', connector '{{connectorId}}', a terminé sa charge"
+			"body": "Votre véhicule électrique, qui est connecté sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}', a terminé sa charge"
 		},
 		"endOfSession": {
 			"title": "Session Terminée",
-			"body": "Votre session sur la borne '{{chargeBoxID}}', connector '{{connectorId}}' est terminée"
+			"body": "Votre session sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}' est terminée"
 		},
 		"chargingStationStatusError": {
-			"title": "{{chargeBoxID}} - {{connectorId}} - {{error}}",
-			"body": "Une erreur est survenue sur '{{chargeBoxID}}', connector '{{connectorId}}': {{error}}"
+			"title": "Erreur '{{chargeBoxID}}' - Connecteur '{{connectorId}}'",
+			"body": "Une erreur est survenue sur '{{chargeBoxID}}', connecteur '{{connectorId}}': {{error}}"
 		},
 		"unknownUserBadged": {
 			"title": "Utilisateur Inconnu à Badgé",

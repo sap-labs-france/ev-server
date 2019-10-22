@@ -6,11 +6,10 @@ import UserNotifications, { ChargingStationRegisteredNotification, ChargingStati
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
+import Utils from '../utils/Utils';
 import EMailNotificationTask from './email/EMailNotificationTask';
 import RemotePushNotificationTask from './remote-push-notification/RemotePushNotificationTask';
 import moment = require('moment');
-import { database } from 'firebase-admin';
-import Utils from '../utils/Utils';
 
 export default class NotificationHandler {
   private static notificationConfig = Configuration.getNotificationConfig();
@@ -125,7 +124,8 @@ export default class NotificationHandler {
       if (notificationSource.enabled) {
         try {
           // Get interval
-          const intervalMins = Utils.getEndOfChargeNotificationIntervalMins(chargingStation, sourceData.connectorId);
+          const intervalMins = Utils.getEndOfChargeNotificationIntervalMins(
+            chargingStation, Utils.getConnectorIDFromConnectorLetter(sourceData.connectorId));
           // Check notification
           const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, notificationSource.channel,
             Constants.SOURCE_END_OF_CHARGE, notificationID, { intervalMins, intervalKey: { transactionId: sourceData.transactionId } });

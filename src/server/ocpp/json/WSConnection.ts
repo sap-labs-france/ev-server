@@ -67,6 +67,16 @@ export default class WSConnection {
         message: `The URL '${req.url}' is invalid (/OCPPxx/TENANT_ID/CHARGEBOX_ID)`
       });
     }
+
+    if (!Utils.isChargingStationIDValid(this.chargingStationID)) {
+      throw new BackendError({
+        source: this.chargingStationID,
+        module: 'WSConnection',
+        method: 'constructor',
+        message: `The Charging Station ID is invalid`
+      });
+    }
+
     // Handle incoming messages
     this.wsConnection.on('message', this.onMessage.bind(this));
     // Handle Error on Socket
