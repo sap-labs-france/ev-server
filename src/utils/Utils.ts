@@ -582,7 +582,7 @@ export default class Utils {
   }
 
   static getConnectorIDFromConnectorLetter(connectorLetter: string): number {
-    return connectorLetter.charCodeAt(0) - 65;
+    return connectorLetter.charCodeAt(0) - 64;
   }
 
   public static checkRecordSkip(recordSkip: number | string): number {
