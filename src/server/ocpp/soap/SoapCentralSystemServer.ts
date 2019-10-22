@@ -76,8 +76,6 @@ export default class SoapCentralSystemServer extends CentralSystemServer {
     // OCPP 1.5 -----------------------------------------
     const soapServer15 = soap.listen(httpServer, '/OCPP15', centralSystemService15, this.readWsdl('OCPPCentralSystemService15.wsdl'));
 
-    soapServer15.on()
-
     // Log
     if (this.centralSystemConfig.debug) {
       // Listen

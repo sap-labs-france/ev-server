@@ -288,8 +288,8 @@ export default class Utils {
     if (!Utils.isChargingStationIDValid(headers.chargeBoxIdentity)) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
-        module: 'WSConnection',
-        method: 'constructor',
+        module: 'Utils',
+        method: 'normalizeAndCheckSOAPParams',
         message: `The charging station ID ${headers.chargeBoxIdentity} is invalid`
       });
     }
