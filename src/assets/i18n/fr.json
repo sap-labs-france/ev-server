@@ -14,15 +14,15 @@
 		},
 		"optimalChargeReached": {
 			"title": "Charge Optimale Atteinte",
-			"body": "Votre véhicule électrique, qui est connecté sur '{{chargeBoxID}}', connector '{{connectorId}}', a atteint sa charge optimale (85%)"
+			"body": "Votre véhicule électrique, qui est connecté sur '{{chargeBoxID}}', connecteur '{{connectorId}}', a atteint sa charge optimale (85%)"
 		},
 		"endOfCharge": {
 			"title": "Charge Terminée",
-			"body": "Votre véhicule électrique, qui est connecté sur la borne '{{chargeBoxID}}', connector '{{connectorId}}', a terminé sa charge"
+			"body": "Votre véhicule électrique, qui est connecté sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}', a terminé sa charge"
 		},
 		"endOfSession": {
 			"title": "Session Terminée",
-			"body": "Votre session sur la borne '{{chargeBoxID}}', connector '{{connectorId}}' est terminée"
+			"body": "Votre session sur la borne '{{chargeBoxID}}', connecteur '{{connectorId}}' est terminée"
 		},
 		"chargingStationStatusError": {
 			"title": "Erreur '{{chargeBoxID}}' - Connecteur '{{connectorId}}'",
