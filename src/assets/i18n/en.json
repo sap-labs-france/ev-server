@@ -9,7 +9,7 @@
 			"body": "The transfer of the Charging Station's statuses has failed on location '{{location}}', check the logs"
 		},
 		"smtpAuthError": {
-			"title": "Email Server Auth Error",
+			"title": "Email Server Authentication Error",
 			"body": "The authentication to the primary email server has failed, check the configuration"
 		},
 		"optimalChargeReached": {

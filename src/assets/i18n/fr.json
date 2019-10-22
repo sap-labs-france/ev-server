@@ -9,7 +9,7 @@
 			"body": "La mise à jour des statuts des bornes a échoué sur le site '{{location}}', vérifier les logs"
 		},
 		"smtpAuthError": {
-			"title": "Erreur Auth Serveur Email",
+			"title": "Erreur Authentification Serveur Email",
 			"body": "L'authentification sur le serveur d'email principal a échoué, vérifier la configuration"
 		},
 		"optimalChargeReached": {
