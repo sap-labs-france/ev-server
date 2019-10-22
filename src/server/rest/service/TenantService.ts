@@ -210,8 +210,7 @@ export default class TenantService {
         'user': tenantUser,
         'evseDashboardURL': Utils.buildEvseURL(filteredRequest.subdomain),
         'evseDashboardVerifyEmailURL': evseDashboardVerifyEmailURL
-      },
-      tenantUser.locale
+      }
     );
     // Log
     Logging.logSecurityInfo({

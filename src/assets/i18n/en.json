@@ -25,7 +25,7 @@
 			"body": "Your session on the charging station '{{chargeBoxID}}', connector '{{connectorId}}' has just finished"
 		},
 		"chargingStationStatusError": {
-			"title": "Error on '{{chargeBoxID}}' - Connector '{{connectorId}}",
+			"title": "Error on '{{chargeBoxID}}'",
 			"body": "Error occurred on '{{chargeBoxID}}', connector '{{connectorId}}': {{error}}"
 		},
 		"unknownUserBadged": {

@@ -34,7 +34,6 @@ export type InactivityStatusLevel =
 ;
 
 interface BaseNotification {
-  adminUsers?: User[];
 }
 
 export interface EndOfChargeNotification extends BaseNotification {
