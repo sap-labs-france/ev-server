@@ -7,6 +7,7 @@ import CentralServerService from './client/CentralServerService';
 import ChargingStationContext from './contextProvider/ChargingStationContext';
 import Factory from '../factories/Factory';
 import User from '../../src/types/User';
+import { fail } from 'assert';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -236,6 +237,15 @@ export default class OCPPCommonTests {
     const response = await this.chargingStationContext.sendBootNotification();
     expect(response.data).not.to.be.null;
     expect(response.data.status).eq('Rejected');
+  }
+
+  public async testChargingStationRegistrationWithInvalidIdentifier() {
+    try {
+      await this.chargingStationContext.sendBootNotification();
+      fail('BootNotification should failed');
+    } catch (error) {
+      expect(error).to.be.not.null;
+    }
   }
 
   public async testAuthorizeUsers() {

@@ -338,6 +338,21 @@ describe('OCPP tests (all versions)', function() {
         });
       });
 
+      describe('With invalid charging station identifier', () => {
+        before(() => {
+          testData.chargingStationContext = testData.tenantContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.INVALID_IDENTIFIER_OCPP15);
+          testData.ocppCommonTests.setChargingStation(testData.chargingStationContext);
+        });
+
+        after(async () => {
+          await testData.chargingStationContext.cleanUpCreatedData();
+        });
+
+        it('Should not be possible to register a charging station with invalid identifier', async () => {
+          await testData.ocppCommonTests.testChargingStationRegistrationWithInvalidIdentifier();
+        });
+      });
+
       describe('With charger assigned to a site area', () => {
 
         before(() => {
@@ -491,6 +506,21 @@ describe('OCPP tests (all versions)', function() {
 
         it('Should not be possible to register a charging station with invalid token', async () => {
           await testData.ocppCommonTests.testChargingStationRegistrationWithInvalidToken();
+        });
+      });
+
+      describe('With invalid charging station identifier', () => {
+        before(() => {
+          testData.chargingStationContext = testData.tenantContext.getChargingStationContext(CONTEXTS.CHARGING_STATION_CONTEXTS.INVALID_IDENTIFIER_OCPP16);
+          testData.ocppCommonTests.setChargingStation(testData.chargingStationContext);
+        });
+
+        after(async () => {
+          await testData.chargingStationContext.cleanUpCreatedData();
+        });
+
+        it('Should not be possible to register a charging station with invalid identifier', async () => {
+          await testData.ocppCommonTests.testChargingStationRegistrationWithInvalidIdentifier();
         });
       });
 
