@@ -70,10 +70,10 @@ export default class WSConnection {
 
     if (!Utils.isChargingStationIDValid(this.chargingStationID)) {
       throw new BackendError({
-        source: Constants.CENTRAL_SERVER,
+        source: this.chargingStationID,
         module: 'WSConnection',
         method: 'constructor',
-        message: `The charging station ID ${this.chargingStationID} is invalid`
+        message: `The Charging Station ID is invalid`
       });
     }
 
