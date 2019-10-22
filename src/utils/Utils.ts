@@ -60,8 +60,8 @@ export default class Utils {
     // Check
     if (inactivitySecs < (intervalMins * 60)) {
       return 'info';
-    } else if (inactivitySecs < (intervalMins * 60 * 2)){
-      return 'warning';      
+    } else if (inactivitySecs < (intervalMins * 60 * 2)) {
+      return 'warning';
     } else {
       return 'danger';
     }
@@ -284,6 +284,15 @@ export default class Utils {
     // Set the Tenant ID
     headers.tenantID = tenantID;
     headers.token = token;
+
+    if (!Utils.isChargingStationIDValid(headers.chargeBoxIdentity)) {
+      throw new BackendError({
+        source: Constants.CENTRAL_SERVER,
+        module: 'WSConnection',
+        method: 'constructor',
+        message: `The charging station ID ${headers.chargeBoxIdentity} is invalid`
+      });
+    }
   }
 
   static _normalizeOneSOAPParam(headers, name) {
@@ -917,7 +926,7 @@ export default class Utils {
     }
     // Creation?
     if ((filteredRequest.role !== Constants.ROLE_BASIC) && (filteredRequest.role !== Constants.ROLE_DEMO) &&
-        !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
+      !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: Constants.HTTP_GENERAL_ERROR,
@@ -942,7 +951,7 @@ export default class Utils {
     }
     // Only Admin and Super Admin can use role different from Basic
     if ((filteredRequest.role === Constants.ROLE_ADMIN || filteredRequest.role === Constants.ROLE_SUPER_ADMIN) &&
-        !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
+      !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: Constants.HTTP_GENERAL_ERROR,
@@ -1158,6 +1167,10 @@ export default class Utils {
         }
         break;
     }
+  }
+
+  public static isChargingStationIDValid(name: string): boolean {
+    return /^[A-Za-z0-9_-]*$/.test(name);
   }
 
   public static isPasswordValid(password: string): boolean {
