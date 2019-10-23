@@ -360,7 +360,6 @@ export default class OCPIClient {
               // Send notification to admins
               NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
                 this.tenant.id,
-                Constants.DEFAULT_LOCALE,
                 {
                   'location': location.name,
                   'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(this.tenant.id)).subdomain),

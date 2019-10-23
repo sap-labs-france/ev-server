@@ -29,9 +29,11 @@ export default class CONTEXTS {
 
   static readonly CHARGING_STATION_CONTEXTS: any = {
     UNREGISTERED_OCPP16: faker.random.alphaNumeric(10),
+    INVALID_IDENTIFIER_OCPP16: 'inv@l!d:1.6',
     ASSIGNED_OCPP16: 'cs-16', // Charging Station is assigned to each site area with OCPP16
     UNASSIGNED_OCPP16: 'cs-notassigned16', // Charging station is not assigned and use OCPP16
     UNREGISTERED_OCPP15: faker.random.alphaNumeric(10),
+    INVALID_IDENTIFIER_OCPP15: 'inv@l!d-1,5',
     ASSIGNED_OCPP15: 'cs-15', // Charging Station is assigned to each site area with OCPP15
     UNASSIGNED_OCPP15: 'cs-notassigned15' // Charging station is not assigned and use OCPP15
   };

@@ -134,6 +134,10 @@ export default class ContextProvider {
     await newTenantContext.addChargingStation(unregisteredChargingStation15, registrationToken);
     const unregisteredChargingStation16 = await Factory.chargingStation.build({ id: CONTEXTS.CHARGING_STATION_CONTEXTS.UNREGISTERED_OCPP16, ocppVersion: '1.6' });
     await newTenantContext.addChargingStation(unregisteredChargingStation16, registrationToken);
+    const invalidChargingStation15 = await Factory.chargingStation.build({ id: CONTEXTS.CHARGING_STATION_CONTEXTS.INVALID_IDENTIFIER_OCPP15, ocppVersion: '1.5' });
+    await newTenantContext.addChargingStation(invalidChargingStation15);
+    const invalidChargingStation16 = await Factory.chargingStation.build({ id: CONTEXTS.CHARGING_STATION_CONTEXTS.INVALID_IDENTIFIER_OCPP16, ocppVersion: '1.6' });
+    await newTenantContext.addChargingStation(invalidChargingStation16);
 
     return newTenantContext;
   }
