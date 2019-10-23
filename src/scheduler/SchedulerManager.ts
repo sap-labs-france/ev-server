@@ -31,7 +31,7 @@ export default class SchedulerManager {
             action: 'Scheduler',
             message: `The task '${task.name}' is inactive`
           });
-          return;
+          continue;
         }
         let schedulerTask: SchedulerTask;
         // Tasks

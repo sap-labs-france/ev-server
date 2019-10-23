@@ -43,11 +43,11 @@ export default class RemotePushNotificationTask implements NotificationTask {
     return Promise.resolve();
   }
 
-sendUserInactivityLimitReached(data: UserInactivityLimitReachedNotification, user: User, tenantID: string): Promise<void> {
-  return Promise.resolve();
-}
+  sendUserInactivityLimitReached(data: UserInactivityLimitReachedNotification, user: User, tenantID: string): Promise<void> {
+    return Promise.resolve();
+  }
 
-sendRequestPassword(data: RequestPasswordNotification, user: User, tenantID: string): Promise<void> {
+  sendRequestPassword(data: RequestPasswordNotification, user: User, tenantID: string): Promise<void> {
     // Nothing to send
     return Promise.resolve();
   }

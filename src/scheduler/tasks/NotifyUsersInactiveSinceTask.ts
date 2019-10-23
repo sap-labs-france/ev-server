@@ -25,17 +25,16 @@ export default class NotifyUsersInactiveSinceTask extends SchedulerTask {
       for(const user of users){
         // Notification 
         moment.locale(user.locale);
-        const notificationID = 'InactivityLimit' + user.name + new Date().getFullYear() + new Date().getMonth();
+        const notificationId = user.id + new Date();
         NotificationHandler.sendUserInactivityLimitReached(
           tenant.id,
-          notificationID,
+          notificationId,
           user,
           {
             'user': user,
             'lastLogin': moment(user.lastLogin).format('LL'),
             'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain)
-          },
-          user.locale
+          }
         );
       }
     } catch (error) {

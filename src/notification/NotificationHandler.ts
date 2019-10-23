@@ -504,17 +504,19 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendUserInactivityLimitReached(tenantID: string, notificationID: string, user: User, data: UserInactivityLimitReachedNotification, locale: string): Promise<void> {
+  static async sendUserInactivityLimitReached(tenantID: string, notificationID: string, user: User, data: UserInactivityLimitReachedNotification): Promise<void> {
     // For each Sources
     for (const notificationSource of NotificationHandler.notificationSources) {
       // Active?
       if (notificationSource.enabled) {
         try {
           // Check notification
-          const hasBeenNotified = await NotificationHandler.hasNotifiedSource(tenantID, notificationSource.channel, notificationID);
-          if (!hasBeenNotified) {
+          const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
+            tenantID, notificationSource.channel, Constants.SOURCE_USER_INACTIVITY_LIMIT,
+            notificationID, { intervalMins: 43200, intervalKey: null });
+        if (!hasBeenNotified) {
             await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_USER_INACTIVITY_LIMIT, user);
-            // Send
+        // Send
             await notificationSource.notificationTask.sendUserInactivityLimitReached(data, user, tenantID);
           }
         } catch (error) {
