@@ -5,4 +5,4 @@ export default interface CentralSystemConfiguration {
   host: string;
   port: number;
   debug: boolean;
-} 
+}

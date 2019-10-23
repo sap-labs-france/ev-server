@@ -14,7 +14,7 @@ import ODataServer from './server/odata/ODataServer';
 import SchedulerManager from './scheduler/SchedulerManager';
 import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer';
 import Utils from './utils/Utils';
-import i18n from "i18n";
+import i18n from 'i18n';
 
 const MODULE_NAME = 'Bootstrap';
 export default class Bootstrap {
@@ -58,8 +58,10 @@ export default class Bootstrap {
       // Init i18n
       i18n.configure({
         locales:['en', 'fr'],
+        defaultLocale: 'en',
         directory: `${global.appRoot}/assets/i18n`,
-        objectNotation: true
+        objectNotation: true,
+        updateFiles: false,
       });
 
       // Start the connection to the Database

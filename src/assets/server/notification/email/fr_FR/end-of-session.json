@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "Votre session sur la borne <b>'<%- chargeBoxID %>'</b>, connector <b>'<%- connectorId %>'</b> est terminée."
+      "Votre session sur la borne <b>'<%- chargeBoxID %>'</b>, connecteur <b>'<%- connectorId %>'</b> est terminée."
     ],
     "stats": [
       { "label": "Consommation", "value": "<%- totalConsumption %> kW.h" },

@@ -350,20 +350,20 @@ export default class OCPIClient {
                 `Updated successfully status for locationID:${location.id} - evseID:${evse.id}`
               );
             } catch (error) {
-              // Send notification to admins
-              // eslint-disable-next-line @typescript-eslint/no-floating-promises
-              NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
-                this.tenant.id,
-                Constants.DEFAULT_LOCALE,
-                {
-                  'locationID': location.id,
-                  'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(this.tenant.id)).subdomain),
-                }
-              );
               sendResult.failure++;
               sendResult.chargeBoxIDsInFailure.push(evse.chargeBoxId);
               sendResult.logs.push(
                 `Failure updating status for locationID:${location.id} - evseID:${evse.id}:${error.message}`
+              );
+            }
+            if (sendResult.failure > 0) {
+              // Send notification to admins
+              NotificationHandler.sendOCPIPatchChargingStationsStatusesError(
+                this.tenant.id,
+                {
+                  'location': location.name,
+                  'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(this.tenant.id)).subdomain),
+                }
               );
             }
           }

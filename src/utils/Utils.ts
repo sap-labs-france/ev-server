@@ -1,37 +1,72 @@
-import axios from 'axios';
 import bcrypt from 'bcryptjs';
-import ClientOAuth2 from 'client-oauth2';
 import { Request } from 'express';
 import fs from 'fs';
 import _ from 'lodash';
 import { ObjectID } from 'mongodb';
-import passwordGenerator = require('password-generator');
 import path from 'path';
 import tzlookup from 'tz-lookup';
 import url from 'url';
 import uuidV4 from 'uuid/v4';
-import AppError from '../exception/AppError';
 import Authorizations from '../authorization/Authorizations';
+import AppError from '../exception/AppError';
 import BackendError from '../exception/BackendError';
+import TenantStorage from '../storage/mongodb/TenantStorage';
+import UserStorage from '../storage/mongodb/UserStorage';
 import ChargingStation from '../types/ChargingStation';
-import Configuration from './Configuration';
 import ConnectorStats from '../types/ConnectorStats';
-import Constants from './Constants';
-import Cypher from './Cypher';
 import { HttpUserRequest } from '../types/requests/HttpUserRequest';
-import Logging from './Logging';
 import { SettingContent } from '../types/Setting';
 import Tenant from '../types/Tenant';
-import TenantStorage from '../storage/mongodb/TenantStorage';
-import Transaction from '../types/Transaction';
 import User from '../types/User';
-import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
+import Configuration from './Configuration';
+import Constants from './Constants';
+import Cypher from './Cypher';
+import passwordGenerator = require('password-generator');
+import { InactivityStatusLevel } from '../types/UserNotifications';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
 
 export default class Utils {
+  static getEndOfChargeNotificationIntervalMins(chargingStation: ChargingStation, connectorId: number) {
+    let intervalMins = 0;
+    if (!chargingStation.connectors) {
+      return 0;
+    }
+    const connector = chargingStation.connectors[connectorId - 1];
+    if (connector.power <= 3680) {
+      // Notifify every 120 mins
+      intervalMins = 120;
+    } else if (connector.power <= 7360) {
+      // Notifify every 60 mins
+      intervalMins = 60;
+    } else if (connector.power < 50000) {
+      // Notifify every 30 mins
+      intervalMins = 30;
+    } else if (connector.power >= 50000) {
+      // Notifify every 15 mins
+      intervalMins = 15;
+    }
+    return intervalMins;
+  }
+
+  static getInactivityStatusLevel(chargingStation: ChargingStation, connectorId: number, inactivitySecs: number): InactivityStatusLevel {
+    if (!inactivitySecs) {
+      return 'info';
+    }
+    // Get Notification Interval
+    let intervalMins = Utils.getEndOfChargeNotificationIntervalMins(chargingStation, connectorId);
+    // Check
+    if (inactivitySecs < (intervalMins * 60)) {
+      return 'info';
+    } else if (inactivitySecs < (intervalMins * 60 * 2)) {
+      return 'warning';
+    } else {
+      return 'danger';
+    }
+  }
+
   static generateGUID() {
     return uuidV4();
   }
@@ -249,6 +284,15 @@ export default class Utils {
     // Set the Tenant ID
     headers.tenantID = tenantID;
     headers.token = token;
+
+    if (!Utils.isChargingStationIDValid(headers.chargeBoxIdentity)) {
+      throw new BackendError({
+        source: headers.chargeBoxIdentity,
+        module: 'Utils',
+        method: 'normalizeAndCheckSOAPParams',
+        message: `The Charging Station ID is invalid`
+      });
+    }
   }
 
   static _normalizeOneSOAPParam(headers, name) {
@@ -258,7 +302,7 @@ export default class Utils {
     }
   }
 
-  public static async checkTenant(tenantID: string) {
+  public static async checkTenant(tenantID: string): Promise<void> {
     if (!tenantID) {
       throw new BackendError({
         source: Constants.CENTRAL_SERVER,
@@ -269,7 +313,7 @@ export default class Utils {
     }
     // Check in cache
     if (_tenants.includes(tenantID)) {
-      return;
+      return Promise.resolve(null);
     }
     if (tenantID !== Constants.DEFAULT_TENANT) {
       // Valid Object ID?
@@ -540,6 +584,14 @@ export default class Utils {
 
   static firstLetterInUpperCase(value): string {
     return value[0].toUpperCase() + value.substring(1);
+  }
+
+  static getConnectorLetterFromConnectorID(connectorID: number): string {
+    return String.fromCharCode(65 + connectorID - 1);
+  }
+
+  static getConnectorIDFromConnectorLetter(connectorLetter: string): number {
+    return connectorLetter.charCodeAt(0) - 64;
   }
 
   public static checkRecordSkip(recordSkip: number | string): number {
@@ -882,7 +934,7 @@ export default class Utils {
     }
     // Creation?
     if ((filteredRequest.role !== Constants.ROLE_BASIC) && (filteredRequest.role !== Constants.ROLE_DEMO) &&
-        !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
+      !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: Constants.HTTP_GENERAL_ERROR,
@@ -907,7 +959,7 @@ export default class Utils {
     }
     // Only Admin and Super Admin can use role different from Basic
     if ((filteredRequest.role === Constants.ROLE_ADMIN || filteredRequest.role === Constants.ROLE_SUPER_ADMIN) &&
-        !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
+      !Authorizations.isAdmin(req.user) && !Authorizations.isSuperAdmin(req.user)) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
         errorCode: Constants.HTTP_GENERAL_ERROR,
@@ -1123,6 +1175,10 @@ export default class Utils {
         }
         break;
     }
+  }
+
+  public static isChargingStationIDValid(name: string): boolean {
+    return /^[A-Za-z0-9_-]*$/.test(name);
   }
 
   public static isPasswordValid(password: string): boolean {
