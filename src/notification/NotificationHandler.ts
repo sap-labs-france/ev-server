@@ -515,7 +515,7 @@ export default class NotificationHandler {
           if (!hasBeenNotified) {
             await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_USER_INACTIVITY_LIMIT, user);
             // Send
-            await notificationSource.notificationTask.sendUserInactivityLimitReached(data, locale, tenantID);
+            await notificationSource.notificationTask.sendUserInactivityLimitReached(data, user, tenantID);
           }
         } catch (error) {
           Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_TRANSACTION_STARTED, error);

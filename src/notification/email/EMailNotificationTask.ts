@@ -99,7 +99,7 @@ export default class EMailNotificationTask implements NotificationTask {
   }
 
   sendUserInactivityLimitReached(data: UserInactivityLimitReachedNotification, user: User, tenantID: string): Promise<void>  {
-    return this._prepareAndSendEmail('inactive-user-email', data, user, tenantID);
+    return this.prepareAndSendEmail('inactive-user-email', data, user, tenantID);
   }
 
   private async prepareAndSendEmail(templateName: string, data: any, user: User, tenantID: string, retry = false): Promise<void> {
