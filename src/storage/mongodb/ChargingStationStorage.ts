@@ -10,6 +10,7 @@ import TenantStorage from './TenantStorage';
 import Utils from '../../utils/Utils';
 import UtilsService from '../../server/rest/service/UtilsService';
 import { DataResult } from '../../types/DataResult';
+import moment from 'moment';
 
 export default class ChargingStationStorage {
 
@@ -168,6 +169,50 @@ export default class ChargingStationStorage {
         (chargingStationsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : chargingStationsCountMDB[0].count) : 0),
       result: chargingStationsMDB
     };
+  }
+
+  public static async getChargingStationsPreparingSince(tenantID: string, params: { since: string }): Promise<ChargingStation[]> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStationsPreparingSince');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Create Aggregation
+    const aggregation = [];
+    // Flatten the charging stations records
+    aggregation.push({"$unwind":"$connectors"});
+    // Create filters
+    const filters: any = {$and:[{$or:DatabaseUtils.getNotDeletedFilter()}]};
+    // Filter on status preparing 
+    filters.$and.push({'connectors.status': Constants.CONN_STATUS_PREPARING});
+    // Filter on transaction start date
+    if(params.since && moment(params.since).isValid()) {
+      filters.$and.push({'connectors.activeTransactionDate':{$lte:new Date(params.since)}});
+    } else {
+      // By default set to 15 minutes ago
+      const fifteenMinutesAgo = moment().subtract(15, 'minutes').toDate().toISOString();
+      filters.$and.push({'connectors.activeTransactionDate':{$lte:new Date(fifteenMinutesAgo)}});
+    }
+    // Add in aggregation
+    aggregation.push({$match: filters});
+    // Add transaction details
+    aggregation.push({
+      $lookup: {
+        from: DatabaseUtils.getCollectionName(tenantID, 'transactions'),
+        localField:"connectors.activeTransactionID",foreignField:"_id",as:"transaction"
+      }
+    });
+    // Flatten the result
+    aggregation.push({"$unwind":"$transaction"});
+    // Change ID
+    DatabaseUtils.renameDatabaseID(aggregation);
+    // Read DB
+    const chargingStations = await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
+      .toArray();
+      // Debug
+    Logging.traceEnd('ChargingStationStorage', 'getChargingStationsPreparingSince', uniqueTimerID);
+    // Ok
+    return chargingStations;
   }
 
   public static async getChargingStationsInError(tenantID: string,

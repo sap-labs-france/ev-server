@@ -1,0 +1,33 @@
+{
+  "subject": "Véhicule connecté mais recharge non démarrée",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Recharge en phase Préparation",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Bonjour,",
+      "",
+      "Pour information, vous ne semblez pas avoir démarré la recharge de votre véhicule sur la borne <%- chargingStation %>.",
+      ""
+    ],
+    "afterActionLines": [
+      "Cordialement,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
+

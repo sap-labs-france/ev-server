@@ -12,6 +12,8 @@ export default interface UserNotifications {
   sendChargingStationRegistered?: boolean;
   sendOcpiPatchStatusError?: boolean;
   sendSmtpAuthError?: boolean;
+  sendUserInactivityLimitReached?:boolean;
+  sendForgetCharge?: boolean;
 }
 
 export type UserNotificationKeys =
@@ -24,7 +26,9 @@ export type UserNotificationKeys =
  "sendChargingStationStatusError" |
  "sendChargingStationRegistered" |
  "sendOcpiPatchStatusError" |
- "sendSmtpAuthError"
+ "sendSmtpAuthError" |
+ "sendUserInactivityLimitReached" |
+ "sendForgetCharge"
 ;
 
 interface BaseNotification {
@@ -154,6 +158,13 @@ export interface OCPIPatchChargingStationsStatusesErrorNotification extends Base
 export interface UserInactivityLimitReachedNotification extends BaseNotification {
   'user': User;
   'lastLogin': string;
+  'evseDashboardURL': string;
+}
+
+export interface ForgetChargeNotification extends BaseNotification {
+  'user': User;
+  'chargingStation': string;
+  'startedOn': Date;
   'evseDashboardURL': string;
 }
 

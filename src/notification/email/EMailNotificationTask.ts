@@ -4,7 +4,7 @@ import fs from 'fs';
 import BackendError from '../../exception/BackendError';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import global from '../../types/GlobalType';
-import { UserInactivityLimitReachedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
+import { ForgetChargeNotification, UserInactivityLimitReachedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
@@ -99,6 +99,11 @@ export default class EMailNotificationTask implements NotificationTask {
   sendUserInactivityLimitReached(data: UserInactivityLimitReachedNotification, locale: string, tenantID: string): Promise<void>  {
     // Send it
     return this._prepareAndSendEmail('inactive-user-email', data, locale, tenantID);
+  }
+
+  sendForgetCharge(data: ForgetChargeNotification, locale: string, tenantID: string): Promise<void>  {
+    // Send it
+    return this._prepareAndSendEmail('forget-charge-email', data, locale, tenantID);
   }
 
   async _prepareAndSendEmail(templateName: string, data: any, locale: string, tenantID: string, retry: boolean = false): Promise<void> {

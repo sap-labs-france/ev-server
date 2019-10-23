@@ -2,7 +2,7 @@ import NotificationStorage from '../storage/mongodb/NotificationStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
 import ChargingStation from '../types/ChargingStation';
 import User from '../types/User';
-import UserNotifications, { UserInactivityLimitReachedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
+import UserNotifications, { ForgetChargeNotification, UserInactivityLimitReachedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
@@ -462,6 +462,22 @@ export default class NotificationHandler {
           }
         } catch (error) {
           Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_TRANSACTION_STARTED, error);
+        }
+      }
+    }
+  }
+  static async sendForgetChargeNotification(tenantID: string, notificationID: string, user: User, data: ForgetChargeNotification, locale: string): Promise<void> {
+    // For each Sources
+    for (const notificationSource of NotificationHandler.notificationSources) {
+      // Active?
+      if (notificationSource.enabled) {
+        try {
+          // Check notification
+          await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_FORGET_CHARGE, user);
+          // Send
+          await notificationSource.notificationTask.sendForgetCharge(data, locale, tenantID);
+        } catch (error) {
+          Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_FORGET_CHARGE, error);
         }
       }
     }

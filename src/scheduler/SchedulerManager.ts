@@ -7,6 +7,7 @@ import NotifyUsersInactiveSinceTask from './tasks/NotifyUsersInactiveSinceTask';
 import OCPIPatchLocationsTask from './tasks/OCPIPatchLocationsTask';
 import SchedulerTask from './SchedulerTask';
 import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
+import DetectForgetChargeTask from './tasks/DetectForgetChargeTask';
 
 export default class SchedulerManager {
   private static schedulerConfig = Configuration.getSchedulerConfig();
@@ -31,7 +32,7 @@ export default class SchedulerManager {
             action: 'Scheduler',
             message: `The task '${task.name}' is inactive`
           });
-          return;
+          continue;
         }
         let schedulerTask: SchedulerTask;
         // Tasks
@@ -42,6 +43,10 @@ export default class SchedulerManager {
           case 'NotifyUsersInactiveSinceTask':
             // The task runs once a month
             schedulerTask = new NotifyUsersInactiveSinceTask();
+            break;
+          case 'DetectForgetChargeTask':
+            // The task runs every five minutes
+            schedulerTask = new DetectForgetChargeTask();
             break;
           case 'OCPIPatchLocationsTask':
             schedulerTask = new OCPIPatchLocationsTask();
