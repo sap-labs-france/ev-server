@@ -4,7 +4,7 @@ import expressTools from '../ExpressTools';
 import Logging from '../../utils/Logging';
 import OCPIServices from './OCPIServices';
 import { Application } from 'express';
-import { Configuration }  from '../../types/configuration/Configuration';
+import { Configuration } from '../../types/configuration/Configuration';
 
 const MODULE_NAME = 'OCPIServer';
 export default class OCPIServer {

@@ -1,5 +1,5 @@
-import User from "./User";
-import NotificationTask from "../notification/NotificationTask";
+import User from './User';
+import NotificationTask from '../notification/NotificationTask';
 
 export default interface UserNotifications {
   sendSessionStarted?: boolean;
@@ -15,27 +15,32 @@ export default interface UserNotifications {
 }
 
 export type UserNotificationKeys =
- "sendSessionStarted" |
- "sendOptimalChargeReached" |
- "sendEndOfCharge" |
- "sendEndOfSession" |
- "sendUserAccountStatusChanged" |
- "sendUnknownUserBadged" |
- "sendChargingStationStatusError" |
- "sendChargingStationRegistered" |
- "sendOcpiPatchStatusError" |
- "sendSmtpAuthError"
+ 'sendSessionStarted' |
+ 'sendOptimalChargeReached' |
+ 'sendEndOfCharge' |
+ 'sendEndOfSession' |
+ 'sendUserAccountStatusChanged' |
+ 'sendUnknownUserBadged' |
+ 'sendChargingStationStatusError' |
+ 'sendChargingStationRegistered' |
+ 'sendOcpiPatchStatusError' |
+ 'sendSmtpAuthError'
+;
+
+export type InactivityStatusLevel =
+ 'info' |
+ 'warning' |
+ 'danger'
 ;
 
 interface BaseNotification {
-  adminUsers?: User[];
 }
 
 export interface EndOfChargeNotification extends BaseNotification {
   'user': User;
   'transactionId': number;
   'chargeBoxID': string;
-  'connectorId': number;
+  'connectorId': string;
   'totalConsumption': string;
   'stateOfCharge': number;
   'totalDuration': string;
@@ -47,7 +52,7 @@ export interface OptimalChargeReachedNotification extends BaseNotification {
   'user': User;
   'transactionId': number;
   'chargeBoxID': string;
-  'connectorId': number;
+  'connectorId': string;
   'totalConsumption': string;
   'stateOfCharge': number;
   'evseDashboardChargingStationURL': string;
@@ -60,7 +65,7 @@ export interface EndOfSessionNotification extends BaseNotification {
   'alternateUser': User;
   'transactionId': number;
   'chargeBoxID': string;
-  'connectorId': number;
+  'connectorId': string;
   'totalConsumption': string;
   'totalInactivity': string;
   'stateOfCharge': number;
@@ -74,7 +79,7 @@ export interface EndOfSignedSessionNotification extends BaseNotification {
   'alternateUser': User;
   'transactionId': number;
   'chargeBoxID': string;
-  'connectorId': number;
+  'connectorId': string;
   'tagId': string;
   'startDate': string;
   'endDate': string;
@@ -100,7 +105,7 @@ export interface UserAccountStatusChangedNotification extends BaseNotification {
 }
 
 export interface NewRegisteredUserNotification extends BaseNotification {
-  'tenant': string,
+  'tenant': string;
   'user': User;
   'evseDashboardURL': string;
   'evseDashboardVerifyEmailURL': string;
@@ -114,7 +119,7 @@ export interface VerificationEmailNotification extends BaseNotification {
 
 export interface ChargingStationStatusErrorNotification extends BaseNotification {
   'chargeBoxID': string;
-  'connectorId': number;
+  'connectorId': string;
   'error': string;
   'evseDashboardURL': string;
   'evseDashboardChargingStationURL': string;
@@ -128,16 +133,16 @@ export interface ChargingStationRegisteredNotification extends BaseNotification 
 
 export interface UnknownUserBadgedNotification extends BaseNotification {
   'chargeBoxID': string;
-  'badgeId': string;
+  'badgeID': string;
   'evseDashboardURL': string;
   'evseDashboardUserURL': string;
 }
 
 export interface TransactionStartedNotification extends BaseNotification {
   'user': User;
-  'transactionId': number; 
+  'transactionId': number;
   'chargeBoxID': string;
-  'connectorId': number;
+  'connectorId': string;
   'evseDashboardURL': string;
   'evseDashboardChargingStationURL': string;
 }
@@ -147,7 +152,7 @@ export interface SmtpAuthErrorNotification extends BaseNotification {
 }
 
 export interface OCPIPatchChargingStationsStatusesErrorNotification extends BaseNotification {
-  'locationID': string;
+  'location': string;
   'evseDashboardURL': string;
 }
 
@@ -163,7 +168,7 @@ export interface NotificationSource {
   enabled: boolean;
 }
 
-export default interface Notification {
+export interface Notification {
   userID: string;
   timestamp: Date;
   channel: string;
@@ -172,5 +177,4 @@ export default interface Notification {
   data: any;
   chargeBoxID: string;
 }
-
 

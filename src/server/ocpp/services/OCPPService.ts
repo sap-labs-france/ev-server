@@ -387,14 +387,10 @@ export default class OCPPService {
         chargingStation,
         {
           'chargeBoxID': chargingStation.id,
-          'connectorId': statusNotification.connectorId,
+          'connectorId': Utils.getConnectorLetterFromConnectorID(statusNotification.connectorId),
           'error': `${statusNotification.status} - ${statusNotification.errorCode} - ${(statusNotification.info ? statusNotification.info : 'N/A')}`,
           'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain),
           'evseDashboardChargingStationURL': await Utils.buildEvseChargingStationURL(tenantID, chargingStation, '#inerror')
-        },
-        {
-          'connectorId': statusNotification.connectorId,
-          'error': `${statusNotification.status} - ${statusNotification.errorCode} - ${statusNotification.info}`,
         }
       );
     }
@@ -776,7 +772,7 @@ export default class OCPPService {
         'user': transaction.user,
         'transactionId': transaction.id,
         'chargeBoxID': chargingStation.id,
-        'connectorId': transaction.connectorId,
+        'connectorId': Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
         'totalConsumption': (transaction.currentTotalConsumption / 1000).toLocaleString(
           (transaction.user.locale ? transaction.user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
           { minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2 }),
@@ -784,8 +780,7 @@ export default class OCPPService {
         'totalDuration': this._buildCurrentTransactionDuration(transaction),
         'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#inprogress'),
         'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
-      },
-      transaction.user.locale
+      }
     );
   }
 
@@ -800,15 +795,14 @@ export default class OCPPService {
         'user': transaction.user,
         'chargeBoxID': chargingStation.id,
         'transactionId': transaction.id,
-        'connectorId': transaction.connectorId,
+        'connectorId': Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
         'totalConsumption': (transaction.currentTotalConsumption / 1000).toLocaleString(
           (transaction.user.locale ? transaction.user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
           { minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2 }),
         'stateOfCharge': transaction.currentStateOfCharge,
         'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#inprogress'),
         'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
-      },
-      transaction.user.locale
+      }
     );
   }
 
@@ -819,7 +813,7 @@ export default class OCPPService {
       if (transaction.numberOfMeterValues > 1 && transaction.currentTotalConsumption > 0) {
         // End of charge?
         if (_configChargingStation.notifEndOfChargeEnabled &&
-          (transaction.currentTotalInactivitySecs > 120 || transaction.currentStateOfCharge === 100)) {
+          (transaction.currentTotalInactivitySecs > 60 || transaction.currentStateOfCharge === 100)) {
           // Notify User?
           if (transaction.user) {
             // Send Notification
@@ -1250,12 +1244,11 @@ export default class OCPPService {
         'user': user,
         'transactionId': transaction.id,
         'chargeBoxID': chargingStation.id,
-        'connectorId': transaction.connectorId,
+        'connectorId': Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
         'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain),
         'evseDashboardChargingStationURL':
           await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#inprogress')
-      },
-      user.locale
+      }
     );
   }
 
@@ -1483,7 +1476,7 @@ export default class OCPPService {
           'alternateUser': (alternateUser ? alternateUser : null),
           'transactionId': transaction.id,
           'chargeBoxID': chargingStation.id,
-          'connectorId': transaction.connectorId,
+          'connectorId': Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
           'totalConsumption': (transaction.stop.totalConsumption / 1000).toLocaleString(
             (user.locale ? user.locale.replace('_', '-') : Constants.DEFAULT_LOCALE.replace('_', '-')),
             { minimumIntegerDigits: 1, minimumFractionDigits: 0, maximumFractionDigits: 2 }),
@@ -1492,8 +1485,7 @@ export default class OCPPService {
           'stateOfCharge': transaction.stop.stateOfCharge,
           'evseDashboardChargingStationURL': await Utils.buildEvseTransactionURL(tenantID, chargingStation, transaction.id, '#history'),
           'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
-        },
-        user.locale
+        }
       );
       if (transaction.stop.signedData !== '') {
         // Send Notification (Async)
@@ -1507,7 +1499,7 @@ export default class OCPPService {
             'alternateUser': (alternateUser ? alternateUser : null),
             'transactionId': transaction.id,
             'chargeBoxID': chargingStation.id,
-            'connectorId': transaction.connectorId,
+            'connectorId': Utils.getConnectorLetterFromConnectorID(transaction.connectorId),
             'tagId': transaction.tagID,
             'startDate': transaction.timestamp.toLocaleString('de-DE'),
             'endDate': transaction.stop.timestamp.toLocaleString('de-DE'),
@@ -1525,8 +1517,7 @@ export default class OCPPService {
             'startSignedData': transaction.signedData,
             'endSignedData': transaction.stop.signedData,
             'evseDashboardURL': Utils.buildEvseURL((await TenantStorage.getTenant(tenantID)).subdomain)
-          },
-          user.locale
+          }
         );
       }
     }

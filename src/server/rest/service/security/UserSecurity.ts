@@ -149,7 +149,7 @@ export default class UserSecurity {
         filteredUser.phone = user.phone;
         filteredUser.mobile = user.mobile;
         filteredUser.notificationsActive = user.notificationsActive;
-        if(user.notifications) {
+        if (user.notifications) {
           filteredUser.notifications = UserSecurity.filterNotificationsRequest(user.notifications);
         };
         filteredUser.lastLogin = user.lastLogin;
@@ -175,9 +175,9 @@ export default class UserSecurity {
         filteredUser.phone = user.phone;
         filteredUser.mobile = user.mobile;
         filteredUser.notificationsActive = user.notificationsActive;
-        if(user.notifications) {
+        if (user.notifications) {
           filteredUser.notifications = UserSecurity.filterNotificationsRequest(user.notifications);
-        };
+        }
         filteredUser.iNumber = user.iNumber;
         filteredUser.costCenter = user.costCenter;
         filteredUser.tagIDs = user.tagIDs;
@@ -222,7 +222,7 @@ export default class UserSecurity {
     }
     users.result = filteredUsers;
   }
-  
+
   static filterNotificationsRequest(notifications): UserNotifications {
     const filtered: any = {};
     if (notifications) {
