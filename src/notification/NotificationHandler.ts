@@ -520,7 +520,7 @@ export default class NotificationHandler {
             await notificationSource.notificationTask.sendUserInactivityLimitReached(data, user, tenantID);
           }
         } catch (error) {
-          Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_TRANSACTION_STARTED, error);
+          Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_USER_INACTIVITY_LIMIT, error);
         }
       }
     }
