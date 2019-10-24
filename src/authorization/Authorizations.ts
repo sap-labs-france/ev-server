@@ -290,7 +290,7 @@ export default class Authorizations {
 
   public static canUpdateSite(loggedUser: UserToken, siteID: string): boolean {
     return Authorizations.canPerformAction(loggedUser, Constants.ENTITY_SITE, Constants.ACTION_UPDATE,
-      { 'site': siteID, 'sites': loggedUser.sitesAdmin });
+      { 'site': siteID, 'sitesAdmin': loggedUser.sitesAdmin, 'sitesOwner': loggedUser.sitesOwner });
   }
 
   public static canDeleteSite(loggedUser: UserToken, siteID: string): boolean {

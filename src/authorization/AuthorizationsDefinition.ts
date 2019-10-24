@@ -204,7 +204,7 @@ const GRANTS = {
       { resource: 'User', action: ['Read'], attributes: ['*'] },
       {
         resource: 'Site', action: ['Update'], attributes: ['*'],
-        condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
+        condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } }
       },
       {
         resource: 'SiteArea', action: ['Create', 'Update', 'Delete'], attributes: ['*'],
@@ -237,9 +237,11 @@ const GRANTS = {
       'basic': {}
     },
     grants: [
+      { resource: 'Users', action: 'List', attributes: ['*'] },
+      { resource: 'User', action: ['Read'], attributes: ['*'] },
       {
         resource: 'Site', action: ['Update'], attributes: ['*'],
-        condition: { Fn: 'LIST_CONTAINS', args: { 'sites': '$.site' } }
+        condition: { Fn: 'LIST_CONTAINS', args: { 'sitesOwner': '$.site' } }
       },
       {
         resource: 'Transaction', action: ['Read', 'RefundTransaction'], attributes: ['*'],
