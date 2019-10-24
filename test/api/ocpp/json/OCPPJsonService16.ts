@@ -163,7 +163,7 @@ export default class OCPPJsonService16 extends OCPPService {
     // Send
     const t0 = performance.now();
     this._wsSessions.get(chargeBoxIdentity).connection.send(JSON.stringify(message), {}, (error?: Error) => {
-      console.log('sending error: ' + JSON.stringify(error));
+      console.log(`Sending error to '${chargeBoxIdentity}', error '${JSON.stringify(error)}', message: '${JSON.stringify(message)}'`);
     });
     if (message[0] === OCPP_JSON_CALL_MESSAGE) {
       // Return a promise

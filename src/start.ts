@@ -14,7 +14,7 @@ import ODataServer from './server/odata/ODataServer';
 import SchedulerManager from './scheduler/SchedulerManager';
 import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer';
 import Utils from './utils/Utils';
-import i18n from 'i18n-js';
+import I18nManager from './utils/I18nManager';
 
 const MODULE_NAME = 'Bootstrap';
 export default class Bootstrap {
@@ -56,7 +56,7 @@ export default class Bootstrap {
       global.tenantHashMapIDs = new Map<string, string>();
 
       // Setup i18n
-      await Bootstrap.configurei18n();
+      await I18nManager.initialize();
 
       // Start the connection to the Database
       if (!Bootstrap.databaseDone) {
@@ -216,19 +216,6 @@ export default class Bootstrap {
         message: `Unexpected exception ${cluster.isWorker ? 'in worker ' + cluster.worker.id : 'in master'}: ${error.toString()}`
       });
     }
-  }
-
-  private static async configurei18n() {
-    // Get languages
-    const enJsonLanguage = await import(`${global.appRoot}/assets/i18n/en.json`);
-    const frJsonLanguage = await import(`${global.appRoot}/assets/i18n/fr.json`);
-
-    // Set tranlation files
-    i18n.translations['en'] = enJsonLanguage;
-    i18n.translations['fr'] = frJsonLanguage;
-
-    // Default
-    i18n.locale = 'en';
   }
 
   private static async startServersListening(): Promise<void> {
