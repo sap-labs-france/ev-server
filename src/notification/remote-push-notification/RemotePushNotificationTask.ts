@@ -5,8 +5,8 @@ import * as admin from 'firebase-admin';
 import User from '../../types/User';
 import Logging from '../../utils/Logging';
 import Constants from '../../utils/Constants';
-import i18n from 'i18n';
 import Utils from '../../utils/Utils';
+import i18n from "i18n-js";
 
 export default class RemotePushNotificationTask implements NotificationTask {
   private firebaseConfig = Configuration.getFirebaseConfig();
@@ -50,11 +50,11 @@ export default class RemotePushNotificationTask implements NotificationTask {
 
   sendOptimalChargeReached(data: OptimalChargeReachedNotification, user: User, tenantID: string): Promise<void> {
     // Set the locale
-    i18n.setLocale(Utils.getLocaleWith2Digits(user.locale));
+    i18n.locale = Utils.getLocaleWith2Digits(user.locale);
     // Get Message Text
-    const title = i18n.__('notifications.optimalChargeReached.title',
+    const title = i18n.t('notifications.optimalChargeReached.title',
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
-    const body = i18n.__('notifications.optimalChargeReached.body',
+    const body = i18n.t('notifications.optimalChargeReached.body',
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenantID, title, body, user, {
@@ -66,11 +66,11 @@ export default class RemotePushNotificationTask implements NotificationTask {
 
   sendEndOfCharge(data: EndOfChargeNotification, user: User, tenantID: string): Promise<void> {
     // Set the locale
-    i18n.setLocale(Utils.getLocaleWith2Digits(user.locale));
+    i18n.locale = Utils.getLocaleWith2Digits(user.locale);
     // Get Message Text
-    const title = i18n.__('notifications.endOfCharge.title',
+    const title = i18n.t('notifications.endOfCharge.title',
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
-    const body = i18n.__('notifications.endOfCharge.body',
+    const body = i18n.t('notifications.endOfCharge.body',
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenantID, title, body, user, {
@@ -82,11 +82,11 @@ export default class RemotePushNotificationTask implements NotificationTask {
 
   sendEndOfSession(data: EndOfSessionNotification, user: User, tenantID: string): Promise<void> {
     // Set the locale
-    i18n.setLocale(Utils.getLocaleWith2Digits(user.locale));
+    i18n.locale = Utils.getLocaleWith2Digits(user.locale);
     // Get Message Text
-    const title = i18n.__('notifications.endOfSession.title',
+    const title = i18n.t('notifications.endOfSession.title',
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
-    const body = i18n.__('notifications.endOfSession.body',
+    const body = i18n.t('notifications.endOfSession.body',
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenantID, title, body, user, {
@@ -103,11 +103,11 @@ export default class RemotePushNotificationTask implements NotificationTask {
 
   sendChargingStationStatusError(data: ChargingStationStatusErrorNotification, user: User, tenantID: string): Promise<void> {
     // Set the locale
-    i18n.setLocale(Utils.getLocaleWith2Digits(user.locale));
+    i18n.locale = Utils.getLocaleWith2Digits(user.locale);
     // Get Message Text
-    const title = i18n.__('notifications.chargingStationStatusError.title',
+    const title = i18n.t('notifications.chargingStationStatusError.title',
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId, error: data.error });
-    const body = i18n.__('notifications.chargingStationStatusError.body',
+    const body = i18n.t('notifications.chargingStationStatusError.body',
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId, error: data.error });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenantID, title, body, user, {
@@ -118,10 +118,10 @@ export default class RemotePushNotificationTask implements NotificationTask {
 
   sendChargingStationRegistered(data: ChargingStationRegisteredNotification, user: User, tenantID: string): Promise<void> {
     // Set the locale
-    i18n.setLocale(Utils.getLocaleWith2Digits(user.locale));
+    i18n.locale = Utils.getLocaleWith2Digits(user.locale);
     // Get Message Text
-    const title = i18n.__('notifications.chargingStationRegistered.title', { chargeBoxID: data.chargeBoxID });
-    const body = i18n.__('notifications.chargingStationRegistered.body', { chargeBoxID: data.chargeBoxID });
+    const title = i18n.t('notifications.chargingStationRegistered.title', { chargeBoxID: data.chargeBoxID });
+    const body = i18n.t('notifications.chargingStationRegistered.body', { chargeBoxID: data.chargeBoxID });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenantID, title, body, user, {
       chargeBoxID: data.chargeBoxID
@@ -130,13 +130,13 @@ export default class RemotePushNotificationTask implements NotificationTask {
 
   sendUserAccountStatusChanged(data: UserAccountStatusChangedNotification, user: User, tenantID: string): Promise<void> {
     // Set the locale
-    i18n.setLocale(Utils.getLocaleWith2Digits(user.locale));
+    i18n.locale = Utils.getLocaleWith2Digits(user.locale);
     const status = user.status === Constants.USER_STATUS_ACTIVE ?
-      i18n.__('notifications.userAccountStatusChanged.activated') :
-      i18n.__('notifications.userAccountStatusChanged.suspended');
+      i18n.t('notifications.userAccountStatusChanged.activated') :
+      i18n.t('notifications.userAccountStatusChanged.suspended');
     // Get Message Text
-    const title = i18n.__('notifications.userAccountStatusChanged.title', { status: Utils.firstLetterInUpperCase(status) });
-    const body = i18n.__('notifications.userAccountStatusChanged.body', { status });
+    const title = i18n.t('notifications.userAccountStatusChanged.title', { status: Utils.firstLetterInUpperCase(status) });
+    const body = i18n.t('notifications.userAccountStatusChanged.body', { status });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenantID, title, body, user, {
       userID: user.id
@@ -145,10 +145,10 @@ export default class RemotePushNotificationTask implements NotificationTask {
 
   sendUnknownUserBadged(data: UnknownUserBadgedNotification, user: User, tenantID: string): Promise<void> {
     // Set the locale
-    i18n.setLocale(Utils.getLocaleWith2Digits(user.locale));
+    i18n.locale = Utils.getLocaleWith2Digits(user.locale);
     // Get Message Text
-    const title = i18n.__('notifications.unknownUserBadged.title');
-    const body = i18n.__('notifications.unknownUserBadged.body', { chargeBoxID: data.chargeBoxID, badgeID: data.badgeID });
+    const title = i18n.t('notifications.unknownUserBadged.title');
+    const body = i18n.t('notifications.unknownUserBadged.body', { chargeBoxID: data.chargeBoxID, badgeID: data.badgeID });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenantID, title, body, user, {
       chargeBoxID: data.chargeBoxID,
@@ -158,10 +158,10 @@ export default class RemotePushNotificationTask implements NotificationTask {
 
   sendSessionStarted(data: TransactionStartedNotification, user: User, tenantID: string): Promise<void> {
     // Set the locale
-    i18n.setLocale(Utils.getLocaleWith2Digits(user.locale));
+    i18n.locale = Utils.getLocaleWith2Digits(user.locale);
     // Get Message Text
-    const title = i18n.__('notifications.sessionStarted.title');
-    const body = i18n.__('notifications.sessionStarted.body', { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
+    const title = i18n.t('notifications.sessionStarted.title');
+    const body = i18n.t('notifications.sessionStarted.body', { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenantID, title, body, user, {
       'transactionId': data.transactionId + '',
@@ -178,20 +178,20 @@ export default class RemotePushNotificationTask implements NotificationTask {
 
   sendSmtpAuthError(data: SmtpAuthErrorNotification, user: User, tenantID: string): Promise<void> {
     // Set the locale
-    i18n.setLocale(Utils.getLocaleWith2Digits(user.locale));
+    i18n.locale = Utils.getLocaleWith2Digits(user.locale);
     // Get Message Text
-    const title = i18n.__('notifications.smtpAuthError.title');
-    const body = i18n.__('notifications.smtpAuthError.body');
+    const title = i18n.t('notifications.smtpAuthError.title');
+    const body = i18n.t('notifications.smtpAuthError.body');
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenantID, title, body, user);
   }
 
   sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification, user: User, tenantID: string): Promise<void> {
     // Set the locale
-    i18n.setLocale(Utils.getLocaleWith2Digits(user.locale));
+    i18n.locale = Utils.getLocaleWith2Digits(user.locale);
     // Get Message Text
-    const title = i18n.__('notifications.ocpiPatchChargingStationsStatusesError.title');
-    const body = i18n.__('notifications.ocpiPatchChargingStationsStatusesError.body', { location: data.location });
+    const title = i18n.t('notifications.ocpiPatchChargingStationsStatusesError.title');
+    const body = i18n.t('notifications.ocpiPatchChargingStationsStatusesError.body', { location: data.location });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenantID, title, body, user);
   }
