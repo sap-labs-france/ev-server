@@ -39,14 +39,14 @@ export default class RemotePushNotificationTask implements NotificationTask {
     }
   }
 
-  sendNewRegisteredUser(data: NewRegisteredUserNotification, user: User, tenantID: string): Promise<void> {
+  async sendNewRegisteredUser(data: NewRegisteredUserNotification, user: User, tenantID: string): Promise<void> {
     // Nothing to send
-    return Promise.resolve();
+    return await Promise.resolve();
   }
 
-  sendRequestPassword(data: RequestPasswordNotification, user: User, tenantID: string): Promise<void> {
+  async sendRequestPassword(data: RequestPasswordNotification, user: User, tenantID: string): Promise<void> {
     // Nothing to send
-    return Promise.resolve();
+    return await Promise.resolve();
   }
 
   sendOptimalChargeReached(data: OptimalChargeReachedNotification, user: User, tenantID: string): Promise<void> {
