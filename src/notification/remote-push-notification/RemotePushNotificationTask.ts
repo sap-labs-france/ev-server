@@ -6,7 +6,7 @@ import User from '../../types/User';
 import Logging from '../../utils/Logging';
 import Constants from '../../utils/Constants';
 import Utils from '../../utils/Utils';
-import i18n from "i18n-js";
+import i18n from 'i18n-js';
 
 export default class RemotePushNotificationTask implements NotificationTask {
   private firebaseConfig = Configuration.getFirebaseConfig();

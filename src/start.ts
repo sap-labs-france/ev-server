@@ -14,7 +14,7 @@ import ODataServer from './server/odata/ODataServer';
 import SchedulerManager from './scheduler/SchedulerManager';
 import SoapCentralSystemServer from './server/ocpp/soap/SoapCentralSystemServer';
 import Utils from './utils/Utils';
-import i18n from "i18n-js";
+import i18n from 'i18n-js';
 
 const MODULE_NAME = 'Bootstrap';
 export default class Bootstrap {
@@ -222,7 +222,7 @@ export default class Bootstrap {
     // Get languages
     const enJsonLanguage = await import(`${global.appRoot}/assets/i18n/en.json`);
     const frJsonLanguage = await import(`${global.appRoot}/assets/i18n/fr.json`);
-    
+
     // Set tranlation files
     i18n.translations['en'] = enJsonLanguage;
     i18n.translations['fr'] = frJsonLanguage;
