@@ -55,9 +55,6 @@ export default class Bootstrap {
       global.userHashMapIDs = new Map<string, string>();
       global.tenantHashMapIDs = new Map<string, string>();
 
-      // Setup i18n
-      await I18nManager.initialize();
-
       // Start the connection to the Database
       if (!Bootstrap.databaseDone) {
         // Check database implementation
@@ -224,6 +221,8 @@ export default class Bootstrap {
       // REST Server (Front-End)
       // -------------------------------------------------------------------------
       if (Bootstrap.centralSystemRestConfig) {
+        // Setup i18n
+        await I18nManager.initialize();
         // Create the server
         if (!Bootstrap.centralRestServer) {
           Bootstrap.centralRestServer = new CentralRestServer(Bootstrap.centralSystemRestConfig, Bootstrap.chargingStationConfig);
