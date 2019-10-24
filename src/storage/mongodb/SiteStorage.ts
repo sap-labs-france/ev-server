@@ -172,14 +172,17 @@ export default class SiteStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const siteUsersMDB = await global.database.getCollection<{user: User; siteID: string; siteAdmin: boolean}>(tenantID, 'siteusers')
+    const siteUsersMDB = await global.database.getCollection<{user: User; siteID: string; siteAdmin: boolean; siteOwner: boolean}>(tenantID, 'siteusers')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     const users: UserSite[] = [];
     // Convert to typed object
     for (const siteUserMDB of siteUsersMDB) {
       if (siteUserMDB.user) {
-        users.push({ user: siteUserMDB.user, siteAdmin: !siteUserMDB.siteAdmin ? false : siteUserMDB.siteAdmin, siteID: params.siteID });
+        users.push({ user: siteUserMDB.user, siteID: params.siteID,
+          siteAdmin: !siteUserMDB.siteAdmin ? false : siteUserMDB.siteAdmin,
+          siteOwner: !siteUserMDB.siteOwner ? false : siteUserMDB.siteOwner
+        });
       }
     }
     // Debug
@@ -190,6 +193,29 @@ export default class SiteStorage {
         (usersCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : usersCountMDB[0].count) : 0),
       result: users
     };
+  }
+
+  public static async updateSiteOwner(tenantID: string, siteID: string, userID: string): Promise<void> {
+    const uniqueTimerID = Logging.traceStart('SiteStorage', 'updateSiteOwner');
+    await Utils.checkTenant(tenantID);
+
+    await global.database.getCollection<any>(tenantID, 'siteusers').updateMany(
+      {
+        siteID: Utils.convertToObjectID(siteID),
+        siteOwner: true
+      },
+      {
+        $set: { siteOwner: false }
+      });
+    await global.database.getCollection<any>(tenantID, 'siteusers').updateOne(
+      {
+        siteID: Utils.convertToObjectID(siteID),
+        userID: Utils.convertToObjectID(userID)
+      },
+      {
+        $set: { siteOwner: true }
+      });
+    Logging.traceEnd('SiteStorage', 'updateSiteOwner', uniqueTimerID, { siteID, userID });
   }
 
   public static async updateSiteUserAdmin(tenantID: string, siteID: string, userID: string, siteAdmin: boolean): Promise<void> {
@@ -204,7 +230,7 @@ export default class SiteStorage {
       {
         $set: { siteAdmin }
       });
-    Logging.traceEnd('SiteStorage', 'updateSiupdateSiteUserAdminteUserRole', uniqueTimerID, { siteID, userID, siteAdmin });
+    Logging.traceEnd('SiteStorage', 'updateSiteUserAdmin', uniqueTimerID, { siteID, userID, siteAdmin });
   }
 
   public static async saveSite(tenantID: string, siteToSave: Site, saveImage = true): Promise<string> {

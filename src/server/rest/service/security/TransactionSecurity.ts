@@ -93,14 +93,13 @@ export default class TransactionSecurity {
     return filteredRequest;
   }
 
-  static filterTransactionResponse(transaction: Transaction, loggedUser: UserToken, toRefund = false) {
+  static filterTransactionResponse(transaction: Transaction, loggedUser: UserToken) {
     let filteredTransaction;
     if (!transaction) {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadTransaction(loggedUser, transaction) &&
-      (!toRefund || Authorizations.canRefundTransaction(loggedUser, transaction))) {
+    if (Authorizations.canReadTransaction(loggedUser, transaction)) {
       // Set only necessary info
       filteredTransaction = {} as Transaction;
       filteredTransaction.id = transaction.id;
@@ -125,7 +124,7 @@ export default class TransactionSecurity {
         filteredTransaction.currentConsumption = transaction.currentConsumption;
         filteredTransaction.currentTotalConsumption = transaction.currentTotalConsumption;
         filteredTransaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs;
-        filteredTransaction.currentInactivityStatusLevel = 
+        filteredTransaction.currentInactivityStatusLevel =
           Utils.getInactivityStatusLevel(transaction.chargeBox, transaction.connectorId, transaction.currentTotalInactivitySecs);
         filteredTransaction.currentTotalDurationSecs =
           moment.duration(moment(!transaction.stop ? transaction.lastMeterValue.timestamp : transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
@@ -158,7 +157,7 @@ export default class TransactionSecurity {
         filteredTransaction.stop.timestamp = transaction.stop.timestamp;
         filteredTransaction.stop.totalConsumption = transaction.stop.totalConsumption;
         filteredTransaction.stop.totalInactivitySecs = transaction.stop.totalInactivitySecs + transaction.stop.extraInactivitySecs;
-        filteredTransaction.stop.inactivityStatusLevel = 
+        filteredTransaction.stop.inactivityStatusLevel =
           Utils.getInactivityStatusLevel(transaction.chargeBox, transaction.connectorId,
             filteredTransaction.stop.totalInactivitySecs + (filteredTransaction.stop.extraInactivitySecs ? filteredTransaction.stop.extraInactivitySecs : 0));
         filteredTransaction.stop.totalDurationSecs = transaction.stop.totalDurationSecs;
@@ -188,14 +187,14 @@ export default class TransactionSecurity {
     return filteredTransaction;
   }
 
-  static filterTransactionsResponse(transactions: DataResult<Transaction>, loggedUser: UserToken, toRefund = false) {
+  static filterTransactionsResponse(transactions: DataResult<Transaction>, loggedUser: UserToken) {
     const filteredTransactions = [];
     if (!transactions.result) {
       return null;
     }
     // Filter result
     for (const transaction of transactions.result) {
-      const filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser, toRefund);
+      const filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser);
       if (filteredTransaction) {
         filteredTransactions.push(filteredTransaction);
       }

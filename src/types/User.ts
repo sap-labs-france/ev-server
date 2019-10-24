@@ -42,4 +42,5 @@ export interface UserSite {
   user: User;
   siteID: string;
   siteAdmin: boolean;
+  siteOwner: boolean;
 }

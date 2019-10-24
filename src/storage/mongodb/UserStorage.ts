@@ -848,7 +848,7 @@ export default class UserStorage {
   }
 
   public static async getSites(tenantID: string,
-    params: { search?: string; userID: string; siteAdmin?: boolean },
+    params: { search?: string; userID: string; siteAdmin?: boolean; siteOwner?: boolean },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<SiteUser>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'getSites');
@@ -866,6 +866,9 @@ export default class UserStorage {
     }
     if (params.siteAdmin) {
       filters.siteAdmin = params.siteAdmin;
+    }
+    if (params.siteOwner) {
+      filters.siteOwner = params.siteOwner;
     }
     // Create Aggregation
     const aggregation: any[] = [];
@@ -931,14 +934,14 @@ export default class UserStorage {
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const siteUsersMDB = await global.database.getCollection<{ userID: string; siteID: string; siteAdmin: boolean; site: Site }>(tenantID, 'siteusers')
+    const siteUsersMDB = await global.database.getCollection<{ userID: string; siteID: string; siteAdmin: boolean; siteOwner: boolean; site: Site }>(tenantID, 'siteusers')
       .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Create
     const sites: SiteUser[] = [];
     for (const siteUserMDB of siteUsersMDB) {
       if (siteUserMDB.site) {
-        sites.push({ siteAdmin: siteUserMDB.siteAdmin, userID: siteUserMDB.userID, site: siteUserMDB.site });
+        sites.push({ siteAdmin: siteUserMDB.siteAdmin, siteOwner: siteUserMDB.siteOwner, userID: siteUserMDB.userID, site: siteUserMDB.site });
       }
     }
     // Debug
