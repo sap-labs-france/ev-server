@@ -7,10 +7,11 @@ import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';
 import OCPIEndpoint from '../../types/OCPIEndpoint';
+import { Subtasks } from '../../types/configuration/SchedulerConfiguration';
 
 export default class OCPIPatchLocationsTask extends SchedulerTask {
 
-  async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
+  async processTenant(tenant: Tenant, config: TaskConfig, subtasks: Subtasks[]): Promise<void> {
     try {
       // Check if OCPI component is active
       if (!Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.OCPI)) {

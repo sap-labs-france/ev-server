@@ -11,4 +11,10 @@ interface SchedulerTask {
     retentionPeriodWeeks: number;
     securityRetentionPeriodWeeks: number;
   };
+  subtasks: Subtasks[];
+}
+
+export interface Subtasks {
+  name: string;
+  active: boolean;
 }

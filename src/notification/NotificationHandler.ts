@@ -525,16 +525,22 @@ export default class NotificationHandler {
       }
     }
   }
-  static async sendForgetChargeNotification(tenantID: string, notificationID: string, user: User, data: ForgetChargeNotification, locale: string): Promise<void> {
+
+  static async sendForgetChargeNotification(tenantID: string, notificationID: string, user: User, data: ForgetChargeNotification): Promise<void> {
     // For each Sources
     for (const notificationSource of NotificationHandler.notificationSources) {
       // Active?
       if (notificationSource.enabled) {
         try {
           // Check notification
-          await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_FORGET_CHARGE, user);
-          // Send
-          await notificationSource.notificationTask.sendForgetCharge(data, locale, tenantID);
+          const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
+            tenantID, notificationSource.channel, Constants.SOURCE_FORGET_CHARGE,
+            notificationID, { intervalMins: 15, intervalKey: null });
+          if (!hasBeenNotified) {
+            await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_FORGET_CHARGE, user);
+            // Send
+            await notificationSource.notificationTask.sendForgetCharge(data, user, tenantID);
+          }
         } catch (error) {
           Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_FORGET_CHARGE, error);
         }

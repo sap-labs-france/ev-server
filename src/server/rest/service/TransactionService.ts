@@ -39,7 +39,7 @@ export default class TransactionService {
 
       const tenant = await TenantStorage.getTenant(req.user.tenantID);
       const task = new SynchronizeRefundTransactionsTask();
-      await task.processTenant(tenant, null);
+      await task.processTenant(tenant, null, null);
 
       const response: any = {
         ...Constants.REST_RESPONSE_SUCCESS,

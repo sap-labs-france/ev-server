@@ -3,11 +3,10 @@ import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
 import LoggingDatabaseTableCleanupTask from './tasks/LoggingDatabaseTableCleanupTask';
-import NotifyUsersInactiveSinceTask from './tasks/NotifyUsersInactiveSinceTask';
 import OCPIPatchLocationsTask from './tasks/OCPIPatchLocationsTask';
 import SchedulerTask from './SchedulerTask';
 import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
-import DetectForgetChargeTask from './tasks/DetectForgetChargeTask';
+import PeriodicNotificationsTask from './tasks/PeriodicNotificationsTask';
 
 export default class SchedulerManager {
   private static schedulerConfig = Configuration.getSchedulerConfig();
@@ -40,13 +39,9 @@ export default class SchedulerManager {
           case 'LoggingDatabaseTableCleanupTask':
             schedulerTask = new LoggingDatabaseTableCleanupTask();
             break;
-          case 'NotifyUsersInactiveSinceTask':
-            // The task runs once a month
-            schedulerTask = new NotifyUsersInactiveSinceTask();
-            break;
-          case 'DetectForgetChargeTask':
+          case 'PeriodicNotificationsTask':
             // The task runs every five minutes
-            schedulerTask = new DetectForgetChargeTask();
+            schedulerTask = new PeriodicNotificationsTask();
             break;
           case 'OCPIPatchLocationsTask':
             schedulerTask = new OCPIPatchLocationsTask();
@@ -63,7 +58,7 @@ export default class SchedulerManager {
             });
         }
         if (schedulerTask) {
-          cron.schedule(task.periodicity, async (): Promise<void> => await schedulerTask.run(task.name, task.config));
+          cron.schedule(task.periodicity, async (): Promise<void> => await schedulerTask.run(task.name, task.config, task.subtasks));
           Logging.logInfo({
             tenantID: Constants.DEFAULT_TENANT,
             module: 'Scheduler', method: 'init',

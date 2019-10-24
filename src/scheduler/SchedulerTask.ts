@@ -4,9 +4,10 @@ import Logging from '../utils/Logging';
 import { TaskConfig } from './TaskConfig';
 import Tenant from '../types/Tenant';
 import TenantStorage from '../storage/mongodb/TenantStorage';
+import { Subtasks } from '../types/configuration/SchedulerConfiguration';
 
 export default abstract class SchedulerTask {
-  async run(name: string, config: TaskConfig): Promise<void> {
+  async run(name: string, config: TaskConfig, subtasks: Subtasks[]): Promise<void> {
     const startMigrationTime = moment();
     Logging.logInfo({
       tenantID: Constants.DEFAULT_TENANT,
@@ -26,7 +27,7 @@ export default abstract class SchedulerTask {
         message: `The task '${name}' is running...`
       });
       // Process
-      await this.processTenant(tenant, config);
+      await this.processTenant(tenant, config, subtasks);
       // Log Total Processing Time in Tenant
       const totalMigrationTimeSecsInTenant = moment.duration(moment().diff(startMigrationTimeInTenant)).asSeconds();
       Logging.logInfo({
@@ -46,5 +47,5 @@ export default abstract class SchedulerTask {
     });
   }
 
-  abstract async processTenant(tenant: Tenant, config: TaskConfig): Promise<void>;
+  abstract async processTenant(tenant: Tenant, config: TaskConfig, subtasks: Subtasks[]): Promise<void>;
 }

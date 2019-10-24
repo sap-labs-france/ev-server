@@ -4,9 +4,10 @@ import LoggingStorage from '../../storage/mongodb/LoggingStorage';
 import SchedulerTask from '../SchedulerTask';
 import { TaskConfig } from '../TaskConfig';
 import Tenant from '../../types/Tenant';
+import { Subtasks } from '../../types/configuration/SchedulerConfiguration';
 
 export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
-  async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
+  async processTenant(tenant: Tenant, config: TaskConfig, subtasks: Subtasks[]): Promise<void> {
     try {
       Logging.logInfo({
         tenantID: tenant.id,
