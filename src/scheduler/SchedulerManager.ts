@@ -7,6 +7,7 @@ import OCPIPatchLocationsTask from './tasks/OCPIPatchLocationsTask';
 import SchedulerTask from './SchedulerTask';
 import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
 import PeriodicNotificationsTask from './tasks/PeriodicNotificationsTask';
+import CheckUsersInactivityTask from './tasks/CheckUsersInactivityTask';
 
 export default class SchedulerManager {
   private static schedulerConfig = Configuration.getSchedulerConfig();
@@ -38,6 +39,9 @@ export default class SchedulerManager {
         switch (task.name) {
           case 'LoggingDatabaseTableCleanupTask':
             schedulerTask = new LoggingDatabaseTableCleanupTask();
+            break;
+          case 'CheckUsersInactivityTask':
+            schedulerTask = new CheckUsersInactivityTask();
             break;
           case 'PeriodicNotificationsTask':
             // The task runs every five minutes

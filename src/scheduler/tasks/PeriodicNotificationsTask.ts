@@ -9,9 +9,8 @@ import Utils from '../../utils/Utils';
 import UserStorage from '../../storage/mongodb/UserStorage';
 import _ from 'lodash';
 import { Subtasks } from '../../types/configuration/SchedulerConfiguration';
-
-const PREPARING_LIMIT = 15; // Threshold of nbr of minutes with status in preparing
-const INACTIVITY_LIMIT = 5; // Threshold of nbr of months with no login
+import Constants from '../../utils/Constants';
+import ChargingStation from '../../types/ChargingStation';
 
 export default class PeriodicNotificationsTask extends SchedulerTask {
 
@@ -19,16 +18,16 @@ export default class PeriodicNotificationsTask extends SchedulerTask {
     try {
       Logging.logInfo({
         tenantID: tenant.id,
-        module: 'NotificationsTask',
-        method: 'run', action: 'NotificationsTask',
-        message: 'The task \'NotificationsTask\' is being run'
+        module: 'PeriodicNotificationsTask',
+        method: 'run', action: 'PeriodicNotificationsTask',
+        message: 'The task \'PeriodicNotificationsTask\' is being run'
       });
       for(const subtask of subtasks) {
         // Check active
         if(subtask.active){
           switch (subtask.name) {
-            case 'CheckUsersInactivityTask':
-              this.checkUsersInactivity(tenant);
+            case 'CheckChargingStationsHeartbeatsTask':
+              this.checkChargingStationsHeartbeats(tenant);
               break;
             case 'DetectForgetChargeTask':
               this.detectForgetCharge(tenant);
@@ -58,7 +57,7 @@ export default class PeriodicNotificationsTask extends SchedulerTask {
         message: 'The subtask \'DetectForgetChargeTask\' is being run'
       });
       // Compute the date some minutes ago
-      const someMinutesAgo = moment().subtract(PREPARING_LIMIT, 'minutes').toDate().toISOString();
+      const someMinutesAgo = moment().subtract(Constants.TASK_PREPARING_THRESHOLD, 'minutes').toDate().toISOString();
       const params= { 'since': someMinutesAgo };
       const chargers:any = await ChargingStationStorage.getChargingStationsPreparingSince(tenant.id, params);
       for(const charger of chargers){
@@ -86,36 +85,33 @@ export default class PeriodicNotificationsTask extends SchedulerTask {
     }
   }
 
-  async checkUsersInactivity(tenant: Tenant): Promise<void> {
+  async checkChargingStationsHeartbeats(tenant: Tenant): Promise<void> {
     try {
       Logging.logInfo({
         tenantID: tenant.id,
-        module: 'CheckUsersInactivityTask',
-        method: 'run', action: 'InactiveUsersNotification',
-        message: 'The subtask \'CheckUsersInactivityTask\' is being run'
+        module: 'CheckChargingStationsHeartbeatsTask',
+        method: 'run', action: 'checkChargingStationsHeartbeats',
+        message: 'The subtask \'CheckChargingStationsHeartbeatsTask\' is being run'
       });
-      // Compute the date some months ago
-      const someMonthsAgo = moment().subtract(INACTIVITY_LIMIT, 'months').toDate().toISOString();
-      const params= { 'statuses': ['A'], 'noLoginSince': someMonthsAgo };
-      const users = await UserStorage.getUsersInactiveSince(tenant.id, params);
-      for(const user of users){
-        // Notification 
-        moment.locale(user.locale);
-        const notificationId = user.id + new Date().toString();
-        NotificationHandler.sendUserInactivityLimitReached(
+      // Compute the date some minutes ago
+      const someMinutesAgo = moment().subtract(Constants.TASK_HEARTBEAT_THRESHOLD, 'minutes').toDate().toISOString();
+      const params= { 'since': someMinutesAgo };
+      const chargers:ChargingStation[] = await ChargingStationStorage.getChargingStationsNoHeartbeatSince(tenant.id, params);
+      for(const charger of chargers){
+        // send notification
+        NotificationHandler.sendNoHeartbeat(
           tenant.id,
-          notificationId,
-          user,
+          charger,
           {
-            'user': user,
-            'lastLogin': moment(user.lastLogin).format('LL'),
+            'chargingStation': charger.id,
+            'lastHeartbeat': charger.lastHeartBeat,
             'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain)
           }
         );
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, 'CheckUsersInactivityTask', error);
+      Logging.logActionExceptionMessage(tenant.id, 'CheckChargingStationsHeartbeatsTask', error);
     }
   }
 }

@@ -215,6 +215,39 @@ export default class ChargingStationStorage {
     return chargingStations;
   }
 
+  public static async getChargingStationsNoHeartbeatSince(tenantID: string, params: { since: string }): Promise<ChargingStation[]> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStationsNoHeartbeatSince');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Create Aggregation
+    const aggregation = [];
+    // Create filters
+    const filters: any = {$and:[{$or:DatabaseUtils.getNotDeletedFilter()}]};
+    // Filter on inactive false 
+    filters.$and.push({'inactive': false});
+    // Filter on transaction start date
+    if(params.since && moment(params.since).isValid()) {
+      filters.$and.push({'lastHeartBeat':{$lte:new Date(params.since)}});
+    } else {
+      // By default set to 15 minutes ago
+      const fifteenMinutesAgo = moment().subtract(15, 'minutes').toDate().toISOString();
+      filters.$and.push({'lastHeartBeat':{$lte:new Date(fifteenMinutesAgo)}});
+    }
+    // Add in aggregation
+    aggregation.push({$match: filters});
+    // Change ID
+    DatabaseUtils.renameDatabaseID(aggregation);
+    // Read DB
+    const chargingStations = await global.database.getCollection<ChargingStation>(tenantID, 'chargingstations')
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 } })
+      .toArray();
+      // Debug
+    Logging.traceEnd('ChargingStationStorage', 'getChargingStationsNoHeartbeatSince', uniqueTimerID);
+    // Ok
+    return chargingStations;
+  }
+
   public static async getChargingStationsInError(tenantID: string,
     params: { search?: string; siteIDs?: string[]; siteAreaID: string[]; errorType?: string[] },
     dbParams: DbParams): Promise<DataResult<ChargingStation>> {

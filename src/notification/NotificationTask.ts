@@ -1,5 +1,5 @@
 import User from '../types/User';
-import { ForgetChargeNotification, UserInactivityLimitReachedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../types/UserNotifications';
+import { ForgetChargeNotification, UserInactivityLimitReachedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, VerificationEmailNotification, NoHeartbeatNotification } from '../types/UserNotifications';
 
 export default interface NotificationTask {
   sendEndOfCharge(data: EndOfChargeNotification, user: User, tenantID: string): Promise<void>;
@@ -18,4 +18,5 @@ export default interface NotificationTask {
   sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification, user: User, tenantID: string): Promise<void>;
   sendUserInactivityLimitReached(data: UserInactivityLimitReachedNotification, user: User, tenantID: string): Promise<void>;
   sendForgetCharge(data: ForgetChargeNotification, user: User, tenantID: string): Promise<void>;
+  sendNoHeartbeat(data: NoHeartbeatNotification, user: User, tenantID: string): Promise<void>;
 }

@@ -1,0 +1,33 @@
+{
+  "subject": "Pas de pulsation reçue de <%- chargingStation %> depuis au moins 15 minutes",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Pulsation station de recharge",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Chère Administratrice, Cher Administrateur,",
+      "",
+      "Pour information, la station de recharge <%- chargingStation %> n'a pas envoyée de pulsation à l'application e-Mobility depuis plus de 15 minutes.",
+      ""
+    ],
+    "afterActionLines": [
+      "Cordialement,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
+

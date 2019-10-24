@@ -28,7 +28,8 @@ export type UserNotificationKeys =
  'sendOcpiPatchStatusError' |
  "sendSmtpAuthError" |
  "sendUserInactivityLimitReached" |
- "sendForgetCharge"
+ "sendForgetCharge" |
+ "sendNoHeartbeat"
 ;
 
 export type InactivityStatusLevel =
@@ -170,6 +171,12 @@ export interface ForgetChargeNotification extends BaseNotification {
   'user': User;
   'chargingStation': string;
   'startedOn': Date;
+  'evseDashboardURL': string;
+}
+
+export interface NoHeartbeatNotification extends BaseNotification {
+  'chargingStation': string;
+  'lastHeartbeat': Date;
   'evseDashboardURL': string;
 }
 

@@ -1,0 +1,33 @@
+{
+  "subject": "No heartbeat received from <%- chargingStation %> since 15 minutes",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "No heartbeat",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Dear Administrator,",
+      "",
+      "The e-Mobility application has not received any heartbeat from charging station <%- chargingStation %> for the last 15 minutes. Please check the issue.",
+      ""
+    ],
+    "afterActionLines": [
+      "Best Regards,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
+

@@ -2,7 +2,7 @@ import NotificationStorage from '../storage/mongodb/NotificationStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
 import ChargingStation from '../types/ChargingStation';
 import User from '../types/User';
-import UserNotifications, { ForgetChargeNotification, UserInactivityLimitReachedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification } from '../types/UserNotifications';
+import UserNotifications, { ForgetChargeNotification, UserInactivityLimitReachedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification, NoHeartbeatNotification } from '../types/UserNotifications';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
@@ -535,7 +535,7 @@ export default class NotificationHandler {
           // Check notification
           const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
             tenantID, notificationSource.channel, Constants.SOURCE_FORGET_CHARGE,
-            notificationID, { intervalMins: 15, intervalKey: null });
+            notificationID, { intervalMins: 1440, intervalKey: null });
           if (!hasBeenNotified) {
             await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_FORGET_CHARGE, user);
             // Send
@@ -543,6 +543,41 @@ export default class NotificationHandler {
           }
         } catch (error) {
           Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_FORGET_CHARGE, error);
+        }
+      }
+    }
+  }
+
+  static async sendNoHeartbeat(tenantID: string, chargingStation: ChargingStation, sourceData: NoHeartbeatNotification): Promise<void> {
+    // Enrich with admins
+    const adminUsers = await NotificationHandler.getAdminUsers(tenantID);
+    if (adminUsers && adminUsers.length > 0) {
+      // For each Sources
+      for (const notificationSource of NotificationHandler.notificationSources) {
+        // Active?
+        if (notificationSource.enabled) {
+          try {
+            // Compute the id as day and hour so that just one of this email is sent per hour
+            const notificationID = chargingStation.id + new Date().toISOString();
+            // Check notification
+            const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
+              tenantID, notificationSource.channel, Constants.SOURCE_NO_HEARTBEAT,
+              notificationID, { intervalMins: 60, intervalKey: null });
+            // Notified?
+            if (!hasBeenNotified) {
+              // Enabled?
+              if (notificationSource.enabled) {
+                // Save
+                await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_NO_HEARTBEAT, null, chargingStation, null);
+                // Send
+                for (const adminUser of adminUsers) {
+                  await notificationSource.notificationTask.sendNoHeartbeat(sourceData, adminUser, tenantID);
+                }
+              }
+            }
+          } catch (error) {
+            Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_NO_HEARTBEAT, error);
+          }
         }
       }
     }

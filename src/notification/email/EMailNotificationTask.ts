@@ -5,7 +5,7 @@ import BackendError from '../../exception/BackendError';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import global from '../../types/GlobalType';
 import User from '../../types/User';
-import { ForgetChargeNotification, UserInactivityLimitReachedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
+import { ForgetChargeNotification, UserInactivityLimitReachedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, VerificationEmailNotification, NoHeartbeatNotification } from '../../types/UserNotifications';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
@@ -105,6 +105,11 @@ export default class EMailNotificationTask implements NotificationTask {
   sendForgetCharge(data: ForgetChargeNotification, user: User, tenantID: string): Promise<void>  {
     // Send it
     return this.prepareAndSendEmail('forget-charge-email', data, user, tenantID);
+  }
+
+  sendNoHeartbeat(data: NoHeartbeatNotification, user: User, tenantID: string): Promise<void>  {
+    // Send it
+    return this.prepareAndSendEmail('no-heartbeat-email', data, user, tenantID);
   }
 
   private async prepareAndSendEmail(templateName: string, data: any, user: User, tenantID: string, retry = false): Promise<void> {
