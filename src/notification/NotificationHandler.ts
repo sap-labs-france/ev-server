@@ -106,10 +106,10 @@ export default class NotificationHandler {
           channel: channel,
           sourceId: notificationID
         },
-        Constants.DB_PARAMS_COUNT_ONLY);
-        // Return
+        Constants.DB_PARAMS_COUNT_ONLY
+      );
+      // Return
       return notifications.count > 0;
-
     } catch (error) {
       // Log error
       Logging.logActionExceptionMessage(tenantID, 'HasNotification', error);
