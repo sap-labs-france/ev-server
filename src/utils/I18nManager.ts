@@ -6,19 +6,30 @@ import Constants from "./Constants";
 
 export default class I18nManager {
   public static async initialize() {
-    // Get the supported locales
+    // Get the supported locales for moment
     require("moment/locale/fr");
     require("moment/locale/de");
     require("moment/locale/en-gb");
-    // Get languages
-    const enJsonLanguage = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/i18n/en.json`, 'utf8'));
-    const frJsonLanguage = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/i18n/fr.json`, 'utf8'));
-    // Set tranlation files
-    i18n.translations['en'] = enJsonLanguage;
-    i18n.translations['fr'] = frJsonLanguage;
+    // Get translation files
+    i18n.translations['en'] = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/i18n/en.json`, 'utf8'));
+    console.log('====================================');
+    console.log(i18n.translations['en']);
+    console.log('====================================');
+    console.log()
+    i18n.translations['fr'] = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/i18n/fr.json`, 'utf8'));
     // Default
     i18n.locale = Constants.DEFAULT_LANGUAGE;
     moment.locale(Constants.DEFAULT_LANGUAGE);
+
+    // Set the locale
+    I18nManager.switchLocale('en');
+    const title = i18n.t('notifications.endOfSession.title',
+      { chargeBoxID: 'ChargerID', connectorId: 'ConnectorID' });
+    const body = i18n.t('notifications.endOfSession.body',
+      { chargeBoxID: 'ChargerID', connectorId: 'ConnectorID' });
+    console.log('====================================');
+    console.log({title, body});
+    console.log('====================================');
   }
 
   public static switchLocale(locale: string) {
