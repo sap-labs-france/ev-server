@@ -257,7 +257,7 @@ export default class EMailNotificationTask implements NotificationTask {
     return this[!retry ? 'server' : 'serverBackup'].send(messageToSend, (err, messageSent) => {
       if (err) {
         // If authentifcation error in the primary email server then notify admins using the backup server
-        if (!retry && this.serverBackup && err.code === 3 && err.previous.code === 2) {
+        if (!retry && this.serverBackup) {
           NotificationHandler.sendSmtpAuthError(
             tenantID,
             {
