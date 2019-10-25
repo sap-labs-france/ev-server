@@ -18,9 +18,9 @@ export default class I18nManager {
     moment.locale(Constants.DEFAULT_LANGUAGE);
   }
 
-  public static switchLocale(locale: string) {
-    i18n.locale = locale;
-    moment.locale(locale);
+  public static switchLanguage(language: string) {
+    i18n.locale = language;
+    moment.locale(language);
   }
 
   public static formatNumber(value: number, options: ToNumberOptions = { strip_insignificant_zeros: true }): string {
