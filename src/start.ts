@@ -38,6 +38,9 @@ export default class Bootstrap {
 
   public static async start(): Promise<void> {
     try {
+      // Setup i18n
+      await I18nManager.initialize();
+      // Master?
       if (cluster.isMaster) {
         const nodejsEnv = process.env.NODE_ENV || 'development';
         // eslint-disable-next-line no-console
@@ -221,8 +224,6 @@ export default class Bootstrap {
       // REST Server (Front-End)
       // -------------------------------------------------------------------------
       if (Bootstrap.centralSystemRestConfig) {
-        // Setup i18n
-        await I18nManager.initialize();
         // Create the server
         if (!Bootstrap.centralRestServer) {
           Bootstrap.centralRestServer = new CentralRestServer(Bootstrap.centralSystemRestConfig, Bootstrap.chargingStationConfig);

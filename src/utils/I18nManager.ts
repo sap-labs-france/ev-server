@@ -6,16 +6,13 @@ import Constants from './Constants';
 
 export default class I18nManager {
   public static async initialize() {
-    // Get the supported locales
+    // Get the supported locales for moment
     require('moment/locale/fr');
     require('moment/locale/de');
     require('moment/locale/en-gb');
-    // Get languages
-    const enJsonLanguage = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/i18n/en.json`, 'utf8'));
-    const frJsonLanguage = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/i18n/fr.json`, 'utf8'));
-    // Set tranlation files
-    i18n.translations['en'] = enJsonLanguage;
-    i18n.translations['fr'] = frJsonLanguage;
+    // Get translation files
+    i18n.translations['en'] = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/i18n/en.json`, 'utf8'));
+    i18n.translations['fr'] = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/i18n/fr.json`, 'utf8'));
     // Default
     i18n.locale = Constants.DEFAULT_LANGUAGE;
     moment.locale(Constants.DEFAULT_LANGUAGE);
