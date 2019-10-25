@@ -1,5 +1,15 @@
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 
+export enum ComponentType {
+  OCPI = 'ocpi',
+  ORGANIZATION = 'organization',
+  PRICING = 'pricing',
+  BILLING = 'billing',
+  REFUND = 'refund',
+  STATISTICS = 'statistics',
+  ANALYTICS = 'analytics',
+}
+
 export default interface Setting extends CreatedUpdatedProps {
   id?: string;
   identifier: 'pricing' | 'billing' | 'analytics' | 'refund' | 'ocpi';
@@ -16,6 +26,20 @@ export interface SettingContent {
   sac?: AnalyticsSettings;
   links?: AnalyticsLink[];
   concur?: ConcurRefundSettings;
+}
+
+export enum PricingSettingsType {
+  SIMPLE = 'simple',
+  CONVERGENT_CHARGING = 'convergentCharging',
+}
+
+export interface PricingSettings {
+  id?: string;
+  identifier: ComponentType.PRICING;
+  sensitiveData: string[];
+  type: PricingSettingsType;
+  simple: SimplePricingSettings;
+  convergentCharging: ConvergentChargingPricingSettings;
 }
 
 export interface PricingSetting {
