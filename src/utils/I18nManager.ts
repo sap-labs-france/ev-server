@@ -1,6 +1,7 @@
+import fs from 'fs';
 import i18n, { ToCurrencyOptions, ToNumberOptions, ToPercentageOptions } from 'i18n-js';
-import global from '../types/GlobalType';
 import moment from 'moment';
+import global from '../types/GlobalType';
 import Constants from './Constants';
 
 export default class I18nManager {
@@ -10,8 +11,8 @@ export default class I18nManager {
     require('moment/locale/de');
     require('moment/locale/en-gb');
     // Get languages
-    const enJsonLanguage = await import(`${global.appRoot}/assets/i18n/en.json`);
-    const frJsonLanguage = await import(`${global.appRoot}/assets/i18n/fr.json`);
+    const enJsonLanguage = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/i18n/en.json`, 'utf8'));
+    const frJsonLanguage = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/i18n/fr.json`, 'utf8'));
     // Set tranlation files
     i18n.translations['en'] = enJsonLanguage;
     i18n.translations['fr'] = frJsonLanguage;
