@@ -3,6 +3,7 @@ import i18n, { ToCurrencyOptions, ToNumberOptions, ToPercentageOptions } from "i
 import moment from "moment";
 import global from '../types/GlobalType';
 import Constants from "./Constants";
+import Utils from './Utils';
 
 export default class I18nManager {
   public static async initialize() {
@@ -18,21 +19,37 @@ export default class I18nManager {
     moment.locale(Constants.DEFAULT_LANGUAGE);
   }
 
+  public static switchLocale(locale: string) {
+    if (locale) {
+      return I18nManager.switchLanguage(Utils.getLanguageFromLocale(locale));
+    }
+  }
+
   public static switchLanguage(language: string) {
-    i18n.locale = language;
-    moment.locale(language);
+    // Supported languages?
+    if (language && Constants.SUPPORTED_LANGUAGES.includes(language)) {
+      i18n.locale = language;
+      moment.locale(language);
+    }
   }
 
-  public static formatNumber(value: number, options: ToNumberOptions = { strip_insignificant_zeros: true }): string {
-    return i18n.toNumber(value, options);
+  public static formatNumber(value: number): string {
+    return new Intl.NumberFormat(i18n.locale).format(value);
   }
 
-  public static formatCurrency(value: number, options: ToCurrencyOptions = { precision: 0 }): string {
-    return i18n.toCurrency(value, options);
+  public static formatCurrency(value: number, currency?: string): string {
+    // Format Currency
+    if (currency) {
+      return new Intl.NumberFormat(i18n.locale, { style: 'currency', currency }).format(value);
+    }
+    return I18nManager.formatNumber(Math.round(value * 100) / 100);
   }
 
-  public static formatPercentage(value: number, options: ToPercentageOptions = { precision: 0 }): string {
-    return i18n.toPercentage(value, options);
+  public static formatPercentage(value: number): string {
+    if (!isNaN(value)) {
+      return new Intl.NumberFormat(i18n.locale, { style: 'percent' }).format(value);
+    }
+    return '0';
   }
 
   public static formatDateTime(value: Date, format: string = 'LLL') {
