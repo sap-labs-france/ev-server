@@ -4,6 +4,7 @@ import moment from "moment";
 import global from '../types/GlobalType';
 import Constants from "./Constants";
 import Utils from './Utils';
+import Intl from "intl";
 
 export default class I18nManager {
   public static async initialize() {
