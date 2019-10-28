@@ -16,6 +16,8 @@ import UserStorage from '../storage/mongodb/UserStorage';
 import UserToken from '../types/UserToken';
 import Utils from '../utils/Utils';
 import UserNotifications from '../types/UserNotifications';
+import SettingStorage from '../storage/mongodb/SettingStorage';
+import { PricingSettingsType } from '../types/Setting';
 
 export default class Authorizations {
 
@@ -106,6 +108,7 @@ export default class Authorizations {
     let companyIDs = [];
     let siteIDs = [];
     let siteAdminIDs = [];
+    // Admin
     if (!Authorizations.isAdmin(user)) {
       // Get User's site
       const sites = (await UserStorage.getSites(tenantID, { userID: user.id },
@@ -122,7 +125,7 @@ export default class Authorizations {
       companyIDs = [...new Set(sites.map((site) => site.companyID))];
       siteAdminIDs = sitesAdmin.result.map((siteUser) => siteUser.site.id);
     }
-
+    // Tenant
     let tenantHashID = Constants.DEFAULT_TENANT;
     let activeComponents = [];
     let tenantName;
@@ -132,7 +135,12 @@ export default class Authorizations {
       tenantHashID = SessionHashService.buildTenantHashID(tenant);
       activeComponents = Utils.getTenantActiveComponents(tenant);
     }
-
+    // Currency
+    let currency = null;
+    const pricing = await SettingStorage.getPricingSettings(tenantID);
+    if (pricing && pricing.type === PricingSettingsType.SIMPLE) {
+      currency = pricing.simple.currency;
+    }
     return {
       'id': user.id,
       'role': user.role,
@@ -141,6 +149,7 @@ export default class Authorizations {
       'firstName': user.firstName,
       'locale': user.locale,
       'language': user.locale.substring(0, 2),
+      'currency': currency,
       'tenantID': tenantID,
       'tenantName': tenantName,
       'userHashID': SessionHashService.buildUserHashID(user),

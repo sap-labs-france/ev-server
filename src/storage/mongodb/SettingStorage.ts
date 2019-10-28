@@ -5,8 +5,9 @@ import DatabaseUtils from './DatabaseUtils';
 import DbParams from '../../types/database/DbParams';
 import global from '../../types/GlobalType';
 import Logging from '../../utils/Logging';
-import Setting from '../../types/Setting';
+import Setting, { ComponentType, PricingSettings, PricingSettingsType } from '../../types/Setting';
 import Utils from '../../utils/Utils';
+import { DataResult } from '../../types/DataResult';
 
 export default class SettingStorage {
   public static async getSetting(tenantID: string, id: string): Promise<Setting> {
@@ -66,9 +67,43 @@ export default class SettingStorage {
     return settingFilter._id.toHexString();
   }
 
+  public static async getPricingSettings(tenantID: string): Promise<PricingSettings> {
+    const pricingSettings = {
+      identifier: ComponentType.PRICING,
+    } as PricingSettings;
+    // Get the Pricing settings
+    const settings = await SettingStorage.getSettings(tenantID, { identifier: ComponentType.PRICING }, Constants.DB_PARAMS_MAX_LIMIT);
+    // Get the currency
+    if (settings && settings.count > 0 && settings.result[0].content) {
+      const config = settings.result[0].content;
+      // ID
+      pricingSettings.id = settings.result[0].id;
+      pricingSettings.sensitiveData = settings.result[0].sensitiveData;
+      // Simple price
+      if (config.simple) {
+        pricingSettings.type = PricingSettingsType.SIMPLE;
+        pricingSettings.simple = {
+          price: config.simple.price ? parseFloat(config.simple.price + '') : 0,
+          currency: config.simple.currency ? config.simple.currency : '',
+        };
+      }
+      // Convergeant Charging
+      if (config.convergentCharging) {
+        pricingSettings.type = PricingSettingsType.CONVERGENT_CHARGING;
+        pricingSettings.convergentCharging = {
+          url: config.convergentCharging.url ? config.convergentCharging.url : '',
+          chargeableItemName: config.convergentCharging.chargeableItemName ? config.convergentCharging.chargeableItemName : '',
+          user: config.convergentCharging.user ? config.convergentCharging.user : '',
+          password: config.convergentCharging.password ? config.convergentCharging.password : '',
+        };
+      }
+    }
+    return pricingSettings;
+  }
+
   public static async getSettings(tenantID: string,
-    params: {identifier?: string; settingID?: string},
-    dbParams: DbParams, projectFields?: string[]) {
+      params: {identifier?: string; settingID?: string},
+      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Setting>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SettingStorage', 'getSettings');
     // Check Tenant

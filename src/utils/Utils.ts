@@ -29,7 +29,7 @@ const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfi
 const _tenants = [];
 
 export default class Utils {
-  static getEndOfChargeNotificationIntervalMins(chargingStation: ChargingStation, connectorId: number) {
+  public static getEndOfChargeNotificationIntervalMins(chargingStation: ChargingStation, connectorId: number) {
     let intervalMins = 0;
     if (!chargingStation.connectors) {
       return 0;
@@ -51,7 +51,7 @@ export default class Utils {
     return intervalMins;
   }
 
-  static getInactivityStatusLevel(chargingStation: ChargingStation, connectorId: number, inactivitySecs: number): InactivityStatusLevel {
+  public static getInactivityStatusLevel(chargingStation: ChargingStation, connectorId: number, inactivitySecs: number): InactivityStatusLevel {
     if (!inactivitySecs) {
       return 'info';
     }
@@ -67,7 +67,7 @@ export default class Utils {
     }
   }
 
-  static generateGUID() {
+  public static generateGUID() {
     return uuidV4();
   }
 
@@ -94,7 +94,7 @@ export default class Utils {
     return false;
   }
 
-  static getIfChargingStationIsInactive(chargingStation): boolean {
+  public static getIfChargingStationIsInactive(chargingStation): boolean {
     let inactive = false;
     // Get Heartbeat Interval from conf
     const config = Configuration.getChargingStationConfig();
@@ -187,7 +187,7 @@ export default class Utils {
     return connectorStats;
   }
 
-  static checkConnectors(chargingStation: ChargingStation) {
+  public static checkConnectors(chargingStation: ChargingStation) {
     if (chargingStation.cannotChargeInParallel) {
       let lockAllConnectors = false;
       // Check
@@ -259,16 +259,16 @@ export default class Utils {
   //   });
   // }
 
-  static getLocaleWith2Digits(localeWith4Digits: string) {
-    let locale = Constants.DEFAULT_LANGUAGE;
+  public static getLanguageFromLocale(locale: string) {
+    let language = Constants.DEFAULT_LANGUAGE;
     // Set the User's locale
-    if (localeWith4Digits && localeWith4Digits.length > 2) {
-      locale = localeWith4Digits.substring(0, 2);
+    if (locale && locale.length > 2) {
+      language = locale.substring(0, 2);
     }
-    return locale;
+    return language;
   }
 
-  static async normalizeAndCheckSOAPParams(headers, req) {
+  public static async normalizeAndCheckSOAPParams(headers, req) {
     // Normalize
     Utils._normalizeOneSOAPParam(headers, 'chargeBoxIdentity');
     Utils._normalizeOneSOAPParam(headers, 'Action');
@@ -295,7 +295,7 @@ export default class Utils {
     }
   }
 
-  static _normalizeOneSOAPParam(headers, name) {
+  public static _normalizeOneSOAPParam(headers, name) {
     const val = _.get(headers, name);
     if (val && val.$value) {
       _.set(headers, name, val.$value);
@@ -339,7 +339,7 @@ export default class Utils {
     _tenants.push(tenantID);
   }
 
-  static convertToDate(date): Date {
+  public static convertToDate(date): Date {
     // Check
     if (!date) {
       return date;
@@ -351,7 +351,7 @@ export default class Utils {
     return date;
   }
 
-  static isEmptyJSon(document) {
+  public static isEmptyJSon(document) {
     // Empty?
     if (!document) {
       return true;
@@ -364,7 +364,7 @@ export default class Utils {
     return Object.keys(document).length === 0;
   }
 
-  static removeExtraEmptyLines(tab) {
+  public static removeExtraEmptyLines(tab) {
     // Start from the end
     for (let i = tab.length - 1; i > 0; i--) {
       // Two consecutive empty lines?
@@ -380,11 +380,11 @@ export default class Utils {
     }
   }
 
-  static isComponentActiveFromToken(userToken: UserToken, componentName: string): boolean {
+  public static isComponentActiveFromToken(userToken: UserToken, componentName: string): boolean {
     return userToken.activeComponents.includes(componentName);
   }
 
-  static convertToObjectID(id): ObjectID {
+  public static convertToObjectID(id): ObjectID {
     let changedID = id;
     // Check
     if (typeof id === 'string') {
@@ -394,7 +394,7 @@ export default class Utils {
     return changedID;
   }
 
-  static convertToInt(id): number {
+  public static convertToInt(id): number {
     let changedID = id;
     if (!id) {
       return 0;
@@ -407,7 +407,7 @@ export default class Utils {
     return changedID;
   }
 
-  static convertToFloat(id): number {
+  public static convertToFloat(id): number {
     let changedID = id;
     if (!id) {
       return 0;
@@ -446,7 +446,7 @@ export default class Utils {
     return true;
   }
 
-  static buildUserFullName(user: User, withID = true, withEmail = false, inversedName = false) {
+  public static buildUserFullName(user: User, withID = true, withEmail = false, inversedName = false) {
     let fullName: string;
     if (!user || !user.name) {
       return 'Unknown';
@@ -477,16 +477,16 @@ export default class Utils {
   }
 
   // Save the users in file
-  static saveFile(filename, content) {
+  public static saveFile(filename, content) {
     // Save
     fs.writeFileSync(path.join(__dirname, filename), content, 'UTF-8');
   }
 
-  static getRandomInt() {
+  public static getRandomInt() {
     return Math.floor((Math.random() * 2147483648) + 1); // INT32 (signed: issue in Schneider)
   }
 
-  static buildEvseURL(subdomain) {
+  public static buildEvseURL(subdomain) {
     if (subdomain) {
       return `${_centralSystemFrontEndConfig.protocol}://${subdomain}.${_centralSystemFrontEndConfig.host}:${_centralSystemFrontEndConfig.port}`;
     }
@@ -494,7 +494,7 @@ export default class Utils {
       _centralSystemFrontEndConfig.port}`;
   }
 
-  static buildOCPPServerURL(tenantID: string, ocppProtocol: string, token?: string): string {
+  public static buildOCPPServerURL(tenantID: string, ocppProtocol: string, token?: string): string {
     let ocppUrl;
     switch (ocppProtocol) {
       case Constants.OCPP_PROTOCOL_JSON:
@@ -513,7 +513,7 @@ export default class Utils {
     }
   }
 
-  static async buildEvseUserURL(tenantID: string, user: User, hash = '') {
+  public static async buildEvseUserURL(tenantID: string, user: User, hash = '') {
 
     const tenant = await TenantStorage.getTenant(tenantID);
     const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
@@ -521,26 +521,26 @@ export default class Utils {
     return _evseBaseURL + '/users?UserID=' + user.id + hash;
   }
 
-  static async buildEvseChargingStationURL(tenantID: string, chargingStation: ChargingStation, hash = '') {
+  public static async buildEvseChargingStationURL(tenantID: string, chargingStation: ChargingStation, hash = '') {
     const tenant = await TenantStorage.getTenant(tenantID);
     const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
 
     return _evseBaseURL + '/charging-stations?ChargingStationID=' + chargingStation.id + hash;
   }
 
-  static async buildEvseTransactionURL(tenantID: string, chargingStation: ChargingStation, transactionId, hash = '') {
+  public static async buildEvseTransactionURL(tenantID: string, chargingStation: ChargingStation, transactionId, hash = '') {
     const tenant = await TenantStorage.getTenant(tenantID);
     const _evseBaseURL = Utils.buildEvseURL(tenant.subdomain);
     // Add
     return _evseBaseURL + '/transactions?TransactionID=' + transactionId + hash;
   }
 
-  static isServerInProductionMode() {
+  public static isServerInProductionMode() {
     const env = process.env.NODE_ENV || 'dev';
     return (env === 'production');
   }
 
-  static hideShowMessage(message): string {
+  public static hideShowMessage(message): string {
     // Check Prod
     if (Utils.isServerInProductionMode()) {
       return 'An unexpected server error occurred. Check the server\'s logs!';
@@ -578,19 +578,19 @@ export default class Utils {
     return recordLimit;
   }
 
-  static roundTo(number, scale) {
+  public static roundTo(number, scale) {
     return parseFloat(number.toFixed(scale));
   }
 
-  static firstLetterInUpperCase(value): string {
+  public static firstLetterInUpperCase(value): string {
     return value[0].toUpperCase() + value.substring(1);
   }
 
-  static getConnectorLetterFromConnectorID(connectorID: number): string {
+  public static getConnectorLetterFromConnectorID(connectorID: number): string {
     return String.fromCharCode(65 + connectorID - 1);
   }
 
-  static getConnectorIDFromConnectorLetter(connectorLetter: string): number {
+  public static getConnectorIDFromConnectorLetter(connectorLetter: string): number {
     return connectorLetter.charCodeAt(0) - 64;
   }
 
@@ -607,16 +607,11 @@ export default class Utils {
     return recordSkip;
   }
 
-  static generateToken(email) {
+  public static generateToken(email) {
     return Cypher.hash(`${new Date().toISOString()}~${email}`);
   }
 
-  /**
-   * Duplicate a JSON object
-   * @param src
-   * @returns a copy of the source
-   */
-  static duplicateJSON(src): any {
+  public static duplicateJSON(src): any {
     if (!src || typeof src !== 'object') {
       return src;
     }
@@ -624,7 +619,7 @@ export default class Utils {
     return JSON.parse(JSON.stringify(src));
   }
 
-  static getRoleNameFromRoleID(roleID) {
+  public static getRoleNameFromRoleID(roleID) {
     switch (roleID) {
       case Constants.ROLE_BASIC:
         return 'Basic';
@@ -672,7 +667,7 @@ export default class Utils {
     });
   }
 
-  static isPasswordStrongEnough(password) {
+  public static isPasswordStrongEnough(password) {
     const uc = password.match(Constants.PWD_UPPERCASE_RE);
     const lc = password.match(Constants.PWD_LOWERCASE_RE);
     const n = password.match(Constants.PWD_NUMBER_RE);
@@ -685,7 +680,7 @@ export default class Utils {
   }
 
 
-  static generatePassword() {
+  public static generatePassword() {
     let password = '';
     const randomLength = Math.floor(Math.random() * (Constants.PWD_MAX_LENGTH - Constants.PWD_MIN_LENGTH)) + Constants.PWD_MIN_LENGTH;
     while (!Utils.isPasswordStrongEnough(password)) {
@@ -714,7 +709,7 @@ export default class Utils {
     }
   }
 
-  static hashPassword(password) {
+  public static hashPassword(password) {
     return Cypher.hash(password);
   }
 

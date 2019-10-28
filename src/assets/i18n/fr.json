@@ -9,8 +9,8 @@
 			"body": "La mise à jour des statuts des bornes a échoué sur le site '{{location}}', vérifier les logs"
 		},
 		"smtpAuthError": {
-			"title": "Erreur Authentification Serveur Email",
-			"body": "L'authentification sur le serveur d'email principal a échoué, vérifier la configuration"
+			"title": "Erreur Serveur Email",
+			"body": "L'authentification du serveur d'email principal a échoué, vérifier la configuration"
 		},
 		"optimalChargeReached": {
 			"title": "Charge Optimale Atteinte",
@@ -29,7 +29,7 @@
 			"body": "Une erreur est survenue sur '{{chargeBoxID}}', connecteur '{{connectorId}}': {{error}}"
 		},
 		"unknownUserBadged": {
-			"title": "Utilisateur Inconnu à Badgé",
+			"title": "Utilisateur Inconnu",
 			"body": "Un utilisateur inconnu vient juste de badger sur '{{chargeBoxID}}' avec le badge ID '{{badgeID}}'"
 		},
 		"chargingStationRegistered": {
