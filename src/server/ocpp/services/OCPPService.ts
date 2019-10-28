@@ -840,7 +840,7 @@ export default class OCPPService {
       return `0${i18nHourShort}00 (${I18nManager.formatPercentage(0)})`;
     }
     // Build the inactivity percentage
-    const totalInactivityPercent = I18nManager.formatPercentage(Math.round(totalInactivitySecs / transaction.stop.totalDurationSecs));
+    const totalInactivityPercent = I18nManager.formatPercentage(Math.round((totalInactivitySecs / transaction.stop.totalDurationSecs) * 100) / 100);
     return moment.duration(totalInactivitySecs, 's').format(`h[${i18nHourShort}]mm`, { trim: false }) + ` (${totalInactivityPercent})`;
   }
 
