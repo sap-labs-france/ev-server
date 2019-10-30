@@ -33,6 +33,12 @@ export type InactivityStatusLevel =
  'danger'
 ;
 
+export enum NotificationSeverity {
+  INFO = '#00376C',
+  WARNING = '#FB8C00',
+  ERROR = '#ee0000'
+}
+
 interface BaseNotification {
 }
 
