@@ -9,7 +9,7 @@ export default class BillingFactory {
   static async getBillingImpl(tenantID: string) {
 
     // Prevent default user from generating billing
-    if (tenantID === 'default') {
+    if (tenantID === Constants.DEFAULT_TENANT) {
       return null;
     }
 
