@@ -23,6 +23,7 @@ export default abstract class AbstractOCPIService {
   // Create OCPI Service
   public constructor(
     private readonly ocpiRestConfig: Configuration['OCPIService'],
+    private readonly role: string,
     private readonly version: string) {
   }
 
@@ -62,6 +63,7 @@ export default abstract class AbstractOCPIService {
   // Get Relative path of the service
   public getPath(): string {
     const version = this.getVersion();
+    const role = this.getRole();
     return `/ocpi/cpo/${version}/`;
   }
 
@@ -70,6 +72,13 @@ export default abstract class AbstractOCPIService {
    */
   public getVersion(): string {
     return this.version;
+  }
+
+  /**
+   * Return Reole of OCPI Service
+   */
+  public getRole(): string {
+    return this.role;
   }
 
   // Rest Service Implementation

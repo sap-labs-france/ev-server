@@ -39,7 +39,8 @@ export default class OCPIServer {
     // New OCPI Services Instances
     const ocpiServices = new OCPIServices(this.ocpiRestConfig);
     // OCPI versions
-    this.express.use(Constants.OCPI_SERVER_BASE_PATH, ocpiServices.getVersions.bind(ocpiServices));
+    this.express.use(Constants.OCPI_SERVER_CPO_PATH + Constants.OCPI_VERSIONS_PATH, ocpiServices.getVersions.bind(ocpiServices));
+    this.express.use(Constants.OCPI_SERVER_EMSP_PATH + Constants.OCPI_VERSIONS_PATH, ocpiServices.getVersions.bind(ocpiServices));
     // Register all services in express
     ocpiServices.getOCPIServiceImplementations().forEach((ocpiService) => {
       this.express.use(ocpiService.getPath(), ocpiService.restService.bind(ocpiService));

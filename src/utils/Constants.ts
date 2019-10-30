@@ -255,7 +255,9 @@ export default class Constants {
   // OCPI Constants
   // --------------------------------------------------------------------
   // OCPI Base Path
-  public static readonly OCPI_SERVER_BASE_PATH = '/ocpi/cpo/versions';
+  public static readonly OCPI_SERVER_CPO_PATH = '/ocpi/cpo';
+  public static readonly OCPI_SERVER_EMSP_PATH = '/ocpi/emsp';
+  public static readonly OCPI_VERSIONS_PATH = '/versions';
   // OCPI Available Response Status
   public static readonly OCPI_STATUS_CODE = {
     // 1*** SUCCESS
