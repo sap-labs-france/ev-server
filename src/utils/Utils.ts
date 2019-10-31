@@ -31,7 +31,7 @@ const _tenants = [];
 export default class Utils {
   public static getEndOfChargeNotificationIntervalMins(chargingStation: ChargingStation, connectorId: number) {
     let intervalMins = 0;
-    if (!chargingStation.connectors) {
+    if (!chargingStation || !chargingStation.connectors) {
       return 0;
     }
     const connector = chargingStation.connectors[connectorId - 1];
