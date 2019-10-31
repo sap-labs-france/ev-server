@@ -8,7 +8,8 @@ chai.use(chaiSubset);
 
 class TestData {
   public pending: any;
-  public ocpiService: OCPIService;
+  public cpoService: OCPIService;
+  public emspService: OCPIService;
   public newOcpiEndpoint: any;
 }
 
@@ -18,12 +19,13 @@ describe('OCPI Service Tests', function() {
   this.timeout(100000);
 
 
-  before(async () => {
+  before(() => {
     if (!OCPIService.isConfigAvailable()) {
       testData.pending = 1;
     }
 
-    testData.ocpiService = new OCPIService();
+    testData.cpoService = new OCPIService('cpo');
+    testData.emspService = new OCPIService('emsp');
   });
 
   after(async () => {
@@ -38,7 +40,7 @@ describe('OCPI Service Tests', function() {
     // Check call
     it('should access base url: /ocpi/cpo/versions', async () => {
       // Create
-      response = await testData.ocpiService.getVersions('cpo');
+      response = await testData.cpoService.getVersions();
       // Check status
       expect(response.status).to.be.eql(200);
     });
@@ -46,7 +48,7 @@ describe('OCPI Service Tests', function() {
     // Check Response Object
     it('should have correct OCPI Response object', () => {
       // Check structure of OCPI Structure
-      testData.ocpiService.checkOCPIResponseStructure(response.data);
+      testData.cpoService.checkOCPIResponseStructure(response.data);
     });
 
     // Check Response Value
@@ -69,14 +71,14 @@ describe('OCPI Service Tests', function() {
     // Check at least version 2.1.1 is implemented
     it('should contains at least implementation version 2.1.1', () => {
       expect(response.data.data, 'OCPI 2.1.1 Not Available').to.satisfy((versions) => {
-        let version2_1_1_exist = false;
+        let version211exist = false;
 
         for (const version of versions) {
           if (version.version === '2.1.1') {
-            version2_1_1_exist = true;
+            version211exist = true;
           }
         }
-        return version2_1_1_exist;
+        return version211exist;
       });
     });
   });
@@ -90,7 +92,7 @@ describe('OCPI Service Tests', function() {
     // Check call
     it('should access base url: /ocpi/emsp/versions', async () => {
       // Create
-      response = await testData.ocpiService.getVersions('emsp');
+      response = await testData.emspService.getVersions();
       // Check status
       expect(response.status).to.be.eql(200);
     });
@@ -98,7 +100,7 @@ describe('OCPI Service Tests', function() {
     // Check Response Object
     it('should have correct OCPI Response object', () => {
       // Check structure of OCPI Structure
-      testData.ocpiService.checkOCPIResponseStructure(response.data);
+      testData.emspService.checkOCPIResponseStructure(response.data);
     });
 
     // Check Response Value
@@ -121,14 +123,14 @@ describe('OCPI Service Tests', function() {
     // Check at least version 2.1.1 is implemented
     it('should contains at least implementation version 2.1.1', () => {
       expect(response.data.data, 'OCPI 2.1.1 Not Available').to.satisfy((versions) => {
-        let version2_1_1_exist = false;
+        let version211exist = false;
 
         for (const version of versions) {
           if (version.version === '2.1.1') {
-            version2_1_1_exist = true;
+            version211exist = true;
           }
         }
-        return version2_1_1_exist;
+        return version211exist;
       });
     });
   });
@@ -142,7 +144,7 @@ describe('OCPI Service Tests', function() {
     // Check call
     it('should access url: /ocpi/cpo/2.1.1', async () => {
       // Create
-      response = await testData.ocpiService.getImplementation2_1_1();
+      response = await testData.cpoService.getImplementation2_1_1();
       // Check status
       expect(response.status).to.be.eql(200);
     });
@@ -150,7 +152,7 @@ describe('OCPI Service Tests', function() {
     // Check Response Object
     it('should have correct OCPI Response object', () => {
       // Check structure of OCPI Structure
-      testData.ocpiService.checkOCPIResponseStructure(response.data);
+      testData.cpoService.checkOCPIResponseStructure(response.data);
     });
 
     // Check Response Value
@@ -190,7 +192,7 @@ describe('OCPI Service Tests', function() {
     // Check call
     it('should return 501 on url: /ocpi/cpo/2.1.1/invalidEndpoint', async () => {
       // Create
-      response = await testData.ocpiService.accessPath('GET', '/ocpi/cpo/2.1.1/invalidEndpoint');
+      response = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/invalidEndpoint');
       // Check status
       expect(response.status).to.be.eql(501);
     });
@@ -198,7 +200,35 @@ describe('OCPI Service Tests', function() {
     // Check Response Object
     it('should have correct OCPI Error Response object', () => {
       // Check structure of OCPI Structure
-      testData.ocpiService.checkOCPIErrorResponseStructure(response.data);
+      testData.cpoService.checkOCPIErrorResponseStructure(response.data);
+    });
+
+    // Check Response Value
+    it('should have correct OCPI Error Response value', () => {
+      expect(response.data).to.not.be.empty;
+      expect(response.data).to.have.property('status_code', 3000);
+      expect(response.data).to.have.property('status_message', 'Endpoint invalidEndpoint not implemented');
+    });
+  });
+
+  /**
+   * Test Invalid Enpoint /ocpi/emsp/2.1.1/invalidEndpoint
+   */
+  describe('Test Invalid Endpoint /ocpi/emsp/2.1.1/invalidEndpoint', () => {
+    let response;
+
+    // Check call
+    it('should return 501 on url: /ocpi/emsp/2.1.1/invalidEndpoint', async () => {
+      // Create
+      response = await testData.emspService.accessPath('GET', '/ocpi/emsp/2.1.1/invalidEndpoint');
+      // Check status
+      expect(response.status).to.be.eql(501);
+    });
+
+    // Check Response Object
+    it('should have correct OCPI Error Response object', () => {
+      // Check structure of OCPI Structure
+      testData.emspService.checkOCPIErrorResponseStructure(response.data);
     });
 
     // Check Response Value
@@ -223,7 +253,7 @@ describe('OCPI Service Tests', function() {
       // Check call
       it('should access url: /ocpi/cpo/2.1.1/locations', async () => {
         // Get locations
-        response = await testData.ocpiService.getLocations2_1_1();
+        response = await testData.cpoService.getLocations2_1_1();
         // Check status
         expect(response.status).to.be.eql(200);
       });
@@ -231,11 +261,11 @@ describe('OCPI Service Tests', function() {
       // Check Response Object
       it('should have correct OCPI Response object', () => {
         // Check structure of OCPI Structure
-        testData.ocpiService.checkOCPIResponseStructure(response.data);
+        testData.cpoService.checkOCPIResponseStructure(response.data);
       });
 
       // Check Response Value
-      it('should have correct OCPI Response success value', async () => {
+      it('should have correct OCPI Response success value', () => {
         expect(response.data).to.not.be.empty;
         expect(response.data).to.have.property('status_code', 1000);
         expect(response.data).to.have.property('status_message', 'Success');
@@ -243,25 +273,25 @@ describe('OCPI Service Tests', function() {
       });
 
       // Validate content - scan entities: locations/evses/connectors
-      it('should have valid OCPI Location Entities', async () => {
+      it('should have valid OCPI Location Entities', () => {
         expect(response.data.data, 'Invalid Location Object').to.satisfy((locations) => {
           const validLocationsAndSubEntities = true;
           // Loop through location
           for (const location of locations) {
             // Validate location
-            testData.ocpiService.validateLocationEntity(location);
+            testData.cpoService.validateLocationEntity(location);
             // ValidLocationsAndSubEntities = validLocationsAndSubEntities
 
             // loop through evse
             for (const evse of location.evses) {
               // Validate evse
-              testData.ocpiService.validateEvseEntity(evse);
+              testData.cpoService.validateEvseEntity(evse);
               // ValidLocationsAndSubEntities = validLocationsAndSubEntities &&
 
               // loop through connectors
               for (const connector of evse.connectors) {
                 // Validate connector
-                testData.ocpiService.validateConnectorEntity(connector);
+                testData.cpoService.validateConnectorEntity(connector);
                 // ValidLocationsAndSubEntities = validLocationsAndSubEntities && ;
               }
             }
@@ -278,37 +308,37 @@ describe('OCPI Service Tests', function() {
       // Check access for each location
       it('should access url /ocpi/cpo/2.1.1/locations/ and have headers X-Limit and X-Total-Count', async () => {
         // Call
-        const response = await testData.ocpiService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/?offset=0&limit=20');
+        const locationsResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations');
 
-        expect(response.data).to.not.be.empty;
-        expect(response.data).to.have.property('status_code', 1000);
-        expect(response.data).to.have.property('status_message', 'Success');
-        expect(response.data).to.have.property('data').to.be.an('array').that.is.not.empty;
-        expect(response.headers).to.have.property('x-limit');
-        expect(response.headers).to.have.property('x-total-count');
+        expect(locationsResponse.data).to.not.be.empty;
+        expect(locationsResponse.data).to.have.property('status_code', 1000);
+        expect(locationsResponse.data).to.have.property('status_message', 'Success');
+        expect(locationsResponse.data).to.have.property('data').to.be.an('array').that.is.not.empty;
+        expect(locationsResponse.headers).to.have.property('x-limit');
+        expect(locationsResponse.headers).to.have.property('x-total-count');
       });
 
       // Check access for each location
       it('should access url with paging /ocpi/cpo/2.1.1/locations/?offset=0&limit=20', async () => {
         // Call
-        const response = await testData.ocpiService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/?offset=0&limit=20');
+        const locationsResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/?offset=0&limit=20');
 
-        expect(response.data).to.not.be.empty;
-        expect(response.data).to.have.property('status_code', 1000);
-        expect(response.data).to.have.property('status_message', 'Success');
-        expect(response.data).to.have.property('data').to.be.an('array').that.is.not.empty;
+        expect(locationsResponse.data).to.not.be.empty;
+        expect(locationsResponse.data).to.have.property('status_code', 1000);
+        expect(locationsResponse.data).to.have.property('status_message', 'Success');
+        expect(locationsResponse.data).to.have.property('data').to.be.an('array').that.is.not.empty;
       });
 
       // Check limit
       it('should access url with paging /ocpi/cpo/2.1.1/locations/?offset=0&limit=1', async () => {
         // Call
-        const response = await testData.ocpiService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/?offset=0&limit=1');
+        const locationsResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/?offset=0&limit=1');
 
-        expect(response.data).to.not.be.empty;
-        expect(response.data).to.have.property('status_code', 1000);
-        expect(response.data).to.have.property('status_message', 'Success');
-        expect(response.data).to.have.property('data').to.be.an('array').and.to.have.length(1);
-        expect(response.headers).to.have.property('link').to.match(/^<.*:\/\/.*:.*\/ocpi\/cpo\/.*\/locations\/\?offset=1&limit=1>; rel="next"/);
+        expect(locationsResponse.data).to.not.be.empty;
+        expect(locationsResponse.data).to.have.property('status_code', 1000);
+        expect(locationsResponse.data).to.have.property('status_message', 'Success');
+        expect(locationsResponse.data).to.have.property('data').to.be.an('array').and.to.have.length(1);
+        expect(locationsResponse.headers).to.have.property('link').to.match(/^<.*:\/\/.*:.*\/ocpi\/cpo\/.*\/locations\/\?offset=1&limit=1>; rel="next"/);
       });
 
     });
@@ -330,9 +360,9 @@ describe('OCPI Service Tests', function() {
       // Call once agian the GET Locations
       before(async function() {
         // Create
-        response = await testData.ocpiService.getLocations2_1_1();
+        response = await testData.cpoService.getLocations2_1_1();
 
-        if (response.status != 200) {
+        if (response.status !== 200) {
           this.skip();
         }
       });
@@ -341,10 +371,10 @@ describe('OCPI Service Tests', function() {
       it('should access single location entity /ocpi/cpo/2.1.1/locations/{locationId}', async () => {
         for (const location of response.data.data) {
           // Call
-          const locationResponse = await testData.ocpiService.accessPath('GET', `/ocpi/cpo/2.1.1/locations/${location.id}`);
+          const locationResponse = await testData.cpoService.accessPath('GET', `/ocpi/cpo/2.1.1/locations/${location.id}`);
           // Check status
           expect(locationResponse.status).to.be.eql(200);
-          expect(testData.ocpiService.validateLocationEntity(locationResponse.data.data));
+          expect(testData.cpoService.validateLocationEntity(locationResponse.data.data));
         }
       });
 
@@ -353,10 +383,10 @@ describe('OCPI Service Tests', function() {
         for (const location of response.data.data) {
           for (const evse of location.evses) {
             // Call
-            const evseResponse = await testData.ocpiService.accessPath('GET', `/ocpi/cpo/2.1.1/locations/${location.id}/${evse.uid}`);
+            const evseResponse = await testData.cpoService.accessPath('GET', `/ocpi/cpo/2.1.1/locations/${location.id}/${evse.uid}`);
             // Check status
             expect(evseResponse.status).to.be.eql(200);
-            expect(testData.ocpiService.validateEvseEntity(evseResponse.data.data));
+            expect(testData.cpoService.validateEvseEntity(evseResponse.data.data));
           }
         }
       });
@@ -367,10 +397,10 @@ describe('OCPI Service Tests', function() {
           for (const evse of location.evses) {
             for (const connector of evse.connectors) {
               // Call
-              const connectorResponse = await testData.ocpiService.accessPath('GET', `/ocpi/cpo/2.1.1/locations/${location.id}/${evse.uid}/${connector.id}`);
+              const connectorResponse = await testData.cpoService.accessPath('GET', `/ocpi/cpo/2.1.1/locations/${location.id}/${evse.uid}/${connector.id}`);
               // Check status
               expect(connectorResponse.status).to.be.eql(200);
-              expect(testData.ocpiService.validateConnectorEntity(connectorResponse.data.data));
+              expect(testData.cpoService.validateConnectorEntity(connectorResponse.data.data));
             }
           }
         }
@@ -384,7 +414,7 @@ describe('OCPI Service Tests', function() {
       // Invalid location
       it('should not found this non-existing location  /ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e67', async () => {
         // Call
-        const locationResponse = await testData.ocpiService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e67');
+        const locationResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e67');
         // Check status
         expect(locationResponse.status).to.be.eql(500);
         expect(locationResponse.data).to.have.property('timestamp');
@@ -395,7 +425,7 @@ describe('OCPI Service Tests', function() {
       // Invalid evse uid
       it('should not found this non-existing EVSE  /ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e66/NonExistingSite', async () => {
         // Call
-        const locationResponse = await testData.ocpiService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e66/NonExistingSite');
+        const locationResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e66/NonExistingSite');
         // Check status
         expect(locationResponse.status).to.be.eql(500);
         expect(locationResponse.data).to.have.property('timestamp');
@@ -406,7 +436,7 @@ describe('OCPI Service Tests', function() {
       // Invalid connector id
       it('should not found this non-existing Connector  /ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e66/SAP-Caen-01*1/0', async () => {
         // Call
-        const locationResponse = await testData.ocpiService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e66/SAP-Caen-01*1/0');
+        const locationResponse = await testData.cpoService.accessPath('GET', '/ocpi/cpo/2.1.1/locations/5abeba9e4bae1457eb565e66/SAP-Caen-01*1/0');
         // Check status
         expect(locationResponse.status).to.be.eql(500);
         expect(locationResponse.data).to.have.property('timestamp');

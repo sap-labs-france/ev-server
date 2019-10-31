@@ -8,12 +8,14 @@ chai.use(chaiSubset);
 
 export default class OCPIService {
 
-  public baseURL: any;
-  public token: any;
+  public baseURL: string;
+  public role: string;
+  public token: string;
   public baseApi: BaseApi;
 
-  constructor() {
+  constructor(role: string) {
     this.baseURL = `${config.get('ocpi.scheme')}://${config.get('ocpi.host')}:${config.get('ocpi.port')}`;
+    this.role = role;
 
     // Build token
     this.token = `Token ${config.get('ocpi.token')}`;
@@ -37,10 +39,10 @@ export default class OCPIService {
   /**
    * Get Version url
    */
-  async getVersions(role: string) {
+  async getVersions() {
     return this.baseApi.send({
       method: 'GET',
-      url: `ocpi/${role}/versions`
+      url: `ocpi/${this.role}/versions`
     });
   }
 
@@ -50,7 +52,7 @@ export default class OCPIService {
   async getImplementation2_1_1() {
     return this.baseApi.send({
       method: 'GET',
-      url: 'ocpi/cpo/2.1.1'
+      url: `ocpi/${this.role}/2.1.1`
     });
   }
 
@@ -60,7 +62,7 @@ export default class OCPIService {
   async getLocations2_1_1() {
     return this.baseApi.send({
       method: 'GET',
-      url: 'ocpi/cpo/2.1.1/locations',
+      url: `ocpi/${this.role}/2.1.1/locations`,
       headers: {
         Authorization: this.token
       }
@@ -73,7 +75,7 @@ export default class OCPIService {
   async postCredentials2_1_1(credential) {
     return this.baseApi.send({
       method: 'POST',
-      url: 'ocpi/cpo/2.1.1/credentials',
+      url: `ocpi/${this.role}/2.1.1/credentials`,
       data: credential,
       headers: {
         Authorization: this.token
