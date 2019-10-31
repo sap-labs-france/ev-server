@@ -498,7 +498,7 @@ export default class TransactionStorage {
                                       params: {
                                         search?: string; userIDs?: string[]; chargeBoxIDs?: string[];
                                         siteAreaIDs?: string[]; siteID?: string[]; startDateTime?: Date; endDateTime?: Date; withChargeBoxes?: boolean;
-                                        errorType?: ('negative_inactivity' | 'negative_duration' | 'average_consumption_greater_than_connector_capacity' | 'incorrect_starting_date' | 'no_consumption')[];
+                                        errorType?: ('long_inactivity' | 'negative_inactivity' | 'negative_duration' | 'average_consumption_greater_than_connector_capacity' | 'incorrect_starting_date' | 'no_consumption')[];
                                       },
                                       dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Transaction>> {
     // Debug
@@ -822,6 +822,11 @@ export default class TransactionStorage {
 
   private static _buildTransactionsInErrorFacet(errorType: string) {
     switch (errorType) {
+      case 'long_inactivity':
+        return [
+          { $match: { 'stop.totalInactivitySecs': { $gte: 86400 } } },
+          { $addFields: { 'errorCode': 'long_inactivity' } }
+        ];
       case 'no_consumption':
         return [
           { $match: { 'stop.totalConsumption': { $lte: 0 } } },
