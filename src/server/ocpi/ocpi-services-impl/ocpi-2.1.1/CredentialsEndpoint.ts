@@ -11,7 +11,6 @@ import AbstractOCPIService from '../../AbstractOCPIService';
 import OCPIEndpointStorage from '../../../../storage/mongodb/OCPIEndpointStorage';
 
 const EP_IDENTIFIER = 'credentials';
-const EP_VERSION = '2.1.1';
 const MODULE_NAME = 'CredentialsEndpoint';
 
 /**
@@ -20,7 +19,7 @@ const MODULE_NAME = 'CredentialsEndpoint';
 export default class CredentialsEndpoint extends AbstractEndpoint {
 
   constructor(ocpiService: AbstractOCPIService) {
-    super(ocpiService, EP_IDENTIFIER, EP_VERSION);
+    super(ocpiService, EP_IDENTIFIER);
   }
 
   /**

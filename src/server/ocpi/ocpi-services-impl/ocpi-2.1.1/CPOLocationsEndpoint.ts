@@ -10,7 +10,6 @@ import AbstractOCPIService from '../../AbstractOCPIService';
 import Site from '../../../../types/Site';
 
 const EP_IDENTIFIER = 'locations';
-const EP_VERSION = '2.1.1';
 const MODULE_NAME = 'CPOLocationsEndpoint';
 
 const RECORDS_LIMIT = 20;
@@ -20,7 +19,7 @@ const RECORDS_LIMIT = 20;
  */export default class CPOLocationsEndpoint extends AbstractEndpoint {
   // Create OCPI Service
   constructor(ocpiService: AbstractOCPIService) {
-    super(ocpiService, EP_IDENTIFIER, EP_VERSION);
+    super(ocpiService, EP_IDENTIFIER);
   }
 
   /**
