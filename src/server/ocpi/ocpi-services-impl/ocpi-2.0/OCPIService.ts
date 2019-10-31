@@ -10,13 +10,13 @@ const VERSION = '2.0';
  */
 export default class OCPIService extends AbstractOCPIService {
   // Create OCPI Service
-  constructor(ocpiRestConfig: Configuration['OCPIService']) {
-    super(ocpiRestConfig, Constants.OCPI_SERVER_CPO_PATH, VERSION);
+  constructor(ocpiRestConfig: Configuration['OCPIService'], path: string) {
+    super(ocpiRestConfig, path, VERSION);
   }
 
   // Rest Service Implementation
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  restService(req: Request, res: Response, next: NextFunction) {
+  async restService(req: Request, res: Response, next: NextFunction): Promise<void> {
     // Not implemented
     res.sendStatus(501);
   }

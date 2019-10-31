@@ -26,6 +26,11 @@ export default class AbstractEndpoint {
     return this.ocpiService.getBaseUrl(req);
   }
 
+  // Return based URL of OCPI Service
+  public getServiceUrl(req: Request): string {
+    return this.ocpiService.getServiceUrl(req);
+  }
+
   // Abstract - Process endpoint
   // eslint-disable-next-line @typescript-eslint/no-unused-vars,require-await
   public async process(req: Request, res: Response, next: Function, tenant: Tenant, options: {countryID: string; partyID: string; addChargeBoxID?: boolean}) {

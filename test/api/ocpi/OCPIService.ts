@@ -37,10 +37,10 @@ export default class OCPIService {
   /**
    * Get Version url
    */
-  async getVersions() {
+  async getVersions(role: string) {
     return this.baseApi.send({
       method: 'GET',
-      url: 'ocpi/cpo/versions'
+      url: `ocpi/${role}/versions`
     });
   }
 

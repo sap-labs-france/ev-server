@@ -38,7 +38,59 @@ describe('OCPI Service Tests', function() {
     // Check call
     it('should access base url: /ocpi/cpo/versions', async () => {
       // Create
-      response = await testData.ocpiService.getVersions();
+      response = await testData.ocpiService.getVersions('cpo');
+      // Check status
+      expect(response.status).to.be.eql(200);
+    });
+
+    // Check Response Object
+    it('should have correct OCPI Response object', () => {
+      // Check structure of OCPI Structure
+      testData.ocpiService.checkOCPIResponseStructure(response.data);
+    });
+
+    // Check Response Value
+    it('should have correct OCPI Response success value', () => {
+      expect(response.data).to.not.be.empty;
+      expect(response.data).to.have.property('status_code', 1000);
+      expect(response.data).to.have.property('status_message', 'Success');
+      expect(response.data).to.have.property('data').to.be.an('array').that.is.not.empty;
+    });
+
+    // Check structure of each version objects
+    it('should contains valid Version objects', () => {
+      expect(response.data.data, 'Invalid Version Object').to.satisfy((versions) => {
+        for (const version of versions) {
+          return expect(version).to.have.keys('version', 'url');
+        }
+      });
+    });
+
+    // Check at least version 2.1.1 is implemented
+    it('should contains at least implementation version 2.1.1', () => {
+      expect(response.data.data, 'OCPI 2.1.1 Not Available').to.satisfy((versions) => {
+        let version2_1_1_exist = false;
+
+        for (const version of versions) {
+          if (version.version === '2.1.1') {
+            version2_1_1_exist = true;
+          }
+        }
+        return version2_1_1_exist;
+      });
+    });
+  });
+
+  /**
+   * Test /ocpi/emsp/versions
+   */
+  describe('Test /ocpi/emsp/versions', () => {
+    let response;
+
+    // Check call
+    it('should access base url: /ocpi/emsp/versions', async () => {
+      // Create
+      response = await testData.ocpiService.getVersions('emsp');
       // Check status
       expect(response.status).to.be.eql(200);
     });

@@ -270,7 +270,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     await OCPIEndpointStorage.saveOcpiEndpoint(tenant.id, ocpiEndpoint);
 
     // Get base url
-    const versionUrl = this.getBaseUrl(req) + Constants.OCPI_SERVER_CPO_PATH;
+    const versionUrl = this.getServiceUrl(req) + Constants.OCPI_VERSIONS_PATH;
 
     // Build credential object
     const respCredential = await OCPIMapping.buildOCPICredentialObject(tenant.id, ocpiEndpoint.localToken, versionUrl);
