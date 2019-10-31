@@ -21,7 +21,7 @@ export default class OCPIEndpointStorage {
     return endpointsMDB.count > 0 ? endpointsMDB.result[0] : null;
   }
 
-  static async getOcpiEndpoinByLocalToken(tenantID: string, token: string): Promise<OCPIEndpoint> {
+  static async getOcpiEndpointByLocalToken(tenantID: string, token: string): Promise<OCPIEndpoint> {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPIEndpointStorage', 'getOcpiEndpoinByLocalToken');
     const endpointsMDB = await OCPIEndpointStorage.getOcpiEndpoints(tenantID, { localToken: token }, Constants.DB_PARAMS_SINGLE_RECORD);
