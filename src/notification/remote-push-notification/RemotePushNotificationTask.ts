@@ -1,4 +1,4 @@
-import { ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
+import { ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, UserNotificationType, VerificationEmailNotification } from '../../types/UserNotifications';
 import Configuration from '../../utils/Configuration';
 import NotificationTask from '../NotificationTask';
 import * as admin from 'firebase-admin';
@@ -58,7 +58,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const body = i18n.t('notifications.optimalChargeReached.body',
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
     // Send Notification
-    return await this.sendRemotePushNotificationToUser(tenantID, title, body, user, {
+    return await this.sendRemotePushNotificationToUser(tenantID, UserNotificationType.OPTIMAL_CHARGE_REACHED, title, body, user, {
       transactionId: data.transactionId + '',
       chargeBoxID: data.chargeBoxID,
       connectorId: data.connectorId + ''
@@ -76,7 +76,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const body = i18n.t('notifications.endOfCharge.body',
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
     // Send Notification
-    return await this.sendRemotePushNotificationToUser(tenantID, title, body, user, {
+    return await this.sendRemotePushNotificationToUser(tenantID, UserNotificationType.END_OF_CHARGE, title, body, user, {
       transactionId: data.transactionId + '',
       chargeBoxID: data.chargeBoxID,
       connectorId: data.connectorId + ''
@@ -94,7 +94,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const body = i18n.t('notifications.endOfSession.body',
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
     // Send Notification
-    return await this.sendRemotePushNotificationToUser(tenantID, title, body, user, {
+    return await this.sendRemotePushNotificationToUser(tenantID, UserNotificationType.END_OF_SESSION, title, body, user, {
       transactionId: data.transactionId + '',
       chargeBoxID: data.chargeBoxID,
       connectorId: data.connectorId + ''
@@ -117,7 +117,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const body = i18n.t('notifications.chargingStationStatusError.body',
       { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId, error: data.error });
     // Send Notification
-    return await this.sendRemotePushNotificationToUser(tenantID, title, body, user, {
+    return await this.sendRemotePushNotificationToUser(tenantID, UserNotificationType.CHARGING_STATION_STATUS_ERROR, title, body, user, {
       chargeBoxID: data.chargeBoxID,
       connectorId: data.connectorId + ''
     },
@@ -132,7 +132,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const title = i18n.t('notifications.chargingStationRegistered.title', { chargeBoxID: data.chargeBoxID });
     const body = i18n.t('notifications.chargingStationRegistered.body', { chargeBoxID: data.chargeBoxID });
     // Send Notification
-    return await this.sendRemotePushNotificationToUser(tenantID, title, body, user, {
+    return await this.sendRemotePushNotificationToUser(tenantID, UserNotificationType.CHARGING_STATION_REGISTERED, title, body, user, {
       chargeBoxID: data.chargeBoxID
     },
     severity
@@ -149,7 +149,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const title = i18n.t('notifications.userAccountStatusChanged.title', { status: Utils.firstLetterInUpperCase(status) });
     const body = i18n.t('notifications.userAccountStatusChanged.body', { status });
     // Send Notification
-    return await this.sendRemotePushNotificationToUser(tenantID, title, body, user, {
+    return await this.sendRemotePushNotificationToUser(tenantID, UserNotificationType.USER_ACCOUNT_STATUS_CHANGED, title, body, user, {
       userID: user.id
     },
     severity
@@ -163,7 +163,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const title = i18n.t('notifications.unknownUserBadged.title');
     const body = i18n.t('notifications.unknownUserBadged.body', { chargeBoxID: data.chargeBoxID, badgeID: data.badgeID });
     // Send Notification
-    return await this.sendRemotePushNotificationToUser(tenantID, title, body, user, {
+    return await this.sendRemotePushNotificationToUser(tenantID, UserNotificationType.UNKNOWN_USER_BADGED, title, body, user, {
       chargeBoxID: data.chargeBoxID,
       badgeID: data.badgeID
     },
@@ -178,7 +178,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const title = i18n.t('notifications.sessionStarted.title');
     const body = i18n.t('notifications.sessionStarted.body', { chargeBoxID: data.chargeBoxID, connectorId: data.connectorId });
     // Send Notification
-    return await this.sendRemotePushNotificationToUser(tenantID, title, body, user, {
+    return await this.sendRemotePushNotificationToUser(tenantID, UserNotificationType.SESSION_STARTED, title, body, user, {
       'transactionId': data.transactionId + '',
       'chargeBoxID': data.chargeBoxID,
       'connectorId': data.connectorId + ''
@@ -199,7 +199,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const title = i18n.t('notifications.smtpAuthError.title');
     const body = i18n.t('notifications.smtpAuthError.body');
     // Send Notification
-    return await this.sendRemotePushNotificationToUser(tenantID, title, body, user, null, severity);
+    return await this.sendRemotePushNotificationToUser(tenantID, UserNotificationType.SMTP_AUTH_ERROR, title, body, user, null, severity);
   }
 
   async sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {
@@ -209,10 +209,10 @@ export default class RemotePushNotificationTask implements NotificationTask {
     const title = i18n.t('notifications.ocpiPatchChargingStationsStatusesError.title');
     const body = i18n.t('notifications.ocpiPatchChargingStationsStatusesError.body', { location: data.location });
     // Send Notification
-    return await this.sendRemotePushNotificationToUser(tenantID, title, body, user, null, severity);
+    return await this.sendRemotePushNotificationToUser(tenantID, UserNotificationType.OCPI_PATCH_STATUS_ERROR, title, body, user, null, severity);
   }
 
-  private async sendRemotePushNotificationToUser(tenantID: string, title: string, body: string, user: User, data?: object, severity?: NotificationSeverity) {
+  private async sendRemotePushNotificationToUser(tenantID: string, notificationType: UserNotificationType, title: string, body: string, user: User, data?: object, severity?: NotificationSeverity) {
     // Checks
     if (!this.initialized) {
       // Bypass
@@ -223,7 +223,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
         tenantID: tenantID,
         source: (data.hasOwnProperty('chargeBoxID') ? data['chargeBoxID'] : undefined),
         module: 'RemotePushNotificationTask', method: 'sendRemotePushNotificationToUsers',
-        message: 'No mobile token found for this User',
+        message: `'${notificationType}': No mobile token found for this User`,
         actionOnUser: user.id,
         action: 'RemotePushNotification',
         detailedMessages: [title, body]
@@ -232,7 +232,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       return await Promise.resolve();
     }
     // Create message
-    const message = this.createMessage(title, body, user, data, severity);
+    const message = this.createMessage(notificationType, title, body, user, data, severity);
     // Send message
     admin.messaging().send(message).then((response) => {
       // Response is a message ID string.
@@ -240,7 +240,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
         tenantID: tenantID,
         source: (data.hasOwnProperty('chargeBoxID') ? data['chargeBoxID'] : undefined),
         module: 'RemotePushNotificationTask', method: 'sendRemotePushNotificationToUsers',
-        message: `Notification Sent: '${title}'`,
+        message: `Notification Sent: '${notificationType}' - '${title}'`,
         actionOnUser: user.id,
         action: 'RemotePushNotification',
         detailedMessages: [title, body, response]
@@ -250,7 +250,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
         tenantID: tenantID,
         source: (data.hasOwnProperty('chargeBoxID') ? data['chargeBoxID'] : undefined),
         module: 'RemotePushNotificationTask', method: 'sendRemotePushNotificationToUsers',
-        message: `Error when sending Notification: '${error.message}'`,
+        message: `Error when sending Notification: '${notificationType}' - '${error.message}'`,
         actionOnUser: user.id,
         action: 'RemotePushNotification',
         detailedMessages: error
@@ -258,7 +258,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     });
   }
 
-  private createMessage(title: string, body: string, user: User, data: object, severity: NotificationSeverity): admin.messaging.Message {
+  private createMessage(notificationType: UserNotificationType, title: string, body: string, user: User, data: object, severity: NotificationSeverity): admin.messaging.Message {
     const message: admin.messaging.Message = {
       notification: {
         title,
@@ -280,9 +280,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
       };
     }
     // Extra data
-    if (data) {
-      message.data = { ...data };
-    }
+    message.data = { notificationType, ...data };
     return message;
   }
 }
