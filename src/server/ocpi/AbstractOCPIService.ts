@@ -217,6 +217,7 @@ export default abstract class AbstractOCPIService {
       // Handle request action (endpoint)
       const endpoint = registeredEndpoints.get(action);
       if (endpoint) {
+        Logging.logDebug(`Request ${action} with path ${req.path}`);
         await endpoint.process(req, res, next, tenant, options);
       } else {
         // pragma res.sendStatus(501);

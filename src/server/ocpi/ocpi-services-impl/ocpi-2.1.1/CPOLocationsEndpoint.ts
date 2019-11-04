@@ -29,7 +29,7 @@ const RECORDS_LIMIT = 20;
     switch (req.method) {
       case 'GET':
         // Call method
-        await this.getLocationRequest(req, res, next, tenant, options);
+        await this.getLocationsRequest(req, res, next, tenant, options);
         break;
       default:
         res.sendStatus(501);
@@ -40,7 +40,7 @@ const RECORDS_LIMIT = 20;
   /**
    * Get Locations according to the requested url Segment
    */
-  async getLocationRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
+  async getLocationsRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
     // Split URL Segments
     //    /ocpi/cpo/2.0/locations/{location_id}
     //    /ocpi/cpo/2.0/locations/{location_id}/{evse_uid}
