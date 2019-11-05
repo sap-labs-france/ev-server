@@ -571,7 +571,7 @@ export default class NotificationHandler {
                 await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_NO_HEARTBEAT, null, chargingStation, null);
                 // Send
                 for (const adminUser of adminUsers) {
-                  await notificationSource.notificationTask.sendNoHeartbeat(sourceData, adminUser, tenantID, , NotificationSeverity.INFO);
+                  await notificationSource.notificationTask.sendNoHeartbeat(sourceData, adminUser, tenantID, NotificationSeverity.INFO);
                 }
               }
             }
