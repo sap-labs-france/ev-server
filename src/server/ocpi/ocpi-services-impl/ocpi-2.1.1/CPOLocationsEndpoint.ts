@@ -109,7 +109,7 @@ const RECORDS_LIMIT = 20;
       const limit = (req.query.limit && req.query.limit < RECORDS_LIMIT) ? parseInt(req.query.limit) : RECORDS_LIMIT;
 
       // Get all locations
-      const result = await this.getAllLocations(tenant, limit, offset, options);
+      const result = await OCPIMapping.getAllLocations(tenant, limit, offset, options);
       payload = result.locations;
 
       // Set header
@@ -129,29 +129,6 @@ const RECORDS_LIMIT = 20;
 
     // Return Payload
     res.json(OCPIUtils.success(payload));
-  }
-
-  /**
-   * Get All OCPI Locations from given tenant TODO: move to OCPIMapping
-   * @param {Tenant} tenant
-   */
-  async getAllLocations(tenant: Tenant, limit: number, skip: number, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
-    // Result
-    const result = { count: 0, locations: [] };
-
-    // Get all sites
-    const sites = await SiteStorage.getSites(tenant.id, {}, { limit, skip });
-
-    // Convert Sites to Locations
-    for (const site of sites.result) {
-      result.locations.push(await OCPIMapping.convertSite2Location(tenant, site, options));
-    }
-
-    // Set count
-    result.count = sites.count;
-
-    // Return locations
-    return result;
   }
 
   /**

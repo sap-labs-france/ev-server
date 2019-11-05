@@ -13,6 +13,7 @@ import UserStorage from '../../../../storage/mongodb/UserStorage';
 const EP_IDENTIFIER = 'tokens';
 const MODULE_NAME = 'EMSPTokensEndpoint';
 
+const RECORDS_LIMIT = 100;
 /**
  * EMSP Tokens Endpoint
  */
@@ -50,25 +51,28 @@ export default class EMSPTokensEndpoint extends AbstractEndpoint {
     // Remove action
     urlSegment.shift();
 
-    // Get filters
-    const countryCode = urlSegment.shift();
-    const partyId = urlSegment.shift();
-    const locationId = urlSegment.shift();
-    const evseUid = urlSegment.shift();
-    const connectorId = urlSegment.shift();
+    // Get query parameters
+    const offset = (req.query.offset) ? parseInt(req.query.offset) : 0;
+    const limit = (req.query.limit && req.query.limit < RECORDS_LIMIT) ? parseInt(req.query.limit) : RECORDS_LIMIT;
 
-    if (!countryCode || !partyId || !locationId) {
-      throw new AppError({
-        source: Constants.OCPI_SERVER,
-        module: MODULE_NAME,
-        method: 'patchLocationRequest',
-        errorCode: Constants.HTTP_GENERAL_ERROR,
-        message: 'Missing request parameters',
-        ocpiError: Constants.OCPI_STATUS_CODE.CODE_2001_INVALID_PARAMETER_ERROR
+    // Get all tokens
+    const tokens = await OCPIMapping.getAllTokens(tenant, limit, offset);
+
+    // Set header
+    res.set({
+      'X-Total-Count': tokens.count,
+      'X-Limit': RECORDS_LIMIT
+    });
+
+    // Return next link
+    const nextUrl = OCPIUtils.buildNextUrl(req, offset, limit, tokens.count);
+    if (nextUrl) {
+      res.links({
+        next: nextUrl
       });
     }
 
-    res.json(OCPIUtils.success());
+    res.json(OCPIUtils.success(tokens.result));
   }
 
   /**
