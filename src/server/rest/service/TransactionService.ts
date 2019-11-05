@@ -641,6 +641,9 @@ export default class TransactionService {
     if (filteredRequest.Search) {
       filter.search = filteredRequest.Search;
     }
+    if (filteredRequest.ReportIDs) {
+      filter.reportIDs = filteredRequest.ReportIDs.split('|');
+    }
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID, filter,
       {
         limit: filteredRequest.Limit,

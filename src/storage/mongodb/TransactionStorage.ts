@@ -199,7 +199,7 @@ export default class TransactionStorage {
     params: {
       transactionId?: number; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[]; chargeBoxIDs?:
         string[]; siteAreaIDs?: string[]; siteID?: string[]; connectorId?: number; startDateTime?: Date;
-      endDateTime?: Date; stop?: any; minimalPrice?: boolean;
+      endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[];
       statistics?: 'refund' | 'history'; refundStatus?: string[];
     },
     dbParams: DbParams, projectFields?: string[]):
@@ -273,25 +273,32 @@ export default class TransactionStorage {
     if (params.stop) {
       filterMatch.stop = params.stop;
     }
+    // Site's area ID
     if (params.siteAreaIDs) {
       filterMatch.siteAreaID = {
         $in: params.siteAreaIDs.map((area) => Utils.convertToObjectID(area))
       };
     }
+    // Site ID
     if (params.siteID) {
       filterMatch.siteID = {
         $in: params.siteID.map((site) => Utils.convertToObjectID(site))
       };
     }
-
+    // Refund status
     if (params.refundStatus && params.refundStatus.length > 0) {
       const statuses = params.refundStatus.map((status) => status === Constants.REFUND_STATUS_NOT_SUBMITTED ? null : status);
       filterMatch['refundData.status'] = {
         $in: statuses
       };
     }
+    // Minimal Price
     if (params.minimalPrice) {
-      filterMatch['stop.price'] = { $gt: 0 };
+      filterMatch['stop.price'] = { $gt: Utils.convertToInt(params.minimalPrice) };
+    }
+    // Report ID
+    if (params.reportIDs) {
+      filterMatch['refundData.reportId'] = { $in: params.reportIDs };
     }
     // Create Aggregation
     const aggregation = [];
