@@ -491,24 +491,30 @@ npm run start:(prod|dev):(doctorprof|flameprof|bubbleprof)
 * Create a local configuration file located in './test/config/local.json' with the parameters to override like
 
         {
+          "superadmin": {
+            "username": "YOUR_SUPERADMIN_USERNAME",
+            "password": "YOUR_SUPERADMIN_PASSWORD"
+          },
           "admin": {
             "username": "YOUR_ADMIN_USERNAME",
-            "password": "YOUR_ADMIN_PASSWORD"
+            "password": "YOUR_ADMIN_PASSWORD",
+            "tenant": "YOUR_TENANT"
           },
           "server": {
             "logs": "json"
           },
           "ocpp": {
-            "logs": "json"
+            "json": {
+                "logs": "json"
+            }
           }
         }
 
 
   For further parameters, check the [`config`](./test/config.js) content. It is also possible to use environment variables as defined in the [`config`](./test/config.js) file
 * Start a server containing the configured admin user in the database
-* run the command `npm test`
-
-You can
+* If you have done it yet, run the command `npm run test:createContext`
+* Run the command `npm test`
 
 ### Docker Mode
 Depending on the need it is possible to start different docker containers.
