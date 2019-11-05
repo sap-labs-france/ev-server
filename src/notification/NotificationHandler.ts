@@ -517,7 +517,7 @@ export default class NotificationHandler {
         if (!hasBeenNotified) {
             await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_USER_INACTIVITY_LIMIT, user);
         // Send
-            await notificationSource.notificationTask.sendUserInactivityLimitReached(data, user, tenantID);
+            await notificationSource.notificationTask.sendUserInactivityLimitReached(data, user, tenantID, NotificationSeverity.INFO);
           }
         } catch (error) {
           Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_USER_INACTIVITY_LIMIT, error);
@@ -539,7 +539,7 @@ export default class NotificationHandler {
           if (!hasBeenNotified) {
             await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_FORGET_CHARGE, user);
             // Send
-            await notificationSource.notificationTask.sendForgetCharge(data, user, tenantID);
+            await notificationSource.notificationTask.sendForgetCharge(data, user, tenantID, NotificationSeverity.INFO);
           }
         } catch (error) {
           Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_FORGET_CHARGE, error);
@@ -571,7 +571,7 @@ export default class NotificationHandler {
                 await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_NO_HEARTBEAT, null, chargingStation, null);
                 // Send
                 for (const adminUser of adminUsers) {
-                  await notificationSource.notificationTask.sendNoHeartbeat(sourceData, adminUser, tenantID);
+                  await notificationSource.notificationTask.sendNoHeartbeat(sourceData, adminUser, tenantID, , NotificationSeverity.INFO);
                 }
               }
             }
