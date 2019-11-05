@@ -44,11 +44,11 @@ export default class RemotePushNotificationTask implements NotificationTask {
     return Promise.resolve();
   }
 
-  sendUserInactivityLimitReached(data: UserInactivityLimitReachedNotification, user: User, tenantID: string): Promise<void> {
+  sendUserInactivityLimitReached(data: UserInactivityLimitReachedNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {
     return Promise.resolve();
   }
 
-  sendForgetCharge(data: ForgetChargeNotification, user: User, tenantID: string): Promise<void> {
+  sendForgetCharge(data: ForgetChargeNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {
     // Nothing to send
     return Promise.resolve();
   }
@@ -58,7 +58,7 @@ export default class RemotePushNotificationTask implements NotificationTask {
     return Promise.resolve();
   }
 
-  sendNoHeartbeat(data: NoHeartbeatNotification, user: User, tenantID: string): Promise<void>  {
+  sendNoHeartbeat(data: NoHeartbeatNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>  {
     return Promise.resolve();
   }
 
