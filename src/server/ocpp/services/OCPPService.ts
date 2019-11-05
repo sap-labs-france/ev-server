@@ -837,12 +837,11 @@ export default class OCPPService {
     const totalInactivitySecs = transaction.stop.totalInactivitySecs;
     // None?
     if (totalInactivitySecs === 0) {
-      return `0${i18nHourShort}00 (0%)`;
+      return `0${i18nHourShort}00 (${I18nManager.formatPercentage(0)})`;
     }
     // Build the inactivity percentage
-    const totalInactivityPercent = Math.round((totalInactivitySecs * 100) / transaction.stop.totalDurationSecs);
-    // Format
-    return moment.duration(totalInactivitySecs, 's').format(`h[${i18nHourShort}]mm`, { trim: false }) + ` (${totalInactivityPercent}%)`;
+    const totalInactivityPercent = I18nManager.formatPercentage(Math.round((totalInactivitySecs / transaction.stop.totalDurationSecs) * 100) / 100);
+    return moment.duration(totalInactivitySecs, 's').format(`h[${i18nHourShort}]mm`, { trim: false }) + ` (${totalInactivityPercent})`;
   }
 
   // Build duration
