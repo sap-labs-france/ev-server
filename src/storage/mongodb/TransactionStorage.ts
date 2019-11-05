@@ -321,10 +321,13 @@ export default class TransactionStorage {
         statsQuery = {
           $group: {
             _id: null,
+            firstTimestamp: { $min: '$timestamp' },
+            lastTimestamp: { $max: '$timestamp' },
             totalConsumptionWattHours: { $sum: '$stop.totalConsumption' },
             totalDurationSecs: { $sum: '$stop.totalDurationSecs' },
             totalPrice: { $sum: '$stop.price' },
             totalInactivitySecs: { '$sum': { $add: ['$stop.totalInactivitySecs', '$stop.extraInactivitySecs'] } },
+            currency: { $addToSet: '$stop.priceUnit' },
             count: { $sum: 1 }
           }
         };
@@ -333,6 +336,8 @@ export default class TransactionStorage {
         statsQuery = {
           $group: {
             _id: null,
+            firstTimestamp: { $min: '$timestamp' },
+            lastTimestamp: { $max: '$timestamp' },
             totalConsumptionWattHours: { $sum: '$stop.totalConsumption' },
             totalPriceRefund: { $sum: { $cond: [{ '$in': ['$refundData.status', [Constants.REFUND_STATUS_SUBMITTED, Constants.REFUND_STATUS_APPROVED]] }, '$stop.price', 0] } },
             totalPricePending: { $sum: { $cond: [{ '$in': ['$refundData.status', [Constants.REFUND_STATUS_SUBMITTED, Constants.REFUND_STATUS_APPROVED]] }, 0, '$stop.price'] } },

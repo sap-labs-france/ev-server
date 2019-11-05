@@ -169,6 +169,7 @@ export default class Constants {
   public static readonly PWD_SPECIAL_CHAR_RE = /([!#$%^&*.?-])/g;
 
   public static readonly SUPPORTED_LOCALES = ['en_US', 'fr_FR'];
+  public static readonly SUPPORTED_LANGUAGES = ['en', 'fr'];
   public static readonly DEFAULT_LOCALE = 'en_US';
   public static readonly DEFAULT_LANGUAGE = 'en';
 

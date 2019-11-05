@@ -881,7 +881,8 @@ export default class AuthService {
           eulaAcceptedOn: new Date(),
           eulaAcceptedVersion: endUserLicenseAgreement.version,
           eulaAcceptedHash: endUserLicenseAgreement.hash
-        });
+        }
+      );
     }
     // Reset wrong number of trial
     await UserStorage.saveUserPassword(tenantID, user.id,
