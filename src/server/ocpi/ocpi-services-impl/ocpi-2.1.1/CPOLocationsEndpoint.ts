@@ -10,17 +10,16 @@ import AbstractOCPIService from '../../AbstractOCPIService';
 import Site from '../../../../types/Site';
 
 const EP_IDENTIFIER = 'locations';
-const EP_VERSION = '2.1.1';
-const MODULE_NAME = 'LocationsEndpoint';
+const MODULE_NAME = 'CPOLocationsEndpoint';
 
 const RECORDS_LIMIT = 20;
 
 /**
  * Locations Endpoint
- */export default class LocationsEndpoint extends AbstractEndpoint {
+ */export default class CPOLocationsEndpoint extends AbstractEndpoint {
   // Create OCPI Service
   constructor(ocpiService: AbstractOCPIService) {
-    super(ocpiService, EP_IDENTIFIER, EP_VERSION);
+    super(ocpiService, EP_IDENTIFIER);
   }
 
   /**
@@ -30,7 +29,7 @@ const RECORDS_LIMIT = 20;
     switch (req.method) {
       case 'GET':
         // Call method
-        await this.getLocationRequest(req, res, next, tenant, options);
+        await this.getLocationsRequest(req, res, next, tenant, options);
         break;
       default:
         res.sendStatus(501);
@@ -41,7 +40,7 @@ const RECORDS_LIMIT = 20;
   /**
    * Get Locations according to the requested url Segment
    */
-  async getLocationRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
+  async getLocationsRequest(req: Request, res: Response, next: NextFunction, tenant: Tenant, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
     // Split URL Segments
     //    /ocpi/cpo/2.0/locations/{location_id}
     //    /ocpi/cpo/2.0/locations/{location_id}/{evse_uid}
@@ -110,7 +109,7 @@ const RECORDS_LIMIT = 20;
       const limit = (req.query.limit && req.query.limit < RECORDS_LIMIT) ? parseInt(req.query.limit) : RECORDS_LIMIT;
 
       // Get all locations
-      const result = await this.getAllLocations(tenant, limit, offset, options);
+      const result = await OCPIMapping.getAllLocations(tenant, limit, offset, options);
       payload = result.locations;
 
       // Set header
@@ -130,29 +129,6 @@ const RECORDS_LIMIT = 20;
 
     // Return Payload
     res.json(OCPIUtils.success(payload));
-  }
-
-  /**
-   * Get All OCPI Locations from given tenant TODO: move to OCPIMapping
-   * @param {Tenant} tenant
-   */
-  async getAllLocations(tenant: Tenant, limit: number, skip: number, options: { countryID: string; partyID: string; addChargeBoxID?: boolean }) {
-    // Result
-    const result = { count: 0, locations: [] };
-
-    // Get all sites
-    const sites = await SiteStorage.getSites(tenant.id, {}, { limit, skip });
-
-    // Convert Sites to Locations
-    for (const site of sites.result) {
-      result.locations.push(await OCPIMapping.convertSite2Location(tenant, site, options));
-    }
-
-    // Set count
-    result.count = sites.count;
-
-    // Return locations
-    return result;
   }
 
   /**
