@@ -5,7 +5,7 @@ import BackendError from '../../exception/BackendError';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import global from '../../types/GlobalType';
 import User from '../../types/User';
-import { ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, VerificationEmailNotification, NotificationSeverity } from '../../types/UserNotifications';
+import { ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
@@ -94,7 +94,7 @@ export default class EMailNotificationTask implements NotificationTask {
   }
 
   public sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification,
-      user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {
+    user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {
     return this.prepareAndSendEmail('ocpi-patch-status-error', data, user, tenantID, severity, true);
   }
 
@@ -233,7 +233,7 @@ export default class EMailNotificationTask implements NotificationTask {
         tenantID: tenantID, source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
         module: 'EMailNotificationTask', method: 'prepareAndSendEmail',
         action: 'SendEmail',
-        message: `Error in preparing email for user`,
+        message: 'Error in preparing email for user',
         actionOnUser: user,
         detailedMessages: error
       });

@@ -125,7 +125,7 @@ export default class TransactionSecurity {
         filteredTransaction.currentConsumption = transaction.currentConsumption;
         filteredTransaction.currentTotalConsumption = transaction.currentTotalConsumption;
         filteredTransaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs;
-        filteredTransaction.currentInactivityStatusLevel = 
+        filteredTransaction.currentInactivityStatusLevel =
           Utils.getInactivityStatusLevel(transaction.chargeBox, transaction.connectorId, transaction.currentTotalInactivitySecs);
         filteredTransaction.currentTotalDurationSecs =
           moment.duration(moment(!transaction.stop ? transaction.lastMeterValue.timestamp : transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
@@ -158,7 +158,7 @@ export default class TransactionSecurity {
         filteredTransaction.stop.timestamp = transaction.stop.timestamp;
         filteredTransaction.stop.totalConsumption = transaction.stop.totalConsumption;
         filteredTransaction.stop.totalInactivitySecs = transaction.stop.totalInactivitySecs + transaction.stop.extraInactivitySecs;
-        filteredTransaction.stop.inactivityStatusLevel = 
+        filteredTransaction.stop.inactivityStatusLevel =
           Utils.getInactivityStatusLevel(transaction.chargeBox, transaction.connectorId,
             filteredTransaction.stop.totalInactivitySecs + (filteredTransaction.stop.extraInactivitySecs ? filteredTransaction.stop.extraInactivitySecs : 0));
         filteredTransaction.stop.totalDurationSecs = transaction.stop.totalDurationSecs;

@@ -685,6 +685,78 @@ export default class UserStorage {
     };
   }
 
+  public static async getTags(tenantID: string, dbParams: DbParams): Promise<DataResult<Tag>> {
+    const uniqueTimerID = Logging.traceStart('UserStorage', 'getTags');
+    // Check Tenant
+    await Utils.checkTenant(tenantID);
+    // Check Limit
+    const limit = Utils.checkRecordLimit(dbParams.limit);
+    // Check Skip
+    const skip = Utils.checkRecordSkip(dbParams.skip);
+
+
+    // Create Aggregation
+    const aggregation = [];
+
+    // Limit records?
+    if (!dbParams.onlyRecordCount) {
+      // Always limit the nbr of record to avoid perfs issues
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
+    }
+    // Count Records
+    const tagsCountMDB = await global.database.getCollection<any>(tenantID, 'tags')
+      .aggregate([...aggregation, { $count: 'count' }], { allowDiskUse: true })
+      .toArray();
+    // Check if only the total count is requested
+    if (dbParams.onlyRecordCount) {
+      // Return only the count
+      return {
+        count: (tagsCountMDB.length > 0 ? tagsCountMDB[0].count : 0),
+        result: []
+      };
+    }
+    // Remove the limit
+    aggregation.pop();
+
+    if (dbParams.sort) {
+      aggregation.push({
+        $sort: dbParams.sort
+      });
+    } else {
+      aggregation.push({
+        $sort: { id: -1 }
+      });
+    }
+    // Skip
+    aggregation.push({
+      $skip: skip
+    });
+    // Limit
+    aggregation.push({
+      $limit: limit
+    });
+
+    aggregation.push({
+      $project: {
+        id: '$_id',
+        _id: 0,
+        userID: { $toString: '$userID' }
+      }
+    });
+    // Read DB
+    const tagsMDB = await global.database.getCollection<Tag>(tenantID, 'tags')
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
+      .toArray();
+    // Debug
+    Logging.traceEnd('UserStorage', 'getTags', uniqueTimerID);
+    // Ok
+    return {
+      count: (tagsCountMDB.length > 0 ?
+        (tagsCountMDB[0].count === Constants.DB_RECORD_COUNT_CEIL ? -1 : tagsCountMDB[0].count) : 0),
+      result: tagsMDB
+    };
+  }
+
   public static async getUsersInError(tenantID: string,
     params: { search?: string; roles?: string[]; errorTypes?: string[] },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
