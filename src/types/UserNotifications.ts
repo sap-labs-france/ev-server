@@ -38,7 +38,7 @@ export enum UserNotificationType {
   CHARGING_STATION_REGISTERED = 'ChargingStationRegistered',
   OCPI_PATCH_STATUS_ERROR = 'OcpiPatchStatusError',
   SMTP_AUTH_ERROR = 'SmtpAuthError'
-};
+}
 
 export type InactivityStatusLevel =
  'info' |

@@ -57,15 +57,15 @@ export default class Utils {
       return 'info';
     }
     // Get Notification Interval
-    let intervalMins = Utils.getEndOfChargeNotificationIntervalMins(chargingStation, connectorId);
+    const intervalMins = Utils.getEndOfChargeNotificationIntervalMins(chargingStation, connectorId);
     // Check
     if (inactivitySecs < (intervalMins * 60)) {
       return 'info';
     } else if (inactivitySecs < (intervalMins * 60 * 2)) {
       return 'warning';
-    } else {
-      return 'danger';
     }
+    return 'danger';
+
   }
 
   public static generateGUID() {
@@ -291,7 +291,7 @@ export default class Utils {
         source: headers.chargeBoxIdentity,
         module: 'Utils',
         method: 'normalizeAndCheckSOAPParams',
-        message: `The Charging Station ID is invalid`
+        message: 'The Charging Station ID is invalid'
       });
     }
   }
