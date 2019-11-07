@@ -5,7 +5,7 @@ import BackendError from '../../exception/BackendError';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import global from '../../types/GlobalType';
 import User from '../../types/User';
-import { ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
+import { ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, VerificationEmailNotification } from '../../types/UserNotifications';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
@@ -41,64 +41,64 @@ export default class EMailNotificationTask implements NotificationTask {
     }
   }
 
-  public sendNewRegisteredUser(data: NewRegisteredUserNotification, user: User, tenantID: string): Promise<void> {
-    return this.prepareAndSendEmail('new-registered-user', data, user, tenantID);
+  public sendNewRegisteredUser(data: NewRegisteredUserNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {
+    return this.prepareAndSendEmail('new-registered-user', data, user, tenantID, severity);
   }
 
-  public sendRequestPassword(data: RequestPasswordNotification, user: User, tenantID: string): Promise<void> {
-    return this.prepareAndSendEmail('request-password', data, user, tenantID);
+  public sendRequestPassword(data: RequestPasswordNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {
+    return this.prepareAndSendEmail('request-password', data, user, tenantID, severity);
   }
 
-  public sendOptimalChargeReached(data: OptimalChargeReachedNotification, user: User, tenantID: string): Promise<void> {
-    return this.prepareAndSendEmail('optimal-charge-reached', data, user, tenantID);
+  public sendOptimalChargeReached(data: OptimalChargeReachedNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {
+    return this.prepareAndSendEmail('optimal-charge-reached', data, user, tenantID, severity);
   }
 
-  public sendEndOfCharge(data: EndOfChargeNotification, user: User, tenantID: string): Promise<void> {
-    return this.prepareAndSendEmail('end-of-charge', data, user, tenantID);
+  public sendEndOfCharge(data: EndOfChargeNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {
+    return this.prepareAndSendEmail('end-of-charge', data, user, tenantID, severity);
   }
 
-  public sendEndOfSession(data: EndOfSessionNotification, user: User, tenantID: string): Promise<void> {
-    return this.prepareAndSendEmail('end-of-session', data, user, tenantID);
+  public sendEndOfSession(data: EndOfSessionNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {
+    return this.prepareAndSendEmail('end-of-session', data, user, tenantID, severity);
   }
 
-  public sendEndOfSignedSession(data: EndOfSignedSessionNotification, user: User, tenantID: string): Promise<void> {
-    return this.prepareAndSendEmail('end-of-signed-session', data, user, tenantID);
+  public sendEndOfSignedSession(data: EndOfSignedSessionNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {
+    return this.prepareAndSendEmail('end-of-signed-session', data, user, tenantID, severity);
   }
 
-  public sendChargingStationStatusError(data: ChargingStationStatusErrorNotification, user: User, tenantID: string): Promise<void> {
-    return this.prepareAndSendEmail('charging-station-status-error', data, user, tenantID);
+  public sendChargingStationStatusError(data: ChargingStationStatusErrorNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {
+    return this.prepareAndSendEmail('charging-station-status-error', data, user, tenantID, severity);
   }
 
-  public sendChargingStationRegistered(data: ChargingStationRegisteredNotification, user: User, tenantID: string): Promise<void> {
-    return this.prepareAndSendEmail('charging-station-registered', data, user, tenantID);
+  public sendChargingStationRegistered(data: ChargingStationRegisteredNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {
+    return this.prepareAndSendEmail('charging-station-registered', data, user, tenantID, severity);
   }
 
-  public sendUserAccountStatusChanged(data: UserAccountStatusChangedNotification, user: User, tenantID: string): Promise<void> {
-    return this.prepareAndSendEmail('user-account-status-changed', data, user, tenantID);
+  public sendUserAccountStatusChanged(data: UserAccountStatusChangedNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {
+    return this.prepareAndSendEmail('user-account-status-changed', data, user, tenantID, severity);
   }
 
-  public sendUnknownUserBadged(data: UnknownUserBadgedNotification, user: User, tenantID: string): Promise<void> {
-    return this.prepareAndSendEmail('unknown-user-badged', data, user, tenantID);
+  public sendUnknownUserBadged(data: UnknownUserBadgedNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {
+    return this.prepareAndSendEmail('unknown-user-badged', data, user, tenantID, severity);
   }
 
-  public sendSessionStarted(data: TransactionStartedNotification, user: User, tenantID: string): Promise<void> {
-    return this.prepareAndSendEmail('session-started', data, user, tenantID);
+  public sendSessionStarted(data: TransactionStartedNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {
+    return this.prepareAndSendEmail('session-started', data, user, tenantID, severity);
   }
 
-  public sendVerificationEmail(data: VerificationEmailNotification, user: User, tenantID: string): Promise<void> {
-    return this.prepareAndSendEmail('verification-email', data, user, tenantID);
+  public sendVerificationEmail(data: VerificationEmailNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {
+    return this.prepareAndSendEmail('verification-email', data, user, tenantID, severity);
   }
 
-  public sendSmtpAuthError(data: SmtpAuthErrorNotification, user: User, tenantID: string): Promise<void> {
-    return this.prepareAndSendEmail('smtp-auth-error', data, user, tenantID, true);
+  public sendSmtpAuthError(data: SmtpAuthErrorNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {
+    return this.prepareAndSendEmail('smtp-auth-error', data, user, tenantID, severity, true);
   }
 
   public sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification,
-      user: User, tenantID: string): Promise<void> {
-    return this.prepareAndSendEmail('ocpi-patch-status-error', data, user, tenantID, true);
+    user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {
+    return this.prepareAndSendEmail('ocpi-patch-status-error', data, user, tenantID, severity, true);
   }
 
-  private async prepareAndSendEmail(templateName: string, data: any, user: User, tenantID: string, retry = false): Promise<void> {
+  private async prepareAndSendEmail(templateName: string, data: any, user: User, tenantID: string, severity: NotificationSeverity, retry = false): Promise<void> {
     try {
       // Check locale
       if (!user.locale || !Constants.SUPPORTED_LOCALES.includes(user.locale)) {
@@ -227,20 +227,20 @@ export default class EMailNotificationTask implements NotificationTask {
         subject: subject,
         text: html,
         html: html
-      }, data, tenantID, user, retry);
+      }, data, tenantID, user, severity, retry);
     } catch (error) {
       Logging.logError({
         tenantID: tenantID, source: (data.hasOwnProperty('chargeBoxID') ? data.chargeBoxID : undefined),
         module: 'EMailNotificationTask', method: 'prepareAndSendEmail',
         action: 'SendEmail',
-        message: `Error in preparing email for user`,
+        message: 'Error in preparing email for user',
         actionOnUser: user,
         detailedMessages: error
       });
     }
   }
 
-  async sendEmail(email, data, tenantID: string, user: User, retry = false): Promise<void> {
+  async sendEmail(email, data, tenantID: string, user: User, severity: NotificationSeverity, retry = false): Promise<void> {
     // Create the message
     const messageToSend = {
       from: (!retry ? this.emailConfig.smtp.from : this.emailConfig.smtpBackup.from),
@@ -292,7 +292,7 @@ export default class EMailNotificationTask implements NotificationTask {
         }
         // Retry?
         if (!retry && this.serverBackup) {
-          return this.sendEmail(email, data, tenantID, user, true);
+          return this.sendEmail(email, data, tenantID, user, severity, true);
         }
       } else {
         // Email sent successfully

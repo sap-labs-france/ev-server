@@ -65,6 +65,7 @@ export default class OCPIEndpointSecurity {
   static _filterOcpiEndpointRequest(request: any): Partial<OCPIEndpoint> {
     const filteredRequest: Partial<OCPIEndpoint> = {};
     filteredRequest.name = sanitize(request.name);
+    filteredRequest.role = sanitize(request.role);
     filteredRequest.baseUrl = sanitize(request.baseUrl);
     filteredRequest.countryCode = sanitize(request.countryCode);
     filteredRequest.partyId = sanitize(request.partyId);

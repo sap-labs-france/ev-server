@@ -198,7 +198,7 @@ export default class TransactionStorage {
   public static async getTransactions(tenantID: string,
     params: {
       transactionId?: number; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[]; chargeBoxIDs?:
-        string[]; siteAreaIDs?: string[]; siteID?: string[]; connectorId?: number; startDateTime?: Date;
+      string[]; siteAreaIDs?: string[]; siteID?: string[]; connectorId?: number; startDateTime?: Date;
       endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[];
       statistics?: 'refund' | 'history'; refundStatus?: string[];
     },
@@ -531,12 +531,12 @@ export default class TransactionStorage {
   }
 
   static async getTransactionsInError(tenantID,
-                                      params: {
-                                        search?: string; userIDs?: string[]; chargeBoxIDs?: string[];
-                                        siteAreaIDs?: string[]; siteID?: string[]; startDateTime?: Date; endDateTime?: Date; withChargeBoxes?: boolean;
-                                        errorType?: ('negative_inactivity' | 'negative_duration' | 'average_consumption_greater_than_connector_capacity' | 'incorrect_starting_date' | 'no_consumption')[];
-                                      },
-                                      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Transaction>> {
+    params: {
+      search?: string; userIDs?: string[]; chargeBoxIDs?: string[];
+      siteAreaIDs?: string[]; siteID?: string[]; startDateTime?: Date; endDateTime?: Date; withChargeBoxes?: boolean;
+      errorType?: ('negative_inactivity' | 'negative_duration' | 'average_consumption_greater_than_connector_capacity' | 'incorrect_starting_date' | 'no_consumption')[];
+    },
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Transaction>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactionsInError');
     // Check

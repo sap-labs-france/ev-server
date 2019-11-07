@@ -1,10 +1,10 @@
 {
-  "subject": "Utilisateur Inconnu à Badgé",
+  "subject": "Utilisateur Inconnu a Badgé",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Utilisateur Inconnu à Badgé",
+      "title": "Utilisateur Inconnu a Badgé",
       "image": {
         "left": {
           "height": 60,

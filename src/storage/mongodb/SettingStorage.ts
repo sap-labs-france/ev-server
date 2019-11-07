@@ -102,8 +102,8 @@ export default class SettingStorage {
   }
 
   public static async getSettings(tenantID: string,
-      params: {identifier?: string; settingID?: string},
-      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Setting>> {
+    params: {identifier?: string; settingID?: string},
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Setting>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('SettingStorage', 'getSettings');
     // Check Tenant
