@@ -107,22 +107,22 @@ export default class Authorizations {
     const siteIDs = [];
     const siteAdminIDs = [];
     const siteOwnerIDs = [];
-    if (!Authorizations.isAdmin(user)) {
-      // Get User's site
-      const sites = (await UserStorage.getSites(tenantID, { userID: user.id },
-        Constants.DB_PARAMS_MAX_LIMIT)).result;
+    // Get User's site
+    const sites = (await UserStorage.getSites(tenantID, { userID: user.id },
+      Constants.DB_PARAMS_MAX_LIMIT)).result;
 
-      sites.forEach((siteUser) => {
+    sites.forEach((siteUser) => {
+      if (!Authorizations.isAdmin(user)) {
         siteIDs.push(siteUser.site.id);
         companyIDs.add(siteUser.site.companyID);
         if (siteUser.siteAdmin) {
           siteAdminIDs.push(siteUser.site.id);
         }
-        if (siteUser.siteOwner) {
-          siteOwnerIDs.push(siteUser.site.id);
-        }
-      });
-    }
+      }
+      if (siteUser.siteOwner) {
+        siteOwnerIDs.push(siteUser.site.id);
+      }
+    });
 
     let tenantHashID = Constants.DEFAULT_TENANT;
     let activeComponents = [];
