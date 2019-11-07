@@ -65,12 +65,18 @@ export default class TransactionSecurity {
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.RefundStatus = sanitize(request.RefundStatus);
     filteredRequest.MinimalPrice = sanitize(request.MinimalPrice);
-    filteredRequest.ReportIDs = sanitize(request.ReportIDs);
+
     if (request.Statistics) {
       filteredRequest.Statistics = sanitize(request.Statistics);
     }
     if (request.UserID) {
       filteredRequest.UserID = sanitize(request.UserID);
+    }
+    if (request.ReportIDs) {
+      filteredRequest.ReportIDs = sanitize(request.ReportIDs);
+    }
+    if (request.Distinct) {
+      filteredRequest.Distinct = sanitize(request.Distinct);
     }
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);

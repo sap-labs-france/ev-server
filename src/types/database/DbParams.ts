@@ -3,4 +3,5 @@ export default interface DbParams {
   skip: number;
   onlyRecordCount?: boolean;
   sort?: any;
+  distinct?: any;
 }

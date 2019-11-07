@@ -1,4 +1,4 @@
-import { NextFunction, Request, Response } from 'express';
+import {NextFunction, Request, Response} from 'express';
 import fs from 'fs';
 import moment from 'moment';
 import AppAuthError from '../../../exception/AppAuthError';
@@ -11,7 +11,8 @@ import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import OCPPService from '../../../server/ocpp/services/OCPPService';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
-import SynchronizeRefundTransactionsTask from '../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
+import SynchronizeRefundTransactionsTask
+  from '../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Transaction from '../../../types/Transaction';
 import TransactionSecurity from './security/TransactionSecurity';
@@ -22,6 +23,7 @@ import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 import Consumption from '../../../types/Consumption';
 import RefundFactory from '../../../integration/refund/RefundFactory';
+import DbParams from "../../../types/database/DbParams";
 
 export default class TransactionService {
   static async handleSynchronizeRefundedTransactions(action: string, req: Request, res: Response, next: NextFunction) {
@@ -372,7 +374,7 @@ export default class TransactionService {
       });
     }
     // Get the consumption
-    let consumptions: Consumption[] = await ConsumptionStorage.getConsumptions(req.user.tenantID, { transactionId: transaction.id });
+    let consumptions: Consumption[] = await ConsumptionStorage.getConsumptions(req.user.tenantID, {transactionId: transaction.id});
     // Dates provided?
     const startDateTime = filteredRequest.StartDateTime ? filteredRequest.StartDateTime : Constants.MIN_DATE;
     const endDateTime = filteredRequest.EndDateTime ? filteredRequest.EndDateTime : Constants.MAX_DATE;
@@ -477,7 +479,7 @@ export default class TransactionService {
         method: 'handleGetTransactionsActive'
       });
     }
-    const filter: any = { stop: { $exists: false } };
+    const filter: any = {stop: {$exists: false}};
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsActiveRequest(req.query);
     if (filteredRequest.ChargeBoxID) {
@@ -531,7 +533,7 @@ export default class TransactionService {
         method: 'handleGetTransactionsCompleted'
       });
     }
-    const filter: any = { stop: { $exists: true } };
+    const filter: any = {stop: {$exists: true}};
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
     if (filteredRequest.ChargeBoxID) {
@@ -600,7 +602,7 @@ export default class TransactionService {
         method: 'handleGetTransactionsToRefund'
       });
     }
-    const filter: any = { stop: { $exists: true } };
+    const filter: any = {stop: {$exists: true}};
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
     if (filteredRequest.ChargeBoxID) {
@@ -644,13 +646,19 @@ export default class TransactionService {
     if (filteredRequest.ReportIDs) {
       filter.reportIDs = filteredRequest.ReportIDs.split('|');
     }
-    const transactions = await TransactionStorage.getTransactions(req.user.tenantID, filter,
-      {
-        limit: filteredRequest.Limit,
-        skip: filteredRequest.Skip,
-        sort: filteredRequest.Sort,
-        onlyRecordCount: filteredRequest.OnlyRecordCount
-      });
+
+    const dbParams: DbParams = {
+      limit: filteredRequest.Limit,
+      skip: filteredRequest.Skip,
+      sort: filteredRequest.Sort,
+      onlyRecordCount: filteredRequest.OnlyRecordCount
+    };
+
+    if (filteredRequest.Distinct) {
+      dbParams.distinct = filteredRequest.Distinct;
+    }
+
+    const transactions = await TransactionStorage.getTransactions(req.user.tenantID, filter, dbParams);
     // Filter
     TransactionSecurity.filterTransactionsResponse(transactions, req.user, true);
     // Return
@@ -670,7 +678,7 @@ export default class TransactionService {
         method: 'handleGetTransactionsExport'
       });
     }
-    const filter: any = { stop: { $exists: true } };
+    const filter: any = {stop: {$exists: true}};
     // Filter
     const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
     if (filteredRequest.ChargeBoxID) {
@@ -706,7 +714,7 @@ export default class TransactionService {
       filter.refundStatus = filteredRequest.RefundStatus.split('|');
     }
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID,
-      { ...filter, search: filteredRequest.Search, siteID: filteredRequest.SiteID },
+      {...filter, search: filteredRequest.Search, siteID: filteredRequest.SiteID},
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
@@ -784,7 +792,7 @@ export default class TransactionService {
     }
     // Site Area
     const transactions = await TransactionStorage.getTransactionsInError(req.user.tenantID,
-      { ...filter, search: filteredRequest.Search },
+      {...filter, search: filteredRequest.Search},
       {
         limit: filteredRequest.Limit,
         skip: filteredRequest.Skip,
