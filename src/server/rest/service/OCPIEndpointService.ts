@@ -195,7 +195,6 @@ export default class OCPIEndpointService {
     }
     // Filter
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointPingRequest(req.body);
-    UtilsService.assertIdIsProvided(filteredRequest.id, MODULE_NAME, 'handlePingOcpiEndpoint', req.user);
     // Check Mandatory fields
     Utils.checkIfOCPIEndpointValid(filteredRequest, req);
 
