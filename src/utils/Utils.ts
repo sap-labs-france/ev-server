@@ -734,6 +734,16 @@ export default class Utils {
         user: req.user.id
       });
     }
+    if (!ocpiEndpoint.role) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The OCPI Endpoint role is mandatory',
+        module: 'Utils',
+        method: 'checkIfOCPIEndpointValid',
+        user: req.user.id
+      });
+    }
     if (!ocpiEndpoint.baseUrl) {
       throw new AppError({
         source: Constants.CENTRAL_SERVER,
