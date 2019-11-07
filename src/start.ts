@@ -38,6 +38,9 @@ export default class Bootstrap {
 
   public static async start(): Promise<void> {
     try {
+      // Setup i18n
+      await I18nManager.initialize();
+      // Master?
       if (cluster.isMaster) {
         const nodejsEnv = process.env.NODE_ENV || 'development';
         // eslint-disable-next-line no-console
@@ -54,9 +57,6 @@ export default class Bootstrap {
       // Init global user and tenant IDs hashmap
       global.userHashMapIDs = new Map<string, string>();
       global.tenantHashMapIDs = new Map<string, string>();
-
-      // Setup i18n
-      await I18nManager.initialize();
 
       // Start the connection to the Database
       if (!Bootstrap.databaseDone) {

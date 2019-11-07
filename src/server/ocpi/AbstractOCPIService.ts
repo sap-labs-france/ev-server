@@ -21,8 +21,9 @@ export default abstract class AbstractOCPIService {
   private endpoints: Map<string, AbstractEndpoint> = new Map();
 
   // Create OCPI Service
-  public constructor(
+  protected constructor(
     private readonly ocpiRestConfig: Configuration['OCPIService'],
+    private readonly role: string,
     private readonly version: string) {
   }
 
@@ -61,8 +62,7 @@ export default abstract class AbstractOCPIService {
 
   // Get Relative path of the service
   public getPath(): string {
-    const version = this.getVersion();
-    return `/ocpi/cpo/${version}/`;
+    return `${this.role}/${this.version}/`;
   }
 
   /**
@@ -73,7 +73,7 @@ export default abstract class AbstractOCPIService {
   }
 
   // Rest Service Implementation
-  public restService(req: TenantIdHoldingRequest, res: Response, next: NextFunction): void {
+  public async restService(req: TenantIdHoldingRequest, res: Response, next: NextFunction): Promise<void> {
     // Parse the action
     const regexResult = /^\/\w*/g.exec(req.url);
     if (!regexResult) {
@@ -96,7 +96,7 @@ export default abstract class AbstractOCPIService {
         this.getSupportedEndpoints(req, res, next);
         break;
       default:
-        this.processEndpointAction(action, req, res, next);
+        await this.processEndpointAction(action, req, res, next);
         break;
     }
   }
@@ -217,6 +217,7 @@ export default abstract class AbstractOCPIService {
       // Handle request action (endpoint)
       const endpoint = registeredEndpoints.get(action);
       if (endpoint) {
+        Logging.logDebug(`Request ${action} with path ${req.path}`);
         await endpoint.process(req, res, next, tenant, options);
       } else {
         // pragma res.sendStatus(501);

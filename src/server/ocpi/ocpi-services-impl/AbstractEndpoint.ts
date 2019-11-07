@@ -9,7 +9,8 @@ import Site from '../../../types/Site';
  */
 export default class AbstractEndpoint {
   // Create OCPI Service
-  constructor(readonly ocpiService: AbstractOCPIService, readonly identifier: string = 'default', readonly version: string = '0.0.0') {}
+  constructor(readonly ocpiService: AbstractOCPIService, readonly identifier: string = 'default') {
+  }
 
   // Get Endpoint Identifier
   public getIdentifier(): string {
@@ -18,12 +19,17 @@ export default class AbstractEndpoint {
 
   // Get Endpoint version
   public getVersion(): string {
-    return this.version;
+    return this.ocpiService.getVersion();
   }
 
   // Return based URL of OCPI Service
   public getBaseUrl(req: Request): string {
     return this.ocpiService.getBaseUrl(req);
+  }
+
+  // Return based URL of OCPI Service
+  public getServiceUrl(req: Request): string {
+    return this.ocpiService.getServiceUrl(req);
   }
 
   // Abstract - Process endpoint

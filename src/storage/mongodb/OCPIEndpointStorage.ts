@@ -21,7 +21,7 @@ export default class OCPIEndpointStorage {
     return endpointsMDB.count > 0 ? endpointsMDB.result[0] : null;
   }
 
-  static async getOcpiEndpoinByLocalToken(tenantID: string, token: string): Promise<OCPIEndpoint> {
+  static async getOcpiEndpointByLocalToken(tenantID: string, token: string): Promise<OCPIEndpoint> {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPIEndpointStorage', 'getOcpiEndpoinByLocalToken');
     const endpointsMDB = await OCPIEndpointStorage.getOcpiEndpoints(tenantID, { localToken: token }, Constants.DB_PARAMS_SINGLE_RECORD);
@@ -57,6 +57,7 @@ export default class OCPIEndpointStorage {
     const ocpiEndpointMDB: any = {
       _id: ocpiEndpointFilter._id,
       name: ocpiEndpointToSave.name,
+      role: ocpiEndpointToSave.role,
       baseUrl: ocpiEndpointToSave.baseUrl,
       localToken: ocpiEndpointToSave.localToken,
       token: ocpiEndpointToSave.token,
@@ -85,7 +86,7 @@ export default class OCPIEndpointStorage {
   }
 
   // Delegate
-  static async getOcpiEndpoints(tenantID: string, params: { search?: string; id?: string; localToken?: string }, dbParams: DbParams): Promise<DataResult<OCPIEndpoint>> {
+  static async getOcpiEndpoints(tenantID: string, params: { search?: string; role?: string; id?: string; localToken?: string }, dbParams: DbParams): Promise<DataResult<OCPIEndpoint>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('OCPIEndpointStorage', 'getOcpiEndpoints');
     // Check Tenant
@@ -108,6 +109,10 @@ export default class OCPIEndpointStorage {
       filters.$or = [
         { 'name': { $regex: params.search, $options: 'i' } }
       ];
+    }
+
+    if (params.role) {
+      filters.role = params.role;
     }
 
     // Filters

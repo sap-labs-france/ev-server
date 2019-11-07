@@ -42,7 +42,7 @@ export default class ChargingStationSecurity {
           connector.totalInactivitySecs = 0;
           connector.currentStateOfCharge = 0;
         } else {
-          connector.inactivityStatusLevel = 
+          connector.inactivityStatusLevel =
             Utils.getInactivityStatusLevel(chargingStation , connector.connectorId, connector.totalInactivitySecs);
         }
       }
@@ -63,7 +63,7 @@ export default class ChargingStationSecurity {
           'currentStateOfCharge': (filteredChargingStation.inactive ? 0 : connector.currentStateOfCharge),
           'totalConsumption': (filteredChargingStation.inactive ? 0 : connector.totalConsumption),
           'totalInactivitySecs': (filteredChargingStation.inactive ? 0 : connector.totalInactivitySecs),
-          'inactivityStatusLevel': (filteredChargingStation.inactive ? null : 
+          'inactivityStatusLevel': (filteredChargingStation.inactive ? null :
             Utils.getInactivityStatusLevel(chargingStation , connector.connectorId, connector.totalInactivitySecs)),
           'activeTransactionID': connector.activeTransactionID,
           'activeTransactionDate': connector.activeTransactionDate,

@@ -9,8 +9,8 @@
 			"body": "The transfer of the Charging Station's statuses has failed on location '{{location}}', check the logs"
 		},
 		"smtpAuthError": {
-			"title": "Email Server Authentication Error",
-			"body": "The authentication to the primary email server has failed, check the configuration"
+			"title": "Email Server Error",
+			"body": "The authentication against the primary email server has failed, check the configuration"
 		},
 		"optimalChargeReached": {
 			"title": "Optimal Charge Reached",
@@ -29,7 +29,7 @@
 			"body": "Error occurred on '{{chargeBoxID}}', connector '{{connectorId}}': {{error}}"
 		},
 		"unknownUserBadged": {
-			"title": "Unknown User Badged",
+			"title": "Unknown User",
 			"body": "An unknown user has just badged on '{{chargeBoxID}}' with the badge ID '{{badgeID}}'"
 		},
 		"chargingStationRegistered": {

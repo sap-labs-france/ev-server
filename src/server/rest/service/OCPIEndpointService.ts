@@ -9,8 +9,8 @@ import UtilsService from './UtilsService';
 import OCPIEndpointStorage from '../../../storage/mongodb/OCPIEndpointStorage';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import OCPIUtils from '../../ocpi/OCPIUtils';
-import Site from '../../../types/Site';
 import OCPIEndpoint from '../../../types/OCPIEndpoint';
+import Utils from '../../../utils/Utils';
 
 const MODULE_NAME = 'OCPIEndpointService';
 
@@ -118,6 +118,8 @@ export default class OCPIEndpointService {
     }
     // Filter
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointCreateRequest(req.body);
+    // Check Mandatory fields
+    Utils.checkIfOCPIEndpointValid(filteredRequest, req);
 
     const ocpiEndpoint: OCPIEndpoint = {
       ...filteredRequest,
@@ -142,7 +144,8 @@ export default class OCPIEndpointService {
   static async handleUpdateOcpiEndpoint(action: string, req: Request, res: Response, next: NextFunction) {
     // Filter
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointUpdateRequest(req.body);
-    UtilsService.assertIdIsProvided(filteredRequest.id, MODULE_NAME, 'handleUpdateOcpiEndpoint', req.user);
+    // Check Mandatory fields
+    Utils.checkIfOCPIEndpointValid(filteredRequest, req);
 
     // Check auth
     if (!Authorizations.canUpdateOcpiEndpoint(req.user)) {
@@ -192,7 +195,8 @@ export default class OCPIEndpointService {
     }
     // Filter
     const filteredRequest = OCPIEndpointSecurity.filterOcpiEndpointPingRequest(req.body);
-    UtilsService.assertIdIsProvided(filteredRequest.id, MODULE_NAME, 'handlePingOcpiEndpoint', req.user);
+    // Check Mandatory fields
+    Utils.checkIfOCPIEndpointValid(filteredRequest, req);
 
     const tenant = await TenantStorage.getTenant(req.user.tenantID);
     // Build OCPI Client
