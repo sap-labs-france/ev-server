@@ -32,7 +32,7 @@ export default class OCPIPatchLocationsTask extends SchedulerTask {
       });
 
       // Get all available endpoints
-      const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant.id, {}, Constants.DB_PARAMS_MAX_LIMIT);
+      const ocpiEndpoints = await OCPIEndpointStorage.getOcpiEndpoints(tenant.id, { role: Constants.OCPI_ROLE.CPO }, Constants.DB_PARAMS_MAX_LIMIT);
 
       for (const ocpiEndpoint of ocpiEndpoints.result) {
         await this.processOCPIEndpoint(tenant, ocpiEndpoint);
