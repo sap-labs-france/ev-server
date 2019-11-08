@@ -110,6 +110,14 @@ export default class OCPIClient {
    * GET /ocpi/emsp/versions
    */
   async getVersions() {
+    Logging.logInfo({
+      tenantID: this.tenant.id,
+      action: 'OcpiGetVersions',
+      message: `Get OCPI versions at ${this.ocpiEndpoint.baseUrl}`,
+      source: 'OCPI Client',
+      module: 'OCPIClient',
+      method: 'getServices'
+    });
 
     const respOcpiVersions = await axios.get(this.ocpiEndpoint.baseUrl, {
       headers: {
@@ -135,7 +143,7 @@ export default class OCPIClient {
     Logging.logInfo({
       tenantID: this.tenant.id,
       action: 'OcpiGetVersions',
-      message: `Get OCPI versions at ${this.ocpiEndpoint.versionUrl}`,
+      message: `Get OCPI services at ${this.ocpiEndpoint.versionUrl}`,
       source: 'OCPI Client',
       module: 'OCPIClient',
       method: 'getServices'
@@ -168,7 +176,7 @@ export default class OCPIClient {
       throw new Error('Credentials url not available');
     }
 
-    const cpoCredentials = await OCPIMapping.buildOCPICredentialObject(this.tenant.id, OCPIUtils.generateLocalToken(this.tenant.subdomain));
+    const cpoCredentials = await OCPIMapping.buildOCPICredentialObject(this.tenant.id, OCPIUtils.generateLocalToken(this.tenant.subdomain), this.ocpiEndpoint.role);
 
     // Log
     Logging.logInfo({
