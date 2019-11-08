@@ -306,7 +306,7 @@ export default class OCPIMapping {
    * @param {*} tenant
    * @param {*} token
    */
-  static async buildOCPICredentialObject(tenantID: string, token: string, versionUrl?: string) {
+  static async buildOCPICredentialObject(tenantID: string, token: string, role: string, versionUrl?: string) {
     // Credential
     const credential: any = {};
 
@@ -314,7 +314,7 @@ export default class OCPIMapping {
     const ocpiSetting = await SettingStorage.getSettingByIdentifier(tenantID, Constants.COMPONENTS.OCPI);
 
     // Define version url
-    credential.url = (versionUrl ? versionUrl : 'https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/cpo/versions');
+    credential.url = (versionUrl ? versionUrl : `https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/${role}/versions`);
 
     // Check if available
     if (ocpiSetting && ocpiSetting.content) {
