@@ -353,8 +353,7 @@ export default class ChargingStationStorage {
       maximumPower: chargingStationToSave.maximumPower,
       cannotChargeInParallel: chargingStationToSave.cannotChargeInParallel,
       powerLimitUnit: chargingStationToSave.powerLimitUnit,
-      latitude: chargingStationToSave.latitude,
-      longitude: chargingStationToSave.longitude,
+      coordinates: chargingStationToSave.coordinates,
       connectors: chargingStationToSave.connectors,
       currentIPAddress: chargingStationToSave.currentIPAddress
     };

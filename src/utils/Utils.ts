@@ -1142,9 +1142,9 @@ export default class Utils {
     }
   }
 
-  public static getTimezone(lat: number, lon: number) {
-    if (lat && lon) {
-      return tzlookup(lat, lon);
+  public static getTimezone(coordinates: number[]) {
+    if (coordinates && coordinates.length === 2) {
+      return tzlookup(coordinates[1], coordinates[0]);
     }
     return null;
   }

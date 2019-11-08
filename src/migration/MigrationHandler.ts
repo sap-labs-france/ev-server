@@ -8,6 +8,7 @@ import RunLock from '../utils/Locking';
 import Logging from '../utils/Logging';
 import MigrationStorage from '../storage/mongodb/MigrationStorage';
 import SiteUsersHashIDsTask from './tasks/SiteUsersHashIDsTask';
+import MigrateCoordinatesTask from './tasks/MigrateCoordinatesTask';
 
 export default class MigrationHandler {
   static async migrate() {
@@ -31,6 +32,7 @@ export default class MigrationHandler {
       currentMigrationTasks.push(new AddTransactionRefundStatusTask());
       currentMigrationTasks.push(new AddSensitiveDataInSettingsTask());
       currentMigrationTasks.push(new AddNotificationsFlagsToUsersTask());
+      currentMigrationTasks.push(new MigrateCoordinatesTask());
 
       // Get the already done migrations from the DB
       const migrationTasksDone = await MigrationStorage.getMigrations();

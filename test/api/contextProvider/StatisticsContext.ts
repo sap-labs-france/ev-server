@@ -6,6 +6,7 @@ import CentralServerService from '../client/CentralServerService';
 import CONTEXTS from '../contextProvider/ContextConstants';
 import TenantContext from './TenantContext';
 import User from '../../types/User';
+import TransactionStorage from '../../../src/storage/mongodb/TransactionStorage';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
