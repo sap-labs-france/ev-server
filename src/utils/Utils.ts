@@ -133,7 +133,7 @@ export default class Utils {
         continue;
       }
       // Check connectors
-      Utils.checkConnectors(chargingStation);
+      Utils.checkAndUpdateConnectorsStatus(chargingStation);
       // Set Inactive flag
       chargingStation.inactive = Utils.getIfChargingStationIsInactive(chargingStation);
       connectorStats.totalChargers++;
@@ -188,8 +188,9 @@ export default class Utils {
     return connectorStats;
   }
 
-  public static checkConnectors(chargingStation: ChargingStation) {
-    if (chargingStation.cannotChargeInParallel) {
+  public static checkAndUpdateConnectorsStatus(chargingStation: ChargingStation) {
+    // Cannot charge in //
+    if (chargingStation.  cannotChargeInParallel) {
       let lockAllConnectors = false;
       // Check
       for (const connector of chargingStation.connectors) {
