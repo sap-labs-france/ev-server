@@ -75,9 +75,7 @@ export default class TransactionSecurity {
     if (request.ReportIDs) {
       filteredRequest.ReportIDs = sanitize(request.ReportIDs);
     }
-    if (request.Distinct) {
-      filteredRequest.Distinct = sanitize(request.Distinct);
-    }
+
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
