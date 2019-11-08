@@ -666,6 +666,107 @@ export default class TransactionService {
     next();
   }
 
+  public static async handleGetTransactionsToRefundList(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check auth
+    if (!Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_LIST,
+        entity: Constants.ENTITY_TRANSACTIONS,
+        module: 'TransactionService',
+        method: 'handleGetTransactionsToRefundList'
+      });
+    }
+    const filter: any = {stop: {$exists: true}};
+    // Filter
+    const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
+    if (filteredRequest.ChargeBoxID) {
+      filter.chargeBoxIDs = filteredRequest.ChargeBoxID.split('|');
+    }
+    if (filteredRequest.UserID) {
+      filter.userIDs = filteredRequest.UserID.split('|');
+    }
+    if (Authorizations.isBasic(req.user)) {
+      filter.ownerID = req.user.id;
+    }
+    if (Utils.isComponentActiveFromToken(req.user, Constants.COMPONENTS.ORGANIZATION)) {
+      if (filteredRequest.SiteAreaID) {
+        filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
+      }
+      if (filteredRequest.SiteID) {
+        filter.siteID = Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID.split('|'));
+      }
+      if (Authorizations.isSiteAdmin(req.user)) {
+        filter.siteAdminIDs = req.user.sitesAdmin;
+      }
+    }
+    if (filteredRequest.StartDateTime) {
+      filter.startDateTime = filteredRequest.StartDateTime;
+    }
+    if (filteredRequest.EndDateTime) {
+      filter.endDateTime = filteredRequest.EndDateTime;
+    }
+    if (filteredRequest.RefundStatus) {
+      filter.refundStatus = filteredRequest.RefundStatus.split('|');
+    }
+    if (filteredRequest.MinimalPrice) {
+      filter.minimalPrice = filteredRequest.MinimalPrice;
+    }
+    if (filteredRequest.Statistics) {
+      filter.statistics = filteredRequest.Statistics;
+    }
+    if (filteredRequest.Search) {
+      filter.search = filteredRequest.Search;
+    }
+    if (filteredRequest.ReportIDs) {
+      filter.reportIDs = filteredRequest.ReportIDs.split('|');
+    }
+
+    const dbParams: DbParams = {
+      limit: filteredRequest.Limit,
+      skip: filteredRequest.Skip,
+      sort: filteredRequest.Sort,
+      onlyRecordCount: filteredRequest.OnlyRecordCount
+    };
+
+    const transactions = await TransactionStorage.getTransactions(req.user.tenantID, filter, dbParams);
+
+    const uniqTransactions = {
+      count: 0,
+      stats: transactions.stats,
+      result: []
+    };
+
+    // Remove duplicates transactions reports ID
+    for (const transaction of transactions.result) {
+      // Keep non-null report id
+      if (transaction.refundData && transaction.refundData.reportId) {
+        let uniq = true;
+        // Check for uniqueness
+        for (const uniqTransaction of uniqTransactions.result) {
+          if (transaction.refundData.reportId === uniqTransaction.refundData.reportId) {
+            uniq = false;
+            break;
+          }
+        }
+
+        if (uniq) {
+          uniqTransactions.result.push(transaction);
+        }
+      }
+    }
+
+    uniqTransactions.count = uniqTransactions.result.length;
+
+    // Filter
+    TransactionSecurity.filterTransactionsResponse(uniqTransactions, req.user, true);
+
+    // Return
+    res.json(uniqTransactions);
+    next();
+  }
+
   public static async handleGetTransactionsExport(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
     // Check auth
     if (!Authorizations.canListTransactions(req.user)) {

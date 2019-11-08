@@ -102,5 +102,10 @@ describe('Filters with multiple values tests', function() {
       expect(read.status).to.equal(200);
     });
 
+    it('Refund : Check that multi-filtering based on reports ID works', async () => {
+      const read = await testData.centralService.transactionApi.readAllTransactionsToRefundList({ 'SiteID' : '5abeba9e4bae1457eb565e66|5abeba8d4bae1457eb565e5b' }, { limit: 10, skip: 0 });
+      expect(read.status).to.equal(200);
+    });
+
   });
 });

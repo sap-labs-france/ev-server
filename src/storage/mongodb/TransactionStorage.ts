@@ -365,6 +365,7 @@ export default class TransactionStorage {
         };
         break;
     }
+
     // Count Records
     const transactionsCountMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate([...aggregation, statsQuery],
@@ -474,31 +475,7 @@ export default class TransactionStorage {
       oneToOneCardinalityNotNull: false
     });
 
-    // TODO remove hardcoded
-    if (dbParams.distinct) {
-      console.log('Applying DISTINCT');
-      aggregation.push(
-        {
-          $group: {
-            _id: '$refundData.reportId',
-            user: {
-              $first: '$user'
-            }
-          }
-        }
-      );
 
-      aggregation.push(
-        {
-          $project: {
-            user: '$user',
-            refundData: {
-              reportId: '$_id'
-            }
-          }
-        }
-      );
-    }
 
     // Rename ID
     DatabaseUtils.renameField(aggregation, '_id', 'id');
@@ -516,8 +493,6 @@ export default class TransactionStorage {
         allowDiskUse: true
       })
       .toArray();
-
-    console.log(transactionsMDB);
 
     // Convert Object IDs to String
     this._convertRemainingTransactionObjectIDs(transactionsMDB);
