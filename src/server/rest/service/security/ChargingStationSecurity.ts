@@ -29,7 +29,7 @@ export default class ChargingStationSecurity {
       return null;
     }
     // Check connectors
-    Utils.checkConnectors(chargingStation);
+    Utils.checkAndUpdateConnectorsStatus(chargingStation);
     // Check Auth
     if (Authorizations.canUpdateChargingStation(loggedUser, siteID)) {
       // Yes: set all params

@@ -133,7 +133,7 @@ export default class Utils {
         continue;
       }
       // Check connectors
-      Utils.checkConnectors(chargingStation);
+      Utils.checkAndUpdateConnectorsStatus(chargingStation);
       // Set Inactive flag
       chargingStation.inactive = Utils.getIfChargingStationIsInactive(chargingStation);
       connectorStats.totalChargers++;
@@ -188,8 +188,9 @@ export default class Utils {
     return connectorStats;
   }
 
-  public static checkConnectors(chargingStation: ChargingStation) {
-    if (chargingStation.cannotChargeInParallel) {
+  public static checkAndUpdateConnectorsStatus(chargingStation: ChargingStation) {
+    // Cannot charge in //
+    if (chargingStation.  cannotChargeInParallel) {
       let lockAllConnectors = false;
       // Check
       for (const connector of chargingStation.connectors) {
@@ -729,6 +730,16 @@ export default class Utils {
         source: Constants.CENTRAL_SERVER,
         errorCode: Constants.HTTP_GENERAL_ERROR,
         message: 'The OCPI Endpoint name is mandatory',
+        module: 'Utils',
+        method: 'checkIfOCPIEndpointValid',
+        user: req.user.id
+      });
+    }
+    if (!ocpiEndpoint.role) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The OCPI Endpoint role is mandatory',
         module: 'Utils',
         method: 'checkIfOCPIEndpointValid',
         user: req.user.id
