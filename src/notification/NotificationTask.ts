@@ -16,7 +16,7 @@ export default interface NotificationTask {
   sendSessionStarted(data: TransactionStartedNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>;
   sendSmtpAuthError(data: SmtpAuthErrorNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>;
   sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>;
-  sendUserInactivityLimitReached(data: UserInactivityLimitReachedNotification, user: User, tenantID: string): Promise<void>;
-  sendForgetCharge(data: ForgetChargeNotification, user: User, tenantID: string): Promise<void>;
-  sendNoHeartbeat(data: NoHeartbeatNotification, user: User, tenantID: string): Promise<void>;
+  sendUserInactivityLimitReached(data: UserInactivityLimitReachedNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>;
+  sendForgetCharge(data: ForgetChargeNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>;
+  sendNoHeartbeat(data: NoHeartbeatNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>;
 }

@@ -98,18 +98,21 @@ export default class EMailNotificationTask implements NotificationTask {
     return this.prepareAndSendEmail('ocpi-patch-status-error', data, user, tenantID, severity, true);
   }
 
-  sendUserInactivityLimitReached(data: UserInactivityLimitReachedNotification, user: User, tenantID: string): Promise<void>  {
-    return this.prepareAndSendEmail('inactive-user-email', data, user, tenantID);
+  sendUserInactivityLimitReached(data: UserInactivityLimitReachedNotification, user: User,
+      tenantID: string, severity: NotificationSeverity): Promise<void>  {
+    return this.prepareAndSendEmail('inactive-user-email', data, user, tenantID, severity);
   }
 
-  sendForgetCharge(data: ForgetChargeNotification, user: User, tenantID: string): Promise<void>  {
+  sendForgetCharge(data: ForgetChargeNotification, user: User,
+      tenantID: string, severity: NotificationSeverity): Promise<void>  {
     // Send it
-    return this.prepareAndSendEmail('forget-charge-email', data, user, tenantID);
+    return this.prepareAndSendEmail('forget-charge-email', data, user, tenantID, severity);
   }
 
-  sendNoHeartbeat(data: NoHeartbeatNotification, user: User, tenantID: string): Promise<void>  {
+  sendNoHeartbeat(data: NoHeartbeatNotification, user: User,
+      tenantID: string, severity: NotificationSeverity): Promise<void>  {
     // Send it
-    return this.prepareAndSendEmail('no-heartbeat-email', data, user, tenantID);
+    return this.prepareAndSendEmail('no-heartbeat-email', data, user, tenantID, severity);
   }
 
   private async prepareAndSendEmail(templateName: string, data: any, user: User, tenantID: string, severity: NotificationSeverity, retry = false): Promise<void> {
