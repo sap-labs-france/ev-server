@@ -32,8 +32,8 @@ export default class OCPIMapping {
       'postal_code': site.address.postalCode,
       'country': site.address.country,
       'coordinates': {
-        'latitude': site.address.latitude,
-        'longitude': site.address.longitude
+        'latitude': site.address.coordinates[1],
+        'longitude': site.address.coordinates[0]
       },
       'evses': await OCPIMapping.getEvsesFromSite(tenant, site, options),
       'last_updated': site.lastChangedOn
