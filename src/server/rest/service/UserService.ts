@@ -430,10 +430,14 @@ export default class UserService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, actionOnUser: user,
+      user: user,
       module: 'UserService', method: 'handleUpdateUserMobileToken',
       message: 'User\'s mobile token has been updated successfully',
-      action: action
+      action: action,
+      detailedMessages: {
+        mobileToken: filteredRequest.mobileToken,
+        mobileOS: filteredRequest.mobileOS
+      }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
