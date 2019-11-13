@@ -671,7 +671,7 @@ export default class TransactionService {
         action: Constants.ACTION_LIST,
         entity: Constants.ENTITY_TRANSACTIONS,
         module: 'TransactionService',
-        method: 'handleGetTransactionsToRefundList'
+        method: 'handleGetRefundReports'
       });
     }
     const filter: any = { stop: { $exists: true } };
@@ -687,13 +687,11 @@ export default class TransactionService {
       onlyRecordCount: filteredRequest.OnlyRecordCount
     };
 
-    const transactions = await TransactionStorage.getRefundReports(req.user.tenantID, filter, dbParams);
-
+    const reports = await TransactionStorage.getRefundReports(req.user.tenantID, filter, dbParams);
     // Filter
-    TransactionSecurity.filterTransactionsResponse(transactions, req.user, true);
-
+    TransactionSecurity.filterRefundReportsResponse(reports, req.user);
     // Return
-    res.json(transactions);
+    res.json(reports);
     next();
   }
 

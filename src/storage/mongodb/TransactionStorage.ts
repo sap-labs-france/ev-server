@@ -8,6 +8,7 @@ import Utils from '../../utils/Utils';
 import { DataResult } from '../../types/DataResult';
 import User from '../../types/User';
 import ConsumptionStorage from './ConsumptionStorage';
+import RefundReport from '../../types/RefundReport';
 
 export default class TransactionStorage {
   public static async deleteTransaction(tenantID: string, transaction: Transaction): Promise<void> {
@@ -505,7 +506,7 @@ export default class TransactionStorage {
 
   public static async getRefundReports(tenantID: string, filter: { ownerID?: string }, dbParams: DbParams, projectFields?: string[]):
   Promise<{
-    count: number; result: Transaction[]; stats: {};
+    count: number; result: RefundReport[]; stats: {};
   }> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactions');
@@ -520,8 +521,7 @@ export default class TransactionStorage {
     const aggregation = [];
 
     aggregation.push(
-      { '$group': { '_id': '$refundData.reportId', 'doc': { '$first': '$$ROOT' } } },
-      { '$replaceRoot': { 'newRoot': '$doc' } },
+      { '$group': { '_id': '$refundData.reportId', 'userID': { '$first': '$userID' } } }
     );
 
     if (filter.ownerID) {
@@ -529,7 +529,6 @@ export default class TransactionStorage {
         { '$match': { 'userID': Utils.convertToObjectID(filter.ownerID) } }
       );
     }
-
 
     // Limit records?
     if (!dbParams.onlyRecordCount) {
@@ -551,10 +550,10 @@ export default class TransactionStorage {
           allowDiskUse: true
         })
       .toArray();
-    let transactionCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ? transactionsCountMDB[0] : null;
+    let reportCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ? transactionsCountMDB[0] : null;
     // Initialize statistics
-    if (!transactionCountMDB) {
-      transactionCountMDB = {
+    if (!reportCountMDB) {
+      reportCountMDB = {
         count: 0
       };
     }
@@ -562,8 +561,8 @@ export default class TransactionStorage {
     // Check if only the total count is requested
     if (dbParams.onlyRecordCount) {
       return {
-        count: transactionCountMDB ? transactionCountMDB.count : 0,
-        stats: transactionCountMDB ? transactionCountMDB : {},
+        count: reportCountMDB ? reportCountMDB.count : 0,
+        stats: reportCountMDB ? reportCountMDB : {},
         result: []
       };
     }
@@ -598,11 +597,6 @@ export default class TransactionStorage {
       $limit: dbParams.limit
     });
 
-    aggregation.push(
-      { '$group': { '_id': '$refundData.reportId', 'doc': { '$first': '$$ROOT' } } },
-      { '$replaceRoot': { 'newRoot': '$doc' } }
-    );
-
     // Add respective users
     DatabaseUtils.pushUserLookupInAggregation({
       tenantID,
@@ -628,27 +622,23 @@ export default class TransactionStorage {
     DatabaseUtils.renameField(aggregation, '_id', 'id');
     // Convert Object ID to string
     DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
-    DatabaseUtils.convertObjectIDToString(aggregation, 'siteID');
-    DatabaseUtils.convertObjectIDToString(aggregation, 'siteAreaID');
 
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
-    const transactionsMDB = await global.database.getCollection<Transaction>(tenantID, 'transactions')
+    const reportsMDB = await global.database.getCollection<RefundReport>(tenantID, 'transactions')
       .aggregate(aggregation, {
         collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
         allowDiskUse: true
       })
       .toArray();
 
-    // Convert Object IDs to String
-    this._convertRemainingTransactionObjectIDs(transactionsMDB);
     // Debug
-    Logging.traceEnd('TransactionStorage', 'getTransactions', uniqueTimerID, { dbParams });
+    Logging.traceEnd('TransactionStorage', 'getRefundReports', uniqueTimerID, { dbParams });
     return {
-      count: transactionCountMDB ? (transactionCountMDB.count === Constants.DB_RECORD_COUNT_CEIL ? -1 : transactionCountMDB.count) : 0,
-      stats: transactionCountMDB ? transactionCountMDB : {},
-      result: transactionsMDB
+      count: reportCountMDB ? (reportCountMDB.count === Constants.DB_RECORD_COUNT_CEIL ? -1 : reportCountMDB.count) : 0,
+      stats: reportCountMDB ? reportCountMDB : {},
+      result: reportsMDB
     };
   }
 

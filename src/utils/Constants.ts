@@ -85,6 +85,7 @@ export default class Constants {
   public static readonly ENTITY_TRANSACTIONS = 'Transactions';
   public static readonly ENTITY_TRANSACTION_METER_VALUES = 'MeterValues';
   public static readonly ENTITY_TRANSACTION_STOP = 'Stop';
+  public static readonly ENTITY_REPORT = 'Report';
   public static readonly ENTITY_USER = 'User';
   public static readonly ENTITY_USERS = 'Users';
   public static readonly ENTITY_VEHICLE_MANUFACTURER = 'VehicleManufacturer';
