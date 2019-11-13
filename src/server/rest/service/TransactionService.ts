@@ -646,14 +646,13 @@ export default class TransactionService {
       filter.reportIDs = filteredRequest.ReportIDs.split('|');
     }
 
-    const dbParams: DbParams = {
-      limit: filteredRequest.Limit,
-      skip: filteredRequest.Skip,
-      sort: filteredRequest.Sort,
-      onlyRecordCount: filteredRequest.OnlyRecordCount
-    };
-
-    const transactions = await TransactionStorage.getTransactions(req.user.tenantID, filter, dbParams);
+    const transactions = await TransactionStorage.getTransactions(req.user.tenantID, filter,
+      {
+        limit: filteredRequest.Limit,
+        skip: filteredRequest.Skip,
+        sort: filteredRequest.Sort,
+        onlyRecordCount: filteredRequest.OnlyRecordCount
+      });
     // Filter
     TransactionSecurity.filterTransactionsResponse(transactions, req.user, true);
     // Return
