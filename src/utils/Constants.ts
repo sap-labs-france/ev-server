@@ -277,6 +277,11 @@ export default class Constants {
     CODE_3003_NO_MATCHING_ENDPOINTS_ERROR: { status_code: 3003, status_message: 'No Matching Endpoints' }
   };
 
+  public static readonly OCPI_ROLE = {
+    CPO: 'CPO',
+    EMSP: 'EMSP'
+  }
+
   // OCPI EVSE STATUS
   public static readonly EVSE_STATUS = {
     AVAILABLE: 'AVAILABLE',
