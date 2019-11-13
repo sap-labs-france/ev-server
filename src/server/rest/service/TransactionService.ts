@@ -11,8 +11,7 @@ import Cypher from '../../../utils/Cypher';
 import Logging from '../../../utils/Logging';
 import OCPPService from '../../../server/ocpp/services/OCPPService';
 import OCPPUtils from '../../ocpp/utils/OCPPUtils';
-import SynchronizeRefundTransactionsTask
-  from '../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
+import SynchronizeRefundTransactionsTask from '../../../scheduler/tasks/SynchronizeRefundTransactionsTask';
 import TenantStorage from '../../../storage/mongodb/TenantStorage';
 import Transaction from '../../../types/Transaction';
 import TransactionSecurity from './security/TransactionSecurity';
