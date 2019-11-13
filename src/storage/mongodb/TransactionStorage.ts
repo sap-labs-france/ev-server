@@ -607,22 +607,11 @@ export default class TransactionStorage {
       oneToOneCardinality: true,
       oneToOneCardinalityNotNull: false
     });
-    DatabaseUtils.pushUserLookupInAggregation({
-      tenantID,
-      aggregation: aggregation,
-      asField: 'stop.user',
-      localField: 'stop.userID',
-      foreignField: '_id',
-      oneToOneCardinality: true,
-      oneToOneCardinalityNotNull: false
-    });
-
 
     // Rename ID
     DatabaseUtils.renameField(aggregation, '_id', 'id');
     // Convert Object ID to string
     DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
-
     // Project
     DatabaseUtils.projectFields(aggregation, projectFields);
     // Read DB
