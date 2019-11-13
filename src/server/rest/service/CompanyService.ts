@@ -139,7 +139,7 @@ export default class CompanyService {
         withLogo: filteredRequest.WithLogo
       },
       { limit: filteredRequest.Limit, skip: filteredRequest.Skip, sort: filteredRequest.Sort, onlyRecordCount: filteredRequest.OnlyRecordCount },
-      [ 'id', 'name', 'address.latitude', 'address.longitude', 'address.city', 'address.country', 'logo']
+      [ 'id', 'name', 'address.coordinates', 'address.city', 'address.country', 'logo']
     );
     // Filter
     CompanySecurity.filterCompaniesResponse(companies, req.user);
