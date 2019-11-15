@@ -11,6 +11,36 @@ export default class AbstractODataEntities {
     return params;
   }
 
+  public moveAddressToRoot(entity: any): any {
+    if (!entity) {
+      return null;
+    }
+    // Handle address
+    if (entity.address) {
+      entity = _.merge(entity, entity.address)
+      // Handle coordinates
+      this.moveCoordinatesToRoot(entity, entity.address)
+    }
+    return entity;
+  }
+
+  public moveCoordinatesToRoot(entity: any, coordinatesEntity?: any): any {
+    if (!entity) {
+      return null;
+    }
+    if (!coordinatesEntity) {
+      coordinatesEntity = entity;
+    }
+    if (coordinatesEntity.coordinates && Array.isArray(coordinatesEntity.coordinates) && coordinatesEntity.coordinates.length === 2) {
+      entity.latitude = coordinatesEntity.coordinates[1];
+      entity.longitude = coordinatesEntity.coordinates[0];
+    } else {
+      entity.latitude = "";
+      entity.longitude = "";
+    }
+    return entity;
+  }
+
   public convert(object, req) {
     // This implementation is necessary as the OData-imple-server do not support multiple key
     // We have to build a unique key based on tenant and object real key

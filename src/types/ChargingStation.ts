@@ -1,4 +1,3 @@
-import ChargingStationClient from '../client/ocpp/ChargingStationClient';
 import Connector from './Connector';
 import CreatedUpdatedProps from './CreatedUpdatedProps';
 import SiteArea from './SiteArea';

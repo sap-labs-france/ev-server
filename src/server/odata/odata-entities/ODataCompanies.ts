@@ -25,8 +25,7 @@ export default class ODataCompanies extends AbstractODataEntities {
 
   // Move Address object to same level
   public convert(object, req) {
-    const company: Company = super.convert(object, req);
-    return company.address ? _.merge(company, company.address) : company;
+    // Create the Company and move its address to the root
+    return this.moveAddressToRoot(super.convert(object, req));
   }
 }
-

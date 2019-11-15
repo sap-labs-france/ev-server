@@ -339,7 +339,7 @@ export default class UserStorage {
   }
 
   public static async saveUserMobileToken(tenantID: string, userID: string,
-    mobileToken: string, mobileOs: string, mobileLastChanged: Date): Promise<void> {
+    mobileToken: string, mobileOs: string, mobileLastChangedOn: Date): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserMobileToken');
     // Check Tenant
@@ -347,7 +347,7 @@ export default class UserStorage {
     // Modify and return the modified document
     await global.database.getCollection<any>(tenantID, 'users').findOneAndUpdate(
       { '_id': Utils.convertToObjectID(userID) },
-      { $set: { mobileToken, mobileOs, mobileLastChanged } });
+      { $set: { mobileToken, mobileOs, mobileLastChangedOn } });
     // Debug
     Logging.traceEnd('UserStorage', 'saveUserMobileToken', uniqueTimerID);
   }

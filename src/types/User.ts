@@ -35,7 +35,7 @@ export default interface User extends CreatedUpdatedProps {
   billingData?: BillingUserData;
   mobileOs: string;
   mobileToken: string;
-  mobileLastChanged: string;
+  mobileLastChangedOn: Date;
 }
 
 export interface UserSite {
