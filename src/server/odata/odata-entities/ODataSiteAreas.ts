@@ -25,8 +25,8 @@ export default class ODataSiteAreas extends AbstractODataEntities {
 
   // Move Address object to same level
   public convert(object, req) {
-    const siteArea = super.convert(object, req);
-    return siteArea.address ? _.merge(siteArea, siteArea.address) : siteArea;
+    // Create the Company and move its address to the root
+    return this.moveAddressToRoot(super.convert(object, req));
   }
 }
 

@@ -105,7 +105,7 @@ export default class UtilsSecurity {
   }
 
   static filterAddressRequest(address): Address {
-    const filteredAddress: any = {};
+    const filteredAddress: Address = {} as Address;
     if (address) {
       filteredAddress.address1 = sanitize(address.address1);
       filteredAddress.address2 = sanitize(address.address2);
@@ -114,8 +114,12 @@ export default class UtilsSecurity {
       filteredAddress.department = sanitize(address.department);
       filteredAddress.region = sanitize(address.region);
       filteredAddress.country = sanitize(address.country);
-      filteredAddress.latitude = sanitize(address.latitude);
-      filteredAddress.longitude = sanitize(address.longitude);
+      if (address.coordinates && address.coordinates.length === 2) {
+        filteredAddress.coordinates = [
+          sanitize(address.coordinates[0]),
+          sanitize(address.coordinates[1])
+        ];
+      }
     }
     return filteredAddress;
   }

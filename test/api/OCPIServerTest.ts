@@ -463,7 +463,7 @@ describe('OCPI Service Tests', function() {
         expect(testData.newOcpiEndpoint).to.not.be.null;
         // Create the entity
         testData.newOcpiEndpoint = await CentralServerService.DefaultInstance.createEntity(
-          CentralServerService.DefaultInstance.ocpiEndpointApi, Factory.ocpiEndpoint.build({ }));
+          CentralServerService.DefaultInstance.ocpiEndpointApi, Factory.ocpiEndpoint.build());
       });
 
 

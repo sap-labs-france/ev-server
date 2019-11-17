@@ -101,14 +101,13 @@ export default class TransactionSecurity {
     return filteredRequest;
   }
 
-  static filterTransactionResponse(transaction: Transaction, loggedUser: UserToken, toRefund = false) {
+  static filterTransactionResponse(transaction: Transaction, loggedUser: UserToken) {
     let filteredTransaction;
     if (!transaction) {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadTransaction(loggedUser, transaction) &&
-      (!toRefund || Authorizations.canRefundTransaction(loggedUser, transaction))) {
+    if (Authorizations.canReadTransaction(loggedUser, transaction)) {
       // Set only necessary info
       filteredTransaction = {} as Transaction;
       filteredTransaction.id = transaction.id;
@@ -196,14 +195,14 @@ export default class TransactionSecurity {
     return filteredTransaction;
   }
 
-  static filterTransactionsResponse(transactions: DataResult<Transaction>, loggedUser: UserToken, toRefund = false) {
+  static filterTransactionsResponse(transactions: DataResult<Transaction>, loggedUser: UserToken) {
     const filteredTransactions = [];
     if (!transactions.result) {
       return null;
     }
     // Filter result
     for (const transaction of transactions.result) {
-      const filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser, toRefund);
+      const filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser);
       if (filteredTransaction) {
         filteredTransactions.push(filteredTransaction);
       }

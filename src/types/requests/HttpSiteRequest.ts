@@ -26,6 +26,11 @@ export interface HttpSiteUserAdminRequest {
   siteAdmin: boolean;
 }
 
+export interface HttpSiteOwnerRequest {
+  userID: string;
+  siteID: string;
+}
+
 export interface HttpSiteUsersRequest extends HttpDatabaseRequest {
   Search: string;
   SiteID: string;

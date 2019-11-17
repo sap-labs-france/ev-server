@@ -430,10 +430,14 @@ export default class UserService {
     // Log
     Logging.logSecurityInfo({
       tenantID: req.user.tenantID,
-      user: req.user, actionOnUser: user,
+      user: user,
       module: 'UserService', method: 'handleUpdateUserMobileToken',
       message: 'User\'s mobile token has been updated successfully',
-      action: action
+      action: action,
+      detailedMessages: {
+        mobileToken: filteredRequest.mobileToken,
+        mobileOS: filteredRequest.mobileOS
+      }
     });
     // Ok
     res.json(Constants.REST_RESPONSE_SUCCESS);
@@ -615,12 +619,13 @@ export default class UserService {
         sort: filteredRequest.Sort,
         onlyRecordCount: filteredRequest.OnlyRecordCount
       },
-      ['site.id', 'site.name', 'site.address.city', 'site.address.country', 'siteAdmin', 'userID']
+      ['site.id', 'site.name', 'site.address.city', 'site.address.country', 'siteAdmin', 'siteOwner', 'userID']
     );
     // Filter
     userSites.result = userSites.result.map((userSite) => ({
       userID: userSite.userID,
       siteAdmin: userSite.siteAdmin,
+      siteOwner: userSite.siteOwner,
       site: userSite.site
     }));
     res.json(userSites);

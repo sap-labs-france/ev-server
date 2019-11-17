@@ -234,7 +234,7 @@ export default class OCPPService {
       OCPPValidation.getInstance().validateStatusNotification(statusNotification);
       // Set Header
       statusNotification.chargeBoxID = chargingStation.id;
-      statusNotification.timezone = Utils.getTimezone(chargingStation.latitude, chargingStation.longitude);
+      statusNotification.timezone = Utils.getTimezone(chargingStation.coordinates);
       // Handle connectorId = 0 case => Currently status is distributed to each individual connectors
       if (statusNotification.connectorId === 0) {
         // Ignore EBEE charger
@@ -969,7 +969,7 @@ export default class OCPPService {
       // Set header
       authorize.chargeBoxID = chargingStation.id;
       authorize.timestamp = new Date();
-      authorize.timezone = Utils.getTimezone(chargingStation.latitude, chargingStation.longitude);
+      authorize.timezone = Utils.getTimezone(chargingStation.coordinates);
       // Check
       authorize.user = await Authorizations.isAuthorizedOnChargingStation(headers.tenantID, chargingStation, authorize.idTag);
       // Save
@@ -1005,7 +1005,7 @@ export default class OCPPService {
       // Set the charger ID
       diagnosticsStatusNotification.chargeBoxID = chargingStation.id;
       diagnosticsStatusNotification.timestamp = new Date();
-      diagnosticsStatusNotification.timezone = Utils.getTimezone(chargingStation.latitude, chargingStation.longitude);
+      diagnosticsStatusNotification.timezone = Utils.getTimezone(chargingStation.coordinates);
       // Save it
       await OCPPStorage.saveDiagnosticsStatusNotification(headers.tenantID, diagnosticsStatusNotification);
       // Log
@@ -1035,7 +1035,7 @@ export default class OCPPService {
       // Set the charger ID
       firmwareStatusNotification.chargeBoxID = chargingStation.id;
       firmwareStatusNotification.timestamp = new Date();
-      firmwareStatusNotification.timezone = Utils.getTimezone(chargingStation.latitude, chargingStation.longitude);
+      firmwareStatusNotification.timezone = Utils.getTimezone(chargingStation.coordinates);
       // Save it
       await OCPPStorage.saveFirmwareStatusNotification(headers.tenantID, firmwareStatusNotification);
       // Log
@@ -1066,7 +1066,7 @@ export default class OCPPService {
       // Set the header
       startTransaction.chargeBoxID = chargingStation.id;
       startTransaction.tagID = startTransaction.idTag;
-      startTransaction.timezone = Utils.getTimezone(chargingStation.latitude, chargingStation.longitude);
+      startTransaction.timezone = Utils.getTimezone(chargingStation.coordinates);
       // Check Authorization with Tag ID
       const user = await Authorizations.isAuthorizedToStartTransaction(
         headers.tenantID, chargingStation, startTransaction.tagID);
@@ -1262,7 +1262,7 @@ export default class OCPPService {
       // Set the charger ID
       dataTransfer.chargeBoxID = chargingStation.id;
       dataTransfer.timestamp = new Date();
-      dataTransfer.timezone = Utils.getTimezone(chargingStation.latitude, chargingStation.longitude);
+      dataTransfer.timezone = Utils.getTimezone(chargingStation.coordinates);
       // Save it
       await OCPPStorage.saveDataTransfer(headers.tenantID, dataTransfer);
       // Log
