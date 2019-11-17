@@ -1,7 +1,7 @@
 import sanitize from 'mongo-sanitize';
 import Authorizations from '../../../../authorization/Authorizations';
 import CompanySecurity from './CompanySecurity';
-import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUserAdminRequest, HttpSiteUsersRequest, HttpSitesRequest } from '../../../../types/requests/HttpSiteRequest';
+import { HttpSiteAssignUsersRequest, HttpSiteRequest, HttpSiteUserAdminRequest, HttpSiteUsersRequest, HttpSitesRequest, HttpSiteOwnerRequest } from '../../../../types/requests/HttpSiteRequest';
 import Site from '../../../../types/Site';
 import SiteAreaSecurity from './SiteAreaSecurity';
 import UserToken from '../../../../types/UserToken';
@@ -17,6 +17,14 @@ export default class SiteSecurity {
     if ('siteAdmin' in request) {
       filteredRequest.siteAdmin = UtilsSecurity.filterBoolean(request.siteAdmin);
     }
+    return filteredRequest;
+  }
+
+  public static filterUpdateSiteOwnerRequest(request: any): HttpSiteOwnerRequest {
+    const filteredRequest: HttpSiteOwnerRequest = {
+      siteID: sanitize(request.siteID),
+      userID: sanitize(request.userID)
+    } as HttpSiteOwnerRequest;
     return filteredRequest;
   }
 
@@ -112,7 +120,10 @@ export default class SiteSecurity {
         filteredSite.company = CompanySecurity.filterCompanyResponse(site.company, loggedUser);
       }
       if (site.siteAreas) {
-        filteredSite.siteAreas = SiteAreaSecurity.filterSiteAreasResponse({ count: site.siteAreas.length, result: site.siteAreas }, loggedUser);
+        filteredSite.siteAreas = SiteAreaSecurity.filterSiteAreasResponse({
+          count: site.siteAreas.length,
+          result: site.siteAreas
+        }, loggedUser);
       }
       if (site.connectorStats) {
         filteredSite.connectorStats = site.connectorStats;

@@ -25,8 +25,8 @@ export default class MigrateCoordinatesTask extends MigrationTask {
     for (const company of companies) {
       if (company.address && company.address.longitude && company.address.latitude) {
         company.address.coordinates = [
-          company.address.longitude,
-          company.address.latitude
+          parseFloat(company.address.longitude),
+          parseFloat(company.address.latitude)
         ];
         delete company.address.longitude;
         delete company.address.latitude;
@@ -56,8 +56,8 @@ export default class MigrateCoordinatesTask extends MigrationTask {
     for (const site of sites) {
       if (site.address && site.address.longitude && site.address.latitude) {
         site.address.coordinates = [
-          site.address.longitude,
-          site.address.latitude
+          parseFloat(site.address.longitude),
+          parseFloat(site.address.latitude)
         ];
         delete site.address.longitude;
         delete site.address.latitude;
@@ -87,8 +87,8 @@ export default class MigrateCoordinatesTask extends MigrationTask {
     for (const sitearea of siteareas) {
       if (sitearea.address && sitearea.address.longitude && sitearea.address.latitude) {
         sitearea.address.coordinates = [
-          sitearea.address.longitude,
-          sitearea.address.latitude
+          parseFloat(sitearea.address.longitude),
+          parseFloat(sitearea.address.latitude)
         ];
         delete sitearea.address.longitude;
         delete sitearea.address.latitude;
@@ -118,8 +118,8 @@ export default class MigrateCoordinatesTask extends MigrationTask {
     for (const user of users) {
       if (user.address && user.address.longitude && user.address.latitude) {
         user.address.coordinates = [
-          user.address.longitude,
-          user.address.latitude
+          parseFloat(user.address.longitude),
+          parseFloat(user.address.latitude)
         ];
         delete user.address.longitude;
         delete user.address.latitude;
@@ -149,8 +149,8 @@ export default class MigrateCoordinatesTask extends MigrationTask {
     for (const chargingstation of chargingstations) {
       if (chargingstation.longitude && chargingstation.latitude) {
         chargingstation.coordinates = [
-          chargingstation.longitude,
-          chargingstation.latitude
+          parseFloat(chargingstation.longitude),
+          parseFloat(chargingstation.latitude)
         ];
         delete chargingstation.longitude;
         delete chargingstation.latitude;
@@ -173,7 +173,7 @@ export default class MigrateCoordinatesTask extends MigrationTask {
   }
 
   getVersion() {
-    return '0.15';
+    return '1.0';
   }
 
   getName() {

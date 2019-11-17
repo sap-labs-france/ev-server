@@ -617,11 +617,9 @@ export default class TransactionService {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
       if (filteredRequest.SiteID) {
-        filter.siteID = Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID.split('|'));
+        filter.siteID = Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID.split('|'));
       }
-      if (Authorizations.isSiteAdmin(req.user)) {
-        filter.siteAdminIDs = req.user.sitesAdmin;
-      }
+      filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
     }
     if (filteredRequest.StartDateTime) {
       filter.startDateTime = filteredRequest.StartDateTime;
@@ -649,7 +647,7 @@ export default class TransactionService {
         onlyRecordCount: filteredRequest.OnlyRecordCount
       });
     // Filter
-    TransactionSecurity.filterTransactionsResponse(transactions, req.user, true);
+    TransactionSecurity.filterTransactionsResponse(transactions, req.user);
     // Return
     res.json(transactions);
     next();

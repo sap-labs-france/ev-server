@@ -190,6 +190,7 @@ class RequestMapper {
           SiteAreaUpdate: SiteAreaService.handleUpdateSiteArea.bind(this),
           CompanyUpdate: CompanyService.handleUpdateCompany.bind(this),
           SiteUserAdmin: SiteService.handleUpdateSiteUserAdmin.bind(this),
+          SiteOwner: SiteService.handleUpdateSiteOwner.bind(this),
           VehicleUpdate: VehicleService.handleUpdateVehicle.bind(this),
           VehicleManufacturerUpdate: VehicleManufacturerService.handleUpdateVehicleManufacturer.bind(this),
           TransactionSoftStop: TransactionService.handleTransactionSoftStop.bind(this),
