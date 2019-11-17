@@ -10,7 +10,7 @@ import UtilsSecurity from './UtilsSecurity';
 import { DataResult } from '../../../../types/DataResult';
 import Consumption from '../../../../types/Consumption';
 import Utils from '../../../../utils/Utils';
-import {filter} from "rxjs/operators";
+import RefundReport from '../../../../types/RefundReport';
 
 export default class TransactionSecurity {
   public static filterTransactionsRefund(request: any): HttpTransactionsRefundRequest {
@@ -75,9 +75,7 @@ export default class TransactionSecurity {
     if (request.ReportIDs) {
       filteredRequest.ReportIDs = sanitize(request.ReportIDs);
     }
-    if (request.Distinct) {
-      filteredRequest.Distinct = sanitize(request.Distinct);
-    }
+
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
@@ -208,6 +206,40 @@ export default class TransactionSecurity {
       }
     }
     transactions.result = filteredTransactions;
+  }
+
+  static filterRefundReportResponse(report: RefundReport, loggedUser: UserToken) {
+    let filteredRefundReport;
+    if (!report) {
+      return null;
+    }
+    // Check auth
+    if (Authorizations.canReadReport(loggedUser)) {
+      // Set only necessary info
+      filteredRefundReport = {} as RefundReport;
+      if (report.id) {
+        filteredRefundReport.id = report.id;
+      }
+      if (report.user) {
+        filteredRefundReport.user = report.user;
+      }
+    }
+    return filteredRefundReport;
+  }
+
+  static filterRefundReportsResponse(reports: DataResult<RefundReport>, loggedUser: UserToken) {
+    const filteredReports = [];
+    if (!reports.result) {
+      return null;
+    }
+    // Filter result
+    for (const report of reports.result) {
+      const filteredReport = TransactionSecurity.filterRefundReportResponse(report, loggedUser);
+      if (filteredReport) {
+        filteredReports.push(filteredReport);
+      }
+    }
+    reports.result = filteredReports;
   }
 
   static _filterUserInTransactionResponse(user: User, loggedUser: UserToken) {

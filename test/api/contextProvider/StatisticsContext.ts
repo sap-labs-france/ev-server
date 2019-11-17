@@ -7,6 +7,7 @@ import CONTEXTS from '../contextProvider/ContextConstants';
 import TenantContext from './TenantContext';
 import User from '../../types/User';
 import TransactionStorage from '../../../src/storage/mongodb/TransactionStorage';
+import * as faker from 'faker';
 
 chai.use(chaiSubset);
 chai.use(responseHelper);
@@ -70,10 +71,32 @@ export default class StatisticsContext {
           const endTime = startTime.clone().add(StatisticsContext.CONSTANTS.CHARGING_MINUTES + StatisticsContext.CONSTANTS.IDLE_MINUTES, 'minutes');
           response = await chargingStation.stopTransaction(transactionId, user.tagIDs[0], StatisticsContext.CONSTANTS.ENERGY_PER_MINUTE * StatisticsContext.CONSTANTS.CHARGING_MINUTES, endTime);
           expect(response).to.be.transactionStatus('Accepted');
+
+          // Add a fake refund data to transaction
+          await this.generateStaticRefundData(transactionId);
+          await this.generateStaticRefundData(transactionId);
         }
       }
     }
     return firstYear;
+  }
+
+  /**
+   * Add a fake refund data to a given transaction
+   * @param transactionId The id of the transaction
+   */
+  public async generateStaticRefundData(transactionId: number) {
+    const transaction = await TransactionStorage.getTransaction(this.tenantContext.getTenant().id, transactionId);
+    transaction.refundData = {
+      refundId: faker.random.alphaNumeric(32),
+      refundedAt: new Date(),
+      reportId: faker.random.alphaNumeric(20),
+      status: 'approved',
+      type: 'report'
+    };
+    TransactionStorage.saveTransaction(this.tenantContext.getTenant().id, transaction)
+      .then(() => console.log('Updated transaction ' + transaction.id + ' with refund data : ' + JSON.stringify(transaction.refundData)))
+      .catch((error) => console.error('Unable to update transaction ' + transaction.id + ' : ' + error));
   }
 
   public async deleteTestData() {
