@@ -676,14 +676,13 @@ export default class TransactionService {
     if (Authorizations.isBasic(req.user)) {
       filter.ownerID = req.user.id;
     }
-    const dbParams: DbParams = {
+    // Get Reports
+    const reports = await TransactionStorage.getRefundReports(req.user.tenantID, filter, {
       limit: filteredRequest.Limit,
       skip: filteredRequest.Skip,
       sort: filteredRequest.Sort,
       onlyRecordCount: filteredRequest.OnlyRecordCount
-    };
-
-    const reports = await TransactionStorage.getRefundReports(req.user.tenantID, filter, dbParams);
+    });
     // Filter
     TransactionSecurity.filterRefundReportsResponse(reports, req.user);
     // Return
