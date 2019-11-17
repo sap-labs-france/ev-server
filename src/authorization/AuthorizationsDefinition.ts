@@ -221,6 +221,9 @@ const GRANTS = {
         resource: 'Transaction', action: ['Read'], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sitesAdmin': '$.site' } }
       },
+      {
+        resource: 'Report', action: ['Read'], attributes: ['*']
+      },
       { resource: 'Loggings', action: 'List', attributes: ['*'] },
       { resource: 'Logging', action: 'Read', attributes: ['*'], args: { 'sites': '$.site' } },
       { resource: 'Tokens', action: 'List', attributes: ['*'] },
