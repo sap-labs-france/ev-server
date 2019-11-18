@@ -1,4 +1,4 @@
-import { NotificationSeverity, UserNotificationType, ForgetChargeNotification, UserInactivityLimitReachedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, VerificationEmailNotification, NoHeartbeatNotification } from '../../types/UserNotifications';
+import { NotificationSeverity, UserNotificationType, PreparingSessionsAreStartedNotification, UserAccountInactivityNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, VerificationEmailNotification, OfflineChargingStationNotification } from '../../types/UserNotifications';
 import Configuration from '../../utils/Configuration';
 import NotificationTask from '../NotificationTask';
 import * as admin from 'firebase-admin';
@@ -44,13 +44,34 @@ export default class RemotePushNotificationTask implements NotificationTask {
     return Promise.resolve();
   }
 
-  sendUserInactivityLimitReached(data: UserInactivityLimitReachedNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {
-    return Promise.resolve();
+  sendUserAccountInactivity(data: UserAccountInactivityNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {
+    // Set the locale
+    I18nManager.switchLocale(user.locale);
+    // Get Message Text
+    const title = i18n.t('notifications.userAccountInactivity.title');
+    const body = i18n.t('notifications.userAccountInactivity.body',
+      { lastLogin: data.lastLogin });
+    // Send Notification
+    return this.sendRemotePushNotificationToUser(tenantID, UserNotificationType.USER_ACCOUNT_INACTIVITY, title, body, user, {
+        lastLogin: data.lastLogin
+      },
+      severity
+    );
   }
 
-  sendForgetCharge(data: ForgetChargeNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {
-    // Nothing to send
-    return Promise.resolve();
+  sendPreparingSessionsAreStarted(data: PreparingSessionsAreStartedNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {
+    // Set the locale
+    I18nManager.switchLocale(user.locale);
+    // Get Message Text
+    const title = i18n.t('notifications.preparingSessionsAreStarted.title');
+    const body = i18n.t('notifications.preparingSessionsAreStarted.body',
+      { chargeBoxID: data.chargingStation });
+    // Send Notification
+    return this.sendRemotePushNotificationToUser(tenantID, UserNotificationType.SESSION_NOT_STARTED, title, body, user, {
+      chargeBoxID: data.chargingStation
+      },
+      severity
+    );
   }
 
   sendRequestPassword(data: RequestPasswordNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {
@@ -58,8 +79,19 @@ export default class RemotePushNotificationTask implements NotificationTask {
     return Promise.resolve();
   }
 
-  sendNoHeartbeat(data: NoHeartbeatNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>  {
-    return Promise.resolve();
+  sendOfflineChargingStation(data: OfflineChargingStationNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>  {
+    // Set the locale
+    I18nManager.switchLocale(user.locale);
+    // Get Message Text
+    const title = i18n.t('notifications.offlineChargingStation.title');
+    const body = i18n.t('notifications.offlineChargingStation.body',
+      { chargeBoxID: data.chargingStation });
+    // Send Notification
+    return this.sendRemotePushNotificationToUser(tenantID, UserNotificationType.OFFLINE_CHARGING_STATION, title, body, user, {
+      chargeBoxID: data.chargingStation
+      },
+      severity
+    );
   }
 
   sendOptimalChargeReached(data: OptimalChargeReachedNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {

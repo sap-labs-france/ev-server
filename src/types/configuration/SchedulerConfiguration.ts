@@ -8,13 +8,10 @@ interface SchedulerTask {
   active: boolean;
   periodicity: string;
   config: {
-    retentionPeriodWeeks: number;
-    securityRetentionPeriodWeeks: number;
+    retentionPeriodWeeks?: number;
+    securityRetentionPeriodWeeks?: number;
+    userAccountInactivityMonths?: number;
+    offlineChargingStationMins?: number;
+    preparingStatusMaxMins?: number;
   };
-  subtasks: Subtasks[];
-}
-
-export interface Subtasks {
-  name: string;
-  active: boolean;
 }

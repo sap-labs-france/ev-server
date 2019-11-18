@@ -107,7 +107,8 @@ export default class Database {
             'type': connector.type,
             'voltage': Utils.convertToInt(connector.voltage),
             'amperage': Utils.convertToInt(connector.amperage),
-            'activeTransactionID': Utils.convertToInt(connector.activeTransactionID)
+            'activeTransactionID': Utils.convertToInt(connector.activeTransactionID),
+            'statusLastChangedOn': Utils.convertToDate(connector.statusLastChangedOn)
           });
         } else {
           dest.connectors.push(null);
@@ -184,6 +185,7 @@ export default class Database {
     dest.info = src.info;
     dest.vendorId = src.vendorId;
     dest.vendorErrorCode = src.vendorErrorCode;
+    dest.statusLastChangedOn = src.statusLastChangedOn;
   }
 
   static updateNotification(src, dest, forFrontEnd = true) {
@@ -257,9 +259,6 @@ export default class Database {
     }
     if (src.hasOwnProperty('notifications')) {
       dest.notifications = src.notifications;
-    }
-    if (src.hasOwnProperty('lastLogin')) {
-      dest.lastLogin = src.lastLogin;
     }
     if (src.hasOwnProperty('iNumber')) {
       dest.iNumber = src.iNumber;

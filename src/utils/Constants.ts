@@ -12,14 +12,9 @@ export default class Constants {
   public static readonly SOURCE_VERIFICATION_EMAIL = 'NotifyVerificationEmail';
   public static readonly SOURCE_AUTH_EMAIL_ERROR = 'NotifyAuthentificationErrorEmailServer';
   public static readonly SOURCE_PATCH_EVSE_STATUS_ERROR = 'NotifyPatchEVSEStatusError';
-  public static readonly SOURCE_USER_INACTIVITY_LIMIT = 'NotifyUserInactivityLimitReached';
-  public static readonly SOURCE_FORGET_CHARGE = 'NotifyForgetCharge';
-  public static readonly SOURCE_NO_HEARTBEAT = 'NotifyNoHeartbeat';
-
-  // Scheduler tasks misc constants
-  public static readonly TASK_PREPARING_THRESHOLD = 15; // Threshold of nbr of minutes with status in preparing
-  public static readonly TASK_INACTIVITY_THRESHOLD = 5; // Threshold of nbr of months with no login
-  public static readonly TASK_HEARTBEAT_THRESHOLD = 15; // Threshold of nbr of minutes of no heartbeat before notification
+  public static readonly SOURCE_USER_ACCOUNT_INACTIVITY = 'NotifyUserAccountInactivity';
+  public static readonly SOURCE_PREPARING_SESSION_STARTED = 'NotifyPreparingSessionsAreStarted';
+  public static readonly SOURCE_OFFLINE_CHARGING_STATION = 'NotifyOfflineChargingStation';
 
   public static readonly HTTP_GENERAL_ERROR = 500;
   public static readonly HTTP_NOT_IMPLEMENTED_ERROR = 501;
@@ -346,7 +341,6 @@ export default class Constants {
     'mobile': 0,
     'notificationsActive': 0,
     'notifications': 0,
-    'lastLogin': 0,
     'iNumber': 0,
     'costCenter': 0,
     'status': 0,

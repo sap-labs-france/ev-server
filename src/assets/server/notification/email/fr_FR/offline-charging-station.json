@@ -1,10 +1,10 @@
 {
-  "subject": "Véhicule connecté mais recharge non démarrée",
+  "subject": "Borne Hors Ligne",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Recharge en phase Préparation",
+      "title": "Borne Hors Ligne",
       "image": {
         "left": {
           "height": 60,
@@ -17,9 +17,9 @@
       }
     },
     "beforeActionLines": [
-      "Bonjour,",
+      "Chère Administratrice, Cher Administrateur,",
       "",
-      "Pour information, vous ne semblez pas avoir démarré la recharge de votre véhicule sur la borne <%- chargingStation %>.",
+      "La borne <b>'<%- chargingStation %>'</b> est hors ligne.",
       ""
     ],
     "afterActionLines": [

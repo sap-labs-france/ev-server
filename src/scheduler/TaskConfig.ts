@@ -1,4 +1,7 @@
 export interface TaskConfig {
-  retentionPeriodWeeks: number;
-  securityRetentionPeriodWeeks: number;
+  retentionPeriodWeeks?: number;
+  securityRetentionPeriodWeeks?: number;
+  userAccountInactivityMonths?: number;
+  offlineChargingStationMins?: number;
+  preparingStatusMaxMins?: number;
 }

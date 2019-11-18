@@ -1,5 +1,5 @@
 import User from '../types/User';
-import { NoHeartbeatNotification, ForgetChargeNotification, UserInactivityLimitReachedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, VerificationEmailNotification, NotificationSeverity } from '../types/UserNotifications';
+import { OfflineChargingStationNotification, PreparingSessionsAreStartedNotification, UserAccountInactivityNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, VerificationEmailNotification, NotificationSeverity } from '../types/UserNotifications';
 
 export default interface NotificationTask {
   sendEndOfCharge(data: EndOfChargeNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>;
@@ -16,7 +16,7 @@ export default interface NotificationTask {
   sendSessionStarted(data: TransactionStartedNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>;
   sendSmtpAuthError(data: SmtpAuthErrorNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>;
   sendOCPIPatchChargingStationsStatusesError(data: OCPIPatchChargingStationsStatusesErrorNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>;
-  sendUserInactivityLimitReached(data: UserInactivityLimitReachedNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>;
-  sendForgetCharge(data: ForgetChargeNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>;
-  sendNoHeartbeat(data: NoHeartbeatNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>;
+  sendUserAccountInactivity(data: UserAccountInactivityNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>;
+  sendPreparingSessionsAreStarted(data: PreparingSessionsAreStartedNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>;
+  sendOfflineChargingStation(data: OfflineChargingStationNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>;
 }

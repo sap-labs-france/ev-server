@@ -6,10 +6,9 @@ import Tenant from '../../types/Tenant';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import Utils from '../../utils/Utils';
 import RefundFactory from '../../integration/refund/RefundFactory';
-import { Subtasks } from '../../types/configuration/SchedulerConfiguration';
 
 export default class SynchronizeRefundTransactionsTask extends SchedulerTask {
-  async processTenant(tenant: Tenant, config: TaskConfig, subtasks: Subtasks[]): Promise<void> {
+  async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     if (!Utils.isTenantComponentActive(tenant, Constants.COMPONENTS.REFUND)) {
       Logging.logDebug({
         tenantID: tenant.id,

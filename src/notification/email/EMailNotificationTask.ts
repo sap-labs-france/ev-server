@@ -5,7 +5,7 @@ import BackendError from '../../exception/BackendError';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import global from '../../types/GlobalType';
 import User from '../../types/User';
-import { NoHeartbeatNotification, ForgetChargeNotification, UserInactivityLimitReachedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, VerificationEmailNotification, NotificationSeverity } from '../../types/UserNotifications';
+import { OfflineChargingStationNotification, PreparingSessionsAreStartedNotification, UserAccountInactivityNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, VerificationEmailNotification, NotificationSeverity } from '../../types/UserNotifications';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
@@ -97,18 +97,18 @@ export default class EMailNotificationTask implements NotificationTask {
     return this.prepareAndSendEmail('ocpi-patch-status-error', data, user, tenantID, severity);
   }
 
-  public sendUserInactivityLimitReached(data: UserInactivityLimitReachedNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>  {
-    return this.prepareAndSendEmail('inactive-user-email', data, user, tenantID, severity);
+  public sendUserAccountInactivity(data: UserAccountInactivityNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>  {
+    return this.prepareAndSendEmail('user-account-inactivity', data, user, tenantID, severity);
   }
 
-  public sendForgetCharge(data: ForgetChargeNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>  {
+  public sendPreparingSessionsAreStarted(data: PreparingSessionsAreStartedNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>  {
     // Send it
-    return this.prepareAndSendEmail('forget-charge-email', data, user, tenantID, severity);
+    return this.prepareAndSendEmail('session-not-started', data, user, tenantID, severity);
   }
 
-  public sendNoHeartbeat(data: NoHeartbeatNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>  {
+  public sendOfflineChargingStation(data: OfflineChargingStationNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>  {
     // Send it
-    return this.prepareAndSendEmail('no-heartbeat-email', data, user, tenantID, severity);
+    return this.prepareAndSendEmail('offline-charging-station', data, user, tenantID, severity);
   }
 
   private async prepareAndSendEmail(templateName: string, data: any, user: User, tenantID: string, severity: NotificationSeverity, retry = false): Promise<void> {

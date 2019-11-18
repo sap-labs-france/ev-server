@@ -1,10 +1,10 @@
 {
-  "subject": "Pas de pulsation reçue de <%- chargingStation %> depuis au moins 15 minutes",
+  "subject": "Session Not Started",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Pulsation station de recharge",
+      "title": "Session Not Started",
       "image": {
         "left": {
           "height": 60,
@@ -17,13 +17,13 @@
       }
     },
     "beforeActionLines": [
-      "Chère Administratrice, Cher Administrateur,",
+      "Dear User,",
       "",
-      "Pour information, la station de recharge <%- chargingStation %> n'a pas envoyée de pulsation à l'application e-Mobility depuis plus de 15 minutes.",
+      "You haven't started the session of your vehicle on charging station <b>'<%- chargingStation %>'</b>.",
       ""
     ],
     "afterActionLines": [
-      "Cordialement,",
+      "Best Regards,",
       "EV Admins."
     ],
     "footer": {

@@ -152,7 +152,6 @@ export default class UserSecurity {
         if (user.notifications) {
           filteredUser.notifications = UserSecurity.filterNotificationsRequest(user.notifications);
         };
-        filteredUser.lastLogin = user.lastLogin;
         filteredUser.iNumber = user.iNumber;
         filteredUser.costCenter = user.costCenter;
         filteredUser.status = user.status;
@@ -178,7 +177,6 @@ export default class UserSecurity {
         if (user.notifications) {
           filteredUser.notifications = UserSecurity.filterNotificationsRequest(user.notifications);
         }
-        filteredUser.lastLogin = user.lastLogin;
         filteredUser.iNumber = user.iNumber;
         filteredUser.costCenter = user.costCenter;
         filteredUser.tagIDs = user.tagIDs;

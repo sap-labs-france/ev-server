@@ -12,8 +12,8 @@ export default interface UserNotifications {
   sendChargingStationRegistered?: boolean;
   sendOcpiPatchStatusError?: boolean;
   sendSmtpAuthError?: boolean;
-  sendUserInactivityLimitReached?:boolean;
-  sendForgetCharge?: boolean;
+  sendUserAccountInactivity?:boolean;
+  sendPreparingSessionsAreStarted?: boolean;
 }
 
 export type UserNotificationKeys =
@@ -26,10 +26,10 @@ export type UserNotificationKeys =
  'sendChargingStationStatusError' |
  'sendChargingStationRegistered' |
  'sendOcpiPatchStatusError' |
- "sendSmtpAuthError" |
- "sendUserInactivityLimitReached" |
- "sendForgetCharge" |
- "sendNoHeartbeat"
+ 'sendSmtpAuthError' |
+ 'sendUserAccountInactivity' |
+ 'sendPreparingSessionsAreStarted' |
+ 'sendOfflineChargingStation'
 ;
 
 export enum UserNotificationType {
@@ -42,7 +42,10 @@ export enum UserNotificationType {
   CHARGING_STATION_STATUS_ERROR = 'ChargingStationStatusError',
   CHARGING_STATION_REGISTERED = 'ChargingStationRegistered',
   OCPI_PATCH_STATUS_ERROR = 'OcpiPatchStatusError',
-  SMTP_AUTH_ERROR = 'SmtpAuthError'
+  SMTP_AUTH_ERROR = 'SmtpAuthError',
+  SESSION_NOT_STARTED = 'SessionNotStarted',
+  USER_ACCOUNT_INACTIVITY = 'UserAccountInactivity',
+  OFFLINE_CHARGING_STATION = 'OfflineChargingStation'
 };
 
 export type InactivityStatusLevel =
@@ -180,20 +183,20 @@ export interface OCPIPatchChargingStationsStatusesErrorNotification extends Base
   'evseDashboardURL': string;
 }
 
-export interface UserInactivityLimitReachedNotification extends BaseNotification {
+export interface UserAccountInactivityNotification extends BaseNotification {
   'user': User;
   'lastLogin': string;
   'evseDashboardURL': string;
 }
 
-export interface ForgetChargeNotification extends BaseNotification {
+export interface PreparingSessionsAreStartedNotification extends BaseNotification {
   'user': User;
   'chargingStation': string;
   'startedOn': Date;
   'evseDashboardURL': string;
 }
 
-export interface NoHeartbeatNotification extends BaseNotification {
+export interface OfflineChargingStationNotification extends BaseNotification {
   'chargingStation': string;
   'lastHeartbeat': Date;
   'evseDashboardURL': string;

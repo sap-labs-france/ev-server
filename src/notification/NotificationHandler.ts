@@ -2,7 +2,7 @@ import NotificationStorage from '../storage/mongodb/NotificationStorage';
 import UserStorage from '../storage/mongodb/UserStorage';
 import ChargingStation from '../types/ChargingStation';
 import User from '../types/User';
-import UserNotifications, { NotificationSeverity, ForgetChargeNotification, UserInactivityLimitReachedNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification, NoHeartbeatNotification } from '../types/UserNotifications';
+import UserNotifications, { NotificationSeverity, PreparingSessionsAreStartedNotification, UserAccountInactivityNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, Notification, NotificationSource, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, UserNotificationKeys, VerificationEmailNotification, OfflineChargingStationNotification } from '../types/UserNotifications';
 import Configuration from '../utils/Configuration';
 import Constants from '../utils/Constants';
 import Logging from '../utils/Logging';
@@ -62,7 +62,7 @@ export default class NotificationHandler {
 
   static async getAdminUsers(tenantID: string, notificationKey?: UserNotificationKeys): Promise<User[]> {
     // Get admin users
-    const params = { roles: [Constants.ROLE_ADMIN], notificationsActive: true, notifications: {} as UserNotifications };
+    const params = { email:'jean.pierre.demessant@sap.com', roles: [Constants.ROLE_ADMIN], notificationsActive: true, notifications: {} as UserNotifications };
     if (notificationKey) {
       params.notifications[notificationKey] = true;
     }
@@ -504,7 +504,7 @@ export default class NotificationHandler {
     }
   }
 
-  static async sendUserInactivityLimitReached(tenantID: string, notificationID: string, user: User, data: UserInactivityLimitReachedNotification): Promise<void> {
+  static async sendUserAccountInactivity(tenantID: string, notificationID: string, user: User, data: UserAccountInactivityNotification): Promise<void> {
     // For each Sources
     for (const notificationSource of NotificationHandler.notificationSources) {
       // Active?
@@ -512,21 +512,21 @@ export default class NotificationHandler {
         try {
           // Check notification
           const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
-            tenantID, notificationSource.channel, Constants.SOURCE_USER_INACTIVITY_LIMIT,
+            tenantID, notificationSource.channel, Constants.SOURCE_USER_ACCOUNT_INACTIVITY,
             notificationID, { intervalMins: 43200, intervalKey: null });
         if (!hasBeenNotified) {
-            await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_USER_INACTIVITY_LIMIT, user);
+            await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_USER_ACCOUNT_INACTIVITY, user);
         // Send
-            await notificationSource.notificationTask.sendUserInactivityLimitReached(data, user, tenantID, NotificationSeverity.INFO);
+            await notificationSource.notificationTask.sendUserAccountInactivity(data, user, tenantID, NotificationSeverity.INFO);
           }
         } catch (error) {
-          Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_USER_INACTIVITY_LIMIT, error);
+          Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_USER_ACCOUNT_INACTIVITY, error);
         }
       }
     }
   }
 
-  static async sendForgetChargeNotification(tenantID: string, notificationID: string, user: User, data: ForgetChargeNotification): Promise<void> {
+  static async sendPreparingSessionsAreStartedNotification(tenantID: string, notificationID: string, user: User, data: PreparingSessionsAreStartedNotification): Promise<void> {
     // For each Sources
     for (const notificationSource of NotificationHandler.notificationSources) {
       // Active?
@@ -534,21 +534,21 @@ export default class NotificationHandler {
         try {
           // Check notification
           const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
-            tenantID, notificationSource.channel, Constants.SOURCE_FORGET_CHARGE,
-            notificationID, { intervalMins: 1440, intervalKey: null });
+            tenantID, notificationSource.channel, Constants.SOURCE_PREPARING_SESSION_STARTED,
+            notificationID, { intervalMins: 15, intervalKey: null });
           if (!hasBeenNotified) {
-            await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_FORGET_CHARGE, user);
+            await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_PREPARING_SESSION_STARTED, user);
             // Send
-            await notificationSource.notificationTask.sendForgetCharge(data, user, tenantID, NotificationSeverity.INFO);
+            await notificationSource.notificationTask.sendPreparingSessionsAreStarted(data, user, tenantID, NotificationSeverity.INFO);
           }
         } catch (error) {
-          Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_FORGET_CHARGE, error);
+          Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_PREPARING_SESSION_STARTED, error);
         }
       }
     }
   }
 
-  static async sendNoHeartbeat(tenantID: string, chargingStation: ChargingStation, sourceData: NoHeartbeatNotification): Promise<void> {
+  static async sendOfflineChargingStation(tenantID: string, chargingStation: ChargingStation, sourceData: OfflineChargingStationNotification): Promise<void> {
     // Enrich with admins
     const adminUsers = await NotificationHandler.getAdminUsers(tenantID);
     if (adminUsers && adminUsers.length > 0) {
@@ -561,22 +561,22 @@ export default class NotificationHandler {
             const notificationID = chargingStation.id + new Date().toISOString();
             // Check notification
             const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
-              tenantID, notificationSource.channel, Constants.SOURCE_NO_HEARTBEAT,
+              tenantID, notificationSource.channel, Constants.SOURCE_OFFLINE_CHARGING_STATION,
               notificationID, { intervalMins: 60, intervalKey: null });
             // Notified?
             if (!hasBeenNotified) {
               // Enabled?
               if (notificationSource.enabled) {
                 // Save
-                await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_NO_HEARTBEAT, null, chargingStation, null);
+                await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_OFFLINE_CHARGING_STATION, null, chargingStation, null);
                 // Send
                 for (const adminUser of adminUsers) {
-                  await notificationSource.notificationTask.sendNoHeartbeat(sourceData, adminUser, tenantID, NotificationSeverity.INFO);
+                  await notificationSource.notificationTask.sendOfflineChargingStation(sourceData, adminUser, tenantID, NotificationSeverity.INFO);
                 }
               }
             }
           } catch (error) {
-            Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_NO_HEARTBEAT, error);
+            Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_OFFLINE_CHARGING_STATION, error);
           }
         }
       }

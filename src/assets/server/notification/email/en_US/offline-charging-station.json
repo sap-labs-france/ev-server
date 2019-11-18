@@ -1,10 +1,10 @@
 {
-  "subject": "No heartbeat received from <%- chargingStation %> since 15 minutes",
+  "subject": "Offline Charging Station",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "No heartbeat",
+      "title": "Offline Charging Station",
       "image": {
         "left": {
           "height": 60,
@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Dear Administrator,",
       "",
-      "The e-Mobility application has not received any heartbeat from charging station <%- chargingStation %> for the last 15 minutes. Please check the issue.",
+      "The charging station <b>'<%- chargingStation %>'</b> is no longer reporting to the e-Mobility application.",
       ""
     ],
     "afterActionLines": [

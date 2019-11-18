@@ -6,8 +6,9 @@ import LoggingDatabaseTableCleanupTask from './tasks/LoggingDatabaseTableCleanup
 import OCPIPatchLocationsTask from './tasks/OCPIPatchLocationsTask';
 import SchedulerTask from './SchedulerTask';
 import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
-import PeriodicNotificationsTask from './tasks/PeriodicNotificationsTask';
-import CheckUsersInactivityTask from './tasks/CheckUsersInactivityTask';
+import CheckUserAccountInactivityTask from './tasks/CheckUserAccountInactivityTask';
+import CheckPreparingSessionsAreStartedTask from './tasks/CheckPreparingSessionsAreStartedTask';
+import CheckOfflineChargingStationTask from './tasks/CheckOfflineChargingStationTask';
 
 export default class SchedulerManager {
   private static schedulerConfig = Configuration.getSchedulerConfig();
@@ -40,12 +41,16 @@ export default class SchedulerManager {
           case 'LoggingDatabaseTableCleanupTask':
             schedulerTask = new LoggingDatabaseTableCleanupTask();
             break;
-          case 'CheckUsersInactivityTask':
-            schedulerTask = new CheckUsersInactivityTask();
+          case 'CheckUserAccountInactivityTask':
+            schedulerTask = new CheckUserAccountInactivityTask();
             break;
-          case 'PeriodicNotificationsTask':
+          case 'CheckOfflineChargingStationTask':
             // The task runs every five minutes
-            schedulerTask = new PeriodicNotificationsTask();
+            schedulerTask = new CheckOfflineChargingStationTask();
+            break;
+          case 'CheckPreparingSessionsAreStartedTask':
+            // The task runs every five minutes
+            schedulerTask = new CheckPreparingSessionsAreStartedTask();
             break;
           case 'OCPIPatchLocationsTask':
             schedulerTask = new OCPIPatchLocationsTask();
@@ -62,7 +67,7 @@ export default class SchedulerManager {
             });
         }
         if (schedulerTask) {
-          cron.schedule(task.periodicity, async (): Promise<void> => await schedulerTask.run(task.name, task.config, task.subtasks));
+          cron.schedule(task.periodicity, async (): Promise<void> => await schedulerTask.run(task.name, task.config));
           Logging.logInfo({
             tenantID: Constants.DEFAULT_TENANT,
             module: 'Scheduler', method: 'init',

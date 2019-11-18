@@ -1,10 +1,10 @@
 {
-  "subject": "Vehicule plugged but charge not started",
+  "subject": "User Account Inactivity",
   "tenant": "",
   "baseURL": "<%- evseDashboardURL %>",
   "body": {
     "header": {
-      "title": "Charge still in Preparing",
+      "title": "User Account Inactivity",
       "image": {
         "left": {
           "height": 60,
@@ -19,8 +19,9 @@
     "beforeActionLines": [
       "Dear User,",
       "",
-      "You haven't started the charge of you vehicule on charging station <%- chargingStation %>.",
-      ""
+      "You haven't used the e-Mobility application since <%- lastLogin %>.",
+      "",
+      "Please be aware that in order to comply with the general data protection regulation, accounts that have not been used during the last six months will be automatically deleted."
     ],
     "afterActionLines": [
       "Best Regards,",
