@@ -487,7 +487,7 @@ export default class UserStorage {
       notificationsActive?: boolean; siteIDs?: string[]; excludeSiteID?: string; search?: string;
       userID?: string; email?: string; passwordResetHash?: string; roles?: string[];
       statuses?: string[]; withImage?: boolean; billingCustomer?: string; notSynchronizedBillingData?: boolean;
-      notifications?: any; noLoginSince?: string;
+      notifications?: any; noLoginSince?: Date;
     },
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<User>> {
     // Debug
@@ -560,7 +560,7 @@ export default class UserStorage {
     // Filter on last login to detect inactive user accounts
     if(params.noLoginSince && moment(params.noLoginSince).isValid()) {
       filters.$and.push({
-        'eulaAcceptedOn':  { $lte : new Date(params.noLoginSince) }
+        'eulaAcceptedOn':  { $lte : params.noLoginSince }
       });
     }
     if (params.notifications) {

@@ -19,8 +19,9 @@ export default class CheckPreparingSessionNotStartedTask extends SchedulerTask {
       // Compute the date some minutes ago
       const someMinutesAgo = moment().subtract(config.preparingStatusMaxMins, 'minutes').toDate().toISOString();
       const params= { 'statusChangedBefore': someMinutesAgo, 'connectorStatus': Constants.CONN_STATUS_PREPARING };
-      const chargers:any = await ChargingStationStorage.getChargingStationsByConnectorStatus(tenant.id, params);
-      for(const charger of chargers){
+      // Get Charging Stations
+      const chargingStations = await ChargingStationStorage.getChargingStationsByConnectorStatus(tenant.id, params);
+      for (const chargingStation of chargingStations) {
         // get site owner and then send notification
         // To be finished when the site owner feature is available
       }
