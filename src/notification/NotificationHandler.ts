@@ -534,15 +534,15 @@ export default class NotificationHandler {
         try {
           // Check notification
           const hasBeenNotified = await NotificationHandler.hasNotifiedSource(
-            tenantID, notificationSource.channel, Constants.SOURCE_PREPARING_SESSION_STARTED,
+            tenantID, notificationSource.channel, Constants.SOURCE_PREPARING_SESSION_NOT_STARTED,
             notificationID, { intervalMins: 15, intervalKey: null });
           if (!hasBeenNotified) {
-            await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_PREPARING_SESSION_STARTED, user);
+            await NotificationHandler.saveNotification(tenantID, notificationSource.channel, notificationID, Constants.SOURCE_PREPARING_SESSION_NOT_STARTED, user);
             // Send
             await notificationSource.notificationTask.sendPreparingSessionNotStarted(data, user, tenantID, NotificationSeverity.INFO);
           }
         } catch (error) {
-          Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_PREPARING_SESSION_STARTED, error);
+          Logging.logActionExceptionMessage(tenantID, Constants.SOURCE_PREPARING_SESSION_NOT_STARTED, error);
         }
       }
     }
