@@ -46,7 +46,7 @@
 			"title": "User Account Inactivity",
 			"body": "Your account has been inactive since {{lastLogin}}. For compliance reasons, please be aware that 6 months old inactive accounts will be deleted."
 		},
-		"preparingSessionsAreStarted": {
+		"preparingSessionsNotStarted": {
 			"title": "Session Not Started",
 			"body": "Session not started on charging station '{{chargeBoxID}}'."
 		},

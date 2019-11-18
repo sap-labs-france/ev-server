@@ -13,7 +13,7 @@ export default class Constants {
   public static readonly SOURCE_AUTH_EMAIL_ERROR = 'NotifyAuthentificationErrorEmailServer';
   public static readonly SOURCE_PATCH_EVSE_STATUS_ERROR = 'NotifyPatchEVSEStatusError';
   public static readonly SOURCE_USER_ACCOUNT_INACTIVITY = 'NotifyUserAccountInactivity';
-  public static readonly SOURCE_PREPARING_SESSION_STARTED = 'NotifyPreparingSessionsAreStarted';
+  public static readonly SOURCE_PREPARING_SESSION_STARTED = 'NotifyPreparingSessionsNotStarted';
   public static readonly SOURCE_OFFLINE_CHARGING_STATION = 'NotifyOfflineChargingStation';
 
   public static readonly HTTP_GENERAL_ERROR = 500;

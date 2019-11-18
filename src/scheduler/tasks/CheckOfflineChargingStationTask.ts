@@ -1,14 +1,12 @@
 import moment from 'moment';
-import Logging from '../../utils/Logging';
-import SchedulerTask from '../SchedulerTask';
-import { TaskConfig } from '../TaskConfig';
-import Tenant from '../../types/Tenant';
-import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
 import NotificationHandler from '../../notification/NotificationHandler';
-import Utils from '../../utils/Utils';
-import _ from 'lodash';
+import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
+import { TaskConfig } from '../../types/TaskConfig';
+import Tenant from '../../types/Tenant';
 import Constants from '../../utils/Constants';
-import ChargingStation from '../../types/ChargingStation';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
+import SchedulerTask from '../SchedulerTask';
 
 export default class CheckOfflineChargingStationTask extends SchedulerTask {
 

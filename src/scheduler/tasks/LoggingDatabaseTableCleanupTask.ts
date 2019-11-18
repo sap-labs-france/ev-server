@@ -2,7 +2,7 @@ import moment from 'moment';
 import Logging from '../../utils/Logging';
 import LoggingStorage from '../../storage/mongodb/LoggingStorage';
 import SchedulerTask from '../SchedulerTask';
-import { TaskConfig } from '../TaskConfig';
+import { TaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
 
 export default class LoggingDatabaseTableCleanupTask extends SchedulerTask {
