@@ -27,7 +27,7 @@ export default class ChargingStationStorage {
 
   public static async getChargingStations(tenantID: string,
     params: { search?: string; chargingStationID?: string; siteAreaID?: string[]; withNoSiteArea?: boolean;
-      siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: string;},
+      siteIDs?: string[]; withSite?: boolean; includeDeleted?: boolean; offlineSince?: Date;},
     dbParams: DbParams, projectFields?: string[]): Promise<DataResult<ChargingStation>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStations');
@@ -61,9 +61,8 @@ export default class ChargingStationStorage {
       });
     }
     // Filter on last heart beat
-    if(params.offlineSince && moment(params.offlineSince).isValid()) {
-      filters.$and.push({'inactive': false});
-      filters.$and.push({'lastHeartBeat':{$lte:new Date(params.offlineSince)}});
+    if (params.offlineSince && moment(params.offlineSince).isValid()) {
+      filters.$and.push({ 'lastHeartBeat': { $lte: params.offlineSince }});
     }
     // Add in aggregation
     aggregation.push({

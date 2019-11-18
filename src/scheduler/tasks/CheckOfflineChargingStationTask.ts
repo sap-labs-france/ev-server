@@ -19,17 +19,17 @@ export default class CheckOfflineChargingStationTask extends SchedulerTask {
         message: 'The subtask \'CheckOfflineChargingStationTask\' is being run'
       });
       // Compute the date some minutes ago
-      const someMinutesAgo = moment().subtract(config.offlineChargingStationMins, 'minutes').toDate().toISOString();
-      const params= { 'offlineSince': someMinutesAgo };
-      const chargers = await ChargingStationStorage.getChargingStations(tenant.id, params, Constants.DB_PARAMS_MAX_LIMIT);
-      for(const charger of chargers.result){
+      const someMinutesAgo = moment().subtract(config.offlineChargingStationMins, 'minutes').toDate();
+      const params = { 'offlineSince': someMinutesAgo };
+      const chargingStations = await ChargingStationStorage.getChargingStations(tenant.id, params, Constants.DB_PARAMS_MAX_LIMIT);
+      for (const chargingStation of chargingStations.result) {
         // send notification
         NotificationHandler.sendOfflineChargingStation(
           tenant.id,
-          charger,
+          chargingStation,
           {
-            'chargingStation': charger.id,
-            'lastHeartbeat': charger.lastHeartBeat,
+            'chargeBoxID': chargingStation.id,
+            'lastHeartbeat': chargingStation.lastHeartBeat,
             'evseDashboardURL': Utils.buildEvseURL(tenant.subdomain)
           }
         );       
