@@ -6,15 +6,15 @@ import Logging from '../../utils/Logging';
 import SchedulerTask from '../SchedulerTask';
 import { TaskConfig } from '../../types/TaskConfig';
 
-export default class CheckPreparingSessionsNotStartedTask extends SchedulerTask {
+export default class CheckPreparingSessionNotStartedTask extends SchedulerTask {
 
   async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
     try {
       Logging.logInfo({
         tenantID: tenant.id,
-        module: 'CheckPreparingSessionsNotStartedTask',
-        method: 'run', action: 'CheckPreparingSessionsNotStartedTask',
-        message: 'The subtask \'CheckPreparingSessionsNotStartedTask\' is being run'
+        module: 'CheckPreparingSessionNotStartedTask',
+        method: 'run', action: 'CheckPreparingSessionNotStartedTask',
+        message: 'The subtask \'CheckPreparingSessionNotStartedTask\' is being run'
       });
       // Compute the date some minutes ago
       const someMinutesAgo = moment().subtract(config.preparingStatusMaxMins, 'minutes').toDate().toISOString();
@@ -26,7 +26,7 @@ export default class CheckPreparingSessionsNotStartedTask extends SchedulerTask 
       }
     } catch (error) {
       // Log error
-      Logging.logActionExceptionMessage(tenant.id, 'CheckPreparingSessionsNotStartedTask', error);
+      Logging.logActionExceptionMessage(tenant.id, 'CheckPreparingSessionNotStartedTask', error);
     }
   }
 }

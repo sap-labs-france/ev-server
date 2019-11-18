@@ -5,7 +5,7 @@ import BackendError from '../../exception/BackendError';
 import TenantStorage from '../../storage/mongodb/TenantStorage';
 import global from '../../types/GlobalType';
 import User from '../../types/User';
-import { OfflineChargingStationNotification, PreparingSessionsNotStartedNotification, UserAccountInactivityNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, VerificationEmailNotification, NotificationSeverity } from '../../types/UserNotifications';
+import { OfflineChargingStationNotification, PreparingSessionNotStartedNotification, UserAccountInactivityNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, VerificationEmailNotification, NotificationSeverity } from '../../types/UserNotifications';
 import Configuration from '../../utils/Configuration';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
@@ -101,7 +101,7 @@ export default class EMailNotificationTask implements NotificationTask {
     return this.prepareAndSendEmail('user-account-inactivity', data, user, tenantID, severity);
   }
 
-  public sendPreparingSessionsNotStarted(data: PreparingSessionsNotStartedNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>  {
+  public sendPreparingSessionNotStarted(data: PreparingSessionNotStartedNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>  {
     // Send it
     return this.prepareAndSendEmail('session-not-started', data, user, tenantID, severity);
   }

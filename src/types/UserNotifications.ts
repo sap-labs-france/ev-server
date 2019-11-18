@@ -13,7 +13,7 @@ export default interface UserNotifications {
   sendOcpiPatchStatusError?: boolean;
   sendSmtpAuthError?: boolean;
   sendUserAccountInactivity?:boolean;
-  sendPreparingSessionsNotStarted?: boolean;
+  sendPreparingSessionNotStarted?: boolean;
 }
 
 export type UserNotificationKeys =
@@ -28,7 +28,7 @@ export type UserNotificationKeys =
  'sendOcpiPatchStatusError' |
  'sendSmtpAuthError' |
  'sendUserAccountInactivity' |
- 'sendPreparingSessionsNotStarted' |
+ 'sendPreparingSessionNotStarted' |
  'sendOfflineChargingStation'
 ;
 
@@ -189,7 +189,7 @@ export interface UserAccountInactivityNotification extends BaseNotification {
   'evseDashboardURL': string;
 }
 
-export interface PreparingSessionsNotStartedNotification extends BaseNotification {
+export interface PreparingSessionNotStartedNotification extends BaseNotification {
   'user': User;
   'chargingStation': string;
   'startedOn': Date;

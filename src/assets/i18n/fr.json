@@ -46,7 +46,7 @@
 			"title": "Inactivité Compte Utilisateur",
 			"body": "Votre compte est inactif depuis le {{lastLogin}}. Pour des raisons légales, les comptes inactifs depuis plus de 6 mois doivent être supprimés."
 		},
-		"preparingSessionsNotStarted": {
+		"preparingSessionNotStarted": {
 			"title": "Session Non Démarrée",
 			"body": "Session non démarrée sur la borne '{{chargeBoxID}}'."
 		},

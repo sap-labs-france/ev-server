@@ -7,7 +7,7 @@ import OCPIPatchLocationsTask from './tasks/OCPIPatchLocationsTask';
 import SchedulerTask from './SchedulerTask';
 import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
 import CheckUserAccountInactivityTask from './tasks/CheckUserAccountInactivityTask';
-import CheckPreparingSessionsNotStartedTask from './tasks/CheckPreparingSessionsNotStartedTask';
+import CheckPreparingSessionNotStartedTask from './tasks/CheckPreparingSessionNotStartedTask';
 import CheckOfflineChargingStationTask from './tasks/CheckOfflineChargingStationTask';
 
 export default class SchedulerManager {
@@ -48,9 +48,9 @@ export default class SchedulerManager {
             // The task runs every five minutes
             schedulerTask = new CheckOfflineChargingStationTask();
             break;
-          case 'CheckPreparingSessionsNotStartedTask':
+          case 'CheckPreparingSessionNotStartedTask':
             // The task runs every five minutes
-            schedulerTask = new CheckPreparingSessionsNotStartedTask();
+            schedulerTask = new CheckPreparingSessionNotStartedTask();
             break;
           case 'OCPIPatchLocationsTask':
             schedulerTask = new OCPIPatchLocationsTask();
