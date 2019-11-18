@@ -17,9 +17,9 @@
       }
     },
     "beforeActionLines": [
-      "Dear User,",
+      "Hi <%- (user.firstName?user.firstName:user.name) %>,",
       "",
-      "You haven't started the session of your vehicle on charging station <b>'<%- chargingStation %>'</b>.",
+      "You haven't started the session on charging station <b>'<%- chargeBoxID %>'</b>.",
       ""
     ],
     "afterActionLines": [

@@ -19,7 +19,7 @@
     "beforeActionLines": [
       "Dear Administrator,",
       "",
-      "The charging station <b>'<%- chargingStation %>'</b> is no longer reporting to the e-Mobility application.",
+      "The charging station <b>'<%- chargeBoxID %>'</b> is offline.",
       ""
     ],
     "afterActionLines": [

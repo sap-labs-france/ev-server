@@ -17,7 +17,7 @@
       }
     },
     "beforeActionLines": [
-      "Dear User,",
+      "Hi <%- (user.firstName?user.firstName:user.name) %>,",
       "",
       "You haven't used the e-Mobility application since <%- lastLogin %>.",
       "",

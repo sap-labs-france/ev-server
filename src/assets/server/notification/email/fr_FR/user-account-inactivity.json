@@ -17,7 +17,7 @@
       }
     },
     "beforeActionLines": [
-      "Bonjour,",
+      "Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
       "",
       "Vous n'avez pas utitlisé l'application e-Mobility depuis le <%- lastLogin %>.",
       "",

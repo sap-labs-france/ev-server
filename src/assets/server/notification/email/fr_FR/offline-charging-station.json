@@ -17,9 +17,9 @@
       }
     },
     "beforeActionLines": [
-      "Chère Administratrice, Cher Administrateur,",
+      "Cher Administrateur,",
       "",
-      "La borne <b>'<%- chargingStation %>'</b> est hors ligne.",
+      "La borne <b>'<%- chargeBoxID %>'</b> est hors ligne.",
       ""
     ],
     "afterActionLines": [
