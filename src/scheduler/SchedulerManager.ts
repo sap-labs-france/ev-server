@@ -6,6 +6,9 @@ import LoggingDatabaseTableCleanupTask from './tasks/LoggingDatabaseTableCleanup
 import OCPIPatchLocationsTask from './tasks/OCPIPatchLocationsTask';
 import SchedulerTask from './SchedulerTask';
 import SynchronizeRefundTransactionsTask from './tasks/SynchronizeRefundTransactionsTask';
+import CheckUserAccountInactivityTask from './tasks/CheckUserAccountInactivityTask';
+import CheckPreparingSessionNotStartedTask from './tasks/CheckPreparingSessionNotStartedTask';
+import CheckOfflineChargingStationTask from './tasks/CheckOfflineChargingStationTask';
 
 export default class SchedulerManager {
   private static schedulerConfig = Configuration.getSchedulerConfig();
@@ -30,13 +33,24 @@ export default class SchedulerManager {
             action: 'Scheduler',
             message: `The task '${task.name}' is inactive`
           });
-          return;
+          continue;
         }
         let schedulerTask: SchedulerTask;
         // Tasks
         switch (task.name) {
           case 'LoggingDatabaseTableCleanupTask':
             schedulerTask = new LoggingDatabaseTableCleanupTask();
+            break;
+          case 'CheckUserAccountInactivityTask':
+            schedulerTask = new CheckUserAccountInactivityTask();
+            break;
+          case 'CheckOfflineChargingStationTask':
+            // The task runs every five minutes
+            schedulerTask = new CheckOfflineChargingStationTask();
+            break;
+          case 'CheckPreparingSessionNotStartedTask':
+            // The task runs every five minutes
+            schedulerTask = new CheckPreparingSessionNotStartedTask();
             break;
           case 'OCPIPatchLocationsTask':
             schedulerTask = new OCPIPatchLocationsTask();

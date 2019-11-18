@@ -1,4 +1,4 @@
-import { ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, UserNotificationType, VerificationEmailNotification } from '../../types/UserNotifications';
+import { NotificationSeverity, UserNotificationType, PreparingSessionNotStartedNotification, UserAccountInactivityNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, VerificationEmailNotification, OfflineChargingStationNotification } from '../../types/UserNotifications';
 import Configuration from '../../utils/Configuration';
 import NotificationTask from '../NotificationTask';
 import * as admin from 'firebase-admin';
@@ -44,9 +44,54 @@ export default class RemotePushNotificationTask implements NotificationTask {
     return await Promise.resolve();
   }
 
+  async sendUserAccountInactivity(data: UserAccountInactivityNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {
+    // Set the locale
+    I18nManager.switchLocale(user.locale);
+    // Get Message Text
+    const title = i18n.t('notifications.userAccountInactivity.title');
+    const body = i18n.t('notifications.userAccountInactivity.body',
+      { lastLogin: data.lastLogin });
+    // Send Notification
+    return this.sendRemotePushNotificationToUser(tenantID, UserNotificationType.USER_ACCOUNT_INACTIVITY, title, body, user, {
+        lastLogin: data.lastLogin
+      },
+      severity
+    );
+  }
+
+  async sendPreparingSessionNotStarted(data: PreparingSessionNotStartedNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {
+    // Set the locale
+    I18nManager.switchLocale(user.locale);
+    // Get Message Text
+    const title = i18n.t('notifications.preparingSessionNotStarted.title');
+    const body = i18n.t('notifications.preparingSessionNotStarted.body',
+      { chargeBoxID: data.chargeBoxID });
+    // Send Notification
+    return this.sendRemotePushNotificationToUser(tenantID, UserNotificationType.SESSION_NOT_STARTED, title, body, user, {
+      chargeBoxID: data.chargeBoxID
+      },
+      severity
+    );
+  }
+
   async sendRequestPassword(data: RequestPasswordNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {
     // Nothing to send
     return await Promise.resolve();
+  }
+
+  async sendOfflineChargingStation(data: OfflineChargingStationNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void>  {
+    // Set the locale
+    I18nManager.switchLocale(user.locale);
+    // Get Message Text
+    const title = i18n.t('notifications.offlineChargingStation.title');
+    const body = i18n.t('notifications.offlineChargingStation.body',
+      { chargeBoxID: data.chargeBoxID });
+    // Send Notification
+    return this.sendRemotePushNotificationToUser(tenantID, UserNotificationType.OFFLINE_CHARGING_STATION, title, body, user, {
+      chargeBoxID: data.chargeBoxID
+      },
+      severity
+    );
   }
 
   async sendOptimalChargeReached(data: OptimalChargeReachedNotification, user: User, tenantID: string, severity: NotificationSeverity): Promise<void> {

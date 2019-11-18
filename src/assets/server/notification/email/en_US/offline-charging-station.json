@@ -1,0 +1,33 @@
+{
+  "subject": "Offline Charging Station",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Offline Charging Station",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Dear Administrator,",
+      "",
+      "The charging station <b>'<%- chargeBoxID %>'</b> is offline.",
+      ""
+    ],
+    "afterActionLines": [
+      "Best Regards,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
+

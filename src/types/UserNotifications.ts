@@ -12,6 +12,8 @@ export default interface UserNotifications {
   sendChargingStationRegistered?: boolean;
   sendOcpiPatchStatusError?: boolean;
   sendSmtpAuthError?: boolean;
+  sendUserAccountInactivity?:boolean;
+  sendPreparingSessionNotStarted?: boolean;
 }
 
 export type UserNotificationKeys =
@@ -24,7 +26,10 @@ export type UserNotificationKeys =
  'sendChargingStationStatusError' |
  'sendChargingStationRegistered' |
  'sendOcpiPatchStatusError' |
- 'sendSmtpAuthError'
+ 'sendSmtpAuthError' |
+ 'sendUserAccountInactivity' |
+ 'sendPreparingSessionNotStarted' |
+ 'sendOfflineChargingStation'
 ;
 
 export enum UserNotificationType {
@@ -37,8 +42,11 @@ export enum UserNotificationType {
   CHARGING_STATION_STATUS_ERROR = 'ChargingStationStatusError',
   CHARGING_STATION_REGISTERED = 'ChargingStationRegistered',
   OCPI_PATCH_STATUS_ERROR = 'OcpiPatchStatusError',
-  SMTP_AUTH_ERROR = 'SmtpAuthError'
-}
+  SMTP_AUTH_ERROR = 'SmtpAuthError',
+  SESSION_NOT_STARTED = 'SessionNotStarted',
+  USER_ACCOUNT_INACTIVITY = 'UserAccountInactivity',
+  OFFLINE_CHARGING_STATION = 'OfflineChargingStation'
+};
 
 export type InactivityStatusLevel =
  'info' |
@@ -172,6 +180,25 @@ export interface SmtpAuthErrorNotification extends BaseNotification {
 
 export interface OCPIPatchChargingStationsStatusesErrorNotification extends BaseNotification {
   'location': string;
+  'evseDashboardURL': string;
+}
+
+export interface UserAccountInactivityNotification extends BaseNotification {
+  'user': User;
+  'lastLogin': string;
+  'evseDashboardURL': string;
+}
+
+export interface PreparingSessionNotStartedNotification extends BaseNotification {
+  'user': User;
+  'chargeBoxID': string;
+  'startedOn': Date;
+  'evseDashboardURL': string;
+}
+
+export interface OfflineChargingStationNotification extends BaseNotification {
+  'chargeBoxID': string;
+  'lastHeartbeat': Date;
   'evseDashboardURL': string;
 }
 
