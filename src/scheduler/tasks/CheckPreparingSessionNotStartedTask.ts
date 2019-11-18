@@ -1,14 +1,14 @@
 import moment from 'moment';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
+import { CheckPreparingSessionNotStartedTaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import SchedulerTask from '../SchedulerTask';
-import { TaskConfig } from '../../types/TaskConfig';
 
 export default class CheckPreparingSessionNotStartedTask extends SchedulerTask {
 
-  async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
+  async processTenant(tenant: Tenant, config: CheckPreparingSessionNotStartedTaskConfig): Promise<void> {
     try {
       Logging.logInfo({
         tenantID: tenant.id,

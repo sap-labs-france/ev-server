@@ -1,17 +1,16 @@
 import moment from 'moment';
-import Logging from '../../utils/Logging';
-import SchedulerTask from '../SchedulerTask';
-import { TaskConfig } from '../../types/TaskConfig';
-import Tenant from '../../types/Tenant';
 import NotificationHandler from '../../notification/NotificationHandler';
-import Utils from '../../utils/Utils';
 import UserStorage from '../../storage/mongodb/UserStorage';
-import _ from 'lodash';
+import { CheckUserAccountInactivityTaskConfig } from '../../types/TaskConfig';
+import Tenant from '../../types/Tenant';
 import Constants from '../../utils/Constants';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
+import SchedulerTask from '../SchedulerTask';
 
 export default class CheckUserAccountInactivityTask extends SchedulerTask {
 
-  async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
+  async processTenant(tenant: Tenant, config: CheckUserAccountInactivityTaskConfig): Promise<void> {
     try {
       Logging.logInfo({
         tenantID: tenant.id,

@@ -7,11 +7,5 @@ interface SchedulerTask {
   name: string;
   active: boolean;
   periodicity: string;
-  config: {
-    retentionPeriodWeeks?: number;
-    securityRetentionPeriodWeeks?: number;
-    userAccountInactivityMonths?: number;
-    offlineChargingStationMins?: number;
-    preparingStatusMaxMins?: number;
-  };
+  config: any;
 }

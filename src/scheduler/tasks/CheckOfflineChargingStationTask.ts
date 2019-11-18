@@ -1,7 +1,7 @@
 import moment from 'moment';
 import NotificationHandler from '../../notification/NotificationHandler';
 import ChargingStationStorage from '../../storage/mongodb/ChargingStationStorage';
-import { TaskConfig } from '../../types/TaskConfig';
+import { CheckOfflineChargingStationTaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
@@ -10,7 +10,7 @@ import SchedulerTask from '../SchedulerTask';
 
 export default class CheckOfflineChargingStationTask extends SchedulerTask {
 
-  async processTenant(tenant: Tenant, config: TaskConfig): Promise<void> {
+  async processTenant(tenant: Tenant, config: CheckOfflineChargingStationTaskConfig): Promise<void> {
     try {
       Logging.logInfo({
         tenantID: tenant.id,
