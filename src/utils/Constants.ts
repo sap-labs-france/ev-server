@@ -88,6 +88,7 @@ export default class Constants {
   public static readonly ENTITY_TRANSACTIONS = 'Transactions';
   public static readonly ENTITY_TRANSACTION_METER_VALUES = 'MeterValues';
   public static readonly ENTITY_TRANSACTION_STOP = 'Stop';
+  public static readonly ENTITY_REPORT = 'Report';
   public static readonly ENTITY_USER = 'User';
   public static readonly ENTITY_USERS = 'Users';
   public static readonly ENTITY_VEHICLE_MANUFACTURER = 'VehicleManufacturer';
@@ -258,7 +259,9 @@ export default class Constants {
   // OCPI Constants
   // --------------------------------------------------------------------
   // OCPI Base Path
-  public static readonly OCPI_SERVER_BASE_PATH = '/ocpi/cpo/versions';
+  public static readonly OCPI_SERVER_CPO_PATH = '/ocpi/cpo';
+  public static readonly OCPI_SERVER_EMSP_PATH = '/ocpi/emsp';
+  public static readonly OCPI_VERSIONS_PATH = '/versions';
   // OCPI Available Response Status
   public static readonly OCPI_STATUS_CODE = {
     // 1*** SUCCESS
@@ -276,6 +279,11 @@ export default class Constants {
     CODE_3002_UNSUPPORTED_VERSION_ERROR: { status_code: 3002, status_message: 'Unsupported Version' },
     CODE_3003_NO_MATCHING_ENDPOINTS_ERROR: { status_code: 3003, status_message: 'No Matching Endpoints' }
   };
+
+  public static readonly OCPI_ROLE = {
+    CPO: 'CPO',
+    EMSP: 'EMSP'
+  }
 
   // OCPI EVSE STATUS
   public static readonly EVSE_STATUS = {

@@ -8,6 +8,7 @@ import Utils from '../../utils/Utils';
 import { DataResult } from '../../types/DataResult';
 import User from '../../types/User';
 import ConsumptionStorage from './ConsumptionStorage';
+import RefundReport from '../../types/RefundReport';
 
 export default class TransactionStorage {
   public static async deleteTransaction(tenantID: string, transaction: Transaction): Promise<void> {
@@ -198,8 +199,8 @@ export default class TransactionStorage {
   public static async getTransactions(tenantID: string,
     params: {
       transactionId?: number; search?: string; ownerID?: string; userIDs?: string[]; siteAdminIDs?: string[]; chargeBoxIDs?:
-        string[]; siteAreaIDs?: string[]; siteID?: string[]; connectorId?: number; startDateTime?: Date;
-      endDateTime?: Date; stop?: any; minimalPrice?: boolean;
+      string[]; siteAreaIDs?: string[]; siteID?: string[]; connectorId?: number; startDateTime?: Date;
+      endDateTime?: Date; stop?: any; minimalPrice?: boolean; reportIDs?: string[];
       statistics?: 'refund' | 'history'; refundStatus?: string[];
     },
     dbParams: DbParams, projectFields?: string[]):
@@ -273,25 +274,32 @@ export default class TransactionStorage {
     if (params.stop) {
       filterMatch.stop = params.stop;
     }
+    // Site's area ID
     if (params.siteAreaIDs) {
       filterMatch.siteAreaID = {
         $in: params.siteAreaIDs.map((area) => Utils.convertToObjectID(area))
       };
     }
+    // Site ID
     if (params.siteID) {
       filterMatch.siteID = {
         $in: params.siteID.map((site) => Utils.convertToObjectID(site))
       };
     }
-
+    // Refund status
     if (params.refundStatus && params.refundStatus.length > 0) {
       const statuses = params.refundStatus.map((status) => status === Constants.REFUND_STATUS_NOT_SUBMITTED ? null : status);
       filterMatch['refundData.status'] = {
         $in: statuses
       };
     }
+    // Minimal Price
     if (params.minimalPrice) {
-      filterMatch['stop.price'] = { $gt: 0 };
+      filterMatch['stop.price'] = { $gt: Utils.convertToInt(params.minimalPrice) };
+    }
+    // Report ID
+    if (params.reportIDs) {
+      filterMatch['refundData.reportId'] = { $in: params.reportIDs };
     }
     // Create Aggregation
     const aggregation = [];
@@ -358,6 +366,7 @@ export default class TransactionStorage {
         };
         break;
     }
+
     // Count Records
     const transactionsCountMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate([...aggregation, statsQuery],
@@ -483,6 +492,7 @@ export default class TransactionStorage {
         allowDiskUse: true
       })
       .toArray();
+
     // Convert Object IDs to String
     this._convertRemainingTransactionObjectIDs(transactionsMDB);
     // Debug
@@ -494,13 +504,140 @@ export default class TransactionStorage {
     };
   }
 
+  public static async getRefundReports(tenantID: string, filter: { ownerID?: string }, dbParams: DbParams, projectFields?: string[]):
+  Promise<{
+    count: number; result: RefundReport[]; stats: {};
+  }> {
+    // Debug
+    const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactions');
+    // Check
+    await Utils.checkTenant(tenantID);
+    // Check Limit
+    dbParams.limit = Utils.checkRecordLimit(dbParams.limit);
+    // Check Skip
+    dbParams.skip = Utils.checkRecordSkip(dbParams.skip);
+
+    // Create Aggregation
+    const aggregation = [];
+
+    aggregation.push(
+      { '$group': { '_id': '$refundData.reportId', 'userID': { '$first': '$userID' } } }
+    );
+
+    if (filter.ownerID) {
+      aggregation.push(
+        { '$match': { 'userID': Utils.convertToObjectID(filter.ownerID) } }
+      );
+    }
+
+    // Limit records?
+    if (!dbParams.onlyRecordCount) {
+      // Always limit the nbr of record to avoid perfs issues
+      aggregation.push({ $limit: Constants.DB_RECORD_COUNT_CEIL });
+    }
+    // Prepare statistics query
+    const statsQuery = {
+      $group: {
+        _id: null,
+        count: { $sum: 1 }
+      }
+    };
+
+    // Count Records
+    const transactionsCountMDB = await global.database.getCollection<any>(tenantID, 'transactions')
+      .aggregate([...aggregation, statsQuery],
+        {
+          allowDiskUse: true
+        })
+      .toArray();
+    let reportCountMDB = (transactionsCountMDB && transactionsCountMDB.length > 0) ? transactionsCountMDB[0] : null;
+    // Initialize statistics
+    if (!reportCountMDB) {
+      reportCountMDB = {
+        count: 0
+      };
+    }
+
+    // Check if only the total count is requested
+    if (dbParams.onlyRecordCount) {
+      return {
+        count: reportCountMDB ? reportCountMDB.count : 0,
+        stats: reportCountMDB ? reportCountMDB : {},
+        result: []
+      };
+    }
+    // Remove the limit
+    aggregation.pop();
+
+    // Not yet possible to remove the fields if stop/remoteStop does not exist (MongoDB 4.2)
+    // DatabaseUtils.convertObjectIDToString(aggregation, 'stop.userID');
+    // DatabaseUtils.convertObjectIDToString(aggregation, 'remotestop.userID');
+    // Sort
+    if (dbParams.sort) {
+      if (!dbParams.sort.timestamp) {
+        aggregation.push({
+          $sort: { ...dbParams.sort, timestamp: -1 }
+        });
+      } else {
+        aggregation.push({
+          $sort: dbParams.sort
+        });
+      }
+    } else {
+      aggregation.push({
+        $sort: { timestamp: -1 }
+      });
+    }
+    // Skip
+    aggregation.push({
+      $skip: dbParams.skip
+    });
+    // Limit
+    aggregation.push({
+      $limit: dbParams.limit
+    });
+
+    // Add respective users
+    DatabaseUtils.pushUserLookupInAggregation({
+      tenantID,
+      aggregation: aggregation,
+      asField: 'user',
+      localField: 'userID',
+      foreignField: '_id',
+      oneToOneCardinality: true,
+      oneToOneCardinalityNotNull: false
+    });
+
+    // Rename ID
+    DatabaseUtils.renameField(aggregation, '_id', 'id');
+    // Convert Object ID to string
+    DatabaseUtils.convertObjectIDToString(aggregation, 'userID');
+    // Project
+    DatabaseUtils.projectFields(aggregation, projectFields);
+    // Read DB
+    const reportsMDB = await global.database.getCollection<RefundReport>(tenantID, 'transactions')
+      .aggregate(aggregation, {
+        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
+        allowDiskUse: true
+      })
+      .toArray();
+
+    // Debug
+    Logging.traceEnd('TransactionStorage', 'getRefundReports', uniqueTimerID, { dbParams });
+    return {
+      count: reportCountMDB ? (reportCountMDB.count === Constants.DB_RECORD_COUNT_CEIL ? -1 : reportCountMDB.count) : 0,
+      stats: reportCountMDB ? reportCountMDB : {},
+      result: reportsMDB
+    };
+  }
+
   static async getTransactionsInError(tenantID,
-                                      params: {
-                                        search?: string; userIDs?: string[]; chargeBoxIDs?: string[];
-                                        siteAreaIDs?: string[]; siteID?: string[]; startDateTime?: Date; endDateTime?: Date; withChargeBoxes?: boolean;
-                                        errorType?: ('long_inactivity' | 'negative_inactivity' | 'negative_duration' | 'average_consumption_greater_than_connector_capacity' | 'incorrect_starting_date' | 'no_consumption')[];
-                                      },
-                                      dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Transaction>> {
+    params: {
+      search?: string; userIDs?: string[]; chargeBoxIDs?: string[];
+      siteAreaIDs?: string[]; siteID?: string[]; startDateTime?: Date; endDateTime?: Date; withChargeBoxes?: boolean;
+      errorType?: ('long_inactivity' | 'negative_inactivity' | 'negative_duration' | 'average_consumption_greater_than_connector_capacity' | 'incorrect_starting_date' | 'no_consumption')[];
+    },
+    dbParams: DbParams, projectFields?: string[]): Promise<DataResult<Transaction>> {
     // Debug
     const uniqueTimerID = Logging.traceStart('TransactionStorage', 'getTransactionsInError');
     // Check

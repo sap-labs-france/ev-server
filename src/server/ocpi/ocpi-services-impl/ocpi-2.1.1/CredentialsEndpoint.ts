@@ -11,7 +11,6 @@ import AbstractOCPIService from '../../AbstractOCPIService';
 import OCPIEndpointStorage from '../../../../storage/mongodb/OCPIEndpointStorage';
 
 const EP_IDENTIFIER = 'credentials';
-const EP_VERSION = '2.1.1';
 const MODULE_NAME = 'CredentialsEndpoint';
 
 /**
@@ -20,7 +19,7 @@ const MODULE_NAME = 'CredentialsEndpoint';
 export default class CredentialsEndpoint extends AbstractEndpoint {
 
   constructor(ocpiService: AbstractOCPIService) {
-    super(ocpiService, EP_IDENTIFIER, EP_VERSION);
+    super(ocpiService, EP_IDENTIFIER);
   }
 
   /**
@@ -63,7 +62,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     });
 
     // Get ocpiEndpoints based on the given token
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoinByLocalToken(tenant.id, token);
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpointByLocalToken(tenant.id, token);
 
     // Check if ocpiEndpoint available
     if (!ocpiEndpoint || ocpiEndpoint.status === Constants.OCPI_REGISTERING_STATUS.OCPI_UNREGISTERED) {
@@ -136,7 +135,7 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     });
 
     // Get ocpiEndpoints based on the given token
-    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpoinByLocalToken(tenant.id, token);
+    const ocpiEndpoint = await OCPIEndpointStorage.getOcpiEndpointByLocalToken(tenant.id, token);
 
     // Check if ocpiEndpoint available
     if (!ocpiEndpoint) {
@@ -270,10 +269,10 @@ export default class CredentialsEndpoint extends AbstractEndpoint {
     await OCPIEndpointStorage.saveOcpiEndpoint(tenant.id, ocpiEndpoint);
 
     // Get base url
-    const versionUrl = this.getBaseUrl(req) + Constants.OCPI_SERVER_BASE_PATH;
+    const versionUrl = this.getServiceUrl(req) + Constants.OCPI_VERSIONS_PATH;
 
     // Build credential object
-    const respCredential = await OCPIMapping.buildOCPICredentialObject(tenant.id, ocpiEndpoint.localToken, versionUrl);
+    const respCredential = await OCPIMapping.buildOCPICredentialObject(tenant.id, ocpiEndpoint.localToken, ocpiEndpoint.role, versionUrl);
 
     // Log available OCPI Versions
     Logging.logDebug({

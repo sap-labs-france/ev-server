@@ -22,6 +22,7 @@ import Utils from '../../../utils/Utils';
 import UtilsService from './UtilsService';
 import Consumption from '../../../types/Consumption';
 import RefundFactory from '../../../integration/refund/RefundFactory';
+import DbParams from '../../../types/database/DbParams';
 
 export default class TransactionService {
   static async handleSynchronizeRefundedTransactions(action: string, req: Request, res: Response, next: NextFunction) {
@@ -617,11 +618,9 @@ export default class TransactionService {
         filter.siteAreaIDs = filteredRequest.SiteAreaID.split('|');
       }
       if (filteredRequest.SiteID) {
-        filter.siteID = Authorizations.getAuthorizedSiteIDs(req.user, filteredRequest.SiteID.split('|'));
+        filter.siteID = Authorizations.getAuthorizedSiteAdminIDs(req.user, filteredRequest.SiteID.split('|'));
       }
-      if (Authorizations.isSiteAdmin(req.user)) {
-        filter.siteAdminIDs = req.user.sitesAdmin;
-      }
+      filter.siteAdminIDs = Authorizations.getAuthorizedSiteAdminIDs(req.user);
     }
     if (filteredRequest.StartDateTime) {
       filter.startDateTime = filteredRequest.StartDateTime;
@@ -641,6 +640,10 @@ export default class TransactionService {
     if (filteredRequest.Search) {
       filter.search = filteredRequest.Search;
     }
+    if (filteredRequest.ReportIDs) {
+      filter.reportIDs = filteredRequest.ReportIDs.split('|');
+    }
+
     const transactions = await TransactionStorage.getTransactions(req.user.tenantID, filter,
       {
         limit: filteredRequest.Limit,
@@ -649,9 +652,41 @@ export default class TransactionService {
         onlyRecordCount: filteredRequest.OnlyRecordCount
       });
     // Filter
-    TransactionSecurity.filterTransactionsResponse(transactions, req.user, true);
+    TransactionSecurity.filterTransactionsResponse(transactions, req.user);
     // Return
     res.json(transactions);
+    next();
+  }
+
+  public static async handleGetRefundReports(action: string, req: Request, res: Response, next: NextFunction): Promise<void> {
+    // Check auth
+    if (!Authorizations.canListTransactions(req.user)) {
+      throw new AppAuthError({
+        errorCode: Constants.HTTP_AUTH_ERROR,
+        user: req.user,
+        action: Constants.ACTION_LIST,
+        entity: Constants.ENTITY_TRANSACTIONS,
+        module: 'TransactionService',
+        method: 'handleGetRefundReports'
+      });
+    }
+    const filter: any = { stop: { $exists: true } };
+    // Filter
+    const filteredRequest = TransactionSecurity.filterTransactionsRequest(req.query);
+    if (Authorizations.isBasic(req.user)) {
+      filter.ownerID = req.user.id;
+    }
+    // Get Reports
+    const reports = await TransactionStorage.getRefundReports(req.user.tenantID, filter, {
+      limit: filteredRequest.Limit,
+      skip: filteredRequest.Skip,
+      sort: filteredRequest.Sort,
+      onlyRecordCount: filteredRequest.OnlyRecordCount
+    });
+    // Filter
+    TransactionSecurity.filterRefundReportsResponse(reports, req.user);
+    // Return
+    res.json(reports);
     next();
   }
 

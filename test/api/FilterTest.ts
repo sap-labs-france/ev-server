@@ -102,5 +102,21 @@ describe('Filters with multiple values tests', function() {
       expect(read.status).to.equal(200);
     });
 
+    it('Refund : Check that multi-filtering based on reports ID works', async () => {
+      // TODO run test on tenant "utall" when "Site Owner" PR will be merged
+      testData.centralService = new CentralServerService('slfcah', { email: config.get('admin.username'), password: config.get('admin.password') });
+      const read = await testData.centralService.transactionApi.readAllRefundReports({}, { limit: 10, skip: 0 });
+      expect(read.status).to.equal(200);
+      expect(read.data.result).to.not.be.empty;
+      // Test for unicity
+      for (let i = 0; i < read.data.result.length; i++) {
+        for (let j = 0; j < read.data.result.length; j++) {
+          if (i !== j) {
+            expect(read.data.result[i]).not.equal(read.data.result[j]);
+          }
+        }
+      }
+    });
+
   });
 });

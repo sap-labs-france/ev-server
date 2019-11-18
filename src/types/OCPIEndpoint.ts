@@ -2,6 +2,7 @@ import CreatedUpdatedProps from './CreatedUpdatedProps';
 
 export default interface OCPIEndpoint extends CreatedUpdatedProps {
   id: string;
+  role: string;
   name: string;
   baseUrl: string;
   localToken: string;

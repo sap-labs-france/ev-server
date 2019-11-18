@@ -230,22 +230,6 @@ export default class LoggingStorage {
     aggregation.push({
       $unwind: { 'path': '$actionOnUser', 'preserveNullAndEmptyArrays': true }
     });
-    // Search
-    if (params.search) {
-      // Set User search
-      const searchUserArray = [
-        { 'user.name': { $regex: params.search, $options: 'i' } },
-        { 'user.firstName': { $regex: params.search, $options: 'i' } },
-        { 'user.email': { $regex: params.search, $options: 'i' } },
-        { 'actionOnUser.name': { $regex: params.search, $options: 'i' } },
-        { 'actionOnUser.firstName': { $regex: params.search, $options: 'i' } },
-        { 'actionOnUser.email': { $regex: params.search, $options: 'i' } }
-      ];
-      // Add user filter
-      aggregation.push({
-        $match: { '$or': searchUserArray }
-      });
-    }
     // Read DB
     const loggingsMDB = await global.database.getCollection<any>(tenantID, 'logs')
       .aggregate(aggregation, { allowDiskUse: true })

@@ -24,6 +24,7 @@ import Constants from './Constants';
 import Cypher from './Cypher';
 import passwordGenerator = require('password-generator');
 import { InactivityStatusLevel } from '../types/UserNotifications';
+import OCPIEndpoint from '../types/OCPIEndpoint';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
@@ -56,15 +57,15 @@ export default class Utils {
       return 'info';
     }
     // Get Notification Interval
-    let intervalMins = Utils.getEndOfChargeNotificationIntervalMins(chargingStation, connectorId);
+    const intervalMins = Utils.getEndOfChargeNotificationIntervalMins(chargingStation, connectorId);
     // Check
     if (inactivitySecs < (intervalMins * 60)) {
       return 'info';
     } else if (inactivitySecs < (intervalMins * 60 * 2)) {
       return 'warning';
-    } else {
-      return 'danger';
     }
+    return 'danger';
+
   }
 
   public static generateGUID() {
@@ -132,7 +133,7 @@ export default class Utils {
         continue;
       }
       // Check connectors
-      Utils.checkConnectors(chargingStation);
+      Utils.checkAndUpdateConnectorsStatus(chargingStation);
       // Set Inactive flag
       chargingStation.inactive = Utils.getIfChargingStationIsInactive(chargingStation);
       connectorStats.totalChargers++;
@@ -187,8 +188,9 @@ export default class Utils {
     return connectorStats;
   }
 
-  public static checkConnectors(chargingStation: ChargingStation) {
-    if (chargingStation.cannotChargeInParallel) {
+  public static checkAndUpdateConnectorsStatus(chargingStation: ChargingStation) {
+    // Cannot charge in //
+    if (chargingStation.  cannotChargeInParallel) {
       let lockAllConnectors = false;
       // Check
       for (const connector of chargingStation.connectors) {
@@ -290,7 +292,7 @@ export default class Utils {
         source: headers.chargeBoxIdentity,
         module: 'Utils',
         method: 'normalizeAndCheckSOAPParams',
-        message: `The Charging Station ID is invalid`
+        message: 'The Charging Station ID is invalid'
       });
     }
   }
@@ -713,6 +715,68 @@ export default class Utils {
     return Cypher.hash(password);
   }
 
+  public static checkIfOCPIEndpointValid(ocpiEndpoint: Partial<OCPIEndpoint>, req: Request): void {
+    if (req.method !== 'POST' && !ocpiEndpoint.id) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The OCPI Endpoint ID is mandatory',
+        module: 'Utils',
+        method: 'checkIfOCPIEndpointValid'
+      });
+    }
+    if (!ocpiEndpoint.name) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The OCPI Endpoint name is mandatory',
+        module: 'Utils',
+        method: 'checkIfOCPIEndpointValid',
+        user: req.user.id
+      });
+    }
+    if (!ocpiEndpoint.role) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The OCPI Endpoint role is mandatory',
+        module: 'Utils',
+        method: 'checkIfOCPIEndpointValid',
+        user: req.user.id
+      });
+    }
+    if (!ocpiEndpoint.baseUrl) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The OCPI Endpoint base URL is mandatory',
+        module: 'Utils',
+        method: 'checkIfOCPIEndpointValid',
+        user: req.user.id
+      });
+    }
+    if (!ocpiEndpoint.localToken) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The OCPI Endpoint local token is mandatory',
+        module: 'Utils',
+        method: 'checkIfOCPIEndpointValid',
+        user: req.user.id
+      });
+    }
+    if (!ocpiEndpoint.token) {
+      throw new AppError({
+        source: Constants.CENTRAL_SERVER,
+        errorCode: Constants.HTTP_GENERAL_ERROR,
+        message: 'The OCPI Endpoint token is mandatory',
+        module: 'Utils',
+        method: 'checkIfOCPIEndpointValid',
+        user: req.user.id
+      });
+    }
+  }
+
   public static checkIfSiteValid(filteredRequest: any, req: Request): void {
     if (req.method !== 'POST' && !filteredRequest.id) {
       throw new AppError({
@@ -1078,9 +1142,9 @@ export default class Utils {
     }
   }
 
-  public static getTimezone(lat: number, lon: number) {
-    if (lat && lon) {
-      return tzlookup(lat, lon);
+  public static getTimezone(coordinates: number[]) {
+    if (coordinates && coordinates.length === 2) {
+      return tzlookup(coordinates[1], coordinates[0]);
     }
     return null;
   }

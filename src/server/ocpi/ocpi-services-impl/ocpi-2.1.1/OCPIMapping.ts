@@ -6,6 +6,9 @@ import SiteArea from '../../../../types/SiteArea';
 import SiteAreaStorage from '../../../../storage/mongodb/SiteAreaStorage';
 import SiteStorage from '../../../../storage/mongodb/SiteStorage';
 import Tenant from '../../../../types/Tenant';
+import UserStorage from '../../../../storage/mongodb/UserStorage';
+import { DataResult } from '../../../../types/DataResult';
+import { OCPIToken } from '../../../../types/ocpi/OCPIToken';
 
 /**
  * OCPI Mapping 2.1.1 - Mapping class
@@ -29,8 +32,8 @@ export default class OCPIMapping {
       'postal_code': site.address.postalCode,
       'country': site.address.country,
       'coordinates': {
-        'latitude': site.address.latitude,
-        'longitude': site.address.longitude
+        'latitude': site.address.coordinates[1],
+        'longitude': site.address.coordinates[0]
       },
       'evses': await OCPIMapping.getEvsesFromSite(tenant, site, options),
       'last_updated': site.lastChangedOn
@@ -49,7 +52,7 @@ export default class OCPIMapping {
     // Convert charging stations to evse(s)
     siteArea.chargingStations.forEach((chargingStation) => {
       if (!chargingStation.cannotChargeInParallel) {
-        evses.push(...OCPIMapping.convertCharginStation2MultipleEvses(tenant, chargingStation, options));
+        evses.push(...OCPIMapping.convertChargingStation2MultipleEvses(tenant, chargingStation, options));
       } else {
         evses.push(...OCPIMapping.convertChargingStation2UniqueEvse(tenant, chargingStation, options));
       }
@@ -103,6 +106,37 @@ export default class OCPIMapping {
     return result;
   }
 
+  /**
+   * Get All OCPI Tokens from given tenant
+   * @param {Tenant} tenant
+   */
+  static async getAllTokens(tenant: Tenant, limit: number, skip: number): Promise<DataResult<OCPIToken>> {
+    // Result
+    const tokens: OCPIToken[] = [];
+
+    // Get all tokens
+    const tags = await UserStorage.getTags(tenant.id, { limit, skip });
+
+    // Convert Sites to Locations
+    for (const tag of tags.result) {
+      tokens.push({
+        uid: tag.id,
+        type: 'RFID',
+        'auth_id': tag.userID,
+        'visual_number': tag.userID,
+        issuer: tenant.name,
+        valid: true,
+        whitelist: 'ALLOWED_OFFLINE',
+        'last_updated': new Date()
+      });
+    }
+
+    return {
+      count: tags.count,
+      result: tokens
+    };
+  }
+
   //
   /**
    * Convert ChargingStation to Multiple EVSEs
@@ -110,7 +144,7 @@ export default class OCPIMapping {
    * @param {*} chargingStation
    * @return Array of OCPI EVSES
    */
-  static convertCharginStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation, options: {countryID: string; partyID: string; addChargeBoxID?: boolean}) {
+  static convertChargingStation2MultipleEvses(tenant: Tenant, chargingStation: ChargingStation, options: {countryID: string; partyID: string; addChargeBoxID?: boolean}) {
     // Build evse ID
     const evseID = OCPIMapping.convert2evseid(`${options.countryID}*${options.partyID}*E${chargingStation.id}`);
 
@@ -272,7 +306,7 @@ export default class OCPIMapping {
    * @param {*} tenant
    * @param {*} token
    */
-  static async buildOCPICredentialObject(tenantID: string, token: string, versionUrl?: string) {
+  static async buildOCPICredentialObject(tenantID: string, token: string, role: string, versionUrl?: string) {
     // Credential
     const credential: any = {};
 
@@ -280,7 +314,7 @@ export default class OCPIMapping {
     const ocpiSetting = await SettingStorage.getSettingByIdentifier(tenantID, Constants.COMPONENTS.OCPI);
 
     // Define version url
-    credential.url = (versionUrl ? versionUrl : 'https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/cpo/versions');
+    credential.url = (versionUrl ? versionUrl : `https://sap-ev-ocpi-server.cfapps.eu10.hana.ondemand.com/ocpi/${role}/versions`);
 
     // Check if available
     if (ocpiSetting && ocpiSetting.content) {

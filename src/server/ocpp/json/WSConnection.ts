@@ -73,7 +73,7 @@ export default class WSConnection {
         source: this.chargingStationID,
         module: 'WSConnection',
         method: 'constructor',
-        message: `The Charging Station ID is invalid`
+        message: 'The Charging Station ID is invalid'
       });
     }
 

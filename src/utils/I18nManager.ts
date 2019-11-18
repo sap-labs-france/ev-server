@@ -1,17 +1,17 @@
 import fs from 'fs';
-import i18n from "i18n-js";
-import Intl from "intl";
-import moment from "moment";
+import i18n from 'i18n-js';
+import Intl from 'intl';
+import moment from 'moment';
 import global from '../types/GlobalType';
-import Constants from "./Constants";
+import Constants from './Constants';
 import Utils from './Utils';
 
 export default class I18nManager {
   public static async initialize() {
     // Get the supported locales for moment
-    require("moment/locale/fr");
-    require("moment/locale/de");
-    require("moment/locale/en-gb");
+    require('moment/locale/fr');
+    require('moment/locale/de');
+    require('moment/locale/en-gb');
     // Get translation files
     i18n.translations['en'] = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/i18n/en.json`, 'utf8'));
     i18n.translations['fr'] = JSON.parse(fs.readFileSync(`${global.appRoot}/assets/i18n/fr.json`, 'utf8'));
@@ -53,7 +53,7 @@ export default class I18nManager {
     return '0';
   }
 
-  public static formatDateTime(value: Date, format: string = 'LLL') {
+  public static formatDateTime(value: Date, format = 'LLL') {
     return moment(value).format(format);
   }
 }

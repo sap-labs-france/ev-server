@@ -10,6 +10,7 @@ import UtilsSecurity from './UtilsSecurity';
 import { DataResult } from '../../../../types/DataResult';
 import Consumption from '../../../../types/Consumption';
 import Utils from '../../../../utils/Utils';
+import RefundReport from '../../../../types/RefundReport';
 
 export default class TransactionSecurity {
   public static filterTransactionsRefund(request: any): HttpTransactionsRefundRequest {
@@ -64,12 +65,17 @@ export default class TransactionSecurity {
     filteredRequest.Search = sanitize(request.Search);
     filteredRequest.RefundStatus = sanitize(request.RefundStatus);
     filteredRequest.MinimalPrice = sanitize(request.MinimalPrice);
+
     if (request.Statistics) {
       filteredRequest.Statistics = sanitize(request.Statistics);
     }
     if (request.UserID) {
       filteredRequest.UserID = sanitize(request.UserID);
     }
+    if (request.ReportIDs) {
+      filteredRequest.ReportIDs = sanitize(request.ReportIDs);
+    }
+
     UtilsSecurity.filterSkipAndLimit(request, filteredRequest);
     UtilsSecurity.filterSort(request, filteredRequest);
     return filteredRequest;
@@ -93,14 +99,13 @@ export default class TransactionSecurity {
     return filteredRequest;
   }
 
-  static filterTransactionResponse(transaction: Transaction, loggedUser: UserToken, toRefund = false) {
+  static filterTransactionResponse(transaction: Transaction, loggedUser: UserToken) {
     let filteredTransaction;
     if (!transaction) {
       return null;
     }
     // Check auth
-    if (Authorizations.canReadTransaction(loggedUser, transaction) &&
-      (!toRefund || Authorizations.canRefundTransaction(loggedUser, transaction))) {
+    if (Authorizations.canReadTransaction(loggedUser, transaction)) {
       // Set only necessary info
       filteredTransaction = {} as Transaction;
       filteredTransaction.id = transaction.id;
@@ -125,7 +130,7 @@ export default class TransactionSecurity {
         filteredTransaction.currentConsumption = transaction.currentConsumption;
         filteredTransaction.currentTotalConsumption = transaction.currentTotalConsumption;
         filteredTransaction.currentTotalInactivitySecs = transaction.currentTotalInactivitySecs;
-        filteredTransaction.currentInactivityStatusLevel = 
+        filteredTransaction.currentInactivityStatusLevel =
           Utils.getInactivityStatusLevel(transaction.chargeBox, transaction.connectorId, transaction.currentTotalInactivitySecs);
         filteredTransaction.currentTotalDurationSecs =
           moment.duration(moment(!transaction.stop ? transaction.lastMeterValue.timestamp : transaction.stop.timestamp).diff(moment(transaction.timestamp))).asSeconds();
@@ -192,19 +197,53 @@ export default class TransactionSecurity {
     return filteredTransaction;
   }
 
-  static filterTransactionsResponse(transactions: DataResult<Transaction>, loggedUser: UserToken, toRefund = false) {
+  static filterTransactionsResponse(transactions: DataResult<Transaction>, loggedUser: UserToken) {
     const filteredTransactions = [];
     if (!transactions.result) {
       return null;
     }
     // Filter result
     for (const transaction of transactions.result) {
-      const filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser, toRefund);
+      const filteredTransaction = TransactionSecurity.filterTransactionResponse(transaction, loggedUser);
       if (filteredTransaction) {
         filteredTransactions.push(filteredTransaction);
       }
     }
     transactions.result = filteredTransactions;
+  }
+
+  static filterRefundReportResponse(report: RefundReport, loggedUser: UserToken) {
+    let filteredRefundReport;
+    if (!report) {
+      return null;
+    }
+    // Check auth
+    if (Authorizations.canReadReport(loggedUser)) {
+      // Set only necessary info
+      filteredRefundReport = {} as RefundReport;
+      if (report.id) {
+        filteredRefundReport.id = report.id;
+      }
+      if (report.user) {
+        filteredRefundReport.user = report.user;
+      }
+    }
+    return filteredRefundReport;
+  }
+
+  static filterRefundReportsResponse(reports: DataResult<RefundReport>, loggedUser: UserToken) {
+    const filteredReports = [];
+    if (!reports.result) {
+      return null;
+    }
+    // Filter result
+    for (const report of reports.result) {
+      const filteredReport = TransactionSecurity.filterRefundReportResponse(report, loggedUser);
+      if (filteredReport) {
+        filteredReports.push(filteredReport);
+      }
+    }
+    reports.result = filteredReports;
   }
 
   static _filterUserInTransactionResponse(user: User, loggedUser: UserToken) {

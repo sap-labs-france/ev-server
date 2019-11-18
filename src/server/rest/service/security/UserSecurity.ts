@@ -180,6 +180,8 @@ export default class UserSecurity {
         filteredUser.iNumber = user.iNumber;
         filteredUser.costCenter = user.costCenter;
         filteredUser.tagIDs = user.tagIDs;
+        filteredUser.plateID = user.plateID;
+        filteredUser.role = user.role;
         filteredUser.errorCode = user.errorCode;
         if (user.address) {
           filteredUser.address = UtilsSecurity.filterAddressRequest(user.address);

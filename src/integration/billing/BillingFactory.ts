@@ -7,6 +7,12 @@ import Utils from '../../utils/Utils';
 
 export default class BillingFactory {
   static async getBillingImpl(tenantID: string) {
+
+    // Prevent default user from generating billing
+    if (tenantID === Constants.DEFAULT_TENANT) {
+      return null;
+    }
+
     // Get the tenant
     const tenant: Tenant = await TenantStorage.getTenant(tenantID);
     // Check if billing is active

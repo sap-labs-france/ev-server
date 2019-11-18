@@ -21,7 +21,7 @@ export default class OCPPJsonService16 extends OCPPService {
     return '1.6';
   }
 
-  public async openConnection(chargeBoxIdentity){
+  public async openConnection(chargeBoxIdentity) {
     return await new Promise((resolve, reject) => {
       // Create WS
       const sentRequests = {};

@@ -6,6 +6,5 @@ export default interface Address {
   department?: string;
   region?: string;
   country: string;
-  latitude: number;
-  longitude: number;
+  coordinates: number[];
 }

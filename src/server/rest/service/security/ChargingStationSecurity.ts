@@ -29,7 +29,7 @@ export default class ChargingStationSecurity {
       return null;
     }
     // Check connectors
-    Utils.checkConnectors(chargingStation);
+    Utils.checkAndUpdateConnectorsStatus(chargingStation);
     // Check Auth
     if (Authorizations.canUpdateChargingStation(loggedUser, siteID)) {
       // Yes: set all params
@@ -42,7 +42,7 @@ export default class ChargingStationSecurity {
           connector.totalInactivitySecs = 0;
           connector.currentStateOfCharge = 0;
         } else {
-          connector.inactivityStatusLevel = 
+          connector.inactivityStatusLevel =
             Utils.getInactivityStatusLevel(chargingStation , connector.connectorId, connector.totalInactivitySecs);
         }
       }
@@ -63,7 +63,7 @@ export default class ChargingStationSecurity {
           'currentStateOfCharge': (filteredChargingStation.inactive ? 0 : connector.currentStateOfCharge),
           'totalConsumption': (filteredChargingStation.inactive ? 0 : connector.totalConsumption),
           'totalInactivitySecs': (filteredChargingStation.inactive ? 0 : connector.totalInactivitySecs),
-          'inactivityStatusLevel': (filteredChargingStation.inactive ? null : 
+          'inactivityStatusLevel': (filteredChargingStation.inactive ? null :
             Utils.getInactivityStatusLevel(chargingStation , connector.connectorId, connector.totalInactivitySecs)),
           'activeTransactionID': connector.activeTransactionID,
           'activeTransactionDate': connector.activeTransactionDate,
@@ -79,8 +79,7 @@ export default class ChargingStationSecurity {
       filteredChargingStation.maximumPower = chargingStation.maximumPower;
       filteredChargingStation.chargePointVendor = chargingStation.chargePointVendor;
       filteredChargingStation.siteAreaID = chargingStation.siteAreaID;
-      filteredChargingStation.latitude = chargingStation.latitude;
-      filteredChargingStation.longitude = chargingStation.longitude;
+      filteredChargingStation.coordinates = chargingStation.coordinates;
       if (chargingStation.siteArea) {
         filteredChargingStation.siteArea = chargingStation.siteArea;
       }
@@ -181,11 +180,11 @@ export default class ChargingStationSecurity {
     if (request.hasOwnProperty('powerLimitUnit')) {
       filteredRequest.powerLimitUnit = sanitize(request.powerLimitUnit);
     }
-    if (request.hasOwnProperty('latitude')) {
-      filteredRequest.latitude = sanitize(request.latitude);
-    }
-    if (request.hasOwnProperty('longitude')) {
-      filteredRequest.longitude = sanitize(request.longitude);
+    if (request.coordinates && request.coordinates.length === 2) {
+      filteredRequest.coordinates = [
+        sanitize(request.coordinates[0]),
+        sanitize(request.coordinates[1])
+      ];
     }
     if (request.connectors) {
       // Filter
