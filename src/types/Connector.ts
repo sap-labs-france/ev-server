@@ -17,5 +17,5 @@ export default interface Connector {
   activeTransactionID: number;
   activeTransactionDate: Date;
   activeTagID: string;
-  inactivityStatusLevel: InactivityStatusLevel;
+  inactivityStatusLevel?: InactivityStatusLevel;
 }
