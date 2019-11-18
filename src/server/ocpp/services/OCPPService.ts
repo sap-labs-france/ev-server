@@ -318,8 +318,7 @@ export default class OCPPService {
     foundConnector.errorCode = statusNotification.errorCode;
     foundConnector.info = (statusNotification.info ? statusNotification.info : '');
     foundConnector.vendorErrorCode = (statusNotification.vendorErrorCode ? statusNotification.vendorErrorCode : '');
-    // Set new date
-    foundConnector.statusLastChangedOn = new Date();
+    foundConnector.statusLastChangedOn = new Date(statusNotification.timestamp);
     // Save Status Notification
     await OCPPStorage.saveStatusNotification(tenantID, statusNotification);
     // Log

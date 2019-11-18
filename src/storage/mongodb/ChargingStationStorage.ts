@@ -175,7 +175,8 @@ export default class ChargingStationStorage {
     };
   }
 
-  public static async getChargingStationsByConnectorStatus(tenantID: string, params: { statusChangedBefore?: string, connectorStatus: string }): Promise<ChargingStation[]> {
+  public static async getChargingStationsByConnectorStatus(tenantID: string,
+      params: { statusChangedBefore?: Date, connectorStatus: string }): Promise<ChargingStation[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStationsPreparingSince');
     // Check Tenant
@@ -185,13 +186,12 @@ export default class ChargingStationStorage {
     // Flatten the charging stations records
     aggregation.push({"$unwind":"$connectors"});
     // Create filters
-    const filters: any = {$and:[{$or:DatabaseUtils.getNotDeletedFilter()}]};
+    const filters: any = { $and: [{ $or:DatabaseUtils.getNotDeletedFilter() }]};
     // Filter on status preparing 
-    filters.$and.push({'inactive': false});
-    filters.$and.push({'connectors.status': params.connectorStatus});
+    filters.$and.push({ 'connectors.status': params.connectorStatus });
     // Date before provided
     if (params.statusChangedBefore && moment(params.statusChangedBefore).isValid()) {
-      filters.$and.push({'connectors.statusLastChangedOn':{$lte:new Date(params.statusChangedBefore)}});
+      filters.$and.push({ 'connectors.statusLastChangedOn': { $lte: params.statusChangedBefore }});
     }   
     // Add in aggregation
     aggregation.push({$match: filters});

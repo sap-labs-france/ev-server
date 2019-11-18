@@ -17,7 +17,7 @@ export default class CheckPreparingSessionNotStartedTask extends SchedulerTask {
         message: 'The subtask \'CheckPreparingSessionNotStartedTask\' is being run'
       });
       // Compute the date some minutes ago
-      const someMinutesAgo = moment().subtract(config.preparingStatusMaxMins, 'minutes').toDate().toISOString();
+      const someMinutesAgo = moment().subtract(config.preparingStatusMaxMins, 'minutes').toDate();
       const params= { 'statusChangedBefore': someMinutesAgo, 'connectorStatus': Constants.CONN_STATUS_PREPARING };
       // Get Charging Stations
       const chargingStations = await ChargingStationStorage.getChargingStationsByConnectorStatus(tenant.id, params);

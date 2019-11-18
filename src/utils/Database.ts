@@ -185,7 +185,6 @@ export default class Database {
     dest.info = src.info;
     dest.vendorId = src.vendorId;
     dest.vendorErrorCode = src.vendorErrorCode;
-    dest.statusLastChangedOn = src.statusLastChangedOn;
   }
 
   static updateNotification(src, dest, forFrontEnd = true) {
