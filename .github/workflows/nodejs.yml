@@ -20,7 +20,7 @@ jobs:
     - name: npm install, lint and build:prod
       run: |
         npm ci
-        npm lint
+        npm run lint
         npm run build:prod
       env:
         CI: true
