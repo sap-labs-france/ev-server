@@ -123,10 +123,7 @@ export default class NotificationStorage {
     });
     // Read DB
     const notificationsMDB = await global.database.getCollection<any>(tenantID, 'notifications')
-      .aggregate(aggregation, {
-        collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 },
-        allowDiskUse: true
-      })
+      .aggregate(aggregation, { collation: { locale: Constants.DEFAULT_LOCALE, strength: 2 }, allowDiskUse: true })
       .toArray();
     // Debug
     Logging.traceEnd('NotificationStorage', 'getNotifications', uniqueTimerID, params);
