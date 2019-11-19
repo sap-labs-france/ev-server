@@ -366,7 +366,6 @@ export default class TransactionStorage {
         };
         break;
     }
-
     // Count Records
     const transactionsCountMDB = await global.database.getCollection<any>(tenantID, 'transactions')
       .aggregate([...aggregation, statsQuery], { allowDiskUse: true })
@@ -420,7 +419,6 @@ export default class TransactionStorage {
     }
     // Remove the limit
     aggregation.pop();
-
     // Not yet possible to remove the fields if stop/remoteStop does not exist (MongoDB 4.2)
     // DatabaseUtils.convertObjectIDToString(aggregation, 'stop.userID');
     // DatabaseUtils.convertObjectIDToString(aggregation, 'remotestop.userID');

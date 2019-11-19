@@ -234,7 +234,6 @@ export default class TransactionService {
         user: req.user
       });
     }
-
     // Handle active transactions
     const chargingStation = await ChargingStationStorage.getChargingStation(req.user.tenantID, transaction.chargeBoxID);
     if (!transaction.stop) {
