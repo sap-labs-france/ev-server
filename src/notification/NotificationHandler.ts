@@ -62,7 +62,7 @@ export default class NotificationHandler {
 
   static async getAdminUsers(tenantID: string, notificationKey?: UserNotificationKeys): Promise<User[]> {
     // Get admin users
-    const params = { email:'jean.pierre.demessant@sap.com', roles: [Constants.ROLE_ADMIN], notificationsActive: true, notifications: {} as UserNotifications };
+    const params = { roles: [Constants.ROLE_ADMIN], notificationsActive: true, notifications: {} as UserNotifications };
     if (notificationKey) {
       params.notifications[notificationKey] = true;
     }

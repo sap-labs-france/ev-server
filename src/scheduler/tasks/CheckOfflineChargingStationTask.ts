@@ -8,7 +8,6 @@ import NotificationHandler from '../../notification/NotificationHandler';
 import Utils from '../../utils/Utils';
 import _ from 'lodash';
 import Constants from '../../utils/Constants';
-import ChargingStation from '../../types/ChargingStation';
 
 export default class CheckOfflineChargingStationTask extends SchedulerTask {
 
@@ -22,9 +21,9 @@ export default class CheckOfflineChargingStationTask extends SchedulerTask {
       });
       // Compute the date some minutes ago
       const someMinutesAgo = moment().subtract(config.offlineChargingStationMins, 'minutes').toDate().toISOString();
-      const params= { 'offlineSince': someMinutesAgo };
+      const params = { 'offlineSince': someMinutesAgo };
       const chargers = await ChargingStationStorage.getChargingStations(tenant.id, params, Constants.DB_PARAMS_MAX_LIMIT);
-      for(const charger of chargers.result){
+      for (const charger of chargers.result) {
         // send notification
         NotificationHandler.sendOfflineChargingStation(
           tenant.id,
