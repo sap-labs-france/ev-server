@@ -18,11 +18,11 @@ export default class CheckPreparingSessionNotStartedTask extends SchedulerTask {
       });
       // Compute the date some minutes ago
       const someMinutesAgo = moment().subtract(config.preparingStatusMaxMins, 'minutes').toDate();
-      const params= { 'statusChangedBefore': someMinutesAgo, 'connectorStatus': Constants.CONN_STATUS_PREPARING };
+      const params = { 'statusChangedBefore': someMinutesAgo, 'connectorStatus': Constants.CONN_STATUS_PREPARING };
       // Get Charging Stations
       const chargingStations = await ChargingStationStorage.getChargingStationsByConnectorStatus(tenant.id, params);
       for (const chargingStation of chargingStations) {
-        // get site owner and then send notification
+        // Get site owner and then send notification
         // To be finished when the site owner feature is available
       }
     } catch (error) {

@@ -12,7 +12,7 @@ export default interface UserNotifications {
   sendChargingStationRegistered?: boolean;
   sendOcpiPatchStatusError?: boolean;
   sendSmtpAuthError?: boolean;
-  sendUserAccountInactivity?:boolean;
+  sendUserAccountInactivity?: boolean;
   sendPreparingSessionNotStarted?: boolean;
 }
 
@@ -46,7 +46,7 @@ export enum UserNotificationType {
   SESSION_NOT_STARTED = 'SessionNotStarted',
   USER_ACCOUNT_INACTIVITY = 'UserAccountInactivity',
   OFFLINE_CHARGING_STATION = 'OfflineChargingStation'
-};
+}
 
 export type InactivityStatusLevel =
  'info' |
