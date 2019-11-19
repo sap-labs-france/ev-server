@@ -62,7 +62,7 @@ export default class ChargingStationStorage {
     }
     // Filter on last heart beat
     if (params.offlineSince && moment(params.offlineSince).isValid()) {
-      filters.$and.push({ 'lastHeartBeat': { $lte: params.offlineSince }});
+      filters.$and.push({ 'lastHeartBeat': { $lte: params.offlineSince } });
     }
     // Add in aggregation
     aggregation.push({
@@ -176,7 +176,7 @@ export default class ChargingStationStorage {
   }
 
   public static async getChargingStationsByConnectorStatus(tenantID: string,
-      params: { statusChangedBefore?: Date, connectorStatus: string }): Promise<ChargingStation[]> {
+    params: { statusChangedBefore?: Date; connectorStatus: string }): Promise<ChargingStation[]> {
     // Debug
     const uniqueTimerID = Logging.traceStart('ChargingStationStorage', 'getChargingStationsPreparingSince');
     // Check Tenant
@@ -184,17 +184,17 @@ export default class ChargingStationStorage {
     // Create Aggregation
     const aggregation = [];
     // Flatten the charging stations records
-    aggregation.push({"$unwind":"$connectors"});
+    aggregation.push({'$unwind':'$connectors'});
     // Create filters
-    const filters: any = { $and: [{ $or:DatabaseUtils.getNotDeletedFilter() }]};
-    // Filter on status preparing 
+    const filters: any = { $and: [{ $or:DatabaseUtils.getNotDeletedFilter() }] };
+    // Filter on status preparing
     filters.$and.push({ 'connectors.status': params.connectorStatus });
     // Date before provided
     if (params.statusChangedBefore && moment(params.statusChangedBefore).isValid()) {
       filters.$and.push({ 'connectors.statusLastChangedOn': { $lte: params.statusChangedBefore }});
     }   
     // Add in aggregation
-    aggregation.push({$match: filters});
+    aggregation.push({ $match: filters });
     // Change ID
     DatabaseUtils.renameDatabaseID(aggregation);
     // Read DB
