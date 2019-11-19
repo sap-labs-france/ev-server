@@ -53,9 +53,9 @@ export default class RemotePushNotificationTask implements NotificationTask {
       { lastLogin: data.lastLogin });
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenantID, UserNotificationType.USER_ACCOUNT_INACTIVITY, title, body, user, {
-      lastLogin: data.lastLogin
-    },
-    severity
+        lastLogin: data.lastLogin
+      },
+      severity
     );
   }
 
@@ -69,8 +69,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenantID, UserNotificationType.SESSION_NOT_STARTED, title, body, user, {
       chargeBoxID: data.chargingStation
-    },
-    severity
+      },
+      severity
     );
   }
 
@@ -89,8 +89,8 @@ export default class RemotePushNotificationTask implements NotificationTask {
     // Send Notification
     return this.sendRemotePushNotificationToUser(tenantID, UserNotificationType.OFFLINE_CHARGING_STATION, title, body, user, {
       chargeBoxID: data.chargingStation
-    },
-    severity
+      },
+      severity
     );
   }
 
