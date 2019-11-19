@@ -1,13 +1,13 @@
-import { NotificationSeverity, UserNotificationType, PreparingSessionNotStartedNotification, UserAccountInactivityNotification, ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, VerificationEmailNotification, OfflineChargingStationNotification } from '../../types/UserNotifications';
-import Configuration from '../../utils/Configuration';
-import NotificationTask from '../NotificationTask';
 import * as admin from 'firebase-admin';
-import User from '../../types/User';
-import Logging from '../../utils/Logging';
-import Constants from '../../utils/Constants';
-import Utils from '../../utils/Utils';
 import i18n from 'i18n-js';
+import User from '../../types/User';
+import { ChargingStationRegisteredNotification, ChargingStationStatusErrorNotification, EndOfChargeNotification, EndOfSessionNotification, EndOfSignedSessionNotification, NewRegisteredUserNotification, NotificationSeverity, OCPIPatchChargingStationsStatusesErrorNotification, OptimalChargeReachedNotification, RequestPasswordNotification, SmtpAuthErrorNotification, TransactionStartedNotification, UnknownUserBadgedNotification, UserAccountStatusChangedNotification, UserNotificationType, VerificationEmailNotification } from '../../types/UserNotifications';
+import Configuration from '../../utils/Configuration';
+import Constants from '../../utils/Constants';
 import I18nManager from '../../utils/I18nManager';
+import Logging from '../../utils/Logging';
+import Utils from '../../utils/Utils';
+import NotificationTask from '../NotificationTask';
 
 export default class RemotePushNotificationTask implements NotificationTask {
   private firebaseConfig = Configuration.getFirebaseConfig();
