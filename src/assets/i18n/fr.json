@@ -41,6 +41,18 @@
 			"activated": "activé",
 			"suspended": "suspendu",
 			"body": "Votre compte a été {{status}} par un administrateur"
+		},
+		"userAccountInactivity": {
+			"title": "Inactivité Compte Utilisateur",
+			"body": "Votre compte est inactif depuis le {{lastLogin}}. Pour des raisons légales, les comptes inactifs depuis plus de 6 mois doivent être supprimés."
+		},
+		"preparingSessionNotStarted": {
+			"title": "Session Non Démarrée",
+			"body": "Session non démarrée sur la borne '{{chargeBoxID}}'."
+		},
+		"offlineChargingStation": {
+			"title": "Borne Hors Ligne",
+			"body": "la borne '{{chargeBoxID}}' est hors ligne."
 		}
 	}
 }

@@ -1,7 +1,7 @@
 import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import SchedulerTask from '../SchedulerTask';
-import { TaskConfig } from '../TaskConfig';
+import { TaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
 import TransactionStorage from '../../storage/mongodb/TransactionStorage';
 import Utils from '../../utils/Utils';

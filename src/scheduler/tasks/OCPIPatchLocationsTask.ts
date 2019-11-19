@@ -2,7 +2,7 @@ import Constants from '../../utils/Constants';
 import Logging from '../../utils/Logging';
 import OCPIClient from '../../client/ocpi/OCPIClient';
 import SchedulerTask from '../SchedulerTask';
-import { TaskConfig } from '../TaskConfig';
+import { TaskConfig } from '../../types/TaskConfig';
 import Tenant from '../../types/Tenant';
 import Utils from '../../utils/Utils';
 import OCPIEndpointStorage from '../../storage/mongodb/OCPIEndpointStorage';

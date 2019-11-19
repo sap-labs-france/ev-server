@@ -1,0 +1,34 @@
+{
+  "subject": "User Account Inactivity",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "User Account Inactivity",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Hi <%- (user.firstName?user.firstName:user.name) %>,",
+      "",
+      "You haven't used the e-Mobility application since <%- lastLogin %>.",
+      "",
+      "Please be aware that in order to comply with the general data protection regulation, accounts that have not been used during the last six months will be automatically deleted."
+    ],
+    "afterActionLines": [
+      "Best Regards,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
+

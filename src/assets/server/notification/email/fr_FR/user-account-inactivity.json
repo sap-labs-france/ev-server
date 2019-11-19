@@ -1,0 +1,34 @@
+{
+  "subject": "Compte Utilisateur Inactif",
+  "tenant": "",
+  "baseURL": "<%- evseDashboardURL %>",
+  "body": {
+    "header": {
+      "title": "Compte Utilisateur Inactif",
+      "image": {
+        "left": {
+          "height": 60,
+          "url": "<%- evseDashboardURL %>/assets/img/logo-email.gif"
+        },
+        "right": {
+          "height": 50,
+          "url": "<%- evseDashboardURL %>/assets/img/info.png"
+        }
+      }
+    },
+    "beforeActionLines": [
+      "Bonjour <%- (user.firstName?user.firstName:user.name) %>,",
+      "",
+      "Vous n'avez pas utitlisé l'application e-Mobility depuis le <%- lastLogin %>.",
+      "",
+      "Afin de respecter les régulations européennes sur la protection générale des données, les comptes inactifs depuis plus de 6 mois doivent être supprimés."
+    ],
+    "afterActionLines": [
+      "Cordialement,",
+      "EV Admins."
+    ],
+    "footer": {
+    }
+  }
+}
+
