@@ -89,10 +89,22 @@ export default class DatabaseUtils {
     });
   }
 
+  public static pushTagLookupInAggregation(lookupParams: DbLookup) {
+    DatabaseUtils.pushCollectionLookupInAggregation('tags', {
+      pipelineMatch: { deleted: false },
+      projectedFields: ['id', 'internal', 'provider'],
+      ...lookupParams
+    });
+  }
+
   public static pushCollectionLookupInAggregation(collection: string, lookupParams: DbLookup) {
     // Build Lookup's pipeline
+    if (!lookupParams.pipelineMatch) {
+      lookupParams.pipelineMatch = {};
+    }
+    lookupParams.pipelineMatch['$expr'] = { '$eq': [`$${lookupParams.foreignField}`, '$$fieldVar'] };
     const pipeline: any[] = [
-      { '$match': { '$expr': { '$eq': [`$${lookupParams.foreignField}`, '$$fieldVar'] } } }
+      { '$match': lookupParams.pipelineMatch }
     ];
     // Replace ID field
     DatabaseUtils.renameDatabaseID(pipeline);
@@ -116,7 +128,10 @@ export default class DatabaseUtils {
     // One record?
     if (lookupParams.oneToOneCardinality) {
       lookupParams.aggregation.push({
-        $unwind: { path: `$${lookupParams.asField}`, preserveNullAndEmptyArrays: !lookupParams.oneToOneCardinalityNotNull }
+        $unwind: {
+          path: `$${lookupParams.asField}`,
+          preserveNullAndEmptyArrays: !lookupParams.oneToOneCardinalityNotNull
+        }
       });
     }
   }
@@ -219,7 +234,7 @@ export default class DatabaseUtils {
   }
 
   // Temporary hack to fix user Id saving. fix all this when user is typed...
-  private static _mongoConvertUserID(obj: any, prop: string): ObjectID|null {
+  private static _mongoConvertUserID(obj: any, prop: string): ObjectID | null {
     if (!obj || !obj[prop]) {
       return null;
     }
@@ -250,7 +265,13 @@ export default class DatabaseUtils {
     DatabaseUtils.renameDatabaseID(aggregation, fieldName);
     // Handle null
     const addNullFields: any = {};
-    addNullFields[`${fieldName}`] = { $cond : { if: { $gt: [`$${fieldName}.id`, null] }, then: `$${fieldName}`, else: null } };
+    addNullFields[`${fieldName}`] = {
+      $cond: {
+        if: { $gt: [`$${fieldName}.id`, null] },
+        then: `$${fieldName}`,
+        else: null
+      }
+    };
     aggregation.push({ $addFields: addNullFields });
     // Project
     const projectFields: any = {};

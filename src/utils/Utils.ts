@@ -190,7 +190,7 @@ export default class Utils {
 
   public static checkAndUpdateConnectorsStatus(chargingStation: ChargingStation) {
     // Cannot charge in //
-    if (chargingStation.  cannotChargeInParallel) {
+    if (chargingStation.cannotChargeInParallel) {
       let lockAllConnectors = false;
       // Check
       for (const connector of chargingStation.connectors) {
@@ -982,11 +982,8 @@ export default class Utils {
       if (!filteredRequest.role) {
         filteredRequest.role = Constants.ROLE_BASIC;
       }
-    } else {
-      // Do not allow to change if not Admin
-      if (!Authorizations.isAdmin(req.user)) {
-        filteredRequest.role = user.role;
-      }
+    } else if (!Authorizations.isAdmin(req.user)) {
+      filteredRequest.role = user.role;
     }
     if (req.method === 'POST' && !filteredRequest.status) {
       filteredRequest.status = Constants.USER_STATUS_BLOCKED;
@@ -1106,28 +1103,18 @@ export default class Utils {
         actionOnUser: filteredRequest.id
       });
     }
-    if (filteredRequest.tagIDs) {
-      // Check
-      if (!Array.isArray(filteredRequest.tagIDs)) { // TODO: this piece is not very robust, and mutates filteredRequest even tho it's named "check". Should be changed, honestly
-        if (filteredRequest.tagIDs !== '') {
-          filteredRequest.tagIDs = filteredRequest.tagIDs.split(',');
-        }
-      }
-      if (!Utils._areTagIDsValid(filteredRequest.tagIDs)) {
+    if (filteredRequest.tags) {
+      if (!Utils._areTagIDsValid(filteredRequest.tags)) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: Constants.HTTP_GENERAL_ERROR,
-          message: `User Tags ${filteredRequest.tagIDs} is/are not valid`,
+          message: `User Tags ${filteredRequest.tags} is/are not valid`,
           module: 'UserService',
           method: 'checkIfUserValid',
           user: req.user.id,
           actionOnUser: filteredRequest.id
         });
       }
-    }
-    // At least one tag ID
-    if (!filteredRequest.tagIDs || filteredRequest.tagIDs.length === 0) {
-      filteredRequest.tagIDs = [Utils.generateTagID(filteredRequest.name, filteredRequest.firstName)];
     }
     if (filteredRequest.plateID && !Utils._isPlateIDValid(filteredRequest.plateID)) {
       throw new AppError({
@@ -1249,11 +1236,8 @@ export default class Utils {
     return /^(([^<>()\[\]\\.,;:\s@']+(\.[^<>()\[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/.test(email);
   }
 
-  private static _areTagIDsValid(tagIDs: string[] | string) {
-    if (typeof tagIDs === 'string') {
-      return /^[A-Za-z0-9,]*$/.test(tagIDs);
-    }
-    return tagIDs.filter((tagID) => /^[A-Za-z0-9,]*$/.test(tagID)).length === tagIDs.length;
+  private static _areTagIDsValid(tags: Tag[]) {
+    return tags.filter((tag) => /^[A-Za-z0-9,]*$/.test(tag.id)).length === tags.length;
   }
 
   private static _isPhoneValid(phone: string): boolean {

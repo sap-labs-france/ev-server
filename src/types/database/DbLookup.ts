@@ -9,4 +9,5 @@ export default interface DbLookup {
   projectedFields?: string[];
   oneToOneCardinality?: boolean;
   oneToOneCardinalityNotNull?: boolean;
+  pipelineMatch?: any;
 }

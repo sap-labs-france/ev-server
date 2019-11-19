@@ -1,4 +1,4 @@
-import { InactivityStatusLevel } from "./UserNotifications";
+import { InactivityStatusLevel } from './UserNotifications';
 
 export default interface Connector {
   connectorId: number;

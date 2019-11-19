@@ -82,8 +82,8 @@ describe('Authentication Service', function() {
       expect(user).to.have.property('status', 'P');
       expect(user).to.have.property('role', 'B');
       expect(user).to.have.property('locale', 'en_US');
-      expect(user.tagIDs).to.not.be.null;
-      expect(user.tagIDs).to.have.lengthOf(1);
+      expect(user.tags).to.not.be.null;
+      expect(user.tags).to.have.lengthOf(1);
       expect(user.eulaAcceptedHash).to.not.be.null;
       expect(user.eulaAcceptedOn).to.not.be.null;
       expect(user.eulaAcceptedVersion).to.not.be.null;

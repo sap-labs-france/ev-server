@@ -15,7 +15,11 @@ const userFactory = Factory.define('user')
   .attr('role', 'B')
   .attr('status', 'A')
   .attr('locale', 'en_US')
-  .attr('tagIDs', () => [faker.random.alphaNumeric(8).toUpperCase()]);
+  .attr('tags', () => [
+    { id: faker.random.alphaNumeric(8).toUpperCase(),
+      internal: true
+    }
+  ]);
 
 const registerUserFactory = Factory.define('user')
   .attr('firstName', () => faker.name.firstName())

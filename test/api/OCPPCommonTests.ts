@@ -250,9 +250,9 @@ export default class OCPPCommonTests {
 
   public async testAuthorizeUsers() {
     // Asserts that the start user is authorized.
-    await this.testAuthorize(this.transactionStartUser.tagIDs[0], 'Accepted');
+    await this.testAuthorize(this.transactionStartUser.tags[0].id, 'Accepted');
     // Asserts that the stop user is authorized.
-    await this.testAuthorize(this.transactionStopUser.tagIDs[0], 'Accepted');
+    await this.testAuthorize(this.transactionStopUser.tags[0].id, 'Accepted');
     // Asserts that the user with a too long tag is not authorized.
     await this.testAuthorize('ThisIsATooTooTooLongTag', 'Invalid');
   }
@@ -261,7 +261,7 @@ export default class OCPPCommonTests {
     // Start a new Transaction
     const response = await this.chargingStationContext.startTransaction(
       this.chargingStationConnector1.connectorId,
-      this.transactionStartUser.tagIDs[0],
+      this.transactionStartUser.tags[0].id,
       this.transactionStartMeterValue,
       this.transactionStartTime
     );
@@ -283,7 +283,7 @@ export default class OCPPCommonTests {
       expect(connector).not.null;
       expect(connector.activeTransactionID).eq(transactionId);
       expect(connector.activeTransactionDate).eq(this.transactionStartTime.toISOString());
-      expect(connector.activeTagID).eq(this.transactionStartUser.tagIDs[0]);
+      expect(connector.activeTagID).eq(this.transactionStartUser.tags[0].id);
     } else {
       this.newTransaction = null;
       expect(response).to.be.transactionStatus('Invalid');
@@ -301,7 +301,7 @@ export default class OCPPCommonTests {
     // Start the 2nd Transaction
     const response = await this.chargingStationContext.startTransaction(
       this.chargingStationConnector1.connectorId,
-      this.transactionStartUser.tagIDs[0],
+      this.transactionStartUser.tags[0].id,
       this.transactionStartMeterValue,
       this.transactionStartTime
     );
@@ -406,7 +406,7 @@ export default class OCPPCommonTests {
     this.transactionCurrentTime.add(this.transactionMeterValueIntervalSecs, 's');
 
     // Stop the Transaction
-    let response = await this.chargingStationContext.stopTransaction(this.newTransaction.id, this.transactionStopUser.tagIDs[0], this.transactionEndMeterValue, this.transactionCurrentTime);
+    let response = await this.chargingStationContext.stopTransaction(this.newTransaction.id, this.transactionStopUser.tags[0].id, this.transactionEndMeterValue, this.transactionCurrentTime);
     // Check
     expect(response.data).to.have.property('idTagInfo');
     expect(response.data.idTagInfo.status).to.equal('Accepted');
@@ -432,7 +432,7 @@ export default class OCPPCommonTests {
         'priceUnit': 'EUR',
         'pricingSource': 'simple',
         'roundedPrice': parseFloat(this.totalPrice.toFixed(2)),
-        'tagID': this.transactionStopUser.tagIDs[0],
+        'tagID': this.transactionStopUser.tags[0].id,
         'timestamp': this.transactionCurrentTime.toISOString(),
         'stateOfCharge': (withSoC ? this.transactionEndSoC : 0),
         'user': {
@@ -458,7 +458,7 @@ export default class OCPPCommonTests {
         'price': this.totalPrice,
         'pricingSource': 'simple',
         'roundedPrice': parseFloat(this.totalPrice.toFixed(2)),
-        'tagID': this.transactionStopUser.tagIDs[0],
+        'tagID': this.transactionStopUser.tags[0].id,
         'totalConsumption': this.transactionTotalConsumption,
         'totalInactivitySecs': this.transactionTotalInactivity,
         'stateOfCharge': (withSoC ? this.transactionEndSoC : 0),
@@ -1019,7 +1019,7 @@ export default class OCPPCommonTests {
       'timestamp': timestamp,
       'chargeBoxID': this.chargingStationContext.getChargingStation().id,
       'connectorId': connectorId,
-      'tagID': this.transactionStartUser.tagIDs[0],
+      'tagID': this.transactionStartUser.tags[0].id,
       'meterStart': meterStart,
       'user': {
         'id': this.transactionStartUser.id,

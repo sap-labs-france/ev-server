@@ -280,7 +280,7 @@ export default class Constants {
   public static readonly OCPI_ROLE = {
     CPO: 'CPO',
     EMSP: 'EMSP'
-  }
+  };
 
   // OCPI EVSE STATUS
   public static readonly EVSE_STATUS = {
@@ -366,7 +366,6 @@ export default class Constants {
     'image': 0,
     'address': 0,
     'plateID': 0,
-    'tagIDs': 0,
     'verificationToken': 0
   };
 

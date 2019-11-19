@@ -144,7 +144,7 @@ export default class TransactionStorage {
     await global.database.getCollection<Transaction>(tenantID, 'transactions').updateMany({
       $and: [
         { 'userID': null },
-        { 'tagID': { $in: user.tagIDs } }
+        { 'tagID': { $in: user.tags.map((tag) => tag.id) } }
       ]
     }, {
       $set: {
@@ -164,7 +164,7 @@ export default class TransactionStorage {
     const unassignedCount = await global.database.getCollection<Transaction>(tenantID, 'transactions').find({
       $and: [
         { 'userID': null },
-        { 'tagID': { $in: user.tagIDs } }
+        { 'tagID': { $in: user.tags.map((tag) => tag.id) } }
       ]
     }).count();
     // Debug

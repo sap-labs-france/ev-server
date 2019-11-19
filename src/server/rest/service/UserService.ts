@@ -292,20 +292,15 @@ export default class UserService {
     filteredRequest.lastChangedOn = new Date();
     // Clean up request
     delete filteredRequest.passwords;
-    // Resolve tagIDS
-    let newTagIDs;
-    if (filteredRequest.tagIDs) {
-      newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? filteredRequest.tagIDs.split(',') : filteredRequest.tagIDs;
-      newTagIDs = newTagIDs.filter((newTagID) => typeof newTagID === 'string');
-    }
+
     // Check User validity
     Utils.checkIfUserValid(filteredRequest, user, req);
     // Check if Tag IDs are valid
-    await Utils.checkIfUserTagIDsAreValid(user, newTagIDs, req);
+    await Utils.checkIfUserTagIDsAreValid(user, filteredRequest.tags, req);
     // For integration with Billing
     const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     // Update user
-    user = { ...user, ...filteredRequest, tagIDs: [] };
+    user = { ...user, ...filteredRequest, tags: [] };
     // Update User (override TagIDs because it's not of the same type as in filteredRequest)
     await UserStorage.saveUser(req.user.tenantID, user, true);
     if (billingImpl) {
@@ -322,7 +317,7 @@ export default class UserService {
     // Save Admin info
     if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       // Save Tags
-      await UserStorage.saveUserTags(req.user.tenantID, filteredRequest.id, newTagIDs);
+      await UserStorage.saveUserTags(req.user.tenantID, filteredRequest.id, filteredRequest.tags);
       // Save User Status
       if (filteredRequest.status) {
         await UserStorage.saveUserStatus(req.user.tenantID, user.id, filteredRequest.status);
@@ -968,5 +963,4 @@ export default class UserService {
       });
     }
   }
-
 }
