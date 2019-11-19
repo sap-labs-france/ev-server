@@ -18,6 +18,7 @@ import Utils from '../utils/Utils';
 import UserNotifications from '../types/UserNotifications';
 import SettingStorage from '../storage/mongodb/SettingStorage';
 import { PricingSettingsType } from '../types/Setting';
+import Tag from '../types/Tag';
 
 export default class Authorizations {
 
@@ -668,7 +669,13 @@ export default class Authorizations {
       // Save User
       user.id = await UserStorage.saveUser(tenantID, user);
       // Save User TagIDs
-      await UserStorage.saveUserTags(tenantID, user.id, [tagID]);
+      const tag: Tag = {
+        id: tagID,
+        deleted: false,
+        internal: false,
+        userID: user.id
+      };
+      await UserStorage.saveUserTags(tenantID, user.id, [tag]);
       // Save User Status
       await UserStorage.saveUserStatus(tenantID, user.id, user.status);
       // Save User Role

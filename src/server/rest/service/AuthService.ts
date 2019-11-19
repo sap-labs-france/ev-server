@@ -247,9 +247,7 @@ export default class AuthService {
     }
     // Save User Status
     await UserStorage.saveUserStatus(tenantID, newUser.id, Constants.USER_STATUS_PENDING);
-    // Save User Tags
-    const tagIDs = [newUser.name[0] + newUser.firstName[0] + Utils.getRandomInt()];
-    await UserStorage.saveUserTags(tenantID, newUser.id, tagIDs);
+
     // Save User password
     await UserStorage.saveUserPassword(tenantID, newUser.id,
       {

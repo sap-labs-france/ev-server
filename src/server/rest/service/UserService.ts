@@ -77,7 +77,7 @@ export default class UserService {
     }
     // Get Sites
     for (const siteID of filteredRequest.siteIDs) {
-      if (!SiteStorage.siteExists(req.user.tenantID, siteID)) {
+      if (!await SiteStorage.siteExists(req.user.tenantID, siteID)) {
         throw new AppError({
           source: Constants.CENTRAL_SERVER,
           errorCode: Constants.HTTP_OBJECT_DOES_NOT_EXIST_ERROR,
@@ -723,12 +723,7 @@ export default class UserService {
     }
     // Filter
     const filteredRequest = UserSecurity.filterUserCreateRequest(req.body, req.user);
-    // Resolve tagIDS
-    let newTagIDs;
-    if (filteredRequest.tagIDs) {
-      newTagIDs = (typeof filteredRequest.tagIDs === 'string') ? filteredRequest.tagIDs.split(',') : filteredRequest.tagIDs;
-      newTagIDs = newTagIDs.filter((newTagID) => typeof newTagID === 'string');
-    }
+
     // Check Mandatory fields
     Utils.checkIfUserValid(filteredRequest, null, req);
     // Get the email
@@ -745,7 +740,7 @@ export default class UserService {
       });
     }
     // Check if Tag IDs are valid
-    await Utils.checkIfUserTagIDsAreValid(null, newTagIDs, req);
+    await Utils.checkIfUserTagIDsAreValid(null, filteredRequest.tags, req);
     // Clean request
     delete filteredRequest.passwords;
     // Set timestamp
@@ -754,7 +749,7 @@ export default class UserService {
     // For integration with billing
     const billingImpl = await BillingFactory.getBillingImpl(req.user.tenantID);
     // Create the User
-    const newUserID = await UserStorage.saveUser(req.user.tenantID, { ...filteredRequest, tagIDs: [] }, true);
+    const newUserID = await UserStorage.saveUser(req.user.tenantID, filteredRequest, true);
     if (billingImpl) {
       const billingData = await billingImpl.createUser(req);
       await UserStorage.saveUserBillingData(req.user.tenantID, newUserID, billingData);
@@ -768,7 +763,7 @@ export default class UserService {
     // Save Admin Data
     if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
       // Save the Tag IDs
-      await UserStorage.saveUserTags(req.user.tenantID, newUserID, newTagIDs);
+      await UserStorage.saveUserTags(req.user.tenantID, newUserID, filteredRequest.tags);
       // Save User Status
       if (filteredRequest.status) {
         await UserStorage.saveUserStatus(req.user.tenantID, newUserID, filteredRequest.status);

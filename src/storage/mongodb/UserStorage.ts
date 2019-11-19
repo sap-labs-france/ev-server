@@ -293,7 +293,7 @@ export default class UserStorage {
     return userMDB._id.toHexString();
   }
 
-  public static async saveUserTags(tenantID: string, userID: string, userTagIDs: string[]): Promise<void> {
+  public static async saveUserTags(tenantID: string, userID: string, userTags: Tag[]): Promise<void> {
     // Debug
     const uniqueTimerID = Logging.traceStart('UserStorage', 'saveUserTags');
     // Check Tenant
@@ -316,7 +316,7 @@ export default class UserStorage {
         }));
     }
     // Debug
-    Logging.traceEnd('UserStorage', 'saveUserTags', uniqueTimerID, { id: userID, tags: userTagIDs });
+    Logging.traceEnd('UserStorage', 'saveUserTags', uniqueTimerID, { id: userID, tags: userTags });
   }
 
   public static async saveUserPassword(tenantID: string, userID: string,

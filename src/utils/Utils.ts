@@ -25,6 +25,7 @@ import Cypher from './Cypher';
 import passwordGenerator = require('password-generator');
 import { InactivityStatusLevel } from '../types/UserNotifications';
 import OCPIEndpoint from '../types/OCPIEndpoint';
+import Tag from '../types/Tag';
 
 const _centralSystemFrontEndConfig = Configuration.getCentralSystemFrontEndConfig();
 const _tenants = [];
@@ -934,17 +935,17 @@ export default class Utils {
     }
   }
 
-  public static async checkIfUserTagIDsAreValid(user: User, tagIDs: string[], req: Request) {
+  public static async checkIfUserTagIDsAreValid(user: User, tags: Tag[], req: Request) {
     // Check that the Badge ID is not already used
     if (Authorizations.isAdmin(req.user) || Authorizations.isSuperAdmin(req.user)) {
-      for (const tagID of tagIDs) {
-        const foundUser = await UserStorage.getUserByTagId(req.user.tenantID, tagID);
+      for (const tag of tags) {
+        const foundUser = await UserStorage.getUserByTagId(req.user.tenantID, tag.id);
         if (foundUser && (!user || (foundUser.id !== user.id))) {
           // Tag already used!
           throw new AppError({
             source: Constants.CENTRAL_SERVER,
             errorCode: Constants.HTTP_USER_TAG_ID_ALREADY_USED_ERROR,
-            message: `The Tag ID '${tagID}' is already used by User '${Utils.buildUserFullName(foundUser)}'`,
+            message: `The Tag ID '${tag.id}' is already used by User '${Utils.buildUserFullName(foundUser)}'`,
             module: 'Utils',
             method: 'checkIfUserTagsAreValid',
             user: req.user.id
