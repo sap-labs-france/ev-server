@@ -249,7 +249,10 @@ const GRANTS = {
       {
         resource: 'Transaction', action: ['Read', 'RefundTransaction'], attributes: ['*'],
         condition: { Fn: 'LIST_CONTAINS', args: { 'sitesOwner': '$.site' } }
-      }
+      },
+      {
+        resource: 'Report', action: ['Read'], attributes: ['*']
+      },
     ]
   },
 };
